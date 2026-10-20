@@ -400,7 +400,8 @@ Run on an HTML page (`bestax-migrate bulma-classes page.html`, or a folder with 
 codemod writes a module beside the page and runs everything above on it, so a page gets the same
 TODOs its markup would as JSX. What a component can't carry gets an `html-*` rule. TODOs about the
 whole page sit above the component, the rest above its `return`, and each ends with the page and
-the line it came from (`(index.html:42)`). The page itself stays as it was, so the code a TODO
+the line it came from (`(index.html:42)`), or every line, for a TODO several elements share
+(`(index.html:42, 57)`). The page itself stays as it was, so the code a TODO
 points at is still there to read. A rule names only a tag, an attribute or a fixed word, never
 anything the page says.
 
@@ -414,6 +415,11 @@ A component renders into the `<body>` of the app's own document, so nothing in t
   it into the head; React 18 leaves it in the body, so use `document.title` in an effect there.
 - **`html-head:meta`**: `charset` and `viewport` go once in the app's `index.html`. A page's own
   (a description, Open Graph tags) go where the app sets each page's head.
+- **`html-head:csp`**: a `<meta http-equiv="Content-Security-Policy">`. Its policy was written for
+  what the page loads, and copied into `index.html` as it is, it can block what the app loads
+  instead: a Vite dev server runs an inline script for React's fast refresh and opens a socket for
+  hot reloading, and the build serves the app's own scripts, styles and fonts. Write the app's own
+  policy, best sent as a response header, and try it under both the dev server and the build.
 - **`html-head:link`**: icons, preconnects and preloads are app-wide, so keep them in
   `index.html`; a `canonical` is per page.
 - **`html-head:style`**: the `<style>` block was dropped. Move its rules into the app's stylesheet.
@@ -586,7 +592,9 @@ read for the burger, a carousel and a theme toggle too, and its TODO names the f
   app loads paints the right one, and the toggle's state starts from what it wrote. The
   bestax-theming skill covers `Theme` and `colorMode`, and its `examples/dark-mode.tsx` has the
   script and the app's side.
-- **`html-script:json-ld`** is structured data for search engines. Render it where the app sets
+- **`html-script:json-ld`** is structured data for search engines. Data about the whole site, or
+  about a single-page app's one page, goes in the app's `index.html` as it is, where a crawler that
+  runs no JavaScript still reads it. Data that differs from page to page goes where the app sets
   each page's head, as
   `<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />`.
 - **`html-script`**: any other inline script, or a `<script type>` that isn't code (a template,
@@ -604,8 +612,9 @@ The app's document has its own `<html>` and `<body>`, which a component can't re
   bestax's `Navbar` adds none there, whatever its `fixed` says.
 - **`html-document:data-theme`**, **`html-document:theme-dark`**, **`html-document:theme-light`**:
   the page's color scheme. Put it on the `<html>` in `index.html`, where the first paint has it.
-  `<Theme colorMode="dark">` writes `data-theme` on `<html>` too, but from an effect, after a
-  first frame in the visitor's OS scheme, so keep it for a scheme the visitor switches.
+  For a scheme the visitor switches, `Theme colorMode` writes the choice only after that paint,
+  so write a saved one before it too, as `html-script:theme` says and the bestax-theming skill's
+  `examples/dark-mode.tsx` does.
 - **`html-document:lang`**, **`html-document:dir`**: set them on the `<html>` in `index.html`.
 - **`html-document:class`**: the page's own classes on `<html>` or `<body>`. Put them on the
   app's own `<body>` (or `<html>`), or on an element around the page's content if the styles
@@ -656,6 +665,12 @@ than `this`. A `<body onload>` becomes an effect.
 - **`html-attr:name`**: an attribute JSX can't write (`@click`, `:class`, `x-on:click`), or one the
   element already had under another spelling, was left out. A framework's directive is code to port
   into the component.
+- **`html-attr:stray`**: a stray character in a tag, with no letter or digit in it (`\` in
+  `<figure class="image" \>`, a typo for `/>`), which the browser read as the name of an empty
+  attribute. It was left out, so there is nothing to port; delete it from the page too.
+- **`html-attr:ignored`**: an attribute HTML gives the element no meaning for, so the browser
+  ignored it, and React's types reject it there: `type` on a `<textarea>`. It was left out, so the
+  module typechecks. Nothing reads it, unless a stylesheet or script of the page's selects on it.
 - **`html-attr:unknown`**: an attribute React has no prop for by that name, written as it was.
   React renders it. Whether a TypeScript build takes it depends on the element (React's types
   list `valign` on a `<td>` and not on a `<th>`), so the TODO doesn't say; what to do depends on

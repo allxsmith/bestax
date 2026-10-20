@@ -193,7 +193,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Displays a loading spinner. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn, and in forced colors (Windows' contrast themes) the label stays hidden behind it (with bestax's CSS loaded).",
+          "description": "Displays a loading spinner, with everything inside the button hidden behind it, in forced colors (Windows' contrast themes) too. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn. Bulma alone hides only the label, so the rest needs bestax's CSS loaded.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -387,7 +387,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Displays a loading spinner. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn, and in forced colors (Windows' contrast themes) the label stays hidden behind it (with bestax's CSS loaded).",
+          "description": "Displays a loading spinner, with everything inside the button hidden behind it, in forced colors (Windows' contrast themes) too. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn. Bulma alone hides only the label, so the rest needs bestax's CSS loaded.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -563,7 +563,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Shows Bulma's spinner in place of the label and holds the toggle where it is: a click, Enter or Space does nothing, so neither `onClick` nor `onPressedChange` fires, until it's cleared. Set it while a change is saving. The button carries `aria-busy` and `aria-disabled` meanwhile, and stays focusable, so focus isn't lost mid-save. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn, and in forced colors (Windows' contrast themes) the label stays hidden behind it (with bestax's CSS loaded).",
+          "description": "Shows Bulma's spinner in place of its content and holds the toggle where it is: a click, Enter or Space does nothing, so neither `onClick` nor `onPressedChange` fires, until it's cleared. Set it while a change is saving. The button carries `aria-busy` and `aria-disabled` meanwhile, and stays focusable, so focus isn't lost mid-save. Everything inside it is hidden behind the spinner, in forced colors (Windows' contrast themes) too, and under `prefers-reduced-motion: reduce` the spinner stops and stays drawn. Bulma alone hides only the label, so the rest needs bestax's CSS loaded.",
           "required": false,
           "inherited": false,
           "deprecated": false

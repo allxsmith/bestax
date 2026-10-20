@@ -133,9 +133,10 @@ Notes:
   `bulma/sass/components/dropdown` next to `scss/components/contextmenu`.
 - `Loader` is stock Bulma styled by `bulma/sass/elements/loader`, and the `isLoading`
   spinners on `Button`, `Control` and `Select` are Bulma's too. The `loader` extras partial
-  stops all of them under `prefers-reduced-motion: reduce`, keeps each ring open in forced
-  colors (Windows' contrast themes), and keeps a loading button's label hidden there, so
-  include it (`as bestax-loader`) next to the Bulma modules in any build that shows one. Its
+  stops all of them under `prefers-reduced-motion: reduce`, hides everything inside a loading
+  button where Bulma hides only the label, and keeps each ring open in forced colors (Windows'
+  contrast themes), so include it (`as bestax-loader`) next to the Bulma modules in any build
+  that shows one. Its
   rules win over Bulma's either way, so the order of the two `@use` lines does not matter.
 - `Progress` and the skeletons are stock Bulma too (`bulma/sass/elements/progress`,
   `bulma/sass/base/skeleton`). The `progress` and `skeleton` extras partials
