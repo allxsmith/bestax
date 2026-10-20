@@ -30,6 +30,7 @@ export const KINDS: ReadonlySet<string> = new Set([
   'dynamic-class',
   'family',
   'legacy',
+  'modifier',
   'only-child',
   'ref',
   'second-component',

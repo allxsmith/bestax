@@ -839,6 +839,7 @@ export async function bulmaClassTable() {
     wrappers: map.WRAPPERS,
     helpers: Object.fromEntries(map.HELPER_TOKENS),
     legacy: map.LEGACY_09,
+    replaced: map.REPLACED_IN_V1,
     removed: [...map.REMOVED_IN_V1].sort(byCodePoint),
     passthrough: map.PASSTHROUGH.map(group => ({
       why: group.why,
