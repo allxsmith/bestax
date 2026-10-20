@@ -36,6 +36,14 @@
   opacity: 0 !important;
 }
 
+// Opacity doesn't take anything out of the tab order, though, and a button
+// rendered as a `<div>` or a `<span>` can hold a link. A child that has focus,
+// or holds it, comes back while it does, so focus is never on something
+// nobody can see.
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading > :focus-within {
+  opacity: 1 !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .#{iv.$class-prefix}loader,
   .#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading::after,
