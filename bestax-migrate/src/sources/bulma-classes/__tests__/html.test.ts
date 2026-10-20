@@ -647,6 +647,30 @@ describe('the report', () => {
       /export default function CasePage\(\) \{\n {2}\/\/ TODO\(bestax-migrate\): bestax `Box` renders/
     );
   });
+
+  it("converts a page's Bulma 0.9 spacing, and flags an image size away from its image, with its line", () => {
+    const page = path.join(fixturesDir, 'spacing.html');
+    const source = [
+      '<section class="section is-paddingless">',
+      '  <p class="has-text-centered marginless">Centered</p>',
+      '  <p class="is-marginless">Flush</p>',
+      '  <div class="is-marginless">Plain</div>',
+      '  <figure class="is-64x64"><img src="/a.png" alt="A"></figure>',
+      '</section>',
+    ].join('\n');
+    const { output, entries } = convert(source, {}, page);
+    expect(output).toContain('<Section p="0">');
+    expect(output).toContain(
+      '<Paragraph textAlign="centered" className="marginless">'
+    );
+    expect(output).toContain('<Paragraph m="0">');
+    expect(
+      entries.map(({ file, line, rule }) => ({ file, line, rule }))
+    ).toEqual([
+      { file: page, line: 4, rule: 'legacy:is-marginless' },
+      { file: page, line: 5, rule: 'modifier:image' },
+    ]);
+  });
 });
 
 describe('the stylesheets and scripts it loads', () => {

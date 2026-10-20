@@ -1,4 +1,4 @@
-import { Box, Cell, Column, Columns, Figure, Grid, Paragraph, Span } from "@allxsmith/bestax-bulma";
+import { Box, Cell, Column, Columns, Figure, Grid, Paragraph, Section, Span } from "@allxsmith/bestax-bulma";
 export function Layout() {
   return (
     <section>
@@ -27,5 +27,15 @@ export function StaysBeside() {
         <Column>The gutter is Columns&apos; own gap</Column>
       </Columns>
     </section>
+  );
+}
+
+export function Bulma09Spacing() {
+  return (
+    <Section p="0">
+      <Box p="0">Bulma 0.9&apos;s, as v1&apos;s</Box>
+      <Paragraph textAlign="centered" m="0">Centered, no margin</Paragraph>
+      <Paragraph textAlign="centered" className="marginless">v1&apos;s own name stays</Paragraph>
+    </Section>
   );
 }
