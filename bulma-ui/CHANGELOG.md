@@ -1,3 +1,18 @@
+## [5.39.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.39.0...@allxsmith/bestax-bulma@5.39.1) (2026-10-20)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** give a removed helper's hint wherever the lookup keeps it ([9389213](https://github.com/allxsmith/bestax/commit/9389213b7387dbacd0b4193c3eeb8eafa0afe081))
+* **bestax-mcp:** write Bulma 0.9's removed spacing helpers as the v1 prop ([f62b62a](https://github.com/allxsmith/bestax/commit/f62b62a15786fae860c9a240a7fb5d94ecda5a9e)), closes [#1167](https://github.com/allxsmith/bestax/issues/1167)
+* **bestax-migrate:** convert Bulma 0.9's removed spacing helpers and flag stray image sizes ([f1a67ef](https://github.com/allxsmith/bestax/commit/f1a67ef9130bd153b197de1657d44bf4811a8ecd)), closes [#1167](https://github.com/allxsmith/bestax/issues/1167)
+* **bestax-migrate:** let a live spacing class keep its prop over a removed 0.9 helper ([02e1a0b](https://github.com/allxsmith/bestax/commit/02e1a0b3cd91c0bccadf5718f1cb4e2aae0aaf1e))
+* **bestax-migrate:** promise a modifier:image re-run only where Image can render the tag ([415f9b8](https://github.com/allxsmith/bestax/commit/415f9b8405e8caa845228c44be64730a1ee57abf))
+* **bulma-ui:** hide everything inside a loading button, in every color mode ([811fe2b](https://github.com/allxsmith/bestax/commit/811fe2b363d64ce1a61479959e0ed71fe28749f5)), closes [#1194](https://github.com/allxsmith/bestax/issues/1194)
+* **bulma-ui:** keep a Modal's Tab trap on its nodes after a portal move ([2b61209](https://github.com/allxsmith/bestax/commit/2b61209a80a7d1f255981abbdb55488adcbf2e5f))
+* **bulma-ui:** show a loading button's child while it holds focus ([b51fcb4](https://github.com/allxsmith/bestax/commit/b51fcb4cc188c02e2dd73e72ae143679d90db86d))
+* **bulma-ui:** wrap Tab in a Modal at the stops Tab really visits ([a2a3068](https://github.com/allxsmith/bestax/commit/a2a3068c2b53238fc3e4d6cf7ed01ca72680f11d)), closes [#1188](https://github.com/allxsmith/bestax/issues/1188) [#1203](https://github.com/allxsmith/bestax/issues/1203)
+
 # [5.39.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.38.1...@allxsmith/bestax-bulma@5.39.0) (2026-10-19)
 
 

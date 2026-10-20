@@ -1079,6 +1079,19 @@ function onlyChildOf(
     : undefined;
 }
 
+/**
+ * The rules of the gates that leave a whole file alone. Their TODO is about
+ * the file, though it sits on the first element that would convert, so no
+ * line of the file is where it came from.
+ */
+export const FILE_RULES = [
+  'jsx-runtime',
+  'imports',
+  'styled-jsx',
+  'rsc',
+] as const;
+type FileRule = (typeof FILE_RULES)[number];
+
 export default function transform(
   fileInfo: FileInfo,
   api: API,
@@ -1628,7 +1641,7 @@ export default function transform(
   // A gate speaks only when an element would convert: its TODO says what to
   // change so a re-run converts them, which is noise when a re-run could not.
   const converting = elements.some(element => element.converts);
-  const block = (rule: string, message: string): void => {
+  const block = (rule: FileRule, message: string): void => {
     if (converting) addTodo(ctx, elements[0].path, rule, message);
     for (const element of elements) {
       element.plan = { ...element.plan, conversion: null, fold: undefined };

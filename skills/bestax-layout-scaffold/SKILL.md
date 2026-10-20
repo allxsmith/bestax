@@ -110,8 +110,12 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   other: `<TreeView aria-label="Files" selectionMode="single">` with `selected`/`onSelectedChange`
   picks one, and `selectionMode="checkbox"` with `checked`/`onCheckedChange` draws boxes with
   mixed parents, where a parent's value checks its whole branch. Map the data with a recursive
-  function, and render an item's children whether it's open or not. Its items aren't links, so
-  the app's sidebar and any list of pages stay on `Menu` with `Menu.Item href`.
+  function, and render an item's children whether it's open or not. A folder that loads when it
+  opens takes `hasChildren`, `isLoading` while its children are on their way, and
+  `loadError="Couldn't load src"` with `onRetry` when the load fails, setting `isLoading` again
+  while the retry runs: the tree draws the Loading… and Retry rows and announces them, so don't
+  hand-write a placeholder item. Its items aren't
+  links, so the app's sidebar and any list of pages stay on `Menu` with `Menu.Item href`.
 - **A sidebar whose groups of links open and close is `Menu.Section`**, one per group, directly
   in `Menu` (never inside a `Menu.Item` or `Menu.List`):
   `<Menu.Section label="Components" defaultOpen>` around that group's `Menu.List`, with

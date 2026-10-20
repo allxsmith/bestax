@@ -19,6 +19,11 @@ export interface TreeViewItemRecord {
 export interface TreeViewItemInfo extends TreeViewItemRecord {
   value: string;
   open: boolean;
+  /**
+   * A failed load's row: what Enter, Space and a click on it do, in place of
+   * what the mode says.
+   */
+  retry?: () => void;
 }
 
 /** A box's state: checked, unchecked or mixed. */
@@ -59,7 +64,11 @@ const MIRRORED: Record<string, string> = {
 const isComposing = (event: React.KeyboardEvent): boolean =>
   event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229;
 
-/** The items a tree knows, and their elements while they're on the page. */
+/**
+ * The items a tree knows, and their elements while they're on the page. A
+ * loading item's row, or a failed load's, hands over its element under a key
+ * of its own and has no record, so the keys reach it and nothing else counts it.
+ */
 interface Registry {
   records: Map<string, TreeViewItemRecord>;
   // By value, for an item whose ref lets go, which hands over no element.
@@ -358,6 +367,12 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
     if (!item.disabled) list.forEach(action => run[action](item));
   };
 
+  /** Enter, Space and a click on the row: a failed load's row retries. */
+  const press = (item: TreeViewItemInfo, list: Action[]) => {
+    if (item.retry) item.retry();
+    else act(item, list);
+  };
+
   // After every render, put the stop where it belongs. While focus is in
   // the tree it's the focused item. Otherwise it's the selected item, or the
   // first checked one on the page, and failing that it stays where it was.
@@ -485,10 +500,10 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
         break;
       // A held key acts once.
       case 'Enter':
-        if (!event.repeat) act(item, actions.enter);
+        if (!event.repeat) press(item, actions.enter);
         break;
       case ' ':
-        if (!event.repeat) act(item, actions.space);
+        if (!event.repeat) press(item, actions.space);
         break;
       case '*': {
         const closed: string[] = [];
@@ -522,7 +537,8 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
     onToggle: boolean
   ) => {
     element.focus();
-    act(item, onToggle ? ['open'] : actions.click);
+    if (onToggle) act(item, ['open']);
+    else press(item, actions.click);
   };
 
   return {
