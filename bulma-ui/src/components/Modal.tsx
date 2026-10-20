@@ -28,7 +28,7 @@ import { usePortalContainer } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { useOverlayStack } from '../helpers/overlayStack';
-import { firstTabStop, trapTab } from '../helpers/useFocusTrap';
+import { focusTabStop, trapTab } from '../helpers/useFocusTrap';
 
 /**
  * Props for the Modal component.
@@ -508,8 +508,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     previouslyFocusedRef.current =
       getDeepestActiveElement() as HTMLElement | null;
     const node = modalRootRef.current;
-    const focusable = node ? firstTabStop(node) : null;
-    (focusable ?? node)?.focus();
+    if (node) focusTabStop(node);
 
     return () => {
       // Only hand focus back if this modal still owns it: closing a background
