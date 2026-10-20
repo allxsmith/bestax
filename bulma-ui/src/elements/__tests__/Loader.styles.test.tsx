@@ -1390,6 +1390,44 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
     }
   });
 
+  it.each([
+    [
+      'rendered as a div',
+      <Button key="x" as="div" isLoading>
+        <a href="#details">Details</a>
+        <span>Saving</span>
+      </Button>,
+    ],
+    [
+      'rendered as a span',
+      <Button key="x" as="span" isLoading>
+        <span>
+          <a href="#details">Details</a>
+        </span>
+        <span>Saving</span>
+      </Button>,
+    ],
+  ] as Array<[string, React.ReactElement]>)(
+    'shows a child of a loading button while it holds focus, %s',
+    (_label, element) => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
+      );
+      const [holder, other] = Array.from(
+        container.querySelector(`.${prefix}button`)!.children
+      );
+      // Hidden like the rest until it has focus, since opacity leaves it in
+      // the tab order. Then it comes back, so focus is never on something
+      // nobody can see, and the rest stays hidden.
+      expect(resolved(rules, holder, '', {}, ['opacity'])).toBe('0');
+      container.querySelector<HTMLElement>('a')!.focus();
+      for (const when of [{}, { forcedColors: true }]) {
+        expect(resolved(rules, holder, '', when, ['opacity'])).toBe('1');
+        expect(resolved(rules, other, '', when, ['opacity'])).toBe('0');
+      }
+    }
+  );
+
   it('rings a focused loading button in forced colors, where its border holds still', () => {
     // The `!important` border above stops the browser recoloring it to show
     // focus, so the rules draw an outline instead, in its border color.
