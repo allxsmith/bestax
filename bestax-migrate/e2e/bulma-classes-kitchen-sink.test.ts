@@ -25,6 +25,7 @@ import {
   normalizeHtml,
   renderExports,
   withImplicitListRoles,
+  withV1Classes,
 } from './support/render-module.js';
 
 const packageRoot = path.join(
@@ -211,7 +212,9 @@ describe('bulma-classes kitchen-sink e2e', () => {
         'family:dropdown',
         'family:navbar-burger',
         'family:navbar-link',
+        'legacy:is-paddingless',
         'legacy:tile',
+        'modifier:image',
         'ref:Notification',
         'spread:Box',
         'tag:Section',
@@ -238,7 +241,10 @@ describe('bulma-classes kitchen-sink e2e', () => {
           Object.fromEntries(
             Object.entries(exported).map(([name, html]) => [
               name,
-              withImplicitListRoles(html, after[file]?.[name] ?? ''),
+              withImplicitListRoles(
+                withV1Classes(html, after[file]?.[name] ?? ''),
+                after[file]?.[name] ?? ''
+              ),
             ])
           ),
         ])
