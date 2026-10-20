@@ -1373,17 +1373,35 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
   it.each(
     RINGS.filter(
       ([name]) => !/Button isLoading$/.test(name) && name !== 'Loader'
+    ).map(([name, element]): [string, React.ReactElement] =>
+      // The roster's `Control` holds nothing, which would check nothing.
+      name === 'Control isLoading'
+        ? [
+            name,
+            <Control key="x" isLoading>
+              <Input />
+            </Control>,
+          ]
+        : [name, element]
     )
   )('leaves what is inside a loading field showing: %s', (_label, element) => {
     // The hide is for a loading button. A control, a select or a field
-    // marked loading keeps its input, its select and its own buttons.
+    // marked loading keeps itself, its input, its select and its own buttons.
+    // Autocomplete and Taginput mark an element with nothing inside, so for
+    // them it's the element itself that counts.
     const { container } = render(
       <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
     );
-    const inside = Array.from(
+    const loading = Array.from(
       container.querySelectorAll(`.${prefix}is-loading`)
-    ).flatMap(el => Array.from(el.querySelectorAll('*')));
-    for (const el of inside) {
+    );
+    // With nothing marked loading, it would pass whatever the sheet says.
+    expect(loading.length).toBeGreaterThan(0);
+    const shown = loading.flatMap(el => [
+      el,
+      ...Array.from(el.querySelectorAll('*')),
+    ]);
+    for (const el of shown) {
       for (const when of [{}, { forcedColors: true }]) {
         expect(resolved(rules, el, '', when, ['opacity'])).not.toBe('0');
       }
