@@ -2422,6 +2422,23 @@ describe('plan', () => {
       }
     });
 
+    it('writes a layout pair first, and a removed helper after a live one', () => {
+      // The pair claims its prop ahead of its base wherever they're written,
+      // and a removed 0.9 helper claims after every live class, so the two
+      // orders compose.
+      expect(
+        plan(
+          facts('div', 'field is-marginless has-addons m-2 has-addons-right')
+        ).conversion
+      ).toMatchObject({
+        props: [
+          ['hasAddons', 'right'],
+          ['m', '2'],
+        ],
+        className: 'is-marginless',
+      });
+    });
+
     it('keeps a layout class without the class its value renders beside', () => {
       const field = (className: string) =>
         plan(facts('div', className)).conversion;
