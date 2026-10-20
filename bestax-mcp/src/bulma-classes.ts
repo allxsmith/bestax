@@ -184,6 +184,11 @@ export interface BulmaClassTable {
   wrappers: Record<string, string>;
   helpers: Record<string, HelperRecord>;
   legacy: Record<string, string>;
+  /**
+   * Removed Bulma 0.9 helpers, each with the v1 helper whose prop it
+   * converts as (`is-marginless` as `m-0`'s `m="0"`).
+   */
+  replaced: Record<string, string>;
   /** Classes Bulma 0.9's stylesheet has and v1's does not. */
   removed: string[];
   passthrough: { why: string; match: string }[];
@@ -426,6 +431,13 @@ export function lookupClasses(
   const verdicts = new Map<string, Verdict>();
   const stays = (token: string, why: string) =>
     verdicts.set(token, { kind: 'class', why });
+  // A removed Bulma 0.9 helper that stays says what replaced it, whatever
+  // kept it: that is what there is to do about it.
+  const helperStays = (token: string, why: string) =>
+    stays(
+      token,
+      own(table.replaced, token) ? leftoverReason(table, token) : why
+    );
   const result = (element: Element): Lookup => ({
     tag,
     element,
@@ -476,7 +488,7 @@ export function lookupClasses(
         continue;
       }
       bare = false;
-      stays(token, `bestax renders \`.${wrapper}\` with no other class`);
+      helperStays(token, `bestax renders \`.${wrapper}\` with no other class`);
     }
     if (tag && tag !== entry.tag) {
       return result({
@@ -520,7 +532,7 @@ export function lookupClasses(
     if (tag && !wrapper) {
       const why = `bestax has no component for a plain <${tag}>, so its classes stay`;
       for (const token of tokens) {
-        if (own(table.helpers, token)) stays(token, why);
+        if (own(table.helpers, token)) helperStays(token, why);
       }
       return result({ kind: 'markup', why });
     }
@@ -562,7 +574,9 @@ export function lookupClasses(
       : undefined;
 
   // Each class as the root's modifier, else as a helper prop, in order; the
-  // first class to set a prop keeps it.
+  // first class to set a prop keeps it, but a Bulma 0.9 class v1 removed
+  // goes after every other, as in the planner, so a live class for the same
+  // prop keeps it whichever is written first (`is-paddingless p-2`).
   // What the component needs for its own class comes first, so no class can
   // take its prop (`variant="lines"` for `.skeleton-lines`).
   const writes = new Map<
@@ -576,7 +590,11 @@ export function lookupClasses(
   );
   /** The one class that picks the component's tag, as the codemod takes it. */
   let retaggedBy: string | undefined;
-  for (const token of tokens) {
+  const claiming = [
+    ...tokens.filter(token => !own(table.replaced, token)),
+    ...tokens.filter(token => own(table.replaced, token)),
+  ];
+  for (const token of claiming) {
     if (token === root) {
       verdicts.set(token, { kind: 'component', target: target! });
       continue;
@@ -634,7 +652,7 @@ export function lookupClasses(
     const helper = own(table.helpers, token);
     if (!helper) continue;
     if (entry.noHelpers) {
-      stays(token, `bestax \`${target}\` takes no helper props`);
+      helperStays(token, `bestax \`${target}\` takes no helper props`);
       continue;
     }
     const prop =
@@ -644,16 +662,16 @@ export function lookupClasses(
           ? entry.bgColor
           : helper.write.prop;
     if (!prop) {
-      stays(token, `bestax \`${target}\` has no prop that renders it`);
+      helperStays(token, `bestax \`${target}\` has no prop that renders it`);
       continue;
     }
     const leftOut = own(entry.helpersLeftOut, prop);
     if (leftOut) {
-      stays(token, leftOut);
+      helperStays(token, leftOut);
       continue;
     }
     if (writes.has(prop)) {
-      stays(
+      helperStays(
         token,
         `\`${prop}\` is already set by \`${writes.get(prop)!.token}\``
       );
@@ -667,11 +685,13 @@ export function lookupClasses(
     });
     const color =
       helper.group === 'text-color' || helper.group === 'background';
+    const v1 = own(table.replaced, token);
     verdicts.set(token, {
       kind: 'prop',
       writes: [write],
-      condition:
-        color && !target
+      condition: v1
+        ? `Bulma 1 removed \`${token}\`, so this renders its v1 class, \`${v1}\`, in its place`
+        : color && !target
           ? colorCondition(
               table,
               helper.group === 'text-color' ? 'textColor' : 'bgColor'
@@ -701,7 +721,7 @@ export function lookupClasses(
   const undo = (prop: string, why: string) => {
     const { token, value } = writes.get(prop)!;
     const named = value === true ? `\`${prop}\`` : `\`${prop}="${value}"\``;
-    stays(token, `${named} ${why}, so here it stays a class`);
+    helperStays(token, `${named} ${why}, so here it stays a class`);
     writes.delete(prop);
     undone = true;
   };

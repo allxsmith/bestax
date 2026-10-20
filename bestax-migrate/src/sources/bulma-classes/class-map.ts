@@ -6,11 +6,13 @@
  * Every conversion this table allows must render exactly the HTML the raw
  * element rendered. That is a claim about bestax, and the render tests hold
  * it: each root, modifier and helper here is rendered through the built
- * library and compared with the raw markup it replaces. One exception, on
- * purpose: Font Awesome's own `<i aria-hidden="true">` alone in a `.icon`
+ * library and compared with the raw markup it replaces. The exceptions are
+ * on purpose. Font Awesome's own `<i aria-hidden="true">` alone in a `.icon`
  * that carries nothing assistive tech reads converts to `Icon`, which writes
  * the attribute on the `.icon` instead, since the glyph is hidden either way
- * (see `readsGlyph`).
+ * (see `readsGlyph`). And a Bulma 0.9 helper v1 removed, which styles
+ * nothing under v1, converts as the v1 helper that does its job (see
+ * `REPLACED_IN_V1`).
  *
  * Data only: `scripts/gen-mcp-index.mjs` imports it directly for the MCP
  * server's `lookup_bulma_classes`, so nothing Node cannot strip (no enums, no
@@ -311,8 +313,8 @@ export interface RootEntry {
    * else, the target renders its children as given. An `<i>` that carries
    * the `aria-hidden` the target writes, as Font Awesome's own markup does,
    * reads too when the element carries nothing assistive tech reads: the
-   * attribute moves up onto it, the one difference in markup a conversion
-   * makes.
+   * attribute moves up onto it, a difference in markup a conversion makes
+   * on purpose.
    */
   readonly readsGlyph?: ReadsGlyph;
   /**
@@ -359,6 +361,12 @@ export interface RootEntry {
    * no prop for them.
    */
   readonly omits?: Readonly<Record<string, string>>;
+  /**
+   * Bulma styles this root's modifiers, and the classes it omits, only on
+   * the element that carries the root itself (`.image.is-64x64`), so on an
+   * element without it they do nothing, and the planner flags them.
+   */
+  readonly modifiersNeedRoot?: boolean;
 }
 
 // ---- Value vocabularies (held to @allxsmith/bestax-bulma/constants) --------
@@ -1939,6 +1947,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
         ])
       ),
     },
+    modifiersNeedRoot: true,
     absorbs: {
       tag: 'img',
       attributesOn: 'element',
@@ -2374,8 +2383,6 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   'theme-dark': plain('a theme scope; bestax sets themes through `Theme`'),
   'theme-light': plain('a theme scope; bestax sets themes through `Theme`'),
   fa: plain("Font Awesome's own class, styled by Bulma inside `.icon`"),
-  marginless: plain('a Bulma helper with no bestax prop'),
-  paddingless: plain('a Bulma helper with no bestax prop'),
 };
 
 function todo(target: string, why: string): RootEntry {
@@ -2571,6 +2578,23 @@ export const REMOVED_IN_V1: readonly string[] = [
 /** Bulma 0.9 classes v1 dropped, with what replaced them. */
 export const LEGACY_09: Readonly<Record<string, string>> = {
   tile: 'Bulma v1 removed tiles; rebuild the layout with `Grid` and `Cell` (see the Bulma 0.9 to 1 guide)',
+  'is-marginless':
+    'Bulma v1 removed `is-marginless`, so it styles nothing now; write v1\'s `m-0` in its place, or `m="0"` on a bestax component. The codemod does that itself wherever the element converts',
+  'is-paddingless':
+    'Bulma v1 removed `is-paddingless`, so it styles nothing now; write v1\'s `p-0` in its place, or `p="0"` on a bestax component. The codemod does that itself wherever the element converts',
+};
+
+/**
+ * Bulma 0.9 helpers v1 removed whose job a v1 helper does, with that helper.
+ * Each is a helper token for the v1 helper's prop, so wherever its element
+ * converts it becomes that prop, which renders the v1 class in its place:
+ * the conversion here that changes a class, since the class it replaces
+ * styles nothing under v1. Where its element stays markup, or the prop is
+ * not written, it gets its `LEGACY_09` TODO instead.
+ */
+export const REPLACED_IN_V1: Readonly<Record<string, string>> = {
+  'is-marginless': 'm-0',
+  'is-paddingless': 'p-0',
 };
 
 // ---- Helper classes -----------------------------------------------------------
@@ -2668,6 +2692,9 @@ export const HELPER_TOKENS: ReadonlyMap<string, HelperToken> = new Map([
   ...SPACING_PROPS.flatMap(prop =>
     helperTokens('spacing', `${prop}-`, SIZES, prop)
   ),
+  // Bulma 0.9's, as the v1 helper that replaced each (`REPLACED_IN_V1`).
+  ['is-marginless', { group: 'spacing', write: { prop: 'm', value: '0' } }],
+  ['is-paddingless', { group: 'spacing', write: { prop: 'p', value: '0' } }],
   ...helperTokens('typography', 'is-size-', TEXT_SIZES, 'textSize'),
   ...helperPerViewport(
     'typography',
@@ -2832,6 +2859,10 @@ export const PASSTHROUGH: ReadonlyArray<{
       /^(?:is-display-.+|is-visibility-.+|is-float-.+|is-clear-.+|has-text-weight-extrabold|is-align-content-(?:baseline|start|end)|is-align-items-self-(?:start|end)|is-offset-0(?:-[a-z]+)?)$/,
   },
   {
+    why: 'Bulma\'s other name for `m-0` or `p-0`, with the same rule; bestax writes that rule as `m="0"` or `p="0"`, which renders `m-0` or `p-0`, so the class stays as it is',
+    match: /^(?:marginless|paddingless)$/,
+  },
+  {
     why: 'a `.breadcrumb` separator, which converts only on its own `.breadcrumb`',
     match: /^has-[a-z]+-separator$/,
   },
@@ -2898,9 +2929,29 @@ export function modifierFor(
   return entry.modifiers ? own(entry.modifiers, token) : undefined;
 }
 
+/** Whether a root takes a class as a modifier, or omits it on purpose. */
+export function modifiesRoot(entry: RootEntry, token: string): boolean {
+  return (
+    modifierFor(entry, token) !== undefined ||
+    (entry.omits !== undefined && own(entry.omits, token) !== undefined)
+  );
+}
+
+/** The root a class modifies when Bulma styles it only on that root. */
+export function rootItNeeds(token: string): string | undefined {
+  return Object.keys(ROOTS).find(
+    root => ROOTS[root].modifiersNeedRoot && modifiesRoot(ROOTS[root], token)
+  );
+}
+
 /** What replaced a Bulma 0.9 class v1 removed. */
 export function legacyHint(token: string): string | undefined {
   return own(LEGACY_09, token);
+}
+
+/** The v1 helper a removed Bulma 0.9 helper converts as. */
+export function replacedBy(token: string): string | undefined {
+  return own(REPLACED_IN_V1, token);
 }
 
 /** The bestax wrapper for a plain tag. */
