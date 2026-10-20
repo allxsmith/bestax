@@ -1,3 +1,13 @@
+## [1.16.2](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.16.1...bestax-mcp@1.16.2) (2026-10-20)
+
+
+### Bug Fixes
+
+* **bulma-ui:** hide everything inside a loading button, in every color mode ([811fe2b](https://github.com/allxsmith/bestax/commit/811fe2b363d64ce1a61479959e0ed71fe28749f5)), closes [#1194](https://github.com/allxsmith/bestax/issues/1194)
+* **bulma-ui:** keep a Modal's Tab trap on its nodes after a portal move ([2b61209](https://github.com/allxsmith/bestax/commit/2b61209a80a7d1f255981abbdb55488adcbf2e5f))
+* **bulma-ui:** show a loading button's child while it holds focus ([b51fcb4](https://github.com/allxsmith/bestax/commit/b51fcb4cc188c02e2dd73e72ae143679d90db86d))
+* **bulma-ui:** wrap Tab in a Modal at the stops Tab really visits ([a2a3068](https://github.com/allxsmith/bestax/commit/a2a3068c2b53238fc3e4d6cf7ed01ca72680f11d)), closes [#1188](https://github.com/allxsmith/bestax/issues/1188) [#1203](https://github.com/allxsmith/bestax/issues/1203)
+
 ## [1.16.1](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.16.0...bestax-mcp@1.16.1) (2026-10-19)
 
 
