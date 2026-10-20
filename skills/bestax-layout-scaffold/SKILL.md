@@ -112,7 +112,8 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   mixed parents, where a parent's value checks its whole branch. Map the data with a recursive
   function, and render an item's children whether it's open or not. Its items aren't links, so
   the app's sidebar and any list of pages stay on `Menu` with `Menu.Item href`.
-- **A sidebar whose groups of links open and close is `Menu.Section`**, one per group:
+- **A sidebar whose groups of links open and close is `Menu.Section`**, one per group, directly
+  in `Menu` (never inside a `Menu.Item` or `Menu.List`):
   `<Menu.Section label="Components" defaultOpen>` around that group's `Menu.List`, with
   `defaultOpen` on the group holding the current page (or `open`/`onOpenChange` to hold the state).
   Its heading is a real button with `aria-expanded`, and its links stay links, each a tab stop.

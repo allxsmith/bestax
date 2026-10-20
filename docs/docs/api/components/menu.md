@@ -155,6 +155,10 @@ like `Menu.Label`, with a chevron that points down while the section is open, an
 it are the same `Menu.Item`s as anywhere else, with their `href`, `active` and `aria-current`.
 Give `defaultOpen` to the section that holds the current page, so the reader sees where they are.
 
+A section goes directly in `Menu`, beside any `Menu.Label`s and `Menu.List`s, and holds a
+`Menu.List`. Don't put one inside a `Menu.Item`, where it would render inside the item's link, or
+inside a `Menu.List`, where it wouldn't be a list item.
+
 ```tsx live
 <nav aria-label="Documentation">
   <Menu>
@@ -331,11 +335,17 @@ For `Menu.Section`, a section that opens and closes:
 - The links under it are ordinary links. Each is its own tab stop, and there's no roving focus or
   arrow-key handling, which is a tree's model rather than navigation's. They keep their `href`,
   so a link still opens in a new tab, and `active` still sets `aria-current="page"`.
-- A closed section's list is `hidden`, so it isn't drawn, Tab skips its links, and assistive tech
-  and find-in-page don't reach them. It stays in the page, so `aria-controls` always names an
-  element that exists, and a section rendered on the server is closed before any script runs.
+- A closed section's list is `hidden` and `inert`, so it isn't drawn, Tab skips its links, and
+  assistive tech and find-in-page don't reach them. `inert` keeps the links out of reach even if a
+  stylesheet sets `display` on the list and shows it. The list stays in the page, so
+  `aria-controls` always names an element that exists, and a section rendered on the server is
+  closed before any script runs.
 - Open the section that holds the current page, with `defaultOpen` or `open`, so the link marked
   `aria-current` can be seen and reached.
+- When the app closes a section while focus is on one of its links, as a sidebar that keeps only
+  the current route's section open does after a link is followed, focus moves to that section's
+  heading. Without that, the browser drops focus to the page, and the next Tab starts from the
+  top.
 - `label` is the button's content and its accessible name. Keep links and other buttons out of
   it.
 - In forced colors the chevron stays visible, since it's drawn as a border, and the focus ring
@@ -391,7 +401,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu 
 - `Menu.Label`: Bulma Menu label component.
 - `Menu.List`: MenuList applies `menu-list` class only at the top level (not for nested lists). Every level renders `role="list"`, which Safari needs: WebKit stops exposing a `<ul>` as a list once its markers are hidden, and Bulma's reset hides them.
 - `Menu.Item`: MenuItem supports `as` prop for custom link components, e.g., react-router-dom Link. Give each item an `href`, a router link through `as`, or `as="button"`, so the keyboard can reach it: an `<a>` with no `href` isn't a link, and Tab skips it.
-- `Menu.Section`: A section of the menu that opens and closes: its heading is a button drawn like `Menu.Label`, and its `Menu.List` of links shows while it's open. It's APG's disclosure navigation, for a sidebar of link groups: the links stay ordinary links, each its own tab stop, and a closed section's list is `hidden`, so Tab and assistive tech skip it.
+- `Menu.Section`: A section of the menu that opens and closes: its heading is a button drawn like `Menu.Label`, and its `Menu.List` of links shows while it's open. It's APG's disclosure navigation, for a sidebar of link groups: the links stay ordinary links, each its own tab stop, and a closed section's list is `hidden` and `inert`, so Tab and assistive tech skip it. It goes directly in `Menu`, holding a `Menu.List`. Closing it while focus is on one of its links moves focus to its heading.
 
 ### Menu.Label
 
@@ -429,15 +439,15 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu 
 
 ### Menu.Section
 
-| Prop           | Type                                                   | Default | Description                                                                                                                                                                                           |
-| -------------- | ------------------------------------------------------ | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `className`    | `string`                                               | —       | Additional CSS classes for the wrapping `<div>`.                                                                                                                                                      |
-| `label`        | `React.ReactNode`                                      | —       | **Required.** The section's heading, drawn like `Menu.Label` inside the button that opens and closes it. Keep links and buttons out of it, since it's inside one.                                     |
-| `children`     | `React.ReactNode`                                      | —       | The `Menu.List` of links the section shows while it's open.                                                                                                                                           |
-| `open`         | `boolean`                                              | —       | Controlled open state. If provided, the section is controlled, and its button only reports through `onOpenChange`.                                                                                    |
-| `defaultOpen`  | `boolean`                                              | `false` | Initial open state for uncontrolled usage. Open the section that holds the current page, so the reader sees where they are.                                                                           |
-| `onOpenChange` | `(open: boolean) => void`                              | —       | Called with the state the button asks for (`true` to open) each time it is clicked or activated with Enter or Space, in every mode. Pair it with `open` to let the button drive a controlled section. |
-| `...`          | All standard `<div>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                     |
+| Prop           | Type                                                   | Default | Description                                                                                                                                                                                                                                            |
+| -------------- | ------------------------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `className`    | `string`                                               | —       | Additional CSS classes for the wrapping `<div>`.                                                                                                                                                                                                       |
+| `label`        | `React.ReactNode`                                      | —       | **Required.** The section's heading, drawn like `Menu.Label` inside the button that opens and closes it. Keep links and buttons out of it, since it's inside one.                                                                                      |
+| `children`     | `React.ReactNode`                                      | —       | The `Menu.List` of links the section shows while it's open. The section itself goes directly in `Menu`, beside its labels and lists: inside a `Menu.Item` it would render inside the item's link, and inside a `Menu.List` it wouldn't be a list item. |
+| `open`         | `boolean`                                              | —       | Controlled open state. If provided, the section is controlled, and its button only reports through `onOpenChange`.                                                                                                                                     |
+| `defaultOpen`  | `boolean`                                              | `false` | Initial open state for uncontrolled usage. Open the section that holds the current page, so the reader sees where they are.                                                                                                                            |
+| `onOpenChange` | `(open: boolean) => void`                              | —       | Called with the state the button asks for (`true` to open) each time it is clicked or activated with Enter or Space, in every mode. Pair it with `open` to let the button drive a controlled section.                                                  |
+| `...`          | All standard `<div>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                      |
 
 <!-- /bestax:generated props -->
 

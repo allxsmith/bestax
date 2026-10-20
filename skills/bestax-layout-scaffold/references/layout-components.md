@@ -290,8 +290,10 @@ https://bestax.io/docs/guides/features/routing.
 A sidebar whose groups of links open and close (a docs sidebar, an admin app's sections) puts each
 group's `Menu.List` in a `Menu.Section`. Its heading is a real button drawn like `Menu.Label`, with
 `aria-expanded` and a chevron, and its links stay ordinary links, each a tab stop. Open the
-section that holds the current page. Don't build this from `TreeView` (its items aren't links) or
-from a `Collapse` in a hand-written `<li>` (its trigger is a `div` with `role="button"`).
+section that holds the current page. A section goes directly in `Menu`, never inside a `Menu.Item`
+(it would render inside the item's link) or a `Menu.List` (it isn't a list item). Don't build this
+from `TreeView` (its items aren't links) or from a `Collapse` in a hand-written `<li>` (its trigger
+is a `div` with `role="button"`).
 
 ```tsx
 <nav aria-label="Documentation">
