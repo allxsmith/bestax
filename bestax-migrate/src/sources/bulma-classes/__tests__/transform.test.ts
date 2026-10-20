@@ -923,6 +923,34 @@ describe('a className a joiner builds', () => {
     expect(fold.output).toContain("can't write every class it adds");
   });
 
+  it('flags an `.image` modifier away from its `.image` only when it reads every class', () => {
+    // A variable may hold `image`, and the TODO's remedy drops the class.
+    for (const [imports, className] of [
+      [
+        "import clsx from 'clsx';\ndeclare const avatarClass: string;\n",
+        "clsx(avatarClass, 'is-64x64')",
+      ],
+      ['declare const imageClass: string;\n', '`${imageClass} is-64x64`'],
+    ]) {
+      const { rules } = joined(
+        `<figure className={${className}}>x</figure>`,
+        imports
+      );
+      expect({ className, rules }).toEqual({ className, rules: [] });
+    }
+    // A call it reads whole is read like a static className.
+    expect(
+      joined(
+        "<figure className={clsx('is-64x64', open && 'my-avatar')}>x</figure>"
+      ).rules
+    ).toEqual(['modifier:image']);
+    // And one that adds `.image` under a condition carries it.
+    expect(
+      joined("<figure className={clsx('is-64x64', { image: open })}>x</figure>")
+        .rules
+    ).not.toContain('modifier:image');
+  });
+
   it('moves a condition ahead of one left in the call only when neither has side effects', () => {
     // Written as a prop, a condition is evaluated before the call.
     const free = joined(

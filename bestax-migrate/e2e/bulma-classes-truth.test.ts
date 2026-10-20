@@ -14,12 +14,16 @@
  * tests assert only that what DOES convert is identical, plus that every
  * table entry converts somewhere, so no row is dead.
  *
- * One conversion is compared another way, on purpose: Font Awesome's own
- * `<i aria-hidden="true">` alone in a `.icon` that carries nothing assistive
- * tech reads becomes `Icon`, which writes the attribute on the `.icon`
- * instead. Where the planner says so
- * (`movesHidden`), both sides go through `support/hidden-glyph.ts`, which
- * moves it up in exactly that shape and leaves every other one as it is.
+ * These conversions are compared another way, on purpose:
+ *   - Font Awesome's own `<i aria-hidden="true">` alone in a `.icon` that
+ *     carries nothing assistive tech reads becomes `Icon`, which writes the
+ *     attribute on the `.icon` instead. Where the planner says so
+ *     (`movesHidden`), both sides go through `support/hidden-glyph.ts`, which
+ *     moves it up in exactly that shape and leaves every other one as it is.
+ *   - A Bulma 0.9 class v1 removed styles nothing under v1, and converts as
+ *     the v1 helper that does its job (`is-marginless` as `m="0"`, which
+ *     renders `m-0`), so the raw side has that class restated where the
+ *     conversion wrote it (`withV1Classes`).
  */
 
 import fs from 'node:fs';
@@ -31,6 +35,7 @@ import {
   inTagSet,
   numberAttrsOf,
   PLACED,
+  REPLACED_IN_V1,
   ROOTS,
   WRAPPERS,
   WRAPPER_OWN_PROPS,
@@ -67,6 +72,7 @@ import {
   normalizeHtml,
   renderElement,
   withImplicitListRoles,
+  withV1Classes,
 } from './support/render-module.js';
 
 const repoRoot = path.join(
@@ -306,16 +312,17 @@ function renderBoth(
       )
     : renderElement(target, convertedProps, convertedChildren);
   const html = normalizeHtml(converted);
-  // The one difference a conversion makes on purpose, compared as it is
-  // meant: only where the planner says the `aria-hidden` moved up, for the
-  // element or for an icon it builds.
+  // The differences a conversion makes on purpose, each compared as it is
+  // meant: a removed 0.9 class as the v1 class written in its place, and
+  // Font Awesome's `aria-hidden` only where the planner says it moved up,
+  // for the element or for an icon it builds.
   const moves =
     result.conversion.movesHidden ||
     facts.childElements?.some(child => child.becomes?.movesHidden);
   const compared = (markup: string) =>
     moves ? moveGlyphHidden(markup) : markup;
   return {
-    raw: compared(withImplicitListRoles(raw, html)),
+    raw: compared(withImplicitListRoles(withV1Classes(raw, html), html)),
     converted: compared(html),
   };
 }
@@ -1628,6 +1635,116 @@ describe('wrappers', () => {
     expect(plan(factsFor('p', ['my-app-class'])).conversion).toBeNull();
   });
 });
+
+/**
+ * A Bulma 0.9 helper v1 removed styles nothing under v1, so the one class a
+ * conversion changes on purpose is that one, into the v1 class that does its
+ * job. The sweeps above compare them with that class restated; this holds
+ * the restating to doing something, and to that class alone.
+ */
+describe.each(Object.entries(REPLACED_IN_V1))(
+  'the removed `%s`',
+  (token, v1) => {
+    it(`renders \`${v1}\` wherever its element converts`, () => {
+      for (const [tag, tokens] of [
+        ['p', [token]],
+        ['p', [token, 'my-app-class']],
+        ['div', ['box', token]],
+        ['section', ['section', token]],
+      ] as Array<[string, string[]]>) {
+        const both = renderBoth(factsFor(tag, tokens));
+        expect({ tokens, converts: both !== null }).toEqual({
+          tokens,
+          converts: true,
+        });
+        expect(both!.converted).toContain(v1);
+        expect(both!.converted).not.toContain(token);
+        expect({ tokens, html: both!.converted }).toEqual({
+          tokens,
+          html: both!.raw,
+        });
+      }
+    });
+
+    it('converts exactly as the v1 class does, on every root', () => {
+      expect(HELPER_TOKENS.get(token)).toEqual(HELPER_TOKENS.get(v1));
+      for (const [root, entry] of mapped) {
+        const as = (helper: string) =>
+          plan(
+            factsFor(entry.tag!, [root, helper], defaultsFor(entry, entry.tag!))
+          ).conversion;
+        const old = as(token);
+        const now = as(v1);
+        expect({
+          root,
+          props: old?.props ?? null,
+          stays: old?.className?.includes(token) ?? null,
+        }).toEqual({
+          root,
+          props: now?.props ?? null,
+          stays: now?.className?.includes(v1) ?? null,
+        });
+      }
+    });
+
+    // A live class is what the page renders today, so it keeps the prop
+    // whichever comes first; one for another prop (an axis, a side) leaves
+    // it free, and both render.
+    const prop = HELPER_TOKENS.get(v1)!.write.prop;
+    const spacing = [...HELPER_TOKENS].filter(
+      ([other, helper]) =>
+        helper.group === 'spacing' && !Object.hasOwn(REPLACED_IN_V1, other)
+    );
+
+    it('stays a class beside a live class for its prop, in either order', () => {
+      const live = spacing.filter(([, helper]) => helper.write.prop === prop);
+      expect(live.length).toBeGreaterThan(0);
+      for (const [other] of live) {
+        for (const tokens of [
+          ['box', token, other],
+          ['box', other, token],
+        ]) {
+          const result = plan(factsFor('div', tokens));
+          expect({
+            tokens,
+            kept: result.conversion?.className?.split(' ') ?? null,
+            todos: result.todos.map(todo => todo.rule),
+          }).toEqual({ tokens, kept: [token], todos: [`legacy:${token}`] });
+          const both = renderBoth(factsFor('div', tokens));
+          expect({ tokens, html: both!.converted }).toEqual({
+            tokens,
+            html: both!.raw,
+          });
+        }
+      }
+    });
+
+    it('converts beside a class for another spacing prop, in either order', () => {
+      const others = spacing.filter(
+        ([, helper]) =>
+          helper.write.prop !== prop && helper.write.prop[0] === prop
+      );
+      expect(others.length).toBeGreaterThan(0);
+      for (const [other] of others) {
+        for (const tokens of [
+          ['box', token, other],
+          ['box', other, token],
+        ]) {
+          const both = renderBoth(factsFor('div', tokens));
+          expect({ tokens, converts: both !== null }).toEqual({
+            tokens,
+            converts: true,
+          });
+          expect(both!.converted).not.toContain(token);
+          expect({ tokens, html: both!.converted }).toEqual({
+            tokens,
+            html: both!.raw,
+          });
+        }
+      }
+    });
+  }
+);
 
 /**
  * Helpers whose props render differently beside each other than alone: a

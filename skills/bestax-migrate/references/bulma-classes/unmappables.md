@@ -95,7 +95,7 @@ makes one named by `aria-label` or `aria-labelledby` an image, with `role="img"`
 own. `Icon` writes `aria-hidden` on the `.icon` and never on the `<i>` inside. Font Awesome's own
 markup, `<i class="fas fa-envelope" aria-hidden="true">` alone in a `.icon` that carries
 nothing but its classes, an `id`, a `style` and `data-` attributes, converts anyway, with the
-attribute moved up onto the `.icon`, the one exception to identical markup. A `.icon` that
+attribute moved up onto the `.icon`, an exception to identical markup. A `.icon` that
 carries anything more never takes the move. A `role` or `tabIndex` written out converts around
 the `<i>` as it is, since `Icon` then hides nothing itself. Anything else, or either of those as
 an expression, keeps the `.icon` as markup: a `title` or a description would be hidden with it,
@@ -378,6 +378,24 @@ in the browser:
 `legacy:tile`: Bulma v1 has no tiles. Rebuild the layout with `Grid` and `Cell`; the Bulma
 0.9 to 1 guide shows the translation. Until then the element has no styles at all under
 Bulma v1.
+
+`legacy:is-marginless`, `legacy:is-paddingless`: v1 removed both, so they style nothing.
+Wherever the element converts, the codemod writes them as `m="0"` and `p="0"`, which render
+v1's `m-0` and `p-0`, and says nothing. The TODO comes only where the class stays: on an
+element that stays markup (a `<div>` with no component class, or one refused for another
+reason), or beside a class for the same prop (`p-2`, before it or after), which keeps the prop
+since it's what the page renders today. Write `m-0` or `p-0` in its place, or drop it if the
+spacing it once removed no longer matters.
+
+## A class that styles nothing where it is: `modifier:<root>`
+
+`modifier:image`: an `.image` size or ratio (`is-64x64`, `is-square`, `is-4by3`) on an element
+without `.image`. Bulma styles them only on the element that carries `.image`, so this one
+sizes nothing, unless the project's own CSS gives the class a rule. If the element is the
+image's box, add `image`. On a tag `Image` renders (the component map's `.image` row lists
+them), re-run and it can convert; on any other tag it stays markup, and the TODO says so.
+Otherwise drop the class. A computed `className` the codemod can't read whole gets no such TODO, since a class it
+can't see may be the `.image`.
 
 ## A whole file it left alone
 
@@ -710,7 +728,9 @@ A page with no Bulma component class writes nothing and reports nothing.
 - Helper classes on a `<div>` (`<div className="is-flex mt-4">`): bestax has no plain `<div>`
   wrapper, and the classes are valid Bulma, so the element stays.
 - `.help`, `.label`, `.loader` and the other classes in the component map's "left alone" list.
-- A class with no bestax prop on a converted element: it stays in `className`.
+- A class with no bestax prop on a converted element: it stays in `className`. That covers
+  v1's `marginless` and `paddingless`, which have the same rules as `m-0` and `p-0` under
+  other names, so they stay as written while the element converts on its other classes.
 
 ## After the codemod
 
