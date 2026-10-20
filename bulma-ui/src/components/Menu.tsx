@@ -3,6 +3,7 @@ import React, {
   forwardRef,
   useContext,
   useId,
+  useRef,
   useState,
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
@@ -10,6 +11,9 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { omitAttrs } from '../helpers/anchorAttrs';
 import { buttonType } from '../helpers/buttonType';
+import { inertProps } from '../helpers/inertProps';
+import { getActiveElementInTree } from '../helpers/shadowDom';
+import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import {
   isCustomElement,
   type PolymorphicComponent,
@@ -347,7 +351,12 @@ export interface MenuSectionProps
   className?: string;
   /** **Required.** The section's heading, drawn like `Menu.Label` inside the button that opens and closes it. Keep links and buttons out of it, since it's inside one. */
   label: React.ReactNode;
-  /** The `Menu.List` of links the section shows while it's open. */
+  /**
+   * The `Menu.List` of links the section shows while it's open. The section
+   * itself goes directly in `Menu`, beside its labels and lists: inside a
+   * `Menu.Item` it would render inside the item's link, and inside a
+   * `Menu.List` it wouldn't be a list item.
+   */
   children: React.ReactNode;
   /** Controlled open state. If provided, the section is controlled, and its button only reports through `onOpenChange`. */
   open?: boolean;
@@ -362,7 +371,9 @@ export interface MenuSectionProps
  *
  * It's APG's disclosure navigation, for a sidebar of link groups: the links
  * stay ordinary links, each its own tab stop, and a closed section's list is
- * `hidden`, so Tab and assistive tech skip it.
+ * `hidden` and `inert`, so Tab and assistive tech skip it. It goes directly in
+ * `Menu`, holding a `Menu.List`. Closing it while focus is on one of its links
+ * moves focus to its heading.
  *
  * @function
  * @param {MenuSectionProps} props - Props for the MenuSection component.
@@ -394,6 +405,8 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
   const labelClass = usePrefixedClassNames('menu-section-label');
   const chevronClass = usePrefixedClassNames('menu-section-chevron');
   const listId = useId();
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   // The caller owns the state when `open` is set, and the section does
   // otherwise, as with Collapse. The button reports in both modes.
@@ -407,22 +420,38 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
     if (!isControlled) setInternalOpen(next);
   };
 
+  // An app holding `open` can close a section while focus is on one of its
+  // links, as a sidebar that keeps only the current route's section open
+  // does after a link is followed. The browser then drops focus to <body>
+  // a frame later, and the next Tab starts from the top of the page. The
+  // heading is where the reader was, so focus goes there. A layout effect,
+  // because it runs in the same task as the commit that hid the list, while
+  // the link still has focus. A close from the button itself finds focus on
+  // the button and leaves it.
+  useClientLayoutEffect(() => {
+    if (isOpen) return;
+    const list = listRef.current!;
+    if (list.contains(getActiveElementInTree(list))) {
+      toggleRef.current!.focus();
+    }
+  }, [isOpen]);
+
   // A real button, so Enter and Space work with no key handler, and
   // `type="button"`, so a menu inside a form isn't submitted by it.
   //
-  // A closed list is `hidden` rather than inert, as Collapse's panel is.
-  // Collapse keeps a closed panel rendered so it can animate it, and needs
-  // `inert` to take what's in it out of reach. Nothing here animates, so
-  // `hidden` does it all in one attribute: the list isn't drawn, Tab skips
-  // its links, assistive tech and find-in-page don't reach them, and the
-  // markup is the same from the server and on both React majors. It stays
-  // mounted, so `aria-controls` always names an element that exists.
+  // A closed list is `hidden`, so it isn't drawn and find-in-page doesn't
+  // reach it, and `inert`, so its links stay out of Tab and assistive tech
+  // even if a stylesheet sets `display` on it and shows it anyway. The markup
+  // is the same from the server and on both React majors, which `inertProps`
+  // sees to. It stays mounted, so `aria-controls` always names an element
+  // that exists.
   return (
     <div
       className={classNames(sectionClass, bulmaHelperClasses, className)}
       {...rest}
     >
       <button
+        ref={toggleRef}
         type="button"
         className={toggleClass}
         aria-expanded={isOpen}
@@ -432,7 +461,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
         <span className={labelClass}>{label}</span>
         <span className={chevronClass} aria-hidden="true" />
       </button>
-      <div id={listId} hidden={!isOpen}>
+      <div ref={listRef} id={listId} hidden={!isOpen} {...inertProps(!isOpen)}>
         {children}
       </div>
     </div>

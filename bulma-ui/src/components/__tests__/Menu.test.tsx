@@ -814,6 +814,9 @@ describe('Menu.Section', () => {
     const button = heading();
     expect(button).toHaveAttribute('aria-expanded', 'false');
     expect(regionOf(button)).toHaveAttribute('hidden');
+    // And inert, so a stylesheet that sets `display` on the list and shows
+    // it anyway still leaves its links out of Tab and assistive tech.
+    expect(regionOf(button)).toHaveAttribute('inert');
     // Not drawn, and not in the accessibility tree.
     expect(screen.getByText('Button')).not.toBeVisible();
     expect(screen.queryByRole('link', { name: 'Button' })).toBeNull();
@@ -827,6 +830,7 @@ describe('Menu.Section', () => {
     const button = heading();
     expect(button).toHaveAttribute('aria-expanded', 'true');
     expect(regionOf(button)).not.toHaveAttribute('hidden');
+    expect(regionOf(button)).not.toHaveAttribute('inert');
     expect(screen.getByRole('link', { name: 'Button' })).toBeVisible();
   });
 
@@ -1034,9 +1038,74 @@ describe('Menu.Section', () => {
       doc.getElementById(button.getAttribute('aria-controls')!)!;
     expect(closed.getAttribute('aria-expanded')).toBe('false');
     expect(regionFor(closed).hasAttribute('hidden')).toBe(true);
+    expect(regionFor(closed).getAttribute('inert')).toBe('');
     expect(regionFor(closed).textContent).toBe('Button');
     expect(open.getAttribute('aria-expanded')).toBe('true');
     expect(regionFor(open).hasAttribute('hidden')).toBe(false);
+    expect(regionFor(open).hasAttribute('inert')).toBe(false);
     expect(regionFor(open).textContent).toBe('Input');
+  });
+
+  describe('when the app closes it', () => {
+    // A sidebar that keeps only the current route's section open closes the
+    // one whose link was just followed, with focus still on that link. The
+    // browser would drop focus to <body> a frame later.
+    const ui = (open: boolean) => (
+      <>
+        <Menu>
+          <Menu.Section label="Getting started" open={open}>
+            <Menu.List>
+              <Menu.Item href="/install">Installation</Menu.Item>
+            </Menu.List>
+          </Menu.Section>
+        </Menu>
+        <button type="button">Elsewhere</button>
+      </>
+    );
+
+    it('moves focus from one of its links to its heading', () => {
+      const { rerender } = render(ui(true));
+      screen.getByRole('link', { name: 'Installation' }).focus();
+      rerender(ui(false));
+      expect(heading('Getting started')).toHaveFocus();
+    });
+
+    it('leaves focus where it is when focus isn’t in its list', () => {
+      const { rerender } = render(ui(true));
+      const elsewhere = screen.getByRole('button', { name: 'Elsewhere' });
+      elsewhere.focus();
+      rerender(ui(false));
+      expect(elsewhere).toHaveFocus();
+    });
+
+    it('leaves focus alone when it opens', () => {
+      const { rerender } = render(ui(false));
+      const elsewhere = screen.getByRole('button', { name: 'Elsewhere' });
+      elsewhere.focus();
+      rerender(ui(true));
+      expect(elsewhere).toHaveFocus();
+    });
+
+    it('finds focus inside a shadow root the menu renders in', () => {
+      // `document.activeElement` names the host there, so the section asks
+      // its own tree, the way a docs live example renders.
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const mount = host.attachShadow({ mode: 'open' });
+      const { rerender, unmount } = render(ui(true), {
+        container: mount as unknown as HTMLElement,
+      });
+      within(mount as unknown as HTMLElement)
+        .getByRole('link', { name: 'Installation' })
+        .focus();
+      rerender(ui(false));
+      expect(mount.activeElement).toBe(
+        within(mount as unknown as HTMLElement).getByRole('button', {
+          name: 'Getting started',
+        })
+      );
+      unmount();
+      host.remove();
+    });
   });
 });
