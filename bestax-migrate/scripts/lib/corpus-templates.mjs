@@ -290,6 +290,47 @@ function tagOf(opening) {
     : null;
 }
 
+/** The bestax-bulma import a module's components come from. */
+const LIBRARY = '@allxsmith/bestax-bulma';
+
+/**
+ * The module's bindings of bestax-bulma: each local name, and the name it was
+ * imported under, or `*` for a namespace.
+ */
+function libraryBindings(program) {
+  const bindings = new Map();
+  for (const statement of program.body ?? []) {
+    if (statement.type !== 'ImportDeclaration') continue;
+    if (statement.source.value !== LIBRARY) continue;
+    for (const spec of statement.specifiers) {
+      if (spec.type === 'ImportSpecifier') {
+        bindings.set(
+          spec.local.name,
+          spec.imported.name ?? spec.imported.value
+        );
+      } else if (spec.type === 'ImportNamespaceSpecifier') {
+        bindings.set(spec.local.name, '*');
+      }
+    }
+  }
+  return bindings;
+}
+
+/** The library name a JSX element resolves to (`Navbar.Item`), else null. */
+function componentOf(opening, bindings) {
+  const parts = [];
+  let name = opening?.name;
+  while (name?.type === 'JSXMemberExpression') {
+    parts.unshift(name.property.name);
+    name = name.object;
+  }
+  if (name?.type !== 'JSXIdentifier') return null;
+  const imported = bindings.get(name.name);
+  if (imported === undefined) return null;
+  if (imported === '*') return parts.length > 0 ? parts.join('.') : null;
+  return [imported, ...parts].join('.');
+}
+
 /** The class tokens of a `className` written as a string, else null. */
 function classTokens(opening) {
   const attr = opening.attributes.find(
@@ -306,14 +347,18 @@ function classTokens(opening) {
 }
 
 /**
- * The class `no-bulma-component-class` reports an element by: the first
- * family class it carries, else the converted class whose component fits its
- * tag best (its own tag, then one `as` reaches), the first in the table's
- * order among equals. `classes` is the ESLint plugin's
+ * The class `no-bulma-component-class` reports an element by, among the ones
+ * `keep` allows: the first family class it carries, else the converted class
+ * whose component fits its tag best (its own tag, then one `as` reaches), the
+ * first in the table's order among equals. A component passes no tag, so the
+ * table's order decides. `classes` is the ESLint plugin's
  * `BULMA_COMPONENT_CLASSES`.
  */
-function componentClassOf(tokens, tag, classes) {
-  const family = tokens.find(token => classes.get(token)?.converts === false);
+function componentClassOf(tokens, tag, classes, keep = () => true) {
+  const family = tokens.find(token => {
+    const entry = classes.get(token);
+    return entry?.converts === false && keep(entry);
+  });
   if (family !== undefined) return family;
   const fit = entry =>
     entry.tag === tag
@@ -323,7 +368,7 @@ function componentClassOf(tokens, tag, classes) {
         : 0;
   let best;
   for (const candidate of classes) {
-    if (!tokens.includes(candidate[0])) continue;
+    if (!tokens.includes(candidate[0]) || !keep(candidate[1])) continue;
     if (best === undefined || fit(candidate[1]) > fit(best[1])) {
       best = candidate;
     }
@@ -336,14 +381,20 @@ function bump(counts, cls) {
 }
 
 /**
- * How many plain elements in a module carry each Bulma component class, keyed
- * by class in code-point order, one per element, for the class
- * `componentClassOf` picks. Like that rule it reads lowercase tags outside
- * `<svg>` and `<math>` only. It reads a `className` written as a string, which
- * is every one the HTML converter writes; one built at runtime is not counted.
+ * How many elements in a module `no-bulma-component-class` reports for each
+ * Bulma component class, keyed by class in code-point order, one per element,
+ * for the class `componentClassOf` picks. As that rule does, it reads plain
+ * elements, which are lowercase tags, and the bestax components the table
+ * names, for a class of another component, and nothing inside `<svg>` or
+ * `<math>`. A component counts when the module imports it from bestax-bulma.
+ * It reads a `className` written as a string, which is every one the HTML
+ * converter writes; one built at runtime is not counted.
  */
 export function componentClassCounts(ast, classes) {
   const counts = new Map();
+  const program = ast.program ?? ast;
+  const bindings = libraryBindings(program);
+  const components = new Set([...classes.values()].map(e => e.component));
   const visit = (node, foreign) => {
     if (node === null || typeof node !== 'object') return;
     if (Array.isArray(node)) {
@@ -353,17 +404,28 @@ export function componentClassCounts(ast, classes) {
     if (typeof node.type !== 'string') return;
     let inside = foreign;
     if (node.type === 'JSXElement') {
-      const tag = tagOf(node.openingElement);
+      const opening = node.openingElement;
+      const tag = tagOf(opening);
       if (tag !== null && FOREIGN.has(tag)) inside = true;
+      const name = tag === null ? componentOf(opening, bindings) : null;
       const tokens =
-        tag === null || inside ? null : classTokens(node.openingElement);
-      if (tokens !== null) bump(counts, componentClassOf(tokens, tag, classes));
+        inside || (tag === null && !components.has(name))
+          ? null
+          : classTokens(opening);
+      if (tokens !== null) {
+        bump(
+          counts,
+          tag === null
+            ? componentClassOf(tokens, null, classes, e => e.component !== name)
+            : componentClassOf(tokens, tag, classes)
+        );
+      }
     }
     for (const [key, child] of Object.entries(node)) {
       if (!SKIPPED_KEYS.has(key)) visit(child, inside);
     }
   };
-  visit(ast.program ?? ast, false);
+  visit(program, false);
   return sortedRecord(counts);
 }
 
@@ -802,8 +864,9 @@ export function renderMarkdown(report, classes) {
     `bestax-migrate \`${report.source}\` over the ${report.corpus} pages, with \`--css ${report.css}\`. ` +
       '"Classes" counts the plain elements in a page styled with a Bulma class bestax has a component for, ' +
       "one per element, the way the ESLint plugin's `no-bulma-component-class` counts them, " +
-      'whether or not the page wrote a module; "Left" is how many of those are still plain elements in the module, ' +
-      'which is all of them for a page that wrote none. A refused page is one the HTML input declined (an `html-file` TODO says why). ' +
+      'whether or not the page wrote a module; "Left" is how many the rule still reports in the module, ' +
+      "on a plain element or as another component's class on a bestax one, which is all of them for a page that wrote none. " +
+      'A refused page is one the HTML input declined (an `html-file` TODO says why). ' +
       'A module tsc did not read shows `-` for its tsc errors, and fails the run.',
     '',
     '## Pins',
