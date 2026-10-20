@@ -1115,6 +1115,34 @@ describe('Modal', () => {
       document.body.removeChild(target);
     });
 
+    it('keeps holding Tab once a portal selector that matched nothing starts matching', () => {
+      // A selector that matches nothing puts the modal in document.body.
+      // The render after the target appears moves it there, which remounts
+      // the modal's nodes while every prop stays the same, so the trap has
+      // to find the new ones.
+      const ui = () => (
+        <Modal active portal="#late-target" aria-label="Edit item">
+          <button type="button">First</button>
+          <button type="button">Last</button>
+        </Modal>
+      );
+      const { rerender } = render(ui());
+      const target = document.createElement('div');
+      target.id = 'late-target';
+      document.body.appendChild(target);
+      try {
+        rerender(ui());
+        const last = screen.getByText('Last');
+        expect(target).toContainElement(last);
+        act(() => last.focus());
+
+        expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(false);
+        expect(screen.getByText('First')).toHaveFocus();
+      } finally {
+        target.remove();
+      }
+    });
+
     it('keeps focus in the modal across the hydration portal move, and restores it on close', async () => {
       // The move from inline to portal remounts the subtree, so the focus
       // effect has to re-run against the new nodes — otherwise focus is left

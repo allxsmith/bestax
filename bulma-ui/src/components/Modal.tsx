@@ -486,13 +486,18 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   // visits, skipping hidden, inert and closed content, and sends back a Tab
   // the browser still takes out. On `window` for the same reason as Escape:
   // a trap inside, such as a portaled popup's, has had the Tab first, and
-  // one it used is left where it put focus. The portal moves that remount
-  // the modal's nodes re-run it, as they do the focus effect below.
+  // one it used is left where it put focus. It reads the modal's node as
+  // each key arrives, so a portal move that remounts the node, including one
+  // to a selector that only starts matching while the modal is open, keeps
+  // it trapped.
   useEffect(() => {
-    const node = modalRootRef.current;
-    if (!isModalActive || !node) return undefined;
-    return trapTab(node, window, () => isTopmost('modal'));
-  }, [isModalActive, isTopmost, isPortaled, portal, defaultTarget]);
+    if (!isModalActive) return undefined;
+    return trapTab(
+      () => modalRootRef.current,
+      window,
+      () => isTopmost('modal')
+    );
+  }, [isModalActive, isTopmost]);
 
   // Move focus into the modal on open, restore it on close
   useEffect(() => {
