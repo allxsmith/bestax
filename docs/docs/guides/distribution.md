@@ -195,7 +195,8 @@ Say in the pull request which listings need an update, then open those updates o
   with Claude (which also gives a count), awesome-ai-plugins, karanb192/awesome-claude-skills,
   heilcheng/awesome-agent-skills (one line per skill), awesome-openclaw-skills and
   awesome-frontend-skills (both name `bestax-layout-scaffold`), awesome-claude-code-toolkit and
-  awesome-codex-skills (both name `bestax-form`), ccplugins, awesome-llm-skills, Chat2AnyLLM's
+  awesome-codex-skills (both name `bestax-form`), ccplugins, awesome-llm-skills, the awesome-bulma
+  Bestax Skills entry (which lists skill topics), Chat2AnyLLM's
   `plugin_repos.json`, the awesome-copilot instructions (which give a count and name
   `bestax-layout-scaffold`), and the Tessl Registry and Skills Directory, which hold one entry per
   skill. Chat2AnyLLM's `skill_repos.json` scans the `skills/` folder on its own.
