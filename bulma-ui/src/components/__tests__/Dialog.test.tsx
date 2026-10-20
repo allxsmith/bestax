@@ -209,6 +209,30 @@ describe('Dialog', () => {
       render(<Dialog isOpen message="Test" focusCancel />);
       expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
     });
+
+    it('wraps Tab at the stops Tab visits in its message, past what a closed details hides', () => {
+      render(
+        <Dialog
+          isOpen
+          message={
+            <details>
+              <summary>Show details</summary>
+              <a href="#log">Full log</a>
+            </details>
+          }
+        />
+      );
+      const ok = screen.getByRole('button', { name: 'OK' });
+      const summary = screen.getByText('Show details');
+      expect(ok).toHaveFocus();
+
+      expect(fireEvent.keyDown(ok, { key: 'Tab' })).toBe(false);
+      expect(summary).toHaveFocus();
+      expect(fireEvent.keyDown(summary, { key: 'Tab', shiftKey: true })).toBe(
+        false
+      );
+      expect(ok).toHaveFocus();
+    });
   });
 
   describe('Body Scroll Lock', () => {
