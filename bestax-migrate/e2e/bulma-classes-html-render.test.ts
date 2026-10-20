@@ -35,6 +35,7 @@ import {
   normalizeHtml,
   renderExports,
   withImplicitListRoles,
+  withV1Classes,
 } from './support/render-module.js';
 
 const packageRoot = path.join(
@@ -87,10 +88,13 @@ function threeWays(file: string, source: string) {
     // `Menu.List` writes the `role="list"` a `.menu-list` only implies
     // (#1108), so the migrated page is held to the intermediate one with
     // that role restated where the migrated list carries it. And both are
-    // compared with Font Awesome's own `aria-hidden` moved up off the <i>,
-    // the one difference the planner makes on purpose.
+    // compared with what the planner changes on purpose restated: Font
+    // Awesome's own `aria-hidden` moved up off the <i>, and a Bulma 0.9 class
+    // v1 removed written as the v1 class in its place.
     restated: canonicalOf(
-      moveGlyphHidden(withImplicitListRoles(before, after)),
+      moveGlyphHidden(
+        withImplicitListRoles(withV1Classes(before, after), after)
+      ),
       document
     ),
     migrated: canonicalOf(moveGlyphHidden(normalizeHtml(after)), document),

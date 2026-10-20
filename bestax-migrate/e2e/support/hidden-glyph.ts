@@ -1,6 +1,8 @@
 /**
- * The one difference in markup a bulma-classes conversion makes on purpose,
- * and the one normalization the render tests allow for it.
+ * A difference in markup a bulma-classes conversion makes on purpose, and
+ * the normalization the render tests allow for it. The other is a Bulma 0.9
+ * class v1 removed, written as the v1 class that replaced it, which
+ * `withV1Classes` in `render-module.ts` restates.
  *
  * Font Awesome's own markup hides the glyph on the `<i>`:
  * `<span class="icon"><i class="fas fa-home" aria-hidden="true"></i></span>`.
