@@ -63,7 +63,7 @@ const EVENT_ATTRIBUTES: readonly string[] = Object.values(html.property)
   .filter(attribute => /^on[a-z]+$/.test(attribute));
 
 const VOCABULARY: Readonly<Record<string, ReadonlySet<string>>> = {
-  'html-head': new Set(['title', 'meta', 'link', 'style', 'base']),
+  'html-head': new Set(['title', 'meta', 'csp', 'link', 'style', 'base']),
   'html-asset': new Set(ASSET_KINDS),
   'html-script': new Set(SCRIPT_PATTERNS),
   'html-document': new Set([
@@ -86,7 +86,14 @@ const VOCABULARY: Readonly<Record<string, ReadonlySet<string>>> = {
     'unknown',
   ]),
   'html-url': new Set(['javascript', 'missing', 'relative']),
-  'html-attr': new Set(['important', 'name', 'style', 'unknown']),
+  'html-attr': new Set([
+    'ignored',
+    'important',
+    'name',
+    'stray',
+    'style',
+    'unknown',
+  ]),
   'html-parse': new Set(Object.values(ErrorCodes)),
   'html-file': new Set(['exists', 'not-included', 'template-syntax']),
 };
