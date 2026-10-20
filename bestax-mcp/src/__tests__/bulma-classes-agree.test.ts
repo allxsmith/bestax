@@ -9,17 +9,26 @@
  *
  * The planner is imported from bestax-migrate's source, a test-only reach
  * across packages: a copy of it here would only agree with itself.
+ *
+ * The one thing this server does keep a copy of, the helper that writes a
+ * tag with its article ("an <a>", "a <ul>"), is held here to bestax-migrate's
+ * over every element name, so a lookup and a TODO say a tag the same way.
  */
 
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from '@jest/globals';
-import { ROOTS } from '../../../bestax-migrate/src/sources/bulma-classes/class-map.js';
+import { aTag as migrateTag } from '../../../bestax-migrate/src/sources/_shared/articles.js';
+import {
+  PLACED,
+  ROOTS,
+  WRAPPERS,
+} from '../../../bestax-migrate/src/sources/bulma-classes/class-map.js';
 import {
   plan,
   type ElementFacts,
 } from '../../../bestax-migrate/src/sources/bulma-classes/plan.js';
-import { lookupClasses, type BulmaClassTable } from '../bulma-classes.js';
+import { aTag, lookupClasses, type BulmaClassTable } from '../bulma-classes.js';
 import { DATA_DIR } from '../data.js';
 
 const table: BulmaClassTable = JSON.parse(
@@ -325,6 +334,8 @@ const others = [
   'box',
   'column',
   'is-disabled',
+  'marginless',
+  'is-64x64',
   'has-text-primary-30-invert',
   'is-palette-primary',
   'is-12-touch',
@@ -413,6 +424,32 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
     expect({ count: mismatches.length, first: mismatches.slice(0, 5) }).toEqual(
       { count: 0, first: [] }
     );
+  });
+
+  it('on a removed helper beside a class for its prop or another, in either order', () => {
+    const cases: Array<[string, string[]]> = [];
+    for (const [token, v1] of Object.entries(table.replaced)) {
+      const prop = table.helpers[v1].write.prop;
+      const besides = Object.entries(table.helpers)
+        .filter(
+          ([other, helper]) =>
+            helper.group === 'spacing' &&
+            !Object.hasOwn(table.replaced, other) &&
+            helper.write.prop.startsWith(prop)
+        )
+        .map(([other]) => other);
+      for (const other of besides) {
+        for (const pair of [
+          [token, other],
+          [other, token],
+        ]) {
+          cases.push(['p', pair], ['div', ['box', ...pair]]);
+        }
+      }
+      cases.push(['div', ['table-container', token]]);
+    }
+    expect(cases.length).toBeGreaterThan(100);
+    expect(compare(cases)).toEqual([]);
   });
 
   // With no tag, the lookup answers for the tag the component renders on its
@@ -530,5 +567,147 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
     expect({ count: mismatches.length, first: mismatches.slice(0, 5) }).toEqual(
       { count: 0, first: [] }
     );
+  });
+});
+
+/**
+ * The HTML elements, by the living standard's names, beside the ones the
+ * class table reaches and the ones an article is easy to get wrong for.
+ */
+const ELEMENTS = [
+  'a',
+  'abbr',
+  'address',
+  'area',
+  'article',
+  'aside',
+  'audio',
+  'b',
+  'base',
+  'bdi',
+  'bdo',
+  'blockquote',
+  'body',
+  'br',
+  'button',
+  'canvas',
+  'caption',
+  'cite',
+  'code',
+  'col',
+  'colgroup',
+  'data',
+  'datalist',
+  'dd',
+  'del',
+  'details',
+  'dfn',
+  'dialog',
+  'div',
+  'dl',
+  'dt',
+  'em',
+  'embed',
+  'fieldset',
+  'figcaption',
+  'figure',
+  'footer',
+  'form',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'head',
+  'header',
+  'hgroup',
+  'hr',
+  'html',
+  'i',
+  'iframe',
+  'img',
+  'input',
+  'ins',
+  'kbd',
+  'label',
+  'legend',
+  'li',
+  'link',
+  'main',
+  'map',
+  'mark',
+  'menu',
+  'meta',
+  'meter',
+  'nav',
+  'noscript',
+  'object',
+  'ol',
+  'optgroup',
+  'option',
+  'output',
+  'p',
+  'picture',
+  'pre',
+  'progress',
+  'q',
+  'rp',
+  'rt',
+  'ruby',
+  's',
+  'samp',
+  'script',
+  'search',
+  'section',
+  'select',
+  'slot',
+  'small',
+  'source',
+  'span',
+  'strong',
+  'style',
+  'sub',
+  'summary',
+  'sup',
+  'table',
+  'tbody',
+  'td',
+  'template',
+  'textarea',
+  'tfoot',
+  'th',
+  'thead',
+  'time',
+  'title',
+  'tr',
+  'track',
+  'u',
+  'ul',
+  'var',
+  'video',
+  'wbr',
+];
+
+describe('the article helper', () => {
+  it("says every element the way bestax-migrate's TODOs do", () => {
+    const reached = [
+      ...Object.values(ROOTS).flatMap(entry => [
+        ...(entry.tag ? [entry.tag] : []),
+        ...(Array.isArray(entry.as) ? entry.as : []),
+        ...(entry.absorbs ? [entry.absorbs.tag] : []),
+        ...(entry.parent ? [entry.parent.tag] : []),
+      ]),
+      ...Object.values(PLACED).flatMap(entry => (entry.tag ? [entry.tag] : [])),
+      ...Object.keys(WRAPPERS),
+    ];
+    const names = [...new Set([...ELEMENTS, ...reached])].sort();
+    // The table reaches only elements on the list, so the list is the whole
+    // of what either copy is asked about.
+    expect(reached.filter(tag => !ELEMENTS.includes(tag))).toEqual([]);
+    const differ = names
+      .map(tag => ({ tag, migrate: migrateTag(tag), mcp: aTag(tag) }))
+      .filter(({ migrate, mcp }) => migrate !== mcp);
+    expect(differ).toEqual([]);
   });
 });

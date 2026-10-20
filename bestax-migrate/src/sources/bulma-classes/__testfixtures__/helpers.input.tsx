@@ -29,6 +29,16 @@ export function StaysBeside() {
   );
 }
 
+export function Bulma09Spacing() {
+  return (
+    <section className="section is-paddingless">
+      <div className="box is-paddingless">Bulma 0.9&apos;s, as v1&apos;s</div>
+      <p className="has-text-centered is-marginless">Centered, no margin</p>
+      <p className="has-text-centered marginless">v1&apos;s own name stays</p>
+    </section>
+  );
+}
+
 export function Shades() {
   return (
     <section>

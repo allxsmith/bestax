@@ -37,6 +37,8 @@ export function Helpers() {
       </div>
       <p className="is-position-relative is-overflow-x-auto">Positioned</p>
       <figure className="is-aspect-ratio-4by3 is-clipped">Ratio</figure>
+      <p className="is-marginless has-text-grey">Bulma 0.9&apos;s margin reset</p>
+      <p className="has-text-weight-bold marginless">v1&apos;s own name for it</p>
       <p className="has-text-primary-on-scheme has-background-primary-light">
         Shaded
       </p>

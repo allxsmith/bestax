@@ -52,6 +52,8 @@ export function Leftovers() {
       </ul>
       <div className="dropdown">A family converted later</div>
       <div className="tile is-ancestor">A Bulma 0.9 tile</div>
+      <div className="is-paddingless">A Bulma 0.9 class on a plain div</div>
+      <figure className="is-square">An image size away from its image</figure>
     </div>
   );
 }

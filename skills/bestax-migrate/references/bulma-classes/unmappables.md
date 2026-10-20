@@ -95,7 +95,7 @@ makes one named by `aria-label` or `aria-labelledby` an image, with `role="img"`
 own. `Icon` writes `aria-hidden` on the `.icon` and never on the `<i>` inside. Font Awesome's own
 markup, `<i class="fas fa-envelope" aria-hidden="true">` alone in a `.icon` that carries
 nothing but its classes, an `id`, a `style` and `data-` attributes, converts anyway, with the
-attribute moved up onto the `.icon`, the one exception to identical markup. A `.icon` that
+attribute moved up onto the `.icon`, an exception to identical markup. A `.icon` that
 carries anything more never takes the move. A `role` or `tabIndex` written out converts around
 the `<i>` as it is, since `Icon` then hides nothing itself. Anything else, or either of those as
 an expression, keeps the `.icon` as markup: a `title` or a description would be hidden with it,
@@ -353,6 +353,24 @@ in the browser:
 0.9 to 1 guide shows the translation. Until then the element has no styles at all under
 Bulma v1.
 
+`legacy:is-marginless`, `legacy:is-paddingless`: v1 removed both, so they style nothing.
+Wherever the element converts, the codemod writes them as `m="0"` and `p="0"`, which render
+v1's `m-0` and `p-0`, and says nothing. The TODO comes only where the class stays: on an
+element that stays markup (a `<div>` with no component class, or one refused for another
+reason), or beside a class for the same prop (`p-2`, before it or after), which keeps the prop
+since it's what the page renders today. Write `m-0` or `p-0` in its place, or drop it if the
+spacing it once removed no longer matters.
+
+## A class that styles nothing where it is: `modifier:<root>`
+
+`modifier:image`: an `.image` size or ratio (`is-64x64`, `is-square`, `is-4by3`) on an element
+without `.image`. Bulma styles them only on the element that carries `.image`, so this one
+sizes nothing, unless the project's own CSS gives the class a rule. If the element is the
+image's box, add `image`. On a tag `Image` renders (the component map's `.image` row lists
+them), re-run and it can convert; on any other tag it stays markup, and the TODO says so.
+Otherwise drop the class. A computed `className` the codemod can't read whole gets no such TODO, since a class it
+can't see may be the `.image`.
+
 ## A whole file it left alone
 
 These come only when the file has an element the codemod would convert (a computed className
@@ -566,7 +584,8 @@ read for the burger, a carousel and a theme toggle too, and its TODO names the f
   from their OS sees the OS's scheme first. A small inline script in the `<head>` of `index.html`
   that reads the saved choice (or the OS's, with none saved) and writes `data-theme` before the
   app loads paints the right one, and the toggle's state starts from what it wrote. The
-  bestax-theming skill covers `Theme` and `colorMode`.
+  bestax-theming skill covers `Theme` and `colorMode`, and its `examples/dark-mode.tsx` has the
+  script and the app's side.
 - **`html-script:json-ld`** is structured data for search engines. Render it where the app sets
   each page's head, as
   `<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />`.
@@ -584,8 +603,9 @@ The app's document has its own `<html>` and `<body>`, which a component can't re
   pads the page for a fixed navbar from it. Put the class on the `<html>` in `index.html`, since
   bestax's `Navbar` adds none there, whatever its `fixed` says.
 - **`html-document:data-theme`**, **`html-document:theme-dark`**, **`html-document:theme-light`**:
-  the page's color scheme. Put it on the `<html>` in `index.html`, or render
-  `<Theme colorMode="dark">`, which writes `data-theme` on `<html>`.
+  the page's color scheme. Put it on the `<html>` in `index.html`, where the first paint has it.
+  `<Theme colorMode="dark">` writes `data-theme` on `<html>` too, but from an effect, after a
+  first frame in the visitor's OS scheme, so keep it for a scheme the visitor switches.
 - **`html-document:lang`**, **`html-document:dir`**: set them on the `<html>` in `index.html`.
 - **`html-document:class`**: the page's own classes on `<html>` or `<body>`. Put them on the
   app's own `<body>` (or `<html>`), or on an element around the page's content if the styles
@@ -682,7 +702,9 @@ A page with no Bulma component class writes nothing and reports nothing.
 - Helper classes on a `<div>` (`<div className="is-flex mt-4">`): bestax has no plain `<div>`
   wrapper, and the classes are valid Bulma, so the element stays.
 - `.help`, `.label`, `.loader` and the other classes in the component map's "left alone" list.
-- A class with no bestax prop on a converted element: it stays in `className`.
+- A class with no bestax prop on a converted element: it stays in `className`. That covers
+  v1's `marginless` and `paddingless`, which have the same rules as `m-0` and `p-0` under
+  other names, so they stay as written while the element converts on its other classes.
 
 ## After the codemod
 

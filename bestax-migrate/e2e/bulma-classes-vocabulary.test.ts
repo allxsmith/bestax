@@ -21,6 +21,7 @@ import {
   HELPER_TOKENS,
   LEGACY_09,
   REMOVED_IN_V1,
+  REPLACED_IN_V1,
   ROOTS,
   passthroughReason,
 } from '../src/sources/bulma-classes/class-map.js';
@@ -106,6 +107,17 @@ describe("the table accounts for Bulma's stylesheet", () => {
     expect(
       Object.keys(LEGACY_09).filter(token => !REMOVED_IN_V1.includes(token))
     ).toEqual([]);
+  });
+
+  it('replaces a removed class only with a v1 one, and flags it where it stays', () => {
+    for (const [token, v1] of Object.entries(REPLACED_IN_V1)) {
+      expect({
+        token,
+        removed: REMOVED_IN_V1.includes(token),
+        hint: Object.hasOwn(LEGACY_09, token),
+        v1: classes.has(v1),
+      }).toEqual({ token, removed: true, hint: true, v1: true });
+    }
   });
 
   // `lookup_bulma_classes` calls a class missing from the MCP index's list one

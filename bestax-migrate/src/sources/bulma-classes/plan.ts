@@ -7,11 +7,12 @@
  * renders exactly the markup the element did. Anything that would change the
  * markup is either left in `className` (a class with no prop here) or refuses
  * the whole element with a TODO (an attribute or tag the component would
- * render differently). One exception, on purpose: Font Awesome's own
+ * render differently). The exceptions are on purpose. Font Awesome's own
  * `<i aria-hidden="true">` alone in a `.icon` that carries nothing assistive
  * tech reads (the table's `hiddenMovesBeside`) converts to `Icon`, which writes that attribute
  * on the `.icon` instead (`movesHidden`), since the glyph is hidden either
- * way.
+ * way. And a Bulma 0.9 helper v1 removed (`REPLACED_IN_V1`), which styles
+ * nothing under v1, converts as the v1 helper that does its job.
  */
 
 import {
@@ -21,10 +22,13 @@ import {
   inTagSet,
   legacyHint,
   modifierFor,
+  modifiesRoot,
   numberAttrsOf,
   placedFor,
   PRECEDENCE,
+  replacedBy,
   rootFor,
+  rootItNeeds,
   WRAPPER_OWN_PROPS,
   wrapperFor,
   type RootEntry,
@@ -36,6 +40,7 @@ import {
   readHiddenGlyph,
   type Glyph,
 } from './glyph.js';
+import { aTag } from '../_shared/articles.js';
 import { ruleId } from './rules.js';
 
 export interface ElementFacts {
@@ -131,6 +136,12 @@ export interface ElementFacts {
    * The string the element's content renders, when it is one static text.
    */
   text?: string;
+  /**
+   * The element's `className` is computed in a way the codemod doesn't read
+   * whole (anything but a `clsx` or `classnames` call of parts it reads), so
+   * it may carry classes `tokens` doesn't hold.
+   */
+  unreadClasses?: boolean;
   /**
    * The classes the element directly around this one renders: its static
    * ones, or for a bestax component already in the file, its root class and
@@ -238,9 +249,9 @@ export interface Conversion {
   glyph?: Glyph;
   /**
    * That child carried the `aria-hidden` the target writes on the element
-   * (Font Awesome's own `<i aria-hidden="true">`), so it moves up: the one
-   * way a conversion's markup differs from the element's, on purpose, since
-   * the glyph is hidden either way. The render tests compare it with the
+   * (Font Awesome's own `<i aria-hidden="true">`), so it moves up: a way a
+   * conversion's markup differs from the element's on purpose, since the
+   * glyph is hidden either way. The render tests compare it with the
    * attribute moved up, and nothing else.
    */
   movesHidden?: true;
@@ -366,25 +377,92 @@ function rootLabel(tokens: readonly string[]): string {
   return tokens.find(token => rootFor(token)?.status === 'mapped') ?? 'button';
 }
 
+/**
+ * Whether the target renders this tag: the one it renders by itself (or the
+ * heading its size picks), or one its `as` takes.
+ */
+function reachesTag(
+  entry: RootEntry,
+  tag: string,
+  renders: string = entry.tag!
+): boolean {
+  return (
+    tag === renders || entry.as === 'any' || (entry.as?.includes(tag) ?? false)
+  );
+}
+
 function tagsItReaches(entry: RootEntry): string {
   if (entry.as === 'any') return 'any tag through `as`';
   if (entry.as) return entry.as.map(tag => `<${tag}>`).join(', ');
   return `only <${entry.tag}>`;
 }
 
+/**
+ * Every class the element may carry: its fixed ones, and any a condition
+ * adds, which the element has to be right with as well as without.
+ */
+function carriedBy(facts: ElementFacts): string[] {
+  return [...new Set([...facts.tokens, ...(facts.conditional ?? []).flat()])];
+}
+
 export function plan(facts: ElementFacts): Plan {
+  const result = planElement(facts);
+  // A Bulma 0.9 helper v1 removed converts as the v1 helper that replaced
+  // it, and only one that stays a class gets the TODO naming that helper:
+  // where it converted, nothing is left to do.
+  const kept = new Set(result.conversion?.className?.split(' ') ?? []);
+  const stays = carriedBy(facts).filter(
+    token =>
+      replacedBy(token) &&
+      (!result.conversion || !facts.tokens.includes(token) || kept.has(token))
+  );
+  if (stays.length === 0) return result;
+  return {
+    ...result,
+    todos: [
+      ...result.todos,
+      ...stays.map(token => ({
+        rule: ruleId('legacy', token),
+        message: legacyHint(token)!,
+      })),
+    ],
+  };
+}
+
+function planElement(facts: ElementFacts): Plan {
   const todos: Todo[] = [];
   const { tag, tokens } = facts;
-  // Every class the element may carry: its fixed ones, and any a condition
-  // adds, which the element has to be right with as well as without.
-  const carried = [
-    ...new Set([...tokens, ...(facts.conditional ?? []).flat()]),
-  ];
+  const carried = carriedBy(facts);
   const mayCarry = (token: string) => carried.includes(token);
 
   for (const token of carried) {
-    const hint = legacyHint(token);
+    // One that converts says so only if it stays, which `plan` knows.
+    const hint = replacedBy(token) ? undefined : legacyHint(token);
     if (hint) todos.push({ rule: ruleId('legacy', token), message: hint });
+    // A modifier Bulma styles only on its own root does nothing on an element
+    // with no root it modifies. That's a claim about every class the element
+    // carries, and the remedy drops one, so it's made only when the codemod
+    // reads them all. A re-run converts the element only on a tag the root's
+    // target renders, so only there does the advice promise one.
+    const root = rootItNeeds(token);
+    if (
+      root &&
+      !facts.unreadClasses &&
+      !carried.some(other => {
+        const entry = rootFor(other);
+        return entry !== undefined && modifiesRoot(entry, token);
+      })
+    ) {
+      const needed = rootFor(root)!;
+      const article = /^[aeiou]/.test(root) ? 'an' : 'a';
+      const fix = reachesTag(needed, tag)
+        ? `add \`${root}\`, which bestax \`${needed.target}\` renders, then re-run`
+        : `add \`${root}\` for Bulma to style it, though bestax \`${needed.target}\` renders ${tagsItReaches(needed)}, not ${aTag(tag)}, so the element stays markup`;
+      todos.push({
+        rule: ruleId('modifier', root),
+        message: `\`${token}\` is ${article} \`.${root}\` modifier, and Bulma styles it only on the element that carries \`.${root}\`, so on this one it styles nothing unless the project's own CSS gives it a rule; if this element is the ${root}, ${fix}, and otherwise drop the class`,
+      });
+    }
   }
 
   // A family this source leaves as markup keeps its element as markup, even
@@ -445,6 +523,33 @@ export function plan(facts: ElementFacts): Plan {
     conversion: null,
     todos: [...todos, { rule: ruleId(kind, token), message }],
   });
+
+  // ---- The tag, first ------------------------------------------------------
+  // On a tag the target can't render, the tag is the work that comes first:
+  // any other refusal would ask for work (an attribute added or dropped, a
+  // child moved) that a re-run then refuses on the tag anyway.
+  let renders = entry.tag!;
+  if (entry.sizeDrivesTag && tag !== 'p') {
+    const size = propsFrom(
+      entry,
+      tokens,
+      tag,
+      root,
+      facts.attributes
+    ).writes.get('size');
+    if (size !== undefined) renders = `h${size}`;
+  }
+  let as: string | undefined;
+  if (renders !== tag) {
+    if (!reachesTag(entry, tag, renders)) {
+      return refuse(
+        'tag',
+        target,
+        `bestax \`${target}\` renders ${tagsItReaches(entry)}, not ${aTag(tag)}; keep the markup, or change the tag and re-run`
+      );
+    }
+    as = tag;
+  }
 
   // ---- Refusals: the component would render something else ---------------
   if (facts.hasSpread) {
@@ -610,7 +715,7 @@ export function plan(facts: ElementFacts): Plan {
   // Font Awesome's own markup hides the <i> rather than the element around
   // it, and a target that renders the glyph from props writes the same
   // `aria-hidden` on the element in its place: it moves up, and the glyph is
-  // hidden either way. The one difference in markup a conversion makes, on
+  // hidden either way. A difference in markup a conversion makes on
   // purpose; the render tests compare it with the attribute moved up. Only
   // onto an element that carries nothing assistive tech reads, by name and
   // whatever the value: an expression may render as anything.
@@ -789,19 +894,12 @@ export function plan(facts: ElementFacts): Plan {
       return refuse(
         'attr',
         name,
-        `bestax \`${target}\` keeps a <${tag}>'s \`${name}\` only as ${orList(rule.keeps)}, and writes \`${name}="${rule.fallback}"\` in place of anything else, so this one converts only ${rule.implicit ? `with no \`${name}\` or as one of those` : 'as one of those, written out'}; keep this element as markup`
+        `bestax \`${target}\` keeps ${aTag(tag)}'s \`${name}\` only as ${orList(rule.keeps)}, and writes \`${name}="${rule.fallback}"\` in place of anything else, so this one converts only ${rule.implicit ? `with no \`${name}\` or as one of those` : 'as one of those, written out'}; keep this element as markup`
       );
     }
   }
-  // Only on a tag the target renders: on any other, the tag check below is
-  // the refusal, and a `drops` one would call an attribute inert that may not
-  // be (`type` on a <button>) and promise a conversion a re-run still refuses.
-  const tagReached =
-    tag === entry.tag ||
-    entry.as === 'any' ||
-    (entry.as?.includes(tag) ?? false);
   for (const [name, tags] of Object.entries(entry.dropsAttr ?? {})) {
-    if (tagReached && attributes.has(name) && inTagSet(tags, tag)) {
+    if (attributes.has(name) && inTagSet(tags, tag)) {
       // Bulma greys out `.button[disabled]` on any tag, so there it is not
       // inert: dropping it changes how the element looks.
       const visible = name === 'disabled' && target === 'Button';
@@ -811,10 +909,10 @@ export function plan(facts: ElementFacts): Plan {
         'drops',
         target,
         visible
-          ? `bestax \`${target}\` drops \`disabled\` on a <${tag}>, and Bulma styles a disabled \`.${rootLabel(facts.tokens)}\` on any tag, so converting would change how it looks; keep this element as markup`
+          ? `bestax \`${target}\` drops \`disabled\` on ${aTag(tag)}, and Bulma styles a disabled \`.${rootLabel(facts.tokens)}\` on any tag, so converting would change how it looks; keep this element as markup`
           : anchored
             ? `bestax \`${target}\` drops \`name\` on an <a>, where it still names the target of a \`#fragment\` link; keep this element as markup, or move the target to an \`id\`, then re-run`
-            : `bestax \`${target}\` drops \`${name}\` on a <${tag}>, where it does nothing anyway; remove it, then re-run`
+            : `bestax \`${target}\` drops \`${name}\` on ${aTag(tag)}, where it does nothing anyway; remove it, then re-run`
       );
     }
   }
@@ -824,23 +922,6 @@ export function plan(facts: ElementFacts): Plan {
   const { writes, converted } = fromTokens;
   numbers.push(...fromTokens.numbers);
 
-  // ---- The tag ------------------------------------------------------------
-  let renders = entry.tag!;
-  if (entry.sizeDrivesTag && tag !== 'p' && writes.has('size')) {
-    renders = `h${writes.get('size')}`;
-  }
-  let as: string | undefined;
-  if (renders !== tag) {
-    const reachable = entry.as === 'any' || (entry.as?.includes(tag) ?? false);
-    if (!reachable) {
-      return refuse(
-        'tag',
-        target,
-        `bestax \`${target}\` renders ${tagsItReaches(entry)}, not a <${tag}>; keep the markup, or change the tag and re-run`
-      );
-    }
-    as = tag;
-  }
   // Last, since what the children are can change once a refusal leaves
   // them to convert on their own, and a re-run has to find the same reason.
   let icons: BuiltIcon[] | undefined;
@@ -1136,8 +1217,7 @@ function hiddenAdvice(
   }
   const around = facts.clickableAround;
   const label = around?.label;
-  const tag =
-    around && `${/^[aeiou]/.test(around.tag) ? 'an' : 'a'} <${around.tag}>`;
+  const tag = around && aTag(around.tag);
   if (label && label !== 'none') {
     const by = label === 'text' ? 'its own text' : `its \`${label}\``;
     return `this \`.icon\` sits in ${tag} that ${by} names, so the icon is decoration there, and bestax \`${target}\` writes \`aria-hidden="true"\` on an icon with no name of its own, which this one doesn't carry; add it, then re-run${outcome}${hint}`;
@@ -1282,6 +1362,15 @@ function buildIcons(
  * base `display` beside a per-viewport one, a flex-container helper with no
  * flex `display`, `gapless` beside a `gap`) stays a class, as does one it
  * leaves out, and so does a modifier missing the attribute it needs.
+ *
+ * The first class to claim a prop keeps it, but a Bulma 0.9 class v1 removed
+ * claims one only after every other class has: whatever the order, a live
+ * class beside it for the same prop (`p-2 is-paddingless`) is what the page
+ * renders today and keeps the prop, and the removed one stays a class, with
+ * the TODO `plan` gives it. Beside a class for a different prop, such as an
+ * axis (`px-2 is-paddingless`), it still converts: the two render `px-2` and
+ * `p-0`, and v1's stylesheet puts every side and axis class after `p-0`, so
+ * the axis keeps its sides and `p-0` zeroes the rest.
  */
 function propsFrom(
   entry: RootEntry,
@@ -1303,8 +1392,12 @@ function propsFrom(
   const sourceOf = new Map<string, string>();
   const groupOf = new Map<string, string>();
   const converted = new Set<string>(root ? [root] : []);
+  const claiming = [
+    ...tokens.filter(token => !replacedBy(token)),
+    ...tokens.filter(token => replacedBy(token)),
+  ];
 
-  for (const token of tokens) {
+  for (const token of claiming) {
     if (converted.has(token)) continue;
     const modifier = modifierFor(entry, token);
     if (modifier) {
@@ -1664,7 +1757,7 @@ function planFold(facts: ElementFacts, wrapper: string, todos: Todo[]): Plan {
     return refuse(
       'tag',
       target,
-      `bestax ${renders} renders \`.${wrapper}\` on a <${entry.tag}>, not a <${facts.tag}>; keep the markup, or change the tag and re-run`
+      `bestax ${renders} renders \`.${wrapper}\` on ${aTag(entry.tag!)}, not ${aTag(facts.tag)}; keep the markup, or change the tag and re-run`
     );
   }
   if (facts.hasSpread) {

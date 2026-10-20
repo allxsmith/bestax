@@ -40,10 +40,11 @@ class strings you have to remember. The `bulma-classes` codemod moves that marku
 
 bestax renders Bulma's own classes, so the page renders the same. The codemod converts an
 element only when the component renders **the markup the element did**: same tag, same
-classes, same attributes, with only the order of the classes free to change. One exception is
-deliberate: Font Awesome's own `<i aria-hidden="true">` in a `.icon` that carries nothing else
+classes, same attributes, with only the order of the classes free to change. The exceptions are
+deliberate. Font Awesome's own `<i aria-hidden="true">` in a `.icon` that carries nothing else
 assistive tech reads becomes `Icon`, which puts that attribute on the `.icon` instead, and the
-glyph is hidden either way. Everything else stays as you wrote it, with a `TODO(bestax-migrate)`
+glyph is hidden either way. And Bulma 0.9's `is-marginless` and `is-paddingless`, which style
+nothing under v1, become `m="0"` and `p="0"`. Everything else stays as you wrote it, with a `TODO(bestax-migrate)`
 comment when there's a decision to make.
 
 ## Run the codemod
@@ -85,7 +86,9 @@ stock stylesheet.
   `has-text-centered` → `textAlign="centered"`, `is-position-sticky` → `pos="sticky"`), and on
   the plain tags bestax wraps: `<p>` becomes `Paragraph`, `<span>` becomes `Span`, and so on. A
   color shade becomes its color and its shade (`has-text-primary-on-scheme` →
-  `textColor="primary" colorShade="on-scheme"`).
+  `textColor="primary" colorShade="on-scheme"`). Bulma 0.9's `is-marginless` and
+  `is-paddingless` style nothing under v1, so they become `m="0"` and `p="0"`, which render v1's
+  `m-0` and `p-0`.
 - **Wrappers a component renders itself** fold into it: a `.table-container` around a table
   becomes `<Table isResponsive>`, and a `.fixed-grid` around a grid becomes
   `<Grid isFixed fixedCols={3}>`, as long as the wrapper holds nothing else and carries nothing

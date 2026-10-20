@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.37.0"
+    "version": "5.39.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -771,8 +771,8 @@
       "slug": "components/navbar",
       "import": "import { Navbar } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 55,
-      "exampleCount": 17
+      "propCount": 57,
+      "exampleCount": 19
     },
     {
       "name": "Notification",

@@ -182,6 +182,48 @@ describe('plan', () => {
       ]);
     });
 
+    it('refuses a tag the target cannot render before anything else', () => {
+      // Each would otherwise ask for work (attributes added, renamed or
+      // dropped, a child moved) that a re-run then refuses on the tag.
+      const cases: Array<
+        [
+          string,
+          string,
+          string,
+          Record<string, string | true | null>,
+          Partial<ElementFacts>,
+        ]
+      > = [
+        ['Navbar', 'div', 'navbar', {}, {}],
+        ['Delete', 'a', 'delete', {}, {}],
+        ['Breadcrumb', 'div', 'breadcrumb', {}, {}],
+        ['Pagination', 'div', 'pagination', {}, {}],
+        ['Card.Header.Icon', 'div', 'card-header-icon', {}, {}],
+        ['Pagination.Link', 'div', 'pagination-link', {}, {}],
+        // Not only a missing default: a prop it reads, or a spread.
+        ['Delete', 'a', 'delete', { size: 'x' }, {}],
+        ['Delete', 'a', 'delete', {}, { hasSpread: true }],
+        ['Navbar', 'div', 'navbar', { role: null }, {}],
+      ];
+      for (const [target, tag, className, attributes, extra] of cases) {
+        const result = plan(facts(tag, className, attributes, extra));
+        expect({
+          element: `<${tag} class="${className}">`,
+          rules: result.todos.map(todo => todo.rule),
+        }).toEqual({
+          element: `<${tag} class="${className}">`,
+          rules: [`tag:${target}`],
+        });
+      }
+      // On the tag it renders, the same element is told what it lacks.
+      expect(plan(facts('nav', 'navbar')).todos.map(t => t.rule)).toEqual([
+        'defaults:Navbar',
+      ]);
+      expect(plan(facts('button', 'delete')).todos.map(t => t.rule)).toEqual([
+        'defaults:Delete',
+      ]);
+    });
+
     it('refuses dangerouslySetInnerHTML', () => {
       expect(
         plan(facts('div', 'content', { dangerouslySetInnerHTML: null })).todos
@@ -491,6 +533,225 @@ describe('plan', () => {
         todos: [],
       });
     });
+
+    it('keeps a helper with no prop as a class, and still converts the element', () => {
+      // `marginless` has `m-0`'s rule, and bestax renders that as `m-0`.
+      for (const helper of ['marginless', 'paddingless']) {
+        expect(plan(facts('p', `has-text-centered ${helper}`))).toEqual({
+          conversion: {
+            target: 'Paragraph',
+            props: [['textAlign', 'centered']],
+            className: helper,
+            drop: [],
+            numbers: [],
+          },
+          todos: [],
+        });
+        expect(plan(facts('p', helper))).toEqual({
+          conversion: null,
+          todos: [],
+        });
+      }
+    });
+  });
+
+  describe('a Bulma 0.9 helper v1 removed', () => {
+    it('converts as the v1 helper that replaced it, with nothing left to say', () => {
+      expect(plan(facts('p', 'is-marginless intro'))).toEqual({
+        conversion: {
+          target: 'Paragraph',
+          props: [['m', '0']],
+          className: 'intro',
+          drop: [],
+          numbers: [],
+        },
+        todos: [],
+      });
+      expect(plan(facts('div', 'hero-body is-paddingless'))).toEqual({
+        conversion: {
+          target: 'Hero.Body',
+          props: [['p', '0']],
+          className: null,
+          drop: [],
+          numbers: [],
+        },
+        todos: [],
+      });
+    });
+
+    it('leaves the prop to a live class for it, in either order, and stays with its TODO', () => {
+      const legacy = (token: string) => ({
+        rule: `legacy:${token}`,
+        message: expect.stringContaining('Bulma v1 removed'),
+      });
+      for (const [removed, live, prop, value] of [
+        ['is-paddingless', 'p-2', 'p', '2'],
+        ['is-marginless', 'm-0', 'm', '0'],
+      ]) {
+        for (const order of [
+          `box ${removed} ${live}`,
+          `box ${live} ${removed}`,
+        ]) {
+          expect({ order, plan: plan(facts('div', order)) }).toEqual({
+            order,
+            plan: {
+              conversion: {
+                target: 'Box',
+                props: [[prop, value]],
+                className: removed,
+                drop: [],
+                numbers: [],
+              },
+              todos: [legacy(removed)],
+            },
+          });
+        }
+      }
+    });
+
+    it('converts beside a class for another prop, such as an axis, in either order', () => {
+      // `px-2` and `p-0` both render: v1 puts `px-2` after `p-0`, so the
+      // axis keeps its sides.
+      for (const order of ['px-2 is-paddingless', 'is-paddingless px-2']) {
+        expect({ order, plan: plan(facts('p', order)) }).toEqual({
+          order,
+          plan: {
+            conversion: {
+              target: 'Paragraph',
+              props: [
+                ['px', '2'],
+                ['p', '0'],
+              ],
+              className: null,
+              drop: [],
+              numbers: [],
+            },
+            todos: [],
+          },
+        });
+      }
+    });
+
+    it('says what replaced it wherever it stays a class', () => {
+      const legacy = (token: string) => ({
+        rule: `legacy:${token}`,
+        message: expect.stringContaining('Bulma v1 removed'),
+      });
+      // No component for the tag.
+      expect(plan(facts('div', 'is-marginless'))).toEqual({
+        conversion: null,
+        todos: [legacy('is-marginless')],
+      });
+      // A prop another class already wrote.
+      expect(plan(facts('div', 'box p-2 is-paddingless'))).toEqual({
+        conversion: {
+          target: 'Box',
+          props: [['p', '2']],
+          className: 'is-paddingless',
+          drop: [],
+          numbers: [],
+        },
+        todos: [legacy('is-paddingless')],
+      });
+      // A family left as markup, and an element that refuses.
+      expect(plan(facts('div', 'message is-marginless')).todos).toEqual([
+        { rule: 'family:message', message: expect.any(String) },
+        legacy('is-marginless'),
+      ]);
+      expect(
+        plan(facts('div', 'box is-marginless', {}, { hasSpread: true })).todos
+      ).toEqual([
+        { rule: 'spread:Box', message: expect.any(String) },
+        legacy('is-marginless'),
+      ]);
+      // Added under a condition, which stays in the call.
+      const conditional = plan({
+        ...facts('div', 'box'),
+        conditional: [['is-marginless']],
+      });
+      expect(conditional.conversion?.target).toBe('Box');
+      expect(conditional.todos).toEqual([legacy('is-marginless')]);
+      expect(plan(facts('div', 'is-marginless')).todos[0].message).toContain(
+        '`m="0"`'
+      );
+    });
+  });
+
+  describe('an `.image` modifier away from its `.image`', () => {
+    const stray = {
+      rule: 'modifier:image',
+      message: expect.stringContaining('styles nothing'),
+    };
+
+    it('flags the size or ratio, which styles nothing there', () => {
+      expect(plan(facts('figure', 'is-64x64'))).toEqual({
+        conversion: null,
+        todos: [stray],
+      });
+      // The element still converts on what it does carry.
+      expect(plan(facts('figure', 'is-4by3 mx-auto'))).toEqual({
+        conversion: {
+          target: 'Figure',
+          props: [['mx', 'auto']],
+          className: 'is-4by3',
+          drop: [],
+          numbers: [],
+        },
+        todos: [stray],
+      });
+      expect(plan(facts('div', 'card-image is-square')).todos).toEqual([stray]);
+      expect(plan(facts('figure', 'is-64x64')).todos[0].message).toContain(
+        'add `image`, which bestax `Image` renders, then re-run'
+      );
+    });
+
+    it('promises a re-run only on a tag `Image` renders', () => {
+      for (const tag of ['div', 'figure', 'p']) {
+        expect({
+          tag,
+          message: plan(facts(tag, 'is-64x64')).todos[0].message,
+        }).toEqual({ tag, message: expect.stringContaining('then re-run') });
+      }
+      for (const tag of ['span', 'a', 'img']) {
+        const [todo] = plan(facts(tag, 'is-64x64')).todos;
+        expect({ tag, rule: todo.rule }).toEqual({
+          tag,
+          rule: 'modifier:image',
+        });
+        expect(todo.message).toContain(
+          `bestax \`Image\` renders <div>, <figure>, <p>, not ${tag === 'span' ? 'a' : 'an'} <${tag}>, so the element stays markup`
+        );
+        expect(todo.message).not.toContain('re-run');
+        // Following it: the element is then refused on its tag, as said.
+        expect(
+          plan(facts(tag, 'image is-64x64')).todos.map(found => found.rule)
+        ).toEqual(['tag:Image']);
+      }
+    });
+
+    it("claims nothing of a className it doesn't read whole", () => {
+      // A variable or a call may carry `.image`, and the remedy drops a class.
+      expect(
+        plan(facts('figure', 'is-64x64', {}, { unreadClasses: true })).todos
+      ).toEqual([]);
+      expect(
+        plan(facts('figure', 'is-4by3 mx-auto', {}, { unreadClasses: true }))
+          .todos
+      ).toEqual([]);
+    });
+
+    it('says nothing on an `.image`, or of a class for the element inside one', () => {
+      expect(
+        plan(facts('figure', 'image is-64x64', {}, { hasChildren: false }))
+          .todos
+      ).toEqual([{ rule: 'children:Image', message: expect.any(String) }]);
+      expect(
+        plan({ ...facts('figure', 'is-16by9'), conditional: [['image']] }).todos
+      ).toEqual([]);
+      expect(plan(facts('iframe', 'has-ratio')).todos).toEqual([]);
+      // A page's own size, which Bulma has no rule for at all.
+      expect(plan(facts('figure', 'is-256x256')).todos).toEqual([]);
+    });
   });
 
   describe('roots', () => {
@@ -659,14 +920,36 @@ describe('plan', () => {
         props: [
           ['color', 'primary'],
           ['fixed', 'top'],
+          ['hasShadow', true],
         ],
-        className: 'has-shadow',
+        className: null,
         drop: [],
         numbers: [],
       });
       expect(plan(facts('nav', 'navbar')).todos.map(todo => todo.rule)).toEqual(
         ['defaults:Navbar']
       );
+    });
+
+    it('writes is-spaced and has-shadow as their flags, under a condition too', () => {
+      expect(
+        plan(
+          facts('nav', 'navbar is-transparent is-spaced has-shadow', bulmaNav)
+        ).conversion?.props
+      ).toEqual([
+        ['transparent', true],
+        ['isSpaced', true],
+        ['hasShadow', true],
+      ]);
+      const { conversion } = plan(
+        facts('nav', 'navbar', bulmaNav, {
+          conditional: [['is-spaced'], ['has-shadow']],
+        })
+      );
+      expect(conversion?.conditional).toEqual([
+        ['isSpaced', 'is-spaced'],
+        ['hasShadow', 'has-shadow'],
+      ]);
     });
 
     it('keeps helper classes on a part that takes no helper props', () => {
@@ -931,6 +1214,61 @@ describe('plan', () => {
               )
             ).conversion?.movesHidden
           ).toBe(true);
+        });
+
+        it('gives no advice on a tag Icon cannot render, only the tag', () => {
+          // Each would ask for work a re-run then refuses on the tag.
+          const tagOnly = (
+            label: string,
+            inner: ReturnType<typeof glyph>,
+            extra: Partial<ElementFacts> = {},
+            attributes: Record<string, string | null> = {}
+          ) => {
+            const result = plan(
+              facts('div', 'icon', attributes, { soleChild: inner, ...extra })
+            );
+            expect({
+              label,
+              conversion: result.conversion,
+              rules: result.todos.map(t => t.rule),
+            }).toEqual({ label, conversion: null, rules: ['tag:Icon'] });
+          };
+          const fa = glyph(['fab', 'fa-github', 'fa-lg']);
+          tagOnly('an unhidden glyph', fa);
+          tagOnly('in a named link', fa, {
+            clickableAround: { tag: 'a', label: 'aria-label' },
+          });
+          tagOnly('in an icon-only link', fa, {
+            clickableAround: { tag: 'a', label: 'none' },
+          });
+          tagOnly('in a .control with icons', glyph(['fas', 'fa-envelope']), {
+            parentTokens: ['control', 'has-icons-left'],
+          });
+          tagOnly(
+            "Font Awesome's own hidden <i>",
+            glyph(['fas', 'fa-home'], hidden)
+          );
+          tagOnly(
+            'a hidden <i> beside a title',
+            glyph(['fas', 'fa-home'], hidden),
+            {},
+            { title: 'Home' }
+          );
+          tagOnly('a name as an expression', fa, {}, { 'aria-label': null });
+          // On the <span> it renders, the same element gets the advice.
+          expect(
+            plan(
+              facts(
+                'span',
+                'icon',
+                {},
+                {
+                  soleChild: fa,
+                  clickableAround: { tag: 'a', label: 'none' },
+                }
+              )
+            ).todos[0].message
+          ).toMatch(/^nothing names the <a> around this `\.icon`/);
         });
 
         it('says to move it up by hand off any other <i>', () => {

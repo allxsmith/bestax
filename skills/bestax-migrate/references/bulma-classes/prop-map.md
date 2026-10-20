@@ -116,7 +116,7 @@ renders the same `<h2>`.
 | `.level` → `Level`                                                           | `is-mobile`                                                                                                                                      | `isMobile`                                                                                        |
 | `.navbar` → `Navbar`                                                         | the ten `.hero` colors                                                                                                                           | `color`                                                                                           |
 | `.navbar` → `Navbar`                                                         | `is-fixed-top`, `is-fixed-bottom`                                                                                                                | `fixed` (`top`, `bottom`)                                                                         |
-| `.navbar` → `Navbar`                                                         | `is-transparent`                                                                                                                                 | `transparent`                                                                                     |
+| `.navbar` → `Navbar`                                                         | `is-transparent`, `is-spaced`, `has-shadow`                                                                                                      | `transparent`, `isSpaced`, `hasShadow`                                                            |
 | `.navbar-menu` → `Navbar.Menu`, `.navbar-item` → `Navbar.Item`               | `is-active`                                                                                                                                      | `active`                                                                                          |
 | `.navbar-dropdown` → `Navbar.DropdownMenu`                                   | `is-right`, `is-up`                                                                                                                              | `right`, `up`                                                                                     |
 | `.notification` → `Notification`                                             | `is-primary`, `is-link`, `is-info`, `is-success`, `is-warning`, `is-danger`, `is-black`, `is-white`, `is-dark`                                   | `color`                                                                                           |
@@ -137,9 +137,9 @@ converts only with `type` and `aria-label` set (see `defaults:<Target>` in the u
 and a `type="button"` is dropped, since bestax renders it by itself. `Card.Header.Icon` likewise
 converts only with an `aria-label` and a `type` of `button`, `submit` or `reset`, since it renders
 `aria-label="more options"` and `type="button"` otherwise.
-`.tag`'s `is-delete` stays a class: `isDelete` turns the tag into a `<button>`. `.navbar`'s
-`is-spaced` and `has-shadow`, and a `.navbar-item`'s `has-dropdown` and `is-hoverable`, stay
-classes too: bestax has no prop for them on those components. So do a `.field`'s
+`.tag`'s `is-delete` stays a class: `isDelete` turns the tag into a `<button>`. A
+`.navbar-item`'s `has-dropdown` and `is-hoverable` stay classes too, since bestax has no prop for
+them on that component. So do a `.field`'s
 `has-addons-centered`, `has-addons-right` and `is-grouped-*`, because the `hasAddons` and
 `grouped` values that render them render `has-addons` and `is-grouped` as well, and an input's,
 textarea's or select's color, because `color` renders `has-text-<color>` on it too. On a
@@ -164,6 +164,7 @@ and `visible`. Ratios are `1by1`, `5by4`, `4by3`, `3by2`, `5by3`, `16by9`, `2by1
 | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | `m-{n}`, `mt-{n}`, `mr-{n}`, `mb-{n}`, `ml-{n}`, `mx-{n}`, `my-{n}` (`0` to `6`, `auto`)                  | `m`, `mt`, `mr`, `mb`, `ml`, `mx`, `my`                                                                                          |
 | `p-{n}`, `pt-{n}`, `pr-{n}`, `pb-{n}`, `pl-{n}`, `px-{n}`, `py-{n}`                                       | `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`                                                                                          |
+| `is-marginless`, `is-paddingless` (Bulma 0.9's, which v1 removed)                                         | `m="0"`, `p="0"`, which render v1's `m-0` and `p-0`                                                                              |
 | `has-text-{color}`                                                                                        | `textColor` (on `Menu`, `Menu.Label`, `Menu.List` and `Table`, `color`)                                                          |
 | `has-background-{color}`                                                                                  | `bgColor` (on `Menu`, `Menu.Label`, `Menu.List`, `Tag`, `File`, `InputBase`, `TextAreaBase` and `SelectBase`, `backgroundColor`) |
 | `has-text-{color}-{shade}`, `has-background-{color}-{shade}`                                              | the same color prop, with `colorShade` or `backgroundColorShade` (`textColor="primary" colorShade="on-scheme"`)                  |
@@ -225,6 +226,12 @@ Some classes stay put because of how bestax renders them:
   instead of as its own class.
 - `is-hidden` becomes `visibility="hidden"`, which renders the same class and doesn't interact
   with `display`.
+- `is-marginless` and `is-paddingless` are the only classes a conversion changes: they style
+  nothing under v1, so they become the prop of the v1 helper that does their job. A live class
+  for the same prop keeps it, whichever is written first, so beside `p-2` the class stays with a
+  `legacy:` TODO, and so it does wherever the element stays markup. Beside a class for another
+  prop, such as `px-2`, it still converts: v1 puts every side and axis class after `p-0`, so
+  `px-2` keeps its sides.
 
 ## Classes that stay classes
 
@@ -232,6 +239,8 @@ A color shade one color and one shade can't write (`has-text-primary-100`, the `
 shade such as `has-text-primary-30-invert`, a shade of the `text` color), a shade or color for a
 prop another class already wrote (`has-text-primary-30 has-text-info-40` keeps the second), the
 palettes and `is-bold` and `is-soft`, the `-touch` and `-only` breakpoints of text size and
-alignment, Grid and `.image` modifiers away from their own element, an `.image` ratio, and the
-Bulma helpers bestax has no prop for (`is-display-*`, `is-visibility-*`, `is-float-*`,
-`is-clear-*`, …) stay in `className`. They render exactly as before.
+alignment, Grid and `.image` modifiers away from their own element, an `.image` ratio, v1's
+`marginless` and `paddingless` (the rules of `m-0` and `p-0` under other names), and the Bulma
+helpers bestax has no prop for (`is-display-*`, `is-visibility-*`, `is-float-*`, `is-clear-*`,
+…) stay in `className`. They render exactly as before. An `.image` size or ratio away from its
+`.image` also gets a `modifier:image` TODO, since Bulma styles it only there.

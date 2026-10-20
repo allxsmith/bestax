@@ -76,7 +76,7 @@ skills/
       themeable-components.md  # color/size props + accepted values
     examples/
       theme-config.tsx         # custom brand theme (app root + scoped)
-      dark-mode.tsx            # light/dark toggle via data-theme (plus data-<prefix>theme)
+      dark-mode.tsx            # light/dark toggle that keeps the visitor's choice
   bestax-layout-scaffold/
     SKILL.md
     references/
