@@ -29,9 +29,10 @@
  * bestax renders only inside a component (`.label`, `.help`), nor the parts
  * of a family, since the family's own class is reported where it sits. An
  * element carrying several is reported once, for the class the codemod
- * would decide by: a family first, else the one whose component fits the
- * element's tag best (its own tag, then one `as` reaches), the first in the
- * table's order among equals.
+ * would decide by: a family first, else, on a plain element, the one whose
+ * component fits its tag best (its own tag, then one `as` reaches), the
+ * first in the table's order among equals. On a bestax component, whose tag
+ * can come from `as`, the table's order decides.
  *
  * A spread does not silence it: the report is about the class the author
  * wrote, which is there whether or not a spread later replaces it.
@@ -161,6 +162,8 @@ const rule: Rule.RuleModule = {
           ];
           const cls = decidingClass(
             tokens,
+            // No tag to fit: a component's can come from `as`, so the
+            // table's order decides here.
             null,
             entry => entry.component !== name
           );

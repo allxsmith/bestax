@@ -325,9 +325,11 @@ where `cx` is `classNames.bind(styles)`), or the arguments of any other call,
 which may be a lookup key. That includes a joiner your app defines, like a `cn`
 in `lib/utils`: the rule cannot see what it does, so it stays quiet there. An element
 carrying several is reported once, for the class the codemod would decide by: a
-family's first, then the one whose component fits the element's tag best, its own
-tag before one it reaches through `as`. So `<section className="hero container">`
-is reported as `Hero`, and `<figure className="image container">` as `Image`.
+family's first, then, on a plain element, the one whose component fits its tag
+best, its own tag before one it reaches through `as`. So
+`<section className="hero container">` is reported as `Hero`, and
+`<figure className="image container">` as `Image`. On a bestax component, whose
+tag can come from `as`, the table's order decides.
 
 It only reports. Whether an element converts depends on its tag, attributes
 and children, and the codemod is the one place that judges that.
