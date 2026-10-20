@@ -83,7 +83,7 @@ import {
   THEME_CLASSES,
 } from './html-rules.js';
 import { inNextApp, writesTypeScript } from './project.js';
-import transform from './transform.js';
+import transform, { FILE_RULES } from './transform.js';
 
 const HTML_NS = 'http://www.w3.org/1999/xhtml';
 
@@ -1439,7 +1439,10 @@ export function convertPage(
         entry.line === null || entry.line < jsxStart
           ? null
           : emitted.htmlLineOf(entry.line - jsxStart + 1);
-      if (line !== null) {
+      // A file-level gate's TODO is about the whole page, so it gets no
+      // page line of the element it sits on.
+      const forFile = (FILE_RULES as readonly string[]).includes(entry.rule);
+      if (line !== null && !forFile) {
         const text = todoText(entry.message);
         planned.set(text, [...(planned.get(text) ?? []), line]);
       }

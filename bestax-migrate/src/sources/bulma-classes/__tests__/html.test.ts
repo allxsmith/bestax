@@ -1077,6 +1077,26 @@ describe('the file-level gates, read from where the module goes', () => {
     );
     expect(rules).toEqual(['rsc']);
   });
+
+  it("writes a gate's TODO with no page line, since it is about the whole page", () => {
+    const dir = tempDir();
+    const { output, entries } = convert(
+      `${box}<span class="box">y</span>\n`,
+      { serverComponentRoots: [{ dir, except: [] }] },
+      path.join(dir, 'app', 'card.html')
+    );
+    // An element's TODO keeps its line, and the gate's has none.
+    const todos = output!.match(/^ {2}\/\/ TODO\(bestax-migrate\): .*$/gm);
+    expect(todos).toEqual([
+      expect.stringMatching(/'use client'.*then re-run$/),
+      expect.stringMatching(/`Box` renders only <div>.*\(card\.html:2\)$/),
+    ]);
+    // The report entry still names the element the gate stopped.
+    expect(entries.map(({ line, rule }) => `${line}:${rule}`)).toEqual([
+      '1:rsc',
+      '2:tag:Box',
+    ]);
+  });
 });
 
 describe('the source', () => {
