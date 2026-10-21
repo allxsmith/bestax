@@ -388,8 +388,9 @@ export interface RootEntry {
 
 /**
  * Whether a root's target renders this tag: the one it renders by itself (or
- * `renders`, the heading its size picks), or one its `as` takes. A root that
- * doesn't loses to one that does on the same element.
+ * `renders`, the one the element's classes pick: a heading's size, an
+ * `Image` ratio's <figure>), or one its `as` takes. A root that doesn't loses
+ * to one that does on the same element.
  */
 export function reachesTag(
   entry: RootEntry,
@@ -401,14 +402,21 @@ export function reachesTag(
 }
 
 /**
- * How well a root fits an element's tag, for picking one of two: 2 when the
- * tag is its target's own (`Hero`'s <section>), 1 when its target reaches it
- * only through `as` (`Container`'s), 0 when it can't render it. The higher
- * wins, so `<section className="hero container">` is a `Hero`.
+ * How well a root fits an element's tag, for picking one of two: 2 when its
+ * target renders the tag with no `as` (`Hero`'s <section>, or `renders`, the
+ * tag the element's classes pick: an `Image` ratio's <figure>), 1 when it
+ * reaches it only through `as` (`Container`'s <section>), 0 when it can't
+ * render it. The higher wins, so `<section className="hero container">` is a
+ * `Hero`, and `<div className="media-left image is-1by1">` no `Image`, which
+ * that ratio puts on a <figure>.
  */
-export function tagFit(entry: RootEntry, tag: string): number {
-  if (entry.tag === tag) return 2;
-  return reachesTag(entry, tag) ? 1 : 0;
+export function tagFit(
+  entry: RootEntry,
+  tag: string,
+  renders: string = entry.tag!
+): number {
+  if (tag === renders) return 2;
+  return reachesTag(entry, tag, renders) ? 1 : 0;
 }
 
 // ---- Value vocabularies (held to @allxsmith/bestax-bulma/constants) --------
@@ -2506,7 +2514,9 @@ export const PLACED: Readonly<Record<string, RootEntry>> = {
  * where it sits. A better fit beats a higher place here (`tagFit`): `Image`
  * takes a `<figure className="image container">`, which `Container` can't
  * render, and `Hero` a `<section className="hero container">`, whose tag is
- * its own and only reached through `as` by `Container`. The other root stays
+ * its own and only reached through `as` by `Container`. The fit is to the
+ * tag the element's classes make a root render, so `Image` with a ratio fits
+ * a <figure> as its own and a <div> only through `as`. The other root stays
  * in `className`, which renders the same either way, and the element gets a
  * TODO naming its component.
  */

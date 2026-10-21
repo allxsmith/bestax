@@ -805,6 +805,91 @@ describe('plan', () => {
       });
     });
 
+    it('fits a root to the tag its classes make it render, not its own', () => {
+      const img = {
+        tag: 'img',
+        attributes: new Map([['src', 'a.png']]),
+        hasSpread: false,
+        isEmpty: true,
+      };
+      const second = (tag: string, className: string) => {
+        const result = plan(facts(tag, className, {}, { soleChild: img }));
+        return {
+          conversion: result.conversion && {
+            target: result.conversion.target,
+            props: result.conversion.props,
+            className: result.conversion.className,
+          },
+          why: result.todos
+            .filter(todo => todo.rule.startsWith('second-component:'))
+            .map(todo => /here, (since .*?), so `\./.exec(todo.message)?.[1]),
+        };
+      };
+      // A ratio puts `Image` on a <figure>, so it reaches a <div> only
+      // through `as`, as `Media.Left` and `Hero` do, and the table's ranking
+      // decides.
+      expect(second('div', 'media-left image is-1by1')).toEqual({
+        conversion: {
+          target: 'Media.Left',
+          props: [['as', 'div']],
+          className: 'image is-1by1',
+        },
+        why: [
+          'since the codemod ranks `.media-left` first, putting layout and parts ahead of surfaces',
+        ],
+      });
+      expect(second('div', 'hero image is-16by9').conversion).toEqual({
+        target: 'Hero',
+        props: [['as', 'div']],
+        className: 'image is-16by9',
+      });
+      // And on a <figure> it is what `Image` renders with no `as`, which
+      // `Navbar.Item` reaches only through it.
+      expect(second('figure', 'navbar-item image is-16by9')).toEqual({
+        conversion: {
+          target: 'Image',
+          props: [['size', '16by9']],
+          className: 'navbar-item',
+        },
+        why: [
+          'since `Image` renders a <figure> with these classes and no `as`, and `Navbar.Item` renders one only through `as`',
+        ],
+      });
+      // A fixed size keeps `Image` on its own <div>.
+      expect(second('div', 'media-left image is-64x64')).toEqual({
+        conversion: {
+          target: 'Image',
+          props: [['size', '64x64']],
+          className: 'media-left',
+        },
+        why: [
+          "since a <div> is `Image`'s own element, and `Media.Left` renders one only through `as`",
+        ],
+      });
+      // Both render a <figure> with no `as`: the table's ranking.
+      expect(second('figure', 'media-left image is-1by1')).toEqual({
+        conversion: {
+          target: 'Media.Left',
+          props: [],
+          className: 'image is-1by1',
+        },
+        why: [
+          'since the codemod ranks `.media-left` first, putting layout and parts ahead of surfaces',
+        ],
+      });
+      // A heading's size picks its tag the same way.
+      expect(second('h3', 'navbar-item title is-3')).toEqual({
+        conversion: {
+          target: 'Title',
+          props: [['size', '3']],
+          className: 'navbar-item',
+        },
+        why: [
+          'since `Title` renders an <h3> with these classes and no `as`, and `Navbar.Item` renders one only through `as`',
+        ],
+      });
+    });
+
     it('takes no class of a glyph inside an `.icon` for a second root', () => {
       const glyph = {
         tag: 'i',

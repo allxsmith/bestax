@@ -390,27 +390,39 @@ function tagsItReaches(entry: RootEntry): string {
  * (`columns box`). The class stays in `className`, which renders the same,
  * but on a bestax component it is raw Bulma markup the lint rule reports, so
  * each says which root won and why, and how to keep what the class does.
+ * `rendered` holds the tag the element's classes make each root's target
+ * render with no `as`, for the roots the planner picked from.
  */
 function secondComponents(
   carried: readonly string[],
   fixed: readonly string[],
   root: string | undefined,
   target: string,
-  tag: string
+  tag: string,
+  rendered: ReadonlyMap<string, string>
 ): Todo[] {
   return carried.flatMap(token => {
     const other = rootFor(token);
     if (token === root || other?.status !== 'mapped') return [];
     const name = other.target!;
     if (name === target) return [];
+    const fitsBetter =
+      root !== undefined &&
+      tagFit(rootFor(root)!, tag, rendered.get(root)) >
+        tagFit(other, tag, rendered.get(token));
+    // The tag is the target's own, or one the element's classes pick.
+    const fits =
+      root !== undefined && rootFor(root)!.tag === tag
+        ? `${aTag(tag)} is \`${target}\`'s own element`
+        : `\`${target}\` renders ${aTag(tag)} with these classes and no \`as\``;
     const why = !fixed.includes(token)
       ? `since \`.${token}\` is there only when its condition holds, and the codemod picks from the classes the element always carries`
       : root === undefined
         ? 'since an item of a list converts by where it sits'
-        : !reachesTag(other, tag)
+        : !reachesTag(other, tag, rendered.get(token))
           ? `since \`${name}\` renders ${tagsItReaches(other)}, not ${aTag(tag)}`
-          : tagFit(rootFor(root)!, tag) > tagFit(other, tag)
-            ? `since ${aTag(tag)} is \`${target}\`'s own element, and \`${name}\` renders one only through \`as\``
+          : fitsBetter
+            ? `since ${fits}, and \`${name}\` renders one only through \`as\``
             : precedence(root) < precedence(token)
               ? `since the codemod ranks \`.${root}\` first, putting layout and parts ahead of surfaces`
               : `since \`.${root}\` comes first on the element`;
@@ -517,14 +529,23 @@ function planElement(facts: ElementFacts): Plan {
     : tokens.find(token => rootFor(token)?.status === 'fold');
   if (wrapper) return planFold(facts, wrapper, todos);
 
-  // Of two roots, the one that fits the element's tag best wins (its own tag,
-  // then one `as` reaches), and the table's precedence decides a tie.
+  // Of two roots, the one that fits the element's tag best wins (the tag the
+  // element's classes make its target render with no `as`, then one `as`
+  // reaches), and the table's precedence decides a tie. So an `Image` ratio,
+  // which puts it on a <figure>, fits a <div> only through `as`.
   const roots = placed
     ? []
     : tokens
         .filter(token => rootFor(token)?.status === 'mapped')
         .sort((a, b) => precedence(a) - precedence(b));
-  const fit = (token: string) => tagFit(rootFor(token)!, tag);
+  const rendered = new Map(
+    roots.map(token => [
+      token,
+      rendersWith(rootFor(token)!, tokens, tag, token, facts.attributes),
+    ])
+  );
+  const fit = (token: string) =>
+    tagFit(rootFor(token)!, tag, rendered.get(token));
   const root = roots.reduce<string | undefined>(
     (best, token) =>
       best === undefined || fit(token) > fit(best) ? token : best,
@@ -565,16 +586,11 @@ function planElement(facts: ElementFacts): Plan {
   // On a tag the target can't render, the tag is the work that comes first:
   // any other refusal would ask for work (an attribute added or dropped, a
   // child moved) that a re-run then refuses on the tag anyway.
-  // What the classes write picks the tag the target renders with no `as`:
-  // Title's `size` its heading, and the one class with a `rendersTag`
-  // (`Image`'s ratio) its <figure>.
-  let renders = entry.tag!;
-  const picked = propsFrom(entry, tokens, tag, root, facts.attributes);
-  const size = picked.writes.get('size');
-  if (entry.sizeDrivesTag && tag !== 'p' && size !== undefined) {
-    renders = `h${size}`;
-  }
-  if (picked.rendersTag) renders = picked.rendersTag;
+  // What the classes write picks the tag the target renders with no `as`
+  // (`rendersWith`), as it did when the root was picked.
+  const renders =
+    (root && rendered.get(root)) ??
+    rendersWith(entry, tokens, tag, root, facts.attributes);
   let as: string | undefined;
   if (renders !== tag) {
     if (!reachesTag(entry, tag, renders)) {
@@ -1047,7 +1063,7 @@ function planElement(facts: ElementFacts): Plan {
       `bestax \`${target}\` writes a \`className\` it's given in place of \`.${root}\`, so this converts only with no other class; keep it as markup`
     );
   }
-  todos.push(...secondComponents(carried, tokens, root, target, tag));
+  todos.push(...secondComponents(carried, tokens, root, target, tag, rendered));
   // A glyph the target renders from props takes the place of the only child.
   const glyph =
     moved ?? (entry.readsGlyph ? readGlyph(facts.soleChild) : undefined);
@@ -1524,6 +1540,27 @@ function propsFrom(
     undo('overflow');
   }
   return { writes, converted, numbers, rendersTag };
+}
+
+/**
+ * The tag a root's target renders with the element's classes and no `as`,
+ * from what `propsFrom` takes them as: the one class with a `rendersTag`
+ * (`Image`'s ratio) its tag, else the heading Title's `size` names, which
+ * only `as="p"` overrides, else the root's own.
+ */
+function rendersWith(
+  entry: RootEntry,
+  tokens: readonly string[],
+  tag: string,
+  root: string | undefined,
+  attributes: ReadonlyMap<string, unknown>
+): string {
+  const picked = propsFrom(entry, tokens, tag, root, attributes);
+  if (picked.rendersTag) return picked.rendersTag;
+  const size = picked.writes.get('size');
+  return entry.sizeDrivesTag && tag !== 'p' && size !== undefined
+    ? `h${size}`
+    : entry.tag!;
 }
 
 type Refuse = (kind: string, token: string, message: string) => Plan;
