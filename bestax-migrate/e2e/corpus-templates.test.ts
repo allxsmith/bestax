@@ -410,6 +410,66 @@ describe('the component class count', () => {
     ).toEqual({ image: 1 });
   });
 
+  it('fits a class to the tag the classes beside it pick, as the rule does', () => {
+    const tagged = new Map([
+      [
+        'media-left',
+        {
+          component: 'Media.Left',
+          converts: true,
+          tag: 'figure',
+          tags: ['figure', 'div'],
+        },
+      ],
+      [
+        'navbar-item',
+        { component: 'Navbar.Item', converts: true, tag: 'a', tags: 'any' },
+      ],
+      [
+        'title',
+        {
+          component: 'Title',
+          converts: true,
+          tag: 'h1',
+          tags: ['h1', 'h2', 'h3', 'p'],
+          retags: { 'is-3': { tag: 'h3', on: ['h3', 'p'] } },
+        },
+      ],
+      [
+        'image',
+        {
+          component: 'Image',
+          converts: true,
+          tag: 'div',
+          tags: ['div', 'figure', 'p'],
+          retags: {
+            'is-64x64': { tag: null },
+            'is-16by9': { tag: 'figure' },
+          },
+        },
+      ],
+    ]);
+    const module = parseModule(`
+      const page = (
+        <>
+          <div className="media-left image is-16by9" />
+          <div className="media-left image is-64x64 is-16by9" />
+          <figure className="navbar-item image is-16by9" />
+          <h3 className="navbar-item title is-3" />
+          <h2 className="navbar-item title is-3" />
+        </>
+      );
+    `);
+    // A ratio puts `Image` on a <figure>, a fixed size before it keeps its
+    // <div>, and a heading's size picks it only on the heading it names.
+    expect(componentClassCounts(module, tagged)).toEqual({
+      image: 2,
+      'media-left': 1,
+      'navbar-item': 1,
+      title: 1,
+    });
+  });
+
   it("reads another component's class on a bestax component, the way the rule does", () => {
     const tagged = new Map([
       ['columns', { component: 'Columns', converts: true, tag: 'div' }],

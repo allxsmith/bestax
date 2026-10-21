@@ -349,10 +349,11 @@ function classTokens(opening) {
 /**
  * The class `no-bulma-component-class` reports an element by, among the ones
  * `keep` allows: the first family class it carries, else the converted class
- * whose component fits its tag best (its own tag, then one `as` reaches), the
- * first in the table's order among equals. A component passes no tag, so the
- * table's order decides. `classes` is the ESLint plugin's
- * `BULMA_COMPONENT_CLASSES`.
+ * whose component fits its tag best (the tag it renders with these classes
+ * and no `as`, which the first of its `retags` the element carries on a tag
+ * it converts on picks, then one `as` reaches), the first in the table's
+ * order among equals. A component passes no tag, so the table's order
+ * decides. `classes` is the ESLint plugin's `BULMA_COMPONENT_CLASSES`.
  */
 function componentClassOf(tokens, tag, classes, keep = () => true) {
   const family = tokens.find(token => {
@@ -360,8 +361,18 @@ function componentClassOf(tokens, tag, classes, keep = () => true) {
     return entry?.converts === false && keep(entry);
   });
   if (family !== undefined) return family;
+  const renders = entry => {
+    const retag = tokens
+      .map(token =>
+        entry.retags && Object.hasOwn(entry.retags, token)
+          ? entry.retags[token]
+          : undefined
+      )
+      .find(found => found && (!found.on || found.on.includes(tag)));
+    return retag?.tag ?? entry.tag;
+  };
   const fit = entry =>
-    entry.tag === tag
+    renders(entry) === tag
       ? 2
       : entry.tags === 'any' || entry.tags?.includes(tag)
         ? 1
