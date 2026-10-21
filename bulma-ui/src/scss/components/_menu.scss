@@ -26,14 +26,23 @@ $menu-section-chevron-duration: cv.getVar("duration") !default;
   );
 }
 
-// The space Bulma puts around a label: above a section that follows
-// something else in the menu, and between an open section's heading and its
-// list. Both are on the heading, so the label's `em` measures them in the
-// label's own small size, as Bulma's do. The heading doesn't carry
-// `.menu-label`, whose margins turn on where a label sits among the menu's
-// children, while the heading's place inside its section never changes.
+// The space Bulma puts around a label, which turns on where the label sits
+// among the menu's children: above it unless it comes first, and below it
+// unless it comes last. A heading takes the same two from where its section
+// sits, plus the space between an open heading and its own list. Without
+// the one below, a menu list right after a closed section would sit flush
+// under its heading, as if it were the section's. Two sections in a row are
+// still one space apart, since the margins collapse. They're on the heading,
+// so the label's `em` measures them in the label's own small size, as
+// Bulma's do. The heading doesn't carry `.menu-label` itself, because its
+// own place inside its section never changes.
 .#{iv.$class-prefix}menu-section:not(:first-child) > .#{iv.$class-prefix}menu-section-toggle {
   margin-top: cv.getVar("menu-label-spacing");
+}
+
+.#{iv.$class-prefix}menu-section:not(:last-child) > .#{iv.$class-prefix}menu-section-toggle,
+.#{iv.$class-prefix}menu-section-toggle[aria-expanded="true"] {
+  margin-bottom: cv.getVar("menu-label-spacing");
 }
 
 // The heading is a button drawn like Bulma's `.menu-label`: small, spaced
@@ -64,10 +73,6 @@ $menu-section-chevron-duration: cv.getVar("duration") !default;
 
   &:focus-visible {
     @include extras-focus-outline;
-  }
-
-  &[aria-expanded="true"] {
-    margin-bottom: cv.getVar("menu-label-spacing");
   }
 }
 

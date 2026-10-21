@@ -317,15 +317,17 @@ describe.each([
       );
     });
 
-    it('spaces sections as Bulma spaces labels: above one that follows, and under an open heading', () => {
-      // On the heading, not the section, so the `em` is the label's small
-      // size, as it is on Bulma's label.
-      const following = `${p('menu-section')}:not(:first-child) > ${p('menu-section-toggle')}`;
-      const open = `${p('menu-section-toggle')}[aria-expanded=true]`;
+    // On the heading, not the section, so the `em` is the label's small size,
+    // as it is on Bulma's label.
+    const following = `${p('menu-section')}:not(:first-child) > ${p('menu-section-toggle')}`;
+    const followed = `${p('menu-section')}:not(:last-child) > ${p('menu-section-toggle')}`;
+    const open = `${p('menu-section-toggle')}[aria-expanded=true]`;
+
+    it('spaces sections as Bulma spaces labels: above one that follows something, below one something follows, and under an open heading', () => {
       expect(declarations(section, following)).toEqual({
         'margin-top': 'var(--bulma-menu-label-spacing)',
       });
-      expect(declarations(section, open)).toEqual({
+      expect(declarations(section, `${followed}, ${open}`)).toEqual({
         'margin-bottom': 'var(--bulma-menu-label-spacing)',
       });
       // The same space Bulma puts around a label.
@@ -338,7 +340,39 @@ describe.each([
       // And they land where they should.
       const { buttons } = renderSections();
       expect(buttons.map(b => b.matches(following))).toEqual([false, true]);
+      expect(buttons.map(b => b.matches(followed))).toEqual([true, false]);
       expect(buttons.map(b => b.matches(open))).toEqual([true, false]);
+    });
+
+    it('keeps a menu list after a closed section off its heading', () => {
+      // Bulma's menu list has no margin of its own, so the heading's is all
+      // that parts the two. Flush, the list would read as the section's.
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Menu>
+            <Menu.Section label="Closed">
+              <Menu.List>
+                <Menu.Item href="#a">Inside</Menu.Item>
+              </Menu.List>
+            </Menu.Section>
+            <Menu.List>
+              <Menu.Item href="#b">After</Menu.Item>
+            </Menu.List>
+          </Menu>
+        </ConfigProvider>
+      );
+      const heading = container.querySelector('button')!;
+      expect(heading).toHaveAttribute('aria-expanded', 'false');
+      // A rule of the partial's spaces the closed heading below.
+      const below = section.filter(({ rule }) =>
+        rule.style.getPropertyValue('margin-bottom')
+      );
+      expect(
+        below.filter(({ rule }) => heading.matches(rule.selectorText))
+      ).toHaveLength(1);
+      const list = declarations(bulma, '.menu-list');
+      expect(list.margin).toBeUndefined();
+      expect(list['margin-top']).toBeUndefined();
     });
 
     it('rings the focused heading, and keeps the ring in forced colors', () => {
