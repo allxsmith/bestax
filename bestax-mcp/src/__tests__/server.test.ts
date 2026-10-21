@@ -1098,6 +1098,12 @@ describe('lookup_bulma_classes', () => {
     expect(await lookup('subtitle is-6', 'h1')).toContain(
       'on this <h1>, write `textSize="6"` in its place'
     );
+    // Title can't render a <div>, so the lookup says to change the tag, and
+    // on an <h4> or a <p> the class converts: no textSize to suggest.
+    const onDiv = await lookup('title is-4', 'div');
+    expect(onDiv).toContain('not a <div>');
+    expect(onDiv).not.toContain('keeps the <div>');
+    expect(onDiv).not.toContain('textSize="4"');
   });
 
   it('defers to a size helper that writes textSize already', async () => {

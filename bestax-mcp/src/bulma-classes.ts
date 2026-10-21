@@ -629,7 +629,11 @@ export function lookupClasses(
         stays(
           token,
           `bestax \`${target}\` renders it exactly only on ${listTags(modifier.tagIn)}` +
-            (modifier.offTag
+            // Only on a tag the component renders: on any other, the lookup
+            // says to change the tag, and on the new one the class converts.
+            (modifier.offTag &&
+            (entry.as === 'any' ||
+              (Array.isArray(entry.as) && entry.as.includes(tag)))
               ? offTagNote(
                   modifier.offTag,
                   `; on this <${tag}>, write ${writeText(modifier.offTag)} in its place, which sizes it the same and keeps the <${tag}>`
