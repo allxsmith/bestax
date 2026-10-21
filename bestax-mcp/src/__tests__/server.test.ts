@@ -1191,7 +1191,21 @@ describe('lookup_bulma_classes', () => {
     );
     expect(image).toContain('| `is-64x64` | `size="64x64"` |');
     expect(image).toContain(
-      '| `is-4by3` | stays in `className` | `size` renders `has-ratio` beside it as well |'
+      '| `is-4by3` | stays in `className` | `size` is already set by `is-64x64` |'
+    );
+    // A ratio puts `Image` on a <figure> with no `as`, so only another tag
+    // keeps one.
+    const ratio = await lookup('image is-4by3', 'figure');
+    expect(ratio).toContain('**Component:** `Image`.');
+    expect(ratio).toContain('| `is-4by3` | `size="4by3"` |');
+    expect(await lookup('image is-4by3', 'div')).toContain(
+      '**Component:** `Image` with `as="div"`.'
+    );
+    expect(await lookup('image is-4by3')).toContain(
+      '(renders <figure> with these classes, or <div>, <figure> or <p> through `as`)'
+    );
+    expect(await lookup('image is-4by3', 'span')).toContain(
+      '`Image` renders <figure> with these classes, or <div>, <figure> or <p> through `as`, not a <span>'
     );
     expect(await lookup('card', 'div')).not.toContain('inside it itself');
   });

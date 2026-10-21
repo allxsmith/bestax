@@ -26,7 +26,12 @@ export interface ImageProps
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Background color helper for the container. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Fixed size or aspect ratio modifier for the image container. */
+  /**
+   * Fixed size or aspect ratio modifier for the image container. A ratio
+   * (`16by9` and the rest) renders only its `is-<ratio>` class there. Bulma
+   * stretches an `<img>` inside to fill the ratio, but any other child, such
+   * as an `iframe`, fills it only with `className="has-ratio"` of its own.
+   */
   size?:
     | '16x16'
     | '24x24'
@@ -96,23 +101,18 @@ export const Image: React.FC<ImageProps> = ({
     ...props,
   });
 
+  // Bulma reads `.has-ratio` only on a child of the ratio container, so the
+  // container carries just its `is-<ratio>` class.
   const bulmaClasses = usePrefixedClassNames('image', {
     [`is-${size}`]: size,
-    'has-ratio': size && typeof size === 'string' && size.includes('by'),
   });
 
   const imageClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   // Default tag logic: if "as" is provided, use it.
-  // If not, use <figure> for aspect ratios or children, <div> otherwise.
-  let Tag: 'figure' | 'div' | 'p';
-  if (as) {
-    Tag = as;
-  } else if (size && typeof size === 'string' && size.includes('by')) {
-    Tag = 'figure';
-  } else {
-    Tag = 'div';
-  }
+  // If not, use <figure> for aspect ratios, <div> otherwise.
+  const Tag: 'figure' | 'div' | 'p' =
+    as ?? (size?.includes('by') ? 'figure' : 'div');
 
   const roundedClass = usePrefixedClassNames('is-rounded');
 

@@ -107,8 +107,9 @@ Notes:
   @use '@allxsmith/bestax-bulma/scss/components/tabs' as bestax-tabs;
   ```
 
-- The `menu` partial **extends** stock Bulma menu (it keeps the active item marked in forced
-  colors, Windows' contrast themes), so an app using `Menu` needs both, in either order:
+- The `menu` partial **extends** stock Bulma menu (it draws `Menu.Section`'s heading and chevron,
+  and keeps the active item marked in forced colors, Windows' contrast themes), so an app using
+  `Menu` needs both, in either order:
 
   ```scss
   @use 'bulma/sass/components/menu';

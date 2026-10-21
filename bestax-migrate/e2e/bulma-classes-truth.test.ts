@@ -2062,6 +2062,22 @@ describe("the table's claims about the library", () => {
     ...Object.values(WRAPPERS),
   ];
 
+  it('renders each root on every tag one of its classes picks', () => {
+    // `tagsFor` is every tag this file renders a root on, so a tag a class
+    // picks with no `as` (`Image`'s ratio on a <figure>) is held to the
+    // markup only as one of them, whatever the root's `as` reaches.
+    const missed = mapped.flatMap(([root, entry]) =>
+      Object.entries(entry.modifiers ?? {})
+        .filter(
+          ([, modifier]) =>
+            modifier.rendersTag !== undefined &&
+            !tagsFor(entry).includes(modifier.rendersTag)
+        )
+        .map(([token]) => `${root} ${token}`)
+    );
+    expect(missed).toEqual([]);
+  });
+
   it('names every spelling of each component whose context a root provides', () => {
     // A component reaches a file under its export and under each part name
     // it is attached as (`TabContentItem`, `TabsContent.Item`,
