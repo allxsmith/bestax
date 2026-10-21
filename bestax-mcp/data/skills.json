@@ -113,7 +113,7 @@
         {
           "id": "bulma-classes-unmappables",
           "file": "references/bulma-classes/unmappables.md",
-          "bytes": 50784
+          "bytes": 52150
         },
         {
           "id": "css-migration",
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 11993
+          "bytes": 12025
         }
       ],
       "examples": []

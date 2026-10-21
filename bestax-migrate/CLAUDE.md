@@ -119,7 +119,8 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   them), `project.ts` (what one file cannot show: which packages are Next.js App Router
   projects, which render JSX through a runtime other than React, and which are TypeScript, for
   the extension of the module an HTML page becomes, and which depend on Next.js, where that
-  module imports no stylesheet, read once per run from every package.json the run touches) and `transform.ts` (finds the elements, reads a
+  module imports no stylesheet, read once per run from every package.json the run touches, and
+  the folders the run starts from, where an `index.html` with pages beside it is `HomePage`) and `transform.ts` (finds the elements, reads a
   `className` a `clsx` or `classnames` call builds when it can read every argument, applies the
   plans, writes the import after the file's last one). The fixture render test runs the real
   `clsx` and `classnames`, which is why they are dev dependencies. An element converts only when the component renders the same markup; the render
@@ -201,7 +202,8 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   given the converter's own display hook. `e2e/bulma-classes-html-kitchen-sink.test.ts` converts
   `fixtures/bulma-classes-html/` under `--css keep` and `--css bestax`, asserts each page's rules
   exactly, typechecks the output (`pages/leftovers.html` holds every pattern a component can't
-  carry, its own script beside it in `pages/js/`, and its module stays out of the typecheck),
+  carry, its own script beside it in `pages/js/`, and its module stays out of the typecheck;
+  `pages/contact.html` holds what the converter leaves out so a module compiles, and is checked),
   and wants `html-file:exists` alone on a second run. Both kitchen sinks hold every rule they
   emit to the skill's references through `e2e/support/skill-rules.ts`.
 - Kitchen sink e2e (`e2e/kitchen-sink.test.ts`): copies `fixtures/kitchen-sink` to a

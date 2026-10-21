@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.39.0"
+    "version": "5.39.1"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -1200,8 +1200,8 @@
       "slug": "components/treeview",
       "import": "import { TreeView } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 20,
-      "exampleCount": 8
+      "propCount": 27,
+      "exampleCount": 9
     },
     {
       "name": "UnorderedList",

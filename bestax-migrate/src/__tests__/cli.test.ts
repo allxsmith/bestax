@@ -474,6 +474,23 @@ describe('HTML pages', () => {
     expect(text).toMatch(/1 transformed/);
   });
 
+  it("names the folder walk's top index.html the home page, and a section's after its folder", async () => {
+    const dir = site({
+      'index.html': bulmaPage,
+      'about.html': bulmaPage,
+      'docs/index.html': bulmaPage,
+      'docs/api.html': bulmaPage,
+    });
+    await runCli(['bulma-classes', dir, '-e', 'html', '--no-deps']);
+    const exported = (file: string) =>
+      /export default function (\w+)/.exec(
+        fs.readFileSync(path.join(dir, file), 'utf8')
+      )?.[1];
+    expect(exported('index.jsx')).toBe('HomePage');
+    expect(exported(path.join('docs', 'index.jsx'))).toBe('DocsPage');
+    expect(exported('about.jsx')).toBe('AboutPage');
+  });
+
   it('writes .tsx where the package says TypeScript', async () => {
     const dir = site({
       'package.json': JSON.stringify({
