@@ -606,6 +606,35 @@ describe('Sidebar', () => {
       expect(last).toHaveFocus();
     });
 
+    it('keeps holding Tab once a portalContainer selector that matched nothing starts matching', () => {
+      // The selector puts the sidebar in document.body until it matches. The
+      // render after the target appears moves the sidebar there, remounting
+      // its nodes while every prop stays the same.
+      const ui = () => (
+        <ConfigProvider portalContainer="#late-sidebar-target">
+          <Sidebar isOpen onClose={() => {}} aria-label="Filters">
+            <button type="button">First</button>
+            <button type="button">Last</button>
+          </Sidebar>
+        </ConfigProvider>
+      );
+      const { rerender } = render(ui());
+      const target = document.createElement('div');
+      target.id = 'late-sidebar-target';
+      document.body.appendChild(target);
+      try {
+        rerender(ui());
+        const last = screen.getByText('Last');
+        expect(target).toContainElement(last);
+        act(() => last.focus());
+
+        expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(false);
+        expect(screen.getByText('First')).toHaveFocus();
+      } finally {
+        target.remove();
+      }
+    });
+
     it('holds Tab in the topmost sidebar only', () => {
       render(
         <>

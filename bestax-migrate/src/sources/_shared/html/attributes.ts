@@ -23,7 +23,10 @@
  *     passes through as written (`class` aside);
  *   - an `on…` attribute is code React can't run from a string, and a name
  *     JSX can't spell (`@click`, `x-on:click`) can't be written at all; both
- *     are handed back to the caller instead of emitted.
+ *     are handed back to the caller instead of emitted;
+ *   - an attribute HTML gives the element no meaning for, which the browser
+ *     ignores and React's types reject there (`type` on a `<textarea>`), is
+ *     handed back too (`IGNORED`).
  */
 
 import { find, hastToReact, html, svg } from 'property-information';
@@ -49,12 +52,14 @@ export interface Prop {
  * Something the converter can't carry over as written, for the caller to
  * report. Emitted: `unknown-attribute`, `javascript-url`, `style-important`
  * (without its priority), and the element kinds. Not emitted:
- * `attribute-name`, `event-handler`, `style` (the one declaration it
- * quotes), `element-name` (its children are), and a `conditional-comment`.
+ * `attribute-name`, `ignored-attribute`, `event-handler`, `style` (the one
+ * declaration it quotes), `element-name` (its children are), and a
+ * `conditional-comment`.
  */
 export interface HtmlIssue {
   kind:
     | 'attribute-name'
+    | 'ignored-attribute'
     | 'event-handler'
     | 'unknown-attribute'
     | 'javascript-url'
@@ -70,12 +75,16 @@ export interface HtmlIssue {
   token: string;
   /** The attribute it is on, for its line. */
   attribute?: string;
-  /** What a report quotes: a handler's code, a style, a declaration. */
+  /**
+   * What a report quotes: a handler's code, a style, a declaration, the tag
+   * an ignored attribute was on.
+   */
   detail?: string;
   /** For an `event-handler`, the React prop that takes a function. */
   prop?: string;
 }
 
+const HTML = 'http://www.w3.org/1999/xhtml';
 const SVG = 'http://www.w3.org/2000/svg';
 const MATHML = 'http://www.w3.org/1998/Math/MathML';
 
@@ -155,6 +164,14 @@ const VALUE_NOT_TYPED = new Set([
   'reset',
   'submit',
 ]);
+
+/**
+ * Attributes HTML gives these elements no meaning for, by tag: the browser
+ * ignores them, and React's types reject them there, so they are left out.
+ */
+const IGNORED: Readonly<Record<string, ReadonlySet<string>>> = {
+  textarea: new Set(['type']),
+};
 
 /** What JSX can write as an attribute name (no namespace, no symbols). */
 const JSX_NAME = /^[A-Za-z_$][\w$-]*$/;
@@ -315,6 +332,19 @@ export function convertAttributes(element: Element): {
     }
     if (custom) {
       add(attribute === 'class' ? 'className' : attribute, value, attribute);
+      continue;
+    }
+    if (
+      element.namespaceURI === HTML &&
+      Object.hasOwn(IGNORED, tag) &&
+      IGNORED[tag].has(attribute.toLowerCase())
+    ) {
+      issues.push({
+        kind: 'ignored-attribute',
+        token: attribute,
+        attribute,
+        detail: tag,
+      });
       continue;
     }
     if (tag === 'option' && attribute === 'selected' && selectOf(element)) {

@@ -248,7 +248,11 @@ look like it did nothing.
 Each page becomes a React module beside it: `login/index.html` writes `login/index.tsx`, or
 `.jsx` when the package has no `tsconfig.json` and doesn't depend on TypeScript. The module's
 default export is a component named after the file, or after its folder for an `index.html`,
-with `Page` on the end so `hero.html` can't shadow bestax's `Hero`. This page:
+with `Page` on the end so `hero.html` can't shadow bestax's `Hero`. The `index.html` in the folder
+the run starts from, with other pages beside it, is the site's home page, so it becomes
+`HomePage`, unless a page beside it would be `HomePage` too (`home.html`), when it keeps its
+folder's name. One in a folder below keeps its folder's name, so `docs/index.html` is `DocsPage`.
+This page:
 
 ```html
 <section class="hero is-fullheight">
@@ -313,16 +317,16 @@ and neither do its scripts. Each of those becomes a `TODO(bestax-migrate)` line,
 the whole page above the component and the rest above its `return`, and every report entry
 names the `.html` file and the line it came from:
 
-| Rule                                      | What it covers                                                                                                                           | What to do                                                                                                                         |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `html-head:<tag>`                         | `<title>`, `<meta>`, `<link>`, `<style>`, `<base>`                                                                                       | App-wide ones go in the app's `index.html`, a page's own where the app sets each page's head                                       |
-| `html-asset:<kind>`                       | each stylesheet and script the page loads: Bulma's own, Font Awesome, a Bulma extension, jQuery, a web font, and any other               | `--css bestax` and `--css bulma` import Bulma's in the module; load the rest once for the app, or use the component the TODO names |
-| `html-script:<pattern>`                   | inline scripts and the page's own script files: a burger, a modal, a dismiss button, a carousel, a theme toggle, JSON-LD, the rest       | Port the code into the component; the TODO names the bestax component for the usual patterns                                       |
-| `html-document:<name>`                    | classes and attributes on `<html>` and `<body>`, such as `has-navbar-fixed-top`, `data-theme` and `lang`                                 | Put them on the app's own `<html>`; `Theme colorMode` writes `data-theme` for you                                                  |
-| `html-event:<attribute>`                  | `onclick="…"` and its kind, which React can't take as a string                                                                           | Port the code into the handler the TODO names (`onClick`)                                                                          |
-| `html-element:<kind>`, `html-attr:<kind>` | custom and obsolete elements, attributes JSX can't write or React has no prop for, styles React can't apply                              | Replace them with current markup, or declare a custom element for TypeScript                                                       |
-| `html-url:<kind>`                         | `javascript:` URLs, relative URLs, which resolve against the address a component renders at, and ones whose target isn't beside the page | Move the code into a handler; copy a file into `public/` and point at it from the site root, or import it; fix or drop a dead link |
-| `html-parse:<code>`                       | markup the browser repaired, once per kind of error                                                                                      | Check that part of the page renders as meant                                                                                       |
+| Rule                                      | What it covers                                                                                                                                     | What to do                                                                                                                         |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `html-head:<tag>`                         | `<title>`, `<meta>` (a Content Security Policy apart, as `html-head:csp`), `<link>`, `<style>`, `<base>`                                           | App-wide ones go in the app's `index.html`, a page's own where the app sets each page's head; write the app's own policy           |
+| `html-asset:<kind>`                       | each stylesheet and script the page loads: Bulma's own, Font Awesome, a Bulma extension, jQuery, a web font, and any other                         | `--css bestax` and `--css bulma` import Bulma's in the module; load the rest once for the app, or use the component the TODO names |
+| `html-script:<pattern>`                   | inline scripts and the page's own script files: a burger, a modal, a dismiss button, a carousel, a theme toggle, JSON-LD, the rest                 | Port the code into the component; the TODO names the bestax component for the usual patterns                                       |
+| `html-document:<name>`                    | classes and attributes on `<html>` and `<body>`, such as `has-navbar-fixed-top`, `data-theme` and `lang`                                           | Put them on the app's own `<html>`, where the first paint has the scheme; `Theme colorMode` drives a light/dark toggle             |
+| `html-event:<attribute>`                  | `onclick="…"` and its kind, which React can't take as a string                                                                                     | Port the code into the handler the TODO names (`onClick`)                                                                          |
+| `html-element:<kind>`, `html-attr:<kind>` | custom and obsolete elements, attributes JSX can't write, React has no prop for or the element ignores, stray characters, styles React can't apply | Replace them with current markup, or declare a custom element for TypeScript                                                       |
+| `html-url:<kind>`                         | `javascript:` URLs, relative URLs, which resolve against the address a component renders at, and ones whose target isn't beside the page           | Move the code into a handler; copy a file into `public/` and point at it from the site root, or import it; fix or drop a dead link |
+| `html-parse:<code>`                       | markup the browser repaired, once per kind of error                                                                                                | Check that part of the page renders as meant                                                                                       |
 
 The page's `.html` stays as it was, so a dropped script's code is still there to port, and the
 TODO gives its lines. Every rule, with a recipe, is in the skill's
