@@ -446,6 +446,37 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
     );
   });
 
+  it("on each root beside another root, on each one's tags", () => {
+    const seconds = ['box', 'content', 'container', 'columns', 'image'];
+    const cases = mapped.flatMap(([root, entry]) =>
+      seconds
+        // The planner is given one element inside, so not the <img> of an
+        // `.image` beside a root that reads the element inside it too.
+        .filter(
+          second =>
+            second !== root &&
+            !(
+              table.roots[second].absorbs &&
+              (entry.absorbs || entry.readsGlyph)
+            )
+        )
+        .flatMap(second => {
+          const other = table.roots[second];
+          const tags = new Set([
+            entry.tag!,
+            other.tag!,
+            ...(Array.isArray(other.as) ? other.as : []),
+          ]);
+          return [...tags].flatMap(tag => [
+            [tag, [root, second]] as [string, string[]],
+            [tag, [second, root]] as [string, string[]],
+          ]);
+        })
+    );
+    expect(cases.length).toBeGreaterThan(400);
+    expect(compare(cases)).toEqual([]);
+  });
+
   it('on a removed helper beside a class for its prop or another, in either order', () => {
     const cases: Array<[string, string[]]> = [];
     for (const [token, v1] of Object.entries(table.replaced)) {

@@ -1102,6 +1102,27 @@ describe('lookup_bulma_classes', () => {
     );
   });
 
+  it("says another component's class stays a class, which component won and why", async () => {
+    expect(await lookup('columns box', 'div')).toContain(
+      "| `box` | stays in `className` | bestax `Box`'s class too, and an element converts to one component: `Columns` here, since the codemod ranks `.columns` first, putting layout and parts ahead of surfaces; to use `Box`, give it an element of its own around or inside this one |"
+    );
+    // A component that renders the tag wins over one ranked ahead of it.
+    const image = await lookup('image is-128x128 container', 'figure');
+    expect(image).toContain('**Component:** `Image` with `as="figure"`.');
+    expect(image).toContain(
+      '`Image` here, since `Container` renders <div>, <main>, <section>, <article>, <aside>, <header>, <footer> or <nav> through `as`, not a <figure>; where it is only there to center this element, `mx="auto"` centers it'
+    );
+    expect(await lookup('image is-128x128 container', 'div')).toContain(
+      '**Component:** `Container`.'
+    );
+    // And one whose own tag it is wins over one that reaches it through `as`.
+    const hero = await lookup('container hero is-primary', 'section');
+    expect(hero).toContain('**Component:** `Hero`.');
+    expect(hero).toContain(
+      "`Hero` here, since a <section> is `Hero`'s own element, and `Container` renders one only through `as`"
+    );
+  });
+
   it('sends a family bestax converts as a whole to its recipe', async () => {
     const out = await lookup('dropdown box');
     expect(out).toContain('**Stays markup:** `.dropdown`:');

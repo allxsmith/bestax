@@ -35,8 +35,11 @@ import {
   inTagSet,
   numberAttrsOf,
   PLACED,
+  PRECEDENCE,
+  reachesTag,
   REPLACED_IN_V1,
   ROOTS,
+  tagFit,
   WRAPPERS,
   WRAPPER_OWN_PROPS,
   type RootEntry,
@@ -2227,6 +2230,81 @@ describe("the table's claims about the library", () => {
         }
       }
     }
+  });
+});
+
+describe('an element carrying a second root', () => {
+  // The roots an element most often carries beside another one.
+  const seconds = [
+    'box',
+    'block',
+    'content',
+    'notification',
+    'container',
+    'section',
+    'columns',
+    'column',
+    'image',
+  ];
+
+  it('converts to the root that fits its tag best, and renders the same', () => {
+    const lostOnTag: string[] = [];
+    const worseFit: string[] = [];
+    let conversions = 0;
+    for (const [root, entry] of mapped) {
+      for (const second of seconds) {
+        if (second === root) continue;
+        const other = ROOTS[second];
+        const child = childFor(entry);
+        // An element holds the child one of them renders itself, or the part
+        // one of them wraps its children unless it holds, never both, and a
+        // void one holds nothing.
+        if (other.absorbs && (entry.absorbs || child)) continue;
+        // Each one's own tag, and the ones the second reaches through `as`.
+        const tags = new Set([entry.tag!, ...tagsFor(other)]);
+        for (const tag of tags) {
+          if (VOID.has(tag)) continue;
+          const given = {
+            ...defaultsFor(other, tag),
+            ...defaultsFor(entry, tag),
+          };
+          // The order decides only between two roots the table doesn't rank.
+          for (const tokens of PRECEDENCE.includes(root)
+            ? [[root, second]]
+            : [
+                [root, second],
+                [second, root],
+              ]) {
+            const facts = factsFor(tag, tokens, given, child);
+            const planned = plan(facts);
+            const refused = planned.todos.some(todo =>
+              todo.rule.startsWith('tag:')
+            );
+            if (refused && (reachesTag(entry, tag) || reachesTag(other, tag))) {
+              lostOnTag.push(`<${tag} className="${tokens.join(' ')}">`);
+            }
+            // Its own tag before one `as` reaches, before none.
+            const won = planned.conversion?.target;
+            const [winner, loser] =
+              won === other.target ? [other, entry] : [entry, other];
+            if (won && tagFit(winner, tag) < tagFit(loser, tag)) {
+              worseFit.push(`<${tag} className="${tokens.join(' ')}">`);
+            }
+            const both = renderBoth(facts, given, child);
+            if (!both) continue;
+            conversions += 1;
+            expect({ tag, tokens, html: both.converted }).toEqual({
+              tag,
+              tokens,
+              html: both.raw,
+            });
+          }
+        }
+      }
+    }
+    expect(lostOnTag).toEqual([]);
+    expect(worseFit).toEqual([]);
+    expect(conversions).toBeGreaterThan(500);
   });
 });
 
