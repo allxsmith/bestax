@@ -1121,6 +1121,22 @@ describe('lookup_bulma_classes', () => {
     expect(hero).toContain(
       "`Hero` here, since a <section> is `Hero`'s own element, and `Container` renders one only through `as`"
     );
+    // The fit is to the tag the classes pick: a ratio puts `Image` on a
+    // <figure>, so it reaches a <div> only through `as`, like `Media.Left`.
+    const left = await lookup('media-left image is-1by1', 'div');
+    expect(left).toContain('**Component:** `Media.Left` with `as="div"`.');
+    expect(left).toContain(
+      "| `image` | stays in `className` | bestax `Image`'s class too, and an element converts to one component: `Media.Left` here, since the codemod ranks `.media-left` first, putting layout and parts ahead of surfaces;"
+    );
+    const item = await lookup('navbar-item image is-16by9', 'figure');
+    expect(item).toContain('**Component:** `Image`.');
+    expect(item).toContain(
+      '`Image` here, since `Image` renders a <figure> with these classes and no `as`, and `Navbar.Item` renders one only through `as`'
+    );
+    // A heading's size picks its tag the same way.
+    expect(await lookup('navbar-item title is-3', 'h3')).toContain(
+      '`Title` here, since `Title` renders an <h3> with these classes and no `as`, and `Navbar.Item` renders one only through `as`'
+    );
   });
 
   it('sends a family bestax converts as a whole to its recipe', async () => {

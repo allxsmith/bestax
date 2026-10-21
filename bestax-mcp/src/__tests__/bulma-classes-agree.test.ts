@@ -447,29 +447,39 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
   });
 
   it("on each root beside another root, on each one's tags", () => {
-    const seconds = ['box', 'content', 'container', 'columns', 'image'];
+    // Two of them with a class that picks the tag their component renders
+    // with no `as`, which is the tag a root's fit is read against.
+    const seconds = [
+      ['box'],
+      ['content'],
+      ['container'],
+      ['columns'],
+      ['image'],
+      ['image', 'is-16by9'],
+      ['title', 'is-3'],
+    ];
     const cases = mapped.flatMap(([root, entry]) =>
       seconds
         // The planner is given one element inside, so not the <img> of an
         // `.image` beside a root that reads the element inside it too.
         .filter(
           second =>
-            second !== root &&
+            !second.includes(root) &&
             !(
-              table.roots[second].absorbs &&
+              table.roots[second[0]].absorbs &&
               (entry.absorbs || entry.readsGlyph)
             )
         )
         .flatMap(second => {
-          const other = table.roots[second];
+          const other = table.roots[second[0]];
           const tags = new Set([
             entry.tag!,
             other.tag!,
             ...(Array.isArray(other.as) ? other.as : []),
           ]);
           return [...tags].flatMap(tag => [
-            [tag, [root, second]] as [string, string[]],
-            [tag, [second, root]] as [string, string[]],
+            [tag, [root, ...second]] as [string, string[]],
+            [tag, [...second, root]] as [string, string[]],
           ]);
         })
     );
