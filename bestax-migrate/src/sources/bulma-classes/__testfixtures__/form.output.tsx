@@ -66,6 +66,27 @@ export function SignUp() {
           <Button color="link" isLight>Cancel</Button>
         </Control>
       </Field>
+      <Field hasAddons="centered">
+        <Control>
+          <InputBase type="email" placeholder="Email" />
+        </Control>
+        <Control>
+          <Button color="info">Notify me</Button>
+        </Control>
+      </Field>
+      <Field grouped="multiline">
+        <Control>
+          <Button>One</Button>
+        </Control>
+        <Control>
+          <Button>Two</Button>
+        </Control>
+      </Field>
+      <Field className="is-grouped-right">
+        <Control>
+          <Button>Alone</Button>
+        </Control>
+      </Field>
     </form>
   );
 }

@@ -312,8 +312,12 @@ describe('every bulma-classes conversion typechecks', () => {
         const needs: Array<[string, string]> = spec.needsAttr
           ? [[spec.needsAttr.name, spec.needsAttr.value]]
           : [];
+        // Beside the class it converts only beside, when it has one.
+        const tokens = spec.beside
+          ? [root, spec.beside, modifier]
+          : [root, modifier];
         for (const tag of tagsFor(entry)) {
-          add(converted(tag, [root, modifier], [...onTag(tag), ...needs]));
+          add(converted(tag, tokens, [...onTag(tag), ...needs]));
           add(
             converted(tag, [root], [...onTag(tag), ...needs], undefined, [
               [modifier],

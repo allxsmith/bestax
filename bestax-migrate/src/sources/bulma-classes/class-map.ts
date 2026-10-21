@@ -53,6 +53,15 @@ export interface Modifier {
    */
   readonly needsAttr?: { readonly name: string; readonly value: string };
   /**
+   * Another of the root's modifiers whose prop this one writes another value
+   * of, and that value renders that modifier's class too (`Field`'s
+   * `hasAddons="centered"` renders `has-addons` beside `has-addons-centered`).
+   * The class converts only beside that one, the two as the one value, and
+   * stays a class on its own. Beside it, `tagIn` and `needsAttr` hold as they
+   * do for any modifier.
+   */
+  readonly beside?: string;
+  /**
    * The tag the target renders with this class's prop and no `as`, in place
    * of the root's `tag` (`Image` puts a ratio on a <figure>), so the element
    * converts with `as` only on another tag. The planner's tag check, which
@@ -661,6 +670,19 @@ function flags(map: Record<string, string>): Record<string, Modifier> {
   );
 }
 
+/** The same modifiers, each converting only beside `other`. */
+function beside(
+  other: string,
+  modifiers: Record<string, Modifier>
+): Record<string, Modifier> {
+  return Object.fromEntries(
+    Object.entries(modifiers).map(([token, modifier]) => [
+      token,
+      { ...modifier, beside: other },
+    ])
+  );
+}
+
 const BASE = {
   status: 'mapped',
   textColor: 'textColor',
@@ -1155,8 +1177,6 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Field',
     tag: 'div',
-    // `has-addons-centered`, `is-grouped-right` and the like stay classes:
-    // the prop values that render them render `has-addons` too.
     modifiers: {
       ...flags({
         'is-horizontal': 'horizontal',
@@ -1166,6 +1186,17 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       // `grouped` renders `is-grouped` for `true` and its three layouts, and
       // for nothing else truthy.
       'is-grouped': { writes: [{ prop: 'grouped' }], onlyTrue: true },
+      // The prop values that render `has-addons-centered`, `is-grouped-right`
+      // and the like render `has-addons` or `is-grouped` too, so each converts
+      // only beside that class, and stays a class on its own.
+      ...beside(
+        'has-addons',
+        tokens('has-addons-', ['centered', 'right'], 'hasAddons')
+      ),
+      ...beside(
+        'is-grouped',
+        tokens('is-grouped-', ['centered', 'right', 'multiline'], 'grouped')
+      ),
     },
     wrapsChildren: {
       in: 'field-body',

@@ -1399,10 +1399,22 @@ function propsFrom(
     ...tokens.filter(token => replacedBy(token)),
   ];
 
-  for (const token of claiming) {
+  // A class that converts only beside another (`has-addons-centered`) goes
+  // first, so the value it writes takes the prop ahead of that one's flag and
+  // renders both classes. On its own it stays a class. Neither is ever a
+  // removed class, so the two orders compose.
+  const paired = (token: string) => {
+    const other = modifierFor(entry, token)?.beside;
+    return other !== undefined && tokens.includes(other);
+  };
+  for (const token of [
+    ...claiming.filter(paired),
+    ...claiming.filter(token => !paired(token)),
+  ]) {
     if (converted.has(token)) continue;
     const modifier = modifierFor(entry, token);
     if (modifier) {
+      if (modifier.beside && !paired(token)) continue;
       if (modifier.tagIn && !modifier.tagIn.includes(tag)) continue;
       if (modifier.needsAttr && !attributes.has(modifier.needsAttr.name)) {
         continue;
@@ -1418,6 +1430,7 @@ function propsFrom(
       }
       rendersTag ??= modifier.rendersTag;
       converted.add(token);
+      if (modifier.beside) converted.add(modifier.beside);
       continue;
     }
     const helper = entry.noHelpers ? undefined : HELPER_TOKENS.get(token);

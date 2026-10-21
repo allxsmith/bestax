@@ -449,6 +449,15 @@ describe.each(mapped)('`.%s`', (root, entry) => {
     const candidates = [
       [root],
       ...Object.keys(entry.modifiers ?? {}).map(token => [root, token]),
+      // A class that converts only beside another, with it, either way round.
+      ...Object.entries(entry.modifiers ?? {}).flatMap(([token, modifier]) =>
+        modifier.beside
+          ? [
+              [root, modifier.beside, token],
+              [root, token, modifier.beside],
+            ]
+          : []
+      ),
       // A class left out on purpose stays in `className`, beside the rest.
       ...Object.keys(entry.omits ?? {}).map(token => [root, token]),
       ...[...HELPER_TOKENS.keys()].map(token => [root, token]),

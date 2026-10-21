@@ -36,6 +36,12 @@ export interface Modifier {
    */
   needsAttr?: { name: string; value: string };
   /**
+   * Another modifier whose prop this one writes another value of, which
+   * renders that class too, so the two convert together and this one alone
+   * stays a class.
+   */
+  beside?: string;
+  /**
    * The tag the component renders with this class's prop and no `as`, in
    * place of the root's own (`Image` puts a ratio on a <figure>). Only one
    * such class converts on an element.
@@ -594,13 +600,31 @@ export function lookupClasses(
     ...tokens.filter(token => !own(table.replaced, token)),
     ...tokens.filter(token => own(table.replaced, token)),
   ];
-  for (const token of claiming) {
+  // A class that converts only beside another (`has-addons-centered`) goes
+  // first, as in the planner, so the value it writes takes the prop ahead of
+  // that one's flag and renders both classes. On its own it stays a class.
+  const withBase = (token: string) => {
+    const base = own(entry.modifiers, token)?.beside;
+    return base !== undefined && tokens.includes(base);
+  };
+  for (const token of [
+    ...claiming.filter(withBase),
+    ...claiming.filter(token => !withBase(token)),
+  ]) {
     if (token === root) {
       verdicts.set(token, { kind: 'component', target: target! });
       continue;
     }
+    if (verdicts.has(token)) continue;
     const modifier = own(entry.modifiers, token);
     if (modifier) {
+      if (modifier.beside && !withBase(token)) {
+        stays(
+          token,
+          `${modifier.writes.map(writeText).join(' ')} renders \`${modifier.beside}\` too, so it converts only beside that class`
+        );
+        continue;
+      }
       if (modifier.tagIn && tag && !modifier.tagIn.includes(tag)) {
         stays(
           token,
@@ -630,17 +654,36 @@ export function lookupClasses(
       const paired = Object.entries(entry.absorbs?.pairs ?? {}).find(
         ([, pairedToken]) => pairedToken === token
       )?.[0];
+      const gates = [
+        modifier.tagIn && !tag && `exact only on ${listTags(modifier.tagIn)}`,
+        paired &&
+          `with a bare \`${paired}\` on the <${entry.absorbs!.tag}> inside, which it renders`,
+        modifier.needsAttr &&
+          `beside an \`${modifier.needsAttr.name}\` of the element's own, since the prop renders \`${modifier.needsAttr.name}="${modifier.needsAttr.value}"\` otherwise; without one it stays a class`,
+      ].filter(Boolean);
+      if (modifier.beside) {
+        // Rendered from the layout's value only where that converts, so the
+        // base row is hedged where the layout row is.
+        const base = own(entry.modifiers, modifier.beside);
+        const otherwise =
+          gates.length > 0 && base
+            ? ` where it converts, and otherwise from ${base.writes.map(writeText).join(' ')} on its own`
+            : '';
+        verdicts.set(modifier.beside, {
+          kind: 'rendered',
+          target: target!,
+          condition: `from ${modifier.writes.map(writeText).join(' ')}, which \`${token}\` sets${otherwise}`,
+        });
+      }
+      const conditions = [
+        ...gates,
+        modifier.beside &&
+          `beside \`${modifier.beside}\`, which it renders too`,
+      ].filter(Boolean);
       verdicts.set(token, {
         kind: 'prop',
         writes: modifier.writes,
-        condition:
-          modifier.tagIn && !tag
-            ? `exact only on ${listTags(modifier.tagIn)}`
-            : paired
-              ? `with a bare \`${paired}\` on the <${entry.absorbs!.tag}> inside, which it renders`
-              : modifier.needsAttr
-                ? `beside an \`${modifier.needsAttr.name}\` of the element's own, since the prop renders \`${modifier.needsAttr.name}="${modifier.needsAttr.value}"\` otherwise; without one it stays a class`
-                : undefined,
+        condition: conditions.length > 0 ? conditions.join('; ') : undefined,
       });
       continue;
     }
