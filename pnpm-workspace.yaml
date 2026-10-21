@@ -353,6 +353,13 @@ overrides:
   # advisory GHSA-pqg4-j6r4-53mv, fixed in 1.11.0. Past the cooldown. Prune
   # once launch-editor resolves to >=1.11.0 without the force.
   'shell-quote@<1.11.0': '>=1.11.0'
+  # bestax:review 2026-11-13 — quarterly sweep
+  # Force patched launch-editor, high advisory GHSA-587h-7wmj-h5pm: its
+  # fs.existsSync() existence check can be bypassed on Windows. It rides
+  # webpack-dev-server under @docusaurus/core, so only the docs dev server
+  # reaches it. 2.14.2 (2026-10-06) is past the cooldown, so no exclude entry
+  # is needed. Prune once that chain resolves to >=2.14.2 without the force.
+  'launch-editor@<2.14.2': '>=2.14.2'
 
 # --- Audit exceptions (no patched release exists) ---
 

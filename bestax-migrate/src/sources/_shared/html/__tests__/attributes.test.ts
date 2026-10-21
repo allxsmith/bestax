@@ -303,6 +303,28 @@ describe('convertAttributes', () => {
     ).toEqual(['selected', 'value="a"']);
   });
 
+  it("hands back an attribute HTML gives the element no meaning for: a textarea's type", () => {
+    const textarea = '<textarea type="text" rows="3" is="x-area">x</textarea>';
+    expect(props(textarea, 'textarea')).toEqual([
+      'rows="3"',
+      'is="x-area"',
+      'defaultValue="x"',
+    ]);
+    expect(issues(textarea, 'textarea')).toEqual([
+      {
+        kind: 'ignored-attribute',
+        token: 'type',
+        attribute: 'type',
+        detail: 'textarea',
+      },
+    ]);
+    // An input's is its kind, and SVG has no textarea to ignore it on.
+    expect(props('<input type="text">', 'input')).toEqual(['type="text"']);
+    expect(
+      props('<svg><textarea type="x"></textarea></svg>', 'textarea')
+    ).toEqual(['type="x"']);
+  });
+
   it('gives a textarea its text as its default', () => {
     expect(
       props(
