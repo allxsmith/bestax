@@ -498,7 +498,7 @@ jobs:
           # turbo samples, which is precisely the intermittent that reddens a
           # block job weeks after a flip. Denied, not allow-listed (#578).
           TURBO_TELEMETRY_DISABLED: '1'
-        uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
+        uses: anthropics/claude-code-action@f27be6b65a4652f08a2ba3cff79114829b588967 # v1.0.252
         with:
           # Fix/refute as the bestaxbot machine account (Stage 2): its
           # refutation replies come from a real *user*, so CodeRabbit engages
@@ -914,7 +914,7 @@ jobs:
           # turbo samples, which is precisely the intermittent that reddens a
           # block job weeks after a flip. Denied, not allow-listed (#578).
           TURBO_TELEMETRY_DISABLED: '1'
-        uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
+        uses: anthropics/claude-code-action@f27be6b65a4652f08a2ba3cff79114829b588967 # v1.0.252
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # Same list as fix; the rationale is on fix's entry.
