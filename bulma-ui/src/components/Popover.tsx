@@ -14,7 +14,7 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { Portal } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
-import { firstTabStop, useFocusTrap } from '../helpers/useFocusTrap';
+import { focusTabStop, useFocusTrap } from '../helpers/useFocusTrap';
 import { marginGap, useAnchoredPosition } from '../helpers/useAnchoredPosition';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { useLatestRef } from '../helpers/useLatestRef';
@@ -270,7 +270,7 @@ const PopoverComponent: React.FC<PopoverProps> = ({
   useEffect(() => {
     const panel = panelRef.current;
     if (!panelMounted || trapFocus || !panel) return undefined;
-    (firstTabStop(panel) ?? panel).focus();
+    focusTabStop(panel);
     return () => {
       const doc = panel.ownerDocument;
       const now = getDeepestActiveElement(doc);

@@ -635,6 +635,36 @@ describe('Sidebar', () => {
       }
     });
 
+    it('passes over an <object> that refuses focus, on open and when Tab comes in from outside', () => {
+      // Browsers won't focus an <object> with nothing to show (#1211), and
+      // jsdom can't tell, so focus() on one does nothing here.
+      const objectFocus = jest
+        .spyOn(HTMLObjectElement.prototype, 'focus')
+        .mockImplementation(() => {});
+      const outside = document.createElement('button');
+      document.body.appendChild(outside);
+      try {
+        render(
+          <Sidebar isOpen onClose={() => {}} aria-label="Preview">
+            <object data="missing.pdf" type="application/pdf">
+              Preview unavailable
+            </object>
+            <button type="button">First</button>
+            <button type="button">Last</button>
+          </Sidebar>
+        );
+        const first = screen.getByText('First');
+        expect(first).toHaveFocus();
+
+        act(() => outside.focus());
+        expect(fireEvent.keyDown(outside, { key: 'Tab' })).toBe(false);
+        expect(first).toHaveFocus();
+      } finally {
+        outside.remove();
+        objectFocus.mockRestore();
+      }
+    });
+
     it('holds Tab in the topmost sidebar only', () => {
       render(
         <>
