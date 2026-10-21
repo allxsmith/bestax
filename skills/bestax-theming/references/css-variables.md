@@ -462,6 +462,17 @@ Declared on the compound `.button.link-button` — see the compound-selector exc
 `--bulma-loading-overlay-opacity-opaque`, `--bulma-loading-text-color`,
 `--bulma-loading-text-size`
 
+### Menu
+
+`Menu.Section`'s, declared on the root, `.menu`, where Bulma declares its own `--bulma-menu-*`:
+the room between a section heading's words and its chevron, and the chevron's box, color and
+turn. The heading itself reads Bulma's label variables (`--bulma-menu-label-color`,
+`--bulma-menu-label-font-size`, `--bulma-menu-label-letter-spacing`,
+`--bulma-menu-label-spacing`), so retheming the menu's labels restyles section headings too.
+
+`--bulma-menu-section-chevron-color`, `--bulma-menu-section-chevron-duration`,
+`--bulma-menu-section-chevron-size`, `--bulma-menu-section-gap`
+
 ### Notification
 
 `--bulma-notification-delete-padding-inline-end` is the end padding of a notification with a close

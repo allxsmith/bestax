@@ -22,16 +22,24 @@
       "code": "<Menu>\n  <Menu.Label>Levels</Menu.Label>\n  <Menu.List>\n    <Menu.Item href=\"#level-1\">\n      Level 1\n      <Menu.List>\n        <Menu.Item href=\"#level-2\">\n          Level 2\n          <Menu.List>\n            <Menu.Item href=\"#level-3\">Level 3</Menu.Item>\n          </Menu.List>\n        </Menu.Item>\n      </Menu.List>\n    </Menu.Item>\n  </Menu.List>\n</Menu>"
     },
     {
+      "title": "Sections that open and close",
+      "code": "<nav aria-label=\"Documentation\">\n  <Menu>\n    <Menu.Section label=\"Getting started\">\n      <Menu.List>\n        <Menu.Item href=\"#installation\">Installation</Menu.Item>\n        <Menu.Item href=\"#quick-start\">Quick start</Menu.Item>\n      </Menu.List>\n    </Menu.Section>\n    <Menu.Section label=\"Components\" defaultOpen>\n      <Menu.List>\n        <Menu.Item href=\"#button\">Button</Menu.Item>\n        <Menu.Item href=\"#card\" active>\n          Card\n        </Menu.Item>\n        <Menu.Item href=\"#modal\">Modal</Menu.Item>\n      </Menu.List>\n    </Menu.Section>\n    <Menu.Section label=\"Form\">\n      <Menu.List>\n        <Menu.Item href=\"#input\">Input</Menu.Item>\n        <Menu.Item href=\"#select\">Select</Menu.Item>\n      </Menu.List>\n    </Menu.Section>\n  </Menu>\n</nav>"
+    },
+    {
+      "title": "Controlled sections",
+      "code": "function example() {\n  const groups = {\n    Components: ['Button', 'Card', 'Modal'],\n    Form: ['Input', 'Select'],\n  };\n  const [open, setOpen] = React.useState(['Components']);\n\n  return (\n    <>\n      <Buttons mb=\"3\">\n        <Button size=\"small\" onClick={() => setOpen(Object.keys(groups))}>\n          Open all\n        </Button>\n        <Button size=\"small\" onClick={() => setOpen([])}>\n          Close all\n        </Button>\n      </Buttons>\n      <Menu>\n        {Object.entries(groups).map(([label, links]) => (\n          <Menu.Section\n            key={label}\n            label={label}\n            open={open.includes(label)}\n            onOpenChange={isOpen =>\n              setOpen(current =>\n                isOpen ? [...current, label] : current.filter(l => l !== label)\n              )\n            }\n          >\n            <Menu.List>\n              {links.map(link => (\n                <Menu.Item key={link} href={`#${link.toLowerCase()}`}>\n                  {link}\n                </Menu.Item>\n              ))}\n            </Menu.List>\n          </Menu.Section>\n        ))}\n      </Menu>\n    </>\n  );\n}"
+    },
+    {
       "title": "Forwarded ref",
       "code": "function example() {\n  const itemRef = React.useRef<HTMLAnchorElement>(null);\n\n  return (\n    <>\n      <Button mb=\"3\" onClick={() => itemRef.current?.focus()}>\n        Focus Customers\n      </Button>\n      <Menu>\n        <Menu.Label>General</Menu.Label>\n        <Menu.List>\n          <Menu.Item href=\"#dashboard\">Dashboard</Menu.Item>\n          <Menu.Item href=\"#customers\" ref={itemRef}>\n            Customers\n          </Menu.Item>\n        </Menu.List>\n      </Menu>\n    </>\n  );\n}"
     },
     {
       "title": "Compound (dot-notation) usage",
-      "code": "<Menu>\n  <Menu.Label>General</Menu.Label>\n  <Menu.List>\n    <Menu.Item active href=\"#dashboard\">\n      Dashboard\n    </Menu.Item>\n    <Menu.Item href=\"#customers\">Customers</Menu.Item>\n  </Menu.List>\n</Menu>"
+      "code": "<Menu>\n  <Menu.Label>General</Menu.Label>\n  <Menu.List>\n    <Menu.Item active href=\"#dashboard\">\n      Dashboard\n    </Menu.Item>\n    <Menu.Item href=\"#customers\">Customers</Menu.Item>\n  </Menu.List>\n  <Menu.Section label=\"Transactions\">\n    <Menu.List>\n      <Menu.Item href=\"#payments\">Payments</Menu.Item>\n      <Menu.Item href=\"#transfers\">Transfers</Menu.Item>\n    </Menu.List>\n  </Menu.Section>\n</Menu>"
     }
   ],
-  "accessibility": "- The root `Menu` renders as `<aside class=\"menu\">`. A menu that's navigation is better inside a\n  `<nav>` with an `aria-label`, which gives assistive tech a navigation landmark to jump to.\n- Every `Menu.List` has `role=\"list\"`, nested ones included. That's the role a `<ul>` already has,\n  set again for Safari, whose WebKit stops exposing a `<ul>` as a list once its markers are hidden,\n  as Bulma's reset hides them, unless the role is written out.\n- `Menu.Item active` sets `aria-current=\"page\"` on the element `as` renders, the link by\n  default, so the current item isn't only a color. An `aria-current` you pass wins: a menu of\n  sections on one page can say `\"location\"`, and `aria-current={false}` turns it off.\n- Use semantic nesting (`Menu.List` inside `Menu.Item`) for submenus.\n- Give each item an `href`, a router link through `as`, or `as=\"button\"`, so the keyboard can\n  reach it.\n- `Menu.Item as=\"button\"` defaults to `type=\"button\"`, so a menu item inside a form doesn't\n  submit it. Pass `type=\"submit\"` or `type=\"reset\"` and yours is used instead; any other value\n  renders `type=\"button\"`.\n- In forced colors (Windows' contrast themes), the browser replaces Bulma's fill and text color\n  for the active item along with every other color, so bestax's stylesheet marks an\n  `is-active` or `is-selected` item with a bar in the system's highlight color along its start\n  edge there instead. The item's text, and an icon or a tag inside it, keep the colors your\n  contrast theme gives them. That rule ships in `bestax.css` and `extras.css`, not in Bulma's\n  own stylesheet.\n\n:::note\nFor router integrations, pass the correct `as` and `to`/`href` props to `Menu.Item`.\n:::",
-  "related": ["Panel", "Sidebar", "TreeView", "useBulmaClasses"],
+  "accessibility": "- The root `Menu` renders as `<aside class=\"menu\">`. A menu that's navigation is better inside a\n  `<nav>` with an `aria-label`, which gives assistive tech a navigation landmark to jump to.\n- Every `Menu.List` has `role=\"list\"`, nested ones included. That's the role a `<ul>` already has,\n  set again for Safari, whose WebKit stops exposing a `<ul>` as a list once its markers are hidden,\n  as Bulma's reset hides them, unless the role is written out.\n- `Menu.Item active` sets `aria-current=\"page\"` on the element `as` renders, the link by\n  default, so the current item isn't only a color. An `aria-current` you pass wins: a menu of\n  sections on one page can say `\"location\"`, and `aria-current={false}` turns it off.\n- Use semantic nesting (`Menu.List` inside `Menu.Item`) for submenus.\n- Give each item an `href`, a router link through `as`, or `as=\"button\"`, so the keyboard can\n  reach it.\n- `Menu.Item as=\"button\"` defaults to `type=\"button\"`, so a menu item inside a form doesn't\n  submit it. Pass `type=\"submit\"` or `type=\"reset\"` and yours is used instead; any other value\n  renders `type=\"button\"`.\n- In forced colors (Windows' contrast themes), the browser replaces Bulma's fill and text color\n  for the active item along with every other color, so bestax's stylesheet marks an\n  `is-active` or `is-selected` item with a bar in the system's highlight color along its start\n  edge there instead. The item's text, and an icon or a tag inside it, keep the colors your\n  contrast theme gives them. That rule ships in `bestax.css` and `extras.css`, not in Bulma's\n  own stylesheet.\n\nFor `Menu.Section`, a section that opens and closes:\n\n- It follows APG's\n  [Disclosure Navigation Menu example](https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/examples/disclosure-navigation/).\n  The heading is a `<button type=\"button\">` with `aria-expanded`, and `aria-controls` naming the\n  wrapper around its list. Enter and Space open and close it, as they do any button, and it\n  doesn't submit a form it sits in.\n- The links under it are ordinary links. Each is its own tab stop, and there's no roving focus or\n  arrow-key handling, which is a tree's model rather than navigation's. They keep their `href`,\n  so a link still opens in a new tab, and `active` still sets `aria-current=\"page\"`.\n- A closed section's list is `hidden` and `inert`, so it isn't drawn, Tab skips its links, and\n  assistive tech and find-in-page don't reach them. `inert` keeps the links out of reach even if a\n  stylesheet sets `display` on the list and shows it. The list stays in the page, so\n  `aria-controls` always names an element that exists, and a section that starts closed is\n  already closed in the server's HTML, before any script runs.\n- Open the section that holds the current page, with `defaultOpen` or `open`, so the link marked\n  `aria-current` can be seen and reached.\n- When the app closes a section while focus is on one of its links, as a sidebar that keeps only\n  the current route's section open does after a link is followed, focus moves to that section's\n  heading. Without that, the browser drops focus to the page, and the next Tab starts from the\n  top.\n- `label` is the button's content and its accessible name. Keep links and other buttons out of\n  it.\n- In forced colors the chevron stays visible, since it's drawn as a border, and the focus ring\n  takes the system's text color. In a right-to-left page the chevron sits at the left end of the\n  heading and points left while closed. It turns with a short transition, which stops when the\n  reader asks for reduced motion.\n\n:::note\nFor router integrations, pass the correct `as` and `to`/`href` props to `Menu.Item`.\n:::",
+  "related": ["Collapse", "Panel", "Sidebar", "TreeView", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-menu--basic",
   "summary": "The `Menu` component provides Bulma's vertical navigation menu: a simple, accessible sidebar or section menu for your Bulma React UI.",
   "import": "import { Menu } from '@allxsmith/bestax-bulma';",
@@ -241,9 +249,97 @@
       ],
       "catchAll": "Remaining props of the element or component selected by as (default <a>) and Bulma helper props",
       "types": []
+    },
+    {
+      "path": "Menu.Section",
+      "summary": "A section of the menu that opens and closes: its heading is a button drawn like `Menu.Label`, and its `Menu.List` of links shows while it's open. It's APG's disclosure navigation, for a sidebar of link groups: the links stay ordinary links, each its own tab stop, and a closed section's list is `hidden` and `inert`, so Tab and assistive tech skip it. It goes directly in `Menu`, holding a `Menu.List`. Closing it while focus is on one of its links moves focus to its heading.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the wrapping `<div>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "**Required.** The section's heading, drawn like `Menu.Label` inside the button that opens and closes it. Keep links and buttons out of it, since it's inside one.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The `Menu.List` of links the section shows while it's open. The section itself goes directly in `Menu`, beside its labels and lists: inside a `Menu.Item` it would render inside the item's link, and inside a `Menu.List` it wouldn't be a list item.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": null,
+          "description": "Controlled open state. If provided, the section is controlled, and its button only reports through `onOpenChange`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "default": "false",
+          "description": "Initial open state for uncontrolled usage. Open the section that holds the current page, so the reader sees where they are.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "default": null,
+          "description": "Called with the state the button asks for (`true` to open) each time it is clicked or activated with Enter or Space, in every mode. Pair it with `open` to let the button drive a controlled section.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
     }
   ],
   "cssVars": [
+    {
+      "css": "--bulma-menu-section-gap",
+      "sass": "$menu-section-gap",
+      "default": "0.375em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-menu-section-chevron-size",
+      "sass": "$menu-section-chevron-size",
+      "default": "1em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-menu-section-chevron-color",
+      "sass": "$menu-section-chevron-color",
+      "default": "currentColor",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-menu-section-chevron-duration",
+      "sass": "$menu-section-chevron-duration",
+      "default": "var(--bulma-duration)",
+      "scope": "root"
+    },
     {
       "css": "--bulma-menu-item-h",
       "sass": "$menu-item-h",
