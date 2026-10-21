@@ -43,14 +43,18 @@ export function Absorbed({
         isRounded />
       <Image as="p" size="64x64" src={thumb} alt="" />
       <Image
-        as="figure"
-        className="is-4by3"
+        size="4by3"
         src="/photo.jpg"
-        alt="A ratio stays a class" />
+        alt="A ratio on the figure Image renders for it" />
+      <Image
+        as="div"
+        size="3by2"
+        src="/wide.jpg"
+        alt="A ratio on a div keeps it through as" />
       <Image as="figure" size="48x48">
         <img src="/lazy.png" alt="Another attribute keeps the img" loading="lazy" />
       </Image>
-      <Image as="figure" className="is-16by9">
+      <Image size="16by9">
         <iframe
           className="has-ratio"
           src="https://www.youtube.com/embed/x"

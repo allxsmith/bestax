@@ -40,6 +40,12 @@ export interface Modifier {
    * sizes the element the same without picking its tag (`textSize`).
    */
   offTag?: PropWrite;
+  /**
+   * The tag the component renders with this class's prop and no `as`, in
+   * place of the root's own (`Image` puts a ratio on a <figure>). Only one
+   * such class converts on an element.
+   */
+  rendersTag?: string;
 }
 
 export interface RootRecord {
@@ -378,8 +384,15 @@ function listTags(tags: readonly string[]): string {
     : named[0];
 }
 
-function reaches(entry: RootRecord): string {
-  if (entry.as === 'any') return `<${entry.tag}>, or any tag through \`as\``;
+function reaches(entry: RootRecord, retagged?: string): string {
+  // The tag it renders with no `as`: the one a class picks, else its own.
+  const plain = retagged
+    ? `<${retagged}> with these classes`
+    : `<${entry.tag}>`;
+  if (entry.as === 'any') return `${plain}, or any tag through \`as\``;
+  if (retagged && entry.as) {
+    return `${plain}, or ${listTags(entry.as)} through \`as\``;
+  }
   if (entry.sizeDrivesTag && entry.as) {
     return `the heading its \`size\` names (<${entry.tag}> with none), or ${listTags(entry.as)} through \`as\``;
   }
@@ -599,6 +612,8 @@ export function lookupClasses(
       ? `; \`${off.prop}\` is written by \`${helper}\` already, so this class is the one that stays`
       : suggestion;
   };
+  /** The one class that picks the component's tag, as the codemod takes it. */
+  let retaggedBy: string | undefined;
   const claiming = [
     ...tokens.filter(token => !own(table.replaced, token)),
     ...tokens.filter(token => own(table.replaced, token)),
@@ -631,9 +646,15 @@ export function lookupClasses(
         );
         continue;
       }
+      // Only one class picks the tag, as only one sets a prop.
+      if (modifier.rendersTag && retaggedBy) {
+        stays(token, `\`${retaggedBy}\` already picks the tag`);
+        continue;
+      }
       for (const write of modifier.writes) {
         writes.set(write.prop, { value: write.value ?? true, token });
       }
+      if (modifier.rendersTag) retaggedBy = token;
       // A class the component renders from an attribute of the element
       // inside (`is-multiple` beside a `<select multiple>`).
       const paired = Object.entries(entry.absorbs?.pairs ?? {}).find(
@@ -796,17 +817,28 @@ export function lookupClasses(
     });
   }
   const size = writes.get('size')?.value;
+  // A class whose prop puts the component on another tag when no `as` is
+  // given (`Image`'s ratios on a <figure>).
+  const retagged = retaggedBy
+    ? own(entry.modifiers, retaggedBy)?.rendersTag
+    : undefined;
   const renders =
-    entry.sizeDrivesTag && tag !== 'p' && typeof size === 'string'
+    retagged ??
+    (entry.sizeDrivesTag && tag !== 'p' && typeof size === 'string'
       ? `h${size}`
-      : entry.tag!;
+      : entry.tag!);
   const reachable =
     !tag ||
     renders === tag ||
     entry.as === 'any' ||
     (Array.isArray(entry.as) && entry.as.includes(tag));
   if (!reachable) {
-    return result({ kind: 'wrong-tag', target, tag, reaches: reaches(entry) });
+    return result({
+      kind: 'wrong-tag',
+      target,
+      tag,
+      reaches: reaches(entry, retagged),
+    });
   }
   // A `className` it's given replaces its own class, so a class left over
   // keeps the element as markup.
@@ -837,7 +869,7 @@ export function lookupClasses(
     return result({
       kind: 'component',
       target,
-      renders: reaches(entry),
+      renders: reaches(entry, retagged),
       ...about,
     });
   }

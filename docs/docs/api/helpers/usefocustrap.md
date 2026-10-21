@@ -79,7 +79,7 @@ The trap doesn't close anything. Escape, a click outside and the buttons that di
 
 ### Where focus starts
 
-On its own the trap focuses the first tab stop inside the container, or the container when there is none. `initialFocusRef` picks a specific element inside the container instead, such as the search box of a command palette. The element has to be able to take focus, so a heading needs `tabIndex={-1}`. When focusing it doesn't put focus inside the container, because the ref is empty or its element is outside, disabled, hidden or can't take focus, the trap starts on the first tab stop as it would without the ref.
+On its own the trap focuses the first tab stop inside the container that takes focus, or the container when none does. `initialFocusRef` picks a specific element inside the container instead, such as the search box of a command palette. The element has to be able to take focus, so a heading needs `tabIndex={-1}`. When focusing it doesn't put focus inside the container, because the ref is empty or its element is outside, disabled, hidden or can't take focus, the trap starts on the first tab stop as it would without the ref.
 
 ```tsx
 const searchRef = useRef<HTMLInputElement>(null);
@@ -183,6 +183,10 @@ Within those, what the browser's Tab skips is skipped here too, so none of it ca
 
 A browser can leave out a stop the page has, such as links when its settings say to. When a Tab the trap let through still takes focus out of the container, the trap sends it back to the other end. If the container is the last thing on the page, there is nothing outside for focus to land on and the browser can take it to its own toolbar instead, so avoid ending a trap with a link.
 
+A browser can also refuse focus to a stop. An `<object>` or `<embed>` with nothing to show is the common one, such as an `<object>` whose file failed to load, and which of them a browser refuses differs between browsers and with what has loaded, so the trap doesn't guess. Whenever it moves focus, as it turns on, when Tab wraps, and when it sends a Tab back in, it passes over a stop that doesn't take focus for the next one, and falls back to the container when none does.
+
+A refused stop at an end of the trap is the one case that still gets out. The trap can't tell it will be refused, so a Tab toward it is left to the browser, which goes past it and out of the container the way it goes past a skipped link. Focus comes back only when there's something outside for it to land on, so don't end a trap that sits last on the page with an `<object>` or `<embed>` that may have nothing to show, any more than with a link.
+
 Only Tab is watched. A click or a script that moves focus out of the container is left alone, and the next Tab starts from wherever focus went. Pulling focus back from a click is modal behaviour, and a modal also has to block the page behind it; [`Modal`](../components/modal.md) does both. For a non-modal panel, close it when focus or a click goes elsewhere.
 
 ### What the trap can't see into
@@ -191,7 +195,7 @@ Some elements move focus among parts of their own, and the trap sees them as one
 
 - A frame's content is its own document. Once focus is inside, Tab moves through the frame without the trap seeing it, and Tab from the frame's last stop goes on to whatever follows the frame. At the end of the trap, that is outside it: follow a frame with another stop.
 - A native date or time input has a stop for each field. At the edge of the trap, Tab wraps instead of visiting the later fields. Keep it away from the edges, or follow it with another stop.
-- A closed shadow root can't be looked into. The trap sees its host and the host's own children, but not the stops inside the root or which of those children a slot takes. A child that no slot takes isn't rendered and can't take focus, so if it ends up as the trap's first or last stop, turning the trap on or wrapping Tab to it leaves focus where it was. Keep a closed-root host away from the trap's edges, or give it no children that a slot doesn't take.
+- A closed shadow root can't be looked into. The trap sees its host and the host's own children, but not the stops inside the root or which of those children a slot takes. A child that no slot takes isn't rendered and can't take focus, so the trap passes over it when it moves focus, as it does any stop the browser refuses. At an end of the trap it's a refused stop like any other, so keep a closed-root host away from the trap's edges, or give it no children that a slot doesn't take.
 - A scrollable region with nothing focusable inside is a stop in some browsers and not in others. Give it `tabIndex={0}` so it is one everywhere, which also lets keyboard users scroll it.
 
 ### What the trap takes on trust
@@ -223,12 +227,12 @@ interface UseFocusTrapOptions {
 
 ### Parameters
 
-| Parameter                 | Type                                          | Default | Description                                                                                                                                       |
-| ------------------------- | --------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `containerRef`            | `RefObject<HTMLElement \| null>`              | —       | The element focus stays inside.                                                                                                                   |
-| `options.active`          | `boolean`                                     | `true`  | Whether the trap is on. Turning it on moves focus in; turning it off (or unmounting) releases Tab and restores focus.                             |
-| `options.initialFocusRef` | `RefObject<HTMLElement \| null>`              | —       | An element inside the container that can take focus, focused when the trap turns on; otherwise the first tab stop, then the container.            |
-| `options.restoreFocus`    | `boolean` \| `RefObject<HTMLElement \| null>` | `true`  | Where focus goes when the trap turns off: `true` for the element focused when it turned on, a ref for that element, `false` to leave focus alone. |
+| Parameter                 | Type                                          | Default | Description                                                                                                                                             |
+| ------------------------- | --------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `containerRef`            | `RefObject<HTMLElement \| null>`              | —       | The element focus stays inside.                                                                                                                         |
+| `options.active`          | `boolean`                                     | `true`  | Whether the trap is on. Turning it on moves focus in; turning it off (or unmounting) releases Tab and restores focus.                                   |
+| `options.initialFocusRef` | `RefObject<HTMLElement \| null>`              | —       | An element inside the container that can take focus, focused when the trap turns on; otherwise the first tab stop that takes focus, then the container. |
+| `options.restoreFocus`    | `boolean` \| `RefObject<HTMLElement \| null>` | `true`  | Where focus goes when the trap turns off: `true` for the element focused when it turned on, a ref for that element, `false` to leave focus alone.       |
 
 It returns nothing. On the server it does nothing, and the container renders as written.
 

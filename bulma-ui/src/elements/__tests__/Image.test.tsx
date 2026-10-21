@@ -26,7 +26,52 @@ describe('Image Component', () => {
   test('applies aspect ratio class with figure element', () => {
     render(<Image {...defaultProps} size="16by9" />);
     const container = screen.getByAltText('Test image').closest('figure');
-    expect(container).toHaveClass('image is-16by9 has-ratio');
+    expect(container).toHaveAttribute('class', 'image is-16by9');
+  });
+
+  test('renders a ratio container exactly as Bulma marks it up, with no has-ratio', () => {
+    // Bulma reads `.has-ratio` only on a child (`.image.is-16by9 .has-ratio`).
+    const ratios = [
+      '1by1',
+      '5by4',
+      '4by3',
+      '3by2',
+      '5by3',
+      '16by9',
+      '2by1',
+      '3by1',
+      '4by5',
+      '3by4',
+      '2by3',
+      '3by5',
+      '9by16',
+      '1by2',
+      '1by3',
+    ] as const;
+    for (const ratio of ratios) {
+      const { container, unmount } = render(
+        <Image {...defaultProps} size={ratio} />
+      );
+      const figure = container.firstElementChild!;
+      expect(figure.tagName.toLowerCase()).toBe('figure');
+      expect(figure).toHaveAttribute('class', `image is-${ratio}`);
+      expect(figure.querySelector('img')).not.toHaveAttribute('class');
+      unmount();
+    }
+  });
+
+  test('keeps the tag `as` names for a ratio', () => {
+    render(<Image {...defaultProps} as="div" size="4by3" data-testid="r" />);
+    const container = screen.getByTestId('r');
+    expect(container.tagName.toLowerCase()).toBe('div');
+    expect(container).toHaveAttribute('class', 'image is-4by3');
+  });
+
+  test('renders is-square on a <div>, as a fixed size', () => {
+    render(<Image {...defaultProps} size="square" data-testid="sq" />);
+    const container = screen.getByTestId('sq');
+    expect(container.tagName.toLowerCase()).toBe('div');
+    expect(container).toHaveAttribute('class', 'image is-square');
   });
 
   test('renders rounded image when isRounded is true', () => {
@@ -63,8 +108,9 @@ describe('Image Component', () => {
     const iframeElement = screen.getByTitle('Test YouTube Video');
     expect(iframeElement).toBeInTheDocument();
     expect(iframeElement).toHaveClass('has-ratio');
-    expect(iframeElement.closest('figure')).toHaveClass(
-      'image is-16by9 has-ratio'
+    expect(iframeElement.closest('figure')).toHaveAttribute(
+      'class',
+      'image is-16by9'
     );
   });
 
@@ -180,6 +226,18 @@ describe('Image Component', () => {
       expect(container).toHaveClass('bulma-is-64x64');
       expect(container).toHaveClass('bulma-has-text-primary');
       expect(container).toHaveClass('bulma-m-2');
+    });
+
+    it('prefixes a ratio container class', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Image {...defaultProps} size="16by9" data-testid="image" />
+        </ConfigProvider>
+      );
+      expect(screen.getByTestId('image')).toHaveAttribute(
+        'class',
+        'bulma-image bulma-is-16by9'
+      );
     });
 
     it('works without prefix', () => {
