@@ -9,7 +9,7 @@ import { useConfig } from '../helpers/Config';
 import { buttonType } from '../helpers/buttonType';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { isModalOverlayOpen, useOverlayStack } from '../helpers/overlayStack';
-import { firstTabStop, trapTab } from '../helpers/useFocusTrap';
+import { focusTabStop, trapTab } from '../helpers/useFocusTrap';
 import { inertProps } from '../helpers/inertProps';
 import {
   getActiveElementInTree,
@@ -231,7 +231,7 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
       // the sidebar's other controls out of reach. It leaves focus alone
       // then, and the cleanup below finds focus outside and leaves it too.
       if (overlay || !isModalOverlayOpen()) {
-        (firstTabStop(element) ?? element).focus();
+        focusTabStop(element);
       }
 
       return () => {

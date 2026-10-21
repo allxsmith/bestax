@@ -1,3 +1,28 @@
+## [1.16.4](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.16.3...bestax-mcp@1.16.4) (2026-10-21)
+
+
+### Bug Fixes
+
+* **bulma-ui:** drop Image's stray has-ratio, and convert ratio images ([#1195](https://github.com/allxsmith/bestax/issues/1195)) ([ae8443d](https://github.com/allxsmith/bestax/commit/ae8443d04b199c9f1a2a12d41b22f436b7b522eb))
+* **bulma-ui:** pass over a tab stop that won't take focus when a trap moves focus ([#1212](https://github.com/allxsmith/bestax/issues/1212)) ([76b317d](https://github.com/allxsmith/bestax/commit/76b317d65b820aa85fefb6ed382e3b4abc04b21f))
+
+
+### Features
+
+* **bulma-ui:** add Menu.Section, a menu section that opens and closes ([#1209](https://github.com/allxsmith/bestax/issues/1209)) ([b043c99](https://github.com/allxsmith/bestax/commit/b043c990128ca21f0dd04de8af9d2a2613b87e53))
+
+## [1.16.3](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.16.2...bestax-mcp@1.16.3) (2026-10-21)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** sharpen the HTML input's TODOs from the template ports ([#1201](https://github.com/allxsmith/bestax/issues/1201)) ([a76460c](https://github.com/allxsmith/bestax/commit/a76460cd2bdef00fb017a081212a505e41adb0d3)), closes [#1178](https://github.com/allxsmith/bestax/issues/1178) [#1163](https://github.com/allxsmith/bestax/issues/1163) [#1185](https://github.com/allxsmith/bestax/issues/1185) [#1163](https://github.com/allxsmith/bestax/issues/1163)
+
+
+### Features
+
+* **bulma-ui:** show a TreeView branch's children loading, and a load that failed ([#1210](https://github.com/allxsmith/bestax/issues/1210)) ([8efecec](https://github.com/allxsmith/bestax/commit/8efecec126f3c4dc5c786974c31919faa99a0181)), closes [#1173](https://github.com/allxsmith/bestax/issues/1173)
+
 ## [1.16.2](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.16.1...bestax-mcp@1.16.2) (2026-10-20)
 
 

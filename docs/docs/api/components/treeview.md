@@ -21,7 +21,8 @@ one level at a time.
 
 It isn't for site navigation. A tree turns its links into tree items, so there's no opening one in a
 new tab, and it asks for keys a sidebar doesn't need. A sidebar whose sections open and close is
-[`Menu`](./menu.md)'s job. The [Accessibility](#accessibility) section says more.
+[`Menu`](./menu.md)'s job, with [`Menu.Section`](./menu.md#sections-that-open-and-close). The
+[Accessibility](#accessibility) section says more.
 
 You write it as `TreeView.Item`s nested inside each other, with each row's content in `label`. The
 tree owns which items are open, and `selectionMode` picks one of three trees: nothing picked, one
@@ -530,7 +531,8 @@ On a failed load's row, both retry, whatever the mode. The rest work the same in
 - **Not for site navigation:** APG's own
   [navigation tree example](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/examples/treeview-navigation/)
   says "A pattern more suited for typical site navigation with expandable groups of links is the
-  disclosure pattern", and a tree's items aren't links. Keep a sidebar on [`Menu`](./menu.md).
+  disclosure pattern", and a tree's items aren't links. Keep a sidebar on [`Menu`](./menu.md),
+  whose `Menu.Section` is that disclosure pattern.
 - **Focus and the selected look differ:** the focus ring sits outside the row, so it shows on the
   selected fill as well as on a plain row.
 - **Forced colors:** in Windows high contrast mode the selected row is the system's Highlight and
@@ -544,8 +546,9 @@ On a failed load's row, both retry, whatever the mode. The rest work the same in
 
 ## Related Components
 
-- [`Menu`](./menu.md): Site navigation, including a sidebar that looks like a tree. Use it for
-  links, and `TreeView` for data you browse and pick from.
+- [`Menu`](./menu.md): Site navigation, including a sidebar that looks like a tree, and
+  `Menu.Section` for groups of links that open and close. Use it for links, and `TreeView` for
+  data you browse and pick from.
 - [`Checkbox`](../form/checkbox.md): The box a checkbox tree draws, with its mixed state.
 - [`Loader`](../elements/loader.md): Bulma's ring, which a loading item's row turns.
 - [`Collapse`](./collapse.md): A single section that opens and closes.

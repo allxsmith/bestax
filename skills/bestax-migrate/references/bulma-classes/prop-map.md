@@ -103,7 +103,8 @@ renders the same `<h2>`.
 | the `<select>` inside `.select`                                              | `is-hovered`, `is-focused`                                                                                                                       | `isHovered`, `isFocused`                                                                          |
 | `.hero` → `Hero`                                                             | `is-primary`, `is-link`, `is-info`, `is-success`, `is-warning`, `is-danger`, `is-black`, `is-white`, `is-light`, `is-dark`                       | `color`                                                                                           |
 | `.hero` → `Hero`                                                             | `is-small`, `is-medium`, `is-large`, `is-fullheight`, `is-fullheight-with-navbar`                                                                | `size`                                                                                            |
-| `.image` → `Image`                                                           | `is-16x16`, `is-24x24`, `is-32x32`, `is-48x48`, `is-64x64`, `is-96x96`, `is-128x128`, `is-square`                                                | `size` (a ratio such as `is-4by3` stays a class, since `size` would add `has-ratio`)              |
+| `.image` → `Image`                                                           | `is-16x16`, `is-24x24`, `is-32x32`, `is-48x48`, `is-64x64`, `is-96x96`, `is-128x128`, `is-square`                                                | `size`                                                                                            |
+| `.image` → `Image`                                                           | `is-{ratio}`, for each of the Ratios under Helper classes (`is-16by9`), but not `is-square` (see below)                                          | `size`, on the `<figure>` it renders with no `as` (see below)                                     |
 | the `<img>` inside `.image`                                                  | `is-rounded`                                                                                                                                     | `isRounded`                                                                                       |
 | `.icon` → `Icon`                                                             | `is-small`, `is-medium`, `is-large`                                                                                                              | `size`                                                                                            |
 | `.tabs` → `Tabs`                                                             | `is-centered`, `is-right`, `is-left`                                                                                                             | `align`                                                                                           |
@@ -129,6 +130,16 @@ renders the same `<h2>`.
 | `.tag` → `Tag`                                                               | `is-primary`, `is-link`, `is-info`, `is-success`, `is-warning`, `is-danger`, `is-black`, `is-dark`, `is-white`                                   | `color`                                                                                           |
 | `.tag` → `Tag`                                                               | `is-light`, `is-rounded`, `is-hoverable`                                                                                                         | `isLight`, `isRounded`, `isHoverable`                                                             |
 | `.tag` → `Tag`                                                               | `is-medium`, `is-large`                                                                                                                          | `size`                                                                                            |
+
+`is-square` sits with the fixed sizes, not the ratios. Bulma sizes it like `is-1by1`, but `Image`
+renders `size="square"` on a `<div>`, as it does a fixed size. So
+`<figure className="image is-square">` becomes `<Image as="figure" size="square">`, while
+`<figure className="image is-1by1">` becomes `<Image size="1by1">`.
+
+A ratio converts to identical markup only on a bestax-bulma whose `Image` writes nothing but the
+ratio class on its container. An older one also writes `has-ratio` there, which Bulma reads only
+on a child, so the page looks the same, unless that `.image` sits inside another ratio `.image`,
+which then stretches it to fill. Upgrade bestax-bulma, or keep that ratio as a class.
 
 `Progress` takes `value` and `max` as numbers: `value="40"` becomes `value={40}`. An
 expression (`value={percent}`) carries over as written, so if it holds a string the migrated
@@ -239,8 +250,8 @@ A color shade one color and one shade can't write (`has-text-primary-100`, the `
 shade such as `has-text-primary-30-invert`, a shade of the `text` color), a shade or color for a
 prop another class already wrote (`has-text-primary-30 has-text-info-40` keeps the second), the
 palettes and `is-bold` and `is-soft`, the `-touch` and `-only` breakpoints of text size and
-alignment, Grid and `.image` modifiers away from their own element, an `.image` ratio, v1's
-`marginless` and `paddingless` (the rules of `m-0` and `p-0` under other names), and the Bulma
-helpers bestax has no prop for (`is-display-*`, `is-visibility-*`, `is-float-*`, `is-clear-*`,
-…) stay in `className`. They render exactly as before. An `.image` size or ratio away from its
-`.image` also gets a `modifier:image` TODO, since Bulma styles it only there.
+alignment, Grid and `.image` modifiers away from their own element, v1's `marginless` and
+`paddingless` (the rules of `m-0` and `p-0` under other names), and the Bulma helpers bestax has
+no prop for (`is-display-*`, `is-visibility-*`, `is-float-*`, `is-clear-*`, …) stay in
+`className`. They render exactly as before. An `.image` size or ratio away from its `.image` also
+gets a `modifier:image` TODO, since Bulma styles it only there.
