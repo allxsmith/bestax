@@ -633,7 +633,12 @@ export function lookupClasses(
   // A size class off its tags names the prop that sizes the element the same
   // (`textSize`), unless a helper on the element writes that prop already
   // (`is-size-2`), which then wins, and the size class is the one that stays.
-  const offTagNote = (off: PropWrite, suggestion: string): string => {
+  // `where` scopes that to the tags the suggestion is for, when no tag is given.
+  const offTagNote = (
+    off: PropWrite,
+    suggestion: string,
+    where = ''
+  ): string => {
     const helper =
       entry.noHelpers || own(entry.helpersLeftOut, off.prop)
         ? undefined
@@ -641,7 +646,7 @@ export function lookupClasses(
             each => own(table.helpers, each)?.write.prop === off.prop
           );
     return helper
-      ? `; \`${off.prop}\` is written by \`${helper}\` already, so this class is the one that stays`
+      ? `; ${where}\`${off.prop}\` is written by \`${helper}\` already, so this class is the one that stays`
       : suggestion;
   };
   /** The one class that picks the component's tag, as the codemod takes it. */
@@ -721,7 +726,8 @@ export function lookupClasses(
             (modifier.offTag
               ? offTagNote(
                   modifier.offTag,
-                  `; on another tag, ${writeText(modifier.offTag)} sizes it the same and keeps the tag`
+                  `; on another tag, ${writeText(modifier.offTag)} sizes it the same and keeps the tag`,
+                  'on another tag, '
                 )
               : ''),
         paired &&
