@@ -4,8 +4,9 @@
  * generated from its `class-map.ts`).
  *
  * The lookup follows the codemod's planner class by class: a family bestax
- * converts as a whole, then the element's root by precedence, then each
- * other class as that root's modifier or a helper prop, with the same rules
+ * converts as a whole, then the element's root (one whose component renders
+ * the tag, then by precedence), then each other class as that root's
+ * modifier or a helper prop, with the same rules
  * for a prop two classes both set and for helpers that only render beside
  * another. So a prop it names is the prop the codemod writes. It stops where
  * the planner looks past the classes: attributes, children, refs and spreads
@@ -40,6 +41,12 @@ export interface Modifier {
    * sizes the element the same without picking its tag (`textSize`).
    */
   offTag?: PropWrite;
+  /**
+   * Another modifier whose prop this one writes another value of, which
+   * renders that class too, so the two convert together and this one alone
+   * stays a class.
+   */
+  beside?: string;
   /**
    * The tag the component renders with this class's prop and no `as`, in
    * place of the root's own (`Image` puts a ratio on a <figure>). Only one
@@ -110,6 +117,11 @@ export interface RootRecord {
   rendersText: string | null;
   /** A `className` the component is given replaces its own class. */
   classNameReplaces: boolean;
+  /**
+   * How to keep this class on an element another root converts, where an
+   * element of its own is not the answer (`.container`'s `mx="auto"`).
+   */
+  onAnother?: string | null;
 }
 
 export interface Items {
@@ -384,6 +396,18 @@ function listTags(tags: readonly string[]): string {
     : named[0];
 }
 
+/** Whether a root's component renders this tag, as its own or through `as`. */
+function reachesTag(entry: RootRecord, tag: string): boolean {
+  if (entry.tag === tag || entry.as === 'any') return true;
+  return Array.isArray(entry.as) && entry.as.includes(tag);
+}
+
+/** 2 for the component's own tag, 1 for one `as` reaches, 0 for neither. */
+function tagFit(entry: RootRecord, tag: string): number {
+  if (entry.tag === tag) return 2;
+  return reachesTag(entry, tag) ? 1 : 0;
+}
+
 function reaches(entry: RootRecord, retagged?: string): string {
   // The tag it renders with no `as`: the one a class picks, else its own.
   const plain = retagged
@@ -519,9 +543,17 @@ export function lookupClasses(
     const index = table.precedence.indexOf(token);
     return index === -1 ? table.precedence.length : index;
   };
-  const root = tokens
+  // Of two roots, the one that fits the tag best wins (its own tag, then one
+  // `as` reaches), and the table's precedence decides a tie.
+  const roots = tokens
     .filter(token => rootOf(token)?.status === 'mapped')
-    .sort((a, b) => precedence(a) - precedence(b))[0];
+    .sort((a, b) => precedence(a) - precedence(b));
+  const fit = (token: string) => (tag ? tagFit(rootOf(token)!, tag) : 0);
+  const root = roots.reduce<string | undefined>(
+    (best, token) =>
+      best === undefined || fit(token) > fit(best) ? token : best,
+    undefined
+  );
 
   let entry: RootRecord;
   if (root) {
@@ -618,13 +650,31 @@ export function lookupClasses(
     ...tokens.filter(token => !own(table.replaced, token)),
     ...tokens.filter(token => own(table.replaced, token)),
   ];
-  for (const token of claiming) {
+  // A class that converts only beside another (`has-addons-centered`) goes
+  // first, as in the planner, so the value it writes takes the prop ahead of
+  // that one's flag and renders both classes. On its own it stays a class.
+  const withBase = (token: string) => {
+    const base = own(entry.modifiers, token)?.beside;
+    return base !== undefined && tokens.includes(base);
+  };
+  for (const token of [
+    ...claiming.filter(withBase),
+    ...claiming.filter(token => !withBase(token)),
+  ]) {
     if (token === root) {
       verdicts.set(token, { kind: 'component', target: target! });
       continue;
     }
+    if (verdicts.has(token)) continue;
     const modifier = own(entry.modifiers, token);
     if (modifier) {
+      if (modifier.beside && !withBase(token)) {
+        stays(
+          token,
+          `${modifier.writes.map(writeText).join(' ')} renders \`${modifier.beside}\` too, so it converts only beside that class`
+        );
+        continue;
+      }
       if (modifier.tagIn && tag && !modifier.tagIn.includes(tag)) {
         stays(
           token,
@@ -664,24 +714,65 @@ export function lookupClasses(
       const paired = Object.entries(entry.absorbs?.pairs ?? {}).find(
         ([, pairedToken]) => pairedToken === token
       )?.[0];
+      const gates = [
+        modifier.tagIn &&
+          !tag &&
+          `exact only on ${listTags(modifier.tagIn)}` +
+            (modifier.offTag
+              ? offTagNote(
+                  modifier.offTag,
+                  `; on another tag, ${writeText(modifier.offTag)} sizes it the same and keeps the tag`
+                )
+              : ''),
+        paired &&
+          `with a bare \`${paired}\` on the <${entry.absorbs!.tag}> inside, which it renders`,
+        modifier.needsAttr &&
+          `beside an \`${modifier.needsAttr.name}\` of the element's own, since the prop renders \`${modifier.needsAttr.name}="${modifier.needsAttr.value}"\` otherwise; without one it stays a class`,
+      ].filter(Boolean);
+      if (modifier.beside) {
+        // Rendered from the layout's value only where that converts, so the
+        // base row is hedged where the layout row is.
+        const base = own(entry.modifiers, modifier.beside);
+        const otherwise =
+          gates.length > 0 && base
+            ? ` where it converts, and otherwise from ${base.writes.map(writeText).join(' ')} on its own`
+            : '';
+        verdicts.set(modifier.beside, {
+          kind: 'rendered',
+          target: target!,
+          condition: `from ${modifier.writes.map(writeText).join(' ')}, which \`${token}\` sets${otherwise}`,
+        });
+      }
+      const conditions = [
+        ...gates,
+        modifier.beside &&
+          `beside \`${modifier.beside}\`, which it renders too`,
+      ].filter(Boolean);
       verdicts.set(token, {
         kind: 'prop',
         writes: modifier.writes,
-        condition:
-          modifier.tagIn && !tag
-            ? `exact only on ${listTags(modifier.tagIn)}` +
-              (modifier.offTag
-                ? offTagNote(
-                    modifier.offTag,
-                    `; on another tag, ${writeText(modifier.offTag)} sizes it the same and keeps the tag`
-                  )
-                : '')
-            : paired
-              ? `with a bare \`${paired}\` on the <${entry.absorbs!.tag}> inside, which it renders`
-              : modifier.needsAttr
-                ? `beside an \`${modifier.needsAttr.name}\` of the element's own, since the prop renders \`${modifier.needsAttr.name}="${modifier.needsAttr.value}"\` otherwise; without one it stays a class`
-                : undefined,
+        condition: conditions.length > 0 ? conditions.join('; ') : undefined,
       });
+      continue;
+    }
+    // Another component's class rides along, and the codemod says so.
+    const second = rootOf(token);
+    if (root && second?.status === 'mapped' && second.target !== target) {
+      const name = second.target!;
+      const why =
+        tag && !reachesTag(second, tag)
+          ? `\`${name}\` renders ${reaches(second)}, not ${aTag(tag)}`
+          : fit(root) > fit(token)
+            ? `${aTag(tag!)} is \`${target}\`'s own element, and \`${name}\` renders one only through \`as\``
+            : precedence(root) < precedence(token)
+              ? `the codemod ranks \`.${root}\` first, putting layout and parts ahead of surfaces`
+              : `\`.${root}\` comes first on the element`;
+      stays(
+        token,
+        `bestax \`${name}\`'s class too, and an element converts to one component: \`${target}\` here, since ${why}; ` +
+          (second.onAnother ??
+            `to use \`${name}\`, give it an element of its own around or inside this one`)
+      );
       continue;
     }
     const omitted = own(entry.omits, token);

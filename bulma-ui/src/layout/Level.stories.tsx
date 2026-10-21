@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import Level from './Level';
 import { Title } from '../elements/Title';
+import { SubTitle } from '../elements/SubTitle';
 import { Button } from '../elements/Button';
 import Field from '../form/Field';
 import Control from '../form/Control';
@@ -19,9 +20,9 @@ export const Default: StoryObj<typeof Level> = {
     <Level>
       <Level.Left>
         <Level.Item>
-          <Title as="p" size="5" className="subtitle">
+          <SubTitle as="p" size="5">
             <strong>Favorite Posts</strong>
-          </Title>
+          </SubTitle>
         </Level.Item>
         <Level.Item>
           <Field hasAddons>
@@ -150,9 +151,9 @@ export const CompoundUsage: StoryObj<typeof Level> = {
     <Level>
       <Level.Left>
         <Level.Item>
-          <Title as="p" size="5" className="subtitle">
+          <SubTitle as="p" size="5">
             <strong>All Posts</strong>
-          </Title>
+          </SubTitle>
         </Level.Item>
       </Level.Left>
       <Level.Right>

@@ -207,8 +207,13 @@ export function guardViolations({ deprecated, textAlias, knownProps }) {
  * The Bulma classes that name a bestax component, from bestax-migrate's
  * table, in the order its planner decides an element's component when the
  * element carries several: a family first (its markup is converted by hand,
- * whatever else is on it), then the converted roots by precedence. The rule
- * reports the first one an element carries, so the order is the decision.
+ * whatever else is on it), then the converted roots by precedence. Each
+ * converted root carries its component's own tag and every tag it renders
+ * (its own, and the ones `as` reaches), since the planner takes the root
+ * that fits the element's tag best, its own tag before one `as` reaches,
+ * before precedence decides; the rule follows that, so the order and the
+ * tags are the decision. A root with advice of its own for an element
+ * another root converts (`.container`'s `mx="auto"`) carries it.
  *
  * Parts of a family are left out: the family's outermost class is the one
  * place the codemod flags it, and the rule follows suit. Classes with nothing
@@ -249,7 +254,16 @@ export async function bulmaComponentClasses(
       ]),
       ...mapped.map(([cls, entry]) => [
         cls,
-        { component: entry.target ?? null, converts: true },
+        {
+          component: entry.target ?? null,
+          converts: true,
+          ...(entry.tag ? { tag: entry.tag } : {}),
+          tags:
+            entry.as === 'any'
+              ? 'any'
+              : [...new Set([entry.tag, ...(entry.as ?? [])])].filter(Boolean),
+          ...(entry.onAnother ? { onAnother: entry.onAnother } : {}),
+        },
       ]),
     ],
   };
@@ -448,20 +462,43 @@ export interface BulmaComponentClass {
    * family whose component renders its own parts, converted by hand.
    */
   readonly converts: boolean;
+  /** For a class that converts: the tag its component renders by itself. */
+  readonly tag?: string;
+  /**
+   * For a class that converts: the tags its component renders, its own and
+   * the ones \`as\` reaches, or \`'any'\`. Of the classes an element carries,
+   * the codemod decides by the one whose component fits its tag best: its
+   * own tag, then one of these, then none.
+   */
+  readonly tags?: readonly string[] | 'any';
+  /**
+   * How to keep the class on an element another component renders, where an
+   * element of its own is not the answer.
+   */
+  readonly onAnother?: string;
 }
 
 /**
  * Bulma classes that name a bestax component, from bestax-migrate's
  * bulma-classes table. In the order the codemod decides an element's
- * component when it carries several: a family first, then by precedence.
+ * component when it carries several: a family first, then by precedence,
+ * among the ones whose component fits the element's tag best.
  */
 export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
   new Map<string, BulmaComponentClass>([
 ${classes
-  .map(
-    ([cls, { component, converts }]) =>
-      `    [${JSON.stringify(cls)}, { component: ${JSON.stringify(component)}, converts: ${converts} }],`
-  )
+  .map(([cls, { component, converts, tag, tags, onAnother }]) => {
+    const fields = [
+      `component: ${JSON.stringify(component)}`,
+      `converts: ${converts}`,
+      ...(tag === undefined ? [] : [`tag: ${JSON.stringify(tag)}`]),
+      ...(tags === undefined ? [] : [`tags: ${JSON.stringify(tags)}`]),
+      ...(onAnother === undefined
+        ? []
+        : [`onAnother: ${JSON.stringify(onAnother)}`]),
+    ];
+    return `    [${JSON.stringify(cls)}, { ${fields.join(', ')} }],`;
+  })
   .join('\n')}
   ]);
 `;

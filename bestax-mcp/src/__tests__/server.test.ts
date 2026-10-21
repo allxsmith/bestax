@@ -1129,6 +1129,27 @@ describe('lookup_bulma_classes', () => {
     );
   });
 
+  it("says another component's class stays a class, which component won and why", async () => {
+    expect(await lookup('columns box', 'div')).toContain(
+      "| `box` | stays in `className` | bestax `Box`'s class too, and an element converts to one component: `Columns` here, since the codemod ranks `.columns` first, putting layout and parts ahead of surfaces; to use `Box`, give it an element of its own around or inside this one |"
+    );
+    // A component that renders the tag wins over one ranked ahead of it.
+    const image = await lookup('image is-128x128 container', 'figure');
+    expect(image).toContain('**Component:** `Image` with `as="figure"`.');
+    expect(image).toContain(
+      '`Image` here, since `Container` renders <div>, <main>, <section>, <article>, <aside>, <header>, <footer> or <nav> through `as`, not a <figure>; where it is only there to center this element, `mx="auto"` centers it'
+    );
+    expect(await lookup('image is-128x128 container', 'div')).toContain(
+      '**Component:** `Container`.'
+    );
+    // And one whose own tag it is wins over one that reaches it through `as`.
+    const hero = await lookup('container hero is-primary', 'section');
+    expect(hero).toContain('**Component:** `Hero`.');
+    expect(hero).toContain(
+      "`Hero` here, since a <section> is `Hero`'s own element, and `Container` renders one only through `as`"
+    );
+  });
+
   it('sends a family bestax converts as a whole to its recipe', async () => {
     const out = await lookup('dropdown box');
     expect(out).toContain('**Stays markup:** `.dropdown`:');
@@ -1149,6 +1170,25 @@ describe('lookup_bulma_classes', () => {
       '| `is-empty` | rendered by `File` | with no `.file-name` in the tree; beside one it stays in `className` |'
     );
     expect(out).not.toMatch(/\| `is-empty` \| stays in `className` \|/);
+  });
+
+  it('writes a layout value with the class it renders beside, and only then', async () => {
+    const out = await lookup('field has-addons has-addons-centered', 'div');
+    expect(out).toContain(
+      '| `has-addons-centered` | `hasAddons="centered"` | beside `has-addons`, which it renders too |'
+    );
+    expect(out).toContain(
+      '| `has-addons` | rendered by `Field` | from `hasAddons="centered"`, which `has-addons-centered` sets |'
+    );
+    expect(await lookup('field is-grouped-right', 'div')).toContain(
+      '| `is-grouped-right` | stays in `className` | `grouped="right"` renders `is-grouped` too, so it converts only beside that class |'
+    );
+    // A second layout for the prop stays, as a second size does.
+    expect(
+      await lookup('field is-grouped is-grouped-multiline is-grouped-right')
+    ).toContain(
+      '| `is-grouped-right` | stays in `className` | `grouped` is already set by `is-grouped-multiline` |'
+    );
   });
 
   it('writes a prop typed as a number as a number', async () => {

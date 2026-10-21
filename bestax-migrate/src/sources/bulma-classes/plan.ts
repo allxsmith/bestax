@@ -26,9 +26,11 @@ import {
   numberAttrsOf,
   placedFor,
   PRECEDENCE,
+  reachesTag,
   replacedBy,
   rootFor,
   rootItNeeds,
+  tagFit,
   WRAPPER_OWN_PROPS,
   wrapperFor,
   type Absorbs,
@@ -385,24 +387,51 @@ function rootLabel(tokens: readonly string[]): string {
   return tokens.find(token => rootFor(token)?.status === 'mapped') ?? 'button';
 }
 
-/**
- * Whether the target renders this tag: the one it renders by itself (or the
- * heading its size picks), or one its `as` takes.
- */
-function reachesTag(
-  entry: RootEntry,
-  tag: string,
-  renders: string = entry.tag!
-): boolean {
-  return (
-    tag === renders || entry.as === 'any' || (entry.as?.includes(tag) ?? false)
-  );
-}
-
 function tagsItReaches(entry: RootEntry): string {
   if (entry.as === 'any') return 'any tag through `as`';
   if (entry.as) return entry.as.map(tag => `<${tag}>`).join(', ');
   return `only <${entry.tag}>`;
+}
+
+/**
+ * A TODO for each other component class on an element that converts
+ * (`columns box`). The class stays in `className`, which renders the same,
+ * but on a bestax component it is raw Bulma markup the lint rule reports, so
+ * each says which root won and why, and how to keep what the class does.
+ */
+function secondComponents(
+  carried: readonly string[],
+  fixed: readonly string[],
+  root: string | undefined,
+  target: string,
+  tag: string
+): Todo[] {
+  return carried.flatMap(token => {
+    const other = rootFor(token);
+    if (token === root || other?.status !== 'mapped') return [];
+    const name = other.target!;
+    if (name === target) return [];
+    const why = !fixed.includes(token)
+      ? `since \`.${token}\` is there only when its condition holds, and the codemod picks from the classes the element always carries`
+      : root === undefined
+        ? 'since an item of a list converts by where it sits'
+        : !reachesTag(other, tag)
+          ? `since \`${name}\` renders ${tagsItReaches(other)}, not ${aTag(tag)}`
+          : tagFit(rootFor(root)!, tag) > tagFit(other, tag)
+            ? `since ${aTag(tag)} is \`${target}\`'s own element, and \`${name}\` renders one only through \`as\``
+            : precedence(root) < precedence(token)
+              ? `since the codemod ranks \`.${root}\` first, putting layout and parts ahead of surfaces`
+              : `since \`.${root}\` comes first on the element`;
+    const advice =
+      other.onAnother ??
+      `to use \`${name}\`, give it an element of its own around or inside this one and drop the class, then check the layout, since two elements space differently from one`;
+    return [
+      {
+        rule: ruleId('second-component', name),
+        message: `\`.${token}\` is bestax \`${name}\`'s class too, and an element converts to one component: \`${target}\` here, ${why}, so \`.${token}\` stays in its \`className\`, which renders the same; ${advice}`,
+      },
+    ];
+  });
 }
 
 /**
@@ -496,11 +525,19 @@ function planElement(facts: ElementFacts): Plan {
     : tokens.find(token => rootFor(token)?.status === 'fold');
   if (wrapper) return planFold(facts, wrapper, todos);
 
-  const root = placed
-    ? undefined
+  // Of two roots, the one that fits the element's tag best wins (its own tag,
+  // then one `as` reaches), and the table's precedence decides a tie.
+  const roots = placed
+    ? []
     : tokens
         .filter(token => rootFor(token)?.status === 'mapped')
-        .sort((a, b) => precedence(a) - precedence(b))[0];
+        .sort((a, b) => precedence(a) - precedence(b));
+  const fit = (token: string) => tagFit(rootFor(token)!, tag);
+  const root = roots.reduce<string | undefined>(
+    (best, token) =>
+      best === undefined || fit(token) > fit(best) ? token : best,
+    undefined
+  );
 
   let entry: RootEntry | null;
   if (placed) {
@@ -1018,6 +1055,7 @@ function planElement(facts: ElementFacts): Plan {
       `bestax \`${target}\` writes a \`className\` it's given in place of \`.${root}\`, so this converts only with no other class; keep it as markup`
     );
   }
+  todos.push(...secondComponents(carried, tokens, root, target, tag));
   // A glyph the target renders from props takes the place of the only child.
   const glyph =
     moved ?? (entry.readsGlyph ? readGlyph(facts.soleChild) : undefined);
@@ -1407,10 +1445,22 @@ function propsFrom(
     ...tokens.filter(token => replacedBy(token)),
   ];
 
-  for (const token of claiming) {
+  // A class that converts only beside another (`has-addons-centered`) goes
+  // first, so the value it writes takes the prop ahead of that one's flag and
+  // renders both classes. On its own it stays a class. Neither is ever a
+  // removed class, so the two orders compose.
+  const paired = (token: string) => {
+    const other = modifierFor(entry, token)?.beside;
+    return other !== undefined && tokens.includes(other);
+  };
+  for (const token of [
+    ...claiming.filter(paired),
+    ...claiming.filter(token => !paired(token)),
+  ]) {
     if (converted.has(token)) continue;
     const modifier = modifierFor(entry, token);
     if (modifier) {
+      if (modifier.beside && !paired(token)) continue;
       if (modifier.tagIn && !modifier.tagIn.includes(tag)) continue;
       if (modifier.needsAttr && !attributes.has(modifier.needsAttr.name)) {
         continue;
@@ -1426,6 +1476,7 @@ function propsFrom(
       }
       rendersTag ??= modifier.rendersTag;
       converted.add(token);
+      if (modifier.beside) converted.add(modifier.beside);
       continue;
     }
     const helper = entry.noHelpers ? undefined : HELPER_TOKENS.get(token);

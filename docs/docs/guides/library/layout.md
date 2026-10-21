@@ -67,9 +67,9 @@ A flexible horizontal layout for aligning items left, right, or center. Use for 
 <Level>
   <Level.Left>
     <Level.Item>
-      <Title as="p" size="5" className="subtitle">
+      <SubTitle as="p" size="5">
         <strong>Stats</strong>
-      </Title>
+      </SubTitle>
     </Level.Item>
   </Level.Left>
   <Level.Right>
