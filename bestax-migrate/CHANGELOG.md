@@ -1,3 +1,34 @@
+# [2.30.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.29.2...bestax-migrate@2.30.0) (2026-10-21)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** answer .container on another root's element with the corrected advice ([b7a33ba](https://github.com/allxsmith/bestax/commit/b7a33babddf079b331c908ed97cfb38b3bd05ddb)), closes [#1168](https://github.com/allxsmith/bestax/issues/1168)
+* **bestax-mcp:** hedge a layout class's base row where the layout row is hedged ([c903194](https://github.com/allxsmith/bestax/commit/c90319457620ec79bd725b51ef94dbcfe745dd1b)), closes [#1155](https://github.com/allxsmith/bestax/issues/1155)
+* **bestax-mcp:** hold a layout class beside its base to every modifier gate ([ef8f881](https://github.com/allxsmith/bestax/commit/ef8f881db3a6955d5649724a09466ccd65328a8d))
+* **bestax-mcp:** pick the root whose own tag the element is on, as the codemod does ([bca07f6](https://github.com/allxsmith/bestax/commit/bca07f6096c22709a1c37ea647e7b678d391f8d4)), closes [#1168](https://github.com/allxsmith/bestax/issues/1168)
+* **bestax-mcp:** say another component's class stays a class, and which one won ([425cfd9](https://github.com/allxsmith/bestax/commit/425cfd9ee20a55d743a1995ac0e0006d0ef9b5f8)), closes [#1168](https://github.com/allxsmith/bestax/issues/1168)
+* **bestax-mcp:** write the second-component reasons' tag with its article ([0428030](https://github.com/allxsmith/bestax/commit/042803033e30b735ab42d4ead2bf77b71a2be00a))
+* **bestax-migrate:** give a conditional class on a list item its own reason ([55b8a8d](https://github.com/allxsmith/bestax/commit/55b8a8d0181ac391b65998f73a1dad59299ada10)), closes [#1168](https://github.com/allxsmith/bestax/issues/1168)
+* **bestax-migrate:** hold a layout class beside its base to every modifier gate ([56cbe5e](https://github.com/allxsmith/bestax/commit/56cbe5e165e0f4597e74cc1600d42c750c5f5cf6))
+* **bestax-migrate:** let a root on its own tag win over one that reaches it through `as` ([b9a4a3e](https://github.com/allxsmith/bestax/commit/b9a4a3e0990255e84d8c698528eebe069b7f8f82)), closes [#1179](https://github.com/allxsmith/bestax/issues/1179) [#1168](https://github.com/allxsmith/bestax/issues/1168)
+* **bestax-migrate:** make .container's advice and a conditional class's reason true ([eeaf3d7](https://github.com/allxsmith/bestax/commit/eeaf3d7978d5801fd3275315a40dfa18ef56e108)), closes [#1168](https://github.com/allxsmith/bestax/issues/1168)
+* **bestax-migrate:** report a second component class on a converted element ([e0d90a0](https://github.com/allxsmith/bestax/commit/e0d90a0aa9f2baa91f8a72bf01a0093e5fefb0c7)), closes [#1168](https://github.com/allxsmith/bestax/issues/1168)
+* **bestax-migrate:** write the second-component reasons' tag with its article ([9fe0a4e](https://github.com/allxsmith/bestax/commit/9fe0a4efff058215989c79117a50c7c518ffcbe2))
+* **bulma-ui:** drop Image's stray has-ratio, and convert ratio images ([#1195](https://github.com/allxsmith/bestax/issues/1195)) ([ae8443d](https://github.com/allxsmith/bestax/commit/ae8443d04b199c9f1a2a12d41b22f436b7b522eb))
+* **bulma-ui:** pass over a tab stop that won't take focus when a trap moves focus ([#1212](https://github.com/allxsmith/bestax/issues/1212)) ([76b317d](https://github.com/allxsmith/bestax/commit/76b317d65b820aa85fefb6ed382e3b4abc04b21f))
+* **eslint-plugin:** carry .container's corrected advice, and pin the component tiebreak ([082f92b](https://github.com/allxsmith/bestax/commit/082f92b3d39fd831094970ed5963432fb4b01073)), closes [#1168](https://github.com/allxsmith/bestax/issues/1168)
+* **eslint-plugin:** leave a bestax component inside svg or math alone ([18c3d74](https://github.com/allxsmith/bestax/commit/18c3d746b8a5416801dd4e2f33dfb5b061212bd1)), closes [#1168](https://github.com/allxsmith/bestax/issues/1168)
+* **eslint-plugin:** report the class whose component's own tag the element is on ([4a62ee8](https://github.com/allxsmith/bestax/commit/4a62ee8f382359f3168468d7efaf408471863cbb)), closes [#1168](https://github.com/allxsmith/bestax/issues/1168)
+
+
+### Features
+
+* **bestax-mcp:** answer a Field layout class beside its base class as one value ([5b7fac9](https://github.com/allxsmith/bestax/commit/5b7fac9767ebfe9dd08760b79fd4ce9c776fa695)), closes [#1155](https://github.com/allxsmith/bestax/issues/1155)
+* **bestax-migrate:** write Field's hasAddons and grouped values when their class pairs are there ([ae362c1](https://github.com/allxsmith/bestax/commit/ae362c1ded8c34504ce50b8ee01dff2990932dc9)), closes [#1155](https://github.com/allxsmith/bestax/issues/1155)
+* **bulma-ui:** add Menu.Section, a menu section that opens and closes ([#1209](https://github.com/allxsmith/bestax/issues/1209)) ([b043c99](https://github.com/allxsmith/bestax/commit/b043c990128ca21f0dd04de8af9d2a2613b87e53))
+* **eslint-plugin:** report another component's Bulma class on a bestax component ([4cf0aa3](https://github.com/allxsmith/bestax/commit/4cf0aa3633c0cc3af5e65850b97501690ca0af15)), closes [#1168](https://github.com/allxsmith/bestax/issues/1168)
+
 ## [2.29.2](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.29.1...bestax-migrate@2.29.2) (2026-10-21)
 
 
