@@ -267,11 +267,13 @@ https://bestax.io/docs/guides/features/routing.
 
 ## Menu
 
-`<Menu>` is a vertical sidebar menu. Subcomponents: `Menu.Label`, `Menu.List`, `Menu.Item`.
+`<Menu>` is a vertical sidebar menu. Subcomponents: `Menu.Label`, `Menu.List`, `Menu.Item`,
+`Menu.Section`.
 
-| Prop        | Type                                                                                                                                                                                |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Menu.Item` | `active?` (the current page: `is-active` plus `aria-current="page"`, so don't add your own), `href?`, `as?` (custom link component); nest a `Menu.List` inside an item for submenus |
+| Prop           | Type                                                                                                                                                                                                                            |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Menu.Item`    | `active?` (the current page: `is-active` plus `aria-current="page"`, so don't add your own), `href?`, `as?` (custom link component); nest a `Menu.List` inside an item for submenus                                             |
+| `Menu.Section` | `label` (the heading, a `ReactNode`), `defaultOpen?`, or `open?` with `onOpenChange?(open)` to hold the state yourself, as `Collapse` does; its child is the group's `Menu.List`, and a closed section's links are out of reach |
 
 ```tsx
 <Menu>
@@ -283,6 +285,34 @@ https://bestax.io/docs/guides/features/routing.
     <Menu.Item href="#">Customers</Menu.Item>
   </Menu.List>
 </Menu>
+```
+
+A sidebar whose groups of links open and close (a docs sidebar, an admin app's sections) puts each
+group's `Menu.List` in a `Menu.Section`. Its heading is a real button drawn like `Menu.Label`, with
+`aria-expanded` and a chevron, and its links stay ordinary links, each a tab stop. Open the
+section that holds the current page. A section goes directly in `Menu`, never inside a `Menu.Item`
+(it would render inside the item's link) or a `Menu.List` (it isn't a list item). Don't build this
+from `TreeView` (its items aren't links) or from a `Collapse` in a hand-written `<li>` (its trigger
+is a `div` with `role="button"`).
+
+```tsx
+<nav aria-label="Documentation">
+  <Menu>
+    <Menu.Section label="Getting started">
+      <Menu.List>
+        <Menu.Item href="/docs/install">Installation</Menu.Item>
+      </Menu.List>
+    </Menu.Section>
+    <Menu.Section label="Components" defaultOpen>
+      <Menu.List>
+        <Menu.Item href="/docs/button" active>
+          Button
+        </Menu.Item>
+        <Menu.Item href="/docs/card">Card</Menu.Item>
+      </Menu.List>
+    </Menu.Section>
+  </Menu>
+</nav>
 ```
 
 ## Card

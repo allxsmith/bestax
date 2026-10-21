@@ -3690,25 +3690,69 @@
         "is-64x64": { "writes": [{ "prop": "size", "value": "64x64" }] },
         "is-96x96": { "writes": [{ "prop": "size", "value": "96x96" }] },
         "is-128x128": { "writes": [{ "prop": "size", "value": "128x128" }] },
-        "is-square": { "writes": [{ "prop": "size", "value": "square" }] }
+        "is-square": { "writes": [{ "prop": "size", "value": "square" }] },
+        "is-1by1": {
+          "writes": [{ "prop": "size", "value": "1by1" }],
+          "rendersTag": "figure"
+        },
+        "is-5by4": {
+          "writes": [{ "prop": "size", "value": "5by4" }],
+          "rendersTag": "figure"
+        },
+        "is-4by3": {
+          "writes": [{ "prop": "size", "value": "4by3" }],
+          "rendersTag": "figure"
+        },
+        "is-3by2": {
+          "writes": [{ "prop": "size", "value": "3by2" }],
+          "rendersTag": "figure"
+        },
+        "is-5by3": {
+          "writes": [{ "prop": "size", "value": "5by3" }],
+          "rendersTag": "figure"
+        },
+        "is-16by9": {
+          "writes": [{ "prop": "size", "value": "16by9" }],
+          "rendersTag": "figure"
+        },
+        "is-2by1": {
+          "writes": [{ "prop": "size", "value": "2by1" }],
+          "rendersTag": "figure"
+        },
+        "is-3by1": {
+          "writes": [{ "prop": "size", "value": "3by1" }],
+          "rendersTag": "figure"
+        },
+        "is-4by5": {
+          "writes": [{ "prop": "size", "value": "4by5" }],
+          "rendersTag": "figure"
+        },
+        "is-3by4": {
+          "writes": [{ "prop": "size", "value": "3by4" }],
+          "rendersTag": "figure"
+        },
+        "is-2by3": {
+          "writes": [{ "prop": "size", "value": "2by3" }],
+          "rendersTag": "figure"
+        },
+        "is-3by5": {
+          "writes": [{ "prop": "size", "value": "3by5" }],
+          "rendersTag": "figure"
+        },
+        "is-9by16": {
+          "writes": [{ "prop": "size", "value": "9by16" }],
+          "rendersTag": "figure"
+        },
+        "is-1by2": {
+          "writes": [{ "prop": "size", "value": "1by2" }],
+          "rendersTag": "figure"
+        },
+        "is-1by3": {
+          "writes": [{ "prop": "size", "value": "1by3" }],
+          "rendersTag": "figure"
+        }
       },
-      "omits": {
-        "is-1by1": "`size` renders `has-ratio` beside it as well",
-        "is-5by4": "`size` renders `has-ratio` beside it as well",
-        "is-4by3": "`size` renders `has-ratio` beside it as well",
-        "is-3by2": "`size` renders `has-ratio` beside it as well",
-        "is-5by3": "`size` renders `has-ratio` beside it as well",
-        "is-16by9": "`size` renders `has-ratio` beside it as well",
-        "is-2by1": "`size` renders `has-ratio` beside it as well",
-        "is-3by1": "`size` renders `has-ratio` beside it as well",
-        "is-4by5": "`size` renders `has-ratio` beside it as well",
-        "is-3by4": "`size` renders `has-ratio` beside it as well",
-        "is-2by3": "`size` renders `has-ratio` beside it as well",
-        "is-3by5": "`size` renders `has-ratio` beside it as well",
-        "is-9by16": "`size` renders `has-ratio` beside it as well",
-        "is-1by2": "`size` renders `has-ratio` beside it as well",
-        "is-1by3": "`size` renders `has-ratio` beside it as well"
-      },
+      "omits": {},
       "wrapsChildren": null,
       "folds": null,
       "absorbs": {

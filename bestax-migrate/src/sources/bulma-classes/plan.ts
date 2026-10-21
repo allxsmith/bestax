@@ -565,17 +565,16 @@ function planElement(facts: ElementFacts): Plan {
   // On a tag the target can't render, the tag is the work that comes first:
   // any other refusal would ask for work (an attribute added or dropped, a
   // child moved) that a re-run then refuses on the tag anyway.
+  // What the classes write picks the tag the target renders with no `as`:
+  // Title's `size` its heading, and the one class with a `rendersTag`
+  // (`Image`'s ratio) its <figure>.
   let renders = entry.tag!;
-  if (entry.sizeDrivesTag && tag !== 'p') {
-    const size = propsFrom(
-      entry,
-      tokens,
-      tag,
-      root,
-      facts.attributes
-    ).writes.get('size');
-    if (size !== undefined) renders = `h${size}`;
+  const picked = propsFrom(entry, tokens, tag, root, facts.attributes);
+  const size = picked.writes.get('size');
+  if (entry.sizeDrivesTag && tag !== 'p' && size !== undefined) {
+    renders = `h${size}`;
   }
+  if (picked.rendersTag) renders = picked.rendersTag;
   let as: string | undefined;
   if (renders !== tag) {
     if (!reachesTag(entry, tag, renders)) {
@@ -1420,8 +1419,11 @@ function propsFrom(
   writes: Map<string, string | true>;
   converted: Set<string>;
   numbers: string[];
+  /** The tag the one converted class with a `rendersTag` picks. */
+  rendersTag?: string;
 } {
   const numbers: string[] = [];
+  let rendersTag: string | undefined;
   // What the root itself needs comes first, so no class can take its prop.
   const writes = new Map<string, string | true>(
     (entry.writes ?? []).map(write => [write.prop, write.value ?? true])
@@ -1444,11 +1446,15 @@ function propsFrom(
         continue;
       }
       if (modifier.writes.some(write => writes.has(write.prop))) continue;
+      // Only one class picks the tag, as only one sets a prop: a second one
+      // stays a class, the way a second size does.
+      if (modifier.rendersTag && rendersTag) continue;
       for (const write of modifier.writes) {
         writes.set(write.prop, write.value ?? true);
         sourceOf.set(write.prop, token);
         if (write.numeric) numbers.push(write.prop);
       }
+      rendersTag ??= modifier.rendersTag;
       converted.add(token);
       continue;
     }
@@ -1504,7 +1510,7 @@ function propsFrom(
   ) {
     undo('overflow');
   }
-  return { writes, converted, numbers };
+  return { writes, converted, numbers, rendersTag };
 }
 
 type Refuse = (kind: string, token: string, message: string) => Plan;

@@ -64,7 +64,7 @@
         {
           "id": "layout-components",
           "file": "references/layout-components.md",
-          "bytes": 17448
+          "bytes": 18956
         }
       ],
       "examples": [
@@ -103,12 +103,12 @@
         {
           "id": "bulma-classes-component-map",
           "file": "references/bulma-classes/component-map.md",
-          "bytes": 30030
+          "bytes": 30102
         },
         {
           "id": "bulma-classes-prop-map",
           "file": "references/bulma-classes/prop-map.md",
-          "bytes": 36213
+          "bytes": 37225
         },
         {
           "id": "bulma-classes-unmappables",
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 12025
+          "bytes": 12075
         }
       ],
       "examples": []
@@ -176,7 +176,7 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 44975
+          "bytes": 45565
         },
         {
           "id": "themeable-components",

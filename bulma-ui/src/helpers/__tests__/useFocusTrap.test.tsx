@@ -1073,6 +1073,96 @@ describe('useFocusTrap', () => {
   // The browser can skip a stop the trap counts (Safari passes over links by
   // default), so a Tab the trap lets through can still leave. jsdom has no
   // default Tab action, so each test moves focus the way the browser would.
+  describe('a stop that refuses focus', () => {
+    // An `<object>` with nothing to show counts as a stop by its kind, but
+    // browsers won't focus it (#1211). jsdom can't tell, so `focus()` on one
+    // does nothing here, the way it does in a browser for that object.
+    let objectFocus: jest.SpyInstance;
+    beforeEach(() => {
+      objectFocus = jest
+        .spyOn(HTMLObjectElement.prototype, 'focus')
+        .mockImplementation(() => {});
+    });
+    afterEach(() => objectFocus.mockRestore());
+
+    const preview = (
+      <object key="preview" data="missing.pdf" type="application/pdf">
+        Preview unavailable
+      </object>
+    );
+    const outside = () => screen.getByRole('button', { name: 'Outside' });
+    const Page: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+      <>
+        <button>Outside</button>
+        <Trap>{children}</Trap>
+      </>
+    );
+
+    describe('first', () => {
+      const content = [
+        preview,
+        <button key="first">First</button>,
+        <button key="last">Last</button>,
+      ];
+
+      it('is passed over for the next stop as the trap turns on', () => {
+        render(<Trap>{content}</Trap>);
+        expect(button('First')).toHaveFocus();
+      });
+
+      it('is passed over when Tab wraps from the last stop', () => {
+        render(<Trap>{content}</Trap>);
+        button('Last').focus();
+        expect(pressTab().defaultPrevented).toBe(true);
+        expect(button('First')).toHaveFocus();
+      });
+
+      it('is passed over when focus comes back after a Shift+Tab the browser carried out', () => {
+        render(<Page>{content}</Page>);
+        expect(pressTab(true).defaultPrevented).toBe(false);
+        outside().focus();
+        expect(button('Last')).toHaveFocus();
+      });
+    });
+
+    describe('last', () => {
+      const content = [
+        <button key="first">First</button>,
+        <button key="last">Last</button>,
+        preview,
+      ];
+
+      it('is passed over when Shift+Tab wraps from the first stop', () => {
+        render(<Trap>{content}</Trap>);
+        expect(pressTab(true).defaultPrevented).toBe(true);
+        expect(button('Last')).toHaveFocus();
+      });
+
+      it('is passed over when focus comes back after a Tab the browser carried out', () => {
+        render(<Page>{content}</Page>);
+        button('Last').focus();
+        expect(pressTab().defaultPrevented).toBe(false);
+        outside().focus();
+        expect(button('First')).toHaveFocus();
+      });
+    });
+
+    it('leaves focus on the container when it is the only stop', () => {
+      render(<Trap>{preview}</Trap>);
+      expect(screen.getByTestId('trap')).toHaveFocus();
+    });
+
+    it('still lets Tab wrap to the stop that already has focus', () => {
+      render(
+        <Trap>
+          <button>Only</button>
+        </Trap>
+      );
+      expect(pressTab().defaultPrevented).toBe(true);
+      expect(button('Only')).toHaveFocus();
+    });
+  });
+
   describe('when a Tab it let through leaves anyway', () => {
     const outside = () => screen.getByRole('button', { name: 'Outside' });
     const Page: React.FC<{ children: React.ReactNode }> = ({ children }) => (

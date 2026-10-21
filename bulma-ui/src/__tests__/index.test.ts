@@ -94,6 +94,7 @@ const PUBLIC_EXPORTS = [
   'MenuItem',
   'MenuLabel',
   'MenuList',
+  'MenuSection',
   'Message',
   'Modal',
   'Navbar',
