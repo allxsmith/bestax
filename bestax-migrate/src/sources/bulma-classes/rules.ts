@@ -33,6 +33,7 @@ export const KINDS: ReadonlySet<string> = new Set([
   'modifier',
   'only-child',
   'ref',
+  'second-component',
   'spread',
   'tag',
 ]);

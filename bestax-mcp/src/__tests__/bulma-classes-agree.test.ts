@@ -391,6 +391,26 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
     expect(compare(cases)).toEqual([]);
   });
 
+  it('on each modifier that converts only beside another, with and without it', () => {
+    const cases = mapped.flatMap(([root, entry]) =>
+      Object.entries(entry.modifiers).flatMap(([token, { beside }]) => {
+        if (!beside) return [];
+        const siblings = Object.entries(entry.modifiers)
+          .filter(([other, modifier]) => other !== token && modifier.beside)
+          .map(([other]) => other);
+        return [
+          [root, token],
+          [root, beside, token],
+          [root, token, beside],
+          // Two values for one prop: the first keeps it.
+          ...siblings.map(other => [root, beside, token, other]),
+        ].map(tokens => [entry.tag!, tokens] as [string, string[]]);
+      })
+    );
+    expect(cases.length).toBeGreaterThan(0);
+    expect(compare(cases)).toEqual([]);
+  });
+
   it('on each root with each helper, and on the plain tags bestax wraps', () => {
     const cases: Array<[string, string[]]> = [];
     for (const [root, entry] of mapped) {
@@ -425,6 +445,37 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
     expect({ count: mismatches.length, first: mismatches.slice(0, 5) }).toEqual(
       { count: 0, first: [] }
     );
+  });
+
+  it("on each root beside another root, on each one's tags", () => {
+    const seconds = ['box', 'content', 'container', 'columns', 'image'];
+    const cases = mapped.flatMap(([root, entry]) =>
+      seconds
+        // The planner is given one element inside, so not the <img> of an
+        // `.image` beside a root that reads the element inside it too.
+        .filter(
+          second =>
+            second !== root &&
+            !(
+              table.roots[second].absorbs &&
+              (entry.absorbs || entry.readsGlyph)
+            )
+        )
+        .flatMap(second => {
+          const other = table.roots[second];
+          const tags = new Set([
+            entry.tag!,
+            other.tag!,
+            ...(Array.isArray(other.as) ? other.as : []),
+          ]);
+          return [...tags].flatMap(tag => [
+            [tag, [root, second]] as [string, string[]],
+            [tag, [second, root]] as [string, string[]],
+          ]);
+        })
+    );
+    expect(cases.length).toBeGreaterThan(400);
+    expect(compare(cases)).toEqual([]);
   });
 
   it('on a removed helper beside a class for its prop or another, in either order', () => {

@@ -27,7 +27,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "box": {
       "status": "mapped",
@@ -55,7 +56,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "button": {
       "status": "mapped",
@@ -111,7 +113,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "buttons": {
       "status": "mapped",
@@ -146,7 +149,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "card": {
       "status": "mapped",
@@ -184,7 +188,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "card-header": {
       "status": "mapped",
@@ -216,7 +221,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "card-header-title": {
       "status": "mapped",
@@ -244,7 +250,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "card-header-icon": {
       "status": "mapped",
@@ -272,7 +279,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "card-image": {
       "status": "mapped",
@@ -300,7 +308,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "card-content": {
       "status": "mapped",
@@ -328,7 +337,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "card-footer": {
       "status": "mapped",
@@ -356,7 +366,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "card-footer-item": {
       "status": "mapped",
@@ -384,7 +395,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "columns": {
       "status": "mapped",
@@ -495,7 +507,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "column": {
       "status": "mapped",
@@ -1163,7 +1176,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "grid": {
       "status": "mapped",
@@ -1373,7 +1387,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "cell": {
       "status": "mapped",
@@ -1618,7 +1633,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "container": {
       "status": "mapped",
@@ -1677,7 +1693,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": "where it is only there to center this element, `mx=\"auto\"` centers it, and otherwise wrap the element in a `Container`; either way drop the class, then check the layout"
     },
     "content": {
       "status": "mapped",
@@ -1709,7 +1726,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "delete": {
       "status": "mapped",
@@ -1741,7 +1759,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "field": {
       "status": "mapped",
@@ -1757,7 +1776,27 @@
         "is-horizontal": { "writes": [{ "prop": "horizontal" }] },
         "has-addons": { "writes": [{ "prop": "hasAddons" }] },
         "is-narrow": { "writes": [{ "prop": "narrow" }] },
-        "is-grouped": { "writes": [{ "prop": "grouped" }], "onlyTrue": true }
+        "is-grouped": { "writes": [{ "prop": "grouped" }], "onlyTrue": true },
+        "has-addons-centered": {
+          "writes": [{ "prop": "hasAddons", "value": "centered" }],
+          "beside": "has-addons"
+        },
+        "has-addons-right": {
+          "writes": [{ "prop": "hasAddons", "value": "right" }],
+          "beside": "has-addons"
+        },
+        "is-grouped-centered": {
+          "writes": [{ "prop": "grouped", "value": "centered" }],
+          "beside": "is-grouped"
+        },
+        "is-grouped-right": {
+          "writes": [{ "prop": "grouped", "value": "right" }],
+          "beside": "is-grouped"
+        },
+        "is-grouped-multiline": {
+          "writes": [{ "prop": "grouped", "value": "multiline" }],
+          "beside": "is-grouped"
+        }
       },
       "omits": {},
       "wrapsChildren": {
@@ -1779,7 +1818,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "field-label": {
       "status": "mapped",
@@ -1812,7 +1852,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "field-body": {
       "status": "mapped",
@@ -1840,7 +1881,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "control": {
       "status": "mapped",
@@ -1876,7 +1918,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "input": {
       "status": "mapped",
@@ -1924,7 +1967,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "textarea": {
       "status": "mapped",
@@ -1973,7 +2017,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "select": {
       "status": "mapped",
@@ -2030,7 +2075,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "footer": {
       "status": "mapped",
@@ -2058,7 +2104,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "hero": {
       "status": "mapped",
@@ -2106,7 +2153,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "hero-head": {
       "status": "mapped",
@@ -2134,7 +2182,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "hero-body": {
       "status": "mapped",
@@ -2162,7 +2211,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "hero-foot": {
       "status": "mapped",
@@ -2190,7 +2240,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "level": {
       "status": "mapped",
@@ -2218,7 +2269,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "level-left": {
       "status": "mapped",
@@ -2246,7 +2298,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "level-right": {
       "status": "mapped",
@@ -2274,7 +2327,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "level-item": {
       "status": "mapped",
@@ -2302,7 +2356,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "media": {
       "status": "mapped",
@@ -2330,7 +2385,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "media-left": {
       "status": "mapped",
@@ -2358,7 +2414,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "media-content": {
       "status": "mapped",
@@ -2386,7 +2443,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "media-right": {
       "status": "mapped",
@@ -2414,7 +2472,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "navbar": {
       "status": "mapped",
@@ -2460,7 +2519,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "navbar-brand": {
       "status": "mapped",
@@ -2488,7 +2548,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "navbar-menu": {
       "status": "mapped",
@@ -2516,7 +2577,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "navbar-start": {
       "status": "mapped",
@@ -2544,7 +2606,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "navbar-end": {
       "status": "mapped",
@@ -2572,7 +2635,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "navbar-item": {
       "status": "mapped",
@@ -2600,7 +2664,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "navbar-dropdown": {
       "status": "mapped",
@@ -2631,7 +2696,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "navbar-divider": {
       "status": "mapped",
@@ -2659,7 +2725,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "notification": {
       "status": "mapped",
@@ -2698,7 +2765,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "progress": {
       "status": "mapped",
@@ -2740,7 +2808,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "section": {
       "status": "mapped",
@@ -2771,7 +2840,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "subtitle": {
       "status": "mapped",
@@ -2825,7 +2895,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "table": {
       "status": "mapped",
@@ -2859,7 +2930,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "tag": {
       "status": "mapped",
@@ -2904,7 +2976,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "tags": {
       "status": "mapped",
@@ -2936,7 +3009,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "title": {
       "status": "mapped",
@@ -2991,7 +3065,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "breadcrumb": {
       "status": "mapped",
@@ -3039,7 +3114,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "skeleton-block": {
       "status": "mapped",
@@ -3067,7 +3143,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "skeleton-lines": {
       "status": "mapped",
@@ -3095,7 +3172,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "checkbox": {
       "status": "todo",
@@ -3123,7 +3201,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "checkboxes": {
       "status": "todo",
@@ -3151,7 +3230,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "radio": {
       "status": "todo",
@@ -3179,7 +3259,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "radios": {
       "status": "todo",
@@ -3207,7 +3288,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "file": {
       "status": "mapped",
@@ -3255,7 +3337,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "file-label": {
       "status": "todo",
@@ -3283,7 +3366,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "file-input": {
       "status": "todo",
@@ -3311,7 +3395,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "file-cta": {
       "status": "todo",
@@ -3339,7 +3424,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "file-icon": {
       "status": "todo",
@@ -3367,7 +3453,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "file-name": {
       "status": "todo",
@@ -3395,7 +3482,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "dropdown": {
       "status": "todo",
@@ -3423,7 +3511,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "dropdown-menu": {
       "status": "todo",
@@ -3451,7 +3540,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "dropdown-content": {
       "status": "todo",
@@ -3479,7 +3569,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "dropdown-item": {
       "status": "todo",
@@ -3507,7 +3598,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "dropdown-divider": {
       "status": "todo",
@@ -3535,7 +3627,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "icon": {
       "status": "mapped",
@@ -3567,7 +3660,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "icon-text": {
       "status": "mapped",
@@ -3595,7 +3689,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "image": {
       "status": "mapped",
@@ -3698,7 +3793,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "menu": {
       "status": "mapped",
@@ -3726,7 +3822,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "menu-label": {
       "status": "mapped",
@@ -3754,7 +3851,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "menu-list": {
       "status": "mapped",
@@ -3801,7 +3899,8 @@
       },
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "menu-item": {
       "status": "todo",
@@ -3829,7 +3928,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "message": {
       "status": "todo",
@@ -3857,7 +3957,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "message-header": {
       "status": "todo",
@@ -3885,7 +3986,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "message-body": {
       "status": "todo",
@@ -3913,7 +4015,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "modal": {
       "status": "todo",
@@ -3941,7 +4044,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "modal-background": {
       "status": "mapped",
@@ -3969,7 +4073,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "modal-content": {
       "status": "mapped",
@@ -3997,7 +4102,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "modal-card": {
       "status": "mapped",
@@ -4025,7 +4131,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "modal-card-head": {
       "status": "mapped",
@@ -4053,7 +4160,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "modal-card-title": {
       "status": "mapped",
@@ -4081,7 +4189,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "modal-card-body": {
       "status": "mapped",
@@ -4109,7 +4218,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "modal-card-foot": {
       "status": "mapped",
@@ -4137,7 +4247,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "modal-close": {
       "status": "todo",
@@ -4165,7 +4276,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "navbar-burger": {
       "status": "todo",
@@ -4193,7 +4305,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "navbar-link": {
       "status": "todo",
@@ -4221,7 +4334,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "pagination": {
       "status": "mapped",
@@ -4267,7 +4381,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "pagination-list": {
       "status": "mapped",
@@ -4295,7 +4410,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "pagination-previous": {
       "status": "mapped",
@@ -4325,7 +4441,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "pagination-next": {
       "status": "mapped",
@@ -4355,7 +4472,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "pagination-link": {
       "status": "mapped",
@@ -4390,7 +4508,8 @@
       "items": null,
       "parent": { "tag": "li" },
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "pagination-ellipsis": {
       "status": "mapped",
@@ -4418,7 +4537,8 @@
       "items": null,
       "parent": { "tag": "li" },
       "rendersText": "…",
-      "classNameReplaces": true
+      "classNameReplaces": true,
+      "onAnother": null
     },
     "panel": {
       "status": "mapped",
@@ -4457,7 +4577,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "panel-heading": {
       "status": "mapped",
@@ -4485,7 +4606,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "panel-tabs": {
       "status": "mapped",
@@ -4513,7 +4635,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "panel-block": {
       "status": "mapped",
@@ -4541,7 +4664,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "panel-icon": {
       "status": "todo",
@@ -4569,7 +4693,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "tabs": {
       "status": "mapped",
@@ -4619,7 +4744,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "table-container": {
       "status": "fold",
@@ -4647,7 +4773,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "fixed-grid": {
       "status": "fold",
@@ -5015,7 +5142,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "help": {
       "status": "plain",
@@ -5043,7 +5171,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "panel-list": {
       "status": "plain",
@@ -5071,7 +5200,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "label": {
       "status": "plain",
@@ -5099,7 +5229,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "loader": {
       "status": "plain",
@@ -5127,7 +5258,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "hero-buttons": {
       "status": "plain",
@@ -5155,7 +5287,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "hero-video": {
       "status": "plain",
@@ -5183,7 +5316,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "navbar-content": {
       "status": "plain",
@@ -5211,7 +5345,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "navbar-tabs": {
       "status": "plain",
@@ -5239,7 +5374,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "theme-dark": {
       "status": "plain",
@@ -5267,7 +5403,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "theme-light": {
       "status": "plain",
@@ -5295,7 +5432,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     },
     "fa": {
       "status": "plain",
@@ -5323,7 +5461,8 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false
+      "classNameReplaces": false,
+      "onAnother": null
     }
   },
   "precedence": [

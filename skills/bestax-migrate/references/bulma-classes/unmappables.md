@@ -309,6 +309,24 @@ in a menu item gets this TODO too. For the `<a>`, a condition on `is-active` is 
 also writes `aria-current="page"` while `on` holds. Pass an `aria-current` of your own if the item
 marks something other than the current page.
 
+## An element it converted: `second-component:<Target>`
+
+The element carried a second Bulma component class (`<div className="columns box">`), and an
+element converts to one component. It became the one whose component fits its tag best (its
+own tag, then one it reaches through `as`), the layout one or a component's part between
+equals, and the other class stayed in `className`, which renders the same. The TODO names the component that class belongs to. A raw component
+class on a bestax component is what the ESLint plugin's `no-bulma-component-class` reports, so
+move it to a component of its own:
+
+- **Most classes**: give `<Target>` an element of its own, around the converted one or inside
+  it, and drop the class: `<Box><Columns>…</Columns></Box>`. Two elements space differently
+  from one (a `.columns` has negative side margins, which a `.box` on the same element shares
+  and one around it doesn't), so check the layout.
+- **`second-component:Container`**: where `.container` is only there to center the element, as
+  it often is on a sized `.image`, write `mx="auto"` in its place
+  (`<Image size="128x128" mx="auto">`), which centers it and does nothing else `.container`
+  does. Otherwise wrap the element in a `Container`. Either way, check the layout.
+
 ## A family it leaves as markup: `family:<class>`
 
 The bestax component renders parts of its own, or adds attributes, so a one-element-at-a-time

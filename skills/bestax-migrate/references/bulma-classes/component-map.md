@@ -109,8 +109,12 @@ a `tag:<Target>` TODO instead of a conversion. A component's own `as` can take m
 | `.panel-block`         | `Panel.Block`         | `<a>`, `<div>`, `<label>` via `as`                                                               |
 | `.tabs`                | `Tabs`                | `<div>` only                                                                                     |
 
-An element with two of these (`<div className="column box">`) becomes the layout one
-(`Column`), and the other class stays in `className`.
+An element with two of these (`<div className="column box">`) becomes the one whose component
+fits its tag best, and the other class stays in `className` with a `second-component:<Target>`
+TODO. A component whose own tag it is beats one that reaches it only through `as`, which beats
+one that can't render it, and between equals the layout one wins (`Column`). So
+`<section className="hero container">` becomes a `Hero`, and `<figure className="image container">`
+an `Image`, which `Container` can't render.
 
 `Card` renders its children inside a `.card-content` of its own unless one of them is one of
 its parts, and `Card.Header` its children inside a `.card-header-title` unless one of them is a

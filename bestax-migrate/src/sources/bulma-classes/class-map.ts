@@ -53,6 +53,15 @@ export interface Modifier {
    */
   readonly needsAttr?: { readonly name: string; readonly value: string };
   /**
+   * Another of the root's modifiers whose prop this one writes another value
+   * of, and that value renders that modifier's class too (`Field`'s
+   * `hasAddons="centered"` renders `has-addons` beside `has-addons-centered`).
+   * The class converts only beside that one, the two as the one value, and
+   * stays a class on its own. Beside it, `tagIn` and `needsAttr` hold as they
+   * do for any modifier.
+   */
+  readonly beside?: string;
+  /**
    * The tag the target renders with this class's prop and no `as`, in place
    * of the root's `tag` (`Image` puts a ratio on a <figure>), so the element
    * converts with `as` only on another tag. The planner's tag check, which
@@ -362,11 +371,44 @@ export interface RootEntry {
    */
   readonly omits?: Readonly<Record<string, string>>;
   /**
+   * How to keep this class on an element another root converts, where
+   * wrapping or nesting its component is not always the answer: `.container`
+   * there is often only centering the element, which `mx="auto"` does. For
+   * that element's TODO and the MCP lookup, which otherwise say to wrap or
+   * nest it.
+   */
+  readonly onAnother?: string;
+  /**
    * Bulma styles this root's modifiers, and the classes it omits, only on
    * the element that carries the root itself (`.image.is-64x64`), so on an
    * element without it they do nothing, and the planner flags them.
    */
   readonly modifiersNeedRoot?: boolean;
+}
+
+/**
+ * Whether a root's target renders this tag: the one it renders by itself (or
+ * `renders`, the heading its size picks), or one its `as` takes. A root that
+ * doesn't loses to one that does on the same element.
+ */
+export function reachesTag(
+  entry: RootEntry,
+  tag: string,
+  renders: string = entry.tag!
+): boolean {
+  if (tag === renders || entry.as === 'any') return true;
+  return entry.as?.includes(tag) ?? false;
+}
+
+/**
+ * How well a root fits an element's tag, for picking one of two: 2 when the
+ * tag is its target's own (`Hero`'s <section>), 1 when its target reaches it
+ * only through `as` (`Container`'s), 0 when it can't render it. The higher
+ * wins, so `<section className="hero container">` is a `Hero`.
+ */
+export function tagFit(entry: RootEntry, tag: string): number {
+  if (entry.tag === tag) return 2;
+  return reachesTag(entry, tag) ? 1 : 0;
 }
 
 // ---- Value vocabularies (held to @allxsmith/bestax-bulma/constants) --------
@@ -686,6 +728,19 @@ function perViewport(
 function flags(map: Record<string, string>): Record<string, Modifier> {
   return Object.fromEntries(
     Object.entries(map).map(([token, prop]) => [token, flag(prop)])
+  );
+}
+
+/** The same modifiers, each converting only beside `other`. */
+function beside(
+  other: string,
+  modifiers: Record<string, Modifier>
+): Record<string, Modifier> {
+  return Object.fromEntries(
+    Object.entries(modifiers).map(([token, modifier]) => [
+      token,
+      { ...modifier, beside: other },
+    ])
   );
 }
 
@@ -1140,6 +1195,10 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       'breakpoint',
       'isMax',
     ],
+    // On another root's element it is often there only to center it (a sized
+    // `.image`), which `mx="auto"` does and nothing else `.container` sets.
+    onAnother:
+      'where it is only there to center this element, `mx="auto"` centers it, and otherwise wrap the element in a `Container`; either way drop the class, then check the layout',
   },
   content: {
     ...BASE,
@@ -1183,8 +1242,6 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Field',
     tag: 'div',
-    // `has-addons-centered`, `is-grouped-right` and the like stay classes:
-    // the prop values that render them render `has-addons` too.
     modifiers: {
       ...flags({
         'is-horizontal': 'horizontal',
@@ -1194,6 +1251,17 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       // `grouped` renders `is-grouped` for `true` and its three layouts, and
       // for nothing else truthy.
       'is-grouped': { writes: [{ prop: 'grouped' }], onlyTrue: true },
+      // The prop values that render `has-addons-centered`, `is-grouped-right`
+      // and the like render `has-addons` or `is-grouped` too, so each converts
+      // only beside that class, and stays a class on its own.
+      ...beside(
+        'has-addons',
+        tokens('has-addons-', ['centered', 'right'], 'hasAddons')
+      ),
+      ...beside(
+        'is-grouped',
+        tokens('is-grouped-', ['centered', 'right', 'multiline'], 'grouped')
+      ),
     },
     wrapsChildren: {
       in: 'field-body',
@@ -2461,9 +2529,14 @@ export const PLACED: Readonly<Record<string, RootEntry>> = {
 };
 
 /**
- * Which root wins when an element carries two (`column box`): layout before
- * surface, so the element keeps the role that decides where it sits. The
- * other root stays in `className`, which renders the same either way.
+ * Which root wins when an element carries two (`column box`) that fit its tag
+ * alike: layout before surface, so the element keeps the role that decides
+ * where it sits. A better fit beats a higher place here (`tagFit`): `Image`
+ * takes a `<figure className="image container">`, which `Container` can't
+ * render, and `Hero` a `<section className="hero container">`, whose tag is
+ * its own and only reached through `as` by `Container`. The other root stays
+ * in `className`, which renders the same either way, and the element gets a
+ * TODO naming its component.
  */
 export const PRECEDENCE: readonly string[] = [
   'columns',

@@ -65,6 +65,27 @@ export function SignUp() {
           <button className="button is-link is-light">Cancel</button>
         </div>
       </div>
+      <div className="field has-addons has-addons-centered">
+        <div className="control">
+          <input className="input" type="email" placeholder="Email" />
+        </div>
+        <div className="control">
+          <button className="button is-info">Notify me</button>
+        </div>
+      </div>
+      <div className="field is-grouped is-grouped-multiline">
+        <div className="control">
+          <button className="button">One</button>
+        </div>
+        <div className="control">
+          <button className="button">Two</button>
+        </div>
+      </div>
+      <div className="field is-grouped-right">
+        <div className="control">
+          <button className="button">Alone</button>
+        </div>
+      </div>
     </form>
   );
 }

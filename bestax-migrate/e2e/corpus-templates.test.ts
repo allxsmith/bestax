@@ -355,7 +355,93 @@ describe('the component class count', () => {
     });
   });
 
-  it('reads plain HTML only, the way the rule does', () => {
+  it("picks the class whose component fits the element's tag best, as the rule does", () => {
+    const tagged = new Map([
+      [
+        'container',
+        {
+          component: 'Container',
+          converts: true,
+          tag: 'div',
+          tags: ['div', 'main', 'section'],
+        },
+      ],
+      [
+        'hero',
+        {
+          component: 'Hero',
+          converts: true,
+          tag: 'section',
+          tags: ['section', 'div', 'main'],
+        },
+      ],
+      [
+        'image',
+        {
+          component: 'Image',
+          converts: true,
+          tag: 'div',
+          tags: ['div', 'figure', 'p'],
+        },
+      ],
+    ]);
+    const module = parseModule(`
+      const page = (
+        <>
+          <figure className="image container" />
+          <div className="image container" />
+          <section className="container hero" />
+          <main className="hero container" />
+          <article className="image container" />
+        </>
+      );
+    `);
+    // Its own tag, then one it reaches, then the table's order.
+    expect(componentClassCounts(module, tagged)).toEqual({
+      container: 3,
+      hero: 1,
+      image: 1,
+    });
+    expect(
+      pageClassCounts(
+        parseHtml('<figure class="image container"></figure>').root,
+        tagged
+      )
+    ).toEqual({ image: 1 });
+  });
+
+  it("reads another component's class on a bestax component, the way the rule does", () => {
+    const tagged = new Map([
+      ['columns', { component: 'Columns', converts: true, tag: 'div' }],
+      ['box', { component: 'Box', converts: true, tag: 'div' }],
+      ['content', { component: 'Content', converts: true, tag: 'div' }],
+      ['container', { component: 'Container', converts: true, tag: 'div' }],
+      ['image', { component: 'Image', converts: true, tag: 'div' }],
+      ['navbar-item', { component: 'Navbar.Item', converts: true, tag: 'a' }],
+    ]);
+    const module = parseModule(`
+      import { Columns, Image as Picture, Navbar } from "@allxsmith/bestax-bulma";
+      import * as B from "@allxsmith/bestax-bulma";
+      const page = (
+        <>
+          <Columns className="columns box">a</Columns>
+          <Picture as="figure" className="is-256x256 container" src="a.png" />
+          <B.Columns className="content box">b</B.Columns>
+          <Navbar.Item className="navbar-item">own</Navbar.Item>
+          <Columns className="columns is-mobile">own</Columns>
+          <Box className="box">not imported</Box>
+          <svg><Columns className="box" /></svg>
+        </>
+      );
+    `);
+    // One per component, the first in the table's order, never its own.
+    expect(componentClassCounts(module, tagged)).toEqual({
+      box: 2,
+      container: 1,
+    });
+  });
+
+  it('reads nothing foreign, and no component the module does not import', () => {
     expect(
       counts(`
         const page = (

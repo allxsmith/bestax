@@ -119,6 +119,12 @@ A couple of results look odd until you see why:
   `<h4>`.
 - `<div className="is-flex mt-4">` doesn't change at all. bestax has no plain `<div>` component,
   and the classes are valid Bulma, so there is nothing to do and nothing to flag.
+- An element with two component classes becomes one component, and the other class stays in
+  `className` with a TODO naming its component: `<div className="columns box">` becomes
+  `<Columns className="box">` and gets `second-component:Box`. The one whose component fits the
+  element's tag best wins, its own tag before one it reaches through `as`, so
+  `<section className="hero container">` becomes a `Hero` and `<figure className="image container">`
+  an `Image`; between equals, the layout class wins.
 - A `.card` converts when an element written directly inside it is, or becomes, one of its
   parts. `Card` puts anything else inside a `.card-content` of its own, so a card whose text
   sits straight inside it stays markup (`children:Card`). Bulma's own example card converts
