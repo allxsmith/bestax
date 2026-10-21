@@ -1,3 +1,15 @@
+# [5.40.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.39.1...@allxsmith/bestax-bulma@5.40.0) (2026-10-21)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** sharpen the HTML input's TODOs from the template ports ([#1201](https://github.com/allxsmith/bestax/issues/1201)) ([a76460c](https://github.com/allxsmith/bestax/commit/a76460cd2bdef00fb017a081212a505e41adb0d3)), closes [#1178](https://github.com/allxsmith/bestax/issues/1178) [#1163](https://github.com/allxsmith/bestax/issues/1163) [#1185](https://github.com/allxsmith/bestax/issues/1185) [#1163](https://github.com/allxsmith/bestax/issues/1163)
+
+
+### Features
+
+* **bulma-ui:** show a TreeView branch's children loading, and a load that failed ([#1210](https://github.com/allxsmith/bestax/issues/1210)) ([8efecec](https://github.com/allxsmith/bestax/commit/8efecec126f3c4dc5c786974c31919faa99a0181)), closes [#1173](https://github.com/allxsmith/bestax/issues/1173)
+
 ## [5.39.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.39.0...@allxsmith/bestax-bulma@5.39.1) (2026-10-20)
 
 

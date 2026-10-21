@@ -1,3 +1,19 @@
+## [2.29.2](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.29.1...bestax-migrate@2.29.2) (2026-10-21)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** sharpen the HTML input's TODOs from the template ports ([#1201](https://github.com/allxsmith/bestax/issues/1201)) ([a76460c](https://github.com/allxsmith/bestax/commit/a76460cd2bdef00fb017a081212a505e41adb0d3)), closes [#1178](https://github.com/allxsmith/bestax/issues/1178) [#1163](https://github.com/allxsmith/bestax/issues/1163) [#1185](https://github.com/allxsmith/bestax/issues/1185) [#1163](https://github.com/allxsmith/bestax/issues/1163)
+* **bulma-ui:** hide everything inside a loading button, in every color mode ([811fe2b](https://github.com/allxsmith/bestax/commit/811fe2b363d64ce1a61479959e0ed71fe28749f5)), closes [#1194](https://github.com/allxsmith/bestax/issues/1194)
+* **bulma-ui:** keep a Modal's Tab trap on its nodes after a portal move ([2b61209](https://github.com/allxsmith/bestax/commit/2b61209a80a7d1f255981abbdb55488adcbf2e5f))
+* **bulma-ui:** show a loading button's child while it holds focus ([b51fcb4](https://github.com/allxsmith/bestax/commit/b51fcb4cc188c02e2dd73e72ae143679d90db86d))
+* **bulma-ui:** wrap Tab in a Modal at the stops Tab really visits ([a2a3068](https://github.com/allxsmith/bestax/commit/a2a3068c2b53238fc3e4d6cf7ed01ca72680f11d)), closes [#1188](https://github.com/allxsmith/bestax/issues/1188) [#1203](https://github.com/allxsmith/bestax/issues/1203)
+
+
+### Features
+
+* **bulma-ui:** show a TreeView branch's children loading, and a load that failed ([#1210](https://github.com/allxsmith/bestax/issues/1210)) ([8efecec](https://github.com/allxsmith/bestax/commit/8efecec126f3c4dc5c786974c31919faa99a0181)), closes [#1173](https://github.com/allxsmith/bestax/issues/1173)
+
 ## [2.29.1](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.29.0...bestax-migrate@2.29.1) (2026-10-19)
 
 
