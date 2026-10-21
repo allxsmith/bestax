@@ -46,10 +46,10 @@ export interface ButtonOwnProps extends Omit<
   /** Makes the button rounded. */
   isRounded?: boolean;
   /**
-   * Displays a loading spinner.
-   * Under `prefers-reduced-motion: reduce` the spinner stops and stays
-   * drawn, and in forced colors (Windows' contrast themes) the label stays
-   * hidden behind it (with bestax's CSS loaded).
+   * Displays a loading spinner, with everything inside the button hidden
+   * behind it, in forced colors (Windows' contrast themes) too. Under
+   * `prefers-reduced-motion: reduce` the spinner stops and stays drawn.
+   * Bulma alone hides only the label, so the rest needs bestax's CSS loaded.
    */
   isLoading?: boolean;
   /** Makes the button non-interactive. */

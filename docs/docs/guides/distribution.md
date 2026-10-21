@@ -131,7 +131,7 @@ Each of these takes the `bestax` plugin from allxsmith/bestax-skills. The last c
 | [vitejs/awesome-vite](https://github.com/vitejs/awesome-vite)                                             | create-bestax                             | [#1155](https://github.com/vitejs/awesome-vite/pull/1155)                     |
 | [dustinspecker/awesome-eslint](https://github.com/dustinspecker/awesome-eslint)                           | Bestax (eslint-plugin)                    | [#313](https://github.com/dustinspecker/awesome-eslint/pull/313)              |
 | [nafasebra/awesome-webdesign-tools](https://github.com/nafasebra/awesome-webdesign-tools)                 | Bestax                                    | [#149](https://github.com/nafasebra/awesome-webdesign-tools/pull/149)         |
-| [aldi/awesome-bulma](https://github.com/aldi/awesome-bulma)                                               | bestax-mcp and Bestax Skills, under Tools | [#6](https://github.com/aldi/awesome-bulma/pull/6)                            |
+| [aldi/awesome-bulma](https://github.com/aldi/awesome-bulma)                                               | bestax-mcp and Bestax Skills, Open-Source | [#6](https://github.com/aldi/awesome-bulma/pull/6)                            |
 | [tolkonepiu/best-of-mcp-servers](https://github.com/tolkonepiu/best-of-mcp-servers)                       | allxsmith/bestax                          | [#481](https://github.com/tolkonepiu/best-of-mcp-servers/pull/481)            |
 | [YuzeHao2023/Awesome-MCP-Servers](https://github.com/YuzeHao2023/Awesome-MCP-Servers)                     | Bestax                                    | [#594](https://github.com/YuzeHao2023/Awesome-MCP-Servers/pull/594)           |
 | [ccplugins/awesome-claude-code-plugins](https://github.com/ccplugins/awesome-claude-code-plugins)         | Bestax and allxsmith/bestax-skills        | [#661](https://github.com/ccplugins/awesome-claude-code-plugins/pull/661)     |
@@ -195,7 +195,8 @@ Say in the pull request which listings need an update, then open those updates o
   with Claude (which also gives a count), awesome-ai-plugins, karanb192/awesome-claude-skills,
   heilcheng/awesome-agent-skills (one line per skill), awesome-openclaw-skills and
   awesome-frontend-skills (both name `bestax-layout-scaffold`), awesome-claude-code-toolkit and
-  awesome-codex-skills (both name `bestax-form`), ccplugins, awesome-llm-skills, Chat2AnyLLM's
+  awesome-codex-skills (both name `bestax-form`), ccplugins, awesome-llm-skills, the awesome-bulma
+  Bestax Skills entry (which lists skill topics), Chat2AnyLLM's
   `plugin_repos.json`, the awesome-copilot instructions (which give a count and name
   `bestax-layout-scaffold`), and the Tessl Registry and Skills Directory, which hold one entry per
   skill. Chat2AnyLLM's `skill_repos.json` scans the `skills/` folder on its own.
@@ -211,7 +212,7 @@ Say in the pull request which listings need an update, then open those updates o
   `get_css_variables`, `get_helper_props` and `lookup_bulma_classes`.
   Awesome-MCP-ZH, AIAnytime, YuzeHao2023, ccplugins, best-of-mcp-servers,
   Chat2AnyLLM's `mcp_server_repos.json`, the Cline issue and mcp.directory carry the same
-  description. official-mcp-servers, the awesome-bulma Tools entries and
+  description. official-mcp-servers, the awesome-bulma bestax-mcp entry and
   awesome-gemini-cli-extensions give a shorter one.
 - **A new major of `bestax-mcp`.** Awesome-MCP-ZH, TensorBlock, cursor.directory, the mcpm.sh
   registry, the Kilo marketplace, AIAnytime, ccplugins,

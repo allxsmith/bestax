@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent, within } from 'storybook/test';
 import { TreeView } from './TreeView';
@@ -154,6 +154,26 @@ const meta: Meta<typeof TreeView> = {
       options: [undefined, 'small', 'medium', 'large'],
       description: 'The text size, as Bulma’s menu sizes it',
     },
+    loadingLabel: {
+      control: 'text',
+      description:
+        'What the row in a loading item’s group says, in your app’s language',
+    },
+    retryLabel: {
+      control: 'text',
+      description:
+        'The Retry button’s text on a failed load’s row, in your app’s language',
+    },
+    loadingAnnouncement: {
+      control: false,
+      description:
+        'What the live region says when an open item starts loading, from its name; Loading src by default',
+    },
+    loadedAnnouncement: {
+      control: false,
+      description:
+        'What the live region says when that load finishes, from its name; src loaded by default',
+    },
     color: {
       control: 'select',
       options: [undefined, ...validColors],
@@ -262,88 +282,118 @@ interface Folder {
   hasFolders: boolean;
 }
 
-/** A pretend server: each folder holds two more, three levels down. */
-function listFolders(id: string): Promise<Folder[]> {
+const TOP_FOLDERS: Folder[] = [
+  { id: 'home', name: 'Home', hasFolders: true },
+  { id: 'shared', name: 'Shared', hasFolders: true },
+];
+
+/** A pretend server: each folder holds two more, three levels down, after a moment. */
+function listFolders(id: string, fail: boolean): Promise<Folder[]> {
   const depth = id.split('/').length;
-  return new Promise(resolve =>
-    setTimeout(
-      () =>
-        resolve(
-          ['a', 'b'].map(name => ({
-            id: `${id}/${name}`,
-            name: `Folder ${name.toUpperCase()}`,
-            hasFolders: depth < 3,
-          }))
-        ),
-      800
-    )
+  return new Promise((resolve, reject) =>
+    setTimeout(() => {
+      if (fail) {
+        reject(new Error(`Couldn’t reach ${id}`));
+        return;
+      }
+      resolve(
+        ['a', 'b'].map(name => ({
+          id: `${id}/${name}`,
+          name: `Folder ${name.toUpperCase()}`,
+          hasFolders: depth < 3,
+        }))
+      );
+    }, 800)
   );
 }
 
-function FolderItem({
-  folder,
-  expanded,
-}: {
-  folder: Folder;
-  expanded: string[];
-}) {
-  const open = expanded.includes(folder.id);
-  const [children, setChildren] = useState<Folder[] | null>(null);
+/** A folder's children, or how loading them is going. */
+type Found = Folder[] | 'loading' | 'error';
 
-  useEffect(() => {
-    if (!open || children) return undefined;
-    let current = true;
-    listFolders(folder.id).then(found => {
-      if (current) setChildren(found);
-    });
-    return () => {
-      current = false;
-    };
-  }, [open, children, folder.id]);
-
-  return (
-    <TreeView.Item
-      value={folder.id}
-      label={folder.name}
-      icon="folder"
-      hasChildren={folder.hasFolders}
-    >
-      {children
-        ? children.map(child => (
-            <FolderItem key={child.id} folder={child} expanded={expanded} />
-          ))
-        : open && (
-            <TreeView.Item
-              value={`${folder.id}:loading`}
-              label="Loading…"
-              disabled
-            />
-          )}
-    </TreeView.Item>
-  );
-}
-
+/**
+ * Folders that load as they open, from a server that takes a moment. Shared
+ * fails the first time, so there's a Retry to press.
+ */
 export const LazyFolders: Story = {
   render: function LazyFoldersExample() {
     const [expanded, setExpanded] = useState<string[]>([]);
+    const [found, setFound] = useState<Record<string, Found>>({});
+    const [sharedFails, setSharedFails] = useState(true);
+    const [picked, setPicked] = useState<string | null>(null);
+
+    function load(id: string) {
+      const fail = id === 'shared' && sharedFails;
+      if (fail) setSharedFails(false);
+      setFound(current => ({ ...current, [id]: 'loading' }));
+      listFolders(id, fail).then(
+        folders => setFound(current => ({ ...current, [id]: folders })),
+        () => setFound(current => ({ ...current, [id]: 'error' }))
+      );
+    }
+
+    function changeOpen(next: string[]) {
+      setExpanded(next);
+      for (const id of next) {
+        if (!found[id]) load(id);
+      }
+    }
+
+    const items = (folders: Folder[]): React.ReactNode =>
+      folders.map(folder => {
+        const state = found[folder.id];
+        return (
+          <TreeView.Item
+            key={folder.id}
+            value={folder.id}
+            label={folder.name}
+            icon="folder"
+            hasChildren={folder.hasFolders}
+            isLoading={state === 'loading'}
+            loadError={
+              state === 'error' ? `Couldn’t load ${folder.name}` : undefined
+            }
+            onRetry={() => load(folder.id)}
+          >
+            {Array.isArray(state) && items(state)}
+          </TreeView.Item>
+        );
+      });
+
     return (
-      <Narrow>
-        <TreeView
-          aria-label="Folders"
-          expanded={expanded}
-          onExpandedChange={setExpanded}
-        >
-          <FolderItem
-            folder={{ id: 'home', name: 'Home', hasFolders: true }}
+      <Columns>
+        <Column size="one-third">
+          <TreeView
+            aria-label="Folders"
+            selectionMode="single"
+            selected={picked}
+            onSelectedChange={setPicked}
             expanded={expanded}
-          />
-          <FolderItem
-            folder={{ id: 'shared', name: 'Shared', hasFolders: true }}
-            expanded={expanded}
-          />
-        </TreeView>
-      </Narrow>
+            onExpandedChange={changeOpen}
+          >
+            {items(TOP_FOLDERS)}
+          </TreeView>
+        </Column>
+        <Column>
+          <Content>
+            {picked ? <p>Showing {picked}</p> : <p>Pick a folder.</p>}
+          </Content>
+        </Column>
+      </Columns>
     );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('treeitem', { name: 'Shared' }));
+    await expect(
+      canvas.getByRole('treeitem', { name: 'Loading…' })
+    ).toHaveAttribute('aria-disabled', 'true');
+    await expect(
+      await canvas.findByRole(
+        'treeitem',
+        { name: 'Couldn’t load Shared Retry' },
+        { timeout: 3000 }
+      )
+    ).toBeInTheDocument();
   },
 };
 

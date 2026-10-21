@@ -238,8 +238,11 @@ give the tree buttons like Check all and Clear when that matters, as the
 ### Folders That Load
 
 `hasChildren` shows an item as a closed parent before its children are known. When it opens, load
-them, and put a disabled placeholder item in their place until they arrive. Loaded children render
-whether the folder is open or not, which a checkbox tree needs to know what a check reaches.
+them, and pass `isLoading` until they arrive: the item's group ends in a Loading… row, and the
+tree's live region says the folder is loading, then that it's loaded. If the load fails, pass its
+message as `loadError` and a way to try again as `onRetry`: the row shows the message and a Retry
+button. Loaded children render whether the folder is open or not, which a checkbox tree needs to
+know what a check reaches.
 
 ```tsx live
 function example() {
@@ -250,55 +253,68 @@ function example() {
   }
 
   // A pretend server: each folder holds two more, three levels down.
-  const listFolders = (id: string) =>
-    new Promise<Folder[]>(resolve =>
-      setTimeout(
-        () =>
-          resolve(
-            ['a', 'b'].map(name => ({
-              id: `${id}/${name}`,
-              name: `Folder ${name.toUpperCase()}`,
-              hasFolders: id.split('/').length < 3,
-            }))
-          ),
-        800
-      )
+  const listFolders = (id: string, fail: boolean) =>
+    new Promise<Folder[]>((resolve, reject) =>
+      setTimeout(() => {
+        if (fail) {
+          reject(new Error(`Couldn't reach ${id}`));
+          return;
+        }
+        resolve(
+          ['a', 'b'].map(name => ({
+            id: `${id}/${name}`,
+            name: `Folder ${name.toUpperCase()}`,
+            hasFolders: id.split('/').length < 3,
+          }))
+        );
+      }, 800)
     );
 
   const [expanded, setExpanded] = useState<string[]>([]);
-  const [loaded, setLoaded] = useState<Record<string, Folder[]>>({});
+  // A folder's children, or how loading them is going.
+  const [found, setFound] = useState<
+    Record<string, Folder[] | 'loading' | 'error'>
+  >({});
+  // Shared fails the first time, so there's a Retry to press.
+  const [sharedFails, setSharedFails] = useState(true);
+
+  function load(id: string) {
+    const fail = id === 'shared' && sharedFails;
+    if (fail) setSharedFails(false);
+    setFound(current => ({ ...current, [id]: 'loading' }));
+    listFolders(id, fail).then(
+      folders => setFound(current => ({ ...current, [id]: folders })),
+      () => setFound(current => ({ ...current, [id]: 'error' }))
+    );
+  }
 
   function changeOpen(next: string[]) {
     setExpanded(next);
     for (const id of next) {
-      if (!loaded[id]) {
-        listFolders(id).then(found =>
-          setLoaded(current => ({ ...current, [id]: found }))
-        );
-      }
+      if (!found[id]) load(id);
     }
   }
 
   const items = (folders: Folder[]): React.ReactNode =>
-    folders.map(folder => (
-      <TreeView.Item
-        key={folder.id}
-        value={folder.id}
-        label={folder.name}
-        icon="folder"
-        hasChildren={folder.hasFolders}
-      >
-        {loaded[folder.id]
-          ? items(loaded[folder.id])
-          : expanded.includes(folder.id) && (
-              <TreeView.Item
-                value={`${folder.id}:loading`}
-                label="Loading…"
-                disabled
-              />
-            )}
-      </TreeView.Item>
-    ));
+    folders.map(folder => {
+      const state = found[folder.id];
+      return (
+        <TreeView.Item
+          key={folder.id}
+          value={folder.id}
+          label={folder.name}
+          icon="folder"
+          hasChildren={folder.hasFolders}
+          isLoading={state === 'loading'}
+          loadError={
+            state === 'error' ? `Couldn't load ${folder.name}` : undefined
+          }
+          onRetry={() => load(folder.id)}
+        >
+          {Array.isArray(state) && items(state)}
+        </TreeView.Item>
+      );
+    });
 
   return (
     <TreeView
@@ -315,8 +331,32 @@ function example() {
 }
 ```
 
-The tree has no loading state of its own, and it doesn't announce one. The placeholder is an item a
-screen reader reaches like any other, and it says what's happening.
+The rows come after any children the item already has, so a folder you load again keeps showing
+what it had. A closed item shows no row and says nothing, whether it's loading or not. Both props
+work on a parent only, one with `hasChildren` or the children it already has. The live region reads
+`loadError` out word for word, so name the item in it.
+
+Set `isLoading` while a retry runs, as `load` does above. The live region then says the folder is
+loading as soon as Retry is pressed, and if the retry fails too, it reads the message out again.
+The same `loadError` passed a second time with no loading in between looks to the tree like nothing
+happened, so a screen reader user hears nothing at all. `isLoading` wins while both props are given,
+so a retry can set it without clearing the message first.
+
+The row's text, the button's and what the live region says start out in English. `loadingLabel`,
+`retryLabel`, `loadingAnnouncement` and `loadedAnnouncement` on the tree put them in your app's
+language:
+
+```tsx
+<TreeView
+  aria-label="Dossiers"
+  loadingLabel="Chargement…"
+  retryLabel="Réessayer"
+  loadingAnnouncement={name => `Chargement de ${name}`}
+  loadedAnnouncement={name => `${name} chargé`}
+>
+  {/* … */}
+</TreeView>
+```
 
 ### An Outline With Expand All and Collapse All
 
@@ -437,6 +477,26 @@ its row takes focus.
 - **Disabled items** are `aria-disabled` and stay reachable from the arrow keys, Home, End and
   typing, so a screen reader user finds them. They're never selected, checked, opened or closed.
   One that's already open stays open, so what's under it is still reachable.
+- **A loading item's row** is a `treeitem` that says Loading…, marked `aria-disabled` and reached
+  the way a disabled item is, so a screen reader user who moves into the folder hears what's
+  happening. It has no value: it's never selected or checked, it has no `aria-selected` or
+  `aria-checked`, and a checkbox tree doesn't count it. If it goes with focus on it, focus moves to
+  the item it was loading for. Bulma's loader turns in its chevron's place, hidden from assistive
+  tech.
+- **A failed load's row** is a `treeitem` named by its message and the Retry button's text, such
+  as "Couldn't load src Retry". Enter, Space or a click on the row calls `onRetry`, in every mode.
+  The button is drawn inside an `aria-hidden` span and takes no focus, the way an item's box is,
+  so the tree keeps its one tab stop, and nothing in the message should be a link or a button
+  either. A retry that starts loading keeps the same row, so focus stays on it. With no `onRetry`,
+  the row is disabled and shows the message alone.
+- **Announcements:** a visually hidden `role="status"` region with `aria-live="polite"` sits right
+  after the tree, one for the whole tree, from the moment it mounts, so a screen reader is already
+  listening when something is written into it. It says "Loading src" when an open item starts
+  loading, a failed load's message, and "src loaded" when the loading row or a failed load's row
+  goes with the item still open.
+  The name is the item's label as a screen reader reads it. A closed item, or one in a closed
+  branch, says nothing. Each announcement is written a moment after the change and cleared soon
+  after, so the page doesn't keep a second copy of the text.
 
 Enter and Space do the item's one thing, which depends on the mode:
 
@@ -445,7 +505,7 @@ Enter and Space do the item's one thing, which depends on the mode:
 | Enter | Opens or closes a parent | Selects the item | Opens or closes a parent |
 | Space | Opens or closes a parent | Selects the item | Checks or unchecks it    |
 
-The rest work the same in every mode:
+On a failed load's row, both retry, whatever the mode. The rest work the same in every mode:
 
 | Key        | What it does                                                                              |
 | ---------- | ----------------------------------------------------------------------------------------- |
@@ -474,10 +534,11 @@ The rest work the same in every mode:
 - **Focus and the selected look differ:** the focus ring sits outside the row, so it shows on the
   selected fill as well as on a plain row.
 - **Forced colors:** in Windows high contrast mode the selected row is the system's Highlight and
-  HighlightText, a disabled row is GrayText, and the focus ring, the chevrons and the guide lines
-  stay visible, since they're outlines and borders. A mixed box keeps its dash.
-- **Motion:** the chevron turns with a short transition, which stops when the reader asks for
-  reduced motion.
+  HighlightText, a disabled row or a loading one is GrayText, and the focus ring, the chevrons and
+  the guide lines stay visible, since they're outlines and borders. A mixed box keeps its dash, and
+  the loader's ring stays open.
+- **Motion:** the chevron turns with a short transition, and the loader spins. Both stop when the
+  reader asks for reduced motion, and the loader stays drawn.
 
 ---
 
@@ -486,6 +547,7 @@ The rest work the same in every mode:
 - [`Menu`](./menu.md): Site navigation, including a sidebar that looks like a tree. Use it for
   links, and `TreeView` for data you browse and pick from.
 - [`Checkbox`](../form/checkbox.md): The box a checkbox tree draws, with its mixed state.
+- [`Loader`](../elements/loader.md): Bulma's ring, which a loading item's row turns.
 - [`Collapse`](./collapse.md): A single section that opens and closes.
 - [`Sidebar`](./sidebar.md): A panel at the side of the page that can hold a tree.
 - [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing, color, etc.
@@ -505,25 +567,29 @@ The rest work the same in every mode:
 
 <!-- bestax:generated props -->
 
-| Prop               | Type                                                  | Default  | Description                                                                                                                                                                                                                                                                                                |
-| ------------------ | ----------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `children`         | `React.ReactNode`                                     | —        | `TreeView.Item`s, nested inside each other for their children. Render an item's children whenever you have them, open or not: the tree hides them while it's closed.                                                                                                                                       |
-| `selectionMode`    | `'none'` \| `'single'` \| `'checkbox'`                | `'none'` | `none`: nothing is picked, and Enter and Space open and close a parent. `single`: one item, picked with Enter, Space or a click. `checkbox`: any number, checked with Space or a click. A check reaches every enabled item under it, and a parent with some of them checked is mixed.                      |
-| `selected`         | `string` \| `null`                                    | —        | The selected item's value when you hold the state, or `null` for none. Read with `single` only. Picking an item then only calls `onSelectedChange`, and nothing changes until you pass the new value.                                                                                                      |
-| `defaultSelected`  | `string` \| `null`                                    | `null`   | The item selected to begin with, when the tree holds its own state. Read with `single` only.                                                                                                                                                                                                               |
-| `onSelectedChange` | `(value: string) => void`                             | —        | Called with the value of the item picked. Not called for the one already selected, and moving focus never calls it.                                                                                                                                                                                        |
-| `checked`          | `string[]`                                            | —        | The checked items' values when you hold the state. Read with `checkbox` only. A value checks its item, and an enabled item also counts as checked when any item above it is in the list, so a parent's value stands for its whole branch, loaded or not. A disabled item is checked only by its own value. |
-| `defaultChecked`   | `string[]`                                            | `[]`     | The values checked to begin with, when the tree holds its own state. Read with `checkbox` only.                                                                                                                                                                                                            |
-| `onCheckedChange`  | `(checked: string[]) => void`                         | —        | Called after a check or an uncheck with every item that now shows checked, parents included, plus any earlier value that matches no item the tree knows, left as it was. The order means nothing. Passed back as `checked`, the list shows the same boxes.                                                 |
-| `expanded`         | `string[]`                                            | —        | The open items' values when you hold the state. A value stays in the list while its item's parent is closed, so the item reopens as it was.                                                                                                                                                                |
-| `defaultExpanded`  | `string[]`                                            | `[]`     | The items open to begin with, when the tree holds its own state.                                                                                                                                                                                                                                           |
-| `onExpandedChange` | `(expanded: string[]) => void`                        | —        | Called with the new list whenever an item opens or closes, `*` included.                                                                                                                                                                                                                                   |
-| `size`             | `'small'` \| `'medium'` \| `'large'`                  | —        | The text size, as Bulma's menu sizes it. The rows, the indent and the chevron scale with it.                                                                                                                                                                                                               |
-| `className`        | `string`                                              | —        | Additional CSS classes.                                                                                                                                                                                                                                                                                    |
-| `aria-label`       | `string`                                              | —        | Names the tree, such as "Files". A tree needs a name, so pass this or `aria-labelledby`, and a development build warns when it has neither.                                                                                                                                                                |
-| `aria-labelledby`  | `string`                                              | —        | The id of a visible heading or label that names the tree, in place of `aria-label`.                                                                                                                                                                                                                        |
-| `ref`              | `React.Ref<HTMLUListElement>`                         | —        | Ref forwarded to the `<ul>`.                                                                                                                                                                                                                                                                               |
-| `...`              | All standard `<ul>` attributes and Bulma helper props | —        | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                          |
+| Prop                  | Type                                                  | Default      | Description                                                                                                                                                                                                                                                                                                |
+| --------------------- | ----------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `children`            | `React.ReactNode`                                     | —            | `TreeView.Item`s, nested inside each other for their children. Render an item's children whenever you have them, open or not: the tree hides them while it's closed.                                                                                                                                       |
+| `selectionMode`       | `'none'` \| `'single'` \| `'checkbox'`                | `'none'`     | `none`: nothing is picked, and Enter and Space open and close a parent. `single`: one item, picked with Enter, Space or a click. `checkbox`: any number, checked with Space or a click. A check reaches every enabled item under it, and a parent with some of them checked is mixed.                      |
+| `selected`            | `string` \| `null`                                    | —            | The selected item's value when you hold the state, or `null` for none. Read with `single` only. Picking an item then only calls `onSelectedChange`, and nothing changes until you pass the new value.                                                                                                      |
+| `defaultSelected`     | `string` \| `null`                                    | `null`       | The item selected to begin with, when the tree holds its own state. Read with `single` only.                                                                                                                                                                                                               |
+| `onSelectedChange`    | `(value: string) => void`                             | —            | Called with the value of the item picked. Not called for the one already selected, and moving focus never calls it.                                                                                                                                                                                        |
+| `checked`             | `string[]`                                            | —            | The checked items' values when you hold the state. Read with `checkbox` only. A value checks its item, and an enabled item also counts as checked when any item above it is in the list, so a parent's value stands for its whole branch, loaded or not. A disabled item is checked only by its own value. |
+| `defaultChecked`      | `string[]`                                            | `[]`         | The values checked to begin with, when the tree holds its own state. Read with `checkbox` only.                                                                                                                                                                                                            |
+| `onCheckedChange`     | `(checked: string[]) => void`                         | —            | Called after a check or an uncheck with every item that now shows checked, parents included, plus any earlier value that matches no item the tree knows, left as it was. The order means nothing. Passed back as `checked`, the list shows the same boxes.                                                 |
+| `expanded`            | `string[]`                                            | —            | The open items' values when you hold the state. A value stays in the list while its item's parent is closed, so the item reopens as it was.                                                                                                                                                                |
+| `defaultExpanded`     | `string[]`                                            | `[]`         | The items open to begin with, when the tree holds its own state.                                                                                                                                                                                                                                           |
+| `onExpandedChange`    | `(expanded: string[]) => void`                        | —            | Called with the new list whenever an item opens or closes, `*` included.                                                                                                                                                                                                                                   |
+| `size`                | `'small'` \| `'medium'` \| `'large'`                  | —            | The text size, as Bulma's menu sizes it. The rows, the indent and the chevron scale with it.                                                                                                                                                                                                               |
+| `loadingLabel`        | `string`                                              | `'Loading…'` | What the row in a loading item's group says. In your app's language.                                                                                                                                                                                                                                       |
+| `retryLabel`          | `string`                                              | `'Retry'`    | The Retry button's text on a failed load's row. In your app's language.                                                                                                                                                                                                                                    |
+| `loadingAnnouncement` | `(name: string) => string`                            | —            | What the live region says when an open item starts loading, built from the item's name. In your app's language. Default: `` `Loading ${name}` ``.                                                                                                                                                          |
+| `loadedAnnouncement`  | `(name: string) => string`                            | —            | What the live region says when that load finishes. In your app's language. Default: `` `${name} loaded` ``.                                                                                                                                                                                                |
+| `className`           | `string`                                              | —            | Additional CSS classes.                                                                                                                                                                                                                                                                                    |
+| `aria-label`          | `string`                                              | —            | Names the tree, such as "Files". A tree needs a name, so pass this or `aria-labelledby`, and a development build warns when it has neither.                                                                                                                                                                |
+| `aria-labelledby`     | `string`                                              | —            | The id of a visible heading or label that names the tree, in place of `aria-label`.                                                                                                                                                                                                                        |
+| `ref`                 | `React.Ref<HTMLUListElement>`                         | —            | Ref forwarded to the `<ul>`.                                                                                                                                                                                                                                                                               |
+| `...`                 | All standard `<ul>` attributes and Bulma helper props | —            | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                          |
 
 **Subcomponents:**
 
@@ -531,17 +597,20 @@ The rest work the same in every mode:
 
 ### TreeView.Item
 
-| Prop          | Type                           | Default | Description                                                                                                                                                                                |
-| ------------- | ------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `value`       | `string`                       | —       | **Required.** Identifies the item in `selected`, `checked` and `expanded`. Unique in the tree.                                                                                             |
-| `label`       | `React.ReactNode`              | —       | **Required.** What the row shows, and the item's name for assistive tech. Nothing in it should be a link or a button: a tree item does one thing, and nothing else in its row takes focus. |
-| `icon`        | `React.ReactNode`              | —       | A picture before the label: an `Icon` name, or a node. Hidden from assistive tech.                                                                                                         |
-| `children`    | `React.ReactNode`              | —       | `TreeView.Item`s under this one. Render them whenever you have them, open or not: the tree hides them while it's closed, and a checkbox tree needs them to know what a check reaches.      |
-| `hasChildren` | `boolean`                      | `false` | Shows the item as a parent before its children are known, such as a folder that loads when it opens.                                                                                       |
-| `disabled`    | `boolean`                      | `false` | Reachable with the arrow keys, Home, End and type-ahead, so a screen reader finds it, but never selected, checked, opened or closed. One that's already open stays open.                   |
-| `className`   | `string`                       | —       | Additional CSS classes.                                                                                                                                                                    |
-| `ref`         | `React.Ref<HTMLLIElement>`     | —       | Ref forwarded to the `<li>`.                                                                                                                                                               |
-| `...`         | All standard `<li>` attributes | —       |                                                                                                                                                                                            |
+| Prop          | Type                           | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ------------- | ------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `value`       | `string`                       | —       | **Required.** Identifies the item in `selected`, `checked` and `expanded`. Unique in the tree.                                                                                                                                                                                                                                                                                                                                             |
+| `label`       | `React.ReactNode`              | —       | **Required.** What the row shows, and the item's name for assistive tech. Nothing in it should be a link or a button: a tree item does one thing, and nothing else in its row takes focus.                                                                                                                                                                                                                                                 |
+| `icon`        | `React.ReactNode`              | —       | A picture before the label: an `Icon` name, or a node. Hidden from assistive tech.                                                                                                                                                                                                                                                                                                                                                         |
+| `children`    | `React.ReactNode`              | —       | `TreeView.Item`s under this one. Render them whenever you have them, open or not: the tree hides them while it's closed, and a checkbox tree needs them to know what a check reaches.                                                                                                                                                                                                                                                      |
+| `hasChildren` | `boolean`                      | `false` | Shows the item as a parent before its children are known, such as a folder that loads when it opens.                                                                                                                                                                                                                                                                                                                                       |
+| `isLoading`   | `boolean`                      | `false` | Its children are on their way. While it's open, its group ends in a row that says so, and the tree's live region says it's loading, then that it's loaded once this goes back to `false`. A parent only: pair it with `hasChildren`, or with the children it already has.                                                                                                                                                                  |
+| `loadError`   | `React.ReactNode`              | —       | Its children didn't load. While it's open, its group ends in a row with this message, and a Retry button when there's an `onRetry`, and the live region reads the message out, so name the item in it ("Couldn't load src"), then says it's loaded once this goes with the item still open. A parent only, like `isLoading`. Nothing in it should be a link or a button: the row is what's pressed. `isLoading` wins while both are given. |
+| `onRetry`     | `() => void`                   | —       | Called by the Retry button on a failed load's row, and by Enter or Space there. Set `isLoading` while the retry runs, so the live region says it's loading, and reads the message out again if it fails again. The same message passed a second time with no loading between is no change the tree can see.                                                                                                                                |
+| `disabled`    | `boolean`                      | `false` | Reachable with the arrow keys, Home, End and type-ahead, so a screen reader finds it, but never selected, checked, opened or closed. One that's already open stays open.                                                                                                                                                                                                                                                                   |
+| `className`   | `string`                       | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `ref`         | `React.Ref<HTMLLIElement>`     | —       | Ref forwarded to the `<li>`.                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `...`         | All standard `<li>` attributes | —       |                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
 <!-- /bestax:generated props -->
 

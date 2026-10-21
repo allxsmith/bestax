@@ -28,27 +28,7 @@ import { usePortalContainer } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { useOverlayStack } from '../helpers/overlayStack';
-
-/**
- * Controls the modal can hand focus to. Disabled and hidden controls are
- * excluded because `focus()` on them is a no-op, which would leave focus
- * outside the modal.
- */
-const FOCUSABLE_SELECTOR =
-  'button:not(:disabled), [href], input:not(:disabled):not([type="hidden"]), select:not(:disabled), textarea:not(:disabled), [tabindex]';
-
-/**
- * The modal's tab stops, in document order. The selector alone is not the
- * tabbable set — `[href]` and `button` match regardless of `tabindex`, so an
- * `<a href tabIndex={-1}>` would otherwise be treated as a tab stop and let
- * Tab escape the modal when it sorts last. `el.tabIndex` is the browser's own
- * resolved value, so filtering on it drops every negative index (not just
- * `-1`) without a second selector to keep in sync.
- */
-const getTabbable = (node: HTMLElement): HTMLElement[] =>
-  Array.from(node.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
-    el => el.tabIndex >= 0
-  );
+import { firstTabStop, trapTab } from '../helpers/useFocusTrap';
 
 /**
  * Props for the Modal component.
@@ -476,67 +456,48 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   // applies while this modal is on top.
   const isTopmost = useOverlayStack(isModalActive);
 
-  // Escape closes, only for the topmost overlay. Tab cycles inside the modal
-  // while it's the topmost modal overlay, so an overlay that isn't modal,
-  // such as a Sidebar without an overlay, takes Escape from it but leaves it
-  // Tab. The listener is on `window`, where a keydown arrives last, so
-  // everything inside the modal has had the key first: React's handlers, and
-  // `document` listeners added after this one, such as a date picker's.
+  // Escape closes, only for the topmost overlay. The listener is on
+  // `window`, where a keydown arrives last, so everything inside the modal
+  // has had the key first: React's handlers, and `document` listeners added
+  // after this one, such as a date picker's.
   useEffect(() => {
     if (!isModalActive) return undefined;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      const node = modalRootRef.current;
-
-      if (e.key === 'Escape') {
-        if (!isTopmost()) return;
-        // Something inside already used this Escape, such as a popup that
-        // closed on it, so the modal waits for the next one. One the modal
-        // closes on is marked used, so nothing under it acts on it as well.
-        if (closeOnEscape && onCloseRef.current && !e.defaultPrevented) {
-          e.preventDefault();
-          onCloseRef.current();
-        }
-        return;
-      }
-      // A trap inside the modal, such as a portaled popup's, already moved
-      // focus on this Tab, so the modal leaves it where it went.
-      if (
-        e.key !== 'Tab' ||
-        !node ||
-        e.defaultPrevented ||
-        !isTopmost('modal')
-      ) {
-        return;
-      }
-
-      // Keep Tab within the modal — `aria-modal` hides the rest of the page
-      // from assistive technology, so the keyboard order has to agree.
-      const focusable = getTabbable(node);
-      const activeElement = getActiveElementInTree(node);
-      if (focusable.length === 0) {
+      if (e.key !== 'Escape' || !isTopmost()) return;
+      // Something inside already used this Escape, such as a popup that
+      // closed on it, so the modal waits for the next one. One the modal
+      // closes on is marked used, so nothing under it acts on it as well.
+      if (closeOnEscape && onCloseRef.current && !e.defaultPrevented) {
         e.preventDefault();
-        node.focus();
-        return;
-      }
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      const outside = !node.contains(activeElement);
-      if (e.shiftKey) {
-        if (outside || activeElement === first) {
-          e.preventDefault();
-          last.focus();
-        }
-      } else if (outside || activeElement === last) {
-        e.preventDefault();
-        first.focus();
+        onCloseRef.current();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isModalActive, closeOnEscape, onCloseRef, isTopmost]);
+
+  // Keep Tab within the modal: `aria-modal` hides the rest of the page from
+  // assistive technology, so the keyboard order has to agree. Only while
+  // it's the topmost modal overlay, so an overlay that isn't modal, such as
+  // a Sidebar without an overlay, takes Escape from it but leaves it Tab.
+  // It's the trap `useFocusTrap` sets, so it wraps at the stops Tab really
+  // visits, skipping hidden, inert and closed content, and sends back a Tab
+  // the browser still takes out. On `window` for the same reason as Escape:
+  // a trap inside, such as a portaled popup's, has had the Tab first, and
+  // one it used is left where it put focus. It reads the modal's node as
+  // each key arrives, so a portal move that remounts the node, including one
+  // to a selector that only starts matching while the modal is open, keeps
+  // it trapped.
+  useEffect(() => {
+    if (!isModalActive) return undefined;
+    return trapTab(
+      () => modalRootRef.current,
+      window,
+      () => isTopmost('modal')
+    );
+  }, [isModalActive, isTopmost]);
 
   // Move focus into the modal on open, restore it on close
   useEffect(() => {
@@ -547,7 +508,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     previouslyFocusedRef.current =
       getDeepestActiveElement() as HTMLElement | null;
     const node = modalRootRef.current;
-    const focusable = node ? getTabbable(node)[0] : undefined;
+    const focusable = node ? firstTabStop(node) : null;
     (focusable ?? node)?.focus();
 
     return () => {
