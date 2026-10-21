@@ -338,8 +338,8 @@ For `Menu.Section`, a section that opens and closes:
 - A closed section's list is `hidden` and `inert`, so it isn't drawn, Tab skips its links, and
   assistive tech and find-in-page don't reach them. `inert` keeps the links out of reach even if a
   stylesheet sets `display` on the list and shows it. The list stays in the page, so
-  `aria-controls` always names an element that exists, and a section rendered on the server is
-  closed before any script runs.
+  `aria-controls` always names an element that exists, and a section that starts closed is
+  already closed in the server's HTML, before any script runs.
 - Open the section that holds the current page, with `defaultOpen` or `open`, so the link marked
   `aria-current` can be seen and reached.
 - When the app closes a section while focus is on one of its links, as a sidebar that keeps only
