@@ -385,23 +385,31 @@ function wrapTab(e: KeyboardEvent, container: HTMLElement): HTMLElement | null {
 }
 
 /**
- * Holds Tab inside `container` until the returned function is called. Tab
- * and Shift+Tab heard on `keyTarget` wrap at the ends, unless something
- * already marked the key used, and if a Tab the trap let through still takes
- * focus out, it sends focus back to the other end.
+ * Holds Tab inside the element `container` returns until the returned
+ * function is called. Tab and Shift+Tab heard on `keyTarget` wrap at the
+ * ends, unless something already marked the key used, and if a Tab the trap
+ * let through still takes focus out, it sends focus back to the other end.
  *
- * `holds` is asked on every Tab, and the trap leaves the key alone while it
- * says no. Internal like `firstTabStop`. It's for an overlay that holds Tab
- * from a listener of its own on `window` and asks the overlay stack first,
- * so it stands aside while another overlay is open over it, which a trap
- * listening on the container can't do.
+ * `container` is read each time a key or a focus change arrives, so an
+ * overlay whose nodes are remounted while it's open, as moving to another
+ * portal target does, stays trapped without attaching again. `holds` is asked
+ * on every Tab, and the trap leaves the key alone while it says no. Internal
+ * like `firstTabStop`. It's for an overlay that holds Tab from a listener of
+ * its own on `window` and asks the overlay stack first, so it stands aside
+ * while another overlay is open over it, which a trap listening on the
+ * container can't do.
  */
 export function trapTab(
-  container: HTMLElement,
-  keyTarget: EventTarget = container,
+  container: () => HTMLElement | null,
+  keyTarget: HTMLElement | Window,
   holds: () => boolean = () => true
 ): () => void {
-  const doc = container.ownerDocument;
+  // The document focus moves in: the window's own, or the element's.
+  const doc =
+    'document' in keyTarget ? keyTarget.document : keyTarget.ownerDocument;
+  // A window and an element type their listeners differently, so the trap
+  // listens through the base type both share.
+  const keys: EventTarget = keyTarget;
   // Where focus goes if a Tab the trap let the browser handle takes it out,
   // held until that Tab has finished moving focus.
   let wrapTo: HTMLElement | null = null;
@@ -410,9 +418,10 @@ export function trapTab(
   // `keyTarget` is any target, so the listener takes the base event type.
   const handleKeyDown = (event: Event) => {
     const e = event as KeyboardEvent;
+    const box = container();
     // A trap nested inside this one has already wrapped focus.
-    if (e.key !== 'Tab' || e.defaultPrevented || !holds()) return;
-    const end = wrapTab(e, container);
+    if (e.key !== 'Tab' || e.defaultPrevented || !box || !holds()) return;
+    const end = wrapTab(e, box);
     if (!end) return;
     wrapTo = end;
     clearTimeout(wrapTimer);
@@ -424,16 +433,17 @@ export function trapTab(
   // The browser moves focus as soon as the keydown is over, so focus that
   // lands outside while `wrapTo` is set got there by that Tab.
   const handleFocusIn = (e: FocusEvent) => {
-    if (!wrapTo || inside(container, e.composedPath()[0] as Node)) return;
+    const box = container();
+    if (!wrapTo || !box || inside(box, e.composedPath()[0] as Node)) return;
     const target = wrapTo;
     wrapTo = null;
     target.focus();
   };
 
-  keyTarget.addEventListener('keydown', handleKeyDown);
+  keys.addEventListener('keydown', handleKeyDown);
   doc.addEventListener('focusin', handleFocusIn, true);
   return () => {
-    keyTarget.removeEventListener('keydown', handleKeyDown);
+    keys.removeEventListener('keydown', handleKeyDown);
     doc.removeEventListener('focusin', handleFocusIn, true);
     clearTimeout(wrapTimer);
   };
@@ -557,7 +567,7 @@ export function useFocusTrap(
       (findTabStops(container)?.first ?? container).focus();
     }
 
-    const releaseTab = trapTab(container);
+    const releaseTab = trapTab(() => container, container);
     return () => {
       releaseTab();
       let target = restoreFocus ? opener : null;

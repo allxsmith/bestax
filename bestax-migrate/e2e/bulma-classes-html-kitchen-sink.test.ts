@@ -11,7 +11,9 @@
  * `pages/leftovers.html` holds every pattern a component can't carry, and is
  * the one module left out of the typecheck: a custom element, an obsolete
  * one and a React prop spelled in HTML's lowercase (`defaultvalue`) are kept
- * as written, and TypeScript rejects each of them.
+ * as written, and TypeScript rejects each of them. `pages/contact.html` holds
+ * what the converter leaves out so the module typechecks (a `<textarea>`'s
+ * `type`), so its TODO is checked by the compiler too.
  *
  * Run under the default `--css keep` and under `--css bestax`, which writes
  * bestax's stylesheet import in place of each page's Bulma `<link>` and
@@ -39,7 +41,15 @@ fs.mkdirSync(tmpRoot, { recursive: true });
 const PAGES = [
   'pages/landing.html',
   'pages/partials/pricing.html',
+  'pages/contact.html',
   'pages/leftovers.html',
+];
+
+/** The modules the typecheck reads: every page's but leftovers.html's. */
+const TYPECHECKED = [
+  'pages/landing.tsx',
+  'pages/partials/pricing.tsx',
+  'pages/contact.tsx',
 ];
 
 interface ConvertedSite {
@@ -135,6 +145,7 @@ const LEFTOVER_RULES = [
   'html-asset:webfont',
   'html-attr:important',
   'html-attr:name',
+  'html-attr:stray',
   'html-attr:style',
   'html-attr:unknown',
   'html-attr:unknown',
@@ -152,6 +163,7 @@ const LEFTOVER_RULES = [
   'html-event:onload',
   'html-head',
   'html-head:base',
+  'html-head:csp',
   'html-head:link',
   'html-head:meta',
   'html-head:style',
@@ -196,6 +208,7 @@ describe('bulma-classes HTML kitchen-sink e2e', () => {
         'partials',
         'pricing.tsx'
       ),
+      'pages/contact.html': path.join('pages', 'contact.tsx'),
       'pages/leftovers.html': path.join('pages', 'leftovers.tsx'),
     });
   });
@@ -216,6 +229,18 @@ describe('bulma-classes HTML kitchen-sink e2e', () => {
       LANDING_RULES
     );
     expect(rulesOf(site.todos.get('pages/partials/pricing.html'))).toEqual([]);
+  });
+
+  it("leaves a textarea's type out of the contact form, which typechecks without it", () => {
+    expect(rulesOf(site.todos.get('pages/contact.html'))).toEqual([
+      'html-attr:ignored',
+    ]);
+    const module = fs.readFileSync(
+      path.join(site.dir, 'pages', 'contact.tsx'),
+      'utf8'
+    );
+    expect(module).toContain('<TextAreaBase id="message"');
+    expect(module).not.toMatch(/<TextAreaBase[^>]*\btype=/);
   });
 
   it('annotates every intentionally unsupported pattern in leftovers.html', () => {
@@ -245,7 +270,7 @@ describe('bulma-classes HTML kitchen-sink e2e', () => {
     const lines = (site.todos.get('pages/leftovers.html') ?? [])
       .filter(entry => entry.rule === 'html-event:onclick')
       .map(entry => entry.line);
-    expect(lines).toEqual([43]);
+    expect(lines).toEqual([44]);
   });
 
   it('documents every TODO rule it emits in the skill reference', () => {
@@ -255,9 +280,10 @@ describe('bulma-classes HTML kitchen-sink e2e', () => {
   });
 
   it('typechecks the converted pages against @allxsmith/bestax-bulma', () => {
-    expect(
-      typecheck(site.dir, ['pages/landing.tsx', 'pages/partials/pricing.tsx'])
-    ).toEqual({ status: 0, diagnostics: '' });
+    expect(typecheck(site.dir, TYPECHECKED)).toEqual({
+      status: 0,
+      diagnostics: '',
+    });
   });
 
   it('changes nothing on a second run', () => {
@@ -324,8 +350,12 @@ describe('bulma-classes HTML kitchen-sink e2e, --css bestax', () => {
     expect(rulesOf(site.todos.get('pages/leftovers.html'))).toEqual(
       LEFTOVER_RULES
     );
-    expect(
-      typecheck(site.dir, ['pages/landing.tsx', 'pages/partials/pricing.tsx'])
-    ).toEqual({ status: 0, diagnostics: '' });
+    expect(rulesOf(site.todos.get('pages/contact.html'))).toEqual([
+      'html-attr:ignored',
+    ]);
+    expect(typecheck(site.dir, TYPECHECKED)).toEqual({
+      status: 0,
+      diagnostics: '',
+    });
   });
 });
