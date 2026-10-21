@@ -1,3 +1,16 @@
+## [1.16.4](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.16.3...bestax-mcp@1.16.4) (2026-10-21)
+
+
+### Bug Fixes
+
+* **bulma-ui:** drop Image's stray has-ratio, and convert ratio images ([#1195](https://github.com/allxsmith/bestax/issues/1195)) ([ae8443d](https://github.com/allxsmith/bestax/commit/ae8443d04b199c9f1a2a12d41b22f436b7b522eb))
+* **bulma-ui:** pass over a tab stop that won't take focus when a trap moves focus ([#1212](https://github.com/allxsmith/bestax/issues/1212)) ([76b317d](https://github.com/allxsmith/bestax/commit/76b317d65b820aa85fefb6ed382e3b4abc04b21f))
+
+
+### Features
+
+* **bulma-ui:** add Menu.Section, a menu section that opens and closes ([#1209](https://github.com/allxsmith/bestax/issues/1209)) ([b043c99](https://github.com/allxsmith/bestax/commit/b043c990128ca21f0dd04de8af9d2a2613b87e53))
+
 ## [1.16.3](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.16.2...bestax-mcp@1.16.3) (2026-10-21)
 
 
