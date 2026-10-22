@@ -1,6 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { Carousel, CarouselItem } from '../Carousel';
+import { ConfigProvider } from '../../helpers/Config';
 
 // Mock timers for auto-play testing
 jest.useFakeTimers();
@@ -668,45 +670,49 @@ describe('Carousel', () => {
   });
 
   describe('Single-slide repeat edge cases', () => {
-    // Hits the `repeat && index < 0` branch (newIndex = itemCount - 1) and the
-    // `repeat && index >= itemCount` branch (newIndex = 0) in setActiveIndex.
-    // For a single-slide carousel, goToPrev/goToNext fall through to the plain
-    // setActiveIndex(activeIndex +/- 1) path because the wrap-clone branch
-    // requires itemCount > 1.
-    it('wraps backward via keyboard with repeat and a single slide', () => {
+    // An arrow key from inside an item belongs to the item's content (a
+    // field's caret, a range input), and a single slide has nowhere to go
+    // anyway, so neither key calls onChange.
+    it.each(['ArrowLeft', 'ArrowRight'])(
+      'leaves %s to the content of a single slide with repeat',
+      key => {
+        const onChange = jest.fn();
+        render(
+          <Carousel onChange={onChange}>
+            <CarouselItem>
+              <button data-testid="inner">Only</button>
+            </CarouselItem>
+          </Carousel>
+        );
+
+        act(() => {
+          screen.getByTestId('inner').focus();
+        });
+
+        fireEvent.keyDown(document, { key });
+        expect(onChange).not.toHaveBeenCalled();
+      }
+    );
+
+    it('stays put on an arrow key at either end when repeat is false', () => {
+      // The previous arrow is enabled at the last slide, so it can hold
+      // focus there while ArrowRight asks for a step past the end.
       const onChange = jest.fn();
-      render(
-        <Carousel onChange={onChange}>
-          <CarouselItem>
-            <button data-testid="inner">Only</button>
-          </CarouselItem>
-        </Carousel>
+      const { rerender } = render(
+        <TestCarousel value={2} repeat={false} onChange={onChange} />
       );
-
-      // Single-slide carousels render no arrows, so focus an inner element to
-      // satisfy the keyboard handler's contains() check.
-      screen.getByTestId('inner').focus();
-
-      fireEvent.keyDown(document, { key: 'ArrowLeft' });
-      // setActiveIndex(-1) with repeat=true => newIndex = itemCount - 1 = 0
-      expect(onChange).toHaveBeenCalledWith(0);
-    });
-
-    it('wraps forward via keyboard with repeat and a single slide', () => {
-      const onChange = jest.fn();
-      render(
-        <Carousel onChange={onChange}>
-          <CarouselItem>
-            <button data-testid="inner">Only</button>
-          </CarouselItem>
-        </Carousel>
-      );
-
-      screen.getByTestId('inner').focus();
-
+      act(() => {
+        screen.getByLabelText('Previous slide').focus();
+      });
       fireEvent.keyDown(document, { key: 'ArrowRight' });
-      // setActiveIndex(1) with repeat=true and itemCount=1 => newIndex = 0
-      expect(onChange).toHaveBeenCalledWith(0);
+      expect(onChange).not.toHaveBeenCalled();
+
+      rerender(<TestCarousel value={0} repeat={false} onChange={onChange} />);
+      act(() => {
+        screen.getByLabelText('Next slide').focus();
+      });
+      fireEvent.keyDown(document, { key: 'ArrowLeft' });
+      expect(onChange).not.toHaveBeenCalled();
     });
 
     it('clamps to range when repeat is false (indicator click path)', () => {
@@ -986,6 +992,705 @@ describe('Carousel', () => {
       });
       expect(onChange).toHaveBeenCalledTimes(2);
       expect(onChange).toHaveBeenLastCalledWith(2);
+    });
+  });
+});
+
+/** `count` items, each with a button, named "Item 1" and on. */
+const itemsOf = (count: number) =>
+  Array.from({ length: count }, (_, i) => (
+    <CarouselItem key={i} data-testid={`item-${i}`}>
+      <button type="button">Item {i + 1}</button>
+    </CarouselItem>
+  ));
+
+const track = () => document.querySelector<HTMLElement>('.carousel-slides')!;
+
+/** The items themselves, in order, without the clones a loop puts at each end. */
+const realItems = (count: number) => {
+  const slots = Array.from(track().children) as HTMLElement[];
+  const clones = (slots.length - count) / 2;
+  return slots.slice(clones, clones + count);
+};
+
+/**
+ * What's in view, in order on screen, as the index of the item each copy
+ * shows: a clone counts as the item it copies.
+ */
+const inViewItems = () =>
+  Array.from(track().children)
+    .filter(el => !el.hasAttribute('aria-hidden'))
+    .map(el => Number(el.getAttribute('data-testid')!.replace('item-', '')));
+
+/**
+ * A window `width` pixels wide, as `matchMedia` answers the queries the
+ * carousel asks: each comma-separated part is a min-width or a max-width,
+ * and a part with neither (`print`) never matches.
+ */
+const mockViewport = (initialWidth: number) => {
+  let width = initialWidth;
+  const listeners: (() => void)[] = [];
+  const matches = (query: string) =>
+    query.split(',').some(part => {
+      const min = /min-width:\s*(\d+)px/.exec(part);
+      const max = /max-width:\s*(\d+)px/.exec(part);
+      return (
+        (!!min || !!max) &&
+        (!min || width >= Number(min[1])) &&
+        (!max || width <= Number(max[1]))
+      );
+    });
+  const matchMedia = jest.fn((query: string) => ({
+    media: query,
+    get matches() {
+      return matches(query);
+    },
+    addEventListener: (_type: string, fn: () => void) => listeners.push(fn),
+    removeEventListener: (_type: string, fn: () => void) =>
+      listeners.splice(listeners.indexOf(fn), 1),
+  }));
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    writable: true,
+    value: matchMedia,
+  });
+  return {
+    matchMedia,
+    listeners,
+    resize(next: number) {
+      width = next;
+      act(() => {
+        [...new Set(listeners)].forEach(fn => fn());
+      });
+    },
+  };
+};
+
+describe('Carousel with several items in view', () => {
+  afterEach(() => {
+    jest.clearAllTimers();
+    delete (window as { matchMedia?: unknown }).matchMedia;
+  });
+
+  describe('widths from the stylesheet', () => {
+    it('writes each count prop it is given as its CSS variable on the root', () => {
+      render(
+        <Carousel itemsToShow={3} itemsToShowMobile={1} itemsToShowFullhd={4}>
+          {itemsOf(6)}
+        </Carousel>
+      );
+      const root = screen.getByRole('region');
+      expect(
+        root.style.getPropertyValue('--bulma-carousel-items-to-show')
+      ).toBe('3');
+      expect(
+        root.style.getPropertyValue('--bulma-carousel-items-to-show-mobile')
+      ).toBe('1');
+      expect(
+        root.style.getPropertyValue('--bulma-carousel-items-to-show-fullhd')
+      ).toBe('4');
+      // The others are left to the stylesheet's fallbacks.
+      expect(
+        root.style.getPropertyValue('--bulma-carousel-items-to-show-tablet')
+      ).toBe('');
+    });
+
+    it('writes no count when none is given, so one slide looks as it always has', () => {
+      render(<Carousel>{itemsOf(3)}</Carousel>);
+      expect(screen.getByRole('region').getAttribute('style')).toBeNull();
+    });
+
+    it('keeps a style of its own beside the counts', () => {
+      render(
+        <Carousel itemsToShow={2} style={{ color: 'red' }}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      const root = screen.getByRole('region');
+      expect(root.style.color).toBe('red');
+      expect(
+        root.style.getPropertyValue('--bulma-carousel-items-to-show')
+      ).toBe('2');
+    });
+
+    it.each([
+      [2.7, '2'],
+      [0, '1'],
+      [-3, '1'],
+      [Number.NaN, '1'],
+    ])('writes itemsToShow=%p as the whole number %s', (count, written) => {
+      render(<Carousel itemsToShow={count}>{itemsOf(3)}</Carousel>);
+      expect(
+        screen
+          .getByRole('region')
+          .style.getPropertyValue('--bulma-carousel-items-to-show')
+      ).toBe(written);
+    });
+
+    it('moves the track by whole items, in units the stylesheet sizes', () => {
+      render(
+        <Carousel itemsToShow={3} value={1} repeat={false}>
+          {itemsOf(6)}
+        </Carousel>
+      );
+      expect(track().style.transform).toBe(
+        'translateX(calc(-1 * (100% + var(--bulma-carousel-item-gap, 0px)) / var(--bulma-carousel-items-in-view, 1)))'
+      );
+    });
+
+    it('counts the clones ahead of the first item when it loops', () => {
+      render(
+        <Carousel itemsToShow={2} value={0}>
+          {itemsOf(5)}
+        </Carousel>
+      );
+      expect(track().style.transform).toMatch(/^translateX\(calc\(-2 \* /);
+    });
+  });
+
+  describe('positions', () => {
+    it('hides the items out of view, and labels each one "n of m"', () => {
+      render(
+        <Carousel itemsToShow={3} repeat={false}>
+          {itemsOf(6)}
+        </Carousel>
+      );
+      expect(inViewItems()).toEqual([0, 1, 2]);
+      realItems(6).forEach((item, i) => {
+        expect(item).toHaveAttribute('aria-label', `${i + 1} of 6`);
+        expect(item).toHaveAttribute('aria-roledescription', 'slide');
+        if (i < 3) {
+          expect(item).toHaveClass('is-active');
+          expect(item).not.toHaveAttribute('inert');
+        } else {
+          expect(item).not.toHaveClass('is-active');
+          expect(item).toHaveAttribute('inert');
+          expect(item).toHaveAttribute('aria-hidden', 'true');
+        }
+      });
+    });
+
+    it('renders an indicator per position a step lands on, not per item', () => {
+      const { rerender } = render(
+        <Carousel itemsToShow={3} repeat={false}>
+          {itemsOf(6)}
+        </Carousel>
+      );
+      // One item a step: the view can start at 0, 1, 2 and 3.
+      expect(screen.getAllByRole('tab')).toHaveLength(4);
+
+      rerender(
+        <Carousel itemsToShow={3} itemsToScroll={3} repeat={false}>
+          {itemsOf(7)}
+        </Carousel>
+      );
+      // Three a step, and the last full view: 0, 3 and 4.
+      expect(
+        screen.getAllByRole('tab').map(tab => tab.getAttribute('aria-label'))
+      ).toEqual(['Go to slide 1', 'Go to slide 4', 'Go to slide 5']);
+    });
+
+    it('steps by itemsToScroll and stops at the last full view without repeat', () => {
+      const onChange = jest.fn();
+      render(
+        <Carousel
+          itemsToShow={3}
+          itemsToScroll={3}
+          repeat={false}
+          onChange={onChange}
+        >
+          {itemsOf(7)}
+        </Carousel>
+      );
+      const next = screen.getByLabelText('Next slide');
+      const prev = screen.getByLabelText('Previous slide');
+      expect(prev).toBeDisabled();
+
+      fireEvent.click(next);
+      expect(onChange).toHaveBeenLastCalledWith(3);
+      expect(inViewItems()).toEqual([3, 4, 5]);
+
+      // The last step is shorter, so the end of the track shows no gap.
+      fireEvent.click(next);
+      expect(onChange).toHaveBeenLastCalledWith(4);
+      expect(inViewItems()).toEqual([4, 5, 6]);
+      expect(next).toBeDisabled();
+
+      // Back the way it came, through the same positions.
+      fireEvent.click(prev);
+      expect(onChange).toHaveBeenLastCalledWith(3);
+      fireEvent.click(prev);
+      expect(onChange).toHaveBeenLastCalledWith(0);
+    });
+
+    it('caps itemsToScroll at the count in view, so a step skips nothing', () => {
+      const onChange = jest.fn();
+      render(
+        <Carousel itemsToShow={2} itemsToScroll={5} onChange={onChange}>
+          {itemsOf(6)}
+        </Carousel>
+      );
+      fireEvent.click(screen.getByLabelText('Next slide'));
+      expect(onChange).toHaveBeenCalledWith(2);
+    });
+
+    it('swipes one step, however far the swipe travels', () => {
+      const onChange = jest.fn();
+      const { container } = render(
+        <Carousel itemsToShow={3} itemsToScroll={2} onChange={onChange}>
+          {itemsOf(9)}
+        </Carousel>
+      );
+      const surface = container.querySelector('.carousel-container')!;
+      fireEvent.mouseDown(surface, { clientX: 900 });
+      fireEvent.mouseMove(surface, { clientX: 0 });
+      fireEvent.mouseUp(surface);
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith(2);
+    });
+
+    it('with this many children or fewer, shows them all and moves nowhere', () => {
+      const onChange = jest.fn();
+      render(
+        <Carousel itemsToShow={3} autoplay interval={1000} onChange={onChange}>
+          {itemsOf(2)}
+        </Carousel>
+      );
+      expect(screen.queryByLabelText('Next slide')).not.toBeInTheDocument();
+      expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+      expect(inViewItems()).toEqual([0, 1]);
+      // Nothing to loop over, so no clones either.
+      expect(track().children).toHaveLength(2);
+      act(() => {
+        jest.advanceTimersByTime(3000);
+      });
+      expect(onChange).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('a controlled value', () => {
+    it('shows a value between two positions as given, and steps on from it', () => {
+      const onChange = jest.fn();
+      render(
+        <Carousel
+          itemsToShow={3}
+          itemsToScroll={3}
+          repeat={false}
+          value={2}
+          onChange={onChange}
+        >
+          {itemsOf(7)}
+        </Carousel>
+      );
+      expect(inViewItems()).toEqual([2, 3, 4]);
+      // The indicator for the last position at or before it.
+      expect(screen.getAllByRole('tab')[0]).toHaveAttribute(
+        'aria-selected',
+        'true'
+      );
+
+      fireEvent.click(screen.getByLabelText('Next slide'));
+      expect(onChange).toHaveBeenLastCalledWith(3);
+      fireEvent.click(screen.getByLabelText('Previous slide'));
+      expect(onChange).toHaveBeenLastCalledWith(0);
+    });
+
+    it('shows the last full view for a value past it without repeat, calling nothing', () => {
+      const onChange = jest.fn();
+      render(
+        <Carousel itemsToShow={3} repeat={false} value={6} onChange={onChange}>
+          {itemsOf(7)}
+        </Carousel>
+      );
+      expect(inViewItems()).toEqual([4, 5, 6]);
+      expect(screen.getByLabelText('Next slide')).toBeDisabled();
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      [8, [1, 2, 3]],
+      [-1, [6, 0, 1]],
+    ])('wraps value=%p around with repeat', (value, shown) => {
+      render(
+        <Carousel itemsToShow={3} value={value}>
+          {itemsOf(7)}
+        </Carousel>
+      );
+      expect(inViewItems()).toEqual(shown);
+    });
+  });
+
+  describe('repeat', () => {
+    it('clones a full view of items onto each end, hidden and inert while off screen', () => {
+      render(<Carousel itemsToShow={2}>{itemsOf(5)}</Carousel>);
+      const slides = Array.from(track().children);
+      expect(slides).toHaveLength(2 + 5 + 2);
+      const clones = [...slides.slice(0, 2), ...slides.slice(-2)];
+      expect(clones.map(el => el.getAttribute('aria-label'))).toEqual([
+        '4 of 5',
+        '5 of 5',
+        '1 of 5',
+        '2 of 5',
+      ]);
+      clones.forEach(clone => {
+        expect(clone).toHaveAttribute('aria-hidden', 'true');
+        expect(clone).toHaveAttribute('inert');
+        expect(clone).not.toHaveClass('is-active');
+      });
+    });
+
+    it('exposes the copy on screen where the view runs past the last item', () => {
+      render(
+        <Carousel itemsToShow={2} value={4}>
+          {itemsOf(5)}
+        </Carousel>
+      );
+      const slides = Array.from(track().children);
+      // Item 1's clone after the last item is on screen; item 1 itself is not.
+      const [firstItem, firstClone] = [slides[2], slides[7]];
+      expect(firstClone).toHaveAttribute('aria-label', '1 of 5');
+      expect(firstClone).not.toHaveAttribute('aria-hidden');
+      expect(firstClone).not.toHaveAttribute('inert');
+      expect(firstClone).toHaveClass('is-active');
+      expect(firstItem).toHaveAttribute('aria-hidden', 'true');
+      expect(firstItem).toHaveAttribute('inert');
+    });
+
+    it('clones enough for the widest view any viewport sets', () => {
+      render(
+        <Carousel itemsToShow={1} itemsToShowDesktop={3}>
+          {itemsOf(5)}
+        </Carousel>
+      );
+      expect(track().children).toHaveLength(3 + 5 + 3);
+    });
+
+    it('shows the end and the start side by side', () => {
+      render(
+        <Carousel itemsToShow={2} value={4}>
+          {itemsOf(5)}
+        </Carousel>
+      );
+      expect(inViewItems()).toEqual([4, 0]);
+    });
+
+    it('goes on from the last position to the first through the clones', () => {
+      const onChange = jest.fn();
+      render(
+        <Carousel
+          itemsToShow={2}
+          itemsToScroll={2}
+          value={4}
+          onChange={onChange}
+        >
+          {itemsOf(5)}
+        </Carousel>
+      );
+      // Positions 0, 2 and 4; from 4 the next is 0, one item on.
+      fireEvent.click(screen.getByLabelText('Next slide'));
+      expect(onChange).not.toHaveBeenCalled();
+      expect(track().style.transform).toMatch(/^translateX\(calc\(-7 \* /);
+
+      // A transition ending inside an item is not the track's own.
+      fireEvent.transitionEnd(realItems(5)[0]);
+      expect(onChange).not.toHaveBeenCalled();
+
+      fireEvent.transitionEnd(track());
+      expect(onChange).toHaveBeenCalledWith(0);
+      act(() => {
+        jest.runAllTimers();
+      });
+    });
+
+    it('goes back from the first position to the last through the clones', () => {
+      const onChange = jest.fn();
+      render(
+        <Carousel
+          itemsToShow={2}
+          itemsToScroll={2}
+          value={0}
+          onChange={onChange}
+        >
+          {itemsOf(5)}
+        </Carousel>
+      );
+      fireEvent.click(screen.getByLabelText('Previous slide'));
+      // Position 4, read from the clones before the first item.
+      expect(track().style.transform).toMatch(/^translateX\(calc\(-1 \* /);
+      fireEvent.transitionEnd(track());
+      expect(onChange).toHaveBeenCalledWith(4);
+      act(() => {
+        jest.runAllTimers();
+      });
+    });
+  });
+
+  describe('the count for the window', () => {
+    const responsive = {
+      itemsToShow: 1,
+      itemsToShowTablet: 2,
+      itemsToShowDesktop: 3,
+    };
+
+    it.each([
+      [500, 1],
+      [800, 2],
+      [1100, 3],
+      [1300, 3],
+      [1500, 3],
+    ])('at %ipx wide has %i in view', (width, count) => {
+      mockViewport(width);
+      render(
+        <Carousel {...responsive} repeat={false}>
+          {itemsOf(6)}
+        </Carousel>
+      );
+      expect(inViewItems()).toHaveLength(count);
+      expect(screen.getAllByRole('tab')).toHaveLength(6 - count + 1);
+    });
+
+    it('falls back from a viewport to the next narrower one set, and to itemsToShow', () => {
+      mockViewport(1500);
+      const { unmount } = render(
+        <Carousel itemsToShow={2} itemsToShowWidescreen={4} repeat={false}>
+          {itemsOf(6)}
+        </Carousel>
+      );
+      expect(inViewItems()).toHaveLength(4);
+      unmount();
+
+      mockViewport(800);
+      render(
+        <Carousel itemsToShow={2} itemsToShowDesktop={4} repeat={false}>
+          {itemsOf(6)}
+        </Carousel>
+      );
+      expect(inViewItems()).toHaveLength(2);
+    });
+
+    it('uses itemsToShowMobile below the tablet breakpoint only', () => {
+      mockViewport(400);
+      render(
+        <Carousel itemsToShow={3} itemsToShowMobile={1} repeat={false}>
+          {itemsOf(6)}
+        </Carousel>
+      );
+      expect(inViewItems()).toEqual([0]);
+    });
+
+    it('keeps the first item in view in view when the count changes', () => {
+      const viewport = mockViewport(500);
+      render(
+        <Carousel {...responsive} repeat={false}>
+          {itemsOf(6)}
+        </Carousel>
+      );
+      const next = screen.getByLabelText('Next slide');
+      for (let i = 0; i < 4; i++) fireEvent.click(next);
+      expect(inViewItems()).toEqual([4]);
+
+      // Three in view can start no later than item 3, which keeps 4 in view.
+      viewport.resize(1100);
+      expect(inViewItems()).toEqual([3, 4, 5]);
+
+      viewport.resize(500);
+      expect(inViewItems()).toEqual([3]);
+    });
+
+    it('stops listening when it unmounts', () => {
+      const viewport = mockViewport(1100);
+      const { unmount } = render(
+        <Carousel {...responsive}>{itemsOf(6)}</Carousel>
+      );
+      expect(viewport.listeners.length).toBeGreaterThan(0);
+      unmount();
+      expect(viewport.listeners).toHaveLength(0);
+    });
+
+    it('asks nothing of matchMedia with one count everywhere', () => {
+      const viewport = mockViewport(1100);
+      render(<Carousel itemsToShow={3}>{itemsOf(6)}</Carousel>);
+      expect(viewport.matchMedia).not.toHaveBeenCalled();
+    });
+
+    it('uses itemsToShow where matchMedia is missing', () => {
+      render(
+        <Carousel itemsToShow={2} itemsToShowDesktop={3} repeat={false}>
+          {itemsOf(6)}
+        </Carousel>
+      );
+      expect(inViewItems()).toEqual([0, 1]);
+    });
+  });
+
+  describe('accessibility', () => {
+    it("keeps an item's own name and role", () => {
+      render(
+        <Carousel>
+          <CarouselItem aria-label="Lobby">Lobby</CarouselItem>
+          <CarouselItem aria-labelledby="pool-title">
+            <span id="pool-title">Pool</span>
+          </CarouselItem>
+          <CarouselItem role="listitem" aria-roledescription="photo">
+            Spa
+          </CarouselItem>
+        </Carousel>
+      );
+      const [lobby, pool, spa] = Array.from(track().children).slice(1, 4);
+      expect(lobby).toHaveAttribute('aria-label', 'Lobby');
+      expect(pool).not.toHaveAttribute('aria-label');
+      expect(pool).toHaveAttribute('aria-labelledby', 'pool-title');
+      expect(spa).toHaveAttribute('role', 'listitem');
+      expect(spa).toHaveAttribute('aria-roledescription', 'photo');
+      expect(spa).toHaveAttribute('aria-label', '3 of 3');
+    });
+
+    it('takes the items out of view out of the tab order', () => {
+      // jsdom implements neither `inert` nor a tab order, so this applies the
+      // browser's rule: nothing inside an inert subtree takes focus.
+      render(
+        <Carousel itemsToShow={2} repeat={false} indicator={false}>
+          {itemsOf(4)}
+        </Carousel>
+      );
+      const tabbable = Array.from(
+        screen.getByRole('region').querySelectorAll<HTMLElement>('button')
+      )
+        .filter(el => !el.closest('[inert]'))
+        .map(el => el.textContent || el.getAttribute('aria-label'));
+      expect(tabbable).toEqual([
+        'Item 1',
+        'Item 2',
+        'Previous slide',
+        'Next slide',
+      ]);
+    });
+
+    it('announces what comes into view, except while autoplay turns it', () => {
+      const { rerender } = render(<Carousel>{itemsOf(3)}</Carousel>);
+      expect(track()).toHaveAttribute('aria-live', 'polite');
+
+      rerender(<Carousel autoplay>{itemsOf(3)}</Carousel>);
+      expect(track()).toHaveAttribute('aria-live', 'off');
+
+      fireEvent.mouseEnter(screen.getByRole('region'));
+      expect(track()).toHaveAttribute('aria-live', 'polite');
+    });
+
+    it('stops autoplay at the last position without repeat', () => {
+      const onChange = jest.fn();
+      render(
+        <Carousel
+          autoplay
+          repeat={false}
+          interval={1000}
+          value={2}
+          onChange={onChange}
+        >
+          {itemsOf(3)}
+        </Carousel>
+      );
+      expect(track()).toHaveAttribute('aria-live', 'polite');
+      act(() => {
+        jest.advanceTimersByTime(3000);
+      });
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('holds autoplay while focus is inside an item, and resumes once it leaves', () => {
+      const onChange = jest.fn();
+      render(
+        <>
+          <Carousel
+            itemsToShow={2}
+            autoplay
+            interval={1000}
+            onChange={onChange}
+          >
+            {itemsOf(4)}
+          </Carousel>
+          <button type="button">Outside</button>
+        </>
+      );
+      act(() => {
+        realItems(4)[0].querySelector('button')!.focus();
+      });
+      act(() => {
+        jest.advanceTimersByTime(3000);
+      });
+      expect(onChange).not.toHaveBeenCalled();
+
+      // Focus moving on to the other item in view keeps it held.
+      act(() => {
+        realItems(4)[1].querySelector('button')!.focus();
+      });
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+      expect(onChange).not.toHaveBeenCalled();
+
+      act(() => {
+        screen.getByRole('button', { name: 'Outside' }).focus();
+      });
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+      expect(onChange).toHaveBeenCalledWith(1);
+    });
+
+    it("leaves arrow keys to an item's content, but not to the carousel's controls", () => {
+      const onChange = jest.fn();
+      render(
+        <Carousel itemsToShow={2} onChange={onChange}>
+          {itemsOf(4)}
+        </Carousel>
+      );
+      act(() => {
+        realItems(4)[0].querySelector('button')!.focus();
+      });
+      fireEvent.keyDown(document, { key: 'ArrowRight' });
+      expect(onChange).not.toHaveBeenCalled();
+
+      act(() => {
+        screen.getByLabelText('Next slide').focus();
+      });
+      fireEvent.keyDown(document, { key: 'ArrowRight' });
+      expect(onChange).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('server rendering', () => {
+    it('renders the counts and the items in view before any script runs', () => {
+      const html = renderToStaticMarkup(
+        <Carousel itemsToShow={3} itemsToShowMobile={1} repeat={false}>
+          {itemsOf(5)}
+        </Carousel>
+      );
+      expect(html).toContain('--bulma-carousel-items-to-show-mobile:1');
+      expect(html).toContain('--bulma-carousel-items-to-show:3');
+      // itemsToShow until the page hydrates, whatever the window's width.
+      expect(html.match(/aria-hidden="true"/g)).toHaveLength(2);
+      expect(html.match(/role="tab"/g)).toHaveLength(3);
+    });
+  });
+
+  describe('with a class prefix', () => {
+    it('prefixes its classes and keeps the CSS variable names', () => {
+      render(
+        <ConfigProvider classPrefix="bestax-">
+          <Carousel itemsToShow={2}>{itemsOf(4)}</Carousel>
+        </ConfigProvider>
+      );
+      const root = screen.getByRole('region');
+      expect(root).toHaveClass('bestax-carousel');
+      expect(
+        root.style.getPropertyValue('--bulma-carousel-items-to-show')
+      ).toBe('2');
+      const slides = root.querySelector('.bestax-carousel-slides')!;
+      expect(
+        slides.querySelectorAll('.bestax-carousel-item.bestax-is-active')
+      ).toHaveLength(2);
+      expect(root.querySelectorAll('.bestax-indicator-item')).toHaveLength(4);
     });
   });
 });

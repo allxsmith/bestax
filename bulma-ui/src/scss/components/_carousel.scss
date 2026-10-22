@@ -1,6 +1,12 @@
 // Carousel component styles
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
+@use "bulma/sass/utilities/mixins" as mx;
+
+// The space between two items in view, left out at the track's edges. A
+// length, so `0px` rather than `0`: the track's offset adds it to a
+// percentage inside `calc()`, where a bare `0` is not a length.
+$carousel-item-gap: 0px !default;
 
 // Carousel-specific SCSS sizing variables
 $carousel-arrow-size: 48px !default;
@@ -126,8 +132,75 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
       "carousel-overlay-indicator-background-active": #{$carousel-overlay-indicator-background-active},
       "carousel-transition-duration": #{$carousel-transition-duration},
       "carousel-fade-duration": #{$carousel-fade-duration},
+      "carousel-item-gap": #{$carousel-item-gap},
+      // How many items are in view. `Carousel` writes each `itemsToShow*`
+      // prop it is given as the variable of the same name on its own
+      // element; the rest fall back the way the props do, each viewport to
+      // the next narrower one and all of them to `itemsToShow`. Declared
+      // here, on every carousel, so one nested in another's items starts
+      // from its own props rather than inheriting the outer one's.
+      "carousel-items-to-show": 1,
+      "carousel-items-to-show-mobile": #{cv.getVar("carousel-items-to-show")},
+      "carousel-items-to-show-tablet": #{cv.getVar("carousel-items-to-show")},
+      "carousel-items-to-show-desktop": #{cv.getVar("carousel-items-to-show-tablet")},
+      "carousel-items-to-show-widescreen": #{cv.getVar("carousel-items-to-show-desktop")},
+      "carousel-items-to-show-fullhd": #{cv.getVar("carousel-items-to-show-widescreen")},
+      // The count for the viewport the page is in, picked below with
+      // Bulma's breakpoint mixins. The item widths and the track's offset
+      // both read it.
+      "carousel-items-in-view": #{cv.getVar("carousel-items-to-show")},
     )
   );
+}
+
+@include mx.mobile {
+  .#{iv.$class-prefix}carousel {
+    @include cv.register-vars(
+      (
+        "carousel-items-in-view": #{cv.getVar("carousel-items-to-show-mobile")},
+      )
+    );
+  }
+}
+
+@include mx.tablet {
+  .#{iv.$class-prefix}carousel {
+    @include cv.register-vars(
+      (
+        "carousel-items-in-view": #{cv.getVar("carousel-items-to-show-tablet")},
+      )
+    );
+  }
+}
+
+@include mx.desktop {
+  .#{iv.$class-prefix}carousel {
+    @include cv.register-vars(
+      (
+        "carousel-items-in-view": #{cv.getVar("carousel-items-to-show-desktop")},
+      )
+    );
+  }
+}
+
+@include mx.widescreen {
+  .#{iv.$class-prefix}carousel {
+    @include cv.register-vars(
+      (
+        "carousel-items-in-view": #{cv.getVar("carousel-items-to-show-widescreen")},
+      )
+    );
+  }
+}
+
+@include mx.fullhd {
+  .#{iv.$class-prefix}carousel {
+    @include cv.register-vars(
+      (
+        "carousel-items-in-view": #{cv.getVar("carousel-items-to-show-fullhd")},
+      )
+    );
+  }
 }
 
 .#{iv.$class-prefix}carousel {
@@ -147,15 +220,22 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
   // Slides container
   .#{iv.$class-prefix}carousel-slides {
     display: flex;
+    gap: cv.getVar("carousel-item-gap");
     width: 100%;
     will-change: transform;
   }
 
-  // Individual slide
+  // Individual slide: an equal share of the track, less the gaps between
+  // the items in view
   .#{iv.$class-prefix}carousel-item {
-    flex: 0 0 100%;
-    width: 100%;
-    min-width: 100%;
+    $carousel-item-width: calc(
+      (100% - (#{cv.getVar("carousel-items-in-view")} - 1) * #{cv.getVar("carousel-item-gap")}) /
+        #{cv.getVar("carousel-items-in-view")}
+    );
+
+    flex: 0 0 $carousel-item-width;
+    width: $carousel-item-width;
+    min-width: $carousel-item-width;
 
     // Allow images to fill the slide
     img {
@@ -502,26 +582,6 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
         opacity: 1;
       }
     }
-  }
-}
-
-// Carousel list variant (multiple visible items)
-.#{iv.$class-prefix}carousel-list {
-  .#{iv.$class-prefix}carousel-container {
-    overflow: visible;
-  }
-
-  .#{iv.$class-prefix}carousel-slides {
-    display: flex;
-    gap: 1rem;
-  }
-
-  .#{iv.$class-prefix}carousel-item {
-    flex: 0 0 auto;
-    width: auto;
-    position: relative;
-    opacity: 1;
-    visibility: visible;
   }
 }
 
