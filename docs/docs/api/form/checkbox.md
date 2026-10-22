@@ -144,6 +144,28 @@ function example() {
 }
 ```
 
+### Theming the Box
+
+The box reads the variables listed under [CSS & Sass Variables](#css--sass-variables). A checked box is filled with `--bulma-checkbox-active-color`, a mixed one with `--bulma-checkbox-indeterminate-color`, and the check mark and the mixed dash on top are both `--bulma-checkbox-check-color`, so a dark fill takes a light check color. Set them on a class you pass through `className`, which lands on the `.styled-checkbox` label that declares them. `style` and the other input attributes go to the `<input>`, so a variable set there reaches nothing.
+
+Here the fill is the scheme's strongest text color and the mark is its page color, so the box reads in light and dark alike:
+
+```css
+.ink-checkbox {
+  --bulma-checkbox-active-color: var(--bulma-text-strong);
+  --bulma-checkbox-indeterminate-color: var(--bulma-text-strong);
+  --bulma-checkbox-check-color: var(--bulma-scheme-main);
+}
+```
+
+```tsx
+<Checkbox className="ink-checkbox" defaultChecked>
+  Remember me
+</Checkbox>
+```
+
+A `color` prop declares both fills again on `.styled-checkbox.is-<color>`, which a lone class loses to, so leave `color` unset on a box whose fill a class sets.
+
 ---
 
 ## Accessibility
@@ -151,6 +173,8 @@ function example() {
 - Each `Checkbox` is rendered as a `<label>` wrapping an `<input type="checkbox">` and the label text, for optimal accessibility.
 - The clickable area includes both box and label by default.
 - Browsers expose a box with `indeterminate` set as mixed, so the component adds no ARIA for it.
+- An unchecked box shows only its border, `--bulma-checkbox-border-color`. It defaults to `--bulma-text-weak`, which holds the 3:1 contrast WCAG asks of a control's boundary (non-text contrast) on Bulma's page and card surfaces in light and dark. Hold a replacement border, and a custom check color on its fill, to 3:1 as well.
+- In forced colors (Windows contrast themes), the box, the check mark and the mixed dash take system colors, so they stay visible whatever the variables hold.
 
 ---
 
@@ -180,7 +204,7 @@ function example() {
 | `textColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | `disabled`      | `boolean`                                                                       | `false` | Whether the checkbox is disabled.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `indeterminate` | `boolean`                                                                       | `false` | Shows the mixed state, as in a "Select all" box when some of what it covers is checked. It's a look and an announcement only: `checked` is still the value, and a click still toggles `checked`. A browser clears the mixed state on a click, so the component sets it again from this prop after every click and every render. Left unset, the component doesn't touch it, and once it has set it, going back to unset clears it once and hands it back. It has no HTML attribute, so server-rendered markup can't carry it, and a mixed box renders unmixed until hydration. |
-| `className`     | `string`                                                                        | —       | Additional CSS classes to apply.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `className`     | `string`                                                                        | —       | Additional CSS classes, on the outer `<label>`. That's the element that declares the `--bulma-checkbox-*` variables, so a class is how to set one: `style` and the other input attributes go to the `<input>`.                                                                                                                                                                                                                                                                                                                                                                 |
 | `children`      | `React.ReactNode`                                                               | —       | The label/content for the checkbox.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `ref`           | `React.Ref<HTMLInputElement>`                                                   | —       | Forwarded to the underlying element.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | `...`           | All standard `<input>` attributes and Bulma helper props                        | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
@@ -200,7 +224,7 @@ function example() {
 | `--bulma-checkbox-size`                | `$checkbox-size`                | `1.25em`                     |
 | `--bulma-checkbox-border-width`        | `$checkbox-border-width`        | `2px`                        |
 | `--bulma-checkbox-radius`              | `$checkbox-radius`              | `var(--bulma-radius-small)`  |
-| `--bulma-checkbox-border-color`        | `$checkbox-border-color`        | `var(--bulma-border)`        |
+| `--bulma-checkbox-border-color`        | `$checkbox-border-color`        | `var(--bulma-text-weak)`     |
 | `--bulma-checkbox-background`          | `$checkbox-background`          | `transparent`                |
 | `--bulma-checkbox-check-color`         | `$checkbox-check-color`         | `var(--bulma-scheme-invert)` |
 | `--bulma-checkbox-active-color`        | `$checkbox-active-color`        | `var(--bulma-primary)`       |
