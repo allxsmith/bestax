@@ -1,3 +1,48 @@
+# [5.42.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.41.0...@allxsmith/bestax-bulma@5.42.0) (2026-10-22)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** answer .container on another root's element with the corrected advice ([b7a33ba](https://github.com/allxsmith/bestax/commit/b7a33babddf079b331c908ed97cfb38b3bd05ddb)), closes [#1168](https://github.com/allxsmith/bestax/issues/1168)
+* **bestax-mcp:** defer the textSize note to a size helper already on the element ([6aa4a00](https://github.com/allxsmith/bestax/commit/6aa4a00a9ca1ddcee3b588203a8a14a776c0063b)), closes [#1149](https://github.com/allxsmith/bestax/issues/1149)
+* **bestax-mcp:** fit a second root to the tag its classes pick in lookup_bulma_classes ([314aa41](https://github.com/allxsmith/bestax/commit/314aa419f2054a05eca8207269d4ad89918a508a))
+* **bestax-mcp:** hedge a layout class's base row where the layout row is hedged ([c903194](https://github.com/allxsmith/bestax/commit/c90319457620ec79bd725b51ef94dbcfe745dd1b)), closes [#1155](https://github.com/allxsmith/bestax/issues/1155)
+* **bestax-mcp:** hold a layout class beside its base to every modifier gate ([ef8f881](https://github.com/allxsmith/bestax/commit/ef8f881db3a6955d5649724a09466ccd65328a8d))
+* **bestax-mcp:** name textSize off a size class's tags only where the component renders the tag ([1a4bdcd](https://github.com/allxsmith/bestax/commit/1a4bdcdeca99fc418e27fdf11081b6851747a335))
+* **bestax-mcp:** pick the root whose own tag the element is on, as the codemod does ([bca07f6](https://github.com/allxsmith/bestax/commit/bca07f6096c22709a1c37ea647e7b678d391f8d4)), closes [#1168](https://github.com/allxsmith/bestax/issues/1168)
+* **bestax-mcp:** say another component's class stays a class, and which one won ([425cfd9](https://github.com/allxsmith/bestax/commit/425cfd9ee20a55d743a1995ac0e0006d0ef9b5f8)), closes [#1168](https://github.com/allxsmith/bestax/issues/1168)
+* **bestax-mcp:** say where Select can't take a select's label ([9e29ed5](https://github.com/allxsmith/bestax/commit/9e29ed5764c331982142e3b7a52b24f90f35a0a1)), closes [#1149](https://github.com/allxsmith/bestax/issues/1149)
+* **bestax-mcp:** scope the size helper's stay to another tag when the lookup has none ([30e9805](https://github.com/allxsmith/bestax/commit/30e98058688d1221895a5690d255a2ad1ed19e8b))
+* **bestax-mcp:** suggest textSize for a heading's size class, and Select for a select's label ([a45cc64](https://github.com/allxsmith/bestax/commit/a45cc64f9da511b1df2544184c33029bdc39963c)), closes [#1149](https://github.com/allxsmith/bestax/issues/1149)
+* **bestax-mcp:** write the second-component reasons' tag with its article ([0428030](https://github.com/allxsmith/bestax/commit/042803033e30b735ab42d4ead2bf77b71a2be00a))
+* **bestax-migrate:** fit a second root to the tag its classes make it render ([86232dc](https://github.com/allxsmith/bestax/commit/86232dca873651bec0f9b3a307ba348c2304a185))
+* **bestax-migrate:** give a conditional class on a list item its own reason ([55b8a8d](https://github.com/allxsmith/bestax/commit/55b8a8d0181ac391b65998f73a1dad59299ada10)), closes [#1168](https://github.com/allxsmith/bestax/issues/1168)
+* **bestax-migrate:** give colorVariant's TODO a shade bestax's props take ([f0e002a](https://github.com/allxsmith/bestax/commit/f0e002aa388fee2c0a954b24f87b5156b585ff06))
+* **bestax-migrate:** hold a layout class beside its base to every modifier gate ([56cbe5e](https://github.com/allxsmith/bestax/commit/56cbe5e165e0f4597e74cc1600d42c750c5f5cf6))
+* **bestax-migrate:** keep a select's label where Select can't carry it ([f19dade](https://github.com/allxsmith/bestax/commit/f19dade0dcd3f5a602d7c153e59d14e8d030fa51)), closes [#1149](https://github.com/allxsmith/bestax/issues/1149)
+* **bestax-migrate:** let a root on its own tag win over one that reaches it through `as` ([b9a4a3e](https://github.com/allxsmith/bestax/commit/b9a4a3e0990255e84d8c698528eebe069b7f8f82)), closes [#1179](https://github.com/allxsmith/bestax/issues/1179) [#1168](https://github.com/allxsmith/bestax/issues/1168)
+* **bestax-migrate:** make .container's advice and a conditional class's reason true ([eeaf3d7](https://github.com/allxsmith/bestax/commit/eeaf3d7978d5801fd3275315a40dfa18ef56e108)), closes [#1168](https://github.com/allxsmith/bestax/issues/1168)
+* **bestax-migrate:** name a label's computed className in the Select recipe ([693ec1b](https://github.com/allxsmith/bestax/commit/693ec1b3536c2eb4a882b68dd323601ed2eee1cb)), closes [#1149](https://github.com/allxsmith/bestax/issues/1149)
+* **bestax-migrate:** report a second component class on a converted element ([e0d90a0](https://github.com/allxsmith/bestax/commit/e0d90a0aa9f2baa91f8a72bf01a0093e5fefb0c7)), closes [#1168](https://github.com/allxsmith/bestax/issues/1168)
+* **bestax-migrate:** send a select's label to Select, and say --print still writes ([468c62c](https://github.com/allxsmith/bestax/commit/468c62c85409f7b09894d17de2ad93c2a40c0784)), closes [#1149](https://github.com/allxsmith/bestax/issues/1149)
+* **bestax-migrate:** write the second-component reasons' tag with its article ([9fe0a4e](https://github.com/allxsmith/bestax/commit/9fe0a4efff058215989c79117a50c7c518ffcbe2))
+* **bulma-ui:** hand focus on when the focused Carousel item leaves the view ([43bb0d2](https://github.com/allxsmith/bestax/commit/43bb0d2f5839b02d3af005ac2a9dd996a94e93b6))
+* **bulma-ui:** read Carousel widths between Bulma's mobile and tablet queries as mobile ([45fecdc](https://github.com/allxsmith/bestax/commit/45fecdc893e000b09a166e2d1f2daa28c3dade68))
+* **eslint-plugin:** carry .container's corrected advice, and pin the component tiebreak ([082f92b](https://github.com/allxsmith/bestax/commit/082f92b3d39fd831094970ed5963432fb4b01073)), closes [#1168](https://github.com/allxsmith/bestax/issues/1168)
+* **eslint-plugin:** leave a bestax component inside svg or math alone ([18c3d74](https://github.com/allxsmith/bestax/commit/18c3d746b8a5416801dd4e2f33dfb5b061212bd1)), closes [#1168](https://github.com/allxsmith/bestax/issues/1168)
+* **eslint-plugin:** report the class the codemod decides by where a class beside it picks the tag ([ac6db2d](https://github.com/allxsmith/bestax/commit/ac6db2da0f98a613c891665af059659764cadfd9))
+* **eslint-plugin:** report the class whose component's own tag the element is on ([4a62ee8](https://github.com/allxsmith/bestax/commit/4a62ee8f382359f3168468d7efaf408471863cbb)), closes [#1168](https://github.com/allxsmith/bestax/issues/1168)
+
+
+### Features
+
+* **bestax-mcp:** answer a Field layout class beside its base class as one value ([5b7fac9](https://github.com/allxsmith/bestax/commit/5b7fac9767ebfe9dd08760b79fd4ce9c776fa695)), closes [#1155](https://github.com/allxsmith/bestax/issues/1155)
+* **bestax-mcp:** write color shade classes as their color and shade props ([8a14924](https://github.com/allxsmith/bestax/commit/8a14924db46b7168b77b45ef9c722d4c8e5526c4)), closes [#1170](https://github.com/allxsmith/bestax/issues/1170)
+* **bestax-migrate:** write Bulma's color shade classes as colorShade ([1481805](https://github.com/allxsmith/bestax/commit/1481805eae0dc57d4a568dcbea0d68c29f9cc81d)), closes [#1170](https://github.com/allxsmith/bestax/issues/1170)
+* **bestax-migrate:** write Field's hasAddons and grouped values when their class pairs are there ([ae362c1](https://github.com/allxsmith/bestax/commit/ae362c1ded8c34504ce50b8ee01dff2990932dc9)), closes [#1155](https://github.com/allxsmith/bestax/issues/1155)
+* **bulma-ui:** show several Carousel items in view ([6743b17](https://github.com/allxsmith/bestax/commit/6743b17a3c92d5497e81b31f00dbdfbf829fde21)), closes [#1165](https://github.com/allxsmith/bestax/issues/1165)
+* **eslint-plugin:** report another component's Bulma class on a bestax component ([4cf0aa3](https://github.com/allxsmith/bestax/commit/4cf0aa3633c0cc3af5e65850b97501690ca0af15)), closes [#1168](https://github.com/allxsmith/bestax/issues/1168)
+
 # [5.41.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.40.0...@allxsmith/bestax-bulma@5.41.0) (2026-10-21)
 
 
