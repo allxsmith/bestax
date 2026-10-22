@@ -38,6 +38,7 @@ import {
   yamlMap,
   yamlScalar,
 } from './check-conformance.mjs';
+import { tarball } from './lib/tar-fixture.mjs';
 import { loadTemplatesData, templatePaths } from './lib/templates.mjs';
 
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -665,6 +666,86 @@ test("publish's checks refuse a link, a .git or a missing root file", async () =
     assert.notEqual(run.status, 0, `${why} is refused`);
     assert.match(run.stdout, /::error::The tree from generate is refused/);
     assert.match(run.stdout, said, why);
+  }
+});
+
+test("publish's unpack step refuses a link, a .git or an escape before writing", async t => {
+  // Built member by member, so an archive can hold names tar would not write
+  // from a real tree. Each case expects the refusal of the guard covering it.
+  const dir = name => ({ name, type: '5', mode: 0o755 });
+  const good = [
+    dir('./'),
+    { name: './README.md', body: '# bestax-templates\n' },
+    { name: './LICENSE', body: 'MIT License\n' },
+    { name: './NOTICE', body: 'This project uses Bulma.\n' },
+    dir('./login/'),
+    { name: './login/.gitignore', body: 'node_modules\n' },
+    dir('./login/bin/'),
+    { name: './login/bin/run.sh', body: '#!/bin/sh\n', mode: 0o755 },
+  ];
+  const sound = runUnpack(tarball(good));
+  assert.equal(sound.status, 0, sound.stdout + sound.stderr);
+  assert.equal(
+    fs.statSync(path.join(sound.tree, 'login/bin/run.sh')).mode & 0o777,
+    0o755
+  );
+
+  const type = /regular files and directories only/;
+  const part = /has an empty, \., \.\. or \.git part\./;
+  const named = /is not named \.\/<path>\./;
+  for (const [why, extra, said] of [
+    ['a symbolic link', { name: './login/l', type: '2', link: '/etc' }, type],
+    ['a hard link', { name: './login/h', type: '1', link: './LICENSE' }, type],
+    ['a .git', { name: './.git/config', body: '[core]\n' }, part],
+    ['a .GIT', { name: './login/.GIT/HEAD', body: 'x\n' }, part],
+    ['a ../ path', { name: './../escaped', body: 'x\n' }, part],
+    ['a nested ../', { name: './login/../../escaped', body: 'x\n' }, part],
+    ['a bare ../ path', { name: '../escaped', body: 'x\n' }, named],
+    ['an absolute path', { name: '/escaped', body: 'x\n' }, named],
+  ]) {
+    await t.test(why, () => {
+      const run = runUnpack(tarball([...good, extra]));
+      assert.notEqual(run.status, 0, `${why} is refused`);
+      assert.match(run.stdout, /::error::The tree from generate is refused/);
+      assert.match(run.stdout, said, why);
+      assert.ok(!fs.existsSync(run.tree), `${why}: nothing is unpacked`);
+      assert.ok(!fs.existsSync(path.join(run.work, 'escaped')), why);
+    });
+  }
+});
+
+test("publish's check step refuses a link, a .git or a fifo already on disk", async t => {
+  // The listing check keeps these out of an unpacked tree, so this runs the
+  // check step on its own, on trees made by hand.
+  const check = publishScript('Check the unpacked tree');
+  const unpacked = () => {
+    const work = tempDir();
+    const tree = path.join(work, 'bestax-templates-tree');
+    for (const file of ['README.md', 'LICENSE', 'NOTICE', 'login/App.tsx']) {
+      write(tree, file, 'x\n');
+    }
+    return { work, tree };
+  };
+  const sound = unpacked();
+  assert.equal(runStep(check, sound.work).status, 0, 'the fixture is sound');
+
+  for (const [why, tamper] of [
+    ['a symbolic link', at => fs.symlinkSync('/etc', path.join(at, 'login/l'))],
+    ['a .git', at => fs.mkdirSync(path.join(at, 'login/.git'))],
+    ['a .GIT file', at => write(at, '.GIT', 'x\n')],
+    ['a fifo', at => execFileSync('mkfifo', [path.join(at, 'login/pipe')])],
+  ]) {
+    await t.test(why, () => {
+      const { work, tree } = unpacked();
+      tamper(tree);
+      const run = runStep(check, work);
+      assert.notEqual(run.status, 0, `${why} is refused`);
+      assert.match(
+        run.stdout,
+        /refused: the unpacked tree holds a \.git, or an entry that is neither/,
+        why
+      );
+    });
   }
 });
 
