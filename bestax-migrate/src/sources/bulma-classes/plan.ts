@@ -1491,9 +1491,15 @@ function propsFrom(
     if (entry.helpersLeftOut && Object.hasOwn(entry.helpersLeftOut, prop)) {
       continue;
     }
+    // A shade renders its class only together with its color, so it
+    // converts only when both props are free: a shade beside a color or
+    // shade already written stays a class.
+    const also = helper.also;
+    if (also && writes.has(also.prop)) continue;
     writes.set(prop, helper.write.value ?? true);
     sourceOf.set(prop, token);
     groupOf.set(prop, helper.group);
+    if (also) writes.set(also.prop, also.value ?? true);
     converted.add(token);
   }
 

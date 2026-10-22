@@ -257,6 +257,83 @@ describe('plan', () => {
       });
     });
 
+    it("writes a color shade as its color and its shade, through the target's own props", () => {
+      expect(
+        plan(facts('div', 'box has-text-primary-on-scheme')).conversion?.props
+      ).toEqual([
+        ['textColor', 'primary'],
+        ['colorShade', 'on-scheme'],
+      ]);
+      expect(
+        plan(facts('p', 'has-background-info-light has-text-link-30'))
+          .conversion?.props
+      ).toEqual([
+        ['bgColor', 'info'],
+        ['backgroundColorShade', 'light'],
+        ['textColor', 'link'],
+        ['colorShade', '30'],
+      ]);
+      expect(
+        plan(facts('table', 'table has-text-danger-invert')).conversion?.props
+      ).toEqual([
+        ['color', 'danger'],
+        ['colorShade', 'invert'],
+      ]);
+      expect(
+        plan(facts('span', 'tag has-background-warning-05')).conversion?.props
+      ).toEqual([
+        ['backgroundColor', 'warning'],
+        ['backgroundColorShade', '05'],
+      ]);
+    });
+
+    it('keeps a second color or shade for the same prop, and a shade the target has no prop for', () => {
+      expect(
+        plan(facts('p', 'has-text-primary-30 has-text-info-40')).conversion
+      ).toEqual({
+        target: 'Paragraph',
+        props: [
+          ['textColor', 'primary'],
+          ['colorShade', '30'],
+        ],
+        className: 'has-text-info-40',
+        drop: [],
+        numbers: [],
+      });
+      expect(
+        plan(facts('p', 'has-text-primary has-text-info-30')).conversion
+      ).toEqual({
+        target: 'Paragraph',
+        props: [['textColor', 'primary']],
+        className: 'has-text-info-30',
+        drop: [],
+        numbers: [],
+      });
+      expect(
+        plan(facts('span', 'tag has-text-info-dark')).conversion?.className
+      ).toBe('has-text-info-dark');
+    });
+
+    it('leaves a shade that one color and one shade cannot write as a class', () => {
+      for (const token of [
+        'has-text-primary-30-invert',
+        'has-text-primary-100',
+        'has-background-link-light-invert',
+        'has-text-text-30',
+        'is-palette-primary',
+        'is-bold',
+        'is-soft',
+      ]) {
+        expect(plan(facts('p', token))).toEqual({
+          conversion: null,
+          todos: [],
+        });
+        expect(plan(facts('div', `box ${token}`)).conversion?.className).toBe(
+          token
+        );
+      }
+    });
+
     it('keeps a base display beside a per-viewport one', () => {
       expect(
         plan(facts('div', 'box is-flex is-block-mobile')).conversion

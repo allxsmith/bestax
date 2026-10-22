@@ -38,7 +38,7 @@ export const UNIVERSAL_PROPS: Record<string, PropAction> = {
   backgroundColor: { rename: 'bgColor' },
   textColor: {},
   colorVariant: {
-    todo: "no direct equivalent; use isLight (Button/Notification) or a color shade like textColor='primary-dark'",
+    todo: "no direct equivalent; use isLight (Button/Notification) or a color shade like bgColor='primary' backgroundColorShade='90'",
   },
   // TypographyProps
   textSize: { numberToString: true },
