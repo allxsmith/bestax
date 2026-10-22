@@ -1,3 +1,10 @@
+## [5.42.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.42.0...@allxsmith/bestax-bulma@5.42.1) (2026-10-22)
+
+
+### Bug Fixes
+
+* **bulma-ui:** paint Checkbox's tick in its check color, and give empty boxes a visible border ([#1219](https://github.com/allxsmith/bestax/issues/1219)) ([fce61a7](https://github.com/allxsmith/bestax/commit/fce61a7ed8ca4d85c194fb5dcf029d24daaff185))
+
 # [5.42.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.41.0...@allxsmith/bestax-bulma@5.42.0) (2026-10-22)
 
 
