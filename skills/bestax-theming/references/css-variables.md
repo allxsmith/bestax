@@ -303,11 +303,21 @@ own-selector override rule applies.
 `--bulma-carousel-indicator-line-height`, `--bulma-carousel-indicator-line-height-mobile`,
 `--bulma-carousel-indicator-line-radius`, `--bulma-carousel-indicator-line-width`,
 `--bulma-carousel-indicator-line-width-mobile`, `--bulma-carousel-indicator-size`,
-`--bulma-carousel-indicator-size-mobile`, `--bulma-carousel-overlay-arrow-background`,
+`--bulma-carousel-indicator-size-mobile`, `--bulma-carousel-item-gap`,
+`--bulma-carousel-items-in-view`, `--bulma-carousel-items-to-show`,
+`--bulma-carousel-items-to-show-desktop`, `--bulma-carousel-items-to-show-fullhd`,
+`--bulma-carousel-items-to-show-mobile`, `--bulma-carousel-items-to-show-tablet`,
+`--bulma-carousel-items-to-show-widescreen`, `--bulma-carousel-overlay-arrow-background`,
 `--bulma-carousel-overlay-arrow-background-hover`, `--bulma-carousel-overlay-arrow-color`,
 `--bulma-carousel-overlay-indicator-background`,
 `--bulma-carousel-overlay-indicator-background-active`,
 `--bulma-carousel-overlay-indicator-background-hover`, `--bulma-carousel-transition-duration`
+
+`--bulma-carousel-item-gap` (a length, default `0px`) is the space between items in view; set it
+on the carousel's own element through a class. The `--bulma-carousel-items-to-show*` variables
+come from the `itemsToShow*` props, and `--bulma-carousel-items-in-view` is the one of them the
+viewport picks. The props also decide how far a step moves, so set the count with the props
+rather than with these variables.
 
 ### Checkbox
 
