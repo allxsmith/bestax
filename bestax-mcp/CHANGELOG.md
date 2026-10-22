@@ -1,3 +1,10 @@
+## [1.18.2](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.1...bestax-mcp@1.18.2) (2026-10-22)
+
+
+### Bug Fixes
+
+* **bulma-ui:** paint Checkbox's tick in its check color, and give empty boxes a visible border ([#1219](https://github.com/allxsmith/bestax/issues/1219)) ([fce61a7](https://github.com/allxsmith/bestax/commit/fce61a7ed8ca4d85c194fb5dcf029d24daaff185))
+
 ## [1.18.1](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.0...bestax-mcp@1.18.1) (2026-10-22)
 
 
