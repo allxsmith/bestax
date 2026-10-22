@@ -466,9 +466,12 @@ jobs:
 
           # The generated tree, as the work tree, becomes the whole of main:
           # the clone's index starts empty, so a file the tree no longer has is
-          # staged as deleted. git never stages a path named .git.
+          # staged as deleted. --force, because the tree carries each
+          # template's own .gitignore, and a file bestax tracks can match one.
+          # The tree is already what git tracks, so no ignore rule filters it
+          # again. git never stages a path named .git.
           publish() { gitc --git-dir="$repo/.git" --work-tree="$tree" "$@"; }
-          publish add --all
+          publish add --all --force
           if publish diff --cached --quiet; then
             echo "allxsmith/bestax-templates already matches allxsmith/bestax@$SOURCE_SHA. Nothing to publish."
             exit 0

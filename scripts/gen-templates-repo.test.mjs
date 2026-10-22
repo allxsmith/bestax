@@ -9,7 +9,7 @@
  * as what git tracks. The last group holds .github/workflows/
  * templates-publish.yml to the generator, and runs its publish job's checks
  * on good and tampered archives, the way gen-skills-repo.test.mjs holds
- * skills-publish.yml.
+ * skills-publish.yml, and its push step's staging on a generated tree.
  */
 import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -666,4 +666,70 @@ test("publish's checks refuse a link, a .git or a missing root file", async () =
     assert.match(run.stdout, /::error::The tree from generate is refused/);
     assert.match(run.stdout, said, why);
   }
+});
+
+/**
+ * The lines of publish's push step that stage the tree: its git wrapper, the
+ * `publish` function and the add, as the step has them.
+ */
+function stagingScript() {
+  const lines = publishScript('Commit and push to allxsmith/bestax-templates')
+    .split('\n')
+    .map(line => line.trim());
+  return [/^gitc\(\) \{/, /^publish\(\) \{/, /^publish add\b/]
+    .map(re => {
+      const found = lines.filter(line => re.test(line));
+      assert.equal(found.length, 1, `the push step has one line like ${re}`);
+      return found[0];
+    })
+    .join('\n');
+}
+
+test("publish's push step stages every file in the tree, ignored or not", async () => {
+  // A template that tracks a file its own .gitignore matches. The tree
+  // carries both.
+  const repo = fixtureRepo();
+  const settings = 'templates/login/.vscode/settings.json';
+  write(repo, 'templates/login/.gitignore', 'node_modules\n.vscode/\n');
+  write(repo, settings, '{}\n');
+  git(repo, 'add', '--all');
+  git(repo, 'add', '--force', settings);
+  git(repo, 'check-ignore', '--quiet', '--no-index', settings);
+  const tree = path.join(tempDir(), 'tree');
+  const files = await generate(tree, repo);
+  assert.ok(files.includes('login/.vscode/settings.json'));
+
+  // A new repository, so the index starts empty as the clone's does, and
+  // git with no global or system config, as in the step. A rule in its
+  // info/exclude is one more that must not filter the tree.
+  const work = tempDir();
+  const env = {
+    PATH: process.env.PATH,
+    HOME: path.join(work, 'home'),
+    GIT_CONFIG_GLOBAL: '/dev/null',
+    GIT_CONFIG_NOSYSTEM: '1',
+    GIT_CEILING_DIRECTORIES: work,
+    repo: path.join(work, 'repo'),
+    tree,
+  };
+  fs.mkdirSync(env.HOME);
+  execFileSync('git', ['init', '--quiet', '--initial-branch=main', env.repo], {
+    env,
+  });
+  fs.mkdirSync(path.join(env.repo, '.git/info'), { recursive: true });
+  fs.appendFileSync(path.join(env.repo, '.git/info/exclude'), '*.sh\n');
+  const run = spawnSync(
+    'bash',
+    ['--noprofile', '--norc', '-euo', 'pipefail', '-c', stagingScript()],
+    { cwd: work, encoding: 'utf8', env }
+  );
+  assert.equal(run.status, 0, run.stdout + run.stderr);
+  const staged = execFileSync(
+    'git',
+    ['--git-dir', path.join(env.repo, '.git'), 'ls-files'],
+    { cwd: work, encoding: 'utf8', env }
+  )
+    .split('\n')
+    .filter(Boolean);
+  assert.deepEqual(staged.sort(), [...files].sort());
 });
