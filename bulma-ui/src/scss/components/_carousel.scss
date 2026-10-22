@@ -145,22 +145,15 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
       "carousel-items-to-show-desktop": #{cv.getVar("carousel-items-to-show-tablet")},
       "carousel-items-to-show-widescreen": #{cv.getVar("carousel-items-to-show-desktop")},
       "carousel-items-to-show-fullhd": #{cv.getVar("carousel-items-to-show-widescreen")},
-      // The count for the viewport the page is in, picked below with
-      // Bulma's breakpoint mixins. The item widths and the track's offset
-      // both read it.
-      "carousel-items-in-view": #{cv.getVar("carousel-items-to-show")},
+      // The count for the viewport the page is in, which the item widths and
+      // the track's offset both read. Bulma's breakpoint mixins below pick
+      // the tablet count and wider; every width they don't reach is mobile,
+      // as it is to the script. A `mobile` block of its own would leave out
+      // the fractional widths between Bulma's `mobile` query (up to 768px)
+      // and its `tablet` one (from 769px), where the two would disagree.
+      "carousel-items-in-view": #{cv.getVar("carousel-items-to-show-mobile")},
     )
   );
-}
-
-@include mx.mobile {
-  .#{iv.$class-prefix}carousel {
-    @include cv.register-vars(
-      (
-        "carousel-items-in-view": #{cv.getVar("carousel-items-to-show-mobile")},
-      )
-    );
-  }
 }
 
 @include mx.tablet {

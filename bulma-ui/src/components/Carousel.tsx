@@ -225,8 +225,8 @@ export interface CarouselProps
    */
   itemsToShow?: number;
   /**
-   * Items in view below Bulma's tablet breakpoint (up to 768px). Falls back
-   * to `itemsToShow`.
+   * Items in view at any width below Bulma's tablet breakpoint (769px),
+   * fractional ones included. Falls back to `itemsToShow`.
    */
   itemsToShowMobile?: number;
   /**

@@ -1478,6 +1478,19 @@ describe('Carousel with several items in view', () => {
       expect(inViewItems()).toEqual([0]);
     });
 
+    it('counts a fractional width between the mobile and tablet queries as mobile', () => {
+      // Neither Bulma's `max-width: 768px` nor its `min-width: 769px`
+      // matches here; the stylesheet reads it as mobile too
+      // (Carousel.styles.test.ts).
+      mockViewport(768.5);
+      render(
+        <Carousel itemsToShow={3} itemsToShowMobile={1} repeat={false}>
+          {itemsOf(6)}
+        </Carousel>
+      );
+      expect(inViewItems()).toEqual([0]);
+    });
+
     it('keeps the first item in view in view when the count changes', () => {
       const viewport = mockViewport(500);
       render(

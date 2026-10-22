@@ -138,7 +138,7 @@
           "name": "itemsToShowMobile",
           "type": "number",
           "default": null,
-          "description": "Items in view below Bulma's tablet breakpoint (up to 768px). Falls back to `itemsToShow`.",
+          "description": "Items in view at any width below Bulma's tablet breakpoint (769px), fractional ones included. Falls back to `itemsToShow`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -675,7 +675,7 @@
     {
       "css": "--bulma-carousel-items-in-view",
       "sass": null,
-      "default": "var(--bulma-carousel-items-to-show)",
+      "default": "var(--bulma-carousel-items-to-show-mobile)",
       "scope": "root"
     }
   ]
