@@ -81,7 +81,9 @@ export interface CheckboxProps
   /**
    * Additional CSS classes, on the outer `<label>`. That's the element that
    * declares the `--bulma-checkbox-*` variables, so a class is how to set
-   * one: `style` and the other input attributes go to the `<input>`.
+   * one: `style` and the other input attributes go to the `<input>`. Name
+   * `.styled-checkbox` beside your class in the selector, so it wins
+   * whatever order the stylesheets load in.
    */
   className?: string;
   /** The label/content for the checkbox. */
