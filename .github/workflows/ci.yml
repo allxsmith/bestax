@@ -17,6 +17,11 @@ jobs:
   build-and-test:
     name: Build and Test
     runs-on: ubuntu-latest
+    # Without a cap a job runs to GitHub's default timeout, and a stalled step
+    # holds the PR's checks pending, and review-converged with them, that long
+    # (#1219: `pnpm install` finished and never exited). A cap fails it in
+    # minutes, where a re-run of the failed job picks it up.
+    timeout-minutes: 45
 
     steps:
       - name: Checkout code
@@ -36,6 +41,8 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
+        # The step a slow registry stalls; the job's cap says why it has one.
+        timeout-minutes: 10
         run: pnpm install --frozen-lockfile
 
       # Fast, source-only check (no build deps) — fail early if the generated
@@ -172,6 +179,8 @@ jobs:
     # depends on a React-19-only API (or breaks React 18) fails CI.
     name: React ${{ matrix.react }} compatibility
     runs-on: ubuntu-latest
+    # Same reason as build-and-test's cap.
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -199,6 +208,8 @@ jobs:
         run: node .github/scripts/pin-react.mjs ${{ matrix.react }}
 
       - name: Install dependencies
+        # Same reason as build-and-test's install cap.
+        timeout-minutes: 10
         run: pnpm install --no-frozen-lockfile
 
       - name: Verify installed React major
