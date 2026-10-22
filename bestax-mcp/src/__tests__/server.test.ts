@@ -1088,17 +1088,66 @@ describe('lookup_bulma_classes', () => {
 
   it('says when a class is exact only on some tags', async () => {
     expect(await lookup('title is-4')).toContain(
-      '| `is-4` | `size="4"` | exact only on <h4> or <p> |'
+      '| `is-4` | `size="4"` | exact only on <h4> or <p>; on another tag, `textSize="4"` sizes it the same and keeps the tag |'
     );
-    // On an <h2>, size="4" would render an <h4>, so it stays a class.
-    expect(await lookup('title is-4', 'h2')).toMatch(
-      /\| `is-4` \| stays in `className` \|/
+    // On an <h2>, size="4" would render an <h4>, so it stays a class, and
+    // textSize, which keeps the <h2>, is the prop for it.
+    expect(await lookup('title is-4', 'h2')).toContain(
+      '| `is-4` | stays in `className` | bestax `Title` renders it exactly only on <h4> or <p>; on this <h2>, write `textSize="4"` in its place, which sizes it the same and keeps the <h2> |'
+    );
+    expect(await lookup('subtitle is-6', 'h1')).toContain(
+      'on this <h1>, write `textSize="6"` in its place'
+    );
+    // Title can't render a <div>, so the lookup says to change the tag, and
+    // on an <h4> or a <p> the class converts: no textSize to suggest.
+    const onDiv = await lookup('title is-4', 'div');
+    expect(onDiv).toContain('not a <div>');
+    expect(onDiv).not.toContain('keeps the <div>');
+    expect(onDiv).not.toContain('textSize="4"');
+  });
+
+  it('defers to a size helper that writes textSize already', async () => {
+    // `is-size-2` wins, being `!important`, so `textSize="4"` would change it.
+    const onTag = await lookup('title is-4 is-size-2', 'h2');
+    expect(onTag).toContain(
+      '| `is-4` | stays in `className` | bestax `Title` renders it exactly only on <h4> or <p>; `textSize` is written by `is-size-2` already, so this class is the one that stays |'
+    );
+    expect(onTag).toContain('| `is-size-2` | `textSize="2"` |');
+    expect(onTag).not.toContain('textSize="4"');
+    // With no tag, the row converts it, so the stay is only for another tag.
+    expect(await lookup('title is-4 is-size-2')).toContain(
+      '| `is-4` | `size="4"` | exact only on <h4> or <p>; on another tag, `textSize` is written by `is-size-2` already, so this class is the one that stays |'
+    );
+    // A size for one viewport writes another prop, so the note stands.
+    expect(await lookup('title is-4 is-size-2-mobile', 'h2')).toContain(
+      'on this <h2>, write `textSize="4"` in its place'
     );
   });
 
   it('says when the component cannot render the tag', async () => {
     expect(await lookup('section', 'div')).toContain(
       '`Section` renders only <section>, not a <div>'
+    );
+  });
+
+  it("says another component's class stays a class, which component won and why", async () => {
+    expect(await lookup('columns box', 'div')).toContain(
+      "| `box` | stays in `className` | bestax `Box`'s class too, and an element converts to one component: `Columns` here, since the codemod ranks `.columns` first, putting layout and parts ahead of surfaces; to use `Box`, give it an element of its own around or inside this one |"
+    );
+    // A component that renders the tag wins over one ranked ahead of it.
+    const image = await lookup('image is-128x128 container', 'figure');
+    expect(image).toContain('**Component:** `Image` with `as="figure"`.');
+    expect(image).toContain(
+      '`Image` here, since `Container` renders <div>, <main>, <section>, <article>, <aside>, <header>, <footer> or <nav> through `as`, not a <figure>; where it is only there to center this element, `mx="auto"` centers it'
+    );
+    expect(await lookup('image is-128x128 container', 'div')).toContain(
+      '**Component:** `Container`.'
+    );
+    // And one whose own tag it is wins over one that reaches it through `as`.
+    const hero = await lookup('container hero is-primary', 'section');
+    expect(hero).toContain('**Component:** `Hero`.');
+    expect(hero).toContain(
+      "`Hero` here, since a <section> is `Hero`'s own element, and `Container` renders one only through `as`"
     );
   });
 
@@ -1122,6 +1171,25 @@ describe('lookup_bulma_classes', () => {
       '| `is-empty` | rendered by `File` | with no `.file-name` in the tree; beside one it stays in `className` |'
     );
     expect(out).not.toMatch(/\| `is-empty` \| stays in `className` \|/);
+  });
+
+  it('writes a layout value with the class it renders beside, and only then', async () => {
+    const out = await lookup('field has-addons has-addons-centered', 'div');
+    expect(out).toContain(
+      '| `has-addons-centered` | `hasAddons="centered"` | beside `has-addons`, which it renders too |'
+    );
+    expect(out).toContain(
+      '| `has-addons` | rendered by `Field` | from `hasAddons="centered"`, which `has-addons-centered` sets |'
+    );
+    expect(await lookup('field is-grouped-right', 'div')).toContain(
+      '| `is-grouped-right` | stays in `className` | `grouped="right"` renders `is-grouped` too, so it converts only beside that class |'
+    );
+    // A second layout for the prop stays, as a second size does.
+    expect(
+      await lookup('field is-grouped is-grouped-multiline is-grouped-right')
+    ).toContain(
+      '| `is-grouped-right` | stays in `className` | `grouped` is already set by `is-grouped-multiline` |'
+    );
   });
 
   it('writes a prop typed as a number as a number', async () => {
@@ -1158,7 +1226,7 @@ describe('lookup_bulma_classes', () => {
   it('says when a component renders the element inside it', async () => {
     const select = await lookup('select is-multiple is-small', 'div');
     expect(select).toContain(
-      "It renders the <select> inside it itself, and puts the attributes it is given on that <select>: write the <select>'s attributes and children on `SelectBase` in its place, and nothing on this element but a `key`. On the <select>, `is-hovered` becomes `isHovered`, `is-focused` becomes `isFocused` and `size` becomes `multipleSize` (beside `multiple`)."
+      "It renders the <select> inside it itself, and puts the attributes it is given on that <select>: write the <select>'s attributes and children on `SelectBase` in its place, and nothing on this element but a `key`. On the <select>, `is-hovered` becomes `isHovered`, `is-focused` becomes `isFocused` and `size` becomes `multipleSize` (beside `multiple`). It renders no <label>: one beside the <select> goes on `Select` instead, as its `label` with its classes in `labelProps`, and `Select` renders a `Field` and a `Control` around it. Inside a `Field` it drops that `label`, and inside a bare `Control` it nests the label's `.field` there, so in either move the <label> out beside this element, pointing at the <select>'s `id`, or give the <select> an `aria-label`."
     );
     expect(select).toContain(
       '| `is-multiple` | `multiple` | with a bare `multiple` on the <select> inside, which it renders |'
@@ -1172,7 +1240,21 @@ describe('lookup_bulma_classes', () => {
     );
     expect(image).toContain('| `is-64x64` | `size="64x64"` |');
     expect(image).toContain(
-      '| `is-4by3` | stays in `className` | `size` renders `has-ratio` beside it as well |'
+      '| `is-4by3` | stays in `className` | `size` is already set by `is-64x64` |'
+    );
+    // A ratio puts `Image` on a <figure> with no `as`, so only another tag
+    // keeps one.
+    const ratio = await lookup('image is-4by3', 'figure');
+    expect(ratio).toContain('**Component:** `Image`.');
+    expect(ratio).toContain('| `is-4by3` | `size="4by3"` |');
+    expect(await lookup('image is-4by3', 'div')).toContain(
+      '**Component:** `Image` with `as="div"`.'
+    );
+    expect(await lookup('image is-4by3')).toContain(
+      '(renders <figure> with these classes, or <div>, <figure> or <p> through `as`)'
+    );
+    expect(await lookup('image is-4by3', 'span')).toContain(
+      '`Image` renders <figure> with these classes, or <div>, <figure> or <p> through `as`, not a <span>'
     );
     expect(await lookup('card', 'div')).not.toContain('inside it itself');
   });
@@ -1968,13 +2050,25 @@ describe("lookup_bulma_classes on classes Bulma v1 doesn't have", () => {
     "not a Bulma 1 class: Bulma 1's stylesheet has no rule for it.";
 
   it('says a Bulma 0.9 class v1 removed was removed', async () => {
-    expect(await lookup('section is-paddingless')).toContain(
-      `| \`is-paddingless\` | stays in \`className\` | ${REMOVED}`
+    expect(await lookup('columns is-variable is-2')).toContain(
+      `| \`is-variable\` | stays in \`className\` | ${REMOVED}`
     );
     // Beside a family converted by hand too, rather than "converted with it".
-    expect(await lookup('message is-marginless')).toContain(
-      `| \`is-marginless\` | stays in \`className\` | ${REMOVED}`
+    expect(await lookup('message heading')).toContain(
+      `| \`heading\` | stays in \`className\` | ${REMOVED}`
     );
+  });
+
+  it('converts a removed helper as the v1 one, and says what replaced it where it stays', async () => {
+    expect(await lookup('section is-paddingless')).toContain(
+      '| `is-paddingless` | `p="0"` | Bulma 1 removed `is-paddingless`, so this renders its v1 class, `p-0`, in its place |'
+    );
+    // Beside a family, and beside a class that already wrote the prop.
+    for (const classes of ['message is-marginless', 'box m-2 is-marginless']) {
+      expect(await lookup(classes)).toContain(
+        '| `is-marginless` | stays in `className` | Bulma v1 removed `is-marginless`'
+      );
+    }
   });
 
   it('says a class Bulma 1 has no rule for is none of its, and claims nothing of 0.9', async () => {

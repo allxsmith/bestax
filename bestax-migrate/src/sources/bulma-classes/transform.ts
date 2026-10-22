@@ -5,7 +5,8 @@
  * scope when a lowercase JSX element carries a `className` with a Bulma class
  * `class-map.ts` knows. Each such element goes through `plan()`, which
  * converts it only when the component renders exactly the same markup, but
- * for the one exception it states (Font Awesome's hidden `<i>`).
+ * for the exceptions it states (Font Awesome's hidden `<i>`, and a Bulma 0.9
+ * helper v1 removed).
  *
  * Passes, in order:
  *   1. the shared stylesheet-import pass (a no-op under the default `keep`)
@@ -811,18 +812,31 @@ function childFacts(child: any): ChildFacts | undefined {
   };
 }
 
+/** A space React renders between elements: blank text, or `{" "}`. */
+function space(child: any): boolean {
+  const blank = (text: string) => /^[ \t\n\r]*$/.test(text);
+  if (child.type === 'JSXText') return blank(child.value);
+  return (
+    child.type === 'JSXExpressionContainer' &&
+    child.expression?.type === 'StringLiteral' &&
+    blank(child.expression.value)
+  );
+}
+
 /**
  * An element's children as plain HTML elements, when that is every one
- * React renders; undefined when one is anything else. `more` adds what else
- * is known of each.
+ * React renders but what `skip` passes over (whitespace React drops);
+ * undefined when one is anything else. `more` adds what else is known of
+ * each.
  */
 function childElementsOf(
   element: any,
-  more: (child: any) => Partial<ChildFacts> = () => ({})
+  more: (child: any) => Partial<ChildFacts> = () => ({}),
+  skip: (child: any) => boolean = dropped
 ): ChildFacts[] | undefined {
   const children: ChildFacts[] = [];
   for (const child of element.children ?? []) {
-    if (dropped(child)) continue;
+    if (skip(child)) continue;
     const found = child.type === 'JSXElement' ? childFacts(child) : undefined;
     if (!found) return undefined;
     children.push({ ...found, ...more(child) });
@@ -1077,6 +1091,19 @@ function onlyChildOf(
     ? name
     : undefined;
 }
+
+/**
+ * The rules of the gates that leave a whole file alone. Their TODO is about
+ * the file, though it sits on the first element that would convert, so no
+ * line of the file is where it came from.
+ */
+export const FILE_RULES = [
+  'jsx-runtime',
+  'imports',
+  'styled-jsx',
+  'rsc',
+] as const;
+type FileRule = (typeof FILE_RULES)[number];
 
 export default function transform(
   fileInfo: FileInfo,
@@ -1462,6 +1489,16 @@ export default function transform(
     const className = classAttr ? staticClassName(classAttr) : '';
     const surrounding = around(elementPath);
     const sole = soleChild(element);
+    const childElements = childElementsOf(element, readChild);
+    const spaced = childElements
+      ? undefined
+      : childElementsOf(element, undefined, space);
+    // A joiner call the codemod can read converts exactly: its fixed classes
+    // as for a static className, and each condition on a flag as its prop.
+    const joined =
+      className === null
+        ? readJoiner(classAttr.value, callee => isJoiner(callee, elementPath))
+        : undefined;
     const facts: ElementFacts = {
       tag: name.name,
       tokens:
@@ -1475,7 +1512,8 @@ export default function transform(
       childTargets: childTargets(elementPath),
       soleChildTarget: planned.get(sole)?.conversion?.target,
       soleChild: sole && childFacts(sole),
-      childElements: childElementsOf(element, readChild),
+      childElements,
+      ...(spaced && { spacedElements: spaced }),
       bestaxInside: bestaxInside.get(element) ?? [],
       bestaxAround: surrounding.bestax,
       componentsAround: surrounding.other,
@@ -1488,16 +1526,13 @@ export default function transform(
         holderOnlyChildOf: onlyChildOf(elementPath.parent, bestaxLocals),
       }),
       ...(textOf(element) !== undefined && { text: textOf(element) }),
+      // Any other computed className may carry classes its strings don't
+      // show (a variable, a call).
+      ...(className === null && !joined && { unreadClasses: true }),
     };
     if (facts.tokens.some(token => rootFor(token)?.readsGlyph)) {
       Object.assign(facts, glyphPlace(elementPath));
     }
-    // A joiner call the codemod can read converts exactly: its fixed classes
-    // as for a static className, and each condition on a flag as its prop.
-    const joined =
-      className === null
-        ? readJoiner(classAttr.value, callee => isJoiner(callee, elementPath))
-        : undefined;
     let exact: Plan | undefined;
     if (joined) {
       exact = plan({
@@ -1624,7 +1659,7 @@ export default function transform(
   // A gate speaks only when an element would convert: its TODO says what to
   // change so a re-run converts them, which is noise when a re-run could not.
   const converting = elements.some(element => element.converts);
-  const block = (rule: string, message: string): void => {
+  const block = (rule: FileRule, message: string): void => {
     if (converting) addTodo(ctx, elements[0].path, rule, message);
     for (const element of elements) {
       element.plan = { ...element.plan, conversion: null, fold: undefined };

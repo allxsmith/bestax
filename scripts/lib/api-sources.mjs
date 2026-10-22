@@ -196,7 +196,10 @@ export const SCSS_SOURCES = {
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_loading.scss' },
   ],
   Media: [{ pkg: 'bulma', path: 'sass/layout/media.scss' }],
-  Menu: [{ pkg: 'bulma', path: 'sass/components/menu.scss' }],
+  Menu: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_menu.scss' },
+    { pkg: 'bulma', path: 'sass/components/menu.scss' },
+  ],
   Message: [{ pkg: 'bulma', path: 'sass/components/message.scss' }],
   Modal: [{ pkg: 'bulma', path: 'sass/components/modal.scss' }],
   Navbar: [{ pkg: 'bulma', path: 'sass/components/navbar.scss' }],

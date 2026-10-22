@@ -14,12 +14,16 @@
  * tests assert only that what DOES convert is identical, plus that every
  * table entry converts somewhere, so no row is dead.
  *
- * One conversion is compared another way, on purpose: Font Awesome's own
- * `<i aria-hidden="true">` alone in a `.icon` that carries nothing assistive
- * tech reads becomes `Icon`, which writes the attribute on the `.icon`
- * instead. Where the planner says so
- * (`movesHidden`), both sides go through `support/hidden-glyph.ts`, which
- * moves it up in exactly that shape and leaves every other one as it is.
+ * These conversions are compared another way, on purpose:
+ *   - Font Awesome's own `<i aria-hidden="true">` alone in a `.icon` that
+ *     carries nothing assistive tech reads becomes `Icon`, which writes the
+ *     attribute on the `.icon` instead. Where the planner says so
+ *     (`movesHidden`), both sides go through `support/hidden-glyph.ts`, which
+ *     moves it up in exactly that shape and leaves every other one as it is.
+ *   - A Bulma 0.9 class v1 removed styles nothing under v1, and converts as
+ *     the v1 helper that does its job (`is-marginless` as `m="0"`, which
+ *     renders `m-0`), so the raw side has that class restated where the
+ *     conversion wrote it (`withV1Classes`).
  */
 
 import fs from 'node:fs';
@@ -31,7 +35,11 @@ import {
   inTagSet,
   numberAttrsOf,
   PLACED,
+  PRECEDENCE,
+  reachesTag,
+  REPLACED_IN_V1,
   ROOTS,
+  tagFit,
   WRAPPERS,
   WRAPPER_OWN_PROPS,
   type RootEntry,
@@ -43,6 +51,10 @@ import {
   type ChildFacts,
   type ElementFacts,
 } from '../src/sources/bulma-classes/plan.js';
+import {
+  bulmaStylesheet,
+  stylesheetRules,
+} from './support/bulma-stylesheet.js';
 import {
   fileChildren,
   fileProps,
@@ -63,6 +75,7 @@ import {
   normalizeHtml,
   renderElement,
   withImplicitListRoles,
+  withV1Classes,
 } from './support/render-module.js';
 
 const repoRoot = path.join(
@@ -302,16 +315,17 @@ function renderBoth(
       )
     : renderElement(target, convertedProps, convertedChildren);
   const html = normalizeHtml(converted);
-  // The one difference a conversion makes on purpose, compared as it is
-  // meant: only where the planner says the `aria-hidden` moved up, for the
-  // element or for an icon it builds.
+  // The differences a conversion makes on purpose, each compared as it is
+  // meant: a removed 0.9 class as the v1 class written in its place, and
+  // Font Awesome's `aria-hidden` only where the planner says it moved up,
+  // for the element or for an icon it builds.
   const moves =
     result.conversion.movesHidden ||
     facts.childElements?.some(child => child.becomes?.movesHidden);
   const compared = (markup: string) =>
     moves ? moveGlyphHidden(markup) : markup;
   return {
-    raw: compared(withImplicitListRoles(raw, html)),
+    raw: compared(withImplicitListRoles(withV1Classes(raw, html), html)),
     converted: compared(html),
   };
 }
@@ -442,6 +456,15 @@ describe.each(mapped)('`.%s`', (root, entry) => {
     const candidates = [
       [root],
       ...Object.keys(entry.modifiers ?? {}).map(token => [root, token]),
+      // A class that converts only beside another, with it, either way round.
+      ...Object.entries(entry.modifiers ?? {}).flatMap(([token, modifier]) =>
+        modifier.beside
+          ? [
+              [root, modifier.beside, token],
+              [root, token, modifier.beside],
+            ]
+          : []
+      ),
       // A class left out on purpose stays in `className`, beside the rest.
       ...Object.keys(entry.omits ?? {}).map(token => [root, token]),
       ...[...HELPER_TOKENS.keys()].map(token => [root, token]),
@@ -1626,6 +1649,116 @@ describe('wrappers', () => {
 });
 
 /**
+ * A Bulma 0.9 helper v1 removed styles nothing under v1, so the one class a
+ * conversion changes on purpose is that one, into the v1 class that does its
+ * job. The sweeps above compare them with that class restated; this holds
+ * the restating to doing something, and to that class alone.
+ */
+describe.each(Object.entries(REPLACED_IN_V1))(
+  'the removed `%s`',
+  (token, v1) => {
+    it(`renders \`${v1}\` wherever its element converts`, () => {
+      for (const [tag, tokens] of [
+        ['p', [token]],
+        ['p', [token, 'my-app-class']],
+        ['div', ['box', token]],
+        ['section', ['section', token]],
+      ] as Array<[string, string[]]>) {
+        const both = renderBoth(factsFor(tag, tokens));
+        expect({ tokens, converts: both !== null }).toEqual({
+          tokens,
+          converts: true,
+        });
+        expect(both!.converted).toContain(v1);
+        expect(both!.converted).not.toContain(token);
+        expect({ tokens, html: both!.converted }).toEqual({
+          tokens,
+          html: both!.raw,
+        });
+      }
+    });
+
+    it('converts exactly as the v1 class does, on every root', () => {
+      expect(HELPER_TOKENS.get(token)).toEqual(HELPER_TOKENS.get(v1));
+      for (const [root, entry] of mapped) {
+        const as = (helper: string) =>
+          plan(
+            factsFor(entry.tag!, [root, helper], defaultsFor(entry, entry.tag!))
+          ).conversion;
+        const old = as(token);
+        const now = as(v1);
+        expect({
+          root,
+          props: old?.props ?? null,
+          stays: old?.className?.includes(token) ?? null,
+        }).toEqual({
+          root,
+          props: now?.props ?? null,
+          stays: now?.className?.includes(v1) ?? null,
+        });
+      }
+    });
+
+    // A live class is what the page renders today, so it keeps the prop
+    // whichever comes first; one for another prop (an axis, a side) leaves
+    // it free, and both render.
+    const prop = HELPER_TOKENS.get(v1)!.write.prop;
+    const spacing = [...HELPER_TOKENS].filter(
+      ([other, helper]) =>
+        helper.group === 'spacing' && !Object.hasOwn(REPLACED_IN_V1, other)
+    );
+
+    it('stays a class beside a live class for its prop, in either order', () => {
+      const live = spacing.filter(([, helper]) => helper.write.prop === prop);
+      expect(live.length).toBeGreaterThan(0);
+      for (const [other] of live) {
+        for (const tokens of [
+          ['box', token, other],
+          ['box', other, token],
+        ]) {
+          const result = plan(factsFor('div', tokens));
+          expect({
+            tokens,
+            kept: result.conversion?.className?.split(' ') ?? null,
+            todos: result.todos.map(todo => todo.rule),
+          }).toEqual({ tokens, kept: [token], todos: [`legacy:${token}`] });
+          const both = renderBoth(factsFor('div', tokens));
+          expect({ tokens, html: both!.converted }).toEqual({
+            tokens,
+            html: both!.raw,
+          });
+        }
+      }
+    });
+
+    it('converts beside a class for another spacing prop, in either order', () => {
+      const others = spacing.filter(
+        ([, helper]) =>
+          helper.write.prop !== prop && helper.write.prop[0] === prop
+      );
+      expect(others.length).toBeGreaterThan(0);
+      for (const [other] of others) {
+        for (const tokens of [
+          ['box', token, other],
+          ['box', other, token],
+        ]) {
+          const both = renderBoth(factsFor('div', tokens));
+          expect({ tokens, converts: both !== null }).toEqual({
+            tokens,
+            converts: true,
+          });
+          expect(both!.converted).not.toContain(token);
+          expect({ tokens, html: both!.converted }).toEqual({
+            tokens,
+            html: both!.raw,
+          });
+        }
+      }
+    });
+  }
+);
+
+/**
  * Helpers whose props render differently beside each other than alone: a
  * `gap` drops `gapless`, a `pos` drops `relative`, and an axis overflow
  * writes both axes per axis. Every ordered pair from those families, and
@@ -1936,6 +2069,22 @@ describe("the table's claims about the library", () => {
     ...Object.values(WRAPPERS),
   ];
 
+  it('renders each root on every tag one of its classes picks', () => {
+    // `tagsFor` is every tag this file renders a root on, so a tag a class
+    // picks with no `as` (`Image`'s ratio on a <figure>) is held to the
+    // markup only as one of them, whatever the root's `as` reaches.
+    const missed = mapped.flatMap(([root, entry]) =>
+      Object.entries(entry.modifiers ?? {})
+        .filter(
+          ([, modifier]) =>
+            modifier.rendersTag !== undefined &&
+            !tagsFor(entry).includes(modifier.rendersTag)
+        )
+        .map(([token]) => `${root} ${token}`)
+    );
+    expect(missed).toEqual([]);
+  });
+
   it('names every spelling of each component whose context a root provides', () => {
     // A component reaches a file under its export and under each part name
     // it is attached as (`TabContentItem`, `TabsContent.Item`,
@@ -1977,6 +2126,49 @@ describe("the table's claims about the library", () => {
         readBy: [...every].sort(),
       });
     }
+  });
+
+  it('sizes an element the same with the prop a size class names off its tags, keeping the tag', () => {
+    // `offTag`: off `tagIn` the class stays, and the MCP lookup says the prop
+    // sizes the element the same, with a class Bulma gives the same font size.
+    const rules = stylesheetRules(bulmaStylesheet());
+    const fontSize = (selector: string) =>
+      rules
+        .filter(rule => !rule.conditional && rule.selector === selector)
+        .map(rule => /font-size:\s*([^;!]+)/.exec(rule.body)?.[1].trim())
+        .find(size => size !== undefined) ?? `<no font size for ${selector}>`;
+    let checked = 0;
+    for (const [root, entry] of mapped) {
+      for (const [token, modifier] of Object.entries(entry.modifiers ?? {})) {
+        const off = modifier.offTag;
+        if (!off) continue;
+        checked++;
+        const helper = [...HELPER_TOKENS].find(
+          ([, { write }]) =>
+            write.prop === off.prop && write.value === off.value
+        )?.[0];
+        expect({ token, size: fontSize(`.${helper}`) }).toEqual({
+          token,
+          size: fontSize(`.${root}.${token}`),
+        });
+        const offTags = (entry.as as string[]).filter(
+          tag => !modifier.tagIn!.includes(tag)
+        );
+        expect(offTags.length).toBeGreaterThan(0);
+        for (const tag of offTags) {
+          expect(
+            normalizeHtml(
+              renderElement(
+                entry.target!,
+                { as: tag, [off.prop]: off.value },
+                'x'
+              )
+            )
+          ).toBe(normalizeHtml(`<${tag} class="${root} ${helper}">x</${tag}>`));
+        }
+      }
+    }
+    expect(checked).toBeGreaterThan(0);
   });
 
   it('names exactly the targets that forward refs', () => {
@@ -2085,6 +2277,81 @@ describe("the table's claims about the library", () => {
         }
       }
     }
+  });
+});
+
+describe('an element carrying a second root', () => {
+  // The roots an element most often carries beside another one.
+  const seconds = [
+    'box',
+    'block',
+    'content',
+    'notification',
+    'container',
+    'section',
+    'columns',
+    'column',
+    'image',
+  ];
+
+  it('converts to the root that fits its tag best, and renders the same', () => {
+    const lostOnTag: string[] = [];
+    const worseFit: string[] = [];
+    let conversions = 0;
+    for (const [root, entry] of mapped) {
+      for (const second of seconds) {
+        if (second === root) continue;
+        const other = ROOTS[second];
+        const child = childFor(entry);
+        // An element holds the child one of them renders itself, or the part
+        // one of them wraps its children unless it holds, never both, and a
+        // void one holds nothing.
+        if (other.absorbs && (entry.absorbs || child)) continue;
+        // Each one's own tag, and the ones the second reaches through `as`.
+        const tags = new Set([entry.tag!, ...tagsFor(other)]);
+        for (const tag of tags) {
+          if (VOID.has(tag)) continue;
+          const given = {
+            ...defaultsFor(other, tag),
+            ...defaultsFor(entry, tag),
+          };
+          // The order decides only between two roots the table doesn't rank.
+          for (const tokens of PRECEDENCE.includes(root)
+            ? [[root, second]]
+            : [
+                [root, second],
+                [second, root],
+              ]) {
+            const facts = factsFor(tag, tokens, given, child);
+            const planned = plan(facts);
+            const refused = planned.todos.some(todo =>
+              todo.rule.startsWith('tag:')
+            );
+            if (refused && (reachesTag(entry, tag) || reachesTag(other, tag))) {
+              lostOnTag.push(`<${tag} className="${tokens.join(' ')}">`);
+            }
+            // Its own tag before one `as` reaches, before none.
+            const won = planned.conversion?.target;
+            const [winner, loser] =
+              won === other.target ? [other, entry] : [entry, other];
+            if (won && tagFit(winner, tag) < tagFit(loser, tag)) {
+              worseFit.push(`<${tag} className="${tokens.join(' ')}">`);
+            }
+            const both = renderBoth(facts, given, child);
+            if (!both) continue;
+            conversions += 1;
+            expect({ tag, tokens, html: both.converted }).toEqual({
+              tag,
+              tokens,
+              html: both.raw,
+            });
+          }
+        }
+      }
+    }
+    expect(lostOnTag).toEqual([]);
+    expect(worseFit).toEqual([]);
+    expect(conversions).toBeGreaterThan(500);
   });
 });
 

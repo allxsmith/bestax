@@ -46,8 +46,11 @@ export function Absorbed({
         <img src={thumb} alt="" />
       </p>
       <figure className="image is-4by3">
-        <img src="/photo.jpg" alt="A ratio stays a class" />
+        <img src="/photo.jpg" alt="A ratio on the figure Image renders for it" />
       </figure>
+      <div className="image is-3by2">
+        <img src="/wide.jpg" alt="A ratio on a div keeps it through as" />
+      </div>
       <figure className="image is-48x48">
         <img src="/lazy.png" alt="Another attribute keeps the img" loading="lazy" />
       </figure>

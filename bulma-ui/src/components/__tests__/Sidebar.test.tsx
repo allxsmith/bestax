@@ -606,6 +606,65 @@ describe('Sidebar', () => {
       expect(last).toHaveFocus();
     });
 
+    it('keeps holding Tab once a portalContainer selector that matched nothing starts matching', () => {
+      // The selector puts the sidebar in document.body until it matches. The
+      // render after the target appears moves the sidebar there, remounting
+      // its nodes while every prop stays the same.
+      const ui = () => (
+        <ConfigProvider portalContainer="#late-sidebar-target">
+          <Sidebar isOpen onClose={() => {}} aria-label="Filters">
+            <button type="button">First</button>
+            <button type="button">Last</button>
+          </Sidebar>
+        </ConfigProvider>
+      );
+      const { rerender } = render(ui());
+      const target = document.createElement('div');
+      target.id = 'late-sidebar-target';
+      document.body.appendChild(target);
+      try {
+        rerender(ui());
+        const last = screen.getByText('Last');
+        expect(target).toContainElement(last);
+        act(() => last.focus());
+
+        expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(false);
+        expect(screen.getByText('First')).toHaveFocus();
+      } finally {
+        target.remove();
+      }
+    });
+
+    it('passes over an <object> that refuses focus, on open and when Tab comes in from outside', () => {
+      // Browsers won't focus an <object> with nothing to show (#1211), and
+      // jsdom can't tell, so focus() on one does nothing here.
+      const objectFocus = jest
+        .spyOn(HTMLObjectElement.prototype, 'focus')
+        .mockImplementation(() => {});
+      const outside = document.createElement('button');
+      document.body.appendChild(outside);
+      try {
+        render(
+          <Sidebar isOpen onClose={() => {}} aria-label="Preview">
+            <object data="missing.pdf" type="application/pdf">
+              Preview unavailable
+            </object>
+            <button type="button">First</button>
+            <button type="button">Last</button>
+          </Sidebar>
+        );
+        const first = screen.getByText('First');
+        expect(first).toHaveFocus();
+
+        act(() => outside.focus());
+        expect(fireEvent.keyDown(outside, { key: 'Tab' })).toBe(false);
+        expect(first).toHaveFocus();
+      } finally {
+        outside.remove();
+        objectFocus.mockRestore();
+      }
+    });
+
     it('holds Tab in the topmost sidebar only', () => {
       render(
         <>

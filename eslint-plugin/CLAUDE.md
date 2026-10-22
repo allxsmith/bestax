@@ -183,7 +183,11 @@ plugin. The same file runs the `recommended` preset, as shipped, over every
 jsx and tsx example under `docs/docs` and `skills`, synthesising the import
 for the library names a fence leaves unbound. The guide's wrong-on-purpose
 fences opt out of that with `nolint`, and the verdict check still holds each
-marked line in them. The autofix is pinned with
+marked line in them. `no-bulma-component-class`'s "converts" message is
+held to the codemod the same way, by
+`scripts/eslint-plugin-codemod-output.test.mjs`, which lints bestax-migrate's
+own output and fails on an element the rule says converts that the codemod
+left with no TODO. The autofix is pinned with
 `output`, and `output: null` asserts that no fix is offered — which is the
 assertion for a deprecation with no replacement, and for a rename onto a prop
 the element already sets.

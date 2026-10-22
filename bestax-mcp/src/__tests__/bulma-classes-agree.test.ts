@@ -23,6 +23,7 @@ import {
   PLACED,
   ROOTS,
   WRAPPERS,
+  type RootEntry,
 } from '../../../bestax-migrate/src/sources/bulma-classes/class-map.js';
 import {
   plan,
@@ -334,6 +335,8 @@ const others = [
   'box',
   'column',
   'is-disabled',
+  'marginless',
+  'is-64x64',
   'has-text-primary-dark',
   'is-12-touch',
   'toString',
@@ -387,6 +390,26 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
     expect(compare(cases)).toEqual([]);
   });
 
+  it('on each modifier that converts only beside another, with and without it', () => {
+    const cases = mapped.flatMap(([root, entry]) =>
+      Object.entries(entry.modifiers).flatMap(([token, { beside }]) => {
+        if (!beside) return [];
+        const siblings = Object.entries(entry.modifiers)
+          .filter(([other, modifier]) => other !== token && modifier.beside)
+          .map(([other]) => other);
+        return [
+          [root, token],
+          [root, beside, token],
+          [root, token, beside],
+          // Two values for one prop: the first keeps it.
+          ...siblings.map(other => [root, beside, token, other]),
+        ].map(tokens => [entry.tag!, tokens] as [string, string[]]);
+      })
+    );
+    expect(cases.length).toBeGreaterThan(0);
+    expect(compare(cases)).toEqual([]);
+  });
+
   it('on each root with each helper, and on the plain tags bestax wraps', () => {
     const cases: Array<[string, string[]]> = [];
     for (const [root, entry] of mapped) {
@@ -423,6 +446,63 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
     );
   });
 
+  it("on each root beside another root, on each one's tags", () => {
+    const seconds = ['box', 'content', 'container', 'columns', 'image'];
+    const cases = mapped.flatMap(([root, entry]) =>
+      seconds
+        // The planner is given one element inside, so not the <img> of an
+        // `.image` beside a root that reads the element inside it too.
+        .filter(
+          second =>
+            second !== root &&
+            !(
+              table.roots[second].absorbs &&
+              (entry.absorbs || entry.readsGlyph)
+            )
+        )
+        .flatMap(second => {
+          const other = table.roots[second];
+          const tags = new Set([
+            entry.tag!,
+            other.tag!,
+            ...(Array.isArray(other.as) ? other.as : []),
+          ]);
+          return [...tags].flatMap(tag => [
+            [tag, [root, second]] as [string, string[]],
+            [tag, [second, root]] as [string, string[]],
+          ]);
+        })
+    );
+    expect(cases.length).toBeGreaterThan(400);
+    expect(compare(cases)).toEqual([]);
+  });
+
+  it('on a removed helper beside a class for its prop or another, in either order', () => {
+    const cases: Array<[string, string[]]> = [];
+    for (const [token, v1] of Object.entries(table.replaced)) {
+      const prop = table.helpers[v1].write.prop;
+      const besides = Object.entries(table.helpers)
+        .filter(
+          ([other, helper]) =>
+            helper.group === 'spacing' &&
+            !Object.hasOwn(table.replaced, other) &&
+            helper.write.prop.startsWith(prop)
+        )
+        .map(([other]) => other);
+      for (const other of besides) {
+        for (const pair of [
+          [token, other],
+          [other, token],
+        ]) {
+          cases.push(['p', pair], ['div', ['box', ...pair]]);
+        }
+      }
+      cases.push(['div', ['table-container', token]]);
+    }
+    expect(cases.length).toBeGreaterThan(100);
+    expect(compare(cases)).toEqual([]);
+  });
+
   // With no tag, the lookup answers for the tag the component renders on its
   // own. The planner needs a tag, so it runs on that one: a heading's on <p>,
   // where its size is exact, and classes with no root on <p>, whose
@@ -456,6 +536,87 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
       ['div', ['file', 'is-empty']],
     ];
     expect(compare(cases)).toEqual([]);
+  });
+
+  it('on a root with two classes that each pick its tag, in either order', () => {
+    // No root has two classes that pick a tag through different props, so
+    // this one is made up, on both sides: the planner's table and the
+    // lookup's. Whichever comes first converts, and the other stays a class.
+    const modifiers = {
+      'is-a': { writes: [{ prop: 'a' }], rendersTag: 'section' },
+      'is-b': { writes: [{ prop: 'b' }], rendersTag: 'aside' },
+    };
+    const as = ['div', 'section', 'aside'];
+    const roots = ROOTS as Record<string, RootEntry>;
+    roots['x-retag'] = {
+      status: 'mapped',
+      target: 'X',
+      tag: 'div',
+      as,
+      modifiers,
+      ownProps: ['as', 'a', 'b'],
+    };
+    table.roots['x-retag'] = {
+      ...table.roots.box,
+      target: 'X',
+      as,
+      modifiers,
+    };
+    try {
+      const cases = as.flatMap((tag): Array<[string, string[]]> => [
+        [tag, ['x-retag', 'is-a', 'is-b']],
+        [tag, ['x-retag', 'is-b', 'is-a']],
+      ]);
+      expect(compare(cases)).toEqual([]);
+      expect(looked('section', ['x-retag', 'is-a', 'is-b'])).toMatchObject({
+        as: undefined,
+        className: ['is-b'],
+      });
+    } finally {
+      delete roots['x-retag'];
+      delete table.roots['x-retag'];
+    }
+  });
+
+  it('names the tag a class picks on a root that reaches any tag through `as`', () => {
+    // No root that reaches any tag has a class that picks one, so this one is
+    // made up, on both sides, as above.
+    const modifiers = {
+      'is-a': { writes: [{ prop: 'a' }], rendersTag: 'figure' },
+    };
+    const roots = ROOTS as Record<string, RootEntry>;
+    roots['x-retag-any'] = {
+      status: 'mapped',
+      target: 'X',
+      tag: 'div',
+      as: 'any',
+      modifiers,
+      ownProps: ['as', 'a'],
+    };
+    table.roots['x-retag-any'] = {
+      ...table.roots.box,
+      target: 'X',
+      as: 'any',
+      modifiers,
+    };
+    try {
+      const cases = ['figure', 'div', 'span'].flatMap(
+        (tag): Array<[string, string[]]> => [
+          [tag, ['x-retag-any', 'is-a']],
+          [tag, ['x-retag-any']],
+        ]
+      );
+      expect(compare(cases)).toEqual([]);
+      expect(lookupClasses(table, 'x-retag-any is-a').element).toMatchObject({
+        renders: '<figure> with these classes, or any tag through `as`',
+      });
+      expect(lookupClasses(table, 'x-retag-any').element).toMatchObject({
+        renders: '<div>, or any tag through `as`',
+      });
+    } finally {
+      delete roots['x-retag-any'];
+      delete table.roots['x-retag-any'];
+    }
   });
 
   it('with no tag, on the tag the component renders by itself', () => {

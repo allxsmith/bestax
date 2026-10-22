@@ -4,10 +4,11 @@ For apps that style plain JSX with Bulma's classes (`<div className="columns">`)
 wrapper library. The codemod converts an element only when the bestax component renders
 **exactly the markup the element did**: same tag, same classes, same attributes. Anything else
 stays as written, with a `TODO(bestax-migrate)` when there is something to decide (see
-[unmappables.md](unmappables.md)). One exception is deliberate: Font Awesome's own
+[unmappables.md](unmappables.md)). The exceptions are deliberate. Font Awesome's own
 `<i aria-hidden="true">` alone in a `.icon` that carries nothing assistive tech reads becomes
 `Icon`, which puts that attribute on the `.icon` instead, since the glyph is hidden either way
-(see `.icon` below).
+(see `.icon` below). And a Bulma 0.9 helper that v1 removed, which styles nothing now, becomes
+the v1 helper that does its job (the [prop map](prop-map.md) lists them).
 
 A class the codemod doesn't know, such as the app's own `pricing-card`, rides along in
 `className`, which every bestax component passes through. So does a Bulma class with no bestax
@@ -108,8 +109,12 @@ a `tag:<Target>` TODO instead of a conversion. A component's own `as` can take m
 | `.panel-block`         | `Panel.Block`         | `<a>`, `<div>`, `<label>` via `as`                                                               |
 | `.tabs`                | `Tabs`                | `<div>` only                                                                                     |
 
-An element with two of these (`<div className="column box">`) becomes the layout one
-(`Column`), and the other class stays in `className`.
+An element with two of these (`<div className="column box">`) becomes the one whose component
+fits its tag best, and the other class stays in `className` with a `second-component:<Target>`
+TODO. A component whose own tag it is beats one that reaches it only through `as`, which beats
+one that can't render it, and between equals the layout one wins (`Column`). So
+`<section className="hero container">` becomes a `Hero`, and `<figure className="image container">`
+an `Image`, which `Container` can't render.
 
 `Card` renders its children inside a `.card-content` of its own unless one of them is one of
 its parts, and `Card.Header` its children inside a `.card-header-title` unless one of them is a
@@ -161,8 +166,8 @@ classes become `Icon`'s props, read as `IconText` reads them (below), and the `I
 
 Font Awesome's own markup hides the `<i>` instead, and converts the same way when the `.icon`
 carries nothing but its classes, an `id`, a `style` and `data-` attributes: the `aria-hidden`
-moves up onto the `.icon`, where `Icon` writes it, so the glyph is hidden either way. That is the
-one place a conversion changes the markup, on purpose:
+moves up onto the `.icon`, where `Icon` writes it, so the glyph is hidden either way. That is a
+place a conversion changes the markup, on purpose:
 
 ```jsx
 <span className="icon is-small is-left">
@@ -271,7 +276,8 @@ go straight inside `Breadcrumb`, and `<figure className="image is-64x64"><img sr
   one, so the `<ul>` carries nothing and the `.breadcrumb` needs an `aria-label` of its own.
 - `Image` renders its `<img>` from `src` and `alt`, so the `<img>` carries nothing else, and
   `is-rounded` on it becomes `isRounded`. The `.image` keeps its own attributes. A ratio
-  (`is-4by3`) stays a class, since `size` would add `has-ratio` as well. Around anything else (an
+  (`is-4by3`) becomes `size` too. `Image` renders a ratio on a `<figure>`, so a `<figure>` needs no
+  `as` there and a `<div>` keeps `as="div"`. Around anything else (an
   `<img>` with more attributes, an `<iframe>`), `Image` renders its children as given, so the
   `.image` converts around them and they stay as written, as long as they're HTML elements written
   out. An empty `.image` stays markup, since `Image` would render an `<img>` of its own, and so does
@@ -373,7 +379,12 @@ button, the navbar's burger and dropdown link, the panel's icon, Radio and Radio
 ## Classes left alone
 
 `.help`, `.label`, `.hero-buttons`, `.hero-video`, `.theme-dark`, `.theme-light`, `.fa`,
-`.marginless`, `.paddingless`, `.navbar-content`, `.navbar-tabs` and `.panel-list` are valid
-Bulma with nothing in bestax to convert to. `.loader` is left alone as well, although bestax's
-`Loader` renders the same element: swap it in by hand for its progressbar role and accessible name.
-An element carrying one stays as written, and gets no TODO.
+`.navbar-content`, `.navbar-tabs` and `.panel-list` are valid Bulma with nothing in bestax to
+convert to. `.loader` is left alone as well, although bestax's `Loader` renders the same
+element: swap it in by hand for its progressbar role and accessible name. An element carrying
+one stays as written, and gets no TODO.
+
+v1's `marginless` and `paddingless` are helpers, not components, so they don't hold an element
+back: `<p className="has-text-centered marginless">` becomes
+`<Paragraph textAlign="centered" className="marginless">`. They keep their names, since bestax
+writes the same rules as `m-0` and `p-0`.

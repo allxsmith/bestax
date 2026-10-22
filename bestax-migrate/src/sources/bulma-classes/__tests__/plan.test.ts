@@ -4,6 +4,7 @@
  * which elements convert, which refuse, and what they say.
  */
 
+import { ROOTS, type Modifier, type RootEntry } from '../class-map.js';
 import { plan, type ChildFacts, type ElementFacts } from '../plan.js';
 
 function facts(
@@ -456,6 +457,225 @@ describe('plan', () => {
         todos: [],
       });
     });
+
+    it('keeps a helper with no prop as a class, and still converts the element', () => {
+      // `marginless` has `m-0`'s rule, and bestax renders that as `m-0`.
+      for (const helper of ['marginless', 'paddingless']) {
+        expect(plan(facts('p', `has-text-centered ${helper}`))).toEqual({
+          conversion: {
+            target: 'Paragraph',
+            props: [['textAlign', 'centered']],
+            className: helper,
+            drop: [],
+            numbers: [],
+          },
+          todos: [],
+        });
+        expect(plan(facts('p', helper))).toEqual({
+          conversion: null,
+          todos: [],
+        });
+      }
+    });
+  });
+
+  describe('a Bulma 0.9 helper v1 removed', () => {
+    it('converts as the v1 helper that replaced it, with nothing left to say', () => {
+      expect(plan(facts('p', 'is-marginless intro'))).toEqual({
+        conversion: {
+          target: 'Paragraph',
+          props: [['m', '0']],
+          className: 'intro',
+          drop: [],
+          numbers: [],
+        },
+        todos: [],
+      });
+      expect(plan(facts('div', 'hero-body is-paddingless'))).toEqual({
+        conversion: {
+          target: 'Hero.Body',
+          props: [['p', '0']],
+          className: null,
+          drop: [],
+          numbers: [],
+        },
+        todos: [],
+      });
+    });
+
+    it('leaves the prop to a live class for it, in either order, and stays with its TODO', () => {
+      const legacy = (token: string) => ({
+        rule: `legacy:${token}`,
+        message: expect.stringContaining('Bulma v1 removed'),
+      });
+      for (const [removed, live, prop, value] of [
+        ['is-paddingless', 'p-2', 'p', '2'],
+        ['is-marginless', 'm-0', 'm', '0'],
+      ]) {
+        for (const order of [
+          `box ${removed} ${live}`,
+          `box ${live} ${removed}`,
+        ]) {
+          expect({ order, plan: plan(facts('div', order)) }).toEqual({
+            order,
+            plan: {
+              conversion: {
+                target: 'Box',
+                props: [[prop, value]],
+                className: removed,
+                drop: [],
+                numbers: [],
+              },
+              todos: [legacy(removed)],
+            },
+          });
+        }
+      }
+    });
+
+    it('converts beside a class for another prop, such as an axis, in either order', () => {
+      // `px-2` and `p-0` both render: v1 puts `px-2` after `p-0`, so the
+      // axis keeps its sides.
+      for (const order of ['px-2 is-paddingless', 'is-paddingless px-2']) {
+        expect({ order, plan: plan(facts('p', order)) }).toEqual({
+          order,
+          plan: {
+            conversion: {
+              target: 'Paragraph',
+              props: [
+                ['px', '2'],
+                ['p', '0'],
+              ],
+              className: null,
+              drop: [],
+              numbers: [],
+            },
+            todos: [],
+          },
+        });
+      }
+    });
+
+    it('says what replaced it wherever it stays a class', () => {
+      const legacy = (token: string) => ({
+        rule: `legacy:${token}`,
+        message: expect.stringContaining('Bulma v1 removed'),
+      });
+      // No component for the tag.
+      expect(plan(facts('div', 'is-marginless'))).toEqual({
+        conversion: null,
+        todos: [legacy('is-marginless')],
+      });
+      // A prop another class already wrote.
+      expect(plan(facts('div', 'box p-2 is-paddingless'))).toEqual({
+        conversion: {
+          target: 'Box',
+          props: [['p', '2']],
+          className: 'is-paddingless',
+          drop: [],
+          numbers: [],
+        },
+        todos: [legacy('is-paddingless')],
+      });
+      // A family left as markup, and an element that refuses.
+      expect(plan(facts('div', 'message is-marginless')).todos).toEqual([
+        { rule: 'family:message', message: expect.any(String) },
+        legacy('is-marginless'),
+      ]);
+      expect(
+        plan(facts('div', 'box is-marginless', {}, { hasSpread: true })).todos
+      ).toEqual([
+        { rule: 'spread:Box', message: expect.any(String) },
+        legacy('is-marginless'),
+      ]);
+      // Added under a condition, which stays in the call.
+      const conditional = plan({
+        ...facts('div', 'box'),
+        conditional: [['is-marginless']],
+      });
+      expect(conditional.conversion?.target).toBe('Box');
+      expect(conditional.todos).toEqual([legacy('is-marginless')]);
+      expect(plan(facts('div', 'is-marginless')).todos[0].message).toContain(
+        '`m="0"`'
+      );
+    });
+  });
+
+  describe('an `.image` modifier away from its `.image`', () => {
+    const stray = {
+      rule: 'modifier:image',
+      message: expect.stringContaining('styles nothing'),
+    };
+
+    it('flags the size or ratio, which styles nothing there', () => {
+      expect(plan(facts('figure', 'is-64x64'))).toEqual({
+        conversion: null,
+        todos: [stray],
+      });
+      // The element still converts on what it does carry.
+      expect(plan(facts('figure', 'is-4by3 mx-auto'))).toEqual({
+        conversion: {
+          target: 'Figure',
+          props: [['mx', 'auto']],
+          className: 'is-4by3',
+          drop: [],
+          numbers: [],
+        },
+        todos: [stray],
+      });
+      expect(plan(facts('div', 'card-image is-square')).todos).toEqual([stray]);
+      expect(plan(facts('figure', 'is-64x64')).todos[0].message).toContain(
+        'add `image`, which bestax `Image` renders, then re-run'
+      );
+    });
+
+    it('promises a re-run only on a tag `Image` renders', () => {
+      for (const tag of ['div', 'figure', 'p']) {
+        expect({
+          tag,
+          message: plan(facts(tag, 'is-64x64')).todos[0].message,
+        }).toEqual({ tag, message: expect.stringContaining('then re-run') });
+      }
+      for (const tag of ['span', 'a', 'img']) {
+        const [todo] = plan(facts(tag, 'is-64x64')).todos;
+        expect({ tag, rule: todo.rule }).toEqual({
+          tag,
+          rule: 'modifier:image',
+        });
+        expect(todo.message).toContain(
+          `bestax \`Image\` renders <div>, <figure>, <p>, not ${tag === 'span' ? 'a' : 'an'} <${tag}>, so the element stays markup`
+        );
+        expect(todo.message).not.toContain('re-run');
+        // Following it: the element is then refused on its tag, as said.
+        expect(
+          plan(facts(tag, 'image is-64x64')).todos.map(found => found.rule)
+        ).toEqual(['tag:Image']);
+      }
+    });
+
+    it("claims nothing of a className it doesn't read whole", () => {
+      // A variable or a call may carry `.image`, and the remedy drops a class.
+      expect(
+        plan(facts('figure', 'is-64x64', {}, { unreadClasses: true })).todos
+      ).toEqual([]);
+      expect(
+        plan(facts('figure', 'is-4by3 mx-auto', {}, { unreadClasses: true }))
+          .todos
+      ).toEqual([]);
+    });
+
+    it('says nothing on an `.image`, or of a class for the element inside one', () => {
+      expect(
+        plan(facts('figure', 'image is-64x64', {}, { hasChildren: false }))
+          .todos
+      ).toEqual([{ rule: 'children:Image', message: expect.any(String) }]);
+      expect(
+        plan({ ...facts('figure', 'is-16by9'), conditional: [['image']] }).todos
+      ).toEqual([]);
+      expect(plan(facts('iframe', 'has-ratio')).todos).toEqual([]);
+      // A page's own size, which Bulma has no rule for at all.
+      expect(plan(facts('figure', 'is-256x256')).todos).toEqual([]);
+    });
   });
 
   describe('roots', () => {
@@ -467,6 +687,143 @@ describe('plan', () => {
         drop: [],
         numbers: [],
       });
+    });
+
+    it('says the other root stays a class, which one won and why', () => {
+      expect(plan(facts('div', 'columns box')).todos).toEqual([
+        {
+          rule: 'second-component:Box',
+          message:
+            "`.box` is bestax `Box`'s class too, and an element converts to one component: `Columns` here, since the codemod ranks `.columns` first, putting layout and parts ahead of surfaces, so `.box` stays in its `className`, which renders the same; to use `Box`, give it an element of its own around or inside this one and drop the class, then check the layout, since two elements space differently from one",
+        },
+      ]);
+      // One for each, and for one a condition adds, which stays in the call.
+      expect(
+        plan({ ...facts('div', 'columns content box'), conditional: [['box']] })
+          .todos
+      ).toEqual([
+        { rule: 'second-component:Content', message: expect.any(String) },
+        { rule: 'second-component:Box', message: expect.any(String) },
+      ]);
+      // A root a condition adds was never in the running, whatever its rank
+      // or place: the planner picks from the classes the element always has.
+      expect(
+        plan({ ...facts('div', 'box'), conditional: [['columns']] }).todos
+      ).toEqual([
+        {
+          rule: 'second-component:Columns',
+          message: expect.stringContaining(
+            '`Box` here, since `.columns` is there only when its condition holds, and the codemod picks from the classes the element always carries'
+          ),
+        },
+      ]);
+      // Between two roots the table doesn't rank, the first on the element.
+      const both = plan(facts('p', 'panel-heading menu-label'));
+      expect(both.conversion?.target).toBe('Panel.Heading');
+      expect(both.todos).toEqual([
+        {
+          rule: 'second-component:Menu.Label',
+          message: expect.stringContaining(
+            'since `.panel-heading` comes first on the element'
+          ),
+        },
+      ]);
+    });
+
+    it('picks a root whose target renders the tag over one ranked ahead of it', () => {
+      // Around an element written out, which Image renders as given.
+      const inside = {
+        tag: 'iframe',
+        attributes: new Map(),
+        hasSpread: false,
+        isEmpty: true,
+      };
+      const result = plan(
+        facts('figure', 'image is-128x128 container', {}, { soleChild: inside })
+      );
+      expect(result.conversion).toEqual({
+        target: 'Image',
+        props: [
+          ['as', 'figure'],
+          ['size', '128x128'],
+        ],
+        className: 'container',
+        drop: [],
+        numbers: [],
+      });
+      // `.container` gets its own advice: on a sized image it centers it.
+      expect(result.todos).toEqual([
+        {
+          rule: 'second-component:Container',
+          message: expect.stringContaining(
+            '`Image` here, since `Container` renders <div>, <main>, <section>, <article>, <aside>, <header>, <footer>, <nav>, not a <figure>, so `.container` stays in its `className`, which renders the same; where it is only there to center this element, `mx="auto"` centers it, and otherwise wrap the element in a `Container`'
+          ),
+        },
+      ]);
+      // On a tag both render, the table's ranking decides as before.
+      expect(
+        plan(
+          facts('div', 'image is-128x128 container', {}, { soleChild: inside })
+        ).conversion?.target
+      ).toBe('Container');
+    });
+
+    it('picks the root whose own tag it is over one that reaches it through `as`', () => {
+      // `Container` reaches a <section> through `as`, and it is `Hero`'s own.
+      const hero = plan(facts('section', 'container hero is-primary'));
+      expect(hero.conversion).toMatchObject({
+        target: 'Hero',
+        props: [['color', 'primary']],
+        className: 'container',
+      });
+      expect(hero.todos).toEqual([
+        {
+          rule: 'second-component:Container',
+          message: expect.stringContaining(
+            "`Hero` here, since a <section> is `Hero`'s own element, and `Container` renders one only through `as`"
+          ),
+        },
+      ]);
+      // The other way round on a <div>, `Container`'s own.
+      const div = plan(facts('div', 'hero container'));
+      expect(div.conversion).toMatchObject({
+        target: 'Container',
+        className: 'hero',
+      });
+      expect(div.todos).toEqual([
+        {
+          rule: 'second-component:Hero',
+          message: expect.stringContaining(
+            "since a <div> is `Container`'s own element, and `Hero` renders one only through `as`"
+          ),
+        },
+      ]);
+      // Two that reach it only through `as`: the table's ranking.
+      expect(plan(facts('main', 'hero container')).conversion).toMatchObject({
+        target: 'Container',
+        props: [['as', 'main']],
+      });
+    });
+
+    it('takes no class of a glyph inside an `.icon` for a second root', () => {
+      const glyph = {
+        tag: 'i',
+        tokens: ['fas', 'fa-home'],
+        attributes: new Map([['aria-hidden', 'true']]),
+        hasSpread: false,
+        isEmpty: true,
+      };
+      const result = plan(facts('span', 'icon', {}, { soleChild: glyph }));
+      expect(result.conversion?.target).toBe('Icon');
+      expect(
+        result.todos.filter(todo => todo.rule.startsWith('second-component'))
+      ).toEqual([]);
+    });
+
+    it('leaves the second root to a refusal when none renders the tag', () => {
+      expect(plan(facts('span', 'container box')).todos).toEqual([
+        { rule: 'tag:Container', message: expect.any(String) },
+      ]);
     });
 
     it('flags the outermost class of a family it does not convert', () => {
@@ -1339,10 +1696,116 @@ describe('plan', () => {
       ]);
       // An <iframe> is the same: it stays as written.
       const iframe = { ...img({ src: 'v' }), tag: 'iframe' };
+      const framed = plan(
+        facts('figure', 'image is-16by9', {}, { soleChild: iframe })
+      ).conversion;
+      expect(framed?.absorbs).toBeUndefined();
+      expect(framed?.props).toEqual([['size', '16by9']]);
+      expect(framed?.className).toBeNull();
+    });
+
+    it('lets one class pick the tag, and keeps a second as a class', () => {
+      // No root has two classes that pick a tag through different props, so
+      // this one is made up, to show the order of the two decides nothing
+      // but which one converts.
+      const roots = ROOTS as Record<string, RootEntry>;
+      roots['x-retag'] = {
+        status: 'mapped',
+        target: 'X',
+        tag: 'div',
+        as: ['div', 'section', 'aside'],
+        modifiers: {
+          'is-a': { writes: [{ prop: 'a' }], rendersTag: 'section' },
+          'is-b': { writes: [{ prop: 'b' }], rendersTag: 'aside' },
+        },
+        ownProps: ['as', 'a', 'b'],
+      };
+      try {
+        expect(
+          plan(facts('section', 'x-retag is-a is-b')).conversion
+        ).toMatchObject({ props: [['a', true]], className: 'is-b' });
+        expect(
+          plan(facts('section', 'x-retag is-b is-a')).conversion
+        ).toMatchObject({
+          props: [
+            ['as', 'section'],
+            ['b', true],
+          ],
+          className: 'is-a',
+        });
+      } finally {
+        delete roots['x-retag'];
+      }
+    });
+
+    it('writes a ratio as `size`, with `as` only off the <figure> it renders', () => {
+      const ratio = (tag: string) =>
+        plan(facts(tag, 'image is-4by3', {}, { soleChild: img({ src: 'a' }) }))
+          .conversion;
+      expect(ratio('figure')).toMatchObject({
+        target: 'Image',
+        props: [['size', '4by3']],
+        className: null,
+      });
+      expect(ratio('figure')?.absorbs).toBeDefined();
+      expect(ratio('div')?.props).toEqual([
+        ['as', 'div'],
+        ['size', '4by3'],
+      ]);
+      expect(ratio('p')?.props).toEqual([
+        ['as', 'p'],
+        ['size', '4by3'],
+      ]);
+      // A fixed size renders the root's own <div>, so a <figure> keeps `as`.
       expect(
-        plan(facts('figure', 'image is-16by9', {}, { soleChild: iframe }))
-          .conversion?.className
-      ).toBe('is-16by9');
+        plan(
+          facts(
+            'figure',
+            'image is-square',
+            {},
+            { soleChild: img({ src: 'a' }) }
+          )
+        ).conversion?.props
+      ).toEqual([
+        ['as', 'figure'],
+        ['size', 'square'],
+      ]);
+    });
+
+    it('keeps a second size as a class, and the tag the first one renders', () => {
+      const both = plan(
+        facts(
+          'div',
+          'image is-128x128 is-16by9',
+          {},
+          { soleChild: img({ src: 'a' }) }
+        )
+      ).conversion;
+      expect(both?.props).toEqual([['size', '128x128']]);
+      expect(both?.className).toBe('is-16by9');
+      const ratioFirst = plan(
+        facts(
+          'figure',
+          'image is-16by9 is-128x128',
+          {},
+          { soleChild: img({ src: 'a' }) }
+        )
+      ).conversion;
+      expect(ratioFirst?.props).toEqual([['size', '16by9']]);
+      expect(ratioFirst?.className).toBe('is-128x128');
+    });
+
+    it('leaves a ratio a condition adds in the joiner, on the tag written out', () => {
+      const { conversion } = plan(
+        facts(
+          'figure',
+          'image',
+          {},
+          { soleChild: img({ src: 'a' }), conditional: [['is-16by9']] }
+        )
+      );
+      expect(conversion?.props).toEqual([['as', 'figure']]);
+      expect(conversion?.conditional).toBeUndefined();
     });
 
     it("keeps it as markup around children it can't tell are never empty", () => {
@@ -2053,6 +2516,39 @@ describe('plan', () => {
       const rules = (result: ReturnType<typeof plan>) =>
         result.todos.map(todo => todo.rule);
 
+      it('says a component class on the <li> stays a class', () => {
+        expect(item('box', {}, [link()]).todos).toEqual([
+          {
+            rule: 'second-component:Box',
+            message: expect.stringContaining(
+              '`Menu.Item` here, since an item of a list converts by where it sits'
+            ),
+          },
+        ]);
+        // One a condition adds says so, there as anywhere.
+        expect(
+          plan({
+            ...facts(
+              'li',
+              '',
+              {},
+              {
+                itemOf: 'menu-list',
+                childElements: [link()],
+              }
+            ),
+            conditional: [['box']],
+          }).todos
+        ).toEqual([
+          {
+            rule: 'second-component:Box',
+            message: expect.stringContaining(
+              '`Menu.Item` here, since `.box` is there only when its condition holds'
+            ),
+          },
+        ]);
+      });
+
       it('converts the <li> and its <a> together, with a nested list after', () => {
         expect(
           item('my-item mt-2', { key: null, tabIndex: '0' }, [
@@ -2170,15 +2666,136 @@ describe('plan', () => {
       });
     });
 
-    it('keeps the addon and group variants as classes', () => {
-      expect(
-        plan(facts('div', 'field has-addons has-addons-centered')).conversion
-      ).toEqual({
+    it('writes an addon or group layout with the class it renders beside', () => {
+      const field = (className: string) =>
+        plan(facts('div', className)).conversion;
+      expect(field('field has-addons has-addons-centered')).toEqual({
         target: 'Field',
-        props: [['hasAddons', true]],
-        className: 'has-addons-centered',
+        props: [['hasAddons', 'centered']],
+        className: null,
         drop: [],
         numbers: [],
+      });
+      // In either order, and beside the field's other classes.
+      expect(field('field has-addons-right mt-2 has-addons')).toEqual({
+        target: 'Field',
+        props: [
+          ['hasAddons', 'right'],
+          ['mt', '2'],
+        ],
+        className: null,
+        drop: [],
+        numbers: [],
+      });
+      for (const layout of ['centered', 'right', 'multiline']) {
+        expect(field(`field is-grouped is-grouped-${layout}`)).toEqual({
+          target: 'Field',
+          props: [['grouped', layout]],
+          className: null,
+          drop: [],
+          numbers: [],
+        });
+      }
+    });
+
+    it('writes a layout pair first, and a removed helper after a live one', () => {
+      // The pair claims its prop ahead of its base wherever they're written,
+      // and a removed 0.9 helper claims after every live class, so the two
+      // orders compose.
+      expect(
+        plan(
+          facts('div', 'field is-marginless has-addons m-2 has-addons-right')
+        ).conversion
+      ).toMatchObject({
+        props: [
+          ['hasAddons', 'right'],
+          ['m', '2'],
+        ],
+        className: 'is-marginless',
+      });
+    });
+
+    it('keeps a layout class without the class its value renders beside', () => {
+      const field = (className: string) =>
+        plan(facts('div', className)).conversion;
+      // `hasAddons="centered"` would add `has-addons`.
+      expect(field('field has-addons-centered')).toMatchObject({
+        props: [],
+        className: 'has-addons-centered',
+      });
+      expect(field('field is-grouped-multiline has-addons')).toMatchObject({
+        props: [['hasAddons', true]],
+        className: 'is-grouped-multiline',
+      });
+      // A second layout for the same prop stays a class beside the first.
+      expect(
+        field('field has-addons has-addons-centered has-addons-right')
+      ).toMatchObject({
+        props: [['hasAddons', 'centered']],
+        className: 'has-addons-right',
+      });
+    });
+
+    describe('a layout class beside its base, behind every modifier gate', () => {
+      // No entry carries `tagIn` or `needsAttr` beside `beside` yet, so the
+      // table is lent two that do, for this block only.
+      const modifiers = ROOTS.field.modifiers as Record<string, Modifier>;
+      beforeAll(() => {
+        modifiers['test-on-p'] = {
+          writes: [{ prop: 'hasAddons', value: 'right' }],
+          beside: 'has-addons',
+          tagIn: ['p'],
+        };
+        modifiers['test-needs'] = {
+          writes: [{ prop: 'hasAddons', value: 'centered' }],
+          beside: 'has-addons',
+          needsAttr: { name: 'data-test', value: 'x' },
+        };
+      });
+      afterAll(() => {
+        delete modifiers['test-on-p'];
+        delete modifiers['test-needs'];
+      });
+
+      it('stays a class off its tags, or without its attribute', () => {
+        const field = (
+          className: string,
+          attributes: Record<string, string> = {}
+        ) => plan(facts('div', className, attributes)).conversion;
+        expect(field('field has-addons test-on-p')).toMatchObject({
+          props: [['hasAddons', true]],
+          className: 'test-on-p',
+        });
+        expect(field('field has-addons test-needs')).toMatchObject({
+          props: [['hasAddons', true]],
+          className: 'test-needs',
+        });
+        expect(
+          field('field has-addons test-needs', { 'data-test': 'x' })
+        ).toMatchObject({
+          props: [['hasAddons', 'centered']],
+          className: null,
+        });
+      });
+    });
+
+    it('keeps a layout class a condition adds in the call', () => {
+      // Only a flag takes its condition as its value.
+      expect(
+        plan({
+          ...facts('div', 'field is-grouped'),
+          conditional: [['is-grouped-centered']],
+        }).conversion
+      ).toMatchObject({ props: [['grouped', true]], className: null });
+      expect(
+        plan({
+          ...facts('div', 'field has-addons-centered'),
+          conditional: [['has-addons']],
+        }).conversion
+      ).toMatchObject({
+        props: [],
+        className: 'has-addons-centered',
+        conditional: [['hasAddons', 'has-addons']],
       });
     });
 
@@ -2216,6 +2833,86 @@ describe('plan', () => {
         },
       ]);
       expect(input([]).conversion?.target).toBe('InputBase');
+    });
+
+    it('sends a label beside the <select> to the convenience Select', () => {
+      const child = (
+        tag: string,
+        tokens?: string[],
+        attributes: Record<string, string> = {}
+      ): ChildFacts => ({
+        tag,
+        ...(tokens ? { tokens } : {}),
+        attributes: new Map(Object.entries(attributes)),
+        hasSpread: false,
+        isEmpty: false,
+      });
+      const select = (childElements: ChildFacts[]) =>
+        plan(facts('div', 'select is-small', {}, { childElements })).todos;
+      const label = child('label', ['is-sr-only'], { htmlFor: 'lang' });
+      const own = child('select', undefined, { id: 'lang' });
+      expect(select([label, own])).toEqual([
+        {
+          rule: 'children:SelectBase',
+          message:
+            "bestax `SelectBase` renders the <select> inside `.select` itself, so this element converts only around a single <select>, with nothing else beside it; the <label> beside it goes on bestax's `Select` instead, which renders `.select` inside a `Field` and a `Control`: the label's text as `label`, its classes as `labelProps={{ className: 'is-sr-only' }}`, and `Select` points the label at the <select>'s `id` itself, so convert the two by hand",
+        },
+      ]);
+      // A label with no class has none to pass, and one after the select counts.
+      expect(select([own, child('label')])[0].message).toContain(
+        "the label's text as `label`, and `Select` points"
+      );
+      // So does one with a space rendered between them.
+      expect(
+        plan(facts('div', 'select', {}, { spacedElements: [label, own] }))
+          .todos[0].message
+      ).toContain("goes on bestax's `Select` instead");
+      // A computed className is named, not dropped: it may be what hides it.
+      const computed = { ...label, tokens: null };
+      expect(select([computed, own])[0].message).toContain(
+        'its `className`, which is computed, as `labelProps={{ className: … }}` with the same expression'
+      );
+      // So is a spread, which can carry a className of its own.
+      expect(select([{ ...label, hasSpread: true }, own])[0].message).toContain(
+        "its classes as `labelProps={{ className: 'is-sr-only' }}`, what its spread carries in `labelProps` too, since it can set a `className` of its own"
+      );
+      // Inside a Field, Select drops its label, so the label stays the page's.
+      const inside = (extra: Partial<ElementFacts>) =>
+        plan(
+          facts('div', 'select', {}, { childElements: [label, own], ...extra })
+        ).todos[0].message;
+      const keep =
+        "so move the <label> out beside `.select`, its `htmlFor` on the <select>'s `id`, or give the <select> an `aria-label` in its place, then re-run";
+      for (const extra of [
+        { classesAround: ['control', 'field'] },
+        { bestaxAround: ['Field'] },
+      ]) {
+        const message = inside(extra);
+        expect(message).toContain(
+          "inside a `Field` bestax's `Select` renders no label of its own and drops `label` and `labelProps`"
+        );
+        expect(message).toContain(keep);
+        expect(message).not.toContain('goes on bestax');
+      }
+      // In a bare Control, Select would nest its label's .field inside it.
+      for (const extra of [
+        { classesAround: ['control'] },
+        { bestaxAround: ['Control'] },
+      ]) {
+        const message = inside(extra);
+        expect(message).toContain(
+          "inside a `Control` with no `Field` around it, bestax's `Select` renders its label in a `.field` of its own inside the `.control`"
+        );
+        expect(message).toContain(keep);
+      }
+      // Anything else beside the select is just in the way.
+      for (const children of [
+        [child('span'), own],
+        [label, child('label'), own],
+        [label, child('span')],
+      ]) {
+        expect(select(children)[0].message).toMatch(/nothing else beside it$/);
+      }
     });
   });
 

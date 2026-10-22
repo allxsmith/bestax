@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="description" content="Every pattern a component can't carry">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdn.jsdelivr.net">
   <title>Leftovers</title>
   <base href="/site/">
   <link rel="icon" href="/favicon.ico">
@@ -44,7 +45,7 @@
       <a href="javascript:void(0)" class="button">Nowhere</a> <a href="archive/2019.html" class="button">Archive</a>
       <div class="box" @click="open = !open">Alpine</div>
       <div class="box" class="duplicate">Twice</div>
-      <div class="notification is-info" style="color">Unreadable style</div>
+      <figure class="image is-48x48" \><img src="https://example.com/avatar.png" alt="Avatar"></figure>      <div class="notification is-info" style="color">Unreadable style</div>
       <div class="notification is-danger" style="margin-top: 1rem; color: white !important">Important</div>
       <table class="table"><tr><td valign="top">Old cell</td></tr></table> <input class="input" id="q" defaultvalue="x">
       <my-widget class="box" mode="compact"></my-widget>
@@ -52,6 +53,8 @@
       <foo class="subtitle">Unknown</foo>
       <template id="row"><div class="box">Cloned</div></template>
       <o:p class="tag">Word</o:p>
+      <div class="is-paddingless">A Bulma 0.9 class on a plain div</div>
+      <figure class="is-96x96">An image size away from its image</figure>
       <!--[if lt IE 9]><p class="notification">Upgrade your browser</p><![endif]-->
       <script type="text/template" id="tpl"><div class="box">{name}</div></script>
     </div>

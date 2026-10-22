@@ -646,7 +646,7 @@ function LoadingExample() {
 
 ### Menu
 
-A vertical navigation menu for sidebars, dashboards, or grouped navigation. [View full documentation.](../../api/components/menu.md)
+A vertical navigation menu for sidebars, dashboards, or grouped navigation, with `Menu.Section` for groups of links that open and close. [View full documentation.](../../api/components/menu.md)
 
 ```tsx live
 <Menu style={{ maxWidth: 300 }}>

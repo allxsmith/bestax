@@ -3,11 +3,13 @@
  * see from one file: which files a Next.js App Router may render as server
  * components, which packages render JSX through a runtime other than React,
  * and, for the module an HTML page becomes, which are written in TypeScript
- * and which are Next.js apps, where that module imports no stylesheet.
+ * and which are Next.js apps, where that module imports no stylesheet, and
+ * which folders the run starts from, where an `index.html` is the site's
+ * home page.
  *
  * Read once per run, from every package.json the run touches: the nearest one
  * above each target, and every one below it, so a monorepo run from its root
- * still finds `apps/web`.
+ * still finds `apps/web`. The folders come from the targets themselves.
  */
 
 import fs from 'node:fs';
@@ -74,6 +76,20 @@ export interface ProjectFacts {
   serverComponentRoots: ServerComponentRoot[];
   jsxRuntimes: JsxRuntime[];
   packageLanguages: PackageLanguage[];
+  /**
+   * The folders the run starts from, absolute: each folder it names and each
+   * named file's folder, but for one inside another. Only an `index.html`
+   * in one of them can be the site's home page.
+   */
+  runRoots: string[];
+}
+
+/** Whether `dir` is a folder below `parent`. */
+function isInside(dir: string, parent: string): boolean {
+  const relative = path.relative(parent, dir);
+  return (
+    relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative)
+  );
 }
 
 function nearestManifest(target: string): string | null {
@@ -198,12 +214,16 @@ export function runtimeOf(
 
 export function analyzeProject(targets: string[]): ProjectFacts {
   const manifests = new Set<string>();
+  const starts = new Set<string>();
   for (const target of targets) {
     const nearest = nearestManifest(target);
     if (nearest) manifests.add(path.resolve(nearest));
     const below: string[] = [];
     if (fs.statSync(target, { throwIfNoEntry: false })?.isDirectory()) {
       manifestsBelow(path.resolve(target), below);
+      starts.add(path.resolve(target));
+    } else {
+      starts.add(path.dirname(path.resolve(target)));
     }
     for (const manifest of below) manifests.add(manifest);
   }
@@ -212,6 +232,9 @@ export function analyzeProject(targets: string[]): ProjectFacts {
     serverComponentRoots: [],
     jsxRuntimes: [],
     packageLanguages: [],
+    runRoots: [...starts]
+      .filter(dir => ![...starts].some(other => isInside(dir, other)))
+      .sort(),
   };
   for (const manifest of [...manifests].sort()) {
     let pkg: Record<string, Record<string, string> | undefined>;

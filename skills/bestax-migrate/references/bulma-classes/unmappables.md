@@ -95,7 +95,7 @@ makes one named by `aria-label` or `aria-labelledby` an image, with `role="img"`
 own. `Icon` writes `aria-hidden` on the `.icon` and never on the `<i>` inside. Font Awesome's own
 markup, `<i class="fas fa-envelope" aria-hidden="true">` alone in a `.icon` that carries
 nothing but its classes, an `id`, a `style` and `data-` attributes, converts anyway, with the
-attribute moved up onto the `.icon`, the one exception to identical markup. A `.icon` that
+attribute moved up onto the `.icon`, an exception to identical markup. A `.icon` that
 carries anything more never takes the move. A `role` or `tabIndex` written out converts around
 the `<i>` as it is, since `Icon` then hides nothing itself. Anything else, or either of those as
 an expression, keeps the `.icon` as markup: a `title` or a description would be hidden with it,
@@ -172,6 +172,32 @@ element, with nothing else beside it. `Image` renders anything else it's given a
 or when what's inside is an expression or text, since `Image` renders an `<img>` of its own when
 its children come out empty. Keep it as markup, or write the `Image` by hand if the expression
 never is.
+
+A `<label>` beside the `<select>` in a `.select` (a visually hidden one, say) is that case too,
+since `SelectBase` renders no label. bestax's convenience `Select` takes it: the label's text as
+`label` and its classes in `labelProps`, and it points the label at the `<select>`'s `id` itself.
+A computed `className` on the label goes in `labelProps` as the same expression, since it may be
+what hides the label, and so does what a spread on it carries. `Select` renders the `.select`
+inside a `Field` and a `Control`, so convert the two by hand and check the layout:
+
+```tsx
+<Select
+  id="language"
+  size="small"
+  label="Select language"
+  labelProps={{ className: 'is-sr-only' }}
+>
+  <option>English</option>
+  <option>French</option>
+</Select>
+```
+
+That holds only where the `.select` isn't inside a `.field` or a `.control` (or a `Field` or
+`Control`). Inside a `Field`, `Select` renders no label of its own and drops `label` and
+`labelProps`, so the select would lose its name; inside a bare `Control`, it puts its label's
+`.field` inside the `.control`. There, keep the label the page's: move the `<label>` out beside
+the `.select`, its `htmlFor` on the `<select>`'s `id`, or give the `<select>` an `aria-label` in
+its place, then re-run, and the `.select` converts to `SelectBase`.
 
 A menu item is the same from the `<li>`'s side: `Menu.Item` renders the `<a>` inside it, and a
 `Menu.List` after that, so an item converts only when its `<li>` holds one `<a>` and at most one
@@ -309,6 +335,24 @@ in a menu item gets this TODO too. For the `<a>`, a condition on `is-active` is 
 also writes `aria-current="page"` while `on` holds. Pass an `aria-current` of your own if the item
 marks something other than the current page.
 
+## An element it converted: `second-component:<Target>`
+
+The element carried a second Bulma component class (`<div className="columns box">`), and an
+element converts to one component. It became the one whose component fits its tag best (its
+own tag, then one it reaches through `as`), the layout one or a component's part between
+equals, and the other class stayed in `className`, which renders the same. The TODO names the component that class belongs to. A raw component
+class on a bestax component is what the ESLint plugin's `no-bulma-component-class` reports, so
+move it to a component of its own:
+
+- **Most classes**: give `<Target>` an element of its own, around the converted one or inside
+  it, and drop the class: `<Box><Columns>…</Columns></Box>`. Two elements space differently
+  from one (a `.columns` has negative side margins, which a `.box` on the same element shares
+  and one around it doesn't), so check the layout.
+- **`second-component:Container`**: where `.container` is only there to center the element, as
+  it often is on a sized `.image`, write `mx="auto"` in its place
+  (`<Image size="128x128" mx="auto">`), which centers it and does nothing else `.container`
+  does. Otherwise wrap the element in a `Container`. Either way, check the layout.
+
 ## A family it leaves as markup: `family:<class>`
 
 The bestax component renders parts of its own, or adds attributes, so a one-element-at-a-time
@@ -353,6 +397,24 @@ in the browser:
 0.9 to 1 guide shows the translation. Until then the element has no styles at all under
 Bulma v1.
 
+`legacy:is-marginless`, `legacy:is-paddingless`: v1 removed both, so they style nothing.
+Wherever the element converts, the codemod writes them as `m="0"` and `p="0"`, which render
+v1's `m-0` and `p-0`, and says nothing. The TODO comes only where the class stays: on an
+element that stays markup (a `<div>` with no component class, or one refused for another
+reason), or beside a class for the same prop (`p-2`, before it or after), which keeps the prop
+since it's what the page renders today. Write `m-0` or `p-0` in its place, or drop it if the
+spacing it once removed no longer matters.
+
+## A class that styles nothing where it is: `modifier:<root>`
+
+`modifier:image`: an `.image` size or ratio (`is-64x64`, `is-square`, `is-4by3`) on an element
+without `.image`. Bulma styles them only on the element that carries `.image`, so this one
+sizes nothing, unless the project's own CSS gives the class a rule. If the element is the
+image's box, add `image`. On a tag `Image` renders (the component map's `.image` row lists
+them), re-run and it can convert; on any other tag it stays markup, and the TODO says so.
+Otherwise drop the class. A computed `className` the codemod can't read whole gets no such TODO, since a class it
+can't see may be the `.image`.
+
 ## A whole file it left alone
 
 These come only when the file has an element the codemod would convert (a computed className
@@ -382,7 +444,8 @@ Run on an HTML page (`bestax-migrate bulma-classes page.html`, or a folder with 
 codemod writes a module beside the page and runs everything above on it, so a page gets the same
 TODOs its markup would as JSX. What a component can't carry gets an `html-*` rule. TODOs about the
 whole page sit above the component, the rest above its `return`, and each ends with the page and
-the line it came from (`(index.html:42)`). The page itself stays as it was, so the code a TODO
+the line it came from (`(index.html:42)`), or every line, for a TODO several elements share
+(`(index.html:42, 57)`). The page itself stays as it was, so the code a TODO
 points at is still there to read. A rule names only a tag, an attribute or a fixed word, never
 anything the page says.
 
@@ -396,6 +459,11 @@ A component renders into the `<body>` of the app's own document, so nothing in t
   it into the head; React 18 leaves it in the body, so use `document.title` in an effect there.
 - **`html-head:meta`**: `charset` and `viewport` go once in the app's `index.html`. A page's own
   (a description, Open Graph tags) go where the app sets each page's head.
+- **`html-head:csp`**: a `<meta http-equiv="Content-Security-Policy">`. Its policy was written for
+  what the page loads, and copied into `index.html` as it is, it can block what the app loads
+  instead: a Vite dev server runs an inline script for React's fast refresh and opens a socket for
+  hot reloading, and the build serves the app's own scripts, styles and fonts. Write the app's own
+  policy, best sent as a response header, and try it under both the dev server and the build.
 - **`html-head:link`**: icons, preconnects and preloads are app-wide, so keep them in
   `index.html`; a `canonical` is per page.
 - **`html-head:style`**: the `<style>` block was dropped. Move its rules into the app's stylesheet.
@@ -568,7 +636,9 @@ read for the burger, a carousel and a theme toggle too, and its TODO names the f
   app loads paints the right one, and the toggle's state starts from what it wrote. The
   bestax-theming skill covers `Theme` and `colorMode`, and its `examples/dark-mode.tsx` has the
   script and the app's side.
-- **`html-script:json-ld`** is structured data for search engines. Render it where the app sets
+- **`html-script:json-ld`** is structured data for search engines. Data about the whole site, or
+  about a single-page app's one page, goes in the app's `index.html` as it is, where a crawler that
+  runs no JavaScript still reads it. Data that differs from page to page goes where the app sets
   each page's head, as
   `<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />`.
 - **`html-script`**: any other inline script, or a `<script type>` that isn't code (a template,
@@ -586,8 +656,9 @@ The app's document has its own `<html>` and `<body>`, which a component can't re
   bestax's `Navbar` adds none there, whatever its `fixed` says.
 - **`html-document:data-theme`**, **`html-document:theme-dark`**, **`html-document:theme-light`**:
   the page's color scheme. Put it on the `<html>` in `index.html`, where the first paint has it.
-  `<Theme colorMode="dark">` writes `data-theme` on `<html>` too, but from an effect, after a
-  first frame in the visitor's OS scheme, so keep it for a scheme the visitor switches.
+  For a scheme the visitor switches, `Theme colorMode` writes the choice only after that paint,
+  so write a saved one before it too, as `html-script:theme` says and the bestax-theming skill's
+  `examples/dark-mode.tsx` does.
 - **`html-document:lang`**, **`html-document:dir`**: set them on the `<html>` in `index.html`.
 - **`html-document:class`**: the page's own classes on `<html>` or `<body>`. Put them on the
   app's own `<body>` (or `<html>`), or on an element around the page's content if the styles
@@ -638,6 +709,12 @@ than `this`. A `<body onload>` becomes an effect.
 - **`html-attr:name`**: an attribute JSX can't write (`@click`, `:class`, `x-on:click`), or one the
   element already had under another spelling, was left out. A framework's directive is code to port
   into the component.
+- **`html-attr:stray`**: a stray character in a tag, with no letter or digit in it (`\` in
+  `<figure class="image" \>`, a typo for `/>`), which the browser read as the name of an empty
+  attribute. It was left out, so there is nothing to port; delete it from the page too.
+- **`html-attr:ignored`**: an attribute HTML gives the element no meaning for, so the browser
+  ignored it, and React's types reject it there: `type` on a `<textarea>`. It was left out, so the
+  module typechecks. Nothing reads it, unless a stylesheet or script of the page's selects on it.
 - **`html-attr:unknown`**: an attribute React has no prop for by that name, written as it was.
   React renders it. Whether a TypeScript build takes it depends on the element (React's types
   list `valign` on a `<td>` and not on a `<th>`), so the TODO doesn't say; what to do depends on
@@ -684,7 +761,9 @@ A page with no Bulma component class writes nothing and reports nothing.
 - Helper classes on a `<div>` (`<div className="is-flex mt-4">`): bestax has no plain `<div>`
   wrapper, and the classes are valid Bulma, so the element stays.
 - `.help`, `.label`, `.loader` and the other classes in the component map's "left alone" list.
-- A class with no bestax prop on a converted element: it stays in `className`.
+- A class with no bestax prop on a converted element: it stays in `className`. That covers
+  v1's `marginless` and `paddingless`, which have the same rules as `m-0` and `p-0` under
+  other names, so they stay as written while the element converts on its other classes.
 
 ## After the codemod
 

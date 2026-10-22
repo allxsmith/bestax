@@ -21,10 +21,12 @@ import {
   keepingMost,
   outputPathFor,
   pageDisplayOf,
+  pagesBeside,
   transformHtml,
 } from '../html.js';
 import { HTML_KINDS, htmlRuleId, inHtmlVocabulary } from '../html-rules.js';
 import { bulmaClasses } from '../index.js';
+import { analyzeProject } from '../project.js';
 
 const fixturesDir = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -151,6 +153,107 @@ describe('naming and placing the module', () => {
     expect(componentName(file)).toBe(name);
   });
 
+  it('names the index.html at the top of a sectioned site its home page, and every other after its folder', () => {
+    const dir = tempDir();
+    const site = path.join(dir, 'convert');
+    const pages = [
+      'index.html',
+      'about.html',
+      path.join('docs', 'index.html'),
+      path.join('docs', 'api.html'),
+      path.join('blog', 'index.html'),
+      path.join('blog', 'first-post.html'),
+    ];
+    for (const page of pages) {
+      fs.mkdirSync(path.dirname(path.join(site, page)), { recursive: true });
+      fs.writeFileSync(path.join(site, page), box);
+    }
+    const named = (roots: unknown) =>
+      pages
+        .filter(page => path.basename(page) === 'index.html')
+        .map(page => componentName(path.join(site, page), roots));
+    // A walk from the site's folder, or every page named: the top is one root.
+    for (const targets of [[site], pages.map(page => path.join(site, page))]) {
+      expect(named(analyzeProject(targets).runRoots)).toEqual([
+        'HomePage',
+        'DocsPage',
+        'BlogPage',
+      ]);
+    }
+    // A run from a section starts there.
+    expect(named(analyzeProject([path.join(site, 'docs')]).runRoots)).toEqual([
+      'ConvertPage',
+      'HomePage',
+      'BlogPage',
+    ]);
+    // With no roots to go by, every index keeps its folder's name.
+    expect(named(undefined)).toEqual(['ConvertPage', 'DocsPage', 'BlogPage']);
+    // A page beside the top one that is named `HomePage` already keeps its own.
+    fs.writeFileSync(path.join(site, 'home.html'), box);
+    expect(named([site])[0]).toBe('ConvertPage');
+    // The roots name only an index.html.
+    expect(componentName(path.join(site, 'about.html'), [site])).toBe(
+      'AboutPage'
+    );
+  });
+
+  it('makes one HomePage of a top folder holding both an index.html and an index.htm', () => {
+    const site = path.join(tempDir(), 'convert');
+    fs.mkdirSync(site, { recursive: true });
+    for (const page of ['index.html', 'index.htm', 'about.html']) {
+      fs.writeFileSync(path.join(site, page), box);
+    }
+    const name = (page: string) => componentName(path.join(site, page), [site]);
+    expect([name('index.html'), name('index.htm')]).toEqual([
+      'HomePage',
+      'ConvertPage',
+    ]);
+    // With no index.html beside it, the index.htm is the home page.
+    fs.rmSync(path.join(site, 'index.html'));
+    expect(name('index.htm')).toBe('HomePage');
+  });
+
+  it('counts no other spelling of the index as a page beside it', () => {
+    // One page in two spellings is still a folder with one page.
+    const site = path.join(tempDir(), 'convert');
+    fs.mkdirSync(site, { recursive: true });
+    for (const page of ['index.html', 'index.htm']) {
+      fs.writeFileSync(path.join(site, page), box);
+    }
+    const name = (page: string) => componentName(path.join(site, page), [site]);
+    expect([name('index.html'), name('index.htm')]).toEqual([
+      'ConvertPage',
+      'ConvertPage',
+    ]);
+  });
+
+  it('reads the pages beside a top index.html, and names its module from them', () => {
+    const dir = tempDir();
+    const site = path.join(dir, 'convert');
+    fs.mkdirSync(path.join(site, 'fruits.html'), { recursive: true });
+    fs.symlinkSync(
+      path.join(dir, 'nowhere.html'),
+      path.join(site, 'broken.html')
+    );
+    const index = path.join(site, 'index.html');
+    const roots = { runRoots: [site] };
+    // A folder named like a page is no page, and neither is a broken link.
+    expect(pagesBeside(index)).toEqual([]);
+    expect(convert(box, roots, index).output).toContain(
+      'export default function ConvertPage() {'
+    );
+    fs.writeFileSync(path.join(site, 'services.html'), box);
+    fs.writeFileSync(path.join(site, 'style.css'), '');
+    expect(pagesBeside(index)).toEqual(['services.html']);
+    expect(convert(box, roots, index).output).toContain(
+      'export default function HomePage() {'
+    );
+    expect(convert(box, {}, index).output).toContain(
+      'export default function ConvertPage() {'
+    );
+    expect(pagesBeside(path.join(dir, 'gone', 'index.html'))).toEqual([]);
+  });
+
   it('writes beside the page, .tsx only when the package says TypeScript', () => {
     const dir = tempDir();
     const page = path.join(dir, 'pages', 'hero.html');
@@ -271,6 +374,105 @@ describe('the report', () => {
       { line: 3, rule: 'html-head:link' },
       { line: 4, rule: 'html-head' },
     ]);
+  });
+
+  it('gives a Content Security Policy an entry of its own, apart from the other metas', () => {
+    const page = [
+      '<!DOCTYPE html><html><head>',
+      '<meta charset="utf-8">',
+      `<meta http-equiv="Content-Security-Policy" content="default-src 'self'">`,
+      '<meta http-equiv="refresh" content="30">',
+      `</head><body>${box}</body></html>`,
+    ].join('\n');
+    const { entries, output } = convert(page);
+    expect(entries.map(({ line, rule }) => ({ line, rule }))).toEqual([
+      { line: 2, rule: 'html-head:meta' },
+      { line: 3, rule: 'html-head:csp' },
+    ]);
+    expect(entries[0].message).toContain('(charset, refresh)');
+    expect(entries[1].message).toContain(
+      "it can block what the app loads instead (a Vite dev server runs an inline script for React's fast refresh"
+    );
+    expect(output).toMatch(/Content Security Policy.*\(case\.html:3\)$/m);
+  });
+
+  it("puts JSON-LD for the whole site in the app's index.html, and a page's own where its head is set", () => {
+    const { entries } = convert(
+      `${box}<script type="application/ld+json">{"@type": "Person"}</script>\n`
+    );
+    expect(entries).toEqual([
+      expect.objectContaining({
+        rule: 'html-script:json-ld',
+        message: expect.stringContaining(
+          "goes in the app's index.html as it is, where a crawler that runs no JavaScript still reads it, and data that differs from page to page goes where the app sets each page's head"
+        ),
+      }),
+    ]);
+  });
+
+  it("puts a page's scheme on <html> first, and sends a toggle to the theming skill's example", () => {
+    const { entries } = convert(
+      `<!DOCTYPE html><html data-theme="light"><body class="theme-dark">${box}</body></html>`
+    );
+    expect(entries.map(entry => entry.rule)).toEqual([
+      'html-document:data-theme',
+      'html-document:theme-dark',
+    ]);
+    for (const { message } of entries) {
+      expect(message).toContain(
+        "put it on the `<html>` in the app's index.html, where the first paint has it; for a scheme the visitor switches, bestax's `Theme colorMode` writes the choice only after that paint, so write a saved one before it too, as the `html-script:theme` recipe says and the bestax-theming skill's `examples/dark-mode.tsx` does"
+      );
+      // The first frame is the pinned scheme, not the visitor's OS scheme.
+      expect(message).not.toContain('OS scheme');
+      expect(message).not.toContain('<Theme colorMode');
+    }
+  });
+
+  it("says a stray character in a tag is one, rather than a framework's directive", () => {
+    const { entries, output } = convert(
+      `${box}<figure class="image is-64x64" \\><img src="https://example.com/a.png" alt=""></figure>\n<div @click="go" class="box">y</div>\n`
+    );
+    expect(entries.map(({ line, rule }) => ({ line, rule }))).toEqual([
+      { line: 2, rule: 'html-attr:stray' },
+      { line: 3, rule: 'html-attr:name' },
+    ]);
+    expect(entries[0].message).toMatch(
+      /^`\\` in the tag is a stray character, a typo/
+    );
+    expect(entries[0].message).not.toContain('directive');
+    expect(entries[1].message).toContain('directive');
+    expect(output).toContain('<Image as="figure" size="64x64"');
+  });
+
+  it("leaves out a textarea's type, which the browser ignores and React's types reject", () => {
+    const { entries, output } = convert(
+      `<div class="field"><div class="control"><textarea class="textarea" type="text" id="m"></textarea></div></div>\n`
+    );
+    expect(entries).toEqual([
+      expect.objectContaining({
+        line: 1,
+        rule: 'html-attr:ignored',
+        message: expect.stringMatching(
+          /^`type` was left out: HTML gives a `<textarea>` no `type` attribute/
+        ),
+      }),
+    ]);
+    expect(output).toContain('<TextAreaBase id="m" />');
+  });
+
+  it('writes the page lines on a planner TODO that several elements share', () => {
+    const { entries, output } = convert(
+      `${box}<span class="icon"><i class="fas fa-home"></i></span>\n<span class="icon"><i class="fas fa-home"></i></span>\n<span class="box">z</span>\n`
+    );
+    expect(entries.map(({ line, rule }) => `${line}:${rule}`)).toEqual([
+      '2:defaults:Icon',
+      '3:defaults:Icon',
+      '4:tag:Box',
+    ]);
+    const todos = output!.match(/^ {2}\/\/ TODO\(bestax-migrate\).*$/gm);
+    expect(todos).toHaveLength(2);
+    expect(todos![0]).toMatch(/`Icon`.*\(case\.html:2, 3\)$/);
+    expect(todos![1]).toMatch(/`Box`.*\(case\.html:4\)$/);
   });
 
   it('reports what <html> and <body> carry', () => {
@@ -444,6 +646,30 @@ describe('the report', () => {
     expect(output).toMatch(
       /export default function CasePage\(\) \{\n {2}\/\/ TODO\(bestax-migrate\): bestax `Box` renders/
     );
+  });
+
+  it("converts a page's Bulma 0.9 spacing, and flags an image size away from its image, with its line", () => {
+    const page = path.join(fixturesDir, 'spacing.html');
+    const source = [
+      '<section class="section is-paddingless">',
+      '  <p class="has-text-centered marginless">Centered</p>',
+      '  <p class="is-marginless">Flush</p>',
+      '  <div class="is-marginless">Plain</div>',
+      '  <figure class="is-64x64"><img src="/a.png" alt="A"></figure>',
+      '</section>',
+    ].join('\n');
+    const { output, entries } = convert(source, {}, page);
+    expect(output).toContain('<Section p="0">');
+    expect(output).toContain(
+      '<Paragraph textAlign="centered" className="marginless">'
+    );
+    expect(output).toContain('<Paragraph m="0">');
+    expect(
+      entries.map(({ file, line, rule }) => ({ file, line, rule }))
+    ).toEqual([
+      { file: page, line: 4, rule: 'legacy:is-marginless' },
+      { file: page, line: 5, rule: 'modifier:image' },
+    ]);
   });
 });
 
@@ -850,6 +1076,26 @@ describe('the file-level gates, read from where the module goes', () => {
       path.join(dir, 'app', 'card.html')
     );
     expect(rules).toEqual(['rsc']);
+  });
+
+  it("writes a gate's TODO with no page line, since it is about the whole page", () => {
+    const dir = tempDir();
+    const { output, entries } = convert(
+      `${box}<span class="box">y</span>\n`,
+      { serverComponentRoots: [{ dir, except: [] }] },
+      path.join(dir, 'app', 'card.html')
+    );
+    // An element's TODO keeps its line, and the gate's has none.
+    const todos = output!.match(/^ {2}\/\/ TODO\(bestax-migrate\): .*$/gm);
+    expect(todos).toEqual([
+      expect.stringMatching(/'use client'.*then re-run$/),
+      expect.stringMatching(/`Box` renders only <div>.*\(card\.html:2\)$/),
+    ]);
+    // The report entry still names the element the gate stopped.
+    expect(entries.map(({ line, rule }) => `${line}:${rule}`)).toEqual([
+      '1:rsc',
+      '2:tag:Box',
+    ]);
   });
 });
 

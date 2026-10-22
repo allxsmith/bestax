@@ -126,8 +126,8 @@ export default [
 The rules that judge bestax elements resolve them through the import, and
 through scope, so neither your own `<Box>` nor a local that shadows the
 imported one is linted against Bulma's rules. `no-bulma-component-class` reads
-plain HTML elements instead, and leaves components, custom elements and
-anything inside `<svg>` alone. The rules that judge a prop's value skip one they
+plain HTML elements as well, and leaves custom elements and anything inside
+`<svg>` alone. The rules that judge a prop's value skip one they
 cannot read as a literal: a variable, or a template with an interpolation.
 
 A spread is treated by what it can change. `no-color-as-surface` and
@@ -293,6 +293,19 @@ component for, and names the component:
 <div className="dropdown" />             // ✗ bestax has Dropdown, converted by hand
 ```
 
+It also reports that class in the `className` of a bestax component that
+renders another one. An element converts to one component, so that is where the
+codemod leaves the second of two such classes (`columns box`), with a TODO that
+says how to keep what it does:
+
+```jsx
+<Columns className="box" />               // ✗ bestax renders .box as Box
+<Columns className="columns is-mobile" /> // ✓ the component's own classes
+```
+
+It reads `className` only on the components the codemod writes, whose own
+classes it knows, so a raw class on any other component is left alone.
+
 Helper classes are left alone, since they are valid on any tag and a `<div>`
 has no bestax wrapper to move them to. So are the classes bestax renders only
 inside a component, and the parts of a family, whose outermost class is the
@@ -311,7 +324,12 @@ ternary, a template, or a call to `clsx`, `classnames` or `tailwind-merge`
 where `cx` is `classNames.bind(styles)`), or the arguments of any other call,
 which may be a lookup key. That includes a joiner your app defines, like a `cn`
 in `lib/utils`: the rule cannot see what it does, so it stays quiet there. An element
-carrying several is reported once, for the class the codemod would decide by.
+carrying several is reported once, for the class the codemod would decide by: a
+family's first, then, on a plain element, the one whose component fits its tag
+best, its own tag before one it reaches through `as`. So
+`<section className="hero container">` is reported as `Hero`, and
+`<figure className="image container">` as `Image`. On a bestax component, whose
+tag can come from `as`, the table's order decides.
 
 It only reports. Whether an element converts depends on its tag, attributes
 and children, and the codemod is the one place that judges that.

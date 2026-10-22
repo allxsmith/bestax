@@ -119,13 +119,14 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   them), `project.ts` (what one file cannot show: which packages are Next.js App Router
   projects, which render JSX through a runtime other than React, and which are TypeScript, for
   the extension of the module an HTML page becomes, and which depend on Next.js, where that
-  module imports no stylesheet, read once per run from every package.json the run touches) and `transform.ts` (finds the elements, reads a
+  module imports no stylesheet, read once per run from every package.json the run touches, and
+  the folders the run starts from, where an `index.html` with pages beside it is `HomePage`) and `transform.ts` (finds the elements, reads a
   `className` a `clsx` or `classnames` call builds when it can read every argument, applies the
   plans, writes the import after the file's last one). The fixture render test runs the real
   `clsx` and `classnames`, which is why they are dev dependencies. An element converts only when the component renders the same markup; the render
   tests in `e2e/bulma-classes-*.test.ts` hold every entry to that, and
   `e2e/bulma-classes-props.test.ts` to the component's props type, which can be narrower than
-  what it renders. One exception is deliberate (#1148): Font Awesome's own
+  what it renders. An exception is deliberate (#1148): Font Awesome's own
   `<i aria-hidden="true">`, alone in a `.icon` that carries nothing assistive tech reads,
   converts to `Icon`, which writes that attribute on the `.icon` instead, because the glyph is
   hidden either way. The `.icon` may carry only what is on a whitelist (`hiddenMovesBeside`
@@ -137,6 +138,14 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   the same whitelist, and leaves every other difference to fail.
   Widen it only with the same care: a new exception is a claim that the page is unchanged for
   everyone who reads it, which identical markup proves and a normalization only asserts.
+  Another deliberate exception (#1167) changes a class rather than moving an attribute:
+  Bulma 0.9's `is-marginless` and `is-paddingless`, which v1 removed, style nothing under v1, so
+  wherever the element converts they become the v1 helper that does their job (`REPLACED_IN_V1`:
+  `m="0"`, which renders `m-0`). That one does change the page under v1, to the spacing its
+  author meant, which is why it is limited to classes v1 removed. Where the class stays, it
+  gets a `legacy:` TODO. The render tests compare those elements with the v1 class restated in
+  the raw markup (`withV1Classes` in `e2e/support/render-module.ts`), only where the converted
+  element has it in the old one's place.
 - The bulma-classes HTML input is `bulma-classes/html.ts`: parse the page, drop its scripts
   (each a report), emit its body as JSX with `pageDisplayOf` (an element's inline display, else
   the displays `display.ts` says Bulma's classes give it across viewports, else its tag's; a
@@ -193,7 +202,8 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   given the converter's own display hook. `e2e/bulma-classes-html-kitchen-sink.test.ts` converts
   `fixtures/bulma-classes-html/` under `--css keep` and `--css bestax`, asserts each page's rules
   exactly, typechecks the output (`pages/leftovers.html` holds every pattern a component can't
-  carry, its own script beside it in `pages/js/`, and its module stays out of the typecheck),
+  carry, its own script beside it in `pages/js/`, and its module stays out of the typecheck;
+  `pages/contact.html` holds what the converter leaves out so a module compiles, and is checked),
   and wants `html-file:exists` alone on a second run. Both kitchen sinks hold every rule they
   emit to the skill's references through `e2e/support/skill-rules.ts`.
 - Kitchen sink e2e (`e2e/kitchen-sink.test.ts`): copies `fixtures/kitchen-sink` to a
@@ -248,6 +258,10 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   sees bestax's _real_ prop names. Both are needed — the rbx e2e's typecheck caught
   mapping errors that 254 clean Playgrounds had not.
 
+- An element `bulma-classes` leaves as markup, with a class it converts elsewhere, gets a TODO:
+  the ESLint plugin's `no-bulma-component-class` tells the app it converts, so a silent one makes
+  that message false. `scripts/eslint-plugin-codemod-output.test.mjs` lints this package's build
+  output with the rule's build and fails on one.
 - After editing a test file, check the total test count did not drop: a range replacement
   between two non-adjacent `describe` blocks deleted 868 lines on #613 and the suite stayed green
   at 699 instead of 781. Compare the `Tests:` line from `pnpm test` (bare `jest` miscounts on ESM).

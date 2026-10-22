@@ -642,6 +642,74 @@ describe('an element a component renders inside itself', () => {
     expect(rules).toEqual(['children:SelectBase']);
   });
 
+  it.each([
+    ['on lines of their own', '\n    '],
+    ['with a space between', '{" "}'],
+  ])('sends a label beside the child, %s, to Select', (_, between) => {
+    const { output, rules } = migrate(
+      `export const A = () => (\n  <div className="select is-small">\n    <label htmlFor="lang" className="sr-only">Language</label>${between}<select id="lang">\n      <option>x</option>\n    </select>\n  </div>\n);\n`
+    );
+    expect(rules).toEqual(['children:SelectBase']);
+    expect(output).toContain(
+      "the <label> beside it goes on bestax's `Select` instead, which renders `.select` inside a `Field` and a `Control`: the label's text as `label`, its classes as `labelProps={{ className: 'sr-only' }}`"
+    );
+  });
+
+  it.each([
+    [
+      'a literal',
+      'className="is-sr-only"',
+      "`labelProps={{ className: 'is-sr-only' }}`",
+    ],
+    [
+      'a computed',
+      'className={hidden}',
+      'its `className`, which is computed, as `labelProps={{ className: … }}` with the same expression',
+    ],
+    [
+      'a clsx',
+      "className={clsx('is-sr-only', hidden && 'x')}",
+      'its `className`, which is computed, as `labelProps={{ className: … }}` with the same expression',
+    ],
+  ])(
+    'carries %s className on the label into the recipe',
+    (_, className, says) => {
+      const { output } = migrate(
+        `import clsx from 'clsx';\nexport const A = ({ hidden }: { hidden: string }) => (\n  <div className="select">\n    <label htmlFor="lang" ${className}>Language</label>\n    <select id="lang">\n      <option>x</option>\n    </select>\n  </div>\n);\n`
+      );
+      expect(output).toContain(says);
+    }
+  );
+
+  it('names a spread on the label in the recipe', () => {
+    const { output } = migrate(
+      `export const A = (rest: object) => (\n  <div className="select">\n    <label {...rest} className="is-sr-only" htmlFor="lang">Language</label>\n    <select id="lang">\n      <option>x</option>\n    </select>\n  </div>\n);\n`
+    );
+    expect(output).toContain(
+      'what its spread carries in `labelProps` too, since it can set a `className` of its own'
+    );
+  });
+
+  it("keeps the label the page's inside the .field and .control the codemod writes", () => {
+    const { output, rules } = migrate(
+      `export const A = () => (\n  <div className="field">\n    <div className="control">\n      <div className="select">\n        <label className="is-sr-only" htmlFor="lang">Language</label>\n        <select id="lang">\n          <option>x</option>\n        </select>\n      </div>\n    </div>\n  </div>\n);\n`
+    );
+    expect(rules).toEqual(['children:SelectBase']);
+    expect(output).toContain('<Field>');
+    expect(output).toContain(
+      "inside a `Field` bestax's `Select` renders no label of its own and drops `label` and `labelProps`, so move the <label> out beside `.select`, its `htmlFor` on the <select>'s `id`, or give the <select> an `aria-label` in its place, then re-run"
+    );
+    // Done, a re-run converts the .select, and the label still names it.
+    const moved = migrate(
+      `export const A = () => (\n  <div className="field">\n    <div className="control">\n      <label className="is-sr-only" htmlFor="lang">Language</label>\n      <div className="select">\n        <select id="lang">\n          <option>x</option>\n        </select>\n      </div>\n    </div>\n  </div>\n);\n`
+    );
+    expect(moved.rules).toEqual([]);
+    expect(moved.output).toContain('<SelectBase id="lang">');
+    expect(moved.output).toContain(
+      '<label className="is-sr-only" htmlFor="lang">Language</label>'
+    );
+  });
+
   it('keeps each comment in the tags, once', () => {
     const { output, rules } = migrate(
       'export const A = () => (\n  // above\n  <div /* outer */ className="select">\n    <select /* inner */ name="n" /* last */>\n      <option>x</option>\n    </select /* close */>\n  </div /* outer close */>\n);\n'
@@ -853,6 +921,34 @@ describe('a className a joiner builds', () => {
     );
     expect(fold.rules).toEqual(['dynamic-class:Table']);
     expect(fold.output).toContain("can't write every class it adds");
+  });
+
+  it('flags an `.image` modifier away from its `.image` only when it reads every class', () => {
+    // A variable may hold `image`, and the TODO's remedy drops the class.
+    for (const [imports, className] of [
+      [
+        "import clsx from 'clsx';\ndeclare const avatarClass: string;\n",
+        "clsx(avatarClass, 'is-64x64')",
+      ],
+      ['declare const imageClass: string;\n', '`${imageClass} is-64x64`'],
+    ]) {
+      const { rules } = joined(
+        `<figure className={${className}}>x</figure>`,
+        imports
+      );
+      expect({ className, rules }).toEqual({ className, rules: [] });
+    }
+    // A call it reads whole is read like a static className.
+    expect(
+      joined(
+        "<figure className={clsx('is-64x64', open && 'my-avatar')}>x</figure>"
+      ).rules
+    ).toEqual(['modifier:image']);
+    // And one that adds `.image` under a condition carries it.
+    expect(
+      joined("<figure className={clsx('is-64x64', { image: open })}>x</figure>")
+        .rules
+    ).not.toContain('modifier:image');
   });
 
   it('moves a condition ahead of one left in the call only when neither has side effects', () => {

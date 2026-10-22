@@ -6,11 +6,13 @@
  * Every conversion this table allows must render exactly the HTML the raw
  * element rendered. That is a claim about bestax, and the render tests hold
  * it: each root, modifier and helper here is rendered through the built
- * library and compared with the raw markup it replaces. One exception, on
- * purpose: Font Awesome's own `<i aria-hidden="true">` alone in a `.icon`
+ * library and compared with the raw markup it replaces. The exceptions are
+ * on purpose. Font Awesome's own `<i aria-hidden="true">` alone in a `.icon`
  * that carries nothing assistive tech reads converts to `Icon`, which writes
  * the attribute on the `.icon` instead, since the glyph is hidden either way
- * (see `readsGlyph`).
+ * (see `readsGlyph`). And a Bulma 0.9 helper v1 removed, which styles
+ * nothing under v1, converts as the v1 helper that does its job (see
+ * `REPLACED_IN_V1`).
  *
  * Data only: `scripts/gen-mcp-index.mjs` imports it directly for the MCP
  * server's `lookup_bulma_classes`, so nothing Node cannot strip (no enums, no
@@ -50,6 +52,33 @@ export interface Modifier {
    * so the element stays markup instead.
    */
   readonly needsAttr?: { readonly name: string; readonly value: string };
+  /**
+   * Off the tags in `tagIn`, where the class stays a class, the prop that
+   * sizes the element the same without picking its tag (`textSize`, whose
+   * `is-size-4` Bulma sizes as it does `Title`'s `is-4`). The MCP lookup reads
+   * it, and the truth e2e holds it to Bulma's stylesheet; the codemod writes
+   * it nowhere, with no TODO either, since its class differs.
+   */
+  readonly offTag?: PropWrite;
+  /**
+   * Another of the root's modifiers whose prop this one writes another value
+   * of, and that value renders that modifier's class too (`Field`'s
+   * `hasAddons="centered"` renders `has-addons` beside `has-addons-centered`).
+   * The class converts only beside that one, the two as the one value, and
+   * stays a class on its own. Beside it, `tagIn` and `needsAttr` hold as they
+   * do for any modifier.
+   */
+  readonly beside?: string;
+  /**
+   * The tag the target renders with this class's prop and no `as`, in place
+   * of the root's `tag` (`Image` puts a ratio on a <figure>), so the element
+   * converts with `as` only on another tag. The planner's tag check, which
+   * comes before every refusal, reads it, and the render truth test holds it
+   * to one of the tags it renders the root on. Only one such class converts
+   * on an element; a second stays a class, the way a second class for a prop
+   * already written does.
+   */
+  readonly rendersTag?: string;
 }
 
 /**
@@ -122,6 +151,14 @@ export interface Absorbs {
   readonly renames?: Readonly<
     Record<string, { readonly to: string; readonly beside: string }>
   >;
+  /**
+   * The bestax component that takes a `<label>` beside the child as its own
+   * `label` (`Select`, which renders a `Field` and a `Control` around the
+   * target, and so takes one only outside a `Field` or `Control`), for the
+   * TODO on an element holding one: the target renders no label, so the
+   * element stays markup.
+   */
+  readonly label?: string;
 }
 
 /** How a target that renders a glyph from props reads one (`Icon`). */
@@ -301,8 +338,8 @@ export interface RootEntry {
    * else, the target renders its children as given. An `<i>` that carries
    * the `aria-hidden` the target writes, as Font Awesome's own markup does,
    * reads too when the element carries nothing assistive tech reads: the
-   * attribute moves up onto it, the one difference in markup a conversion
-   * makes.
+   * attribute moves up onto it, a difference in markup a conversion makes
+   * on purpose.
    */
   readonly readsGlyph?: ReadsGlyph;
   /**
@@ -349,6 +386,45 @@ export interface RootEntry {
    * no prop for them.
    */
   readonly omits?: Readonly<Record<string, string>>;
+  /**
+   * How to keep this class on an element another root converts, where
+   * wrapping or nesting its component is not always the answer: `.container`
+   * there is often only centering the element, which `mx="auto"` does. For
+   * that element's TODO and the MCP lookup, which otherwise say to wrap or
+   * nest it.
+   */
+  readonly onAnother?: string;
+  /**
+   * Bulma styles this root's modifiers, and the classes it omits, only on
+   * the element that carries the root itself (`.image.is-64x64`), so on an
+   * element without it they do nothing, and the planner flags them.
+   */
+  readonly modifiersNeedRoot?: boolean;
+}
+
+/**
+ * Whether a root's target renders this tag: the one it renders by itself (or
+ * `renders`, the heading its size picks), or one its `as` takes. A root that
+ * doesn't loses to one that does on the same element.
+ */
+export function reachesTag(
+  entry: RootEntry,
+  tag: string,
+  renders: string = entry.tag!
+): boolean {
+  if (tag === renders || entry.as === 'any') return true;
+  return entry.as?.includes(tag) ?? false;
+}
+
+/**
+ * How well a root fits an element's tag, for picking one of two: 2 when the
+ * tag is its target's own (`Hero`'s <section>), 1 when its target reaches it
+ * only through `as` (`Container`'s), 0 when it can't render it. The higher
+ * wins, so `<section className="hero container">` is a `Hero`.
+ */
+export function tagFit(entry: RootEntry, tag: string): number {
+  if (entry.tag === tag) return 2;
+  return reachesTag(entry, tag) ? 1 : 0;
 }
 
 // ---- Value vocabularies (held to @allxsmith/bestax-bulma/constants) --------
@@ -640,6 +716,37 @@ function perViewport(
 function flags(map: Record<string, string>): Record<string, Modifier> {
   return Object.fromEntries(
     Object.entries(map).map(([token, prop]) => [token, flag(prop)])
+  );
+}
+
+/**
+ * `Title`'s and `SubTitle`'s `is-1` to `is-6`: `size`, exact only on the
+ * heading it names (or a <p>), since the size picks the heading. On any
+ * other tag the class stays, and `textSize` sizes it the same.
+ */
+function headingSizes(): Record<string, Modifier> {
+  return Object.fromEntries(
+    ['1', '2', '3', '4', '5', '6'].map(n => [
+      `is-${n}`,
+      {
+        writes: [{ prop: 'size', value: n }],
+        tagIn: [`h${n}`, 'p'],
+        offTag: { prop: 'textSize', value: n },
+      },
+    ])
+  );
+}
+
+/** The same modifiers, each converting only beside `other`. */
+function beside(
+  other: string,
+  modifiers: Record<string, Modifier>
+): Record<string, Modifier> {
+  return Object.fromEntries(
+    Object.entries(modifiers).map(([token, modifier]) => [
+      token,
+      { ...modifier, beside: other },
+    ])
   );
 }
 
@@ -1094,6 +1201,10 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       'breakpoint',
       'isMax',
     ],
+    // On another root's element it is often there only to center it (a sized
+    // `.image`), which `mx="auto"` does and nothing else `.container` sets.
+    onAnother:
+      'where it is only there to center this element, `mx="auto"` centers it, and otherwise wrap the element in a `Container`; either way drop the class, then check the layout',
   },
   content: {
     ...BASE,
@@ -1137,8 +1248,6 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Field',
     tag: 'div',
-    // `has-addons-centered`, `is-grouped-right` and the like stay classes:
-    // the prop values that render them render `has-addons` too.
     modifiers: {
       ...flags({
         'is-horizontal': 'horizontal',
@@ -1148,6 +1257,17 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       // `grouped` renders `is-grouped` for `true` and its three layouts, and
       // for nothing else truthy.
       'is-grouped': { writes: [{ prop: 'grouped' }], onlyTrue: true },
+      // The prop values that render `has-addons-centered`, `is-grouped-right`
+      // and the like render `has-addons` or `is-grouped` too, so each converts
+      // only beside that class, and stays a class on its own.
+      ...beside(
+        'has-addons',
+        tokens('has-addons-', ['centered', 'right'], 'hasAddons')
+      ),
+      ...beside(
+        'is-grouped',
+        tokens('is-grouped-', ['centered', 'right', 'multiline'], 'grouped')
+      ),
     },
     wrapsChildren: {
       in: 'field-body',
@@ -1341,6 +1461,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       }),
       pairs: { multiple: 'is-multiple' },
       renames: { size: { to: 'multipleSize', beside: 'multiple' } },
+      label: 'Select',
     },
     numberAttrs: ['multipleSize'],
     adoptsIdFrom: ['Field'],
@@ -1608,12 +1729,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     as: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'],
     sizeDrivesTag: true,
     modifiers: {
-      ...Object.fromEntries(
-        ['1', '2', '3', '4', '5', '6'].map(n => [
-          `is-${n}`,
-          { writes: [{ prop: 'size', value: n }], tagIn: [`h${n}`, 'p'] },
-        ])
-      ),
+      ...headingSizes(),
       ...flags({ 'has-skeleton': 'hasSkeleton' }),
     },
     ownProps: ['size', 'as', 'hasSkeleton', 'textColor', 'bgColor'],
@@ -1697,12 +1813,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     as: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'],
     sizeDrivesTag: true,
     modifiers: {
-      ...Object.fromEntries(
-        ['1', '2', '3', '4', '5', '6'].map(n => [
-          `is-${n}`,
-          { writes: [{ prop: 'size', value: n }], tagIn: [`h${n}`, 'p'] },
-        ])
-      ),
+      ...headingSizes(),
       ...flags({ 'is-spaced': 'isSpaced', 'has-skeleton': 'hasSkeleton' }),
     },
     ownProps: ['size', 'isSpaced', 'as', 'hasSkeleton', 'textColor', 'bgColor'],
@@ -1884,48 +1995,52 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ownProps: ['textColor', 'bgColor', 'color', 'iconProps', 'items'],
   },
   // `Image` renders `.image` and the `<img>` inside it together, from `src`
-  // and `alt`. A ratio stays a class: as `size`, it adds `has-ratio` too.
+  // and `alt`. A ratio as `size` puts it on a <figure> unless `as` says
+  // otherwise.
   image: {
     ...BASE,
     target: 'Image',
     tag: 'div',
     as: ['div', 'figure', 'p'],
-    modifiers: tokens(
-      'is-',
-      [
-        '16x16',
-        '24x24',
-        '32x32',
-        '48x48',
-        '64x64',
-        '96x96',
-        '128x128',
-        'square',
-      ],
-      'size'
-    ),
-    omits: Object.fromEntries(
-      [
-        '1by1',
-        '5by4',
-        '4by3',
-        '3by2',
-        '5by3',
-        '16by9',
-        '2by1',
-        '3by1',
-        '4by5',
-        '3by4',
-        '2by3',
-        '3by5',
-        '9by16',
-        '1by2',
-        '1by3',
-      ].map(ratio => [
-        `is-${ratio}`,
-        '`size` renders `has-ratio` beside it as well',
-      ])
-    ),
+    modifiers: {
+      ...tokens(
+        'is-',
+        [
+          '16x16',
+          '24x24',
+          '32x32',
+          '48x48',
+          '64x64',
+          '96x96',
+          '128x128',
+          'square',
+        ],
+        'size'
+      ),
+      ...Object.fromEntries(
+        [
+          '1by1',
+          '5by4',
+          '4by3',
+          '3by2',
+          '5by3',
+          '16by9',
+          '2by1',
+          '3by1',
+          '4by5',
+          '3by4',
+          '2by3',
+          '3by5',
+          '9by16',
+          '1by2',
+          '1by3',
+        ].map(ratio => [
+          `is-${ratio}`,
+          { ...set('size', ratio), rendersTag: 'figure' },
+        ])
+      ),
+    },
+    modifiersNeedRoot: true,
     absorbs: {
       tag: 'img',
       attributesOn: 'element',
@@ -2361,8 +2476,6 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   'theme-dark': plain('a theme scope; bestax sets themes through `Theme`'),
   'theme-light': plain('a theme scope; bestax sets themes through `Theme`'),
   fa: plain("Font Awesome's own class, styled by Bulma inside `.icon`"),
-  marginless: plain('a Bulma helper with no bestax prop'),
-  paddingless: plain('a Bulma helper with no bestax prop'),
 };
 
 function todo(target: string, why: string): RootEntry {
@@ -2413,9 +2526,14 @@ export const PLACED: Readonly<Record<string, RootEntry>> = {
 };
 
 /**
- * Which root wins when an element carries two (`column box`): layout before
- * surface, so the element keeps the role that decides where it sits. The
- * other root stays in `className`, which renders the same either way.
+ * Which root wins when an element carries two (`column box`) that fit its tag
+ * alike: layout before surface, so the element keeps the role that decides
+ * where it sits. A better fit beats a higher place here (`tagFit`): `Image`
+ * takes a `<figure className="image container">`, which `Container` can't
+ * render, and `Hero` a `<section className="hero container">`, whose tag is
+ * its own and only reached through `as` by `Container`. The other root stays
+ * in `className`, which renders the same either way, and the element gets a
+ * TODO naming its component.
  */
 export const PRECEDENCE: readonly string[] = [
   'columns',
@@ -2558,6 +2676,23 @@ export const REMOVED_IN_V1: readonly string[] = [
 /** Bulma 0.9 classes v1 dropped, with what replaced them. */
 export const LEGACY_09: Readonly<Record<string, string>> = {
   tile: 'Bulma v1 removed tiles; rebuild the layout with `Grid` and `Cell` (see the Bulma 0.9 to 1 guide)',
+  'is-marginless':
+    'Bulma v1 removed `is-marginless`, so it styles nothing now; write v1\'s `m-0` in its place, or `m="0"` on a bestax component. The codemod does that itself wherever the element converts',
+  'is-paddingless':
+    'Bulma v1 removed `is-paddingless`, so it styles nothing now; write v1\'s `p-0` in its place, or `p="0"` on a bestax component. The codemod does that itself wherever the element converts',
+};
+
+/**
+ * Bulma 0.9 helpers v1 removed whose job a v1 helper does, with that helper.
+ * Each is a helper token for the v1 helper's prop, so wherever its element
+ * converts it becomes that prop, which renders the v1 class in its place:
+ * the conversion here that changes a class, since the class it replaces
+ * styles nothing under v1. Where its element stays markup, or the prop is
+ * not written, it gets its `LEGACY_09` TODO instead.
+ */
+export const REPLACED_IN_V1: Readonly<Record<string, string>> = {
+  'is-marginless': 'm-0',
+  'is-paddingless': 'p-0',
 };
 
 // ---- Helper classes -----------------------------------------------------------
@@ -2655,6 +2790,9 @@ export const HELPER_TOKENS: ReadonlyMap<string, HelperToken> = new Map([
   ...SPACING_PROPS.flatMap(prop =>
     helperTokens('spacing', `${prop}-`, SIZES, prop)
   ),
+  // Bulma 0.9's, as the v1 helper that replaced each (`REPLACED_IN_V1`).
+  ['is-marginless', { group: 'spacing', write: { prop: 'm', value: '0' } }],
+  ['is-paddingless', { group: 'spacing', write: { prop: 'p', value: '0' } }],
   ...helperTokens('typography', 'is-size-', TEXT_SIZES, 'textSize'),
   ...helperPerViewport(
     'typography',
@@ -2819,6 +2957,10 @@ export const PASSTHROUGH: ReadonlyArray<{
       /^(?:is-display-.+|is-visibility-.+|is-float-.+|is-clear-.+|has-text-weight-extrabold|is-align-content-(?:baseline|start|end)|is-align-items-self-(?:start|end)|is-offset-0(?:-[a-z]+)?)$/,
   },
   {
+    why: 'Bulma\'s other name for `m-0` or `p-0`, with the same rule; bestax writes that rule as `m="0"` or `p="0"`, which renders `m-0` or `p-0`, so the class stays as it is',
+    match: /^(?:marginless|paddingless)$/,
+  },
+  {
     why: 'a `.breadcrumb` separator, which converts only on its own `.breadcrumb`',
     match: /^has-[a-z]+-separator$/,
   },
@@ -2885,9 +3027,29 @@ export function modifierFor(
   return entry.modifiers ? own(entry.modifiers, token) : undefined;
 }
 
+/** Whether a root takes a class as a modifier, or omits it on purpose. */
+export function modifiesRoot(entry: RootEntry, token: string): boolean {
+  return (
+    modifierFor(entry, token) !== undefined ||
+    (entry.omits !== undefined && own(entry.omits, token) !== undefined)
+  );
+}
+
+/** The root a class modifies when Bulma styles it only on that root. */
+export function rootItNeeds(token: string): string | undefined {
+  return Object.keys(ROOTS).find(
+    root => ROOTS[root].modifiersNeedRoot && modifiesRoot(ROOTS[root], token)
+  );
+}
+
 /** What replaced a Bulma 0.9 class v1 removed. */
 export function legacyHint(token: string): string | undefined {
   return own(LEGACY_09, token);
+}
+
+/** The v1 helper a removed Bulma 0.9 helper converts as. */
+export function replacedBy(token: string): string | undefined {
+  return own(REPLACED_IN_V1, token);
 }
 
 /** The bestax wrapper for a plain tag. */

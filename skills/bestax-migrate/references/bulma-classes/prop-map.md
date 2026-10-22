@@ -72,7 +72,9 @@ Sizes are `1` to `12`, `full`, `half`, `one-third`, `two-thirds`, `one-quarter`,
 
 bestax picks the heading from `size` (`size="3"` renders an `<h3>`) unless `as="p"`. So on an
 `<h2>`, `is-4` stays a class and the element becomes `<Title as="h2" className="is-4">`, which
-renders the same `<h2>`.
+renders the same `<h2>`. To write it as a prop, `textSize="4"` keeps the `<h2>` and sizes it the
+same: it renders Bulma's `is-size-4`, which has the font size `is-4` gives a title or subtitle,
+and as a Bulma helper it is `!important`, so check a title the page's own CSS sizes.
 
 ### Other components
 
@@ -85,6 +87,8 @@ renders the same `<h2>`.
 | `.content` → `Content`                                                       | `is-small`, `is-medium`, `is-large`                                                                                                              | `size`                                                                                            |
 | `.delete` → `Delete`                                                         | `is-small`, `is-medium`, `is-large`                                                                                                              | `size`                                                                                            |
 | `.field` → `Field`                                                           | `is-horizontal`, `is-grouped`, `has-addons`, `is-narrow`                                                                                         | `horizontal`, `grouped`, `hasAddons`, `narrow`                                                    |
+| `.field` → `Field`                                                           | `has-addons-centered`, `has-addons-right`, beside `has-addons`                                                                                   | `hasAddons="centered"`, `hasAddons="right"`, which render both classes                            |
+| `.field` → `Field`                                                           | `is-grouped-centered`, `is-grouped-right`, `is-grouped-multiline`, beside `is-grouped`                                                           | `grouped="centered"`, `grouped="right"`, `grouped="multiline"`, which render both classes         |
 | `.grid` → `Grid`                                                             | `is-gap-{step}`, `is-column-gap-{step}`, `is-row-gap-{step}`, `0` to `8` in half steps (`is-gap-1.5`)                                            | `gap`, `columnGap`, `rowGap`                                                                      |
 | `.grid` → `Grid`                                                             | `is-col-min-{1-32}`                                                                                                                              | `minCol` (a number: `minCol={8}`)                                                                 |
 | `.fixed-grid` → `Grid isFixed` (folded)                                      | `has-{1-12}-cols`, `has-{1-12}-cols-{viewport}`, `has-auto-count`                                                                                | `fixedCols`, `fixedCols{Viewport}` (numbers: `fixedCols={3}`), `fixedCols="auto"`                 |
@@ -103,7 +107,8 @@ renders the same `<h2>`.
 | the `<select>` inside `.select`                                              | `is-hovered`, `is-focused`                                                                                                                       | `isHovered`, `isFocused`                                                                          |
 | `.hero` → `Hero`                                                             | `is-primary`, `is-link`, `is-info`, `is-success`, `is-warning`, `is-danger`, `is-black`, `is-white`, `is-light`, `is-dark`                       | `color`                                                                                           |
 | `.hero` → `Hero`                                                             | `is-small`, `is-medium`, `is-large`, `is-fullheight`, `is-fullheight-with-navbar`                                                                | `size`                                                                                            |
-| `.image` → `Image`                                                           | `is-16x16`, `is-24x24`, `is-32x32`, `is-48x48`, `is-64x64`, `is-96x96`, `is-128x128`, `is-square`                                                | `size` (a ratio such as `is-4by3` stays a class, since `size` would add `has-ratio`)              |
+| `.image` → `Image`                                                           | `is-16x16`, `is-24x24`, `is-32x32`, `is-48x48`, `is-64x64`, `is-96x96`, `is-128x128`, `is-square`                                                | `size`                                                                                            |
+| `.image` → `Image`                                                           | `is-{ratio}`, for each of the Ratios under Helper classes (`is-16by9`), but not `is-square` (see below)                                          | `size`, on the `<figure>` it renders with no `as` (see below)                                     |
 | the `<img>` inside `.image`                                                  | `is-rounded`                                                                                                                                     | `isRounded`                                                                                       |
 | `.icon` → `Icon`                                                             | `is-small`, `is-medium`, `is-large`                                                                                                              | `size`                                                                                            |
 | `.tabs` → `Tabs`                                                             | `is-centered`, `is-right`, `is-left`                                                                                                             | `align`                                                                                           |
@@ -130,6 +135,16 @@ renders the same `<h2>`.
 | `.tag` → `Tag`                                                               | `is-light`, `is-rounded`, `is-hoverable`                                                                                                         | `isLight`, `isRounded`, `isHoverable`                                                             |
 | `.tag` → `Tag`                                                               | `is-medium`, `is-large`                                                                                                                          | `size`                                                                                            |
 
+`is-square` sits with the fixed sizes, not the ratios. Bulma sizes it like `is-1by1`, but `Image`
+renders `size="square"` on a `<div>`, as it does a fixed size. So
+`<figure className="image is-square">` becomes `<Image as="figure" size="square">`, while
+`<figure className="image is-1by1">` becomes `<Image size="1by1">`.
+
+A ratio converts to identical markup only on a bestax-bulma whose `Image` writes nothing but the
+ratio class on its container. An older one also writes `has-ratio` there, which Bulma reads only
+on a child, so the page looks the same, unless that `.image` sits inside another ratio `.image`,
+which then stretches it to fill. Upgrade bestax-bulma, or keep that ratio as a class.
+
 `Progress` takes `value` and `max` as numbers: `value="40"` becomes `value={40}`. An
 expression (`value={percent}`) carries over as written, so if it holds a string the migrated
 file fails to typecheck while still rendering the same; wrap it in `Number(…)`. `Delete`
@@ -139,12 +154,12 @@ converts only with an `aria-label` and a `type` of `button`, `submit` or `reset`
 `aria-label="more options"` and `type="button"` otherwise.
 `.tag`'s `is-delete` stays a class: `isDelete` turns the tag into a `<button>`. A
 `.navbar-item`'s `has-dropdown` and `is-hoverable` stay classes too, since bestax has no prop for
-them on that component. So do a `.field`'s
-`has-addons-centered`, `has-addons-right` and `is-grouped-*`, because the `hasAddons` and
-`grouped` values that render them render `has-addons` and `is-grouped` as well, and an input's,
-textarea's or select's color, because `color` renders `has-text-<color>` on it too. On a
-`.columns`, the gap helpers (`is-gap-*`, `is-column-gap-*`, `is-row-gap-*`) stay classes as well:
-`Columns`' own `gap` is its gutter (`is-<step>`), and it leaves the column and row gap helpers out.
+them on that component. So do a `.field`'s `has-addons-centered`, `has-addons-right` and
+`is-grouped-*` without `has-addons` or `is-grouped` beside them, because the `hasAddons` and
+`grouped` values that render them render those as well, and an input's, textarea's or select's
+color, because `color` renders `has-text-<color>` on it too. On a `.columns`, the gap helpers
+(`is-gap-*`, `is-column-gap-*`, `is-row-gap-*`) stay classes as well: `Columns`' own `gap` is its
+gutter (`is-<step>`), and it leaves the column and row gap helpers out.
 
 ## Helper classes
 
@@ -161,6 +176,7 @@ and `visible`. Ratios are `1by1`, `5by4`, `4by3`, `3by2`, `5by3`, `16by9`, `2by1
 | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | `m-{n}`, `mt-{n}`, `mr-{n}`, `mb-{n}`, `ml-{n}`, `mx-{n}`, `my-{n}` (`0` to `6`, `auto`)                  | `m`, `mt`, `mr`, `mb`, `ml`, `mx`, `my`                                                                                          |
 | `p-{n}`, `pt-{n}`, `pr-{n}`, `pb-{n}`, `pl-{n}`, `px-{n}`, `py-{n}`                                       | `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`                                                                                          |
+| `is-marginless`, `is-paddingless` (Bulma 0.9's, which v1 removed)                                         | `m="0"`, `p="0"`, which render v1's `m-0` and `p-0`                                                                              |
 | `has-text-{color}`                                                                                        | `textColor` (on `Menu`, `Menu.Label`, `Menu.List` and `Table`, `color`)                                                          |
 | `has-background-{color}`                                                                                  | `bgColor` (on `Menu`, `Menu.Label`, `Menu.List`, `Tag`, `File`, `InputBase`, `TextAreaBase` and `SelectBase`, `backgroundColor`) |
 | `is-size-1` … `is-size-7`, and `-{viewport}`                                                              | `textSize`, `textSize{Viewport}`                                                                                                 |
@@ -221,10 +237,18 @@ Some classes stay put because of how bestax renders them:
   instead of as its own class.
 - `is-hidden` becomes `visibility="hidden"`, which renders the same class and doesn't interact
   with `display`.
+- `is-marginless` and `is-paddingless` are the only classes a conversion changes: they style
+  nothing under v1, so they become the prop of the v1 helper that does their job. A live class
+  for the same prop keeps it, whichever is written first, so beside `p-2` the class stays with a
+  `legacy:` TODO, and so it does wherever the element stays markup. Beside a class for another
+  prop, such as `px-2`, it still converts: v1 puts every side and axis class after `p-0`, so
+  `px-2` keeps its sides.
 
 ## Classes that stay classes
 
 Color shades (`has-text-primary-65`), the `-touch` and `-only` breakpoints of text size and
-alignment, Grid and `.image` modifiers away from their own element, an `.image` ratio, and the
-Bulma helpers bestax has no prop for (`is-display-*`, `is-visibility-*`, `is-float-*`,
-`is-clear-*`, …) stay in `className`. They render exactly as before.
+alignment, Grid and `.image` modifiers away from their own element, v1's `marginless` and
+`paddingless` (the rules of `m-0` and `p-0` under other names), and the Bulma helpers bestax has
+no prop for (`is-display-*`, `is-visibility-*`, `is-float-*`, `is-clear-*`, …) stay in
+`className`. They render exactly as before. An `.image` size or ratio away from its `.image` also
+gets a `modifier:image` TODO, since Bulma styles it only there.

@@ -1,6 +1,8 @@
-import React, { createRef } from 'react';
+import React, { createRef, useState } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { render, screen, within } from '@testing-library/react';
-import { Menu, MenuLabel, MenuList, MenuItem } from '../Menu';
+import userEvent from '@testing-library/user-event';
+import { Menu, MenuLabel, MenuList, MenuItem, MenuSection } from '../Menu';
 import { ConfigProvider } from '../../helpers/Config';
 
 // A simple link-like mock component for custom "as" prop testing
@@ -318,6 +320,10 @@ describe('Compound components', () => {
 
   it('Menu.Item is the MenuItem component', () => {
     expect(Menu.Item).toBe(MenuItem);
+  });
+
+  it('Menu.Section is the MenuSection component', () => {
+    expect(Menu.Section).toBe(MenuSection);
   });
 
   it('renders a menu through the dot path', () => {
@@ -714,5 +720,392 @@ describe('current page', () => {
     expect(inner('page')).toHaveAttribute('aria-current', 'page');
     expect(inner('section')).toHaveAttribute('aria-current', 'location');
     expect(inner('filter')).toHaveAttribute('aria-current', 'false');
+  });
+});
+
+describe('Menu.Section', () => {
+  // A section is APG's disclosure navigation (#1172): a button with
+  // aria-expanded and aria-controls, and under it a list of ordinary links.
+  const sidebar = (
+    sectionProps: Partial<React.ComponentProps<typeof MenuSection>> = {}
+  ) =>
+    render(
+      <Menu>
+        <Menu.Section
+          label="Components"
+          data-testid="section"
+          {...sectionProps}
+        >
+          <Menu.List>
+            <Menu.Item href="/button" active>
+              Button
+            </Menu.Item>
+            <Menu.Item href="/card">Card</Menu.Item>
+          </Menu.List>
+        </Menu.Section>
+        <Menu.Section label="Form">
+          <Menu.List>
+            <Menu.Item href="/input">Input</Menu.Item>
+          </Menu.List>
+        </Menu.Section>
+      </Menu>
+    );
+
+  const heading = (name = 'Components') => screen.getByRole('button', { name });
+  const regionOf = (button: HTMLElement) =>
+    document.getElementById(button.getAttribute('aria-controls')!)!;
+
+  it('renders its heading as a button, drawn by its own classes, with the label inside', () => {
+    sidebar();
+    const button = heading();
+    expect(button.tagName).toBe('BUTTON');
+    expect(button).toHaveAttribute('type', 'button');
+    expect(button).toHaveClass('menu-section-toggle');
+    expect(button).not.toHaveClass('menu-label');
+    const [label, chevron] = Array.from(button.children);
+    expect(label).toHaveClass('menu-section-label');
+    expect(label).toHaveTextContent('Components');
+    expect(chevron).toHaveClass('menu-section-chevron');
+    expect(chevron).toHaveAttribute('aria-hidden', 'true');
+    expect(chevron).toBeEmptyDOMElement();
+    expect(screen.getByTestId('section')).toHaveClass('menu-section');
+  });
+
+  it('takes a node as its label, and names the button with it', () => {
+    render(
+      <Menu>
+        <Menu.Section
+          label={
+            <>
+              <span aria-hidden="true">#</span> Guides
+            </>
+          }
+        >
+          <Menu.List>
+            <Menu.Item href="/intro">Intro</Menu.Item>
+          </Menu.List>
+        </Menu.Section>
+      </Menu>
+    );
+    expect(heading('Guides')).toBeInTheDocument();
+  });
+
+  it('points the button at the list it opens and closes', () => {
+    sidebar({ defaultOpen: true });
+    const button = heading();
+    const region = regionOf(button);
+    expect(region).toBeInTheDocument();
+    expect(region.previousElementSibling).toBe(button);
+    expect(within(region).getByRole('list')).toHaveClass('menu-list');
+    expect(button.parentElement).toBe(screen.getByTestId('section'));
+  });
+
+  it('gives each section its own list id', () => {
+    sidebar();
+    const first = heading().getAttribute('aria-controls');
+    const second = heading('Form').getAttribute('aria-controls');
+    expect(first).toBeTruthy();
+    expect(second).toBeTruthy();
+    expect(first).not.toBe(second);
+  });
+
+  it('starts closed, with its list hidden from everyone', () => {
+    sidebar();
+    const button = heading();
+    expect(button).toHaveAttribute('aria-expanded', 'false');
+    expect(regionOf(button)).toHaveAttribute('hidden');
+    // And inert, so a stylesheet that sets `display` on the list and shows
+    // it anyway still leaves its links out of Tab and assistive tech.
+    expect(regionOf(button)).toHaveAttribute('inert');
+    // Not drawn, and not in the accessibility tree.
+    expect(screen.getByText('Button')).not.toBeVisible();
+    expect(screen.queryByRole('link', { name: 'Button' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Card' })).toBeNull();
+    // Still in the DOM, so aria-controls names an element that exists.
+    expect(regionOf(button)).toContainElement(screen.getByText('Button'));
+  });
+
+  it('starts open with defaultOpen', () => {
+    sidebar({ defaultOpen: true });
+    const button = heading();
+    expect(button).toHaveAttribute('aria-expanded', 'true');
+    expect(regionOf(button)).not.toHaveAttribute('hidden');
+    expect(regionOf(button)).not.toHaveAttribute('inert');
+    expect(screen.getByRole('link', { name: 'Button' })).toBeVisible();
+  });
+
+  it('opens and closes on a click', async () => {
+    const user = userEvent.setup();
+    sidebar();
+    const button = heading();
+    await user.click(button);
+    expect(button).toHaveAttribute('aria-expanded', 'true');
+    expect(regionOf(button)).not.toHaveAttribute('hidden');
+    await user.click(button);
+    expect(button).toHaveAttribute('aria-expanded', 'false');
+    expect(regionOf(button)).toHaveAttribute('hidden');
+  });
+
+  it.each([
+    ['Enter', '{Enter}'],
+    ['Space', ' '],
+  ])('opens and closes with %s, as a button does', async (_key, keys) => {
+    const user = userEvent.setup();
+    sidebar();
+    const button = heading();
+    button.focus();
+    await user.keyboard(keys);
+    expect(button).toHaveAttribute('aria-expanded', 'true');
+    await user.keyboard(keys);
+    expect(button).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('reports each toggle through onOpenChange while holding its own state', async () => {
+    const user = userEvent.setup();
+    const onOpenChange = jest.fn();
+    sidebar({ onOpenChange });
+    await user.click(heading());
+    expect(heading()).toHaveAttribute('aria-expanded', 'true');
+    await user.click(heading());
+    expect(heading()).toHaveAttribute('aria-expanded', 'false');
+    expect(onOpenChange.mock.calls).toEqual([[true], [false]]);
+  });
+
+  it('only reports while open is set, until the caller passes the new state', async () => {
+    const user = userEvent.setup();
+    const onOpenChange = jest.fn();
+    const ui = (open: boolean) => (
+      <Menu>
+        <Menu.Section
+          label="Components"
+          open={open}
+          onOpenChange={onOpenChange}
+        >
+          <Menu.List>
+            <Menu.Item href="/button">Button</Menu.Item>
+          </Menu.List>
+        </Menu.Section>
+      </Menu>
+    );
+    const { rerender } = render(ui(false));
+    await user.click(heading());
+    expect(onOpenChange).toHaveBeenLastCalledWith(true);
+    expect(heading()).toHaveAttribute('aria-expanded', 'false');
+    expect(regionOf(heading())).toHaveAttribute('hidden');
+
+    rerender(ui(true));
+    expect(heading()).toHaveAttribute('aria-expanded', 'true');
+    expect(regionOf(heading())).not.toHaveAttribute('hidden');
+    await user.click(heading());
+    expect(onOpenChange).toHaveBeenLastCalledWith(false);
+    expect(heading()).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('follows open over defaultOpen', () => {
+    sidebar({ open: false, defaultOpen: true });
+    expect(heading()).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('lets open and onOpenChange drive it together', async () => {
+    const user = userEvent.setup();
+    const Controlled = () => {
+      const [open, setOpen] = useState(false);
+      return (
+        <Menu>
+          <Menu.Section label="Components" open={open} onOpenChange={setOpen}>
+            <Menu.List>
+              <Menu.Item href="/button">Button</Menu.Item>
+            </Menu.List>
+          </Menu.Section>
+        </Menu>
+      );
+    };
+    render(<Controlled />);
+    await user.click(heading());
+    expect(heading()).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('link', { name: 'Button' })).toBeVisible();
+  });
+
+  it('leaves a closed section’s links out of the tab order, and makes each open one a tab stop', async () => {
+    const user = userEvent.setup();
+    sidebar();
+    await user.tab();
+    expect(heading()).toHaveFocus();
+    // Closed: Tab goes from one heading straight to the next.
+    await user.tab();
+    expect(heading('Form')).toHaveFocus();
+
+    await user.click(heading());
+    expect(heading()).toHaveFocus();
+    // Open: every link is a tab stop of its own, in order, with no roving
+    // focus to skip past.
+    await user.tab();
+    expect(screen.getByRole('link', { name: 'Button' })).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole('link', { name: 'Card' })).toHaveFocus();
+    await user.tab();
+    expect(heading('Form')).toHaveFocus();
+  });
+
+  it('leaves the arrow keys alone', async () => {
+    const user = userEvent.setup();
+    sidebar({ defaultOpen: true });
+    heading().focus();
+    await user.keyboard('{ArrowDown}');
+    expect(heading()).toHaveFocus();
+    expect(heading()).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('keeps its links’ href, active and aria-current', () => {
+    sidebar({ defaultOpen: true });
+    const current = screen.getByRole('link', { name: 'Button' });
+    expect(current).toHaveAttribute('href', '/button');
+    expect(current).toHaveClass('is-active');
+    expect(current).toHaveAttribute('aria-current', 'page');
+    const other = screen.getByRole('link', { name: 'Card' });
+    expect(other).toHaveAttribute('href', '/card');
+    expect(other).not.toHaveAttribute('aria-current');
+  });
+
+  it('does not submit a form it sits in', async () => {
+    const user = userEvent.setup();
+    const onSubmit = jest.fn((e: React.FormEvent) => e.preventDefault());
+    render(
+      <form onSubmit={onSubmit}>
+        <Menu>
+          <Menu.Section label="Components">
+            <Menu.List>
+              <Menu.Item href="/button">Button</Menu.Item>
+            </Menu.List>
+          </Menu.Section>
+        </Menu>
+      </form>
+    );
+    await user.click(heading());
+    expect(heading()).toHaveAttribute('aria-expanded', 'true');
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('puts className, helper props and other attributes on the wrapping div', () => {
+    sidebar({ className: 'custom', mt: '4', id: 'components', title: 'Docs' });
+    const section = screen.getByTestId('section');
+    expect(section.tagName).toBe('DIV');
+    expect(section).toHaveClass('menu-section', 'custom', 'mt-4');
+    expect(section).toHaveAttribute('id', 'components');
+    expect(section).toHaveAttribute('title', 'Docs');
+    expect(heading()).not.toHaveClass('custom');
+  });
+
+  it('applies the class prefix from ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bestax-">
+        <Menu>
+          <Menu.Section label="Components" data-testid="section" mt="2">
+            <Menu.List>
+              <Menu.Item href="/button">Button</Menu.Item>
+            </Menu.List>
+          </Menu.Section>
+        </Menu>
+      </ConfigProvider>
+    );
+    const section = screen.getByTestId('section');
+    expect(section).toHaveClass('bestax-menu-section', 'bestax-mt-2');
+    const button = heading();
+    expect(button).toHaveClass('bestax-menu-section-toggle');
+    expect(button.children[0]).toHaveClass('bestax-menu-section-label');
+    expect(button.children[1]).toHaveClass('bestax-menu-section-chevron');
+    expect(section.querySelector('ul')).toHaveClass('bestax-menu-list');
+  });
+
+  it('renders on the server with a closed list already hidden, and each list wired to its button', () => {
+    const html = renderToStaticMarkup(
+      <Menu>
+        <Menu.Section label="Components">
+          <Menu.List>
+            <Menu.Item href="/button">Button</Menu.Item>
+          </Menu.List>
+        </Menu.Section>
+        <Menu.Section label="Form" defaultOpen>
+          <Menu.List>
+            <Menu.Item href="/input">Input</Menu.Item>
+          </Menu.List>
+        </Menu.Section>
+      </Menu>
+    );
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const [closed, open] = Array.from(doc.querySelectorAll('button'));
+    const regionFor = (button: Element) =>
+      doc.getElementById(button.getAttribute('aria-controls')!)!;
+    expect(closed.getAttribute('aria-expanded')).toBe('false');
+    expect(regionFor(closed).hasAttribute('hidden')).toBe(true);
+    expect(regionFor(closed).getAttribute('inert')).toBe('');
+    expect(regionFor(closed).textContent).toBe('Button');
+    expect(open.getAttribute('aria-expanded')).toBe('true');
+    expect(regionFor(open).hasAttribute('hidden')).toBe(false);
+    expect(regionFor(open).hasAttribute('inert')).toBe(false);
+    expect(regionFor(open).textContent).toBe('Input');
+  });
+
+  describe('when the app closes it', () => {
+    // A sidebar that keeps only the current route's section open closes the
+    // one whose link was just followed, with focus still on that link. The
+    // browser would drop focus to <body> a frame later.
+    const ui = (open: boolean) => (
+      <>
+        <Menu>
+          <Menu.Section label="Getting started" open={open}>
+            <Menu.List>
+              <Menu.Item href="/install">Installation</Menu.Item>
+            </Menu.List>
+          </Menu.Section>
+        </Menu>
+        <button type="button">Elsewhere</button>
+      </>
+    );
+
+    it('moves focus from one of its links to its heading', () => {
+      const { rerender } = render(ui(true));
+      screen.getByRole('link', { name: 'Installation' }).focus();
+      rerender(ui(false));
+      expect(heading('Getting started')).toHaveFocus();
+    });
+
+    it('leaves focus where it is when focus isn’t in its list', () => {
+      const { rerender } = render(ui(true));
+      const elsewhere = screen.getByRole('button', { name: 'Elsewhere' });
+      elsewhere.focus();
+      rerender(ui(false));
+      expect(elsewhere).toHaveFocus();
+    });
+
+    it('leaves focus alone when it opens', () => {
+      const { rerender } = render(ui(false));
+      const elsewhere = screen.getByRole('button', { name: 'Elsewhere' });
+      elsewhere.focus();
+      rerender(ui(true));
+      expect(elsewhere).toHaveFocus();
+    });
+
+    it('finds focus inside a shadow root the menu renders in', () => {
+      // `document.activeElement` names the host there, so the section asks
+      // its own tree, the way a docs live example renders.
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const mount = host.attachShadow({ mode: 'open' });
+      const { rerender, unmount } = render(ui(true), {
+        container: mount as unknown as HTMLElement,
+      });
+      within(mount as unknown as HTMLElement)
+        .getByRole('link', { name: 'Installation' })
+        .focus();
+      rerender(ui(false));
+      expect(mount.activeElement).toBe(
+        within(mount as unknown as HTMLElement).getByRole('button', {
+          name: 'Getting started',
+        })
+      );
+      unmount();
+      host.remove();
+    });
   });
 });

@@ -4,8 +4,9 @@
  * generated from its `class-map.ts`).
  *
  * The lookup follows the codemod's planner class by class: a family bestax
- * converts as a whole, then the element's root by precedence, then each
- * other class as that root's modifier or a helper prop, with the same rules
+ * converts as a whole, then the element's root (one whose component renders
+ * the tag, then by precedence), then each other class as that root's
+ * modifier or a helper prop, with the same rules
  * for a prop two classes both set and for helpers that only render beside
  * another. So a prop it names is the prop the codemod writes. It stops where
  * the planner looks past the classes: attributes, children, refs and spreads
@@ -35,6 +36,23 @@ export interface Modifier {
    * so the class converts only beside one written out.
    */
   needsAttr?: { name: string; value: string };
+  /**
+   * Off the tags in `tagIn`, where the class stays a class, the prop that
+   * sizes the element the same without picking its tag (`textSize`).
+   */
+  offTag?: PropWrite;
+  /**
+   * Another modifier whose prop this one writes another value of, which
+   * renders that class too, so the two convert together and this one alone
+   * stays a class.
+   */
+  beside?: string;
+  /**
+   * The tag the component renders with this class's prop and no `as`, in
+   * place of the root's own (`Image` puts a ratio on a <figure>). Only one
+   * such class converts on an element.
+   */
+  rendersTag?: string;
 }
 
 export interface RootRecord {
@@ -99,6 +117,11 @@ export interface RootRecord {
   rendersText: string | null;
   /** A `className` the component is given replaces its own class. */
   classNameReplaces: boolean;
+  /**
+   * How to keep this class on an element another root converts, where an
+   * element of its own is not the answer (`.container`'s `mx="auto"`).
+   */
+  onAnother?: string | null;
 }
 
 export interface Items {
@@ -155,6 +178,11 @@ export interface Absorbs {
   pairs?: Record<string, string>;
   /** A child attribute the component reads under another name. */
   renames?: Record<string, { to: string; beside: string }>;
+  /**
+   * The component that takes a `<label>` beside the child as its `label`,
+   * since this one renders no label (`Select`).
+   */
+  label?: string;
 }
 
 export interface Wraps {
@@ -178,6 +206,11 @@ export interface BulmaClassTable {
   wrappers: Record<string, string>;
   helpers: Record<string, HelperRecord>;
   legacy: Record<string, string>;
+  /**
+   * Removed Bulma 0.9 helpers, each with the v1 helper whose prop it
+   * converts as (`is-marginless` as `m-0`'s `m="0"`).
+   */
+  replaced: Record<string, string>;
   /** Classes Bulma 0.9's stylesheet has and v1's does not. */
   removed: string[];
   passthrough: { why: string; match: string }[];
@@ -363,8 +396,27 @@ function listTags(tags: readonly string[]): string {
     : named[0];
 }
 
-function reaches(entry: RootRecord): string {
-  if (entry.as === 'any') return `<${entry.tag}>, or any tag through \`as\``;
+/** Whether a root's component renders this tag, as its own or through `as`. */
+function reachesTag(entry: RootRecord, tag: string): boolean {
+  if (entry.tag === tag || entry.as === 'any') return true;
+  return Array.isArray(entry.as) && entry.as.includes(tag);
+}
+
+/** 2 for the component's own tag, 1 for one `as` reaches, 0 for neither. */
+function tagFit(entry: RootRecord, tag: string): number {
+  if (entry.tag === tag) return 2;
+  return reachesTag(entry, tag) ? 1 : 0;
+}
+
+function reaches(entry: RootRecord, retagged?: string): string {
+  // The tag it renders with no `as`: the one a class picks, else its own.
+  const plain = retagged
+    ? `<${retagged}> with these classes`
+    : `<${entry.tag}>`;
+  if (entry.as === 'any') return `${plain}, or any tag through \`as\``;
+  if (retagged && entry.as) {
+    return `${plain}, or ${listTags(entry.as)} through \`as\``;
+  }
   if (entry.sizeDrivesTag && entry.as) {
     return `the heading its \`size\` names (<${entry.tag}> with none), or ${listTags(entry.as)} through \`as\``;
   }
@@ -413,6 +465,13 @@ export function lookupClasses(
   const verdicts = new Map<string, Verdict>();
   const stays = (token: string, why: string) =>
     verdicts.set(token, { kind: 'class', why });
+  // A removed Bulma 0.9 helper that stays says what replaced it, whatever
+  // kept it: that is what there is to do about it.
+  const helperStays = (token: string, why: string) =>
+    stays(
+      token,
+      own(table.replaced, token) ? leftoverReason(table, token) : why
+    );
   const result = (element: Element): Lookup => ({
     tag,
     element,
@@ -463,7 +522,7 @@ export function lookupClasses(
         continue;
       }
       bare = false;
-      stays(token, `bestax renders \`.${wrapper}\` with no other class`);
+      helperStays(token, `bestax renders \`.${wrapper}\` with no other class`);
     }
     if (tag && tag !== entry.tag) {
       return result({
@@ -484,9 +543,17 @@ export function lookupClasses(
     const index = table.precedence.indexOf(token);
     return index === -1 ? table.precedence.length : index;
   };
-  const root = tokens
+  // Of two roots, the one that fits the tag best wins (its own tag, then one
+  // `as` reaches), and the table's precedence decides a tie.
+  const roots = tokens
     .filter(token => rootOf(token)?.status === 'mapped')
-    .sort((a, b) => precedence(a) - precedence(b))[0];
+    .sort((a, b) => precedence(a) - precedence(b));
+  const fit = (token: string) => (tag ? tagFit(rootOf(token)!, tag) : 0);
+  const root = roots.reduce<string | undefined>(
+    (best, token) =>
+      best === undefined || fit(token) > fit(best) ? token : best,
+    undefined
+  );
 
   let entry: RootRecord;
   if (root) {
@@ -507,7 +574,7 @@ export function lookupClasses(
     if (tag && !wrapper) {
       const why = `bestax has no component for a plain <${tag}>, so its classes stay`;
       for (const token of tokens) {
-        if (own(table.helpers, token)) stays(token, why);
+        if (own(table.helpers, token)) helperStays(token, why);
       }
       return result({ kind: 'markup', why });
     }
@@ -549,7 +616,9 @@ export function lookupClasses(
       : undefined;
 
   // Each class as the root's modifier, else as a helper prop, in order; the
-  // first class to set a prop keeps it.
+  // first class to set a prop keeps it, but a Bulma 0.9 class v1 removed
+  // goes after every other, as in the planner, so a live class for the same
+  // prop keeps it whichever is written first (`is-paddingless p-2`).
   // What the component needs for its own class comes first, so no class can
   // take its prop (`variant="lines"` for `.skeleton-lines`).
   const writes = new Map<
@@ -561,17 +630,70 @@ export function lookupClasses(
       { value: write.value ?? true, token: root ?? '' },
     ])
   );
-  for (const token of tokens) {
+  // A size class off its tags names the prop that sizes the element the same
+  // (`textSize`), unless a helper on the element writes that prop already
+  // (`is-size-2`), which then wins, and the size class is the one that stays.
+  // `where` scopes that to the tags the suggestion is for, when no tag is given.
+  const offTagNote = (
+    off: PropWrite,
+    suggestion: string,
+    where = ''
+  ): string => {
+    const helper =
+      entry.noHelpers || own(entry.helpersLeftOut, off.prop)
+        ? undefined
+        : tokens.find(
+            each => own(table.helpers, each)?.write.prop === off.prop
+          );
+    return helper
+      ? `; ${where}\`${off.prop}\` is written by \`${helper}\` already, so this class is the one that stays`
+      : suggestion;
+  };
+  /** The one class that picks the component's tag, as the codemod takes it. */
+  let retaggedBy: string | undefined;
+  const claiming = [
+    ...tokens.filter(token => !own(table.replaced, token)),
+    ...tokens.filter(token => own(table.replaced, token)),
+  ];
+  // A class that converts only beside another (`has-addons-centered`) goes
+  // first, as in the planner, so the value it writes takes the prop ahead of
+  // that one's flag and renders both classes. On its own it stays a class.
+  const withBase = (token: string) => {
+    const base = own(entry.modifiers, token)?.beside;
+    return base !== undefined && tokens.includes(base);
+  };
+  for (const token of [
+    ...claiming.filter(withBase),
+    ...claiming.filter(token => !withBase(token)),
+  ]) {
     if (token === root) {
       verdicts.set(token, { kind: 'component', target: target! });
       continue;
     }
+    if (verdicts.has(token)) continue;
     const modifier = own(entry.modifiers, token);
     if (modifier) {
+      if (modifier.beside && !withBase(token)) {
+        stays(
+          token,
+          `${modifier.writes.map(writeText).join(' ')} renders \`${modifier.beside}\` too, so it converts only beside that class`
+        );
+        continue;
+      }
       if (modifier.tagIn && tag && !modifier.tagIn.includes(tag)) {
         stays(
           token,
-          `bestax \`${target}\` renders it exactly only on ${listTags(modifier.tagIn)}`
+          `bestax \`${target}\` renders it exactly only on ${listTags(modifier.tagIn)}` +
+            // Only on a tag the component renders: on any other, the lookup
+            // says to change the tag, and on the new one the class converts.
+            (modifier.offTag &&
+            (entry.as === 'any' ||
+              (Array.isArray(entry.as) && entry.as.includes(tag)))
+              ? offTagNote(
+                  modifier.offTag,
+                  `; on this <${tag}>, write ${writeText(modifier.offTag)} in its place, which sizes it the same and keeps the <${tag}>`
+                )
+              : '')
         );
         continue;
       }
@@ -583,26 +705,80 @@ export function lookupClasses(
         );
         continue;
       }
+      // Only one class picks the tag, as only one sets a prop.
+      if (modifier.rendersTag && retaggedBy) {
+        stays(token, `\`${retaggedBy}\` already picks the tag`);
+        continue;
+      }
       for (const write of modifier.writes) {
         writes.set(write.prop, { value: write.value ?? true, token });
       }
+      if (modifier.rendersTag) retaggedBy = token;
       // A class the component renders from an attribute of the element
       // inside (`is-multiple` beside a `<select multiple>`).
       const paired = Object.entries(entry.absorbs?.pairs ?? {}).find(
         ([, pairedToken]) => pairedToken === token
       )?.[0];
+      const gates = [
+        modifier.tagIn &&
+          !tag &&
+          `exact only on ${listTags(modifier.tagIn)}` +
+            (modifier.offTag
+              ? offTagNote(
+                  modifier.offTag,
+                  `; on another tag, ${writeText(modifier.offTag)} sizes it the same and keeps the tag`,
+                  'on another tag, '
+                )
+              : ''),
+        paired &&
+          `with a bare \`${paired}\` on the <${entry.absorbs!.tag}> inside, which it renders`,
+        modifier.needsAttr &&
+          `beside an \`${modifier.needsAttr.name}\` of the element's own, since the prop renders \`${modifier.needsAttr.name}="${modifier.needsAttr.value}"\` otherwise; without one it stays a class`,
+      ].filter(Boolean);
+      if (modifier.beside) {
+        // Rendered from the layout's value only where that converts, so the
+        // base row is hedged where the layout row is.
+        const base = own(entry.modifiers, modifier.beside);
+        const otherwise =
+          gates.length > 0 && base
+            ? ` where it converts, and otherwise from ${base.writes.map(writeText).join(' ')} on its own`
+            : '';
+        verdicts.set(modifier.beside, {
+          kind: 'rendered',
+          target: target!,
+          condition: `from ${modifier.writes.map(writeText).join(' ')}, which \`${token}\` sets${otherwise}`,
+        });
+      }
+      const conditions = [
+        ...gates,
+        modifier.beside &&
+          `beside \`${modifier.beside}\`, which it renders too`,
+      ].filter(Boolean);
       verdicts.set(token, {
         kind: 'prop',
         writes: modifier.writes,
-        condition:
-          modifier.tagIn && !tag
-            ? `exact only on ${listTags(modifier.tagIn)}`
-            : paired
-              ? `with a bare \`${paired}\` on the <${entry.absorbs!.tag}> inside, which it renders`
-              : modifier.needsAttr
-                ? `beside an \`${modifier.needsAttr.name}\` of the element's own, since the prop renders \`${modifier.needsAttr.name}="${modifier.needsAttr.value}"\` otherwise; without one it stays a class`
-                : undefined,
+        condition: conditions.length > 0 ? conditions.join('; ') : undefined,
       });
+      continue;
+    }
+    // Another component's class rides along, and the codemod says so.
+    const second = rootOf(token);
+    if (root && second?.status === 'mapped' && second.target !== target) {
+      const name = second.target!;
+      const why =
+        tag && !reachesTag(second, tag)
+          ? `\`${name}\` renders ${reaches(second)}, not ${aTag(tag)}`
+          : fit(root) > fit(token)
+            ? `${aTag(tag!)} is \`${target}\`'s own element, and \`${name}\` renders one only through \`as\``
+            : precedence(root) < precedence(token)
+              ? `the codemod ranks \`.${root}\` first, putting layout and parts ahead of surfaces`
+              : `\`.${root}\` comes first on the element`;
+      stays(
+        token,
+        `bestax \`${name}\`'s class too, and an element converts to one component: \`${target}\` here, since ${why}; ` +
+          (second.onAnother ??
+            `to use \`${name}\`, give it an element of its own around or inside this one`)
+      );
       continue;
     }
     const omitted = own(entry.omits, token);
@@ -613,7 +789,7 @@ export function lookupClasses(
     const helper = own(table.helpers, token);
     if (!helper) continue;
     if (entry.noHelpers) {
-      stays(token, `bestax \`${target}\` takes no helper props`);
+      helperStays(token, `bestax \`${target}\` takes no helper props`);
       continue;
     }
     const prop =
@@ -623,16 +799,16 @@ export function lookupClasses(
           ? entry.bgColor
           : helper.write.prop;
     if (!prop) {
-      stays(token, `bestax \`${target}\` has no prop that renders it`);
+      helperStays(token, `bestax \`${target}\` has no prop that renders it`);
       continue;
     }
     const leftOut = own(entry.helpersLeftOut, prop);
     if (leftOut) {
-      stays(token, leftOut);
+      helperStays(token, leftOut);
       continue;
     }
     if (writes.has(prop)) {
-      stays(
+      helperStays(
         token,
         `\`${prop}\` is already set by \`${writes.get(prop)!.token}\``
       );
@@ -646,11 +822,13 @@ export function lookupClasses(
     });
     const color =
       helper.group === 'text-color' || helper.group === 'background';
+    const v1 = own(table.replaced, token);
     verdicts.set(token, {
       kind: 'prop',
       writes: [write],
-      condition:
-        color && !target
+      condition: v1
+        ? `Bulma 1 removed \`${token}\`, so this renders its v1 class, \`${v1}\`, in its place`
+        : color && !target
           ? colorCondition(
               table,
               helper.group === 'text-color' ? 'textColor' : 'bgColor'
@@ -680,7 +858,7 @@ export function lookupClasses(
   const undo = (prop: string, why: string) => {
     const { token, value } = writes.get(prop)!;
     const named = value === true ? `\`${prop}\`` : `\`${prop}="${value}"\``;
-    stays(token, `${named} ${why}, so here it stays a class`);
+    helperStays(token, `${named} ${why}, so here it stays a class`);
     writes.delete(prop);
     undone = true;
   };
@@ -740,17 +918,28 @@ export function lookupClasses(
     });
   }
   const size = writes.get('size')?.value;
+  // A class whose prop puts the component on another tag when no `as` is
+  // given (`Image`'s ratios on a <figure>).
+  const retagged = retaggedBy
+    ? own(entry.modifiers, retaggedBy)?.rendersTag
+    : undefined;
   const renders =
-    entry.sizeDrivesTag && tag !== 'p' && typeof size === 'string'
+    retagged ??
+    (entry.sizeDrivesTag && tag !== 'p' && typeof size === 'string'
       ? `h${size}`
-      : entry.tag!;
+      : entry.tag!);
   const reachable =
     !tag ||
     renders === tag ||
     entry.as === 'any' ||
     (Array.isArray(entry.as) && entry.as.includes(tag));
   if (!reachable) {
-    return result({ kind: 'wrong-tag', target, tag, reaches: reaches(entry) });
+    return result({
+      kind: 'wrong-tag',
+      target,
+      tag,
+      reaches: reaches(entry, retagged),
+    });
   }
   // A `className` it's given replaces its own class, so a class left over
   // keeps the element as markup.
@@ -781,7 +970,7 @@ export function lookupClasses(
     return result({
       kind: 'component',
       target,
-      renders: reaches(entry),
+      renders: reaches(entry, retagged),
       ...about,
     });
   }
@@ -877,7 +1066,16 @@ function absorbsText(target: string, absorbs: Absorbs): string {
     ` It renders the ${child} inside it itself, and puts the attributes it ` +
     `is given on that ${child}: write the ${child}'s attributes and children ` +
     `on \`${target}\` in its place, and nothing on this element but a \`key\`.` +
-    on
+    on +
+    (absorbs.label
+      ? ` It renders no <label>: one beside the ${child} goes on ` +
+        `\`${absorbs.label}\` instead, as its \`label\` with its classes in ` +
+        `\`labelProps\`, and \`${absorbs.label}\` renders a \`Field\` and a ` +
+        `\`Control\` around it. Inside a \`Field\` it drops that \`label\`, ` +
+        `and inside a bare \`Control\` it nests the label's \`.field\` there, ` +
+        `so in either move the <label> out beside this element, pointing at the ` +
+        `${child}'s \`id\`, or give the ${child} an \`aria-label\`.`
+      : '')
   );
 }
 

@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import Level, { LevelLeft, LevelRight, LevelItem } from '../Level';
 import { Title } from '../../elements/Title';
+import { SubTitle } from '../../elements/SubTitle';
 import Button from '../../elements/Button';
 import Field from '../../form/Field';
 import Control from '../../form/Control';
@@ -13,9 +14,9 @@ describe('Level', () => {
       <Level m="3" data-testid="level">
         <Level.Left>
           <Level.Item>
-            <Title as="p" size="5" className="subtitle">
+            <SubTitle as="p" size="5">
               <strong>Favorite Posts</strong> posts
-            </Title>
+            </SubTitle>
           </Level.Item>
           <Level.Item>
             <Field hasAddons>
@@ -50,7 +51,10 @@ describe('Level', () => {
       </Level>
     );
     expect(screen.getByTestId('level')).toHaveClass('level');
-    expect(screen.getByText('Favorite Posts')).toBeInTheDocument();
+    const subtitle = screen.getByText('Favorite Posts').parentElement!;
+    expect(subtitle.tagName).toBe('P');
+    expect(subtitle).toHaveClass('subtitle', 'is-5');
+    expect(subtitle).not.toHaveClass('title');
     expect(screen.getByText('All')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Find a post')).toBeInTheDocument();
     expect(screen.getByText('Search')).toBeInTheDocument();

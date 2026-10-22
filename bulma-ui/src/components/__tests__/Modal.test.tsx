@@ -1,4 +1,4 @@
-import { createRef } from 'react';
+import React, { createRef } from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
@@ -6,6 +6,7 @@ import { Modal } from '../Modal';
 import { Loading } from '../Loading';
 import { Sidebar } from '../Sidebar';
 import { ConfigProvider } from '../../helpers/Config';
+import { inertProps } from '../../helpers/inertProps';
 
 afterEach(() => {
   document.body.style.overflow = '';
@@ -750,6 +751,117 @@ describe('Modal', () => {
 
       document.body.removeChild(outside);
     });
+
+    describe('past content Tab never lands on', () => {
+      // Counted as the modal's first or last stop, content the browser skips
+      // would leave Shift+Tab or Tab nothing to wrap from at the real end, so
+      // the browser would walk focus out of the modal.
+      const skipped: [string, React.ReactNode][] = [
+        [
+          'a closed inline Sidebar',
+          <Sidebar key="s" inline isOpen={false} aria-label="Tips">
+            <button type="button">Skipped</button>
+          </Sidebar>,
+        ],
+        [
+          'an inert subtree',
+          <div key="s" {...inertProps(true)}>
+            <button type="button">Skipped</button>
+          </div>,
+        ],
+        [
+          'content with display: none',
+          <div key="s" style={{ display: 'none' }}>
+            <button type="button">Skipped</button>
+          </div>,
+        ],
+      ];
+
+      it.each(skipped)(
+        'wraps Tab from the real last stop with %s after it',
+        (_, content) => {
+          render(
+            <Modal active aria-label="Edit item">
+              <button type="button">First</button>
+              <button type="button">Last</button>
+              {content}
+            </Modal>
+          );
+          const last = screen.getByText('Last');
+          act(() => last.focus());
+
+          expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(false);
+          expect(screen.getByText('First')).toHaveFocus();
+        }
+      );
+
+      it.each(skipped)(
+        'starts on, and wraps Shift+Tab from, the real first stop with %s before it',
+        (_, content) => {
+          render(
+            <Modal active aria-label="Edit item">
+              {content}
+              <button type="button">First</button>
+              <button type="button">Last</button>
+            </Modal>
+          );
+          const first = screen.getByText('First');
+          expect(first).toHaveFocus();
+
+          expect(fireEvent.keyDown(first, { key: 'Tab', shiftKey: true })).toBe(
+            false
+          );
+          expect(screen.getByText('Last')).toHaveFocus();
+        }
+      );
+
+      it('passes over an <object> that refuses focus, on open and when Tab comes in from outside', () => {
+        // Browsers won't focus an <object> with nothing to show (#1211), and
+        // jsdom can't tell, so focus() on one does nothing here.
+        const objectFocus = jest
+          .spyOn(HTMLObjectElement.prototype, 'focus')
+          .mockImplementation(() => {});
+        const outside = document.createElement('button');
+        document.body.appendChild(outside);
+        try {
+          render(
+            <Modal active aria-label="Preview">
+              <object data="missing.pdf" type="application/pdf">
+                Preview unavailable
+              </object>
+              <button type="button">First</button>
+              <button type="button">Last</button>
+            </Modal>
+          );
+          const first = screen.getByText('First');
+          expect(first).toHaveFocus();
+
+          act(() => outside.focus());
+          expect(fireEvent.keyDown(outside, { key: 'Tab' })).toBe(false);
+          expect(first).toHaveFocus();
+        } finally {
+          outside.remove();
+          objectFocus.mockRestore();
+        }
+      });
+
+      it('counts a closed details by its summary, not by what it hides', () => {
+        render(
+          <Modal active aria-label="Edit item">
+            <button type="button">First</button>
+            <details>
+              <summary>More</summary>
+              <button type="button">Skipped</button>
+            </details>
+          </Modal>
+        );
+        const summary = screen.getByText('More');
+        act(() => summary.focus());
+
+        expect(fireEvent.keyDown(summary, { key: 'Tab' })).toBe(false);
+        expect(screen.getByText('First')).toHaveFocus();
+      });
+    });
   });
 
   describe('Accessible name', () => {
@@ -1031,6 +1143,34 @@ describe('Modal', () => {
       expect(target.querySelector('[data-testid="modal"]')).not.toBeNull();
 
       document.body.removeChild(target);
+    });
+
+    it('keeps holding Tab once a portal selector that matched nothing starts matching', () => {
+      // A selector that matches nothing puts the modal in document.body.
+      // The render after the target appears moves it there, which remounts
+      // the modal's nodes while every prop stays the same, so the trap has
+      // to find the new ones.
+      const ui = () => (
+        <Modal active portal="#late-target" aria-label="Edit item">
+          <button type="button">First</button>
+          <button type="button">Last</button>
+        </Modal>
+      );
+      const { rerender } = render(ui());
+      const target = document.createElement('div');
+      target.id = 'late-target';
+      document.body.appendChild(target);
+      try {
+        rerender(ui());
+        const last = screen.getByText('Last');
+        expect(target).toContainElement(last);
+        act(() => last.focus());
+
+        expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(false);
+        expect(screen.getByText('First')).toHaveFocus();
+      } finally {
+        target.remove();
+      }
     });
 
     it('keeps focus in the modal across the hydration portal move, and restores it on close', async () => {

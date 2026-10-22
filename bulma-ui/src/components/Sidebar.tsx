@@ -9,7 +9,7 @@ import { useConfig } from '../helpers/Config';
 import { buttonType } from '../helpers/buttonType';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { isModalOverlayOpen, useOverlayStack } from '../helpers/overlayStack';
-import { firstTabStop, trapTab } from '../helpers/useFocusTrap';
+import { focusTabStop, trapTab } from '../helpers/useFocusTrap';
 import { inertProps } from '../helpers/inertProps';
 import {
   getActiveElementInTree,
@@ -193,14 +193,17 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
     // reason as Escape: a trap inside, such as a portaled popup's, has had
     // the Tab first, and one it used is left where it put focus. It's the trap
     // `useFocusTrap` sets, so a Tab the browser still takes out, as Safari
-    // does past links, is sent back in.
+    // does past links, is sent back in. It reads the aside as each key
+    // arrives, so one remounted while the sidebar is open, by a new portal
+    // target or by switching `inline`, stays trapped.
     useEffect(() => {
-      const node = sidebarRef.current;
-      if (!isOpen || !overlay || !node) return undefined;
-      return trapTab(node, window, () => isTopmost('modal'));
-      // A different `defaultTarget`, or switching `inline`, remounts the
-      // aside, so the trap moves to the new node.
-    }, [isOpen, overlay, isTopmost, defaultTarget, inline]);
+      if (!isOpen || !overlay) return undefined;
+      return trapTab(
+        () => sidebarRef.current,
+        window,
+        () => isTopmost('modal')
+      );
+    }, [isOpen, overlay, isTopmost]);
 
     // Prevent body scroll when sidebar is open. Ref-counted through the shared
     // helper so an overlapping Modal/Dialog/Loading doesn't unlock underneath.
@@ -228,7 +231,7 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
       // the sidebar's other controls out of reach. It leaves focus alone
       // then, and the cleanup below finds focus outside and leaves it too.
       if (overlay || !isModalOverlayOpen()) {
-        (firstTabStop(element) ?? element).focus();
+        focusTabStop(element);
       }
 
       return () => {

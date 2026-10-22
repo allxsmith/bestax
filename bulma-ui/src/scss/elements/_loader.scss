@@ -4,7 +4,10 @@
 // for users who ask for less motion. Each ring stays drawn, so the loading
 // state is still visible.
 //
-// It also keeps each ring open in forced colors (Windows' contrast themes).
+// It hides everything inside a loading button, where Bulma hides only the
+// label.
+//
+// And it keeps each ring open in forced colors (Windows' contrast themes).
 // Bulma leaves two sides of the ring `transparent`, and forced colors paints
 // those in the text color like any other border, so the ring closes, and a
 // closed ring turning looks like one standing still. `Canvas`, the page's
@@ -22,6 +25,24 @@
 // without Bulma at all, so each ring is named here.
 
 @use "bulma/sass/utilities/initial-variables" as iv;
+
+// Bulma hides a loading button's label with a transparent text color, which
+// only reaches what inherits it. A child with a color of its own, a `Tag`, an
+// `Icon`'s plate or an SVG's `fill`, would show through the spinner, so every
+// child is hidden outright. Opacity keeps each one's box, so the button keeps
+// its size, and keeps it in the accessibility tree, so the button keeps its
+// name. The spinner is the button's own `::after`, which this doesn't reach.
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading > * {
+  opacity: 0 !important;
+}
+
+// Opacity doesn't take anything out of the tab order, though, and a button
+// rendered as a `<div>` or a `<span>` can hold a link. A child that has focus,
+// or holds it, comes back while it does, so focus is never on something
+// nobody can see.
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading > :focus-within {
+  opacity: 1 !important;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .#{iv.$class-prefix}loader,
@@ -49,19 +70,14 @@
   // element when it's idle, so it doesn't change look when it starts
   // loading: the page's own colors for most elements, a button's for a
   // `<button>`, a link's for a link, and no surface for a variant that has
-  // none, as below. Forcing off reaches everything inside too, where
-  // anything could keep a color of its own, so the button's children are
-  // hidden outright. It also stops the browser recoloring the border to show
-  // focus, so a focused one gets an outline.
+  // none, as below. Forcing off reaches everything inside too, which the
+  // rule at the top already hides. It also stops the browser recoloring the
+  // border to show focus, so a focused one gets an outline.
   .#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading {
     forced-color-adjust: none;
     background-color: Canvas !important;
     border-color: CanvasText !important;
     color: transparent !important;
-
-    > * {
-      opacity: 0 !important;
-    }
 
     &:focus-visible {
       outline: 2px solid CanvasText;

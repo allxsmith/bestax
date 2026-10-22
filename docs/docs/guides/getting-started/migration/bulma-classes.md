@@ -40,10 +40,11 @@ class strings you have to remember. The `bulma-classes` codemod moves that marku
 
 bestax renders Bulma's own classes, so the page renders the same. The codemod converts an
 element only when the component renders **the markup the element did**: same tag, same
-classes, same attributes, with only the order of the classes free to change. One exception is
-deliberate: Font Awesome's own `<i aria-hidden="true">` in a `.icon` that carries nothing else
+classes, same attributes, with only the order of the classes free to change. The exceptions are
+deliberate. Font Awesome's own `<i aria-hidden="true">` in a `.icon` that carries nothing else
 assistive tech reads becomes `Icon`, which puts that attribute on the `.icon` instead, and the
-glyph is hidden either way. Everything else stays as you wrote it, with a `TODO(bestax-migrate)`
+glyph is hidden either way. And Bulma 0.9's `is-marginless` and `is-paddingless`, which style
+nothing under v1, become `m="0"` and `p="0"`. Everything else stays as you wrote it, with a `TODO(bestax-migrate)`
 comment when there's a decision to make.
 
 ## Run the codemod
@@ -84,6 +85,8 @@ stock stylesheet.
 - **Helper classes** become helper props on those components (`mt-4` → `mt="4"`,
   `has-text-centered` → `textAlign="centered"`, `is-position-sticky` → `pos="sticky"`), and on
   the plain tags bestax wraps: `<p>` becomes `Paragraph`, `<span>` becomes `Span`, and so on.
+  Bulma 0.9's `is-marginless` and `is-paddingless` style nothing under v1, so they become
+  `m="0"` and `p="0"`, which render v1's `m-0` and `p-0`.
 - **Wrappers a component renders itself** fold into it: a `.table-container` around a table
   becomes `<Table isResponsive>`, and a `.fixed-grid` around a grid becomes
   `<Grid isFixed fixedCols={3}>`, as long as the wrapper holds nothing else and carries nothing
@@ -91,8 +94,10 @@ stock stylesheet.
 - **An element a component renders inside itself** converts with it: a `.select` and its
   `<select>` become one `SelectBase` with the `<select>`'s attributes, a `.breadcrumb` and its
   `<ul>` become one `Breadcrumb` around the same `<li>`s, and an `.image` and its `<img>` become
-  one `<Image size="64x64" src="…" alt="…" />`. An `.image` around anything else converts too, with
-  its children kept as they are.
+  one `<Image size="64x64" src="…" alt="…" />`, a ratio such as `is-16by9` included. A ratio
+  renders the same markup only on a bestax-bulma whose `Image` puts nothing but the ratio class on
+  its container. An older one adds `has-ratio` there too, which styles nothing unless that
+  `.image` sits inside another ratio `.image`, so upgrade bestax-bulma along with the migration. An `.image` around anything else converts too, with its children kept as they are.
 - **Children a component renders itself** go: a `.skeleton-lines` holding bare, empty `<div>`s
   becomes `<Skeleton variant="lines" lines={5} />`, which renders those `<div>`s from the count.
 - **Classes added under a condition** in a `clsx` or `classnames` call: a flag becomes its prop,
@@ -109,9 +114,16 @@ A couple of results look odd until you see why:
 
 - `<h2 className="title is-4">` becomes `<Title as="h2" className="is-4">`, not
   `<Title size="4">`. bestax picks the heading tag from `size`, so `size="4"` would render an
-  `<h4>`.
+  `<h4>`. To write it as a prop, `textSize="4"` keeps the `<h2>` and sizes it the same, with
+  Bulma's `is-size-4`.
 - `<div className="is-flex mt-4">` doesn't change at all. bestax has no plain `<div>` component,
   and the classes are valid Bulma, so there is nothing to do and nothing to flag.
+- An element with two component classes becomes one component, and the other class stays in
+  `className` with a TODO naming its component: `<div className="columns box">` becomes
+  `<Columns className="box">` and gets `second-component:Box`. The one whose component fits the
+  element's tag best wins, its own tag before one it reaches through `as`, so
+  `<section className="hero container">` becomes a `Hero` and `<figure className="image container">`
+  an `Image`; between equals, the layout class wins.
 - A `.card` converts when an element written directly inside it is, or becomes, one of its
   parts. `Card` puts anything else inside a `.card-content` of its own, so a card whose text
   sits straight inside it stays markup (`children:Card`). Bulma's own example card converts
@@ -140,7 +152,12 @@ A couple of results look odd until you see why:
   `SelectBase`, not into `Input`, `TextArea` or `Select`: those render a `.field` and a
   `.control` of their own, and the markup already has them. The `.label` and `.help` stay as
   written, and so does an input's or a select's color class (`is-danger`), since bestax's
-  `color` also sets the text color.
+  `color` also sets the text color. A `<label>` inside a `.select`, beside its `<select>`, keeps
+  the `.select` as markup (`children:SelectBase`): `Select` is the component that takes it, as
+  `label` with its classes in `labelProps`, and you convert that one by hand. Inside a `.field`,
+  `Select` drops its label, and inside a bare `.control` it nests the label's `.field` there, so
+  move the `<label>` out beside the `.select` instead, or give the `<select>` an `aria-label`,
+  and re-run.
 
 ## What it leaves for you
 
@@ -243,7 +260,11 @@ look like it did nothing.
 Each page becomes a React module beside it: `login/index.html` writes `login/index.tsx`, or
 `.jsx` when the package has no `tsconfig.json` and doesn't depend on TypeScript. The module's
 default export is a component named after the file, or after its folder for an `index.html`,
-with `Page` on the end so `hero.html` can't shadow bestax's `Hero`. This page:
+with `Page` on the end so `hero.html` can't shadow bestax's `Hero`. The `index.html` in the folder
+the run starts from, with other pages beside it, is the site's home page, so it becomes
+`HomePage`, unless a page beside it would be `HomePage` too (`home.html`), when it keeps its
+folder's name. One in a folder below keeps its folder's name, so `docs/index.html` is `DocsPage`.
+This page:
 
 ```html
 <section class="hero is-fullheight">
@@ -299,7 +320,7 @@ page itself is never changed, and an existing module is never overwritten
 (`html-file:exists`), so running it again changes nothing. A page with no Bulma component class
 writes nothing, and a server template (`{{`, `{%`, `<?php`, `<%`) is refused
 (`html-file:template-syntax`) rather than read as HTML. `--dry` says what it would write, and
-`--print` prints the module.
+`--print` prints the module, which it still writes unless `--dry` is set too.
 
 ### What a component can't carry
 
@@ -308,16 +329,16 @@ and neither do its scripts. Each of those becomes a `TODO(bestax-migrate)` line,
 the whole page above the component and the rest above its `return`, and every report entry
 names the `.html` file and the line it came from:
 
-| Rule                                      | What it covers                                                                                                                           | What to do                                                                                                                         |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `html-head:<tag>`                         | `<title>`, `<meta>`, `<link>`, `<style>`, `<base>`                                                                                       | App-wide ones go in the app's `index.html`, a page's own where the app sets each page's head                                       |
-| `html-asset:<kind>`                       | each stylesheet and script the page loads: Bulma's own, Font Awesome, a Bulma extension, jQuery, a web font, and any other               | `--css bestax` and `--css bulma` import Bulma's in the module; load the rest once for the app, or use the component the TODO names |
-| `html-script:<pattern>`                   | inline scripts and the page's own script files: a burger, a modal, a dismiss button, a carousel, a theme toggle, JSON-LD, the rest       | Port the code into the component; the TODO names the bestax component for the usual patterns                                       |
-| `html-document:<name>`                    | classes and attributes on `<html>` and `<body>`, such as `has-navbar-fixed-top`, `data-theme` and `lang`                                 | Put them on the app's own `<html>`; `Theme colorMode` writes `data-theme` for you                                                  |
-| `html-event:<attribute>`                  | `onclick="…"` and its kind, which React can't take as a string                                                                           | Port the code into the handler the TODO names (`onClick`)                                                                          |
-| `html-element:<kind>`, `html-attr:<kind>` | custom and obsolete elements, attributes JSX can't write or React has no prop for, styles React can't apply                              | Replace them with current markup, or declare a custom element for TypeScript                                                       |
-| `html-url:<kind>`                         | `javascript:` URLs, relative URLs, which resolve against the address a component renders at, and ones whose target isn't beside the page | Move the code into a handler; copy a file into `public/` and point at it from the site root, or import it; fix or drop a dead link |
-| `html-parse:<code>`                       | markup the browser repaired, once per kind of error                                                                                      | Check that part of the page renders as meant                                                                                       |
+| Rule                                      | What it covers                                                                                                                                     | What to do                                                                                                                         |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `html-head:<tag>`                         | `<title>`, `<meta>` (a Content Security Policy apart, as `html-head:csp`), `<link>`, `<style>`, `<base>`                                           | App-wide ones go in the app's `index.html`, a page's own where the app sets each page's head; write the app's own policy           |
+| `html-asset:<kind>`                       | each stylesheet and script the page loads: Bulma's own, Font Awesome, a Bulma extension, jQuery, a web font, and any other                         | `--css bestax` and `--css bulma` import Bulma's in the module; load the rest once for the app, or use the component the TODO names |
+| `html-script:<pattern>`                   | inline scripts and the page's own script files: a burger, a modal, a dismiss button, a carousel, a theme toggle, JSON-LD, the rest                 | Port the code into the component; the TODO names the bestax component for the usual patterns                                       |
+| `html-document:<name>`                    | classes and attributes on `<html>` and `<body>`, such as `has-navbar-fixed-top`, `data-theme` and `lang`                                           | Put them on the app's own `<html>`, where the first paint has the scheme; `Theme colorMode` drives a light/dark toggle             |
+| `html-event:<attribute>`                  | `onclick="…"` and its kind, which React can't take as a string                                                                                     | Port the code into the handler the TODO names (`onClick`)                                                                          |
+| `html-element:<kind>`, `html-attr:<kind>` | custom and obsolete elements, attributes JSX can't write, React has no prop for or the element ignores, stray characters, styles React can't apply | Replace them with current markup, or declare a custom element for TypeScript                                                       |
+| `html-url:<kind>`                         | `javascript:` URLs, relative URLs, which resolve against the address a component renders at, and ones whose target isn't beside the page           | Move the code into a handler; copy a file into `public/` and point at it from the site root, or import it; fix or drop a dead link |
+| `html-parse:<code>`                       | markup the browser repaired, once per kind of error                                                                                                | Check that part of the page renders as meant                                                                                       |
 
 The page's `.html` stays as it was, so a dropped script's code is still there to port, and the
 TODO gives its lines. Every rule, with a recipe, is in the skill's
