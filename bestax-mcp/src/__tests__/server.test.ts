@@ -1088,11 +1088,39 @@ describe('lookup_bulma_classes', () => {
 
   it('says when a class is exact only on some tags', async () => {
     expect(await lookup('title is-4')).toContain(
-      '| `is-4` | `size="4"` | exact only on <h4> or <p> |'
+      '| `is-4` | `size="4"` | exact only on <h4> or <p>; on another tag, `textSize="4"` sizes it the same and keeps the tag |'
     );
-    // On an <h2>, size="4" would render an <h4>, so it stays a class.
-    expect(await lookup('title is-4', 'h2')).toMatch(
-      /\| `is-4` \| stays in `className` \|/
+    // On an <h2>, size="4" would render an <h4>, so it stays a class, and
+    // textSize, which keeps the <h2>, is the prop for it.
+    expect(await lookup('title is-4', 'h2')).toContain(
+      '| `is-4` | stays in `className` | bestax `Title` renders it exactly only on <h4> or <p>; on this <h2>, write `textSize="4"` in its place, which sizes it the same and keeps the <h2> |'
+    );
+    expect(await lookup('subtitle is-6', 'h1')).toContain(
+      'on this <h1>, write `textSize="6"` in its place'
+    );
+    // Title can't render a <div>, so the lookup says to change the tag, and
+    // on an <h4> or a <p> the class converts: no textSize to suggest.
+    const onDiv = await lookup('title is-4', 'div');
+    expect(onDiv).toContain('not a <div>');
+    expect(onDiv).not.toContain('keeps the <div>');
+    expect(onDiv).not.toContain('textSize="4"');
+  });
+
+  it('defers to a size helper that writes textSize already', async () => {
+    // `is-size-2` wins, being `!important`, so `textSize="4"` would change it.
+    const onTag = await lookup('title is-4 is-size-2', 'h2');
+    expect(onTag).toContain(
+      '| `is-4` | stays in `className` | bestax `Title` renders it exactly only on <h4> or <p>; `textSize` is written by `is-size-2` already, so this class is the one that stays |'
+    );
+    expect(onTag).toContain('| `is-size-2` | `textSize="2"` |');
+    expect(onTag).not.toContain('textSize="4"');
+    // With no tag, the row converts it, so the stay is only for another tag.
+    expect(await lookup('title is-4 is-size-2')).toContain(
+      '| `is-4` | `size="4"` | exact only on <h4> or <p>; on another tag, `textSize` is written by `is-size-2` already, so this class is the one that stays |'
+    );
+    // A size for one viewport writes another prop, so the note stands.
+    expect(await lookup('title is-4 is-size-2-mobile', 'h2')).toContain(
+      'on this <h2>, write `textSize="4"` in its place'
     );
   });
 
@@ -1198,7 +1226,7 @@ describe('lookup_bulma_classes', () => {
   it('says when a component renders the element inside it', async () => {
     const select = await lookup('select is-multiple is-small', 'div');
     expect(select).toContain(
-      "It renders the <select> inside it itself, and puts the attributes it is given on that <select>: write the <select>'s attributes and children on `SelectBase` in its place, and nothing on this element but a `key`. On the <select>, `is-hovered` becomes `isHovered`, `is-focused` becomes `isFocused` and `size` becomes `multipleSize` (beside `multiple`)."
+      "It renders the <select> inside it itself, and puts the attributes it is given on that <select>: write the <select>'s attributes and children on `SelectBase` in its place, and nothing on this element but a `key`. On the <select>, `is-hovered` becomes `isHovered`, `is-focused` becomes `isFocused` and `size` becomes `multipleSize` (beside `multiple`). It renders no <label>: one beside the <select> goes on `Select` instead, as its `label` with its classes in `labelProps`, and `Select` renders a `Field` and a `Control` around it. Inside a `Field` it drops that `label`, and inside a bare `Control` it nests the label's `.field` there, so in either move the <label> out beside this element, pointing at the <select>'s `id`, or give the <select> an `aria-label`."
     );
     expect(select).toContain(
       '| `is-multiple` | `multiple` | with a bare `multiple` on the <select> inside, which it renders |'

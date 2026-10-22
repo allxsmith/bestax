@@ -32,7 +32,7 @@ pnpm dlx bestax-migrate react-bulma-components src/
 ```
 
 (`npx bestax-migrate …` works the same.) Useful flags: `--print` echoes transformed files to
-stdout; `--extensions` controls which files are considered (default
+stdout, and still writes them unless `--dry` is set; `--extensions` controls which files are considered (default
 `js,jsx,ts,tsx,scss,sass`); `--css bestax|bulma|keep` picks the stylesheet target
 (default `bestax`); `--no-deps` skips the package.json update.
 

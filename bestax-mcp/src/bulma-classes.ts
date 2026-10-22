@@ -37,6 +37,11 @@ export interface Modifier {
    */
   needsAttr?: { name: string; value: string };
   /**
+   * Off the tags in `tagIn`, where the class stays a class, the prop that
+   * sizes the element the same without picking its tag (`textSize`).
+   */
+  offTag?: PropWrite;
+  /**
    * Another modifier whose prop this one writes another value of, which
    * renders that class too, so the two convert together and this one alone
    * stays a class.
@@ -173,6 +178,11 @@ export interface Absorbs {
   pairs?: Record<string, string>;
   /** A child attribute the component reads under another name. */
   renames?: Record<string, { to: string; beside: string }>;
+  /**
+   * The component that takes a `<label>` beside the child as its `label`,
+   * since this one renders no label (`Select`).
+   */
+  label?: string;
 }
 
 export interface Wraps {
@@ -620,6 +630,25 @@ export function lookupClasses(
       { value: write.value ?? true, token: root ?? '' },
     ])
   );
+  // A size class off its tags names the prop that sizes the element the same
+  // (`textSize`), unless a helper on the element writes that prop already
+  // (`is-size-2`), which then wins, and the size class is the one that stays.
+  // `where` scopes that to the tags the suggestion is for, when no tag is given.
+  const offTagNote = (
+    off: PropWrite,
+    suggestion: string,
+    where = ''
+  ): string => {
+    const helper =
+      entry.noHelpers || own(entry.helpersLeftOut, off.prop)
+        ? undefined
+        : tokens.find(
+            each => own(table.helpers, each)?.write.prop === off.prop
+          );
+    return helper
+      ? `; ${where}\`${off.prop}\` is written by \`${helper}\` already, so this class is the one that stays`
+      : suggestion;
+  };
   /** The one class that picks the component's tag, as the codemod takes it. */
   let retaggedBy: string | undefined;
   const claiming = [
@@ -654,7 +683,17 @@ export function lookupClasses(
       if (modifier.tagIn && tag && !modifier.tagIn.includes(tag)) {
         stays(
           token,
-          `bestax \`${target}\` renders it exactly only on ${listTags(modifier.tagIn)}`
+          `bestax \`${target}\` renders it exactly only on ${listTags(modifier.tagIn)}` +
+            // Only on a tag the component renders: on any other, the lookup
+            // says to change the tag, and on the new one the class converts.
+            (modifier.offTag &&
+            (entry.as === 'any' ||
+              (Array.isArray(entry.as) && entry.as.includes(tag)))
+              ? offTagNote(
+                  modifier.offTag,
+                  `; on this <${tag}>, write ${writeText(modifier.offTag)} in its place, which sizes it the same and keeps the <${tag}>`
+                )
+              : '')
         );
         continue;
       }
@@ -681,7 +720,16 @@ export function lookupClasses(
         ([, pairedToken]) => pairedToken === token
       )?.[0];
       const gates = [
-        modifier.tagIn && !tag && `exact only on ${listTags(modifier.tagIn)}`,
+        modifier.tagIn &&
+          !tag &&
+          `exact only on ${listTags(modifier.tagIn)}` +
+            (modifier.offTag
+              ? offTagNote(
+                  modifier.offTag,
+                  `; on another tag, ${writeText(modifier.offTag)} sizes it the same and keeps the tag`,
+                  'on another tag, '
+                )
+              : ''),
         paired &&
           `with a bare \`${paired}\` on the <${entry.absorbs!.tag}> inside, which it renders`,
         modifier.needsAttr &&
@@ -1018,7 +1066,16 @@ function absorbsText(target: string, absorbs: Absorbs): string {
     ` It renders the ${child} inside it itself, and puts the attributes it ` +
     `is given on that ${child}: write the ${child}'s attributes and children ` +
     `on \`${target}\` in its place, and nothing on this element but a \`key\`.` +
-    on
+    on +
+    (absorbs.label
+      ? ` It renders no <label>: one beside the ${child} goes on ` +
+        `\`${absorbs.label}\` instead, as its \`label\` with its classes in ` +
+        `\`labelProps\`, and \`${absorbs.label}\` renders a \`Field\` and a ` +
+        `\`Control\` around it. Inside a \`Field\` it drops that \`label\`, ` +
+        `and inside a bare \`Control\` it nests the label's \`.field\` there, ` +
+        `so in either move the <label> out beside this element, pointing at the ` +
+        `${child}'s \`id\`, or give the ${child} an \`aria-label\`.`
+      : '')
   );
 }
 

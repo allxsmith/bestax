@@ -114,7 +114,8 @@ A couple of results look odd until you see why:
 
 - `<h2 className="title is-4">` becomes `<Title as="h2" className="is-4">`, not
   `<Title size="4">`. bestax picks the heading tag from `size`, so `size="4"` would render an
-  `<h4>`.
+  `<h4>`. To write it as a prop, `textSize="4"` keeps the `<h2>` and sizes it the same, with
+  Bulma's `is-size-4`.
 - `<div className="is-flex mt-4">` doesn't change at all. bestax has no plain `<div>` component,
   and the classes are valid Bulma, so there is nothing to do and nothing to flag.
 - An element with two component classes becomes one component, and the other class stays in
@@ -151,7 +152,12 @@ A couple of results look odd until you see why:
   `SelectBase`, not into `Input`, `TextArea` or `Select`: those render a `.field` and a
   `.control` of their own, and the markup already has them. The `.label` and `.help` stay as
   written, and so does an input's or a select's color class (`is-danger`), since bestax's
-  `color` also sets the text color.
+  `color` also sets the text color. A `<label>` inside a `.select`, beside its `<select>`, keeps
+  the `.select` as markup (`children:SelectBase`): `Select` is the component that takes it, as
+  `label` with its classes in `labelProps`, and you convert that one by hand. Inside a `.field`,
+  `Select` drops its label, and inside a bare `.control` it nests the label's `.field` there, so
+  move the `<label>` out beside the `.select` instead, or give the `<select>` an `aria-label`,
+  and re-run.
 
 ## What it leaves for you
 
@@ -314,7 +320,7 @@ page itself is never changed, and an existing module is never overwritten
 (`html-file:exists`), so running it again changes nothing. A page with no Bulma component class
 writes nothing, and a server template (`{{`, `{%`, `<?php`, `<%`) is refused
 (`html-file:template-syntax`) rather than read as HTML. `--dry` says what it would write, and
-`--print` prints the module.
+`--print` prints the module, which it still writes unless `--dry` is set too.
 
 ### What a component can't carry
 
