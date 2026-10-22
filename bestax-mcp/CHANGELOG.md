@@ -1,3 +1,16 @@
+## [1.18.1](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.0...bestax-mcp@1.18.1) (2026-10-22)
+
+
+### Bug Fixes
+
+* **bulma-ui:** hand focus on when the focused Carousel item leaves the view ([43bb0d2](https://github.com/allxsmith/bestax/commit/43bb0d2f5839b02d3af005ac2a9dd996a94e93b6))
+* **bulma-ui:** read Carousel widths between Bulma's mobile and tablet queries as mobile ([45fecdc](https://github.com/allxsmith/bestax/commit/45fecdc893e000b09a166e2d1f2daa28c3dade68))
+
+
+### Features
+
+* **bulma-ui:** show several Carousel items in view ([6743b17](https://github.com/allxsmith/bestax/commit/6743b17a3c92d5497e81b31f00dbdfbf829fde21)), closes [#1165](https://github.com/allxsmith/bestax/issues/1165)
+
 # [1.18.0](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.17.0...bestax-mcp@1.18.0) (2026-10-22)
 
 
