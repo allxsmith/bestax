@@ -224,6 +224,31 @@ ruleTester.run('no-bulma-component-class', rule, {
       code: jsx('<main className="hero container" />'),
       errors: [converts('container', 'Container', 'main')],
     },
+    // The tag a class beside it picks counts as the component's own: a ratio
+    // puts `Image` on a <figure>, so on a <div> it reaches it through `as`,
+    // as `Media.Left` does, and the table's order decides.
+    {
+      code: jsx('<div className="media-left image is-1by1" />'),
+      errors: [converts('media-left', 'Media.Left')],
+    },
+    {
+      code: jsx('<figure className="navbar-item image is-16by9" />'),
+      errors: [converts('image', 'Image', 'figure')],
+    },
+    // The first class for the prop decides: a fixed size keeps its <div>.
+    {
+      code: jsx('<div className="media-left image is-64x64 is-1by1" />'),
+      errors: [converts('image', 'Image')],
+    },
+    // A heading's size picks it only on the heading it names.
+    {
+      code: jsx('<h3 className="navbar-item title is-2 is-3" />'),
+      errors: [converts('title', 'Title', 'h3')],
+    },
+    {
+      code: jsx('<h2 className="navbar-item title is-3" />'),
+      errors: [converts('navbar-item', 'Navbar.Item', 'h2')],
+    },
     // Another component's class on a bestax component, which the codemod
     // leaves in `className` with a TODO.
     {

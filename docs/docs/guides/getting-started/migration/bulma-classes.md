@@ -123,9 +123,11 @@ A couple of results look odd until you see why:
 - An element with two component classes becomes one component, and the other class stays in
   `className` with a TODO naming its component: `<div className="columns box">` becomes
   `<Columns className="box">` and gets `second-component:Box`. The one whose component fits the
-  element's tag best wins, its own tag before one it reaches through `as`, so
+  element's tag best wins, a tag it renders with no `as` before one it reaches through `as`, so
   `<section className="hero container">` becomes a `Hero` and `<figure className="image container">`
-  an `Image`; between equals, the layout class wins.
+  an `Image`; between equals, the layout class wins. The tag it renders with no `as` is the one
+  the classes give it: a ratio puts `Image` on a `<figure>`, so `<div className="media-left image is-1by1">`
+  becomes a `Media.Left`, which reaches a `<div>` through `as` just as that `Image` would.
 - A `.card` converts when an element written directly inside it is, or becomes, one of its
   parts. `Card` puts anything else inside a `.card-content` of its own, so a card whose text
   sits straight inside it stays markup (`children:Card`). Bulma's own example card converts

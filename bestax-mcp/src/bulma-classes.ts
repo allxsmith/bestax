@@ -401,16 +401,99 @@ function listTags(tags: readonly string[]): string {
     : named[0];
 }
 
-/** Whether a root's component renders this tag, as its own or through `as`. */
-function reachesTag(entry: RootRecord, tag: string): boolean {
-  if (entry.tag === tag || entry.as === 'any') return true;
+/**
+ * Whether a root's component renders this tag: `renders`, the one it renders
+ * with the element's classes and no `as`, or one `as` reaches.
+ */
+function reachesTag(
+  entry: RootRecord,
+  tag: string,
+  renders: string = entry.tag!
+): boolean {
+  if (renders === tag || entry.as === 'any') return true;
   return Array.isArray(entry.as) && entry.as.includes(tag);
 }
 
-/** 2 for the component's own tag, 1 for one `as` reaches, 0 for neither. */
-function tagFit(entry: RootRecord, tag: string): number {
-  if (entry.tag === tag) return 2;
-  return reachesTag(entry, tag) ? 1 : 0;
+/**
+ * 2 for the tag the component renders with the element's classes and no
+ * `as`, 1 for one `as` reaches, 0 for neither.
+ */
+function tagFit(
+  entry: RootRecord,
+  tag: string,
+  renders: string = entry.tag!
+): number {
+  if (renders === tag) return 2;
+  return reachesTag(entry, tag, renders) ? 1 : 0;
+}
+
+/** Whether a class that converts only beside another has that one with it. */
+function besideItsBase(
+  entry: RootRecord,
+  tokens: string[],
+  token: string
+): boolean {
+  const base = own(entry.modifiers, token)?.beside;
+  return base !== undefined && tokens.includes(base);
+}
+
+/**
+ * The order the lookup claims a root's classes in, as the planner does: a
+ * 0.9 class v1 removed goes last, and a class that converts only beside
+ * another (`has-addons-centered`) goes first, so the value it writes takes
+ * the prop ahead of that one's flag and renders both classes. On its own it
+ * stays a class.
+ */
+function claimOrder(
+  table: BulmaClassTable,
+  entry: RootRecord,
+  tokens: string[]
+): string[] {
+  const claiming = [
+    ...tokens.filter(token => !own(table.replaced, token)),
+    ...tokens.filter(token => own(table.replaced, token)),
+  ];
+  const withBase = (token: string) => besideItsBase(entry, tokens, token);
+  return [
+    ...claiming.filter(withBase),
+    ...claiming.filter(token => !withBase(token)),
+  ];
+}
+
+/**
+ * The tag a root's component renders on `tag` with these classes and no
+ * `as`, as the codemod reads them: its modifiers in claim order, each prop
+ * going to the first that sets it and the tag to the first that picks one
+ * (`Image`'s ratio, a <figure>), else the heading `size` names (but on a
+ * <p>, which `as="p"` keeps), else its own.
+ */
+function rendersOn(
+  table: BulmaClassTable,
+  entry: RootRecord,
+  root: string,
+  tokens: string[],
+  tag: string
+): string {
+  const taken = new Set((entry.writes ?? []).map(write => write.prop));
+  let retagged: string | undefined;
+  let size: string | undefined;
+  for (const token of claimOrder(table, entry, tokens)) {
+    const modifier = token === root ? undefined : own(entry.modifiers, token);
+    if (!modifier || (modifier.tagIn && !modifier.tagIn.includes(tag))) {
+      continue;
+    }
+    if (modifier.writes.some(write => taken.has(write.prop))) continue;
+    if (modifier.rendersTag && retagged) continue;
+    for (const write of modifier.writes) {
+      taken.add(write.prop);
+      if (write.prop === 'size') size = write.value;
+    }
+    retagged ??= modifier.rendersTag;
+  }
+  if (retagged) return retagged;
+  return entry.sizeDrivesTag && tag !== 'p' && size !== undefined
+    ? `h${size}`
+    : entry.tag!;
 }
 
 function reaches(entry: RootRecord, retagged?: string): string {
@@ -548,12 +631,22 @@ export function lookupClasses(
     const index = table.precedence.indexOf(token);
     return index === -1 ? table.precedence.length : index;
   };
-  // Of two roots, the one that fits the tag best wins (its own tag, then one
-  // `as` reaches), and the table's precedence decides a tie.
+  // Of two roots, the one that fits the tag best wins (the tag these classes
+  // make its component render with no `as`, then one `as` reaches), and the
+  // table's precedence decides a tie.
   const roots = tokens
     .filter(token => rootOf(token)?.status === 'mapped')
     .sort((a, b) => precedence(a) - precedence(b));
-  const fit = (token: string) => (tag ? tagFit(rootOf(token)!, tag) : 0);
+  const rendered = new Map(
+    tag
+      ? roots.map(token => [
+          token,
+          rendersOn(table, rootOf(token)!, token, tokens, tag),
+        ])
+      : []
+  );
+  const fit = (token: string) =>
+    tag ? tagFit(rootOf(token)!, tag, rendered.get(token)) : 0;
   const root = roots.reduce<string | undefined>(
     (best, token) =>
       best === undefined || fit(token) > fit(best) ? token : best,
@@ -656,21 +749,7 @@ export function lookupClasses(
   };
   /** The one class that picks the component's tag, as the codemod takes it. */
   let retaggedBy: string | undefined;
-  const claiming = [
-    ...tokens.filter(token => !own(table.replaced, token)),
-    ...tokens.filter(token => own(table.replaced, token)),
-  ];
-  // A class that converts only beside another (`has-addons-centered`) goes
-  // first, as in the planner, so the value it writes takes the prop ahead of
-  // that one's flag and renders both classes. On its own it stays a class.
-  const withBase = (token: string) => {
-    const base = own(entry.modifiers, token)?.beside;
-    return base !== undefined && tokens.includes(base);
-  };
-  for (const token of [
-    ...claiming.filter(withBase),
-    ...claiming.filter(token => !withBase(token)),
-  ]) {
+  for (const token of claimOrder(table, entry, tokens)) {
     if (token === root) {
       verdicts.set(token, { kind: 'component', target: target! });
       continue;
@@ -678,7 +757,7 @@ export function lookupClasses(
     if (verdicts.has(token)) continue;
     const modifier = own(entry.modifiers, token);
     if (modifier) {
-      if (modifier.beside && !withBase(token)) {
+      if (modifier.beside && !besideItsBase(entry, tokens, token)) {
         stays(
           token,
           `${modifier.writes.map(writeText).join(' ')} renders \`${modifier.beside}\` too, so it converts only beside that class`
@@ -770,11 +849,16 @@ export function lookupClasses(
     const second = rootOf(token);
     if (root && second?.status === 'mapped' && second.target !== target) {
       const name = second.target!;
+      // The tag is the component's own, or one these classes pick.
+      const fits = (tag: string) =>
+        entry.tag === tag
+          ? `${aTag(tag)} is \`${target}\`'s own element`
+          : `\`${target}\` renders ${aTag(tag)} with these classes and no \`as\``;
       const why =
-        tag && !reachesTag(second, tag)
+        tag && !reachesTag(second, tag, rendered.get(token))
           ? `\`${name}\` renders ${reaches(second)}, not ${aTag(tag)}`
           : fit(root) > fit(token)
-            ? `${aTag(tag!)} is \`${target}\`'s own element, and \`${name}\` renders one only through \`as\``
+            ? `${fits(tag!)}, and \`${name}\` renders one only through \`as\``
             : precedence(root) < precedence(token)
               ? `the codemod ranks \`.${root}\` first, putting layout and parts ahead of surfaces`
               : `\`.${root}\` comes first on the element`;
