@@ -258,6 +258,10 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   sees bestax's _real_ prop names. Both are needed — the rbx e2e's typecheck caught
   mapping errors that 254 clean Playgrounds had not.
 
+- An element `bulma-classes` leaves as markup, with a class it converts elsewhere, gets a TODO:
+  the ESLint plugin's `no-bulma-component-class` tells the app it converts, so a silent one makes
+  that message false. `scripts/eslint-plugin-codemod-output.test.mjs` lints this package's build
+  output with the rule's build and fails on one.
 - After editing a test file, check the total test count did not drop: a range replacement
   between two non-adjacent `describe` blocks deleted 868 lines on #613 and the suite stayed green
   at 699 instead of 781. Compare the `Tests:` line from `pnpm test` (bare `jest` miscounts on ESM).

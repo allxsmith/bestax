@@ -72,7 +72,9 @@ Sizes are `1` to `12`, `full`, `half`, `one-third`, `two-thirds`, `one-quarter`,
 
 bestax picks the heading from `size` (`size="3"` renders an `<h3>`) unless `as="p"`. So on an
 `<h2>`, `is-4` stays a class and the element becomes `<Title as="h2" className="is-4">`, which
-renders the same `<h2>`.
+renders the same `<h2>`. To write it as a prop, `textSize="4"` keeps the `<h2>` and sizes it the
+same: it renders Bulma's `is-size-4`, which has the font size `is-4` gives a title or subtitle,
+and as a Bulma helper it is `!important`, so check a title the page's own CSS sizes.
 
 ### Other components
 

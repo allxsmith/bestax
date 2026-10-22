@@ -52,6 +52,10 @@ import {
   type ElementFacts,
 } from '../src/sources/bulma-classes/plan.js';
 import {
+  bulmaStylesheet,
+  stylesheetRules,
+} from './support/bulma-stylesheet.js';
+import {
   fileChildren,
   fileProps,
   rawFrom,
@@ -2122,6 +2126,49 @@ describe("the table's claims about the library", () => {
         readBy: [...every].sort(),
       });
     }
+  });
+
+  it('sizes an element the same with the prop a size class names off its tags, keeping the tag', () => {
+    // `offTag`: off `tagIn` the class stays, and the MCP lookup says the prop
+    // sizes the element the same, with a class Bulma gives the same font size.
+    const rules = stylesheetRules(bulmaStylesheet());
+    const fontSize = (selector: string) =>
+      rules
+        .filter(rule => !rule.conditional && rule.selector === selector)
+        .map(rule => /font-size:\s*([^;!]+)/.exec(rule.body)?.[1].trim())
+        .find(size => size !== undefined) ?? `<no font size for ${selector}>`;
+    let checked = 0;
+    for (const [root, entry] of mapped) {
+      for (const [token, modifier] of Object.entries(entry.modifiers ?? {})) {
+        const off = modifier.offTag;
+        if (!off) continue;
+        checked++;
+        const helper = [...HELPER_TOKENS].find(
+          ([, { write }]) =>
+            write.prop === off.prop && write.value === off.value
+        )?.[0];
+        expect({ token, size: fontSize(`.${helper}`) }).toEqual({
+          token,
+          size: fontSize(`.${root}.${token}`),
+        });
+        const offTags = (entry.as as string[]).filter(
+          tag => !modifier.tagIn!.includes(tag)
+        );
+        expect(offTags.length).toBeGreaterThan(0);
+        for (const tag of offTags) {
+          expect(
+            normalizeHtml(
+              renderElement(
+                entry.target!,
+                { as: tag, [off.prop]: off.value },
+                'x'
+              )
+            )
+          ).toBe(normalizeHtml(`<${tag} class="${root} ${helper}">x</${tag}>`));
+        }
+      }
+    }
+    expect(checked).toBeGreaterThan(0);
   });
 
   it('names exactly the targets that forward refs', () => {
