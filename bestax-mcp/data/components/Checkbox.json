@@ -28,9 +28,13 @@
     {
       "title": "Valid Colors and Sizes",
       "code": "import { Checkbox, Checkboxes } from '@allxsmith/bestax-bulma';\nimport { checkboxColors, checkboxSizes } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  return (\n    <>\n      <Checkboxes>\n        {checkboxColors.map(color => (\n          <Checkbox key={color} color={color} defaultChecked>\n            {color}\n          </Checkbox>\n        ))}\n      </Checkboxes>\n      <Checkboxes>\n        {checkboxSizes.map(size => (\n          <Checkbox key={size} size={size} defaultChecked>\n            {size}\n          </Checkbox>\n        ))}\n      </Checkboxes>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Theming the Box",
+      "code": "<Checkbox className=\"ink-checkbox\" defaultChecked>\n  Remember me\n</Checkbox>"
     }
   ],
-  "accessibility": "- Each `Checkbox` is rendered as a `<label>` wrapping an `<input type=\"checkbox\">` and the label text, for optimal accessibility.\n- The clickable area includes both box and label by default.\n- Browsers expose a box with `indeterminate` set as mixed, so the component adds no ARIA for it.",
+  "accessibility": "- Each `Checkbox` is rendered as a `<label>` wrapping an `<input type=\"checkbox\">` and the label text, for optimal accessibility.\n- The clickable area includes both box and label by default.\n- Browsers expose a box with `indeterminate` set as mixed, so the component adds no ARIA for it.\n- An unchecked box shows only its border, `--bulma-checkbox-border-color`. It defaults to `--bulma-text-weak`, which holds the 3:1 contrast WCAG asks of a control's boundary (non-text contrast) on Bulma's page and card surfaces in light and dark. Hold a replacement border, and a custom check color on its fill, to 3:1 as well.\n- In forced colors (Windows contrast themes), the box, the check mark and the mixed dash take system colors, so they stay visible whatever the variables hold.",
   "related": ["Checkboxes", "Field", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-checkbox--default",
   "summary": "The `Checkbox` component provides a Bulma-styled checkbox input.",
@@ -93,7 +97,7 @@
           "name": "className",
           "type": "string",
           "default": null,
-          "description": "Additional CSS classes to apply.",
+          "description": "Additional CSS classes, on the outer `<label>`. That's the element that declares the `--bulma-checkbox-*` variables, so a class is how to set one: `style` and the other input attributes go to the `<input>`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -144,7 +148,7 @@
     {
       "css": "--bulma-checkbox-border-color",
       "sass": "$checkbox-border-color",
-      "default": "var(--bulma-border)",
+      "default": "var(--bulma-text-weak)",
       "scope": "root"
     },
     {

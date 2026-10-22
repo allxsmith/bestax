@@ -277,7 +277,7 @@
       "import": "import { Checkboxes, Checkbox } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 8,
-      "exampleCount": 6
+      "exampleCount": 7
     },
     {
       "name": "Checkboxes",
