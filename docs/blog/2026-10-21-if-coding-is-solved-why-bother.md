@@ -58,7 +58,7 @@ These are the areas where AI still struggles, either because there isn't much da
 - **Making AI cheaper to run.** Faster inference, smaller models, better chips, lower energy use.
 - **Getting people to adopt things.** Hospitals, school districts, and city governments move slowly, and trust takes time to build.
 
-The AI results that have actually mattered came out of this kind of work. Protein structure prediction, plasma control in fusion reactors, and olympiad-level math all took large compute budgets, domain experts, and a reliable way to check the results.
+The AI results that have actually mattered came out of this kind of work. [Protein structure prediction](https://www.nature.com/articles/s41586-021-03819-2), [plasma control in fusion reactors](https://www.nature.com/articles/s41586-021-04301-9), and [olympiad-level math](https://deepmind.google/blog/ai-solves-imo-problems-at-silver-medal-level/) all took large compute budgets, domain experts, and a reliable way to check the results.
 
 ## Using AI on Hard Problems
 
