@@ -1,3 +1,27 @@
+## [1.3.1](https://github.com/allxsmith/bestax/compare/@allxsmith/eslint-plugin-bestax@1.3.0...@allxsmith/eslint-plugin-bestax@1.3.1) (2026-10-22)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** defer the textSize note to a size helper already on the element ([6aa4a00](https://github.com/allxsmith/bestax/commit/6aa4a00a9ca1ddcee3b588203a8a14a776c0063b)), closes [#1149](https://github.com/allxsmith/bestax/issues/1149)
+* **bestax-mcp:** fit a second root to the tag its classes pick in lookup_bulma_classes ([314aa41](https://github.com/allxsmith/bestax/commit/314aa419f2054a05eca8207269d4ad89918a508a))
+* **bestax-mcp:** name textSize off a size class's tags only where the component renders the tag ([1a4bdcd](https://github.com/allxsmith/bestax/commit/1a4bdcdeca99fc418e27fdf11081b6851747a335))
+* **bestax-mcp:** say where Select can't take a select's label ([9e29ed5](https://github.com/allxsmith/bestax/commit/9e29ed5764c331982142e3b7a52b24f90f35a0a1)), closes [#1149](https://github.com/allxsmith/bestax/issues/1149)
+* **bestax-mcp:** scope the size helper's stay to another tag when the lookup has none ([30e9805](https://github.com/allxsmith/bestax/commit/30e98058688d1221895a5690d255a2ad1ed19e8b))
+* **bestax-mcp:** suggest textSize for a heading's size class, and Select for a select's label ([a45cc64](https://github.com/allxsmith/bestax/commit/a45cc64f9da511b1df2544184c33029bdc39963c)), closes [#1149](https://github.com/allxsmith/bestax/issues/1149)
+* **bestax-migrate:** fit a second root to the tag its classes make it render ([86232dc](https://github.com/allxsmith/bestax/commit/86232dca873651bec0f9b3a307ba348c2304a185))
+* **bestax-migrate:** give colorVariant's TODO a shade bestax's props take ([f0e002a](https://github.com/allxsmith/bestax/commit/f0e002aa388fee2c0a954b24f87b5156b585ff06))
+* **bestax-migrate:** keep a select's label where Select can't carry it ([f19dade](https://github.com/allxsmith/bestax/commit/f19dade0dcd3f5a602d7c153e59d14e8d030fa51)), closes [#1149](https://github.com/allxsmith/bestax/issues/1149)
+* **bestax-migrate:** name a label's computed className in the Select recipe ([693ec1b](https://github.com/allxsmith/bestax/commit/693ec1b3536c2eb4a882b68dd323601ed2eee1cb)), closes [#1149](https://github.com/allxsmith/bestax/issues/1149)
+* **bestax-migrate:** send a select's label to Select, and say --print still writes ([468c62c](https://github.com/allxsmith/bestax/commit/468c62c85409f7b09894d17de2ad93c2a40c0784)), closes [#1149](https://github.com/allxsmith/bestax/issues/1149)
+* **eslint-plugin:** report the class the codemod decides by where a class beside it picks the tag ([ac6db2d](https://github.com/allxsmith/bestax/commit/ac6db2da0f98a613c891665af059659764cadfd9))
+
+
+### Features
+
+* **bestax-mcp:** write color shade classes as their color and shade props ([8a14924](https://github.com/allxsmith/bestax/commit/8a14924db46b7168b77b45ef9c722d4c8e5526c4)), closes [#1170](https://github.com/allxsmith/bestax/issues/1170)
+* **bestax-migrate:** write Bulma's color shade classes as colorShade ([1481805](https://github.com/allxsmith/bestax/commit/1481805eae0dc57d4a568dcbea0d68c29f9cc81d)), closes [#1170](https://github.com/allxsmith/bestax/issues/1170)
+
 # [1.3.0](https://github.com/allxsmith/bestax/compare/@allxsmith/eslint-plugin-bestax@1.2.0...@allxsmith/eslint-plugin-bestax@1.3.0) (2026-10-21)
 
 
