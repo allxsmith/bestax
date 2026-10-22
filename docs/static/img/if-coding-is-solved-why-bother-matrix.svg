@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Four boxes in a grid. Top left, plenty of data and cheap to check: solved and crowded, with to-do apps, chat wrappers, clones, landing pages, and CRUD dashboards. Top right, plenty of data and expensive to check: high stakes, slow proof, with self-driving, medical diagnosis, and safety-critical software. Bottom left, little data and cheap to check: open math and algorithms, with novel proofs, faster algorithms, and formal verification. Bottom right, little data and expensive to check: the frontier, with robotics, materials, batteries, lab science, fusion, and new drugs.">
+  <rect width="1200" height="630" fill="#16171d"/>
+  <g font-family="Arial, Helvetica, sans-serif" fill="#e8e8ea">
+    <text x="600" y="62" text-anchor="middle" font-size="40" font-weight="700">Where AI is easy, and where it isn't</text>
+
+    <text x="440" y="112" text-anchor="middle" font-size="24" fill="#9aa0ad">Cheap to check</text>
+    <text x="932" y="112" text-anchor="middle" font-size="24" fill="#9aa0ad">Expensive to check</text>
+    <text x="186" y="245" text-anchor="end" font-size="24" fill="#9aa0ad">Plenty of data</text>
+    <text x="186" y="487" text-anchor="end" font-size="24" fill="#9aa0ad">Little data</text>
+
+    <rect x="200" y="130" width="480" height="230" rx="14" fill="#23262f"/>
+    <text x="224" y="182" font-size="30" font-weight="700">Solved and crowded</text>
+    <text x="224" y="226" font-size="22" fill="#c9ccd4">To-do apps, chat wrappers, clones,</text>
+    <text x="224" y="256" font-size="22" fill="#c9ccd4">landing pages, CRUD dashboards</text>
+
+    <rect x="692" y="130" width="480" height="230" rx="14" fill="#2b2326"/>
+    <text x="716" y="182" font-size="30" font-weight="700">High stakes, slow proof</text>
+    <text x="716" y="226" font-size="22" fill="#c9ccd4">Self-driving, medical diagnosis,</text>
+    <text x="716" y="256" font-size="22" fill="#c9ccd4">safety-critical software</text>
+
+    <rect x="200" y="372" width="480" height="230" rx="14" fill="#1f2b26"/>
+    <text x="224" y="424" font-size="30" font-weight="700">Open math and algorithms</text>
+    <text x="224" y="468" font-size="22" fill="#c9ccd4">Novel proofs, faster algorithms,</text>
+    <text x="224" y="498" font-size="22" fill="#c9ccd4">formal verification</text>
+
+    <rect x="692" y="372" width="480" height="230" rx="14" fill="#2e2a1b" stroke="#f2c14e" stroke-width="3"/>
+    <text x="716" y="424" font-size="30" font-weight="700" fill="#f2c14e">The frontier</text>
+    <text x="716" y="468" font-size="22" fill="#c9ccd4">Robotics, materials, batteries,</text>
+    <text x="716" y="498" font-size="22" fill="#c9ccd4">lab science, fusion, new drugs</text>
+  </g>
+</svg>
