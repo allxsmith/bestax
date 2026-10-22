@@ -30,9 +30,12 @@
  * of a family, since the family's own class is reported where it sits. An
  * element carrying several is reported once, for the class the codemod
  * would decide by: a family first, else, on a plain element, the one whose
- * component fits its tag best (its own tag, then one `as` reaches), the
- * first in the table's order among equals. On a bestax component, whose tag
- * can come from `as`, the table's order decides.
+ * component fits its tag best (the tag it renders with the element's classes
+ * and no `as`, then one `as` reaches), the first in the table's order among
+ * equals. A class beside a root can pick that tag (`retags`): an `.image`
+ * ratio puts `Image` on a <figure>, so on a <div> it fits only through `as`.
+ * On a bestax component, whose tag can come from `as`, the table's order
+ * decides.
  *
  * A spread does not silence it: the report is about the class the author
  * wrote, which is there whether or not a spread later replaces it.
@@ -81,12 +84,39 @@ function insideForeign(ancestors: readonly any[]): boolean {
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 /**
- * How well the class's component fits this tag: 2 for its own tag, 1 for one
- * it renders through `as`, 0 for neither.
+ * The tag the class's component renders on `tag` with these classes and no
+ * `as`: the one the first class beside it that decides it picks, on a tag it
+ * converts on (`.image.is-16by9` a <figure>), else its own.
  */
-function fit(entry: BulmaComponentClass, tag: string | null): number {
+function rendersWith(
+  entry: BulmaComponentClass,
+  tag: string,
+  tokens: readonly string[]
+): string | undefined {
+  for (const token of tokens) {
+    const retag =
+      entry.retags && Object.hasOwn(entry.retags, token)
+        ? entry.retags[token]
+        : undefined;
+    if (retag && (!retag.on || retag.on.includes(tag))) {
+      return retag.tag ?? entry.tag;
+    }
+  }
+  return entry.tag;
+}
+
+/**
+ * How well the class's component fits this tag: 2 for the tag it renders
+ * with these classes and no `as`, 1 for one it renders through `as`, 0 for
+ * neither.
+ */
+function fit(
+  entry: BulmaComponentClass,
+  tag: string | null,
+  tokens: readonly string[]
+): number {
   if (tag === null) return 0;
-  if (entry.tag === tag) return 2;
+  if (rendersWith(entry, tag, tokens) === tag) return 2;
   return entry.tags === 'any' || entry.tags?.includes(tag) ? 1 : 0;
 }
 
@@ -111,7 +141,8 @@ function decidingClass(
   );
   const best = carried.reduce<(typeof carried)[number] | undefined>(
     (found, candidate) =>
-      found === undefined || fit(candidate[1], tag) > fit(found[1], tag)
+      found === undefined ||
+      fit(candidate[1], tag, tokens) > fit(found[1], tag, tokens)
         ? candidate
         : found,
     undefined

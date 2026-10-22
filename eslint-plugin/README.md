@@ -214,9 +214,11 @@ It reads the classes a `className` spells out, including the strings in a
 ternary, a template, or a call to `clsx`, `classnames` or `tailwind-merge`
 (however the file imports or requires it), and reports one class per element:
 the one the codemod would decide by, a family's first and then, on a plain
-element, the one whose component fits its tag best, its own tag before one it
-reaches through `as`. On a component, whose tag can come from `as`, the table's
-order decides. It reads `className` only on the components
+element, the one whose component fits its tag best, a tag it renders with no
+`as` before one it reaches through `as`. That tag is the one the element's
+classes give it, so an `.image` ratio, which puts `Image` on a `<figure>`, fits
+a `<div>` only through `as`. On a component, whose tag can come from `as`, the
+table's order decides. It reads `className` only on the components
 the codemod writes, whose own classes it knows, so `<Input className="box">` is
 left alone. A function your app defines, a `cn` in `lib/utils`
 included, is one it cannot see into, so it reads nothing there. It only reports. Whether an element converts

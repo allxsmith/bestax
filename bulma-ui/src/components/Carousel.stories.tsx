@@ -51,6 +51,36 @@ const meta: Meta<typeof Carousel> = {
       control: 'boolean',
       description: 'Enable drag/swipe navigation',
     },
+    itemsToShow: {
+      control: 'number',
+      description:
+        'How many items are in view at every width no itemsToShow<Viewport> prop covers',
+    },
+    itemsToShowMobile: {
+      control: 'number',
+      description: "Items in view below Bulma's tablet breakpoint",
+    },
+    itemsToShowTablet: {
+      control: 'number',
+      description: "Items in view from Bulma's tablet breakpoint up",
+    },
+    itemsToShowDesktop: {
+      control: 'number',
+      description: "Items in view from Bulma's desktop breakpoint up",
+    },
+    itemsToShowWidescreen: {
+      control: 'number',
+      description: "Items in view from Bulma's widescreen breakpoint up",
+    },
+    itemsToShowFullhd: {
+      control: 'number',
+      description: "Items in view from Bulma's fullhd breakpoint up",
+    },
+    itemsToScroll: {
+      control: 'number',
+      description:
+        'How many items one step moves, capped at the number in view',
+    },
     arrow: {
       control: 'boolean',
       description: 'Show navigation arrows',
@@ -438,6 +468,77 @@ export const Controlled: Story = {
           ))}
         </Carousel>
         <Paragraph mt="4">Current slide: {currentSlide + 1}</Paragraph>
+      </Block>
+    );
+  },
+};
+
+/**
+ * Several cards in view: three on desktop, two on tablet and one on mobile.
+ * A step moves one card, and the indicators mark where the view can start.
+ */
+export const SeveralInView: Story = {
+  args: {
+    itemsToShow: 1,
+    itemsToShowTablet: 2,
+    itemsToShowDesktop: 3,
+    itemsToScroll: 1,
+  },
+  render: function SeveralInViewExample(args) {
+    const rooms = [
+      {
+        title: 'Garden Room',
+        description: 'A queen bed and doors onto the garden.',
+        image: 'https://picsum.photos/id/1018/800/500',
+      },
+      {
+        title: 'Harbor Suite',
+        description: 'A sitting room with a view of the boats.',
+        image: 'https://picsum.photos/id/1015/800/500',
+      },
+      {
+        title: 'Loft',
+        description: 'Under the eaves, with a reading nook.',
+        image: 'https://picsum.photos/id/1019/800/500',
+      },
+      {
+        title: 'Courtyard Twin',
+        description: 'Two beds, a desk and a quiet courtyard.',
+        image: 'https://picsum.photos/id/1016/800/500',
+      },
+      {
+        title: 'Terrace Room',
+        description: 'A private terrace for breakfast outside.',
+        image: 'https://picsum.photos/id/1039/800/500',
+      },
+      {
+        title: 'Family Suite',
+        description: 'Two rooms and space for a cot.',
+        image: 'https://picsum.photos/id/1043/800/500',
+      },
+    ];
+
+    return (
+      <Block p="5">
+        <Carousel {...args}>
+          {rooms.map(room => (
+            <CarouselItem key={room.title}>
+              <Card m="2">
+                <Card.Image>
+                  <Image src={room.image} alt={room.title} />
+                </Card.Image>
+                <Card.Content>
+                  <Title as="p" size="5">
+                    {room.title}
+                  </Title>
+                  <SubTitle as="p" size="6">
+                    {room.description}
+                  </SubTitle>
+                </Card.Content>
+              </Card>
+            </CarouselItem>
+          ))}
+        </Carousel>
       </Block>
     );
   },

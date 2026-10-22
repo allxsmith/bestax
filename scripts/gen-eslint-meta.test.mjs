@@ -452,6 +452,56 @@ describe('the Bulma component class table', () => {
     );
   });
 
+  it('gives a root the classes beside it that decide its tag, and no others', async () => {
+    const size = value => ({ writes: [{ prop: 'size', value }] });
+    const { entries } = await bulmaComponentClasses(
+      classMap({
+        image: {
+          status: 'mapped',
+          target: 'Image',
+          tag: 'div',
+          as: ['div', 'figure'],
+          modifiers: {
+            'is-64x64': size('64x64'),
+            'is-16by9': { ...size('16by9'), rendersTag: 'figure' },
+            'is-rounded': { writes: [{ prop: 'isRounded' }] },
+          },
+        },
+        title: {
+          status: 'mapped',
+          target: 'Title',
+          tag: 'h1',
+          as: ['h1', 'h3', 'p'],
+          sizeDrivesTag: true,
+          modifiers: {
+            'is-3': { ...size('3'), tagIn: ['h3', 'p'] },
+            'is-spaced': { writes: [{ prop: 'isSpaced' }] },
+          },
+        },
+        button: {
+          status: 'mapped',
+          target: 'Button',
+          tag: 'button',
+          modifiers: { 'is-large': size('large') },
+        },
+      })
+    );
+    const classes = Object.fromEntries(entries);
+    assert.deepEqual(classes.image.retags, {
+      'is-64x64': { tag: null },
+      'is-16by9': { tag: 'figure' },
+    });
+    assert.deepEqual(classes.title.retags, {
+      'is-3': { tag: 'h3', on: ['h3', 'p'] },
+    });
+    // A size that picks no tag is no retag.
+    assert.equal('retags' in classes.button, false);
+    assert.match(
+      render({ deprecated: new Map(), textAlias: new Set(), classes: entries }),
+      /retags: \{"is-64x64":\{"tag":null\},"is-16by9":\{"tag":"figure"\}\}/
+    );
+  });
+
   it('says where it failed when the table will not import', async () => {
     await assert.rejects(
       bulmaComponentClasses(async () => {

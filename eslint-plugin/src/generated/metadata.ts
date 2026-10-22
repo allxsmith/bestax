@@ -216,15 +216,31 @@ export interface BulmaComponentClass {
   /**
    * For a class that converts: the tags its component renders, its own and
    * the ones `as` reaches, or `'any'`. Of the classes an element carries,
-   * the codemod decides by the one whose component fits its tag best: its
-   * own tag, then one of these, then none.
+   * the codemod decides by the one whose component fits its tag best: the
+   * tag it renders with no `as`, then one of these, then none.
    */
   readonly tags?: readonly string[] | 'any';
+  /**
+   * For a class that converts: the classes beside it that decide the tag its
+   * component renders with no `as` (`Image`'s ratios a <figure>, `Title`'s
+   * sizes their heading), each with that tag, null for its own, and the tags
+   * it converts on when not all. The first the element carries that converts
+   * on its tag decides.
+   */
+  readonly retags?: Readonly<Record<string, BulmaRetag>>;
   /**
    * How to keep the class on an element another component renders, where an
    * element of its own is not the answer.
    */
   readonly onAnother?: string;
+}
+
+/** A class that decides the tag a component renders with no `as`. */
+export interface BulmaRetag {
+  /** The tag it renders, or null for the component's own. */
+  readonly tag: string | null;
+  /** The tags it converts on, when not all. */
+  readonly on?: readonly string[];
 }
 
 /**
@@ -534,6 +550,14 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
         converts: true,
         tag: 'h1',
         tags: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'],
+        retags: {
+          'is-1': { tag: 'h1', on: ['h1', 'p'] },
+          'is-2': { tag: 'h2', on: ['h2', 'p'] },
+          'is-3': { tag: 'h3', on: ['h3', 'p'] },
+          'is-4': { tag: 'h4', on: ['h4', 'p'] },
+          'is-5': { tag: 'h5', on: ['h5', 'p'] },
+          'is-6': { tag: 'h6', on: ['h6', 'p'] },
+        },
       },
     ],
     [
@@ -543,6 +567,14 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
         converts: true,
         tag: 'h1',
         tags: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'],
+        retags: {
+          'is-1': { tag: 'h1', on: ['h1', 'p'] },
+          'is-2': { tag: 'h2', on: ['h2', 'p'] },
+          'is-3': { tag: 'h3', on: ['h3', 'p'] },
+          'is-4': { tag: 'h4', on: ['h4', 'p'] },
+          'is-5': { tag: 'h5', on: ['h5', 'p'] },
+          'is-6': { tag: 'h6', on: ['h6', 'p'] },
+        },
       },
     ],
     [
@@ -590,6 +622,31 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
         converts: true,
         tag: 'div',
         tags: ['div', 'figure', 'p'],
+        retags: {
+          'is-16x16': { tag: null },
+          'is-24x24': { tag: null },
+          'is-32x32': { tag: null },
+          'is-48x48': { tag: null },
+          'is-64x64': { tag: null },
+          'is-96x96': { tag: null },
+          'is-128x128': { tag: null },
+          'is-square': { tag: null },
+          'is-1by1': { tag: 'figure' },
+          'is-5by4': { tag: 'figure' },
+          'is-4by3': { tag: 'figure' },
+          'is-3by2': { tag: 'figure' },
+          'is-5by3': { tag: 'figure' },
+          'is-16by9': { tag: 'figure' },
+          'is-2by1': { tag: 'figure' },
+          'is-3by1': { tag: 'figure' },
+          'is-4by5': { tag: 'figure' },
+          'is-3by4': { tag: 'figure' },
+          'is-2by3': { tag: 'figure' },
+          'is-3by5': { tag: 'figure' },
+          'is-9by16': { tag: 'figure' },
+          'is-1by2': { tag: 'figure' },
+          'is-1by3': { tag: 'figure' },
+        },
       },
     ],
     [

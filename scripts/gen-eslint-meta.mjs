@@ -210,10 +210,13 @@ export function guardViolations({ deprecated, textAlias, knownProps }) {
  * whatever else is on it), then the converted roots by precedence. Each
  * converted root carries its component's own tag and every tag it renders
  * (its own, and the ones `as` reaches), since the planner takes the root
- * that fits the element's tag best, its own tag before one `as` reaches,
- * before precedence decides; the rule follows that, so the order and the
- * tags are the decision. A root with advice of its own for an element
- * another root converts (`.container`'s `mx="auto"`) carries it.
+ * that fits the element's tag best, the tag it renders with no `as` before
+ * one `as` reaches, before precedence decides; the rule follows that, so the
+ * order and the tags are the decision. The tag it renders with no `as` can
+ * come from a class beside it (an `.image` ratio's <figure>), so a root whose
+ * classes pick it carries them (`retagsOf`). A root with advice of its own
+ * for an element another root converts (`.container`'s `mx="auto"`) carries
+ * it.
  *
  * Parts of a family are left out: the family's outermost class is the one
  * place the codemod flags it, and the rule follows suit. Classes with nothing
@@ -262,11 +265,49 @@ export async function bulmaComponentClasses(
             entry.as === 'any'
               ? 'any'
               : [...new Set([entry.tag, ...(entry.as ?? [])])].filter(Boolean),
+          ...retagsOf(entry),
           ...(entry.onAnother ? { onAnother: entry.onAnother } : {}),
         },
       ]),
     ],
   };
+}
+
+/**
+ * The classes beside a root that decide the tag its component renders with
+ * no `as`, as the planner reads them: every modifier for the prop a class
+ * with a `rendersTag` writes, and for `size` on a heading whose size picks
+ * its tag. Each carries the tag it renders, null for the root's own, and,
+ * when it converts only on some, the tags it converts on. They take one
+ * prop, so the first the element carries on a tag it converts on decides.
+ *
+ * @param {any} entry a root of the class map.
+ */
+function retagsOf(entry) {
+  const modifiers = Object.entries(entry.modifiers ?? {});
+  const props = new Set(
+    modifiers.flatMap(([, modifier]) =>
+      modifier.rendersTag ? modifier.writes.map(write => write.prop) : []
+    )
+  );
+  if (entry.sizeDrivesTag) props.add('size');
+  const retags = modifiers
+    .filter(([, modifier]) =>
+      modifier.writes.some(write => props.has(write.prop))
+    )
+    .map(([cls, modifier]) => {
+      const size = modifier.writes.find(write => write.prop === 'size');
+      const heading =
+        entry.sizeDrivesTag && size?.value ? `h${size.value}` : null;
+      return [
+        cls,
+        {
+          tag: modifier.rendersTag ?? heading,
+          ...(modifier.tagIn ? { on: [...modifier.tagIn] } : {}),
+        },
+      ];
+    });
+  return retags.length > 0 ? { retags: Object.fromEntries(retags) } : {};
 }
 
 /**
@@ -467,15 +508,31 @@ export interface BulmaComponentClass {
   /**
    * For a class that converts: the tags its component renders, its own and
    * the ones \`as\` reaches, or \`'any'\`. Of the classes an element carries,
-   * the codemod decides by the one whose component fits its tag best: its
-   * own tag, then one of these, then none.
+   * the codemod decides by the one whose component fits its tag best: the
+   * tag it renders with no \`as\`, then one of these, then none.
    */
   readonly tags?: readonly string[] | 'any';
+  /**
+   * For a class that converts: the classes beside it that decide the tag its
+   * component renders with no \`as\` (\`Image\`'s ratios a <figure>, \`Title\`'s
+   * sizes their heading), each with that tag, null for its own, and the tags
+   * it converts on when not all. The first the element carries that converts
+   * on its tag decides.
+   */
+  readonly retags?: Readonly<Record<string, BulmaRetag>>;
   /**
    * How to keep the class on an element another component renders, where an
    * element of its own is not the answer.
    */
   readonly onAnother?: string;
+}
+
+/** A class that decides the tag a component renders with no \`as\`. */
+export interface BulmaRetag {
+  /** The tag it renders, or null for the component's own. */
+  readonly tag: string | null;
+  /** The tags it converts on, when not all. */
+  readonly on?: readonly string[];
 }
 
 /**
@@ -487,12 +544,13 @@ export interface BulmaComponentClass {
 export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
   new Map<string, BulmaComponentClass>([
 ${classes
-  .map(([cls, { component, converts, tag, tags, onAnother }]) => {
+  .map(([cls, { component, converts, tag, tags, retags, onAnother }]) => {
     const fields = [
       `component: ${JSON.stringify(component)}`,
       `converts: ${converts}`,
       ...(tag === undefined ? [] : [`tag: ${JSON.stringify(tag)}`]),
       ...(tags === undefined ? [] : [`tags: ${JSON.stringify(tags)}`]),
+      ...(retags === undefined ? [] : [`retags: ${JSON.stringify(retags)}`]),
       ...(onAnother === undefined
         ? []
         : [`onAnother: ${JSON.stringify(onAnother)}`]),

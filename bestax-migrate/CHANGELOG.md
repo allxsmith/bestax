@@ -1,3 +1,12 @@
+## [2.31.1](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.31.0...bestax-migrate@2.31.1) (2026-10-22)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** fit a second root to the tag its classes pick in lookup_bulma_classes ([314aa41](https://github.com/allxsmith/bestax/commit/314aa419f2054a05eca8207269d4ad89918a508a))
+* **bestax-migrate:** fit a second root to the tag its classes make it render ([86232dc](https://github.com/allxsmith/bestax/commit/86232dca873651bec0f9b3a307ba348c2304a185))
+* **eslint-plugin:** report the class the codemod decides by where a class beside it picks the tag ([ac6db2d](https://github.com/allxsmith/bestax/commit/ac6db2da0f98a613c891665af059659764cadfd9))
+
 # [2.31.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.30.0...bestax-migrate@2.31.0) (2026-10-22)
 
 

@@ -254,8 +254,8 @@
       "slug": "components/carousel",
       "import": "import { Carousel, CarouselItem } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 23,
-      "exampleCount": 10
+      "propCount": 30,
+      "exampleCount": 13
     },
     {
       "name": "Cell",
@@ -1422,6 +1422,14 @@
     "--bulma-carousel-indicator-line-width-mobile": ["Carousel"],
     "--bulma-carousel-indicator-size": ["Carousel"],
     "--bulma-carousel-indicator-size-mobile": ["Carousel"],
+    "--bulma-carousel-item-gap": ["Carousel"],
+    "--bulma-carousel-items-in-view": ["Carousel"],
+    "--bulma-carousel-items-to-show": ["Carousel"],
+    "--bulma-carousel-items-to-show-desktop": ["Carousel"],
+    "--bulma-carousel-items-to-show-fullhd": ["Carousel"],
+    "--bulma-carousel-items-to-show-mobile": ["Carousel"],
+    "--bulma-carousel-items-to-show-tablet": ["Carousel"],
+    "--bulma-carousel-items-to-show-widescreen": ["Carousel"],
     "--bulma-carousel-overlay-arrow-background": ["Carousel"],
     "--bulma-carousel-overlay-arrow-background-hover": ["Carousel"],
     "--bulma-carousel-overlay-arrow-color": ["Carousel"],

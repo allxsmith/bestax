@@ -39,7 +39,6 @@ import {
   reachesTag,
   REPLACED_IN_V1,
   ROOTS,
-  tagFit,
   WRAPPERS,
   WRAPPER_OWN_PROPS,
   type RootEntry,
@@ -2280,28 +2279,82 @@ describe("the table's claims about the library", () => {
   });
 });
 
+/**
+ * The tag a root's target renders with these classes and no `as`, read from
+ * the table: of its modifiers that convert on this tag, in order, the first
+ * for each prop takes it, and the first of those with a `rendersTag` picks
+ * the tag; else a heading's size names it, except on a <p>, which `as="p"`
+ * keeps; else its own.
+ */
+function rendersWith(
+  entry: RootEntry,
+  tokens: readonly string[],
+  tag: string
+): string {
+  const taken = new Set<string>();
+  let picked: string | undefined;
+  let size: string | undefined;
+  for (const token of tokens) {
+    const modifier =
+      entry.modifiers && Object.hasOwn(entry.modifiers, token)
+        ? entry.modifiers[token]
+        : undefined;
+    if (!modifier || (modifier.tagIn && !modifier.tagIn.includes(tag))) {
+      continue;
+    }
+    if (modifier.writes.some(write => taken.has(write.prop))) continue;
+    if (modifier.rendersTag && picked) continue;
+    for (const write of modifier.writes) {
+      taken.add(write.prop);
+      if (write.prop === 'size') size = write.value;
+    }
+    picked ??= modifier.rendersTag;
+  }
+  if (picked) return picked;
+  return entry.sizeDrivesTag && tag !== 'p' && size !== undefined
+    ? `h${size}`
+    : entry.tag!;
+}
+
+/**
+ * How well a root fits an element's tag, worked out here rather than taken
+ * from the planner's helpers: 2 for the tag `rendersWith` gives it, 1 for
+ * one its `as` reaches, 0 for neither.
+ */
+function fitOf(
+  entry: RootEntry,
+  tokens: readonly string[],
+  tag: string
+): number {
+  if (rendersWith(entry, tokens, tag) === tag) return 2;
+  return entry.as === 'any' || entry.as?.includes(tag) ? 1 : 0;
+}
+
 describe('an element carrying a second root', () => {
-  // The roots an element most often carries beside another one.
+  // The roots an element most often carries beside another one, and two
+  // with a class that picks the tag their target renders with no `as`.
   const seconds = [
-    'box',
-    'block',
-    'content',
-    'notification',
-    'container',
-    'section',
-    'columns',
-    'column',
-    'image',
+    ['box'],
+    ['block'],
+    ['content'],
+    ['notification'],
+    ['container'],
+    ['section'],
+    ['columns'],
+    ['column'],
+    ['image'],
+    ['image', 'is-16by9'],
+    ['title', 'is-3'],
   ];
 
   it('converts to the root that fits its tag best, and renders the same', () => {
     const lostOnTag: string[] = [];
-    const worseFit: string[] = [];
+    const wrongRoot: string[] = [];
     let conversions = 0;
     for (const [root, entry] of mapped) {
       for (const second of seconds) {
-        if (second === root) continue;
-        const other = ROOTS[second];
+        if (second.includes(root)) continue;
+        const other = ROOTS[second[0]];
         const child = childFor(entry);
         // An element holds the child one of them renders itself, or the part
         // one of them wraps its children unless it holds, never both, and a
@@ -2317,10 +2370,10 @@ describe('an element carrying a second root', () => {
           };
           // The order decides only between two roots the table doesn't rank.
           for (const tokens of PRECEDENCE.includes(root)
-            ? [[root, second]]
+            ? [[root, ...second]]
             : [
-                [root, second],
-                [second, root],
+                [root, ...second],
+                [...second, root],
               ]) {
             const facts = factsFor(tag, tokens, given, child);
             const planned = plan(facts);
@@ -2330,12 +2383,28 @@ describe('an element carrying a second root', () => {
             if (refused && (reachesTag(entry, tag) || reachesTag(other, tag))) {
               lostOnTag.push(`<${tag} className="${tokens.join(' ')}">`);
             }
-            // Its own tag before one `as` reaches, before none.
+            // The tag its classes make it render before one `as` reaches,
+            // before none, and the table's precedence between equals, then
+            // the order on the element.
             const won = planned.conversion?.target;
-            const [winner, loser] =
-              won === other.target ? [other, entry] : [entry, other];
-            if (won && tagFit(winner, tag) < tagFit(loser, tag)) {
-              worseFit.push(`<${tag} className="${tokens.join(' ')}">`);
+            const [rootFit, otherFit] = [entry, other].map(candidate =>
+              fitOf(candidate, tokens, tag)
+            );
+            const rank = (token: string) =>
+              PRECEDENCE.includes(token)
+                ? PRECEDENCE.indexOf(token)
+                : PRECEDENCE.length;
+            const rootFirst =
+              rootFit !== otherFit
+                ? rootFit > otherFit
+                : rank(root) !== rank(second[0])
+                  ? rank(root) < rank(second[0])
+                  : tokens[0] === root;
+            const expected = rootFirst ? entry.target : other.target;
+            if (won && entry.target !== other.target && won !== expected) {
+              wrongRoot.push(
+                `<${tag} className="${tokens.join(' ')}">: ${won}, not ${expected}`
+              );
             }
             const both = renderBoth(facts, given, child);
             if (!both) continue;
@@ -2350,7 +2419,7 @@ describe('an element carrying a second root', () => {
       }
     }
     expect(lostOnTag).toEqual([]);
-    expect(worseFit).toEqual([]);
+    expect(wrongRoot).toEqual([]);
     expect(conversions).toBeGreaterThan(500);
   });
 });
