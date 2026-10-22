@@ -111,10 +111,14 @@ a `tag:<Target>` TODO instead of a conversion. A component's own `as` can take m
 
 An element with two of these (`<div className="column box">`) becomes the one whose component
 fits its tag best, and the other class stays in `className` with a `second-component:<Target>`
-TODO. A component whose own tag it is beats one that reaches it only through `as`, which beats
-one that can't render it, and between equals the layout one wins (`Column`). So
+TODO. A component that renders the tag with no `as` beats one that reaches it only through `as`,
+which beats one that can't render it, and between equals the layout one wins (`Column`). So
 `<section className="hero container">` becomes a `Hero`, and `<figure className="image container">`
-an `Image`, which `Container` can't render.
+an `Image`, which `Container` can't render. The tag a component renders with no `as` is the one
+the element's classes give it: a ratio puts `Image` on a `<figure>`, so
+`<figure className="navbar-item image is-16by9">` becomes an `Image`, and
+`<div className="media-left image is-1by1">` a `Media.Left`, since both reach a `<div>` only
+through `as` there. A heading's size does the same for `Title` and `SubTitle`.
 
 `Card` renders its children inside a `.card-content` of its own unless one of them is one of
 its parts, and `Card.Header` its children inside a `.card-header-title` unless one of them is a
