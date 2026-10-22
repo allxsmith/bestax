@@ -78,7 +78,15 @@ export interface CheckboxProps
    * markup can't carry it, and a mixed box renders unmixed until hydration.
    */
   indeterminate?: boolean;
-  /** Additional CSS classes to apply. */
+  /**
+   * Additional CSS classes, on the outer `<label>`. That's the element that
+   * declares the `--bulma-checkbox-*` variables, so a class is how to set
+   * one: `style` and the other input attributes go to the `<input>`. Name
+   * `.styled-checkbox` beside your class in the selector, so it beats the
+   * label's own declaration whatever order the stylesheets load in. A
+   * `color` prop declares the fills again on `.styled-checkbox.is-<color>`,
+   * which ties that selector, so leave `color` unset when a class sets them.
+   */
   className?: string;
   /** The label/content for the checkbox. */
   children?: React.ReactNode;

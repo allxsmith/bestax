@@ -144,6 +144,9 @@ describe.each([
       expect(resolve(check, 'background-color')).toBe(
         'var(--bulma-checkbox-background)'
       );
+      expect(resolve(check, 'border')).toBe(
+        'var(--bulma-checkbox-border-width) solid var(--bulma-checkbox-border-color)'
+      );
     });
 
     it('fills the box and shows the mark when checked', () => {
@@ -227,37 +230,58 @@ describe.each([
   });
 
   describe('the check mark of a checked Checkbox', () => {
-    const MASK = ['mask-size', 'mask-repeat', 'mask-position'];
+    const MASK = ['mask-image', 'mask-size', 'mask-repeat', 'mask-position'];
 
-    it('is an image with a black stroke', () => {
-      // Forced colors leaves a url() image as it is, so the mark needs a rule
-      // of its own there.
+    /** What `property` resolves to on a checked box's mark. */
+    const markOf = (forcedColors = false) => {
       const check = checkOf({ checked: true });
-      expect(
-        resolve(check, 'background-image', { pseudo: '::after' })
-      ).toContain("stroke='black'");
-      expect(
-        resolve(check, 'mask-image', { pseudo: '::after' })
-      ).toBeUndefined();
+      return (property: string) =>
+        resolve(check, property, { pseudo: '::after', forcedColors });
+    };
+
+    it('is a mask painted in the check color', () => {
+      // An image keeps the color it was drawn in, which no variable reaches
+      // and forced colors leaves as it is, so the mark was black on any fill
+      // (#1152).
+      const mark = markOf();
+      expect(mark('background-color')).toBe(
+        'var(--bulma-checkbox-check-color)'
+      );
+      expect(mark('background-image')).toBeUndefined();
+      expect(mark('mask-image')).toMatch(/^url\("data:image\/svg\+xml,/);
+      expect(MASK.slice(1).map(mark)).toEqual([
+        'contain',
+        'no-repeat',
+        'center',
+      ]);
     });
 
-    it('is the same shape as a mask, painted HighlightText, in forced colors', () => {
-      const check = checkOf({ checked: true });
-      const forced = (property: string) =>
-        resolve(check, property, { pseudo: '::after', forcedColors: true });
-      expect(forced('background-image')).toBe('none');
+    it('carries the prefixed mask too', () => {
+      // Browsers that predate the unprefixed properties read only these.
+      const mark = markOf();
+      expect(MASK.map(property => mark(`-webkit-${property}`))).toEqual(
+        MASK.map(mark)
+      );
+    });
+
+    it('is painted in the color of the mixed dash', () => {
+      const dash = resolve(
+        checkOf({ indeterminate: true }),
+        'background-color',
+        {
+          pseudo: '::before',
+        }
+      );
+      expect(markOf()('background-color')).toBe(dash);
+    });
+
+    it('keeps its shape, painted HighlightText, in forced colors', () => {
+      // Forced colors replaces a color that isn't a system one, so the
+      // check color would not reach the mark there.
+      const forced = markOf(true);
       expect(forced('background-color')).toBe('HighlightText');
-      expect(forced('mask-image')).toBe(
-        resolve(check, 'background-image', { pseudo: '::after' })
-      );
-      // Sized and placed the way the image is.
-      expect(MASK.map(forced)).toEqual(
-        MASK.map(property =>
-          resolve(check, property.replace('mask', 'background'), {
-            pseudo: '::after',
-          })
-        )
-      );
+      expect(forced('background-image')).toBeUndefined();
+      expect(MASK.map(forced)).toEqual(MASK.map(markOf()));
     });
   });
 });

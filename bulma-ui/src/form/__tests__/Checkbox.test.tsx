@@ -18,6 +18,21 @@ describe('Checkbox', () => {
     expect(label).toHaveClass('custom-class');
   });
 
+  it('puts className on the label and style on the input', () => {
+    // The label declares the --bulma-checkbox-* variables, so a class is
+    // what reaches them, as the className TSDoc says.
+    render(
+      <Checkbox className="ink-checkbox" style={{ color: 'red' }}>
+        Label
+      </Checkbox>
+    );
+    const input = screen.getByLabelText('Label');
+    const label = input.closest('label');
+    expect(label).toHaveClass('ink-checkbox');
+    expect(label).not.toHaveAttribute('style');
+    expect(input).toHaveAttribute('style', 'color: red;');
+  });
+
   it('applies classPrefix when provided', () => {
     render(
       <ConfigProvider classPrefix="bulma-">

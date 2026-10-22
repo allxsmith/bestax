@@ -9,7 +9,10 @@
 $checkbox-size: 1.25em !default;
 $checkbox-border-width: 2px !default;
 $checkbox-radius: cv.getVar("radius-small") !default;
-$checkbox-border-color: cv.getVar("border") !default;
+// The border is all that shows of an unchecked box, so it takes `text-weak`,
+// which holds the 3:1 WCAG asks of a control's boundary (SC 1.4.11) on the
+// scheme's surfaces in light and dark. `border` falls well short of it.
+$checkbox-border-color: cv.getVar("text-weak") !default;
 $checkbox-background: transparent !default;
 $checkbox-check-color: cv.getVar("scheme-invert") !default;
 $checkbox-active-color: cv.getVar("primary") !default;
@@ -18,8 +21,10 @@ $checkbox-focus-shadow-size: 0 0 0 0.125em !default;
 $checkbox-transition-duration: cv.getVar("duration") !default;
 $checkbox-indeterminate-color: cv.getVar("primary") !default;
 
-// The check mark, drawn as an image normally and used as a mask in forced
-// colors. Private, since it's the shape rather than a themable value.
+// The check mark's shape, used as a mask so the mark is painted with a
+// background color: `checkbox-check-color`, or a system color in forced
+// colors. Private, since it's the shape rather than a themable value; the
+// stroke's color only marks what the mask keeps.
 $-check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
 
 // Register CSS custom properties
@@ -127,7 +132,8 @@ $-check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
     transition-duration: cv.getVar("checkbox-transition-duration");
     transition-timing-function: ease;
 
-    // Checkmark via SVG background-image
+    // The check mark: the mask cuts the shape, the background color paints
+    // it, in the same color as the mixed state's dash.
     &::after {
       content: "";
       position: absolute;
@@ -138,10 +144,15 @@ $-check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
       transition-property: opacity, transform;
       transition-duration: cv.getVar("checkbox-transition-duration");
       transition-timing-function: ease;
-      background-image: $-check-mark;
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
+      background-color: cv.getVar("checkbox-check-color");
+      -webkit-mask-image: $-check-mark;
+      -webkit-mask-size: contain;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-position: center;
+      mask-image: $-check-mark;
+      mask-size: contain;
+      mask-repeat: no-repeat;
+      mask-position: center;
     }
   }
 
@@ -188,16 +199,12 @@ $-check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
       background-color: Highlight;
       border-color: Highlight;
 
-      // The mark's image has a black stroke, which forced colors leaves as
-      // it is, black on the Highlight fill. Use its shape as a mask instead
-      // and paint it in HighlightText, the color made to read on Highlight.
+      // Forced colors replaces the check color the mark is painted with, as
+      // it does any color that isn't a system one. Name HighlightText, the
+      // color made to read on Highlight. The mask is untouched there, so the
+      // shape stays.
       &::after {
-        background-image: none;
         background-color: HighlightText;
-        mask-image: $-check-mark;
-        mask-size: contain;
-        mask-repeat: no-repeat;
-        mask-position: center;
       }
     }
 

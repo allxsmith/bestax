@@ -68,7 +68,16 @@ export interface RadioProps
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Whether the radio is disabled. */
   disabled?: boolean;
-  /** Additional CSS classes to apply. */
+  /**
+   * Additional CSS classes, on the outer `<label>`. That's the element that
+   * declares the `--bulma-radio-*` variables, so a class is how to set one:
+   * `style` and the other input attributes go to the `<input>`. Name
+   * `.styled-radio` beside your class in the selector, so it beats the
+   * label's own declaration whatever order the stylesheets load in. A
+   * `color` prop declares the active color again on
+   * `.styled-radio.is-<color>`, which ties that selector, so leave `color`
+   * unset when a class sets it.
+   */
   className?: string;
   /** The label/content for the radio. */
   children?: React.ReactNode;

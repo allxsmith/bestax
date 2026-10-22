@@ -169,6 +169,38 @@ export const Indeterminate: Story = {
 };
 
 /**
+ * A dark fill with a light mark. The check mark and the mixed dash both take
+ * `--bulma-checkbox-check-color`, set here with the fills on a class passed
+ * through `className`, which lands on the label that declares them. The
+ * selector names the label's own class too, so it wins whatever order the
+ * stylesheets load in. The
+ * scheme's strongest text color and its page color swap places in dark mode,
+ * so the box reads in either.
+ */
+export const CustomCheckColor: Story = {
+  render: () => (
+    <Block>
+      <style>
+        {`.styled-checkbox.ink-checkbox {
+  --bulma-checkbox-active-color: var(--bulma-text-strong);
+  --bulma-checkbox-indeterminate-color: var(--bulma-text-strong);
+  --bulma-checkbox-check-color: var(--bulma-scheme-main);
+}`}
+      </style>
+      <Checkboxes>
+        <Checkbox className="ink-checkbox" defaultChecked>
+          Checked
+        </Checkbox>
+        <Checkbox className="ink-checkbox" indeterminate>
+          Mixed
+        </Checkbox>
+        <Checkbox className="ink-checkbox">Unchecked</Checkbox>
+      </Checkboxes>
+    </Block>
+  ),
+};
+
+/**
  * Controlled checkbox with state management.
  */
 export const Controlled: Story = {
