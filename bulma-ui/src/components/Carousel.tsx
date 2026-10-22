@@ -182,7 +182,9 @@ export interface CarouselProps
    * `itemsToScroll`) is shown as given, and the next step goes on from it.
    * With `repeat`, a value past either end wraps around; without it, one
    * that would leave empty space after the last item shows the last full
-   * view. Neither correction calls `onChange`.
+   * view. Neither correction calls `onChange`. A value that takes the item
+   * holding focus out of view moves focus to the first item in view, as a
+   * swipe or a change of width does.
    * @defaultValue 0
    */
   value?: number;
@@ -388,6 +390,9 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     const consumerCleanupRef = useRef<(() => void) | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const slidesRef = useRef<HTMLDivElement>(null);
+    // The item (a child of the track) that holds focus, until focus leaves
+    // the items for somewhere else
+    const focusedItemRef = useRef<Element | undefined>(undefined);
 
     const [internalValue, setInternalValue] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
@@ -527,23 +532,28 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     // Auto-play. Each slide gets the whole interval, so a slide change,
     // autoplay's own or the user's, starts the timer over. A render that
     // leaves the slide where it is doesn't. It waits while focus is inside
-    // an item, because a step could take that item out of view, and an
-    // item out of view is inert, which would drop the focus.
-    const isRotating =
-      autoplay &&
-      (looping || nextIndex !== undefined) &&
-      !isPaused &&
-      !isFocusInside;
+    // an item, so what someone is reading or using doesn't move away. The
+    // timer reads where focus is when it fires, rather than trusting the
+    // last focus event alone: a browser moving focus off an element that
+    // went inert need not fire one, and the pause would never end. A focus
+    // change still starts the timer over, so an item gets the whole
+    // interval once focus leaves it.
+    const isPlaying =
+      autoplay && (looping || nextIndex !== undefined) && !isPaused;
+    const isRotating = isPlaying && !isFocusInside;
 
     useEffect(() => {
-      if (!isRotating) return undefined;
+      if (!isPlaying) return undefined;
 
       const timer = setInterval(() => {
+        const track = slidesRef.current;
+        if (track?.contains(getActiveElementInTree(track))) return;
+        if (isFocusInside) setIsFocusInside(false);
         goToNextRef.current();
       }, interval);
 
       return () => clearInterval(timer);
-    }, [isRotating, interval, activeIndex, goToNextRef]);
+    }, [isPlaying, isFocusInside, interval, activeIndex, goToNextRef]);
 
     // Pause on hover
     const handleMouseEnter = useCallback(() => {
@@ -797,6 +807,33 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
         });
       });
 
+    // Hand focus on when the item holding it leaves the view. An item out
+    // of view is inert, and a browser drops focus from an inert element to
+    // the page, so a swipe, a change of count with the window's width, a new
+    // controlled value or the item's removal would leave a keyboard or
+    // screen reader user nowhere. Focus goes to the first item in view,
+    // given `tabindex="-1"` for it unless it has a tabindex of its own. A
+    // layout effect runs before the browser gets to drop the focus; the
+    // focused item's removal drops it at once, so focus on the page itself
+    // still counts as the item's.
+    useClientLayoutEffect(() => {
+      const held = focusedItemRef.current;
+      if (!held) return;
+      const track = slidesRef.current as HTMLDivElement;
+      const start = shownIndex + cloneCount;
+      const slot = Array.prototype.indexOf.call(track.children, held);
+      if (slot >= start && slot < start + inView) return;
+      const active = getActiveElementInTree(track);
+      if (active !== held.ownerDocument.body && !held.contains(active)) {
+        return;
+      }
+      focusedItemRef.current = undefined;
+      const first = track.children[start] as HTMLElement | undefined;
+      if (!first) return;
+      if (!first.hasAttribute('tabindex')) first.tabIndex = -1;
+      first.focus({ preventScroll: true });
+    }, [shownIndex, cloneCount, inView, itemCount]);
+
     return (
       <div
         ref={combinedRef}
@@ -839,10 +876,17 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
             }}
             // Announce what comes into view, except while autoplay turns it
             aria-live={isRotating ? 'off' : 'polite'}
-            onFocus={() => setIsFocusInside(true)}
-            onBlur={e =>
-              setIsFocusInside(e.currentTarget.contains(e.relatedTarget))
-            }
+            onFocus={e => {
+              setIsFocusInside(true);
+              focusedItemRef.current = Array.from(
+                e.currentTarget.children
+              ).find(item => item.contains(e.target));
+            }}
+            onBlur={e => {
+              const inside = e.currentTarget.contains(e.relatedTarget);
+              setIsFocusInside(inside);
+              if (!inside) focusedItemRef.current = undefined;
+            }}
             onTransitionEnd={handleTransitionEnd}
           >
             {renderSlides()}

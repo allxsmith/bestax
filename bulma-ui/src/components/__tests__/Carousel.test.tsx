@@ -1536,6 +1536,229 @@ describe('Carousel with several items in view', () => {
     });
   });
 
+  describe('focus inside an item that leaves the view', () => {
+    // An item out of view is inert, and a browser drops focus from an inert
+    // element to the page, so whatever takes the focused item out of view
+    // has to hand focus on to an item still in view.
+    const focusButtonIn = (count: number, index: number) => {
+      const button = realItems(count)[index].querySelector('button')!;
+      act(() => {
+        button.focus();
+      });
+      return button;
+    };
+
+    const expectFocusOnItem = (count: number, index: number) => {
+      const item = realItems(count)[index];
+      expect(document.activeElement).toBe(item);
+      expect(item).not.toHaveAttribute('inert');
+      expect(item).toHaveAttribute('tabindex', '-1');
+    };
+
+    it('moves to the first item in view when the count in view drops', () => {
+      const viewport = mockViewport(1100);
+      render(
+        <Carousel itemsToShow={1} itemsToShowDesktop={3} repeat={false}>
+          {itemsOf(6)}
+        </Carousel>
+      );
+      focusButtonIn(6, 2);
+
+      viewport.resize(800);
+      expect(inViewItems()).toEqual([0]);
+      expectFocusOnItem(6, 0);
+    });
+
+    it('moves to the first item in view after a swipe', () => {
+      // The press that starts a drag is held from taking focus, so focus
+      // inside an item stays where the keyboard or a tap put it.
+      const { container } = render(
+        <Carousel repeat={false}>{itemsOf(3)}</Carousel>
+      );
+      focusButtonIn(3, 0);
+      const surface = container.querySelector('.carousel-container')!;
+
+      fireEvent.mouseDown(surface, { clientX: 300 });
+      fireEvent.mouseMove(surface, { clientX: 100 });
+      fireEvent.mouseUp(surface);
+      expect(inViewItems()).toEqual([1]);
+      expectFocusOnItem(3, 1);
+    });
+
+    it('moves to the first item in view when a controlled value moves the view', () => {
+      const { rerender } = render(
+        <Carousel value={0} repeat={false}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      focusButtonIn(3, 0);
+
+      rerender(
+        <Carousel value={2} repeat={false}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      expectFocusOnItem(3, 2);
+    });
+
+    it('stays on an item that is still in view', () => {
+      const { rerender } = render(
+        <Carousel value={0} itemsToShow={2} repeat={false}>
+          {itemsOf(4)}
+        </Carousel>
+      );
+      const button = focusButtonIn(4, 1);
+
+      rerender(
+        <Carousel value={1} itemsToShow={2} repeat={false}>
+          {itemsOf(4)}
+        </Carousel>
+      );
+      expect(document.activeElement).toBe(button);
+    });
+
+    it('leaves focus alone once it has left the items', () => {
+      const { rerender } = render(
+        <>
+          <Carousel value={0} repeat={false}>
+            {itemsOf(3)}
+          </Carousel>
+          <button type="button">Outside</button>
+        </>
+      );
+      focusButtonIn(3, 0);
+      const outside = screen.getByRole('button', { name: 'Outside' });
+      act(() => {
+        outside.focus();
+      });
+
+      rerender(
+        <>
+          <Carousel value={2} repeat={false}>
+            {itemsOf(3)}
+          </Carousel>
+          <button type="button">Outside</button>
+        </>
+      );
+      expect(document.activeElement).toBe(outside);
+    });
+
+    it('moves to the first item in view when the focused item is removed', () => {
+      const { rerender } = render(
+        <Carousel itemsToShow={2} value={2} repeat={false}>
+          {itemsOf(4)}
+        </Carousel>
+      );
+      focusButtonIn(4, 3);
+
+      rerender(
+        <Carousel itemsToShow={2} value={2} repeat={false}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      // Three items, two in view: the view starts at item 2.
+      expectFocusOnItem(3, 1);
+    });
+
+    it('keeps a tabindex the item has of its own', () => {
+      const items = (count: number) =>
+        Array.from({ length: count }, (_, i) => (
+          <CarouselItem key={i} tabIndex={0}>
+            <button type="button">Item {i + 1}</button>
+          </CarouselItem>
+        ));
+      const { rerender } = render(
+        <Carousel value={0} repeat={false}>
+          {items(3)}
+        </Carousel>
+      );
+      focusButtonIn(3, 0);
+
+      rerender(
+        <Carousel value={1} repeat={false}>
+          {items(3)}
+        </Carousel>
+      );
+      expect(document.activeElement).toBe(realItems(3)[1]);
+      expect(realItems(3)[1]).toHaveAttribute('tabindex', '0');
+    });
+
+    it('takes focus nowhere when no item is left to take it', () => {
+      const { rerender } = render(
+        <Carousel repeat={false}>{itemsOf(3)}</Carousel>
+      );
+      focusButtonIn(3, 0);
+
+      rerender(<Carousel repeat={false}>{[]}</Carousel>);
+      expect(track().children).toHaveLength(0);
+      expect(document.activeElement).toBe(document.body);
+    });
+
+    it('leaves focus where it went when it left without the items hearing', () => {
+      const { rerender } = render(
+        <>
+          <Carousel value={0} repeat={false}>
+            {itemsOf(3)}
+          </Carousel>
+          <button type="button">Outside</button>
+        </>
+      );
+      focusButtonIn(3, 0);
+      const outside = screen.getByRole('button', { name: 'Outside' });
+      Object.defineProperty(document, 'activeElement', {
+        configurable: true,
+        get: () => outside,
+      });
+      try {
+        rerender(
+          <>
+            <Carousel value={2} repeat={false}>
+              {itemsOf(3)}
+            </Carousel>
+            <button type="button">Outside</button>
+          </>
+        );
+        // Nothing was handed focus, so the item in view stays unfocusable.
+        expect(realItems(3)[2]).not.toHaveAttribute('tabindex');
+      } finally {
+        delete (document as { activeElement?: unknown }).activeElement;
+      }
+    });
+
+    it('resumes autoplay when focus left an item without a blur event', () => {
+      // A browser moving focus off an element that went inert need not fire
+      // blur, so autoplay reads where focus is when its timer fires rather
+      // than trusting the last focus event.
+      const onChange = jest.fn();
+      render(
+        <Carousel itemsToShow={2} autoplay interval={1000} onChange={onChange}>
+          {itemsOf(4)}
+        </Carousel>
+      );
+      focusButtonIn(4, 1);
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+      expect(onChange).not.toHaveBeenCalled();
+      expect(track()).toHaveAttribute('aria-live', 'polite');
+
+      Object.defineProperty(document, 'activeElement', {
+        configurable: true,
+        get: () => document.body,
+      });
+      try {
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+        expect(onChange).toHaveBeenCalledWith(1);
+        // And the live region goes back to quiet while autoplay turns it.
+        expect(track()).toHaveAttribute('aria-live', 'off');
+      } finally {
+        delete (document as { activeElement?: unknown }).activeElement;
+      }
+    });
+  });
+
   describe('accessibility', () => {
     it("keeps an item's own name and role", () => {
       render(
