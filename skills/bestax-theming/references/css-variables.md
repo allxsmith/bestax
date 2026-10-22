@@ -540,8 +540,9 @@ them. See the constituent-element exception above.
 `--bulma-radio-label-gap`, `--bulma-radio-size`, `--bulma-radio-transition-duration`
 
 As with Checkbox, set these on a class you pass through `className`, with both classes in the
-selector (`.styled-radio.my-radio`): `style` goes to the hidden `<input>`. The
-unchecked ring, `--bulma-radio-border-color`, defaults to `text-weak` for the same 3:1 boundary
+selector (`.styled-radio.my-radio`): `style` goes to the hidden `<input>`. A `color` prop
+declares `--bulma-radio-active-color` again on `.styled-radio.is-<color>`, which ties that
+selector, so leave `color` unset when a class sets it. The unchecked ring, `--bulma-radio-border-color`, defaults to `text-weak` for the same 3:1 boundary
 contrast.
 
 ### Rate
