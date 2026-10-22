@@ -170,12 +170,13 @@ stays a manual act — the build only generates the files.
   (or headed to Medium) follows the "Cover images" section below in full: SVG + PNG assets,
   `image:`/`cover_image:` frontmatter, and the visible markdown banner at the top of the
   body. A coverless post renders bare on both platforms.
-- **A syndicated post also ships two to four section images.** dev.to and Medium show the post
+- **A syndicated post also ships 2–4 section images.** dev.to and Medium show the post
   as one long text column, so a syndicated post needs pictures along the way: the banner plus
-  two to four section images, each placed directly under the section it illustrates. Each
+  2–4 section images, each placed directly under the section it illustrates. Each
   section image follows the "Section images" rule under "Cover images" (1200×630 SVG master, the
   PNG embedded in the body, a long literal alt text). A figure that already illustrates a section
-  (a comparison grid, a flow) counts as one of them.
+  (a comparison grid, a flow) counts as one of them. Posts published before this rule keep the
+  images they shipped with.
 - Each flagged post gets a copy in `build/.devto-publish/` with production URLs: markdown
   images and root-relative `/docs/` + `/blog/` links (reference-style definitions included)
   are rewritten to `https://bestax.io/...`. Fenced code blocks are never touched.

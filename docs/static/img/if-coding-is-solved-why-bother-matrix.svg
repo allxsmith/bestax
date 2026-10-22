@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Four boxes in a grid. Top left, plenty of data and cheap to check: solved and crowded, with to-do apps, chat wrappers, clones, landing pages, and CRUD dashboards. Top right, plenty of data and expensive to check: high stakes, slow proof, with self-driving, medical diagnosis, and safety-critical software. Bottom left, little data and cheap to check: open math and algorithms, with novel proofs, faster algorithms, and formal verification. Bottom right, little data and expensive to check: the frontier, with robotics, materials, batteries, lab science, fusion, and new drugs.">
   <rect width="1200" height="630" fill="#16171d"/>
-  <g font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif" fill="#e8e8ea">
+  <g font-family="Arial, Helvetica, sans-serif" fill="#e8e8ea">
     <text x="600" y="62" text-anchor="middle" font-size="40" font-weight="700">Where AI is easy, and where it isn't</text>
 
     <text x="440" y="112" text-anchor="middle" font-size="24" fill="#9aa0ad">Cheap to check</text>
