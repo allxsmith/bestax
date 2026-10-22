@@ -337,7 +337,8 @@ const others = [
   'is-disabled',
   'marginless',
   'is-64x64',
-  'has-text-primary-dark',
+  'has-text-primary-30-invert',
+  'is-palette-primary',
   'is-12-touch',
   'toString',
 ];

@@ -5716,6 +5716,2606 @@
       "group": "background",
       "write": { "prop": "bgColor", "value": "current" }
     },
+    "has-text-primary-00": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "00" }
+    },
+    "has-text-primary-05": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "05" }
+    },
+    "has-text-primary-10": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "10" }
+    },
+    "has-text-primary-15": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "15" }
+    },
+    "has-text-primary-20": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "20" }
+    },
+    "has-text-primary-25": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "25" }
+    },
+    "has-text-primary-30": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "30" }
+    },
+    "has-text-primary-35": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "35" }
+    },
+    "has-text-primary-40": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "40" }
+    },
+    "has-text-primary-45": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "45" }
+    },
+    "has-text-primary-50": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "50" }
+    },
+    "has-text-primary-55": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "55" }
+    },
+    "has-text-primary-60": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "60" }
+    },
+    "has-text-primary-65": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "65" }
+    },
+    "has-text-primary-70": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "70" }
+    },
+    "has-text-primary-75": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "75" }
+    },
+    "has-text-primary-80": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "80" }
+    },
+    "has-text-primary-85": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "85" }
+    },
+    "has-text-primary-90": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "90" }
+    },
+    "has-text-primary-95": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "95" }
+    },
+    "has-text-primary-invert": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "invert" }
+    },
+    "has-text-primary-light": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "light" }
+    },
+    "has-text-primary-dark": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "dark" }
+    },
+    "has-text-primary-soft": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "soft" }
+    },
+    "has-text-primary-bold": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "bold" }
+    },
+    "has-text-primary-on-scheme": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "primary" },
+      "also": { "prop": "colorShade", "value": "on-scheme" }
+    },
+    "has-text-link-00": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "00" }
+    },
+    "has-text-link-05": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "05" }
+    },
+    "has-text-link-10": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "10" }
+    },
+    "has-text-link-15": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "15" }
+    },
+    "has-text-link-20": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "20" }
+    },
+    "has-text-link-25": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "25" }
+    },
+    "has-text-link-30": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "30" }
+    },
+    "has-text-link-35": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "35" }
+    },
+    "has-text-link-40": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "40" }
+    },
+    "has-text-link-45": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "45" }
+    },
+    "has-text-link-50": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "50" }
+    },
+    "has-text-link-55": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "55" }
+    },
+    "has-text-link-60": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "60" }
+    },
+    "has-text-link-65": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "65" }
+    },
+    "has-text-link-70": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "70" }
+    },
+    "has-text-link-75": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "75" }
+    },
+    "has-text-link-80": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "80" }
+    },
+    "has-text-link-85": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "85" }
+    },
+    "has-text-link-90": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "90" }
+    },
+    "has-text-link-95": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "95" }
+    },
+    "has-text-link-invert": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "invert" }
+    },
+    "has-text-link-light": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "light" }
+    },
+    "has-text-link-dark": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "dark" }
+    },
+    "has-text-link-soft": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "soft" }
+    },
+    "has-text-link-bold": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "bold" }
+    },
+    "has-text-link-on-scheme": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "link" },
+      "also": { "prop": "colorShade", "value": "on-scheme" }
+    },
+    "has-text-info-00": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "00" }
+    },
+    "has-text-info-05": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "05" }
+    },
+    "has-text-info-10": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "10" }
+    },
+    "has-text-info-15": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "15" }
+    },
+    "has-text-info-20": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "20" }
+    },
+    "has-text-info-25": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "25" }
+    },
+    "has-text-info-30": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "30" }
+    },
+    "has-text-info-35": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "35" }
+    },
+    "has-text-info-40": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "40" }
+    },
+    "has-text-info-45": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "45" }
+    },
+    "has-text-info-50": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "50" }
+    },
+    "has-text-info-55": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "55" }
+    },
+    "has-text-info-60": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "60" }
+    },
+    "has-text-info-65": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "65" }
+    },
+    "has-text-info-70": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "70" }
+    },
+    "has-text-info-75": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "75" }
+    },
+    "has-text-info-80": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "80" }
+    },
+    "has-text-info-85": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "85" }
+    },
+    "has-text-info-90": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "90" }
+    },
+    "has-text-info-95": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "95" }
+    },
+    "has-text-info-invert": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "invert" }
+    },
+    "has-text-info-light": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "light" }
+    },
+    "has-text-info-dark": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "dark" }
+    },
+    "has-text-info-soft": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "soft" }
+    },
+    "has-text-info-bold": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "bold" }
+    },
+    "has-text-info-on-scheme": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "info" },
+      "also": { "prop": "colorShade", "value": "on-scheme" }
+    },
+    "has-text-success-00": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "00" }
+    },
+    "has-text-success-05": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "05" }
+    },
+    "has-text-success-10": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "10" }
+    },
+    "has-text-success-15": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "15" }
+    },
+    "has-text-success-20": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "20" }
+    },
+    "has-text-success-25": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "25" }
+    },
+    "has-text-success-30": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "30" }
+    },
+    "has-text-success-35": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "35" }
+    },
+    "has-text-success-40": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "40" }
+    },
+    "has-text-success-45": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "45" }
+    },
+    "has-text-success-50": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "50" }
+    },
+    "has-text-success-55": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "55" }
+    },
+    "has-text-success-60": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "60" }
+    },
+    "has-text-success-65": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "65" }
+    },
+    "has-text-success-70": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "70" }
+    },
+    "has-text-success-75": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "75" }
+    },
+    "has-text-success-80": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "80" }
+    },
+    "has-text-success-85": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "85" }
+    },
+    "has-text-success-90": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "90" }
+    },
+    "has-text-success-95": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "95" }
+    },
+    "has-text-success-invert": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "invert" }
+    },
+    "has-text-success-light": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "light" }
+    },
+    "has-text-success-dark": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "dark" }
+    },
+    "has-text-success-soft": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "soft" }
+    },
+    "has-text-success-bold": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "bold" }
+    },
+    "has-text-success-on-scheme": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "success" },
+      "also": { "prop": "colorShade", "value": "on-scheme" }
+    },
+    "has-text-warning-00": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "00" }
+    },
+    "has-text-warning-05": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "05" }
+    },
+    "has-text-warning-10": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "10" }
+    },
+    "has-text-warning-15": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "15" }
+    },
+    "has-text-warning-20": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "20" }
+    },
+    "has-text-warning-25": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "25" }
+    },
+    "has-text-warning-30": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "30" }
+    },
+    "has-text-warning-35": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "35" }
+    },
+    "has-text-warning-40": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "40" }
+    },
+    "has-text-warning-45": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "45" }
+    },
+    "has-text-warning-50": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "50" }
+    },
+    "has-text-warning-55": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "55" }
+    },
+    "has-text-warning-60": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "60" }
+    },
+    "has-text-warning-65": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "65" }
+    },
+    "has-text-warning-70": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "70" }
+    },
+    "has-text-warning-75": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "75" }
+    },
+    "has-text-warning-80": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "80" }
+    },
+    "has-text-warning-85": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "85" }
+    },
+    "has-text-warning-90": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "90" }
+    },
+    "has-text-warning-95": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "95" }
+    },
+    "has-text-warning-invert": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "invert" }
+    },
+    "has-text-warning-light": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "light" }
+    },
+    "has-text-warning-dark": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "dark" }
+    },
+    "has-text-warning-soft": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "soft" }
+    },
+    "has-text-warning-bold": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "bold" }
+    },
+    "has-text-warning-on-scheme": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "warning" },
+      "also": { "prop": "colorShade", "value": "on-scheme" }
+    },
+    "has-text-danger-00": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "00" }
+    },
+    "has-text-danger-05": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "05" }
+    },
+    "has-text-danger-10": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "10" }
+    },
+    "has-text-danger-15": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "15" }
+    },
+    "has-text-danger-20": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "20" }
+    },
+    "has-text-danger-25": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "25" }
+    },
+    "has-text-danger-30": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "30" }
+    },
+    "has-text-danger-35": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "35" }
+    },
+    "has-text-danger-40": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "40" }
+    },
+    "has-text-danger-45": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "45" }
+    },
+    "has-text-danger-50": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "50" }
+    },
+    "has-text-danger-55": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "55" }
+    },
+    "has-text-danger-60": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "60" }
+    },
+    "has-text-danger-65": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "65" }
+    },
+    "has-text-danger-70": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "70" }
+    },
+    "has-text-danger-75": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "75" }
+    },
+    "has-text-danger-80": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "80" }
+    },
+    "has-text-danger-85": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "85" }
+    },
+    "has-text-danger-90": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "90" }
+    },
+    "has-text-danger-95": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "95" }
+    },
+    "has-text-danger-invert": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "invert" }
+    },
+    "has-text-danger-light": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "light" }
+    },
+    "has-text-danger-dark": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "dark" }
+    },
+    "has-text-danger-soft": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "soft" }
+    },
+    "has-text-danger-bold": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "bold" }
+    },
+    "has-text-danger-on-scheme": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "danger" },
+      "also": { "prop": "colorShade", "value": "on-scheme" }
+    },
+    "has-text-black-00": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "00" }
+    },
+    "has-text-black-05": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "05" }
+    },
+    "has-text-black-10": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "10" }
+    },
+    "has-text-black-15": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "15" }
+    },
+    "has-text-black-20": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "20" }
+    },
+    "has-text-black-25": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "25" }
+    },
+    "has-text-black-30": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "30" }
+    },
+    "has-text-black-35": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "35" }
+    },
+    "has-text-black-40": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "40" }
+    },
+    "has-text-black-45": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "45" }
+    },
+    "has-text-black-50": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "50" }
+    },
+    "has-text-black-55": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "55" }
+    },
+    "has-text-black-60": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "60" }
+    },
+    "has-text-black-65": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "65" }
+    },
+    "has-text-black-70": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "70" }
+    },
+    "has-text-black-75": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "75" }
+    },
+    "has-text-black-80": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "80" }
+    },
+    "has-text-black-85": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "85" }
+    },
+    "has-text-black-90": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "90" }
+    },
+    "has-text-black-95": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "95" }
+    },
+    "has-text-black-invert": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "invert" }
+    },
+    "has-text-black-light": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "light" }
+    },
+    "has-text-black-dark": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "dark" }
+    },
+    "has-text-black-soft": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "soft" }
+    },
+    "has-text-black-bold": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "bold" }
+    },
+    "has-text-black-on-scheme": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "black" },
+      "also": { "prop": "colorShade", "value": "on-scheme" }
+    },
+    "has-text-white-00": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "00" }
+    },
+    "has-text-white-05": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "05" }
+    },
+    "has-text-white-10": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "10" }
+    },
+    "has-text-white-15": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "15" }
+    },
+    "has-text-white-20": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "20" }
+    },
+    "has-text-white-25": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "25" }
+    },
+    "has-text-white-30": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "30" }
+    },
+    "has-text-white-35": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "35" }
+    },
+    "has-text-white-40": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "40" }
+    },
+    "has-text-white-45": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "45" }
+    },
+    "has-text-white-50": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "50" }
+    },
+    "has-text-white-55": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "55" }
+    },
+    "has-text-white-60": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "60" }
+    },
+    "has-text-white-65": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "65" }
+    },
+    "has-text-white-70": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "70" }
+    },
+    "has-text-white-75": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "75" }
+    },
+    "has-text-white-80": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "80" }
+    },
+    "has-text-white-85": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "85" }
+    },
+    "has-text-white-90": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "90" }
+    },
+    "has-text-white-95": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "95" }
+    },
+    "has-text-white-invert": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "invert" }
+    },
+    "has-text-white-light": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "light" }
+    },
+    "has-text-white-dark": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "dark" }
+    },
+    "has-text-white-soft": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "soft" }
+    },
+    "has-text-white-bold": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "bold" }
+    },
+    "has-text-white-on-scheme": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "white" },
+      "also": { "prop": "colorShade", "value": "on-scheme" }
+    },
+    "has-text-light-00": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "00" }
+    },
+    "has-text-light-05": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "05" }
+    },
+    "has-text-light-10": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "10" }
+    },
+    "has-text-light-15": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "15" }
+    },
+    "has-text-light-20": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "20" }
+    },
+    "has-text-light-25": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "25" }
+    },
+    "has-text-light-30": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "30" }
+    },
+    "has-text-light-35": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "35" }
+    },
+    "has-text-light-40": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "40" }
+    },
+    "has-text-light-45": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "45" }
+    },
+    "has-text-light-50": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "50" }
+    },
+    "has-text-light-55": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "55" }
+    },
+    "has-text-light-60": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "60" }
+    },
+    "has-text-light-65": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "65" }
+    },
+    "has-text-light-70": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "70" }
+    },
+    "has-text-light-75": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "75" }
+    },
+    "has-text-light-80": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "80" }
+    },
+    "has-text-light-85": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "85" }
+    },
+    "has-text-light-90": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "90" }
+    },
+    "has-text-light-95": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "95" }
+    },
+    "has-text-light-invert": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "invert" }
+    },
+    "has-text-light-light": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "light" }
+    },
+    "has-text-light-dark": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "dark" }
+    },
+    "has-text-light-soft": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "soft" }
+    },
+    "has-text-light-bold": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "bold" }
+    },
+    "has-text-light-on-scheme": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "light" },
+      "also": { "prop": "colorShade", "value": "on-scheme" }
+    },
+    "has-text-dark-00": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "00" }
+    },
+    "has-text-dark-05": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "05" }
+    },
+    "has-text-dark-10": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "10" }
+    },
+    "has-text-dark-15": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "15" }
+    },
+    "has-text-dark-20": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "20" }
+    },
+    "has-text-dark-25": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "25" }
+    },
+    "has-text-dark-30": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "30" }
+    },
+    "has-text-dark-35": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "35" }
+    },
+    "has-text-dark-40": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "40" }
+    },
+    "has-text-dark-45": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "45" }
+    },
+    "has-text-dark-50": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "50" }
+    },
+    "has-text-dark-55": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "55" }
+    },
+    "has-text-dark-60": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "60" }
+    },
+    "has-text-dark-65": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "65" }
+    },
+    "has-text-dark-70": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "70" }
+    },
+    "has-text-dark-75": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "75" }
+    },
+    "has-text-dark-80": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "80" }
+    },
+    "has-text-dark-85": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "85" }
+    },
+    "has-text-dark-90": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "90" }
+    },
+    "has-text-dark-95": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "95" }
+    },
+    "has-text-dark-invert": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "invert" }
+    },
+    "has-text-dark-light": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "light" }
+    },
+    "has-text-dark-dark": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "dark" }
+    },
+    "has-text-dark-soft": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "soft" }
+    },
+    "has-text-dark-bold": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "bold" }
+    },
+    "has-text-dark-on-scheme": {
+      "group": "text-color",
+      "write": { "prop": "textColor", "value": "dark" },
+      "also": { "prop": "colorShade", "value": "on-scheme" }
+    },
+    "has-background-primary-00": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "00" }
+    },
+    "has-background-primary-05": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "05" }
+    },
+    "has-background-primary-10": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "10" }
+    },
+    "has-background-primary-15": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "15" }
+    },
+    "has-background-primary-20": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "20" }
+    },
+    "has-background-primary-25": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "25" }
+    },
+    "has-background-primary-30": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "30" }
+    },
+    "has-background-primary-35": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "35" }
+    },
+    "has-background-primary-40": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "40" }
+    },
+    "has-background-primary-45": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "45" }
+    },
+    "has-background-primary-50": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "50" }
+    },
+    "has-background-primary-55": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "55" }
+    },
+    "has-background-primary-60": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "60" }
+    },
+    "has-background-primary-65": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "65" }
+    },
+    "has-background-primary-70": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "70" }
+    },
+    "has-background-primary-75": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "75" }
+    },
+    "has-background-primary-80": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "80" }
+    },
+    "has-background-primary-85": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "85" }
+    },
+    "has-background-primary-90": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "90" }
+    },
+    "has-background-primary-95": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "95" }
+    },
+    "has-background-primary-invert": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "invert" }
+    },
+    "has-background-primary-light": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "light" }
+    },
+    "has-background-primary-dark": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "dark" }
+    },
+    "has-background-primary-soft": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "soft" }
+    },
+    "has-background-primary-bold": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "bold" }
+    },
+    "has-background-primary-on-scheme": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "primary" },
+      "also": { "prop": "backgroundColorShade", "value": "on-scheme" }
+    },
+    "has-background-link-00": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "00" }
+    },
+    "has-background-link-05": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "05" }
+    },
+    "has-background-link-10": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "10" }
+    },
+    "has-background-link-15": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "15" }
+    },
+    "has-background-link-20": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "20" }
+    },
+    "has-background-link-25": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "25" }
+    },
+    "has-background-link-30": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "30" }
+    },
+    "has-background-link-35": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "35" }
+    },
+    "has-background-link-40": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "40" }
+    },
+    "has-background-link-45": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "45" }
+    },
+    "has-background-link-50": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "50" }
+    },
+    "has-background-link-55": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "55" }
+    },
+    "has-background-link-60": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "60" }
+    },
+    "has-background-link-65": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "65" }
+    },
+    "has-background-link-70": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "70" }
+    },
+    "has-background-link-75": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "75" }
+    },
+    "has-background-link-80": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "80" }
+    },
+    "has-background-link-85": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "85" }
+    },
+    "has-background-link-90": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "90" }
+    },
+    "has-background-link-95": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "95" }
+    },
+    "has-background-link-invert": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "invert" }
+    },
+    "has-background-link-light": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "light" }
+    },
+    "has-background-link-dark": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "dark" }
+    },
+    "has-background-link-soft": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "soft" }
+    },
+    "has-background-link-bold": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "bold" }
+    },
+    "has-background-link-on-scheme": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "link" },
+      "also": { "prop": "backgroundColorShade", "value": "on-scheme" }
+    },
+    "has-background-info-00": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "00" }
+    },
+    "has-background-info-05": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "05" }
+    },
+    "has-background-info-10": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "10" }
+    },
+    "has-background-info-15": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "15" }
+    },
+    "has-background-info-20": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "20" }
+    },
+    "has-background-info-25": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "25" }
+    },
+    "has-background-info-30": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "30" }
+    },
+    "has-background-info-35": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "35" }
+    },
+    "has-background-info-40": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "40" }
+    },
+    "has-background-info-45": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "45" }
+    },
+    "has-background-info-50": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "50" }
+    },
+    "has-background-info-55": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "55" }
+    },
+    "has-background-info-60": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "60" }
+    },
+    "has-background-info-65": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "65" }
+    },
+    "has-background-info-70": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "70" }
+    },
+    "has-background-info-75": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "75" }
+    },
+    "has-background-info-80": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "80" }
+    },
+    "has-background-info-85": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "85" }
+    },
+    "has-background-info-90": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "90" }
+    },
+    "has-background-info-95": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "95" }
+    },
+    "has-background-info-invert": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "invert" }
+    },
+    "has-background-info-light": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "light" }
+    },
+    "has-background-info-dark": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "dark" }
+    },
+    "has-background-info-soft": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "soft" }
+    },
+    "has-background-info-bold": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "bold" }
+    },
+    "has-background-info-on-scheme": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "info" },
+      "also": { "prop": "backgroundColorShade", "value": "on-scheme" }
+    },
+    "has-background-success-00": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "00" }
+    },
+    "has-background-success-05": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "05" }
+    },
+    "has-background-success-10": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "10" }
+    },
+    "has-background-success-15": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "15" }
+    },
+    "has-background-success-20": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "20" }
+    },
+    "has-background-success-25": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "25" }
+    },
+    "has-background-success-30": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "30" }
+    },
+    "has-background-success-35": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "35" }
+    },
+    "has-background-success-40": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "40" }
+    },
+    "has-background-success-45": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "45" }
+    },
+    "has-background-success-50": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "50" }
+    },
+    "has-background-success-55": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "55" }
+    },
+    "has-background-success-60": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "60" }
+    },
+    "has-background-success-65": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "65" }
+    },
+    "has-background-success-70": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "70" }
+    },
+    "has-background-success-75": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "75" }
+    },
+    "has-background-success-80": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "80" }
+    },
+    "has-background-success-85": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "85" }
+    },
+    "has-background-success-90": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "90" }
+    },
+    "has-background-success-95": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "95" }
+    },
+    "has-background-success-invert": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "invert" }
+    },
+    "has-background-success-light": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "light" }
+    },
+    "has-background-success-dark": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "dark" }
+    },
+    "has-background-success-soft": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "soft" }
+    },
+    "has-background-success-bold": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "bold" }
+    },
+    "has-background-success-on-scheme": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "success" },
+      "also": { "prop": "backgroundColorShade", "value": "on-scheme" }
+    },
+    "has-background-warning-00": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "00" }
+    },
+    "has-background-warning-05": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "05" }
+    },
+    "has-background-warning-10": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "10" }
+    },
+    "has-background-warning-15": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "15" }
+    },
+    "has-background-warning-20": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "20" }
+    },
+    "has-background-warning-25": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "25" }
+    },
+    "has-background-warning-30": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "30" }
+    },
+    "has-background-warning-35": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "35" }
+    },
+    "has-background-warning-40": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "40" }
+    },
+    "has-background-warning-45": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "45" }
+    },
+    "has-background-warning-50": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "50" }
+    },
+    "has-background-warning-55": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "55" }
+    },
+    "has-background-warning-60": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "60" }
+    },
+    "has-background-warning-65": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "65" }
+    },
+    "has-background-warning-70": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "70" }
+    },
+    "has-background-warning-75": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "75" }
+    },
+    "has-background-warning-80": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "80" }
+    },
+    "has-background-warning-85": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "85" }
+    },
+    "has-background-warning-90": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "90" }
+    },
+    "has-background-warning-95": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "95" }
+    },
+    "has-background-warning-invert": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "invert" }
+    },
+    "has-background-warning-light": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "light" }
+    },
+    "has-background-warning-dark": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "dark" }
+    },
+    "has-background-warning-soft": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "soft" }
+    },
+    "has-background-warning-bold": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "bold" }
+    },
+    "has-background-warning-on-scheme": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "warning" },
+      "also": { "prop": "backgroundColorShade", "value": "on-scheme" }
+    },
+    "has-background-danger-00": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "00" }
+    },
+    "has-background-danger-05": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "05" }
+    },
+    "has-background-danger-10": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "10" }
+    },
+    "has-background-danger-15": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "15" }
+    },
+    "has-background-danger-20": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "20" }
+    },
+    "has-background-danger-25": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "25" }
+    },
+    "has-background-danger-30": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "30" }
+    },
+    "has-background-danger-35": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "35" }
+    },
+    "has-background-danger-40": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "40" }
+    },
+    "has-background-danger-45": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "45" }
+    },
+    "has-background-danger-50": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "50" }
+    },
+    "has-background-danger-55": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "55" }
+    },
+    "has-background-danger-60": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "60" }
+    },
+    "has-background-danger-65": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "65" }
+    },
+    "has-background-danger-70": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "70" }
+    },
+    "has-background-danger-75": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "75" }
+    },
+    "has-background-danger-80": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "80" }
+    },
+    "has-background-danger-85": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "85" }
+    },
+    "has-background-danger-90": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "90" }
+    },
+    "has-background-danger-95": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "95" }
+    },
+    "has-background-danger-invert": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "invert" }
+    },
+    "has-background-danger-light": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "light" }
+    },
+    "has-background-danger-dark": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "dark" }
+    },
+    "has-background-danger-soft": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "soft" }
+    },
+    "has-background-danger-bold": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "bold" }
+    },
+    "has-background-danger-on-scheme": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "danger" },
+      "also": { "prop": "backgroundColorShade", "value": "on-scheme" }
+    },
+    "has-background-black-00": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "00" }
+    },
+    "has-background-black-05": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "05" }
+    },
+    "has-background-black-10": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "10" }
+    },
+    "has-background-black-15": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "15" }
+    },
+    "has-background-black-20": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "20" }
+    },
+    "has-background-black-25": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "25" }
+    },
+    "has-background-black-30": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "30" }
+    },
+    "has-background-black-35": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "35" }
+    },
+    "has-background-black-40": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "40" }
+    },
+    "has-background-black-45": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "45" }
+    },
+    "has-background-black-50": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "50" }
+    },
+    "has-background-black-55": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "55" }
+    },
+    "has-background-black-60": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "60" }
+    },
+    "has-background-black-65": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "65" }
+    },
+    "has-background-black-70": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "70" }
+    },
+    "has-background-black-75": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "75" }
+    },
+    "has-background-black-80": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "80" }
+    },
+    "has-background-black-85": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "85" }
+    },
+    "has-background-black-90": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "90" }
+    },
+    "has-background-black-95": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "95" }
+    },
+    "has-background-black-invert": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "invert" }
+    },
+    "has-background-black-light": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "light" }
+    },
+    "has-background-black-dark": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "dark" }
+    },
+    "has-background-black-soft": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "soft" }
+    },
+    "has-background-black-bold": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "bold" }
+    },
+    "has-background-black-on-scheme": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "black" },
+      "also": { "prop": "backgroundColorShade", "value": "on-scheme" }
+    },
+    "has-background-white-00": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "00" }
+    },
+    "has-background-white-05": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "05" }
+    },
+    "has-background-white-10": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "10" }
+    },
+    "has-background-white-15": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "15" }
+    },
+    "has-background-white-20": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "20" }
+    },
+    "has-background-white-25": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "25" }
+    },
+    "has-background-white-30": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "30" }
+    },
+    "has-background-white-35": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "35" }
+    },
+    "has-background-white-40": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "40" }
+    },
+    "has-background-white-45": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "45" }
+    },
+    "has-background-white-50": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "50" }
+    },
+    "has-background-white-55": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "55" }
+    },
+    "has-background-white-60": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "60" }
+    },
+    "has-background-white-65": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "65" }
+    },
+    "has-background-white-70": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "70" }
+    },
+    "has-background-white-75": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "75" }
+    },
+    "has-background-white-80": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "80" }
+    },
+    "has-background-white-85": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "85" }
+    },
+    "has-background-white-90": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "90" }
+    },
+    "has-background-white-95": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "95" }
+    },
+    "has-background-white-invert": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "invert" }
+    },
+    "has-background-white-light": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "light" }
+    },
+    "has-background-white-dark": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "dark" }
+    },
+    "has-background-white-soft": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "soft" }
+    },
+    "has-background-white-bold": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "bold" }
+    },
+    "has-background-white-on-scheme": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "white" },
+      "also": { "prop": "backgroundColorShade", "value": "on-scheme" }
+    },
+    "has-background-light-00": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "00" }
+    },
+    "has-background-light-05": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "05" }
+    },
+    "has-background-light-10": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "10" }
+    },
+    "has-background-light-15": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "15" }
+    },
+    "has-background-light-20": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "20" }
+    },
+    "has-background-light-25": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "25" }
+    },
+    "has-background-light-30": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "30" }
+    },
+    "has-background-light-35": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "35" }
+    },
+    "has-background-light-40": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "40" }
+    },
+    "has-background-light-45": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "45" }
+    },
+    "has-background-light-50": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "50" }
+    },
+    "has-background-light-55": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "55" }
+    },
+    "has-background-light-60": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "60" }
+    },
+    "has-background-light-65": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "65" }
+    },
+    "has-background-light-70": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "70" }
+    },
+    "has-background-light-75": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "75" }
+    },
+    "has-background-light-80": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "80" }
+    },
+    "has-background-light-85": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "85" }
+    },
+    "has-background-light-90": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "90" }
+    },
+    "has-background-light-95": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "95" }
+    },
+    "has-background-light-invert": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "invert" }
+    },
+    "has-background-light-light": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "light" }
+    },
+    "has-background-light-dark": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "dark" }
+    },
+    "has-background-light-soft": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "soft" }
+    },
+    "has-background-light-bold": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "bold" }
+    },
+    "has-background-light-on-scheme": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "light" },
+      "also": { "prop": "backgroundColorShade", "value": "on-scheme" }
+    },
+    "has-background-dark-00": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "00" }
+    },
+    "has-background-dark-05": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "05" }
+    },
+    "has-background-dark-10": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "10" }
+    },
+    "has-background-dark-15": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "15" }
+    },
+    "has-background-dark-20": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "20" }
+    },
+    "has-background-dark-25": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "25" }
+    },
+    "has-background-dark-30": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "30" }
+    },
+    "has-background-dark-35": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "35" }
+    },
+    "has-background-dark-40": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "40" }
+    },
+    "has-background-dark-45": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "45" }
+    },
+    "has-background-dark-50": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "50" }
+    },
+    "has-background-dark-55": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "55" }
+    },
+    "has-background-dark-60": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "60" }
+    },
+    "has-background-dark-65": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "65" }
+    },
+    "has-background-dark-70": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "70" }
+    },
+    "has-background-dark-75": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "75" }
+    },
+    "has-background-dark-80": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "80" }
+    },
+    "has-background-dark-85": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "85" }
+    },
+    "has-background-dark-90": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "90" }
+    },
+    "has-background-dark-95": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "95" }
+    },
+    "has-background-dark-invert": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "invert" }
+    },
+    "has-background-dark-light": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "light" }
+    },
+    "has-background-dark-dark": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "dark" }
+    },
+    "has-background-dark-soft": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "soft" }
+    },
+    "has-background-dark-bold": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "bold" }
+    },
+    "has-background-dark-on-scheme": {
+      "group": "background",
+      "write": { "prop": "bgColor", "value": "dark" },
+      "also": { "prop": "backgroundColorShade", "value": "on-scheme" }
+    },
     "m-0": { "group": "spacing", "write": { "prop": "m", "value": "0" } },
     "m-1": { "group": "spacing", "write": { "prop": "m", "value": "1" } },
     "m-2": { "group": "spacing", "write": { "prop": "m", "value": "2" } },
@@ -7107,7 +9707,7 @@
   ],
   "passthrough": [
     {
-      "why": "a color shade, a scheme color or a palette; shades stay as classes",
+      "why": "a color shade with no single shade for `colorShade` or `backgroundColorShade` to write (`-100`, or one with `-invert` on the end), a shade of the `text` color, a scheme color or a palette",
       "match": "^(?:has-(?:text|background)-[a-z]+(?:-[a-z]+)?-(?:\\d{2,3}|invert|light|dark|soft|bold|on-scheme)(?:-invert)?|has-(?:text|background)-text|has-background|is-palette-[a-z]+|is-(?:bold|soft))$"
     },
     {

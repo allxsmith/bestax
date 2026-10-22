@@ -458,6 +458,34 @@ export const COLORS = [
   'light',
   'dark',
 ] as const;
+export const COLOR_SHADES = [
+  '00',
+  '05',
+  '10',
+  '15',
+  '20',
+  '25',
+  '30',
+  '35',
+  '40',
+  '45',
+  '50',
+  '55',
+  '60',
+  '65',
+  '70',
+  '75',
+  '80',
+  '85',
+  '90',
+  '95',
+  'invert',
+  'light',
+  'dark',
+  'soft',
+  'bold',
+  'on-scheme',
+] as const;
 export const SIZES = ['0', '1', '2', '3', '4', '5', '6', 'auto'] as const;
 export const TEXT_SIZES = ['1', '2', '3', '4', '5', '6', '7'] as const;
 export const ALIGNMENTS = ['centered', 'justified', 'left', 'right'] as const;
@@ -2732,6 +2760,11 @@ export type HelperGroup =
 export interface HelperToken {
   readonly group: HelperGroup;
   readonly write: PropWrite;
+  /**
+   * A second prop the class needs beside `write`, which it converts only
+   * with (a color shade's `colorShade` beside its color).
+   */
+  readonly also?: PropWrite;
 }
 
 function helperTokens(
@@ -2776,6 +2809,48 @@ function helperFlag(
 /** The color helpers also take the two CSS keywords. */
 const HELPER_COLORS = [...COLORS, 'inherit', 'current'];
 
+/**
+ * The colors Bulma writes shade helpers for: its own palette, but `text`,
+ * which bestax's color props don't take.
+ */
+const SHADED_COLORS = [
+  'primary',
+  'link',
+  'info',
+  'success',
+  'warning',
+  'danger',
+  'black',
+  'white',
+  'light',
+  'dark',
+] as const;
+
+/**
+ * `has-text-{color}-{shade}` → the color prop and `colorShade`, which render
+ * it together; `has-background-…` the same with `backgroundColorShade`. The
+ * color prop is a placeholder the planner swaps for the target's own, as for
+ * the plain color helpers. A class with no single shade to write (`-100`,
+ * `-30-invert`) is not one of these, and stays a class.
+ */
+function shadeTokens(
+  group: 'text-color' | 'background',
+  prefix: string,
+  prop: string,
+  shadeProp: string
+): Array<[string, HelperToken]> {
+  return SHADED_COLORS.flatMap(color =>
+    COLOR_SHADES.map((shade): [string, HelperToken] => [
+      `${prefix}${color}-${shade}`,
+      {
+        group,
+        write: { prop, value: color },
+        also: { prop: shadeProp, value: shade },
+      },
+    ])
+  );
+}
+
 const SPACING_PROPS = [
   'm',
   'mt',
@@ -2797,6 +2872,13 @@ export const HELPER_TOKENS: ReadonlyMap<string, HelperToken> = new Map([
   // Colors: the prop is a placeholder the planner swaps for the target's own.
   ...helperTokens('text-color', 'has-text-', HELPER_COLORS, 'textColor'),
   ...helperTokens('background', 'has-background-', HELPER_COLORS, 'bgColor'),
+  ...shadeTokens('text-color', 'has-text-', 'textColor', 'colorShade'),
+  ...shadeTokens(
+    'background',
+    'has-background-',
+    'bgColor',
+    'backgroundColorShade'
+  ),
   ...SPACING_PROPS.flatMap(prop =>
     helperTokens('spacing', `${prop}-`, SIZES, prop)
   ),
@@ -2940,7 +3022,7 @@ export const PASSTHROUGH: ReadonlyArray<{
   readonly match: RegExp;
 }> = [
   {
-    why: 'a color shade, a scheme color or a palette; shades stay as classes',
+    why: 'a color shade with no single shade for `colorShade` or `backgroundColorShade` to write (`-100`, or one with `-invert` on the end), a shade of the `text` color, a scheme color or a palette',
     match:
       /^(?:has-(?:text|background)-[a-z]+(?:-[a-z]+)?-(?:\d{2,3}|invert|light|dark|soft|bold|on-scheme)(?:-invert)?|has-(?:text|background)-text|has-background|is-palette-[a-z]+|is-(?:bold|soft))$/,
   },
