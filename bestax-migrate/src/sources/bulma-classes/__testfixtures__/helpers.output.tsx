@@ -1,4 +1,4 @@
-import { Box, Cell, Column, Columns, Figure, Grid, Paragraph, Section, Span } from "@allxsmith/bestax-bulma";
+import { Box, Cell, Column, Columns, Figure, Grid, Link, Paragraph, Section, Span } from "@allxsmith/bestax-bulma";
 export function Layout() {
   return (
     <section>
@@ -37,5 +37,26 @@ export function Bulma09Spacing() {
       <Paragraph textAlign="centered" m="0">Centered, no margin</Paragraph>
       <Paragraph textAlign="centered" className="marginless">v1&apos;s own name stays</Paragraph>
     </Section>
+  );
+}
+
+export function Shades() {
+  return (
+    <section>
+      <Paragraph textColor="primary" colorShade="on-scheme">On the scheme</Paragraph>
+      <Span
+        bgColor="info"
+        backgroundColorShade="light"
+        textColor="info"
+        colorShade="dark">
+        A light tag
+      </Span>
+      <Box textColor="link" colorShade="30">A darker link color</Box>
+      <Link textColor="danger" colorShade="on-scheme" href="/x">
+        A readable link
+      </Link>
+      <Paragraph textColor="primary" colorShade="30" className="has-text-info-40">The second stays</Paragraph>
+      <p className="has-text-primary-30-invert">No single shade writes it</p>
+    </section>
   );
 }

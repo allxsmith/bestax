@@ -10,6 +10,10 @@
  * stylesheet has (or a Bulma 0.9 class it knows was removed).
  */
 
+import {
+  validColorShades,
+  validColors,
+} from '@allxsmith/bestax-bulma/constants';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -58,6 +62,43 @@ describe("the table accounts for Bulma's stylesheet", () => {
     ];
     expect(
       named.filter(token => !classes.has(token) && !LEGACY_09[token])
+    ).toEqual([]);
+  });
+
+  // bestax renders `has-text-{color}-{shade}` for every color and shade its
+  // props take, and Bulma has a rule for some of them: each of those
+  // converts, as that color and that shade, or as the color of that name
+  // (`grey` and `light` render `has-text-grey-light`, which `grey-light` is).
+  it('converts every shade class it has that one color and one shade render', () => {
+    const rendered = validColors.flatMap(color =>
+      validColorShades.flatMap(shade =>
+        (
+          [
+            ['has-text', 'colorShade'],
+            ['has-background', 'backgroundColorShade'],
+          ] as const
+        ).map(([prefix, prop]) => ({
+          token: `${prefix}-${color}-${shade}`,
+          color,
+          also: { prop, value: shade },
+        }))
+      )
+    );
+    const shades = rendered.filter(({ token }) => classes.has(token));
+    expect(shades.length).toBeGreaterThan(400);
+    expect(
+      shades
+        .filter(({ token, color, also }) => {
+          const helper = HELPER_TOKENS.get(token);
+          const asShade =
+            helper?.write.value === color &&
+            JSON.stringify(helper.also) === JSON.stringify(also);
+          const asColor =
+            helper?.also === undefined &&
+            helper?.write.value === `${color}-${also.value}`;
+          return !asShade && !asColor;
+        })
+        .map(({ token }) => token)
     ).toEqual([]);
   });
 
