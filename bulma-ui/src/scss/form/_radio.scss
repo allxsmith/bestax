@@ -8,7 +8,10 @@
 // Radio-specific SCSS variables
 $radio-size: 1.25em !default;
 $radio-border-width: 2px !default;
-$radio-border-color: cv.getVar("border") !default;
+// The ring is all that shows of an unchecked radio, so it takes `text-weak`,
+// which holds the 3:1 WCAG asks of a control's boundary (SC 1.4.11) on the
+// scheme's surfaces in light and dark. `border` falls well short of it.
+$radio-border-color: cv.getVar("text-weak") !default;
 $radio-background: transparent !default;
 $radio-dot-color: cv.getVar("scheme-main") !default;
 $radio-active-color: cv.getVar("primary") !default;

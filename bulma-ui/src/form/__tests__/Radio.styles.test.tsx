@@ -137,6 +137,9 @@ describe.each([
     expect(resolve(check, 'width')).toBe('var(--bulma-radio-size)');
     expect(resolve(check, 'height')).toBe('var(--bulma-radio-size)');
     expect(resolve(check, 'border-radius')).toBe('50%');
+    expect(resolve(check, 'border')).toBe(
+      'var(--bulma-radio-border-width) solid var(--bulma-radio-border-color)'
+    );
     expect(resolve(check, 'opacity', { pseudo: '::before' })).toBe('0');
   });
 
