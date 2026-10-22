@@ -2062,7 +2062,8 @@
           "is-focused": { "writes": [{ "prop": "isFocused" }] }
         },
         "pairs": { "multiple": "is-multiple" },
-        "renames": { "size": { "to": "multipleSize", "beside": "multiple" } }
+        "renames": { "size": { "to": "multipleSize", "beside": "multiple" } },
+        "label": "Select"
       },
       "writes": null,
       "countsChildren": null,
@@ -2856,27 +2857,33 @@
       "modifiers": {
         "is-1": {
           "writes": [{ "prop": "size", "value": "1" }],
-          "tagIn": ["h1", "p"]
+          "tagIn": ["h1", "p"],
+          "offTag": { "prop": "textSize", "value": "1" }
         },
         "is-2": {
           "writes": [{ "prop": "size", "value": "2" }],
-          "tagIn": ["h2", "p"]
+          "tagIn": ["h2", "p"],
+          "offTag": { "prop": "textSize", "value": "2" }
         },
         "is-3": {
           "writes": [{ "prop": "size", "value": "3" }],
-          "tagIn": ["h3", "p"]
+          "tagIn": ["h3", "p"],
+          "offTag": { "prop": "textSize", "value": "3" }
         },
         "is-4": {
           "writes": [{ "prop": "size", "value": "4" }],
-          "tagIn": ["h4", "p"]
+          "tagIn": ["h4", "p"],
+          "offTag": { "prop": "textSize", "value": "4" }
         },
         "is-5": {
           "writes": [{ "prop": "size", "value": "5" }],
-          "tagIn": ["h5", "p"]
+          "tagIn": ["h5", "p"],
+          "offTag": { "prop": "textSize", "value": "5" }
         },
         "is-6": {
           "writes": [{ "prop": "size", "value": "6" }],
-          "tagIn": ["h6", "p"]
+          "tagIn": ["h6", "p"],
+          "offTag": { "prop": "textSize", "value": "6" }
         },
         "has-skeleton": { "writes": [{ "prop": "hasSkeleton" }] }
       },
@@ -3025,27 +3032,33 @@
       "modifiers": {
         "is-1": {
           "writes": [{ "prop": "size", "value": "1" }],
-          "tagIn": ["h1", "p"]
+          "tagIn": ["h1", "p"],
+          "offTag": { "prop": "textSize", "value": "1" }
         },
         "is-2": {
           "writes": [{ "prop": "size", "value": "2" }],
-          "tagIn": ["h2", "p"]
+          "tagIn": ["h2", "p"],
+          "offTag": { "prop": "textSize", "value": "2" }
         },
         "is-3": {
           "writes": [{ "prop": "size", "value": "3" }],
-          "tagIn": ["h3", "p"]
+          "tagIn": ["h3", "p"],
+          "offTag": { "prop": "textSize", "value": "3" }
         },
         "is-4": {
           "writes": [{ "prop": "size", "value": "4" }],
-          "tagIn": ["h4", "p"]
+          "tagIn": ["h4", "p"],
+          "offTag": { "prop": "textSize", "value": "4" }
         },
         "is-5": {
           "writes": [{ "prop": "size", "value": "5" }],
-          "tagIn": ["h5", "p"]
+          "tagIn": ["h5", "p"],
+          "offTag": { "prop": "textSize", "value": "5" }
         },
         "is-6": {
           "writes": [{ "prop": "size", "value": "6" }],
-          "tagIn": ["h6", "p"]
+          "tagIn": ["h6", "p"],
+          "offTag": { "prop": "textSize", "value": "6" }
         },
         "is-spaced": { "writes": [{ "prop": "isSpaced" }] },
         "has-skeleton": { "writes": [{ "prop": "hasSkeleton" }] }

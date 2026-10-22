@@ -33,6 +33,7 @@ import {
   tagFit,
   WRAPPER_OWN_PROPS,
   wrapperFor,
+  type Absorbs,
   type RootEntry,
 } from './class-map.js';
 import {
@@ -93,6 +94,13 @@ export interface ElementFacts {
    * component). What an entry that `countsChildren` reads.
    */
   childElements?: readonly ChildFacts[];
+  /**
+   * The element's children as plain HTML elements, read as `childElements`
+   * is, when nothing else beside them renders but spaces (`{" "}` between
+   * them); left out when `childElements` is there. What the TODO on an
+   * element holding a <label> beside the child its target renders reads.
+   */
+  spacedElements?: readonly ChildFacts[];
   /** The bestax components already in the file inside this element. */
   bestaxInside?: readonly string[];
   /** The bestax components already in the file around this element. */
@@ -1563,6 +1571,58 @@ function rendersWith(
     : entry.tag!;
 }
 
+/**
+ * For an element whose children are the child its target renders and one
+ * <label> beside it: where the label goes instead, when the table names a
+ * component that takes one (`Select`'s `label`). Empty otherwise.
+ *
+ * That component renders the label in a `Field` of its own, which it renders
+ * only outside one: inside a `Field` it drops `label` and `labelProps`, and
+ * inside a bare `Control` it nests a `.field` in the `.control`. So inside
+ * either the label stays a label of the page's, moved out beside the
+ * element, or the child takes an `aria-label` in its place.
+ */
+function labelBeside(
+  facts: ElementFacts,
+  spec: Absorbs,
+  where: string
+): string {
+  const children = facts.childElements ?? facts.spacedElements ?? [];
+  const label = children.find(child => child.tag === 'label');
+  if (
+    !spec.label ||
+    children.length !== 2 ||
+    !label ||
+    !children.some(child => child.tag === spec.tag)
+  ) {
+    return '';
+  }
+  const around = (name: string) =>
+    facts.bestaxAround?.includes(name) ||
+    facts.classesAround?.includes(name.toLowerCase());
+  const inForm = around('Field')
+    ? `inside a \`Field\` bestax's \`${spec.label}\` renders no label of its own and drops \`label\` and \`labelProps\``
+    : around('Control')
+      ? `inside a \`Control\` with no \`Field\` around it, bestax's \`${spec.label}\` renders its label in a \`.field\` of its own inside the \`.control\`, which Bulma's styles aren't written for`
+      : undefined;
+  if (inForm) {
+    return `; the <label> beside it can't stay inside the ${where} that bestax renders, and ${inForm}, so move the <label> out beside ${where}, its \`htmlFor\` on the <${spec.tag}>'s \`id\`, or give the <${spec.tag}> an \`aria-label\` in its place, then re-run`;
+  }
+  // A computed `className` (`null`) is one the codemod can't read, and it
+  // may be what hides the label, so it is named rather than left out. So is
+  // a spread, which can carry a `className` of its own.
+  const classes =
+    label.tokens === null
+      ? ', its `className`, which is computed, as `labelProps={{ className: … }}` with the same expression'
+      : label.tokens?.length
+        ? `, its classes as \`labelProps={{ className: '${label.tokens.join(' ')}' }}\``
+        : '';
+  const spread = label.hasSpread
+    ? ', what its spread carries in `labelProps` too, since it can set a `className` of its own'
+    : '';
+  return `; the <label> beside it goes on bestax's \`${spec.label}\` instead, which renders ${where} inside a \`Field\` and a \`Control\`: the label's text as \`label\`${classes}${spread}, and \`${spec.label}\` points the label at the <${spec.tag}>'s \`id\` itself, so convert the two by hand`;
+}
+
 type Refuse = (kind: string, token: string, message: string) => Plan;
 
 /** `a`, `a or b`, `a, b or c`, each in backticks. */
@@ -1613,7 +1673,7 @@ function absorb(
       target,
       after
         ? `${itself}, and a \`${after.target}\` after it from among its children, so this element converts only around a single <${spec.tag}>, and at most one <${after.tag}> after it, with nothing else beside them`
-        : `${itself}, so this element converts only around a single <${spec.tag}>, with nothing else beside it`
+        : `${itself}, so this element converts only around a single <${spec.tag}>, with nothing else beside it${labelBeside(facts, spec, where)}`
     );
   }
   if (

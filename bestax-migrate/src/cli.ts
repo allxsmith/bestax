@@ -624,7 +624,11 @@ export function createCLI(
       'dry run — report what would change without writing',
       false
     )
-    .option('-p, --print', 'print transformed sources to stdout', false)
+    .option(
+      '-p, --print',
+      'print transformed sources to stdout (still writes them unless --dry)',
+      false
+    )
     .option(
       '-e, --extensions <list>',
       'comma-separated file extensions to include in a folder (html for HTML pages)',
