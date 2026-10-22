@@ -10,6 +10,18 @@
       "code": "<Carousel indicatorStyle=\"dots\">\n  <CarouselItem>\n    <Hero color=\"primary\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 1</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"success\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 2</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"danger\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 3</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n</Carousel>"
     },
     {
+      "title": "Several Items in View",
+      "code": "<Carousel itemsToShow={1} itemsToShowTablet={2} itemsToShowDesktop={3}>\n  {[\n    'Garden Room',\n    'Harbor Suite',\n    'Loft',\n    'Courtyard Twin',\n    'Terrace Room',\n    'Family Suite',\n  ].map(room => (\n    <CarouselItem key={room}>\n      <Card m=\"2\">\n        <Card.Content>\n          <Title as=\"p\" size=\"5\">\n            {room}\n          </Title>\n          <SubTitle as=\"p\" size=\"6\">\n            Sleeps two\n          </SubTitle>\n        </Card.Content>\n      </Card>\n    </CarouselItem>\n  ))}\n</Carousel>"
+    },
+    {
+      "title": "Several Items in View",
+      "code": "<Carousel itemsToShow={3} itemsToScroll={3} repeat={false}>\n  {[1, 2, 3, 4, 5, 6, 7].map(n => (\n    <CarouselItem key={n}>\n      <Box m=\"2\" textAlign=\"centered\">\n        Item {n}\n      </Box>\n    </CarouselItem>\n  ))}\n</Carousel>"
+    },
+    {
+      "title": "Several Items in View",
+      "code": "<Carousel className=\"room-gallery\" itemsToShow={3}>\n  {/* items */}\n</Carousel>"
+    },
+    {
       "title": "Auto-playing Carousel",
       "code": "<Carousel autoplay interval={3000}>\n  <CarouselItem>\n    <Hero color=\"info\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Info</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"warning\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Warning</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"success\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Success</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n</Carousel>"
     },
@@ -46,7 +58,7 @@
       "code": "<Carousel repeat={false}>\n  <CarouselItem>\n    <Hero color=\"danger\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Paragraph textColor=\"white\">First (no previous)</Paragraph>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"warning\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Paragraph>Middle slide</Paragraph>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"success\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Paragraph textColor=\"white\">Last (no next)</Paragraph>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n</Carousel>"
     }
   ],
-  "accessibility": "- Uses `role=\"region\"` with `aria-roledescription=\"carousel\"`\n- Navigation arrows have `aria-label` for screen readers\n- Indicators use `role=\"tablist\"` and `role=\"tab\"` semantics\n- Keyboard navigation with arrow keys when focused\n- Previous/Next buttons are properly disabled at boundaries when not repeating",
+  "accessibility": "- Uses `role=\"region\"` with `aria-roledescription=\"carousel\"`\n- Each item is a `group` with `aria-roledescription=\"slide\"`, named for its place, such as \"2 of 6\". An item's own `aria-label` or `aria-labelledby` takes the place of that name\n- Items out of view are `aria-hidden` and `inert`, so screen readers skip them and nothing in them takes focus. With several in view, every item in view is exposed. The copies a loop adds at each end of the track follow the same rule, so where the view runs past the last item, the copies on screen are the ones exposed\n- The track is a polite live region, so what comes into view is announced, except while autoplay is moving it (`aria-live=\"off\"`)\n- Autoplay waits while the pointer is over the carousel (with `pauseOnHover`) and while focus is inside one of its items, so an item being read or used never moves out of view\n- Navigation arrows have `aria-label` for screen readers\n- Indicators use `role=\"tablist\"` and `role=\"tab\"` semantics, one for each position a step can land on\n- The Left and Right arrow keys move the carousel while focus is on its arrows or indicators. Inside an item they're left to the item's content, such as a field or a slider\n- Previous/Next buttons are properly disabled at boundaries when not repeating",
   "related": ["Modal", "Tabs"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-carousel",
   "summary": "The `Carousel` component provides an image/content slider with navigation arrows and indicators.",
@@ -63,7 +75,7 @@
           "name": "value",
           "type": "number",
           "default": "0",
-          "description": "Current active slide index (controlled).",
+          "description": "Index of the first item in view (controlled); with one item in view, the slide shown. A value between two of the positions a step lands on (see `itemsToScroll`) is shown as given, and the next step goes on from it. With `repeat`, a value past either end wraps around; without it, one that would leave empty space after the last item shows the last full view. Neither correction calls `onChange`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -72,7 +84,7 @@
           "name": "autoplay",
           "type": "boolean",
           "default": "false",
-          "description": "Enable auto-play.",
+          "description": "Enable auto-play: one step (`itemsToScroll` items) per `interval`. Without `repeat` it stops at the last position. It waits while the pointer is over the carousel (see `pauseOnHover`) and while focus is inside one of its items, so an item being read or used never moves out of view.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -99,7 +111,7 @@
           "name": "repeat",
           "type": "boolean",
           "default": "true",
-          "description": "Loop back to first slide after last. Default: true.",
+          "description": "Loop back to the first position after the last. Default: true. With several items in view, the view runs on past the last item into the first ones, so it can show the end and the start side by side. Only loops when some item is out of view.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -108,7 +120,70 @@
           "name": "hasDrag",
           "type": "boolean",
           "default": "true",
-          "description": "Enable drag/swipe navigation. Default: true.",
+          "description": "Enable drag/swipe navigation. Default: true. A swipe moves one step, however far it travels.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "itemsToShow",
+          "type": "number",
+          "default": "1",
+          "description": "How many items are in view at once, at every width no `itemsToShow<Viewport>` prop covers. Those props read the way a `Column`'s `size<Viewport>` props do: `itemsToShowMobile` applies below Bulma's tablet breakpoint, each of the others from its own breakpoint up, and where several apply the widest one wins. A whole number, rounded down and at least 1. The widths come from the stylesheet, so they are right on the first paint; the arrows, indicators and steps use the count for the window's width once the page has hydrated, and this one until then. With this many children or fewer, every item keeps its share of the width, nothing moves, and no arrows or indicators render.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "itemsToShowMobile",
+          "type": "number",
+          "default": null,
+          "description": "Items in view below Bulma's tablet breakpoint (up to 768px). Falls back to `itemsToShow`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "itemsToShowTablet",
+          "type": "number",
+          "default": null,
+          "description": "Items in view from Bulma's tablet breakpoint (769px) up, until a wider viewport's prop takes over. Falls back to `itemsToShow`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "itemsToShowDesktop",
+          "type": "number",
+          "default": null,
+          "description": "Items in view from Bulma's desktop breakpoint (1024px) up, until a wider viewport's prop takes over. Falls back to `itemsToShowTablet`, then `itemsToShow`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "itemsToShowWidescreen",
+          "type": "number",
+          "default": null,
+          "description": "Items in view from Bulma's widescreen breakpoint (1216px) up, until `itemsToShowFullhd` takes over. Falls back to `itemsToShowDesktop`, and on down to `itemsToShow`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "itemsToShowFullhd",
+          "type": "number",
+          "default": null,
+          "description": "Items in view from Bulma's fullhd breakpoint (1408px) up. Falls back to `itemsToShowWidescreen`, and on down to `itemsToShow`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "itemsToScroll",
+          "type": "number",
+          "default": "1",
+          "description": "How many items one step moves, for an arrow, an arrow key, a swipe or an autoplay tick. A whole number, capped at the count in view so a step never skips an item. Without `repeat`, the last step stops at the last full view, so it can be shorter; with `repeat`, the step after the last position goes on to the first one. The indicators mark these positions, one per step rather than one per item. When the count in view changes with the window's width, the first item in view stays in view.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -135,7 +210,7 @@
           "name": "indicator",
           "type": "boolean",
           "default": "true",
-          "description": "Show slide indicators. Default: true. They render `type=\"button\"`, so a carousel inside a form is not submitted by picking a slide.",
+          "description": "Show slide indicators. Default: true. There is one for each position a step can land on (see `itemsToScroll`). They render `type=\"button\"`, so a carousel inside a form is not submitted by picking a slide.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -252,7 +327,7 @@
           "name": "onChange",
           "type": "(value: number) => void",
           "default": null,
-          "description": "Callback when slide changes.",
+          "description": "Called with the index of the first item in view when an arrow, an arrow key, an indicator, a swipe or autoplay moves the carousel.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -299,7 +374,7 @@
           "name": "active",
           "type": "boolean",
           "default": "false",
-          "description": "Whether this item is active (set automatically).",
+          "description": "Whether this item is in view. `Carousel` sets it on every item in view, so with several in view several are active.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -553,6 +628,54 @@
       "css": "--bulma-carousel-fade-duration",
       "sass": "$carousel-fade-duration",
       "default": "0.5s",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-carousel-item-gap",
+      "sass": "$carousel-item-gap",
+      "default": "0px",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-carousel-items-to-show",
+      "sass": null,
+      "default": "1",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-carousel-items-to-show-mobile",
+      "sass": null,
+      "default": "var(--bulma-carousel-items-to-show)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-carousel-items-to-show-tablet",
+      "sass": null,
+      "default": "var(--bulma-carousel-items-to-show)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-carousel-items-to-show-desktop",
+      "sass": null,
+      "default": "var(--bulma-carousel-items-to-show-tablet)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-carousel-items-to-show-widescreen",
+      "sass": null,
+      "default": "var(--bulma-carousel-items-to-show-desktop)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-carousel-items-to-show-fullhd",
+      "sass": null,
+      "default": "var(--bulma-carousel-items-to-show-widescreen)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-carousel-items-in-view",
+      "sass": null,
+      "default": "var(--bulma-carousel-items-to-show)",
       "scope": "root"
     }
   ]
