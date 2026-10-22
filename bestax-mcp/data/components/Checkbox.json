@@ -97,7 +97,7 @@
           "name": "className",
           "type": "string",
           "default": null,
-          "description": "Additional CSS classes, on the outer `<label>`. That's the element that declares the `--bulma-checkbox-*` variables, so a class is how to set one: `style` and the other input attributes go to the `<input>`. Name `.styled-checkbox` beside your class in the selector, so it wins whatever order the stylesheets load in.",
+          "description": "Additional CSS classes, on the outer `<label>`. That's the element that declares the `--bulma-checkbox-*` variables, so a class is how to set one: `style` and the other input attributes go to the `<input>`. Name `.styled-checkbox` beside your class in the selector, so it beats the label's own declaration whatever order the stylesheets load in. A `color` prop declares the fills again on `.styled-checkbox.is-<color>`, which ties that selector, so leave `color` unset when a class sets them.",
           "required": false,
           "inherited": false,
           "deprecated": false
