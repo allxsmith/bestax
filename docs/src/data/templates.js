@@ -120,6 +120,19 @@ export const templates = [
     copyright: 'Copyright (c) 2026 - github.com/aldi',
     tags: ['landing'],
   },
+  {
+    slug: 'cv',
+    title: 'CV',
+    description:
+      'A one-page CV with a full-height portrait, social profile buttons and a light and dark toggle.',
+    author: { name: 'aldi', url: 'https://github.com/aldi' },
+    source: 'https://github.com/aldi/bulma-cv-template',
+    sourceSha: '29108ebb52030480ee40c8224d2f6f8a3587926d',
+    demo: 'https://aldi.github.io/bulma-cv-template/',
+    license: 'MIT',
+    copyright: 'Copyright (c) 2026 - github.com/aldi',
+    tags: ['personal', 'darkmode'],
+  },
 ];
 
 /** Favorites first, then by title. */
