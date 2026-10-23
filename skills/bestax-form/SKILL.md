@@ -121,8 +121,9 @@ one field named by its `label`, and paste, autofill from a text message (`autoCo
 default), `value`/`onChange` with the code as a string, and verify in `onComplete`, which fires
 once each time a change fills the last box. It takes digits unless `type="alphanumeric"`, turns a
 digit from any script (Arabic-Indic, Persian) into its ASCII digit, drops anything else typed or
-pasted, and `isMasked` shows dots for a PIN. A paste replaces the whole code. Say the length in the
-label or the message, since the boxes are hidden from a screen reader.
+pasted, and `isMasked` shows dots for a PIN. A paste replaces the whole code. Its default `pattern`
+asks for the full length, so `required` rejects a partial code, not just an empty one. Say the
+length in the label or the message, since the boxes are hidden from a screen reader.
 
 ## Common props
 
