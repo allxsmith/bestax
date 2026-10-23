@@ -40,8 +40,14 @@ fix.
    the package:
 
    ```bash
-   node <repo>/create-bestax/dist/index.js <scratch>/<slug> -t vite-ts -i fontawesome -y --no-skills --no-telemetry
+   DO_NOT_TRACK=1 node <repo>/create-bestax/dist/index.js <scratch>/<slug> -t vite-ts -i fontawesome -y --no-skills
    ```
+
+   The commands here run with `DO_NOT_TRACK=1` in the environment, which turns the CLIs'
+   telemetry off for that run, asks nothing and saves nothing. `--no-telemetry` would turn it off
+   too, but it also saves "off" as the choice of every bestax CLI on the machine, in
+   `~/.config/bestax/telemetry.json`, and porting a template shouldn't change the porter's own
+   setting. The docs' telemetry guide lists the controls.
 
    Then strip the lint setup: delete `eslint.config.js`, the `lint` script and the lint
    devDependencies, the same packages the docs StackBlitz builder drops (`isLintPackage` in
@@ -61,7 +67,7 @@ fix.
    then without, and keep the report:
 
    ```bash
-   node <repo>/bestax-migrate/dist/index.js bulma-classes <scratch>/index.html --css bestax
+   DO_NOT_TRACK=1 node <repo>/bestax-migrate/dist/index.js bulma-classes <scratch>/index.html --css bestax
    ```
 
    `--css bestax` matters because `bulma-classes` defaults to `--css keep`, which leaves an app on
@@ -93,18 +99,35 @@ fix.
    - bulma-carousel becomes `Carousel`, and jQuery goes away.
    - Bulma 0.x markup moves to v1.
    - bulma-social stays only where bestax has nothing equivalent.
+   - An extension's stylesheet the port keeps is imported in `src/main.tsx` in the order the
+     original loads it, with bestax's stylesheet in Bulma's place: after `./index.css` when the
+     original's `<link>` comes after its own CSS, before it when before. Where the two give a rule
+     the same weight, the order decides which one wins (on Coming Soon, a button's `box-shadow`
+     while it is hovered and focused).
    - Some classes get no TODO, so look for them too:
      - A second component class on a converted element (`box` on a `Notification`) needs its
        own component.
    - Assets:
      - Large upstream images are recompressed into `public/`. Unsplash hot-links stay hot-links.
-     - Other third-party hot-links that may vanish become small local files in `public/`.
+     - Other third-party hot-links that may vanish become small local files in `public/`, and so
+       does one already dead upstream (bulma.io's old `/images/` paths), copied from a source
+       whose license allows it, with that license's notice in `LICENSE`.
      - Check the license of any hot-linked asset that needs credit (an Icons8 logo, for one).
+       One whose terms rule out a copy in the template (bulma.io's site content, under
+       CC BY-NC-SA; a photo marked all rights reserved) stays a hot-link, as the original has it,
+       and the README says where it loads from.
+     - A web font the original names but never loads stays unloaded: the original's real look is
+       its fallback stack, so keep that, and say in the README how to load the font.
 5. **Check parity.** Screenshot the original (the entry's `demo`) and the port side by side at
    phone and desktop widths, in light and dark (`prefers-color-scheme`), and check that the
    burger, modals, forms and theme toggles work. Fix upstream bugs minimally and note each one
    in the README.
    - **The look.** Compare what **Setting back the original's look** (below) lists.
+   - **Sideways panning.** A screenshot can't show a page that pans sideways under touch. At
+     phone width, compare `document.documentElement.scrollWidth` with its `clientWidth` in the
+     port and in the original: a wider scroll width pans. One cause: Bulma's `.columns` reaches
+     past its parent by half a gap on each side, so with nothing padded around it (a section, a
+     hero's body) it overflows the page.
    - **An original built for one scheme.** Bulma follows the visitor's color scheme, and such an
      original often looks the same in both, holding its colors with overrides of its own. When
      it does, pin the scheme it was built for on the `<html>` in `index.html`
@@ -158,35 +181,77 @@ scheme's value on `:root`; an original with a light/dark toggle sets each scheme
 
 ### A Bulma 0.x original
 
-Bulma v1 changed defaults a 0.x original relies on. Compare each of these, and set back the ones
-that differ, copying the value from the `bulma.css` the original loads or from its own
-stylesheet:
+Bulma v1 changed defaults a 0.x original relies on, and Bulma 0.9.3 had already changed some of
+them, so which ones differ depends on the release the original loads. Compare each of these, and
+set back the ones that differ, copying the value from the `bulma.css` the original loads or from
+its own stylesheet:
 
 - **On `:root`:**
   - the font, `--bulma-family-primary`;
-  - the link color, `--bulma-link-h`, `-s` and `-l`;
-  - the corner radius, `--bulma-radius`;
+  - the link color, `--bulma-link-h`, `-s` and `-l`, with the lightnesses v1 fixed for its own
+    link, which the trio doesn't move: `--bulma-link-on-scheme-l` for a link's text, and
+    `--bulma-link-light-invert-l` for the text of an `is-link is-light` button;
+  - each other color the original uses, the way the primary is set back above:
+    `--bulma-<color>-h`, `-s` and `-l`, with `--bulma-<color>-invert-l` for its label. v1 moved
+    some of them (`success`'s hue, against a release before 0.9.3), and it picks each label for
+    contrast where 0.x often put white, so keep v1's label where the original's reads at under
+    4.5:1, and say so in the README (the bestax-theming skill's `references/css-variables.md`,
+    "The lightnesses Bulma's build picks for contrast");
+  - the corner radius, `--bulma-radius`, and `--bulma-radius-medium`, which v1's medium and
+    large buttons take as their `--bulma-control-radius` where 0.x gave them the plain radius;
   - the greys, which v1 tints: the background takes `--bulma-scheme-h` and `-s`, and the text
-    `--bulma-text-h` and `-s` of its own, so set both pairs.
+    `--bulma-text-h` and `-s` of its own, so set both pairs;
+  - the light color, which v1 tints with a hue and saturation of its own, `--bulma-light-h` and
+    `-s`, so an `is-light` hero or button stays tinted after the scheme's pair changes. Its text
+    takes `--bulma-light-invert-l`;
+  - the burger's bars, `--bulma-burger-item-height` and `--bulma-burger-item-width`.
 - **On `.title` and `.content`:** the heading weights, `--bulma-title-weight` and
   `--bulma-content-heading-weight`.
-- **On `.button`:** `--bulma-button-weight`, and `--bulma-button-outer-shadow-a` for the outer
-  shadow v1 gives an uncolored button.
+- **On a title with a subtitle after it,** `.title:not(.is-spaced):has(+ .subtitle)`, and a
+  subtitle with a title after it, `.subtitle:not(.is-spaced):has(+ .title)`: a plain
+  `margin-bottom`. v1 takes the first one's bottom margin away, where 0.x pulled the second one
+  up with a negative margin that left a small gap.
+- **On `.button`:** `--bulma-button-weight`, `--bulma-button-outer-shadow-a` for the outer
+  shadow v1 gives an uncolored button, and `--bulma-button-padding-horizontal`, since v1 takes
+  the border's width out of a button's side padding and 0.x didn't.
+- **On `button`:** `font-family: var(--bulma-family-primary)`, where the original gives the page
+  around its buttons a font of its own. 0.x set Bulma's font on the `<button>` element, and v1's
+  `button { font-family: inherit }` hands it the parent's. An `<a class="button">` takes its
+  parent's font in both, which is why the rule goes on the element.
+- **On `.buttons`:** a plain `gap`, since v1 spaces a group's buttons wider than 0.x's margins
+  did.
 - **On `.label`:** a plain `font-weight`. `.label` reads `--bulma-weight-semibold` directly, so
   `--bulma-label-weight` changes nothing.
 - **On `.box` and `.card`:** the radius and shadow, `--bulma-box-radius` and `--bulma-box-shadow`,
   `--bulma-card-radius` and `--bulma-card-shadow`.
-- **On `.hero`:** a medium hero's padding, `--bulma-hero-body-padding-medium`.
+- **On `.hero` and `.section`,** for an original on a release before 0.9.3, which widened their
+  side padding: a medium hero's, `--bulma-hero-body-padding-medium`, and every hero's from the
+  tablet breakpoint up, `--bulma-hero-body-padding-tablet`, on `.hero`; a section's from the
+  desktop breakpoint up, `--bulma-section-padding-desktop`, on `.section`.
 - **On `.navbar`:** the burger's color, `--bulma-navbar-burger-color`.
+- **On `.navbar-burger:hover`:** a plain `background-color`. v1 tints a hovered burger with
+  `--bulma-burger-h`, `-s` and `-l`, the link color on an uncolored navbar, where 0.x used a
+  faint black.
 - **On `.navbar a.navbar-item.is-active`:** v1 fills the active item, and switches the fill on
   at `a.navbar-item.is-active`, so a less specific selector can't take it off. The fill is
   `--bulma-navbar-item-background-a`.
 - **On a `Navbar.Item` that holds other items:** the flex `gap` on `.navbar-item` spaces them,
   and `gap="0"` takes it off.
-- **An original's plain `.button` rule:** v1's colored buttons set variables rather than a
-  color, and the `background-color` that reads them is on `.button` itself, so the original's
-  `.button { background-color }` now outranks the colored buttons too. Move the rule onto a
-  class of the plain buttons' own.
+- **On a colored hero's navbar menu,** `.hero.is-light .navbar-menu` and the other colors',
+  below the desktop breakpoint: a plain `background-color`. 0.x painted the menu the burger
+  opens with the hero's color, and v1 gives it the navbar's own background.
+- **On the grey text helpers,** `.has-text-grey-light` and the rest: the original's color, with
+  `!important`. v1 writes each as a fixed color marked `!important`, with no variable to set, so
+  `--bulma-scheme-h` and `-s` don't untint them.
+- **An original's own button rules:**
+  - A `.button { background-color }`: v1's colored buttons set variables rather than a color,
+    and the `background-color` that reads them is on `.button` itself, so the original's rule
+    now outranks the colored buttons too. Move the rule onto a class of the plain buttons' own.
+  - A `font-size` on `.button` or `a.button` outranks the size modifiers the same way, since
+    `is-medium` and the rest set `--bulma-control-size`: set that variable in its place.
+  - A `border` the original draws on a colored button makes it taller, since v1 gives a colored
+    button a `--bulma-button-border-width` of `0px` and so pads it for none: set that variable to
+    the border's width beside it.
 
 ## The checks
 
