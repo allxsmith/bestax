@@ -108,6 +108,45 @@ export const templates = [
     tags: ['favorite', 'form'],
   },
   {
+    slug: 'coming-soon',
+    title: 'Coming Soon',
+    description:
+      'A full-screen launch page over a misty highway, with round social buttons and an email signup.',
+    author: { name: 'aldi', url: 'https://github.com/aldi' },
+    source: 'https://github.com/aldi/bulma-coming-soon-template',
+    sourceSha: '7a9d786fe0bc610ec174b2a0a11e994051339345',
+    demo: 'https://aldi.github.io/bulma-coming-soon-template/',
+    license: 'MIT',
+    copyright: 'Copyright (c) 2026 - github.com/aldi',
+    tags: ['landing'],
+  },
+  {
+    slug: 'cv',
+    title: 'CV',
+    description:
+      'A one-page CV with a full-height portrait, social profile buttons and a light and dark toggle.',
+    author: { name: 'aldi', url: 'https://github.com/aldi' },
+    source: 'https://github.com/aldi/bulma-cv-template',
+    sourceSha: '29108ebb52030480ee40c8224d2f6f8a3587926d',
+    demo: 'https://aldi.github.io/bulma-cv-template/',
+    license: 'MIT',
+    copyright: 'Copyright (c) 2026 - github.com/aldi',
+    tags: ['personal', 'darkmode'],
+  },
+  {
+    slug: 'event-participation',
+    title: 'Event Participation',
+    description:
+      'An invitation where guests pick the talks they will attend from a program on a frosted gold panel, with a light and dark toggle.',
+    author: { name: 'aldi', url: 'https://github.com/aldi' },
+    source: 'https://github.com/aldi/bulma-event-participation-template',
+    sourceSha: '836934566b51c595b76c0c7d7ef524edf593e46d',
+    demo: 'https://aldi.github.io/bulma-event-participation-template/',
+    license: 'MIT',
+    copyright: 'Copyright (c) 2026 - github.com/aldi',
+    tags: ['event', 'form', 'darkmode'],
+  },
+  {
     slug: 'tropico',
     title: 'Tropico',
     description:

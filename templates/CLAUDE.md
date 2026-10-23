@@ -115,7 +115,8 @@ fix.
      else the OS preference. The app starts from that attribute, passes its state to
      `Theme colorMode` for the toggle, and saves each choice in `localStorage` under the key the
      script reads. `Theme` alone writes the attribute from an effect, so the OS scheme flashes
-     first. The bestax-theming skill becomes this recipe's home with #1153.
+     first. The bestax-theming skill's `examples/dark-mode.tsx` has the script and the app's
+     side.
 6. **Finish up.**
    - `git add` the folder first. The screenshot builds what git tracks, as the checks read it
      (**What git tracks**, above).
