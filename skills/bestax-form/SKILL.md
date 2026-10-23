@@ -123,7 +123,9 @@ once each time a change fills the last box. It takes digits unless `type="alphan
 digit from any script (Arabic-Indic, Persian) into its ASCII digit, drops anything else typed or
 pasted, and `isMasked` shows dots for a PIN. A paste replaces the whole code. Its default `pattern`
 asks for the full length, so `required` rejects a partial code, not just an empty one. Say the
-length in the label or the message, since the boxes are hidden from a screen reader.
+length in the `label` ("Enter the 6-digit code"): the boxes are hidden from a screen reader, and the
+`message` isn't tied to the input, so it isn't read on focus. Separate help text needs
+`aria-describedby` on the PinInput.
 
 ## Common props
 

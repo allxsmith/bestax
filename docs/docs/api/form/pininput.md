@@ -232,7 +232,7 @@ function example() {
 ## Accessibility
 
 - **One field:** the code is in one `<input>`, named by the label, so a screen reader announces a single text field with the code as its value. The boxes are drawn with `aria-hidden`, so nothing reads them a second time, or as a run of separate fields.
-- **Say how long the code is** in the label or the message, as in "Enter the 6-digit code", since the boxes that show it are hidden from a screen reader.
+- **Say how long the code is in the label,** as in "Enter the 6-digit code", since the boxes that show it are hidden from a screen reader. The `message` isn't tied to the input, so a screen reader doesn't read it when the field takes focus. If the length lives in help text of your own, point the input's `aria-describedby` at it.
 - **Masked,** the input is a password field, so a screen reader doesn't read the code out.
 - **The keyboard a phone shows** is the number pad by default, through `inputMode="numeric"`, and the full keyboard with `type="alphanumeric"`.
 - **Focus** shows on the boxes, since the input itself is transparent: the box at the caret, or every selected box, gets Bulma's focus ring, and an empty box at the caret draws a blinking caret. Under `prefers-reduced-motion: reduce` the caret stays drawn and doesn't blink.
