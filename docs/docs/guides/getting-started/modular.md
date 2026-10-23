@@ -129,6 +129,7 @@ After the base, `@use` only the Bulma partials you need:
 // Form
 @use 'bulma/sass/form/input-textarea';
 @use 'bulma/sass/form/select';
+@use 'bulma/sass/form/tools';
 
 // Components
 @use 'bulma/sass/components/card';
