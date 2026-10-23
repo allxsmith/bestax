@@ -268,6 +268,15 @@
           "deprecated": false
         },
         {
+          "name": "pattern",
+          "type": "string",
+          "default": null,
+          "description": "Exactly `length` of what `type` takes, `[0-9]{6}` by default, so a form with `required` won't submit a partial code. Any non-empty partial code fails it, `required` or not.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "className",
           "type": "string",
           "default": null,

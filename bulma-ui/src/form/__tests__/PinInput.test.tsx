@@ -61,7 +61,16 @@ describe('PinInput', () => {
       expect(input).toHaveAttribute('maxlength', '6');
       expect(input).toHaveAttribute('spellcheck', 'false');
       expect(input).toHaveAttribute('autocorrect', 'off');
+      expect(input).toHaveAttribute('pattern', '[0-9]{6}');
       expect(input).toHaveClass('pin-input-field');
+    });
+
+    it('asks for exactly length of what type takes in its pattern', () => {
+      renderPin({ type: 'alphanumeric', length: 5 });
+      expect(screen.getByLabelText('Code')).toHaveAttribute(
+        'pattern',
+        '[0-9A-Za-z]{5}'
+      );
     });
 
     it('lets those attributes be overridden', () => {
@@ -594,6 +603,32 @@ describe('PinInput', () => {
   });
 
   describe('In a form', () => {
+    it('fails constraint validation on a partial code, typed or pasted', async () => {
+      const user = userEvent.setup();
+      render(
+        <form>
+          <PinInput label="Code" name="otp" required length={4} />
+        </form>
+      );
+      const input = screen.getByLabelText('Code') as HTMLInputElement;
+      expect(input.validity.valueMissing).toBe(true);
+      await user.type(input, '12');
+      expect(input.validity.patternMismatch).toBe(true);
+      await user.type(input, '34');
+      expect(input.checkValidity()).toBe(true);
+      await user.clear(input);
+      await user.paste('56');
+      expect(input).toHaveValue('56');
+      expect(input.validity.patternMismatch).toBe(true);
+    });
+
+    it('lets your own pattern replace it', () => {
+      renderPin({ pattern: undefined, required: true, defaultValue: '12' });
+      const input = screen.getByLabelText('Code') as HTMLInputElement;
+      expect(input).not.toHaveAttribute('pattern');
+      expect(input.checkValidity()).toBe(true);
+    });
+
     it('submits the code under its name', async () => {
       const user = userEvent.setup();
       const onSubmit = jest.fn((e: React.FormEvent<HTMLFormElement>) => {

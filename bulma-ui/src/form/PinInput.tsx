@@ -47,6 +47,7 @@ export type PinInputType = 'number' | 'alphanumeric';
  * @extraProp {string} [name] - Form field name, on the input, so a form submits the code under it.
  * @extraProp {string} [autoComplete="one-time-code"] - Lets the browser offer a code it received by text message, and tells a password manager this is a one-time code.
  * @extraProp {string} [inputMode] - The keyboard a phone shows: `"numeric"` with `type="number"`, `"text"` with `type="alphanumeric"`.
+ * @extraProp {string} [pattern] - Exactly `length` of what `type` takes, `[0-9]{6}` by default, so a form with `required` won't submit a partial code. Any non-empty partial code fails it, `required` or not.
  * @extraProp {string} [className] - Additional CSS classes for the row of boxes.
  * @extraProp {React.Ref<HTMLInputElement>} [ref] - Ref forwarded to the input that holds the code.
  */
@@ -349,6 +350,10 @@ export const PinInput = forwardRef<HTMLInputElement, PinInputProps>(
           autoComplete="one-time-code"
           autoCorrect="off"
           spellCheck={false}
+          // A partial code fails constraint validation. `minLength` would
+          // say so only after a keystroke, never after a paste or a filtered
+          // character, which set the value from script.
+          pattern={`${allowed}{${length}}`}
           {...rest}
           value={code}
           maxLength={length}
