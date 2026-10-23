@@ -527,23 +527,23 @@ neither, so load what the app still needs once for the whole app, from its entry
   whose styles ship in `extras.css` and `bestax.css`, and stop loading the extension once nothing
   the app keeps uses its classes:
 
-  | Extension                                               | bestax                                                          |
-  | ------------------------------------------------------- | --------------------------------------------------------------- |
-  | `bulma-carousel`                                        | `Carousel`, with a `CarouselItem` for each slide                |
-  | `bulma-slider`                                          | `Slider`                                                        |
-  | `bulma-switch`                                          | `Switch`                                                        |
-  | `bulma-checkradio`                                      | `Checkbox` and `Radio`, which draw their own box                |
-  | `bulma-tooltip`, `@creativebulma/bulma-tooltip`         | `Tooltip`                                                       |
-  | `bulma-badge`, `@creativebulma/bulma-badge`             | `Badge`                                                         |
-  | `bulma-steps`                                           | `Steps`                                                         |
-  | `bulma-timeline`                                        | `Timeline`                                                      |
-  | `bulma-tagsinput`, `@creativebulma/bulma-tagsinput`     | `Taginput`                                                      |
-  | `bulma-calendar`                                        | `DateInput`, `TimeInput`, `DateTimeInput` and `DateRangeInput`  |
-  | `bulma-accordion`                                       | `Collapses`, with a `Collapse` for each item                    |
-  | `bulma-collapsible`, `@creativebulma/bulma-collapsible` | `Collapse` (`Collapses` for an accordion)                       |
-  | `bulma-pageloader`                                      | `Loading`, `isFullPage` for one over the whole page             |
-  | `bulma-quickview`                                       | `Sidebar`                                                       |
-  | `bulma-toast`                                           | `Toast`: `toast.show()` from code, with a `ToastContainer` once |
+  | Extension                                               | bestax                                                                                 |
+  | ------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+  | `bulma-carousel`                                        | `Carousel`, with a `CarouselItem` for each slide and `itemsToShow` for several in view |
+  | `bulma-slider`                                          | `Slider`                                                                               |
+  | `bulma-switch`                                          | `Switch`                                                                               |
+  | `bulma-checkradio`                                      | `Checkbox` and `Radio`, which draw their own box                                       |
+  | `bulma-tooltip`, `@creativebulma/bulma-tooltip`         | `Tooltip`                                                                              |
+  | `bulma-badge`, `@creativebulma/bulma-badge`             | `Badge`                                                                                |
+  | `bulma-steps`                                           | `Steps`                                                                                |
+  | `bulma-timeline`                                        | `Timeline`                                                                             |
+  | `bulma-tagsinput`, `@creativebulma/bulma-tagsinput`     | `Taginput`                                                                             |
+  | `bulma-calendar`                                        | `DateInput`, `TimeInput`, `DateTimeInput` and `DateRangeInput`                         |
+  | `bulma-accordion`                                       | `Collapses`, with a `Collapse` for each item                                           |
+  | `bulma-collapsible`, `@creativebulma/bulma-collapsible` | `Collapse` (`Collapses` for an accordion)                                              |
+  | `bulma-pageloader`                                      | `Loading`, `isFullPage` for one over the whole page                                    |
+  | `bulma-quickview`                                       | `Sidebar`                                                                              |
+  | `bulma-toast`                                           | `Toast`: `toast.show()` from code, with a `ToastContainer` once                        |
 
   `bulma-extensions`, the bundle, holds several of these: replace the ones in the table, and keep
   loading the bundle only for the rest. **bulma-social** has no bestax component: keep loading it,
@@ -626,8 +626,12 @@ read for the burger, a carousel and a theme toggle too, and its TODO names the f
   takes `hasDelete` and `onDelete`, `Tag` takes `onDelete` and `Message` takes `onClose`; render
   the element only while it's in state.
 - **`html-script:carousel`** drives a carousel. `Carousel` takes its slides as `CarouselItem`
-  children and renders its own arrows and indicators (`autoplay` for a timed one). Its styles ship
-  in bestax's `extras.css` and `bestax.css`, not in Bulma's stylesheet.
+  children and renders its own arrows and indicators (`autoplay` for a timed one). For several
+  slides in view, set `itemsToShow`, with a variant per viewport (`itemsToShowMobile`,
+  `itemsToShowTablet`, …), and `itemsToScroll`. bulma-carousel's `slidesToShow`, `slidesToScroll`
+  and `infinite` options are `itemsToShow`, `itemsToScroll` and `repeat`, and its `breakpoints`
+  map onto the viewport variants. Its styles ship in bestax's `extras.css` and `bestax.css`, not
+  in Bulma's stylesheet.
 - **`html-script:theme`** switches Bulma's light and dark schemes. The toggle is `Theme`'s: it
   writes `data-theme` on `<html>` from its `colorMode` (`light`, `dark` or `system`), so keep the
   choice in state, save it in `localStorage`, and pass it. The first paint is `index.html`'s:
