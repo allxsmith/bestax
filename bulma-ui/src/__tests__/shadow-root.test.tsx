@@ -21,6 +21,7 @@ import {
 } from '@testing-library/react';
 import { Dropdown } from '../components/Dropdown';
 import { Taginput } from '../form/Taginput';
+import { PinInput } from '../form/PinInput';
 import { Toast } from '../components/Toast';
 import { Carousel, CarouselItem } from '../components/Carousel';
 import { Modal } from '../components/Modal';
@@ -119,6 +120,32 @@ describe('Dropdown in a shadow root', () => {
     expect(shadowRoot.activeElement).toBe(
       getByRole('button', { name: 'Menu' })
     );
+  });
+});
+
+describe('PinInput in a shadow root', () => {
+  test('its boxes follow the caret, which React’s onSelect never reports there', () => {
+    // A browser fires `selectionchange` at the document when the caret moves,
+    // inside a shadow root too. jsdom doesn't, so it's fired here.
+    const { getByLabelText, container } = renderInShadowRoot(
+      <PinInput label="Code" defaultValue="1234" />
+    );
+    const input = getByLabelText('Code') as HTMLInputElement;
+    const focused = () =>
+      Array.from(container.querySelectorAll('.pin-input-box')).flatMap(
+        (box, i) => (box.classList.contains('is-focused') ? [i] : [])
+      );
+
+    act(() => input.focus());
+    expect(shadowRoot.activeElement).toBe(input);
+    // The empty box after the code, where the caret is.
+    expect(focused()).toEqual([4]);
+
+    act(() => {
+      input.setSelectionRange(1, 1);
+      document.dispatchEvent(new Event('selectionchange'));
+    });
+    expect(focused()).toEqual([1]);
   });
 });
 
