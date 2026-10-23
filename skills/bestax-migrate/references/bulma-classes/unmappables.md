@@ -741,7 +741,11 @@ than `this`. A `<body onload>` becomes an effect.
     const [route, setRoute] = useState(() => routeOf(window.location.hash));
     useEffect(() => {
       const onHashChange = () => {
-        setRoute(routeOf(window.location.hash));
+        const hash = window.location.hash;
+        // Only `#/…` (or no hash) names a page; leave an in-page anchor such
+        // as `#features`, or a placeholder `#`, to the browser.
+        if (hash !== '' && !hash.startsWith('#/')) return;
+        setRoute(routeOf(hash));
         window.scrollTo(0, 0); // a new page starts at the top, as it did
       };
       window.addEventListener('hashchange', onHashChange);

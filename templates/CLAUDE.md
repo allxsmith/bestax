@@ -225,9 +225,10 @@ its own stylesheet:
 - **On `.box` and `.card`:** the radius and shadow, `--bulma-box-radius` and `--bulma-box-shadow`,
   `--bulma-card-radius` and `--bulma-card-shadow`.
 - **On `.hero` and `.section`,** for an original on a release before 0.9.3, which widened their
-  side padding: a medium hero's, `--bulma-hero-body-padding-medium`, and every hero's from the
-  tablet breakpoint up, `--bulma-hero-body-padding-tablet`, on `.hero`; a section's from the
-  desktop breakpoint up, `--bulma-section-padding-desktop`, on `.section`.
+  side padding: a medium and a large hero's, `--bulma-hero-body-padding-medium` and `-large`,
+  and every hero's from the tablet breakpoint up, `--bulma-hero-body-padding-tablet`, on
+  `.hero`; a section's from the desktop breakpoint up, and a medium and a large section's,
+  `--bulma-section-padding-desktop`, `-medium` and `-large`, on `.section`.
 - **On `.navbar`:** the burger's color, `--bulma-navbar-burger-color`.
 - **On `.navbar-burger:hover`:** a plain `background-color`. v1 tints a hovered burger with
   `--bulma-burger-h`, `-s` and `-l`, the link color on an uncolored navbar, where 0.x used a
