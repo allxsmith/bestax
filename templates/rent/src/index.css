@@ -1,0 +1,233 @@
+/*
+ * The original's stylesheet (css/styles.css), ported, after the settings
+ * that set back the look it had on Bulma 0.8. The page is light only:
+ * index.html pins Bulma's light scheme with data-theme="light".
+ */
+
+/* Bulma 0.8's look, on Bulma 1 as bestax builds it. */
+:root {
+  /* Stock Bulma's turquoise primary, from Bulma 1's bulma.css, in place of
+     bestax's blue. */
+  --bulma-primary-h: 171deg;
+  --bulma-primary-s: 100%;
+  --bulma-primary-l: 41%;
+  --bulma-primary-invert-l: var(--bulma-primary-05-l);
+  --bulma-primary-on-scheme-l: 21%;
+
+  /* Bulma 0.8's font, link color, radius and untinted greys. */
+  --bulma-family-primary:
+    BlinkMacSystemFont, -apple-system, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Helvetica',
+    'Arial', sans-serif;
+  --bulma-link-h: 217deg;
+  --bulma-link-s: 71%;
+  --bulma-link-l: 53%;
+  --bulma-link-on-scheme-l: 53%;
+  --bulma-radius: 4px;
+  --bulma-scheme-h: 0deg;
+  --bulma-scheme-s: 0%;
+  --bulma-text-h: 0deg;
+  --bulma-text-s: 0%;
+
+  /* Bulma 1 rounds medium and large buttons more than the rest; 0.8 gave
+     every control the same corners. */
+  --bulma-radius-medium: 4px;
+
+  /* The light heroes: 0.8's untinted whitesmoke, and its #4a4a4a text. */
+  --bulma-light-h: 0deg;
+  --bulma-light-s: 0%;
+  --bulma-light-invert-l: 29%;
+
+  /* 0.8's green, for the "NEW" tag. */
+  --bulma-success-h: 141deg;
+}
+
+.hero {
+  --bulma-hero-body-padding-tablet: 3rem 1.5rem;
+  --bulma-hero-body-padding-medium: 9rem 1.5rem;
+}
+
+/* 0.8 left a quarter rem between a title and a subtitle that follows it, or
+   the other way round, where Bulma 1 leaves none. */
+.title:not(.is-spaced):has(+ .subtitle),
+.subtitle:not(.is-spaced):has(+ .title) {
+  margin-bottom: 0.25rem;
+}
+
+.navbar {
+  --bulma-navbar-burger-color: #4a4a4a;
+}
+
+/* 0.8 gave the menu the burger opens the light hero's background. */
+@media screen and (max-width: 1023px) {
+  .hero.is-light .navbar-menu {
+    background-color: hsl(
+      var(--bulma-light-h),
+      var(--bulma-light-s),
+      var(--bulma-light-l)
+    );
+  }
+}
+
+.rb-card {
+  --bulma-card-radius: 4px;
+}
+
+/* The original's own rules. */
+
+.sub-section {
+  margin-bottom: 60px;
+}
+
+.rb-card {
+  border: none;
+  border-radius: 4px;
+  box-shadow: 5px 5px 16px 0 rgba(0, 0, 0, 0.13);
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.rb-card a {
+  color: #515f6a;
+}
+
+.rb-card:hover {
+  transform: scale(1.015);
+}
+
+.m-l-5 {
+  margin-left: 5px !important;
+}
+
+.p-t-30 {
+  padding-top: 30px !important;
+}
+
+.p-b-30 {
+  padding-bottom: 30px !important;
+}
+
+.m-t-10 {
+  margin-top: 10px !important;
+}
+
+.m-t-30 {
+  margin-top: 30px !important;
+}
+
+.m-t-50 {
+  margin-top: 50px !important;
+}
+
+.m-t-60 {
+  margin-top: 60px !important;
+}
+
+.b-t {
+  border-top: 1px solid #e2e8ef;
+}
+
+.ellipsis {
+  display: block;
+  display: -webkit-box;
+  margin: 0 auto;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.is-ellipsis-1 {
+  -webkit-line-clamp: 1;
+}
+
+.is-ellipsis-2 {
+  -webkit-line-clamp: 2;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: Montserrat, sans-serif;
+  font-weight: 600;
+}
+
+.title {
+  font-weight: 600;
+}
+
+.field.has-shadow-field {
+  box-shadow: 0 5px 30px hsla(224, 8%, 64%, 0.25) !important;
+}
+
+.subtitle {
+  font-family:
+    BlinkMacSystemFont,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    Fira Sans,
+    Droid Sans,
+    Helvetica Neue,
+    Helvetica,
+    Arial,
+    sans-serif;
+  font-weight: 500;
+}
+
+.hero.is-light .subtitle,
+.subtitle {
+  color: #99a6b3;
+}
+
+.input {
+  box-shadow: none;
+}
+
+.input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 30px #fff inset;
+}
+
+.input:invalid {
+  outline: none;
+  box-shadow: none;
+}
+
+.input:active,
+.input:focus {
+  box-shadow: none;
+}
+
+.button {
+  transition: all 0.3s ease-out;
+  font-family: Montserrat, sans-serif;
+  font-weight: 500;
+}
+
+.button.is-shadowy {
+  box-shadow: 0 5px 30px hsla(224, 8%, 64%, 0.25);
+}
+
+.button.is-shadowy:hover {
+  box-shadow: 0 16px 43px 2px rgba(0, 0, 0, 0.2);
+}
+
+a {
+  transition: color 0.3s ease-out;
+}
+
+.navbar.is-transparent {
+  background-color: transparent;
+  background-image: none;
+}
+
+/* The region lists, which the original sized with an inline style. */
+.city-list li {
+  font-size: 0.9rem;
+}
