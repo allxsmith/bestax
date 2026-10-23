@@ -108,6 +108,19 @@ export const templates = [
     tags: ['favorite', 'form'],
   },
   {
+    slug: 'coming-soon',
+    title: 'Coming Soon',
+    description:
+      'A full-screen launch page over a misty highway, with round social buttons and an email signup.',
+    author: { name: 'aldi', url: 'https://github.com/aldi' },
+    source: 'https://github.com/aldi/bulma-coming-soon-template',
+    sourceSha: '7a9d786fe0bc610ec174b2a0a11e994051339345',
+    demo: 'https://aldi.github.io/bulma-coming-soon-template/',
+    license: 'MIT',
+    copyright: 'Copyright (c) 2026 - github.com/aldi',
+    tags: ['landing'],
+  },
+  {
     slug: 'event-participation',
     title: 'Event Participation',
     description:
