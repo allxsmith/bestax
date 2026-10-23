@@ -199,7 +199,7 @@ jobs:
       # SHA on GitHub's own CDN.
       - name: Harden runner
         continue-on-error: true
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
         with:
           egress-policy: block
           disable-sudo-and-containers: true
@@ -433,7 +433,7 @@ jobs:
       # attempts it. Leaving it unlisted and silencing it is a tighter pair than
       # allow-listing.
       - name: Harden runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
         with:
           egress-policy: block
           disable-sudo-and-containers: true
@@ -521,7 +521,7 @@ jobs:
         # away from being wrong.
         env:
           CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
-        uses: anthropics/claude-code-action@f27be6b65a4652f08a2ba3cff79114829b588967 # v1.0.252
+        uses: anthropics/claude-code-action@e4a6faad497d33dbc7144135c75e41f82f0bf6c0 # v1.0.255
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # Read-only job token; no PAT — the scanner needs no identity and must
@@ -690,7 +690,7 @@ jobs:
       # rule 4 permits.
       - name: Harden runner
         continue-on-error: true
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
         with:
           egress-policy: block
           disable-sudo-and-containers: true
