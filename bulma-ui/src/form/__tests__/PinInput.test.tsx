@@ -188,6 +188,47 @@ describe('PinInput', () => {
     });
   });
 
+  describe('Digits from other scripts', () => {
+    it('takes Arabic-Indic digits as ASCII digits', async () => {
+      const user = userEvent.setup();
+      const onChange = jest.fn();
+      const { container } = renderPin({ onChange });
+      const input = screen.getByLabelText('Code');
+      await user.type(input, '\u0661\u0662\u0663');
+      expect(onChange.mock.calls).toEqual([['1'], ['12'], ['123']]);
+      expect(input).toHaveValue('123');
+      expect(shown(container)).toBe('123   ');
+    });
+
+    it('completes a pasted Persian code as ASCII digits', async () => {
+      const user = userEvent.setup();
+      const onComplete = jest.fn();
+      renderPin({ onComplete });
+      await user.click(screen.getByLabelText('Code'));
+      await user.paste('\u06F1\u06F2\u06F3 \u06F4\u06F5\u06F0');
+      expect(onComplete).toHaveBeenCalledWith('123450');
+    });
+
+    it('reads a digit by its place in its run of ten, where runs sit side by side', () => {
+      // Unicode's mathematical digits are five runs of ten in a row: bold
+      // nine, then double-struck zero and one.
+      const onChange = jest.fn();
+      renderPin({ onChange });
+      fireEvent.change(screen.getByLabelText('Code'), {
+        target: { value: '\u{1D7D7}\u{1D7D8}\u{1D7D9}' },
+      });
+      expect(onChange).toHaveBeenCalledWith('901');
+    });
+
+    it('keeps letters and turns digits to ASCII with type="alphanumeric"', async () => {
+      const user = userEvent.setup();
+      const onChange = jest.fn();
+      renderPin({ type: 'alphanumeric', onChange });
+      await user.type(screen.getByLabelText('Code'), 'a\u0663B\u06F9');
+      expect(onChange).toHaveBeenLastCalledWith('a3B9');
+    });
+  });
+
   describe('Paste', () => {
     it('fills the boxes from a pasted code and completes it once', async () => {
       const user = userEvent.setup();
