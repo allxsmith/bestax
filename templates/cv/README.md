@@ -57,6 +57,8 @@ treats the folder as a project of its own.
   allow. Send a policy of your own as a response header where you deploy.
 - The original's canonical link, its `og:url`, `og:image` and `twitter:image`, and the `url` in
   its JSON-LD all named its own demo site, so they're left out. Add your own where you deploy.
+  With no image to show, `twitter:card` is `summary` rather than the original's
+  `summary_large_image`; switch it back once you add your own `twitter:image`.
 
 ## License
 
