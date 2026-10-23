@@ -1,0 +1,332 @@
+{
+  "name": "PinInput",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/pininput",
+  "docsUrl": "https://bestax.io/docs/api/form/pininput",
+  "examples": [
+    {
+      "title": "Basic PinInput",
+      "code": "<PinInput label=\"Verification code\" />"
+    },
+    {
+      "title": "Verifying a Code",
+      "code": "function example() {\n  const [code, setCode] = useState('');\n  const [checked, setChecked] = useState<string>();\n  const wrong = checked !== undefined && checked !== '123456';\n  return (\n    <PinInput\n      label=\"Enter the 6-digit code we sent you\"\n      value={code}\n      onChange={next => {\n        setCode(next);\n        setChecked(undefined);\n      }}\n      onComplete={setChecked}\n      color={wrong ? 'danger' : checked ? 'success' : undefined}\n      message={\n        wrong\n          ? 'That code isn’t right. Try 123456.'\n          : checked\n            ? 'Verified.'\n            : undefined\n      }\n      messageColor={wrong ? 'danger' : 'success'}\n    />\n  );\n}"
+    },
+    {
+      "title": "Length",
+      "code": "<Block>\n  <PinInput label=\"PIN\" length={4} />\n  <PinInput label=\"Backup code\" length={8} />\n</Block>"
+    },
+    {
+      "title": "Letters and Digits",
+      "code": "<PinInput label=\"Invite code\" type=\"alphanumeric\" length={5} />"
+    },
+    {
+      "title": "Masked",
+      "code": "<PinInput label=\"PIN\" length={4} isMasked defaultValue=\"12\" />"
+    },
+    {
+      "title": "Colors, Sizes and Rounded Boxes",
+      "code": "<Block>\n  <PinInput label=\"Primary\" color=\"primary\" length={4} defaultValue=\"12\" />\n  <PinInput label=\"Small\" size=\"small\" length={4} defaultValue=\"12\" />\n  <PinInput label=\"Large\" size=\"large\" length={4} defaultValue=\"12\" />\n  <PinInput label=\"Rounded\" isRounded length={4} defaultValue=\"12\" />\n</Block>"
+    },
+    {
+      "title": "Disabled",
+      "code": "<PinInput label=\"Verification code\" disabled defaultValue=\"123\" />"
+    },
+    {
+      "title": "Controlled vs Uncontrolled",
+      "code": "<PinInput label=\"Code\" defaultValue=\"42\" />"
+    },
+    {
+      "title": "In a Form",
+      "code": "function example() {\n  const [sent, setSent] = useState<string>();\n  return (\n    <form\n      onSubmit={e => {\n        e.preventDefault();\n        setSent(String(new FormData(e.currentTarget).get('otp')));\n      }}\n    >\n      <PinInput label=\"Verification code\" name=\"otp\" required />\n      <Button type=\"submit\" color=\"primary\" mt=\"3\">\n        Verify\n      </Button>\n      {sent !== undefined && (\n        <Paragraph mt=\"2\">The form sent otp={sent}</Paragraph>\n      )}\n    </form>\n  );\n}"
+    },
+    {
+      "title": "Inside a Field",
+      "code": "<Field horizontal label=\"Code\">\n  <PinInput length={4} />\n</Field>"
+    },
+    {
+      "title": "Right to Left",
+      "code": "<Block dir=\"rtl\">\n  <PinInput label=\"رمز التحقق\" defaultValue=\"12\" />\n</Block>"
+    },
+    {
+      "title": "Forwarded ref",
+      "code": "function example() {\n  const ref = React.useRef<HTMLInputElement>(null);\n  return (\n    <>\n      <PinInput ref={ref} label=\"Verification code\" />\n      <Button mt=\"3\" onClick={() => ref.current?.focus()}>\n        Focus the code\n      </Button>\n    </>\n  );\n}"
+    }
+  ],
+  "accessibility": "- **One field:** the code is in one `<input>`, named by the label, so a screen reader announces a single text field with the code as its value. The boxes are drawn with `aria-hidden`, so nothing reads them a second time, or as a run of separate fields.\n- **Say how long the code is** in the label or the message, as in \"Enter the 6-digit code\", since the boxes that show it are hidden from a screen reader.\n- **Masked,** the input is a password field, so a screen reader doesn't read the code out.\n- **The keyboard a phone shows** is the number pad by default, through `inputMode=\"numeric\"`, and the full keyboard with `type=\"alphanumeric\"`.\n- **Focus** shows on the boxes, since the input itself is transparent: the box at the caret, or every selected box, gets Bulma's focus ring, and an empty box at the caret draws a blinking caret. Under `prefers-reduced-motion: reduce` the caret stays drawn and doesn't blink.\n- **Forced colors:** in Windows high contrast mode the box at the caret is outlined in the system's highlight color, where Bulma's focus ring, a shadow, is gone, the caret is drawn in the system's text color, and a disabled box takes the system's color for disabled text.",
+  "related": ["Field", "Input", "Numberinput", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-pininput--default",
+  "summary": "The `PinInput` component is a field for a short code, such as a one-time code or a PIN, drawn as a row of boxes with one character in each. The code lives in one real `<input>` that lies over the boxes, so it is one field to a screen reader, and paste, autofill from a text message and password managers work on it as they do on any input. The boxes draw what it holds, and the box at the caret, or every box in a selection, shows Bulma's focus look.",
+  "import": "import { PinInput } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/PinInput.tsx",
+  "rootClass": "pin-input",
+  "parts": [
+    {
+      "path": "PinInput",
+      "summary": "The `PinInput` component is a field for a short code, such as a one-time code or a PIN, drawn as a row of boxes with one character in each. The code lives in one real `<input>` that lies over the boxes, so it is one field to a screen reader, and paste, autofill from a text message and password managers work on it as they do on any input. The boxes draw what it holds, and the box at the caret, or every box in a selection, shows Bulma's focus look.",
+      "component": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field label. Automatically associated with the input that holds the code via `htmlFor`, so a screen reader announces one field under this name. Uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "default": null,
+          "description": "Applied to the input that holds the code (the labellable control), not the row of boxes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "length",
+          "type": "number",
+          "default": "6",
+          "description": "How many characters the code has. Each gets a box, and it is the input's `maxLength`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "default": null,
+          "description": "The code (controlled).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "default": "''",
+          "description": "The code to start with (uncontrolled).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "type",
+          "type": "'number' | 'alphanumeric'",
+          "default": "'number'",
+          "description": "What the code takes. Anything else typed or pasted is dropped, and the caret stays where it was. The input stays a text field either way, so a code keeps its leading zeros.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isMasked",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows a dot in each filled box in place of its character, and makes the input a password field, so a screen reader doesn't read the code out either.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
+          "default": null,
+          "description": "Bulma color for the boxes, the colors an `Input` takes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the boxes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Round boxes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the input is disabled.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(value: string) => void",
+          "default": null,
+          "description": "Called with the code each time it changes. A paste replaces the whole code with what was pasted, kept to what `type` takes and cut to `length`, and a paste with nothing the code takes changes nothing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onComplete",
+          "type": "(value: string) => void",
+          "default": null,
+          "description": "Called with the code when a change makes it `length` characters long, such as typing the last character, a paste or autofill. It fires once for each change that fills the last box with a new code, and never on a render. A `value` you set yourself doesn't call it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelSize",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size for the label (used in horizontal layouts).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "horizontal",
+          "type": "boolean",
+          "default": "false",
+          "description": "Horizontal field layout.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Help/validation message below the input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "messageColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color for the message.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "fieldClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Field wrapper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "Form field name, on the input, so a form submits the code under it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "autoComplete",
+          "type": "string",
+          "default": "\"one-time-code\"",
+          "description": "Lets the browser offer a code it received by text message, and tells a password manager this is a one-time code.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "inputMode",
+          "type": "string",
+          "default": null,
+          "description": "The keyboard a phone shows: `\"numeric\"` with `type=\"number\"`, `\"text\"` with `type=\"alphanumeric\"`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the row of boxes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Ref forwarded to the input that holds the code.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <input> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-pin-input-gap",
+      "sass": "$pin-input-gap",
+      "default": "0.5em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-pin-input-box-width",
+      "sass": "$pin-input-box-width",
+      "default": "var(--bulma-control-height)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-pin-input-caret-width",
+      "sass": "$pin-input-caret-width",
+      "default": "max(1px, 0.0625em)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-pin-input-caret-height",
+      "sass": "$pin-input-caret-height",
+      "default": "1.25em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-pin-input-caret-color",
+      "sass": "$pin-input-caret-color",
+      "default": "currentColor",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-pin-input-caret-blink-duration",
+      "sass": "$pin-input-caret-blink-duration",
+      "default": "1s",
+      "scope": "root"
+    }
+  ],
+  "cssVarsFrom": "Input"
+}

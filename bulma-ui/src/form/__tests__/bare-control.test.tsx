@@ -14,6 +14,7 @@ import { Checkbox } from '../Checkbox';
 import { Radios } from '../Radios';
 import { Radio } from '../Radio';
 import { Slider } from '../Slider';
+import { PinInput } from '../PinInput';
 import { Rate } from '../Rate';
 import { File as FileInput } from '../File';
 import { Taginput } from '../Taginput';
@@ -127,6 +128,7 @@ const wrappers: Wrapper[] = [
     root: '.radios',
   },
   { name: 'Slider', render: p => <Slider {...p} />, root: '.slider' },
+  { name: 'PinInput', render: p => <PinInput {...p} />, root: '.pin-input' },
   { name: 'Rate', render: p => <Rate {...p} />, root: '.rate' },
   {
     name: 'File',

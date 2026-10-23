@@ -128,6 +128,7 @@ const PUBLIC_EXPORTS = [
   'PanelInputBlock',
   'PanelTabs',
   'Paragraph',
+  'PinInput',
   'Popover',
   'PopoverBody',
   'PopoverClose',
