@@ -243,8 +243,9 @@ This is a pnpm + Turborepo monorepo; contributor-facing AI context lives in [`CL
 
 bestax-bulma is built on top of the incredible [Bulma](https://bulma.io) CSS framework,
 © [Jeremy Thomas](https://github.com/jgthms) and licensed under the
-[MIT License](https://github.com/jgthms/bulma/blob/main/LICENSE). Some example content and
-documentation is adapted from the Bulma website
+[MIT License](https://github.com/jgthms/bulma/blob/main/LICENSE), whose notice ships with the
+package in [THIRD-PARTY-NOTICES.md](bulma-ui/THIRD-PARTY-NOTICES.md). Some example content
+and documentation is adapted from the Bulma website
 ([CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)), © Jeremy Thomas.
 
 If you find Bulma useful, please consider
