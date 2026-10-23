@@ -33,7 +33,8 @@ treats the folder as a project of its own.
   tablet or wider and one on a phone, stepping a card at a time and running round from the last
   to the first, as the original's did.
 - `public/img/` holds the original's images: its [unDraw](https://undraw.co) illustrations, the
-  avatars and the logo. The gallery's photos stay on Unsplash, where the original links them.
+  avatars. The gallery's photos stay on Unsplash and the logo on Icons8, where the original
+  links them.
 - Icons are Font Awesome, from its npm package, with the original's Font Awesome 4 names moved
   to the current ones. The Nunito Sans font loads from Google Fonts in `index.html`.
 
