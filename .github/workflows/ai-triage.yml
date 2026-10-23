@@ -224,7 +224,7 @@ jobs:
       # the job that quietly loses egress monitoring when the old single job
       # was split. ENFORCED as of #487, and asserted below.
       - name: Harden runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
         with:
           egress-policy: block
           disable-sudo-and-containers: true
@@ -475,7 +475,7 @@ jobs:
       # so nothing attempts it. Leaving it unlisted and silencing it beat
       # allow-listing.
       - name: Harden runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
         with:
           egress-policy: block
           disable-sudo-and-containers: true
@@ -575,7 +575,7 @@ jobs:
         # rebase away from being wrong.
         env:
           CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
-        uses: anthropics/claude-code-action@f27be6b65a4652f08a2ba3cff79114829b588967 # v1.0.252
+        uses: anthropics/claude-code-action@e4a6faad497d33dbc7144135c75e41f82f0bf6c0 # v1.0.255
         with:
           # CLAUDE_CODE_OAUTH_TOKEN pays for the session. github_token is
           # passed explicitly so the action skips its OIDC→app token
@@ -914,7 +914,7 @@ jobs:
       # through the PAT. What holds that is the publisher re-asserting each
       # body's invariants below, and the marker-scoped upsert.
       - name: Harden runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
         with:
           egress-policy: block
           disable-sudo-and-containers: true
@@ -1066,7 +1066,7 @@ jobs:
       # not unwedge it at all was never an acceptable trade.
       - name: Harden runner
         continue-on-error: true
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
         with:
           egress-policy: block
           disable-sudo-and-containers: true
