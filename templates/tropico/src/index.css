@@ -1,0 +1,257 @@
+/*
+ * The original's stylesheet (css/styles.css), ported, after what sets back
+ * the look of the Bulma 0.9 it was made for. The page is light only:
+ * index.html pins Bulma's light scheme with data-theme="light".
+ *
+ * Its rules on `#carousel-demo` and `#card-product-description` are on
+ * classes here, since those ids were on several elements, and its
+ * `#fresh-fruits-section` rule, which matched nothing, is left out. The banner
+ * and the contact section keep their photos from the original's own source,
+ * as the original does.
+ */
+
+/*
+ * Bulma 0.9's defaults, which Bulma 1 changed, and its turquoise primary.
+ * Bulma 1 rounds a medium button with a radius of its own, where 0.9 gave
+ * every size but the small one the same radius.
+ */
+:root {
+  --bulma-family-primary:
+    BlinkMacSystemFont, -apple-system, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Helvetica',
+    'Arial', sans-serif;
+  --bulma-link-h: 217deg;
+  --bulma-link-s: 71%;
+  --bulma-link-l: 53%;
+  --bulma-radius: 4px;
+  --bulma-radius-medium: 4px;
+  --bulma-scheme-h: 0;
+  --bulma-scheme-s: 0%;
+  --bulma-text-h: 0deg;
+  --bulma-text-s: 0%;
+  --bulma-primary-h: 171deg;
+  --bulma-primary-s: 100%;
+  --bulma-primary-l: 41%;
+  --bulma-primary-invert-l: var(--bulma-primary-05-l);
+  --bulma-primary-on-scheme-l: 21%;
+}
+
+.title {
+  --bulma-title-weight: 600;
+}
+
+/* Bulma 0.9 left a quarter rem between a title and its subtitle. */
+.title:not(.is-spaced):has(+ .subtitle) {
+  margin-bottom: 0.25rem;
+}
+
+/* Bulma 1 takes the border out of a button's side padding; 0.9 didn't. */
+.button {
+  --bulma-button-weight: 400;
+  --bulma-button-outer-shadow-a: 0;
+  --bulma-button-padding-horizontal: calc(1em + 1px);
+}
+
+/* Bulma 0.9 spaced the buttons in a group half a rem apart. */
+.buttons {
+  gap: 0.5rem;
+}
+
+.card {
+  --bulma-card-radius: 0.25rem;
+  --bulma-card-shadow:
+    0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.02);
+}
+
+.navbar {
+  --bulma-navbar-burger-color: #4a4a4a;
+  --bulma-burger-item-height: 1px;
+  --bulma-burger-item-width: 16px;
+}
+
+/* The original's stylesheet. */
+.navbar-item {
+  padding-right: 40px !important;
+  font-size: large !important;
+}
+
+.navbar-item:hover {
+  background-color: white !important;
+  color: black !important;
+}
+
+#carousel-section {
+  background-color: #f7f7f7 !important;
+  padding: 50px 0;
+  margin-bottom: 50px;
+}
+
+.tropico-carousel {
+  margin-top: 50px;
+}
+
+/*
+ * bulma-carousel's look, on bestax's Carousel: round white arrows at the
+ * edges, hidden at the end they can't go past, and white dots over the
+ * slide's foot, which it shows from 800px up. `indicatorInside` gives the
+ * carousel its overlay colors, so those are the ones set here.
+ */
+.tropico-carousel {
+  --bulma-carousel-arrow-size: 42px;
+  --bulma-carousel-arrow-size-mobile: 42px;
+  --bulma-carousel-arrow-radius: 9999px;
+  --bulma-carousel-arrow-offset: 0;
+  --bulma-carousel-arrow-offset-mobile: 0;
+  --bulma-carousel-overlay-arrow-background: #fff;
+  --bulma-carousel-overlay-arrow-background-hover: #fff;
+  --bulma-carousel-overlay-arrow-color: var(--bulma-text);
+  --bulma-carousel-indicator-size: 10px;
+  --bulma-carousel-indicator-size-mobile: 10px;
+  --bulma-carousel-indicator-gap: 6px;
+  --bulma-carousel-overlay-indicator-background: #fff;
+  --bulma-carousel-overlay-indicator-background-hover: #fff;
+  --bulma-carousel-overlay-indicator-background-active: #fff;
+}
+
+.tropico-carousel .carousel-arrow,
+.tropico-carousel .indicator-item {
+  box-shadow: 0 2px 5px rgba(50, 50, 50, 0.1);
+}
+
+.tropico-carousel .carousel-arrow:disabled {
+  display: none;
+}
+
+.tropico-carousel .carousel-indicator.is-inside {
+  background: none;
+  padding: 0.5rem 1rem;
+}
+
+.tropico-carousel .carousel-arrow:hover:not(:disabled) {
+  transform: translateY(-50%) scale(1.2);
+}
+
+.tropico-carousel .indicator-item:hover,
+.tropico-carousel .indicator-item.is-active {
+  transform: scale(1.4);
+}
+
+@media screen and (max-width: 799px) {
+  .tropico-carousel .carousel-indicator {
+    display: none;
+  }
+}
+
+.title.card-product-description {
+  color: orange;
+}
+
+#tasty-fruits-section {
+  background-image: url(https://technext.github.io/tropika/images/tasty-image.png);
+  background-repeat: no-repeat;
+  height: 400px;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  margin-top: 50px;
+  margin-bottom: 100px;
+}
+
+.card:hover {
+  transform: scale(1.02);
+  border-top: 5px solid #fc5d35;
+}
+
+.is-white-text-title {
+  color: white !important;
+  text-transform: uppercase;
+}
+
+.is-256x256 {
+  width: 256px !important;
+  height: 256px !important;
+}
+
+#contact-section {
+  background-image: url(https://technext.github.io/tropika//images/orange-dish.png);
+  background-repeat: no-repeat;
+  height: 500px;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  margin-top: 50px;
+  margin-bottom: 100px;
+  background-position: right center;
+  overflow: hidden;
+}
+
+input.is-custom-field {
+  border-bottom: 0.8px solid #252525 !important;
+  outline: none;
+  border: none;
+  box-shadow: none !important;
+  border-radius: unset;
+}
+
+textarea {
+  border-bottom: 0.8px solid #252525 !important;
+  outline: none !important;
+  border: none;
+  box-shadow: none !important;
+  border-radius: unset;
+}
+
+/*
+ * The original's fields show no focus at all: their outline and shadow are
+ * gone and their bottom border is fixed. The focused one takes the orange of
+ * the buttons on its bottom border.
+ */
+input.is-custom-field:focus,
+textarea:focus {
+  border-bottom-color: #fc5d35 !important;
+}
+
+#map {
+  width: 100% !important;
+  height: 400px;
+  margin-bottom: 50px;
+}
+
+.footer-main {
+  background-color: white !important;
+  padding: 0 !important;
+}
+
+.footer-secondary {
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.button.is-black {
+  background-color: black !important;
+  color: white !important;
+}
+
+.button.is-orange {
+  background-color: #fc5d35 !important;
+  color: white !important;
+}
+
+.button.is-orange:hover {
+  background-color: white !important;
+  color: #fc5d35 !important;
+}
+
+.button.is-black:hover {
+  background-color: white !important;
+  color: black !important;
+}
+
+.is-black-social {
+  color: black !important;
+}
+
+.is-black-social:hover {
+  background-color: white !important;
+  color: #fc5d35 !important;
+}
