@@ -38,7 +38,12 @@ function Header() {
           <Container>
             <Navbar.Brand>
               <Navbar.Item href="#">
-                <img src="/img/logo.png" width={30} height={30} alt="Home" />
+                <img
+                  src="https://img.icons8.com/dusk/64/000000/p.png"
+                  width={30}
+                  height={30}
+                  alt="Home"
+                />
               </Navbar.Item>
               <Navbar.Item>
                 <h3 className="is-size-4">Wedding Planner</h3>

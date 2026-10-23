@@ -52,8 +52,8 @@ treats the folder as a project of its own.
   as in the original, and the section clips them.
 - The gallery's dots sit under the cards rather than over their bottom edge, and between a phone
   and a tablet it shows one card, where bulma-carousel showed more as the screen widened.
-- The logo is a copy of the [Icons8](https://icons8.com) icon the original linked from their
-  site, and the footer credits Icons8, as their free license asks.
+- The logo is the [Icons8](https://icons8.com) icon the original uses, still hot-linked from
+  their site rather than copied here, and the footer credits Icons8.
 - The contact heading reads "Let's connect", with its apostrophe.
 - `index.html` pins Bulma's light scheme, as the original's design is light only.
 

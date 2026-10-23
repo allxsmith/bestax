@@ -17,7 +17,7 @@ function SiteFooter() {
         >
           <i className="fa-brands fa-github github" aria-hidden="true" />
         </Link>
-        {/* Icons8's free license asks for a link wherever its icons show. */}
+        {/* The logo is Icons8's, hot-linked from their site as the original has it. */}
         <Paragraph textColor="black" textSize="7">
           Logo by <Link href="https://icons8.com">Icons8</Link>
         </Paragraph>
