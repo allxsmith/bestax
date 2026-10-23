@@ -79,6 +79,12 @@ const ADDONS = [
     desc: 'Spinner overlays for full pages or single containers.',
   },
   {
+    name: 'PinInput',
+    icon: 'pininput',
+    link: '/docs/api/form/pininput',
+    desc: 'A one-time code or a PIN as a row of boxes, all in one real input, so paste and autofill from a text message just work.',
+  },
+  {
     name: 'Popover',
     icon: 'popover',
     link: '/docs/api/components/popover',
