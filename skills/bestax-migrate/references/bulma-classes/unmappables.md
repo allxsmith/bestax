@@ -628,10 +628,15 @@ read for the burger, a carousel and a theme toggle too, and its TODO names the f
 - **`html-script:carousel`** drives a carousel. `Carousel` takes its slides as `CarouselItem`
   children and renders its own arrows and indicators (`autoplay` for a timed one). For several
   slides in view, set `itemsToShow`, with a variant per viewport (`itemsToShowMobile`,
-  `itemsToShowTablet`, …), and `itemsToScroll`. bulma-carousel's `slidesToShow`, `slidesToScroll`
-  and `infinite` options are `itemsToShow`, `itemsToScroll` and `repeat`, and its `breakpoints`
-  map onto the viewport variants. Its styles ship in bestax's `extras.css` and `bestax.css`, not
-  in Bulma's stylesheet.
+  `itemsToShowTablet`, …), and `itemsToScroll`: bulma-carousel calls them `slidesToShow` and
+  `slidesToScroll`. bulma-carousel also shows fewer slides on narrow screens through its
+  `breakpoints`, at pixel widths of its own and with a scroll count each, and it has defaults
+  for them, so a page that sets only `slidesToShow` still narrows. Carry that over as
+  `itemsToShowMobile` and the other variants, which sit on Bulma's breakpoints, with the one
+  `itemsToScroll` for every width. `Carousel` loops unless `repeat={false}`, while bulma-carousel
+  stops at the ends unless `infinite` is set, so a carousel without `infinite` takes
+  `repeat={false}`. Its styles ship in bestax's `extras.css` and `bestax.css`, not in Bulma's
+  stylesheet.
 - **`html-script:theme`** switches Bulma's light and dark schemes. The toggle is `Theme`'s: it
   writes `data-theme` on `<html>` from its `colorMode` (`light`, `dark` or `system`), so keep the
   choice in state, save it in `localStorage`, and pass it. The first paint is `index.html`'s:

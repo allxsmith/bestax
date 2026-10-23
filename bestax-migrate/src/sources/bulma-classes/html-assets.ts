@@ -249,8 +249,7 @@ export const EXTENSION_COMPONENTS: Readonly<Record<string, string>> = {
   'bulma-badge': '`Badge`',
   'bulma-calendar':
     '`DateInput` (and `TimeInput`, `DateTimeInput` and `DateRangeInput`)',
-  'bulma-carousel':
-    "`Carousel`, with a `CarouselItem` for each slide; bulma-carousel's `slidesToShow`, `slidesToScroll` and `infinite` are its `itemsToShow`, `itemsToScroll` and `repeat`",
+  'bulma-carousel': '`Carousel`, with a `CarouselItem` for each slide',
   'bulma-checkradio': '`Checkbox` and `Radio`, which draw their own box',
   'bulma-collapsible': '`Collapse` (`Collapses` for an accordion)',
   'bulma-pageloader': '`Loading` (`isFullPage` for one over the whole page)',
