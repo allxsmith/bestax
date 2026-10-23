@@ -212,8 +212,22 @@ jobs:
         timeout-minutes: 10
         run: pnpm install --no-frozen-lockfile
 
+      # Reads the copies bulma-ui resolves, the ones its build and tests load,
+      # and fails on the wrong major. The root's copy can be pinned while
+      # bulma-ui's is not, which is how this leg ran React 19 (#1099).
       - name: Verify installed React major
-        run: node -e "console.log('react', require('react/package.json').version)"
+        run: |
+          pnpm --filter @allxsmith/bestax-bulma exec node -e "
+            const major = process.argv[1];
+            for (const name of ['react', 'react-dom']) {
+              const { version } = require(name + '/package.json');
+              console.log(name, version);
+              if (version.split('.')[0] !== major) {
+                console.log('::error::bulma-ui resolves ' + name + ' ' + version + ', not ' + major + '.x');
+                process.exitCode = 1;
+              }
+            }
+          " ${{ matrix.react }}
 
       - name: Build bulma-ui
         run: pnpm --filter @allxsmith/bestax-bulma run build
