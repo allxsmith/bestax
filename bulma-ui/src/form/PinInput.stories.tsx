@@ -120,6 +120,10 @@ export const Verification: Story = {
       <>
         <PinInput
           {...args}
+          // The check below is for six digits, whatever the controls say,
+          // and the label says so, since the message isn't read on focus.
+          label="Enter the 6-digit code we sent you"
+          length={6}
           value={code}
           onChange={next => {
             setCode(next);
@@ -132,7 +136,7 @@ export const Verification: Story = {
               ? 'That code is not right. Try 123456.'
               : checked
                 ? 'Verified.'
-                : 'Enter the 6-digit code we sent you.'
+                : undefined
           }
           messageColor={wrong ? 'danger' : checked ? 'success' : undefined}
         />
