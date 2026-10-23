@@ -1,0 +1,204 @@
+/*
+ * The original's stylesheet, ported, with the Bulma 0.9 defaults it was made
+ * on set back where Bulma 1 changed them. The page is light only: index.html
+ * pins Bulma's light scheme with data-theme="light".
+ */
+
+/* Bulma 0.9's font for controls, its link blue, corners and untinted greys. */
+:root {
+  --bulma-family-primary:
+    BlinkMacSystemFont, -apple-system, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Helvetica',
+    'Arial', sans-serif;
+  --bulma-link-h: 217deg;
+  --bulma-link-s: 71%;
+  --bulma-link-l: 53%;
+  --bulma-link-invert-l: 100%;
+  --bulma-link-light-invert-l: 45%;
+  --bulma-radius: 4px;
+  --bulma-scheme-h: 0;
+  --bulma-scheme-s: 0%;
+  --bulma-text-h: 0deg;
+  --bulma-text-s: 0%;
+  --bulma-strong-weight: 700;
+}
+
+.title {
+  --bulma-title-weight: 600;
+}
+
+.content {
+  --bulma-content-heading-weight: 600;
+}
+
+/*
+ * Bulma 1 has a `<button>` inherit the page's font, where 0.9 gave it the
+ * control font, as it still does an input.
+ */
+.button {
+  --bulma-button-weight: 400;
+  --bulma-button-outer-shadow-a: 0;
+  font-family: var(--bulma-family-primary);
+}
+
+.label {
+  font-weight: 700;
+}
+
+.box {
+  --bulma-box-radius: 6px;
+}
+
+.card {
+  --bulma-card-radius: 0;
+}
+
+.hero {
+  --bulma-hero-body-padding-medium: 9rem 1.5rem;
+}
+
+.section {
+  --bulma-section-padding-desktop: 3rem 1.5rem;
+}
+
+/* The burger's lines take the text grey, and its hover a grey tint. */
+:root {
+  --bulma-burger-h: 0deg;
+  --bulma-burger-s: 0%;
+  --bulma-burger-l: 0%;
+}
+
+.navbar {
+  --bulma-navbar-burger-color: var(--bulma-text);
+}
+
+/* The original's own rules. */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family:
+    'Nunito Sans', sans-serif, 'Segoe UI', 'Fira Sans', 'Droid Sans',
+    'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+/* Carousel's arrows are buttons too, which bulma-carousel's were not. */
+.button:not(.carousel-arrow):hover {
+  text-shadow: 0 0 6px rgba(255, 255, 255, 1);
+  box-shadow: 0 5px 40px -10px rgba(0, 0, 0, 0.57);
+  transition: all 0.4s ease 0s;
+}
+
+hr.rounded {
+  border-top: 2px solid #c7b8ea;
+  border-radius: 2px;
+}
+
+/*
+ * The original colored every `.button` lavender, which Bulma 1's colored
+ * buttons would lose to, so the rule is on the one plain button.
+ */
+.learn-more {
+  background-color: #c7b8ea;
+  margin-top: 15px;
+}
+
+#features {
+  background: linear-gradient(
+    180deg,
+    rgba(238, 174, 202, 0.7973390039609594) 0%,
+    rgba(200, 179, 215, 1) 26%,
+    rgb(255 255 255) 100%
+  );
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+  /* On a phone the steps' columns overhang the screen, which let the
+     original's page pan sideways. */
+  overflow-x: clip;
+}
+
+#footer {
+  padding: 0.5rem;
+}
+
+#users-feed {
+  padding: 4rem 1.5rem;
+}
+
+/* What the original set inline. */
+.offers-title {
+  margin-top: 20px;
+}
+
+.offer-check {
+  color: #72ddf7;
+}
+
+.step-art-wide {
+  width: 70%;
+}
+
+.step-art {
+  width: 50%;
+}
+
+#gallery {
+  margin-top: 6rem;
+  margin-bottom: 3rem;
+}
+
+/*
+ * bulma-carousel's `is-covered`: each photo fills its frame, cropped rather
+ * than stretched. The height holds the photo to its 16:9 frame, which
+ * Carousel's own `img { height: auto }` would otherwise let it overflow.
+ */
+#gallery .image img {
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+}
+
+/* bulma-carousel's arrows: round, white and at the edges. */
+.carousel.gallery-carousel {
+  --bulma-carousel-arrow-size: 42px;
+  --bulma-carousel-arrow-size-mobile: 42px;
+  --bulma-carousel-arrow-radius: 9999px;
+  --bulma-carousel-arrow-background: #fff;
+  --bulma-carousel-arrow-background-hover: #fff;
+  --bulma-carousel-arrow-offset: 0;
+  --bulma-carousel-arrow-offset-mobile: 0;
+  --bulma-carousel-arrow-icon-size: 18px;
+  --bulma-carousel-arrow-icon-size-mobile: 18px;
+}
+
+.gallery-carousel .carousel-arrow {
+  box-shadow: 0 2px 5px rgba(50, 50, 50, 0.1);
+}
+
+.gallery-carousel .carousel-arrow i {
+  font-size: 1.5rem;
+}
+
+/* The original showed its dots from 800px up. */
+@media screen and (max-width: 799px) {
+  .gallery-carousel .carousel-indicator {
+    display: none;
+  }
+}
+
+.contact-art {
+  height: 80%;
+}
+
+.contact-note {
+  padding-top: 10px;
+}
+
+.heart {
+  color: red;
+}
+
+.github {
+  color: black;
+}
