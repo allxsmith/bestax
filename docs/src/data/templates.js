@@ -147,6 +147,19 @@ export const templates = [
     tags: ['event', 'form', 'darkmode'],
   },
   {
+    slug: 'rent',
+    title: 'Rent',
+    description:
+      'A rental listings landing page with a search box, listing cards, and rentals by state and neighborhood.',
+    author: { name: 'aldi', url: 'https://github.com/aldi' },
+    source: 'https://github.com/aldi/bulma-rent-template',
+    sourceSha: '3d6bff06730d7274ab11f29f9b1c663819125dab',
+    demo: 'https://aldi.github.io/bulma-rent-template/',
+    license: 'MIT',
+    copyright: 'Copyright (c) 2020 aldi (aldi)',
+    tags: ['landing', 'business'],
+  },
+  {
     slug: 'hotel',
     title: 'Hotel',
     description:
