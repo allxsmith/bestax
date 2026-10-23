@@ -50,7 +50,7 @@ function SearchHero() {
                   </Control>
                   <Control>
                     <Button
-                      type="button"
+                      type="submit"
                       size="large"
                       color="primary"
                       textWeight="semibold"
