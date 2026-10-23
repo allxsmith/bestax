@@ -376,6 +376,29 @@ describe('PinInput', () => {
       expect(shown(container)).toBe('42    ');
     });
 
+    it('cuts a controlled value longer than length, everywhere it shows', () => {
+      const { container } = render(
+        <form data-testid="form">
+          <PinInput
+            label="Code"
+            name="otp"
+            value="1234567"
+            onChange={() => {}}
+          />
+        </form>
+      );
+      expect(screen.getByLabelText('Code')).toHaveValue('123456');
+      expect(shown(container)).toBe('123456');
+      const form = screen.getByTestId('form') as HTMLFormElement;
+      expect(new FormData(form).get('otp')).toBe('123456');
+    });
+
+    it('keeps only the first length characters of a defaultValue', () => {
+      const { container } = renderPin({ length: 4, defaultValue: '98765' });
+      expect(screen.getByLabelText('Code')).toHaveValue('9876');
+      expect(shown(container)).toBe('9876');
+    });
+
     it('keeps its own code when uncontrolled', async () => {
       const user = userEvent.setup();
       const { container } = renderPin({ defaultValue: '1' });

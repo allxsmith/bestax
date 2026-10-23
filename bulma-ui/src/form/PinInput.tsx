@@ -75,9 +75,9 @@ export interface PinInputProps
   id?: string;
   /** How many characters the code has. Each gets a box, and it is the input's `maxLength`. */
   length?: number;
-  /** The code (controlled). */
+  /** The code (controlled). Only its first `length` characters are shown and submitted. */
   value?: string;
-  /** The code to start with (uncontrolled). */
+  /** The code to start with (uncontrolled). Only its first `length` characters are kept. */
   defaultValue?: string;
   /**
    * What the code takes. A digit from any script, such as an Arabic-Indic or
@@ -218,8 +218,11 @@ export const PinInput = forwardRef<HTMLInputElement, PinInputProps>(
     const classPrefix = useClassPrefix();
 
     const [internalValue, setInternalValue] = useState(defaultValue);
-    const code =
-      controlledValue !== undefined ? controlledValue : internalValue;
+    // Cut to `length`, so the boxes, the input and the form all hold the same
+    // code.
+    const code = (
+      controlledValue !== undefined ? controlledValue : internalValue
+    ).slice(0, length);
 
     const allowed = type === 'alphanumeric' ? '[0-9A-Za-z]' : '[0-9]';
     /** The characters of `text` the code takes, digits in ASCII, cut to `length`. */
