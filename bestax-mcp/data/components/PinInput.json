@@ -125,7 +125,7 @@
           "name": "type",
           "type": "'number' | 'alphanumeric'",
           "default": "'number'",
-          "description": "What the code takes. Anything else typed or pasted is dropped, and the caret stays where it was. The input stays a text field either way, so a code keeps its leading zeros.",
+          "description": "What the code takes. A digit from any script, such as an Arabic-Indic or a Persian one, goes in as its ASCII digit, so the code reaches `onChange`, `onComplete` and the form as `0` to `9`. Anything else typed or pasted is dropped, and the caret stays where it was. The input stays a text field either way, so a code keeps its leading zeros.",
           "required": false,
           "inherited": false,
           "deprecated": false

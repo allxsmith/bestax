@@ -27,7 +27,9 @@ import { useAutoLabelId } from './useAutoLabelId';
 
 /**
  * What a PinInput takes: `'number'` keeps digits only, and `'alphanumeric'`
- * keeps the letters A to Z, in either case, and digits.
+ * keeps the letters A to Z, in either case, and digits. A digit from any
+ * script, such as an Arabic-Indic `٣` or a Persian `۳`, is kept as its ASCII
+ * digit, `3`.
  */
 export type PinInputType = 'number' | 'alphanumeric';
 
@@ -77,9 +79,11 @@ export interface PinInputProps
   /** The code to start with (uncontrolled). */
   defaultValue?: string;
   /**
-   * What the code takes. Anything else typed or pasted is dropped, and the
-   * caret stays where it was. The input stays a text field either way, so a
-   * code keeps its leading zeros.
+   * What the code takes. A digit from any script, such as an Arabic-Indic or
+   * a Persian one, goes in as its ASCII digit, so the code reaches
+   * `onChange`, `onComplete` and the form as `0` to `9`. Anything else typed
+   * or pasted is dropped, and the caret stays where it was. The input stays a
+   * text field either way, so a code keeps its leading zeros.
    */
   type?: PinInputType;
   /**
@@ -125,6 +129,20 @@ type Selection = readonly [start: number, end: number];
 
 /** What a masked box shows for its character, a filled circle. */
 const MASK = '\u25CF';
+
+/**
+ * `text` with each decimal digit, in any script, turned into its ASCII digit:
+ * `١٢٣` and `۱۲۳` become `123`. Unicode assigns decimal digits in runs of ten,
+ * from 0 to 9, so a digit's value is how far it is from the start of its run,
+ * modulo ten for runs that sit next to each other.
+ */
+const toAsciiDigits = (text: string) =>
+  text.replace(/\p{Nd}/gu, digit => {
+    const point = digit.codePointAt(0)!;
+    let start = point;
+    while (/\p{Nd}/u.test(String.fromCodePoint(start - 1))) start--;
+    return String((point - start) % 10);
+  });
 
 /**
  * The `PinInput` component is a field for a short code, such as a one-time
@@ -202,9 +220,10 @@ export const PinInput = forwardRef<HTMLInputElement, PinInputProps>(
     const code =
       controlledValue !== undefined ? controlledValue : internalValue;
 
-    /** The characters of `text` the code takes, cut to `length`. */
+    const allowed = type === 'alphanumeric' ? '[0-9A-Za-z]' : '[0-9]';
+    /** The characters of `text` the code takes, digits in ASCII, cut to `length`. */
     const keep = (text: string) =>
-      (text.match(type === 'alphanumeric' ? /[0-9a-z]/gi : /[0-9]/g) ?? [])
+      (toAsciiDigits(text).match(new RegExp(allowed, 'g')) ?? [])
         .join('')
         .slice(0, length);
 

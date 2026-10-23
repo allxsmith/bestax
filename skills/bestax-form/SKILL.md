@@ -119,10 +119,10 @@ moved by hand. It holds the code in one real input under a row of boxes, so a sc
 one field named by its `label`, and paste, autofill from a text message (`autoComplete` is
 `"one-time-code"`) and password managers work as they do on any input. Give it `length` (6 by
 default), `value`/`onChange` with the code as a string, and verify in `onComplete`, which fires
-once each time a change fills the last box. It takes digits unless `type="alphanumeric"`, drops
-anything else typed or pasted, and `isMasked` shows dots for a PIN. A paste replaces the whole
-code. Say the length in the label or the message, since the boxes are hidden from a screen
-reader.
+once each time a change fills the last box. It takes digits unless `type="alphanumeric"`, turns a
+digit from any script (Arabic-Indic, Persian) into its ASCII digit, drops anything else typed or
+pasted, and `isMasked` shows dots for a PIN. A paste replaces the whole code. Say the length in the
+label or the message, since the boxes are hidden from a screen reader.
 
 ## Common props
 
