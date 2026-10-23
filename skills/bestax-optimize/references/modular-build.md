@@ -83,8 +83,9 @@ is **more complete** than the docs page's Option C example, which omits several)
 `emptystate`, `timeline`, `treeview`
 
 **Form** (`@allxsmith/bestax-bulma/scss/form/<name>`):
-`checkbox`, `radio`, `switch`, `slider`, `numberinput`, `rate`, `autocomplete`, `combobox`,
-`taginput`, `picker-popover`, `dateinput`, `timeinput`, `datetimeinput`, `daterangeinput`, `file`
+`checkbox`, `radio`, `switch`, `slider`, `numberinput`, `pininput`, `rate`, `autocomplete`,
+`combobox`, `taginput`, `picker-popover`, `dateinput`, `timeinput`, `datetimeinput`,
+`daterangeinput`, `file`
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `kbd`, `linkbutton`, `loader`,
 `notification`, `progress`, `skeleton`
@@ -128,6 +129,8 @@ Notes:
 - `DateInput`/`TimeInput`/`DateTimeInput` also need `picker-popover`.
 - `DateRangeInput` needs `daterangeinput` for its field and `dateinput` for its calendar, and
   `picker-popover` too.
+- `PinInput`'s boxes are Bulma inputs, so an app using it needs `bulma/sass/form/input-textarea`
+  next to `scss/form/pininput`, and `bulma/sass/form/tools` for the label and help text around it.
 - `Popover.Close` renders a Bulma button, so an app using it needs `bulma/sass/elements/button`
   next to `scss/components/popover`.
 - `ContextMenu`'s menu is Bulma's dropdown markup, so an app using it needs

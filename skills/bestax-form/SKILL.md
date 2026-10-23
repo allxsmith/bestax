@@ -1,6 +1,6 @@
 ---
 name: bestax-form
-description: Build forms with @allxsmith/bestax-bulma — Field/Control/Label/Help composition, inputs, selects, checkboxes, radios, switches, and advanced controls (Autocomplete, Combobox, Slider, Numberinput, Rate, Taginput, File, date/time). There is no form/validation library; this skill shows the components and the validate-it-yourself error pattern. Use when building a form, wiring inputs to state, or showing validation/error state.
+description: Build forms with @allxsmith/bestax-bulma — Field/Control/Label/Help composition, inputs, selects, checkboxes, radios, switches, and advanced controls (Autocomplete, Combobox, Slider, Numberinput, PinInput, Rate, Taginput, File, date/time). There is no form/validation library; this skill shows the components and the validate-it-yourself error pattern. Use when building a form, wiring inputs to state, or showing validation/error state.
 license: MIT
 ---
 
@@ -97,6 +97,7 @@ All import from `@allxsmith/bestax-bulma`. Convenience components auto-wrap Fiel
 | `Combobox`                                              | A value from a list: `data` for a select, tags or groups, or parts.       |
 | `Slider`                                                | Range slider; single/dual thumbs, steps, tooltips, vertical.              |
 | `Numberinput`                                           | Numeric input with increment/decrement, min/max, step, stepper.           |
+| `PinInput`                                              | A one-time code or PIN as a row of boxes, all in one real input.          |
 | `Rate`                                                  | Star rating; `max`, `precision` (half/quarter), custom icons, `disabled`. |
 | `Taginput`                                              | Tag/chip input; suggestions, confirm keys, closable tags.                 |
 | `DateInput` / `TimeInput` / `DateTimeInput` (+ `*Base`) | Date / time / datetime pickers; month or year via `granularity`.          |
@@ -112,6 +113,16 @@ is `Autocomplete`, which filters its `data` itself. A value picked from a list i
 parts for a server search whose answer must show unfiltered, or a "Create" item: then it keeps no
 value and never sets the field's text, so you filter the items, keep the value and set the text in
 `onSelect`.
+
+**A verification code or a PIN is `PinInput`**, not a row of one-character `Input`s with focus
+moved by hand. It holds the code in one real input under a row of boxes, so a screen reader hears
+one field named by its `label`, and paste, autofill from a text message (`autoComplete` is
+`"one-time-code"`) and password managers work as they do on any input. Give it `length` (6 by
+default), `value`/`onChange` with the code as a string, and verify in `onComplete`, which fires
+once each time a change fills the last box. It takes digits unless `type="alphanumeric"`, drops
+anything else typed or pasted, and `isMasked` shows dots for a PIN. A paste replaces the whole
+code. Say the length in the label or the message, since the boxes are hidden from a screen
+reader.
 
 ## Common props
 
@@ -139,10 +150,10 @@ spellings compile only where they historically existed: `isFullWidth` everywhere
 `Sidebar`, `fullwidth` on `Tabs` only, `fullWidth` on `Sidebar` only.
 
 **Labels.** Default to the convenience `label` prop, with `horizontal` for a side-by-side row.
-`Input`, `Select`, `TextArea`, `File`, `Numberinput`, `Slider`, `DateInput`, `TimeInput`,
-`DateTimeInput`, `Autocomplete` and `Taginput` then render the `Field` and the label and wire
-`htmlFor`/`id`, to your `id` when you pass one (`<Input label="Email" id="email" horizontal />`); an
-explicit `labelProps={{ htmlFor }}` wins. `Combobox` renders its `Field` and label too, and wires
+`Input`, `Select`, `TextArea`, `File`, `Numberinput`, `PinInput`, `Slider`, `DateInput`,
+`TimeInput`, `DateTimeInput`, `Autocomplete` and `Taginput` then render the `Field` and the label
+and wire `htmlFor`/`id`, to your `id` when you pass one
+(`<Input label="Email" id="email" horizontal />`); an explicit `labelProps={{ htmlFor }}` wins. `Combobox` renders its `Field` and label too, and wires
 them to its field. Given `data`, its `id`, `aria-label` and `aria-labelledby` go to the field;
 built from parts, put them on `Combobox.Input`, since on the `Combobox` they land on its wrapper
 `div`. The group inputs (`Checkboxes`, `Radios`, `Rate`, `DateRangeInput`) name their
@@ -255,9 +266,9 @@ multi-field form plus the advanced inputs.
 ## Reuse the shipped components
 
 bestax ships the whole form surface — Input, Select, TextArea, Checkbox(es), Radio(s), Switch, File,
-Autocomplete, Combobox, Slider, Numberinput, Rate, Taginput, and the date/time inputs (see the
-inventory above). **Compose these; don't hand-roll raw `<input class="input">` markup or reinvent a
-control.** If you think a control is missing, check `bulma-ui/src/index.ts` and
+Autocomplete, Combobox, Slider, Numberinput, PinInput, Rate, Taginput, and the date/time inputs (see
+the inventory above). **Compose these; don't hand-roll raw `<input class="input">` markup or
+reinvent a control.** If you think a control is missing, check `bulma-ui/src/index.ts` and
 `docs/docs/api/form/` first — it's probably already there under a different name.
 
 ## What happens after submit
