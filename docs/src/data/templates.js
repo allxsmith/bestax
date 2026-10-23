@@ -107,6 +107,19 @@ export const templates = [
     copyright: 'Copyright (c) 2026 - github.com/aldi',
     tags: ['favorite', 'form'],
   },
+  {
+    slug: 'event-participation',
+    title: 'Event Participation',
+    description:
+      'An invitation where guests pick the talks they will attend from a program on a frosted gold panel, with a light and dark toggle.',
+    author: { name: 'aldi', url: 'https://github.com/aldi' },
+    source: 'https://github.com/aldi/bulma-event-participation-template',
+    sourceSha: '836934566b51c595b76c0c7d7ef524edf593e46d',
+    demo: 'https://aldi.github.io/bulma-event-participation-template/',
+    license: 'MIT',
+    copyright: 'Copyright (c) 2026 - github.com/aldi',
+    tags: ['event', 'form', 'darkmode'],
+  },
 ];
 
 /** Favorites first, then by title. */
