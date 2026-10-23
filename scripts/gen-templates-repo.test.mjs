@@ -6,11 +6,14 @@
  * first group runs the generator on the real tree, so a change that would
  * break the published mirror fails the PR instead of the publish run. The
  * rest hold each rule with small git repositories, since the tree is defined
- * as what git tracks.
+ * as what git tracks. The last group holds .github/workflows/
+ * templates-publish.yml to the generator, and runs its publish job's checks
+ * on good and tampered archives, the way gen-skills-repo.test.mjs holds
+ * skills-publish.yml, and its push step's staging on a generated tree.
  */
 import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -29,6 +32,13 @@ import {
   treeProblems,
 } from './gen-templates-repo.mjs';
 import { scanTree } from './gen-skills-repo.mjs';
+import {
+  yamlGet,
+  yamlItems,
+  yamlMap,
+  yamlScalar,
+} from './check-conformance.mjs';
+import { tarball } from './lib/tar-fixture.mjs';
 import { loadTemplatesData, templatePaths } from './lib/templates.mjs';
 
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -431,4 +441,376 @@ test('main takes one directory, and reports success and failure', async () => {
   const repo = fixtureRepo({ folders: false });
   assert.equal(await main([path.join(tempDir(), 't')], refused, { repo }), 1);
   assert.match(refused.out.stderr, /has no tracked files/);
+});
+
+// --- the workflow ------------------------------------------------------------
+
+const WORKFLOW = '.github/workflows/templates-publish.yml';
+const workflowLines = () =>
+  fs.readFileSync(path.join(REPO, WORKFLOW), 'utf8').split('\n');
+
+/** Lines without YAML or shell comments, for matching what actually runs. */
+const uncommented = lines =>
+  lines.filter(line => !line.trim().startsWith('#')).join('\n');
+
+/** An entry's scalar, with a folded (`>-`) one joined the way YAML folds it. */
+const scalar = entry =>
+  entry && /^>-?$/.test(entry.value)
+    ? entry.lines
+        .map(line => line.trim())
+        .filter(line => line && !line.startsWith('#'))
+        .join(' ')
+    : yamlScalar(entry);
+
+/** The workflow's jobs by id, each with its keys and steps readable. */
+function workflowJobs() {
+  const reader = entryLines => ({
+    get: (...keys) => scalar(yamlGet(entryLines, ...keys)),
+    code: uncommented(entryLines),
+  });
+  return new Map(
+    [...yamlMap(yamlGet(workflowLines(), 'jobs')?.lines ?? [])].map(
+      ([id, job]) => [
+        id,
+        {
+          ...reader(job.lines),
+          steps: yamlItems(yamlGet(job.lines, 'steps')?.lines ?? []).map(
+            reader
+          ),
+        },
+      ]
+    )
+  );
+}
+
+test('the workflow runs on exactly PUBLISH_PATHS, on push to main and dispatch', () => {
+  const lines = workflowLines();
+  const filters = yamlItems(
+    yamlGet(lines, 'on', 'push', 'paths')?.lines ?? []
+  ).map(item =>
+    yamlScalar({
+      value: item
+        .filter(line => !line.trim().startsWith('#'))
+        .join('\n')
+        .trim(),
+      lines: [],
+      indent: 0,
+    })
+  );
+  assert.deepEqual([...filters].sort(), [...PUBLISH_PATHS].sort());
+  assert.deepEqual(
+    [...yamlMap(yamlGet(lines, 'on')?.lines ?? []).keys()].sort(),
+    ['push', 'workflow_dispatch']
+  );
+  assert.equal(yamlGet(lines, 'on', 'push', 'branches')?.value, '[main]');
+  assert.equal(yamlGet(lines, 'permissions')?.value, '{}');
+});
+
+test('only publish holds the deploy key, and it runs no repository code', () => {
+  const jobs = workflowJobs();
+  assert.deepEqual([...jobs.keys()], ['generate', 'publish']);
+  assert.deepEqual(
+    [...jobs]
+      .filter(([, job]) => job.get('environment') || /secrets\./.test(job.code))
+      .map(([id]) => id),
+    ['publish']
+  );
+  const publish = jobs.get('publish');
+  assert.equal(publish.get('environment'), 'templates-publish');
+  assert.deepEqual(
+    publish.steps.filter(s => /secrets\./.test(s.code)).map(s => s.get('name')),
+    ['Commit and push to allxsmith/bestax-templates'],
+    'the key reaches the push step alone'
+  );
+  assert.match(
+    publish.steps.at(-1).code,
+    /secrets\.BESTAX_TEMPLATES_DEPLOY_KEY/
+  );
+  assert.deepEqual(
+    publish.steps.map(s => s.get('uses')?.split('@')[0]).filter(Boolean),
+    ['step-security/harden-runner', 'actions/download-artifact']
+  );
+  for (const step of publish.steps) {
+    assert.doesNotMatch(
+      uncommented((step.get('run') ?? '').split('\n')),
+      /\b(node|npm|npx|pnpm)\s|scripts\//,
+      `${step.get('name')} runs repository code`
+    );
+  }
+  const generate = jobs.get('generate');
+  assert.match(
+    generate.code,
+    /node scripts\/gen-templates-repo\.mjs "\$RUNNER_TEMP\/bestax-templates-tree"/
+  );
+  assert.equal(
+    generate.steps
+      .find(s => s.get('uses')?.startsWith('actions/checkout@'))
+      .get('with', 'ref'),
+    'main'
+  );
+});
+
+test('a re-run of publish alone cannot find an earlier attempt’s tree', () => {
+  const jobs = workflowJobs();
+  const nameOf = (job, action) =>
+    jobs
+      .get(job)
+      .steps.find(s => s.get('uses')?.startsWith(`${action}@`))
+      .get('with', 'name');
+  const uploaded = nameOf('generate', 'actions/upload-artifact');
+  assert.equal(nameOf('publish', 'actions/download-artifact'), uploaded);
+  assert.match(uploaded, /\$\{\{ github\.run_attempt \}\}/);
+});
+
+test('a run joins the shared concurrency group on the condition generate runs on', () => {
+  const group = scalar(yamlGet(workflowLines(), 'concurrency', 'group'));
+  const shape =
+    /^\$\{\{ (.+) && 'templates-publish' \|\| format\('templates-publish-\{0\}', github\.run_id\) \}\}$/;
+  const [, joins] = group.match(shape) ?? [];
+  assert.ok(joins, `the concurrency group keeps its shape: ${group}`);
+  const jobs = workflowJobs();
+  assert.equal(joins, jobs.get('generate').get('if'));
+  assert.equal(jobs.get('publish').get('needs'), 'generate');
+  assert.equal(jobs.get('publish').get('if'), null);
+});
+
+test('every action is pinned where skills-publish.yml pins it', () => {
+  const pins = file =>
+    new Map(
+      [
+        ...fs
+          .readFileSync(path.join(REPO, file), 'utf8')
+          .matchAll(/uses: ([\w./-]+)@([0-9a-f]{40}) # (\S+)/g),
+      ].map(([, action, sha, version]) => [action, `${sha} ${version}`])
+    );
+  const ours = pins(WORKFLOW);
+  const theirs = pins('.github/workflows/skills-publish.yml');
+  assert.ok(ours.size > 0);
+  for (const [action, pin] of ours) {
+    assert.equal(pin, theirs.get(action), `${action} is on the repo-wide pin`);
+  }
+});
+
+/** The `run:` script of the publish step named `name`. */
+const publishScript = name =>
+  workflowJobs()
+    .get('publish')
+    .steps.find(s => s.get('name') === name)
+    .get('run');
+
+const runStep = (script, work, env = {}) =>
+  spawnSync('bash', ['-c', script], {
+    encoding: 'utf8',
+    env: { PATH: process.env.PATH, WORK: work, ...env },
+  });
+
+/** Runs publish's unpack step on `archive`, then its check step if it passed. */
+function runUnpack(archive, env) {
+  const work = tempDir();
+  fs.mkdirSync(path.join(work, 'bestax-templates-artifact'));
+  fs.writeFileSync(
+    path.join(work, 'bestax-templates-artifact', 'bestax-templates-tree.tar'),
+    archive
+  );
+  let run = runStep(publishScript('Unpack the tree'), work, env);
+  if (run.status === 0) {
+    run = runStep(publishScript('Check the unpacked tree'), work, env);
+  }
+  return { ...run, work, tree: path.join(work, 'bestax-templates-tree') };
+}
+
+/** A tar of `dir`, the way generate's "Pack the tree" step makes it. */
+const pack = dir => execFileSync('tar', ['-C', dir, '-cf', '-', '.']);
+
+/** A tree generated from a fixture with one template. */
+async function generatedTree() {
+  const out = path.join(tempDir(), 'tree');
+  await generate(out, fixtureRepo());
+  return out;
+}
+
+test("publish's checks take a generated tree with its modes and hidden files", async () => {
+  const out = await generatedTree();
+  // GNU tar would reject the bogus option if the step let TAR_OPTIONS through.
+  const run = runUnpack(pack(out), { TAR_OPTIONS: '--no-such-option' });
+  assert.equal(run.status, 0, run.stdout + run.stderr);
+  assert.deepEqual(await scanTree(run.tree), await scanTree(out));
+  assert.ok(fs.existsSync(path.join(run.tree, 'login/.gitignore')));
+  assert.equal(
+    fs.statSync(path.join(run.tree, 'login/bin/run.sh')).mode & 0o777,
+    0o755
+  );
+});
+
+test("publish's checks refuse a link, a .git or a missing root file", async () => {
+  for (const [why, tamper, said] of [
+    [
+      'a symbolic link',
+      dir => fs.symlinkSync('/etc', path.join(dir, 'login/etc')),
+      /regular files and directories only/,
+    ],
+    [
+      'a .git',
+      dir => write(dir, 'login/.Git/config', '[core]\n'),
+      /\.git part/,
+    ],
+    [
+      'a missing NOTICE',
+      dir => fs.rmSync(path.join(dir, 'NOTICE')),
+      /NOTICE is missing/,
+    ],
+  ]) {
+    const dir = await generatedTree();
+    tamper(dir);
+    const run = runUnpack(pack(dir));
+    assert.notEqual(run.status, 0, `${why} is refused`);
+    assert.match(run.stdout, /::error::The tree from generate is refused/);
+    assert.match(run.stdout, said, why);
+  }
+});
+
+test("publish's unpack step refuses a link, a .git or an escape before writing", async t => {
+  // Built member by member, so an archive can hold names tar would not write
+  // from a real tree. Each case expects the refusal of the guard covering it.
+  const dir = name => ({ name, type: '5', mode: 0o755 });
+  const good = [
+    dir('./'),
+    { name: './README.md', body: '# bestax-templates\n' },
+    { name: './LICENSE', body: 'MIT License\n' },
+    { name: './NOTICE', body: 'This project uses Bulma.\n' },
+    dir('./login/'),
+    { name: './login/.gitignore', body: 'node_modules\n' },
+    dir('./login/bin/'),
+    { name: './login/bin/run.sh', body: '#!/bin/sh\n', mode: 0o755 },
+  ];
+  const sound = runUnpack(tarball(good));
+  assert.equal(sound.status, 0, sound.stdout + sound.stderr);
+  assert.equal(
+    fs.statSync(path.join(sound.tree, 'login/bin/run.sh')).mode & 0o777,
+    0o755
+  );
+
+  const type = /regular files and directories only/;
+  const part = /has an empty, \., \.\. or \.git part\./;
+  const named = /is not named \.\/<path>\./;
+  for (const [why, extra, said] of [
+    ['a symbolic link', { name: './login/l', type: '2', link: '/etc' }, type],
+    ['a hard link', { name: './login/h', type: '1', link: './LICENSE' }, type],
+    ['a .git', { name: './.git/config', body: '[core]\n' }, part],
+    ['a .GIT', { name: './login/.GIT/HEAD', body: 'x\n' }, part],
+    ['a ../ path', { name: './../escaped', body: 'x\n' }, part],
+    ['a nested ../', { name: './login/../../escaped', body: 'x\n' }, part],
+    ['a bare ../ path', { name: '../escaped', body: 'x\n' }, named],
+    ['an absolute path', { name: '/escaped', body: 'x\n' }, named],
+  ]) {
+    await t.test(why, () => {
+      const run = runUnpack(tarball([...good, extra]));
+      assert.notEqual(run.status, 0, `${why} is refused`);
+      assert.match(run.stdout, /::error::The tree from generate is refused/);
+      assert.match(run.stdout, said, why);
+      assert.ok(!fs.existsSync(run.tree), `${why}: nothing is unpacked`);
+      assert.ok(!fs.existsSync(path.join(run.work, 'escaped')), why);
+    });
+  }
+});
+
+test("publish's check step refuses a link, a .git or a fifo already on disk", async t => {
+  // The listing check keeps these out of an unpacked tree, so this runs the
+  // check step on its own, on trees made by hand.
+  const check = publishScript('Check the unpacked tree');
+  const unpacked = () => {
+    const work = tempDir();
+    const tree = path.join(work, 'bestax-templates-tree');
+    for (const file of ['README.md', 'LICENSE', 'NOTICE', 'login/App.tsx']) {
+      write(tree, file, 'x\n');
+    }
+    return { work, tree };
+  };
+  const sound = unpacked();
+  assert.equal(runStep(check, sound.work).status, 0, 'the fixture is sound');
+
+  for (const [why, tamper] of [
+    ['a symbolic link', at => fs.symlinkSync('/etc', path.join(at, 'login/l'))],
+    ['a .git', at => fs.mkdirSync(path.join(at, 'login/.git'))],
+    ['a .GIT file', at => write(at, '.GIT', 'x\n')],
+    ['a fifo', at => execFileSync('mkfifo', [path.join(at, 'login/pipe')])],
+  ]) {
+    await t.test(why, () => {
+      const { work, tree } = unpacked();
+      tamper(tree);
+      const run = runStep(check, work);
+      assert.notEqual(run.status, 0, `${why} is refused`);
+      assert.match(
+        run.stdout,
+        /refused: the unpacked tree holds a \.git, or an entry that is neither/,
+        why
+      );
+    });
+  }
+});
+
+/**
+ * The lines of publish's push step that stage the tree: its git wrapper, the
+ * `publish` function and the add, as the step has them.
+ */
+function stagingScript() {
+  const lines = publishScript('Commit and push to allxsmith/bestax-templates')
+    .split('\n')
+    .map(line => line.trim());
+  return [/^gitc\(\) \{/, /^publish\(\) \{/, /^publish add\b/]
+    .map(re => {
+      const found = lines.filter(line => re.test(line));
+      assert.equal(found.length, 1, `the push step has one line like ${re}`);
+      return found[0];
+    })
+    .join('\n');
+}
+
+test("publish's push step stages every file in the tree, ignored or not", async () => {
+  // A template that tracks a file its own .gitignore matches. The tree
+  // carries both.
+  const repo = fixtureRepo();
+  const settings = 'templates/login/.vscode/settings.json';
+  write(repo, 'templates/login/.gitignore', 'node_modules\n.vscode/\n');
+  write(repo, settings, '{}\n');
+  git(repo, 'add', '--all');
+  git(repo, 'add', '--force', settings);
+  git(repo, 'check-ignore', '--quiet', '--no-index', settings);
+  const tree = path.join(tempDir(), 'tree');
+  const files = await generate(tree, repo);
+  assert.ok(files.includes('login/.vscode/settings.json'));
+
+  // A new repository, so the index starts empty as the clone's does, and
+  // git with no global or system config, as in the step. A rule in its
+  // info/exclude is one more that must not filter the tree.
+  const work = tempDir();
+  const env = {
+    PATH: process.env.PATH,
+    HOME: path.join(work, 'home'),
+    GIT_CONFIG_GLOBAL: '/dev/null',
+    GIT_CONFIG_NOSYSTEM: '1',
+    GIT_CEILING_DIRECTORIES: work,
+    repo: path.join(work, 'repo'),
+    tree,
+  };
+  fs.mkdirSync(env.HOME);
+  execFileSync('git', ['init', '--quiet', '--initial-branch=main', env.repo], {
+    env,
+  });
+  fs.mkdirSync(path.join(env.repo, '.git/info'), { recursive: true });
+  fs.appendFileSync(path.join(env.repo, '.git/info/exclude'), '*.sh\n');
+  const run = spawnSync(
+    'bash',
+    ['--noprofile', '--norc', '-euo', 'pipefail', '-c', stagingScript()],
+    { cwd: work, encoding: 'utf8', env }
+  );
+  assert.equal(run.status, 0, run.stdout + run.stderr);
+  const staged = execFileSync(
+    'git',
+    ['--git-dir', path.join(env.repo, '.git'), 'ls-files'],
+    { cwd: work, encoding: 'utf8', env }
+  )
+    .split('\n')
+    .filter(Boolean);
+  assert.deepEqual(staged.sort(), [...files].sort());
 });

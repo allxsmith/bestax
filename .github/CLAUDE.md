@@ -553,7 +553,7 @@ jobs (`ci.yml`, `deploy.yml`, `test-deploy.yml`, `visual-regression.yml`, `story
   `claude-implement` (`implement`), `bestaxbot-reply` (`respond`), `claude-review` (`review`),
   `claude-pr-loop` (`fix` and `verify`), `mcp-registry` (`publish`), `codemod-registry`
   (`validate` and `publish`), `review-converged` (`sync`), `skills-publish` (`relay`, `generate`
-  and `publish`). The command below lists them, and
+  and `publish`), `templates-publish` (`generate` and `publish`). The command below lists them, and
   `grep -rn "disable-sudo-and-containers: true" .github/workflows/` lists the jobs that set
   `disable-sudo-and-containers`.
 - **Audit, deliberately, pending a measured allowlist** — none, as of #578. That issue closed the
@@ -626,10 +626,10 @@ bounding it ("What the agent allows beyond the list" says what reaches past a jo
 included), and it does nothing about what a session does with an allow-listed host (see I1).
 Widening an allowlist remains a security change under rule 2, and `sign-sbom`'s list is still
 assembled by reading the actions rather than from a measured run.
-So are `mcp-registry`'s `publish` list, `codemod-registry`'s `validate` and `publish` lists and
-`skills-publish`'s `relay`, `generate` and `publish` lists, which no run had exercised when they
-were written.
-The codemod-registry and skills-publish comments give the reason for each host.
+So are `mcp-registry`'s `publish` list, `codemod-registry`'s `validate` and `publish` lists,
+`skills-publish`'s `relay`, `generate` and `publish` lists and `templates-publish`'s `generate`
+and `publish` lists, which no run had exercised when they were written.
+The codemod-registry, skills-publish and templates-publish comments give the reason for each host.
 
 Verify rather than assume, on any run: the assertion step passes, and harden-runner's post-step
 prints the effective `EgressPolicy:`.
@@ -877,3 +877,9 @@ mark a deliberate exception with `bestax:count-ok` on the same line and say why.
   environment, which admits `main` only. The generator runs in one job and the key sits in
   another, which runs no repository code. The workflow's header gives the triggers, that split,
   why a release reaches it through a dispatch, and why the environment has no required reviewer.
+- **The templates mirror.** `templates-publish.yml` pushes the tree
+  `scripts/gen-templates-repo.mjs` generates to allxsmith/bestax-templates, which StackBlitz
+  opens the ported templates from, in the same two-job shape as `skills-publish.yml`: a deploy
+  key held in the `templates-publish` environment, which admits `main` only, and a key job that
+  runs no repository code. It has no release trigger and no relay. Its header points to
+  `skills-publish.yml` wherever the reasoning is the same.
