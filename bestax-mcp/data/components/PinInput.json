@@ -107,7 +107,7 @@
           "name": "value",
           "type": "string",
           "default": null,
-          "description": "The code (controlled).",
+          "description": "The code (controlled). Only its first `length` characters are shown and submitted.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -116,7 +116,7 @@
           "name": "defaultValue",
           "type": "string",
           "default": "''",
-          "description": "The code to start with (uncontrolled).",
+          "description": "The code to start with (uncontrolled). Only its first `length` characters are kept.",
           "required": false,
           "inherited": false,
           "deprecated": false
