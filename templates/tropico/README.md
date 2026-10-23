@@ -49,7 +49,7 @@ treats the folder as a project of its own.
 - "Get a quote" opens the contact page, and the social buttons link to each network. The
   original's are links with no address, which a keyboard can't reach.
 - The contact form's fields show which one has focus, with an orange line under it. The
-  original takes away every sign of focus.
+  original's text inputs show no sign of focus.
 - The form fields and social buttons have accessible names, the images have alternative text,
   and the map has a title.
 - `index.html` pins Bulma's light scheme, as the original's design is light only.

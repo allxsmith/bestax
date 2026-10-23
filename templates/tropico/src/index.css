@@ -202,7 +202,7 @@ textarea {
 }
 
 /*
- * The original's fields show no focus at all: their outline and shadow are
+ * The original's text inputs show no focus at all: their outline and shadow are
  * gone and their bottom border is fixed. The focused one takes the orange of
  * the buttons on its bottom border.
  */
