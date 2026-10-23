@@ -13,7 +13,7 @@ below worked out.
 ## What a template folder is
 
 - **A create-bestax scaffold without its lint setup.** The port lives in `src/` (an `App` plus
-  section components) and the upstream's images in `public/`.
+  section components) and its images in `public/`.
 - **Not a workspace package.** It stays out of `pnpm-workspace.yaml`, carries no lockfile, and its
   `package.json` takes registry ranges only, because StackBlitz imports the folder and nothing
   else. To run one inside this repo, `pnpm install --ignore-workspace` in its folder; the root
@@ -23,8 +23,14 @@ below worked out.
 - **`LICENSE`:** the upstream license notice verbatim, followed by the notice for the bestax
   port. The docs entry's `license` names that upstream license.
 - **`README.md`:** who made the original and where it lives, the upstream commit it was ported
-  from, a mention of awesome-bulma-templates, how to run it (`npm install && npm run dev`), and
-  any upstream bug the port fixed.
+  from, a mention of awesome-bulma-templates, how to run it (`npm install && npm run dev`), any
+  upstream bug the port fixed, and an **Images** section saying where each image in `public/`
+  came from.
+- **Every image has a known source.** The upstream's MIT license covers its code, and it can
+  only cover an image its author made. An upstream image whose source the upstream does not
+  record is replaced with one drawn for the port as SVG, which is its own source, and the
+  README's Images section says so. An image from a stock library keeps its library's license and
+  a credit naming the photographer and the photo's page.
 
 Its docs entry in `docs/src/data/templates.js` (whose header documents each field) and its
 screenshot in `docs/static/img/templates/` belong to it too. `scripts/templates.test.mjs` holds
@@ -97,7 +103,9 @@ fix.
      - A second component class on a converted element (`box` on a `Notification`) needs its
        own component.
    - Assets:
-     - Large upstream images are recompressed into `public/`. Unsplash hot-links stay hot-links.
+     - Trace each upstream image before porting it (**Every image has a known source**, above).
+       One with a known source and license that allows it is recompressed into `public/` if
+       large; one without is drawn anew. Unsplash hot-links stay hot-links, credited.
      - Other third-party hot-links that may vanish become small local files in `public/`.
      - Check the license of any hot-linked asset that needs credit (an Icons8 logo, for one).
 5. **Check parity.** Screenshot the original (the entry's `demo`) and the port side by side at

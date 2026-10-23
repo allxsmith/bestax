@@ -22,7 +22,7 @@ import july2026 from '@site/src/data/state-of-react/2026-07.json';
 
 Picking a React component library is one of the bigger architectural calls in a project, and the honest answer to “which one” depends entirely on what you’re building. We maintain [bestax](/docs/intro), a component library for Bulma v1, so we spend a lot of time studying the field. This post maps it out **fairly and in the open**: every user-facing capability across seven React libraries, with each cell linking straight to that library’s own documentation so you can check our work.
 
-It’s a point-in-time capture — the first edition of a series we’ll refresh regularly. We’re calling it _The State of React_, with a nod to Armin’s long-running radio show. Over time we’d like it to grow into a wider read on the React ecosystem; for now, it stays focused on **component libraries**.
+It’s a point-in-time capture — the first edition of a series we’ll refresh regularly. We’re calling it _The State of React_, with a nod to Armin’s long-running radio show. It isn’t affiliated with Devographics’ annual State of React survey, which shares the name. Over time we’d like it to grow into a wider read on the React ecosystem; for now, it stays focused on **component libraries**.
 
 :::info Snapshot — July 2026
 The table below reflects each library **as of July 27, 2026**. Component catalogs move fast — the [latest edition of _The State of React_](/blog/tags/state-of-react) always has the freshest data.

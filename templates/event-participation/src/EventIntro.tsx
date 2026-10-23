@@ -9,7 +9,7 @@ function EventIntro() {
     <>
       <Image as="figure" size="96x96" textAlign="centered" mx="auto">
         <img
-          src="/media/event_logo_gold.webp"
+          src="/media/event_logo_gold.svg"
           alt="Bulma Event Participation Template Logo"
           width={96}
           height={96}

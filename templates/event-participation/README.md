@@ -31,7 +31,8 @@ treats the folder as a project of its own.
 - The light or dark choice is bestax's `Theme`, given the scheme from state. A small script in
   `index.html` writes the visitor's saved choice, or else their system's, before the page
   first paints, and `src/colorMode.ts` reads and saves it under the same key.
-- `src/index.css` is the original's stylesheet, ported, and `public/` holds its logo.
+- `src/index.css` is the original's stylesheet, ported, and `public/` holds the logo drawn
+  for this port (see [Images](#images)).
 - Icons are Font Awesome, from its npm package, and the Inter font loads from Google Fonts in
   `index.html`.
 
@@ -55,6 +56,15 @@ treats the folder as a project of its own.
 - Hovering the footer link turns it the page's text color. The original turns it black, which
   vanishes on the dark scheme.
 - The footer's heart is hidden from screen readers, as a decorative icon.
+
+## Images
+
+`public/media/event_logo_gold.svg`, the gold 50 logo, was drawn for this port on October 23, 2026 by
+Claude, Anthropic's AI model, writing SVG code from a text description. No photo, illustration,
+stock image or image-generation model went into it, and it copies no existing artwork. The file is
+its own source: open it in a text editor to see every shape it draws. It replaces the original's
+logo image, whose source the original does not record, so this port ships no image of unknown
+origin.
 
 ## License
 

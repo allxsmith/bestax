@@ -6,8 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 const FeatureList = [
   {
     title: 'Latest Bulma V1',
-    Svg: require('@site/static/img/card/iconmonstr-synchronization-19.svg')
-      .default,
+    Svg: require('@site/static/img/card/sync.svg').default,
     description: (
       <>
         Fully supports Bulma v1.x, unlike outdated alternatives stuck on older
@@ -18,7 +17,7 @@ const FeatureList = [
   },
   {
     title: 'Lightweight and Efficient',
-    Svg: require('@site/static/img/card/iconmonstr-connection-2.svg').default,
+    Svg: require('@site/static/img/card/bolt.svg').default,
     description: (
       <>
         Lean runtime: the entire library is ~65KB min+gzip of JS, and
@@ -30,7 +29,7 @@ const FeatureList = [
   },
   {
     title: 'Developer-Friendly',
-    Svg: require('@site/static/img/card/iconmonstr-party-19.svg').default,
+    Svg: require('@site/static/img/card/party.svg').default,
     description: (
       <>
         100% TypeScript, 99% unit test coverage: Reliable, stable components you

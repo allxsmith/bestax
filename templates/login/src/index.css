@@ -21,7 +21,7 @@ body {
     'Noto Sans',
     'Liberation Sans',
     sans-serif;
-  background: #0b0b0b url('/media/background.webp') center / cover no-repeat
+  background: #0b0b0b url('/media/background.svg') center / cover no-repeat
     fixed;
   color: #4a3728;
 }

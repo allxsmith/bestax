@@ -72,7 +72,7 @@ span,
 }
 
 .right {
-  background-image: url('/media/background.webp');
+  background-image: url('/media/background.svg');
   background-position: center;
   background-size: cover;
   height: 400px;

@@ -15,3 +15,5 @@ templates/event-participation: aldi's Event Participation Template (https://gith
 templates/login: aldi's Bulma Login Template (https://github.com/aldi/bulma-login-template), MIT license.
 
 templates/cv: aldi's Bulma CV Template (https://github.com/aldi/bulma-cv-template), MIT license.
+
+The images in each template's public/media were drawn for its bestax port in place of the upstream's, whose sources the upstreams do not record. Each template's README says how its images were made.

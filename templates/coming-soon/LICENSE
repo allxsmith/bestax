@@ -26,4 +26,5 @@ The bestax port
 
 The port of this template to bestax-bulma (templates/coming-soon in
 https://github.com/allxsmith/bestax) is Copyright (c) 2026 Alex Smith, and is
-released under the same MIT License terms as above.
+released under the same MIT License terms as above. The images in public/media
+were drawn for the port, not taken from the original; README.md says how.

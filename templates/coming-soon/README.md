@@ -24,8 +24,8 @@ treats the folder as a project of its own.
 
 - `src/App.tsx` lays out the page, and `SocialLinks.tsx`, `NotifyForm.tsx` and `SiteFooter.tsx`
   hold its sections, built from bestax components in place of the original's Bulma markup.
-- `src/index.css` is the original's stylesheet, ported, and `public/` holds its background
-  image.
+- `src/index.css` is the original's stylesheet, ported, and `public/` holds the background
+  drawn for this port (see [Images](#images)).
 - The social buttons take their brand colors from aldi's
   [bulma-social](https://github.com/aldi/bulma-social), as the original does: its classes go on
   bestax's `Button` through `className`. Point each link in `src/SocialLinks.tsx` at your own
@@ -41,6 +41,15 @@ treats the folder as a project of its own.
 - Submitting the form stays on the page. The original posts to `/subscribe`, which a static host
   answers with an error page; send the address to your list from the form's `onSubmit` in
   `src/NotifyForm.tsx`.
+
+## Images
+
+`public/media/background.svg`, the motorway running into fog, was drawn for this port on October 23,
+2026 by Claude, Anthropic's AI model, writing SVG code from a text description. No photo,
+illustration, stock image or image-generation model went into it, and it copies no existing artwork.
+The file is its own source: open it in a text editor to see every shape it draws. It replaces the
+original's background photo, whose source the original does not record, so this port ships no image
+of unknown origin.
 
 ## License
 
