@@ -1,3 +1,21 @@
+## [2.31.2](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.31.1...bestax-migrate@2.31.2) (2026-10-23)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** name bulma-carousel's loop beside infinite, and qualify its breakpoints ([ef76e29](https://github.com/allxsmith/bestax/commit/ef76e296b1c7112bdd8434dc4220e664ad11c529))
+* **bestax-migrate:** name Carousel's several-in-view props in the carousel TODOs ([cf01c3e](https://github.com/allxsmith/bestax/commit/cf01c3ef998a6d682243da9b061b1df1fdea4cd1))
+* **bestax-migrate:** say Carousel loops by default and how bulma-carousel's breakpoints carry over ([0b090f5](https://github.com/allxsmith/bestax/commit/0b090f586148932809f7f321b6c7dc1e04ab22da))
+* **bulma-ui:** hand focus on when the focused Carousel item leaves the view ([43bb0d2](https://github.com/allxsmith/bestax/commit/43bb0d2f5839b02d3af005ac2a9dd996a94e93b6))
+* **bulma-ui:** paint Checkbox's tick in its check color, and give empty boxes a visible border ([#1219](https://github.com/allxsmith/bestax/issues/1219)) ([fce61a7](https://github.com/allxsmith/bestax/commit/fce61a7ed8ca4d85c194fb5dcf029d24daaff185))
+* **bulma-ui:** read Carousel widths between Bulma's mobile and tablet queries as mobile ([45fecdc](https://github.com/allxsmith/bestax/commit/45fecdc893e000b09a166e2d1f2daa28c3dade68))
+
+
+### Features
+
+* **bulma-ui:** show several Carousel items in view ([6743b17](https://github.com/allxsmith/bestax/commit/6743b17a3c92d5497e81b31f00dbdfbf829fde21)), closes [#1165](https://github.com/allxsmith/bestax/issues/1165)
+* **docs:** add the Coming Soon template, ported from aldi's bulma-coming-soon-template ([#1228](https://github.com/allxsmith/bestax/issues/1228)) ([c57e6ea](https://github.com/allxsmith/bestax/commit/c57e6ea9a65e5b86059f58e7b09fff1621e24e10))
+
 ## [2.31.1](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.31.0...bestax-migrate@2.31.1) (2026-10-22)
 
 
