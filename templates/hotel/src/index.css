@@ -328,6 +328,13 @@ footer {
   border: 0;
 }
 
+/* The original takes the outline off both; keyboard focus gets a ring back. */
+.newsletter-form input:focus-visible,
+.newsletter-form button:focus-visible {
+  outline: 2px solid #03b2e3;
+  outline-offset: 2px;
+}
+
 .main-text {
   color: white;
   text-shadow: 4px 4px 12px #29211b;

@@ -46,7 +46,9 @@ treats the folder as a project of its own.
   opens it, so the buttons do nothing.
 - The navbar's Bulma logo is a local copy. The original loads it from an address on bulma.io that
   no longer serves it, so it shows a broken image. The file comes from Bulma's own repository,
-  under its MIT license.
+  under its MIT license, whose notice is in `LICENSE`.
+- The newsletter field and button show a focus ring for keyboard users. The original takes the
+  outline off both and puts nothing in its place.
 - "Home" in the navbar links to the top of the page, and the Facebook and social buttons link to
   `#`, placeholders for the hotel's own pages; in the original they link nowhere.
 - Typos in the text are fixed: "he Premier Diamond Double rooms" and "destinaiton".
