@@ -10,6 +10,8 @@ The templates under templates/ are ports of free Bulma templates collected in al
 
 templates/coming-soon: aldi's Bulma Coming Soon Template (https://github.com/aldi/bulma-coming-soon-template), MIT license.
 
+templates/event-participation: aldi's Event Participation Template (https://github.com/aldi/bulma-event-participation-template), MIT license.
+
 templates/login: aldi's Bulma Login Template (https://github.com/aldi/bulma-login-template), MIT license.
 
 templates/cv: aldi's Bulma CV Template (https://github.com/aldi/bulma-cv-template), MIT license.
