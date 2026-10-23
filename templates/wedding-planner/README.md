@@ -48,7 +48,9 @@ treats the folder as a project of its own.
   fields after it sat inside it, without the space between fields. Each label now names its
   field, the checkbox is bestax's `Checkbox`, which draws its own box, and the fields sit in a
   form: Submit stays on the page, and Cancel clears it. Send the message from the form's
-  `onSubmit` in `src/Contact.tsx`.
+  `onSubmit` in `src/Contact.tsx`. The text above the form, its terms link and the gallery are
+  the original's placeholders: replace them with your own, and give your photos alt text, which
+  the original's leave empty.
 - On a phone, the steps no longer let the page pan sideways: their columns overhang the screen,
   as in the original, and the section clips them.
 - The gallery's dots sit under the cards rather than over their bottom edge, and between a phone
@@ -57,6 +59,7 @@ treats the folder as a project of its own.
   their site rather than copied here, and the footer credits Icons8.
 - The contact heading reads "Let's connect", with its apostrophe.
 - `index.html` pins Bulma's light scheme, as the original's design is light only.
+- Smooth scrolling to the page's sections is off for visitors who ask for reduced motion.
 
 ## License
 
