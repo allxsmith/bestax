@@ -363,7 +363,7 @@ const SCRIPT_PATTERNS: ReadonlyArray<readonly [string, RegExp, string]> = [
   [
     'carousel',
     /carousel/i,
-    "drives a carousel: bestax's `Carousel` takes its slides as `CarouselItem` children and renders its own arrows and indicators (`autoplay` for a timed one); for several slides in view it takes `itemsToShow`, with a variant per viewport such as `itemsToShowMobile`, and `itemsToScroll`, bulma-carousel's `slidesToShow` and `slidesToScroll`; it loops unless `repeat={false}`, where bulma-carousel stops at the ends unless `infinite` is set; its styles ship in bestax's `extras.css` and `bestax.css`, not in Bulma's stylesheet",
+    "drives a carousel: bestax's `Carousel` takes its slides as `CarouselItem` children and renders its own arrows and indicators (`autoplay` for a timed one); for several slides in view it takes `itemsToShow`, with a variant per viewport such as `itemsToShowMobile`, and `itemsToScroll`, bulma-carousel's `slidesToShow` and `slidesToScroll`; it loops unless `repeat={false}`, where bulma-carousel stops at the ends unless `loop` or `infinite` is set; its styles ship in bestax's `extras.css` and `bestax.css`, not in Bulma's stylesheet",
   ],
   [
     'theme',
