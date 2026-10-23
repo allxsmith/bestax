@@ -63,6 +63,7 @@ Stock Bulma examples:
 @use 'bulma/sass/elements/title'; // Title, SubTitle
 @use 'bulma/sass/form/input-textarea'; // Input, TextArea
 @use 'bulma/sass/form/select'; // Select
+@use 'bulma/sass/form/tools'; // Field, Control
 @use 'bulma/sass/components/card'; // Card
 @use 'bulma/sass/components/modal'; // Modal
 @use 'bulma/sass/components/navbar'; // Navbar
