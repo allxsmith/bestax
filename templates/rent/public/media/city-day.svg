@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="660" height="305" viewBox="0 0 660 305">
+  <!-- Drawn for the bestax port of the Rent template; image-provenance.json records how. -->
+  <defs>
+    <!-- Window grids, each tiling the face of a building. -->
+    <pattern id="grid" width="12" height="14" patternUnits="userSpaceOnUse">
+      <rect x="3" y="3" width="6" height="8" fill="#eef5fa" />
+    </pattern>
+    <pattern id="bands" width="10" height="12" patternUnits="userSpaceOnUse">
+      <rect y="4" width="10" height="4" fill="#eef5fa" opacity="0.85" />
+    </pattern>
+    <pattern id="strips" width="10" height="10" patternUnits="userSpaceOnUse">
+      <rect x="3" width="4" height="10" fill="#e3f6f3" opacity="0.9" />
+    </pattern>
+    <pattern id="glass" width="9" height="9" patternUnits="userSpaceOnUse">
+      <rect width="9" height="9" fill="#2f7f9a" />
+      <rect x="1" y="1" width="7" height="7" fill="#58aac4" />
+    </pattern>
+  </defs>
+
+  <!-- The far row of buildings, in pale blues. -->
+  <g fill="#cbd8e4">
+    <rect x="40" y="138" width="54" height="140" />
+    <rect x="232" y="92" width="44" height="186" />
+    <rect x="410" y="104" width="56" height="174" />
+    <rect x="568" y="128" width="58" height="150" />
+  </g>
+
+  <!-- The near row: each face, then its windows. -->
+  <rect x="72" y="166" width="60" height="112" fill="#9fb8cc" />
+  <rect x="80" y="174" width="44" height="98" fill="url(#grid)" />
+
+  <rect x="132" y="112" width="52" height="166" fill="#ffffff" stroke="#9fb8cc" stroke-width="3" />
+  <rect x="138" y="118" width="40" height="156" fill="url(#bands)" stroke="none" />
+  <rect x="138" y="118" width="40" height="156" fill="#7fa6c1" opacity="0.35" />
+  <rect x="128" y="102" width="60" height="12" fill="#5d8db3" />
+
+  <rect x="184" y="186" width="44" height="92" fill="#b6c6d4" />
+  <rect x="190" y="192" width="32" height="80" fill="url(#grid)" />
+
+  <!-- The tall tower, stepped, with its spire. -->
+  <rect x="248" y="44" width="4" height="22" fill="#5d8db3" />
+  <rect x="236" y="64" width="28" height="22" fill="#8fa98f" />
+  <rect x="228" y="84" width="44" height="34" fill="#a7bba3" />
+  <rect x="218" y="116" width="64" height="162" fill="#bfcdb9" />
+  <rect x="226" y="124" width="48" height="148" fill="url(#grid)" />
+  <rect x="236" y="90" width="28" height="24" fill="url(#grid)" />
+
+  <rect x="282" y="146" width="56" height="132" fill="#8fb3cc" />
+  <rect x="288" y="152" width="44" height="120" fill="url(#strips)" />
+
+  <rect x="338" y="94" width="58" height="184" fill="#7fc8bb" />
+  <rect x="344" y="100" width="46" height="172" fill="url(#bands)" />
+
+  <rect x="396" y="176" width="70" height="102" fill="url(#glass)" stroke="#2f7f9a" stroke-width="3" />
+
+  <!-- The second tower, with an antenna. -->
+  <rect x="502" y="16" width="3" height="40" fill="#4a6f8c" />
+  <rect x="494" y="54" width="20" height="14" fill="#26415e" />
+  <rect x="470" y="66" width="68" height="212" fill="#9fb8cc" />
+  <rect x="478" y="74" width="52" height="198" fill="url(#strips)" />
+
+  <rect x="538" y="118" width="54" height="160" fill="#b6c6d4" />
+  <rect x="544" y="124" width="42" height="148" fill="url(#bands)" />
+  <rect x="546" y="104" width="38" height="16" fill="#9fb8cc" />
+
+  <!-- The park in front: grass, then trees. -->
+  <path d="M0 305V276C120 262 250 266 360 270C470 274 570 262 660 266V305Z" fill="#7cc576" />
+  <path d="M0 305V290C140 280 300 286 440 290C540 293 610 286 660 284V305Z" fill="#5fae62" />
+
+  <g fill="#8a5a3b">
+    <rect x="58" y="248" width="5" height="32" />
+    <rect x="112" y="252" width="4" height="26" />
+    <rect x="198" y="250" width="5" height="28" />
+    <rect x="306" y="246" width="5" height="32" />
+    <rect x="372" y="252" width="4" height="26" />
+    <rect x="452" y="248" width="5" height="32" />
+    <rect x="530" y="254" width="4" height="24" />
+    <rect x="606" y="250" width="5" height="28" />
+  </g>
+  <g>
+    <circle cx="60" cy="238" r="16" fill="#4f9d5d" />
+    <path d="M114 222L128 256H100Z" fill="#3f8a50" />
+    <ellipse cx="200" cy="240" rx="18" ry="14" fill="#a6d785" />
+    <circle cx="308" cy="236" r="18" fill="#6cbf6a" />
+    <circle cx="296" cy="246" r="10" fill="#4f9d5d" />
+    <path d="M374 224L387 258H361Z" fill="#4f9d5d" />
+    <circle cx="454" cy="238" r="16" fill="#a6d785" />
+    <ellipse cx="532" cy="244" rx="14" ry="12" fill="#6cbf6a" />
+    <circle cx="608" cy="238" r="16" fill="#4f9d5d" />
+    <circle cx="620" cy="248" r="9" fill="#6cbf6a" />
+  </g>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+  <!-- Drawn for the bestax port of the Rent template; image-provenance.json records how. -->
+  <rect width="640" height="360" fill="#dbdbdb" />
+  <!-- A picture frame holding a hill and the sun, where a listing's photo goes. -->
+  <rect x="272" y="120" width="96" height="72" rx="8" fill="none" stroke="#b5b5b5" stroke-width="6" />
+  <circle cx="340" cy="142" r="9" fill="#b5b5b5" />
+  <path d="M278 186L306 152L328 176L340 164L362 186Z" fill="#b5b5b5" />
+  <text x="320" y="236" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#9a9a9a">640 × 360</text>
+</svg>

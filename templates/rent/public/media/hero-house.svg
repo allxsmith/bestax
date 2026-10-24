@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="561" height="275" viewBox="0 0 561 275">
+  <!-- Drawn for the bestax port of the Rent template; image-provenance.json records how. -->
+  <!-- A soft hill behind the house, the sun and two clouds. -->
+  <path d="M70 262C70 190 120 150 190 140C230 82 330 70 380 118C440 112 500 160 500 262Z" fill="#e2f5f1" />
+  <circle cx="452" cy="58" r="20" fill="#ffd66b" />
+  <path d="M410 82a14 14 0 0 1 14-14a18 18 0 0 1 33-4a13 13 0 0 1 20 11a9 9 0 0 1-2 18h-56a10 10 0 0 1-9-11z" fill="#fff" stroke="#26415e" stroke-width="2.5" stroke-linejoin="round" />
+  <path d="M96 64a10 10 0 0 1 10-10a14 14 0 0 1 26-3a10 10 0 0 1 14 9a7 7 0 0 1-1 14h-42a8 8 0 0 1-7-10z" fill="#fff" stroke="#26415e" stroke-width="2.5" stroke-linejoin="round" />
+
+  <!-- The tree on the left. -->
+  <rect x="127" y="200" width="9" height="62" rx="2" fill="#8a5a3b" />
+  <circle cx="131" cy="182" r="27" fill="#4fae7b" />
+  <circle cx="113" cy="200" r="17" fill="#4fae7b" />
+  <circle cx="150" cy="200" r="17" fill="#3f9a6a" />
+  <circle cx="123" cy="174" r="9" fill="#6cc08b" />
+
+  <!-- The garage. -->
+  <rect x="330" y="190" width="90" height="72" fill="#f4e2c4" stroke="#26415e" stroke-width="2.5" />
+  <path d="M322 192L346 164H418L432 192Z" fill="#26415e" />
+  <rect x="345" y="206" width="60" height="56" fill="#fff" stroke="#26415e" stroke-width="2.5" />
+  <path d="M345 216H405M345 226H405M345 236H405M345 246H405" stroke="#c9d3dd" stroke-width="2" />
+  <rect x="370" y="252" width="10" height="3" rx="1.5" fill="#26415e" />
+
+  <!-- The house: walls, roof, chimney. -->
+  <rect x="292" y="80" width="15" height="34" fill="#f2777a" stroke="#26415e" stroke-width="2.5" />
+  <rect x="190" y="132" width="140" height="130" fill="#fdf1dc" stroke="#26415e" stroke-width="2.5" />
+  <path d="M176 136L260 70L344 136Z" fill="#26415e" stroke="#26415e" stroke-width="2.5" stroke-linejoin="round" />
+  <path d="M196 132L260 82L324 132Z" fill="#00b39b" />
+  <circle cx="260" cy="112" r="10" fill="#bfe9f5" stroke="#fff" stroke-width="3" />
+
+  <!-- Upstairs windows, with sills. -->
+  <g fill="#bfe9f5" stroke="#26415e" stroke-width="2.5">
+    <rect x="206" y="148" width="38" height="32" />
+    <rect x="276" y="148" width="38" height="32" />
+    <rect x="206" y="202" width="42" height="34" />
+  </g>
+  <g stroke="#fff" stroke-width="3">
+    <path d="M225 149.5V178.5M207.5 164H242.5" />
+    <path d="M295 149.5V178.5M277.5 164H312.5" />
+    <path d="M227 203.5V234.5M207.5 219H246.5" />
+  </g>
+  <g fill="#26415e">
+    <rect x="202" y="180" width="46" height="5" rx="1" />
+    <rect x="272" y="180" width="46" height="5" rx="1" />
+    <rect x="202" y="236" width="50" height="5" rx="1" />
+  </g>
+  <rect x="236" y="166" width="8" height="12" rx="4" fill="#4fae7b" />
+
+  <!-- The front door, its step and the lamp beside it. -->
+  <rect x="270" y="202" width="36" height="60" rx="2" fill="#00b39b" stroke="#26415e" stroke-width="2.5" />
+  <rect x="276" y="208" width="24" height="18" rx="1" fill="#bfe9f5" />
+  <circle cx="298" cy="236" r="2.5" fill="#ffd66b" />
+  <rect x="264" y="258" width="48" height="5" rx="1" fill="#c9d3dd" />
+  <rect x="314" y="208" width="8" height="12" rx="2" fill="#ffd66b" stroke="#26415e" stroke-width="2" />
+
+  <!-- A bush at each corner. -->
+  <ellipse cx="190" cy="257" rx="20" ry="11" fill="#4fae7b" />
+  <ellipse cx="330" cy="258" rx="14" ry="8" fill="#6cc08b" />
+
+  <!-- The "For rent" sign. -->
+  <rect x="461" y="212" width="5" height="50" fill="#26415e" />
+  <rect x="438" y="196" width="51" height="28" rx="3" fill="#fff" stroke="#26415e" stroke-width="2.5" />
+  <text x="463.5" y="207" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="8" font-weight="700" fill="#26415e">FOR</text>
+  <text x="463.5" y="218" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="700" fill="#00a88f">RENT</text>
+
+  <!-- The ground. -->
+  <rect x="40" y="261" width="481" height="5" rx="2.5" fill="#26415e" />
+</svg>

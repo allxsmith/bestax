@@ -28,7 +28,8 @@ treats the folder as a project of its own.
   its sections, built from bestax components in place of the original's Bulma markup.
   `ListingCard.tsx` is the card they share.
 - `src/index.css` is the original's stylesheet, ported, after the Bulma variables that set back
-  the look it had on Bulma 0.8, and `public/media/` holds its images.
+  the look it had on Bulma 0.8, and `public/media/` holds the images drawn for this port (see
+  [Images](#images)).
 - Icons are Font Awesome, from its npm package.
 - The headings and buttons name Montserrat, as the original's do, without loading it, so they
   show it only where it is installed. To have it everywhere, load it from Google Fonts in
@@ -36,11 +37,11 @@ treats the folder as a project of its own.
 
 ## Changes from the original
 
-- The logo and the "Made with Bulma" badge are local copies of Bulma's own. The original
-  hot-links them from bulma.io at addresses that no longer exist, so both show as broken
-  images there.
-- The listing photos are a local copy of the placeholder image the original hot-links from a
-  placeholder service.
+- The logo is the site's name in type, and the "Made with Bulma" badge is a text link to
+  bulma.io. The original shows Bulma's logo and badge, a trademark the port draws no copy of,
+  hot-linked from bulma.io addresses that no longer exist, so both show as broken images there.
+- The listing photos are a placeholder drawn for this port, in place of the one the original
+  hot-links from a placeholder service. Put each listing's photo in its place.
 - "Sign in" opens the demo of aldi's
   [Bulma Login Template](https://github.com/aldi/bulma-login-template). The original links a
   login page awesome-bulma-templates no longer has.
@@ -56,6 +57,19 @@ treats the folder as a project of its own.
   the footer's links take the darker turquoise Bulma 1 makes for text. The original's white
   labels and bright links fall well short of the contrast text needs.
 - `index.html` pins Bulma's light scheme, as the original's design is light only.
+
+## Images
+
+Every image in `public/media/` was drawn for this port on October 23, 2026 by Claude, Anthropic's
+AI model, writing SVG markup by hand: the house in the hero, the small house beside "All
+marketplaces", the day and night skylines, and the listing placeholder. No photo, illustration,
+stock image or image-generation model went into them, and they trace no existing artwork. Each file
+is its own source: open it in a text editor to see every shape it draws. They replace the
+original's illustrations, whose source the original does not record, and the placeholder it
+hot-links, so this port ships no image of unknown origin.
+
+`image-provenance.json` records each image with its SHA-256 hash, so anyone can check that the file
+shipped is the one described here.
 
 ## License
 
