@@ -172,6 +172,32 @@ export const templates = [
     copyright: 'Copyright (c) 2020 lizzli',
     tags: ['event', 'landing', 'carousel'],
   },
+  {
+    slug: 'tropico',
+    title: 'Tropico',
+    description:
+      'A fruit shop with home, fruits, services and contact pages, a welcome carousel and testimonials.',
+    author: { name: 'restylianos', url: 'https://github.com/restylianos' },
+    source: 'https://github.com/restylianos/bulma-tropico-template',
+    sourceSha: '0f019f6ed36459d63f4466783f5c101f07a48490',
+    demo: 'https://restylianos.github.io/bulma-tropico-template/',
+    license: 'MIT',
+    copyright: 'Copyright (c) 2021 lizzli',
+    tags: ['business', 'multipage', 'carousel'],
+  },
+  {
+    slug: 'hotel',
+    title: 'Hotel',
+    description:
+      'A one-page hotel site with rooms and a details modal, a photo gallery carousel, and a contact form beside a map.',
+    author: { name: 'aldi', url: 'https://github.com/aldi' },
+    source: 'https://github.com/aldi/bulma-hotel-template',
+    sourceSha: '2f7a1cfdcd96e97dd084aaf27a92ef98ed14bc28',
+    demo: 'https://aldi.github.io/bulma-hotel-template/',
+    license: 'MIT',
+    copyright: 'Copyright (c) 2020 aldi (aldi)',
+    tags: ['landing', 'business', 'carousel'],
+  },
 ];
 
 /** Favorites first, then by title. */
