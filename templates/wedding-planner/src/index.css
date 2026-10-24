@@ -155,12 +155,10 @@ hr.rounded {
 }
 
 /*
- * bulma-carousel's `is-covered`: each photo fills its frame, cropped rather
- * than stretched. The height holds the photo to its 16:9 frame, which
- * Carousel's own `img { height: auto }` would otherwise let it overflow.
+ * bulma-carousel's `is-covered`: each photo fills its 16:9 frame, cropped
+ * rather than stretched.
  */
 #gallery .image img {
-  height: 100%;
   object-fit: cover;
   object-position: center center;
 }
