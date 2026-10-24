@@ -38,6 +38,12 @@ to the CLI (`--css`, `--no-deps`, `--extensions`).
 Codemod's own `--dry-run` skips shell steps, so it shows nothing for this
 package. Use `--workflow preview` instead.
 
+A file that fails to migrate, such as one that doesn't parse, is named in the
+output and makes the CLI exit 1 in either workflow, while the other files go
+through as usual. Fix that file and run the codemod again. The
+[README](https://github.com/allxsmith/bestax/tree/main/bestax-migrate#exit-codes)
+lists every exit code.
+
 ## After it runs
 
 1. Run your package manager's install. The codemod rewrote `package.json` but

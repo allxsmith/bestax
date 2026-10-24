@@ -139,9 +139,29 @@ function makeTempProject(): string {
   return dir;
 }
 
-async function runCli(
+/**
+ * Runs `program` and hands back the exit code it left, restoring the
+ * process's own: a code left set would become the test run's.
+ */
+async function exitCodeOf(
+  program: ReturnType<typeof createCLI>,
   args: string[]
-): Promise<{ logs: string[]; errors: string[] }> {
+): Promise<typeof process.exitCode> {
+  const original = process.exitCode;
+  process.exitCode = undefined;
+  try {
+    await program.parseAsync(['node', 'bestax-migrate', ...args]);
+    return process.exitCode;
+  } finally {
+    process.exitCode = original;
+  }
+}
+
+async function runCli(args: string[]): Promise<{
+  logs: string[];
+  errors: string[];
+  exitCode: typeof process.exitCode;
+}> {
   const logs: string[] = [];
   const errors: string[] = [];
   const program = createCLI({
@@ -149,8 +169,8 @@ async function runCli(
     error: m => errors.push(m),
   });
   program.exitOverride();
-  await program.parseAsync(['node', 'bestax-migrate', ...args]);
-  return { logs, errors };
+  const exitCode = await exitCodeOf(program, args);
+  return { logs, errors, exitCode };
 }
 
 describe('collectFiles', () => {
@@ -650,18 +670,15 @@ describe('HTML pages', () => {
     SOURCES[pages.name] = pages;
     try {
       const dir = site({ 'a.html': bulmaPage, 'b.html': bulmaPage });
-      const errors: string[] = [];
-      const program = createCLI({ log: () => {}, error: m => errors.push(m) });
-      program.exitOverride();
-      await program.parseAsync([
-        'node',
-        'bestax-migrate',
+      const { logs, errors, exitCode } = await runCli([
         'fake-pages',
         path.join(dir, 'a.html'),
         path.join(dir, 'b.html'),
       ]);
       expect(errors.join('\n')).toContain('a.html: cannot read it');
       expect(fs.readFileSync(path.join(dir, 'b.jsx'), 'utf8')).toBe('x\n');
+      expect(logs.join('\n')).toContain('1 transformed, 1 failed');
+      expect(exitCode).toBe(1);
     } finally {
       delete SOURCES[pages.name];
     }
@@ -776,15 +793,68 @@ describe('CLI', () => {
     expect(print?.description).toContain('still writes them unless --dry');
   });
 
-  it('reports files that fail to parse and continues', async () => {
+  it('reports files that fail to parse, continues, and exits 1', async () => {
     const dir = makeTempProject();
-    fs.writeFileSync(path.join(dir, 'src', 'broken.tsx'), 'const = <<>;\n');
-    const { logs, errors } = await runCli([
+    const broken = path.join(dir, 'src', 'broken.tsx');
+    fs.writeFileSync(broken, 'const = <<>;\n');
+    const { logs, errors, exitCode } = await runCli([
       'react-bulma-components',
       path.join(dir, 'src'),
     ]);
-    expect(errors.join('\n')).toContain('broken.tsx');
-    expect(logs.join('\n')).toContain('3 transformed');
+    expect(errors.join('\n')).toContain(`✖ ${broken}: `);
+    const text = logs.join('\n');
+    expect(text).toContain('3 transformed, 1 failed');
+    expect(text).toContain(`failed (1)\n    ${broken} — `);
+    expect(text).toContain('fix each one and run the codemod on it again');
+    expect(fs.readFileSync(broken, 'utf8')).toBe('const = <<>;\n');
+    expect(fs.readFileSync(path.join(dir, 'src', 'App.tsx'), 'utf8')).toContain(
+      '@allxsmith/bestax-bulma'
+    );
+    expect(exitCode).toBe(1);
+  });
+
+  it('exits 1 under --dry too, and 0 once every file migrates', async () => {
+    const dir = makeTempProject();
+    const broken = path.join(dir, 'src', 'broken.tsx');
+    fs.writeFileSync(broken, 'const = <<>;\n');
+    const dry = await runCli([
+      'react-bulma-components',
+      path.join(dir, 'src'),
+      '--dry',
+    ]);
+    expect(dry.exitCode).toBe(1);
+    fs.writeFileSync(broken, 'export const fixed = 1;\n');
+    const { logs, exitCode } = await runCli([
+      'react-bulma-components',
+      path.join(dir, 'src'),
+    ]);
+    expect(logs.join('\n')).not.toContain('failed');
+    expect(exitCode).toBeUndefined();
+  });
+
+  it('exits 1 for a package.json it cannot read, after the sources', async () => {
+    const dir = makeTempProject();
+    fs.writeFileSync(path.join(dir, 'package.json'), '{ not json\n');
+    const { logs, errors, exitCode } = await runCli([
+      'react-bulma-components',
+      path.join(dir, 'src'),
+    ]);
+    expect(errors.join('\n')).toContain(
+      `✖ ${path.join(dir, 'package.json')}: `
+    );
+    expect(logs.join('\n')).toContain('2 transformed, 1 failed');
+    expect(logs.join('\n')).not.toContain('Updated ');
+    expect(exitCode).toBe(1);
+  });
+
+  it('documents its exit codes in --help', () => {
+    const program = createCLI();
+    let help = '';
+    program.configureOutput({ writeOut: text => (help += text) });
+    program.exitOverride();
+    expect(() => program.parse(['node', 'bestax-migrate', '--help'])).toThrow();
+    expect(help).toContain('Exit codes:');
+    expect(help).toMatch(/^ {2}1 +a file failed to migrate/m);
   });
 
   it('migrates SCSS files and updates package.json dependencies', async () => {
@@ -983,6 +1053,22 @@ describe('CLI telemetry', () => {
     process.env.DO_NOT_TRACK = '1';
     const dir = makeTempProject();
     await runCli(['react-bulma-components', path.join(dir, 'src')]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('a run with a failed file', () => {
+  it('ends at its report: no nudge, no prompt and no telemetry', async () => {
+    setTTY(process.stdout, true);
+    const dir = makeTempProject();
+    fs.writeFileSync(path.join(dir, 'src', 'broken.tsx'), 'const = <<>;\n');
+    const { logs, exitCode } = await runCli([
+      'react-bulma-components',
+      path.join(dir, 'src'),
+      '--telemetry',
+    ]);
+    expect(exitCode).toBe(1);
+    expect(logs.join('\n')).not.toContain('star us on GitHub');
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });

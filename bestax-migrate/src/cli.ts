@@ -10,7 +10,9 @@
  * .html/.htm → a new module beside the page, for a source that reads HTML),
  * updates the nearest package.json (unless --no-deps), writes results back
  * (unless --dry), and prints the run report. TODO annotations are expected
- * output — the exit code is 0 whenever the run itself succeeds.
+ * output, and leave the exit code at 0. A file that fails to migrate (one
+ * that doesn't parse, say) makes it 1, once every other file has been
+ * migrated: see `EXIT_CODES`.
  */
 
 import fs from 'node:fs';
@@ -42,6 +44,20 @@ const SKIP_DIRS = new Set([
 
 const STYLE_EXTENSIONS = new Set(['scss', 'sass']);
 const CSS_MODES: CssMode[] = ['bestax', 'bulma', 'keep'];
+
+/**
+ * The exit codes, for `--help` and the README's "Exit codes", which says the
+ * same. Commander exits 1 on a command line it refuses, and so does the bin
+ * entry on a Node older than it supports.
+ */
+const EXIT_CODES = [
+  'Exit codes:',
+  '  0    the run finished; TODO(bestax-migrate) comments are expected output',
+  '  1    a file failed to migrate, such as one that does not parse (each is',
+  '       marked ✖ and listed in the report, and the other files are still',
+  '       migrated), or the command was refused before the run',
+  '  130  Ctrl-C at the telemetry question, after the run',
+].join('\n');
 
 /** HTML pages, which only a source with `htmlExtensions` reads. */
 const HTML_EXTENSIONS = ['html', 'htm'];
@@ -277,7 +293,7 @@ function migrateFiles(
     const collector = reporter.startFile();
     const extension = extensionOf(file);
     if (source.transformHtml && source.htmlExtensions?.includes(extension)) {
-      const written = migrateHtmlPage(
+      const page = migrateHtmlPage(
         source.transformHtml,
         file,
         sourceText,
@@ -285,6 +301,11 @@ function migrateFiles(
         io,
         { ...options, project }
       );
+      if ('error' in page) {
+        reporter.failFile(file, page.error, collector.entries);
+        continue;
+      }
+      const written = page.written;
       // The module is what the app will import from, as a JSX file's output
       // is: one that imports bulma/… needs `bulma` declared.
       if (written !== null && /['"](?:~?bulma\/)/.test(written)) {
@@ -309,14 +330,15 @@ function migrateFiles(
         }).output;
       }
     } catch (error) {
-      io.error(chalk.red(`✖ ${file}: ${(error as Error).message}`));
+      const message = (error as Error).message;
+      io.error(chalk.red(`✖ ${file}: ${message}`));
       // Read the signals off the ORIGINAL text before bailing. A parse
       // failure in the only file importing the source library would
       // otherwise let the manifest pass remove the package with no warning —
       // the file still imports it, we just couldn't rewrite it.
       if (/['"](?:~?bulma\/)/.test(sourceText)) bulmaReferenced = true;
       if (importsSource(sourceImportRe, sourceText)) sourceStillImported = true;
-      reporter.finishFile(file, false, collector.entries);
+      reporter.failFile(file, message, collector.entries);
       continue;
     }
     if (/['"](?:~?bulma\/)/.test(output ?? sourceText)) {
@@ -337,7 +359,7 @@ function migrateFiles(
 /**
  * One HTML page: its module is written beside it (never over a file already
  * there; the source checks), and the page itself is left as it was. Returns
- * the module, or null when there is none to write.
+ * the module, null when there is none to write, or why the page failed.
  */
 function migrateHtmlPage(
   transformHtml: HtmlTransform,
@@ -346,7 +368,7 @@ function migrateHtmlPage(
   collector: TodoCollector,
   io: CliIo,
   options: RunOptions & { project: object }
-): string | null {
+): { written: string | null } | { error: string } {
   let result: HtmlResult;
   try {
     result = transformHtml(file, sourceText, collector, {
@@ -354,10 +376,11 @@ function migrateHtmlPage(
       cssMode: options.cssMode,
     });
   } catch (error) {
-    io.error(chalk.red(`✖ ${file}: ${(error as Error).message}`));
-    return null;
+    const message = (error as Error).message;
+    io.error(chalk.red(`✖ ${file}: ${message}`));
+    return { error: message };
   }
-  if (result.output === null) return null;
+  if (result.output === null) return { written: null };
   if (options.print) io.log(result.output);
   if (options.dry) {
     io.log(chalk.yellow(`Would write ${result.outputPath} from ${file}.`));
@@ -365,7 +388,7 @@ function migrateHtmlPage(
     fs.writeFileSync(result.outputPath, result.output);
     io.log(chalk.green(`Wrote ${result.outputPath} from ${file}.`));
   }
-  return result.output;
+  return { written: result.output };
 }
 
 /**
@@ -475,6 +498,7 @@ function migrateDependencies(
   for (const pkgPath of findPackageJsons(targets)) {
     const collector = reporter.startFile();
     let changed = false;
+    let failure: string | undefined;
     try {
       const raw = fs.readFileSync(pkgPath, 'utf8');
       const pkg = JSON.parse(raw);
@@ -493,7 +517,12 @@ function migrateDependencies(
         }
       }
     } catch (error) {
-      io.error(chalk.red(`✖ ${pkgPath}: ${(error as Error).message}`));
+      failure = (error as Error).message;
+      io.error(chalk.red(`✖ ${pkgPath}: ${failure}`));
+    }
+    if (failure !== undefined) {
+      reporter.failFile(pkgPath, failure, collector.entries);
+      continue;
     }
     reporter.finishFile(pkgPath, changed, collector.entries);
     if (changed) {
@@ -644,6 +673,7 @@ export function createCLI(
       'enable anonymous usage telemetry (https://bestax.io/docs/guides/telemetry)'
     )
     .option('--no-telemetry', 'disable anonymous usage telemetry')
+    .addHelpText('after', `\n${EXIT_CODES}`)
     .action(async (sourceName: string, targets: string[], options) => {
       const source = getSource(sourceName);
       if (!source) {
@@ -733,6 +763,17 @@ export function createCLI(
       io.log(
         reporter.render(source.label + (runOptions.dry ? ' (dry run)' : ''))
       );
+
+      // A file that failed leaves the migration unfinished, whatever the
+      // rest did, so the exit code says so: a script or CI step that runs
+      // the codemod must not read it as success. Every other file has been
+      // migrated by now. Not `program.error`, which exits at once and could
+      // cut the report short on its way down a pipe. The run is not a
+      // successful one, so it ends here, with no nudge and no telemetry.
+      if (reporter.failures.length > 0) {
+        process.exitCode = 1;
+        return;
+      }
 
       displayStarNudge(io);
 

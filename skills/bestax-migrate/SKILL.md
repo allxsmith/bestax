@@ -57,6 +57,10 @@ Run these steps in order. Don't hand-convert what the codemod converts automatic
    entry, and port each script's work into the component. Under `--css bestax` or `--css bulma`
    the module imports the stylesheet in place of the page's Bulma `<link>`.
 
+   A file that fails to migrate, such as one that doesn't parse, is marked `✖`, listed under
+   `failed` in the report and left as it was, and the run exits 1 while every other file still
+   converts. Fix that file and run the codemod on it again. TODOs alone leave the exit code at 0.
+
 2. **Apply it** (same command without `--dry`), then run the project's formatter — the
    codemod preserves surrounding formatting but doesn't prettify what it rewrites.
    Besides the components, it also migrates **stylesheets** (CSS imports →

@@ -93,6 +93,17 @@ Run it from your app root. `--param paths="src lib"` (default `src`) and `--para
 | `--css <mode>`       | Stylesheet target: `bestax`, `bulma`, or `keep` (default `bestax`; `keep` for `bulma-classes`) |
 | `--no-deps`          | Skip updating package.json dependencies                                                        |
 
+## Exit codes
+
+| Code  | Meaning                                                                                                                                                                                                                                 |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `0`   | The run finished. TODOs are expected output and leave it at 0                                                                                                                                                                           |
+| `1`   | A file failed to migrate, such as one that doesn't parse. It is marked `✖`, listed in the report and left as it was, and every other file is still migrated. Fix it and run the codemod on it again. A run like that sends no telemetry |
+| `1`   | The command was refused before the run: an unknown source, flag or `--css` mode, a path that isn't there, an HTML page for a source that reads none, or Node older than 22                                                              |
+| `130` | Ctrl-C at the telemetry question, which comes after the run                                                                                                                                                                             |
+
+`--help` lists them too. With `--dry`, a file that fails to parse still makes the exit code 1, so a preview in CI catches it.
+
 ## After the codemod
 
 1. Run your package manager's install (the codemod rewrote `package.json` but never installs)

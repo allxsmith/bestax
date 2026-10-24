@@ -99,6 +99,8 @@ export interface FileResult {
   file: string;
   changed: boolean;
   todos: TodoEntry[];
+  /** Why the file failed to migrate, when it did. */
+  error?: string;
 }
 
 /** Collects TODO entries for the file currently being transformed. */
