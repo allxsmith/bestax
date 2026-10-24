@@ -172,6 +172,19 @@ export const templates = [
     copyright: 'Copyright (c) 2020 lizzli',
     tags: ['event', 'landing', 'carousel'],
   },
+  {
+    slug: 'tropico',
+    title: 'Tropico',
+    description:
+      'A fruit shop with home, fruits, services and contact pages, a welcome carousel and testimonials.',
+    author: { name: 'restylianos', url: 'https://github.com/restylianos' },
+    source: 'https://github.com/restylianos/bulma-tropico-template',
+    sourceSha: '0f019f6ed36459d63f4466783f5c101f07a48490',
+    demo: 'https://restylianos.github.io/bulma-tropico-template/',
+    license: 'MIT',
+    copyright: 'Copyright (c) 2021 lizzli',
+    tags: ['business', 'multipage', 'carousel'],
+  },
 ];
 
 /** Favorites first, then by title. */
