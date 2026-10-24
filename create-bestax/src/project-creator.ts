@@ -43,6 +43,7 @@ import {
   type ClaudeMdOptions,
 } from './constants.js';
 import { detectPackageManager } from './package-manager.js';
+import { LIBRARY, libraryRange } from './library-range.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -727,6 +728,9 @@ export class ProjectCreator {
     }
 
     try {
+      // Read before the directory is emptied, so a failed read costs nothing.
+      const libraryDependency = { [LIBRARY]: libraryRange() };
+
       if (directoryPlan === 'overwrite') {
         console.log(chalk.yellow(MESSAGES.EMPTYING_DIRECTORY(targetDir)));
         await emptyDirectory(targetPath);
@@ -741,7 +745,7 @@ export class ProjectCreator {
       }
 
       await this.copyTemplate(template, targetPath);
-      await updatePackageJson(targetPath, packageName);
+      await updatePackageJson(targetPath, packageName, libraryDependency);
       await this.updateIndexHtmlTitle(targetPath, projectName);
       await this.updateReadme(targetPath, iconLibrary);
       await this.setupBulmaFlavor(targetPath, bulmaFlavor, template);

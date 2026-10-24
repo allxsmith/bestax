@@ -58,10 +58,20 @@ jest.unstable_mockModule('../telemetry.js', () => ({
   reportScaffold: jest.fn(async () => undefined),
 }));
 
+// The range this CLI's manifest gives the library, as a published build
+// reads it. library-range.test.ts covers the read itself.
+const LIBRARY_RANGE = '^5.43.0';
+const LIBRARY_DEPENDENCY = { '@allxsmith/bestax-bulma': LIBRARY_RANGE };
+jest.unstable_mockModule('../library-range.js', () => ({
+  LIBRARY: '@allxsmith/bestax-bulma',
+  libraryRange: jest.fn(() => LIBRARY_RANGE),
+}));
+
 const fs = await import('fs-extra');
 const prompts = (await import('prompts')).default;
 const fileSystem = await import('../file-system.js');
 const telemetry = await import('../telemetry.js');
+const { libraryRange } = await import('../library-range.js');
 const { ProjectCreator } = await import('../project-creator.js');
 const listDirectoryEntries =
   fileSystem.listDirectoryEntries as jest.MockedFunction<
@@ -2370,6 +2380,21 @@ describe('ProjectCreator', () => {
       }
     );
 
+    it('reads the library range before emptying, so a failed read leaves the files (#1240)', async () => {
+      (libraryRange as jest.Mock).mockImplementationOnce(() => {
+        throw new Error('package.json declares no @allxsmith/bestax-bulma.');
+      });
+
+      await expect(
+        projectCreator.create('demo', { yes: true, overwrite: true })
+      ).rejects.toThrow('process.exit called');
+
+      expect(mockExit).toHaveBeenCalledWith(1);
+      expect(fileSystem.emptyDirectory).not.toHaveBeenCalled();
+      expect(fileSystem.copyDirectory).not.toHaveBeenCalled();
+      expect(errorOutput()).toContain('declares no @allxsmith/bestax-bulma');
+    });
+
     it('accepting removal empties the directory only after the last prompt', async () => {
       answerPrompts();
 
@@ -2400,7 +2425,8 @@ describe('ProjectCreator', () => {
 
         expect(fileSystem.updatePackageJson).toHaveBeenCalledWith(
           expect.stringMatching(new RegExp(`${folder}$`)),
-          packageName
+          packageName,
+          LIBRARY_DEPENDENCY
         );
         expect(console.log).toHaveBeenCalledWith(
           expect.stringContaining(`package.json name: ${packageName}`)
@@ -2413,7 +2439,8 @@ describe('ProjectCreator', () => {
 
       expect(fileSystem.updatePackageJson).toHaveBeenCalledWith(
         expect.stringMatching(/my-app$/),
-        'my-app'
+        'my-app',
+        LIBRARY_DEPENDENCY
       );
       expect(console.log).not.toHaveBeenCalledWith(
         expect.stringContaining('package.json name')
@@ -2471,7 +2498,8 @@ describe('ProjectCreator', () => {
         );
         expect(fileSystem.updatePackageJson).toHaveBeenCalledWith(
           targetPath,
-          'login'
+          'login',
+          LIBRARY_DEPENDENCY
         );
         expect(writtenTitle()).toBe('login');
         expect(prompts).not.toHaveBeenCalled();
@@ -2486,7 +2514,8 @@ describe('ProjectCreator', () => {
 
       expect(fileSystem.updatePackageJson).toHaveBeenCalledWith(
         path.join(scratch, 'MyApp'),
-        'myapp'
+        'myapp',
+        LIBRARY_DEPENDENCY
       );
       expect(writtenTitle()).toBe('MyApp');
     });

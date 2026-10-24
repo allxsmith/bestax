@@ -52,11 +52,12 @@ fix.
    Then strip the lint setup: delete `eslint.config.js`, the `lint` script and the lint
    devDependencies, the same packages the docs StackBlitz builder drops (`isLintPackage` in
    `docs/src/theme/CodeBlock/sandbox/projects.mjs`). Drop the starter page the port replaces too:
-   `src/App.css` and the logos in `public/`, with the favicon link that names one. Give
-   `@allxsmith/bestax-bulma` the caret range of bulma-ui's version in this checkout
-   (`bulma-ui/package.json`), since the templates test refuses a floor newer than that; npm still
-   installs the newest release in the range. Copy the result into `templates/<slug>/` without
-   `node_modules`.
+   `src/App.css` and the logos in `public/`, with the favicon link that names one. A build of
+   create-bestax from this checkout gives `@allxsmith/bestax-bulma` the caret range of bulma-ui's
+   version here (`bulma-ui/package.json`). `npm create bestax@latest` gives the release that
+   create-bestax was published with, which can be older, so raise it to that range. The templates
+   test refuses a floor newer than bulma-ui's version; npm still installs the newest release in the
+   range. Copy the result into `templates/<slug>/` without `node_modules`.
 
 3. **Convert.** Copy the upstream page into a scratch folder of its own, with the images it uses
    beside it at the same relative paths, so the codemod reports each relative URL to one as
