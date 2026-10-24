@@ -1,3 +1,29 @@
+# [5.43.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.42.1...@allxsmith/bestax-bulma@5.43.0) (2026-10-24)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** name bulma-carousel's loop beside infinite, and qualify its breakpoints ([ef76e29](https://github.com/allxsmith/bestax/commit/ef76e296b1c7112bdd8434dc4220e664ad11c529))
+* **bestax-migrate:** name Carousel's several-in-view props in the carousel TODOs ([cf01c3e](https://github.com/allxsmith/bestax/commit/cf01c3ef998a6d682243da9b061b1df1fdea4cd1))
+* **bestax-migrate:** say Carousel loops by default and how bulma-carousel's breakpoints carry over ([0b090f5](https://github.com/allxsmith/bestax/commit/0b090f586148932809f7f321b6c7dc1e04ab22da))
+* **bulma-ui:** fail a partial PinInput code in constraint validation ([8c40bfb](https://github.com/allxsmith/bestax/commit/8c40bfb69cbd70839b370d590d3fbc2f7ea4d952)), closes [#1242](https://github.com/allxsmith/bestax/issues/1242)
+* **bulma-ui:** keep a PinInput code to its length ([c267247](https://github.com/allxsmith/bestax/commit/c267247ced024f80ad474d072a8f50e8b6aad166)), closes [#1242](https://github.com/allxsmith/bestax/issues/1242)
+* **bulma-ui:** keep a ratio Image in a carousel slide inside its frame ([bb81aee](https://github.com/allxsmith/bestax/commit/bb81aeed7e84367e57f166c9ffb82a2d2310e5e6))
+* **bulma-ui:** take PinInput digits from any script as ASCII ([46571ce](https://github.com/allxsmith/bestax/commit/46571ce37972fc52c11bccdbe105e956764f9576)), closes [#1242](https://github.com/allxsmith/bestax/issues/1242)
+* **docs:** hot-link the Wedding Planner template's Icons8 logo as the original does ([22073de](https://github.com/allxsmith/bestax/commit/22073defcc9d9a6b51915a3b247566799b39aac3))
+* **docs:** make the Rent template's Go! button submit its search form ([abf405f](https://github.com/allxsmith/bestax/commit/abf405f650f9f5556b14c2e6c7f44f78ca217303))
+* **docs:** skip Wedding Planner's smooth scroll under reduced motion, and name its placeholders ([e369f00](https://github.com/allxsmith/bestax/commit/e369f00776f64986a973277b87d58a60919e5e30))
+
+
+### Features
+
+* **bulma-ui:** add PinInput, a one-time-code field drawn as boxes ([e74cc99](https://github.com/allxsmith/bestax/commit/e74cc994b80c0d8679ad84cb7b6702edf739ced3)), closes [#1242](https://github.com/allxsmith/bestax/issues/1242)
+* **docs:** add Event Participation template, ported from aldi's bulma-event-participation-template ([#1230](https://github.com/allxsmith/bestax/issues/1230)) ([072a012](https://github.com/allxsmith/bestax/commit/072a012995d264574cf456b3f55001b3310a3823))
+* **docs:** add the Coming Soon template, ported from aldi's bulma-coming-soon-template ([#1228](https://github.com/allxsmith/bestax/issues/1228)) ([c57e6ea](https://github.com/allxsmith/bestax/commit/c57e6ea9a65e5b86059f58e7b09fff1621e24e10))
+* **docs:** add the CV template, ported from aldi's bulma-cv-template ([5037265](https://github.com/allxsmith/bestax/commit/50372655507f951367377eebb78a709242e397b9))
+* **docs:** add the Rent template, ported from aldi's bulma-rent-template ([1b44387](https://github.com/allxsmith/bestax/commit/1b44387a598d48a41477661ce4e7dace5600cf39))
+* **docs:** add Wedding Planner template, ported from restylianos's bulma-wedding-planner-template ([c9aa0f6](https://github.com/allxsmith/bestax/commit/c9aa0f620b34accea031c4d1f421e0c4c2e72300))
+
 ## [5.42.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.42.0...@allxsmith/bestax-bulma@5.42.1) (2026-10-22)
 
 

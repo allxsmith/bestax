@@ -1,0 +1,361 @@
+/*
+ * The original's stylesheet (css/styles.css), ported, after what Bulma 1
+ * changed from the Bulma 0.9 the original was made for. The page is light
+ * only: index.html pins Bulma's light scheme with data-theme="light".
+ */
+
+/* ---- Bulma 0.9's look, set back on Bulma 1 ------------------------------ */
+
+:root {
+  /*
+   * Bulma's turquoise primary, from stock Bulma 1's bulma.css: bestax builds
+   * Bulma with a blue one. The invert and the on-scheme lightness go with the
+   * trio, since bestax's build fixed both for its blue.
+   */
+  --bulma-primary-h: 171deg;
+  --bulma-primary-s: 100%;
+  --bulma-primary-l: 41%;
+  --bulma-primary-invert-l: var(--bulma-primary-05-l);
+  --bulma-primary-on-scheme-l: 21%;
+  /* Bulma 0.9's green, which Bulma 1 turned towards teal. */
+  --bulma-success-h: 141deg;
+  /* Bulma 0.9's system font for buttons and fields; the body sets its own. */
+  --bulma-family-primary:
+    BlinkMacSystemFont, -apple-system, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Helvetica',
+    'Arial', sans-serif;
+  --bulma-link-h: 217deg;
+  --bulma-link-s: 71%;
+  --bulma-link-l: 53%;
+  --bulma-radius: 4px;
+  --bulma-radius-medium: 4px;
+  /* Bulma 0.9's burger had thinner, shorter bars. */
+  --bulma-burger-item-height: 1px;
+  --bulma-burger-item-width: 16px;
+  /* Bulma 1 tints its greys blue; Bulma 0.9's were neutral. */
+  --bulma-scheme-h: 0;
+  --bulma-scheme-s: 0%;
+  --bulma-text-h: 0deg;
+  --bulma-text-s: 0%;
+}
+
+.title {
+  --bulma-title-weight: 600;
+}
+
+/* Bulma 0.9 left a 0.25rem gap between a title and its subtitle; Bulma 1 leaves none. */
+.title:not(.is-spaced):has(+ .subtitle) {
+  margin-bottom: 0.25rem;
+}
+
+.content {
+  --bulma-content-heading-weight: 600;
+}
+
+.button {
+  --bulma-button-weight: 400;
+  --bulma-button-outer-shadow-a: 0;
+}
+
+.label {
+  font-weight: 700;
+}
+
+.box {
+  --bulma-box-radius: 6px;
+  --bulma-box-shadow:
+    0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1),
+    0 0px 0 1px rgba(10, 10, 10, 0.02);
+}
+
+.card {
+  --bulma-card-radius: 0;
+  --bulma-card-shadow:
+    0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1),
+    0 0px 0 1px rgba(10, 10, 10, 0.02);
+}
+
+/* Bulma 1 doubles a hero's side padding from the tablet breakpoint up. */
+.hero {
+  --bulma-hero-body-padding-tablet: 3rem 1.5rem;
+}
+
+.navbar {
+  --bulma-navbar-burger-color: #4a4a4a;
+}
+
+/* Bulma 0.9 gave a hovered burger a faint black, where Bulma 1 tints it with the link color. */
+.navbar-burger:hover,
+.navbar-burger:active {
+  background-color: rgba(10, 10, 10, 0.05);
+}
+
+/*
+ * Bulma 0.9 gave a hovered navbar item a light fill and the link color, and
+ * from the desktop breakpoint up marked the active one by its color alone,
+ * where Bulma 1 fills it with the link color.
+ */
+.navbar a.navbar-item:hover,
+.navbar a.navbar-item:focus,
+.navbar a.navbar-item:focus-within,
+.navbar a.navbar-item.is-active {
+  background-color: #fafafa;
+  color: #3273dc;
+}
+
+@media screen and (min-width: 1024px) {
+  .navbar a.navbar-item.is-active {
+    color: #0a0a0a;
+  }
+
+  .navbar a.navbar-item.is-active:not(:focus):not(:hover) {
+    background-color: transparent;
+  }
+}
+
+/* ---- The original's own rules ------------------------------------------- */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Helvetica', 'Roboto', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  background-color: #f0f0f0;
+}
+
+.main_hero {
+  background-image: url('/media/background.webp');
+  background-size: cover;
+}
+
+a {
+  color: #fff;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+}
+
+/*
+ * Bulma 1 sizes a button through `--bulma-control-size`, which its size
+ * modifiers set, so the original's `font-size: 14px` on `a.button` sets that
+ * instead and a medium or normal button keeps its size, as it did.
+ */
+a.button {
+  --bulma-control-size: 14px;
+}
+
+/*
+ * The rooms' buttons, which the original styled as `a.is-primary`. Bulma 1
+ * gives a colored button no border and pads it for none, so the border the
+ * rule draws goes back into the padding's sums.
+ */
+.button.room-details {
+  --bulma-control-size: 14px;
+  --bulma-button-border-width: 1px;
+  background-color: #03b2e3 !important;
+  border: 1px solid #03b2e3 !important;
+}
+
+.button.room-details:hover {
+  background-color: transparent !important;
+  color: #000 !important;
+}
+
+.main_title {
+  color: #fff;
+}
+
+.columns {
+  flex-wrap: wrap;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 2em;
+  border-radius: 5px;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(60px);
+  }
+}
+
+svg #wheel {
+  animation: scroll ease 2s infinite;
+}
+
+.rooms {
+  background-color: #fff;
+  padding: 1em;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.reception-image img {
+  background-color: #fff;
+  padding: 10px;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.reception-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 70%;
+  margin: 0 auto;
+  padding: 1em 2em;
+  background-color: #fff;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.reception-item i {
+  width: 20px;
+}
+
+.reception-item a {
+  color: #000;
+}
+
+.reception-item .button {
+  border: 1px solid #03b2e3;
+  width: 50px;
+}
+
+.reception-item .button:hover {
+  background-color: #03b2e3;
+  color: #fff;
+}
+
+.mobile-only {
+  display: none;
+}
+
+@media only screen and (max-width: 769px) {
+  .reception-item {
+    width: 100%;
+    padding: 1em;
+  }
+
+  .mobile-only {
+    display: block;
+  }
+}
+
+@media only screen and (max-width: 350px) {
+  .mobile-only {
+    display: none;
+  }
+}
+
+iframe {
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+/*
+ * bulma-carousel's rule for its `is-covered` images: the photo fills its
+ * frame. The height is only for bestax-bulma releases before #1166's fix,
+ * where Carousel's `.carousel-item img { height: auto }` tied Bulma's ratio
+ * rule; it can go once the template's range starts at a release with it.
+ */
+.image.is-covered img {
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+}
+
+/* bulma-carousel's arrows: white circles at the gallery's edges. */
+.carousel.hotel-gallery {
+  --bulma-carousel-arrow-size: 42px;
+  --bulma-carousel-arrow-size-mobile: 42px;
+  --bulma-carousel-arrow-background: #fff;
+  --bulma-carousel-arrow-background-hover: #fff;
+  --bulma-carousel-arrow-color: #0a0a0a;
+  --bulma-carousel-arrow-radius: 9999px;
+  --bulma-carousel-arrow-offset: 0;
+  --bulma-carousel-arrow-offset-mobile: 0;
+}
+
+/*
+ * The contact box was the original's `.columns` too, so it reached out as
+ * far as the columns' negative margins; the columns inside it sit flat.
+ */
+.contact-box {
+  margin: -0.75rem;
+}
+
+footer {
+  background-color: #344157;
+  border-top: 3px solid #03b2e3;
+  color: #fff !important;
+}
+
+.footer_title {
+  color: #fff !important;
+}
+
+.newsletter-form {
+  display: flex;
+}
+
+.newsletter-form input {
+  width: 100%;
+  height: 40px;
+  border: 0;
+  outline: none;
+  padding: 0 15px;
+  font-size: 14px;
+  background-color: #5c677b;
+  color: #fff;
+}
+
+.newsletter-form ::placeholder {
+  color: #fff;
+}
+
+.newsletter-form button {
+  width: 50px;
+  height: 40px;
+  font-size: 16px;
+  color: #fff;
+  background-color: #d77b5d;
+  outline: none;
+  border: 0;
+}
+
+/* The original takes the outline off both; keyboard focus gets a ring back. */
+.newsletter-form input:focus-visible,
+.newsletter-form button:focus-visible {
+  outline: 2px solid #03b2e3;
+  outline-offset: 2px;
+}
+
+.main-text {
+  color: white;
+  text-shadow: 4px 4px 12px #29211b;
+}
+
+.navbar {
+  box-shadow: none;
+}
+
+.navbar-item {
+  color: #484848;
+}
