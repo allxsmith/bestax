@@ -264,14 +264,25 @@ export const EXTENSION_COMPONENTS: Readonly<Record<string, string>> = {
   'bulma-tooltip': '`Tooltip`',
 };
 
+/** An extension's package without its scope, in lower case (`bulma-tooltip`). */
+export function extensionPackage(name: string): string {
+  return name.replace(/^@[^/]+\//, '').toLowerCase();
+}
+
+/**
+ * What a page's link to an extension leaves to do. `covered`: the page has
+ * images with bulma-carousel's `is-covered`, which its stylesheet crops only
+ * inside its own slides, so keeping the extension doesn't keep them cropped.
+ */
 export function extensionMessage(
   name: string,
   quoted: string[],
   loads: ReadonlySet<Loads>,
-  css: CssMode
+  css: CssMode,
+  covered = false
 ): string {
   const from = `from ${quoted.map(url => `\`${url}\``).join(' and ')}`;
-  const bare = name.replace(/^@[^/]+\//, '').toLowerCase();
+  const bare = extensionPackage(name);
   if (bare === 'bulma-social') {
     return `the page loads bulma-social, a Bulma extension for brand-colored buttons, ${from}, and bestax has no component for it: keep loading it once for the app (\`bulma-social\` from npm, imported from its entry, or the \`<link>\` in its index.html), since its classes (\`is-twitter\`, \`is-github\` and the rest) style Bulma's \`.button\`, which bestax's \`Button\` renders, so they go on \`Button\` through \`className\``;
   }
@@ -280,7 +291,11 @@ export function extensionMessage(
   }
   const component = EXTENSION_COMPONENTS[bare];
   if (component) {
-    return `the page loads ${name}, a Bulma extension, ${from}, and bestax has a component for what it does: ${component}, whose styles ship in bestax's \`extras.css\` and \`bestax.css\`; render that in place of the extension's markup${loads.has('script') ? ' and script' : ''}, and stop loading the extension once nothing the app keeps uses its classes`;
+    const crops =
+      covered && bare === 'bulma-carousel'
+        ? "; the page's `is-covered` images are cropped by its stylesheet only inside its own slides, which `Carousel` doesn't render, so keeping it doesn't keep them cropped: give them the rule the `html-extension:is-covered` TODO has"
+        : '';
+    return `the page loads ${name}, a Bulma extension, ${from}, and bestax has a component for what it does: ${component}, whose styles ship in bestax's \`extras.css\` and \`bestax.css\`; render that in place of the extension's markup${loads.has('script') ? ' and script' : ''}, and stop loading the extension once nothing the app keeps uses its classes${crops}`;
   }
   return `the page loads ${name}, a Bulma extension, ${from}, and a component doesn't: keep loading it once for the app (from npm, imported from its entry, or a \`<link>\` in its index.html) while the page's markup uses its classes, which go on bestax's components through \`className\`${css === 'keep' ? '' : ', and check it works with Bulma 1, which an extension can predate'}`;
 }
