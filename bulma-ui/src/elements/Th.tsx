@@ -5,12 +5,7 @@ import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { TableColor, validTableColors } from './Td';
-
-const validAlignments = ['left', 'right', 'centered'] as const;
-/**
- * Valid alignment values for the Th component.
- */
-type TableAlignment = (typeof validAlignments)[number];
+import { TableAlignment, validTableAlignments } from './tableAlignment';
 
 /**
  * Props for the Th component.
@@ -50,7 +45,8 @@ export const Th: React.FC<ThProps> = ({
   ...props
 }) => {
   const bulmaClasses = usePrefixedClassNames('', {
-    [`has-text-${isAligned}`]: isAligned && validAlignments.includes(isAligned),
+    [`has-text-${isAligned}`]:
+      isAligned && validTableAlignments.includes(isAligned),
     [`is-${color}`]: color && validTableColors.includes(color),
   });
 
