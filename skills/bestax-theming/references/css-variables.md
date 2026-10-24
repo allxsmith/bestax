@@ -512,6 +512,16 @@ sizes. Bulma's own `--bulma-notification-*` variables set the rest.
 `--bulma-numberinput-stepper-button-hover-bg`, `--bulma-numberinput-stepper-button-hover-color`,
 `--bulma-numberinput-stepper-width`
 
+### PinInput
+
+Declared on the row, `.pin-input`. Each box is a Bulma `.input`, so Bulma's `--bulma-input-*`
+variables color it, and a box's size comes from its size class. The gap and the caret's size are
+in `em`, so they follow the size of the boxes, and the caret is `currentColor`, the box's text.
+
+`--bulma-pin-input-box-width`, `--bulma-pin-input-caret-blink-duration`,
+`--bulma-pin-input-caret-color`, `--bulma-pin-input-caret-height`, `--bulma-pin-input-caret-width`,
+`--bulma-pin-input-gap`
+
 ### Picker popover (DateInput / TimeInput / DateTimeInput / DateRangeInput)
 
 `--bulma-picker-popover-animation-duration`, `--bulma-picker-popover-background`,

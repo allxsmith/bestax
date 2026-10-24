@@ -62,6 +62,17 @@ const PROPS: Record<string, Record<string, unknown>> = {
     actionText: 'Undo',
   },
   Taginput: { value: ['tag-one'] },
+  // Labeled, with a message, colored, sized, rounded and disabled, so the
+  // Field, the Control and every class a box takes are swept.
+  PinInput: {
+    label: 'Code',
+    message: 'Six digits',
+    defaultValue: '12',
+    color: 'primary',
+    size: 'small',
+    isRounded: true,
+    disabled: true,
+  },
   // Open, sized, with a checked, a highlighted and a disabled option in a
   // group and an empty message beside the list, so each class the Combobox
   // family adds is swept.

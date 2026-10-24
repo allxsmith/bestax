@@ -140,6 +140,21 @@ function HoverCardIcon() {
   );
 }
 
+// A row of four boxes, two filled, the caret in the third: pin input
+function PinInputIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="1.5" y="7" width="4.5" height="10" rx="1" />
+      <rect x="7" y="7" width="4.5" height="10" rx="1" />
+      <rect x="12.5" y="7" width="4.5" height="10" rx="1" />
+      <rect x="18" y="7" width="4.5" height="10" rx="1" />
+      <circle cx="3.75" cy="12" r="0.6" />
+      <circle cx="9.25" cy="12" r="0.6" />
+      <path d="M14.75 10v4" />
+    </svg>
+  );
+}
+
 // A button with a panel opened below it, pointing back up: popover
 function PopoverIcon() {
   return (
@@ -243,6 +258,7 @@ const ADDON_ICONS = {
   emptystate: EmptyStateIcon,
   hovercard: HoverCardIcon,
   loading: LoadingIcon,
+  pininput: PinInputIcon,
   popover: PopoverIcon,
   reveal: RevealIcon,
   sidebar: SidebarIcon,

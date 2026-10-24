@@ -230,8 +230,13 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
     width: $carousel-item-width;
     min-width: $carousel-item-width;
 
-    // Allow images to fill the slide
-    img {
+    // Hold an image in a slide to the slide's width. `:where()` keeps the
+    // rule at a bare `img`'s specificity, so anything that sizes an image
+    // itself wins: a ratio `Image` (Bulma's `.image.is-16by9 img` and the
+    // rest fill the frame with `height: 100%`), an Avatar's photo, a class of
+    // the page's own. Ranked above them, its `height: auto` let a ratio
+    // image overflow its frame (#1166).
+    @at-root :where(.#{iv.$class-prefix}carousel .#{iv.$class-prefix}carousel-item) img {
       max-width: 100%;
       height: auto;
       display: block;

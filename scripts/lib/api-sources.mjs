@@ -214,6 +214,7 @@ export const SCSS_SOURCES = {
   Pagination: [{ pkg: 'bulma', path: 'sass/components/pagination.scss' }],
   Panel: [{ pkg: 'bulma', path: 'sass/components/panel.scss' }],
   Paragraph: [],
+  PinInput: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_pininput.scss' }],
   Popover: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_popover.scss' },
   ],
@@ -316,6 +317,7 @@ export const SCSS_SOURCES = {
  */
 export const RENDERS_ELEMENT_OF = {
   LinkButton: 'Button', // renders `.button.link-button` through Button
+  PinInput: 'Input', // each of its boxes is an `.input.pin-input-box`
   ToggleButton: 'Button', // renders a `.button` through Button
 };
 
