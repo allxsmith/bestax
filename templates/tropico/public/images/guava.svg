@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 322 275" width="322" height="275">
+<!-- Drawn for the bestax port of the Tropico template; image-provenance.json records it. -->
+<!-- Two whole guavas on a leaf and a halved one showing its pink flesh and seeds. -->
+<defs>
+<radialGradient id="skin" cx="0.38" cy="0.35" r="0.75">
+<stop offset="0" stop-color="#d4e86a"/>
+<stop offset="1" stop-color="#7fae3a"/>
+</radialGradient>
+<radialGradient id="flesh" cx="0.5" cy="0.5" r="0.5">
+<stop offset="0" stop-color="#ff9aa2"/>
+<stop offset="1" stop-color="#f26b7a"/>
+</radialGradient>
+</defs>
+<ellipse cx="161" cy="256" rx="140" ry="12" fill="#000000" opacity="0.08"/>
+<!-- A broad leaf under the fruit. -->
+<path d="M20,214 C70,150 170,138 300,170 C220,230 110,248 20,214 Z" fill="#3f8f4a"/>
+<path d="M28,212 C120,190 210,178 292,172" stroke="#2f7a3c" stroke-width="3" fill="none"/>
+<path d="M90,200 l-10,-24 M140,192 l-6,-28 M190,186 l0,-26 M240,180 l6,-22 M120,196 l8,26 M170,188 l10,26 M220,182 l12,22" stroke="#2f7a3c" stroke-width="2"/>
+<!-- The whole guavas. -->
+<g transform="rotate(-12 110 120)">
+<path d="M110,40 C160,40 186,90 180,140 C174,190 140,214 106,212 C66,210 40,180 42,132 C44,80 70,40 110,40 Z" fill="url(#skin)"/>
+<path d="M110,40 l-4,-14 M100,30 l20,-4" stroke="#5a4a1e" stroke-width="5" stroke-linecap="round"/>
+<path d="M70,90 a40,50 0 0,1 26,-36" stroke="#eef5b0" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.7"/>
+<g fill="#6f9a30"><circle cx="130" cy="150" r="2.5"/><circle cx="150" cy="110" r="2.5"/><circle cx="96" cy="170" r="2.5"/><circle cx="76" cy="140" r="2"/></g>
+</g>
+<g transform="rotate(18 194 80)">
+<path d="M194,20 C226,20 246,50 242,84 C238,118 216,134 194,132 C168,130 150,112 152,80 C154,46 170,20 194,20 Z" fill="url(#skin)"/>
+<path d="M194,20 l-2,-10" stroke="#5a4a1e" stroke-width="4" stroke-linecap="round"/>
+<g fill="#6f9a30"><circle cx="212" cy="96" r="2"/><circle cx="222" cy="64" r="2"/><circle cx="180" cy="108" r="2"/></g>
+</g>
+<!-- The halved guava. -->
+<g transform="translate(232 178) rotate(-8)">
+<ellipse rx="66" ry="56" fill="#7fae3a"/>
+<ellipse rx="60" ry="50" fill="#fbe7c8"/>
+<ellipse rx="54" ry="44" fill="url(#flesh)"/>
+<ellipse rx="26" ry="20" fill="#ffc3c8"/>
+<g fill="#f4dfb0">
+<circle cx="-12" cy="-8" r="3"/><circle cx="0" cy="-12" r="3"/><circle cx="12" cy="-8" r="3"/>
+<circle cx="16" cy="4" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="-8" cy="12" r="3"/>
+<circle cx="-18" cy="2" r="3"/><circle cx="0" cy="2" r="3"/>
+</g>
+</g>
+</svg>

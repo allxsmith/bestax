@@ -10,12 +10,28 @@ import {
   Title,
 } from '@allxsmith/bestax-bulma';
 
+/** The gallery's pictures, drawn for this port; README.md says how. */
 const photos = [
-  'https://images.unsplash.com/photo-1550921082-c282cdc432d6?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80',
-  'https://images.unsplash.com/photo-1550945771-515f118cef86?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1000&q=80',
-  'https://images.unsplash.com/photo-1550971264-3f7e4a7bb349?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80',
-  'https://images.unsplash.com/photo-1550931937-2dfd45a40da0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80',
-  'https://images.unsplash.com/photo-1550930516-af8b8cc4f871?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1000&q=80',
+  {
+    src: '/media/gallery-pool.svg',
+    alt: 'The pool by day, with loungers and parasols and the sea beyond',
+  },
+  {
+    src: '/media/gallery-restaurant.svg',
+    alt: 'The restaurant in the evening, its tables laid under pendant lights',
+  },
+  {
+    src: '/media/gallery-spa.svg',
+    alt: 'The spa: stacked stones, candles, rolled towels and an orchid',
+  },
+  {
+    src: '/media/gallery-terrace.svg',
+    alt: 'A table for two on the terrace as the sun sets over the sea',
+  },
+  {
+    src: '/media/gallery-bar.svg',
+    alt: 'The bar, its stools at the counter and lit shelves of bottles',
+  },
 ];
 
 /**
@@ -47,14 +63,14 @@ function Gallery() {
               ariaLabel="Hotel gallery"
             >
               {photos.map((photo, index) => (
-                <CarouselItem key={photo}>
+                <CarouselItem key={photo.src}>
                   <Card>
                     <Card.Image>
                       <Image
                         size="16by9"
                         className="is-covered"
-                        src={photo}
-                        alt=""
+                        src={photo.src}
+                        alt={photo.alt}
                       />
                     </Card.Image>
                     <Card.Content>

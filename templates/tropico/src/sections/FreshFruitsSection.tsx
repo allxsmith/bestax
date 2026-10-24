@@ -11,11 +11,11 @@ import {
 } from '@allxsmith/bestax-bulma';
 
 const fruits = [
-  { name: 'Best Fresh Orange', image: '/images/orange.webp', alt: 'Oranges' },
-  { name: 'Best Fresh Grapes', image: '/images/gauva.webp', alt: 'Guavas' },
-  { name: 'Best Fresh Grapes', image: '/images/orange.webp', alt: 'Oranges' },
-  { name: 'Best Fresh Orange', image: '/images/gauva.webp', alt: 'Guavas' },
-  { name: 'Best Fresh Grapes', image: '/images/gauva.webp', alt: 'Guavas' },
+  { name: 'Best Fresh Orange', image: '/images/orange.svg', alt: 'Oranges' },
+  { name: 'Best Fresh Grapes', image: '/images/guava.svg', alt: 'Guavas' },
+  { name: 'Best Fresh Grapes', image: '/images/orange.svg', alt: 'Oranges' },
+  { name: 'Best Fresh Orange', image: '/images/guava.svg', alt: 'Guavas' },
+  { name: 'Best Fresh Grapes', image: '/images/guava.svg', alt: 'Guavas' },
 ];
 
 /** "Fresh Fruits": a row per fruit, on the home page and the fruits page. */

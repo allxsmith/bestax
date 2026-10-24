@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 563" width="1000" height="563">
+<!-- Drawn for the bestax port of the Hotel template; image-provenance.json records it. -->
+<!-- A table for two on the hotel's terrace, the sun setting over the sea beyond its railing. -->
+<defs>
+<linearGradient id="sky" x1="0" y1="0" x2="0" y2="300" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#3b4f86"/>
+<stop offset="0.5" stop-color="#c06f7a"/>
+<stop offset="1" stop-color="#f6b46a"/>
+</linearGradient>
+<linearGradient id="sea" x1="0" y1="300" x2="0" y2="400" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#d7845f"/>
+<stop offset="1" stop-color="#5a4f78"/>
+</linearGradient>
+<linearGradient id="floor" x1="0" y1="400" x2="0" y2="563" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#b9876a"/>
+<stop offset="1" stop-color="#7d5442"/>
+</linearGradient>
+<g id="chair">
+<rect x="-30" y="-90" width="8" height="140" fill="#2e2a2c"/>
+<rect x="22" y="-90" width="8" height="140" fill="#2e2a2c"/>
+<path d="M-30,-90 h60 M-30,-70 h60 M-30,-50 h60" stroke="#2e2a2c" stroke-width="6"/>
+<rect x="-36" y="-6" width="72" height="12" rx="4" fill="#2e2a2c"/>
+<rect x="-34" y="-14" width="68" height="10" rx="5" fill="#e8d9b8"/>
+</g>
+</defs>
+
+<rect width="1000" height="300" fill="url(#sky)"/>
+<circle cx="640" cy="290" r="54" fill="#ffd27a"/>
+<rect y="298" width="1000" height="102" fill="url(#sea)"/>
+<g stroke="#ffd9a0" stroke-linecap="round" opacity="0.8">
+<path d="M600,312 h80" stroke-width="5"/><path d="M590,330 h100" stroke-width="4"/>
+<path d="M610,350 h60" stroke-width="4"/><path d="M620,372 h40" stroke-width="3"/>
+</g>
+<path d="M0,300 C80,270 160,262 240,290 L240,300 L0,300 Z" fill="#5b4a6a"/>
+<g fill="#4a3c5c" opacity="0.6"><ellipse cx="300" cy="120" rx="90" ry="10"/><ellipse cx="820" cy="80" rx="110" ry="9"/></g>
+
+<!-- The terrace floor and its railing. -->
+<rect y="400" width="1000" height="163" fill="url(#floor)"/>
+<path d="M0,440 H1000 M0,490 H1000" stroke="#a37557" stroke-width="2"/>
+<rect y="330" width="1000" height="8" fill="#f2ece2"/>
+<g stroke="#f2ece2" stroke-width="5">
+<path d="M20,338 V400 M80,338 V400 M140,338 V400 M200,338 V400 M260,338 V400 M320,338 V400 M380,338 V400 M440,338 V400 M500,338 V400 M560,338 V400 M620,338 V400 M680,338 V400 M740,338 V400 M800,338 V400 M860,338 V400 M920,338 V400 M980,338 V400"/>
+</g>
+<rect y="396" width="1000" height="8" fill="#e6ddcf"/>
+
+<!-- The table for two: a candle, two glasses and a vase. -->
+<use href="#chair" x="340" y="470"/>
+<use href="#chair" x="660" y="470"/>
+<rect x="494" y="420" width="12" height="120" fill="#2e2a2c"/>
+<rect x="450" y="534" width="100" height="10" rx="4" fill="#2e2a2c"/>
+<ellipse cx="500" cy="420" rx="140" ry="20" fill="#f8f3ea"/>
+<path d="M360,420 L366,450 Q500,466 634,450 L640,420 Q500,440 360,420 Z" fill="#ece3d4"/>
+<path d="M440,416 L440,380 M430,350 Q440,384 450,350 Z" stroke="#f8f3ea" stroke-width="3" fill="#a3324a"/>
+<path d="M560,416 L560,380 M550,350 Q560,384 570,350 Z" stroke="#f8f3ea" stroke-width="3" fill="#a3324a"/>
+<rect x="494" y="390" width="12" height="26" fill="#fbf6ea"/>
+<path d="M500,376 q6,8 0,12 q-6,-4 0,-12 Z" fill="#ffb648"/>
+<path d="M516,416 L520,392 L536,392 L540,416 Z" fill="#cfe3ea"/>
+<path d="M528,392 C524,376 516,368 508,364 M528,392 C532,374 540,366 548,362" stroke="#4f7a3f" stroke-width="2" fill="none"/>
+<circle cx="508" cy="362" r="6" fill="#f2c14e"/><circle cx="548" cy="360" r="6" fill="#ffffff"/>
+
+<!-- A potted lemon tree, left, and a lantern, right. -->
+<path d="M60,563 L72,470 L148,470 L160,563 Z" fill="#c86f4a"/>
+<rect x="106" y="380" width="8" height="90" fill="#6b4a32"/>
+<circle cx="110" cy="360" r="56" fill="#4f7a3f"/>
+<circle cx="80" cy="380" r="30" fill="#5b8a49"/>
+<g fill="#f6d34a"><circle cx="92" cy="340" r="7"/><circle cx="130" cy="352" r="7"/><circle cx="104" cy="384" r="7"/><circle cx="142" cy="380" r="6"/></g>
+<rect x="870" y="470" width="56" height="70" rx="6" fill="#2e2a2c"/>
+<rect x="878" y="480" width="40" height="52" fill="#ffd27a"/>
+<path d="M898,470 v-14 M886,456 h24" stroke="#2e2a2c" stroke-width="5"/>
+</svg>
