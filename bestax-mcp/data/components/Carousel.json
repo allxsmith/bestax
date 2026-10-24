@@ -30,6 +30,14 @@
       "code": "function IndicatorExample() {\n  const [style, setStyle] = useState<'dots' | 'circles' | 'lines' | 'bars'>(\n    'dots'\n  );\n  return (\n    <Block>\n      <Buttons mb=\"4\">\n        <Button\n          onClick={() => setStyle('dots')}\n          color={style === 'dots' ? 'primary' : undefined}\n        >\n          Dots\n        </Button>\n        <Button\n          onClick={() => setStyle('circles')}\n          color={style === 'circles' ? 'primary' : undefined}\n        >\n          Circles\n        </Button>\n        <Button\n          onClick={() => setStyle('lines')}\n          color={style === 'lines' ? 'primary' : undefined}\n        >\n          Lines\n        </Button>\n        <Button\n          onClick={() => setStyle('bars')}\n          color={style === 'bars' ? 'primary' : undefined}\n        >\n          Bars\n        </Button>\n      </Buttons>\n      <Carousel indicatorStyle={style}>\n        <CarouselItem>\n          <Hero color=\"primary\" size=\"medium\">\n            <Hero.Body textAlign=\"centered\">\n              <Paragraph textColor=\"white\">Slide 1</Paragraph>\n            </Hero.Body>\n          </Hero>\n        </CarouselItem>\n        <CarouselItem>\n          <Hero color=\"success\" size=\"medium\">\n            <Hero.Body textAlign=\"centered\">\n              <Paragraph textColor=\"white\">Slide 2</Paragraph>\n            </Hero.Body>\n          </Hero>\n        </CarouselItem>\n        <CarouselItem>\n          <Hero color=\"danger\" size=\"medium\">\n            <Hero.Body textAlign=\"centered\">\n              <Paragraph textColor=\"white\">Slide 3</Paragraph>\n            </Hero.Body>\n          </Hero>\n        </CarouselItem>\n      </Carousel>\n    </Block>\n  );\n}"
     },
     {
+      "title": "Indicators Over the Slides",
+      "code": "<Carousel indicatorInside>\n  <CarouselItem>\n    <Hero color=\"dark\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 1</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"link\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 2</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"primary\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 3</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n</Carousel>"
+    },
+    {
+      "title": "Indicators Over the Slides",
+      "code": "<Carousel className=\"plain-inside\" indicatorInside>\n  {/* items */}\n</Carousel>"
+    },
+    {
       "title": "Without Arrows",
       "code": "<Carousel arrow={false}>\n  <CarouselItem>\n    <Hero color=\"primary\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Swipe or Click Dots</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"link\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Navigation Only</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n</Carousel>"
     },
@@ -219,7 +227,7 @@
           "name": "indicatorInside",
           "type": "boolean",
           "default": "false",
-          "description": "Position indicators inside carousel.",
+          "description": "Puts the indicators over the slides instead of below them, at the edge `indicatorPosition` names, on a dark gradient band. It also turns on the overlay look, made for photos: the arrows and indicators take the `--bulma-carousel-overlay-*` colors in place of the plain ones, and `arrowColor` stops applying. No prop moves the indicators without that look, or gives the look without moving them. To keep the plain colors over the slides, set each overlay variable to its plain one. The band is a `background` on the `.carousel-indicator.is-inside` element, not a variable.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -228,7 +236,7 @@
           "name": "indicatorPosition",
           "type": "'bottom' | 'top'",
           "default": "'bottom'",
-          "description": "Indicator position. Default: 'bottom'.",
+          "description": "The edge of the slides `indicatorInside` puts the indicators on. Default: 'bottom'. Without `indicatorInside` they sit below the slides whatever this says, so leave it unset there.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -309,7 +317,7 @@
           "name": "arrowColor",
           "type": "'light' | 'dark'",
           "default": null,
-          "description": "Color theme for navigation arrows.",
+          "description": "Color theme for navigation arrows. Not applied with `indicatorInside`, whose overlay look colors the arrows with `--bulma-carousel-overlay-arrow-color`.",
           "required": false,
           "inherited": false,
           "deprecated": false
