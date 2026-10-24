@@ -63,8 +63,8 @@ treats the folder as a project of its own.
   buttons have names, for screen readers.
 - The phone numbers agree: the original's mobile "Call Us" dialled a different number from the
   desktop one and the footer, and the reservation link showed a digit fewer than it dialled.
-- "Welcome to Bulma Hotel" is the page's `h1`, with the same look; the original made it a `<p>`,
-  so the page had no top-level heading.
+- "Welcome to Bulma Hotel" is an `h1`, with the same look; the original made it a `<p>`, so it
+  was missing from the page's headings.
 - The gallery's photos are the original's Unsplash placeholders, marked decorative; give your own
   photos alt text that says what each shows.
 - `index.html` pins Bulma's light scheme, as the original's design is light only.
