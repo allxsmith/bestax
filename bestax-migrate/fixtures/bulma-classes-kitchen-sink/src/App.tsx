@@ -8,7 +8,7 @@ import { Leftovers } from './leftovers';
 export function App() {
   return (
     <section className="section">
-      <h1 className="title is-2">Kitchen sink</h1>
+      <h1 className="title is-1">Kitchen sink</h1>
       <Layout />
       <Elements />
       <Helpers />
