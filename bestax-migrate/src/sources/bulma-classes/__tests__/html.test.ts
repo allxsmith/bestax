@@ -311,17 +311,61 @@ describe('the report', () => {
   });
 
   it('reports a parse error once per code, with how many more', () => {
-    const { entries, output } = convert(
-      `${box}<div class="a" class="b"></div>\n<p class="c" class="d"></p>\n`
-    );
+    const { entries, output } = convert(`${box}<p>a < b</p>\n<p>c < d</p>\n`);
     expect(entries).toEqual([
       expect.objectContaining({
         line: 2,
-        rule: 'html-parse:duplicate-attribute',
+        rule: 'html-parse:invalid-first-character-of-tag-name',
         message: expect.stringContaining('1 more like it'),
       }),
     ]);
     expect(output).toContain('(case.html:2)');
+  });
+
+  it('names each duplicate attribute, the copy kept and the one dropped', () => {
+    const { entries, output } = convert(
+      `${box}<input class="input" placeholder="Email"\n  placeholder="Your email">\n<p class="c" class="d"></p>\n`
+    );
+    expect(entries).toEqual([
+      {
+        file: path.join(fixturesDir, 'case.html'),
+        line: 3,
+        rule: 'html-parse:duplicate-attribute',
+        message:
+          'the HTML writes `placeholder` more than once on one element, and a browser keeps the first, `placeholder="Email"`, and drops this one, `placeholder="Your email"`: the component keeps the first too, so if the page meant the other, change it there',
+      },
+      expect.objectContaining({
+        line: 4,
+        rule: 'html-parse:duplicate-attribute',
+        message: expect.stringContaining(
+          'keeps the first, `class="c"`, and drops this one, `class="d"`'
+        ),
+      }),
+    ]);
+    const code = output!
+      .split('\n')
+      .filter(line => !line.includes('TODO(bestax-migrate)'))
+      .join('\n');
+    expect(code).toContain('placeholder="Email"');
+    expect(code).not.toContain('Your email');
+    expect(output).toContain('(case.html:3)');
+    expect(output).toContain('(case.html:4)');
+  });
+
+  it('counts a duplicate it cannot name with the others of its code', () => {
+    // An end tag makes no element, so there is no first copy to point at.
+    const { entries } = convert(`${box}<p>x</p a a>\n<p>y</p b b>\n`);
+    expect(entries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          line: 2,
+          rule: 'html-parse:duplicate-attribute',
+          message: expect.stringContaining(
+            'parse error here (`duplicate-attribute`), and 1 more like it'
+          ),
+        }),
+      ])
+    );
   });
 
   it('reads the inline script patterns and leaves an unknown type alone', () => {
