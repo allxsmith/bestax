@@ -1987,9 +1987,15 @@ describe('every component or part name an answer hands out', () => {
     for (const name of Object.values<string>(classTable.wrappers)) {
       hand(name, 'lookup_bulma_classes on a plain tag');
     }
+    for (const [tag, { target }] of Object.entries<{ target: string }>(
+      classTable.byHand
+    )) {
+      hand(target, `lookup_bulma_classes on a plain <${tag}>`);
+    }
     const tokens = [
       ...Object.keys(classTable.roots),
       ...Object.keys(classTable.legacy),
+      ...Object.keys(classTable.ownClasses),
     ];
     for (const token of tokens) {
       const out = text(await call('lookup_bulma_classes', { classes: token }));
@@ -2145,6 +2151,204 @@ describe("lookup_bulma_classes on classes Bulma v1 doesn't have", () => {
         },
       ],
     });
+  });
+});
+
+// The re-ports of #1118 asked the lookup about markup the skill and the codemod both
+// had an answer for, and it had none: a table cell, bulma-social, a `.icon` beside a
+// `.control`'s icons, Font Awesome on a bare <i>, a bare checkbox input, a class of
+// bestax's own (#1236, #1235).
+describe('lookup_bulma_classes where the skill and the codemod have an answer', () => {
+  const lookup = async (classes: string, tag?: string) =>
+    text(
+      await call('lookup_bulma_classes', tag ? { classes, tag } : { classes })
+    );
+
+  it('names the table part that renders a plain cell or row, and its props', async () => {
+    const th = await lookup('has-text-centered', 'th');
+    expect(th).not.toContain('bestax has no component');
+    expect(th).toContain(
+      '**Stays markup:** the codemod converts no plain <th>, though bestax `Table.Th` renders one as it is'
+    );
+    // Its own props come from its record, so a prop the library adds reaches here.
+    expect(th).toContain(
+      'props of its own, `isAligned`, `width` and `color`, and helper props.'
+    );
+    expect(th).toContain(
+      '| `has-text-centered` | stays in `className` | the codemod converts no plain <th>, so its classes stay; on `Table.Th`, `textAlign="centered"` renders it |'
+    );
+    expect(th).toContain('get_props({ component: "Table.Th" })');
+    const td = await lookup('has-text-right has-text-primary', 'td');
+    expect(td).toContain('bestax `Table.Td` renders one as it is');
+    expect(td).toContain('`textAlign="right"` renders it');
+    // A table part's color props are its own, so the lookup claims none.
+    expect(td).toContain(
+      '`get_props` says whether `Table.Td` has a prop that renders it'
+    );
+    // A tag no component renders as it is keeps the answer it had.
+    expect(await lookup('has-text-centered', 'div')).toContain(
+      'bestax has no component for a plain <div>'
+    );
+  });
+
+  it('names bulma-social for its brand colors, on Button or alone', async () => {
+    for (const classes of ['button is-facebook', 'is-x']) {
+      const out = await lookup(classes);
+      expect(out).toContain('a bulma-social class');
+      expect(out).toContain(
+        'keep loading bulma-social and keep the class on `Button`'
+      );
+      expect(out).not.toContain('not a Bulma 1 class');
+    }
+  });
+
+  it("points a `.icon`'s side at the Control prop that renders it", async () => {
+    for (const [side, prop] of [
+      ['left', 'iconLeft'],
+      ['right', 'iconRight'],
+    ]) {
+      const out = await lookup(`icon is-${side}`, 'span');
+      expect(out).toContain('**Component:** `Icon`.');
+      expect(out).toContain(
+        `| \`is-${side}\` | stays in \`className\` | Bulma places it inside a \`.control\` with \`has-icons-${side}\`, and bestax \`Control\` renders that icon itself from \`${prop}\``
+      );
+    }
+  });
+
+  it('says Font Awesome on a bare <i> is a glyph `Icon` writes from props', async () => {
+    for (const [classes, tag] of [
+      ['fas fa-moon fa-lg', 'i'],
+      ['fa fa-github', 'i'],
+      ['mdi mdi-home', 'i'],
+      ['far fa-bell', undefined],
+    ] as const) {
+      const out = await lookup(classes, tag);
+      expect(out).toContain(
+        "**Stays markup:** a bare <i> naming an icon font's glyph, which the codemod converts only inside the `.icon` around it"
+      );
+      expect(out).toContain('write bestax `Icon` in its place by hand');
+      expect(out).not.toContain('styles nothing');
+      expect(out).toContain('get_props({ component: "Icon" })');
+    }
+    expect(await lookup('fas fa-moon', 'i')).toContain(
+      "| `fa-moon` | stays in `className` | a Font Awesome class: Font Awesome's own stylesheet styles it"
+    );
+    // Off an <i>, the classes still say whose they are, with no glyph answer.
+    const span = await lookup('fas fa-moon', 'span');
+    expect(span).toContain('a Font Awesome class');
+    expect(span).not.toContain('a bare <i>');
+  });
+
+  it('gives a bare checkbox input the recipe for `Checkbox`', async () => {
+    const out = await lookup('checkbox', 'input');
+    expect(out).toContain('bestax `Checkbox` renders its own styled markup');
+    expect(out).toContain('or a bare `<input>`');
+    expect(out).toContain(
+      '`id`, `name`, `aria-label` and the rest reach its `<input>`'
+    );
+    expect(out).toContain('add `indeterminate` for a select-all box');
+    expect(out).toContain('`--bulma-checkbox-*` variables');
+    expect(out).toContain('beside `.styled-checkbox`');
+  });
+
+  it("names the component a class of bestax's own stylesheet belongs to", async () => {
+    const out = await lookup('carousel', 'div');
+    expect(out).toContain(
+      "**Stays markup:** `.carousel` is bestax `Carousel`'s own class"
+    );
+    expect(out).toContain('get_props({ component: "Carousel" })');
+    expect(out).not.toContain('not a Bulma 1 class');
+    // And bulma-carousel's own, which stop styling with it.
+    expect(await lookup('image is-covered', 'figure')).toContain(
+      '| `is-covered` | stays in `className` | a bulma-carousel class'
+    );
+  });
+
+  it('names the on-scheme shade beside a text color', async () => {
+    const out = await lookup('has-text-primary', 'a');
+    expect(out).toContain(
+      '| `has-text-primary` | `textColor="primary"` | for text on the page\'s background, `colorShade="on-scheme"` beside it renders `has-text-primary-on-scheme` instead'
+    );
+    // Not beside a shade already, or on a background.
+    expect(await lookup('has-text-primary-on-scheme', 'a')).not.toContain(
+      'beside it renders'
+    );
+    expect(await lookup('has-background-primary', 'p')).not.toContain(
+      'on-scheme'
+    );
+  });
+});
+
+describe('search_bestax inside the skills', () => {
+  const search = async (query: string, limit?: number) =>
+    text(await call('search_bestax', limit ? { query, limit } : { query }));
+
+  it("finds a skill's recipe its description never names", async () => {
+    const out = await search('bulma-social');
+    expect(out).toContain(
+      '| skill | bestax-migrate › bulma-classes-unmappables › Stylesheets and scripts it loads'
+    );
+    expect(out).toContain(
+      '`get_skill({ name: "bestax-migrate", reference: "bulma-classes-unmappables" })`'
+    );
+    expect(await search('multi-page routing')).toContain(
+      'bulma-classes-unmappables › URLs'
+    );
+  });
+
+  it('finds the component for a Bulma extension, above its CSS variables', async () => {
+    const out = await search('bulma-carousel');
+    const rows = out.split('\n').filter(line => line.startsWith('| '));
+    expect(rows[2]).toContain('| component | Carousel |');
+    expect(rows.filter(row => row.startsWith('| css-var |'))).toHaveLength(3);
+    expect(out).toContain(
+      '| skill | bestax-migrate › bulma-classes-unmappables ›'
+    );
+    // Asked for CSS variables alone, it lists them all.
+    const vars = text(
+      await call('search_bestax', { query: 'bulma-carousel', kind: 'css-var' })
+    );
+    expect(
+      vars.split('\n').filter(line => line.startsWith('| css-var |')).length
+    ).toBeGreaterThan(3);
+  });
+});
+
+describe('get_examples under a limit', () => {
+  it('names what the limit left out, so no way of writing it goes unseen', async () => {
+    const out = text(
+      await call('get_examples', { component: 'Modal', limit: 2 })
+    );
+    expect(out).toContain('**Not shown** under this limit');
+    expect(out).toContain('"Compound (dot-notation) usage');
+    expect(out).toContain('`get_examples({ component: "Modal", query })`');
+    // Nothing to say when every example fits.
+    expect(
+      text(await call('get_examples', { component: 'Modal', limit: 30 }))
+    ).not.toContain('Not shown');
+  });
+
+  it('titles an example under a `####` by both headings', async () => {
+    const out = text(
+      await call('get_examples', {
+        component: 'Carousel',
+        query: 'Several Items in View',
+      })
+    );
+    expect(out).toContain(
+      '### Several Items in View › Stepping and indicators'
+    );
+    expect(out).toContain('### Several Items in View › Spacing between items');
+  });
+});
+
+describe('get_helper_props for flex', () => {
+  it('lists the gap props a flex container takes, which spacing owns', async () => {
+    const out = text(await call('get_helper_props', { group: 'flex' }));
+    for (const prop of ['gap', 'columnGap', 'rowGap', 'gapless']) {
+      expect(out).toContain(`| \`${prop}\` |`);
+    }
+    expect(out).toContain('### Gap');
   });
 });
 

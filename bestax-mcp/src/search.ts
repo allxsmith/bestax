@@ -205,6 +205,23 @@ export const ALIASES: Readonly<Record<string, readonly string[]>> = {
   accordion: ['Collapses', 'Collapse'],
   autosuggest: ['Autocomplete'],
   avatargroup: ['Avatars'],
+  // The Bulma extensions bestax has a component for, by package: a page being
+  // ported names the one it loads (bestax-migrate's EXTENSION_COMPONENTS).
+  bulmaaccordion: ['Collapses', 'Collapse'],
+  bulmabadge: ['Badge'],
+  bulmacalendar: ['DateInput', 'DateTimeInput', 'TimeInput', 'DateRangeInput'],
+  bulmacarousel: ['Carousel'],
+  bulmacheckradio: ['Checkbox', 'Radio'],
+  bulmacollapsible: ['Collapse', 'Collapses'],
+  bulmapageloader: ['Loading'],
+  bulmaquickview: ['Sidebar'],
+  bulmaslider: ['Slider'],
+  bulmasteps: ['Steps'],
+  bulmaswitch: ['Switch'],
+  bulmatagsinput: ['Taginput'],
+  bulmatimeline: ['Timeline'],
+  bulmatoast: ['Toast'],
+  bulmatooltip: ['Tooltip'],
   buttongroup: ['Buttons'],
   calendar: ['DateInput', 'DateTimeInput'],
   checkboxgroup: ['Checkboxes'],
@@ -304,6 +321,112 @@ export function aliasMatches(
 }
 
 /**
+ * A section of a skill's document, between one heading and the next: what a
+ * search reads inside the skills, whose recipes a skill's description never
+ * names ("bulma-social", "bulma-carousel", #1236).
+ */
+export interface SkillSection {
+  skill: string;
+  /** The reference id `get_skill` takes, or none for the skill's SKILL.md. */
+  reference?: string;
+  heading: string;
+  text: string;
+}
+
+/**
+ * A skill document's sections, split at each heading outside a code fence.
+ * The text before the first heading is a section under the document's name.
+ */
+export function skillSections(
+  skill: string,
+  reference: string | undefined,
+  markdown: string
+): SkillSection[] {
+  const out: SkillSection[] = [];
+  let heading = reference ?? skill;
+  let lines: string[] = [];
+  let fence: string | null = null;
+  const flush = () => {
+    const text = lines.join('\n').trim();
+    if (text) out.push({ skill, reference, heading, text });
+    lines = [];
+  };
+  for (const line of markdown.split('\n')) {
+    const marker = line.match(/^\s*(`{3,}|~{3,})/)?.[1];
+    if (marker) {
+      if (fence === null) fence = marker;
+      else if (marker[0] === fence[0] && marker.length >= fence.length) {
+        fence = null;
+      }
+    }
+    const title = fence === null ? line.match(/^#{1,6}\s+(.+?)\s*#*$/) : null;
+    if (title) {
+      flush();
+      heading = title[1];
+    } else {
+      lines.push(line);
+    }
+  }
+  flush();
+  return out;
+}
+
+/**
+ * What a section hit is worth beside the same match in a component's name or
+ * summary: less, since a skill section is long and shares words with most
+ * queries, so it ranks below what the query names outright. And how many a
+ * search returns, so a common word does not spend the whole limit on them.
+ */
+const SECTION_DISCOUNT = 10;
+const MAX_SECTIONS = 3;
+
+/** The words around the first place a section matches a query, for a hit's detail. */
+function excerpt(text: string, terms: string[]): string {
+  const line =
+    text
+      .split('\n')
+      .find(l => terms.some(t => termHit(norm(l), t) > 0))
+      ?.trim() ?? '';
+  // A link keeps its text alone: cut short, its URL would be half a link, and
+  // the call the hit names serves the section with its links whole.
+  const flat = line
+    .replace(/^[-*>|#\s]+/, '')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\s+/g, ' ');
+  return flat.length > 160 ? `${flat.slice(0, 157)}…` : flat;
+}
+
+function sectionHits(
+  sections: readonly SkillSection[],
+  terms: string[],
+  q: string
+): Hit[] {
+  const hits: Hit[] = [];
+  for (const section of sections) {
+    const hay = `${section.heading}\n${section.text}`;
+    // Every word of the query, so a section that shares one common word with
+    // it is no hit.
+    const lower = norm(hay);
+    if (!terms.every(t => termHit(lower, t) > 0)) continue;
+    const s = score(hay, section.heading, terms, q) - SECTION_DISCOUNT;
+    if (s <= 0) continue;
+    const where = section.reference ? ` › ${section.reference}` : '';
+    hits.push({
+      kind: 'skill',
+      name: `${section.skill}${where} › ${section.heading}`,
+      detail: excerpt(section.text, terms),
+      next: section.reference
+        ? `get_skill({ name: "${section.skill}", reference: "${section.reference}" })`
+        : `get_skill({ name: "${section.skill}" })`,
+      score: s,
+    });
+  }
+  return hits
+    .sort((a, b) => b.score - a.score || (a.name < b.name ? -1 : 1))
+    .slice(0, MAX_SECTIONS);
+}
+
+/**
  * Added to a component that matches at all. Components are what a search is
  * usually for, and a prop or a CSS variable that mentions the same words, or
  * shares the component's name (`DateInput.popover` for "popover"), should not
@@ -311,12 +434,19 @@ export function aliasMatches(
  */
 const COMPONENT_BONUS = 30;
 
+/**
+ * How many of one component's CSS variables a search of more than one kind
+ * returns. Asked for CSS variables alone, it returns them all.
+ */
+const CSS_VARS_PER_COMPONENT = 3;
+
 export function searchAll(
   query: string,
   catalog: Catalog,
   components: ComponentRecord[],
   skills: Skill[],
-  kinds: HitKind[]
+  kinds: HitKind[],
+  sections: readonly SkillSection[] = []
 ): Hit[] {
   const terms = contentWords(norm(query.trim()).split(/\s+/).filter(Boolean));
   if (!terms.length) return [];
@@ -456,6 +586,7 @@ export function searchAll(
         });
       }
     }
+    hits.push(...sectionHits(sections, terms, q));
   }
 
   hits.sort(
@@ -466,10 +597,19 @@ export function searchAll(
   // name and the same next call: three "DateInput: Month and Year Pickers" rows for
   // "date picker", spending the limit on one answer. The best-scoring one stands.
   const seen = new Set<string>();
+  // And a component's CSS variables share a prefix and one next call, so a query
+  // that names the prefix ("bulma-carousel") matched every one of them and filled
+  // the limit, above the component and the skill's recipe (#1236). The best few stand.
+  const perCall = new Map<string, number>();
   return hits.filter(h => {
     const key = `${h.kind}\u0000${h.name}`;
     if (seen.has(key)) return false;
     seen.add(key);
+    if (h.kind === 'css-var' && kinds.length > 1) {
+      const count = perCall.get(h.next) ?? 0;
+      if (count >= CSS_VARS_PER_COMPONENT) return false;
+      perCall.set(h.next, count + 1);
+    }
     return true;
   });
 }

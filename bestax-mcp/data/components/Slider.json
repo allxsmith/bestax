@@ -46,15 +46,15 @@
       "code": "<Slider defaultValue={30} disabled color=\"primary\" />"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › Default (with label)",
       "code": "<Slider label=\"Volume\" defaultValue={50} color=\"primary\" />"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field Wrapper",
       "code": "function example() {\n  return (\n    <Field horizontal label=\"Volume\" labelProps={{ htmlFor: 'volume-field' }}>\n      <Field.Body>\n        <Field>\n          <Slider id=\"volume-field\" defaultValue={50} color=\"primary\" />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field and Control Wrappers",
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Volume\"\n      labelProps={{ htmlFor: 'volume-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"volume-up\">\n            <Slider\n              id=\"volume-field-control\"\n              defaultValue={50}\n              color=\"primary\"\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],

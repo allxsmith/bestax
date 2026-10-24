@@ -39,15 +39,15 @@
       "code": "function example() {\n  const [rating, setRating] = useState(3);\n\n  const HeartIcon = ({ isActive }: { isActive: boolean }) => (\n    <svg\n      xmlns=\"http://www.w3.org/2000/svg\"\n      viewBox=\"0 0 24 24\"\n      fill={isActive ? 'currentColor' : 'none'}\n      stroke=\"currentColor\"\n      strokeWidth={isActive ? 0 : 2}\n      style={{ color: '#f14668' }}\n    >\n      <path d=\"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\" />\n    </svg>\n  );\n\n  return (\n    <Rate\n      value={rating}\n      onChange={setRating}\n      customIcon={({ isActive }) => <HeartIcon isActive={isActive} />}\n      showScore\n    />\n  );\n}"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › Default (with label)",
       "code": "<Rate label=\"Rating\" defaultValue={3} />"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field Wrapper",
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Rating\"\n      labelProps={{ id: 'rating-label', htmlFor: undefined }}\n    >\n      <Field.Body>\n        <Field>\n          <Rate aria-labelledby=\"rating-label\" defaultValue={3} />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field and Control Wrappers",
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Rating\"\n      labelProps={{ id: 'rating-label-control', htmlFor: undefined }}\n    >\n      <Field.Body>\n        <Field>\n          <Control>\n            <Rate aria-labelledby=\"rating-label-control\" defaultValue={3} />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],

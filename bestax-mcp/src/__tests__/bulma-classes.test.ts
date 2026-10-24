@@ -168,3 +168,76 @@ describe('a layout class beside its base, behind every modifier gate', () => {
     });
   });
 });
+
+// What styles a class Bulma 1 has no rule for, where the index knows: bestax's own
+// stylesheet, an icon font's, a Bulma extension's (#1236).
+describe('the note on a class another stylesheet styles', () => {
+  const elsewhere = table.elsewhere.map(group => ({
+    ...group,
+    re: new RegExp(group.match),
+  }));
+
+  it("gives each group's classes that group's note, and a v1 class its own", () => {
+    for (const [token, group] of [
+      ['fa-moon', 0],
+      ['fab', 0],
+      ['mdi-home', 1],
+      ['is-facebook', 2],
+      ['is-x', 2],
+      ['is-covered', 3],
+    ] as const) {
+      expect({ token, note: noteOf(token) }).toEqual({
+        token,
+        note: table.elsewhere[group].why,
+      });
+    }
+    // Font Awesome 4's `fa` is a v1 class, Bulma styling it inside `.icon`, so
+    // the group's pattern takes it for the glyph answer and its note stays.
+    expect(table.vocabulary).toContain('fa');
+    expect(noteOf('fa')).toBe(table.roots.fa.why);
+    // Each group's classes are none of Bulma 1's but that one.
+    const v1 = table.vocabulary.filter(
+      token => token !== 'fa' && elsewhere.some(group => group.re.test(token))
+    );
+    expect(v1).toEqual([]);
+  });
+
+  it("names the component a root class of bestax's own stylesheet belongs to", () => {
+    const own = Object.entries(table.ownClasses);
+    expect(own).toContainEqual(['carousel', 'Carousel']);
+    for (const [token, component] of own) {
+      // None is Bulma 1's, and no other stylesheet's note can claim it.
+      expect(table.vocabulary).not.toContain(token);
+      expect(elsewhere.filter(group => group.re.test(token))).toEqual([]);
+      expect(noteOf(token)).toContain(`bestax \`${component}\`'s own class`);
+    }
+  });
+
+  it('answers a bare <i> naming a glyph as one, and nothing else', () => {
+    expect(lookupClasses(table, 'fas fa-home', 'i').element.kind).toBe('glyph');
+    expect(lookupClasses(table, 'fa fa-home').element.kind).toBe('glyph');
+    // With no tag, only classes that are all a glyph's.
+    expect(lookupClasses(table, 'fas fa-home mt-2').element.kind).not.toBe(
+      'glyph'
+    );
+    expect(lookupClasses(table, 'fas fa-home', 'span').element.kind).not.toBe(
+      'glyph'
+    );
+    // A helper beside it on the <i> stays, saying why.
+    const { rows } = lookupClasses(table, 'fas fa-home mt-2', 'i');
+    expect(rows.find(row => row.token === 'mt-2')?.verdict).toEqual({
+      kind: 'class',
+      why: 'the codemod converts no bare <i>, so its classes stay',
+    });
+  });
+
+  it('answers each plain tag a table part renders with that part', () => {
+    for (const [tag, { target }] of Object.entries(table.byHand)) {
+      expect(lookupClasses(table, 'p-2', tag).element).toMatchObject({
+        kind: 'by-hand',
+        target,
+        tag,
+      });
+    }
+  });
+});

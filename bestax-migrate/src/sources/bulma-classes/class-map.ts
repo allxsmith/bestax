@@ -2000,6 +2000,18 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     tag: 'span',
     readsGlyph: { hiddenMovesBeside: ['id', 'style', 'key', 'data-*'] },
     modifiers: tokens('is-', ['small', 'medium', 'large'], 'size'),
+    // Bulma places an icon with these inside a `.control` that has icons on
+    // that side, and `Control` renders that icon itself from a prop, which
+    // writes the class with the rest of the icon. On `Icon` the class stays.
+    omits: Object.fromEntries(
+      (['left', 'right'] as const).map(side => {
+        const prop = side === 'left' ? 'iconLeft' : 'iconRight';
+        return [
+          `is-${side}`,
+          `Bulma places it inside a \`.control\` with \`has-icons-${side}\`, and bestax \`Control\` renders that icon itself from \`${prop}\` (\`${prop}={{ library: "fa", name: "envelope", size: "small" }}\`), after its children, so a hidden \`.icon\` there can go as that prop; on \`Icon\` the class stays in \`className\`, which renders the same`,
+        ];
+      })
+    ),
     defaults: { 'aria-hidden': 'true' },
     namedDefaults: {
       by: ['aria-label', 'aria-labelledby'],
@@ -2692,6 +2704,92 @@ export const WRAPPER_OWN_PROPS: Readonly<Record<string, readonly string[]>> = {
   UnorderedList: ['textColor', 'bgColor'],
   Figure: ['textColor', 'bgColor'],
 };
+
+/**
+ * Plain tags a bestax component renders as they are, with no class of its
+ * own, that this source leaves as markup all the same: it converts a table's
+ * `.table` and not the rows and cells inside it. Never read by the codemod.
+ * The MCP lookup names the component for one of these, which would otherwise
+ * say bestax has no component for the tag (#1236), and the index carries the
+ * props each takes beside the helper props, read off its record.
+ */
+export const BY_HAND: Readonly<Record<string, string>> = {
+  thead: 'Table.Thead',
+  tbody: 'Table.Tbody',
+  tfoot: 'Table.Tfoot',
+  tr: 'Table.Tr',
+  th: 'Table.Th',
+  td: 'Table.Td',
+};
+
+/**
+ * The bulma-social brand colors, the classes it adds to Bulma's `.button`,
+ * across its majors: read off the stylesheet each publishes (`css/all.css`
+ * in 2 and 3, `bin/bulma-social.css` in 1). Nothing here installs it, so a
+ * brand a later release adds is missing until it is added here.
+ */
+const BULMA_SOCIAL = [
+  'apple',
+  'bitbucket',
+  'discord',
+  'dropbox',
+  'facebook',
+  'flickr',
+  'foursquare',
+  'github',
+  'gitlab',
+  'instagram',
+  'linkedin',
+  'microsoft',
+  'odnoklassniki',
+  'openid',
+  'pinterest',
+  'reddit',
+  'slack',
+  'soundcloud',
+  'tumblr',
+  'twitch',
+  'twitter',
+  'vimeo',
+  'vk',
+  'x',
+  'yahoo',
+  'youtube',
+];
+
+/**
+ * Classes no Bulma 1 rule matches that a page takes from another stylesheet
+ * it loads, grouped by that stylesheet, each with what to do about them. The
+ * codemod leaves a class it doesn't convert where it is, so it never reads
+ * these; the MCP lookup does, for a class Bulma 1's stylesheet lacks, which
+ * it would otherwise call a class nothing styles (#1236). A `glyph` group's
+ * classes name an icon font's glyph, which bestax `Icon` writes from props.
+ */
+export const ELSEWHERE: ReadonlyArray<{
+  readonly why: string;
+  readonly match: RegExp;
+  readonly glyph?: boolean;
+}> = [
+  {
+    why: "a Font Awesome class: Font Awesome's own stylesheet styles it, not Bulma's, so keep loading Font Awesome (the bestax-migrate skill's `html-asset:font-awesome` says how). bestax `Icon` writes these classes from its props, on the <i> it renders inside a `.icon`",
+    match: /^(?:fa|fa[srbldt]|fa-[a-z0-9]+(?:-[a-z0-9]+)*|svg-inline--fa)$/,
+    glyph: true,
+  },
+  {
+    why: 'a Material Design Icons class: its own stylesheet styles it, not Bulma\'s, so keep loading it. bestax `Icon` writes these classes from its props, with `library="mdi"`, on the <i> it renders inside a `.icon`',
+    match: /^mdi(?:-[a-z0-9]+)*$/,
+    glyph: true,
+  },
+  {
+    why: "a bulma-social class, a Bulma extension's brand color for Bulma's `.button`, which bestax's `Button` renders: keep loading bulma-social and keep the class on `Button` in `className`, since bestax has no component for it (the bestax-migrate skill's `html-asset:bulma-extension` has the recipe)",
+    match: new RegExp(`^is-(?:${BULMA_SOCIAL.join('|')}|animated)$`),
+  },
+  {
+    why: "a bulma-carousel class, a Bulma extension bestax's `Carousel` does the job of (the bestax-migrate skill's `html-asset:bulma-extension` says how). Once the page stops loading bulma-carousel nothing styles it: `is-covered`'s `object-fit: cover` on a slide's image goes in the app's own CSS",
+    match:
+      /^(?:has-carousel|hero-carousel|is-background|is-covered|slider-(?:container|item|navigation-next|navigation-previous|page|pagination)|video-container)$/,
+  },
+];
 
 /**
  * Every class Bulma 0.9.4's compiled stylesheet has and v1's does not, read

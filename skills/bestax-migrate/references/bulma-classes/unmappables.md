@@ -749,9 +749,9 @@ than `this`. A `<body onload>` becomes an effect.
   report entry.
 
   A link to another page beside this one should point at the route that page becomes: the
-  router's, in an app with one. A site of static pages, with no router to join, can route on the
-  URL's hash in a small module of its own and install no router package, so every page still
-  opens from a static host as it is:
+  router's, in an app with one. A multi-page site of static pages, with no router to join, can do
+  its routing on the URL's hash in a small module of its own and install no router package, so
+  every page still opens from a static host as it is:
 
   ```ts
   // router.ts: the page the address's hash names (`#/about`).
@@ -849,6 +849,11 @@ A page with no Bulma component class writes nothing and reports nothing.
 
 - Helper classes on a `<div>` (`<div className="is-flex mt-4">`): bestax has no plain `<div>`
   wrapper, and the classes are valid Bulma, so the element stays.
+- Helper classes on a table's rows and cells (`<th className="has-text-centered">`): the codemod
+  converts the `.table` and leaves the `<thead>`, `<tbody>`, `<tfoot>`, `<tr>`, `<th>` and `<td>`
+  inside it as they are. To write them by hand, `Table.Thead`, `Table.Tbody`, `Table.Tfoot`,
+  `Table.Tr`, `Table.Th` and `Table.Td` render each tag as it is and take the helper props, and
+  `Table.Th` takes `isAligned` for its alignment (`<Table.Th isAligned="centered">`).
 - `.help`, `.label`, `.loader` and the other classes in the component map's "left alone" list.
 - A class with no bestax prop on a converted element: it stays in `className`. That covers
   v1's `marginless` and `paddingless`, which have the same rules as `m-0` and `p-0` under

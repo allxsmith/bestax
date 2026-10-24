@@ -10,15 +10,15 @@
       "code": "<Radios>\n  <Radio name=\"event\" disabled>\n    {' '}\n    Attend{' '}\n  </Radio>\n  <Radio name=\"event\" disabled>\n    {' '}\n    Decline{' '}\n  </Radio>\n  <Radio name=\"event\" disabled>\n    {' '}\n    Tentative{' '}\n  </Radio>\n</Radios>"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › Default (with label)",
       "code": "<Radios label=\"RSVP\">\n  <Radio name=\"rsvp\"> Attend </Radio>\n  <Radio name=\"rsvp\"> Decline </Radio>\n  <Radio name=\"rsvp\"> Tentative </Radio>\n</Radios>"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field Wrapper",
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"RSVP\"\n      labelProps={{ id: 'rsvp-label', htmlFor: undefined }}\n    >\n      <Field.Body>\n        <Field>\n          <Radios aria-labelledby=\"rsvp-label\">\n            <Radio name=\"rsvp2\"> Attend </Radio>\n            <Radio name=\"rsvp2\"> Decline </Radio>\n            <Radio name=\"rsvp2\"> Tentative </Radio>\n          </Radios>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field and Control Wrappers",
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"RSVP\"\n      labelProps={{ id: 'rsvp-label-control', htmlFor: undefined }}\n    >\n      <Field.Body>\n        <Field>\n          <Control>\n            <Radios aria-labelledby=\"rsvp-label-control\">\n              <Radio name=\"rsvp3\"> Attend </Radio>\n              <Radio name=\"rsvp3\"> Decline </Radio>\n              <Radio name=\"rsvp3\"> Tentative </Radio>\n            </Radios>\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {

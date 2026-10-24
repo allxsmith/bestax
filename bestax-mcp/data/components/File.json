@@ -62,15 +62,15 @@
       "code": "<File\n  color=\"primary\"\n  isRight\n  hasName\n  fileName=\"right.pdf\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n/>"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › Default (with label)",
       "code": "<File\n  label=\"Document\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n/>"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field Wrapper",
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Document\"\n      labelProps={{ htmlFor: 'document-field' }}\n    >\n      <Field.Body>\n        <Field>\n          <File\n            id=\"document-field\"\n            buttonLabel=\"Choose a file…\"\n            iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n          />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field and Control Wrappers",
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Document\"\n      labelProps={{ htmlFor: 'document-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"paperclip\">\n            <File\n              id=\"document-field-control\"\n              buttonLabel=\"Choose a file…\"\n              iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],

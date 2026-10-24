@@ -145,7 +145,8 @@ function purposeOf(fm, sections, lines) {
 
 /**
  * The hand-written ```tsx live blocks under `## Usage`, each tagged with the
- * `###` subheading it sits under.
+ * `###` subheading it sits under, and the `####` inside that, when it sits
+ * under one (`Several Items in View › Spacing between items`).
  *
  * These are the library's only curated examples — 897 of them, every one
  * executed by react-live on the docs site, so they are known to compile against
@@ -155,6 +156,8 @@ function usageExamples(lines, section) {
   if (!section) return [];
   const out = [];
   let heading = null;
+  /** The `###` the current heading is under, which a `####` title starts with. */
+  let section3 = null;
   let fence = null;
   let buf = [];
   for (const raw of lines.slice(section.start + 1, section.end)) {
@@ -179,8 +182,15 @@ function usageExamples(lines, section) {
       }
       continue;
     }
-    const h = raw.match(/^###[ \t]+(.+?)[ \t]*$/);
-    if (h) heading = h[1];
+    // A `####` under the `###` names its examples too, after it: three of
+    // Carousel's sat under one title, "Several Items in View" (#1236).
+    const h = raw.match(/^(###|####)[ \t]+(.+?)[ \t]*$/);
+    if (h?.[1] === '###') {
+      section3 = h[2];
+      heading = section3;
+    } else if (h) {
+      heading = section3 ? `${section3} › ${h[2]}` : h[2];
+    }
   }
   return out;
 }
@@ -795,9 +805,59 @@ async function importStripped(file) {
   }
 }
 
-export async function bulmaClassTable() {
+/**
+ * What the lookup names for a plain tag the codemod leaves as markup though a
+ * bestax component renders it (`BY_HAND`): that component, and the props its
+ * record lists beside the helper props, read off the record so a prop the
+ * library adds reaches the answer with no edit here (`isAligned` on `Th`).
+ */
+function byHandOf(map, records) {
+  return Object.fromEntries(
+    Object.entries(map.BY_HAND).map(([tag, target]) => {
+      const part = [...records.values()]
+        .flatMap(record => record.parts)
+        .find(p => p.path === target);
+      if (!part) {
+        throw new Error(
+          `BY_HAND names ${target} for a plain <${tag}>, and no record documents it`
+        );
+      }
+      const props = part.props
+        .map(p => p.name)
+        .filter(name => name !== 'className' && name !== 'children');
+      return [tag, { target, props }];
+    })
+  );
+}
+
+/**
+ * The classes bestax's own stylesheet adds to Bulma's, each with the
+ * component it is the root class of (`carousel`, `Carousel`): a record's
+ * root class that Bulma 1's stylesheet has no rule for. A lookup that calls
+ * one a class nothing styles sends a page that keeps it, under bestax's CSS,
+ * into rules it never asked for.
+ */
+function ownClassesOf(records, vocabulary) {
+  const own = {};
+  for (const record of [...records.values()].sort((a, b) =>
+    byCodePoint(a.name, b.name)
+  )) {
+    const root = record.rootClass;
+    if (root && !vocabulary.has(root) && !Object.hasOwn(own, root)) {
+      own[root] = record.name;
+    }
+  }
+  return own;
+}
+
+export async function bulmaClassTable(records) {
   const map = await importStripped(CLASS_MAP);
   const { stylesheetClasses } = await importStripped(STYLESHEET_READER);
+  const vocabulary = [
+    ...stylesheetClasses(
+      await readFile(bulmaSassPath('css/bulma.css'), 'utf8')
+    ),
+  ].sort(byCodePoint);
   const roots = Object.fromEntries(
     Object.entries(map.ROOTS).map(([token, entry]) => [
       token,
@@ -849,11 +909,16 @@ export async function bulmaClassTable() {
     // passthrough pattern reaches past the stylesheet (`is-\d+x\d+` takes a
     // page's own `is-256x256` for an `.image` size), and a class nothing in
     // the table names fell to one note for both (#1174).
-    vocabulary: [
-      ...stylesheetClasses(
-        await readFile(bulmaSassPath('css/bulma.css'), 'utf8')
-      ),
-    ].sort(byCodePoint),
+    vocabulary,
+    // And of those Bulma 1 has no rule for, the ones another stylesheet the
+    // page loads styles, bestax's own among them (#1236).
+    elsewhere: map.ELSEWHERE.map(group => ({
+      why: group.why,
+      match: group.match.source,
+      glyph: group.glyph ?? false,
+    })),
+    ownClasses: ownClassesOf(records, new Set(vocabulary)),
+    byHand: byHandOf(map, records),
   };
 }
 
@@ -1049,7 +1114,7 @@ export async function build() {
     components,
     missing: missingApiPages(await readFile(INDEX_TS, 'utf8'), categories),
     skills: { skills: await readSkills() },
-    bulmaClasses: await bulmaClassTable(),
+    bulmaClasses: await bulmaClassTable(components),
   };
 }
 
