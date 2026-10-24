@@ -14,7 +14,7 @@ function WelcomeHero() {
         <Container textAlign="centered">
           <div className="pb-6">
             <div>
-              <Title as="p" size="1" className="main-text">
+              <Title size="1" className="main-text">
                 Welcome to Bulma Hotel
               </Title>
               <SubTitle as="p" size="4" className="main-text">

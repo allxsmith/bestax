@@ -30,7 +30,7 @@ function SiteNavbar() {
         </Navbar.Item>
         <Navbar.Item
           visibilityDesktop="hidden"
-          href="tel:+302109849583"
+          href="tel:+302109999999"
           aria-label="Call us"
         >
           <Icon name="phone" features="fa-lg" style={{ color: '#333' }} />

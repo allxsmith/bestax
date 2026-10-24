@@ -52,7 +52,8 @@ treats the folder as a project of its own.
 - "Home" in the navbar links to the top of the page, and the Facebook and social buttons link to
   `#`, placeholders for the hotel's own pages; in the original they link nowhere.
 - Typos in the text are fixed: "he Premier Diamond Double rooms" and "destinaiton".
-- Submitting the contact form or the newsletter sign-up stays on the page. The original sends the
+- Submitting the contact form or the newsletter sign-up stays on the page and sends nothing. The
+  original sends the
   sign-up as a POST to `#`, which a static host answers with an error page; send each one from its
   form's `onSubmit` in `src/Contact.tsx` and `src/SiteFooter.tsx`.
 - The labels on the turquoise, cyan and green buttons are Bulma 1's dark ones, picked to read on
@@ -60,6 +61,12 @@ treats the folder as a project of its own.
   bulma-social's current brand colors.
 - The contact form's labels name their fields, the map has a title, and the icon-only links and
   buttons have names, for screen readers.
+- The phone numbers agree: the original's mobile "Call Us" dialled a different number from the
+  desktop one and the footer, and the reservation link showed a digit fewer than it dialled.
+- "Welcome to Bulma Hotel" is the page's `h1`, with the same look; the original made it a `<p>`,
+  so the page had no top-level heading.
+- The gallery's photos are the original's Unsplash placeholders, marked decorative; give your own
+  photos alt text that says what each shows.
 - `index.html` pins Bulma's light scheme, as the original's design is light only.
 
 ## License

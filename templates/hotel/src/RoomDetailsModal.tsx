@@ -55,7 +55,7 @@ function RoomDetailsModal({ active, onClose }: RoomDetailsModalProps) {
                 <i className="fa fa-phone-flip" aria-hidden="true" /> &nbsp;{' '}
                 <span>Reservation</span> &nbsp;{' '}
                 <a style={{ color: 'black' }} href="tel:+30 2109999997">
-                  +30 210999997
+                  +30 2109999997
                 </a>
               </div>
             </Column>
