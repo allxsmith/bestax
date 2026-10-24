@@ -271,12 +271,9 @@ iframe {
 
 /*
  * bulma-carousel's rule for its `is-covered` images: the photo fills its
- * frame. The height is only for bestax-bulma releases before #1166's fix,
- * where Carousel's `.carousel-item img { height: auto }` tied Bulma's ratio
- * rule; it can go once the template's range starts at a release with it.
+ * frame, cropped rather than stretched.
  */
 .image.is-covered img {
-  height: 100%;
   object-fit: cover;
   object-position: center center;
 }
