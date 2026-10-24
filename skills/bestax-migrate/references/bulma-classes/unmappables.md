@@ -370,8 +370,38 @@ in the browser:
   `aria-expanded` and keyboard handling. The codemod turned the `.has-dropdown` item around it
   into a `Navbar.Item` that keeps the class; to get the dropdown behavior, replace that item
   with `Navbar.Dropdown` (`hoverable` for `is-hoverable`) and the link with `Navbar.Link`.
-- **`family:checkbox`**, **`family:radio`**, **`family:checkboxes`**, **`family:radios`**:
-  bestax renders its own styled checkbox and radio markup, not Bulma's.
+- **`family:checkbox`**: `Checkbox` renders a `<label class="styled-checkbox checkbox">` around
+  its `<input>`, hidden, and draws a box of its own beside it. Write it in place of the element
+  that carries `.checkbox`, Bulma's `<label>` or a bare `<input type="checkbox">`:
+  - The `<input>`'s attributes go on `Checkbox`, which passes `id`, `name`, `aria-label` and the
+    rest to its `<input>`. A `<label>`'s text becomes its children.
+  - Drive it with `checked` and `onChange`, and add `indeterminate` for a select-all box that
+    shows some of its rows checked.
+  - Its `className` goes on its `<label>`, which declares the `--bulma-checkbox-*` variables. For
+    the page's colors, set those in a rule for your class beside `.styled-checkbox`, so the rule
+    wins whatever order the stylesheets load in, and leave `color` unset.
+  - Where the page put `.checkbox` on a bare `<input>`, drop its own rules for that box. bestax
+    draws its own, and `.checkbox` is on its `<label>` now, so those rules would land there.
+
+  ```tsx
+  <Checkbox
+    id="select-all"
+    aria-label="Select all guests"
+    className="guest-check"
+    checked={allChecked}
+    indeterminate={someChecked && !allChecked}
+    onChange={toggleAll}
+  />
+  ```
+
+  ```css
+  .styled-checkbox.guest-check {
+    --bulma-checkbox-active-color: #e8505b;
+  }
+  ```
+
+- **`family:radio`**, **`family:checkboxes`**, **`family:radios`**: bestax renders its own
+  styled radio markup, and its own `.field` and `.control` around a group, not Bulma's.
 - **`family:modal`**: `Modal` writes a `data-testid` of its own and adds dialog attributes and
   focus handling, so the `.modal` root stays markup while its background, content and card parts
   convert on their own. Rebuild the root with `Modal` around them, and drive it with its open prop.

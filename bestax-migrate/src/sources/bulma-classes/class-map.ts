@@ -1901,9 +1901,13 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   },
 
   // ---- Families bestax has but that do not map element by element yet ------
+  // `Checkbox` renders a `<label class="styled-checkbox checkbox">` around
+  // its `<input>`, hidden, and a box of its own drawn beside it. It puts its
+  // `className` on the `<label>` and the rest of what it's given on the
+  // `<input>`, and its `indeterminate` sets the input's mixed state.
   checkbox: todo(
     'Checkbox',
-    "bestax `Checkbox` renders its own styled markup, not Bulma's"
+    "bestax `Checkbox` renders its own styled markup, not Bulma's. Write it by hand in place of the element that carries `.checkbox`, Bulma's `<label>` or a bare `<input>`, with the `<input>`'s attributes on it: `id`, `name`, `aria-label` and the rest reach its `<input>`, and a `<label>`'s text is its children. Drive it with `checked` and `onChange`, and add `indeterminate` for a select-all box. Its `className` goes on its `<label>`, which declares the `--bulma-checkbox-*` variables, so set the page's colors with those in a rule for your class beside `.styled-checkbox`. Where the page put `.checkbox` on a bare `<input>`, drop its own rules for that box, since bestax draws its own and `.checkbox` is on its `<label>` now"
   ),
   checkboxes: todo(
     'Checkboxes',
