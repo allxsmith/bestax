@@ -73,6 +73,12 @@ unknown origin.
 The portrait shows no real person: Kate Woodman is a made-up name, and the face is a few dozen
 square cells. Put your own photo and name in their place.
 
+`public/favicon.svg`, a white K on an orange square, was drawn for this port the same way, in place
+of an earlier favicon whose making was not recorded.
+
+`image-provenance.json` records each image with its SHA-256 hash, so anyone can check that the file
+shipped is the one described here.
+
 ## License
 
 MIT, as the original is. [LICENSE](LICENSE) keeps aldi's notice, followed by the notice for this

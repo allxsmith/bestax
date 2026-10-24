@@ -1,0 +1,16 @@
+{
+  "template": "event-participation",
+  "images": [
+    {
+      "path": "public/media/event_logo_gold.svg",
+      "sha256": "59ca52a1ca32320c86325c106a2f7c36256dea5e86e1b68cd1d5059bcce294a2",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written as SVG code from a text description. No photograph, illustration, stock image or image-generation model was used as an input or as a tracing reference.",
+      "depicts": "The number 50 in gold, over a gold curve, the event's logo.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/media/event_logo_gold.webp, the original's logo image, whose source the original does not record."
+    }
+  ]
+}

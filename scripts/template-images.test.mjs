@@ -1,0 +1,439 @@
+/**
+ * Every image a template under templates/ ships was made for the port and
+ * has an entry in its image-provenance.json whose hash matches the file, and
+ * no template loads an image from elsewhere (#1260).
+ *
+ * The checks live in lib/template-images.mjs and take a root, so most of this
+ * file builds a small fixture repository, as scripts/templates.test.mjs does,
+ * and breaks one thing at a time. The first test runs the checks over the
+ * repo.
+ */
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import {
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { afterEach, describe, it } from 'node:test';
+import {
+  RECORD,
+  checkTemplateImages,
+  externalImages,
+  isImagePath,
+  isImageUrl,
+  isIsoDate,
+  sha256,
+} from './lib/template-images.mjs';
+
+const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
+
+const HERO = '<svg xmlns="http://www.w3.org/2000/svg"/>\n';
+
+/** An entry that passes, for `path` holding `content`. */
+const original = (path, content = HERO) => ({
+  path,
+  sha256: sha256(Buffer.from(content)),
+  origin: 'original',
+  made: '2026-10-23',
+  madeBy: 'Claude, for this bestax port',
+  method: 'Written by hand as SVG markup.',
+  depicts: 'A hill.',
+  license: "MIT, under this template's LICENSE",
+});
+
+const thirdParty = path => ({
+  path,
+  sha256: sha256(Buffer.from(HERO)),
+  origin: 'third-party',
+  source: 'https://example.com/hill',
+  author: 'A. Photographer',
+  licenseName: 'CC0 1.0',
+  licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/',
+  retrieved: '2026-10-23',
+  depicts: 'A hill.',
+  license: 'CC0 1.0',
+});
+
+const roots = [];
+afterEach(() => {
+  for (const root of roots.splice(0)) {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+function write(root, path, content) {
+  const file = join(root, path);
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, content);
+}
+
+const git = (root, ...args) =>
+  execFileSync('git', ['-c', 'init.defaultBranch=main', '-C', root, ...args], {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+
+const stage = root => git(root, 'add', '--all');
+
+const recordOf = (images, template = 'login') =>
+  JSON.stringify({ template, images }, null, 2);
+
+/**
+ * A repository holding templates/login with `files` (path to content), all
+ * staged. By default a hero image and the record that passes for it.
+ */
+function tree(
+  files = {
+    'src/App.tsx': "const hero = '/media/hero.svg';\n",
+    'public/media/hero.svg': HERO,
+    [RECORD]: recordOf([original('public/media/hero.svg')]),
+  }
+) {
+  const root = mkdtempSync(join(tmpdir(), 'template-images-'));
+  roots.push(root);
+  git(root, 'init', '--quiet');
+  write(root, 'templates/CLAUDE.md', '![not a template](https://x.io/a.png)\n');
+  for (const [path, content] of Object.entries(files)) {
+    write(root, `templates/login/${path}`, content);
+  }
+  stage(root);
+  return root;
+}
+
+/** The problems with a passing tree once `path` holds `content`. */
+function withFile(path, content) {
+  const root = tree();
+  write(root, `templates/login/${path}`, content);
+  stage(root);
+  return checkTemplateImages(root);
+}
+
+const withRecord = (images, template) =>
+  withFile(RECORD, recordOf(images, template));
+
+/** Assert exactly one problem, matching `pattern`. */
+function assertOne(problems, pattern) {
+  assert.equal(problems.length, 1, problems.join('\n'));
+  assert.match(problems[0], pattern);
+}
+
+describe('the repo', () => {
+  it('ships only images made for its templates, each recorded', () => {
+    assert.deepEqual(checkTemplateImages(REPO), []);
+  });
+});
+
+describe('a template', () => {
+  it('passes with every image recorded', () => {
+    assert.deepEqual(checkTemplateImages(tree()), []);
+  });
+
+  it('needs no record without images', () => {
+    assert.deepEqual(
+      checkTemplateImages(tree({ 'src/App.tsx': 'export {};\n' })),
+      []
+    );
+  });
+
+  it('needs a record once it has an image, wherever it sits', () => {
+    const root = tree({
+      'public/favicon.ico': 'ico',
+      'src/assets/Logo.PNG': 'png',
+    });
+    assertOne(
+      checkTemplateImages(root),
+      /templates\/login ships public\/favicon\.ico, src\/assets\/Logo\.PNG with no image-provenance\.json to say where/
+    );
+  });
+
+  it('reads what git tracks, and nothing else', () => {
+    const root = tree();
+    write(root, 'templates/login/public/media/draft.png', 'png');
+    write(
+      root,
+      'templates/login/src/Draft.tsx',
+      'const a = "//i.imgur.com/a";'
+    );
+    assert.deepEqual(checkTemplateImages(root), []);
+  });
+
+  it('reports an image with no entry, and an entry with no image', () => {
+    const root = tree();
+    write(root, 'templates/login/public/media/extra.svg', HERO);
+    write(
+      root,
+      `templates/login/${RECORD}`,
+      recordOf([
+        original('public/media/hero.svg'),
+        original('public/media/gone.svg'),
+      ])
+    );
+    stage(root);
+    const problems = checkTemplateImages(root);
+    assert.equal(problems.length, 2, problems.join('\n'));
+    assert.match(problems[0], /"public\/media\/gone\.svg" names no image git/);
+    assert.match(
+      problems[1],
+      /templates\/login\/public\/media\/extra\.svg has no entry in .*; draw it/
+    );
+  });
+
+  it('reports an image tracked as a link or gone, with no bytes to hash', () => {
+    const root = tree({
+      [RECORD]: recordOf([original('public/hero.svg'), original('a.svg')]),
+      'a.svg': HERO,
+    });
+    mkdirSync(join(root, 'templates/login/public'));
+    symlinkSync('/etc/hosts', join(root, 'templates/login/public/hero.svg'));
+    stage(root);
+    rmSync(join(root, 'templates/login/a.svg'));
+    const problems = checkTemplateImages(root);
+    assert.equal(problems.length, 2, problems.join('\n'));
+    assert.match(problems[0], /"public\/hero\.svg" names no image/);
+    assert.match(problems[1], /"a\.svg" names no image/);
+  });
+
+  it('reads nothing from a source or a record that is gone from disk', () => {
+    // The templates test reports each as tracked but missing.
+    const root = tree();
+    rmSync(join(root, 'templates/login/src/App.tsx'));
+    assert.deepEqual(checkTemplateImages(root), []);
+    rmSync(join(root, `templates/login/${RECORD}`));
+    assertOne(checkTemplateImages(root), /is not valid JSON/);
+  });
+
+  it('reports an image recorded twice', () => {
+    const entry = original('public/media/hero.svg');
+    assertOne(withRecord([entry, entry]), /is recorded twice/);
+  });
+
+  it("reports a file whose hash isn't the recorded one, naming its hash", () => {
+    const changed = '<svg xmlns="http://www.w3.org/2000/svg"><g/></svg>\n';
+    const problems = withFile('public/media/hero.svg', changed);
+    assertOne(problems, /changed after its record was written/);
+    assert.ok(problems[0].includes(sha256(Buffer.from(changed))));
+  });
+
+  it('needs a record that parses to an object with an images array', () => {
+    assertOne(
+      withFile(RECORD, '{'),
+      /image-provenance\.json is not valid JSON/
+    );
+    for (const text of ['[]', '{"template":"login"}', 'null']) {
+      assertOne(withFile(RECORD, text), /must be an object with an `images`/);
+    }
+  });
+
+  it('names its own folder', () => {
+    assertOne(
+      withRecord([original('public/media/hero.svg')], 'logn'),
+      /`template` must be "login", its folder's name/
+    );
+  });
+});
+
+describe('an entry', () => {
+  const hero = 'public/media/hero.svg';
+  const problemsOf = entry => withRecord([entry]);
+
+  it('passes as an original, with or without what it replaces', () => {
+    assert.deepEqual(problemsOf({ ...original(hero), replaces: 'a.png' }), []);
+  });
+
+  it('passes as third-party, with its source and license', () => {
+    assert.deepEqual(problemsOf(thirdParty(hero)), []);
+  });
+
+  it('is an object', () => {
+    const problems = withRecord(['public/media/hero.svg']);
+    assert.equal(problems.length, 2, problems.join('\n'));
+    assert.match(problems[0], /images\[0\] must be an object/);
+    assert.match(problems[1], /hero\.svg has no entry/);
+  });
+
+  it('needs a path', () => {
+    const { path, ...rest } = original(hero);
+    assert.equal(path, hero);
+    const problems = problemsOf(rest);
+    assert.equal(problems.length, 2, problems.join('\n'));
+    assert.match(problems[0], /images\[0\] needs a non-empty `path`/);
+    assert.match(problems[1], /hero\.svg has no entry/);
+  });
+
+  it("needs an original's maker and method, said in words", () => {
+    const problems = problemsOf({ ...original(hero), madeBy: ' ', method: '' });
+    assert.equal(problems.length, 2, problems.join('\n'));
+    assert.match(problems[0], /needs a non-empty `madeBy`/);
+    assert.match(problems[1], /needs a non-empty `method`/);
+  });
+
+  it('needs every common field', () => {
+    const { depicts, license, sha256: hash, ...rest } = original(hero);
+    assert.ok(depicts && license && hash);
+    const problems = problemsOf(rest);
+    assert.equal(problems.length, 3, problems.join('\n'));
+    assert.match(problems[0], /needs a non-empty `sha256`/);
+    assert.match(problems[1], /needs a non-empty `depicts`/);
+    assert.match(problems[2], /needs a non-empty `license`/);
+  });
+
+  it('names a known origin', () => {
+    assertOne(
+      problemsOf({ ...original(hero), origin: 'stock' }),
+      /`origin` must be "original" or "third-party"/
+    );
+  });
+
+  it("takes only its origin's fields, and no unknown one", () => {
+    const problems = problemsOf({
+      ...original(hero),
+      author: 'Someone',
+      credit: 'x',
+    });
+    assert.equal(problems.length, 2, problems.join('\n'));
+    assert.match(problems[0], /`author` belongs to the other origin/);
+    assert.match(problems[1], /unknown field `credit`; the fields are path/);
+  });
+
+  it('dates and links in the forms they are read in', () => {
+    const problems = problemsOf({
+      ...thirdParty(hero),
+      retrieved: '2026-02-30',
+      licenseUrl: 'http://example.com/license',
+    });
+    assert.equal(problems.length, 2, problems.join('\n'));
+    assert.match(problems[0], /`licenseUrl` must be an https URL/);
+    assert.match(problems[1], /`retrieved` must be a date written YYYY-MM-DD/);
+  });
+
+  it('records a hash as 64 lowercase hex digits', () => {
+    const entry = original(hero);
+    assertOne(
+      problemsOf({ ...entry, sha256: entry.sha256.toUpperCase() }),
+      /`sha256` must be 64 lowercase hex digits/
+    );
+  });
+
+  it('says what it replaces in words, when it says it', () => {
+    assertOne(
+      problemsOf({ ...original(hero), replaces: '' }),
+      /needs a non-empty `replaces`/
+    );
+  });
+});
+
+describe('the sources', () => {
+  it('load no image from elsewhere', () => {
+    const problems = withFile(
+      'src/index.css',
+      [
+        '.a { background: url(https://example.com/img/sky.JPG); }',
+        ".b { background: url('//images.unsplash.com/photo-1?w=500'); }",
+        '.c { background: url("data:image/svg+xml;utf8,<svg/>"); }',
+      ].join('\n')
+    );
+    assert.equal(problems.length, 3, problems.join('\n'));
+    assert.match(
+      problems[0],
+      /index\.css loads https:\/\/example\.com\/img\/sky\.JPG, an image/
+    );
+    assert.match(
+      problems[1],
+      /loads \/\/images\.unsplash\.com\/photo-1\?w=500/
+    );
+    assert.match(problems[2], /loads data:image\/svg\+xml URI/);
+  });
+
+  it('are every kind of text a template ships', () => {
+    for (const file of ['index.html', 'README.md', 'src/data.json']) {
+      assertOne(
+        withFile(file, 'See https://img.icons8.com/dusk/64/000000/p.'),
+        new RegExp(
+          `${file.replace('.', '\\.')} loads https://img\\.icons8\\.com/dusk/64/000000/p, `
+        )
+      );
+    }
+  });
+
+  it('leave out the record, whose `replaces` may name a hot-link', () => {
+    assert.deepEqual(
+      withRecord([
+        {
+          ...original('public/media/hero.svg'),
+          replaces: 'https://images.unsplash.com/photo-1',
+        },
+      ]),
+      []
+    );
+  });
+
+  it('may link pages, fonts and comments', () => {
+    assert.deepEqual(
+      withFile(
+        'src/App.tsx',
+        [
+          '// See //bulma.io for the classes, and logo.png beside this file.',
+          "const home = 'https://bulma.io';",
+          "const font = 'https://fonts.googleapis.com/css2?family=Inter';",
+          "const notAnImage = 'https://bulma.io/documentation/';",
+        ].join('\n')
+      ),
+      []
+    );
+  });
+});
+
+describe('what counts as an image', () => {
+  it('is a file with an image extension, in any case', () => {
+    for (const path of ['a.svg', 'b/c.PNG', 'd.jpeg', 'e.ico', 'f.avif']) {
+      assert.ok(isImagePath(path), path);
+    }
+    for (const path of ['a.svg.txt', 'README.md', 'png']) {
+      assert.ok(!isImagePath(path), path);
+    }
+  });
+
+  it('is a URL to an image file, or to an image host', () => {
+    for (const url of [
+      'https://example.com/a/b.webp',
+      'https://via.placeholder.com/640x360',
+      'https://bulma.io/assets/brand/Bulma%20Logo.svg',
+      'https://bulma.io/images/placeholders/128x128',
+      'https://bulma.io/assets',
+    ]) {
+      assert.ok(isImageUrl(url), url);
+    }
+    for (const url of [
+      'https://bulma.io/',
+      'https://bulma.io/assetsmore/x',
+      'https://notplaceholder.com/x',
+      'https://unsplash.com/photos/abc',
+      'not a url',
+    ]) {
+      assert.ok(!isImageUrl(url), url);
+    }
+  });
+
+  it('is found in text with its sentence left off', () => {
+    assert.deepEqual(
+      externalImages('Logo: https://picsum.photos/200. Then (//x.io/a.gif)'),
+      ['https://picsum.photos/200', '//x.io/a.gif']
+    );
+  });
+});
+
+describe('isIsoDate', () => {
+  it('takes a real date written YYYY-MM-DD', () => {
+    assert.ok(isIsoDate('2026-10-23'));
+    assert.ok(isIsoDate('2028-02-29'));
+    for (const value of ['2026-02-30', '2026-13-01', '23/10/2026', '', 7]) {
+      assert.ok(!isIsoDate(value), String(value));
+    }
+  });
+});

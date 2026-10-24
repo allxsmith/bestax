@@ -1,0 +1,27 @@
+{
+  "template": "cv",
+  "images": [
+    {
+      "path": "public/favicon.svg",
+      "sha256": "d3c5ba4b8cff287ceb4fb775fa6452eefdda1a16a31710bc225bebdcea1d4eb1",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A white letter K on an orange rounded square.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "The port's earlier favicon, a K set in type, whose making was not recorded."
+    },
+    {
+      "path": "public/media/background.svg",
+      "sha256": "f086571da7032c63a7ffc66ec9f4586efd623a3eaef1e3450d9b8e3370efd709",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written as SVG code from a text description. No photograph, illustration, stock image or image-generation model was used as an input or as a tracing reference.",
+      "depicts": "A blocky pixel-art portrait of a made-up woman in a black hat and a red dress, against sky and sand. It shows no real person.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/media/background.webp, the original's portrait photo, whose source the original does not record."
+    }
+  ]
+}

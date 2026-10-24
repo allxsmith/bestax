@@ -51,6 +51,9 @@ The file is its own source: open it in a text editor to see every shape it draws
 original's background photo, whose source the original does not record, so this port ships no image
 of unknown origin.
 
+`image-provenance.json` records the image with its SHA-256 hash, so anyone can check that the file
+shipped is the one described here.
+
 ## License
 
 MIT, as the original is. [LICENSE](LICENSE) keeps aldi's notice, followed by the notice for this
