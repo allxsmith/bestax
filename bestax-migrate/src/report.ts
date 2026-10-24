@@ -1,8 +1,8 @@
 /**
  * Run reporting: collects per-file results and prints the end-of-run summary.
  * TODO annotations are expected output, not failures — the CLI exits 0 when
- * files were transformed and TODOs remain. A file that failed to migrate is a
- * failure, and the CLI exits 1 for it.
+ * files were transformed and TODOs remain. A file that could not be parsed or
+ * transformed is a failure, and the CLI exits 1 for it.
  */
 
 import chalk from 'chalk';
@@ -26,7 +26,7 @@ export class Reporter {
     this.results.push({ file, changed, todos });
   }
 
-  /** A file that failed to migrate, and why. */
+  /** A file that could not be parsed or transformed, and why. */
   failFile(file: string, error: string, todos: TodoEntry[]): void {
     this.results.push({ file, changed: false, todos, error });
   }

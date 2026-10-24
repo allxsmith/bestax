@@ -854,7 +854,7 @@ describe('CLI', () => {
     program.exitOverride();
     expect(() => program.parse(['node', 'bestax-migrate', '--help'])).toThrow();
     expect(help).toContain('Exit codes:');
-    expect(help).toMatch(/^ {2}1 +a file failed to migrate/m);
+    expect(help).toMatch(/^ {2}1 +a file could not be parsed or transformed/m);
   });
 
   it('migrates SCSS files and updates package.json dependencies', async () => {

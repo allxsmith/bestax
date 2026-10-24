@@ -99,7 +99,7 @@ export interface FileResult {
   file: string;
   changed: boolean;
   todos: TodoEntry[];
-  /** Why the file failed to migrate, when it did. */
+  /** Why the file could not be parsed or transformed, when it couldn't. */
   error?: string;
 }
 

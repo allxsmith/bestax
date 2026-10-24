@@ -10,9 +10,9 @@
  * .html/.htm → a new module beside the page, for a source that reads HTML),
  * updates the nearest package.json (unless --no-deps), writes results back
  * (unless --dry), and prints the run report. TODO annotations are expected
- * output, and leave the exit code at 0. A file that fails to migrate (one
- * that doesn't parse, say) makes it 1, once every other file has been
- * migrated: see `EXIT_CODES`.
+ * output, and leave the exit code at 0. A file that fails to parse or
+ * transform makes it 1, once every other file has been migrated: see
+ * `EXIT_CODES`.
  */
 
 import fs from 'node:fs';
@@ -53,9 +53,9 @@ const CSS_MODES: CssMode[] = ['bestax', 'bulma', 'keep'];
 const EXIT_CODES = [
   'Exit codes:',
   '  0    the run finished; TODO(bestax-migrate) comments are expected output',
-  '  1    a file failed to migrate, such as one that does not parse (each is',
-  '       marked ✖ and listed in the report, and the other files are still',
-  '       migrated), or the command was refused before the run',
+  '  1    a file could not be parsed or transformed (each is marked ✖ and',
+  '       listed in the report, and the other files are still migrated), or',
+  '       the command was refused before the run',
   '  130  Ctrl-C at the telemetry question, after the run',
 ].join('\n');
 
@@ -289,6 +289,9 @@ function migrateFiles(
   const pkg = sourcePackage(source);
   const sourceImportRe = pkg === null ? null : makeSourceImportRe(pkg);
   for (const file of files) {
+    // Outside the failure handling on purpose: a file the run can't read at
+    // all stops it here, before the manifest pass, which could not tell
+    // whether that file still imports the source.
     const sourceText = fs.readFileSync(file, 'utf8');
     const collector = reporter.startFile();
     const extension = extensionOf(file);
