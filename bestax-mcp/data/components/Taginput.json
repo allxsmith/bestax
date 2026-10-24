@@ -46,15 +46,15 @@
       "code": "<Taginput\n  defaultValue={['Fixed', 'Tags']}\n  closable={false}\n  tagColor=\"primary\"\n  placeholder=\"Cannot remove tags...\"\n/>"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › Default (with label)",
       "code": "<Taginput\n  label=\"Tags\"\n  defaultValue={['React', 'TypeScript']}\n  placeholder=\"Add a tag...\"\n  tagColor=\"primary\"\n/>"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field Wrapper",
       "code": "function example() {\n  return (\n    <Field horizontal label=\"Tags\" labelProps={{ htmlFor: 'tags-field' }}>\n      <Field.Body>\n        <Field>\n          <Taginput\n            id=\"tags-field\"\n            defaultValue={['React', 'TypeScript']}\n            placeholder=\"Add a tag...\"\n            tagColor=\"primary\"\n          />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field and Control Wrappers",
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Tags\"\n      labelProps={{ htmlFor: 'tags-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control>\n            <Taginput\n              id=\"tags-field-control\"\n              icon=\"tags\"\n              defaultValue={['React', 'TypeScript']}\n              placeholder=\"Add a tag...\"\n              tagColor=\"primary\"\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],

@@ -63,7 +63,14 @@ import {
   renderHelperGroup,
   resolveGroup,
 } from './helper-props.js';
-import { searchAll, suggest, usesExport, type HitKind } from './search.js';
+import {
+  searchAll,
+  skillSections,
+  suggest,
+  usesExport,
+  type HitKind,
+  type SkillSection,
+} from './search.js';
 import {
   missingInstallNote,
   resolveVersions,
@@ -96,6 +103,8 @@ const MAX_NAME = 100;
 const MAX_QUERY = 200;
 /** A class string, which runs longer than a query; each class is a table read. */
 const MAX_CLASSES = 1000;
+/** How many titles `get_examples` names of the examples its limit left out. */
+const MAX_TITLES_LEFT = 10;
 
 /**
  * Every tool here answers from a read-only index that ships inside this package: nothing
@@ -176,6 +185,32 @@ async function allComponents(): Promise<ComponentRecord[]> {
   return Promise.all(catalog.components.map(c => loadComponent(c.name)));
 }
 
+/**
+ * Every section of every skill's SKILL.md and reference documents, which
+ * `search_bestax` reads for a skill hit. The examples are code, which the
+ * component examples already answer for. A document this build lacks
+ * (`loadSkillFile` says how to sync them) costs its sections, not the search.
+ */
+async function allSkillSections(skills: Skill[]): Promise<SkillSection[]> {
+  const docs = skills.flatMap(skill => [
+    { skill, reference: undefined, file: undefined },
+    ...skill.references.map(ref => ({
+      skill,
+      reference: ref.id,
+      file: ref.file,
+    })),
+  ]);
+  const read = await Promise.all(
+    docs.map(({ skill, reference, file }) =>
+      loadSkillFile(skill.dir, file).then(
+        md => skillSections(skill.name, reference, md),
+        () => []
+      )
+    )
+  );
+  return read.flat();
+}
+
 export interface CreateServerOptions {
   /** Directory to resolve the consumer's installed library from. */
   cwd?: string;
@@ -213,6 +248,10 @@ export async function createServer(
   };
   // A reference or an example: get_skill reads both under `reference`, and lists both.
   const skillDocs = (skill: Skill) => [...skill.references, ...skill.examples];
+  // Read on the first search that wants skills, then kept: the documents are
+  // part of the package and do not change while it runs.
+  let sectionsRead: Promise<SkillSection[]> | undefined;
+  const skillSectionsOnce = () => (sectionsRead ??= allSkillSections(skills));
   // Completion for a skill name, by either name, filtered by what has been typed.
   const completeSkill = (value: string) => {
     const typed = value.toLowerCase();
@@ -401,7 +440,8 @@ export async function createServer(
         catalog,
         needsAll ? await allComponents() : [],
         skills,
-        kinds
+        kinds,
+        kinds.includes('skill') ? await skillSectionsOnce() : []
       ).slice(0, limit ?? 15);
 
       if (!hits.length) {
@@ -649,12 +689,29 @@ export async function createServer(
           note()
         );
       }
+      const shown = matches.slice(0, limit ?? 8);
+      // What the limit left out, by title, so a small limit can't hide a whole
+      // way of writing the component: Modal's compound form comes after its
+      // props form on the page (#1236).
+      // A long page's list is cut short too, since every call would carry it.
+      const left = [...new Set(matches.slice(shown.length).map(e => e.title))];
+      const named = left
+        .slice(0, MAX_TITLES_LEFT)
+        .map(title => `"${title}"`)
+        .join(', ');
+      const unnamed = left.length - MAX_TITLES_LEFT;
       return textResult(
         `# ${name} examples\n\n` +
           (documented
             ? `From \`${record.name}\`'s documentation page, the ones that use it.\n\n`
             : '') +
-          renderExamples(matches.slice(0, limit ?? 8)),
+          renderExamples(shown) +
+          (left.length > 0
+            ? `\n\n**Not shown** under this limit, ${matches.length - shown.length} ` +
+              `more: ${named}${unnamed > 0 ? `, and ${unnamed} other titles` : ''}. ` +
+              `Pass a title as \`query\` in \`get_examples({ component: ` +
+              `"${name}", query })\`, or raise \`limit\`.`
+            : ''),
         note()
       );
     }

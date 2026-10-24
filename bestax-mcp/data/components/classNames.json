@@ -30,27 +30,27 @@
       "code": "function example() {\n  return classNames('button', 'is-primary', 'button', [\n    'is-primary',\n    'is-large',\n  ]);\n  // => 'button is-primary is-large'\n}"
     },
     {
-      "title": "Real Examples from Components",
+      "title": "Real Examples from Components › Columns and Column",
       "code": "function example() {\n  const isGapless = true;\n  const isMultiline = true;\n\n  return classNames(\n    'columns',\n    { 'is-gapless': isGapless, 'is-multiline': isMultiline },\n    ['has-background-light', 'is-vcentered']\n  );\n  // Example output: 'columns is-gapless is-multiline has-background-light is-vcentered'\n}"
     },
     {
-      "title": "Real Examples from Components",
+      "title": "Real Examples from Components › Grid and Cell",
       "code": "function example() {\n  const span = 2;\n\n  return classNames('cell', { 'is-col-span-2': span === 2 }, [\n    'has-text-primary',\n    'is-row-span-3',\n  ]);\n  // Example output: 'cell is-col-span-2 has-text-primary is-row-span-3'\n}"
     },
     {
-      "title": "Real Examples from Components",
+      "title": "Real Examples from Components › Dropdown",
       "code": "function example() {\n  const active = true;\n  const up = false;\n  const right = true;\n  const hoverable = false;\n  const disabled = false;\n  const className = 'my-custom-dropdown';\n\n  return classNames(\n    'dropdown',\n    {\n      'is-active': active,\n      'is-up': up,\n      'is-right': right,\n      'is-hoverable': hoverable,\n      'is-disabled': disabled,\n    },\n    className\n  );\n  // Possible output: 'dropdown is-active is-right my-custom-dropdown'\n}"
     },
     {
-      "title": "Real Examples from Components",
+      "title": "Real Examples from Components › Card",
       "code": "function example() {\n  const className = 'custom-class';\n  const hasShadow = false;\n  const bulmaHelperClasses = 'has-text-success';\n\n  return classNames('card', className, bulmaHelperClasses, {\n    'is-shadowless': !hasShadow,\n  });\n  // Example output: 'card custom-class has-text-success is-shadowless'\n}"
     },
     {
-      "title": "Real Examples from Components",
+      "title": "Real Examples from Components › Menu",
       "code": "function example() {\n  const className = 'sidebar-menu';\n  const bulmaHelperClasses = 'has-background-light';\n\n  return classNames('menu', className, bulmaHelperClasses);\n  // Example output: 'menu sidebar-menu has-background-light'\n}"
     },
     {
-      "title": "Real Examples from Components",
+      "title": "Real Examples from Components › Breadcrumb",
       "code": "function example() {\n  const className = 'custom-breadcrumb';\n  const bulmaHelperClasses = undefined;\n  const alignment = 'centered';\n  const separator = 'dot';\n  const size = 'large';\n\n  return classNames('breadcrumb', className, bulmaHelperClasses, {\n    'is-centered': alignment === 'centered',\n    'has-dot-separator': separator === 'dot',\n    'is-large': size === 'large',\n  });\n  // Example output: 'breadcrumb custom-breadcrumb is-centered has-dot-separator is-large'\n}"
     }
   ],
