@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
+import { expect } from 'storybook/test';
 import { Carousel, CarouselItem } from './Carousel';
 import { Hero } from '../layout/Hero';
 import { Block } from '../elements/Block';
@@ -476,6 +477,8 @@ export const Controlled: Story = {
 /**
  * Several cards in view: three on desktop, two on tablet and one on mobile.
  * A step moves one card, and the indicators mark where the view can start.
+ * Each photo fills a 16:9 `Image` frame, so the cards line up whatever shape
+ * the photos are.
  */
 export const SeveralInView: Story = {
   args: {
@@ -525,7 +528,7 @@ export const SeveralInView: Story = {
             <CarouselItem key={room.title}>
               <Card m="2">
                 <Card.Image>
-                  <Image src={room.image} alt={room.title} />
+                  <Image size="16by9" src={room.image} alt={room.title} />
                 </Card.Image>
                 <Card.Content>
                   <Title as="p" size="5">
@@ -541,6 +544,19 @@ export const SeveralInView: Story = {
         </Carousel>
       </Block>
     );
+  },
+  play: async ({ canvasElement }) => {
+    // The photos are 16:10, so one that kept its own height would run past
+    // its frame and over the card's title (#1166).
+    const frames = canvasElement.querySelectorAll('.image.is-16by9');
+    await expect(frames.length).toBeGreaterThan(0);
+    for (const frame of Array.from(frames)) {
+      const photo = frame.querySelector('img') as HTMLImageElement;
+      await expect(photo.getBoundingClientRect().height).toBeCloseTo(
+        frame.getBoundingClientRect().height,
+        0
+      );
+    }
   },
 };
 

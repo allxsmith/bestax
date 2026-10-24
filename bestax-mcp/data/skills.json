@@ -10,7 +10,7 @@
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
-          "bytes": 20605
+          "bytes": 20804
         },
         {
           "id": "library-contributor",
@@ -25,12 +25,12 @@
     },
     {
       "name": "bestax-form",
-      "description": "Build forms with @allxsmith/bestax-bulma — Field/Control/Label/Help composition, inputs, selects, checkboxes, radios, switches, and advanced controls (Autocomplete, Combobox, Slider, Numberinput, Rate, Taginput, File, date/time). There is no form/validation library; this skill shows the components and the validate-it-yourself error pattern. Use when building a form, wiring inputs to state, or showing validation/error state.",
+      "description": "Build forms with @allxsmith/bestax-bulma — Field/Control/Label/Help composition, inputs, selects, checkboxes, radios, switches, and advanced controls (Autocomplete, Combobox, Slider, Numberinput, PinInput, Rate, Taginput, File, date/time). There is no form/validation library; this skill shows the components and the validate-it-yourself error pattern. Use when building a form, wiring inputs to state, or showing validation/error state.",
       "promptName": "form",
       "dir": "bestax-form",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 18434 },
-        { "id": "patterns", "file": "references/patterns.md", "bytes": 9427 }
+        { "id": "api", "file": "references/api.md", "bytes": 19315 },
+        { "id": "patterns", "file": "references/patterns.md", "bytes": 9835 }
       ],
       "examples": []
     },
@@ -113,7 +113,7 @@
         {
           "id": "bulma-classes-unmappables",
           "file": "references/bulma-classes/unmappables.md",
-          "bytes": 54874
+          "bytes": 56988
         },
         {
           "id": "css-migration",
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 12075
+          "bytes": 12331
         }
       ],
       "examples": []
@@ -176,12 +176,12 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 47797
+          "bytes": 48297
         },
         {
           "id": "themeable-components",
           "file": "references/themeable-components.md",
-          "bytes": 24680
+          "bytes": 25101
         }
       ],
       "examples": [
