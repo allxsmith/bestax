@@ -44,14 +44,15 @@ treats the folder as a project of its own.
 
 ## Images
 
-`public/media/background.svg`, the mountains at sunset, was drawn for this port on October 23, 2026
-by Claude, Anthropic's AI model, writing SVG code from a text description. No photo, illustration,
-stock image or image-generation model went into it, and it copies no existing artwork. The file is
+`public/media/background.svg`, the sea at sunset with a sailboat and a lighthouse, was drawn for this
+port on October 23, 2026 by Claude, Anthropic's AI model, writing SVG markup by hand from an idea of its own rather than
+from the image it replaces. No photo, illustration, stock image or image-generation model went into
+it, and it copies no existing artwork. The file is
 its own source: open it in a text editor to see every shape it draws. It replaces the original's
 background photo, whose source the original does not record, so this port ships no image of unknown
 origin.
 
-`public/favicon.svg`, a turquoise padlock, was drawn for this port the same way, in place of an
+`public/favicon.svg`, a turquoise padlock, was drawn for this port by hand too, in place of an
 earlier favicon whose making was not recorded.
 
 `image-provenance.json` records each image with its SHA-256 hash, so anyone can check that the file

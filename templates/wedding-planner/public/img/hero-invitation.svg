@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1144" height="703" viewBox="0 0 1144 703">
+  <!-- Drawn for the bestax port of the Wedding Planner template; image-provenance.json records how. -->
+  <!-- A wedding invitation rising from its envelope, with flowers tucked behind, a calendar
+       page with the day circled, and a pair of rings. -->
+  <defs>
+    <g id="flower">
+      <circle cx="0" cy="-16" r="16" />
+      <circle cx="15" cy="-5" r="16" />
+      <circle cx="9" cy="13" r="16" />
+      <circle cx="-9" cy="13" r="16" />
+      <circle cx="-15" cy="-5" r="16" />
+      <circle r="9" fill="#ffe08a" />
+    </g>
+    <path id="leaf" d="M0 0C14-18 42-18 54 0C42 18 14 18 0 0Z" />
+    <path id="spark" d="M0-18C3-4 4-3 18 0C4 3 3 4 0 18C-3 4-4 3-18 0C-4-3-3-4 0-18Z" />
+  </defs>
+
+  <circle cx="572" cy="360" r="320" fill="#f3eefb" />
+
+  <!-- Leaves and flowers behind the envelope. -->
+  <g fill="#8fc7a0">
+    <use xlink:href="#leaf" transform="translate(372 250) rotate(-150)" />
+    <use xlink:href="#leaf" transform="translate(390 200) rotate(-110)" />
+    <use xlink:href="#leaf" transform="translate(770 210) rotate(-60)" />
+    <use xlink:href="#leaf" transform="translate(790 260) rotate(-20)" />
+  </g>
+  <g fill="#eeaeca"><use xlink:href="#flower" x="352" y="290" /><use xlink:href="#flower" x="800" y="230" /></g>
+  <g fill="#b9a6ec"><use xlink:href="#flower" x="400" y="230" /></g>
+  <g fill="#ffffff"><use xlink:href="#flower" x="760" y="296" /></g>
+
+  <!-- The envelope's back, the card, then its front. -->
+  <rect x="372" y="300" width="400" height="270" rx="12" fill="#c7b8ea" />
+  <g transform="rotate(-3 572 280)">
+    <rect x="410" y="110" width="324" height="300" rx="10" fill="#ffffff" stroke="#e9e3f7" stroke-width="4" />
+    <rect x="430" y="130" width="284" height="260" rx="6" fill="none" stroke="#e58fb5" stroke-width="3" stroke-dasharray="2 8" stroke-linecap="round" />
+    <text x="572" y="196" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="34" font-style="italic" fill="#7d6bd6">Save the date</text>
+    <path d="M492 222H652" stroke="#e9e3f7" stroke-width="4" stroke-linecap="round" />
+    <path d="M572 290C548 274 542 262 548 254C554 246 566 248 572 258C578 248 590 246 596 254C602 262 596 274 572 290Z" fill="#e58fb5" />
+    <rect x="502" y="312" width="140" height="12" rx="6" fill="#e9e3f7" />
+    <rect x="522" y="336" width="100" height="12" rx="6" fill="#e9e3f7" />
+  </g>
+  <path d="M372 330L572 460L772 330V558A12 12 0 0 1 760 570H384A12 12 0 0 1 372 558Z" fill="#b9a6ec" />
+  <path d="M372 570L540 440M772 570L604 440" stroke="#a894e3" stroke-width="4" />
+  <circle cx="572" cy="468" r="30" fill="#e58fb5" />
+  <path d="M572 484C558 474 554 466 558 461C562 456 569 457 572 463C575 457 582 456 586 461C590 466 586 474 572 484Z" fill="#ffffff" />
+
+  <!-- A calendar page, left, with the day circled. -->
+  <g transform="rotate(-8 220 430)">
+    <rect x="130" y="330" width="180" height="200" rx="14" fill="#ffffff" stroke="#e9e3f7" stroke-width="4" />
+    <path d="M130 344A14 14 0 0 1 144 330H296A14 14 0 0 1 310 344V376H130Z" fill="#7d6bd6" />
+    <g fill="#d9cff0">
+      <rect x="152" y="398" width="22" height="18" rx="4" /><rect x="186" y="398" width="22" height="18" rx="4" /><rect x="220" y="398" width="22" height="18" rx="4" /><rect x="254" y="398" width="22" height="18" rx="4" />
+      <rect x="152" y="432" width="22" height="18" rx="4" /><rect x="186" y="432" width="22" height="18" rx="4" /><rect x="254" y="432" width="22" height="18" rx="4" />
+      <rect x="152" y="466" width="22" height="18" rx="4" /><rect x="186" y="466" width="22" height="18" rx="4" /><rect x="220" y="466" width="22" height="18" rx="4" /><rect x="254" y="466" width="22" height="18" rx="4" />
+    </g>
+    <rect x="220" y="432" width="22" height="18" rx="4" fill="#e58fb5" />
+    <circle cx="231" cy="441" r="22" fill="none" stroke="#e58fb5" stroke-width="4" />
+    <rect x="166" y="316" width="10" height="28" rx="5" fill="#3d3b55" />
+    <rect x="264" y="316" width="10" height="28" rx="5" fill="#3d3b55" />
+  </g>
+
+  <!-- A pair of rings, right. -->
+  <circle cx="900" cy="480" r="52" fill="none" stroke="#e8c36a" stroke-width="16" />
+  <circle cx="964" cy="508" r="46" fill="none" stroke="#c7b8ea" stroke-width="13" />
+  <path d="M876 424L888 404H912L924 424L900 450Z" fill="#72ddf7" />
+  <path d="M876 424H924M900 450L893 424L900 404L907 424Z" fill="none" stroke="#ffffff" stroke-width="2" stroke-linejoin="round" />
+
+  <!-- Sparks and confetti. -->
+  <g fill="#e8c36a">
+    <use xlink:href="#spark" x="300" y="150" /><use xlink:href="#spark" x="880" y="150" /><use xlink:href="#spark" x="1010" y="380" />
+  </g>
+  <g fill="#b9a6ec">
+    <use xlink:href="#spark" x="200" y="260" /><use xlink:href="#spark" x="960" y="260" />
+  </g>
+  <g>
+    <rect x="250" y="600" width="16" height="8" rx="2" fill="#eeaeca" transform="rotate(25 258 604)" />
+    <rect x="860" y="610" width="16" height="8" rx="2" fill="#72ddf7" transform="rotate(-30 868 614)" />
+    <circle cx="160" cy="560" r="6" fill="#7d6bd6" />
+    <circle cx="1040" cy="560" r="6" fill="#e58fb5" />
+  </g>
+</svg>

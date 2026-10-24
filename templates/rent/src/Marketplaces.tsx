@@ -7,7 +7,7 @@ import {
   Title,
 } from '@allxsmith/bestax-bulma';
 
-/** "All marketplaces", beside a small house. */
+/** "All marketplaces", beside a chart of homes. */
 function Marketplaces() {
   return (
     <Hero>

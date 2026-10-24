@@ -14,12 +14,12 @@
     },
     {
       "path": "public/media/background.svg",
-      "sha256": "f086571da7032c63a7ffc66ec9f4586efd623a3eaef1e3450d9b8e3370efd709",
+      "sha256": "132daab73e3684c12813476f0ca23c089634334250df36ad0b9577843a8c07ac",
       "origin": "original",
       "made": "2026-10-23",
       "madeBy": "Claude, Anthropic's AI model, for this bestax port",
-      "method": "Written as SVG code from a text description. No photograph, illustration, stock image or image-generation model was used as an input or as a tracing reference.",
-      "depicts": "A blocky pixel-art portrait of a made-up woman in a black hat and a red dress, against sky and sand. It shows no real person.",
+      "method": "Written by hand as SVG markup, from an idea of its own rather than from the image it replaces. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "An invented, faceless figure in a teal sweater before an orange sun on a dotted indigo backdrop, framed by a web designer's tools: a browser window, a code tag, a pen curve, a cursor and color swatches. It portrays no one.",
       "license": "MIT, under this template's LICENSE",
       "replaces": "public/media/background.webp, the original's portrait photo, whose source the original does not record."
     }

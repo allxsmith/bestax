@@ -18,8 +18,8 @@ const text =
  */
 const steps = [
   { title: 'Step one', art: '/img/step-agreement.svg', wide: true },
-  { title: 'Step two', art: '/img/step-dresses.svg' },
-  { title: 'Step three', art: '/img/step-camera.svg', wide: true },
+  { title: 'Step two', art: '/img/step-gown.svg' },
+  { title: 'Step three', art: '/img/step-album.svg', wide: true },
   { title: 'Step four', art: '/img/step-celebration.svg' },
 ];
 

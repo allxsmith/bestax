@@ -104,7 +104,7 @@ function Header() {
               </Button>
             </Column>
             <Column>
-              <img src="/img/hero-couple.svg" alt="" />
+              <img src="/img/hero-invitation.svg" alt="" />
             </Column>
           </Columns>
         </Container>

@@ -1,6 +1,6 @@
 # Bulma CV Template, rebuilt with bestax
 
-A one-page CV with a full-height portrait, social profile buttons and a light and dark toggle,
+A one-page CV with a full-height illustration, social profile buttons and a light and dark toggle,
 rebuilt as a React app with [bestax-bulma](https://bestax.io).
 
 The original is [aldi](https://github.com/aldi)'s
@@ -29,7 +29,7 @@ treats the folder as a project of its own.
   else their system's, before the first paint, and `src/colorMode.ts` saves each choice under the
   key that script reads.
 - `src/index.css` is the original's stylesheet, ported, with its entrance animations, and
-  `public/` holds the portrait drawn for this port (see [Images](#images)) and the favicon.
+  `public/` holds the illustration drawn for this port (see [Images](#images)) and the favicon.
 - The social buttons take their brand colors from aldi's
   [bulma-social](https://github.com/aldi/bulma-social), as the original does: its classes go on
   bestax's `Button` through `className`.
@@ -63,17 +63,18 @@ treats the folder as a project of its own.
 
 ## Images
 
-`public/media/background.svg`, the blocky pixel-art portrait, was drawn for this port on October 23,
-2026 by Claude, Anthropic's AI model, writing SVG code from a text description. No photo,
-illustration, stock image or image-generation model went into it, and it copies no existing artwork.
+`public/media/background.svg`, an invented, faceless figure framed by a web designer's tools, was
+drawn for this port on October 23, 2026 by Claude, Anthropic's AI model, writing SVG markup by hand from an idea of its own rather than
+from the image it replaces. No photo, illustration, stock image or image-generation model went into
+it, and it copies no existing artwork.
 The file is its own source: open it in a text editor to see every shape it draws. It replaces the
 original's portrait photo, whose source the original does not record, so this port ships no image of
 unknown origin.
 
-The portrait shows no real person: Kate Woodman is a made-up name, and the face is a few dozen
-square cells. Put your own photo and name in their place.
+The figure portrays no one, and Kate Woodman is a made-up name. Put your own photo and name in their
+place.
 
-`public/favicon.svg`, a white K on an orange square, was drawn for this port the same way, in place
+`public/favicon.svg`, a white K on an orange square, was drawn for this port by hand too, in place
 of an earlier favicon whose making was not recorded.
 
 `image-provenance.json` records each image with its SHA-256 hash, so anyone can check that the file

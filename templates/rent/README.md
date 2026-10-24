@@ -61,8 +61,9 @@ treats the folder as a project of its own.
 ## Images
 
 Every image in `public/media/` was drawn for this port on October 23, 2026 by Claude, Anthropic's
-AI model, writing SVG markup by hand: the house in the hero, the small house beside "All
-marketplaces", the day and night skylines, and the listing placeholder. No photo, illustration,
+AI model, writing SVG markup by hand from ideas of its own rather than from the images they replace:
+the street of homes in the hero, the chart beside "All marketplaces", the riverside town, the row
+houses at night, and the listing placeholder. No photo, illustration,
 stock image or image-generation model went into them, and they trace no existing artwork. Each file
 is its own source: open it in a text editor to see every shape it draws. They replace the
 original's illustrations, whose source the original does not record, and the placeholder it

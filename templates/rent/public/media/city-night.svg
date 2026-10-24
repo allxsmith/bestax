@@ -1,102 +1,59 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="660" height="309" viewBox="0 0 660 309">
   <!-- Drawn for the bestax port of the Rent template; image-provenance.json records how. -->
-  <defs>
-    <!-- Windows at night: a few lit, most dark, in two arrangements. -->
-    <pattern id="lit-a" width="24" height="30" patternUnits="userSpaceOnUse">
-      <g fill="#ffd66b">
-        <rect x="1" y="2" width="4" height="6" />
-        <rect x="13" y="2" width="4" height="6" />
-        <rect x="7" y="12" width="4" height="6" />
-        <rect x="19" y="22" width="4" height="6" />
-      </g>
-      <g fill="#33475e">
-        <rect x="7" y="2" width="4" height="6" />
-        <rect x="19" y="2" width="4" height="6" />
-        <rect x="1" y="12" width="4" height="6" />
-        <rect x="13" y="12" width="4" height="6" />
-        <rect x="19" y="12" width="4" height="6" />
-        <rect x="1" y="22" width="4" height="6" />
-        <rect x="7" y="22" width="4" height="6" />
-        <rect x="13" y="22" width="4" height="6" />
-      </g>
-    </pattern>
-    <pattern id="lit-b" width="30" height="24" patternUnits="userSpaceOnUse">
-      <g fill="#ffd66b">
-        <rect x="8" y="2" width="5" height="4" />
-        <rect x="23" y="10" width="5" height="4" />
-        <rect x="1" y="18" width="5" height="4" />
-        <rect x="16" y="18" width="5" height="4" />
-      </g>
-      <g fill="#33475e">
-        <rect x="1" y="2" width="5" height="4" />
-        <rect x="16" y="2" width="5" height="4" />
-        <rect x="23" y="2" width="5" height="4" />
-        <rect x="1" y="10" width="5" height="4" />
-        <rect x="8" y="10" width="5" height="4" />
-        <rect x="16" y="10" width="5" height="4" />
-        <rect x="8" y="18" width="5" height="4" />
-        <rect x="23" y="18" width="5" height="4" />
-      </g>
-    </pattern>
-    <pattern id="floors" width="10" height="14" patternUnits="userSpaceOnUse">
-      <rect y="5" width="10" height="3" fill="#ffd66b" opacity="0.75" />
-    </pattern>
-  </defs>
+  <!-- A street of row houses in the evening, under a crescent moon: some rooms lit, a
+       "For rent" sign in one window, and street trees along the curb. -->
+  <path d="M20 309V60A40 40 0 0 1 60 20H600A40 40 0 0 1 640 60V309Z" fill="#26415e" />
+  <g fill="#ffffff">
+    <circle cx="80" cy="60" r="2" /><circle cx="150" cy="44" r="1.5" /><circle cx="240" cy="70" r="2" />
+    <circle cx="330" cy="40" r="1.5" /><circle cx="420" cy="64" r="2" /><circle cx="600" cy="90" r="1.5" />
+  </g>
+  <path d="M548 40a32 32 0 1 0 30 46a26 26 0 1 1-30-46Z" fill="#ffd66b" />
 
-  <!-- The back row. -->
-  <g fill="#3a5068">
-    <rect x="20" y="132" width="50" height="177" />
-    <rect x="188" y="96" width="42" height="213" />
-    <rect x="352" y="120" width="48" height="189" />
-    <rect x="520" y="86" width="44" height="223" />
-    <rect x="610" y="150" width="50" height="159" />
+  <!-- Five row houses, each its own color, roof line stepping. -->
+  <g stroke="#1a2c40" stroke-width="2.5">
+    <rect x="40" y="130" width="110" height="179" fill="#3f6e8c" />
+    <rect x="150" y="110" width="110" height="199" fill="#8a4f5c" />
+    <rect x="260" y="140" width="110" height="169" fill="#4a7d6a" />
+    <rect x="370" y="104" width="110" height="205" fill="#6b5a8a" />
+    <rect x="480" y="128" width="140" height="181" fill="#3f6e8c" />
+  </g>
+  <g fill="#1a2c40">
+    <rect x="34" y="122" width="122" height="10" /><rect x="144" y="102" width="122" height="10" />
+    <rect x="254" y="132" width="122" height="10" /><rect x="364" y="96" width="122" height="10" />
+    <rect x="474" y="120" width="152" height="10" />
   </g>
 
-  <!-- The front row, left to right. -->
-  <g fill="#1d2b3a">
-    <rect x="0" y="178" width="46" height="131" />
-    <rect x="46" y="112" width="40" height="197" />
-    <rect x="86" y="58" width="52" height="251" />
-    <rect x="104" y="40" width="16" height="20" />
-    <rect x="110" y="14" width="4" height="28" />
-    <rect x="138" y="150" width="56" height="159" />
-    <rect x="194" y="200" width="48" height="109" />
-    <rect x="242" y="118" width="58" height="191" />
-    <path d="M300 309V136L332 104L364 136V309Z" />
-    <rect x="364" y="210" width="64" height="99" />
-    <rect x="428" y="96" width="44" height="213" />
-    <rect x="472" y="44" width="50" height="265" />
-    <rect x="486" y="22" width="22" height="24" />
-    <rect x="495" y="2" width="4" height="22" />
-    <rect x="522" y="160" width="40" height="149" />
-    <rect x="562" y="106" width="52" height="203" />
-    <rect x="614" y="196" width="46" height="113" />
+  <!-- Windows: lit warm, lit by a screen, or dark. -->
+  <g stroke="#1a2c40" stroke-width="2">
+    <rect x="58" y="150" width="30" height="40" fill="#ffd66b" /><rect x="102" y="150" width="30" height="40" fill="#1f3448" />
+    <rect x="58" y="210" width="30" height="40" fill="#1f3448" /><rect x="102" y="210" width="30" height="40" fill="#ffe7a8" />
+    <rect x="168" y="130" width="30" height="40" fill="#1f3448" /><rect x="212" y="130" width="30" height="40" fill="#8fe3d6" />
+    <rect x="168" y="190" width="30" height="40" fill="#ffd66b" /><rect x="212" y="190" width="30" height="40" fill="#1f3448" />
+    <rect x="278" y="160" width="30" height="40" fill="#ffe7a8" /><rect x="322" y="160" width="30" height="40" fill="#ffd66b" />
+    <rect x="388" y="124" width="30" height="40" fill="#1f3448" /><rect x="432" y="124" width="30" height="40" fill="#ffd66b" />
+    <rect x="388" y="184" width="30" height="40" fill="#8fe3d6" /><rect x="432" y="184" width="30" height="40" fill="#1f3448" />
+    <rect x="500" y="148" width="40" height="40" fill="#ffd66b" /><rect x="560" y="148" width="40" height="40" fill="#ffffff" />
+    <rect x="500" y="208" width="40" height="40" fill="#1f3448" /><rect x="560" y="208" width="40" height="40" fill="#ffe7a8" />
+  </g>
+  <rect x="562" y="159" width="36" height="18" fill="#f2777a" />
+  <text x="580" y="170.5" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="6.5" font-weight="700" fill="#ffffff">FOR RENT</text>
+
+  <!-- Front doors and steps. -->
+  <g fill="#1a2c40">
+    <rect x="80" y="262" width="28" height="44" rx="14" /><rect x="190" y="252" width="28" height="54" rx="14" />
+    <rect x="300" y="262" width="28" height="44" rx="14" /><rect x="410" y="252" width="28" height="54" rx="14" />
+    <rect x="536" y="262" width="28" height="44" rx="14" />
+  </g>
+  <g fill="#ffd66b">
+    <circle cx="94" cy="256" r="3" /><circle cx="204" cy="246" r="3" /><circle cx="314" cy="256" r="3" />
+    <circle cx="424" cy="246" r="3" /><circle cx="550" cy="256" r="3" />
   </g>
 
-  <!-- A water tower on the low roof. -->
-  <g fill="#1d2b3a">
-    <rect x="384" y="186" width="24" height="16" rx="3" />
-    <path d="M384 186L396 176L408 186Z" />
-    <rect x="387" y="202" width="3" height="8" />
-    <rect x="402" y="202" width="3" height="8" />
+  <!-- Street trees in front. -->
+  <g>
+    <rect x="148" y="270" width="5" height="39" fill="#1a2c40" />
+    <circle cx="150" cy="262" r="20" fill="#2f7f6a" />
+    <rect x="368" y="270" width="5" height="39" fill="#1a2c40" />
+    <circle cx="370" cy="262" r="20" fill="#2f7f6a" />
   </g>
-
-  <!-- Their windows. -->
-  <rect x="6" y="186" width="34" height="118" fill="url(#lit-a)" />
-  <rect x="52" y="120" width="28" height="184" fill="url(#floors)" />
-  <rect x="94" y="68" width="36" height="236" fill="url(#lit-b)" />
-  <rect x="144" y="158" width="44" height="146" fill="url(#lit-a)" />
-  <rect x="200" y="208" width="36" height="96" fill="url(#lit-b)" />
-  <rect x="248" y="126" width="46" height="178" fill="url(#lit-a)" />
-  <rect x="310" y="142" width="44" height="162" fill="url(#floors)" />
-  <rect x="368" y="218" width="56" height="86" fill="url(#lit-b)" />
-  <rect x="434" y="104" width="32" height="200" fill="url(#lit-a)" />
-  <rect x="478" y="54" width="38" height="250" fill="url(#lit-b)" />
-  <rect x="528" y="168" width="28" height="136" fill="url(#floors)" />
-  <rect x="568" y="114" width="40" height="190" fill="url(#lit-a)" />
-  <rect x="620" y="204" width="34" height="100" fill="url(#lit-b)" />
-
-  <!-- A light on each antenna. -->
-  <circle cx="112" cy="14" r="3" fill="#f2777a" />
-  <circle cx="497" cy="3" r="3" fill="#f2777a" />
 </svg>

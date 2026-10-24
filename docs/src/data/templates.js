@@ -111,7 +111,7 @@ export const templates = [
     slug: 'coming-soon',
     title: 'Coming Soon',
     description:
-      'A full-screen launch page over a misty highway, with round social buttons and an email signup.',
+      'A full-screen launch page over a building going up at dawn, with round social buttons and an email signup.',
     author: { name: 'aldi', url: 'https://github.com/aldi' },
     source: 'https://github.com/aldi/bulma-coming-soon-template',
     sourceSha: '7a9d786fe0bc610ec174b2a0a11e994051339345',
@@ -124,7 +124,7 @@ export const templates = [
     slug: 'cv',
     title: 'CV',
     description:
-      'A one-page CV with a full-height portrait, social profile buttons and a light and dark toggle.',
+      'A one-page CV with a full-height illustration, social profile buttons and a light and dark toggle.',
     author: { name: 'aldi', url: 'https://github.com/aldi' },
     source: 'https://github.com/aldi/bulma-cv-template',
     sourceSha: '29108ebb52030480ee40c8224d2f6f8a3587926d',
