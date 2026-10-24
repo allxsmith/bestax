@@ -189,7 +189,7 @@ export const templates = [
     slug: 'hotel',
     title: 'Hotel',
     description:
-      'A one-page hotel site with rooms and a details modal, a photo gallery carousel, and a contact form beside a map.',
+      'A one-page hotel site with rooms and a details modal, a gallery carousel, and a contact form beside a map.',
     author: { name: 'aldi', url: 'https://github.com/aldi' },
     source: 'https://github.com/aldi/bulma-hotel-template',
     sourceSha: '2f7a1cfdcd96e97dd084aaf27a92ef98ed14bc28',

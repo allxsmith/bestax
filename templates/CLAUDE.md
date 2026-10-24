@@ -33,7 +33,8 @@ below worked out.
   source. Whatever the original ships or hot-links is drawn anew, licensed stock (Unsplash,
   unDraw, Icons8) included, since a license is one more thing to defend. A trademark such as
   Bulma's logo or its "made with Bulma" badge is not redrawn: a text wordmark, or a text link,
-  takes its place.
+  takes its place. An SVG a component draws inline is held to the same rule, and since no check
+  can read one, the README says it was drawn for the port.
 - **`image-provenance.json` records each image**, an entry per image file git tracks in the
   folder, favicons included:
 

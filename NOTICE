@@ -24,4 +24,4 @@ templates/wedding-planner: restylianos's Bulma Wedding Planner Template (https:/
 
 templates/tropico: restylianos's Bulma Tropico Template (https://github.com/restylianos/bulma-tropico-template), copyright lizzli, MIT license.
 
-The images in the public/media of templates/coming-soon, templates/event-participation, templates/login and templates/cv were drawn for their bestax ports in place of the upstreams', whose sources the upstreams do not record. Each of those templates' README says how its images were made.
+Every image the templates ship was drawn for its bestax port, and none is taken from an upstream or any other source. The ports replace the upstreams' own images, whose sources the upstreams do not record, the stock and licensed images some of them use (from Unsplash, unDraw and Icons8), and the images they hot-link. Where an upstream shows Bulma's logo or its "made with Bulma" badge, the port names Bulma in text instead. Each template's README says how its images were made, and its image-provenance.json records each image with its SHA-256 hash.
