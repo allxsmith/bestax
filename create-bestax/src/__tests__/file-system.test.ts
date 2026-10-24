@@ -333,6 +333,49 @@ describe('file-system', () => {
       );
     });
 
+    it('sets a dependency in its place among the others, or adds it (#1240)', async () => {
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockReturnValue(true);
+      (
+        fs.default.readJson as jest.MockedFunction<typeof fs.readJson>
+      ).mockResolvedValueOnce({
+        name: 'old-name',
+        dependencies: { lib: 'workspace:^', react: '^19.2.3' },
+      });
+
+      await updatePackageJson('/target', 'new-project', {
+        lib: '^5.43.0',
+        extra: '^1.0.0',
+      });
+
+      const [, written] = (fs.default.writeJson as jest.Mock).mock.calls[0];
+      expect(written).toEqual({
+        name: 'new-project',
+        dependencies: { lib: '^5.43.0', react: '^19.2.3', extra: '^1.0.0' },
+      });
+      expect(
+        Object.keys((written as { dependencies: object }).dependencies)
+      ).toEqual(['lib', 'react', 'extra']);
+    });
+
+    it('gives a manifest with no dependencies the ones it is handed', async () => {
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockReturnValue(true);
+      (
+        fs.default.readJson as jest.MockedFunction<typeof fs.readJson>
+      ).mockResolvedValueOnce({ name: 'old-name' });
+
+      await updatePackageJson('/target', 'new-project', { lib: '^5.43.0' });
+
+      expect(fs.default.writeJson).toHaveBeenCalledWith(
+        '/target/package.json',
+        { name: 'new-project', dependencies: { lib: '^5.43.0' } },
+        { spaces: 2 }
+      );
+    });
+
     it('should do nothing when package.json does not exist', async () => {
       (
         fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
