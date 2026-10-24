@@ -185,6 +185,19 @@ export const templates = [
     copyright: 'Copyright (c) 2021 lizzli',
     tags: ['business', 'multipage', 'carousel'],
   },
+  {
+    slug: 'hotel',
+    title: 'Hotel',
+    description:
+      'A one-page hotel site with rooms and a details modal, a photo gallery carousel, and a contact form beside a map.',
+    author: { name: 'aldi', url: 'https://github.com/aldi' },
+    source: 'https://github.com/aldi/bulma-hotel-template',
+    sourceSha: '2f7a1cfdcd96e97dd084aaf27a92ef98ed14bc28',
+    demo: 'https://aldi.github.io/bulma-hotel-template/',
+    license: 'MIT',
+    copyright: 'Copyright (c) 2020 aldi (aldi)',
+    tags: ['landing', 'business', 'carousel'],
+  },
 ];
 
 /** Favorites first, then by title. */
