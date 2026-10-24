@@ -98,7 +98,7 @@
         {
           "id": "bloomer-unmappables",
           "file": "references/bloomer/unmappables.md",
-          "bytes": 17739
+          "bytes": 17913
         },
         {
           "id": "bulma-classes-component-map",
@@ -113,7 +113,7 @@
         {
           "id": "bulma-classes-unmappables",
           "file": "references/bulma-classes/unmappables.md",
-          "bytes": 56988
+          "bytes": 57464
         },
         {
           "id": "css-migration",
