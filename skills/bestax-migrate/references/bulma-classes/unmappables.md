@@ -545,6 +545,10 @@ neither, so load what the app still needs once for the whole app, from its entry
   | `bulma-quickview`                                       | `Sidebar`                                                                              |
   | `bulma-toast`                                           | `Toast`: `toast.show()` from code, with a `ToastContainer` once                        |
 
+  bulma-carousel's `is-covered` images are the exception: its stylesheet crops them only inside
+  its own slides, which `Carousel` doesn't render, so keeping it wouldn't keep them cropped. The
+  TODO says so when the page has them, and `html-extension:is-covered` has the rule to add.
+
   `bulma-extensions`, the bundle, holds several of these: replace the ones in the table, and keep
   loading the bundle only for the rest. **bulma-social** has no bestax component: keep loading it,
   since its classes (`is-twitter`, `is-github`) style Bulma's `.button`, which `Button` renders,
@@ -643,7 +647,8 @@ read for the burger, a carousel and a theme toggle too, and its TODO names the f
   window's width in your own code. `Carousel` loops unless `repeat={false}`, while
   bulma-carousel stops at the ends unless `loop` (back to the start) or `infinite` (round
   without a break) is set, so a carousel with neither takes `repeat={false}`. Its styles ship in
-  bestax's `extras.css` and `bestax.css`, not in Bulma's stylesheet.
+  bestax's `extras.css` and `bestax.css`, not in Bulma's stylesheet. The element the script
+  drives gets `html-extension:carousel`, below, when the codemod can read its selector.
 - **`html-script:theme`** switches Bulma's light and dark schemes. The toggle is `Theme`'s: it
   writes `data-theme` on `<html>` from its `colorMode` (`light`, `dark` or `system`), so keep the
   choice in state, save it in `localStorage`, and pass it. The first paint is `index.html`'s:
@@ -660,6 +665,39 @@ read for the burger, a carousel and a theme toggle too, and its TODO names the f
   `<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />`.
 - **`html-script`**: any other inline script, or a `<script type>` that isn't code (a template,
   JSON data). Port what it does into the component as state, effects and event handlers.
+
+### A Bulma extension's own markup: `html-extension:<name>`
+
+A component takes the place of an extension's markup, but nothing converts that markup, so these
+point at the elements to rebuild.
+
+- **`html-extension:carousel`**: an element bulma-carousel makes a carousel of. When a script of
+  the page's, inline or beside it, attaches bulma-carousel with a selector written as a string of
+  tags, ids and classes (`bulmaCarousel.attach('#carousel-demo')`), the codemod finds every
+  element that selector matches, the way `querySelectorAll` does, and the TODO lists their
+  lines. bulma-carousel makes a carousel of each one, so a page that gives one id to two elements
+  has two carousels, and the TODO says so. Render a `Carousel` in the place of each, with a
+  `CarouselItem` for each slide (bulma-carousel 4 makes a slide of each child), and carry its
+  options over as `html-script:carousel` says. On a page that uses bulma-carousel, an element
+  with its `carousel` class that no selector reached gets the TODO too. `carousel` is also bestax
+  `Carousel`'s own class, so `bestax.css` and `extras.css` style that markup as `Carousel`'s root
+  (`position: relative`, `overflow: hidden`, `width: 100%`) until a `Carousel` takes its place. A
+  selector the codemod can't read (a variable, or a selector with a combinator or an attribute)
+  gets no TODO of its own: find what it selects by hand.
+- **`html-extension:is-covered`**: bulma-carousel's `is-covered` on an `.image`, on a page that
+  loads its stylesheet. Inside one of the slides its script builds, that stylesheet makes the
+  `<img>` fill the frame and crops it to fit (`object-fit: cover`). Nothing in bestax reads the
+  class: `Image` has no prop for it, and the rule reaches only bulma-carousel's own slides, not
+  `Carousel`'s. So in the app a ratio image stretches its photo instead. Keep the class and give
+  it the rule in the app's stylesheet:
+
+  ```css
+  .image.is-covered img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  ```
 
 ### `<html>` and `<body>`: `html-document:<name>`
 

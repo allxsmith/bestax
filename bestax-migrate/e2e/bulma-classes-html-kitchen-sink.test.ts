@@ -161,6 +161,8 @@ const LEFTOVER_RULES = [
   'html-element:unknown',
   'html-event:onclick',
   'html-event:onload',
+  'html-extension:carousel',
+  'html-extension:is-covered',
   'html-head',
   'html-head:base',
   'html-head:csp',
