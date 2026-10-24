@@ -25,7 +25,7 @@ function Contact() {
           <Columns>
             <Column>
               <img
-                src="/img/undraw_mobile_inbox_3h46.svg"
+                src="/img/contact-inbox.svg"
                 alt=""
                 className="contact-art"
               />

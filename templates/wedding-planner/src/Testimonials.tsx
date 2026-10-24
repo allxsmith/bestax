@@ -10,11 +10,11 @@ import {
 
 const testimonials = [
   {
-    avatar: '/img/man-user-person-male-profile-avatar-icon.svg',
+    avatar: '/img/avatar-1.svg',
     text: 'Pellentesque nec nam aliquam sem et tortor.Tristique et egestas quis ipsum suspendisse.',
   },
   {
-    avatar: '/img/female-user-girl-person-glasses-avatar-icon.svg',
+    avatar: '/img/avatar-2.svg',
     text: 'Libero id faucibus nisl tincidunt eget. Adipiscing elit pellentesque habitant morbi tristique senectus et netus et.',
   },
 ];

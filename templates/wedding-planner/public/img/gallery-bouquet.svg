@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="800" height="450" viewBox="0 0 800 450">
+  <!-- Drawn for the bestax port of the Wedding Planner template; image-provenance.json records how. -->
+  <!-- A bridal bouquet tied with a ribbon, against a pale sky. -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#dcebfa" />
+      <stop offset="1" stop-color="#efe7fb" />
+    </linearGradient>
+    <g id="rose">
+      <circle r="30" />
+      <path d="M-14-4C-10-18 10-18 14-4C10 8-10 8-14-4Z" fill="#ffffff" opacity="0.35" />
+      <path d="M-20 6C-12 18 12 18 20 6" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.4" />
+    </g>
+  </defs>
+  <rect width="800" height="450" fill="url(#sky)" />
+  <g fill="#ffffff" opacity="0.6">
+    <ellipse cx="140" cy="90" rx="70" ry="22" />
+    <ellipse cx="660" cy="120" rx="80" ry="24" />
+  </g>
+
+  <!-- Stems, then the ribbon round them. -->
+  <path d="M370 300L340 440M390 300L380 450M410 300L420 450M430 300L460 440" stroke="#6fb487" stroke-width="12" stroke-linecap="round" />
+  <rect x="352" y="330" width="96" height="34" rx="6" fill="#ffffff" />
+  <path d="M400 350C370 380 350 400 330 440M400 350C430 380 450 400 474 436" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" />
+  <circle cx="400" cy="347" r="12" fill="#f6f2fc" />
+
+  <!-- Leaves behind the flowers. -->
+  <g fill="#8fc7a0">
+    <path d="M300 230C260 200 230 210 210 230C240 250 270 254 300 230Z" />
+    <path d="M500 230C540 200 570 210 590 230C560 250 530 254 500 230Z" />
+    <path d="M330 120C310 80 320 60 340 44C350 70 352 96 330 120Z" />
+    <path d="M470 120C490 80 480 60 460 44C450 70 448 96 470 120Z" />
+  </g>
+
+  <!-- The flowers. -->
+  <g fill="#eeaeca">
+    <use xlink:href="#rose" x="340" y="200" />
+    <use xlink:href="#rose" x="460" y="180" />
+    <use xlink:href="#rose" x="400" y="270" />
+  </g>
+  <g fill="#ffffff">
+    <use xlink:href="#rose" x="400" y="150" />
+    <use xlink:href="#rose" x="300" y="250" />
+    <use xlink:href="#rose" x="498" y="250" />
+  </g>
+  <g fill="#b9a6ec">
+    <use xlink:href="#rose" x="350" y="120" />
+    <use xlink:href="#rose" x="452" y="240" />
+    <use xlink:href="#rose" x="400" y="210" />
+  </g>
+  <g fill="#ffe08a">
+    <circle cx="300" cy="170" r="8" /><circle cx="284" cy="200" r="7" /><circle cx="510" cy="150" r="8" />
+    <circle cx="530" cy="200" r="7" /><circle cx="420" cy="100" r="8" /><circle cx="380" cy="96" r="6" />
+  </g>
+</svg>

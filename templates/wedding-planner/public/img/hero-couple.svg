@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1144" height="703" viewBox="0 0 1144 703">
+  <!-- Drawn for the bestax port of the Wedding Planner template; image-provenance.json records how. -->
+  <defs>
+    <g id="bloom">
+      <circle cx="-9" cy="-6" r="10" />
+      <circle cx="9" cy="-6" r="10" />
+      <circle cx="-6" cy="9" r="10" />
+      <circle cx="6" cy="9" r="10" />
+      <circle cx="0" cy="-11" r="10" />
+      <circle r="6" fill="#ffe08a" />
+    </g>
+    <path id="heart" d="M0 6C-10-2-14-8-10-13C-6-18 0-15 0-10C0-15 6-18 10-13C14-8 10-2 0 6Z" />
+    <path id="leaf" d="M0 0C8-10 22-10 28 0C22 10 8 10 0 0Z" />
+  </defs>
+
+  <!-- The cloud behind the couple, and the ground. -->
+  <path d="M150 560C80 420 170 250 340 236C420 100 640 70 742 182C880 128 1050 220 1022 372C1110 452 1052 600 914 600H270C210 600 168 590 150 560Z" fill="#e9e3f7" />
+  <path d="M220 470C380 430 560 470 760 440C860 425 960 440 1030 460" fill="none" stroke="#f6f2fc" stroke-width="26" stroke-linecap="round" />
+  <ellipse cx="580" cy="612" rx="380" ry="20" fill="#ddd3f3" />
+
+  <!-- The arch, with leaves and flowers along it. -->
+  <path d="M370 612V330A210 210 0 0 1 790 330V612" fill="none" stroke="#c8b3d7" stroke-width="18" stroke-linecap="round" />
+  <g fill="#8fc7a0">
+    <use xlink:href="#leaf" transform="translate(360 300) rotate(-120)" />
+    <use xlink:href="#leaf" transform="translate(390 232) rotate(-80)" />
+    <use xlink:href="#leaf" transform="translate(452 160) rotate(-40)" />
+    <use xlink:href="#leaf" transform="translate(600 118) rotate(10)" />
+    <use xlink:href="#leaf" transform="translate(700 150) rotate(40)" />
+    <use xlink:href="#leaf" transform="translate(770 226) rotate(80)" />
+    <use xlink:href="#leaf" transform="translate(372 420) rotate(-150)" />
+    <use xlink:href="#leaf" transform="translate(788 400) rotate(-30)" />
+    <use xlink:href="#leaf" transform="translate(376 520) rotate(160)" />
+    <use xlink:href="#leaf" transform="translate(786 540) rotate(20)" />
+  </g>
+  <g fill="#eeaeca">
+    <use xlink:href="#bloom" x="373" y="293" />
+    <use xlink:href="#bloom" x="562" y="121" />
+    <use xlink:href="#bloom" x="777" y="258" />
+    <use xlink:href="#bloom" x="372" y="470" />
+  </g>
+  <g fill="#b9a6ec">
+    <use xlink:href="#bloom" x="475" y="148" />
+    <use xlink:href="#bloom" x="728" y="182" />
+    <use xlink:href="#bloom" x="788" y="360" />
+  </g>
+  <g fill="#ffffff">
+    <use xlink:href="#bloom" x="408" y="209" />
+    <use xlink:href="#bloom" x="652" y="133" />
+    <use xlink:href="#bloom" x="372" y="380" />
+    <use xlink:href="#bloom" x="788" y="470" />
+  </g>
+
+  <!-- Hearts in the air. -->
+  <g fill="#c7b8ea">
+    <use xlink:href="#heart" transform="translate(262 300) scale(1.4)" />
+    <use xlink:href="#heart" transform="translate(905 270) scale(1.8)" />
+    <use xlink:href="#heart" transform="translate(860 196) scale(1.1)" />
+  </g>
+  <g fill="#eeaeca">
+    <use xlink:href="#heart" transform="translate(300 230) scale(0.9)" />
+    <use xlink:href="#heart" transform="translate(955 340) scale(1.1)" />
+  </g>
+
+  <!-- The groom. -->
+  <g>
+    <rect x="497" y="470" width="20" height="136" rx="4" fill="#3d3b55" />
+    <rect x="522" y="470" width="20" height="136" rx="4" fill="#34324a" />
+    <ellipse cx="503" cy="606" rx="16" ry="7" fill="#24233a" />
+    <ellipse cx="538" cy="606" rx="16" ry="7" fill="#24233a" />
+    <path d="M492 338Q519 322 546 338L556 488H482Z" fill="#3d3b55" />
+    <path d="M509 330L519 368L529 330Z" fill="#ffffff" />
+    <path d="M512 336L519 342L526 336L519 330Z" fill="#7d6bd6" />
+    <path d="M519 360V480" stroke="#24233a" stroke-width="2" />
+    <circle cx="539" cy="360" r="7" fill="#eeaeca" />
+    <rect x="510" y="312" width="18" height="20" rx="6" fill="#b97a54" />
+    <circle cx="519" cy="292" r="25" fill="#c98b62" />
+    <path d="M494 292C492 266 508 256 522 258C538 258 548 270 545 290C540 276 528 272 514 276C504 278 498 284 494 292Z" fill="#2f2a2a" />
+    <path d="M544 346C564 372 576 398 590 424" fill="none" stroke="#3d3b55" stroke-width="20" stroke-linecap="round" />
+    <path d="M494 346C484 390 486 430 492 460" fill="none" stroke="#34324a" stroke-width="20" stroke-linecap="round" />
+  </g>
+
+  <!-- The bride, her veil and her bouquet. -->
+  <g>
+    <path d="M638 284C668 300 696 380 724 520C730 560 728 590 720 604C700 520 676 430 646 330Z" fill="#ffffff" opacity="0.75" />
+    <path d="M620 342Q642 330 664 342L672 420Q704 520 726 608H556Q582 520 612 420Z" fill="#ffffff" stroke="#d9cff0" stroke-width="3" stroke-linejoin="round" />
+    <path d="M612 420Q642 432 672 420" fill="none" stroke="#d9cff0" stroke-width="3" />
+    <path d="M592 600Q612 520 624 440M690 600Q672 520 660 440" fill="none" stroke="#efeaf9" stroke-width="3" />
+    <rect x="633" y="314" width="16" height="22" rx="6" fill="#e8b48f" />
+    <circle cx="641" cy="296" r="23" fill="#f1c7a5" />
+    <path d="M618 300C612 270 630 256 646 258C662 260 670 274 664 296C660 282 650 276 640 278C630 280 622 288 618 300Z" fill="#6b4a3a" />
+    <circle cx="664" cy="272" r="11" fill="#6b4a3a" />
+    <circle cx="664" cy="262" r="5" fill="#ffffff" />
+    <path d="M622 348C606 380 596 402 598 424" fill="none" stroke="#f1c7a5" stroke-width="14" stroke-linecap="round" />
+    <path d="M664 350C672 390 650 412 612 424" fill="none" stroke="#f1c7a5" stroke-width="14" stroke-linecap="round" />
+    <g transform="translate(600 430)">
+      <path d="M-6 6L0 54L6 6Z" fill="#8fc7a0" />
+      <circle cx="-14" cy="-4" r="12" fill="#eeaeca" />
+      <circle cx="12" cy="-6" r="12" fill="#b9a6ec" />
+      <circle cx="0" cy="-18" r="12" fill="#ffffff" stroke="#e9e3f7" stroke-width="2" />
+      <circle cx="-2" cy="6" r="11" fill="#7d6bd6" />
+      <circle cx="16" cy="10" r="8" fill="#eeaeca" />
+    </g>
+  </g>
+
+  <!-- Tufts of grass at the arch's feet. -->
+  <g fill="#7d6bd6">
+    <path d="M300 612C306 594 312 590 316 576C318 592 324 598 330 612Z" />
+    <path d="M326 612C330 600 334 596 338 588C340 600 344 604 346 612Z" />
+    <path d="M846 612C852 594 858 590 862 576C864 592 870 598 876 612Z" />
+    <path d="M876 612C880 600 884 596 888 588C890 600 894 604 896 612Z" />
+  </g>
+</svg>

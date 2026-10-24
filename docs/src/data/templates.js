@@ -163,7 +163,7 @@ export const templates = [
     slug: 'wedding-planner',
     title: 'Wedding Planner',
     description:
-      "A wedding planner's one-page site with illustrated steps, client quotes, a gallery carousel of wedding photos and a contact form.",
+      "A wedding planner's one-page site with illustrated steps, client quotes, a gallery carousel of wedding pictures and a contact form.",
     author: { name: 'restylianos', url: 'https://github.com/restylianos' },
     source: 'https://github.com/restylianos/bulma-wedding-planner-template',
     sourceSha: '1b6a8b961b651ad75e0b0b23abfce362bc28549a',

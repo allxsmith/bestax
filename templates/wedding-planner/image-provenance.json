@@ -1,0 +1,159 @@
+{
+  "template": "wedding-planner",
+  "images": [
+    {
+      "path": "public/img/avatar-1.svg",
+      "sha256": "2ee48e8f35f06b5cbcb229a7ab04d4166f2638dddb2858fc5b816ca922d1f79d",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A made-up client with short dark hair and a purple shirt, in a lavender circle. It shows no real person.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/img/man-user-person-male-profile-avatar-icon.svg, an avatar whose source the original does not record."
+    },
+    {
+      "path": "public/img/avatar-2.svg",
+      "sha256": "68b82a053c5566a843acffb6c43e85d214b9d1f8d11f74476468513a0fccc992",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A made-up client with long brown hair and a pink top, in a pink circle. It shows no real person.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/img/female-user-girl-person-glasses-avatar-icon.svg, an avatar whose source the original does not record."
+    },
+    {
+      "path": "public/img/contact-inbox.svg",
+      "sha256": "3aaa0c5d62e9784164def1fe7102131e5d9975ebb958eb11e2720972276473c7",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A phone showing a new message and an inbox, with a paper plane flying off and a potted plant beside it.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/img/undraw_mobile_inbox_3h46.svg, an unDraw illustration; licensed, replaced so the template ships only images made for it."
+    },
+    {
+      "path": "public/img/gallery-bouquet.svg",
+      "sha256": "ed69b7e1f3fe0bde50558c77d6dbbf58f36e40d44632f3898c7b1d527685350c",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A bridal bouquet of pink, white and lavender flowers tied with a white ribbon, against a pale sky.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "The third of the five Unsplash photos the original's gallery hot-links; licensed, replaced so the template ships only images made for it."
+    },
+    {
+      "path": "public/img/gallery-cake.svg",
+      "sha256": "ee23d2e1d1a9b8baef2b9571e36b0bf54e0bfb69c77ed8a7af91a5bffc9bab19",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A three-tier wedding cake with flowers and a topper of two hearts, on a table under a string of lights.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "The first of the five Unsplash photos the original's gallery hot-links; licensed, replaced so the template ships only images made for it."
+    },
+    {
+      "path": "public/img/gallery-ceremony.svg",
+      "sha256": "b3e8794e047d4831cccc45aa7fe70dbf6cb38614e179e391c63207a77819fb07",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A flowered arch by the sea at sunset, with white chairs either side of the aisle.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "The fourth of the five Unsplash photos the original's gallery hot-links; licensed, replaced so the template ships only images made for it."
+    },
+    {
+      "path": "public/img/gallery-reception.svg",
+      "sha256": "1f00a890b6185b118bf2ad3d62781985d82616d8b70fc72f5ca8b9ede9808328",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A long table laid with candles and flowers for a reception at night, under strings of lights and a moon.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "The fifth of the five Unsplash photos the original's gallery hot-links; licensed, replaced so the template ships only images made for it."
+    },
+    {
+      "path": "public/img/gallery-rings.svg",
+      "sha256": "4cf7c626d8ba1e3ae23993b9e7453da8e09c960b704462d1a2b42aa8b2703ba3",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "Two gold wedding rings in an open purple box, on a pink cloth scattered with petals.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "The second of the five Unsplash photos the original's gallery hot-links; licensed, replaced so the template ships only images made for it."
+    },
+    {
+      "path": "public/img/hero-couple.svg",
+      "sha256": "206a6f7a4f8a9d93a9388ee9d0b1fa3722740d9ac1a91b1d9f4047281aebac5b",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A bride and groom holding hands under a flowered arch, before a lavender cloud with hearts.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/img/undraw_wedding_t1yl.svg, an unDraw illustration; licensed, replaced so the template ships only images made for it."
+    },
+    {
+      "path": "public/img/logo.svg",
+      "sha256": "ad3de6233ad90fbf66d579bd58b877cea306ce408af311c5b224d3177a7236f3",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "Two linked rings, one purple and one pink, the pink one set with a pale blue stone.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "The Icons8 icon the original hot-links from img.icons8.com as its logo; a licensed icon, replaced so the template ships only images made for it."
+    },
+    {
+      "path": "public/img/step-agreement.svg",
+      "sha256": "eb703e3af4dfd865dde337e0ec66e9e2c46a6cf11b70a27f303ad1cde0994be4",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A signed wedding plan with a checklist and a heart seal, a pen laid across it and two rings beside it.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/img/undraw_agreement_aajr.svg, an unDraw illustration; licensed, replaced so the template ships only images made for it."
+    },
+    {
+      "path": "public/img/step-camera.svg",
+      "sha256": "1731596cd766f49c73feafda224f0eaedf4ce4976ef9f5ad938d0b41fa1bd697",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A camera going off, with two instant photos beside it, one of a heart and one of a couple under an arch.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/img/undraw_camera_mg5h.svg, an unDraw illustration; licensed, replaced so the template ships only images made for it."
+    },
+    {
+      "path": "public/img/step-celebration.svg",
+      "sha256": "516529db0cbca636098ae8d4cf1059d197fb0c0c4c1df5b1546e8756f8ddeb76",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "Two glasses of champagne raised in a toast, under bunting, with balloons and confetti.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/img/undraw_having_fun_iais.svg, an unDraw illustration; licensed, replaced so the template ships only images made for it."
+    },
+    {
+      "path": "public/img/step-dresses.svg",
+      "sha256": "d2f1c38d9c2a357e077d147b5cb4a603db7a569881f2c5cc5c0d977170fd3f44",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A bridal shop window under a striped awning, with three dresses on stands and a pot of flowers at each end.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/img/undraw_window_shopping_b96y.svg, an unDraw illustration; licensed, replaced so the template ships only images made for it."
+    }
+  ]
+}

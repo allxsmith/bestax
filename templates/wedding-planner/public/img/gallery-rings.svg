@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <!-- Drawn for the bestax port of the Wedding Planner template; image-provenance.json records how. -->
+  <!-- Two wedding rings in an open box, on a soft pink cloth. -->
+  <rect width="800" height="450" fill="#fbe3ee" />
+  <g fill="#ffffff" opacity="0.5">
+    <circle cx="110" cy="90" r="54" />
+    <circle cx="700" cy="80" r="36" />
+    <circle cx="640" cy="200" r="22" />
+    <circle cx="170" cy="250" r="20" />
+  </g>
+  <path d="M0 330C160 300 300 350 460 320C600 294 700 320 800 300V450H0Z" fill="#f6c9dc" />
+  <path d="M0 380C200 350 360 400 560 370C680 352 760 366 800 360V450H0Z" fill="#eeaeca" />
+
+  <!-- The box: lid, then base. -->
+  <path d="M290 110H510L530 230H270Z" fill="#6a59c4" />
+  <path d="M310 126H490L506 222H294Z" fill="#7d6bd6" />
+  <path d="M270 238H530L520 360H280Z" fill="#6a59c4" />
+  <rect x="260" y="226" width="280" height="22" rx="6" fill="#5847ad" />
+  <path d="M300 250H500L494 300H306Z" fill="#8f7fe0" />
+
+  <!-- The rings in its slot. -->
+  <ellipse cx="370" cy="230" rx="44" ry="40" fill="none" stroke="#e8c36a" stroke-width="13" />
+  <ellipse cx="434" cy="236" rx="38" ry="34" fill="none" stroke="#f0d58c" stroke-width="10" />
+  <path d="M352 182L360 168H380L388 182L370 200Z" fill="#c9f1fb" />
+  <path d="M352 182H388M370 200L364 182L370 168L376 182Z" fill="none" stroke="#ffffff" stroke-width="2" stroke-linejoin="round" />
+  <g fill="#ffffff">
+    <path d="M330 150l4 10 10 4-10 4-4 10-4-10-10-4 10-4z" />
+    <path d="M470 160l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" />
+  </g>
+
+  <!-- Petals on the cloth. -->
+  <g fill="#e58fb5">
+    <ellipse cx="160" cy="380" rx="16" ry="9" transform="rotate(-20 160 380)" />
+    <ellipse cx="620" cy="396" rx="16" ry="9" transform="rotate(25 620 396)" />
+    <ellipse cx="680" cy="356" rx="12" ry="7" transform="rotate(-35 680 356)" />
+  </g>
+  <ellipse cx="220" cy="404" rx="14" ry="8" fill="#ffffff" transform="rotate(15 220 404)" />
+</svg>

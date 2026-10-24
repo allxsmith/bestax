@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="812" height="734" viewBox="0 0 812 734">
+  <!-- Drawn for the bestax port of the Wedding Planner template; image-provenance.json records how. -->
+  <!-- A phone with new messages, a paper plane on its way and a plant beside it. -->
+  <path d="M90 430C60 270 180 110 400 100C620 90 760 220 740 420C720 610 600 680 400 680C220 680 120 590 90 430Z" fill="#f6f2fc" />
+  <ellipse cx="400" cy="700" rx="320" ry="16" fill="#e9e3f7" />
+
+  <!-- The phone. -->
+  <rect x="262" y="40" width="296" height="652" rx="46" fill="#3d3b55" />
+  <rect x="280" y="76" width="260" height="580" rx="28" fill="#ffffff" />
+  <rect x="364" y="54" width="92" height="12" rx="6" fill="#24233a" />
+  <rect x="370" y="668" width="80" height="8" rx="4" fill="#24233a" />
+
+  <!-- The new message, and the inbox under it. -->
+  <circle cx="410" cy="196" r="70" fill="#7d6bd6" />
+  <rect x="372" y="170" width="76" height="52" rx="6" fill="none" stroke="#ffffff" stroke-width="6" />
+  <path d="M374 174L410 202L446 174" fill="none" stroke="#ffffff" stroke-width="6" stroke-linejoin="round" />
+  <circle cx="462" cy="146" r="18" fill="#e58fb5" />
+  <path d="M462 156C452 149 450 144 452 141C455 137 460 138 462 142C464 138 469 137 472 141C474 144 472 149 462 156Z" fill="#ffffff" />
+  <g>
+    <rect x="300" y="312" width="220" height="70" rx="12" fill="#f6f2fc" stroke="#e9e3f7" stroke-width="3" />
+    <rect x="300" y="400" width="220" height="70" rx="12" fill="#f6f2fc" stroke="#e9e3f7" stroke-width="3" />
+    <rect x="300" y="488" width="220" height="70" rx="12" fill="#f6f2fc" stroke="#e9e3f7" stroke-width="3" />
+    <circle cx="334" cy="347" r="16" fill="#eeaeca" />
+    <circle cx="334" cy="435" r="16" fill="#b9a6ec" />
+    <circle cx="334" cy="523" r="16" fill="#72ddf7" />
+    <g fill="#d9cff0">
+      <rect x="362" y="334" width="120" height="10" rx="5" />
+      <rect x="362" y="352" width="84" height="10" rx="5" />
+      <rect x="362" y="422" width="130" height="10" rx="5" />
+      <rect x="362" y="440" width="70" height="10" rx="5" />
+      <rect x="362" y="510" width="110" height="10" rx="5" />
+      <rect x="362" y="528" width="96" height="10" rx="5" />
+    </g>
+  </g>
+  <rect x="330" y="588" width="160" height="40" rx="20" fill="#c7b8ea" />
+
+  <!-- A paper plane and its trail. -->
+  <path d="M584 300C620 270 640 250 660 214" fill="none" stroke="#c7b8ea" stroke-width="4" stroke-dasharray="10 10" stroke-linecap="round" />
+  <path d="M640 170L740 130L700 226L684 196Z" fill="#b9a6ec" />
+  <path d="M640 170L684 196L700 226L690 188Z" fill="#7d6bd6" />
+
+  <!-- The plant. -->
+  <g>
+    <path d="M150 620C130 560 100 530 70 520C110 520 140 548 160 600" fill="#8fc7a0" />
+    <path d="M168 610C160 540 172 490 204 456C196 500 192 552 184 612" fill="#6fb487" />
+    <path d="M186 616C206 568 232 546 262 540C238 562 216 590 200 624" fill="#8fc7a0" />
+    <path d="M128 610H222L210 698H140Z" fill="#7d6bd6" />
+    <rect x="122" y="604" width="106" height="16" rx="6" fill="#6a59c4" />
+  </g>
+
+  <!-- Hearts. -->
+  <g fill="#eeaeca">
+    <path d="M640 420C618 405 612 394 616 386C620 378 632 378 640 388C648 378 660 378 664 386C668 394 662 405 640 420Z" />
+    <path d="M150 240C136 231 132 224 135 219C138 214 145 214 150 220C155 214 162 214 165 219C168 224 164 231 150 240Z" />
+  </g>
+</svg>

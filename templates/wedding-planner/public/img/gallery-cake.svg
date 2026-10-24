@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <!-- Drawn for the bestax port of the Wedding Planner template; image-provenance.json records how. -->
+  <!-- A three-tier wedding cake on a table, under a string of lights. -->
+  <rect width="800" height="450" fill="#f3e9f7" />
+  <g fill="#ffffff" opacity="0.55">
+    <circle cx="90" cy="120" r="40" />
+    <circle cx="190" cy="230" r="26" />
+    <circle cx="640" cy="140" r="48" />
+    <circle cx="720" cy="260" r="30" />
+    <circle cx="560" cy="240" r="18" />
+  </g>
+  <path d="M0 40Q200 120 400 50Q600 -20 800 60" fill="none" stroke="#9f93c4" stroke-width="3" />
+  <g fill="#ffe08a">
+    <circle cx="60" cy="64" r="8" />
+    <circle cx="140" cy="86" r="8" />
+    <circle cx="220" cy="92" r="8" />
+    <circle cx="300" cy="78" r="8" />
+    <circle cx="380" cy="56" r="8" />
+    <circle cx="460" cy="36" r="8" />
+    <circle cx="540" cy="28" r="8" />
+    <circle cx="620" cy="34" r="8" />
+    <circle cx="700" cy="44" r="8" />
+    <circle cx="770" cy="56" r="8" />
+  </g>
+
+  <!-- The table. -->
+  <rect y="344" width="800" height="106" fill="#c8b3d7" />
+  <rect y="338" width="800" height="12" fill="#d9cff0" />
+
+  <!-- The stand and the cake. -->
+  <rect x="392" y="320" width="16" height="22" fill="#e9e3f7" />
+  <ellipse cx="400" cy="342" rx="130" ry="12" fill="#e9e3f7" />
+  <ellipse cx="400" cy="318" rx="122" ry="10" fill="#ffffff" />
+  <rect x="300" y="250" width="200" height="70" rx="8" fill="#ffffff" />
+  <rect x="330" y="186" width="140" height="68" rx="8" fill="#fdfbff" />
+  <rect x="356" y="130" width="88" height="60" rx="8" fill="#ffffff" />
+  <g fill="#eeaeca">
+    <rect x="300" y="290" width="200" height="12" />
+    <rect x="330" y="226" width="140" height="10" />
+    <rect x="356" y="168" width="88" height="9" />
+  </g>
+  <g fill="#e9e3f7">
+    <circle cx="312" cy="252" r="5" /><circle cx="334" cy="252" r="5" /><circle cx="356" cy="252" r="5" />
+    <circle cx="378" cy="252" r="5" /><circle cx="400" cy="252" r="5" /><circle cx="422" cy="252" r="5" />
+    <circle cx="444" cy="252" r="5" /><circle cx="466" cy="252" r="5" /><circle cx="488" cy="252" r="5" />
+    <circle cx="342" cy="188" r="4.5" /><circle cx="362" cy="188" r="4.5" /><circle cx="382" cy="188" r="4.5" />
+    <circle cx="402" cy="188" r="4.5" /><circle cx="422" cy="188" r="4.5" /><circle cx="442" cy="188" r="4.5" />
+    <circle cx="460" cy="188" r="4.5" />
+  </g>
+
+  <!-- Flowers cascading down one side. -->
+  <g>
+    <circle cx="440" cy="140" r="13" fill="#e58fb5" />
+    <circle cx="460" cy="200" r="12" fill="#b9a6ec" />
+    <circle cx="472" cy="214" r="9" fill="#eeaeca" />
+    <circle cx="486" cy="262" r="13" fill="#e58fb5" />
+    <circle cx="498" cy="282" r="10" fill="#ffffff" stroke="#e9e3f7" stroke-width="2" />
+    <circle cx="470" cy="270" r="9" fill="#b9a6ec" />
+    <path d="M448 152l14 6-10 8z M476 228l14 4-10 10z M500 298l14 4-12 8z" fill="#8fc7a0" />
+  </g>
+
+  <!-- The topper: two hearts on sticks. -->
+  <path d="M388 130V96M412 130V100" stroke="#e8c36a" stroke-width="3" />
+  <path d="M388 100C376 92 372 86 375 81C378 76 385 77 388 82C391 77 398 76 401 81C404 86 400 92 388 100Z" fill="#e58fb5" />
+  <path d="M412 104C400 96 396 90 399 85C402 80 409 81 412 86C415 81 422 80 425 85C428 90 424 96 412 104Z" fill="#7d6bd6" />
+</svg>
