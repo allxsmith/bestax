@@ -6,8 +6,8 @@
  * Its rules on `#carousel-demo` and `#card-product-description` are on
  * classes here, since those ids were on several elements, and its
  * `#fresh-fruits-section` rule, which matched nothing, is left out. The banner
- * and the contact section keep their photos from the original's own source,
- * as the original does.
+ * and the contact section take pictures drawn for this port, where the
+ * original loads photos from another site; README.md says how they were made.
  */
 
 /*
@@ -147,7 +147,7 @@
 }
 
 #tasty-fruits-section {
-  background-image: url(https://technext.github.io/tropika/images/tasty-image.png);
+  background-image: url('/images/tasty-banner.svg');
   background-repeat: no-repeat;
   height: 400px;
   align-items: center;
@@ -173,7 +173,7 @@
 }
 
 #contact-section {
-  background-image: url(https://technext.github.io/tropika//images/orange-dish.png);
+  background-image: url('/images/orange-dish.svg');
   background-repeat: no-repeat;
   height: 500px;
   align-items: center;
@@ -254,4 +254,14 @@ textarea:focus {
 .is-black-social:hover {
   background-color: white !important;
   color: #fc5d35 !important;
+}
+
+/* Bulma's name in text in the navbar's brand, where the original shows its logo. */
+.wordmark {
+  font-family: var(--bulma-family-primary);
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 28px;
+  letter-spacing: -0.03em;
+  color: #363636;
 }

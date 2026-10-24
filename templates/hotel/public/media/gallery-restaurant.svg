@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 563" width="1000" height="563">
+<!-- Drawn for the bestax port of the Hotel template; image-provenance.json records it. -->
+<!-- The hotel's restaurant in the evening: laid tables under pendant lights, tall windows behind. -->
+<defs>
+<linearGradient id="wall" x1="0" y1="0" x2="0" y2="360" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#4a3a33"/>
+<stop offset="1" stop-color="#6a5246"/>
+</linearGradient>
+<linearGradient id="dusk" x1="0" y1="60" x2="0" y2="330" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#27406b"/>
+<stop offset="0.7" stop-color="#7b6a8e"/>
+<stop offset="1" stop-color="#e2a17a"/>
+</linearGradient>
+<linearGradient id="floor" x1="0" y1="360" x2="0" y2="563" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#7a5136"/>
+<stop offset="1" stop-color="#4f3220"/>
+</linearGradient>
+<radialGradient id="glow" r="0.5">
+<stop offset="0" stop-color="#ffd98f" stop-opacity="0.75"/>
+<stop offset="1" stop-color="#ffd98f" stop-opacity="0"/>
+</radialGradient>
+<g id="window">
+<rect x="0" y="0" width="150" height="270" fill="url(#dusk)"/>
+<rect x="72" y="0" width="6" height="270" fill="#2e231e"/>
+<rect x="0" y="120" width="150" height="6" fill="#2e231e"/>
+<rect x="-6" y="-6" width="162" height="282" fill="none" stroke="#2e231e" stroke-width="10"/>
+</g>
+<g id="pendant">
+<rect x="-1.5" y="0" width="3" height="90" fill="#2a1f1a"/>
+<path d="M-26,118 Q-26,90 0,90 Q26,90 26,118 Z" fill="#d9a84e"/>
+<ellipse cx="0" cy="150" rx="90" ry="70" fill="url(#glow)"/>
+</g>
+<g id="table">
+<ellipse cx="0" cy="0" rx="110" ry="24" fill="#fbf7ef"/>
+<path d="M-110,0 L-104,62 Q0,80 104,62 L110,0 Q0,26 -110,0 Z" fill="#efe7d8"/>
+<ellipse cx="-50" cy="0" rx="16" ry="5" fill="#ffffff" stroke="#d8cfbf"/>
+<ellipse cx="50" cy="0" rx="16" ry="5" fill="#ffffff" stroke="#d8cfbf"/>
+<path d="M-12,-30 L-12,-6 M-20,-30 Q-12,-18 -4,-30 Z" stroke="#e9eef2" stroke-width="2" fill="#f2d9a8"/>
+<path d="M12,-30 L12,-6 M4,-30 Q12,-18 20,-30 Z" stroke="#e9eef2" stroke-width="2" fill="#9c2a3a"/>
+<rect x="-3" y="-20" width="6" height="16" fill="#f7f1df"/>
+<path d="M0,-28 q4,6 0,8 q-4,-2 0,-8 Z" fill="#ffbe55"/>
+</g>
+<g id="chair">
+<rect x="-26" y="-70" width="52" height="70" rx="8" fill="#8a3b2e"/>
+<rect x="-30" y="-6" width="60" height="16" rx="5" fill="#a24a3a"/>
+<rect x="-24" y="10" width="5" height="40" fill="#2e231e"/>
+<rect x="19" y="10" width="5" height="40" fill="#2e231e"/>
+</g>
+</defs>
+
+<rect width="1000" height="360" fill="url(#wall)"/>
+<use href="#window" x="90" y="60"/>
+<use href="#window" x="425" y="60"/>
+<use href="#window" x="760" y="60"/>
+<rect y="356" width="1000" height="207" fill="url(#floor)"/>
+<rect y="350" width="1000" height="10" fill="#3a2b23"/>
+
+<use href="#pendant" x="250" y="0"/>
+<use href="#pendant" x="500" y="0"/>
+<use href="#pendant" x="750" y="0"/>
+
+<!-- Back row of tables, then the front row. -->
+<use href="#chair" x="160" y="410"/><use href="#chair" x="340" y="410"/>
+<use href="#table" x="250" y="380"/>
+<use href="#chair" x="660" y="410"/><use href="#chair" x="840" y="410"/>
+<use href="#table" x="750" y="380"/>
+<use href="#chair" x="420" y="520"/><use href="#chair" x="580" y="520"/>
+<use href="#table" x="500" y="480"/>
+<!-- A plant in each front corner. -->
+<g fill="#3f6b45">
+<path d="M40,563 C20,500 10,450 30,400 C40,450 46,500 56,563 Z"/>
+<path d="M50,563 C60,490 80,450 104,430 C88,470 74,510 66,563 Z"/>
+<path d="M960,563 C980,500 990,450 970,400 C960,450 954,500 944,563 Z"/>
+<path d="M950,563 C940,490 920,450 896,430 C912,470 926,510 934,563 Z"/>
+</g>
+</svg>

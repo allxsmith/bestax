@@ -35,7 +35,7 @@ function Testimonials() {
                     as="figure"
                     className="is-256x256"
                     mx="auto"
-                    src="/images/client.webp"
+                    src="/images/client.svg"
                     alt=""
                   />
                   <Title size="3">George Ipsum</Title>

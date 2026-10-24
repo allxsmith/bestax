@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 345 200" width="345" height="200">
+<!-- Drawn for the bestax port of the Tropico template; image-provenance.json records it. -->
+<!-- Two whole oranges, one with a leaf, beside a halved one showing its segments. -->
+<defs>
+<radialGradient id="peel" cx="0.38" cy="0.35" r="0.7">
+<stop offset="0" stop-color="#ffb347"/>
+<stop offset="1" stop-color="#ef7a10"/>
+</radialGradient>
+</defs>
+<ellipse cx="172" cy="184" rx="150" ry="12" fill="#000000" opacity="0.08"/>
+<!-- The back orange, with its leaves. -->
+<circle cx="120" cy="104" r="70" fill="url(#peel)"/>
+<g fill="#ffd08a"><circle cx="96" cy="78" r="2.5"/><circle cx="120" cy="66" r="2.5"/><circle cx="86" cy="104" r="2.5"/><circle cx="108" cy="92" r="2"/></g>
+<path d="M124,36 v-12" stroke="#6b4a1e" stroke-width="4" stroke-linecap="round"/>
+<path d="M124,26 C138,8 166,6 182,18 C164,32 140,34 124,26 Z" fill="#46a04a"/>
+<path d="M124,26 C108,10 82,10 70,22 C88,34 110,34 124,26 Z" fill="#3a8a3f"/>
+<path d="M126,26 C142,20 162,18 178,18 M122,26 C108,20 90,20 74,22" stroke="#2a6a30" stroke-width="2" fill="none"/>
+<!-- The front orange. -->
+<circle cx="70" cy="140" r="46" fill="url(#peel)"/>
+<g fill="#ffd08a"><circle cx="54" cy="122" r="2"/><circle cx="70" cy="114" r="2"/><circle cx="48" cy="140" r="2"/></g>
+<circle cx="74" cy="96" r="3.5" fill="#5a7d2a"/>
+<!-- The halved orange. -->
+<g transform="translate(250 126)">
+<ellipse cx="0" cy="8" rx="66" ry="56" fill="#e66f0a"/>
+<circle r="62" fill="#ef7a10"/>
+<circle r="56" fill="#fff1d6"/>
+<g fill="#ffa53a">
+<path d="M0,0 L0,-50 A50,50 0 0,1 35.4,-35.4 Z"/><path d="M0,0 L35.4,-35.4 A50,50 0 0,1 50,0 Z"/>
+<path d="M0,0 L50,0 A50,50 0 0,1 35.4,35.4 Z"/><path d="M0,0 L35.4,35.4 A50,50 0 0,1 0,50 Z"/>
+<path d="M0,0 L0,50 A50,50 0 0,1 -35.4,35.4 Z"/><path d="M0,0 L-35.4,35.4 A50,50 0 0,1 -50,0 Z"/>
+<path d="M0,0 L-50,0 A50,50 0 0,1 -35.4,-35.4 Z"/><path d="M0,0 L-35.4,-35.4 A50,50 0 0,1 0,-50 Z"/>
+</g>
+<g stroke="#fff1d6" stroke-width="4"><path d="M0,-52 V52 M-52,0 H52 M-36.8,-36.8 L36.8,36.8 M36.8,-36.8 L-36.8,36.8"/></g>
+<circle r="7" fill="#fff1d6"/>
+<g fill="#ffd08a" opacity="0.8"><circle cx="14" cy="-30" r="3"/><circle cx="-26" cy="18" r="3"/><circle cx="28" cy="20" r="2.5"/></g>
+</g>
+</svg>

@@ -1,0 +1,82 @@
+{
+  "template": "tropico",
+  "images": [
+    {
+      "path": "public/images/slide-img.svg",
+      "sha256": "034bb7afb3854af54bbffd5b4cb888a6c2d930f29cd384a25215091195015188",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A wooden bowl of tropical fruit on a pale orange disc: a pineapple, bananas, two oranges, a mango, a halved papaya and an orange slice, with leaves behind.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/images/slide-img.webp, the original's picture beside the opening carousel's text, whose source the original does not record."
+    },
+    {
+      "path": "public/images/card-item-1.svg",
+      "sha256": "8cc5564159d5fbadca709d34983bca2d05fbf549deb0c6202bdbeebfe9ba82d6",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "An orange with a leaf on its stalk, drawn as a small icon.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/images/card-item-1.png, the original's icon on the services cards, whose source the original does not record."
+    },
+    {
+      "path": "public/images/orange.svg",
+      "sha256": "67211f35becb17e19f7a388c045e85ddfb34a39c4a5bdf4aced041d70ddeafda",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "Two whole oranges, one with leaves, beside a halved orange showing its segments.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/images/orange.webp, the original's picture of oranges in the fresh fruits list, whose source the original does not record."
+    },
+    {
+      "path": "public/images/guava.svg",
+      "sha256": "f54a114dc21c58a56111b17faffc0ae94806864ec679809de180d22b905fa1b5",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "Two whole green guavas on a broad leaf beside a halved guava showing its pink flesh and seeds.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/images/gauva.webp (so spelled), the original's picture of guavas in the fresh fruits list, whose source the original does not record."
+    },
+    {
+      "path": "public/images/client.svg",
+      "sha256": "4d3a36a90be83d79c7a922cbb496f3a079596205d7337b73b91cdfe977c023f8",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A made-up customer drawn in flat shapes, not a real person: a smiling bearded man in a green shirt on a peach background.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/images/client.webp, the original's photo of a customer in the testimonials, whose source the original does not record."
+    },
+    {
+      "path": "public/images/tasty-banner.svg",
+      "sha256": "13b1d4eba8ddce4ce356f97b812c8d01c73fc34102a3abc95bef3e50657b0d05",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "Citrus and kiwi slices, pineapple pieces, berries, strawberries and leaves scattered on deep green, darker across the middle where the banner puts its title.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "https://technext.github.io/tropika/images/tasty-image.png, the photo the original hot-links behind its \"Very tasty fruits\" banner, from another template's site. Replaced so the template ships and loads only images made for it."
+    },
+    {
+      "path": "public/images/orange-dish.svg",
+      "sha256": "cd52f6dad57f3f754279b0f81153a62a1d61f0bcc3a5ed6db3db08861b1155f1",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "The left half of a white plate of orange slices with mint leaves, cut off by the right edge.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "https://technext.github.io/tropika//images/orange-dish.png, the picture the original hot-links at the contact section's right edge, from another template's site. Replaced so the template ships and loads only images made for it."
+    }
+  ]
+}

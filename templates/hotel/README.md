@@ -1,8 +1,8 @@
 # Bulma Hotel Template, rebuilt with bestax
 
-A one-page hotel site: a full-height welcome over a pool photo, rooms with a details modal, the
-reception and location, a photo gallery carousel, a contact form beside a map, and a footer with a
-newsletter sign-up, rebuilt as a React app with [bestax-bulma](https://bestax.io).
+A one-page hotel site: a full-height welcome over the hotel and its pool, rooms with a details
+modal, the reception and location, a gallery carousel, a contact form beside a map, and a footer
+with a newsletter sign-up, rebuilt as a React app with [bestax-bulma](https://bestax.io).
 
 The original is [aldi](https://github.com/aldi)'s
 [Bulma Hotel Template](https://github.com/aldi/bulma-hotel-template), part of
@@ -27,13 +27,12 @@ treats the folder as a project of its own.
   (with `RoomDetailsModal.tsx`), `About.tsx`, `Gallery.tsx`, `Contact.tsx` and `SiteFooter.tsx`
   hold its sections, built from bestax components in place of the original's Bulma markup.
 - The navbar's burger is bestax's `Navbar.Burger`, and the gallery is bestax's `Carousel`, several
-  photos in view on wider screens and a photo at a time on a phone, in place of the original's script and
-  bulma-carousel.
+  pictures in view on wider screens and one at a time on a phone, in place of the original's script
+  and bulma-carousel.
 - `src/index.css` is the original's stylesheet, ported, with what Bulma 1 changed from the Bulma
   0.9 the original was made for set back: the turquoise primary, the font, the radius, the neutral
-  greys, the heading and button weights, and the navbar's colors. `public/` holds the welcome
-  photo, recompressed, and the Bulma logo. The other photos load from Unsplash, as in the
-  original.
+  greys, the heading and button weights, and the navbar's colors. `public/` holds the pictures
+  drawn for this port (see [Images](#images)).
 - The social buttons take their brand colors from aldi's
   [bulma-social](https://github.com/aldi/bulma-social), as the original does: its classes go on
   bestax's `Button` through `className`.
@@ -44,9 +43,9 @@ treats the folder as a project of its own.
 
 - The rooms' "View Details" buttons open the hotel's details in a modal. In the original nothing
   opens it, so the buttons do nothing.
-- The navbar's Bulma logo is a local copy. The original loads it from an address on bulma.io that
-  no longer serves it, so it shows a broken image. The file comes from Bulma's own repository,
-  under its MIT license, whose notice is in `LICENSE`.
+- The navbar's brand and the room details show the hotel's name in text, where the original shows
+  Bulma's logo. The original loads the logo from an address on bulma.io that no longer serves it,
+  so it shows a broken image, and the port ships no copy of the logo, which is Bulma's trademark.
 - The newsletter field and button show a focus ring for keyboard users. The original takes the
   outline off both and puts nothing in its place.
 - "Home" in the navbar links to the top of the page, and the Facebook and social buttons link to
@@ -65,9 +64,30 @@ treats the folder as a project of its own.
   desktop one and the footer, and the reservation link showed a digit fewer than it dialled.
 - "Welcome to Bulma Hotel" is the page's `h1`, with the same look; the original made it a `<p>`,
   so the page had no top-level heading.
-- The gallery's photos are the original's Unsplash placeholders, marked decorative; give your own
-  photos alt text that says what each shows.
+- The gallery's pictures have alt text that says what each shows; give your own photos the same.
+- The welcome's background is centered, where the original's hangs from its top left corner, so
+  the hotel stays in view on a phone.
 - `index.html` pins Bulma's light scheme, as the original's design is light only.
+
+## Images
+
+Every image in `public/media` was drawn for this port on October 23, 2026 by Claude, Anthropic's AI
+model, writing the SVG markup by hand. No photo, illustration, stock image or image-generation model
+went into any of them, and none copies existing artwork. Each file is its own source: open it in a
+text editor to see every shape it draws. [`image-provenance.json`](image-provenance.json) records
+each one, with what it shows, its SHA-256 and what it replaces.
+
+- `background.svg`, the hotel by day across its pool, behind the welcome.
+- `room-gold-single.svg`, `room-gold-double.svg`, `room-diamond-single.svg` and
+  `room-diamond-double.svg`, the four rooms.
+- `reception.svg`, the reception desk beside the hotel's phone numbers.
+- `gallery-pool.svg`, `gallery-restaurant.svg`, `gallery-spa.svg`, `gallery-terrace.svg` and
+  `gallery-bar.svg`, the gallery.
+
+They replace the original's welcome photo, whose source the original does not record, and the
+Unsplash photos it loads for the rooms, the reception and the gallery, so this port ships and loads
+only images made for it. The mouse under the welcome, an icon `src/WelcomeHero.tsx` draws inline,
+was drawn for this port the same way, in place of the original's.
 
 ## License
 

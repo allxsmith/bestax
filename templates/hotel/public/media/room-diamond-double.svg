@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 333" width="500" height="333">
+<!-- Drawn for the bestax port of the Hotel template; image-provenance.json records it. -->
+<!-- The Premier Diamond Double: a wide bed with a navy headboard and doors onto a sea-view balcony. -->
+<defs>
+<linearGradient id="wall" x1="0" y1="0" x2="0" y2="250" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#e4eaf1"/>
+<stop offset="1" stop-color="#d0d9e4"/>
+</linearGradient>
+<linearGradient id="floor" x1="0" y1="250" x2="0" y2="333" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#c7b49b"/>
+<stop offset="1" stop-color="#a8957c"/>
+</linearGradient>
+<linearGradient id="sky" x1="0" y1="30" x2="0" y2="140" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#78b4e0"/>
+<stop offset="1" stop-color="#d4ecf7"/>
+</linearGradient>
+<linearGradient id="sea" x1="0" y1="140" x2="0" y2="244" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#3d8fc0"/>
+<stop offset="1" stop-color="#1f6a9a"/>
+</linearGradient>
+<radialGradient id="glow" r="0.5">
+<stop offset="0" stop-color="#f4f8ff" stop-opacity="0.9"/>
+<stop offset="1" stop-color="#f4f8ff" stop-opacity="0"/>
+</radialGradient>
+<g id="lamp">
+<ellipse cx="0" cy="-34" rx="38" ry="28" fill="url(#glow)"/>
+<rect x="-2" y="-30" width="4" height="30" fill="#9aa6b6"/>
+<ellipse cx="0" cy="0" rx="10" ry="3" fill="#6d7a8c"/>
+<rect x="-14" y="-56" width="28" height="26" rx="3" fill="#f4f7fa" stroke="#c9d1db"/>
+</g>
+<g id="stand">
+<rect x="-26" y="0" width="52" height="46" fill="#e9edf2"/>
+<rect x="-26" y="0" width="52" height="5" fill="#ffffff"/>
+<rect x="-20" y="18" width="40" height="2" fill="#c3ccd7"/>
+<rect x="-6" y="28" width="12" height="3" rx="1.5" fill="#9aa6b6"/>
+</g>
+</defs>
+
+<rect width="500" height="250" fill="url(#wall)"/>
+<rect y="250" width="500" height="83" fill="url(#floor)"/>
+<g stroke="#b29f86" stroke-width="1.2">
+<path d="M0,270 H500 M0,294 H500 M0,320 H500"/>
+</g>
+<rect y="244" width="500" height="8" fill="#f4f7fa"/>
+
+<!-- Glass doors onto a balcony over the sea, right. -->
+<rect x="400" y="30" width="90" height="214" fill="url(#sky)"/>
+<rect x="400" y="140" width="90" height="104" fill="url(#sea)"/>
+<path d="M410,160 h16 M440,174 h22 M414,196 h20 M452,210 h18" stroke="#a9d8ef" stroke-width="2"/>
+<circle cx="466" cy="78" r="12" fill="#fff6d8"/>
+<rect x="400" y="200" width="90" height="4" fill="#ffffff"/>
+<path d="M410,204 V244 M426,204 V244 M442,204 V244 M458,204 V244 M474,204 V244" stroke="#ffffff" stroke-width="2"/>
+<rect x="443" y="30" width="4" height="214" fill="#ffffff"/>
+<rect x="396" y="26" width="98" height="222" fill="none" stroke="#ffffff" stroke-width="6"/>
+<path d="M376,20 C384,90 372,170 378,244 L396,244 C392,170 400,90 394,20 Z" fill="#3d4f73"/>
+<rect x="370" y="16" width="130" height="6" rx="3" fill="#4a5a75"/>
+
+<!-- A large print above the bed. -->
+<rect x="186" y="50" width="128" height="62" fill="#ffffff" stroke="#b6c0cc" stroke-width="4"/>
+<path d="M190,96 C216,80 236,92 262,78 C282,68 296,76 310,72 L310,108 L190,108 Z" fill="#8fb0cf"/>
+<path d="M190,104 C220,94 250,102 310,92 L310,108 L190,108 Z" fill="#5d84ad"/>
+
+<!-- The headboard. -->
+<path d="M150,250 L150,150 Q150,128 172,128 L328,128 Q350,128 350,150 L350,250 Z" fill="#3d4f73"/>
+<path d="M176,134 V250 M202,134 V250 M228,134 V250 M254,134 V250 M280,134 V250 M306,134 V250 M332,134 V250" stroke="#33445f" stroke-width="3"/>
+
+<!-- Nightstands and lamps. -->
+<use href="#stand" x="108" y="214"/>
+<use href="#lamp" x="108" y="214"/>
+<use href="#stand" x="392" y="214"/>
+<use href="#lamp" x="392" y="214"/>
+
+<!-- The bed, its pillows, duvet and blue throw. -->
+<path d="M160,215 L340,215 L384,318 L116,318 Z" fill="#f8fafc"/>
+<rect x="172" y="198" width="74" height="38" rx="12" fill="#ffffff" stroke="#dde3ea" stroke-width="2"/>
+<rect x="254" y="198" width="74" height="38" rx="12" fill="#ffffff" stroke="#dde3ea" stroke-width="2"/>
+<rect x="208" y="216" width="40" height="26" rx="8" fill="#6f8fb8"/>
+<rect x="252" y="216" width="40" height="26" rx="8" fill="#9fb6d3"/>
+<path d="M145,250 L355,250 L384,318 L116,318 Z" fill="#fdfeff"/>
+<path d="M145,250 L355,250" stroke="#e1e7ee" stroke-width="3"/>
+<path d="M132,280 L368,280 L377,300 L123,300 Z" fill="#6f8fb8"/>
+<path d="M132,280 L368,280" stroke="#56769f" stroke-width="2"/>
+<rect x="112" y="318" width="276" height="15" fill="#e3e8ee"/>
+<rect x="106" y="316" width="288" height="6" rx="3" fill="#4a5a75"/>
+
+<!-- A tall plant, left. -->
+<path d="M22,300 L28,256 L62,256 L68,300 Z" fill="#e9edf2" stroke="#c3ccd7"/>
+<g fill="#4f8a6b">
+<path d="M45,256 C30,220 22,190 26,160 C36,190 42,220 48,256 Z"/>
+<path d="M45,256 C52,214 60,186 74,166 C66,196 58,226 50,256 Z"/>
+<path d="M45,256 C40,206 44,170 50,140 C54,176 52,216 48,256 Z" fill="#3f7458"/>
+</g>
+</svg>
