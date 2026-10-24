@@ -374,9 +374,13 @@ in the browser:
   bestax renders its own styled checkbox and radio markup, not Bulma's.
 - **`family:modal`**: `Modal` writes a `data-testid` of its own and adds dialog attributes and
   focus handling, so the `.modal` root stays markup while its background, content and card parts
-  convert on their own. Rebuild the root with `Modal` around them, and drive it with its open prop.
+  convert on their own. Rebuild the root with `Modal` around them, drive it with its open prop,
+  and pass `onClose`, which Escape and `Modal.Close` call. The converted `Modal.Background`
+  doesn't call it on its own: give it `onClick={onClose}` for the background to close the modal.
   A `.modal-close` stays too, since `Modal.Close` renders `.delete` unless it's floating: write
-  `<Modal.Close variant="floating" />` in its place. When the
+  `<Modal.Close variant="floating" />` in its place. A card head's `.delete` converts to `Delete`,
+  which doesn't call `onClose` either, so write `<Modal.Close />` there instead: it renders the
+  same `.delete`. When the
   page has to look the same, keep `Modal` rather than `Dialog` or `Toast`: those render
   bestax's own `.dialog` and `.toast` markup, which Bulma's stylesheet doesn't style.
 - **`family:dropdown`**: `Dropdown` renders its own trigger and menu from props.
@@ -620,8 +624,9 @@ read for the burger, a carousel and a theme toggle too, and its TODO names the f
   ```
 
 - **`html-script:modal`** opens or closes a modal. `Modal` shows while `active` is true and calls
-  `onClose` from its background, its close button and Escape, so keep the open state in
-  `useState` (the `family:modal` TODO covers rebuilding the markup).
+  `onClose` on Escape and from a `Modal.Close` with no `onClick` of its own. `Modal.Background`
+  doesn't call it on its own, so give it `onClick={onClose}` for the background to close the
+  modal. Keep the open state in `useState` (the `family:modal` TODO covers rebuilding the markup).
 - **`html-script:dismiss`** removes an element when its `.delete` is clicked. `Notification`
   takes `hasDelete` and `onDelete`, `Tag` takes `onDelete` and `Message` takes `onClose`; render
   the element only while it's in state.

@@ -353,7 +353,7 @@ const SCRIPT_PATTERNS: ReadonlyArray<readonly [string, RegExp, string]> = [
   [
     'modal',
     /modal/,
-    "opens or closes a modal: bestax's `Modal` shows while `active` is true and calls `onClose` from its background, its close button and Escape, so keep the open state in `useState`",
+    "opens or closes a modal: bestax's `Modal` shows while `active` is true and calls `onClose` on Escape and from a `Modal.Close` with no `onClick` of its own, while `Modal.Background` closes it only with `onClick={onClose}`, so keep the open state in `useState`",
   ],
   [
     'dismiss',
