@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="660" height="305" viewBox="0 0 660 305">
+  <!-- Drawn for the bestax port of the Rent template; image-provenance.json records how. -->
+  <!-- A riverside town by day: homes and low blocks along the far bank, an arched bridge
+       across the river with a cyclist on it, and a boat on the water. -->
+  <!-- The far bank: a low line of homes and blocks in soft colors. -->
+  <g>
+    <rect x="40" y="150" width="70" height="80" fill="#cfe3ef" />
+    <path d="M36 152L75 120L114 152Z" fill="#9fc3d9" />
+    <rect x="118" y="120" width="56" height="110" fill="#e9d8c4" />
+    <rect x="180" y="160" width="80" height="70" fill="#f6c6b8" />
+    <path d="M176 162L220 132L264 162Z" fill="#e59a86" />
+    <rect x="268" y="100" width="64" height="130" fill="#cfe3ef" />
+    <rect x="338" y="140" width="72" height="90" fill="#d9ecd9" />
+    <path d="M334 142L374 112L414 142Z" fill="#9ccc9c" />
+    <rect x="416" y="118" width="60" height="112" fill="#e9d8c4" />
+    <rect x="482" y="156" width="78" height="74" fill="#f6c6b8" />
+    <path d="M478 158L521 128L564 158Z" fill="#e59a86" />
+    <rect x="566" y="132" width="56" height="98" fill="#cfe3ef" />
+  </g>
+  <g fill="#ffffff" opacity="0.85">
+    <rect x="54" y="164" width="14" height="16" /><rect x="84" y="164" width="14" height="16" />
+    <rect x="130" y="134" width="12" height="14" /><rect x="152" y="134" width="12" height="14" />
+    <rect x="130" y="162" width="12" height="14" /><rect x="152" y="162" width="12" height="14" />
+    <rect x="196" y="176" width="16" height="18" /><rect x="230" y="176" width="16" height="18" />
+    <rect x="280" y="114" width="14" height="16" /><rect x="306" y="114" width="14" height="16" />
+    <rect x="280" y="144" width="14" height="16" /><rect x="306" y="144" width="14" height="16" />
+    <rect x="280" y="174" width="14" height="16" /><rect x="306" y="174" width="14" height="16" />
+    <rect x="354" y="156" width="16" height="18" /><rect x="380" y="156" width="16" height="18" />
+    <rect x="428" y="132" width="12" height="14" /><rect x="452" y="132" width="12" height="14" />
+    <rect x="428" y="160" width="12" height="14" /><rect x="452" y="160" width="12" height="14" />
+    <rect x="498" y="172" width="16" height="18" /><rect x="530" y="172" width="16" height="18" />
+    <rect x="578" y="146" width="12" height="14" /><rect x="600" y="146" width="12" height="14" />
+    <rect x="578" y="174" width="12" height="14" /><rect x="600" y="174" width="12" height="14" />
+  </g>
+  <rect x="20" y="228" width="620" height="8" rx="4" fill="#9ccc9c" />
+
+  <!-- The river. -->
+  <path d="M0 236H660V305H0Z" fill="#9fd3e6" />
+  <g stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.7">
+    <path d="M60 262H120M200 284H250M420 270H490M560 290H610" />
+  </g>
+
+  <!-- The bridge: its deck, the three arches under it and the railing. -->
+  <path d="M0 212H660V224H0Z" fill="#26415e" />
+  <path d="M44 224A88 52 0 0 0 220 224M250 224A78 52 0 0 0 406 224M444 224A88 52 0 0 0 620 224" fill="none" stroke="#26415e" stroke-width="10" />
+  <g fill="#26415e">
+    <rect x="218" y="224" width="34" height="62" />
+    <rect x="408" y="224" width="34" height="62" />
+  </g>
+  <path d="M0 200H660" stroke="#26415e" stroke-width="3" />
+  <path d="M20 200V212M60 200V212M100 200V212M140 200V212M180 200V212M220 200V212M260 200V212M300 200V212M340 200V212M380 200V212M420 200V212M460 200V212M500 200V212M540 200V212M580 200V212M620 200V212" stroke="#26415e" stroke-width="3" />
+
+  <!-- A boat, and a cyclist crossing. -->
+  <path d="M300 276H372L362 292H310Z" fill="#f2777a" />
+  <rect x="320" y="262" width="26" height="14" rx="3" fill="#ffffff" stroke="#26415e" stroke-width="2" />
+  <g transform="translate(470 182)">
+    <circle cx="0" cy="12" r="7" fill="none" stroke="#26415e" stroke-width="2.5" />
+    <circle cx="24" cy="12" r="7" fill="none" stroke="#26415e" stroke-width="2.5" />
+    <path d="M0 12L9 0H20L24 12M9 0L13 12" fill="none" stroke="#26415e" stroke-width="2.5" stroke-linejoin="round" />
+    <circle cx="13" cy="-16" r="5" fill="#26415e" />
+    <path d="M13-11L11 0" stroke="#00a88f" stroke-width="5" stroke-linecap="round" />
+  </g>
+</svg>

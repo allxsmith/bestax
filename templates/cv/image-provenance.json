@@ -1,0 +1,27 @@
+{
+  "template": "cv",
+  "images": [
+    {
+      "path": "public/favicon.svg",
+      "sha256": "d3c5ba4b8cff287ceb4fb775fa6452eefdda1a16a31710bc225bebdcea1d4eb1",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A white letter K on an orange rounded square.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "The port's earlier favicon, a K set in type, whose making was not recorded."
+    },
+    {
+      "path": "public/media/background.svg",
+      "sha256": "132daab73e3684c12813476f0ca23c089634334250df36ad0b9577843a8c07ac",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup, from an idea of its own rather than from the image it replaces. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "An invented, faceless figure in a teal sweater before an orange sun on a dotted indigo backdrop, framed by a web designer's tools: a browser window, a code tag, a pen curve, a cursor and color swatches. It portrays no one.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/media/background.webp, the original's portrait photo, whose source the original does not record."
+    }
+  ]
+}

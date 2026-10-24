@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="142" viewBox="0 0 200 142">
+  <!-- Drawn for the bestax port of the Rent template; image-provenance.json records how. -->
+  <!-- Market insight: a rising bar chart of homes, looked at through a magnifying glass. -->
+  <rect x="10" y="12" width="150" height="118" rx="12" fill="#e2f5f1" />
+  <path d="M24 116H148" stroke="#26415e" stroke-width="3" stroke-linecap="round" />
+  <g stroke="#26415e" stroke-width="2.5" stroke-linejoin="round">
+    <rect x="32" y="84" width="22" height="32" fill="#bfe9f5" />
+    <rect x="64" y="66" width="22" height="50" fill="#bfe9f5" />
+    <rect x="96" y="48" width="22" height="68" fill="#00b39b" />
+    <rect x="128" y="30" width="22" height="86" fill="#bfe9f5" />
+  </g>
+  <path d="M28 76L60 58L92 44L124 24" fill="none" stroke="#f2777a" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 7" />
+
+  <!-- The magnifying glass, with a small house in its lens. -->
+  <path d="M158 104L186 132" stroke="#26415e" stroke-width="12" stroke-linecap="round" />
+  <circle cx="140" cy="86" r="30" fill="#ffffff" stroke="#26415e" stroke-width="6" />
+  <path d="M126 96V84L140 72L154 84V96Z" fill="#ffd66b" stroke="#26415e" stroke-width="2.5" stroke-linejoin="round" />
+  <rect x="136" y="86" width="8" height="10" fill="#26415e" />
+</svg>

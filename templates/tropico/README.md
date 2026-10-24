@@ -30,20 +30,22 @@ treats the folder as a project of its own.
 - The carousels are bestax's `Carousel` in place of the original's bulma-carousel script, set up
   in `src/sections/TropicoCarousel.tsx` to stop at either end as bulma-carousel does.
 - `src/index.css` is the original's stylesheet, ported, after the lines that set back the look of
-  the Bulma 0.9 it was made for, and `public/images/` holds its images.
+  the Bulma 0.9 it was made for, and `public/images/` holds the pictures drawn for this port (see
+  [Images](#images)).
 - The social buttons take their brand colors from aldi's
   [bulma-social](https://github.com/aldi/bulma-social), as the original does: its classes go on
   bestax's `Button` through `className`.
 - Icons are Font Awesome, from its npm package.
-- The navbar's Bulma logo, the banner photo and the photo beside the contact form load from
-  where the original loads them.
 
 ## Changes from the original
 
 - The burger opens the menu on narrow screens. The original has no script for it, so its menu
   can't be reached there.
-- The fruits page's "Very tasty fruits" banner has its photo, as on the home page. The original
-  leaves out the id its photo hangs on, so the white title is lost on the white page.
+- The fruits page's "Very tasty fruits" banner has its background picture, as on the home page.
+  The original leaves out the id its photo hangs on, so the white title is lost on the white page.
+- The navbar's brand is Bulma's name in text, linking to bulma.io, where the original shows
+  Bulma's logo, loaded from bulma.io. The port ships no copy of the logo, which is Bulma's
+  trademark.
 - The carousels show one slide at every width. Between phone and tablet widths the original's
   squeeze in several, from bulma-carousel's default breakpoints.
 - "Get a quote" opens the contact page, and the social buttons link to each network. The
@@ -53,6 +55,28 @@ treats the folder as a project of its own.
 - The form fields and social buttons have accessible names, the images have alternative text,
   and the map has a title.
 - `index.html` pins Bulma's light scheme, as the original's design is light only.
+
+## Images
+
+Every image in `public/images` was drawn for this port on October 23, 2026 by Claude, Anthropic's
+AI model, writing the SVG markup by hand. No photo, illustration, stock image or image-generation
+model went into any of them, and none copies existing artwork. Each file is its own source: open it
+in a text editor to see every shape it draws. [`image-provenance.json`](image-provenance.json)
+records each one, with what it shows, its SHA-256 and what it replaces.
+
+- `slide-img.svg`, a bowl of tropical fruit, in the opening carousel.
+- `card-item-1.svg`, an orange, the services cards' icon.
+- `orange.svg` and `guava.svg`, oranges and guavas, in the fresh fruits list.
+- `client.svg`, the customer in the testimonials.
+- `tasty-banner.svg`, fruit scattered on green, behind the "Very tasty fruits" banner.
+- `orange-dish.svg`, half a plate of orange slices, at the contact section's right edge.
+
+They replace the original's images, whose sources the original does not record, and the two
+photos it loads from technext.github.io for the banner and the contact section, so this port ships
+and loads only images made for it.
+
+The customer shows no real person: George Ipsum is a made-up name, and the face is a few flat
+shapes. Put your own customers' photos and names in their place.
 
 ## License
 

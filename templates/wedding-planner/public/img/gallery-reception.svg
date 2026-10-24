@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <!-- Drawn for the bestax port of the Wedding Planner template; image-provenance.json records how. -->
+  <!-- A long table laid for the reception at night, under strings of lights. -->
+  <rect width="800" height="450" fill="#2d2b45" />
+  <g fill="#ffffff" opacity="0.7">
+    <circle cx="80" cy="40" r="2" /><circle cx="240" cy="70" r="1.5" /><circle cx="520" cy="30" r="2" />
+    <circle cx="700" cy="60" r="1.5" /><circle cx="620" cy="110" r="1.5" /><circle cx="140" cy="130" r="1.5" />
+  </g>
+  <circle cx="680" cy="90" r="28" fill="#f6f2fc" opacity="0.9" />
+
+  <!-- Two strings of lights. -->
+  <path d="M0 60Q200 170 400 90Q600 10 800 110" fill="none" stroke="#6a6688" stroke-width="2" />
+  <path d="M0 150Q240 230 420 160Q620 90 800 190" fill="none" stroke="#6a6688" stroke-width="2" />
+  <g fill="#ffe08a">
+    <circle cx="50" cy="84" r="6" /><circle cx="120" cy="110" r="6" /><circle cx="190" cy="120" r="6" />
+    <circle cx="260" cy="114" r="6" /><circle cx="330" cy="100" r="6" /><circle cx="470" cy="66" r="6" />
+    <circle cx="540" cy="52" r="6" /><circle cx="610" cy="56" r="6" /><circle cx="680" cy="74" r="6" />
+    <circle cx="750" cy="94" r="6" /><circle cx="60" cy="172" r="6" /><circle cx="140" cy="190" r="6" />
+    <circle cx="220" cy="196" r="6" /><circle cx="300" cy="190" r="6" /><circle cx="380" cy="174" r="6" />
+    <circle cx="480" cy="142" r="6" /><circle cx="560" cy="126" r="6" /><circle cx="640" cy="130" r="6" />
+    <circle cx="720" cy="152" r="6" />
+  </g>
+  <g fill="#ffe08a" opacity="0.25">
+    <circle cx="190" cy="120" r="16" /><circle cx="540" cy="52" r="16" /><circle cx="300" cy="190" r="16" />
+    <circle cx="640" cy="130" r="16" />
+  </g>
+
+  <!-- The table, its cloth and what is on it. -->
+  <path d="M60 300H740L800 450H0Z" fill="#f6f2fc" />
+  <path d="M60 300H740V316H60Z" fill="#e9e3f7" />
+  <path d="M130 310L60 450M260 310L240 450M400 310V450M540 310L560 450M670 310L740 450" stroke="#e9e3f7" stroke-width="3" />
+  <g>
+    <rect x="200" y="252" width="12" height="48" fill="#ffffff" />
+    <rect x="390" y="240" width="14" height="60" fill="#ffffff" />
+    <rect x="588" y="252" width="12" height="48" fill="#ffffff" />
+    <path d="M206 236C200 244 200 250 206 252C212 250 212 244 206 236Z" fill="#ffd27a" />
+    <path d="M397 222C390 231 390 238 397 240C404 238 404 231 397 222Z" fill="#ffd27a" />
+    <path d="M594 236C588 244 588 250 594 252C600 250 600 244 594 236Z" fill="#ffd27a" />
+  </g>
+  <g>
+    <circle cx="300" cy="282" r="20" fill="#eeaeca" />
+    <circle cx="320" cy="290" r="14" fill="#ffffff" />
+    <circle cx="282" cy="292" r="12" fill="#b9a6ec" />
+    <circle cx="500" cy="282" r="20" fill="#b9a6ec" />
+    <circle cx="520" cy="292" r="12" fill="#eeaeca" />
+    <circle cx="482" cy="290" r="14" fill="#ffffff" />
+  </g>
+  <g fill="none" stroke="#c7b8ea" stroke-width="3">
+    <path d="M140 270V300M134 270Q140 256 146 270" />
+    <path d="M660 270V300M654 270Q660 256 666 270" />
+  </g>
+</svg>

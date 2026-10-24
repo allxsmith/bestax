@@ -7,7 +7,7 @@ import {
   Title,
 } from '@allxsmith/bestax-bulma';
 
-/** "All marketplaces", beside a small house. */
+/** "All marketplaces", beside a chart of homes. */
 function Marketplaces() {
   return (
     <Hero>
@@ -25,7 +25,7 @@ function Marketplaces() {
                 <Column textAlign="centered">
                   <img
                     className="m-t-50"
-                    src="/media/house_for_rent.png"
+                    src="/media/rental-house.svg"
                     alt="Rental marketplaces"
                   />
                 </Column>

@@ -17,10 +17,10 @@ const text =
  * the original. `wide` art takes 70% of its column, the rest 50%.
  */
 const steps = [
-  { title: 'Step one', art: '/img/undraw_agreement_aajr.svg', wide: true },
-  { title: 'Step two', art: '/img/undraw_window_shopping_b96y.svg' },
-  { title: 'Step three', art: '/img/undraw_camera_mg5h.svg', wide: true },
-  { title: 'Step four', art: '/img/undraw_having_fun_iais.svg' },
+  { title: 'Step one', art: '/img/step-agreement.svg', wide: true },
+  { title: 'Step two', art: '/img/step-gown.svg' },
+  { title: 'Step three', art: '/img/step-album.svg', wide: true },
+  { title: 'Step four', art: '/img/step-celebration.svg' },
 ];
 
 /** The features section the "Learn more" button scrolls to. */

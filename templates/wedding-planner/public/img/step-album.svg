@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="945" height="653" viewBox="0 0 945 653">
+  <!-- Drawn for the bestax port of the Wedding Planner template; image-provenance.json records how. -->
+  <!-- An open wedding album: pictures taped to its pages, a pressed flower, and a ribbon
+       bookmark. -->
+  <ellipse cx="472" cy="600" rx="380" ry="22" fill="#e9e3f7" />
+
+  <!-- The cover, then the two pages. -->
+  <path d="M90 140Q472 90 855 140V590Q472 540 90 590Z" fill="#7d6bd6" />
+  <path d="M110 130Q290 100 466 140V570Q290 530 110 566Z" fill="#fdfbff" />
+  <path d="M478 140Q654 100 835 130V566Q654 530 478 570Z" fill="#fdfbff" />
+  <path d="M466 140V570M478 140V570" stroke="#e9e3f7" stroke-width="4" />
+  <path d="M640 116V250L660 230L680 250V112" fill="#e58fb5" />
+
+  <!-- Left page: two pictures and a caption. -->
+  <g transform="rotate(-5 230 250)">
+    <rect x="150" y="170" width="170" height="150" fill="#ffffff" stroke="#e9e3f7" stroke-width="3" />
+    <rect x="162" y="182" width="146" height="110" fill="#fbe3ee" />
+    <circle cx="200" cy="216" r="14" fill="#ffe08a" />
+    <path d="M162 292L212 238L248 272L272 252L308 292Z" fill="#eeaeca" />
+    <rect x="200" y="160" width="70" height="20" fill="#c7b8ea" opacity="0.8" />
+  </g>
+  <g transform="rotate(4 360 400)">
+    <rect x="300" y="330" width="130" height="150" fill="#ffffff" stroke="#e9e3f7" stroke-width="3" />
+    <rect x="312" y="342" width="106" height="100" fill="#e9e3f7" />
+    <path d="M365 420C341 404 335 392 341 384C347 376 359 378 365 388C371 378 383 376 389 384C395 392 389 404 365 420Z" fill="#7d6bd6" />
+    <rect x="330" y="320" width="60" height="18" fill="#ffe08a" opacity="0.85" />
+  </g>
+  <g fill="#d9cff0">
+    <rect x="150" y="400" width="110" height="10" rx="5" />
+    <rect x="150" y="422" width="80" height="10" rx="5" />
+    <rect x="150" y="490" width="120" height="10" rx="5" />
+  </g>
+
+  <!-- Right page: one wide picture, a pressed flower and a heart sticker. -->
+  <g transform="rotate(3 650 260)">
+    <rect x="530" y="180" width="250" height="170" fill="#ffffff" stroke="#e9e3f7" stroke-width="3" />
+    <rect x="542" y="192" width="226" height="126" fill="#dcebfa" />
+    <path d="M542 318V280C600 262 660 290 768 270V318Z" fill="#a6d7b8" />
+    <circle cx="700" cy="236" r="18" fill="#ffffff" />
+    <circle cx="720" cy="230" r="14" fill="#ffffff" />
+    <rect x="600" y="170" width="80" height="20" fill="#c7b8ea" opacity="0.8" />
+  </g>
+  <g>
+    <path d="M600 520C620 470 640 440 660 410" fill="none" stroke="#8fc7a0" stroke-width="6" stroke-linecap="round" />
+    <path d="M622 474C600 462 590 446 594 430C612 438 622 454 622 474Z" fill="#8fc7a0" />
+    <circle cx="660" cy="396" r="14" fill="#eeaeca" />
+    <circle cx="676" cy="408" r="14" fill="#eeaeca" />
+    <circle cx="666" cy="424" r="14" fill="#eeaeca" />
+    <circle cx="648" cy="418" r="14" fill="#eeaeca" />
+    <circle cx="662" cy="410" r="7" fill="#ffe08a" />
+  </g>
+  <circle cx="760" cy="470" r="34" fill="#e58fb5" />
+  <path d="M760 488C744 477 740 469 744 463C748 457 756 458 760 465C764 458 772 457 776 463C780 469 776 477 760 488Z" fill="#ffffff" />
+</svg>

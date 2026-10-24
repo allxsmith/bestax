@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="885" height="857" viewBox="0 0 885 857">
+  <!-- Drawn for the bestax port of the Wedding Planner template; image-provenance.json records how. -->
+  <!-- A signed wedding plan with a heart seal, a pen and two rings. -->
+  <path d="M120 470C90 300 220 140 420 128C620 116 790 250 786 450C782 650 640 770 440 772C250 774 150 640 120 470Z" fill="#f6f2fc" opacity="0.8" />
+
+  <g transform="rotate(-6 420 430)">
+    <rect x="248" y="168" width="380" height="540" rx="18" fill="#d9cff0" />
+    <rect x="232" y="150" width="380" height="540" rx="18" fill="#ffffff" />
+    <rect x="272" y="196" width="300" height="34" rx="8" fill="#c7b8ea" />
+    <rect x="272" y="254" width="220" height="12" rx="6" fill="#e9e3f7" />
+    <rect x="272" y="280" width="260" height="12" rx="6" fill="#e9e3f7" />
+
+    <!-- The checklist. -->
+    <g fill="none" stroke="#7d6bd6" stroke-width="4" stroke-linejoin="round">
+      <rect x="272" y="326" width="28" height="28" rx="6" />
+      <rect x="272" y="380" width="28" height="28" rx="6" />
+      <rect x="272" y="434" width="28" height="28" rx="6" />
+      <rect x="272" y="488" width="28" height="28" rx="6" />
+    </g>
+    <g fill="none" stroke="#72ddf7" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M278 340L285 348L298 330" />
+      <path d="M278 394L285 402L298 384" />
+      <path d="M278 448L285 456L298 438" />
+    </g>
+    <g fill="#e9e3f7">
+      <rect x="318" y="334" width="200" height="12" rx="6" />
+      <rect x="318" y="388" width="170" height="12" rx="6" />
+      <rect x="318" y="442" width="220" height="12" rx="6" />
+      <rect x="318" y="496" width="150" height="12" rx="6" />
+    </g>
+
+    <!-- Two signatures on their lines. -->
+    <path d="M272 620H410M440 620H572" stroke="#c7b8ea" stroke-width="3" />
+    <path d="M280 606C292 580 300 576 304 594C308 610 314 590 324 584C332 580 334 602 344 598C356 592 362 584 380 596" fill="none" stroke="#3d3b55" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M450 604C460 586 470 578 474 590C478 604 484 600 492 590C500 580 504 596 512 600C522 604 532 588 556 594" fill="none" stroke="#7d6bd6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+
+    <!-- The heart seal. -->
+    <circle cx="560" cy="676" r="46" fill="#e58fb5" />
+    <circle cx="560" cy="676" r="36" fill="none" stroke="#f6bfd7" stroke-width="3" />
+    <path d="M560 698C536 682 530 670 536 660C542 650 554 652 560 662C566 652 578 650 584 660C590 670 584 682 560 698Z" fill="#ffffff" />
+  </g>
+
+  <!-- The pen, laid across the page. -->
+  <g transform="rotate(38 690 360)">
+    <rect x="660" y="160" width="40" height="300" rx="20" fill="#3d3b55" />
+    <rect x="660" y="230" width="40" height="18" fill="#e8c36a" />
+    <rect x="696" y="196" width="10" height="110" rx="5" fill="#e8c36a" />
+    <path d="M664 450H696L680 506Z" fill="#e8c36a" />
+    <path d="M680 470V500" stroke="#3d3b55" stroke-width="3" stroke-linecap="round" />
+  </g>
+
+  <!-- Two rings. -->
+  <circle cx="190" cy="700" r="46" fill="none" stroke="#e8c36a" stroke-width="14" />
+  <circle cx="250" cy="726" r="40" fill="none" stroke="#c7b8ea" stroke-width="12" />
+  <path d="M168 652L178 636H202L212 652L190 676Z" fill="#72ddf7" />
+</svg>

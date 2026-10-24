@@ -1,0 +1,60 @@
+{
+  "template": "rent",
+  "images": [
+    {
+      "path": "public/media/city-day.svg",
+      "sha256": "ea1e4da1073e623c89aac48febb367791a7c22831050ec897db610ba6e3d1aa0",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup, from an idea of its own rather than from the image it replaces. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A riverside town by day: homes and low blocks along the far bank, an arched bridge with a cyclist crossing, and a boat on the river.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/media/city_clipart.png, the original's skyline under the listings, whose source the original does not record."
+    },
+    {
+      "path": "public/media/city-night.svg",
+      "sha256": "a2057093c8b499de4caf1488718d61796282511890850035a04385b4b468521e",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup, from an idea of its own rather than from the image it replaces. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A street of five row houses in the evening under a crescent moon, some windows lit, one with a \"For rent\" sign, and two street trees.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/media/cartoon_city.png, the original's night skyline in the landlords section, whose source the original does not record."
+    },
+    {
+      "path": "public/media/hero-house.svg",
+      "sha256": "3a2ee9c2302c216bf662a063ef6ac7050b55bfb93d6b25110b5a74fcb9e2d43e",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup, from an idea of its own rather than from the image it replaces. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A street of three homes, an apartment block with a \"For rent\" banner, a narrow townhouse and a cottage, along a sidewalk.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/media/property_image.png, the original's hero illustration, whose source the original does not record."
+    },
+    {
+      "path": "public/media/listing-placeholder.svg",
+      "sha256": "2be9a6b9a42cdabffc3095c77b2de4f69778f8bbdb1bc301af0a6c693fcb6804",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup, from an idea of its own rather than from the image it replaces. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A grey placeholder with a picture-frame glyph and the label \"640 × 360\", standing in for a listing's photo.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "The 640x360 placeholder the original hot-links from a placeholder service for every listing photo."
+    },
+    {
+      "path": "public/media/rental-house.svg",
+      "sha256": "548503b48edc01b4e79e9deb965520702b24e5b45c32231d09a72865a3bc883b",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup, from an idea of its own rather than from the image it replaces. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A rising bar chart, with a magnifying glass over it showing a small house.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/media/house_for_rent.png, the original's marketplaces illustration, whose source the original does not record."
+    }
+  ]
+}

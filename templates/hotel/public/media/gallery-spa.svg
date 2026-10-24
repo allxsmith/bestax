@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 563" width="1000" height="563">
+<!-- Drawn for the bestax port of the Hotel template; image-provenance.json records it. -->
+<!-- The hotel's spa: stacked stones, candles, rolled towels and an orchid on a wooden shelf. -->
+<defs>
+<linearGradient id="wall" x1="0" y1="0" x2="0" y2="563" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#e9e3d6"/>
+<stop offset="1" stop-color="#d6cbb6"/>
+</linearGradient>
+<radialGradient id="glow" r="0.5">
+<stop offset="0" stop-color="#ffe3a6" stop-opacity="0.7"/>
+<stop offset="1" stop-color="#ffe3a6" stop-opacity="0"/>
+</radialGradient>
+<g id="candle">
+<ellipse cx="0" cy="-60" rx="46" ry="46" fill="url(#glow)"/>
+<rect x="-20" y="-40" width="40" height="40" rx="3" fill="#fbf6ea"/>
+<ellipse cx="0" cy="-40" rx="20" ry="5" fill="#efe6d2"/>
+<rect x="-1" y="-50" width="2" height="10" fill="#4a3a2a"/>
+<path d="M0,-66 q7,10 0,16 q-7,-6 0,-16 Z" fill="#ffb648"/>
+</g>
+<g id="towel">
+<rect x="-50" y="-34" width="100" height="34" rx="17" fill="#ffffff" stroke="#e3ddd1" stroke-width="2"/>
+<path d="M-50,-17 a17,17 0 0,1 17,-17" fill="none" stroke="#e3ddd1" stroke-width="2"/>
+<circle cx="-33" cy="-17" r="9" fill="none" stroke="#e3ddd1" stroke-width="2"/>
+</g>
+</defs>
+
+<rect width="1000" height="563" fill="url(#wall)"/>
+<!-- Bamboo stems along the back wall. -->
+<g fill="#b9c79a">
+<rect x="60" y="0" width="16" height="400"/><rect x="96" y="0" width="12" height="400"/>
+<rect x="880" y="0" width="16" height="400"/><rect x="918" y="0" width="12" height="400"/>
+</g>
+<g fill="#9aac78">
+<rect x="60" y="90" width="16" height="4"/><rect x="60" y="230" width="16" height="4"/>
+<rect x="96" y="150" width="12" height="4"/><rect x="96" y="300" width="12" height="4"/>
+<rect x="880" y="120" width="16" height="4"/><rect x="880" y="270" width="16" height="4"/>
+<rect x="918" y="70" width="12" height="4"/><rect x="918" y="210" width="12" height="4"/>
+</g>
+<path d="M108,120 q40,-20 60,-60 q-30,30 -60,40 Z M76,200 q-40,-10 -60,-50 q30,26 60,32 Z" fill="#8aa268"/>
+<path d="M918,160 q-40,-20 -60,-60 q30,30 60,40 Z M896,250 q40,-10 60,-50 q-30,26 -60,32 Z" fill="#8aa268"/>
+
+<!-- The shelf. -->
+<rect x="0" y="400" width="1000" height="40" fill="#8a6a4a"/>
+<rect x="0" y="436" width="1000" height="127" fill="#5f4632"/>
+<path d="M0,410 H1000 M0,424 H1000" stroke="#7a5c40" stroke-width="2"/>
+<path d="M0,470 C200,462 340,480 520,470 S860,462 1000,472 M0,512 C160,504 380,522 600,510 S880,504 1000,514" stroke="#523b29" stroke-width="3" fill="none"/>
+
+<!-- An orchid in a pot, left. -->
+<rect x="200" y="330" width="80" height="70" rx="6" fill="#f4efe6" stroke="#ddd5c6" stroke-width="2"/>
+<path d="M240,330 C238,260 250,200 280,160" fill="none" stroke="#6b7d4a" stroke-width="4"/>
+<path d="M214,330 C190,316 182,300 186,290 C206,300 222,312 236,330 Z M266,330 C290,318 300,304 298,292 C278,300 262,314 248,330 Z" fill="#4f7a3f"/>
+<g fill="#f2c4d8">
+<path d="M262,200 c-14,-4 -18,-18 -8,-22 c8,-2 12,8 8,22 Z"/>
+<path d="M262,200 c12,-10 26,-6 24,4 c-2,8 -14,6 -24,-4 Z"/>
+<path d="M262,200 c-14,6 -18,20 -8,22 c8,2 12,-8 8,-22 Z"/>
+<path d="M262,200 c14,6 22,18 12,22 c-8,2 -14,-8 -12,-22 Z"/>
+<path d="M286,166 c-12,-4 -16,-16 -6,-20 c8,-2 10,8 6,20 Z"/>
+<path d="M286,166 c10,-8 22,-4 20,4 c-2,8 -12,4 -20,-4 Z"/>
+<path d="M286,166 c-10,6 -12,18 -4,18 c8,0 8,-10 4,-18 Z"/>
+</g>
+<circle cx="262" cy="200" r="5" fill="#c9547c"/>
+<circle cx="286" cy="166" r="4" fill="#c9547c"/>
+
+<!-- Stacked stones, centre. -->
+<ellipse cx="500" cy="388" rx="92" ry="22" fill="#5d5a57"/>
+<ellipse cx="500" cy="352" rx="74" ry="20" fill="#7a7672"/>
+<ellipse cx="500" cy="320" rx="56" ry="17" fill="#918c86"/>
+<ellipse cx="500" cy="292" rx="40" ry="14" fill="#a9a39b"/>
+<ellipse cx="500" cy="268" rx="26" ry="11" fill="#c0bab1"/>
+<path d="M440,386 q60,10 120,0 M450,350 q50,8 100,0" stroke="#4a4744" stroke-width="2" fill="none" opacity="0.5"/>
+
+<!-- Candles and rolled towels, right. -->
+<use href="#candle" x="390" y="400"/>
+<use href="#candle" x="620" y="400"/>
+<use href="#towel" x="760" y="400"/>
+<use href="#towel" x="760" y="366"/>
+<use href="#towel" x="760" y="332"/>
+<!-- A dish of salt and a sprig of lavender. -->
+<path d="M860,400 a40,14 0 0,1 80,0 Z" fill="#f2efe9" stroke="#d8d1c4" stroke-width="2"/>
+<path d="M880,392 C900,370 920,360 950,350" stroke="#6b7d4a" stroke-width="3" fill="none"/>
+<g fill="#9b86c9"><circle cx="930" cy="356" r="4"/><circle cx="938" cy="352" r="4"/><circle cx="946" cy="349" r="4"/><circle cx="922" cy="361" r="4"/></g>
+</svg>

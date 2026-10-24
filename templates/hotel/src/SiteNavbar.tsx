@@ -12,7 +12,8 @@ const links = [
 /**
  * The navbar in the welcome hero's head. Below the desktop breakpoint the
  * brand shows call, mail and Facebook icons, and the burger opens the menu,
- * which the original's js/scripts.js toggled.
+ * which the original's js/scripts.js toggled. The brand is the hotel's name
+ * in text, where the original shows Bulma's logo.
  */
 function SiteNavbar() {
   const [open, setOpen] = useState(false);
@@ -21,12 +22,9 @@ function SiteNavbar() {
     <Navbar>
       <Navbar.Brand>
         <Navbar.Item href="https://aldi.github.io/awesome-bulma-templates">
-          <img
-            src="/media/bulma-logo.png"
-            alt="Bulma Hotel"
-            width={112}
-            height={28}
-          />
+          <span className="wordmark">
+            Bulma <span>Hotel</span>
+          </span>
         </Navbar.Item>
         <Navbar.Item
           visibilityDesktop="hidden"

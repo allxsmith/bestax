@@ -90,7 +90,7 @@ function Listings() {
           </Columns>
           <img
             className="m-t-50"
-            src="/media/city_clipart.png"
+            src="/media/city-day.svg"
             alt="Rental listings"
           />
         </Container>

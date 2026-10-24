@@ -4,25 +4,26 @@ import { Button, Buttons, Icon } from '@allxsmith/bestax-bulma';
  * The brand colors come from bulma-social (imported in main.tsx): its
  * `is-x`, `is-linkedin` and `is-github` modifiers style Bulma's `.button`,
  * which `Button` renders, so they go on it through `className`. Each link's
- * `aria-label` names it, so its icon is decoration.
+ * `aria-label` names it, so its icon is decoration. The addresses are
+ * placeholders: point each at your own profile.
  */
 const profiles = [
   {
     label: 'Follow on X',
     className: 'is-x',
-    href: 'https://x.com/katewoodman',
+    href: 'https://x.com/your-handle',
     icon: 'x-twitter',
   },
   {
     label: 'Connect on LinkedIn',
     className: 'is-linkedin',
-    href: 'https://linkedin.com/in/katewoodman',
+    href: 'https://www.linkedin.com/in/your-profile',
     icon: 'linkedin-in',
   },
   {
     label: 'My GitHub profile',
     className: 'is-github',
-    href: 'https://github.com/katewoodman',
+    href: 'https://github.com/your-username',
     icon: 'github',
   },
 ];

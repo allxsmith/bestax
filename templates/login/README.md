@@ -26,8 +26,8 @@ treats the folder as a project of its own.
 - `src/App.tsx` lays out the page, and `LoginForm.tsx`, `SocialLogin.tsx`, `AccountLinks.tsx`
   and `SiteFooter.tsx` hold its sections, built from bestax components in place of the
   original's Bulma markup.
-- `src/index.css` is the original's stylesheet, ported, and `public/` holds its background image
-  and favicon.
+- `src/index.css` is the original's stylesheet, ported, and `public/` holds the background
+  drawn for this port (see [Images](#images)) and the favicon.
 - The social buttons take their brand colors from aldi's
   [bulma-social](https://github.com/aldi/bulma-social), as the original does: its classes go on
   bestax's `Button` through `className`.
@@ -41,6 +41,22 @@ treats the folder as a project of its own.
 - `index.html` pins Bulma's light scheme, as the original's design is light only.
 - Submitting the form stays on the page. The original posts to `#`, which a static host answers
   with an error page; send the sign-in from the form's `onSubmit` in `src/LoginForm.tsx`.
+
+## Images
+
+`public/media/background.svg`, the sea at sunset with a sailboat and a lighthouse, was drawn for this
+port on October 23, 2026 by Claude, Anthropic's AI model, writing SVG markup by hand from an idea of its own rather than
+from the image it replaces. No photo, illustration, stock image or image-generation model went into
+it, and it copies no existing artwork. The file is
+its own source: open it in a text editor to see every shape it draws. It replaces the original's
+background photo, whose source the original does not record, so this port ships no image of unknown
+origin.
+
+`public/favicon.svg`, a turquoise padlock, was drawn for this port by hand too, in place of an
+earlier favicon whose making was not recorded.
+
+`image-provenance.json` records each image with its SHA-256 hash, so anyone can check that the file
+shipped is the one described here.
 
 ## License
 

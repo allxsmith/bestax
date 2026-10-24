@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1280" width="1920" height="1280" preserveAspectRatio="xMidYMid slice">
+  <!-- Drawn for the bestax port of the Coming Soon template; image-provenance.json records how. -->
+  <!-- A building going up at dawn: a tower crane on the left, scaffolding on the right, and a
+       low skyline along the bottom, under a pale sky. -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e6e8f0" />
+      <stop offset="0.55" stop-color="#d6d9ea" />
+      <stop offset="0.8" stop-color="#b9bedb" />
+      <stop offset="1" stop-color="#9aa0c8" />
+    </linearGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4a5180" />
+      <stop offset="1" stop-color="#262a48" />
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff6ea" />
+      <stop offset="0.45" stop-color="#fbe9dc" stop-opacity="0.8" />
+      <stop offset="1" stop-color="#e9e1ea" stop-opacity="0" />
+    </radialGradient>
+    <pattern id="scaffold" width="60" height="70" patternUnits="userSpaceOnUse">
+      <path d="M0 0V70M0 0H60M0 0L60 70" fill="none" stroke="#5b6294" stroke-width="4" />
+    </pattern>
+  </defs>
+
+  <rect width="1920" height="1280" fill="url(#sky)" />
+  <circle cx="1180" cy="930" r="420" fill="url(#sun)" />
+  <g fill="#ffffff" opacity="0.5">
+    <rect x="180" y="300" width="420" height="16" rx="8" />
+    <rect x="260" y="336" width="260" height="12" rx="6" />
+    <rect x="1380" y="220" width="380" height="14" rx="7" />
+    <rect x="1460" y="252" width="220" height="10" rx="5" />
+  </g>
+
+  <!-- The far skyline, faint. -->
+  <path d="M0 1010V940H90V900H170V960H260V880H330V950H420V1010ZM1500 1010V920H1580V870H1660V930H1740V890H1830V950H1920V1010Z" fill="#a9afd2" />
+
+  <!-- The tower crane: mast, jib, counter-jib, cab, cable and load. -->
+  <g>
+    <path d="M300 1060V550" stroke="#4a5180" stroke-width="34" />
+    <path d="M286 1050L314 1010M286 1010L314 970M286 970L314 930M286 930L314 890M286 890L314 850M286 850L314 810M286 810L314 770M286 770L314 730M286 730L314 690M286 690L314 650M286 650L314 610M286 610L314 570" stroke="#d6d9ea" stroke-width="5" />
+    <path d="M300 470V550" stroke="#4a5180" stroke-width="16" />
+    <path d="M120 560H500" stroke="#4a5180" stroke-width="22" />
+    <path d="M300 470L500 552M300 470L140 552" fill="none" stroke="#4a5180" stroke-width="6" />
+    <rect x="120" y="570" width="90" height="56" fill="#4a5180" />
+    <rect x="300" y="570" width="58" height="48" rx="6" fill="#ff8a5c" />
+    <rect x="310" y="580" width="38" height="20" rx="3" fill="#fff1e8" />
+    <path d="M420 570V770" stroke="#4a5180" stroke-width="4" />
+    <path d="M390 770H450L440 820H400Z" fill="#ff8a5c" />
+  </g>
+
+  <!-- The building going up, in scaffolding. -->
+  <g transform="translate(40 0)">
+    <rect x="1500" y="700" width="280" height="360" fill="#c4c8e2" />
+    <g fill="#9aa0c8">
+      <rect x="1528" y="740" width="56" height="64" /><rect x="1612" y="740" width="56" height="64" /><rect x="1696" y="740" width="56" height="64" />
+      <rect x="1528" y="850" width="56" height="64" /><rect x="1612" y="850" width="56" height="64" /><rect x="1696" y="850" width="56" height="64" />
+      <rect x="1528" y="960" width="56" height="64" /><rect x="1612" y="960" width="56" height="64" /><rect x="1696" y="960" width="56" height="64" />
+    </g>
+    <rect x="1480" y="600" width="320" height="460" fill="url(#scaffold)" />
+    <path d="M1480 600V1060M1800 600V1060M1480 600H1800" fill="none" stroke="#4a5180" stroke-width="8" />
+    <g fill="#ff8a5c">
+      <rect x="1466" y="660" width="348" height="10" />
+      <rect x="1466" y="790" width="348" height="10" />
+      <rect x="1466" y="920" width="348" height="10" />
+    </g>
+  </g>
+
+  <!-- The ground and the near skyline, darkest at the bottom. -->
+  <path d="M0 1280V1060H130V1000H250V1060H560V1030H700V1080H900V1060H1060V1090H1300V1050H1400V1060H1820V1010H1920V1280Z" fill="url(#ground)" />
+  <g fill="#ffd9a8" opacity="0.7">
+    <rect x="160" y="1020" width="18" height="22" /><rect x="200" y="1020" width="18" height="22" />
+    <rect x="600" y="1050" width="16" height="20" /><rect x="640" y="1050" width="16" height="20" />
+    <rect x="1840" y="1030" width="18" height="22" /><rect x="1880" y="1030" width="18" height="22" />
+  </g>
+</svg>

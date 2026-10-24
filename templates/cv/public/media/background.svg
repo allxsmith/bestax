@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1600" width="1600" height="1600" preserveAspectRatio="xMidYMid slice">
+  <!-- Drawn for the bestax port of the CV template; image-provenance.json records how. -->
+  <!-- An invented, faceless figure in flat shapes, framed by a web designer's tools: a browser
+       window, a code tag, a pen curve and a cursor. It portrays no one. -->
+  <defs>
+    <linearGradient id="night" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#26335c" />
+      <stop offset="1" stop-color="#18213b" />
+    </linearGradient>
+    <pattern id="dots" width="80" height="80" patternUnits="userSpaceOnUse">
+      <circle cx="40" cy="40" r="3" fill="#33416e" />
+    </pattern>
+    <path id="spark" d="M0-26C4-6 6-4 26 0C6 4 4 6 0 26C-4 6-6 4-26 0C-6-4-4-6 0-26Z" />
+  </defs>
+
+  <!-- The backdrop: a dotted grid, and a sun behind the figure. -->
+  <rect width="1600" height="1600" fill="url(#night)" />
+  <rect width="1600" height="1600" fill="url(#dots)" />
+  <circle cx="800" cy="720" r="430" fill="none" stroke="#ff470f" stroke-width="6" opacity="0.35" />
+  <circle cx="800" cy="720" r="340" fill="#ff470f" />
+
+  <!-- The figure: shoulders in a teal sweater, neck, head and short hair. -->
+  <path d="M430 1600C430 1200 560 1030 800 1030C1040 1030 1170 1200 1170 1600Z" fill="#1fa392" />
+  <path d="M560 1600C566 1380 600 1250 640 1180M1040 1600C1034 1380 1000 1250 960 1180" fill="none" stroke="#178a7b" stroke-width="14" stroke-linecap="round" />
+  <rect x="738" y="860" width="124" height="200" rx="40" fill="#d19a74" />
+  <path d="M738 900H862V960C830 980 770 980 738 960Z" fill="#b9805c" />
+  <path d="M690 1040Q800 1130 910 1040" fill="none" stroke="#f4efe8" stroke-width="26" stroke-linecap="round" />
+  <circle cx="648" cy="730" r="34" fill="#c98f69" />
+  <circle cx="952" cy="730" r="34" fill="#c98f69" />
+  <ellipse cx="800" cy="720" rx="152" ry="176" fill="#d19a74" />
+  <path d="M646 710C630 560 708 490 806 490C912 490 974 566 956 700C944 640 902 604 846 600C820 640 760 664 700 660C672 670 656 688 646 710Z" fill="#141a2e" />
+
+  <!-- A browser window, top left. -->
+  <g transform="rotate(-6 370 380)">
+    <rect x="190" y="250" width="360" height="260" rx="24" fill="#f4efe8" />
+    <path d="M190 274A24 24 0 0 1 214 250H526A24 24 0 0 1 550 274V306H190Z" fill="#dfe4f1" />
+    <circle cx="226" cy="278" r="9" fill="#ff470f" />
+    <circle cx="256" cy="278" r="9" fill="#ffb02e" />
+    <circle cx="286" cy="278" r="9" fill="#1fa392" />
+    <rect x="218" y="330" width="304" height="46" rx="10" fill="#26335c" />
+    <rect x="218" y="394" width="140" height="88" rx="10" fill="#dfe4f1" />
+    <rect x="374" y="394" width="148" height="20" rx="10" fill="#dfe4f1" />
+    <rect x="374" y="426" width="120" height="20" rx="10" fill="#dfe4f1" />
+    <rect x="374" y="460" width="72" height="22" rx="11" fill="#ff470f" />
+  </g>
+
+  <!-- A code tag, top right. -->
+  <circle cx="1270" cy="380" r="118" fill="#f4efe8" />
+  <path d="M1208 336L1166 380L1208 424M1332 336L1374 380L1332 424M1290 318L1250 442" fill="none" stroke="#26335c" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- A pen curve with its handles, right. -->
+  <path d="M1110 1120C1180 960 1330 1000 1440 880" fill="none" stroke="#f4efe8" stroke-width="10" stroke-linecap="round" />
+  <path d="M1110 1120L1190 960M1440 880L1350 1010" stroke="#9aa6c9" stroke-width="5" />
+  <circle cx="1190" cy="960" r="12" fill="#9aa6c9" />
+  <circle cx="1350" cy="1010" r="12" fill="#9aa6c9" />
+  <rect x="1094" y="1104" width="32" height="32" fill="#ff470f" stroke="#f4efe8" stroke-width="5" />
+  <rect x="1424" y="864" width="32" height="32" fill="#ff470f" stroke="#f4efe8" stroke-width="5" />
+
+  <!-- A cursor and a row of swatches, left. -->
+  <path d="M330 960L330 1130L372 1092L404 1162L436 1148L404 1078L460 1074Z" fill="#f4efe8" stroke="#26335c" stroke-width="8" stroke-linejoin="round" />
+  <g>
+    <rect x="170" y="1230" width="230" height="74" rx="37" fill="#f4efe8" />
+    <circle cx="210" cy="1267" r="22" fill="#ff470f" />
+    <circle cx="262" cy="1267" r="22" fill="#ffb02e" />
+    <circle cx="314" cy="1267" r="22" fill="#1fa392" />
+    <circle cx="366" cy="1267" r="22" fill="#26335c" />
+  </g>
+
+  <!-- Sparks. -->
+  <g fill="#ffb02e">
+    <use href="#spark" x="620" y="250" />
+    <use href="#spark" x="1080" y="1260"/>
+  </g>
+  <g fill="#f4efe8" opacity="0.8">
+    <use href="#spark" x="1460" y="620" />
+    <use href="#spark" x="140" y="720" />
+  </g>
+</svg>

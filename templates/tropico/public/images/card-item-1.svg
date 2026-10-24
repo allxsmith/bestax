@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 75 74" width="75" height="74">
+<!-- Drawn for the bestax port of the Tropico template; image-provenance.json records it. -->
+<!-- An orange with a leaf on its stalk, the services cards' icon. -->
+<circle cx="37.5" cy="42" r="28" fill="#fc8a1e"/>
+<circle cx="37.5" cy="42" r="28" fill="none" stroke="#e66f0a" stroke-width="2"/>
+<path d="M22,34 a17,17 0 0,1 12,-10" stroke="#ffc173" stroke-width="4" fill="none" stroke-linecap="round"/>
+<g fill="#e66f0a"><circle cx="46" cy="52" r="1.6"/><circle cx="52" cy="44" r="1.6"/><circle cx="40" cy="58" r="1.6"/></g>
+<path d="M37.5,15 v-6" stroke="#6b4a1e" stroke-width="3" stroke-linecap="round"/>
+<path d="M38,10 C44,2 56,2 62,8 C54,14 44,14 38,10 Z" fill="#46a04a"/>
+<path d="M38,10 C46,8 54,8 60,8" stroke="#2f7a3c" stroke-width="1.5" fill="none"/>
+</svg>

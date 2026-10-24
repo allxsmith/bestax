@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 333" width="500" height="333">
+<!-- Drawn for the bestax port of the Hotel template; image-provenance.json records it. -->
+<!-- The Premier Diamond Single: a single bed with a navy headboard, a desk and a window on the city. -->
+<defs>
+<linearGradient id="wall" x1="0" y1="0" x2="0" y2="250" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#e6ecf2"/>
+<stop offset="1" stop-color="#d3dce6"/>
+</linearGradient>
+<linearGradient id="floor" x1="0" y1="250" x2="0" y2="333" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#8e98a6"/>
+<stop offset="1" stop-color="#6e7887"/>
+</linearGradient>
+<linearGradient id="sky" x1="0" y1="34" x2="0" y2="210" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#6ea8d8"/>
+<stop offset="1" stop-color="#cfe6f4"/>
+</linearGradient>
+<radialGradient id="glow" r="0.5">
+<stop offset="0" stop-color="#f4f8ff" stop-opacity="0.9"/>
+<stop offset="1" stop-color="#f4f8ff" stop-opacity="0"/>
+</radialGradient>
+</defs>
+
+<rect width="500" height="250" fill="url(#wall)"/>
+<rect y="250" width="500" height="83" fill="url(#floor)"/>
+<rect y="244" width="500" height="8" fill="#f4f7fa"/>
+
+<!-- A wide window on the city, right. -->
+<rect x="340" y="34" width="144" height="176" fill="url(#sky)"/>
+<g fill="#9fb3c8">
+<rect x="344" y="120" width="22" height="90"/><rect x="370" y="140" width="18" height="70"/>
+<rect x="392" y="104" width="26" height="106"/><rect x="422" y="150" width="20" height="60"/>
+<rect x="446" y="126" width="24" height="84"/>
+</g>
+<g fill="#d8e4ef">
+<rect x="398" y="112" width="5" height="6"/><rect x="408" y="112" width="5" height="6"/>
+<rect x="398" y="126" width="5" height="6"/><rect x="408" y="140" width="5" height="6"/>
+<rect x="350" y="130" width="4" height="6"/><rect x="452" y="136" width="5" height="6"/>
+<rect x="452" y="152" width="5" height="6"/>
+</g>
+<rect x="410" y="34" width="4" height="176" fill="#ffffff"/>
+<rect x="336" y="30" width="152" height="184" fill="none" stroke="#ffffff" stroke-width="6"/>
+<path d="M330,24 C336,90 326,170 332,240 L346,240 C342,170 350,90 344,24 Z" fill="#6f8fb8"/>
+<path d="M480,24 C486,90 476,170 482,240 L496,240 C492,170 500,90 494,24 Z" fill="#6f8fb8"/>
+<rect x="324" y="20" width="176" height="6" rx="3" fill="#4a5a75"/>
+
+<!-- A writing desk and chair, left. -->
+<rect x="24" y="186" width="110" height="8" fill="#e9edf2"/>
+<rect x="30" y="194" width="6" height="66" fill="#7d8796"/>
+<rect x="122" y="194" width="6" height="66" fill="#7d8796"/>
+<rect x="84" y="194" width="44" height="26" fill="#c9d1db"/>
+<rect x="44" y="160" width="40" height="26" rx="2" fill="#3a4659"/>
+<rect x="62" y="186" width="4" height="2" fill="#3a4659"/>
+<path d="M98,186 L102,170 L114,170 L118,186 Z" fill="#9ec9c2"/>
+<path d="M108,170 C104,160 100,156 96,154 M108,170 C110,160 116,154 122,152" stroke="#4f8a6b" stroke-width="2" fill="none"/>
+<path d="M60,210 Q60,198 72,198 L98,198 Q110,198 110,210 L110,236 L60,236 Z" fill="#3d4f73"/>
+<rect x="56" y="232" width="58" height="12" rx="4" fill="#4a5f88"/>
+<rect x="62" y="244" width="4" height="24" fill="#2e3b55"/><rect x="104" y="244" width="4" height="24" fill="#2e3b55"/>
+
+<!-- A mirror above the bed. -->
+<circle cx="250" cy="84" r="30" fill="#c5d4e2" stroke="#b6c0cc" stroke-width="5"/>
+<path d="M236,74 L252,62 M240,90 L262,72" stroke="#eef4f9" stroke-width="4" stroke-linecap="round"/>
+
+<!-- The headboard, a wall lamp and the bed. -->
+<path d="M190,250 L190,150 Q190,132 208,132 L292,132 Q310,132 310,150 L310,250 Z" fill="#3d4f73"/>
+<path d="M216,138 V250 M250,138 V250 M284,138 V250" stroke="#33445f" stroke-width="3"/>
+<ellipse cx="164" cy="150" rx="30" ry="24" fill="url(#glow)"/>
+<rect x="160" y="140" width="8" height="28" rx="3" fill="#b6c0cc"/>
+<path d="M154,140 L158,124 L170,124 L174,140 Z" fill="#f4f7fa" stroke="#c9d1db"/>
+<path d="M200,215 L300,215 L330,318 L170,318 Z" fill="#f8fafc"/>
+<rect x="212" y="198" width="76" height="36" rx="12" fill="#ffffff" stroke="#dde3ea" stroke-width="2"/>
+<path d="M190,250 L310,250 L330,318 L170,318 Z" fill="#fdfeff"/>
+<path d="M190,250 L310,250" stroke="#e1e7ee" stroke-width="3"/>
+<path d="M181,280 L319,280 L325,300 L175,300 Z" fill="#6f8fb8"/>
+<path d="M181,280 L319,280" stroke="#56769f" stroke-width="2"/>
+<rect x="166" y="318" width="168" height="15" fill="#e3e8ee"/>
+<rect x="160" y="316" width="180" height="6" rx="3" fill="#4a5a75"/>
+
+<!-- A rug by the bed. -->
+<path d="M30,300 L140,300 L150,333 L20,333 Z" fill="#b8c7d8"/>
+<path d="M40,308 L136,308 L142,328 L32,328 Z" fill="none" stroke="#e8eef4" stroke-width="2"/>
+</svg>

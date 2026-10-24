@@ -9,13 +9,15 @@ function SiteNavbar() {
     <Navbar transparent isSpaced role="navigation" aria-label="main navigation">
       <Container>
         <Navbar.Brand>
-          <Navbar.Item href="/">
-            <img
-              src="/media/bulma-logo.svg"
-              alt="Bulma Rent"
-              width={80}
-              height={20}
-            />
+          {/* The site's name in type. The original shows Bulma's logo, a
+              trademark, which the port draws no copy of. */}
+          <Navbar.Item
+            href="/"
+            textSize="5"
+            textWeight="bold"
+            className="wordmark"
+          >
+            Bulma Rent
           </Navbar.Item>
           <Navbar.Burger
             active={open}

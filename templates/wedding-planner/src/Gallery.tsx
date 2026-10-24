@@ -10,12 +10,16 @@ import {
   Title,
 } from '@allxsmith/bestax-bulma';
 
+/**
+ * Pictures drawn for the port, in place of the original's hot-linked stock
+ * photos. Put your own weddings' photos here, with alt text.
+ */
 const photos = [
-  'https://images.unsplash.com/photo-1425421543490-6a133856ff32?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-  'https://images.unsplash.com/photo-1520342868574-5fa3804e551c?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-  'https://images.unsplash.com/photo-1504993945773-3f38e1b6a626?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-  'https://images.unsplash.com/photo-1506072328856-cd6629b00b62?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-  'https://images.unsplash.com/photo-1444920275954-9dddec6b714e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+  '/img/gallery-cake.svg',
+  '/img/gallery-rings.svg',
+  '/img/gallery-bouquet.svg',
+  '/img/gallery-ceremony.svg',
+  '/img/gallery-reception.svg',
 ];
 
 /**
