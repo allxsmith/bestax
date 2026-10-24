@@ -227,7 +227,7 @@
           "name": "indicatorInside",
           "type": "boolean",
           "default": "false",
-          "description": "Puts the indicators over the slides instead of below them, at the edge `indicatorPosition` names, on a dark gradient band. It also turns on the overlay look, made for photos: the arrows and indicators take the `--bulma-carousel-overlay-*` colors in place of the plain ones, and `arrowColor` stops applying. No prop moves the indicators without that look, or gives the look without moving them. To keep the plain colors over the slides, set each overlay variable to its plain one. The band is a `background` on the `.carousel-indicator.is-inside` element, not a variable.",
+          "description": "Puts the indicators over the slides instead of below them, at the edge `indicatorPosition` names, on a dark gradient band. It also turns on the overlay look, made for photos: the arrows and indicators take the `--bulma-carousel-overlay-*` colors in place of the plain ones, and `arrowColor` stops applying. No prop moves the indicators without that look, or gives the look without moving them. To keep the plain colors over the slides, set each overlay variable to its plain one. The band is a `background` on the `.carousel-indicator.is-inside` element, not a variable. The API page's \"Indicators Over the Slides\" section has the whole recipe.",
           "required": false,
           "inherited": false,
           "deprecated": false

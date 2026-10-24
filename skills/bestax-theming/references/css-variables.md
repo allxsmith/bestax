@@ -329,7 +329,9 @@ indicators over the slides, set each overlay variable to its plain one on a clas
 (`--bulma-carousel-overlay-arrow-color: var(--bulma-carousel-arrow-color)`, and so on for the
 arrow backgrounds and the indicator backgrounds), and drop the band, which is a `background`
 rather than a variable, with `.carousel.my-carousel .carousel-indicator.is-inside { background:
-none; }` (mind the class prefix).
+none; }` (mind the class prefix). With `indicatorStyle="circles"`, also give the inactive circles
+`background-color: transparent` (`.carousel.my-carousel.is-indicator-circles .carousel-indicator.is-inside .indicator-item:not(.is-active)`),
+since the overlay look fills them.
 
 ### Checkbox
 

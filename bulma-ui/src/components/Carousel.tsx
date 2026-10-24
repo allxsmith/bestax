@@ -293,7 +293,8 @@ export interface CarouselProps
    * look, or gives the look without moving them. To keep the plain colors
    * over the slides, set each overlay variable to its plain one. The band is
    * a `background` on the `.carousel-indicator.is-inside` element, not a
-   * variable.
+   * variable. The API page's "Indicators Over the Slides" section has the
+   * whole recipe.
    */
   indicatorInside?: boolean;
   /**
