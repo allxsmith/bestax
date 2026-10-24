@@ -129,6 +129,7 @@ After the base, `@use` only the Bulma partials you need:
 // Form
 @use 'bulma/sass/form/input-textarea';
 @use 'bulma/sass/form/select';
+@use 'bulma/sass/form/tools';
 
 // Components
 @use 'bulma/sass/components/card';
@@ -182,6 +183,7 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/form/rate';
 @use '@allxsmith/bestax-bulma/scss/form/slider';
 @use '@allxsmith/bestax-bulma/scss/form/numberinput';
+@use '@allxsmith/bestax-bulma/scss/form/pininput';
 @use '@allxsmith/bestax-bulma/scss/form/switch';
 @use '@allxsmith/bestax-bulma/scss/form/checkbox';
 @use '@allxsmith/bestax-bulma/scss/form/radio';

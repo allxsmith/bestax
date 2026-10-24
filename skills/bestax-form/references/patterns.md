@@ -287,6 +287,20 @@ const [range, setRange] = useState<[number, number]>([20, 80]);
 const [qty, setQty] = useState(1);
 <Numberinput value={qty} onChange={setQty} min={1} max={10} step={1} />;
 
+// PinInput: a one-time code or PIN, a box per character, all in one input.
+// onComplete fires once each time a change fills the last box.
+const [code, setCode] = useState('');
+const verify = (otp: string) => {
+  // Send it to your server, then show the result with color and message.
+};
+<PinInput
+  label="Enter the 6-digit code"
+  name="otp"
+  value={code}
+  onChange={setCode}
+  onComplete={verify}
+/>;
+
 // Rate
 const [stars, setStars] = useState(3);
 <Rate value={stars} onChange={setStars} max={5} />;

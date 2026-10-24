@@ -18,6 +18,7 @@ import { ContextMenu } from '../components/ContextMenu';
 import { Popover } from '../components/Popover';
 import { SegmentedControl } from '../components/SegmentedControl';
 import { Slider } from '../form/Slider';
+import { PinInput } from '../form/PinInput';
 import { DateInput } from '../form/DateInput';
 import { TimeInput } from '../form/TimeInput';
 import { DateTimeInput } from '../form/DateTimeInput';
@@ -60,6 +61,7 @@ const cases: Array<[string, React.ReactElement]> = [
     </SegmentedControl>,
   ],
   ['Slider', <Slider key="slider" label="Volume" />],
+  ['PinInput', <PinInput key="pin" label="Code" defaultValue="12" />],
   ['DateInput', <DateInput key="date" label="Date" />],
   ['TimeInput', <TimeInput key="time" label="Time" />],
   ['DateTimeInput', <DateTimeInput key="datetime" label="When" />],

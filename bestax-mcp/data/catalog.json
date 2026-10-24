@@ -97,6 +97,7 @@
         "File",
         "Input",
         "Numberinput",
+        "PinInput",
         "Radio",
         "Radios",
         "Rate",
@@ -839,6 +840,17 @@
       "compound": false,
       "propCount": 4,
       "exampleCount": 10
+    },
+    {
+      "name": "PinInput",
+      "kind": "component",
+      "category": "form",
+      "purpose": "The `PinInput` component is a field for a short code, such as a one-time code or a PIN, drawn as a row of boxes with one character in each.",
+      "slug": "form/pininput",
+      "import": "import { PinInput } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 19,
+      "exampleCount": 12
     },
     {
       "name": "Popover",
@@ -2313,6 +2325,12 @@
       "DateTimeInput",
       "TimeInput"
     ],
+    "--bulma-pin-input-box-width": ["PinInput"],
+    "--bulma-pin-input-caret-blink-duration": ["PinInput"],
+    "--bulma-pin-input-caret-color": ["PinInput"],
+    "--bulma-pin-input-caret-height": ["PinInput"],
+    "--bulma-pin-input-caret-width": ["PinInput"],
+    "--bulma-pin-input-gap": ["PinInput"],
     "--bulma-popover-animation-duration": ["Popover"],
     "--bulma-popover-background": ["Popover"],
     "--bulma-popover-body-padding": ["Popover"],

@@ -87,6 +87,7 @@ const SUMMARISED_AS_FORM_CONTROLS = [
   'Input',
   'InputBase',
   'NumberInput',
+  'PinInput',
   'Radio',
   'Rate',
   'Select',

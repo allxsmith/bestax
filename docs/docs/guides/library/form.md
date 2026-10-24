@@ -91,6 +91,31 @@ function AutocompleteExample() {
 
 ---
 
+### PinInput
+
+A one-time code or a PIN, drawn as a row of boxes with a character in each. The code is in one real input under the boxes, so paste, autofill from a text message and screen readers treat it as one field, and `onComplete` gets the code once the last box fills.
+
+```tsx live
+function PinInputExample() {
+  const [code, setCode] = React.useState('');
+  return (
+    <div>
+      <PinInput
+        label="Verification code"
+        value={code}
+        onChange={setCode}
+        onComplete={full => setCode(full)}
+      />
+      <p className="mt-2">Code: {code || 'none yet'}</p>
+    </div>
+  );
+}
+```
+
+[View full documentation.](../../api/form/pininput)
+
+---
+
 ## Selection
 
 ### Checkbox
