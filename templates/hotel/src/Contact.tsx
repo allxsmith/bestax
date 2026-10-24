@@ -75,7 +75,7 @@ function Contact() {
                         />
                       </Control>
                     </Field>
-                    <Field>
+                    <Field mt="2">
                       <Control>
                         <Button as="input" color="primary" type="submit" />
                       </Control>
