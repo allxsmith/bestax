@@ -1,8 +1,9 @@
 # Third-party notices
 
-`@allxsmith/bestax-bulma` ships stylesheets compiled from [Bulma](https://bulma.io): `dist/bestax.css`
-and the other builds in `dist/`, which are Bulma's own Sass built with bestax's settings. Bulma's
-MIT License asks for its copyright and permission notice to go with every copy, so here it is.
+`@allxsmith/bestax-bulma` ships `dist/bestax.css`, which is [Bulma](https://bulma.io)'s own Sass
+compiled with bestax's settings and bestax's additions. (`dist/extras.css` holds only bestax's own
+styles.) Bulma's MIT License asks for its copyright and permission notice to go with every copy, so
+here it is.
 
 ## Bulma
 
