@@ -43,6 +43,11 @@
   --bulma-title-weight: 600;
 }
 
+/* Bulma 0.9 left a 0.25rem gap between a title and its subtitle; Bulma 1 leaves none. */
+.title:not(.is-spaced):has(+ .subtitle) {
+  margin-bottom: 0.25rem;
+}
+
 .content {
   --bulma-content-heading-weight: 600;
 }
@@ -77,6 +82,12 @@
 
 .navbar {
   --bulma-navbar-burger-color: #4a4a4a;
+}
+
+/* Bulma 0.9 gave a hovered burger a faint black, where Bulma 1 tints it with the link color. */
+.navbar-burger:hover,
+.navbar-burger:active {
+  background-color: rgba(10, 10, 10, 0.05);
 }
 
 /*
