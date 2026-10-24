@@ -92,6 +92,12 @@ minimumReleaseAgeExclude:
   # rather than lag it behind the cooldown (which would cause recurring
   # reformat churn). Dev-only, never shipped to users.
   - prettier
+  # bestax:review 2026-10-28 — drop both once they're past the cooldown
+  # (published 2026-10-22). The body-parser overrides below need these patched
+  # releases for GHSA-27r3-jxmh-p828 before the cooldown would admit them.
+  - 'body-parser@1.20.9'
+  # bestax:review 2026-10-28 — same advisory, 2.x line
+  - 'body-parser@2.4.0'
 
 # Pin a single prettier version workspace-wide so eslint-plugin-prettier and
 # `prettier --check` never disagree (patch versions format union types
@@ -232,19 +238,29 @@ overrides:
   # Force patched undici 7.x (transitive via semantic-release/github and
   # wrangler>miniflare: release and CI-deploy tooling, never published output)
   # for its high advisories. The floor is the newest fix on the 7.x line:
-  # 7.29.1 patches GHSA-rfgv-xxqx-mfg5 and GHSA-w293-vg96-wgc3. Capped at the
-  # 7.29 line because wrangler and miniflare pin undici exactly and nothing in
-  # CI exercises them before a deploy, so they move by a patch rather than to
-  # the newest minor. Prune once their pin reaches >=7.29.1.
-  'undici@7': '>=7.29.1 <7.30'
+  # 7.30.1 patches GHSA-xjj6-f33q-929c, after 7.29.1 patched GHSA-rfgv-xxqx-mfg5
+  # and GHSA-w293-vg96-wgc3. Capped at one minor line because wrangler and
+  # miniflare pin undici exactly and nothing in CI exercises them before a
+  # deploy. The cap moved from 7.29 to 7.30 because GHSA-xjj6-f33q-929c has no
+  # 7.29 backport. Prune once their pin reaches >=7.30.1.
+  'undici@7': '>=7.30.1 <7.31'
   # bestax:review 2026-11-13 — quarterly sweep
   # The 6.x copy (under @actions/http-client), held to the newest fix on its
-  # line: 6.28.1 patches the high GHSA-rfgv-xxqx-mfg5. Keep this floor at the
+  # line: 6.29.1 patches the high GHSA-xjj6-f33q-929c, after 6.28.1 patched
+  # GHSA-rfgv-xxqx-mfg5. Keep this floor at the
   # newest fix even when only moderate advisories move it. Those never trip
   # `pnpm audit --audit-level=high`, which is why three of them sat here
   # unnoticed until the OpenSSF Scorecard run counted them (#404). Prune once
-  # @actions/http-client requires >=6.28.1 itself.
-  'undici@6': '>=6.28.1 <7'
+  # @actions/http-client requires >=6.29.1 itself.
+  'undici@6': '>=6.29.1 <7'
+  # bestax:review 2026-11-13 — quarterly sweep
+  # Force patched body-parser 2.x (the MCP SDK's express under bestax-mcp, whose
+  # stdio transport never starts it) for high advisory GHSA-27r3-jxmh-p828:
+  # denial of service through trailing bytes after a JSON body. The 1.x line
+  # has its own entry below. 2.4.0 was still inside the cooldown when this
+  # landed, so it has an exact-version exclude above. Prune once the SDK's
+  # express resolves to >=2.4.0 without the force.
+  'body-parser@2': '>=2.4.0 <3'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched joi per major for high advisory GHSA-6h2x-m376-mqjq
   # (quadratic backtracking in `Joi.string().isoDate()`). The 17.x copy rides
@@ -306,10 +322,13 @@ overrides:
   'svgo@3': '>=3.3.5 <4'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched body-parser 1.x (transitive via the Docusaurus dev server's
-  # express@4 chain) — GHSA-v422-hmwv-36x6, a low-severity DoS when an invalid
-  # `limit` is supplied. Scoped to the 1.x major: the 2.3.0 copy already in the
-  # tree carries the fix. Prune once express@4's range admits >=1.20.6.
-  'body-parser@1': '>=1.20.6 <2'
+  # express@4 chain). 1.20.9 patches the high GHSA-27r3-jxmh-p828 (denial of
+  # service through trailing bytes after a JSON body), after 1.20.6 patched the
+  # low-severity GHSA-v422-hmwv-36x6. 1.20.9 was still inside the cooldown when
+  # it landed, so it has an exact-version exclude above. Scoped to the 1.x
+  # major; the 2.x line has its own entry. Prune once express@4's range admits
+  # >=1.20.9.
+  'body-parser@1': '>=1.20.9 <2'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched webpack-dev-server (the Docusaurus dev server; dev-only,
   # never shipped) — GHSA-f5vj-f2hx-8m93 (CSRF) and GHSA-m28w-2pqf-7qgj (DoS
