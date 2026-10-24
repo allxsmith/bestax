@@ -572,10 +572,11 @@ Use the `pauseOnHover` prop (enabled by default) to let users interact with caro
 
 ### CarouselItem
 
-| Prop        | Type      | Default | Description                                                                                                         |
-| ----------- | --------- | ------- | ------------------------------------------------------------------------------------------------------------------- |
-| `active`    | `boolean` | —       | Whether this item is in view. `Carousel` sets it on every item in view, so with several in view several are active. |
-| `className` | `string`  | —       | Additional CSS classes.                                                                                             |
+| Prop        | Type              | Default | Description                                                                                                                                                                                                                      |
+| ----------- | ----------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `active`    | `boolean`         | —       | Whether this item is in view. `Carousel` sets it on every item in view, so with several in view several are active.                                                                                                              |
+| `children`  | `React.ReactNode` | —       | The slide's content. An image in it is held to the slide's width at its own height, unless something sizes the image itself: a ratio `Image` fills its frame, and an `Avatar`'s photo its circle, as they do outside a carousel. |
+| `className` | `string`          | —       | Additional CSS classes.                                                                                                                                                                                                          |
 
 ---
 

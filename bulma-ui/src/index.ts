@@ -82,6 +82,7 @@ export * from './form/Radios';
 export * from './form/Switch';
 export * from './form/Slider';
 export * from './form/Numberinput';
+export * from './form/PinInput';
 export * from './form/Rate';
 export * from './form/Autocomplete';
 export * from './form/Combobox';

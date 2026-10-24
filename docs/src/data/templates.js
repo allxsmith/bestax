@@ -146,6 +146,32 @@ export const templates = [
     copyright: 'Copyright (c) 2026 - github.com/aldi',
     tags: ['event', 'form', 'darkmode'],
   },
+  {
+    slug: 'rent',
+    title: 'Rent',
+    description:
+      'A rental listings landing page with a search box, listing cards, and rentals by state and neighborhood.',
+    author: { name: 'aldi', url: 'https://github.com/aldi' },
+    source: 'https://github.com/aldi/bulma-rent-template',
+    sourceSha: '3d6bff06730d7274ab11f29f9b1c663819125dab',
+    demo: 'https://aldi.github.io/bulma-rent-template/',
+    license: 'MIT',
+    copyright: 'Copyright (c) 2020 aldi (aldi)',
+    tags: ['landing', 'business'],
+  },
+  {
+    slug: 'wedding-planner',
+    title: 'Wedding Planner',
+    description:
+      "A wedding planner's one-page site with illustrated steps, client quotes, a gallery carousel of wedding photos and a contact form.",
+    author: { name: 'restylianos', url: 'https://github.com/restylianos' },
+    source: 'https://github.com/restylianos/bulma-wedding-planner-template',
+    sourceSha: '1b6a8b961b651ad75e0b0b23abfce362bc28549a',
+    demo: 'https://restylianos.github.io/bulma-wedding-planner-template/',
+    license: 'MIT',
+    copyright: 'Copyright (c) 2020 lizzli',
+    tags: ['event', 'landing', 'carousel'],
+  },
 ];
 
 /** Favorites first, then by title. */

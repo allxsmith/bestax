@@ -629,16 +629,21 @@ read for the burger, a carousel and a theme toggle too, and its TODO names the f
   children and renders its own arrows and indicators (`autoplay` for a timed one). For several
   slides in view, set `itemsToShow`, with a variant per viewport (`itemsToShowMobile`,
   `itemsToShowTablet`, …), and `itemsToScroll`: bulma-carousel calls them `slidesToShow` and
-  `slidesToScroll`. bulma-carousel also shows fewer slides on narrow screens through its
-  `breakpoints`, at pixel widths of its own and with a scroll count each, and it has defaults
-  for them, so a page that sets only `slidesToShow` still narrows. That doesn't carry over one to
-  one: `itemsToShowMobile` and the other variants sit on Bulma's breakpoints rather than at
-  `changePoint`s, and one `itemsToScroll` covers every width, so pick the variants nearest the
-  page's widths and a single scroll count, and keep anything else as your own code. `Carousel`
-  loops unless `repeat={false}`, while bulma-carousel stops at the ends unless `loop` (back to the
-  start) or `infinite` (round without a break) is set, so a carousel with neither takes
-  `repeat={false}`. Its styles ship in bestax's `extras.css` and `bestax.css`, not in Bulma's
-  stylesheet.
+  `slidesToScroll`. bulma-carousel's `breakpoints` replace both at and below pixel widths of its
+  own (each entry's `changePoint`), and a page that sets none gets its defaults: 1 slide up to
+  480px, 2 up to 640px and 3 up to 768px, each scrolling as many, so `slidesToShow` applies only
+  from 769px up. Below that the defaults decide whatever `slidesToShow` says: a phone shows 1
+  slide, and a page that sets `slidesToShow: 1` shows 2 or 3 between a phone's width and a
+  tablet's. A page's own `breakpoints` replace the defaults, and an empty list turns them off.
+  `Carousel` has no pixel widths: `itemsToShowMobile` covers every width below 769px, where all
+  of those defaults sit, and the wider variants start at Bulma's breakpoints. So set
+  `itemsToShow` to the page's `slidesToShow`, and `itemsToShowMobile` to what the page shows on
+  a phone (1 under the defaults) where that differs; one `itemsToScroll` covers every width. To
+  keep the steps bulma-carousel takes between those widths, compute `itemsToShow` from the
+  window's width in your own code. `Carousel` loops unless `repeat={false}`, while
+  bulma-carousel stops at the ends unless `loop` (back to the start) or `infinite` (round
+  without a break) is set, so a carousel with neither takes `repeat={false}`. Its styles ship in
+  bestax's `extras.css` and `bestax.css`, not in Bulma's stylesheet.
 - **`html-script:theme`** switches Bulma's light and dark schemes. The toggle is `Theme`'s: it
   writes `data-theme` on `<html>` from its `colorMode` (`light`, `dark` or `system`), so keep the
   choice in state, save it in `localStorage`, and pass it. The first paint is `index.html`'s:
@@ -709,9 +714,51 @@ than `this`. A `<body onload>` becomes an effect.
 - **`html-url:relative`**: `img/logo.png` resolved against the page's folder, and in the app it
   resolves against the address the component renders at. The file is there beside the page, so
   copy it into the app's `public/` folder and point at it from the site root (`/img/logo.png`), or
-  import it. A link to another page beside this one should point at the route that page becomes.
-  Each relative URL in a `srcset` is its own entry, quoted as itself (`` `hero@2x.png` in `srcset` ``).
-  Several of these share one TODO line, and each is its own report entry.
+  import it. Each relative URL in a `srcset` is its own entry, quoted as itself
+  (`` `hero@2x.png` in `srcset` ``). Several of these share one TODO line, and each is its own
+  report entry.
+
+  A link to another page beside this one should point at the route that page becomes: the
+  router's, in an app with one. A site of static pages, with no router to join, can route on the
+  URL's hash in a small module of its own and install no router package, so every page still
+  opens from a static host as it is:
+
+  ```ts
+  // router.ts: the page the address's hash names (`#/about`).
+  import { useEffect, useState } from 'react';
+
+  export const routes = { home: '#/', about: '#/about' } as const;
+  export type Route = keyof typeof routes;
+
+  function routeOf(hash: string): Route {
+    const found = (Object.keys(routes) as Route[]).find(
+      route => routes[route] === hash
+    );
+    return found ?? 'home';
+  }
+
+  export function useRoute(): Route {
+    const [route, setRoute] = useState(() => routeOf(window.location.hash));
+    useEffect(() => {
+      const onHashChange = () => {
+        const hash = window.location.hash;
+        // Only `#/…` (or no hash) names a page; leave an in-page anchor such
+        // as `#features`, or a placeholder `#`, to the browser.
+        if (hash !== '' && !hash.startsWith('#/')) return;
+        setRoute(routeOf(hash));
+        window.scrollTo(0, 0); // a new page starts at the top, as it did
+      };
+      window.addEventListener('hashchange', onHashChange);
+      return () => window.removeEventListener('hashchange', onHashChange);
+    }, []);
+    return route;
+  }
+  ```
+
+  The app renders the page the route names, from the modules the pages became
+  (`const Page = { home: HomePage, about: AboutPage }[useRoute()]`), with the parts the pages
+  share around it, and a link to `about.html` takes `href={routes.about}`.
+
 - **`html-url:missing`**: a relative URL whose target isn't beside the page, read the way the
   browser read it, so it was a dead link or a missing file already. Point it somewhere real, or
   drop it.

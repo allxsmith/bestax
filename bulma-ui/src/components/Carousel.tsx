@@ -31,6 +31,13 @@ export interface CarouselItemProps extends React.HTMLAttributes<HTMLDivElement> 
    * so with several in view several are active.
    */
   active?: boolean;
+  /**
+   * The slide's content. An image in it is held to the slide's width at its
+   * own height, unless something sizes the image itself: a ratio `Image`
+   * fills its frame, and an `Avatar`'s photo its circle, as they do outside a
+   * carousel.
+   */
+  children?: React.ReactNode;
 }
 
 /**

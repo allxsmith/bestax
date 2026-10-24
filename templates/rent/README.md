@@ -1,0 +1,63 @@
+# Bulma Rent Template, rebuilt with bestax
+
+A rental listings landing page, with a search box, a grid of listing cards, rentals by state
+and neighborhood, and a call to action for landlords, rebuilt as a React app with
+[bestax-bulma](https://bestax.io).
+
+The original is [aldi](https://github.com/aldi)'s
+[Bulma Rent Template](https://github.com/aldi/bulma-rent-template), part of
+[awesome-bulma-templates](https://github.com/aldi/awesome-bulma-templates), aldi's collection of
+free Bulma templates. This port was made from commit
+[`3d6bff06730d7274ab11f29f9b1c663819125dab`](https://github.com/aldi/bulma-rent-template/tree/3d6bff06730d7274ab11f29f9b1c663819125dab),
+and the original's [live demo](https://aldi.github.io/bulma-rent-template/) shows the page it
+started from.
+
+## Run it
+
+```bash
+npm install && npm run dev
+```
+
+Inside the bestax repository, install with `pnpm install --ignore-workspace` instead, so pnpm
+treats the folder as a project of its own.
+
+## What's inside
+
+- `src/App.tsx` lays out the page, and `SearchHero.tsx` (with `SiteNavbar.tsx`),
+  `Listings.tsx`, `Marketplaces.tsx`, `Browse.tsx`, `Landlords.tsx` and `SiteFooter.tsx` hold
+  its sections, built from bestax components in place of the original's Bulma markup.
+  `ListingCard.tsx` is the card they share.
+- `src/index.css` is the original's stylesheet, ported, after the Bulma variables that set back
+  the look it had on Bulma 0.8, and `public/media/` holds its images.
+- Icons are Font Awesome, from its npm package.
+- The headings and buttons name Montserrat, as the original's do, without loading it, so they
+  show it only where it is installed. To have it everywhere, load it from Google Fonts in
+  `index.html`.
+
+## Changes from the original
+
+- The logo and the "Made with Bulma" badge are local copies of Bulma's own. The original
+  hot-links them from bulma.io at addresses that no longer exist, so both show as broken
+  images there.
+- The listing photos are a local copy of the placeholder image the original hot-links from a
+  placeholder service.
+- "Sign in" opens the demo of aldi's
+  [Bulma Login Template](https://github.com/aldi/bulma-login-template). The original links a
+  login page awesome-bulma-templates no longer has.
+- The logo links to the home page, and the listing titles link to `#` like the page's other
+  placeholder links. The original links pages it never shipped.
+- The state cards' photo descriptions come from what each card says. The original describes
+  the Denver card's photo as houses on a card for apartments.
+- The search box's icon is Font Awesome's glyph. The original draws Font Awesome's SVG with
+  no Font Awesome script to size it, so it fills the box's corner.
+- Pressing Enter in the search box stays on the page, where the original reloads it; run the
+  search from the form's `onSubmit` in `src/SearchHero.tsx`.
+- The labels on the turquoise buttons and the green tag are dark, as Bulma 1 draws them, and
+  the footer's links take the darker turquoise Bulma 1 makes for text. The original's white
+  labels and bright links fall well short of the contrast text needs.
+- `index.html` pins Bulma's light scheme, as the original's design is light only.
+
+## License
+
+MIT, as the original is. [LICENSE](LICENSE) keeps aldi's notice, followed by the notice for this
+port.
