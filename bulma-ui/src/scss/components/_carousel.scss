@@ -50,7 +50,11 @@ $carousel-arrow-background-hover: hsla(
   0.95
 ) !default;
 
-// Overlay variant colors (for image carousels - always dark overlay regardless of theme)
+// Overlay variant colors, for controls over photos: light controls on a dark
+// tint in either scheme. `scheme-invert-l` stays dark in Bulma's dark theme
+// too, so the tint and the band keep it. The light side takes `white` rather
+// than `scheme-main`, which turns dark in dark mode and left dark arrows and
+// dots on the dark band. In the light theme the two are the same white.
 $carousel-overlay-arrow-background: hsla(
   #{cv.getVar("scheme-h")},
   #{cv.getVar("scheme-s")},
@@ -64,15 +68,15 @@ $carousel-overlay-arrow-background-hover: hsla(
   0.5
 ) !default;
 $carousel-overlay-indicator-background: hsla(
-  #{cv.getVar("scheme-h")},
-  #{cv.getVar("scheme-s")},
-  #{cv.getVar("scheme-main-l")},
+  #{cv.getVar("white-h")},
+  #{cv.getVar("white-s")},
+  #{cv.getVar("white-l")},
   0.5
 ) !default;
 $carousel-overlay-indicator-background-hover: hsla(
-  #{cv.getVar("scheme-h")},
-  #{cv.getVar("scheme-s")},
-  #{cv.getVar("scheme-main-l")},
+  #{cv.getVar("white-h")},
+  #{cv.getVar("white-s")},
+  #{cv.getVar("white-l")},
   0.8
 ) !default;
 
@@ -88,8 +92,8 @@ $carousel-arrow-color: cv.getVar("text") !default;
 $carousel-indicator-background: cv.getVar("border") !default;
 $carousel-indicator-background-hover: cv.getVar("border-hover") !default;
 $carousel-indicator-background-active: cv.getVar("primary") !default;
-$carousel-overlay-arrow-color: cv.getVar("scheme-main") !default;
-$carousel-overlay-indicator-background-active: cv.getVar("scheme-main") !default;
+$carousel-overlay-arrow-color: cv.getVar("white") !default;
+$carousel-overlay-indicator-background-active: cv.getVar("white") !default;
 $carousel-arrow-radius: cv.getVar("radius") !default;
 $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
 
@@ -403,21 +407,35 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
     padding: 1rem;
     width: 100%;
 
+    // Over the slides, at the bottom edge
     &.#{iv.$class-prefix}is-inside {
       position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
-      background: linear-gradient(transparent, #{$carousel-gradient-overlay});
       padding-bottom: 1.5rem;
     }
 
-    &.#{iv.$class-prefix}is-top {
+    // Over the slides, at the top edge. `is-top` moves only indicators over
+    // the slides: below them it has no edge to move to. `:where()` keeps the
+    // rule at the specificity of the bare `is-top` one it replaces.
+    &.#{iv.$class-prefix}is-top:where(.#{iv.$class-prefix}is-inside) {
       top: 0;
       bottom: auto;
-      background: linear-gradient(#{$carousel-gradient-overlay}, transparent);
       padding-top: 1.5rem;
     }
+  }
+
+  // The overlay look's dark band behind indicators over the slides, which
+  // the plain look leaves off. `:where()` keeps both rules at the
+  // specificity the band had before `overlayControls` could turn it off, so
+  // a page's own rule that takes the band off still wins as it did.
+  &:where(.#{iv.$class-prefix}is-overlay) .#{iv.$class-prefix}carousel-indicator.#{iv.$class-prefix}is-inside {
+    background: linear-gradient(transparent, #{$carousel-gradient-overlay});
+  }
+
+  &:where(.#{iv.$class-prefix}is-overlay) .#{iv.$class-prefix}carousel-indicator.#{iv.$class-prefix}is-top:where(.#{iv.$class-prefix}is-inside) {
+    background: linear-gradient(#{$carousel-gradient-overlay}, transparent);
   }
 
   // Indicator items
@@ -482,7 +500,7 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
     }
   }
 
-  // Inside indicator light variant (overlay mode)
+  // The overlay look (`overlayControls`, which `indicatorInside` turns on)
   &.#{iv.$class-prefix}is-overlay {
     .#{iv.$class-prefix}carousel-indicator.#{iv.$class-prefix}is-inside {
       .#{iv.$class-prefix}indicator-item {

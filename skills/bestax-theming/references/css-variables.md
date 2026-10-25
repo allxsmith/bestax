@@ -322,16 +322,14 @@ come from the `itemsToShow*` props, and `--bulma-carousel-items-in-view` is the 
 viewport picks. The props also decide how far a step moves, so set the count with the props
 rather than with these variables.
 
-The `--bulma-carousel-overlay-*` variables color the arrows and indicators only on a carousel with
-`indicatorInside`, which also moves the indicators onto the slides over a dark gradient band, and
-whose arrows then ignore `arrowColor`. No prop separates the two. To keep the plain colors with the
-indicators over the slides, set each overlay variable to its plain one on a class on the carousel
-(`--bulma-carousel-overlay-arrow-color: var(--bulma-carousel-arrow-color)`, and so on for the
-arrow backgrounds and the indicator backgrounds), and drop the band, which is a `background`
-rather than a variable, with `.carousel.my-carousel .carousel-indicator.is-inside { background:
-none; }` (mind the class prefix). With `indicatorStyle="circles"`, also give the inactive circles
-`background-color: transparent` (`.carousel.my-carousel.is-indicator-circles .carousel-indicator.is-inside .indicator-item:not(.is-active)`),
-since the overlay look fills them.
+The `--bulma-carousel-overlay-*` variables color the arrows, and indicators over the slides, only
+while the overlay look is on: `overlayControls`, which follows `indicatorInside` unless set. The look
+also puts a dark gradient band behind indicators over the slides (a `background`, not a variable),
+and while it's on the arrows ignore `arrowColor`. For indicators over light slides, such as white
+cards, use `<Carousel indicatorInside overlayControls={false}>`: plain colors and no band.
+`overlayControls` alone gives the arrows the overlay look with the indicators below the slides. The
+overlay colors default to light ones (`--bulma-white`) in either color scheme, since they sit on a
+dark tint.
 
 ### Checkbox
 
