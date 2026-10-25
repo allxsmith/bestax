@@ -376,8 +376,9 @@ function ownClassNote(component: string): string {
     `bestax \`${component}\`'s own class, not Bulma 1's: bestax's stylesheet ` +
     `styles it for \`${component}\` (\`bestax.css\`, or \`extras.css\` beside ` +
     `Bulma's), so under that stylesheet an element that keeps it takes ` +
-    `\`${component}\`'s rules, whatever put it there. Where the page has it ` +
-    `from a Bulma extension's markup, write \`${component}\` by hand in its place`
+    `\`${component}\`'s rules, whatever put it there. Where it comes from a ` +
+    `Bulma extension's markup, write \`${component}\` by hand in its place; ` +
+    `where the page's own CSS defines it, rename that class`
   );
 }
 
@@ -762,9 +763,14 @@ export function lookupClasses(
     // codemod reads no element by (`carousel`): its component, by hand.
     const owned = tokens.find(token => own(table.ownClasses, token));
     if (owned) {
+      // The element may be the page's own, so its helpers say only that
+      // they stay, as on any element the codemod leaves.
       for (const token of tokens) {
-        if (token !== owned && !speaksForItself(table, token)) {
-          stays(token, `converted with the \`.${owned}\` markup, by hand`);
+        if (token !== owned && own(table.helpers, token)) {
+          helperStays(
+            token,
+            'the codemod leaves this element as markup, so its classes stay'
+          );
         }
       }
       return result({
@@ -1532,9 +1538,11 @@ export function renderLookup(
     case 'own-class':
       out.push(
         `**Stays markup:** \`.${element.token}\` is bestax ` +
-          `\`${element.target}\`'s own class, and the codemod converts no ` +
-          `element by it: write \`${element.target}\` by hand in this ` +
-          `element's place.`
+          `\`${element.target}\`'s own class too, and the codemod converts ` +
+          `no element by it. Where it comes from a Bulma extension's markup, ` +
+          `write \`${element.target}\` by hand in this element's place. Where ` +
+          `the page's own CSS defines it, rename that class, since bestax's ` +
+          `stylesheet, where the app loads it, styles \`.${element.token}\` too.`
       );
       break;
     case 'fold':

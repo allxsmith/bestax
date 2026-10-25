@@ -2255,7 +2255,16 @@ describe('lookup_bulma_classes where the skill and the codemod have an answer', 
   it("names the component a class of bestax's own stylesheet belongs to", async () => {
     const out = await lookup('carousel', 'div');
     expect(out).toContain(
-      "**Stays markup:** `.carousel` is bestax `Carousel`'s own class"
+      "**Stays markup:** `.carousel` is bestax `Carousel`'s own class too"
+    );
+    // A page's own CSS can own a class bestax's stylesheet styles too, so the
+    // answer says what to do either way, not to write the component outright.
+    expect(out).toContain(
+      "Where it comes from a Bulma extension's markup, write `Carousel` by hand in this element's place. Where the page's own CSS defines it, rename that class"
+    );
+    const sidebar = await lookup('sidebar mt-2', 'aside');
+    expect(sidebar).toContain(
+      '| `mt-2` | stays in `className` | the codemod leaves this element as markup, so its classes stay |'
     );
     expect(out).toContain('get_props({ component: "Carousel" })');
     expect(out).not.toContain('not a Bulma 1 class');
