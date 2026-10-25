@@ -1,3 +1,20 @@
+## [1.18.6](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.5...bestax-mcp@1.18.6) (2026-10-25)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** list a page stylesheet's string [@imports](https://github.com/imports) beside its url()s ([4eb85ab](https://github.com/allxsmith/bestax/commit/4eb85ab1ef88faf46e6d05e62065dfcfbb082a9a))
+* **bulma-ui:** drop the band and padding from Carousel's top indicators below the slides ([3a2e9d1](https://github.com/allxsmith/bestax/commit/3a2e9d1d3d0dfda63bf7623ad026b1de2f73fd96))
+* **bulma-ui:** keep Carousel's overlay arrows and dots light in dark mode ([c86a981](https://github.com/allxsmith/bestax/commit/c86a981bdbb57fc8bde8a872fc9f4d76660d91ea))
+* **docs:** copy the Tropico template's Bulma logo instead of hot-linking it ([#1271](https://github.com/allxsmith/bestax/issues/1271)) ([8e502bd](https://github.com/allxsmith/bestax/commit/8e502bd6c3d1a88907248c4af61c437c151761c0))
+* **docs:** re-port the Login template with the current tools ([5032c27](https://github.com/allxsmith/bestax/commit/5032c270db35842ce9166344d2040147f5db790d)), closes [#1219](https://github.com/allxsmith/bestax/issues/1219)
+
+
+### Features
+
+* **bestax-migrate:** note a second color, a heading's textSize and a stylesheet's url()s ([dbe7702](https://github.com/allxsmith/bestax/commit/dbe7702113ea8d22ebd480ca26d0d29c63395e74))
+* **bulma-ui:** add Carousel overlayControls to set the overlay look apart from indicatorInside ([b2acab9](https://github.com/allxsmith/bestax/commit/b2acab97449294fa1662b526627ae1aa67338bd8))
+
 ## [1.18.5](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.4...bestax-mcp@1.18.5) (2026-10-24)
 
 
