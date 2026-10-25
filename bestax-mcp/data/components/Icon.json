@@ -14,6 +14,14 @@
       "code": "<Icon\n  name=\"star\"\n  variant=\"solid\"\n  features=\"fa-2x\"\n  ariaLabel=\"Star icon large\"\n/>"
     },
     {
+      "title": "Brand Icons",
+      "code": "<Block display=\"flex\" alignItems=\"center\">\n  <Icon name=\"github\" variant=\"brands\" ariaLabel=\"GitHub\" />\n  <Icon name=\"linkedin\" variant=\"brands\" ariaLabel=\"LinkedIn\" />\n  <Icon name=\"mastodon\" variant=\"brands\" ariaLabel=\"Mastodon\" />\n</Block>"
+    },
+    {
+      "title": "Brand Icons",
+      "code": "<Block display=\"flex\" alignItems=\"center\">\n  <Link href=\"https://github.com\" aria-label=\"GitHub\" mr=\"3\">\n    <Icon name=\"github\" variant=\"brands\" size=\"medium\" features=\"fa-lg\" />\n  </Link>\n  <Link href=\"https://www.linkedin.com\" aria-label=\"LinkedIn\" mr=\"3\">\n    <Icon name=\"linkedin\" variant=\"brands\" size=\"medium\" features=\"fa-lg\" />\n  </Link>\n  <Link href=\"https://mastodon.social\" aria-label=\"Mastodon\">\n    <Icon name=\"mastodon\" variant=\"brands\" size=\"medium\" features=\"fa-lg\" />\n  </Link>\n</Block>"
+    },
+    {
       "title": "Spinning Icon",
       "code": "<Icon\n  name=\"spinner\"\n  variant=\"solid\"\n  features={['fa-spin', 'fa-2x']}\n  ariaLabel=\"Loading spinner\"\n/>"
     },

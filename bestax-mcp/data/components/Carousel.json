@@ -30,6 +30,18 @@
       "code": "function IndicatorExample() {\n  const [style, setStyle] = useState<'dots' | 'circles' | 'lines' | 'bars'>(\n    'dots'\n  );\n  return (\n    <Block>\n      <Buttons mb=\"4\">\n        <Button\n          onClick={() => setStyle('dots')}\n          color={style === 'dots' ? 'primary' : undefined}\n        >\n          Dots\n        </Button>\n        <Button\n          onClick={() => setStyle('circles')}\n          color={style === 'circles' ? 'primary' : undefined}\n        >\n          Circles\n        </Button>\n        <Button\n          onClick={() => setStyle('lines')}\n          color={style === 'lines' ? 'primary' : undefined}\n        >\n          Lines\n        </Button>\n        <Button\n          onClick={() => setStyle('bars')}\n          color={style === 'bars' ? 'primary' : undefined}\n        >\n          Bars\n        </Button>\n      </Buttons>\n      <Carousel indicatorStyle={style}>\n        <CarouselItem>\n          <Hero color=\"primary\" size=\"medium\">\n            <Hero.Body textAlign=\"centered\">\n              <Paragraph textColor=\"white\">Slide 1</Paragraph>\n            </Hero.Body>\n          </Hero>\n        </CarouselItem>\n        <CarouselItem>\n          <Hero color=\"success\" size=\"medium\">\n            <Hero.Body textAlign=\"centered\">\n              <Paragraph textColor=\"white\">Slide 2</Paragraph>\n            </Hero.Body>\n          </Hero>\n        </CarouselItem>\n        <CarouselItem>\n          <Hero color=\"danger\" size=\"medium\">\n            <Hero.Body textAlign=\"centered\">\n              <Paragraph textColor=\"white\">Slide 3</Paragraph>\n            </Hero.Body>\n          </Hero>\n        </CarouselItem>\n      </Carousel>\n    </Block>\n  );\n}"
     },
     {
+      "title": "Indicators Over the Slides",
+      "code": "<Carousel indicatorInside>\n  <CarouselItem>\n    <Hero color=\"dark\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 1</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"link\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 2</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"primary\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 3</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n</Carousel>"
+    },
+    {
+      "title": "Plain Indicators Over the Slides",
+      "code": "<Carousel indicatorInside overlayControls={false}>\n  {['Garden Room', 'Harbor Suite', 'Loft', 'Courtyard Twin'].map(room => (\n    <CarouselItem key={room}>\n      <Card m=\"2\">\n        <Card.Content pb=\"6\">\n          <Title as=\"p\" size=\"5\">\n            {room}\n          </Title>\n          <SubTitle as=\"p\" size=\"6\">\n            Sleeps two\n          </SubTitle>\n        </Card.Content>\n      </Card>\n    </CarouselItem>\n  ))}\n</Carousel>"
+    },
+    {
+      "title": "Overlay Arrows",
+      "code": "<Carousel overlayControls>\n  <CarouselItem>\n    <Hero color=\"dark\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 1</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"link\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 2</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n</Carousel>"
+    },
+    {
       "title": "Without Arrows",
       "code": "<Carousel arrow={false}>\n  <CarouselItem>\n    <Hero color=\"primary\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Swipe or Click Dots</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"link\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Navigation Only</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n</Carousel>"
     },
@@ -219,7 +231,16 @@
           "name": "indicatorInside",
           "type": "boolean",
           "default": "false",
-          "description": "Position indicators inside carousel.",
+          "description": "Puts the indicators over the slides instead of below them, at the edge `indicatorPosition` names. It also turns on the overlay look unless `overlayControls` says otherwise, so on its own it gives the look made for photos: light arrows, and light indicators on a dark gradient band.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "overlayControls",
+          "type": "boolean",
+          "default": "indicatorInside",
+          "description": "The overlay look, made for photos. The arrows take the `--bulma-carousel-overlay-arrow-*` colors, and indicators over the slides take the `--bulma-carousel-overlay-indicator-*` colors on a dark gradient band. Indicators below the slides keep their plain colors, since they sit on the page. It follows `indicatorInside` unless you set it, so `overlayControls={false}` puts the indicators over the slides with the plain look, and `overlayControls` alone gives the arrows the overlay look with the indicators below. While it's on, `arrowColor` doesn't apply.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -228,7 +249,7 @@
           "name": "indicatorPosition",
           "type": "'bottom' | 'top'",
           "default": "'bottom'",
-          "description": "Indicator position. Default: 'bottom'.",
+          "description": "The edge of the slides `indicatorInside` puts the indicators on. Default: 'bottom'. Without `indicatorInside` they sit below the slides whatever this says, so leave it unset there.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -309,7 +330,7 @@
           "name": "arrowColor",
           "type": "'light' | 'dark'",
           "default": null,
-          "description": "Color theme for navigation arrows.",
+          "description": "Color theme for navigation arrows. Not applied while the overlay look is on (see `overlayControls`, which `indicatorInside` turns on), whose arrows take `--bulma-carousel-overlay-arrow-color`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -597,25 +618,25 @@
     {
       "css": "--bulma-carousel-overlay-arrow-color",
       "sass": "$carousel-overlay-arrow-color",
-      "default": "var(--bulma-scheme-main)",
+      "default": "var(--bulma-white)",
       "scope": "root"
     },
     {
       "css": "--bulma-carousel-overlay-indicator-background",
       "sass": "$carousel-overlay-indicator-background",
-      "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-main-l), 0.5)",
+      "default": "hsla(var(--bulma-white-h), var(--bulma-white-s), var(--bulma-white-l), 0.5)",
       "scope": "root"
     },
     {
       "css": "--bulma-carousel-overlay-indicator-background-hover",
       "sass": "$carousel-overlay-indicator-background-hover",
-      "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-main-l), 0.8)",
+      "default": "hsla(var(--bulma-white-h), var(--bulma-white-s), var(--bulma-white-l), 0.8)",
       "scope": "root"
     },
     {
       "css": "--bulma-carousel-overlay-indicator-background-active",
       "sass": "$carousel-overlay-indicator-background-active",
-      "default": "var(--bulma-scheme-main)",
+      "default": "var(--bulma-white)",
       "scope": "root"
     },
     {

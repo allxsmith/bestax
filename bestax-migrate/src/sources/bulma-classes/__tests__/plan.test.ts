@@ -94,6 +94,71 @@ describe('plan', () => {
         numbers: [],
       });
     });
+
+    it('names `textSize` for a size it keeps as a class, as the MCP lookup does', () => {
+      expect(plan(facts('h1', 'title is-3'))).toEqual({
+        conversion: {
+          target: 'Title',
+          props: [],
+          className: 'is-3',
+          drop: [],
+          numbers: [],
+        },
+        todos: [
+          {
+            rule: 'modifier:title',
+            message:
+              '`.is-3` stays in its `className`, which renders the same: bestax `Title` renders it exactly only on an <h3> or a <p>, as `size="3"`; on this <h1>, write `textSize="3"` in its place, which sizes it the same and keeps the <h1>, though `textSize` renders a Bulma helper class, which is `!important`: check the page\'s own CSS sets no size on it',
+          },
+        ],
+      });
+      expect(plan(facts('h2', 'subtitle is-5')).todos).toEqual([
+        {
+          rule: 'modifier:subtitle',
+          message: expect.stringContaining(
+            'bestax `SubTitle` renders it exactly only on an <h5> or a <p>, as `size="5"`; on this <h2>, write `textSize="5"` in its place'
+          ),
+        },
+      ]);
+    });
+
+    it('names `textSize` on every heading but the one a size names', () => {
+      for (const root of ['title', 'subtitle']) {
+        for (const size of ['1', '2', '3', '4', '5', '6']) {
+          for (const level of ['1', '2', '3', '4', '5', '6']) {
+            const todos = plan(facts(`h${level}`, `${root} is-${size}`)).todos;
+            expect({ root, size, level, todos }).toEqual({
+              root,
+              size,
+              level,
+              todos:
+                size === level
+                  ? []
+                  : [
+                      {
+                        rule: `modifier:${root}`,
+                        message: expect.stringContaining(
+                          `write \`textSize="${size}"\` in its place`
+                        ),
+                      },
+                    ],
+            });
+          }
+        }
+      }
+    });
+
+    it('names no `textSize` that another class writes, or that would size it differently', () => {
+      // `is-size-2` writes `textSize` already, and wins as a helper.
+      expect(plan(facts('h1', 'title is-3 is-size-2')).todos).toEqual([]);
+      // With two sizes, `textSize` in place of one would change which shows.
+      expect(plan(facts('h1', 'title is-3 is-4')).todos).toEqual([]);
+      expect(plan(facts('h3', 'title is-3 is-4')).todos).toEqual([]);
+      // A size a condition adds isn't one the element always carries.
+      expect(
+        plan({ ...facts('h1', 'title'), conditional: [['is-3']] }).todos
+      ).toEqual([]);
+    });
   });
 
   describe('refusals', () => {
@@ -752,6 +817,99 @@ describe('plan', () => {
       expect(plan(facts('iframe', 'has-ratio')).todos).toEqual([]);
       // A page's own size, which Bulma has no rule for at all.
       expect(plan(facts('figure', 'is-256x256')).todos).toEqual([]);
+    });
+  });
+
+  describe('a second color on an element that converts', () => {
+    it('says which class `color` took, and that the other stays', () => {
+      expect(
+        plan(facts('button', 'button is-black is-light is-primary'))
+      ).toEqual({
+        conversion: {
+          target: 'Button',
+          props: [
+            ['color', 'black'],
+            ['isLight', true],
+          ],
+          className: 'is-primary',
+          drop: [],
+          numbers: [],
+        },
+        todos: [
+          {
+            rule: 'modifier:button',
+            message:
+              '`.is-primary` is a second color on this element, and bestax `Button` takes one `color`: `color="black"` here, from `.is-black`, which comes first, so `.is-primary` stays in its `className`, which renders the same; two colors on one element look the way Bulma\'s stylesheet settles them, whatever order they\'re written in, so check what the page shows, write the color you want as `color`, and drop the other class',
+          },
+        ],
+      });
+      expect(plan(facts('a', 'button is-black is-link')).todos).toEqual([
+        {
+          rule: 'modifier:button',
+          message: expect.stringContaining(
+            '`.is-link` is a second color on this element, and bestax `Button` takes one `color`: `color="black"` here, from `.is-black`'
+          ),
+        },
+      ]);
+    });
+
+    it('flags each other color, on every root that takes one', () => {
+      const checked: string[] = [];
+      for (const [root, entry] of Object.entries(ROOTS)) {
+        const colors = Object.entries(entry.modifiers ?? {})
+          .filter(([, modifier]) =>
+            modifier.writes.some(write => write.prop === 'color')
+          )
+          .map(([token]) => token);
+        if (colors.length < 3) continue;
+        const [first, second, third] = colors;
+        const result = plan(
+          facts(entry.tag!, `${root} ${first} ${second} ${third}`, {
+            ...entry.defaults,
+          })
+        );
+        if (!result.conversion) continue;
+        checked.push(root);
+        expect({ root, className: result.conversion.className }).toEqual({
+          root,
+          className: `${second} ${third}`,
+        });
+        expect({
+          root,
+          todos: result.todos.map(todo => [
+            todo.rule,
+            /^`\.(\S+)` is a second color/.exec(todo.message)?.[1],
+          ]),
+        }).toEqual({
+          root,
+          todos: [
+            [`modifier:${root}`, second],
+            [`modifier:${root}`, third],
+          ],
+        });
+      }
+      // The roots the skill's `modifier:<root>` recipe names.
+      expect(checked.sort()).toEqual([
+        'button',
+        'hero',
+        'navbar',
+        'notification',
+        'progress',
+        'tag',
+      ]);
+    });
+
+    it('says nothing of one color, or of a color a condition adds', () => {
+      expect(plan(facts('button', 'button is-primary is-light')).todos).toEqual(
+        []
+      );
+      // A state the page asks for on purpose, which stays in the call.
+      expect(
+        plan({
+          ...facts('button', 'button is-primary'),
+          conditional: [['is-danger']],
+        }).todos
+      ).toEqual([]);
     });
   });
 

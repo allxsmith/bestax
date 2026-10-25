@@ -98,7 +98,7 @@ const meta: Meta<typeof Carousel> = {
       control: 'select',
       options: [undefined, 'light', 'dark'],
       description:
-        'Arrow icon color variant for visibility on different backgrounds',
+        'Arrow icon color variant for visibility on different backgrounds. Not applied while the overlay look is on (overlayControls, which indicatorInside turns on)',
     },
     indicator: {
       control: 'boolean',
@@ -106,12 +106,19 @@ const meta: Meta<typeof Carousel> = {
     },
     indicatorInside: {
       control: 'boolean',
-      description: 'Position indicators inside carousel',
+      description:
+        'Put the indicators over the slides. Also turns on the overlay look unless overlayControls says otherwise',
+    },
+    overlayControls: {
+      control: 'boolean',
+      description:
+        'The overlay look for photos: the arrows, and indicators over the slides, take the --bulma-carousel-overlay-* colors, with a dark band behind indicators over the slides. Follows indicatorInside unless set',
     },
     indicatorPosition: {
       control: 'select',
       options: ['bottom', 'top'],
-      description: 'Indicator position',
+      description:
+        'The edge of the slides indicatorInside puts the indicators on. Without indicatorInside they sit below the slides',
     },
     indicatorStyle: {
       control: 'select',
@@ -325,6 +332,62 @@ export const IndicatorTop: Story = {
                   <Title as="p">Slide {i + 1}</Title>
                 </Hero.Body>
               </Hero>
+            </CarouselItem>
+          ))}
+        </Carousel>
+      </Block>
+    );
+  },
+};
+
+/**
+ * Indicators over the slides with the plain look. `overlayControls={false}`
+ * leaves off the overlay colors and the dark band, for light slides such as
+ * white cards.
+ */
+export const IndicatorInsidePlain: Story = {
+  render: function IndicatorInsidePlainExample() {
+    const rooms = ['Garden Room', 'Harbor Suite', 'Loft', 'Courtyard Twin'];
+    return (
+      <Block p="5">
+        <Carousel indicatorInside overlayControls={false}>
+          {rooms.map(room => (
+            <CarouselItem key={room}>
+              <Card>
+                <Card.Content pb="6">
+                  <Title as="p" size="5">
+                    {room}
+                  </Title>
+                  <SubTitle as="p" size="6">
+                    Sleeps two
+                  </SubTitle>
+                </Card.Content>
+              </Card>
+            </CarouselItem>
+          ))}
+        </Carousel>
+      </Block>
+    );
+  },
+};
+
+/**
+ * The overlay look on the arrows, with the indicators below the slides:
+ * `overlayControls` without `indicatorInside`.
+ */
+export const OverlayArrows: Story = {
+  render: function OverlayArrowsExample() {
+    const images = [
+      'https://picsum.photos/id/1018/800/400',
+      'https://picsum.photos/id/1015/800/400',
+      'https://picsum.photos/id/1019/800/400',
+    ];
+    return (
+      <Block p="5">
+        <Carousel overlayControls>
+          {images.map((src, i) => (
+            <CarouselItem key={src}>
+              <Image src={src} alt={`Slide ${i + 1}`} />
             </CarouselItem>
           ))}
         </Carousel>

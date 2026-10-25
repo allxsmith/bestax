@@ -284,9 +284,31 @@ export interface CarouselProps
    * a carousel inside a form is not submitted by picking a slide.
    */
   indicator?: boolean;
-  /** Position indicators inside carousel. */
+  /**
+   * Puts the indicators over the slides instead of below them, at the edge
+   * `indicatorPosition` names. It also turns on the overlay look unless
+   * `overlayControls` says otherwise, so on its own it gives the look made
+   * for photos: light arrows, and light indicators on a dark gradient band.
+   */
   indicatorInside?: boolean;
-  /** Indicator position. Default: 'bottom'. */
+  /**
+   * The overlay look, made for photos. The arrows take the
+   * `--bulma-carousel-overlay-arrow-*` colors, and indicators over the
+   * slides take the `--bulma-carousel-overlay-indicator-*` colors on a dark
+   * gradient band. Indicators below the slides keep their plain colors,
+   * since they sit on the page. It follows `indicatorInside` unless you set
+   * it, so `overlayControls={false}` puts the indicators over the slides
+   * with the plain look, and `overlayControls` alone gives the arrows the
+   * overlay look with the indicators below. While it's on, `arrowColor`
+   * doesn't apply.
+   * @defaultValue indicatorInside
+   */
+  overlayControls?: boolean;
+  /**
+   * The edge of the slides `indicatorInside` puts the indicators on.
+   * Default: 'bottom'. Without `indicatorInside` they sit below the slides
+   * whatever this says, so leave it unset there.
+   */
   indicatorPosition?: 'bottom' | 'top';
   /** Indicator style. Default: 'dots'. */
   indicatorStyle?: 'circles' | 'dots' | 'lines' | 'bars';
@@ -304,7 +326,11 @@ export interface CarouselProps
   iconFeatures?: string | string[];
   /** Show semi-transparent background on arrow buttons. Set to `false` for icon-only arrows. */
   arrowBackground?: boolean;
-  /** Color theme for navigation arrows. */
+  /**
+   * Color theme for navigation arrows. Not applied while the overlay look is
+   * on (see `overlayControls`, which `indicatorInside` turns on), whose
+   * arrows take `--bulma-carousel-overlay-arrow-color`.
+   */
   arrowColor?: 'light' | 'dark';
   /** Accessible label for the carousel region. Default: 'Image carousel'. */
   ariaLabel?: string;
@@ -372,6 +398,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       arrowHover = false,
       indicator = true,
       indicatorInside = false,
+      overlayControls = indicatorInside,
       indicatorPosition = 'bottom',
       indicatorStyle = 'dots',
       iconPrev,
@@ -735,7 +762,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
 
     // Generate classes
     const carouselClasses = usePrefixedClassNames('carousel', {
-      'is-overlay': indicatorInside,
+      'is-overlay': overlayControls,
       'has-arrow-hover': arrowHover,
       [`is-indicator-${indicatorStyle}`]: indicatorStyle !== 'dots',
       [`is-arrow-${arrowColor}`]: !!arrowColor,

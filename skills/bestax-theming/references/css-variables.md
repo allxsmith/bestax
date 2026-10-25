@@ -322,6 +322,15 @@ come from the `itemsToShow*` props, and `--bulma-carousel-items-in-view` is the 
 viewport picks. The props also decide how far a step moves, so set the count with the props
 rather than with these variables.
 
+The `--bulma-carousel-overlay-*` variables color the arrows, and indicators over the slides, only
+while the overlay look is on: `overlayControls`, which follows `indicatorInside` unless set. The look
+also puts a dark gradient band behind indicators over the slides (a `background`, not a variable),
+and while it's on the arrows ignore `arrowColor`. For indicators over light slides, such as white
+cards, use `<Carousel indicatorInside overlayControls={false}>`: plain colors and no band.
+`overlayControls` alone gives the arrows the overlay look with the indicators below the slides. The
+overlay colors default to light ones (`--bulma-white`) in either color scheme, since they sit on a
+dark tint.
+
 ### Checkbox
 
 `--bulma-checkbox-active-color`, `--bulma-checkbox-background`, `--bulma-checkbox-border-color`,
@@ -340,6 +349,12 @@ in. A `color` prop declares both fills again on `.styled-checkbox.is-<color>`, w
 that selector, so leave `color` unset when a class sets the fill. The unchecked border, `--bulma-checkbox-border-color`, defaults to `text-weak` so
 the box holds the 3:1 WCAG asks of a control's boundary; keep a replacement at 3:1 against what
 the form sits on.
+
+`--bulma-checkbox-size` (default `1.25em`) can't take the box below 24px: the stylesheet gives the
+`.check` box a `min-width` and `min-height` of 24px, WCAG 2.2's minimum target size, so with
+Bulma's default font sizes the box is 24px at the default and `small` sizes. For a smaller box, set the size and also
+`min-width: 0; min-height: 0` on `.styled-checkbox.my-box .check` (mind the class prefix), and keep
+the label text inside the `Checkbox`, since the whole label is the click target.
 
 ### Collapse
 
