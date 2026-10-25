@@ -1507,6 +1507,9 @@ describe('plan', () => {
         // Beside a tabIndex Icon hides nothing, so the attribute is the
         // element's own; and any other value is too.
         expect(drop({ 'aria-hidden': 'true', tabIndex: '0' })).toEqual([]);
+        // An expression there may stop Icon's own at run time, so it stays.
+        expect(drop({ 'aria-hidden': 'true', tabIndex: null })).toEqual([]);
+        expect(drop({ 'aria-hidden': 'true', role: null })).toEqual([]);
         expect(drop({ 'aria-hidden': 'false' })).toEqual([]);
         expect(drop({ 'aria-label': 'Home', role: 'presentation' })).toEqual(
           []

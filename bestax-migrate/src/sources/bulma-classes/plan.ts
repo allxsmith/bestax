@@ -943,7 +943,12 @@ function planElement(facts: ElementFacts): Plan {
   // bestax-icons skill writes it, with no attribute it renders by itself
   // with the same value (`aria-hidden="true"` with no name, `role="img"`
   // beside one): the markup is the same without it.
-  if (entry.readsGlyph && naming !== 'unsure') {
+  // A `role` or `tabIndex` written as an expression may stop those
+  // defaults at run time, so the element keeps what it wrote.
+  const mayStop = entry.defaultsUnless?.some(
+    name => attributes.has(name) && attributes.get(name) === null
+  );
+  if (entry.readsGlyph && naming !== 'unsure' && !mayStop) {
     for (const [name, value] of Object.entries(defaults)) {
       const given = attributes.get(name);
       if (given === value || (given === true && value === 'true')) {
