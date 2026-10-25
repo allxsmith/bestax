@@ -277,7 +277,11 @@ function IndicatorExample() {
 </Carousel>
 ```
 
-#### The overlay look on its own
+`indicatorPosition="top"` only moves indicators over the slides. Below them it has no edge to move to, so leave it unset there.
+
+---
+
+### Plain Indicators Over the Slides
 
 `overlayControls` sets the overlay look apart from where the indicators sit. It follows `indicatorInside` unless you set it. On light slides, such as white cards, the band covers the bottom of each one, so `overlayControls={false}` keeps the indicators over the slides with the plain colors and no band:
 
@@ -300,6 +304,10 @@ function IndicatorExample() {
 </Carousel>
 ```
 
+---
+
+### Overlay Arrows
+
 `overlayControls` without `indicatorInside` gives the arrows the overlay look and leaves the indicators below the slides. They keep their plain colors there, since they sit on the page rather than on the slides:
 
 ```tsx live
@@ -320,8 +328,6 @@ function IndicatorExample() {
   </CarouselItem>
 </Carousel>
 ```
-
-`indicatorPosition="top"` only moves indicators over the slides. Below them it has no edge to move to, so leave it unset there.
 
 ---
 
@@ -714,4 +720,4 @@ Use the `pauseOnHover` prop (enabled by default) to let users interact with caro
 
 <!-- /bestax:generated cssvars -->
 
-The `--bulma-carousel-overlay-*` variables color the arrows, and indicators over the slides, only while the overlay look is on: with `overlayControls`, which `indicatorInside` turns on unless you set it. Otherwise the colors come from the `--bulma-carousel-arrow-*` and `--bulma-carousel-indicator-*` variables, which set the sizes either way. The overlay colors stay light in either color scheme, since they sit on a dark tint. The dark band behind indicators over the slides isn't a variable: `overlayControls={false}` leaves it off, as [Indicators Over the Slides](#indicators-over-the-slides) shows.
+The `--bulma-carousel-overlay-*` variables color the arrows, and indicators over the slides, only while the overlay look is on: with `overlayControls`, which `indicatorInside` turns on unless you set it. Otherwise the colors come from the `--bulma-carousel-arrow-*` and `--bulma-carousel-indicator-*` variables, which set the sizes either way. The overlay colors stay light in either color scheme, since they sit on a dark tint. The dark band behind indicators over the slides isn't a variable: `overlayControls={false}` leaves it off, as [Plain Indicators Over the Slides](#plain-indicators-over-the-slides) shows.

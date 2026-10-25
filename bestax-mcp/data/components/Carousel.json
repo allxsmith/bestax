@@ -34,11 +34,11 @@
       "code": "<Carousel indicatorInside>\n  <CarouselItem>\n    <Hero color=\"dark\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 1</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"link\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 2</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"primary\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 3</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n</Carousel>"
     },
     {
-      "title": "Indicators Over the Slides",
+      "title": "Plain Indicators Over the Slides",
       "code": "<Carousel indicatorInside overlayControls={false}>\n  {['Garden Room', 'Harbor Suite', 'Loft', 'Courtyard Twin'].map(room => (\n    <CarouselItem key={room}>\n      <Card m=\"2\">\n        <Card.Content pb=\"6\">\n          <Title as=\"p\" size=\"5\">\n            {room}\n          </Title>\n          <SubTitle as=\"p\" size=\"6\">\n            Sleeps two\n          </SubTitle>\n        </Card.Content>\n      </Card>\n    </CarouselItem>\n  ))}\n</Carousel>"
     },
     {
-      "title": "Indicators Over the Slides",
+      "title": "Overlay Arrows",
       "code": "<Carousel overlayControls>\n  <CarouselItem>\n    <Hero color=\"dark\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 1</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"link\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 2</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n</Carousel>"
     },
     {
