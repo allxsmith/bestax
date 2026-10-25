@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.43.1"
+    "version": "5.44.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -1069,7 +1069,7 @@
       "slug": "elements/table",
       "import": "import { Table, Thead, Tbody, Tfoot, Tr, Th, Td } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 27,
+      "propCount": 28,
       "exampleCount": 7
     },
     {

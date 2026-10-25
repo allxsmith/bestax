@@ -13128,6 +13128,6 @@
     "tfoot": { "target": "Table.Tfoot", "props": [] },
     "tr": { "target": "Table.Tr", "props": ["isSelected", "color"] },
     "th": { "target": "Table.Th", "props": ["isAligned", "width", "color"] },
-    "td": { "target": "Table.Td", "props": ["color"] }
+    "td": { "target": "Table.Td", "props": ["isAligned", "color"] }
   }
 }

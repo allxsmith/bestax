@@ -21,6 +21,8 @@ the last prompt, so a typo or a Ctrl+C never costs the user their files (#945).
   installs skills, writes `CLAUDE.md`
 - `src/constants.ts` — user-facing strings **and scaffolded-file templates** (e.g. the
   `CLAUDE_MD` template written into generated apps)
+- `src/library-range.ts` — the `@allxsmith/bestax-bulma` range a scaffold gets (see
+  Dependencies)
 - `src/validators.ts`, `src/display.ts`, `src/file-system.ts` — support modules
 - `templates/vite`, `templates/vite-ts` — the app templates
 
@@ -28,13 +30,21 @@ the last prompt, so a typo or a Ctrl+C never costs the user their files (#945).
 
 `@allxsmith/bestax-bulma` is a declared runtime dependency (#644). The scaffolder is built for
 the library and its manifest says so, the way bulma-ui declares `bulma` without importing it:
-nothing in `src/` imports the library, the templates pin the published package themselves
-(`^5.0.0` in `templates/*/package.json`), and the e2e installs from the registry with
+nothing in `src/` imports the library, and the e2e installs from the registry with
 `--ignore-workspace`. It is spelled `workspace:^`, which `pnpm publish` rewrites to the release
 current at pack time (bulma-ui releases first in the same job), and the sibling rule in
 `check:conformance` allows it only because `SIBLING_RUNTIME_DEPS` declares this exact pair.
 What a consumer sees: `npm create bestax` installs the library, `bulma`, and `react`/`react-dom`
 alongside the CLI.
+
+A scaffolded app depends on the library at that same range (#1240). `src/library-range.ts`
+reads it from this manifest at run time, so a published CLI floors the app at the release it
+was packed with, and a CLI run from a checkout resolves `workspace:^` from the library the
+workspace links, the way `pnpm publish` would. The templates spell it `workspace:^` too, a
+placeholder the scaffold always replaces: one that slipped through would fail the app's
+install rather than quietly ask for an old floor, and `src/__tests__/templates.test.ts` holds
+every template to it. When bulma-ui releases on its own, published CLIs keep their floor, and
+the next create-bestax release moves it. The docs sandboxes set the library's range themselves.
 
 `react` and `react-dom` are declared dependencies too, with the library's peer ranges, though
 nothing imports them either. npm installs a dependency's peers by itself, but Yarn 1 does not,

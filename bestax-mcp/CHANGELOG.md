@@ -1,3 +1,17 @@
+## [1.18.5](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.4...bestax-mcp@1.18.5) (2026-10-24)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** exit 1 when a file fails to migrate, and name a duplicate attribute ([c59005d](https://github.com/allxsmith/bestax/commit/c59005d98daeae6ef9dfdfd3933e19d50a755147)), closes [#1253](https://github.com/allxsmith/bestax/issues/1253)
+* **bestax-migrate:** say a file the run cannot read stops it, and narrow the failure wording ([9d4bb42](https://github.com/allxsmith/bestax/commit/9d4bb42bbc4174ea893c09b95b6af0094d9257fa))
+* **create-bestax:** floor scaffolds at the bestax-bulma release the CLI ships with ([#1264](https://github.com/allxsmith/bestax/issues/1264)) ([7d9e9ed](https://github.com/allxsmith/bestax/commit/7d9e9ed7bbbe9c38b3d336437dd0f467efd7f62e))
+
+
+### Features
+
+* **bulma-ui:** add isAligned to Td like Th ([f2ee1af](https://github.com/allxsmith/bestax/commit/f2ee1aff9313c1367647acb88cf6fb631c5679f5)), closes [#1238](https://github.com/allxsmith/bestax/issues/1238)
+
 ## [1.18.4](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.3...bestax-mcp@1.18.4) (2026-10-24)
 
 

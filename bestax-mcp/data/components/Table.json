@@ -27,7 +27,7 @@
     },
     {
       "title": "Custom Alignment and Width",
-      "code": "<Table>\n  <Thead>\n    <Tr>\n      <Th isAligned=\"left\" width={200}>\n        Name\n      </Th>\n      <Th isAligned=\"right\">Score</Th>\n    </Tr>\n  </Thead>\n  <Tbody>\n    <Tr>\n      <Td>Jane Doe</Td>\n      <Td>98</Td>\n    </Tr>\n  </Tbody>\n</Table>"
+      "code": "<Table>\n  <Thead>\n    <Tr>\n      <Th isAligned=\"left\" width={200}>\n        Name\n      </Th>\n      <Th isAligned=\"right\">Score</Th>\n    </Tr>\n  </Thead>\n  <Tbody>\n    <Tr>\n      <Td isAligned=\"left\">Jane Doe</Td>\n      <Td isAligned=\"right\">98</Td>\n    </Tr>\n  </Tbody>\n</Table>"
     },
     {
       "title": "Compound (dot-notation) usage",
@@ -333,7 +333,7 @@
     },
     {
       "path": "Table.Td",
-      "summary": "Td component for rendering a styled Bulma table cell. Supports Bulma color modifiers and helper classes for additional styling.",
+      "summary": "Td component for rendering a styled Bulma table cell. Supports alignment, Bulma color modifiers, and helper classes for additional styling.",
       "component": "Td",
       "props": [
         {
@@ -341,6 +341,15 @@
           "type": "string",
           "default": null,
           "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isAligned",
+          "type": "'left' | 'right' | 'centered'",
+          "default": null,
+          "description": "Text alignment for the table cell ('left', 'right', 'centered').",
           "required": false,
           "inherited": false,
           "deprecated": false
