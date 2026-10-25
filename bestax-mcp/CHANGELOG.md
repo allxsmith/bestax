@@ -1,3 +1,35 @@
+## [1.18.5](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.4...bestax-mcp@1.18.5) (2026-10-24)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** exit 1 when a file fails to migrate, and name a duplicate attribute ([c59005d](https://github.com/allxsmith/bestax/commit/c59005d98daeae6ef9dfdfd3933e19d50a755147)), closes [#1253](https://github.com/allxsmith/bestax/issues/1253)
+* **bestax-migrate:** say a file the run cannot read stops it, and narrow the failure wording ([9d4bb42](https://github.com/allxsmith/bestax/commit/9d4bb42bbc4174ea893c09b95b6af0094d9257fa))
+* **create-bestax:** floor scaffolds at the bestax-bulma release the CLI ships with ([#1264](https://github.com/allxsmith/bestax/issues/1264)) ([7d9e9ed](https://github.com/allxsmith/bestax/commit/7d9e9ed7bbbe9c38b3d336437dd0f467efd7f62e))
+
+
+### Features
+
+* **bulma-ui:** add isAligned to Td like Th ([f2ee1af](https://github.com/allxsmith/bestax/commit/f2ee1aff9313c1367647acb88cf6fb631c5679f5)), closes [#1238](https://github.com/allxsmith/bestax/issues/1238)
+
+## [1.18.4](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.3...bestax-mcp@1.18.4) (2026-10-24)
+
+
+### Bug Fixes
+
+* **bulma-ui:** ship Bulma's license notice with the package ([0f245d9](https://github.com/allxsmith/bestax/commit/0f245d9eb6698db25e566fb47ffb79a3cf125096))
+* **docs:** drop the Hotel and Wedding Planner galleries' ratio-image workaround ([949703c](https://github.com/allxsmith/bestax/commit/949703cc26f91a0d858e01f0f5fe8f19fde8f7c2)), closes [#1166](https://github.com/allxsmith/bestax/issues/1166)
+* **docs:** give the Hotel template's Bulma logo its notice, and its newsletter form a focus ring ([077ff1e](https://github.com/allxsmith/bestax/commit/077ff1e038691a07deba55a6bebbd6f98442aeb9))
+* **docs:** keep the 8px the Hotel original's empty label left above Submit ([dba365e](https://github.com/allxsmith/bestax/commit/dba365e431102d89119898cd9580ee8664cbfdd2))
+* **docs:** match the Hotel template's phone numbers and make its welcome title the h1 ([3fc2b08](https://github.com/allxsmith/bestax/commit/3fc2b08937e5ea2c2a285cbb80baf4d54e166760))
+* **docs:** set back Bulma 0.9's burger hover and title gap in the Hotel template ([a9a91ff](https://github.com/allxsmith/bestax/commit/a9a91fff1ebf7ea05370fe101ed547bb016660c5))
+
+
+### Features
+
+* **docs:** add the Hotel template, ported from aldi's bulma-hotel-template ([35cc92b](https://github.com/allxsmith/bestax/commit/35cc92b36132be3f12ad255155b50fe0772e00e4))
+* **docs:** add the Tropico template, ported from restylianos's bulma-tropico-template ([bc0f306](https://github.com/allxsmith/bestax/commit/bc0f30672896a4d45f9ff1e6bb864b7bb13ac4ea))
+
 ## [1.18.3](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.2...bestax-mcp@1.18.3) (2026-10-24)
 
 

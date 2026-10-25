@@ -113,15 +113,26 @@ export async function writeJsonFile(
   await fs.writeJson(filePath, data, { spaces });
 }
 
+/**
+ * Names the copied app's package and sets the given dependencies' ranges. One
+ * the template already lists keeps its place among the others.
+ */
 export async function updatePackageJson(
   targetPath: string,
-  projectName: string
+  projectName: string,
+  dependencies: Record<string, string> = {}
 ): Promise<void> {
   const packageJsonPath = path.join(targetPath, 'package.json');
 
   if (fs.existsSync(packageJsonPath)) {
     const packageJson = await fs.readJson(packageJsonPath);
     packageJson.name = projectName;
+    if (Object.keys(dependencies).length > 0) {
+      packageJson.dependencies = {
+        ...packageJson.dependencies,
+        ...dependencies,
+      };
+    }
     await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
   }
 }

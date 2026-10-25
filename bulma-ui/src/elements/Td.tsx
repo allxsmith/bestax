@@ -4,6 +4,7 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { TableAlignment, validTableAlignments } from './tableAlignment';
 
 /**
  * The values the table `color` prop accepts, as a readonly tuple.
@@ -52,6 +53,8 @@ export interface TdProps
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   /** Additional CSS classes to apply. */
   className?: string;
+  /** Text alignment for the table cell ('left', 'right', 'centered'). */
+  isAligned?: TableAlignment;
   /** Bulma color modifier for the table cell. */
   color?: TableColor;
   /** Table cell content. */
@@ -61,7 +64,7 @@ export interface TdProps
 /**
  * Td component for rendering a styled Bulma table cell.
  *
- * Supports Bulma color modifiers and helper classes for additional styling.
+ * Supports alignment, Bulma color modifiers, and helper classes for additional styling.
  *
  * @function
  * @param {TdProps} props - Props for the Td component.
@@ -70,11 +73,14 @@ export interface TdProps
  */
 export const Td: React.FC<TdProps> = ({
   className,
+  isAligned,
   color,
   children,
   ...props
 }) => {
-  const colorClass = usePrefixedClassNames('', {
+  const bulmaClasses = usePrefixedClassNames('', {
+    [`has-text-${isAligned}`]:
+      isAligned && validTableAlignments.includes(isAligned),
     [`is-${color}`]: color && validTableColors.includes(color),
   });
 
@@ -83,7 +89,7 @@ export const Td: React.FC<TdProps> = ({
    */
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
-  const tdClasses = classNames(colorClass, className, bulmaHelperClasses);
+  const tdClasses = classNames(bulmaClasses, className, bulmaHelperClasses);
 
   return (
     <td className={tdClasses || undefined} {...rest}>

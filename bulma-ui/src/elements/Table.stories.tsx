@@ -84,11 +84,11 @@ export const HockeyTeamRecords: Story = {
       <Tbody>
         {hockeyTeams.map((team, index) => (
           <Tr key={team.name} color={index === 2 ? 'primary' : undefined}>
-            <Td>{team.name}</Td>
-            <Td>{team.wins}</Td>
-            <Td>{team.losses}</Td>
-            <Td>{team.otl}</Td>
-            <Td>{team.points}</Td>
+            <Td isAligned="left">{team.name}</Td>
+            <Td isAligned="right">{team.wins}</Td>
+            <Td isAligned="right">{team.losses}</Td>
+            <Td isAligned="right">{team.otl}</Td>
+            <Td isAligned="right">{team.points}</Td>
           </Tr>
         ))}
       </Tbody>
