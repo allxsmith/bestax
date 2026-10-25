@@ -18,6 +18,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { gzipSync } from 'node:zlib';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, it } from 'node:test';
@@ -387,16 +388,150 @@ describe('the sources', () => {
       []
     );
   });
+
+  it('include every kind of stylesheet, script, page and manifest', () => {
+    for (const file of [
+      'src/theme.sass',
+      'src/theme.less',
+      'src/util.mjs',
+      'src/util.cts',
+      'public/site.webmanifest',
+      'public/browserconfig.xml',
+      'page.htm',
+    ]) {
+      assertOne(
+        withFile(file, '{ "src": "https://picsum.photos/192" }'),
+        /loads https:\/\/picsum\.photos\/192, an image/
+      );
+    }
+  });
+});
+
+describe('an SVG', () => {
+  const svg = body =>
+    `<svg xmlns="http://www.w3.org/2000/svg" ` +
+    `xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 10 10">` +
+    `${body}</svg>\n`;
+
+  /** The problems with a tree whose recorded image `path` holds `content`. */
+  function withImage(content, path = 'public/media/hero.svg') {
+    return checkTemplateImages(
+      tree({
+        [path]: content,
+        [RECORD]: recordOf([original(path, content)]),
+      })
+    );
+  }
+
+  it('may point at its own fragments, and declare its namespaces', () => {
+    assert.deepEqual(
+      withImage(
+        svg(
+          '<defs><linearGradient id="g"/><path id="p" d="M0 0H1"/></defs>' +
+            '<style>.a { fill: url( "#g" ); }</style>' +
+            '<use href="#p"/><use xlink:href=\'#p\'/><rect fill="url(#g)"/>' +
+            '<a href="">nothing</a>'
+        )
+      ),
+      []
+    );
+  });
+
+  it('embeds no image as a data: URI, reported once', () => {
+    assertOne(
+      withImage(svg('<image href="data:image/png;base64,iVBORw0KGgo="/>')),
+      /hero\.svg draws a data:image\/png URI from outside the file; an SVG/
+    );
+  });
+
+  it('draws no image, stylesheet or file from elsewhere', () => {
+    const problems = withImage(
+      svg(
+        '<image xlink:href="https://images.unsplash.com/photo-1?w=500"/>' +
+          '<image href="https://example.com/photo?id=3"/>' +
+          "<style>@import 'https://fonts.example/a.css';" +
+          '.b { background: url(https://example.com/bg) }</style>' +
+          '<use href="icons.svg#star"/>' +
+          '<foreignObject><img src="portrait.jpg"/></foreignObject>'
+      )
+    );
+    assert.deepEqual(
+      problems.map(p => /draws (.*) from outside/.exec(p)?.[1]),
+      [
+        'https://images.unsplash.com/photo-1?w=500',
+        'https://example.com/photo?id=3',
+        'icons.svg#star',
+        'portrait.jpg',
+        'https://example.com/bg',
+        'https://fonts.example/a.css',
+      ],
+      problems.join('\n')
+    );
+  });
+
+  it('is read for a hot-link or data: URI outside any reference too', () => {
+    assertOne(
+      withImage(svg('<desc>data:image/gif;base64,R0lGOD</desc>')),
+      /hero\.svg loads data:image\/gif URI, an image the template/
+    );
+  });
+
+  it('names a long target by its start', () => {
+    const long = `https://example.com/${'a'.repeat(200)}`;
+    const [problem] = withImage(svg(`<image href="${long}"/>`));
+    assert.ok(problem.includes(`draws ${long.slice(0, 117)}... from`), problem);
+  });
+
+  it('is read gzipped, as an .svgz', () => {
+    const path = 'public/media/hero.svgz';
+    assert.deepEqual(withImage(gzipSync(svg('<use href="#a"/>')), path), []);
+    assertOne(
+      withImage(gzipSync(svg('<image href="https://x.io/a.png"/>')), path),
+      /hero\.svgz draws https:\/\/x\.io\/a\.png from outside the file/
+    );
+    assertOne(
+      withImage(svg(''), path),
+      /hero\.svgz is not gzip-compressed, as an \.svgz must be/
+    );
+  });
 });
 
 describe('what counts as an image', () => {
   it('is a file with an image extension, in any case', () => {
-    for (const path of ['a.svg', 'b/c.PNG', 'd.jpeg', 'e.ico', 'f.avif']) {
+    for (const path of [
+      'a.svg',
+      'b/c.PNG',
+      'd.jpeg',
+      'e.ico',
+      'f.avif',
+      'g.heic',
+      'h.TIFF',
+      'i.jxl',
+      'j.jfif',
+      'k.apng',
+      'l.svgz',
+      'm.cur',
+    ]) {
       assert.ok(isImagePath(path), path);
     }
-    for (const path of ['a.svg.txt', 'README.md', 'png']) {
+    for (const path of [
+      'a.svg.txt',
+      'README.md',
+      'png',
+      'font.woff2',
+      'clip.mp4',
+    ]) {
       assert.ok(!isImagePath(path), path);
     }
+  });
+
+  it('needs a record in any of those formats, and is hot-linked in them', () => {
+    const root = tree({ 'public/media/photo.jfif': 'jfif' });
+    assertOne(
+      checkTemplateImages(root),
+      /ships public\/media\/photo\.jfif with no image-provenance\.json/
+    );
+    assert.ok(isImageUrl('https://example.com/photos/a.heic'));
   });
 
   it('is a URL to an image file, or to an image host', () => {

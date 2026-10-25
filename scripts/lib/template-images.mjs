@@ -10,43 +10,79 @@
  * sources are read for the images a file cannot show: a hot-link (an http(s)
  * URL to an image file or to an image host) and an image embedded as a
  * `data:` URI. The record is left out of that read, since its `replaces` may
- * name the hot-link an image replaced.
+ * name the hot-link an image replaced. An SVG's own markup is read too, for
+ * anything it draws from outside the file (svgReferences), since a drawing
+ * that wraps a photo would otherwise pass on its hash alone.
  *
  * A template is what git tracks under its folder, as scripts/lib/templates.mjs
  * defines it, so `root` must be a git checkout.
  */
 import { createHash } from 'node:crypto';
 import { lstatSync, readFileSync } from 'node:fs';
+import { gunzipSync } from 'node:zlib';
 import { extname, join } from 'node:path';
 import { templatePaths, trackedTemplates } from './templates.mjs';
 
 /** The record's name, at the top of a template's folder. */
 export const RECORD = 'image-provenance.json';
 
-/** What a file is an image by. */
+/**
+ * What a file is an image by: the formats a browser draws, with the other
+ * names a JPEG goes by, the formats a phone or an editor saves a photo in
+ * (HEIC, TIFF, JPEG XL), and a CSS cursor. Fonts and video are not images
+ * here.
+ */
 export const IMAGE_EXTENSIONS = [
+  'apng',
   'avif',
   'bmp',
+  'cur',
   'gif',
+  'heic',
+  'heif',
   'ico',
+  'jfif',
+  'jp2',
+  'jpe',
   'jpeg',
   'jpg',
+  'jxl',
+  'pjp',
+  'pjpeg',
   'png',
   'svg',
+  'svgz',
+  'tif',
+  'tiff',
   'webp',
 ];
 
+/**
+ * The images whose own markup is read, for what svgReferences says an SVG
+ * must not draw from; an `.svgz` is that markup gzipped.
+ */
+export const SVG_EXTENSIONS = ['svg', 'svgz'];
+
 /** The files read for hot-linked and embedded images. */
 export const SOURCE_EXTENSIONS = [
+  'cjs',
   'css',
+  'cts',
+  'htm',
   'html',
   'js',
   'json',
   'jsx',
+  'less',
   'md',
+  'mjs',
+  'mts',
+  'sass',
   'scss',
   'ts',
   'tsx',
+  'webmanifest',
+  'xml',
 ];
 
 /**
@@ -150,6 +186,40 @@ export function externalImages(text) {
   }
   for (const match of text.matchAll(/data:image\/[\w.+-]+/gi)) {
     found.push(`${match[0]} URI`);
+  }
+  return found;
+}
+
+/** A reference as a message names it: a `data:` URI by its type alone. */
+const describeTarget = target => {
+  const data = /^data:([^;,]*)/i.exec(target);
+  if (data) return `a data:${data[1]} URI`;
+  return target.length > 120 ? `${target.slice(0, 117)}...` : target;
+};
+
+/**
+ * What an SVG draws from outside itself: the target of each `href`,
+ * `xlink:href` or `src` attribute, each `url(...)` and each `@import` that
+ * is not a fragment of the same file (`#id`). An SVG drawn for the port holds
+ * every shape it shows, so any other target is an image, a font or a
+ * stylesheet from elsewhere, or a file embedded as a `data:` URI, and the
+ * record can vouch for none of them. Namespace declarations (`xmlns`,
+ * `xmlns:xlink`) are attributes of another name, and an empty target loads
+ * nothing.
+ */
+export function svgReferences(text) {
+  const found = [];
+  for (const re of [
+    /\s(?:xlink:)?(?:href|src)\s*=\s*(["'])(.*?)\1/gis,
+    /url\(\s*(["']?)(.*?)\1\s*\)/gis,
+    /@import\s+(["'])(.*?)\1/gi,
+  ]) {
+    for (const match of text.matchAll(re)) {
+      const target = match[2].trim();
+      if (target !== '' && !target.startsWith('#')) {
+        found.push(describeTarget(target));
+      }
+    }
   }
   return found;
 }
@@ -314,16 +384,40 @@ export function templateImageProblems(root, slug, files) {
   if (parsed) problems.push(...recordProblems(slug, record, images));
 
   for (const file of files) {
-    if (file === RECORD || !SOURCE_EXTENSIONS.includes(extensionOf(file))) {
+    const extension = extensionOf(file);
+    const svg = SVG_EXTENSIONS.includes(extension);
+    if (file === RECORD || !(svg || SOURCE_EXTENSIONS.includes(extension))) {
       continue;
     }
     const bytes = readRegular(join(dir, file));
     if (!bytes) continue;
-    for (const image of externalImages(bytes.toString('utf8'))) {
+    const at = `templates/${slug}/${file}`;
+    let text;
+    try {
+      text = (extension === 'svgz' ? gunzipSync(bytes) : bytes).toString(
+        'utf8'
+      );
+    } catch {
       problems.push(
-        `templates/${slug}/${file} loads ${image}, an image the template ` +
-          'does not ship; draw one for the port into public/, record it in ' +
-          `${RECORD}, and point at that (${GUIDE})`
+        `${at} is not gzip-compressed, as an .svgz must be, so what it ` +
+          'draws cannot be read; save it as a plain .svg'
+      );
+      continue;
+    }
+    const drawn = svg ? svgReferences(text) : [];
+    for (const target of drawn) {
+      problems.push(
+        `${at} draws ${target} from outside the file; an SVG drawn for the ` +
+          'port holds every shape it shows, so draw that into the file and ' +
+          `point at it with a #fragment (${GUIDE})`
+      );
+    }
+    for (const image of externalImages(text)) {
+      if (drawn.some(target => target.includes(image))) continue;
+      problems.push(
+        `${at} loads ${image}, an image the template does not ship; draw ` +
+          `one for the port into public/, record it in ${RECORD}, and point ` +
+          `at that (${GUIDE})`
       );
     }
   }
