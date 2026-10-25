@@ -1237,6 +1237,29 @@ describe("bulma-carousel's own markup", () => {
     ).toEqual(['5:html-extension:carousel', '6:html-extension:is-covered']);
   });
 
+  it("reads bulma-carousel's own stylesheet inside the bulma-extensions package, which the bundle's own lacks", () => {
+    const covered = (href: string) =>
+      extensionEntries(
+        convert(
+          page(
+            `<link rel="stylesheet" href="${href}">`,
+            '<div class="box">\n<figure class="image is-16by9 is-covered"><img src="https://example.com/a.jpg" alt=""></figure>\n</div>'
+          )
+        ).entries
+      ).map(entry => entry.rule);
+    expect(
+      covered(
+        'https://cdn.jsdelivr.net/npm/bulma-extensions@6.2.7/bulma-carousel/dist/css/bulma-carousel.min.css'
+      )
+    ).toEqual(['html-extension:is-covered']);
+    // The bundle's combined stylesheet has no `is-covered` rule.
+    expect(
+      covered(
+        'https://cdn.jsdelivr.net/npm/bulma-extensions@6.2.7/dist/css/bulma-extensions.min.css'
+      )
+    ).toEqual([]);
+  });
+
   it('notes nothing on a page that uses no bulma-carousel', () => {
     const { entries } = convert(
       page(

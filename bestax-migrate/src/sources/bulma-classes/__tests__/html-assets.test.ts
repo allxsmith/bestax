@@ -107,6 +107,22 @@ describe('classifyAsset', () => {
       'stylesheet',
       { kind: 'bulma-extension', name: 'bulma-switch' },
     ],
+    // The bundle's combined stylesheet, and one extension's own file in it.
+    [
+      'https://cdn.jsdelivr.net/npm/bulma-extensions@6.2.7/dist/css/bulma-extensions.min.css',
+      'stylesheet',
+      { kind: 'bulma-extension', name: 'bulma-extensions' },
+    ],
+    [
+      'https://cdn.jsdelivr.net/npm/bulma-extensions@6.2.7/bulma-carousel/dist/css/bulma-carousel.min.css',
+      'stylesheet',
+      { kind: 'bulma-extension', name: 'bulma-carousel' },
+    ],
+    [
+      'node_modules/bulma-extensions/bulma-tooltip/dist/js/bulma-tooltip.min.js',
+      'script',
+      { kind: 'bulma-extension', name: 'bulma-tooltip' },
+    ],
     [
       'https://code.jquery.com/jquery-3.7.1.slim.min.js',
       'script',

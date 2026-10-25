@@ -56,7 +56,25 @@ const FONT_AWESOME_KIT = /(?:^|\/\/)kit\.fontawesome\.com\//i;
 
 /** A package whose name starts `bulma-`, as a path segment or a file. */
 const EXTENSION =
-  /(?:^|[/\\])((?:@creativebulma\/)?bulma-[a-z\d]+(?:-[a-z\d]+)*)(?=@|[/\\]|(?:\.min)?\.(?:css|js)$)/i;
+  /(?:^|[/\\])((?:@creativebulma\/)?bulma-[a-z\d]+(?:-[a-z\d]+)*)(?=@|[/\\]|(?:\.min)?\.(?:css|js)$)/gi;
+
+/**
+ * The extension a URL's path loads: the first package it names, but for a
+ * file of one extension inside the bulma-extensions bundle's package
+ * (`bulma-extensions@6.2.7/bulma-carousel/dist/…`), which is that one's own
+ * file, not the bundle's combined stylesheet or script.
+ */
+function extensionOf(urlPath: string): string | undefined {
+  const [first, ...rest] = [...urlPath.matchAll(EXTENSION)].map(
+    match => match[1]
+  );
+  if (first === undefined || extensionPackage(first) !== 'bulma-extensions') {
+    return first;
+  }
+  return (
+    rest.find(name => extensionPackage(name) !== 'bulma-extensions') ?? first
+  );
+}
 
 /** jQuery itself, not a plugin: `jquery-3.7.1.min.js`, `jquery@3`. */
 const JQUERY =
@@ -93,7 +111,7 @@ export function classifyAsset(url: string, loads: Loads): Asset {
       kit: FONT_AWESOME_KIT.test(url.trim()),
     };
   }
-  const extension = EXTENSION.exec(urlPath)?.[1];
+  const extension = extensionOf(urlPath);
   if (extension) return { kind: 'bulma-extension', name: extension };
   if (loads === 'script') {
     return JQUERY.test(urlPath) ? { kind: 'jquery' } : { kind: 'script' };

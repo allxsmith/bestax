@@ -521,11 +521,12 @@ neither, so load what the app still needs once for the whole app, from its entry
   - A kit (`kit.fontawesome.com`): keep loading it from `index.html`, or install Font Awesome from
     npm instead. A URL with no version: the same, with the v4 shims beside it if the page's names
     are 4's (`fa fa-<name>`).
-- **`html-asset:bulma-extension`**: a `bulma-*` package (or `@creativebulma/bulma-*`). An
-  extension's stylesheet and script are one TODO, with both lines. Where bestax has a component
-  for what it does, the TODO names it; render that in place of the extension's markup and script,
-  whose styles ship in `extras.css` and `bestax.css`, and stop loading the extension once nothing
-  the app keeps uses its classes:
+- **`html-asset:bulma-extension`**: a `bulma-*` package (or `@creativebulma/bulma-*`). A file of
+  one extension inside the `bulma-extensions` package (`bulma-extensions/bulma-carousel/dist/…`)
+  counts as that extension's. An extension's stylesheet and script are one TODO, with both lines.
+  Where bestax has a component for what it does, the TODO names it; render that in place of the
+  extension's markup and script, whose styles ship in `extras.css` and `bestax.css`, and stop
+  loading the extension once nothing the app keeps uses its classes:
 
   | Extension                                               | bestax                                                                                 |
   | ------------------------------------------------------- | -------------------------------------------------------------------------------------- |
@@ -685,11 +686,12 @@ point at the elements to rebuild.
   selector the codemod can't read (a variable, or a selector with a combinator or an attribute)
   gets no TODO of its own: find what it selects by hand.
 - **`html-extension:is-covered`**: bulma-carousel's `is-covered` on an `.image`, on a page that
-  loads its stylesheet. Inside one of the slides its script builds, that stylesheet makes the
-  `<img>` fill the frame and crops it to fit (`object-fit: cover`). Nothing in bestax reads the
-  class: `Image` has no prop for it, and the rule reaches only bulma-carousel's own slides, not
-  `Carousel`'s. So in the app a ratio image stretches its photo instead. Keep the class and give
-  it the rule in the app's stylesheet:
+  loads its stylesheet (the bundle's combined `bulma-extensions.min.css` has no rule for it).
+  Inside one of the slides its script builds, that stylesheet makes the `<img>` fill the frame
+  and crops it to fit (`object-fit: cover`). Nothing in bestax reads the class: `Image` has no
+  prop for it, and the rule reaches only bulma-carousel's own slides, not `Carousel`'s. So in the
+  app a ratio image stretches its photo instead. Keep the class and give it the rule in the app's
+  stylesheet:
 
   ```css
   .image.is-covered img {
