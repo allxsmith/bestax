@@ -117,7 +117,11 @@ A couple of results look odd until you see why:
 - `<h2 className="title is-4">` becomes `<Title as="h2" className="is-4">`, not
   `<Title size="4">`. bestax picks the heading tag from `size`, so `size="4"` would render an
   `<h4>`. To write it as a prop, `textSize="4"` keeps the `<h2>` and sizes it the same, with
-  Bulma's `is-size-4`.
+  Bulma's `is-size-4`, and the TODO on the element says so (`modifier:title`).
+- A second color stays in `className` with a TODO: `<button className="button is-black is-primary">`
+  becomes `<Button color="black" className="is-primary">` and gets `modifier:button`, since a
+  component takes one `color`, and Bulma's stylesheet, not the order of the classes, decides how
+  the two look together.
 - `<div className="is-flex mt-4">` doesn't change at all. bestax has no plain `<div>` component,
   and the classes are valid Bulma, so there is nothing to do and nothing to flag.
 - An element with two component classes becomes one component, and the other class stays in
@@ -338,6 +342,7 @@ names the `.html` file and the line it came from:
 | `html-head:<tag>`                         | `<title>`, `<meta>` (a Content Security Policy apart, as `html-head:csp`), `<link>`, `<style>`, `<base>`                                           | App-wide ones go in the app's `index.html`, a page's own where the app sets each page's head; write the app's own policy           |
 | `html-asset:<kind>`                       | each stylesheet and script the page loads: Bulma's own, Font Awesome, a Bulma extension, jQuery, a web font, and any other                         | `--css bestax` and `--css bulma` import Bulma's in the module; load the rest once for the app, or use the component the TODO names |
 | `html-script:<pattern>`                   | inline scripts and the page's own script files: a burger, a modal, a dismiss button, a carousel, a theme toggle, JSON-LD, the rest                 | Port the code into the component; the TODO names the bestax component for the usual patterns                                       |
+| `html-extension:<name>`                   | a Bulma extension's own markup: the elements bulma-carousel's script makes carousels of, and its `is-covered` images                               | Render a `Carousel` in the place of each; give `is-covered` images `object-fit: cover` in the app's stylesheet                     |
 | `html-document:<name>`                    | classes and attributes on `<html>` and `<body>`, such as `has-navbar-fixed-top`, `data-theme` and `lang`                                           | Put them on the app's own `<html>`, where the first paint has the scheme; `Theme colorMode` drives a light/dark toggle             |
 | `html-event:<attribute>`                  | `onclick="…"` and its kind, which React can't take as a string                                                                                     | Port the code into the handler the TODO names (`onClick`)                                                                          |
 | `html-element:<kind>`, `html-attr:<kind>` | custom and obsolete elements, attributes JSX can't write, React has no prop for or the element ignores, stray characters, styles React can't apply | Replace them with current markup, or declare a custom element for TypeScript                                                       |

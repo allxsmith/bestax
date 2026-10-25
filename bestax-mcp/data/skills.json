@@ -98,7 +98,7 @@
         {
           "id": "bloomer-unmappables",
           "file": "references/bloomer/unmappables.md",
-          "bytes": 17739
+          "bytes": 17913
         },
         {
           "id": "bulma-classes-component-map",
@@ -108,12 +108,12 @@
         {
           "id": "bulma-classes-prop-map",
           "file": "references/bulma-classes/prop-map.md",
-          "bytes": 38917
+          "bytes": 39110
         },
         {
           "id": "bulma-classes-unmappables",
           "file": "references/bulma-classes/unmappables.md",
-          "bytes": 57412
+          "bytes": 64405
         },
         {
           "id": "css-migration",
@@ -176,7 +176,7 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 50240
+          "bytes": 49985
         },
         {
           "id": "themeable-components",

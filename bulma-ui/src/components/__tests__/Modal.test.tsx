@@ -363,6 +363,180 @@ describe('Modal', () => {
       expect(screen.getByTestId('close-btn')).toHaveAttribute('type', 'button');
     });
 
+    describe('closing from the parts', () => {
+      it('Modal.Close calls the modal onClose when it has no onClick', () => {
+        const onClose = jest.fn();
+        render(
+          <Modal isActive onClose={onClose}>
+            <Modal.Background />
+            <Modal.Card>
+              <Modal.Card.Head>
+                <Modal.Card.Title>Title</Modal.Card.Title>
+                <Modal.Close data-testid="head-close" />
+              </Modal.Card.Head>
+              <Modal.Card.Body>{latin}</Modal.Card.Body>
+            </Modal.Card>
+            <Modal.Close variant="floating" data-testid="floating-close" />
+          </Modal>
+        );
+        fireEvent.click(screen.getByTestId('head-close'));
+        expect(onClose).toHaveBeenCalledTimes(1);
+        expect(onClose).toHaveBeenCalledWith();
+        fireEvent.click(screen.getByTestId('floating-close'));
+        expect(onClose).toHaveBeenCalledTimes(2);
+      });
+
+      it('Modal.Close runs only its own onClick when given one', () => {
+        const onClose = jest.fn();
+        const onClick = jest.fn();
+        render(
+          <Modal isActive onClose={onClose}>
+            <Modal.Content>{latin}</Modal.Content>
+            <Modal.Close onClick={onClick} data-testid="close-btn" />
+          </Modal>
+        );
+        fireEvent.click(screen.getByTestId('close-btn'));
+        expect(onClick).toHaveBeenCalledTimes(1);
+        expect(onClose).not.toHaveBeenCalled();
+      });
+
+      it('Modal.Close wired with onClick={onClose} calls it once', () => {
+        const onClose = jest.fn();
+        render(
+          <Modal isActive onClose={onClose}>
+            <Modal.Content>{latin}</Modal.Content>
+            <Modal.Close onClick={onClose} data-testid="close-btn" />
+          </Modal>
+        );
+        fireEvent.click(screen.getByTestId('close-btn'));
+        expect(onClose).toHaveBeenCalledTimes(1);
+      });
+
+      it('Modal.Close does nothing on click without an onClose to call', () => {
+        render(
+          <>
+            <Modal isActive>
+              <Modal.Close data-testid="no-on-close" />
+            </Modal>
+            <Modal.Close data-testid="no-modal" />
+          </>
+        );
+        expect(() => {
+          fireEvent.click(screen.getByTestId('no-on-close'));
+          fireEvent.click(screen.getByTestId('no-modal'));
+        }).not.toThrow();
+      });
+
+      it('Modal.Close inside a nested modal closes only that modal', () => {
+        const outerClose = jest.fn();
+        const innerClose = jest.fn();
+        render(
+          <Modal isActive onClose={outerClose}>
+            <Modal.Content>
+              <Modal isActive onClose={innerClose}>
+                <Modal.Content>{latin}</Modal.Content>
+                <Modal.Close data-testid="inner-close" />
+              </Modal>
+            </Modal.Content>
+            <Modal.Close data-testid="outer-close" />
+          </Modal>
+        );
+        fireEvent.click(screen.getByTestId('inner-close'));
+        expect(innerClose).toHaveBeenCalledTimes(1);
+        expect(outerClose).not.toHaveBeenCalled();
+        fireEvent.click(screen.getByTestId('outer-close'));
+        expect(outerClose).toHaveBeenCalledTimes(1);
+        expect(innerClose).toHaveBeenCalledTimes(1);
+      });
+
+      it('Modal.Close inside the props form calls its onClose', () => {
+        // Wrapped, so the modal stays in the props form: a part as a direct
+        // child would select the compound form.
+        const onClose = jest.fn();
+        render(
+          <Modal active onClose={onClose} modalCardTitle="Title">
+            <div>
+              <Modal.Close data-testid="own-close" />
+            </div>
+          </Modal>
+        );
+        expect(screen.getByTestId('modal-body')).toContainElement(
+          screen.getByTestId('own-close')
+        );
+        fireEvent.click(screen.getByTestId('own-close'));
+        expect(onClose).toHaveBeenCalledTimes(1);
+      });
+
+      it('Modal.Close calls onClose from a portaled modal', () => {
+        const onClose = jest.fn();
+        render(
+          <Modal isActive onClose={onClose} portal>
+            <Modal.Content>{latin}</Modal.Content>
+            <Modal.Close data-testid="close-btn" />
+          </Modal>
+        );
+        fireEvent.click(screen.getByTestId('close-btn'));
+        expect(onClose).toHaveBeenCalledTimes(1);
+      });
+
+      it('Modal.Close calls the onClose of the latest render', () => {
+        const first = jest.fn();
+        const second = jest.fn();
+        const { rerender } = render(
+          <Modal isActive onClose={first}>
+            <Modal.Close data-testid="close-btn" />
+          </Modal>
+        );
+        rerender(
+          <Modal isActive onClose={second}>
+            <Modal.Close data-testid="close-btn" />
+          </Modal>
+        );
+        fireEvent.click(screen.getByTestId('close-btn'));
+        expect(first).not.toHaveBeenCalled();
+        expect(second).toHaveBeenCalledTimes(1);
+      });
+
+      it('Modal.Background leaves the modal open without an onClick', () => {
+        // A bare background is a static one, as rbx's was by default, and
+        // the rbx codemod writes it bare: it closes only once you wire it.
+        const onClose = jest.fn();
+        render(
+          <Modal isActive onClose={onClose}>
+            <Modal.Background data-testid="bg" />
+            <Modal.Content>{latin}</Modal.Content>
+          </Modal>
+        );
+        fireEvent.click(screen.getByTestId('bg'));
+        expect(onClose).not.toHaveBeenCalled();
+      });
+
+      it('Modal.Background wired with onClick={onClose} calls it once', () => {
+        const onClose = jest.fn();
+        render(
+          <Modal isActive onClose={onClose}>
+            <Modal.Background onClick={onClose} data-testid="bg" />
+            <Modal.Content>{latin}</Modal.Content>
+          </Modal>
+        );
+        fireEvent.click(screen.getByTestId('bg'));
+        expect(onClose).toHaveBeenCalledTimes(1);
+      });
+
+      it('Escape still calls onClose once in the compound form', () => {
+        const onClose = jest.fn();
+        render(
+          <Modal isActive onClose={onClose}>
+            <Modal.Background />
+            <Modal.Content>{latin}</Modal.Content>
+            <Modal.Close />
+          </Modal>
+        );
+        fireEvent.keyDown(window, { key: 'Escape' });
+        expect(onClose).toHaveBeenCalledTimes(1);
+      });
+    });
+
     it('allows mixing compound components with custom classes', () => {
       render(
         <Modal isActive className="custom-modal">

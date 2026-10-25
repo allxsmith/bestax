@@ -2128,8 +2128,9 @@ describe("the table's claims about the library", () => {
   });
 
   it('sizes an element the same with the prop a size class names off its tags, keeping the tag', () => {
-    // `offTag`: off `tagIn` the class stays, and the MCP lookup says the prop
-    // sizes the element the same, with a class Bulma gives the same font size.
+    // `offTag`: off `tagIn` the class stays, and the MCP lookup and the
+    // codemod's TODO say the prop sizes the element the same, with a class
+    // Bulma gives the same font size.
     const rules = stylesheetRules(bulmaStylesheet());
     const fontSize = (selector: string) =>
       rules

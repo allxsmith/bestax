@@ -35,8 +35,9 @@ treats the folder as a project of its own.
   [bulma-social](https://github.com/aldi/bulma-social), as the original does: its classes go on
   bestax's `Button` through `className`.
 - Icons are Font Awesome, from its npm package.
-- The navbar's Bulma logo, the banner photo and the photo beside the contact form load from
-  where the original loads them.
+- The navbar's Bulma logo is a local copy, `public/images/bulma-logo.svg`, from Bulma's own
+  repository under its MIT license, whose notice is in `LICENSE`. The banner photo and the photo
+  beside the contact form load from where the original loads them.
 
 ## Changes from the original
 

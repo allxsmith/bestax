@@ -1,6 +1,5 @@
 import { Link, Paragraph, Select } from '@allxsmith/bestax-bulma';
 
-/** The links and the language picker under the box. */
 function AccountLinks() {
   return (
     <>
@@ -23,16 +22,16 @@ function AccountLinks() {
           Need help?
         </Link>
       </Paragraph>
-      {/* The picker changes nothing yet, as in the original. */}
+      {/* As in the original, picking a language changes nothing yet. */}
       <div className="has-text-centered">
         <Select
           id="language-select"
           name="language"
-          label="Select language"
-          labelProps={{ className: 'is-sr-only' }}
           size="small"
           isRounded
           mt="2"
+          label="Select language"
+          labelProps={{ className: 'is-sr-only' }}
           defaultValue="English"
         >
           <option>English</option>

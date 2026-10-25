@@ -15,6 +15,7 @@ import {
   classifyAsset,
   EXTENSION_COMPONENTS,
   extensionMessage,
+  extensionPackage,
   fontAwesomeMessage,
   GUIDE_0_9_TO_1,
   PRIMARY_CLASS,
@@ -105,6 +106,22 @@ describe('classifyAsset', () => {
       'css/bulma-switch.min.css',
       'stylesheet',
       { kind: 'bulma-extension', name: 'bulma-switch' },
+    ],
+    // The bundle's combined stylesheet, and one extension's own file in it.
+    [
+      'https://cdn.jsdelivr.net/npm/bulma-extensions@6.2.7/dist/css/bulma-extensions.min.css',
+      'stylesheet',
+      { kind: 'bulma-extension', name: 'bulma-extensions' },
+    ],
+    [
+      'https://cdn.jsdelivr.net/npm/bulma-extensions@6.2.7/bulma-carousel/dist/css/bulma-carousel.min.css',
+      'stylesheet',
+      { kind: 'bulma-extension', name: 'bulma-carousel' },
+    ],
+    [
+      'node_modules/bulma-extensions/bulma-tooltip/dist/js/bulma-tooltip.min.js',
+      'script',
+      { kind: 'bulma-extension', name: 'bulma-tooltip' },
     ],
     [
       'https://code.jquery.com/jquery-3.7.1.slim.min.js',
@@ -340,6 +357,23 @@ describe('Bulma extensions', () => {
     expect(sheet).toContain("in place of the extension's markup, and stop");
   });
 
+  it("says bulma-carousel's is-covered images need a rule of their own, only when the page has them", () => {
+    const covered = (name: string, has: boolean) =>
+      extensionMessage(name, ['c.css'], new Set(['stylesheet']), 'keep', has);
+    expect(covered('bulma-carousel', true)).toMatch(
+      /stop loading the extension once nothing the app keeps uses its classes; the page's `is-covered` images are cropped by its stylesheet only inside its own slides, .*the `html-extension:is-covered` TODO has$/
+    );
+    expect(covered('bulma-carousel', false)).not.toContain('is-covered');
+    expect(covered('bulma-slider', true)).not.toContain('is-covered');
+  });
+
+  it('reads an extension by its package, without a scope', () => {
+    expect(extensionPackage('@creativebulma/Bulma-Tooltip')).toBe(
+      'bulma-tooltip'
+    );
+    expect(extensionPackage('bulma-carousel')).toBe('bulma-carousel');
+  });
+
   it("puts bulma-social's classes on Button, as the templates do", () => {
     const text = extensionMessage(
       'bulma-social',
@@ -414,6 +448,32 @@ describe('web fonts, stylesheets and scripts', () => {
     expect(scriptMessage('https://x/a.js', 'elsewhere', '')).toContain(
       'replace what it does with React code'
     );
+  });
+
+  it("says where a stylesheet's own relative URLs resolve, and from the site root when it can", () => {
+    const urls = {
+      folder: 'css',
+      written: '`../media/bg.webp`',
+      fromRoot: '`/media/bg.webp`',
+    };
+    expect(
+      stylesheetMessage('css/a.css', 'beside', 'css/a.css', urls)
+    ).toContain(
+      "; the relative URLs in it (`../media/bg.webp`) resolve against `css/`, the stylesheet's folder, so moving its rules into the app's stylesheet (such as `src/index.css`) means rewriting each against that file's folder, or copying the files into the app's `public/` folder and pointing at them from the site root (`/media/bg.webp`)"
+    );
+    const beside = stylesheetMessage('a.css', 'beside', 'a.css', {
+      folder: null,
+      written: '`../bg.png`',
+      fromRoot: null,
+    });
+    expect(beside).toContain(
+      "resolve against the stylesheet's folder, the page's, so"
+    );
+    expect(beside).toMatch(/pointing at them from the site root$/);
+    // Only a stylesheet beside the page is read for them.
+    expect(
+      stylesheetMessage('css/a.css', 'missing', 'css/a.css', urls)
+    ).not.toContain('relative URLs');
   });
 
   it("says only what the page's folder shows about a file that isn't there", () => {

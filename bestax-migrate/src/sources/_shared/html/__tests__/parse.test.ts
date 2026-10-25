@@ -1,5 +1,7 @@
 import {
+  attributeOf,
   childrenOf,
+  classesOf,
   isDocument,
   isElement,
   parseHtml,
@@ -195,5 +197,45 @@ describe('parseHtml', () => {
     const template = childrenOf(parsed.root).filter(isElement)[0];
     expect(template.childNodes).toEqual([]);
     expect(tags(childrenOf(template))).toEqual(['li']);
+  });
+
+  it.each([
+    ['<!DOCTYPE html><p>x</p>', false],
+    ['<html><body><p>x</p></body></html>', true],
+    [
+      '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"><p>x</p>',
+      true,
+    ],
+    [
+      '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"><p>x</p>',
+      false,
+    ],
+    ['<p>x</p>', false],
+  ])('reads %j in quirks mode: %s', (source, quirks) => {
+    expect(parseHtml(source).quirks).toBe(quirks);
+  });
+});
+
+describe('attributeOf and classesOf', () => {
+  const element = (source: string) =>
+    childrenOf(parseHtml(source).root).filter(isElement)[0];
+
+  it("reads an attribute by its unprefixed name, and an element's classes", () => {
+    const div = element(
+      '<div id="a" class=" box\tis-primary\nmb-2 " data-x=""></div>'
+    );
+    expect(attributeOf(div, 'id')).toBe('a');
+    expect(attributeOf(div, 'data-x')).toBe('');
+    expect(attributeOf(div, 'title')).toBeUndefined();
+    expect(classesOf(div)).toEqual(['box', 'is-primary', 'mb-2']);
+    expect(classesOf(element('<p>x</p>'))).toEqual([]);
+  });
+
+  it('leaves a prefixed attribute to its own name', () => {
+    const svg = element(
+      '<svg xmlns:xlink="http://www.w3.org/1999/xlink"><a xlink:href="#a"></a></svg>'
+    );
+    const link = svg.childNodes.filter(isElement)[0];
+    expect(attributeOf(link, 'href')).toBeUndefined();
   });
 });
