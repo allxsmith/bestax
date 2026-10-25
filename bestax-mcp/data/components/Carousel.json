@@ -35,7 +35,11 @@
     },
     {
       "title": "Indicators Over the Slides",
-      "code": "<Carousel className=\"plain-inside\" indicatorInside>\n  {/* items */}\n</Carousel>"
+      "code": "<Carousel indicatorInside overlayControls={false}>\n  {['Garden Room', 'Harbor Suite', 'Loft', 'Courtyard Twin'].map(room => (\n    <CarouselItem key={room}>\n      <Card m=\"2\">\n        <Card.Content pb=\"6\">\n          <Title as=\"p\" size=\"5\">\n            {room}\n          </Title>\n          <SubTitle as=\"p\" size=\"6\">\n            Sleeps two\n          </SubTitle>\n        </Card.Content>\n      </Card>\n    </CarouselItem>\n  ))}\n</Carousel>"
+    },
+    {
+      "title": "Indicators Over the Slides",
+      "code": "<Carousel overlayControls>\n  <CarouselItem>\n    <Hero color=\"dark\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 1</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"link\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 2</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n</Carousel>"
     },
     {
       "title": "Without Arrows",
@@ -227,7 +231,16 @@
           "name": "indicatorInside",
           "type": "boolean",
           "default": "false",
-          "description": "Puts the indicators over the slides instead of below them, at the edge `indicatorPosition` names, on a dark gradient band. It also turns on the overlay look, made for photos: the arrows and indicators take the `--bulma-carousel-overlay-*` colors in place of the plain ones, and `arrowColor` stops applying. No prop moves the indicators without that look, or gives the look without moving them. To keep the plain colors over the slides, set each overlay variable to its plain one. The band is a `background` on the `.carousel-indicator.is-inside` element, not a variable. The API page's \"Indicators Over the Slides\" section has the whole recipe.",
+          "description": "Puts the indicators over the slides instead of below them, at the edge `indicatorPosition` names. It also turns on the overlay look unless `overlayControls` says otherwise, so on its own it gives the look made for photos: light arrows, and light indicators on a dark gradient band.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "overlayControls",
+          "type": "boolean",
+          "default": "indicatorInside",
+          "description": "The overlay look, made for photos. The arrows take the `--bulma-carousel-overlay-arrow-*` colors, and indicators over the slides take the `--bulma-carousel-overlay-indicator-*` colors on a dark gradient band. Indicators below the slides keep their plain colors, since they sit on the page. It follows `indicatorInside` unless you set it, so `overlayControls={false}` puts the indicators over the slides with the plain look, and `overlayControls` alone gives the arrows the overlay look with the indicators below. While it's on, `arrowColor` doesn't apply.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -317,7 +330,7 @@
           "name": "arrowColor",
           "type": "'light' | 'dark'",
           "default": null,
-          "description": "Color theme for navigation arrows. Not applied with `indicatorInside`, whose overlay look colors the arrows with `--bulma-carousel-overlay-arrow-color`.",
+          "description": "Color theme for navigation arrows. Not applied while the overlay look is on (see `overlayControls`, which `indicatorInside` turns on), whose arrows take `--bulma-carousel-overlay-arrow-color`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -605,25 +618,25 @@
     {
       "css": "--bulma-carousel-overlay-arrow-color",
       "sass": "$carousel-overlay-arrow-color",
-      "default": "var(--bulma-scheme-main)",
+      "default": "var(--bulma-white)",
       "scope": "root"
     },
     {
       "css": "--bulma-carousel-overlay-indicator-background",
       "sass": "$carousel-overlay-indicator-background",
-      "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-main-l), 0.5)",
+      "default": "hsla(var(--bulma-white-h), var(--bulma-white-s), var(--bulma-white-l), 0.5)",
       "scope": "root"
     },
     {
       "css": "--bulma-carousel-overlay-indicator-background-hover",
       "sass": "$carousel-overlay-indicator-background-hover",
-      "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-main-l), 0.8)",
+      "default": "hsla(var(--bulma-white-h), var(--bulma-white-s), var(--bulma-white-l), 0.8)",
       "scope": "root"
     },
     {
       "css": "--bulma-carousel-overlay-indicator-background-active",
       "sass": "$carousel-overlay-indicator-background-active",
-      "default": "var(--bulma-scheme-main)",
+      "default": "var(--bulma-white)",
       "scope": "root"
     },
     {

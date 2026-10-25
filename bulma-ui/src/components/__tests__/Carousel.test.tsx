@@ -308,6 +308,48 @@ describe('Carousel', () => {
     });
   });
 
+  describe('Overlay controls', () => {
+    it('leaves the overlay look off by default', () => {
+      render(<TestCarousel />);
+      expect(screen.getByRole('region')).not.toHaveClass('is-overlay');
+    });
+
+    it('turns the overlay look on with indicatorInside, as before', () => {
+      const { container } = render(<TestCarousel indicatorInside />);
+      expect(screen.getByRole('region')).toHaveClass('is-overlay');
+      expect(container.querySelector('.carousel-indicator')).toHaveClass(
+        'is-inside'
+      );
+    });
+
+    it('keeps the indicators inside with the plain look when overlayControls is false', () => {
+      const { container } = render(
+        <TestCarousel indicatorInside overlayControls={false} />
+      );
+      expect(screen.getByRole('region')).not.toHaveClass('is-overlay');
+      expect(container.querySelector('.carousel-indicator')).toHaveClass(
+        'is-inside'
+      );
+    });
+
+    it('gives the overlay look with the indicators below when overlayControls is set alone', () => {
+      const { container } = render(<TestCarousel overlayControls />);
+      expect(screen.getByRole('region')).toHaveClass('is-overlay');
+      expect(container.querySelector('.carousel-indicator')).not.toHaveClass(
+        'is-inside'
+      );
+    });
+
+    it('prefixes the overlay class', () => {
+      render(
+        <ConfigProvider classPrefix="bestax-">
+          <TestCarousel overlayControls />
+        </ConfigProvider>
+      );
+      expect(screen.getByRole('region')).toHaveClass('bestax-is-overlay');
+    });
+  });
+
   describe('Auto-play', () => {
     it('advances to next slide automatically', () => {
       const onChange = jest.fn();

@@ -407,24 +407,35 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
     padding: 1rem;
     width: 100%;
 
+    // Over the slides, at the bottom edge
     &.#{iv.$class-prefix}is-inside {
       position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
-      background: linear-gradient(transparent, #{$carousel-gradient-overlay});
       padding-bottom: 1.5rem;
     }
 
-    // `is-top` moves only indicators over the slides: below them it has no
-    // edge to move to. `:where()` keeps the rule at the specificity of the
-    // bare `is-top` one it replaces.
+    // Over the slides, at the top edge. `is-top` moves only indicators over
+    // the slides: below them it has no edge to move to. `:where()` keeps the
+    // rule at the specificity of the bare `is-top` one it replaces.
     &.#{iv.$class-prefix}is-top:where(.#{iv.$class-prefix}is-inside) {
       top: 0;
       bottom: auto;
-      background: linear-gradient(#{$carousel-gradient-overlay}, transparent);
       padding-top: 1.5rem;
     }
+  }
+
+  // The overlay look's dark band behind indicators over the slides, which
+  // the plain look leaves off. `:where()` keeps both rules at the
+  // specificity the band had before `overlayControls` could turn it off, so
+  // a page's own rule that takes the band off still wins as it did.
+  &:where(.#{iv.$class-prefix}is-overlay) .#{iv.$class-prefix}carousel-indicator.#{iv.$class-prefix}is-inside {
+    background: linear-gradient(transparent, #{$carousel-gradient-overlay});
+  }
+
+  &:where(.#{iv.$class-prefix}is-overlay) .#{iv.$class-prefix}carousel-indicator.#{iv.$class-prefix}is-top:where(.#{iv.$class-prefix}is-inside) {
+    background: linear-gradient(#{$carousel-gradient-overlay}, transparent);
   }
 
   // Indicator items
@@ -489,7 +500,7 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
     }
   }
 
-  // Inside indicator light variant (overlay mode)
+  // The overlay look (`overlayControls`, which `indicatorInside` turns on)
   &.#{iv.$class-prefix}is-overlay {
     .#{iv.$class-prefix}carousel-indicator.#{iv.$class-prefix}is-inside {
       .#{iv.$class-prefix}indicator-item {
