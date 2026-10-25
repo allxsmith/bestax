@@ -61,6 +61,34 @@ You can use the `variant` and `features` props for Font Awesome-specific styling
 />
 ```
 
+### Brand Icons
+
+Font Awesome keeps brand logos (GitHub, LinkedIn, Mastodon and the rest) in a style of their own, so a brand glyph needs `variant="brands"`, which renders the `fab` class. Without it the icon takes the default solid style, which has no brand glyphs. The free package includes the brands.
+
+```tsx live
+<Block display="flex" alignItems="center">
+  <Icon name="github" variant="brands" ariaLabel="GitHub" />
+  <Icon name="linkedin" variant="brands" ariaLabel="LinkedIn" />
+  <Icon name="mastodon" variant="brands" ariaLabel="Mastodon" />
+</Block>
+```
+
+For social links, put the name on each link and leave its icon unnamed, as for any icon-only control:
+
+```tsx live
+<Block display="flex" alignItems="center">
+  <Link href="https://github.com" aria-label="GitHub" mr="3">
+    <Icon name="github" variant="brands" size="medium" features="fa-lg" />
+  </Link>
+  <Link href="https://www.linkedin.com" aria-label="LinkedIn" mr="3">
+    <Icon name="linkedin" variant="brands" size="medium" features="fa-lg" />
+  </Link>
+  <Link href="https://mastodon.social" aria-label="Mastodon">
+    <Icon name="mastodon" variant="brands" size="medium" features="fa-lg" />
+  </Link>
+</Block>
+```
+
 ### Spinning Icon
 
 The `features` prop can be used to add Font Awesome modifiers like `fa-spin` for animated icons. This example shows a spinning loading icon with increased size.
