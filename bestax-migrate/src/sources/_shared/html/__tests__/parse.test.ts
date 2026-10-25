@@ -120,8 +120,68 @@ describe('parseHtml', () => {
     );
     expect(parsed.errors).toEqual([
       { code: 'invalid-first-character-of-tag-name', line: 2, col: 6 },
-      { code: 'duplicate-attribute', line: 3, col: 21 },
+      {
+        code: 'duplicate-attribute',
+        line: 3,
+        col: 21,
+        attribute: { name: 'class', kept: 'class="a"', dropped: 'class="b"' },
+      },
     ]);
+  });
+
+  it('names a duplicate attribute, as the page writes each copy', () => {
+    const duplicates = (source: string) =>
+      parseHtml(source)
+        .errors.filter(error => error.code === 'duplicate-attribute')
+        .map(error => error.attribute);
+    // Every way a value is written, and none.
+    expect(
+      duplicates(
+        `<input a="1" a='2' b=3 b c\n  = "4" c = x data-a=5 a=6 data-a>`
+      )
+    ).toEqual([
+      { name: 'a', kept: 'a="1"', dropped: "a='2'" },
+      { name: 'b', kept: 'b=3', dropped: 'b' },
+      { name: 'c', kept: 'c\n  = "4"', dropped: 'c = x' },
+      { name: 'a', kept: 'a="1"', dropped: 'a=6' },
+      { name: 'data-a', kept: 'data-a=5', dropped: 'data-a' },
+    ]);
+    // The name as the parser reads it, each copy as written; parse5's own
+    // end for the first copy stops at its name when no space follows it.
+    expect(duplicates('<svg viewBox="0 1" VIEWBOX="2"></svg>')).toEqual([
+      { name: 'viewbox', kept: 'viewBox="0 1"', dropped: 'VIEWBOX="2"' },
+    ]);
+    expect(duplicates('<p a="1"a=2>x</p>')).toEqual([
+      { name: 'a', kept: 'a="1"', dropped: 'a=2' },
+    ]);
+    // On a document's own tags, in its head, and in a template.
+    expect(
+      duplicates(
+        '<!DOCTYPE html><html lang=en lang=fr><head><meta name=a name=b></head>' +
+          '<body class=a class=b><template><li id=c id=d></li></template></body></html>'
+      )
+    ).toEqual([
+      { name: 'lang', kept: 'lang=en', dropped: 'lang=fr' },
+      { name: 'name', kept: 'name=a', dropped: 'name=b' },
+      { name: 'class', kept: 'class=a', dropped: 'class=b' },
+      { name: 'id', kept: 'id=c', dropped: 'id=d' },
+    ]);
+  });
+
+  it('leaves a duplicate unnamed where the tag made no element', () => {
+    // An end tag, a second `<body>` (whose attributes join the first's), and
+    // a tag the file ends inside.
+    for (const source of [
+      '<p>x</p a a>',
+      '<!DOCTYPE html><body><p>x</p><body id=c id=d></body>',
+      '<p>x</p><input a=1 a',
+    ]) {
+      const duplicate = parseHtml(source).errors.find(
+        error => error.code === 'duplicate-attribute'
+      );
+      expect(duplicate).toBeDefined();
+      expect(duplicate?.attribute).toBeUndefined();
+    }
   });
 
   it('gives a frameset page an empty body', () => {

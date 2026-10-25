@@ -1275,9 +1275,24 @@ function relativeUrlNotes(root: ParentNode, dir: string, notes: Note[]): void {
   }
 }
 
+/**
+ * The parse errors, once per code with how many more there are, except a
+ * duplicate attribute whose name is known: each of those is its own note,
+ * naming the attribute and the copy the element keeps, since no two are
+ * about the same thing and reading the DOM is the only other way to tell.
+ */
 function parseNotes(parsed: ParsedHtml, notes: Note[]): void {
   const byCode = new Map<string, { line: number; count: number }>();
   for (const error of parsed.errors) {
+    const duplicate = error.attribute;
+    if (duplicate) {
+      notes.push({
+        rule: htmlRuleId('html-parse', error.code),
+        message: `the HTML writes \`${duplicate.name}\` more than once on one element, and a browser keeps the first, \`${quote(duplicate.kept)}\`, and drops this one, \`${quote(duplicate.dropped)}\`: the component keeps the first too, so if the page meant the other, change it there`,
+        line: error.line,
+      });
+      continue;
+    }
     const seen = byCode.get(error.code);
     if (seen) seen.count++;
     else byCode.set(error.code, { line: error.line, count: 1 });

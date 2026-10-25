@@ -35,6 +35,24 @@ export interface HtmlParseError {
   code: string;
   line: number;
   col: number;
+  /**
+   * For a `duplicate-attribute` on an element's start tag, which attribute
+   * it is. Absent where the tag made no element (an end tag, a second
+   * `<body>`), or the name can't be read back out of the source.
+   */
+  attribute?: DuplicateAttribute;
+}
+
+/**
+ * An attribute a start tag writes twice. A browser keeps the first and drops
+ * the rest, so `kept` is what the element has and `dropped` is the copy this
+ * error is about, each as the page writes it (`placeholder="Email"`).
+ */
+export interface DuplicateAttribute {
+  /** The name, lowercased as the parser reads it. */
+  name: string;
+  kept: string;
+  dropped: string;
 }
 
 export interface ParsedHtml {
@@ -112,8 +130,76 @@ function find(nodes: ChildNode[], tag: string): Element | undefined {
   );
 }
 
+/** The element whose start tag holds `offset`, anywhere under `node`. */
+function elementAt(node: ParentNode, offset: number): Element | undefined {
+  for (const child of childrenOf(node)) {
+    if (!isElement(child)) continue;
+    const tag = child.sourceCodeLocation?.startTag;
+    if (tag && tag.startOffset < offset && offset < tag.endOffset) {
+      return child;
+    }
+    const inside = elementAt(child, offset);
+    if (inside) return inside;
+  }
+  return undefined;
+}
+
+/** What may sit just before an attribute's name in a start tag. */
+const BEFORE_NAME = /[\t\n\f\r /"']/;
+
+/**
+ * The value written after an attribute's name, if any: `="a"`, `='a'`, `=a`,
+ * with the whitespace the tokenizer allows around the `=`.
+ */
+const VALUE_AFTER_NAME =
+  /[\t\n\f\r ]*=[\t\n\f\r ]*(?:"[^"]*"?|'[^']*'?|[^\t\n\f\r >]*)/y;
+
+const asciiLower = (text: string): string =>
+  text.replace(/[A-Z]/g, letter => letter.toLowerCase());
+
+/**
+ * An attribute as the page writes it, from where its name starts. Read from
+ * the source rather than parse5's end offset, which stops at the name when
+ * the next attribute follows a quoted value with no space between them.
+ */
+function writtenAt(source: string, start: number, name: string): string {
+  VALUE_AFTER_NAME.lastIndex = start + name.length;
+  const end = VALUE_AFTER_NAME.exec(source)
+    ? VALUE_AFTER_NAME.lastIndex
+    : start + name.length;
+  return source.slice(start, end).trimEnd();
+}
+
+/**
+ * Which attribute a `duplicate-attribute` error is about. parse5 reports it
+ * where the second copy's name ends, and the tag keeps only the first copy,
+ * whose name and place it records; so the name is the longest of the
+ * element's that the source spells just before the error.
+ */
+function duplicateAt(
+  source: string,
+  tree: ParentNode,
+  offset: number
+): DuplicateAttribute | undefined {
+  const attrs = elementAt(tree, offset)?.sourceCodeLocation?.attrs ?? {};
+  const name = Object.keys(attrs)
+    .filter(
+      key =>
+        asciiLower(source.slice(offset - key.length, offset)) === key &&
+        BEFORE_NAME.test(source.charAt(offset - key.length - 1))
+    )
+    .sort((a, b) => b.length - a.length)[0];
+  if (name === undefined) return undefined;
+  return {
+    name,
+    kept: writtenAt(source, attrs[name].startOffset, name),
+    dropped: writtenAt(source, offset - name.length, name),
+  };
+}
+
 export function parseHtml(source: string): ParsedHtml {
   const errors: HtmlParseError[] = [];
+  const offsets: number[] = [];
   const options = {
     sourceCodeLocationInfo: true,
     scriptingEnabled: false,
@@ -123,12 +209,23 @@ export function parseHtml(source: string): ParsedHtml {
         line: error.startLine,
         col: error.startCol,
       });
+      offsets.push(error.startOffset);
     },
   };
+  // Each duplicate is named once the tree is built, since its element is.
+  const nameDuplicates = (tree: ParentNode) => {
+    errors.forEach((error, index) => {
+      if (error.code !== 'duplicate-attribute') return;
+      const attribute = duplicateAt(source, tree, offsets[index]);
+      if (attribute) error.attribute = attribute;
+    });
+  };
   if (!isDocument(source)) {
+    const fragment = parseFragment(source, options);
+    nameDuplicates(fragment);
     return {
       kind: 'fragment',
-      root: parseFragment(source, options),
+      root: fragment,
       head: [],
       htmlAttributes: [],
       bodyAttributes: [],
@@ -138,6 +235,7 @@ export function parseHtml(source: string): ParsedHtml {
     };
   }
   const document = parse(source, options);
+  nameDuplicates(document);
   // The parser always builds `<html>`, and inside it `<head>` and `<body>`
   // (a `<frameset>` page has no body, and gets an empty one here).
   const html = find(document.childNodes, 'html')!;
