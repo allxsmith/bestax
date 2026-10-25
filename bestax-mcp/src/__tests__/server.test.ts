@@ -2180,6 +2180,7 @@ describe('lookup_bulma_classes where the skill and the codemod have an answer', 
     expect(th).toContain('get_props({ component: "Table.Th" })');
     const td = await lookup('has-text-right has-text-primary', 'td');
     expect(td).toContain('bestax `Table.Td` renders one as it is');
+    expect(td).toContain('props of its own, `isAligned` and `color`');
     expect(td).toContain('`textAlign="right"` renders it');
     // A table part's color props are its own, so the lookup claims none.
     expect(td).toContain(

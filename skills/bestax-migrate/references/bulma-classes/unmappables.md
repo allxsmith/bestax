@@ -859,7 +859,7 @@ A page with no Bulma component class writes nothing and reports nothing.
   converts the `.table` and leaves the `<thead>`, `<tbody>`, `<tfoot>`, `<tr>`, `<th>` and `<td>`
   inside it as they are. To write them by hand, `Table.Thead`, `Table.Tbody`, `Table.Tfoot`,
   `Table.Tr`, `Table.Th` and `Table.Td` render each tag as it is and take the helper props, and
-  `Table.Th` takes `isAligned` for its alignment (`<Table.Th isAligned="centered">`).
+  `Table.Th` and `Table.Td` take `isAligned` for their alignment (`<Table.Td isAligned="right">`).
 - `.help`, `.label`, `.loader` and the other classes in the component map's "left alone" list.
 - A class with no bestax prop on a converted element: it stays in `className`. That covers
   v1's `marginless` and `paddingless`, which have the same rules as `m-0` and `p-0` under
