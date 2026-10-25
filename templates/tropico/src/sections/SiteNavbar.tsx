@@ -23,7 +23,7 @@ function SiteNavbar({ route }: { route: Route }) {
         <Navbar.Brand>
           <Navbar.Item href="https://bulma.io">
             <img
-              src="https://bulma.io/assets/brand/Bulma%20Logo.svg"
+              src="/images/bulma-logo.svg"
               alt="Bulma"
               width={112}
               height={28}

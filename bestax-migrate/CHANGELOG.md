@@ -1,3 +1,15 @@
+# [2.32.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.31.3...bestax-migrate@2.32.0) (2026-10-25)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** list a page stylesheet's string [@imports](https://github.com/imports) beside its url()s ([4eb85ab](https://github.com/allxsmith/bestax/commit/4eb85ab1ef88faf46e6d05e62065dfcfbb082a9a))
+
+
+### Features
+
+* **bestax-migrate:** note a second color, a heading's textSize and a stylesheet's url()s ([dbe7702](https://github.com/allxsmith/bestax/commit/dbe7702113ea8d22ebd480ca26d0d29c63395e74))
+
 ## [2.31.3](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.31.2...bestax-migrate@2.31.3) (2026-10-24)
 
 

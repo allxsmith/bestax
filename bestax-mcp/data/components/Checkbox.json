@@ -32,9 +32,13 @@
     {
       "title": "Theming the Box",
       "code": "<Checkbox className=\"ink-checkbox\" defaultChecked>\n  Remember me\n</Checkbox>"
+    },
+    {
+      "title": "Box Size",
+      "code": "<Checkbox className=\"compact-checkbox\">Remember me</Checkbox>"
     }
   ],
-  "accessibility": "- Each `Checkbox` is rendered as a `<label>` wrapping an `<input type=\"checkbox\">` and the label text, for optimal accessibility.\n- The clickable area includes both box and label by default.\n- Browsers expose a box with `indeterminate` set as mixed, so the component adds no ARIA for it.\n- An unchecked box shows only its border, `--bulma-checkbox-border-color`. It defaults to `--bulma-text-weak`, which holds the 3:1 contrast WCAG asks of a control's boundary (non-text contrast) on Bulma's page and card surfaces in light and dark. Hold a replacement border, and a custom check color on its fill, to 3:1 as well.\n- In forced colors (Windows contrast themes), the box, the check mark and the mixed dash take system colors, so they stay visible whatever the variables hold.",
+  "accessibility": "- Each `Checkbox` is rendered as a `<label>` wrapping an `<input type=\"checkbox\">` and the label text, for optimal accessibility.\n- The clickable area includes both box and label by default.\n- Browsers expose a box with `indeterminate` set as mixed, so the component adds no ARIA for it.\n- The box is at least 24px square, the minimum size WCAG 2.2 sets for a target (2.5.8), whatever `--bulma-checkbox-size` says. [Box Size](https://bestax.io/docs/api/form/checkbox#box-size) shows how to make it smaller, and why to keep the label text inside the `Checkbox` when you do.\n- An unchecked box shows only its border, `--bulma-checkbox-border-color`. It defaults to `--bulma-text-weak`, which holds the 3:1 contrast WCAG asks of a control's boundary (non-text contrast) on Bulma's page and card surfaces in light and dark. Hold a replacement border, and a custom check color on its fill, to 3:1 as well.\n- In forced colors (Windows contrast themes), the box, the check mark and the mixed dash take system colors, so they stay visible whatever the variables hold.",
   "related": ["Checkboxes", "Field", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-checkbox--default",
   "summary": "The `Checkbox` component provides a Bulma-styled checkbox input.",
@@ -87,8 +91,8 @@
         {
           "name": "indeterminate",
           "type": "boolean",
-          "default": "false",
-          "description": "Shows the mixed state, as in a \"Select all\" box when some of what it covers is checked. It's a look and an announcement only: `checked` is still the value, and a click still toggles `checked`. A browser clears the mixed state on a click, so the component sets it again from this prop after every click and every render. Left unset, the component doesn't touch it, and once it has set it, going back to unset clears it once and hands it back. It has no HTML attribute, so server-rendered markup can't carry it, and a mixed box renders unmixed until hydration.",
+          "default": null,
+          "description": "Shows the mixed state, as in a \"Select all\" box when some of what it covers is checked. It's a look and an announcement only: `checked` is still the value, and a click still toggles `checked`. Set to `true` or `false`, it's controlled: a browser clears the mixed state on a click, so the component sets it again from this prop after every click and every render. Unset isn't `false`. The component leaves the input's own `indeterminate` property alone, so a ref can set it, and going from set to unset clears it once and hands it back. It has no HTML attribute, so server-rendered markup can't carry it, and a mixed box renders unmixed until hydration.",
           "required": false,
           "inherited": false,
           "deprecated": false

@@ -120,7 +120,11 @@ A couple of results look odd until you see why:
 - `<h2 className="title is-4">` becomes `<Title as="h2" className="is-4">`, not
   `<Title size="4">`. bestax picks the heading tag from `size`, so `size="4"` would render an
   `<h4>`. To write it as a prop, `textSize="4"` keeps the `<h2>` and sizes it the same, with
-  Bulma's `is-size-4`.
+  Bulma's `is-size-4`, and the TODO on the element says so (`modifier:title`).
+- A second color stays in `className` with a TODO: `<button className="button is-black is-primary">`
+  becomes `<Button color="black" className="is-primary">` and gets `modifier:button`, since a
+  component takes one `color`, and Bulma's stylesheet, not the order of the classes, decides how
+  the two look together.
 - `<div className="is-flex mt-4">` doesn't change at all. bestax has no plain `<div>` component,
   and the classes are valid Bulma, so there is nothing to do and nothing to flag.
 - An element with two component classes becomes one component, and the other class stays in

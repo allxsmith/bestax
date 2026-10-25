@@ -1,6 +1,7 @@
 import { Box, Button, Notification, Title } from "@allxsmith/bestax-bulma";
 
 export default function AttributesPage() {
+  // TODO(bestax-migrate): `.is-4` stays in its `className`, which renders the same: bestax `Title` renders it exactly only on an <h4> or a <p>, as `size="4"`; on this <h2>, write `textSize="4"` in its place, which sizes it the same and keeps the <h2>, though `textSize` renders a Bulma helper class, which is `!important`: check the page's own CSS sets no size on it (attributes.html:2)
   // TODO(bestax-migrate): bestax `Tag` renders only <span>, not an <a>; keep the markup, or change the tag and re-run on `attributes.jsx` (attributes.html:5)
   return (
     <Box

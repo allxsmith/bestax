@@ -62,7 +62,7 @@ export interface Modifier {
    * sizes the element the same without picking its tag (`textSize`, whose
    * `is-size-4` Bulma sizes as it does `Title`'s `is-4`). The MCP lookup reads
    * it, and the truth e2e holds it to Bulma's stylesheet; the codemod writes
-   * it nowhere, with no TODO either, since its class differs.
+   * it nowhere, since its class differs, and names it in a TODO instead.
    */
   readonly offTag?: PropWrite;
   /**
