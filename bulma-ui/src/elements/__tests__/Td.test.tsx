@@ -20,6 +20,73 @@ describe('Td Component', () => {
     const td = screen.getByRole('cell', { name: 'Test' });
     expect(td).toBeInTheDocument();
     expect(td.tagName).toBe('TD');
+    expect(td).not.toHaveClass('has-text-left');
+    expect(td).not.toHaveClass('has-text-right');
+    expect(td).not.toHaveClass('has-text-centered');
+  });
+
+  test.each([
+    ['left', 'has-text-left'],
+    ['right', 'has-text-right'],
+    ['centered', 'has-text-centered'],
+  ])('applies alignment class for isAligned="%s"', (align, expectedClass) => {
+    render(
+      <table>
+        <tbody>
+          <tr>
+            <Td
+              {...defaultProps}
+              isAligned={align as 'left' | 'right' | 'centered'}
+            />
+          </tr>
+        </tbody>
+      </table>
+    );
+    const td = screen.getByRole('cell', { name: 'Test' });
+    expect(td).toHaveClass(expectedClass);
+  });
+
+  test('does not apply alignment class for invalid isAligned', () => {
+    render(
+      <table>
+        <tbody>
+          <tr>
+            <Td
+              {...defaultProps}
+              isAligned={'invalid' as unknown as TdProps['isAligned']}
+            />
+          </tr>
+        </tbody>
+      </table>
+    );
+    const td = screen.getByRole('cell', { name: 'Test' });
+    expect(td).not.toHaveClass('has-text-invalid');
+    expect(td).not.toHaveClass('has-text-left');
+    expect(td).not.toHaveClass('has-text-right');
+    expect(td).not.toHaveClass('has-text-centered');
+  });
+
+  test('applies alignment with color and other props', () => {
+    render(
+      <table>
+        <tbody>
+          <tr>
+            <Td
+              {...defaultProps}
+              color="primary"
+              isAligned="centered"
+              m="4"
+              className="custom-td"
+            />
+          </tr>
+        </tbody>
+      </table>
+    );
+    const td = screen.getByRole('cell', { name: 'Test' });
+    expect(td).toHaveClass('is-primary');
+    expect(td).toHaveClass('has-text-centered');
+    expect(td).toHaveClass('m-4');
+    expect(td).toHaveClass('custom-td');
   });
 
   test('applies color class (e.g., is-primary)', () => {
@@ -141,13 +208,30 @@ describe('Td Component', () => {
       expect(td).toHaveClass('is-primary');
     });
 
-    it('applies prefix to both color and helper classes', () => {
+    it('applies classPrefix to alignment classes', () => {
+      render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <table>
+            <tbody>
+              <tr>
+                <Td isAligned="right">Test</Td>
+              </tr>
+            </tbody>
+          </table>
+        </ConfigProvider>
+      );
+      const td = screen.getByRole('cell', { name: 'Test' });
+      expect(td).toHaveClass('my-prefix-has-text-right');
+      expect(td).not.toHaveClass('has-text-right');
+    });
+
+    it('applies prefix to color, alignment and helper classes', () => {
       render(
         <ConfigProvider classPrefix="bulma-">
           <table>
             <tbody>
               <tr>
-                <Td color="primary" m="2" p="3">
+                <Td color="primary" isAligned="left" m="2" p="3">
                   Test Cell
                 </Td>
               </tr>
@@ -158,6 +242,7 @@ describe('Td Component', () => {
 
       const td = screen.getByRole('cell', { name: 'Test Cell' });
       expect(td).toHaveClass('bulma-is-primary');
+      expect(td).toHaveClass('bulma-has-text-left');
       expect(td).toHaveClass('bulma-m-2');
       expect(td).toHaveClass('bulma-p-3');
     });
@@ -167,7 +252,7 @@ describe('Td Component', () => {
         <table>
           <tbody>
             <tr>
-              <Td color="info" textAlign="centered">
+              <Td color="info" isAligned="right" textAlign="centered">
                 Standard Cell
               </Td>
             </tr>
@@ -177,6 +262,7 @@ describe('Td Component', () => {
 
       const td = screen.getByRole('cell', { name: 'Standard Cell' });
       expect(td).toHaveClass('is-info');
+      expect(td).toHaveClass('has-text-right');
       expect(td).toHaveClass('has-text-centered');
     });
   });

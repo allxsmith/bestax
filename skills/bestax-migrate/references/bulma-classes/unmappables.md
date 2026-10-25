@@ -801,9 +801,15 @@ than `this`. A `<body onload>` becomes an effect.
 
 The HTML has an error the browser repaired (`html-parse:duplicate-attribute`,
 `html-parse:end-tag-without-matching-open-element`), reported once for each kind, with how many
-more there are. The module follows the DOM the browser builds from it, which may not be what the
-markup meant, so check that part of the page. A code too long for a rule id is reported as the bare
-`html-parse`.
+more there are, except a duplicate attribute (below). The module follows the DOM the browser
+builds from it, which may not be what the markup meant, so check that part of the page. A code too
+long for a rule id is reported as the bare `html-parse`.
+
+A duplicate attribute on an element gets an entry of its own, naming the attribute, the copy the
+element keeps (the first) and the one the browser drops (`placeholder="Email"` kept,
+`placeholder="Your email"` dropped). The module has the kept one, so if the page meant the other,
+change the value there. One the codemod can't name, such as one on an end tag, is counted with the
+rest.
 
 ### The page itself: `html-file:<case>`
 

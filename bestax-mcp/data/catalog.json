@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.43.1"
+    "version": "5.44.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -256,7 +256,7 @@
       "import": "import { Carousel, CarouselItem } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 30,
-      "exampleCount": 13
+      "exampleCount": 15
     },
     {
       "name": "Cell",
@@ -278,7 +278,7 @@
       "import": "import { Checkboxes, Checkbox } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 8,
-      "exampleCount": 7
+      "exampleCount": 8
     },
     {
       "name": "Checkboxes",
@@ -608,7 +608,7 @@
       "import": "import { Icon } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 15,
-      "exampleCount": 12
+      "exampleCount": 14
     },
     {
       "name": "IconText",
@@ -1069,7 +1069,7 @@
       "slug": "elements/table",
       "import": "import { Table, Thead, Tbody, Tfoot, Tr, Th, Td } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 27,
+      "propCount": 28,
       "exampleCount": 7
     },
     {

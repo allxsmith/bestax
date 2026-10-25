@@ -113,7 +113,7 @@
         {
           "id": "bulma-classes-unmappables",
           "file": "references/bulma-classes/unmappables.md",
-          "bytes": 57464
+          "bytes": 57888
         },
         {
           "id": "css-migration",
@@ -176,7 +176,7 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 48297
+          "bytes": 49743
         },
         {
           "id": "themeable-components",

@@ -322,6 +322,17 @@ come from the `itemsToShow*` props, and `--bulma-carousel-items-in-view` is the 
 viewport picks. The props also decide how far a step moves, so set the count with the props
 rather than with these variables.
 
+The `--bulma-carousel-overlay-*` variables color the arrows and indicators only on a carousel with
+`indicatorInside`, which also moves the indicators onto the slides over a dark gradient band, and
+whose arrows then ignore `arrowColor`. No prop separates the two. To keep the plain colors with the
+indicators over the slides, set each overlay variable to its plain one on a class on the carousel
+(`--bulma-carousel-overlay-arrow-color: var(--bulma-carousel-arrow-color)`, and so on for the
+arrow backgrounds and the indicator backgrounds), and drop the band, which is a `background`
+rather than a variable, with `.carousel.my-carousel .carousel-indicator.is-inside { background:
+none; }` (mind the class prefix). With `indicatorStyle="circles"`, also give the inactive circles
+`background-color: transparent` (`.carousel.my-carousel.is-indicator-circles .carousel-indicator.is-inside .indicator-item:not(.is-active)`),
+since the overlay look fills them.
+
 ### Checkbox
 
 `--bulma-checkbox-active-color`, `--bulma-checkbox-background`, `--bulma-checkbox-border-color`,
@@ -340,6 +351,12 @@ in. A `color` prop declares both fills again on `.styled-checkbox.is-<color>`, w
 that selector, so leave `color` unset when a class sets the fill. The unchecked border, `--bulma-checkbox-border-color`, defaults to `text-weak` so
 the box holds the 3:1 WCAG asks of a control's boundary; keep a replacement at 3:1 against what
 the form sits on.
+
+`--bulma-checkbox-size` (default `1.25em`) can't take the box below 24px: the stylesheet gives the
+`.check` box a `min-width` and `min-height` of 24px, WCAG 2.2's minimum target size, so with
+Bulma's default font sizes the box is 24px at the default and `small` sizes. For a smaller box, set the size and also
+`min-width: 0; min-height: 0` on `.styled-checkbox.my-box .check` (mind the class prefix), and keep
+the label text inside the `Checkbox`, since the whole label is the click target.
 
 ### Collapse
 

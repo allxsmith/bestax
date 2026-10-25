@@ -98,7 +98,7 @@ const meta: Meta<typeof Carousel> = {
       control: 'select',
       options: [undefined, 'light', 'dark'],
       description:
-        'Arrow icon color variant for visibility on different backgrounds',
+        'Arrow icon color variant for visibility on different backgrounds. Not applied with indicatorInside, whose overlay look colors the arrows',
     },
     indicator: {
       control: 'boolean',
@@ -106,12 +106,14 @@ const meta: Meta<typeof Carousel> = {
     },
     indicatorInside: {
       control: 'boolean',
-      description: 'Position indicators inside carousel',
+      description:
+        'Put the indicators over the slides on a dark gradient band. Also turns on the overlay look: the arrows and these indicators take the --bulma-carousel-overlay-* colors',
     },
     indicatorPosition: {
       control: 'select',
       options: ['bottom', 'top'],
-      description: 'Indicator position',
+      description:
+        'The edge of the slides indicatorInside puts the indicators on. Without indicatorInside they sit below the slides',
     },
     indicatorStyle: {
       control: 'select',
