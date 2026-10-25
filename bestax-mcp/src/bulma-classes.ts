@@ -1194,20 +1194,24 @@ function readsGlyphText(target: string, glyph: ReadsGlyph): string {
   return (
     ` Around one bare, empty <i> naming a Font Awesome or Material Design ` +
     `Icons glyph, and nothing else, write the <i>'s classes as its props and ` +
-    `drop the <i>, so it closes itself: the library as \`library\`, a Font ` +
-    `Awesome style as \`variant\` (left out for \`fas\`, its default), the ` +
-    `class naming the glyph as \`name\` and the rest as \`features\` ` +
-    `(\`far fa-bell fa-lg\` as \`library="fa" name="bell" variant="regular" ` +
-    `features="fa-lg"\`). Around anything else it renders what it holds as ` +
-    `given. Font Awesome's own \`<i aria-hidden="true">\` converts the same ` +
-    `way when the element carries nothing but ` +
+    `drop the <i>, so it closes itself: the library as \`library\` (left out ` +
+    `for Font Awesome, its default), a Font Awesome style as \`variant\` (left ` +
+    `out for \`fas\`, its default, and Font Awesome 6's long names read as ` +
+    `the short ones, \`fa-brands\` as \`brands\`), the class naming the glyph ` +
+    `as \`name\` and the rest as \`features\` (\`far fa-bell fa-lg\` as ` +
+    `\`name="bell" variant="regular" features="fa-lg"\`). Around anything ` +
+    `else it renders what it holds as given. Font Awesome's own ` +
+    `\`<i aria-hidden="true">\` converts the same way when the element ` +
+    `carries nothing but ` +
     `${rideAlong.slice(0, -1).join(', ')} and ${rideAlong[rideAlong.length - 1]}: ` +
     `\`${target}\` writes \`aria-hidden\` on the element instead, which hides ` +
-    `the same glyph. Beside anything else, a \`title\`, a \`role\` or a ` +
-    `\`tabIndex\` say, whether written out or as an expression, nothing moves, ` +
-    `since the move would hide what that exposes: the <i> stays with its ` +
-    `\`aria-hidden\`, and the element converts around it only where it would ` +
-    `around any other child.`
+    `the same glyph. So does an element with no \`aria-hidden\` that carries ` +
+    `no more, in a <button> or a link that its own \`aria-label\` or ` +
+    `\`aria-labelledby\` names, where the icon is decoration. Beside anything ` +
+    `else, a \`title\`, a \`role\` or a \`tabIndex\` say, whether written out ` +
+    `or as an expression, nothing moves, since the move would hide what that ` +
+    `exposes: the <i> stays with its \`aria-hidden\`, and the element converts ` +
+    `around it only where it would around any other child.`
   );
 }
 
@@ -1292,8 +1296,8 @@ export function renderLookup(
             : '') +
           (element.buildsIcons
             ? ` It builds its icons from props: write each \`.icon\` inside as ` +
-              `one icon's props, its <i>'s classes read as \`library\` and ` +
-              `\`name\` (\`fas fa-home\` as \`library: 'fa', name: 'home'\`) ` +
+              `one icon's props, its <i>'s classes read as on \`Icon\` ` +
+              `(\`fas fa-home\` as \`name: 'home'\`) ` +
               `and its attributes under their own names, with the bare <span> of ` +
               `text after it as its text. One icon goes in \`iconProps\`, with ` +
               `its text as the children, and more than one in \`items\`.`

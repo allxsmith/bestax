@@ -1,6 +1,6 @@
 import { Button, Control, Field, InputBase, SelectBase, TextAreaBase } from "@allxsmith/bestax-bulma";
 export function SignUp() {
-  // TODO(bestax-migrate): bestax `Icon` renders `aria-hidden="true"` when the element does not set it; add it here if that is what you want, then re-run, and this converts to `Icon` with `library="fa" name="user"`; or, since the `.control` around it has `has-icons-left`, drop this `.icon` and give that `Control` `iconLeft={{ library: "fa", name: "user", size: "small" }}`, which it renders after its children as a `.icon.is-left` around the glyph's <i>, hidden the way `Icon` hides it
+  // TODO(bestax-migrate): bestax `Icon` renders `aria-hidden="true"` when the element does not set it; add it here if that is what you want, then re-run, and this converts to `Icon` with `name="user"`; or, since the `.control` around it has `has-icons-left`, drop this `.icon` and give that `Control` `iconLeft={{ name: "user", size: "small" }}`, which it renders after its children as a `.icon.is-left` around the glyph's <i>, hidden the way `Icon` hides it
   // TODO(bestax-migrate): `.checkbox` stays as markup: bestax `Checkbox` renders its own styled markup, not Bulma's
   return (
     <form>

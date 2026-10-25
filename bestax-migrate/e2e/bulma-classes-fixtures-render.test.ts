@@ -3,9 +3,11 @@
  * migration. The input needs no library at all (it is plain JSX), so unlike
  * the other sources' fixtures it can run here, next to its output. Both are
  * compared with what a conversion changes on purpose restated: Font
- * Awesome's own `aria-hidden` moved up off the `<i>`
- * (`support/hidden-glyph.ts`), and a Bulma 0.9 class v1 removed written as
- * the v1 class that replaced it (`withV1Classes`).
+ * Awesome's own `aria-hidden` moved up off the `<i>`, and the one `Icon`
+ * writes on an icon in a link or button its own label names
+ * (`support/hidden-glyph.ts`), a Bulma 0.9 class v1 removed written as the v1
+ * class that replaced it (`withV1Classes`), and Font Awesome 6's long name for
+ * a style written as its short one (`support/font-awesome-styles.ts`).
  */
 
 import classNames from 'classnames';
@@ -13,7 +15,11 @@ import clsx from 'clsx';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { moveGlyphHidden } from './support/hidden-glyph.js';
+import { withShortStyles } from './support/font-awesome-styles.js';
+import {
+  moveGlyphHidden,
+  withLabelledGlyphsHidden,
+} from './support/hidden-glyph.js';
 import {
   loadModules,
   normalizeHtml,
@@ -67,13 +73,16 @@ describe('bulma-classes fixtures render the same before and after', () => {
     const after = render(`${name}.output.tsx`);
     expect(after).toEqual(
       Object.fromEntries(
-        Object.entries(before).map(([exported, html]) => [
-          exported,
-          withImplicitListRoles(
-            withV1Classes(html, after[exported] ?? ''),
-            after[exported] ?? ''
-          ),
-        ])
+        Object.entries(before).map(([exported, html]) => {
+          const converted = after[exported] ?? '';
+          const restated = [
+            withV1Classes,
+            withImplicitListRoles,
+            withShortStyles,
+            withLabelledGlyphsHidden,
+          ].reduce((markup, restate) => restate(markup, converted), html);
+          return [exported, restated];
+        })
       )
     );
   });

@@ -52,7 +52,8 @@ Run these steps in order. Don't hand-convert what the codemod converts automatic
    Each page becomes a module beside it (`index.tsx`, or `.jsx` when the package isn't
    TypeScript) whose default export is `<Name>Page`, named from the file (its folder's for an
    `index.html`). The page stays as it was, and the codemod never writes over a module that's
-   already there, so a re-run writes nothing. Its head, its `<html>` and `<body>` attributes and
+   already there, so a re-run on the page writes nothing: after fixing a TODO, re-run on the
+   module, which is what each TODO says. Its head, its `<html>` and `<body>` attributes and
    its scripts become `html-*` TODOs: put the app-wide parts in the app's `index.html` and
    entry, and port each script's work into the component. Under `--css bestax` or `--css bulma`
    the module imports the stylesheet in place of the page's Bulma `<link>`.
@@ -136,9 +137,13 @@ code per the references, or deliberately keep the old markup with `className` st
   drift than the 0.9 → 1 guide alone describes.
 - **bulma-classes**: there is no library to remove. An element converts only when the bestax
   component renders the same markup (tag, classes, attributes), so a converted page renders
-  the same HTML, but for deliberate exceptions: Font Awesome's own hidden `<i>` in a `.icon`
+  the same HTML, but for deliberate exceptions. Font Awesome's own hidden `<i>` in a `.icon`
   that carries nothing else assistive tech reads becomes `Icon`, which hides the `.icon`
-  instead, the glyph hidden either way, and Bulma 0.9's `is-marginless` and `is-paddingless`,
+  instead, the glyph hidden either way. Such a `.icon` around a bare glyph, in a link or button
+  its own `aria-label` names, becomes `Icon` too, which hides it, since the label is what a
+  screen reader reads there. Font Awesome 6's long style names (`fa-brands`) become the
+  `bestax-icons` skill's `variant` (`brands`), which renders the short name (`fab`), the same
+  style. And Bulma 0.9's `is-marginless` and `is-paddingless`,
   which style nothing under v1, become `m="0"` and `p="0"`. Everything else stays as written, with a
   TODO when there is something to decide. Static class strings convert, and so does a `clsx` or
   `classnames` call of strings and conditional classes, where a condition on a flag becomes
@@ -164,7 +169,8 @@ code per the references, or deliberately keep the old markup with `className` st
 
 - The codemod is safe to re-run after partial manual work: a library source only touches files
   that still import the library, and `bulma-classes` skips elements that are already
-  components and never repeats a TODO it already wrote.
+  components, never repeats a TODO it already wrote, and drops one that asked for a re-run once
+  it no longer applies.
 - Don't downgrade converted props back to the old names; bestax uses `is*` booleans
   (`isLoading`), string size unions (`textSize="4"`), and `as` rather than `renderAs`.
 - If a component the app uses isn't in the component map, it wasn't part of that library's

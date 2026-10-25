@@ -43,8 +43,11 @@ element only when the component renders **the markup the element did**: same tag
 classes, same attributes, with only the order of the classes free to change. The exceptions are
 deliberate. Font Awesome's own `<i aria-hidden="true">` in a `.icon` that carries nothing else
 assistive tech reads becomes `Icon`, which puts that attribute on the `.icon` instead, and the
-glyph is hidden either way. And Bulma 0.9's `is-marginless` and `is-paddingless`, which style
-nothing under v1, become `m="0"` and `p="0"`. Everything else stays as you wrote it, with a `TODO(bestax-migrate)`
+glyph is hidden either way. Such a `.icon` around a bare glyph, in a link or button its own
+`aria-label` names, becomes `Icon` too, which hides it, since the label is what a screen reader
+reads there. Font Awesome 6's long style names (`fa-brands`) become `Icon`'s `variant`
+(`brands`), which renders the short name (`fab`), the same style. And Bulma 0.9's
+`is-marginless` and `is-paddingless`, which style nothing under v1, become `m="0"` and `p="0"`. Everything else stays as you wrote it, with a `TODO(bestax-migrate)`
 comment when there's a decision to make.
 
 ## Run the codemod
@@ -146,12 +149,16 @@ A couple of results look odd until you see why:
   `aria-current="page"` to the link that marks the page you're on and re-run, and that item
   converts too (`attr:aria-current`).
 - A `.icon` around a bare Font Awesome or Material Design Icons `<i>` becomes
-  `<Icon library="fa" name="home" />`, the `<i>`'s style and other classes read as `variant` and
-  `features`. `Icon` hides a decorative icon with `aria-hidden="true"` on the `.icon` itself, so
-  Font Awesome's own `aria-hidden` on the `<i>` moves up there, unless the `.icon` carries
-  something assistive tech reads, such as a `title`, a `role` or a `tabIndex`. An icon hidden
+  `<Icon name="home" />`, the `<i>`'s style and other classes read as `variant` and `features`,
+  spelled as the [Icon API](/docs/api/elements/icon) writes them: `library` only for a
+  library other than Font Awesome, and none of the attributes `Icon` renders by itself. `Icon`
+  hides a decorative icon with `aria-hidden="true"` on the `.icon` itself, so Font Awesome's own
+  `aria-hidden` on the `<i>` moves up there, unless the `.icon` carries something assistive tech
+  reads, such as a `title`, a `role` or a `tabIndex`. An icon in a link or button its own
+  `aria-label` names is decoration there, and converts hidden the same way. Any other icon hidden
   nowhere stays markup (`defaults:Icon`), and the TODO says what to do: add the attribute to an
-  icon whose link or button is named by its label, or name an icon-only link first, then re-run.
+  icon whose link or button is named by its text, give an `<a>` with no `href` one (or make it a
+  `<button>`), or name an icon-only link first, then re-run.
 - A form converts piece by piece into `Field`, `Control`, `InputBase`, `TextAreaBase` and
   `SelectBase`, not into `Input`, `TextArea` or `Select`: those render a `.field` and a
   `.control` of their own, and the markup already has them. The `.label` and `.help` stay as
@@ -199,7 +206,7 @@ rule. The ones you'll see most:
 | `family:<class>`         | Rebuild that block from the component's docs page, parts and all                                       |
 | `tag:<Target>`           | Change the tag if you want the component, or keep the markup                                           |
 | `defaults:Delete`        | Add `type="button"` and a real `aria-label` to the `.delete` button, then re-run                       |
-| `defaults:Icon`          | Put `aria-hidden="true"` on a decorative `.icon`, naming an icon-only link first, then re-run          |
+| `defaults:Icon`          | Put `aria-hidden="true"` on a decorative `.icon`, or name an icon-only link, then re-run               |
 | `ref:<Target>`           | Keep the element; the component won't pass the ref through                                             |
 | `rsc`                    | Add `'use client'` if the file can be a client component, then re-run                                  |
 | `legacy:tile`            | Rebuild tiles with [Grid and Cell](/docs/api/grid); see the [Bulma 0.9 → 1 guide](./bulma-0-9-to-1.md) |
@@ -207,7 +214,8 @@ rule. The ones you'll see most:
 Every rule, with a recipe, is in the skill's
 [unmappables reference](https://github.com/allxsmith/bestax/blob/main/skills/bestax-migrate/references/bulma-classes/unmappables.md).
 It is safe to re-run the codemod after fixing some of them: converted elements are components
-now, and a TODO it already wrote is never written twice.
+now, a TODO it already wrote is never written twice, and one that asked for a re-run goes once it
+no longer applies.
 
 :::tip Let an agent do the follow-up
 The `bestax-migrate` Agent Skill runs the codemod and works through the TODOs from the same
@@ -321,7 +329,8 @@ The page's `<body>` is read the way a browser builds it, written as JSX (`class`
 `className`, `for` as `htmlFor`, a `style` string as an object, comments as JSX comments), and
 then converted exactly as the same markup written by hand would be, with every rule above. The
 page itself is never changed, and an existing module is never overwritten
-(`html-file:exists`), so running it again changes nothing. A page with no Bulma component class
+(`html-file:exists`), so running it on the page again changes nothing. A re-run that a TODO asks
+for goes on the module, and each TODO from the page names it. A page with no Bulma component class
 writes nothing, and a server template (`{{`, `{%`, `<?php`, `<%`) is refused
 (`html-file:template-syntax`) rather than read as HTML. `--dry` says what it would write, and
 `--print` prints the module, which it still writes unless `--dry` is set too.

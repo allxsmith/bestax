@@ -8,8 +8,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import transform from '../transform.js';
+import transform, { LIBRARY_SOURCES, todoKey } from '../transform.js';
 import { runTransform } from '../../../runner.js';
+import { getSource, sourceNames } from '../../registry.js';
 import type { TodoEntry } from '../../../types.js';
 
 const fixturesDir = path.join(
@@ -1359,7 +1360,7 @@ describe('an element whose component builds its icons from props', () => {
       )
     );
     expect(rules).toEqual(['legacy:tile']);
-    expect(output).toMatch(/className: "tile",/);
+    expect(output).toMatch(/className: "tile"/);
   });
 
   it('keeps its icons as markup when a computed className leaves it to a person', () => {
@@ -1394,7 +1395,7 @@ describe('an element whose component renders a glyph from props', () => {
     );
     expect(rules).toEqual([]);
     expect(output).toContain(
-      '<Icon\n      id="x"\n      library="fa"\n      name="spinner"\n      features={["fa-spin", "fa-fw"]}\n      size="small"\n      textColor="info"\n      aria-hidden="true" />'
+      '<Icon\n      id="x"\n      name="spinner"\n      features={["fa-spin", "fa-fw"]}\n      size="small"\n      textColor="info" />'
     );
     expect(output).not.toContain('<i ');
   });
@@ -1406,7 +1407,7 @@ describe('an element whose component renders a glyph from props', () => {
     const { output, rules } = migrate(source);
     expect(rules).toEqual([]);
     expect(output).toMatch(
-      /<Icon\s+library="fa"\s+name="bell"\s+variant="regular"\s+className=\{clsx\(on && "is-small"\)\}\s+aria-hidden="true" \/>/
+      /<Icon\s+name="bell"\s+variant="regular"\s+className=\{clsx\(on && "is-small"\)\} \/>/
     );
   });
 
@@ -1416,7 +1417,7 @@ describe('an element whose component renders a glyph from props', () => {
         '<span className="icon" aria-hidden="true"><i /* bell */ className="far fa-bell"></i></span>'
       )
     );
-    expect(output).toMatch(/<Icon \/\* bell \*\/ library="fa"/);
+    expect(output).toMatch(/<Icon \/\* bell \*\/ name="bell"/);
   });
 
   it('takes the <i> with it, so nothing on the <i> converts on its own', () => {
@@ -1435,10 +1436,32 @@ describe('an element whose component renders a glyph from props', () => {
   it('reads the .control around it and the label of the link or button it sits in', () => {
     const icon =
       '<span className="icon"><i className="fab fa-github"></i></span>';
-    const [labelled] = messages(
-      page(`<a href="/gh" aria-label="GitHub">${icon}</a>`)
+    // A link or <button> its own label names takes it as it is, hidden.
+    for (const control of [
+      `<a href="/gh" aria-label="GitHub">${icon}</a>`,
+      `<a href="" aria-labelledby="gh">${icon}</a>`,
+      `<button aria-label="GitHub">${icon}</button>`,
+    ]) {
+      const { output, rules } = migrate(page(control));
+      expect({ control, rules }).toEqual({ control, rules: [] });
+      expect(output).toContain('<Icon name="github" variant="brands" />');
+    }
+    // An <a> with no href is no link, which nothing names.
+    const [unlinked] = messages(page(`<a aria-label="GitHub">${icon}</a>`));
+    expect(unlinked).toMatch(
+      /^this `\.icon` sits in an <a> with no `href`, which is no link/
     );
-    expect(labelled).toMatch(/sits in an <a> that its `aria-label` names/);
+    // One that may be no link, or that has a role of its own, keeps the
+    // decoration's TODO.
+    for (const maybe of [
+      `<a href={url} aria-label="GitHub">${icon}</a>`,
+      `<a role="button" aria-label="GitHub">${icon}</a>`,
+      `<a {...props} aria-label="GitHub">${icon}</a>`,
+    ]) {
+      expect(messages(page(maybe))[0]).toMatch(
+        /sits in an <a> that its `aria-label` names/
+      );
+    }
     const [byText] = messages(
       page(`<button>${icon}<span>GitHub <b>profile</b></span></button>`)
     );
@@ -1478,9 +1501,7 @@ describe('an element whose component renders a glyph from props', () => {
         '<div className="control has-icons-left"><input className="input" /><span className="icon is-left"><i className="fas fa-envelope"></i></span></div>'
       )
     );
-    expect(inControl).toMatch(
-      /`iconLeft=\{\{ library: "fa", name: "envelope" \}\}`/
-    );
+    expect(inControl).toMatch(/`iconLeft=\{\{ name: "envelope" \}\}`/);
   });
 
   it("keeps Font Awesome's aria-hidden where it is beside anything assistive tech reads", () => {
@@ -1531,7 +1552,7 @@ describe('an element whose component renders a glyph from props', () => {
     );
     expect(rules).toEqual([]);
     expect(output).toContain(
-      '<Icon library="fa" name="github" variant="brands" size="small" />'
+      '<Icon name="github" variant="brands" size="small" />'
     );
   });
 
@@ -1540,10 +1561,15 @@ describe('an element whose component renders a glyph from props', () => {
       '<span className="icon is-left"><i className="fab fa-github"></i></span>';
     const bestax = (jsx: string) =>
       `import { Button, Control, Tag } from "@allxsmith/bestax-bulma";\n${page(jsx)}`;
+    expect(
+      migrate(
+        bestax(`<Button as="a" href="/gh" aria-label="GitHub">${icon}</Button>`)
+      ).output
+    ).toContain('<Icon name="github" variant="brands" className="is-left" />');
     const [link] = messages(
-      bestax(`<Button as="a" href="/gh" aria-label="GitHub">${icon}</Button>`)
+      bestax(`<Button as="a" aria-label="GitHub">${icon}</Button>`)
     );
-    expect(link).toMatch(/sits in an <a> that its `aria-label` names/);
+    expect(link).toMatch(/sits in an <a> with no `href`/);
     const [button] = messages(
       bestax(`<Button>${icon}<Tag>GitHub</Tag></Button>`)
     );
@@ -1551,7 +1577,9 @@ describe('an element whose component renders a glyph from props', () => {
     const [control] = messages(
       bestax(`<Control hasIconsLeft><input />${icon}</Control>`)
     );
-    expect(control).toMatch(/give that `Control` `iconLeft=\{\{ library: "fa"/);
+    expect(control).toMatch(
+      /give that `Control` `iconLeft=\{\{ name: "github"/
+    );
     // A flag given as an expression may be off.
     const [maybe] = messages(
       bestax(`<Control hasIconsLeft={on}><input />${icon}</Control>`)
@@ -1605,6 +1633,104 @@ describe('an element whose component renders a glyph from props', () => {
         usual
       );
     }
+  });
+});
+
+describe('a re-run, against the TODOs an earlier run wrote', () => {
+  const page = (jsx: string, todos: string[] = []) =>
+    `export const A = (url: string) => {\n${todos
+      .map(todo => `  // TODO(bestax-migrate): ${todo}\n`)
+      .join('')}  return (\n    <div>\n      ${jsx}\n    </div>\n  );\n};\n`;
+  const icon = (attributes = '') =>
+    `<span className="icon"${attributes}><i className="fas fa-bell"></i></span>`;
+  const todos = (source: string | null) =>
+    (source ?? '').match(/\/\/ TODO\(bestax-migrate\): .*$/gm) ?? [];
+
+  it('drops one that asked for a re-run once its element converts', () => {
+    const first = migrate(page(icon())).output!;
+    expect(todos(first)).toHaveLength(1);
+    // Done by hand: the icon is hidden now.
+    const { output, rules } = migrate(
+      first.replace(
+        '<span className="icon">',
+        '<span className="icon" aria-hidden="true">'
+      )
+    );
+    expect(rules).toEqual([]);
+    expect(todos(output)).toEqual([]);
+    expect(output).toContain('<Icon name="bell" />');
+  });
+
+  it("keeps one it writes again, once, and an HTML page's copy with the page's lines", () => {
+    const source = page(icon());
+    const first = migrate(source).output!;
+    expect(migrate(first).output).toBeNull();
+    // A page's module says where to re-run, and which lines of the page.
+    const [line] = todos(first);
+    const message = line.replace('// TODO(bestax-migrate): ', '');
+    const fromPage = page(icon(), [
+      `${message.replace(/re-run/g, 're-run on `index.tsx`')} (index.html:12, 30)`,
+    ]);
+    const { output, rules } = migrate(fromPage, {}, 'index.tsx');
+    expect(rules).toEqual(['defaults:Icon']);
+    expect(output ?? fromPage).toBe(fromPage);
+  });
+
+  it('keeps one that asked for no re-run, and one above no JSX', () => {
+    const helpers = 'convert the helpers below, then re-run';
+    const tile =
+      'Bulma v1 removed tiles; rebuild the layout with `Grid` and `Cell`';
+    const source = `// TODO(bestax-migrate): ${helpers}\nimport x from "./x";\n${page(
+      '<p className="lead">x</p>',
+      [tile, 'check the theme by hand, then re-run']
+    )}`;
+    // Nothing here writes the one above the JSX that asked for a re-run.
+    const { output } = migrate(source);
+    expect(todos(output)).toEqual([
+      `// TODO(bestax-migrate): ${helpers}`,
+      `// TODO(bestax-migrate): ${tile}`,
+    ]);
+  });
+
+  it("leaves every TODO in a file that still imports a library source, whose TODOs it can't tell from its own", () => {
+    for (const specifier of [
+      'rbx',
+      'react-bulma-components',
+      'bloomer/lib/x',
+    ]) {
+      const source = `import * as Lib from "${specifier}";\n${page(
+        '<div className="box">x</div>',
+        [
+          "`Lib` is the library's namespace import used as a plain value; reference its components by name, then re-run",
+        ]
+      )}`;
+      expect(todos(migrate(source).output)).toHaveLength(1);
+    }
+  });
+
+  it('knows every library source', () => {
+    for (const name of sourceNames()) {
+      const source = getSource(name)!;
+      const specifier =
+        source.packageName === undefined ? source.name : source.packageName;
+      if (specifier === null) continue;
+      expect({ name, listed: LIBRARY_SOURCES.test(specifier) }).toEqual({
+        name,
+        listed: true,
+      });
+    }
+  });
+
+  it('compares a message without the page lines and the module a page named', () => {
+    expect(
+      todoKey(
+        ' TODO(bestax-migrate): change the tag and re-run on `my page.tsx` (my page.html:3, 4-6)'
+      )
+    ).toBe('change the tag and re-run');
+    // Anything else stays as it is.
+    expect(todoKey(' TODO(bestax-migrate): see (`x.html`)')).toBe(
+      'see (`x.html`)'
+    );
   });
 });
 

@@ -104,15 +104,21 @@ and beside a `role` or `tabIndex` `Icon` writes no `aria-hidden` at all. Give a 
 that carries it beside something else,
 an `id` say, keeps its `.icon` as markup too: the `.icon` holds nothing else, so the attribute
 hides the same glyph on the `.icon`. Move it up and re-run, and the `.icon` converts around the
-`<i>`. An icon in a link or
-button that its `aria-label` or its text names is decoration there, so give it
-`aria-hidden="true"`. One that is all a link or button shows names nothing a screen reader can
-read: give the link or button an `aria-label` that says what it does, then hide the icon. The
+`<i>`. An icon around a bare glyph in a `<button>`, or a link, that its own `aria-label` or
+`aria-labelledby` names converts as it is, another exception: the label is what assistive tech
+reads for the control, so the icon is decoration there, and `Icon` hides it. That takes the same
+`.icon` as the move: its classes, an `id`, a `style` and `data-` attributes, and no
+`aria-hidden`. An icon in a control its text names is decoration too, so give it
+`aria-hidden="true"`, and so is one in a named control it doesn't convert in (a `title` on the
+`.icon`, say). An `<a>` with no `href` is no link and has no role, and ARIA lets nothing name it,
+so its `aria-label` does nothing: give it an `href`, or make it a `<button>`, then re-run. One
+that is all a link or button shows names nothing a screen reader can read: give the link or
+button an `aria-label` that says what it does, then re-run, and the icon converts hidden. The
 `<svg class="svg-inline--fa">` Font Awesome's script draws in place of an `<i>` converts as
 `Icon`'s children once its `.icon` is hidden, or write `Icon` with the glyph's `name` in its place,
 which renders the `<i>` the script draws from. Inside a `.control` with `has-icons-left` or
 `has-icons-right`, a hidden `.icon` can go instead, as that `Control`'s `iconLeft` or
-`iconRight` (`iconLeft={{ library: "fa", name: "envelope", size: "small" }}`), which renders it
+`iconRight` (`iconLeft={{ name: "envelope", size: "small" }}`), which renders it
 after the `Control`'s children. Each TODO says which of these applies, and what the icon converts
 to.
 `Pagination` renders Bulma's own `role="navigation"` and `aria-label="pagination"`, and
@@ -511,13 +517,21 @@ neither, so load what the app still needs once for the whole app, from its entry
   with `ERESOLVE`.
   - 6 and 7: keep it as it is, or install it and import its `css/all.min.css` from the entry.
   - 5: the CDN link keeps working, since 5 reads the classes `Icon` writes. From npm, take 6 or 7,
-    which still read 5's names.
+    which still read 5's names, many of them since renamed (`search` is `magnifying-glass`). But
+    6 turned the handsets round, so to keep the glyph the page shows, write 5's `phone` and
+    `phone-square` as `phone-flip` and `square-phone-flip`, and 5's `phone-alt` and
+    `phone-square-alt` as `phone` and `square-phone`.
   - 4: its classes are `fa fa-<name>`. The codemod keeps that `fa` on each icon it converts
     (`variant="fa"`), which 4 styles, but an `Icon` given no `variant` writes `fas fa-<name>`,
     which 4 doesn't, so for the icons written from here on, install 6 or 7 with
     `css/all.min.css`, then either import `css/v4-shims.min.css` beside it so
     the page's 4 names keep working, or move them to the current names (`fa-envelope-o` is
-    `envelope` with `variant="regular"`).
+    `envelope` with `variant="regular"`). A brand's glyph under `fa` (`fa fa-github`) needs
+    `variant="brands"` then: 5 and later draw brands in a style of their own, and without the
+    shims show a missing-glyph box for one under `fa`.
+  - A URL that doesn't say its version: the TODO points at the `bestax-icons` skill's
+    `references/icon-libraries.md`, which lists the older names that draw another glyph in 6
+    and 7.
   - A kit (`kit.fontawesome.com`): keep loading it from `index.html`, or install Font Awesome from
     npm instead. A URL with no version: the same, with the v4 shims beside it if the page's names
     are 4's (`fa fa-<name>`).
@@ -809,8 +823,9 @@ rest.
 ### The page itself: `html-file:<case>`
 
 - **`html-file:exists`**: the module beside the page is already there, and the codemod never
-  writes over a file. That makes a second run change nothing. Move or delete the module to convert
-  the page again.
+  writes over a file. That makes a second run on the page change nothing. To carry on from the
+  module's TODOs, run the codemod on the module itself, which is where each TODO from the page
+  says to re-run ("re-run on `index.tsx`"). Move or delete the module to convert the page again.
 - **`html-file:not-included`**: a folder walk found the page, and it has Bulma classes, but a walk
   takes a page only when `--extensions` lists its extension, since most `.html` files in a React
   project aren't pages to convert (Vite's `index.html`, `public/`). `-e` matches an extension

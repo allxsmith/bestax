@@ -9,9 +9,14 @@
  * library and compared with the raw markup it replaces. The exceptions are
  * on purpose. Font Awesome's own `<i aria-hidden="true">` alone in a `.icon`
  * that carries nothing assistive tech reads converts to `Icon`, which writes
- * the attribute on the `.icon` instead, since the glyph is hidden either way
- * (see `readsGlyph`). And a Bulma 0.9 helper v1 removed, which styles
- * nothing under v1, converts as the v1 helper that does its job (see
+ * the attribute on the `.icon` instead, since the glyph is hidden either way;
+ * a `.icon` around a bare glyph in a link or button its own label names
+ * converts too, and `Icon` writes the attribute it doesn't carry, since that
+ * label is what assistive tech reads for the control; and Font Awesome 6's
+ * long name for a style (`fa-brands`) is written as the skill's `variant`,
+ * which `Icon` renders as the short one (`fab`), the same style (see
+ * `readsGlyph`). And a Bulma 0.9 helper v1 removed, which styles nothing
+ * under v1, converts as the v1 helper that does its job (see
  * `REPLACED_IN_V1`).
  *
  * Data only: `scripts/gen-mcp-index.mjs` imports it directly for the MCP
@@ -165,13 +170,14 @@ export interface Absorbs {
 export interface ReadsGlyph {
   /**
    * The attributes the element may carry and still take Font Awesome's
-   * `aria-hidden` up off its `<i>`: ones the target renders as given that
-   * assistive tech doesn't read, a name ending in `*` standing for every
-   * attribute it starts. Read by name, whatever the value, since an
-   * expression may render as anything. Anything else (a name, a description,
-   * a `title`, a `role`, a `tabIndex`, a handler) keeps the attribute where
-   * it is: the move would hide what it exposes, and `Icon` writes no
-   * `aria-hidden` beside a `role` or `tabIndex` at all.
+   * `aria-hidden` up off its `<i>`, or take the one the target writes on an
+   * icon in a link or button its own label names: ones the target renders
+   * as given that assistive tech doesn't read, a name ending in `*` standing
+   * for every attribute it starts. Read by name, whatever the value, since
+   * an expression may render as anything. Anything else (a name, a
+   * description, a `title`, a `role`, a `tabIndex`, a handler) keeps the
+   * element as it is: the attribute would hide what it exposes, and `Icon`
+   * writes no `aria-hidden` beside a `role` or `tabIndex` at all.
    */
   readonly hiddenMovesBeside: readonly string[];
 }
@@ -339,7 +345,9 @@ export interface RootEntry {
    * the `aria-hidden` the target writes, as Font Awesome's own markup does,
    * reads too when the element carries nothing assistive tech reads: the
    * attribute moves up onto it, a difference in markup a conversion makes
-   * on purpose.
+   * on purpose. So does a bare `<i>` in an element that carries no
+   * `aria-hidden` and nothing else assistive tech reads, in a link or button
+   * its own label names: the target writes the attribute there.
    */
   readonly readsGlyph?: ReadsGlyph;
   /**

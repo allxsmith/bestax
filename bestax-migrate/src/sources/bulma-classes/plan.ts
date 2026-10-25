@@ -11,8 +11,14 @@
  * `<i aria-hidden="true">` alone in a `.icon` that carries nothing assistive
  * tech reads (the table's `hiddenMovesBeside`) converts to `Icon`, which writes that attribute
  * on the `.icon` instead (`movesHidden`), since the glyph is hidden either
- * way. And a Bulma 0.9 helper v1 removed (`REPLACED_IN_V1`), which styles
- * nothing under v1, converts as the v1 helper that does its job.
+ * way. A `.icon` like it around a bare glyph, in a link or button its own
+ * `aria-label` or `aria-labelledby` names, converts too, and `Icon` writes
+ * the attribute it doesn't carry (`addsHidden`), since that label is what
+ * assistive tech reads for the control. Font Awesome 6's long name for a
+ * style is written as the bestax-icons skill's `variant`, which `Icon`
+ * renders as the short name, the same style (`glyph.ts`, `longStyle`). And a
+ * Bulma 0.9 helper v1 removed (`REPLACED_IN_V1`), which styles nothing under
+ * v1, converts as the v1 helper that does its job.
  */
 
 import {
@@ -171,6 +177,14 @@ export interface ElementFacts {
   clickableAround?: {
     tag: string;
     label?: 'aria-label' | 'aria-labelledby' | 'text' | 'none';
+    /**
+     * For an <a>: true when it has an `href` written out as a string, so it
+     * is a link, and false when it has neither an `href` nor a `role`, so it
+     * has no role at all and ARIA lets nothing name it. Left out when that
+     * can't be told from here (an `href` written as an expression, or a
+     * `role` of its own).
+     */
+    link?: boolean;
   };
 }
 
@@ -265,6 +279,15 @@ export interface Conversion {
    * attribute moved up, and nothing else.
    */
   movesHidden?: true;
+  /**
+   * The element carried no `aria-hidden`, and sits in a link or a <button>
+   * its own `aria-label` or `aria-labelledby` names, which assistive tech
+   * reads in place of what the control holds: the target writes the
+   * attribute on it, a way a conversion's markup differs on purpose, since
+   * nothing assistive tech reads changes. The render tests compare it with
+   * the attribute restated, and nothing else.
+   */
+  addsHidden?: true;
   /**
    * The target renders the bare element around this one too: the component
    * takes that element's place, with its `key`.
@@ -785,10 +808,40 @@ function planElement(facts: ElementFacts): Plan {
     [...attributes.keys()].every(name => movesBeside(entry, name))
       ? readHiddenGlyph(facts.soleChild)
       : undefined;
+  // An icon in a link or <button> its own label names is decoration there:
+  // that label is what assistive tech reads for the control, in place of
+  // what it holds, so the `aria-hidden` the target writes changes nothing it
+  // reads. Another difference in markup a conversion makes on purpose, held
+  // to the same shape: a bare glyph the target renders from props, in an
+  // element that carries nothing else assistive tech reads. The render tests
+  // compare it with the attribute restated.
+  const decorates =
+    !moved &&
+    entry.readsGlyph &&
+    naming === 'unnamed' &&
+    defaults['aria-hidden'] === 'true' &&
+    !attributes.has('aria-hidden') &&
+    [...attributes.keys()].every(name => movesBeside(entry, name)) &&
+    namesItsContent(facts.clickableAround)
+      ? readGlyph(facts.soleChild)
+      : undefined;
   const missing = [...Object.entries(defaults), ...written].filter(
-    ([name]) => !attributes.has(name) && !(moved && name === 'aria-hidden')
+    ([name]) =>
+      !attributes.has(name) && !((moved || decorates) && name === 'aria-hidden')
   );
   const drop: string[] = [];
+  // A target that renders a glyph from props is written the way the
+  // bestax-icons skill writes it, with no attribute it renders by itself
+  // with the same value (`aria-hidden="true"` with no name, `role="img"`
+  // beside one): the markup is the same without it.
+  if (entry.readsGlyph && naming !== 'unsure') {
+    for (const [name, value] of Object.entries(defaults)) {
+      const given = attributes.get(name);
+      if (given === value || (given === true && value === 'true')) {
+        drop.push(name);
+      }
+    }
+  }
   for (const name of entry.untypedAttrs ?? []) {
     if (!attributes.has(name)) continue;
     if (defaults[name] === attributes.get(name)) {
@@ -1074,7 +1127,9 @@ function planElement(facts: ElementFacts): Plan {
   todos.push(...secondComponents(carried, tokens, root, target, tag, rendered));
   // A glyph the target renders from props takes the place of the only child.
   const glyph =
-    moved ?? (entry.readsGlyph ? readGlyph(facts.soleChild) : undefined);
+    moved ??
+    decorates ??
+    (entry.readsGlyph ? readGlyph(facts.soleChild) : undefined);
   return {
     conversion: {
       target,
@@ -1088,6 +1143,7 @@ function planElement(facts: ElementFacts): Plan {
         : {}),
       ...(glyph ? { glyph } : {}),
       ...(moved ? { movesHidden: true as const } : {}),
+      ...(decorates ? { addsHidden: true as const } : {}),
       ...(parent ? { replacesParent: true as const } : {}),
       ...(conditional.length > 0 ? { conditional } : {}),
       ...(icons ? { icons } : {}),
@@ -1218,6 +1274,19 @@ function movesBeside(entry: RootEntry, name: string): boolean {
 }
 
 /**
+ * Whether the link or <button> around an element names itself with its own
+ * `aria-label` or `aria-labelledby`, which assistive tech reads for it in
+ * place of what it holds. An <a> counts only as a link: one with no `href`
+ * has no role, and ARIA lets nothing name it.
+ */
+function namesItsContent(around: ElementFacts['clickableAround']): boolean {
+  return (
+    (around?.label === 'aria-label' || around?.label === 'aria-labelledby') &&
+    (around.tag === 'button' || around.link === true)
+  );
+}
+
+/**
  * What to do about an unnamed element whose target hides it with an
  * `aria-hidden` it doesn't carry, and that renders a glyph from props
  * (`Icon`), for its `defaults` TODO: from what it holds (Font Awesome's own
@@ -1279,12 +1348,41 @@ function hiddenAdvice(
   const around = facts.clickableAround;
   const label = around?.label;
   const tag = around && aTag(around.tag);
+  // An <a> with no `href` and no `role` is no link, and has no role at all,
+  // so ARIA lets nothing name it: it needs an `href`, or to be a <button>,
+  // before a label does anything.
+  const unlinked = around?.tag === 'a' && around.link === false;
+  const hide = `add \`aria-hidden="true"\` here, which bestax \`${target}\` writes on an icon with no name of its own`;
+  // What a re-run converts this to once the control around it names itself
+  // and is a link, where an icon converts as it is (`namesItsContent`). Only
+  // from a control that isn't both yet, so the planner asks once.
+  const labelled = label === 'aria-label' || label === 'aria-labelledby';
+  const fixed =
+    around && (unlinked || label === 'none')
+      ? plan({
+          ...facts,
+          clickableAround: {
+            ...around,
+            ...(!labelled && { label: 'aria-label' as const }),
+            ...(unlinked && { link: true }),
+          },
+        }).conversion
+      : undefined;
+  const once = fixed?.glyph
+    ? `re-run, and this converts to \`${target}\` with ${jsxProps(glyphProps(fixed.glyph))}, which hides the icon with \`aria-hidden="true"\`${hint}`
+    : undefined;
+  if (unlinked && labelled) {
+    return `this \`.icon\` sits in an <a> with no \`href\`, which is no link and has no role, so ARIA lets nothing name it and its \`${label}\` names nothing; give the <a> an \`href\`, or make it a <button>, then ${once ?? `${hide}, and re-run${outcome}${hint}`}`;
+  }
   if (label && label !== 'none') {
     const by = label === 'text' ? 'its own text' : `its \`${label}\``;
     return `this \`.icon\` sits in ${tag} that ${by} names, so the icon is decoration there, and bestax \`${target}\` writes \`aria-hidden="true"\` on an icon with no name of its own, which this one doesn't carry; add it, then re-run${outcome}${hint}`;
   }
   if (label === 'none' && readGlyph(sole)) {
-    return `nothing names the <${around!.tag}> around this \`.icon\`: it has no \`aria-label\` and no text outside its icons, and a font icon's glyph is no name a screen reader can read; give the <${around!.tag}> an \`aria-label\` that says what it does, then add \`aria-hidden="true"\` here, which bestax \`${target}\` writes on an icon with no name of its own, and re-run${outcome}${hint}`;
+    const name = unlinked
+      ? 'an `href`, or make it a <button>, and give it an `aria-label` that says what it does'
+      : 'an `aria-label` that says what it does';
+    return `nothing names the <${around!.tag}> around this \`.icon\`: it has no \`aria-label\` and no text outside its icons, and a font icon's glyph is no name a screen reader can read; give the <${around!.tag}> ${name}, then ${once ?? `${hide}, and re-run${outcome}${hint}`}`;
   }
   return `${usual}${outcome}${hint}`;
 }

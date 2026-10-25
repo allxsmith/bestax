@@ -112,8 +112,32 @@ describe('what writes nothing', () => {
         rule: 'html-file:exists',
       }),
     ]);
+    // A re-run a TODO asked for goes on the module, which this one names.
+    expect(entries[0].message).toBe(
+      '`about.jsx` is already beside the page, and the codemod never overwrites a file: to carry on from the TODOs it holds, run the codemod on `about.jsx` itself, and to convert the page again, move or delete it'
+    );
     expect(fs.readFileSync(path.join(dir, 'about.jsx'), 'utf8')).toBe(
       'export {};\n'
+    );
+  });
+
+  it('names the module as where each re-run its TODOs ask for goes', () => {
+    const dir = tempDir();
+    const { output, entries } = convert(
+      '<a class="tag" href="/x">x</a>\n<a class="tag" href="/y">y</a>\n',
+      {},
+      path.join(dir, 'tags.html')
+    );
+    const message =
+      'bestax `Tag` renders only <span>, not an <a>; keep the markup, or change the tag and re-run on `tags.jsx`';
+    // In the report, against each element's line on the page, and in the
+    // module, once, with the page's lines.
+    expect(entries.map(({ line, message }) => [line, message])).toEqual([
+      [1, message],
+      [2, message],
+    ]);
+    expect(output).toContain(
+      `  // TODO(bestax-migrate): ${message} (tags.html:1, 2)\n`
     );
   });
 
@@ -1132,7 +1156,7 @@ describe('the file-level gates, read from where the module goes', () => {
     // An element's TODO keeps its line, and the gate's has none.
     const todos = output!.match(/^ {2}\/\/ TODO\(bestax-migrate\): .*$/gm);
     expect(todos).toEqual([
-      expect.stringMatching(/'use client'.*then re-run$/),
+      expect.stringMatching(/'use client'.*then re-run on `card\.jsx`$/),
       expect.stringMatching(/`Box` renders only <div>.*\(card\.html:2\)$/),
     ]);
     // The report entry still names the element the gate stopped.

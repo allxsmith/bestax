@@ -1298,7 +1298,8 @@ describe('plan', () => {
           target: 'Icon',
           props: [['size', 'small']],
           className: 'is-left',
-          drop: [],
+          // `Icon` writes it on an icon with no name, as the skill leaves it.
+          drop: ['aria-hidden'],
           numbers: [],
           rendersChildren: true,
           glyph: {
@@ -1317,6 +1318,26 @@ describe('plan', () => {
             })
           ).conversion?.glyph
         ).toEqual({ library: 'fa', name: 'envelope', variant: 'fa' });
+      });
+
+      it('leaves out only what Icon renders by itself, with the same value', () => {
+        const i = glyph(['fas', 'fa-home']);
+        const drop = (attributes: Record<string, string | true | null>) =>
+          plan(facts('span', 'icon', attributes, { soleChild: i })).conversion
+            ?.drop;
+        expect(drop({ 'aria-hidden': 'true' })).toEqual(['aria-hidden']);
+        expect(drop({ 'aria-hidden': true })).toEqual(['aria-hidden']);
+        expect(drop({ 'aria-label': 'Home', role: 'img' })).toEqual(['role']);
+        expect(drop({ 'aria-labelledby': 'x', role: 'img' })).toEqual(['role']);
+        // Beside a tabIndex Icon hides nothing, so the attribute is the
+        // element's own; and any other value is too.
+        expect(drop({ 'aria-hidden': 'true', tabIndex: '0' })).toEqual([]);
+        expect(drop({ 'aria-hidden': 'false' })).toEqual([]);
+        expect(drop({ 'aria-label': 'Home', role: 'presentation' })).toEqual(
+          []
+        );
+        // A name as an expression may render as none, which Icon would hide.
+        expect(drop({ 'aria-label': null, role: 'img' })).toEqual([]);
       });
 
       it('keeps an <i> it reads no glyph from as its child', () => {
@@ -1366,7 +1387,7 @@ describe('plan', () => {
               drop: [],
               numbers: [],
               rendersChildren: true,
-              glyph: { library: 'fa', name: 'envelope', variant: 'fa-solid' },
+              glyph: { library: 'fa', name: 'envelope', longStyle: 'fa-solid' },
               movesHidden: true,
             },
             todos: [],
@@ -1514,7 +1535,7 @@ describe('plan', () => {
               parentTokens: ['control', 'has-icons-right'],
             })
           ).toMatch(
-            /give that `Control` `iconRight=\{\{ library: "fa", name: "check", size: "small" \}\}`/
+            /give that `Control` `iconRight=\{\{ name: "check", size: "small" \}\}`/
           );
           // Its flags and features, as an object holds them.
           expect(
@@ -1524,7 +1545,7 @@ describe('plan', () => {
               control
             )
           ).toMatch(
-            /`Icon` with `library="fa" name="spinner" features=\{\["fa-spin", "fa-fw"\]\}`; .*`iconLeft=\{\{ library: "fa", name: "spinner", features: \["fa-spin", "fa-fw"\], clearfix: true \}\}`/
+            /`Icon` with `name="spinner" features=\{\["fa-spin", "fa-fw"\]\}`; .*`iconLeft=\{\{ name: "spinner", features: \["fa-spin", "fa-fw"\], clearfix: true \}\}`/
           );
           const none = [
             todo('icon is-left', fa, {
@@ -1552,18 +1573,148 @@ describe('plan', () => {
             isEmpty: false,
           };
           expect(todo('icon is-small is-left', svg, control)).toBe(
-            'this `.icon` holds the <svg> Font Awesome\'s script draws in place of an <i>, and bestax `Icon` writes `aria-hidden="true"` on the `.icon`, which this one doesn\'t carry; add it, then re-run, and this converts to `Icon` around the <svg> as it is; or write `Icon` with `library="fa" name="search" variant="fa"` in its place, which renders the <i> the script draws from, and shows only where Font Awesome\'s stylesheet or script is loaded; or, since the `.control` around it has `has-icons-left`, drop this `.icon` and give that `Control` `iconLeft={{ library: "fa", name: "search", variant: "fa", size: "small" }}`, which it renders after its children as a `.icon.is-left` around the glyph\'s <i>, hidden the way `Icon` hides it'
+            'this `.icon` holds the <svg> Font Awesome\'s script draws in place of an <i>, and bestax `Icon` writes `aria-hidden="true"` on the `.icon`, which this one doesn\'t carry; add it, then re-run, and this converts to `Icon` around the <svg> as it is; or write `Icon` with `name="search"` in its place, which renders the <i> the script draws from, and shows only where Font Awesome\'s stylesheet or script is loaded; or, since the `.control` around it has `has-icons-left`, drop this `.icon` and give that `Control` `iconLeft={{ name: "search", size: "small" }}`, which it renders after its children as a `.icon.is-left` around the glyph\'s <i>, hidden the way `Icon` hides it'
+          );
+        });
+
+        it('converts an icon in a link or <button> its own label names, hidden there', () => {
+          const fa = glyph(['fab', 'fa-github', 'fa-lg']);
+          for (const clickableAround of [
+            { tag: 'a', label: 'aria-label', link: true },
+            { tag: 'a', label: 'aria-labelledby', link: true },
+            { tag: 'button', label: 'aria-label' },
+          ] as const) {
+            expect(
+              plan(
+                facts('span', 'icon', {}, { soleChild: fa, clickableAround })
+              )
+            ).toEqual({
+              conversion: {
+                target: 'Icon',
+                props: [],
+                className: null,
+                drop: [],
+                numbers: [],
+                rendersChildren: true,
+                glyph: {
+                  library: 'fa',
+                  name: 'github',
+                  variant: 'brands',
+                  features: ['fa-lg'],
+                },
+                addsHidden: true,
+              },
+              todos: [],
+            });
+          }
+          // Beside what assistive tech doesn't read, too.
+          expect(
+            plan(
+              facts(
+                'span',
+                'icon is-small',
+                { id: 'x', 'data-test': 'y', style: null },
+                {
+                  soleChild: fa,
+                  clickableAround: { tag: 'button', label: 'aria-label' },
+                }
+              )
+            ).conversion?.addsHidden
+          ).toBe(true);
+        });
+
+        it('keeps the TODO for an icon in a labelled control in any other shape', () => {
+          const fa = glyph(['fab', 'fa-github', 'fa-lg']);
+          const named = { tag: 'button', label: 'aria-label' } as const;
+          const kept = (
+            label: string,
+            inner: ReturnType<typeof glyph> | ChildFacts,
+            around: NonNullable<ElementFacts['clickableAround']>,
+            attributes: Record<string, string | null> = {}
+          ) => {
+            const result = plan(
+              facts('span', 'icon', attributes, {
+                soleChild: inner,
+                clickableAround: around,
+              })
+            );
+            expect({
+              label,
+              conversion: result.conversion,
+              rules: result.todos.map(t => t.rule),
+            }).toEqual({ label, conversion: null, rules: ['defaults:Icon'] });
+          };
+          // What the attribute would hide with the icon.
+          kept('a title', fa, named, { title: 'GitHub' });
+          kept('a description', fa, named, { 'aria-describedby': 'x' });
+          kept('a role as an expression', fa, named, { role: null });
+          kept('a name as an expression', fa, named, { 'aria-label': null });
+          // What isn't a glyph Icon renders from props.
+          kept(
+            'an <i> with an id',
+            glyph(['fab', 'fa-github'], { id: 'x' }),
+            named
+          );
+          kept('another icon font', glyph(['material-icons']), named);
+          kept(
+            "Font Awesome's script-drawn <svg>",
+            {
+              tag: 'svg',
+              tokens: ['svg-inline--fa', 'fa-github'],
+              attributes: new Map(),
+              hasSpread: false,
+              isEmpty: false,
+            },
+            named
+          );
+          // A control named by its text, whose name the icon's glyph could
+          // join, or one whose name or link can't be told from here.
+          kept('a name from its text', fa, { tag: 'button', label: 'text' });
+          kept('a name that cannot be told', fa, { tag: 'button' });
+          kept('an <a> that may be no link', fa, {
+            tag: 'a',
+            label: 'aria-label',
+          });
+          kept('an <a> that is no link', fa, {
+            tag: 'a',
+            label: 'aria-label',
+            link: false,
+          });
+        });
+
+        it('says an <a> with no href is no link, which nothing names', () => {
+          const fa = glyph(['fab', 'fa-github', 'fa-lg']);
+          expect(
+            todo('icon', fa, {
+              clickableAround: { tag: 'a', label: 'aria-label', link: false },
+            })
+          ).toBe(
+            'this `.icon` sits in an <a> with no `href`, which is no link and has no role, so ARIA lets nothing name it and its `aria-label` names nothing; give the <a> an `href`, or make it a <button>, then re-run, and this converts to `Icon` with `name="github" variant="brands" features="fa-lg"`, which hides the icon with `aria-hidden="true"`'
+          );
+          // One that would carry what the attribute hides needs it by hand.
+          expect(
+            todo(
+              'icon',
+              fa,
+              {
+                clickableAround: { tag: 'a', label: 'aria-label', link: false },
+              },
+              { title: 'GitHub' }
+            )
+          ).toMatch(
+            /make it a <button>, then add `aria-hidden="true"` here, which bestax `Icon` writes on an icon with no name of its own, and re-run, and this converts/
           );
         });
 
         it('calls an icon in a link or button its label names decoration', () => {
           const fa = glyph(['fab', 'fa-github', 'fa-lg']);
+          // An <a> whose href is an expression may render as none.
           expect(
             todo('icon', fa, {
               clickableAround: { tag: 'a', label: 'aria-label' },
             })
           ).toBe(
-            'this `.icon` sits in an <a> that its `aria-label` names, so the icon is decoration there, and bestax `Icon` writes `aria-hidden="true"` on an icon with no name of its own, which this one doesn\'t carry; add it, then re-run, and this converts to `Icon` with `library="fa" name="github" variant="brands" features="fa-lg"`'
+            'this `.icon` sits in an <a> that its `aria-label` names, so the icon is decoration there, and bestax `Icon` writes `aria-hidden="true"` on an icon with no name of its own, which this one doesn\'t carry; add it, then re-run, and this converts to `Icon` with `name="github" variant="brands" features="fa-lg"`'
           );
           expect(
             todo('icon', fa, {
@@ -1581,10 +1732,29 @@ describe('plan', () => {
 
         it('says to name a link or button its icons alone fill', () => {
           const fa = glyph(['fab', 'fa-twitter', 'fa-lg']);
+          const lead =
+            "nothing names the <a> around this `.icon`: it has no `aria-label` and no text outside its icons, and a font icon's glyph is no name a screen reader can read; give the <a>";
+          // Once named, a link's icon converts as it is.
+          expect(
+            todo('icon', fa, {
+              clickableAround: { tag: 'a', label: 'none', link: true },
+            })
+          ).toBe(
+            `${lead} an \`aria-label\` that says what it does, then re-run, and this converts to \`Icon\` with \`name="twitter" variant="brands" features="fa-lg"\`, which hides the icon with \`aria-hidden="true"\``
+          );
+          // One with no href needs one first, or to be a <button>.
+          expect(
+            todo('icon', fa, {
+              clickableAround: { tag: 'a', label: 'none', link: false },
+            })
+          ).toBe(
+            `${lead} an \`href\`, or make it a <button>, and give it an \`aria-label\` that says what it does, then re-run, and this converts to \`Icon\` with \`name="twitter" variant="brands" features="fa-lg"\`, which hides the icon with \`aria-hidden="true"\``
+          );
+          // One whose href can't be told from here needs the attribute too.
           expect(
             todo('icon', fa, { clickableAround: { tag: 'a', label: 'none' } })
           ).toBe(
-            'nothing names the <a> around this `.icon`: it has no `aria-label` and no text outside its icons, and a font icon\'s glyph is no name a screen reader can read; give the <a> an `aria-label` that says what it does, then add `aria-hidden="true"` here, which bestax `Icon` writes on an icon with no name of its own, and re-run, and this converts to `Icon` with `library="fa" name="twitter" variant="brands" features="fa-lg"`'
+            `${lead} an \`aria-label\` that says what it does, then add \`aria-hidden="true"\` here, which bestax \`Icon\` writes on an icon with no name of its own, and re-run, and this converts to \`Icon\` with \`name="twitter" variant="brands" features="fa-lg"\``
           );
         });
 
@@ -1593,11 +1763,11 @@ describe('plan', () => {
           const usual =
             'bestax `Icon` renders `aria-hidden="true"` when the element does not set it; add it here if that is what you want, then re-run';
           expect(todo('icon', fa)).toBe(
-            `${usual}, and this converts to \`Icon\` with \`library="fa" name="user"\``
+            `${usual}, and this converts to \`Icon\` with \`name="user"\``
           );
           // A link or button whose label can't be told from here.
           expect(todo('icon', fa, { clickableAround: { tag: 'a' } })).toBe(
-            `${usual}, and this converts to \`Icon\` with \`library="fa" name="user"\``
+            `${usual}, and this converts to \`Icon\` with \`name="user"\``
           );
           // An <i> it reads no glyph from: no promise.
           expect(
@@ -2042,12 +2212,10 @@ describe('plan', () => {
         icons: [
           {
             index: 0,
-            props: [
-              ['library', 'fa'],
-              ['name', 'home'],
-            ],
+            props: [['name', 'home']],
             className: null,
-            drop: [],
+            // The `.icon`'s `aria-hidden`, which `Icon` writes by itself.
+            drop: ['aria-hidden'],
             numbers: [],
             text: 'Home',
           },
@@ -2077,12 +2245,12 @@ describe('plan', () => {
         {
           index: 0,
           props: [
-            ['library', 'fa'],
             ['name', 'bell'],
             ['variant', 'regular'],
             ['features', ['fa-lg', 'fa-fw']],
           ],
           className: null,
+          // Beside a tabIndex `Icon` hides nothing, so this one is its own.
           drop: [],
           numbers: ['tabIndex'],
           text: 'a',
@@ -2095,17 +2263,14 @@ describe('plan', () => {
             ['size', 'small'],
           ],
           className: 'my-icon',
-          drop: [],
+          drop: ['aria-hidden'],
           numbers: [],
         },
         {
           index: 3,
-          props: [
-            ['library', 'fa'],
-            ['name', 'home'],
-          ],
+          props: [['name', 'home']],
           className: null,
-          drop: [],
+          drop: ['aria-hidden'],
           numbers: [],
           text: 'b',
         },

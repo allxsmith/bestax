@@ -268,14 +268,67 @@ describe('Font Awesome', () => {
     expect(text).toContain('`css/v4-shims.min.css`');
     expect(text).toContain('`variant="regular"`');
     expect(text).toContain(FONT_AWESOME_PEER_RANGE);
+    // A brand's glyph under `fa` draws in 5 and later only with the shims.
+    expect(text).toContain(
+      'a brand\'s glyph (`fa fa-github`) needs `variant="brands"`'
+    );
   });
 
-  it('says Font Awesome 5 works from a link, and installs as 6 or 7', () => {
+  it('says Font Awesome 5 works from a link, and installs as 6 or 7, where the handsets turned', () => {
     const text = message(
       'https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.13.0/css/all.min.css'
     );
     expect(text).toContain('Font Awesome 5');
     expect(text).toContain('ERESOLVE');
+    expect(text).toContain(
+      "write 5's `phone` and `phone-square` as `phone-flip` and `square-phone-flip`, and 5's `phone-alt` and `phone-square-alt` as `phone` and `square-phone`"
+    );
+  });
+
+  it('names only what the Font Awesome bestax-bulma builds with has', () => {
+    const css = (file: string) =>
+      fs.readFileSync(
+        path.join(
+          bulmaUi,
+          'node_modules',
+          '@fortawesome',
+          'fontawesome-free',
+          'css',
+          file
+        ),
+        'utf8'
+      );
+    const all = css('all.css');
+    const glyph = (name: string) =>
+      new RegExp(`\\.fa-${name}\\s*[,{]`).exec(all);
+    // The names the message writes, and the older ones it reads, are there.
+    for (const name of [
+      'phone',
+      'phone-flip',
+      'phone-alt',
+      'square-phone',
+      'square-phone-flip',
+      'phone-square',
+      'phone-square-alt',
+      'magnifying-glass',
+      'search',
+      'envelope',
+      'github',
+    ]) {
+      expect({ name, found: glyph(name) !== null }).toEqual({
+        name,
+        found: true,
+      });
+    }
+    // 5's names keep the code point each had: their look is what turned.
+    const point = (name: string) =>
+      new RegExp(`\\.fa-${name}\\s*\\{\\s*--fa:\\s*"([^"]+)"`).exec(all)?.[1];
+    expect(point('phone-alt')).toBe(point('phone-flip'));
+    expect(point('phone-square-alt')).toBe(point('square-phone-flip'));
+    // The v4 shims draw 4's `fa fa-github` with the brands' font.
+    expect(css('v4-shims.css')).toMatch(
+      /\.fa\.fa-github\s*\{\s*font-family:\s*"Font Awesome \d+ Brands"/
+    );
   });
 
   it.each([6, 7])('keeps Font Awesome %i as it is', major => {
@@ -301,6 +354,9 @@ describe('Font Awesome', () => {
     );
     expect(message('css/fontawesome.css')).toContain(
       'with `css/v4-shims.min.css` beside it if'
+    );
+    expect(message('css/fontawesome.css')).toContain(
+      "the bestax-icons skill's `references/icon-libraries.md` names the older names"
     );
   });
 });

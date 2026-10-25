@@ -6,9 +6,13 @@ wrapper library. The codemod converts an element only when the bestax component 
 stays as written, with a `TODO(bestax-migrate)` when there is something to decide (see
 [unmappables.md](unmappables.md)). The exceptions are deliberate. Font Awesome's own
 `<i aria-hidden="true">` alone in a `.icon` that carries nothing assistive tech reads becomes
-`Icon`, which puts that attribute on the `.icon` instead, since the glyph is hidden either way
-(see `.icon` below). And a Bulma 0.9 helper that v1 removed, which styles nothing now, becomes
-the v1 helper that does its job (the [prop map](prop-map.md) lists them).
+`Icon`, which puts that attribute on the `.icon` instead, since the glyph is hidden either way.
+Such a `.icon` around a bare glyph, in a link or button its own `aria-label` or
+`aria-labelledby` names, becomes `Icon` too, which hides it, since the label is what assistive
+tech reads for the control. Font Awesome 6's long name for a style (`fa-brands`) becomes the
+`bestax-icons` skill's `variant` (`brands`), which renders the short name (`fab`), the same
+style (see `.icon` below). And a Bulma 0.9 helper that v1 removed, which styles nothing now,
+becomes the v1 helper that does its job (the [prop map](prop-map.md) lists them).
 
 A class the codemod doesn't know, such as the app's own `pricing-card`, rides along in
 `className`, which every bestax component passes through. So does a Bulma class with no bestax
@@ -156,16 +160,17 @@ renders its own `<a>` with tab roles and puts its label in a `<span>`, so conver
 themselves is by hand (something that sat beside the text in the `<a>`, a `Tag` say, then wants a
 `Span display="flex" alignItems="center"` around it and the label). A `.icon` converts when it
 carries the attribute `Icon` writes otherwise: `aria-hidden` with no name, no `role` and no
-`tabIndex`, and `role="img"` beside an `aria-label` or `aria-labelledby`. When all it holds is a
-bare, empty `<i>` naming a Font Awesome or Material Design Icons glyph, the `<i>` goes and its
-classes become `Icon`'s props, read as `IconText` reads them (below), and the `Icon` closes itself:
+`tabIndex`, and `role="img"` beside an `aria-label` or `aria-labelledby`. Those attributes are
+left out, since `Icon` renders them by itself. When all it holds is a bare, empty `<i>` naming a
+Font Awesome or Material Design Icons glyph, the `<i>` goes and its classes become `Icon`'s
+props, read as `IconText` reads them (below), and the `Icon` closes itself:
 
 ```jsx
 <span className="icon is-small" aria-hidden="true">
   <i className="fab fa-github fa-lg"></i>
 </span>
-// becomes
-<Icon library="fa" name="github" variant="brands" features="fa-lg" size="small" aria-hidden="true" />
+// becomes, rendering aria-hidden="true" on the .icon
+<Icon name="github" variant="brands" features="fa-lg" size="small" />
 ```
 
 Font Awesome's own markup hides the `<i>` instead, and converts the same way when the `.icon`
@@ -178,12 +183,39 @@ place a conversion changes the markup, on purpose:
   <i className="fas fa-envelope" aria-hidden="true"></i>
 </span>
 // becomes, rendering aria-hidden="true" on the .icon
-<Icon library="fa" name="envelope" size="small" className="is-left" />
+<Icon name="envelope" size="small" className="is-left" />
+```
+
+A `.icon` with no `aria-hidden` converts the same way when it sits in a `<button>`, or in a link
+(an `<a>` with an `href`), that its own `aria-label` or `aria-labelledby` names. That label is
+what assistive tech reads for the control, in place of what it holds, so the icon is decoration
+there, and `Icon` hides it. That is another place a conversion changes the markup, on purpose,
+held to the same shape: a bare glyph, in a `.icon` that carries nothing but its classes, an `id`,
+a `style` and `data-` attributes.
+
+```jsx
+<a className="button" href="https://github.com/" aria-label="GitHub">
+  <span className="icon"><i className="fab fa-github"></i></span>
+</a>
+// becomes, rendering aria-hidden="true" on the .icon
+<Button as="a" href="https://github.com/" aria-label="GitHub">
+  <Icon name="github" variant="brands" />
+</Button>
 ```
 
 Around anything else, an `<i>` with an attribute of its own or an `<svg>` say, it converts around
-what it holds, kept as written. Font Awesome 4's `fa` reads as `variant="fa"`, which `Icon`
-renders as written.
+what it holds, kept as written.
+
+The glyph's props are spelled the way the `bestax-icons` skill writes them. `library` is left out
+for Font Awesome, `Icon`'s default, and written for Material Design Icons. The style is `variant`:
+none for `fas`, and `regular`, `brands`, `light`, `duotone` or `thin` for the others. Font
+Awesome 6's long names for them (`fa-solid`, `fa-brands`, ...) read the same way, and `Icon`
+renders the short name (`fab`), the class Font Awesome 5 knows, which 6 and 7 style the same:
+a third place the markup changes on purpose. Beside `fa-sharp`, whose family Font Awesome 7's
+short name would set back to the classic one, the long name stays as written. Font Awesome 4's
+`fa` reads as `variant="fa"`, which `Icon` renders as written: 4 styles nothing else, and some
+4 names draw another glyph in 5 and later (the `bestax-icons` skill's
+`references/icon-libraries.md` lists them).
 
 A `.menu` converts with its `.menu-label`s and `.menu-list`s, and so do the items in a list. An
 item has no class to go by, so the codemod finds it by where it sits: a `<li>` whose nearest
@@ -314,14 +346,16 @@ as `items`.
   <span>Home</span>
 </span>
 // becomes
-<IconText iconProps={{ library: "fa", name: "home", "aria-hidden": "true" }}>Home</IconText>
+<IconText iconProps={{ name: "home" }}>Home</IconText>
 ```
 
 The glyph is read from the `<i>`: its Font Awesome style class (`fas`, `far`, `fa-solid`, ...) or
 `mdi`, the one class that names the glyph (`fa-home` as `name: "home"`), and the rest as
-`features`. `library` is always written, so a `ConfigProvider` with another `iconLibrary` doesn't
-change what renders. The `.icon`'s own classes and attributes join the glyph's props as they
-would on `Icon`, under their own names.
+`features`, spelled as on `Icon` (above). Like every conversion, this takes the app's
+`ConfigProvider` as unset: one with another `iconLibrary` needs `library: "fa"` written back on
+the Font Awesome ones, as one with a `classPrefix` changes every component's classes. The
+`.icon`'s own classes and attributes join the glyph's props as they would on `Icon`, under their
+own names, but for those `Icon` renders by itself.
 
 It converts only when every `.icon` inside converts to `Icon` on its own and holds a bare, empty
 `<i>` naming a Font Awesome or Material Design Icons glyph, and the only other children are those
