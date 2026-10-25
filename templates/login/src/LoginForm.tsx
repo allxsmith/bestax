@@ -1,59 +1,78 @@
 import {
   Box,
   Button,
+  Buttons,
   Checkbox,
   Control,
   Field,
+  Icon,
   Input,
+  SubTitle,
   Title,
 } from '@allxsmith/bestax-bulma';
-import SocialLogin from './SocialLogin.tsx';
 
-/** The frosted box: the sign-in form and the social login row. */
+// bestax has no brand-colored buttons, so bulma-social's classes color them.
+const socialLogins = [
+  {
+    name: 'Facebook',
+    className: 'is-facebook',
+    href: 'https://facebook.com',
+    icon: 'facebook-f',
+  },
+  {
+    name: 'Twitter',
+    className: 'is-twitter',
+    href: 'https://twitter.com',
+    icon: 'twitter',
+  },
+  {
+    name: 'GitHub',
+    className: 'is-github',
+    href: 'https://github.com/aldi',
+    icon: 'github',
+  },
+];
+
 function LoginForm() {
   return (
     <Box p="6" mb="0" className="glass">
-      <Title mb="5" textAlign="centered" textWeight="semibold" textSize="4">
+      <Title textSize="4" mb="5" textAlign="centered" textWeight="semibold">
         Please log in to proceed
       </Title>
-      {/* The original posts to `#`, which a static host answers with an
-          error page. Submitting stays on the page instead, after the
-          browser's own checks; send the sign-in from here. */}
+      {/* There is no server to post to: the browser checks the required
+          fields, and the sign-in itself goes here. */}
       <form onSubmit={event => event.preventDefault()}>
         <Input
           id="email"
           name="email"
+          type="email"
+          size="medium"
+          placeholder="Email"
           label="Email"
           labelProps={{ className: 'is-sr-only' }}
-          size="medium"
-          type="email"
-          placeholder="Email"
+          iconLeftName="envelope"
+          iconLeftSize="medium"
           autoComplete="email"
           autoCapitalize="none"
           spellCheck={false}
           inputMode="email"
           required
-          iconLeft={{ name: 'envelope', size: 'medium' }}
         />
         <Input
           id="password"
           name="password"
+          type="password"
+          size="medium"
+          placeholder="Password"
           label="Password"
           labelProps={{ className: 'is-sr-only' }}
-          size="medium"
-          type="password"
-          placeholder="Password"
+          iconLeftName="lock"
+          iconLeftSize="small"
           autoComplete="current-password"
           required
-          iconLeft={{ name: 'lock', size: 'small' }}
         />
         <Field mb="4">
-          <Checkbox
-            id="remember"
-            name="remember"
-            color="link"
-            textWeight="medium"
-          >
+          <Checkbox id="remember" name="remember" textWeight="medium">
             Remember me
           </Checkbox>
         </Field>
@@ -70,7 +89,30 @@ function LoginForm() {
             </Button>
           </Control>
         </Field>
-        <SocialLogin />
+        <SubTitle
+          as="p"
+          size="6"
+          mt="5"
+          mb="3"
+          textAlign="centered"
+          textWeight="semibold"
+        >
+          Login using social media
+        </SubTitle>
+        <Buttons isCentered>
+          {socialLogins.map(social => (
+            <Button
+              key={social.name}
+              as="a"
+              size="medium"
+              className={social.className}
+              href={social.href}
+              aria-label={`Login with ${social.name}`}
+            >
+              <Icon name={social.icon} variant="brands" features="fa-lg" />
+            </Button>
+          ))}
+        </Buttons>
       </form>
     </Box>
   );

@@ -9,27 +9,24 @@ function App() {
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
-      {/* Hero renders a <section>, so the page's <main> wraps it. */}
-      <main id="main-content">
-        <Hero size="fullheight">
-          <Hero.Body>
-            <Container>
-              <Columns isCentered>
-                <Column
-                  sizeMobile="12"
-                  sizeTablet="8"
-                  sizeDesktop="8"
-                  sizeWidescreen="4"
-                >
-                  <LoginForm />
-                  <AccountLinks />
-                </Column>
-              </Columns>
-            </Container>
-          </Hero.Body>
-          <SiteFooter />
-        </Hero>
-      </main>
+      <Hero id="main-content" as="main" size="fullheight">
+        <Hero.Body>
+          <Container>
+            <Columns isCentered>
+              <Column
+                sizeMobile="12"
+                sizeTablet="8"
+                sizeDesktop="8"
+                sizeWidescreen="4"
+              >
+                <LoginForm />
+                <AccountLinks />
+              </Column>
+            </Columns>
+          </Container>
+        </Hero.Body>
+        <SiteFooter />
+      </Hero>
     </>
   );
 }
