@@ -57,6 +57,12 @@ export const ASSET_KINDS: readonly string[] = [
   'webfont',
 ];
 
+/**
+ * A Bulma extension's own markup on the page (`html-extensions.ts`): an
+ * element bulma-carousel's script makes a carousel of, and its `is-covered`.
+ */
+export const EXTENSION_MARKUP: readonly string[] = ['carousel', 'is-covered'];
+
 /** Every HTML event-handler attribute, as written (`onclick`). */
 const EVENT_ATTRIBUTES: readonly string[] = Object.values(html.property)
   .map(info => info.attribute)
@@ -66,6 +72,7 @@ const VOCABULARY: Readonly<Record<string, ReadonlySet<string>>> = {
   'html-head': new Set(['title', 'meta', 'csp', 'link', 'style', 'base']),
   'html-asset': new Set(ASSET_KINDS),
   'html-script': new Set(SCRIPT_PATTERNS),
+  'html-extension': new Set(EXTENSION_MARKUP),
   'html-document': new Set([
     ...NAVBAR_FIXED_CLASSES,
     ...THEME_CLASSES,

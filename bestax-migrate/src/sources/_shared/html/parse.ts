@@ -13,6 +13,7 @@
  */
 
 import {
+  html as spec,
   parse,
   parseFragment,
   type DefaultTreeAdapterMap,
@@ -70,6 +71,12 @@ export interface ParsedHtml {
    */
   outsideComments: CommentNode[];
   errors: HtmlParseError[];
+  /**
+   * Whether a browser reads the document in quirks mode (no doctype, or an
+   * old one), where class and id selectors ignore ASCII case. A fragment is
+   * read as in no-quirks mode.
+   */
+  quirks: boolean;
 }
 
 /**
@@ -100,6 +107,21 @@ export function childrenOf(node: ParentNode): ChildNode[] {
   return node.nodeName === 'template'
     ? (node as Template).content.childNodes
     : node.childNodes;
+}
+
+/** An attribute's value as written, by its unprefixed name. */
+export function attributeOf(
+  element: Element,
+  name: string
+): string | undefined {
+  return element.attrs.find(attr => attr.name === name && !attr.prefix)?.value;
+}
+
+/** An element's classes, split on HTML's whitespace. */
+export function classesOf(element: Element): string[] {
+  return (attributeOf(element, 'class') ?? '')
+    .split(/[ \t\n\f\r]+/)
+    .filter(Boolean);
 }
 
 function find(nodes: ChildNode[], tag: string): Element | undefined {
@@ -209,6 +231,7 @@ export function parseHtml(source: string): ParsedHtml {
       bodyAttributes: [],
       outsideComments: [],
       errors,
+      quirks: false,
     };
   }
   const document = parse(source, options);
@@ -232,5 +255,6 @@ export function parseHtml(source: string): ParsedHtml {
     bodyAttributes: body?.attrs ?? [],
     outsideComments,
     errors,
+    quirks: document.mode === spec.DOCUMENT_MODE.QUIRKS,
   };
 }

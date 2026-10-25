@@ -15,6 +15,7 @@ import {
   classifyAsset,
   EXTENSION_COMPONENTS,
   extensionMessage,
+  extensionPackage,
   fontAwesomeMessage,
   GUIDE_0_9_TO_1,
   PRIMARY_CLASS,
@@ -105,6 +106,22 @@ describe('classifyAsset', () => {
       'css/bulma-switch.min.css',
       'stylesheet',
       { kind: 'bulma-extension', name: 'bulma-switch' },
+    ],
+    // The bundle's combined stylesheet, and one extension's own file in it.
+    [
+      'https://cdn.jsdelivr.net/npm/bulma-extensions@6.2.7/dist/css/bulma-extensions.min.css',
+      'stylesheet',
+      { kind: 'bulma-extension', name: 'bulma-extensions' },
+    ],
+    [
+      'https://cdn.jsdelivr.net/npm/bulma-extensions@6.2.7/bulma-carousel/dist/css/bulma-carousel.min.css',
+      'stylesheet',
+      { kind: 'bulma-extension', name: 'bulma-carousel' },
+    ],
+    [
+      'node_modules/bulma-extensions/bulma-tooltip/dist/js/bulma-tooltip.min.js',
+      'script',
+      { kind: 'bulma-extension', name: 'bulma-tooltip' },
     ],
     [
       'https://code.jquery.com/jquery-3.7.1.slim.min.js',
@@ -338,6 +355,23 @@ describe('Bulma extensions', () => {
     );
     expect(sheet).toContain('`Tooltip`');
     expect(sheet).toContain("in place of the extension's markup, and stop");
+  });
+
+  it("says bulma-carousel's is-covered images need a rule of their own, only when the page has them", () => {
+    const covered = (name: string, has: boolean) =>
+      extensionMessage(name, ['c.css'], new Set(['stylesheet']), 'keep', has);
+    expect(covered('bulma-carousel', true)).toMatch(
+      /stop loading the extension once nothing the app keeps uses its classes; the page's `is-covered` images are cropped by its stylesheet only inside its own slides, .*the `html-extension:is-covered` TODO has$/
+    );
+    expect(covered('bulma-carousel', false)).not.toContain('is-covered');
+    expect(covered('bulma-slider', true)).not.toContain('is-covered');
+  });
+
+  it('reads an extension by its package, without a scope', () => {
+    expect(extensionPackage('@creativebulma/Bulma-Tooltip')).toBe(
+      'bulma-tooltip'
+    );
+    expect(extensionPackage('bulma-carousel')).toBe('bulma-carousel');
   });
 
   it("puts bulma-social's classes on Button, as the templates do", () => {
