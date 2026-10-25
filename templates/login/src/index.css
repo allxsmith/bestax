@@ -1,10 +1,8 @@
 /*
- * The original's stylesheet, ported. Font Awesome's fonts come from its npm
- * package (imported in main.tsx), so the CDN @font-face rules are gone. The
- * page is light only: index.html pins Bulma's light scheme with
- * data-theme="light", which takes the place of the original's dark-mode rules
- * holding the inputs light. Screen-reader-only labels use Bulma's
- * `is-sr-only`.
+ * The original's stylesheet (css/styles.css). It drops the original's
+ * @font-face rules, which pointed Font Awesome at a CDN while the port loads
+ * it from npm, and its dark-scheme rules, which held the light inputs in a
+ * dark OS: index.html pins the light scheme instead.
  */
 
 html,
@@ -36,11 +34,6 @@ main {
   z-index: 1;
 }
 
-:where(a, button, input, select, textarea):focus-visible {
-  outline: 3px solid rgba(217, 119, 6, 0.5);
-  outline-offset: 2px;
-}
-
 .glass {
   background-color: rgba(255, 251, 245, 0.88);
   border: 1px solid rgba(180, 130, 80, 0.2);
@@ -60,15 +53,6 @@ main {
 .glass .checkbox,
 .glass .subtitle {
   color: #7c4a03;
-}
-
-/*
- * bestax draws its own checkbox where the original used the browser's. Its
- * border takes a brown from the original's palette, so the empty box shows
- * on the glass as the browser's does.
- */
-.glass .styled-checkbox {
-  --bulma-checkbox-border-color: #8b7355;
 }
 
 .button.is-info {

@@ -74,26 +74,77 @@ colors — see [Dark Mode & Contrast](../../guides/features/css-variables.md#dar
 
 `colorMode` writes the attribute from an effect, so a page rendered in the browser paints its
 first frame with whatever `<html>` already has, which is why a fixed scheme belongs in
-`index.html`. A toggle that remembers the visitor's choice writes it before that frame, from an
-inline `<head>` script, and starts `colorMode` from the attribute the script wrote; the
-`bestax-theming` skill's
+`index.html`. A toggle that remembers the visitor's choice has two parts. First, an inline script
+in the `<head>` of `index.html` writes the saved choice, or else the OS preference, before the
+first paint. Make it a plain `<script>`, not `type="module"`, so it runs before the body renders.
+With a prefixed stylesheet, have it set `data-bestax-theme` as well.
+
+```html
+<script>
+  // Bulma's scheme on <html> before the first paint: the saved choice,
+  // or else the OS preference. The app saves under the same key.
+  (() => {
+    let saved = null;
+    try {
+      saved = localStorage.getItem('theme');
+    } catch {
+      // Storage is blocked, so fall back to the OS preference.
+    }
+    const dark =
+      saved === 'light' || saved === 'dark'
+        ? saved === 'dark'
+        : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute(
+      'data-theme',
+      dark ? 'dark' : 'light'
+    );
+  })();
+</script>
+```
+
+Second, the app starts `colorMode` from the attribute the script wrote, and saves each choice
+under the key the script reads. The `bestax-theming` skill's
 [dark-mode example](https://github.com/allxsmith/bestax/blob/main/skills/bestax-theming/examples/dark-mode.tsx)
-has the script and the app's side.
+is the same recipe, and also covers a page that has no script.
 
 ```tsx
+// Pairs with an inline <head> script in index.html that writes data-theme
+// before the first paint: the choice saved under STORAGE_KEY, or else the
+// OS preference. The Theme API page's Dark Mode section has the script.
 import { useState } from 'react';
+import { Theme, ToggleButton } from '@allxsmith/bestax-bulma';
+
+type ColorMode = 'light' | 'dark';
+
+// The key the index.html script reads the saved choice from.
+const STORAGE_KEY = 'theme';
+
+// The scheme the index.html script wrote on <html>.
+function initialColorMode(): ColorMode {
+  if (typeof document === 'undefined') return 'light';
+  return document.documentElement.getAttribute('data-theme') === 'dark'
+    ? 'dark'
+    : 'light';
+}
 
 function App() {
-  const [mode, setMode] = useState<'light' | 'dark' | 'system'>('system');
+  const [mode, setMode] = useState<ColorMode>(initialColorMode);
+
+  const setDark = (dark: boolean) => {
+    const next: ColorMode = dark ? 'dark' : 'light';
+    setMode(next);
+    try {
+      localStorage.setItem(STORAGE_KEY, next);
+    } catch {
+      // Storage is blocked, so the choice lasts until the page reloads.
+    }
+  };
+
   return (
     <Theme isRoot colorMode={mode}>
-      <Button color="primary" onClick={() => setMode('dark')}>
-        Dark
-      </Button>
-      <Button color="primary" onClick={() => setMode('light')}>
-        Light
-      </Button>
-      <Button onClick={() => setMode('system')}>System</Button>
+      <ToggleButton pressed={mode === 'dark'} onPressedChange={setDark}>
+        Dark mode
+      </ToggleButton>
     </Theme>
   );
 }
