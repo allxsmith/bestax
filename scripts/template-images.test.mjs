@@ -27,6 +27,7 @@ import {
   checkTemplateImages,
   decodeXml,
   externalImages,
+  imageLoads,
   isImagePath,
   isImageUrl,
   isIsoDate,
@@ -248,6 +249,17 @@ describe('an entry', () => {
     assert.deepEqual(problemsOf({ ...original(hero), replaces: 'a.png' }), []);
   });
 
+  it('is an SVG when it is an original, and any image when third-party', () => {
+    const photo = 'public/media/photo.png';
+    const withPhoto = entry =>
+      checkTemplateImages(tree({ [photo]: HERO, [RECORD]: recordOf([entry]) }));
+    assertOne(
+      withPhoto(original(photo)),
+      /"public\/media\/photo\.png": an original image is drawn as SVG, so its file must be an \.svg or \.svgz/
+    );
+    assert.deepEqual(withPhoto(thirdParty(photo)), []);
+  });
+
   it('passes as third-party, with its source and license', () => {
     assert.deepEqual(problemsOf(thirdParty(hero)), []);
   });
@@ -383,7 +395,7 @@ describe('the sources', () => {
           '// See //bulma.io for the classes, and logo.png beside this file.',
           "const home = 'https://bulma.io';",
           "const font = 'https://fonts.googleapis.com/css2?family=Inter';",
-          "const notAnImage = 'https://bulma.io/documentation/';",
+          "const docsPage = 'https://bulma.io/documentation/';",
         ].join('\n')
       ),
       []
@@ -525,6 +537,186 @@ describe('an SVG', () => {
     assertOne(
       withImage(svg(''), path),
       /hero\.svgz is not gzip-compressed, as an \.svgz must be/
+    );
+  });
+});
+
+describe('an image load', () => {
+  const unlisted = 'https://example.com/render?id=1';
+
+  it('is reported once, whatever its URL looks like', () => {
+    const problems = withFile(
+      'index.html',
+      [
+        `<img src="${unlisted}" alt="" />`,
+        '<img src="https://x.io/a.png" alt="" />',
+      ].join('\n')
+    );
+    assert.equal(problems.length, 2, problems.join('\n'));
+    assert.match(problems[0], /index\.html loads https:\/\/x\.io\/a\.png, an/);
+    assert.ok(problems[1].includes(`loads ${unlisted}, an image`), problems[1]);
+  });
+
+  it('is found in the attributes a tag loads an image from', () => {
+    assert.deepEqual(
+      imageLoads(
+        [
+          '<img src="https://example.com/a" />',
+          "<img srcSet={'https://example.com/b 1x, https://example.com/c 2x'} />",
+          '<picture><source srcset="//cdn.example.com/d" /></picture>',
+          '<video poster="https://example.com/e"></video>',
+          '<svg><image href="https://example.com/f" />',
+          '<image xlinkHref="https://example.com/g" /></svg>',
+          '<feImage xlink:href="https://example.com/h" />',
+          '<Image src="https://example.com/i" />',
+          '<Avatar src="https://example.com/j" name="A" />',
+          '<Card image="https://example.com/k">x</Card>',
+          '<input type="image" src="https://example.com/l" />',
+        ].join('\n')
+      ),
+      'abcdefghijkl'
+        .split('')
+        .map(id =>
+          id === 'd' ? '//cdn.example.com/d' : `https://example.com/${id}`
+        )
+    );
+  });
+
+  it('is found in the links and meta tags that name an image', () => {
+    assert.deepEqual(
+      imageLoads(
+        [
+          '<link rel="icon" href="https://example.com/a" />',
+          '<link rel="apple-touch-icon" href="https://example.com/b" />',
+          "<link rel={'preload'} as={'image'} href={'https://example.com/c'} />",
+          '<link rel="preload" as="font" imagesrcset="https://example.com/d" />',
+          '<meta property="og:image" content="https://example.com/e" />',
+          '<meta itemprop="logo" content="https://example.com/f" />',
+        ].join('\n')
+      ),
+      ['a', 'b', 'c', 'd', 'e', 'f'].map(id => `https://example.com/${id}`)
+    );
+  });
+
+  it('is found in the CSS properties that draw an image', () => {
+    assert.deepEqual(
+      imageLoads(
+        [
+          '.a { background-image: url(https://example.com/a); }',
+          ".b { background: #fff url('//example.com/b') no-repeat; }",
+          '.c { cursor: url(https://example.com/c), auto; }',
+          '.d { list-style: url("https://example.com/d"); }',
+          '.e { content: url(https://example.com/e); }',
+          '.f { mask-image: image-set("https://example.com/f" 1x); }',
+          '.g { border-image: url(https://example.com/g) 30; }',
+          '<div style="background-image:url(https://example.com/h)"></div>',
+          "const s = { backgroundImage: 'url(https://example.com/i)' };",
+          'const t = { WebkitMaskImage: "url(https://example.com/j)" };',
+        ].join('\n')
+      ),
+      'abcdefghij'
+        .split('')
+        .map(id =>
+          id === 'b' ? '//example.com/b' : `https://example.com/${id}`
+        )
+    );
+  });
+
+  it('is not a font, a stylesheet, an embedded page, a script or a link', () => {
+    assert.deepEqual(
+      imageLoads(
+        [
+          "@font-face { font-family: X; src: url(https://example.com/f) format('woff2'); }",
+          "@import url('https://fonts.googleapis.com/css2?family=Inter');",
+          '@import "https://example.com/theme.css";',
+          '<iframe src="https://www.google.com/maps/embed?pb=1"></iframe>',
+          '<a href="https://example.com/page">a page</a>',
+          '<script src="https://example.com/s.js"></script>',
+          '<link rel="stylesheet" href="https://fonts.googleapis.com/css2" />',
+          '<link rel="preload" as="font" href="https://example.com/font" />',
+          '<meta property="og:url" content="https://example.com/" />',
+          "const meta = { content: 'https://example.com/text' };",
+        ].join('\n')
+      ),
+      []
+    );
+  });
+
+  it('is not a file the template ships', () => {
+    assert.deepEqual(
+      imageLoads(
+        [
+          '<img src="/media/a.svg" />',
+          '<img src="/media//double-slash.svg" />',
+          '<Image src={photo} {...rest} />',
+          '.a { background: url(/media/b.svg); }',
+        ].join('\n')
+      ),
+      []
+    );
+  });
+
+  it('is found in data named for an image, where `src={photo}` reads it', () => {
+    assert.deepEqual(
+      imageLoads(
+        [
+          "const photos = ['https://example.com/a', 'https://example.com/b'];",
+          'const rooms = [',
+          "  { name: 'Gold', photo: 'https://example.com/c' },",
+          '  { title: \'One\', art: "https://example.com/d", wide: true },',
+          '  { avatar: `https://example.com/e` },',
+          '];',
+          "export const PLACEHOLDER: string = 'https://example.com/f';",
+          "const card = { heroImageUrl: 'https://example.com/g' };",
+          '{ "icons": [{ "src": "https://example.com/h" }] }',
+          "const banners = { 'hero-banner': 'https://example.com/i' };",
+        ].join('\n')
+      ),
+      'abcdefghi'.split('').map(id => `https://example.com/${id}`)
+    );
+  });
+
+  it('is not data named for a link, or words that only end like one', () => {
+    assert.deepEqual(
+      imageLoads(
+        [
+          "const links = [{ icon: 'facebook', href: 'https://facebook.com' }];",
+          "const site = { url: 'https://example.com', start: 'https://a.io' };",
+          "const chart = 'https://example.com/chart';",
+          "const map = { embedSrcDoc: 'x', source: 'https://example.com/s' };",
+          '<iframe src="https://www.google.com/maps/embed?pb=1" />',
+        ].join('\n')
+      ),
+      []
+    );
+  });
+
+  it('is read from a tag as HTML and JSX write it', () => {
+    assert.deepEqual(
+      imageLoads(
+        [
+          // A `>` in an expression or a string does not end the tag.
+          '<img onClick={() => go(\'>\')} src="https://example.com/a" />',
+          '<img hidden src=https://example.com/b>',
+          '<img {...props} src="https://example.com/c" / >',
+          '<img src={"https://example.com/d?q=}"} />',
+          '<img src="https://example.com/e',
+        ].join('\n')
+      ),
+      [
+        'https://example.com/a',
+        'https://example.com/b',
+        'https://example.com/c',
+        'https://example.com/d?q=',
+        'https://example.com/e',
+      ]
+    );
+    // An unclosed spread or a tag that never ends is read no further than
+    // its own limit, so a stray quote cannot claim the rest of the file.
+    assert.deepEqual(imageLoads('<img {...props'), []);
+    assert.deepEqual(
+      imageLoads(`<img ${'a '.repeat(3000)}src="https://example.com/far" />`),
+      []
     );
   });
 });

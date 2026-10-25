@@ -296,9 +296,11 @@ its own stylesheet:
   imports or its scripts run, since StackBlitz installs from the manifest alone.
 - **`scripts/template-images.test.mjs`**, in `pnpm test:scripts`: every image file has an entry
   in `image-provenance.json` whose hash matches it, every entry names an image the folder has,
-  no source loads an image from elsewhere, by a hot-link or a `data:` URI, and no SVG draws
-  anything from outside its own file: each `href`, `src` and `url()` in one points at a
-  `#fragment` of it.
+  and every original is an `.svg` or `.svgz`. No source loads an image from elsewhere: no
+  `data:` URI, no URL that looks like an image, and no absolute URL at all where an image loads
+  (an image tag's attribute, a CSS image property, or a value named for an image, such as
+  `photo: '...'`). No SVG draws anything from outside its own file: each `href`, `src` and
+  `url()` in one points at a `#fragment` of it.
 - **`scripts/skill-examples-typecheck.test.mjs`**: every template's `src/` compiles under the
   `vite-ts` template's compiler options against the built library. It resolves React and the
   library from this repo's install, so it holds the code, and the templates test holds the

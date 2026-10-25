@@ -190,6 +190,251 @@ export function externalImages(text) {
   return found;
 }
 
+/**
+ * The attributes a tag loads an image from, by its name in lowercase. `image`
+ * is SVG's element in JSX and bestax's `Image`, `avatar` and `card` are
+ * bestax's components that take one. `<link>` and `<meta>` load one only
+ * for some `rel`s and `property`s (imageAttributes), and other tags
+ * (`<iframe>`, `<script>`, `<a>`) load none.
+ */
+const IMAGE_ATTRIBUTES = {
+  avatar: ['src'],
+  card: ['image'],
+  feimage: ['href', 'xlink:href', 'xlinkhref'],
+  image: ['href', 'src', 'xlink:href', 'xlinkhref'],
+  img: ['src', 'srcset'],
+  input: ['src'],
+  source: ['src', 'srcset'],
+  video: ['poster'],
+};
+
+/**
+ * The CSS properties that draw an image from a `url()` or an `image-set()`.
+ * `src`, in `@font-face`, loads a font, and `@import` a stylesheet.
+ */
+const CSS_IMAGE_PROPERTIES = [
+  '-webkit-mask',
+  '-webkit-mask-image',
+  'background',
+  'background-image',
+  'border-image',
+  'border-image-source',
+  'content',
+  'cursor',
+  'list-style',
+  'list-style-image',
+  'mask',
+  'mask-image',
+];
+
+/** How far a tag's attributes are read before it is taken to have ended. */
+const TAG_LIMIT = 4000;
+
+/** Each absolute URL in `value`: http(s), or protocol-relative (`//host`). */
+function absoluteUrls(value) {
+  const found = [];
+  for (const match of value.matchAll(/(https?:)?\/\/[^\s"'`()<>\\,{}]+/gi)) {
+    const before = value[match.index - 1];
+    if (!match[1] && before !== undefined && !/["'`(\s,=]/.test(before)) {
+      continue;
+    }
+    found.push(match[0].replace(/[.,;:!?]+$/, ''));
+  }
+  return found;
+}
+
+/** The index past the `}` that closes the `{` at `start`, or the end. */
+function pastBraces(text, start) {
+  let depth = 0;
+  let quote = null;
+  for (let i = start; i < text.length; i += 1) {
+    const c = text[i];
+    if (quote) {
+      if (c === quote) quote = null;
+    } else if (c === '"' || c === "'" || c === '`') quote = c;
+    else if (c === '{') depth += 1;
+    else if (c === '}' && (depth -= 1) === 0) return i + 1;
+  }
+  return text.length;
+}
+
+/**
+ * The attributes of the tag whose name ends at `from`, by lowercase name:
+ * HTML's quoted and bare values and JSX's `{...}` expressions, whose text is
+ * kept as written. A `>` inside quotes or braces does not end the tag.
+ */
+function readTag(text, from) {
+  const attributes = new Map();
+  const name = /[^\s=/>"'`{}]+/y;
+  const equals = /\s*=\s*/y;
+  const limit = Math.min(text.length, from + TAG_LIMIT);
+  let i = from;
+  while (i < limit && text[i] !== '>') {
+    if (text[i] === '{') {
+      i = pastBraces(text, i); // a spread, `{...props}`
+      continue;
+    }
+    name.lastIndex = i;
+    const match = name.exec(text);
+    if (!match) {
+      i += 1; // whitespace, the `/` of `/>`, a stray quote
+      continue;
+    }
+    i = name.lastIndex;
+    equals.lastIndex = i;
+    if (!equals.exec(text)) {
+      attributes.set(match[0].toLowerCase(), '');
+      continue;
+    }
+    i = equals.lastIndex;
+    let value;
+    if (text[i] === '"' || text[i] === "'") {
+      const end = text.indexOf(text[i], i + 1);
+      const stop = end === -1 ? text.length : end;
+      value = text.slice(i + 1, stop);
+      i = stop + 1;
+    } else if (text[i] === '{') {
+      const end = pastBraces(text, i);
+      value = text.slice(i + 1, end - 1);
+      i = end;
+    } else {
+      const bare = /[^\s>]*/y;
+      bare.lastIndex = i;
+      value = bare.exec(text)[0];
+      i = bare.lastIndex;
+    }
+    attributes.set(match[0].toLowerCase(), value);
+  }
+  return attributes;
+}
+
+/** An attribute's value with JSX's quotes taken off, in lowercase. */
+const plain = value => (value ?? '').replace(/["'`]/g, '').toLowerCase();
+
+/** The attributes of a `tag` with `attributes` that load an image. */
+function imageAttributes(tag, attributes) {
+  if (tag === 'link') {
+    const rel = plain(attributes.get('rel')).split(/\s+/);
+    const preload = rel.includes('preload') || rel.includes('prefetch');
+    const image =
+      rel.some(token => token.includes('icon')) ||
+      (preload && plain(attributes.get('as')) === 'image');
+    return image ? ['href', 'imagesrcset'] : ['imagesrcset'];
+  }
+  if (tag === 'meta') {
+    const kind = ['property', 'name', 'itemprop']
+      .map(key => plain(attributes.get(key)))
+      .join(' ');
+    return /image|logo/.test(kind) ? ['content'] : [];
+  }
+  return IMAGE_ATTRIBUTES[tag];
+}
+
+/** The `url()` targets in a CSS value, and the strings of its `image-set()`. */
+function cssTargets(value) {
+  const targets = [...value.matchAll(/url\(\s*(["']?)(.*?)\1\s*\)/gi)].map(
+    match => match[2]
+  );
+  const set = value.search(/image-set\(/i);
+  if (set !== -1) {
+    for (const match of value.slice(set).matchAll(/(["'])(.*?)\1/g)) {
+      targets.push(match[2]);
+    }
+  }
+  return targets;
+}
+
+/**
+ * The words that name an image, as the last word of a property or a
+ * variable (`src`, `heroImage`, `PLACEHOLDER`, `photos`), or the word before
+ * a closing `url` (`avatarUrl`).
+ */
+const IMAGE_WORDS = [
+  'art',
+  'artwork',
+  'avatar',
+  'background',
+  'banner',
+  'cover',
+  'icon',
+  'illustration',
+  'image',
+  'img',
+  'logo',
+  'photo',
+  'picture',
+  'placeholder',
+  'poster',
+  'src',
+  'srcset',
+  'thumb',
+  'thumbnail',
+];
+
+/** Whether an identifier names an image, by its words (IMAGE_WORDS). */
+function namesImage(identifier) {
+  const words = identifier
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .toLowerCase()
+    .split(/[\s_$-]+/)
+    .map(word => word.replace(/([^s])s$/, '$1'));
+  const last = words.at(-1) === 'url' ? words.at(-2) : words.at(-1);
+  return IMAGE_WORDS.includes(last);
+}
+
+/**
+ * The absolute URLs that script and data name as images: a string, or an
+ * array of them, given to a property or a variable named for one
+ * (namesImage), such as `src: '...'`, `"image": "..."` in JSON, or
+ * `const photos = ['...']`. That is where a port keeps the images it
+ * renders with `src={photo}`. An HTML or JSX attribute (`src="..."` on an
+ * `<iframe>`) is not one: its images are imageLoads' tags.
+ */
+function namedImages(text) {
+  const found = [];
+  const binding =
+    /(?:\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*(?::[^=;]+)?=|(["']?)([A-Za-z_$][\w$-]*)\2\s*:)(?=\s*(\[[^\]]*\]|"[^"]*"|'[^']*'|`[^`]*`))/g;
+  for (const match of text.matchAll(binding)) {
+    if (namesImage(match[1] ?? match[3])) found.push(...absoluteUrls(match[4]));
+  }
+  return found;
+}
+
+/**
+ * Every absolute URL `text` loads as an image, whatever its path ends in: in
+ * an image attribute of a tag (IMAGE_ATTRIBUTES, and imageAttributes for
+ * `<link>` and `<meta>`), in a `url()` or `image-set()` of an image property
+ * (CSS_IMAGE_PROPERTIES), written in CSS, in a `style` attribute or in a JSX
+ * style object (`backgroundImage`), and in a property or variable named for
+ * an image (namedImages). It reads the places an image loads from, where
+ * externalImages reads what a URL looks like, so it finds an image a URL with
+ * no extension serves, and leaves fonts, stylesheets, embedded maps and
+ * links alone.
+ */
+export function imageLoads(text) {
+  const found = [];
+  for (const match of text.matchAll(/<([A-Za-z][\w.:-]*)/g)) {
+    const tag = match[1].toLowerCase();
+    const known = Object.hasOwn(IMAGE_ATTRIBUTES, tag);
+    if (!known && tag !== 'link' && tag !== 'meta') continue;
+    const attributes = readTag(text, match.index + match[0].length);
+    for (const name of imageAttributes(tag, attributes)) {
+      found.push(...absoluteUrls(attributes.get(name) ?? ''));
+    }
+  }
+  const declaration = /([A-Za-z-]+)\s*:\s*(?:(["'`])([\s\S]*?)\2|([^;{}]*))/g;
+  for (const match of text.matchAll(declaration)) {
+    const property = match[1].replace(/[A-Z]/g, c => `-${c.toLowerCase()}`);
+    if (!CSS_IMAGE_PROPERTIES.includes(property)) continue;
+    for (const target of cssTargets(match[3] ?? match[4])) {
+      found.push(...absoluteUrls(target));
+    }
+  }
+  found.push(...namedImages(text));
+  // One place can be read twice, as a tag's style and as a named value.
+  return [...new Set(found)];
+}
+
 /** A reference as a message names it: a `data:` URI by its type alone. */
 const describeTarget = target => {
   const data = /^data:([^;,]*)/i.exec(target);
@@ -295,6 +540,18 @@ export function entryFieldProblems(at, entry) {
   }
   if (nonEmpty(entry.sha256) && !HEX.test(entry.sha256)) {
     problems.push(`${at}: \`sha256\` must be 64 lowercase hex digits`);
+  }
+  // A drawing made for the port is SVG, its own source; a raster image is a
+  // photo or a render of something, so only a third-party entry may name one.
+  if (
+    origin === 'original' &&
+    nonEmpty(entry.path) &&
+    !SVG_EXTENSIONS.includes(extensionOf(entry.path))
+  ) {
+    problems.push(
+      `${at}: an original image is drawn as SVG, so its file must be an ` +
+        `.svg or .svgz; draw it as one (${GUIDE})`
+    );
   }
   return problems;
 }
@@ -433,7 +690,11 @@ export function templateImageProblems(root, slug, files) {
     }
     // An SVG is read as its parser reads it, so a reference written with
     // character references is found, and matches the one reported above.
-    for (const image of externalImages(svg ? decodeXml(text) : text)) {
+    // Another source is read for its image loads too, each reported once.
+    const loads = svg
+      ? externalImages(decodeXml(text))
+      : new Set([...externalImages(text), ...imageLoads(text)]);
+    for (const image of loads) {
       if (drawn.some(target => target.includes(image))) continue;
       problems.push(
         `${at} loads ${image}, an image the template does not ship; draw ` +
