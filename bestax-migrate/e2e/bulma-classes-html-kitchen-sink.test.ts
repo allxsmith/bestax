@@ -161,6 +161,8 @@ const LEFTOVER_RULES = [
   'html-element:unknown',
   'html-event:onclick',
   'html-event:onload',
+  'html-extension:carousel',
+  'html-extension:is-covered',
   'html-head',
   'html-head:base',
   'html-head:csp',
@@ -182,7 +184,9 @@ const LEFTOVER_RULES = [
   'html-url:missing',
   'html-url:relative',
   'legacy:is-paddingless',
+  'modifier:button',
   'modifier:image',
+  'modifier:title',
   'tag:SubTitle',
   'tag:Title',
 ];

@@ -2,7 +2,8 @@
 
 Which class becomes which prop, per component, then the helper classes every component takes.
 A class that becomes no prop stays in `className`. So does a second class for a prop already
-written (`is-small is-large` keeps `is-large`), so the element still renders both.
+written (`is-small is-large` keeps `is-large`), so the element still renders both. A second
+color gets a `modifier:<root>` TODO (`modifier:button`), since only one of the two may show.
 
 `{viewport}` is one of `mobile`, `tablet`, `desktop`, `widescreen`, `fullhd` unless a row says
 otherwise, and the prop takes the matching suffix: `is-6-tablet` → `sizeTablet="6"`.
@@ -74,7 +75,8 @@ bestax picks the heading from `size` (`size="3"` renders an `<h3>`) unless `as="
 `<h2>`, `is-4` stays a class and the element becomes `<Title as="h2" className="is-4">`, which
 renders the same `<h2>`. To write it as a prop, `textSize="4"` keeps the `<h2>` and sizes it the
 same: it renders Bulma's `is-size-4`, which has the font size `is-4` gives a title or subtitle,
-and as a Bulma helper it is `!important`, so check a title the page's own CSS sizes.
+and as a Bulma helper it is `!important`, so check a title the page's own CSS sizes. The
+codemod's `modifier:title` (or `modifier:subtitle`) TODO on the element says the same.
 
 ### Other components
 

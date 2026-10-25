@@ -108,12 +108,12 @@
         {
           "id": "bulma-classes-prop-map",
           "file": "references/bulma-classes/prop-map.md",
-          "bytes": 38917
+          "bytes": 39110
         },
         {
           "id": "bulma-classes-unmappables",
           "file": "references/bulma-classes/unmappables.md",
-          "bytes": 57888
+          "bytes": 62547
         },
         {
           "id": "css-migration",
@@ -176,7 +176,7 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 49743
+          "bytes": 49488
         },
         {
           "id": "themeable-components",

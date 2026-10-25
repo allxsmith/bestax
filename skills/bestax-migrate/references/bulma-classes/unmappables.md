@@ -410,7 +410,7 @@ reason), or beside a class for the same prop (`p-2`, before it or after), which 
 since it's what the page renders today. Write `m-0` or `p-0` in its place, or drop it if the
 spacing it once removed no longer matters.
 
-## A class that styles nothing where it is: `modifier:<root>`
+## A modifier class that needs a look: `modifier:<root>`
 
 `modifier:image`: an `.image` size or ratio (`is-64x64`, `is-square`, `is-4by3`) on an element
 without `.image`. Bulma styles them only on the element that carries `.image`, so this one
@@ -419,6 +419,24 @@ image's box, add `image`. On a tag `Image` renders (the component map's `.image`
 them), re-run and it can convert; on any other tag it stays markup, and the TODO says so.
 Otherwise drop the class. A computed `className` the codemod can't read whole gets no such TODO, since a class it
 can't see may be the `.image`.
+
+`modifier:button` (and `modifier:hero`, `modifier:tag`, `modifier:notification`,
+`modifier:progress`, `modifier:navbar`): a second color on an element that converted
+(`button is-black is-primary`). The component takes one `color`, the first color class on the
+element, and the other stays in `className`, which renders the same. Two colors on one element
+look the way Bulma's stylesheet settles them, not the order they're written in, so one of
+them may be doing nothing. Look at what the page shows, write the color you want as `color`,
+and drop the other class. A color a `clsx` or `classnames` condition adds gets no TODO, since
+that is a state the page asks for.
+
+`modifier:title`, `modifier:subtitle`: a heading size on a heading it doesn't name
+(`<h1 className="title is-3">`). bestax picks the heading from `size` (`size="3"` renders an
+`<h3>`), so the size stays in `className` and the element becomes `<Title className="is-3">`,
+the same `<h1>`. To write it as a prop, as the MCP server's `lookup_bulma_classes` says,
+`textSize="3"` in its place keeps the `<h1>` and sizes it the same. It renders Bulma's
+`is-size-3`, which is `!important`, so check a title the page's own CSS sizes. There is no TODO
+when an `is-size-*` beside it writes `textSize` already, or when the element has two size
+classes.
 
 ## A whole file it left alone
 
@@ -525,11 +543,12 @@ neither, so load what the app still needs once for the whole app, from its entry
   - A kit (`kit.fontawesome.com`): keep loading it from `index.html`, or install Font Awesome from
     npm instead. A URL with no version: the same, with the v4 shims beside it if the page's names
     are 4's (`fa fa-<name>`).
-- **`html-asset:bulma-extension`**: a `bulma-*` package (or `@creativebulma/bulma-*`). An
-  extension's stylesheet and script are one TODO, with both lines. Where bestax has a component
-  for what it does, the TODO names it; render that in place of the extension's markup and script,
-  whose styles ship in `extras.css` and `bestax.css`, and stop loading the extension once nothing
-  the app keeps uses its classes:
+- **`html-asset:bulma-extension`**: a `bulma-*` package (or `@creativebulma/bulma-*`). A file of
+  one extension inside the `bulma-extensions` package (`bulma-extensions/bulma-carousel/dist/…`)
+  counts as that extension's. An extension's stylesheet and script are one TODO, with both lines.
+  Where bestax has a component for what it does, the TODO names it; render that in place of the
+  extension's markup and script, whose styles ship in `extras.css` and `bestax.css`, and stop
+  loading the extension once nothing the app keeps uses its classes:
 
   | Extension                                               | bestax                                                                                 |
   | ------------------------------------------------------- | -------------------------------------------------------------------------------------- |
@@ -548,6 +567,10 @@ neither, so load what the app still needs once for the whole app, from its entry
   | `bulma-pageloader`                                      | `Loading`, `isFullPage` for one over the whole page                                    |
   | `bulma-quickview`                                       | `Sidebar`                                                                              |
   | `bulma-toast`                                           | `Toast`: `toast.show()` from code, with a `ToastContainer` once                        |
+
+  bulma-carousel's `is-covered` images are the exception: its stylesheet crops them only inside
+  its own slides, which `Carousel` doesn't render, so keeping it wouldn't keep them cropped. The
+  TODO says so when the page has them, and `html-extension:is-covered` has the rule to add.
 
   `bulma-extensions`, the bundle, holds several of these: replace the ones in the table, and keep
   loading the bundle only for the rest. **bulma-social** has no bestax component: keep loading it,
@@ -576,9 +599,17 @@ neither, so load what the app still needs once for the whole app, from its entry
 - **`html-asset:stylesheet`**: any other stylesheet. The page's own, beside it (in its folder or
   one below), is imported once for the app in the order the page loads it, so its rules still win
   over Bulma's where they did (a module beside the page imports `css/styles.css` as
-  `./css/styles.css`), or its rules move into the app's stylesheet. For one that isn't in the
-  page's folder, the TODO says only that: the page's `<base href>`, if it has one, may have loaded
-  it from somewhere else, so find the one it meant, or drop it.
+  `./css/styles.css`), or its rules move into the app's stylesheet. A relative URL in it (a
+  `url()`, or an `@import` written as a string) resolves against the stylesheet's own folder, not
+  the page's, so the TODO names each one it finds: `url('../media/background.webp')` in
+  `css/styles.css` points at `media/background.webp` beside the page. Imported where it is, the
+  bundler still resolves them. Moved into the app's stylesheet (`src/index.css`), each needs
+  rewriting against that file's folder, or copy the files into the app's `public/` folder and
+  point at them from the site root (`url('/media/background.webp')`), which the TODO spells out
+  for each one inside the page's folder. An `image-set()` that names a file as a bare string
+  isn't read, so check those by hand. For a stylesheet that isn't in the page's folder, the TODO
+  says only that: the page's `<base href>`, if it has one, may have loaded it from somewhere
+  else, so find the one it meant, or drop it.
 - **`html-asset:script`**: any other script. The component runs none: load a library the app still
   needs in `index.html` (or install it), and port what the page's own scripts did into the
   component. A script of the page's own, beside it, is read the way an inline script is, so one
@@ -648,7 +679,8 @@ read for the burger, a carousel and a theme toggle too, and its TODO names the f
   window's width in your own code. `Carousel` loops unless `repeat={false}`, while
   bulma-carousel stops at the ends unless `loop` (back to the start) or `infinite` (round
   without a break) is set, so a carousel with neither takes `repeat={false}`. Its styles ship in
-  bestax's `extras.css` and `bestax.css`, not in Bulma's stylesheet.
+  bestax's `extras.css` and `bestax.css`, not in Bulma's stylesheet. The element the script
+  drives gets `html-extension:carousel`, below, when the codemod can read its selector.
 - **`html-script:theme`** switches Bulma's light and dark schemes. The toggle is `Theme`'s: it
   writes `data-theme` on `<html>` from its `colorMode` (`light`, `dark` or `system`), so keep the
   choice in state, save it in `localStorage`, and pass it. The first paint is `index.html`'s:
@@ -665,6 +697,40 @@ read for the burger, a carousel and a theme toggle too, and its TODO names the f
   `<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />`.
 - **`html-script`**: any other inline script, or a `<script type>` that isn't code (a template,
   JSON data). Port what it does into the component as state, effects and event handlers.
+
+### A Bulma extension's own markup: `html-extension:<name>`
+
+A component takes the place of an extension's markup, but nothing converts that markup, so these
+point at the elements to rebuild.
+
+- **`html-extension:carousel`**: an element bulma-carousel makes a carousel of. When a script of
+  the page's, inline or beside it, attaches bulma-carousel with a selector written as a string of
+  tags, ids and classes (`bulmaCarousel.attach('#carousel-demo')`), the codemod finds every
+  element that selector matches, the way `querySelectorAll` does, and the TODO lists their
+  lines. bulma-carousel makes a carousel of each one, so a page that gives one id to two elements
+  has two carousels, and the TODO says so. Render a `Carousel` in the place of each, with a
+  `CarouselItem` for each slide (bulma-carousel 4 makes a slide of each child), and carry its
+  options over as `html-script:carousel` says. On a page that uses bulma-carousel, an element
+  with its `carousel` class that no selector reached gets the TODO too. `carousel` is also bestax
+  `Carousel`'s own class, so `bestax.css` and `extras.css` style that markup as `Carousel`'s root
+  (`position: relative`, `overflow: hidden`, `width: 100%`) until a `Carousel` takes its place. A
+  selector the codemod can't read (a variable, or a selector with a combinator or an attribute)
+  gets no TODO of its own: find what it selects by hand.
+- **`html-extension:is-covered`**: bulma-carousel's `is-covered` on an `.image`, on a page that
+  loads its stylesheet (the bundle's combined `bulma-extensions.min.css` has no rule for it).
+  Inside one of the slides its script builds, that stylesheet makes the `<img>` fill the frame
+  and crops it to fit (`object-fit: cover`). Nothing in bestax reads the class: `Image` has no
+  prop for it, and the rule reaches only bulma-carousel's own slides, not `Carousel`'s. So in the
+  app a ratio image stretches its photo instead. Keep the class and give it the rule in the app's
+  stylesheet:
+
+  ```css
+  .image.is-covered img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  ```
 
 ### `<html>` and `<body>`: `html-document:<name>`
 

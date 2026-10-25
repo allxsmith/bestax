@@ -249,7 +249,7 @@ function IndicatorExample() {
 
 ### Indicators Over the Slides
 
-`indicatorInside` moves the indicators from below the slides onto them, at the bottom edge, or the top one with `indicatorPosition="top"`, on a dark gradient band. It also turns on the carousel's overlay look, made for photos: the arrows and indicators take the `--bulma-carousel-overlay-*` colors in place of the plain ones, and `arrowColor` stops applying. No prop moves the indicators without the overlay look, or gives the look without moving them.
+`indicatorInside` moves the indicators from below the slides onto them, at the bottom edge, or the top one with `indicatorPosition="top"`. On its own it also turns on the overlay look, made for photos: light arrows, and light indicators on a dark gradient band. The look's colors are the `--bulma-carousel-overlay-*` variables, and `arrowColor` doesn't apply while it's on.
 
 ```tsx live
 <Carousel indicatorInside>
@@ -277,52 +277,57 @@ function IndicatorExample() {
 </Carousel>
 ```
 
-#### Indicators over the slides with the plain look
+`indicatorPosition="top"` only moves indicators over the slides. Below them it has no edge to move to, so leave it unset there.
 
-On light slides, such as white cards, the band covers the bottom of each one. To keep the indicators over the slides with the plain colors, set each overlay variable to its plain one on a class you give the carousel, and take the band off the indicators. The band is a `background` rather than a variable. Under the prefixed flavor, every class in these selectors except your own takes the `bestax-` prefix.
+---
 
-```css
-.carousel.plain-inside {
-  --bulma-carousel-overlay-arrow-background: var(
-    --bulma-carousel-arrow-background
-  );
-  --bulma-carousel-overlay-arrow-background-hover: var(
-    --bulma-carousel-arrow-background-hover
-  );
-  --bulma-carousel-overlay-arrow-color: var(--bulma-carousel-arrow-color);
-  --bulma-carousel-overlay-indicator-background: var(
-    --bulma-carousel-indicator-background
-  );
-  --bulma-carousel-overlay-indicator-background-hover: var(
-    --bulma-carousel-indicator-background-hover
-  );
-  --bulma-carousel-overlay-indicator-background-active: var(
-    --bulma-carousel-indicator-background-active
-  );
-}
+### Plain Indicators Over the Slides
 
-.carousel.plain-inside .carousel-indicator.is-inside {
-  background: none;
-}
-```
+`overlayControls` sets the overlay look apart from where the indicators sit. It follows `indicatorInside` unless you set it. On light slides, such as white cards, the band covers the bottom of each one, so `overlayControls={false}` keeps the indicators over the slides with the plain colors and no band:
 
-```tsx
-<Carousel className="plain-inside" indicatorInside>
-  {/* items */}
+```tsx live
+<Carousel indicatorInside overlayControls={false}>
+  {['Garden Room', 'Harbor Suite', 'Loft', 'Courtyard Twin'].map(room => (
+    <CarouselItem key={room}>
+      <Card m="2">
+        <Card.Content pb="6">
+          <Title as="p" size="5">
+            {room}
+          </Title>
+          <SubTitle as="p" size="6">
+            Sleeps two
+          </SubTitle>
+        </Card.Content>
+      </Card>
+    </CarouselItem>
+  ))}
 </Carousel>
 ```
 
-With `indicatorStyle="circles"`, the overlay look also fills the circles that aren't active, which the plain look leaves hollow. Clear that fill too:
+---
 
-```css
-.carousel.plain-inside.is-indicator-circles
-  .carousel-indicator.is-inside
-  .indicator-item:not(.is-active) {
-  background-color: transparent;
-}
+### Overlay Arrows
+
+`overlayControls` without `indicatorInside` gives the arrows the overlay look and leaves the indicators below the slides. They keep their plain colors there, since they sit on the page rather than on the slides:
+
+```tsx live
+<Carousel overlayControls>
+  <CarouselItem>
+    <Hero color="dark" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Slide 1</Title>
+      </Hero.Body>
+    </Hero>
+  </CarouselItem>
+  <CarouselItem>
+    <Hero color="link" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Slide 2</Title>
+      </Hero.Body>
+    </Hero>
+  </CarouselItem>
+</Carousel>
 ```
-
-For a look like the overlay one with the indicators below the slides, set the plain `--bulma-carousel-arrow-*` and `--bulma-carousel-indicator-*` color variables instead.
 
 ---
 
@@ -629,7 +634,8 @@ Use the `pauseOnHover` prop (enabled by default) to let users interact with caro
 | `arrow`                 | `boolean`                                                                  | `true`             | Show navigation arrows. Default: true. They render `type="button"`, so a carousel inside a form is not submitted by moving between slides.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `arrowHover`            | `boolean`                                                                  | `false`            | Only show arrows on hover.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `indicator`             | `boolean`                                                                  | `true`             | Show slide indicators. Default: true. There is one for each position a step can land on (see `itemsToScroll`). They render `type="button"`, so a carousel inside a form is not submitted by picking a slide.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| `indicatorInside`       | `boolean`                                                                  | `false`            | Puts the indicators over the slides instead of below them, at the edge `indicatorPosition` names, on a dark gradient band. It also turns on the overlay look, made for photos: the arrows and indicators take the `--bulma-carousel-overlay-*` colors in place of the plain ones, and `arrowColor` stops applying. No prop moves the indicators without that look, or gives the look without moving them. To keep the plain colors over the slides, set each overlay variable to its plain one. The band is a `background` on the `.carousel-indicator.is-inside` element, not a variable. The API page's "Indicators Over the Slides" section has the whole recipe.                                  |
+| `indicatorInside`       | `boolean`                                                                  | `false`            | Puts the indicators over the slides instead of below them, at the edge `indicatorPosition` names. It also turns on the overlay look unless `overlayControls` says otherwise, so on its own it gives the look made for photos: light arrows, and light indicators on a dark gradient band.                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `overlayControls`       | `boolean`                                                                  | `indicatorInside`  | The overlay look, made for photos. The arrows take the `--bulma-carousel-overlay-arrow-*` colors, and indicators over the slides take the `--bulma-carousel-overlay-indicator-*` colors on a dark gradient band. Indicators below the slides keep their plain colors, since they sit on the page. It follows `indicatorInside` unless you set it, so `overlayControls={false}` puts the indicators over the slides with the plain look, and `overlayControls` alone gives the arrows the overlay look with the indicators below. While it's on, `arrowColor` doesn't apply.                                                                                                                           |
 | `indicatorPosition`     | `'bottom'` \| `'top'`                                                      | `'bottom'`         | The edge of the slides `indicatorInside` puts the indicators on. Default: 'bottom'. Without `indicatorInside` they sit below the slides whatever this says, so leave it unset there.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `indicatorStyle`        | `'circles'` \| `'dots'` \| `'lines'` \| `'bars'`                           | `'dots'`           | Indicator style. Default: 'dots'.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | `iconPrev`              | `string`                                                                   | —                  | Icon name for the previous arrow button.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
@@ -639,7 +645,7 @@ Use the `pauseOnHover` prop (enabled by default) to let users interact with caro
 | `iconSize`              | `'small'` \| `'medium'` \| `'large'`                                       | —                  | Icon size modifier.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `iconFeatures`          | `string` \| `string[]`                                                     | —                  | Additional icon modifiers.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `arrowBackground`       | `boolean`                                                                  | `true`             | Show semi-transparent background on arrow buttons. Set to `false` for icon-only arrows.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| `arrowColor`            | `'light'` \| `'dark'`                                                      | —                  | Color theme for navigation arrows. Not applied with `indicatorInside`, whose overlay look colors the arrows with `--bulma-carousel-overlay-arrow-color`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `arrowColor`            | `'light'` \| `'dark'`                                                      | —                  | Color theme for navigation arrows. Not applied while the overlay look is on (see `overlayControls`, which `indicatorInside` turns on), whose arrows take `--bulma-carousel-overlay-arrow-color`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | `ariaLabel`             | `string`                                                                   | `'Image carousel'` | Accessible label for the carousel region. Default: 'Image carousel'.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `onChange`              | `(value: number) => void`                                                  | —                  | Called with the index of the first item in view when an arrow, an arrow key, an indicator, a swipe or autoplay moves the carousel.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `children`              | `React.ReactNode`                                                          | —                  | CarouselItem children.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
@@ -697,10 +703,10 @@ Use the `pauseOnHover` prop (enabled by default) to let users interact with caro
 | `--bulma-carousel-indicator-bar-height-mobile`         | `$carousel-indicator-bar-height-mobile`         | `4px`                                                                                   |
 | `--bulma-carousel-overlay-arrow-background`            | `$carousel-overlay-arrow-background`            | `hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.3)` |
 | `--bulma-carousel-overlay-arrow-background-hover`      | `$carousel-overlay-arrow-background-hover`      | `hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.5)` |
-| `--bulma-carousel-overlay-arrow-color`                 | `$carousel-overlay-arrow-color`                 | `var(--bulma-scheme-main)`                                                              |
-| `--bulma-carousel-overlay-indicator-background`        | `$carousel-overlay-indicator-background`        | `hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-main-l), 0.5)`   |
-| `--bulma-carousel-overlay-indicator-background-hover`  | `$carousel-overlay-indicator-background-hover`  | `hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-main-l), 0.8)`   |
-| `--bulma-carousel-overlay-indicator-background-active` | `$carousel-overlay-indicator-background-active` | `var(--bulma-scheme-main)`                                                              |
+| `--bulma-carousel-overlay-arrow-color`                 | `$carousel-overlay-arrow-color`                 | `var(--bulma-white)`                                                                    |
+| `--bulma-carousel-overlay-indicator-background`        | `$carousel-overlay-indicator-background`        | `hsla(var(--bulma-white-h), var(--bulma-white-s), var(--bulma-white-l), 0.5)`           |
+| `--bulma-carousel-overlay-indicator-background-hover`  | `$carousel-overlay-indicator-background-hover`  | `hsla(var(--bulma-white-h), var(--bulma-white-s), var(--bulma-white-l), 0.8)`           |
+| `--bulma-carousel-overlay-indicator-background-active` | `$carousel-overlay-indicator-background-active` | `var(--bulma-white)`                                                                    |
 | `--bulma-carousel-transition-duration`                 | `$carousel-transition-duration`                 | `var(--bulma-duration)`                                                                 |
 | `--bulma-carousel-fade-duration`                       | `$carousel-fade-duration`                       | `0.5s`                                                                                  |
 | `--bulma-carousel-item-gap`                            | `$carousel-item-gap`                            | `0px`                                                                                   |
@@ -714,4 +720,4 @@ Use the `pauseOnHover` prop (enabled by default) to let users interact with caro
 
 <!-- /bestax:generated cssvars -->
 
-The `--bulma-carousel-overlay-*` variables color the arrows and indicators only while `indicatorInside` is set, since that prop is what turns on the overlay look. Without it, the colors come from the `--bulma-carousel-arrow-*` and `--bulma-carousel-indicator-*` variables, which set the sizes either way. The dark band behind the indicators over the slides isn't a variable. [Indicators Over the Slides](#indicators-over-the-slides) shows how to keep the plain colors there and drop the band.
+The `--bulma-carousel-overlay-*` variables color the arrows, and indicators over the slides, only while the overlay look is on: with `overlayControls`, which `indicatorInside` turns on unless you set it. Otherwise the colors come from the `--bulma-carousel-arrow-*` and `--bulma-carousel-indicator-*` variables, which set the sizes either way. The overlay colors stay light in either color scheme, since they sit on a dark tint. The dark band behind indicators over the slides isn't a variable: `overlayControls={false}` leaves it off, as [Plain Indicators Over the Slides](#plain-indicators-over-the-slides) shows.

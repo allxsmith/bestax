@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.44.0"
+    "version": "5.45.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -255,8 +255,8 @@
       "slug": "components/carousel",
       "import": "import { Carousel, CarouselItem } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 30,
-      "exampleCount": 15
+      "propCount": 31,
+      "exampleCount": 16
     },
     {
       "name": "Cell",

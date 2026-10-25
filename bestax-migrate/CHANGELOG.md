@@ -1,3 +1,32 @@
+## [2.32.1](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.32.0...bestax-migrate@2.32.1) (2026-10-25)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** note the elements bulma-carousel drives and its is-covered images ([ad8d733](https://github.com/allxsmith/bestax/commit/ad8d733917363beaca4856bd3660ac2721c54f33)), closes [#1249](https://github.com/allxsmith/bestax/issues/1249)
+* **bestax-migrate:** read a bundled extension's own file as that extension's ([eb7a89d](https://github.com/allxsmith/bestax/commit/eb7a89d0947e19734413772d0198fa401ac861f7))
+* **bulma-ui:** drop the band and padding from Carousel's top indicators below the slides ([3a2e9d1](https://github.com/allxsmith/bestax/commit/3a2e9d1d3d0dfda63bf7623ad026b1de2f73fd96))
+* **bulma-ui:** keep Carousel's overlay arrows and dots light in dark mode ([c86a981](https://github.com/allxsmith/bestax/commit/c86a981bdbb57fc8bde8a872fc9f4d76660d91ea))
+* **docs:** copy the Tropico template's Bulma logo instead of hot-linking it ([#1271](https://github.com/allxsmith/bestax/issues/1271)) ([8e502bd](https://github.com/allxsmith/bestax/commit/8e502bd6c3d1a88907248c4af61c437c151761c0))
+* **docs:** re-port the Login template with the current tools ([5032c27](https://github.com/allxsmith/bestax/commit/5032c270db35842ce9166344d2040147f5db790d)), closes [#1219](https://github.com/allxsmith/bestax/issues/1219)
+
+
+### Features
+
+* **bulma-ui:** add Carousel overlayControls to set the overlay look apart from indicatorInside ([b2acab9](https://github.com/allxsmith/bestax/commit/b2acab97449294fa1662b526627ae1aa67338bd8))
+
+# [2.32.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.31.3...bestax-migrate@2.32.0) (2026-10-25)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** list a page stylesheet's string [@imports](https://github.com/imports) beside its url()s ([4eb85ab](https://github.com/allxsmith/bestax/commit/4eb85ab1ef88faf46e6d05e62065dfcfbb082a9a))
+
+
+### Features
+
+* **bestax-migrate:** note a second color, a heading's textSize and a stylesheet's url()s ([dbe7702](https://github.com/allxsmith/bestax/commit/dbe7702113ea8d22ebd480ca26d0d29c63395e74))
+
 ## [2.31.3](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.31.2...bestax-migrate@2.31.3) (2026-10-24)
 
 

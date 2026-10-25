@@ -135,6 +135,14 @@ docs: fix typo in contributing guide     → no release; scope optional
 
 Full versioning details (breaking-change footers, tag formats): `VERSIONING.md`.
 
+**No breaking changes until the next major.** A change that would need a `BREAKING CHANGE:`
+footer in any package doesn't ship, and that reaches past the library's API: a removed or renamed
+export, prop, type, CLI flag, MCP tool or lint rule, a narrowed type or peer range, a raised Node
+floor, or a default or behavior existing code relies on. Its issue gets the `next-major` label and
+waits, so the breaking changes land together in one major release rather than one at a time.
+Where an issue offers a breaking fix and a compatible one, ship the compatible one and split the
+breaking option into its own `next-major` issue.
+
 ## Dependencies are a deliberate act
 
 `pnpm-workspace.yaml` (read its comments before touching deps) enforces supply-chain hardening:

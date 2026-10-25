@@ -112,11 +112,12 @@ fix.
      - Large upstream images are recompressed into `public/`. Unsplash hot-links stay hot-links.
      - Other third-party hot-links that may vanish become small local files in `public/`, and so
        does one already dead upstream (bulma.io's old `/images/` paths), copied from a source
-       whose license allows it, with that license's notice in `LICENSE`.
+       whose license allows it, with that license's notice in `LICENSE`. The Bulma logo is one:
+       copy it from `docs/assets` in jgthms/bulma, whose folder license, `docs/LICENSE`, is MIT,
+       rather than from bulma.io, whose site content is CC BY-NC-SA.
      - Check the license of any hot-linked asset that needs credit (an Icons8 logo, for one).
-       One whose terms rule out a copy in the template (bulma.io's site content, under
-       CC BY-NC-SA; a photo marked all rights reserved) stays a hot-link, as the original has it,
-       and the README says where it loads from.
+       One whose terms rule out a copy in the template (a photo marked all rights reserved) stays
+       a hot-link, as the original has it, and the README says where it loads from.
      - A web font the original names but never loads stays unloaded: the original's real look is
        its fallback stack, so keep that, and say in the README how to load the font.
 5. **Check parity.** Screenshot the original (the entry's `demo`) and the port side by side at

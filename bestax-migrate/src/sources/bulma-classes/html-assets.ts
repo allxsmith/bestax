@@ -56,7 +56,25 @@ const FONT_AWESOME_KIT = /(?:^|\/\/)kit\.fontawesome\.com\//i;
 
 /** A package whose name starts `bulma-`, as a path segment or a file. */
 const EXTENSION =
-  /(?:^|[/\\])((?:@creativebulma\/)?bulma-[a-z\d]+(?:-[a-z\d]+)*)(?=@|[/\\]|(?:\.min)?\.(?:css|js)$)/i;
+  /(?:^|[/\\])((?:@creativebulma\/)?bulma-[a-z\d]+(?:-[a-z\d]+)*)(?=@|[/\\]|(?:\.min)?\.(?:css|js)$)/gi;
+
+/**
+ * The extension a URL's path loads: the first package it names, but for a
+ * file of one extension inside the bulma-extensions bundle's package
+ * (`bulma-extensions@6.2.7/bulma-carousel/dist/…`), which is that one's own
+ * file, not the bundle's combined stylesheet or script.
+ */
+function extensionOf(urlPath: string): string | undefined {
+  const [first, ...rest] = [...urlPath.matchAll(EXTENSION)].map(
+    match => match[1]
+  );
+  if (first === undefined || extensionPackage(first) !== 'bulma-extensions') {
+    return first;
+  }
+  return (
+    rest.find(name => extensionPackage(name) !== 'bulma-extensions') ?? first
+  );
+}
 
 /** jQuery itself, not a plugin: `jquery-3.7.1.min.js`, `jquery@3`. */
 const JQUERY =
@@ -93,7 +111,7 @@ export function classifyAsset(url: string, loads: Loads): Asset {
       kit: FONT_AWESOME_KIT.test(url.trim()),
     };
   }
-  const extension = EXTENSION.exec(urlPath)?.[1];
+  const extension = extensionOf(urlPath);
   if (extension) return { kind: 'bulma-extension', name: extension };
   if (loads === 'script') {
     return JQUERY.test(urlPath) ? { kind: 'jquery' } : { kind: 'script' };
@@ -264,14 +282,25 @@ export const EXTENSION_COMPONENTS: Readonly<Record<string, string>> = {
   'bulma-tooltip': '`Tooltip`',
 };
 
+/** An extension's package without its scope, in lower case (`bulma-tooltip`). */
+export function extensionPackage(name: string): string {
+  return name.replace(/^@[^/]+\//, '').toLowerCase();
+}
+
+/**
+ * What a page's link to an extension leaves to do. `covered`: the page has
+ * images with bulma-carousel's `is-covered`, which its stylesheet crops only
+ * inside its own slides, so keeping the extension doesn't keep them cropped.
+ */
 export function extensionMessage(
   name: string,
   quoted: string[],
   loads: ReadonlySet<Loads>,
-  css: CssMode
+  css: CssMode,
+  covered = false
 ): string {
   const from = `from ${quoted.map(url => `\`${url}\``).join(' and ')}`;
-  const bare = name.replace(/^@[^/]+\//, '').toLowerCase();
+  const bare = extensionPackage(name);
   if (bare === 'bulma-social') {
     return `the page loads bulma-social, a Bulma extension for brand-colored buttons, ${from}, and bestax has no component for it: keep loading it once for the app (\`bulma-social\` from npm, imported from its entry, or the \`<link>\` in its index.html), since its classes (\`is-twitter\`, \`is-github\` and the rest) style Bulma's \`.button\`, which bestax's \`Button\` renders, so they go on \`Button\` through \`className\``;
   }
@@ -280,7 +309,11 @@ export function extensionMessage(
   }
   const component = EXTENSION_COMPONENTS[bare];
   if (component) {
-    return `the page loads ${name}, a Bulma extension, ${from}, and bestax has a component for what it does: ${component}, whose styles ship in bestax's \`extras.css\` and \`bestax.css\`; render that in place of the extension's markup${loads.has('script') ? ' and script' : ''}, and stop loading the extension once nothing the app keeps uses its classes`;
+    const crops =
+      covered && bare === 'bulma-carousel'
+        ? "; the page's `is-covered` images are cropped by its stylesheet only inside its own slides, which `Carousel` doesn't render, so keeping it doesn't keep them cropped: give them the rule the `html-extension:is-covered` TODO has"
+        : '';
+    return `the page loads ${name}, a Bulma extension, ${from}, and bestax has a component for what it does: ${component}, whose styles ship in bestax's \`extras.css\` and \`bestax.css\`; render that in place of the extension's markup${loads.has('script') ? ' and script' : ''}, and stop loading the extension once nothing the app keeps uses its classes${crops}`;
   }
   return `the page loads ${name}, a Bulma extension, ${from}, and a component doesn't: keep loading it once for the app (from npm, imported from its entry, or a \`<link>\` in its index.html) while the page's markup uses its classes, which go on bestax's components through \`className\`${css === 'keep' ? '' : ', and check it works with Bulma 1, which an extension can predate'}`;
 }
@@ -308,15 +341,33 @@ export function webfontMessage(
 /** Where a stylesheet or script is, read beside the page. */
 export type Place = 'beside' | 'missing' | 'elsewhere';
 
+/**
+ * The relative URLs in a stylesheet of the page's own (its `url()`s and
+ * `@import`s), which resolve against the stylesheet's folder rather than the
+ * page's, as its TODO names them: each list already quoted and in backticks.
+ */
+export interface StylesheetUrls {
+  /** The stylesheet's folder, from the page's, or null for the page's own. */
+  folder: string | null;
+  /** The URLs as they are written. */
+  written: string;
+  /** The ones inside the page's folder, from the site root, or null if none is. */
+  fromRoot: string | null;
+}
+
 export function stylesheetMessage(
   quoted: string,
   place: Place,
-  target: string
+  target: string,
+  urls?: StylesheetUrls
 ): string {
   if (place === 'beside') {
     // Beside the page is inside its folder, so this never climbs out of it.
     const specifier = `./${target.replace(/^(?:\.\/)+/, '')}`;
-    return `the page's own stylesheet \`${quoted}\` is beside it, and a component doesn't load it: import it once for the app, in the order the page loads it, so its rules still win over Bulma's where they did (a module beside the page imports it as \`${specifier}\`), or move its rules into the app's stylesheet`;
+    const moved = urls
+      ? `; the relative URLs in it (${urls.written}) resolve against ${urls.folder === null ? "the stylesheet's folder, the page's" : `\`${urls.folder}/\`, the stylesheet's folder`}, so moving its rules into the app's stylesheet (such as \`src/index.css\`) means rewriting each against that file's folder, or copying the files into the app's \`public/\` folder and pointing at them from the site root${urls.fromRoot === null ? '' : ` (${urls.fromRoot})`}`
+      : '';
+    return `the page's own stylesheet \`${quoted}\` is beside it, and a component doesn't load it: import it once for the app, in the order the page loads it, so its rules still win over Bulma's where they did (a module beside the page imports it as \`${specifier}\`), or move its rules into the app's stylesheet${moved}`;
   }
   // Only what the page's folder shows: a `<base href>` may have sent the
   // browser somewhere else, so nothing here says the page never loaded it.
