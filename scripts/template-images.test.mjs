@@ -27,7 +27,6 @@ import {
   checkTemplateImages,
   decodeXml,
   externalImages,
-  imageLoads,
   isImagePath,
   isImageUrl,
   isIsoDate,
@@ -342,8 +341,8 @@ describe('an entry', () => {
   });
 });
 
-describe('the sources', () => {
-  it('load no image from elsewhere', () => {
+describe('code', () => {
+  it('loads no image from elsewhere', () => {
     const problems = withFile(
       'src/index.css',
       [
@@ -364,18 +363,114 @@ describe('the sources', () => {
     assert.match(problems[2], /loads data:image\/svg\+xml URI/);
   });
 
-  it('are every kind of text a template ships', () => {
-    for (const file of ['index.html', 'README.md', 'src/data.json']) {
+  it('is every kind of script, stylesheet, page and data a template ships', () => {
+    for (const file of [
+      'index.html',
+      'page.htm',
+      'src/App.tsx',
+      'src/util.mjs',
+      'src/util.cts',
+      'src/data.json',
+      'src/theme.scss',
+      'src/theme.sass',
+      'src/theme.less',
+      'public/site.webmanifest',
+      'public/browserconfig.xml',
+    ]) {
       assertOne(
-        withFile(file, 'See https://img.icons8.com/dusk/64/000000/p.'),
-        new RegExp(
-          `${file.replace('.', '\\.')} loads https://img\\.icons8\\.com/dusk/64/000000/p, `
-        )
+        withFile(file, '{ "src": "https://picsum.photos/192" }'),
+        /loads https:\/\/picsum\.photos\/192, an image/
       );
     }
   });
 
-  it('leave out the record, whose `replaces` may name a hot-link', () => {
+  it('names no outside URL off the allowlist, wherever it sits', () => {
+    const problems = withFile(
+      'src/index.css',
+      [
+        '/* Dawn: the sky, from https://example.com/render?id=1 */',
+        ':root { --hero: url(https://example.com/render?id=2); }',
+        '.a { background-image: var(--hero); }',
+        '.b { background: url(//cdn.example.com/render?id=3); }',
+      ].join('\n')
+    );
+    assert.deepEqual(
+      problems.map(p => /names (\S+), outside/.exec(p)?.[1]),
+      [
+        'https://example.com/render?id=1',
+        'https://example.com/render?id=2',
+        '//cdn.example.com/render?id=3',
+      ],
+      problems.join('\n')
+    );
+    assert.match(
+      problems[0],
+      /on a host ALLOWED_HOSTS in scripts\/lib\/template-images\.mjs does not list\. If it loads an image, draw that for the port; if not, add its host there with the reason/
+    );
+    assertOne(
+      withFile(
+        'src/gallery.ts',
+        "export const gallery = [{ url: 'https://example.com/render?id=4' }];"
+      ),
+      /gallery\.ts names https:\/\/example\.com\/render\?id=4, outside/
+    );
+  });
+
+  it('may name an allowlisted host, for what is not an image', () => {
+    assert.deepEqual(
+      withFile(
+        'index.html',
+        [
+          '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />',
+          '<link href="https://fonts.googleapis.com/css2?family=Inter" rel="stylesheet" />',
+          '<iframe src="https://www.google.com/maps/embed?pb=1"></iframe>',
+          '<svg xmlns="http://www.w3.org/2000/svg"></svg>',
+          '<script type="application/ld+json">{ "@context": "https://schema.org" }</script>',
+          '<!-- https://vite.dev/config/ -->',
+          '<a href="https://github.com/aldi">aldi</a> <a href="https://bulma.io">Bulma</a>',
+          '<a href="https://www.facebook.com/your-page">Facebook</a>',
+          '<script>// a comment, //not-a-url</script>',
+        ].join('\n')
+      ),
+      []
+    );
+  });
+
+  it('names no image on an allowlisted host, or a page beside its path', () => {
+    const problems = withFile(
+      'src/App.tsx',
+      [
+        "const logo = 'https://bulma.io/assets/brand/Bulma Logo';",
+        "const avatar = 'https://github.com/aldi.png';",
+        "const search = 'https://www.google.com/search?q=x';",
+      ].join('\n')
+    );
+    assert.equal(problems.length, 3, problems.join('\n'));
+    assert.match(
+      problems[0],
+      /loads https:\/\/bulma\.io\/assets\/brand\/Bulma, an image/
+    );
+    assert.match(
+      problems[1],
+      /loads https:\/\/github\.com\/aldi\.png, an image/
+    );
+    assert.match(
+      problems[2],
+      /names https:\/\/www\.google\.com\/search\?q=x, outside/
+    );
+  });
+
+  it('reports each URL once', () => {
+    assertOne(
+      withFile(
+        'src/App.tsx',
+        "const a = 'https://example.com/x'; const b = 'https://example.com/x';"
+      ),
+      /names https:\/\/example\.com\/x, outside/
+    );
+  });
+
+  it('leaves out the record, whose `replaces` may name a hot-link', () => {
     assert.deepEqual(
       withRecord([
         {
@@ -386,35 +481,58 @@ describe('the sources', () => {
       []
     );
   });
+});
 
-  it('may link pages, fonts and comments', () => {
+describe('prose', () => {
+  it('shows no outside image, whatever its URL looks like', () => {
+    const problems = withFile(
+      'README.md',
+      [
+        '![The demo](https://example.com/render?id=1 "A title")',
+        'A badge: ![build][badge], and ![coverage][].',
+        '',
+        '[badge]: https://img.example.com/badge/build',
+        '[coverage]: https://img.example.com/badge/coverage',
+        '<img src="https://example.com/render?id=2" alt="" />',
+        '<picture><source srcset="//cdn.example.com/p" /></picture>',
+        '![Inline](data:image/png;base64,iVBORw0=)',
+      ].join('\n')
+    );
+    assert.deepEqual(
+      problems.map(p => /loads (.*), an image/.exec(p)?.[1]),
+      [
+        'https://example.com/render?id=1',
+        'https://img.example.com/badge/build',
+        'https://img.example.com/badge/coverage',
+        'https://example.com/render?id=2',
+        '//cdn.example.com/p',
+        'data:image/png URI',
+      ],
+      problems.join('\n')
+    );
+  });
+
+  it('links freely, to a page or an image file alike', () => {
     assert.deepEqual(
       withFile(
-        'src/App.tsx',
+        'README.md',
         [
-          '// See //bulma.io for the classes, and logo.png beside this file.',
-          "const home = 'https://bulma.io';",
-          "const font = 'https://fonts.googleapis.com/css2?family=Inter';",
-          "const docsPage = 'https://bulma.io/documentation/';",
+          'Made by [aldi](https://github.com/aldi), from https://example.com/x.',
+          'The [logo](https://example.com/logo.png) is theirs.',
+          'An image with no definition: ![missing][nowhere].',
+          '',
+          '[upstream]: https://example.com/render?id=1',
         ].join('\n')
       ),
       []
     );
   });
 
-  it('include every kind of stylesheet, script, page and manifest', () => {
-    for (const file of [
-      'src/theme.sass',
-      'src/theme.less',
-      'src/util.mjs',
-      'src/util.cts',
-      'public/site.webmanifest',
-      'public/browserconfig.xml',
-      'page.htm',
-    ]) {
+  it('is every kind of prose a template ships', () => {
+    for (const file of ['LICENSE', 'NOTES.txt', 'docs/guide.markdown']) {
       assertOne(
-        withFile(file, '{ "src": "https://picsum.photos/192" }'),
-        /loads https:\/\/picsum\.photos\/192, an image/
+        withFile(file, '![A photo](https://example.com/photo)'),
+        /loads https:\/\/example\.com\/photo, an image/
       );
     }
   });
@@ -537,186 +655,6 @@ describe('an SVG', () => {
     assertOne(
       withImage(svg(''), path),
       /hero\.svgz is not gzip-compressed, as an \.svgz must be/
-    );
-  });
-});
-
-describe('an image load', () => {
-  const unlisted = 'https://example.com/render?id=1';
-
-  it('is reported once, whatever its URL looks like', () => {
-    const problems = withFile(
-      'index.html',
-      [
-        `<img src="${unlisted}" alt="" />`,
-        '<img src="https://x.io/a.png" alt="" />',
-      ].join('\n')
-    );
-    assert.equal(problems.length, 2, problems.join('\n'));
-    assert.match(problems[0], /index\.html loads https:\/\/x\.io\/a\.png, an/);
-    assert.ok(problems[1].includes(`loads ${unlisted}, an image`), problems[1]);
-  });
-
-  it('is found in the attributes a tag loads an image from', () => {
-    assert.deepEqual(
-      imageLoads(
-        [
-          '<img src="https://example.com/a" />',
-          "<img srcSet={'https://example.com/b 1x, https://example.com/c 2x'} />",
-          '<picture><source srcset="//cdn.example.com/d" /></picture>',
-          '<video poster="https://example.com/e"></video>',
-          '<svg><image href="https://example.com/f" />',
-          '<image xlinkHref="https://example.com/g" /></svg>',
-          '<feImage xlink:href="https://example.com/h" />',
-          '<Image src="https://example.com/i" />',
-          '<Avatar src="https://example.com/j" name="A" />',
-          '<Card image="https://example.com/k">x</Card>',
-          '<input type="image" src="https://example.com/l" />',
-        ].join('\n')
-      ),
-      'abcdefghijkl'
-        .split('')
-        .map(id =>
-          id === 'd' ? '//cdn.example.com/d' : `https://example.com/${id}`
-        )
-    );
-  });
-
-  it('is found in the links and meta tags that name an image', () => {
-    assert.deepEqual(
-      imageLoads(
-        [
-          '<link rel="icon" href="https://example.com/a" />',
-          '<link rel="apple-touch-icon" href="https://example.com/b" />',
-          "<link rel={'preload'} as={'image'} href={'https://example.com/c'} />",
-          '<link rel="preload" as="font" imagesrcset="https://example.com/d" />',
-          '<meta property="og:image" content="https://example.com/e" />',
-          '<meta itemprop="logo" content="https://example.com/f" />',
-        ].join('\n')
-      ),
-      ['a', 'b', 'c', 'd', 'e', 'f'].map(id => `https://example.com/${id}`)
-    );
-  });
-
-  it('is found in the CSS properties that draw an image', () => {
-    assert.deepEqual(
-      imageLoads(
-        [
-          '.a { background-image: url(https://example.com/a); }',
-          ".b { background: #fff url('//example.com/b') no-repeat; }",
-          '.c { cursor: url(https://example.com/c), auto; }',
-          '.d { list-style: url("https://example.com/d"); }',
-          '.e { content: url(https://example.com/e); }',
-          '.f { mask-image: image-set("https://example.com/f" 1x); }',
-          '.g { border-image: url(https://example.com/g) 30; }',
-          '<div style="background-image:url(https://example.com/h)"></div>',
-          "const s = { backgroundImage: 'url(https://example.com/i)' };",
-          'const t = { WebkitMaskImage: "url(https://example.com/j)" };',
-        ].join('\n')
-      ),
-      'abcdefghij'
-        .split('')
-        .map(id =>
-          id === 'b' ? '//example.com/b' : `https://example.com/${id}`
-        )
-    );
-  });
-
-  it('is not a font, a stylesheet, an embedded page, a script or a link', () => {
-    assert.deepEqual(
-      imageLoads(
-        [
-          "@font-face { font-family: X; src: url(https://example.com/f) format('woff2'); }",
-          "@import url('https://fonts.googleapis.com/css2?family=Inter');",
-          '@import "https://example.com/theme.css";',
-          '<iframe src="https://www.google.com/maps/embed?pb=1"></iframe>',
-          '<a href="https://example.com/page">a page</a>',
-          '<script src="https://example.com/s.js"></script>',
-          '<link rel="stylesheet" href="https://fonts.googleapis.com/css2" />',
-          '<link rel="preload" as="font" href="https://example.com/font" />',
-          '<meta property="og:url" content="https://example.com/" />',
-          "const meta = { content: 'https://example.com/text' };",
-        ].join('\n')
-      ),
-      []
-    );
-  });
-
-  it('is not a file the template ships', () => {
-    assert.deepEqual(
-      imageLoads(
-        [
-          '<img src="/media/a.svg" />',
-          '<img src="/media//double-slash.svg" />',
-          '<Image src={photo} {...rest} />',
-          '.a { background: url(/media/b.svg); }',
-        ].join('\n')
-      ),
-      []
-    );
-  });
-
-  it('is found in data named for an image, where `src={photo}` reads it', () => {
-    assert.deepEqual(
-      imageLoads(
-        [
-          "const photos = ['https://example.com/a', 'https://example.com/b'];",
-          'const rooms = [',
-          "  { name: 'Gold', photo: 'https://example.com/c' },",
-          '  { title: \'One\', art: "https://example.com/d", wide: true },',
-          '  { avatar: `https://example.com/e` },',
-          '];',
-          "export const PLACEHOLDER: string = 'https://example.com/f';",
-          "const card = { heroImageUrl: 'https://example.com/g' };",
-          '{ "icons": [{ "src": "https://example.com/h" }] }',
-          "const banners = { 'hero-banner': 'https://example.com/i' };",
-        ].join('\n')
-      ),
-      'abcdefghi'.split('').map(id => `https://example.com/${id}`)
-    );
-  });
-
-  it('is not data named for a link, or words that only end like one', () => {
-    assert.deepEqual(
-      imageLoads(
-        [
-          "const links = [{ icon: 'facebook', href: 'https://facebook.com' }];",
-          "const site = { url: 'https://example.com', start: 'https://a.io' };",
-          "const chart = 'https://example.com/chart';",
-          "const map = { embedSrcDoc: 'x', source: 'https://example.com/s' };",
-          '<iframe src="https://www.google.com/maps/embed?pb=1" />',
-        ].join('\n')
-      ),
-      []
-    );
-  });
-
-  it('is read from a tag as HTML and JSX write it', () => {
-    assert.deepEqual(
-      imageLoads(
-        [
-          // A `>` in an expression or a string does not end the tag.
-          '<img onClick={() => go(\'>\')} src="https://example.com/a" />',
-          '<img hidden src=https://example.com/b>',
-          '<img {...props} src="https://example.com/c" / >',
-          '<img src={"https://example.com/d?q=}"} />',
-          '<img src="https://example.com/e',
-        ].join('\n')
-      ),
-      [
-        'https://example.com/a',
-        'https://example.com/b',
-        'https://example.com/c',
-        'https://example.com/d?q=',
-        'https://example.com/e',
-      ]
-    );
-    // An unclosed spread or a tag that never ends is read no further than
-    // its own limit, so a stray quote cannot claim the rest of the file.
-    assert.deepEqual(imageLoads('<img {...props'), []);
-    assert.deepEqual(
-      imageLoads(`<img ${'a '.repeat(3000)}src="https://example.com/far" />`),
-      []
     );
   });
 });

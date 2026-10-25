@@ -7,12 +7,14 @@
  *
  * The hash ties an entry to the file it describes, so an image swapped after
  * its record was written fails until someone writes the record anew. The
- * sources are read for the images a file cannot show: a hot-link (an http(s)
- * URL to an image file or to an image host) and an image embedded as a
- * `data:` URI. The record is left out of that read, since its `replaces` may
- * name the hot-link an image replaced. An SVG's own markup is read too, for
- * anything it draws from outside the file (svgReferences), since a drawing
- * that wraps a photo would otherwise pass on its hash alone.
+ * other files are read for the images a file cannot show, by one rule each:
+ * code names no outside URL but on ALLOWED_HOSTS, and none that looks like an
+ * image (codeUrls), so no reading of where an image loads from is needed;
+ * prose shows no outside image, and links freely (proseImages); and an SVG
+ * draws nothing from outside itself (svgReferences), since a drawing that
+ * wraps a photo would otherwise pass on its hash alone. A `data:image/` URI
+ * fails in all three. The record is left out, since its `replaces` may name
+ * the hot-link an image replaced.
  *
  * A template is what git tracks under its folder, as scripts/lib/templates.mjs
  * defines it, so `root` must be a git checkout.
@@ -63,8 +65,12 @@ export const IMAGE_EXTENSIONS = [
  */
 export const SVG_EXTENSIONS = ['svg', 'svgz'];
 
-/** The files read for hot-linked and embedded images. */
-export const SOURCE_EXTENSIONS = [
+/**
+ * The code a template ships: its scripts, stylesheets, pages and data. Any
+ * outside URL in one fails unless ALLOWED_HOSTS lists its host
+ * (codeUrls).
+ */
+export const CODE_EXTENSIONS = [
   'cjs',
   'css',
   'cts',
@@ -74,7 +80,6 @@ export const SOURCE_EXTENSIONS = [
   'json',
   'jsx',
   'less',
-  'md',
   'mjs',
   'mts',
   'sass',
@@ -83,6 +88,48 @@ export const SOURCE_EXTENSIONS = [
   'tsx',
   'webmanifest',
   'xml',
+];
+
+/**
+ * The prose a template ships: Markdown, plain text, and the files with no
+ * extension, such as LICENSE. Its links credit the upstreams, so only an
+ * image in it fails (proseImages).
+ */
+export const PROSE_EXTENSIONS = ['', 'markdown', 'md', 'txt'];
+
+/**
+ * The hosts a template's code may name, each for something that is not an
+ * image, with the reason. Everything else outside the template fails, so a
+ * new use goes here, with its reason, after checking that it loads no image.
+ * A listed host still fails for a URL that looks like an image (isImageUrl),
+ * so `bulma.io` lets a page link Bulma but not show `bulma.io/assets`. An
+ * entry with a path holds only that path and what is under it, and a host
+ * matches its subdomains.
+ */
+export const ALLOWED_HOSTS = [
+  // Web fonts: the stylesheet index.html loads, and the files it names.
+  'fonts.googleapis.com',
+  'fonts.gstatic.com',
+  // The map a contact section embeds in an <iframe>.
+  'google.com/maps',
+  // Identifiers that are never fetched: SVG's namespace in JSX, and the
+  // vocabulary structured data names.
+  'schema.org',
+  'w3.org',
+  // The scaffold's link to Vite's documentation, in vite.config.ts.
+  'vite.dev',
+  // Links that credit Bulma and the upstream authors.
+  'aldi.github.io',
+  'aldi.st',
+  'bulma.io',
+  'github.com',
+  // Social profile links, placeholders for the reader's own.
+  'facebook.com',
+  'instagram.com',
+  'linkedin.com',
+  'twitter.com',
+  'x.com',
+  'youtube.com',
 ];
 
 /**
@@ -146,17 +193,23 @@ export function isIsoDate(value) {
 /** The lowercase hex SHA-256 of `bytes`. */
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 
-/** Whether `url`, absolute, loads an image: by its path or by its host. */
-export function isImageUrl(url) {
-  let parsed;
+/** The URL `url` parses to, or null; protocol-relative is taken as https. */
+function parseUrl(url) {
   try {
-    parsed = new URL(url);
+    return new URL(url.startsWith('//') ? `https:${url}` : url);
   } catch {
-    return false;
+    return null;
   }
-  if (isImagePath(parsed.pathname)) return true;
+}
+
+/**
+ * Whether `parsed` is on one of `hosts`, written as IMAGE_HOSTS and
+ * ALLOWED_HOSTS are: a host, which matches its subdomains, with an optional
+ * path that matches itself and what is under it.
+ */
+function onHosts(parsed, hosts) {
   const host = parsed.hostname.toLowerCase();
-  return IMAGE_HOSTS.some(entry => {
+  return hosts.some(entry => {
     const [name, ...rest] = entry.split('/');
     if (host !== name && !host.endsWith(`.${name}`)) return false;
     const prefix = rest.length ? `/${rest.join('/')}` : '';
@@ -168,74 +221,28 @@ export function isImageUrl(url) {
   });
 }
 
-/**
- * The images `text` loads from elsewhere or embeds: each http(s) URL that
- * isImageUrl takes, each protocol-relative one (`//host/...`) after a quote,
- * a `(` or an `=`, and each `data:image/` URI, shortened to its type.
- */
-export function externalImages(text) {
-  const found = [];
-  const url = /(https?:)?\/\/[^\s"'`()<>\\]+/gi;
-  for (const match of text.matchAll(url)) {
-    if (!match[1] && !['"', "'", '(', '='].includes(text[match.index - 1])) {
-      continue;
-    }
-    // Prose ends a sentence after a URL, and the stop is not the URL's.
-    const link = match[0].replace(/[.,;:!?]+$/, '');
-    if (isImageUrl(match[1] ? link : `https:${link}`)) found.push(link);
-  }
-  for (const match of text.matchAll(/data:image\/[\w.+-]+/gi)) {
-    found.push(`${match[0]} URI`);
-  }
-  return found;
+/** Whether `url`, absolute, loads an image: by its path or by its host. */
+export function isImageUrl(url) {
+  const parsed = parseUrl(url);
+  if (!parsed) return false;
+  return isImagePath(parsed.pathname) || onHosts(parsed, IMAGE_HOSTS);
 }
 
-/**
- * The attributes a tag loads an image from, by its name in lowercase. `image`
- * is SVG's element in JSX and bestax's `Image`, `avatar` and `card` are
- * bestax's components that take one. `<link>` and `<meta>` load one only
- * for some `rel`s and `property`s (imageAttributes), and other tags
- * (`<iframe>`, `<script>`, `<a>`) load none.
- */
-const IMAGE_ATTRIBUTES = {
-  avatar: ['src'],
-  card: ['image'],
-  feimage: ['href', 'xlink:href', 'xlinkhref'],
-  image: ['href', 'src', 'xlink:href', 'xlinkhref'],
-  img: ['src', 'srcset'],
-  input: ['src'],
-  source: ['src', 'srcset'],
-  video: ['poster'],
+/** Whether ALLOWED_HOSTS lists the host of `url`, absolute. */
+export const isAllowedUrl = url => {
+  const parsed = parseUrl(url);
+  return parsed !== null && onHosts(parsed, ALLOWED_HOSTS);
 };
 
 /**
- * The CSS properties that draw an image from a `url()` or an `image-set()`.
- * `src`, in `@font-face`, loads a font, and `@import` a stylesheet.
+ * Each outside URL in `text`: an http(s) one, and a protocol-relative one
+ * (`//host/...`) after a quote, a `(` or an `=`, which leaves a `// comment`
+ * alone. A sentence's closing stop is not the URL's.
  */
-const CSS_IMAGE_PROPERTIES = [
-  '-webkit-mask',
-  '-webkit-mask-image',
-  'background',
-  'background-image',
-  'border-image',
-  'border-image-source',
-  'content',
-  'cursor',
-  'list-style',
-  'list-style-image',
-  'mask',
-  'mask-image',
-];
-
-/** How far a tag's attributes are read before it is taken to have ended. */
-const TAG_LIMIT = 4000;
-
-/** Each absolute URL in `value`: http(s), or protocol-relative (`//host`). */
-function absoluteUrls(value) {
+export function outsideUrls(text) {
   const found = [];
-  for (const match of value.matchAll(/(https?:)?\/\/[^\s"'`()<>\\,{}]+/gi)) {
-    const before = value[match.index - 1];
-    if (!match[1] && before !== undefined && !/["'`(\s,=]/.test(before)) {
+  for (const match of text.matchAll(/(https?:)?\/\/[^\s"'`()<>\\]+/gi)) {
+    if (!match[1] && !['"', "'", '(', '='].includes(text[match.index - 1])) {
       continue;
     }
     found.push(match[0].replace(/[.,;:!?]+$/, ''));
@@ -243,196 +250,62 @@ function absoluteUrls(value) {
   return found;
 }
 
-/** The index past the `}` that closes the `{` at `start`, or the end. */
-function pastBraces(text, start) {
-  let depth = 0;
-  let quote = null;
-  for (let i = start; i < text.length; i += 1) {
-    const c = text[i];
-    if (quote) {
-      if (c === quote) quote = null;
-    } else if (c === '"' || c === "'" || c === '`') quote = c;
-    else if (c === '{') depth += 1;
-    else if (c === '}' && (depth -= 1) === 0) return i + 1;
-  }
-  return text.length;
+/** Each `data:image/` URI in `text`, named by its type. */
+const dataImages = text =>
+  [...text.matchAll(/data:image\/[\w.+-]+/gi)].map(match => `${match[0]} URI`);
+
+/**
+ * The images `text` loads from elsewhere or embeds: each outside URL that
+ * isImageUrl takes, and each `data:image/` URI.
+ */
+export function externalImages(text) {
+  return [...outsideUrls(text).filter(isImageUrl), ...dataImages(text)];
 }
 
 /**
- * The attributes of the tag whose name ends at `from`, by lowercase name:
- * HTML's quoted and bare values and JSX's `{...}` expressions, whose text is
- * kept as written. A `>` inside quotes or braces does not end the tag.
+ * What a template's code may not name: each outside URL whose host
+ * ALLOWED_HOSTS does not list, or that looks like an image wherever it is
+ * (`image`), and each `data:image/` URI. The rule is deny by default, so it
+ * holds wherever a URL sits, in an attribute, a stylesheet, a comment or
+ * data.
  */
-function readTag(text, from) {
-  const attributes = new Map();
-  const name = /[^\s=/>"'`{}]+/y;
-  const equals = /\s*=\s*/y;
-  const limit = Math.min(text.length, from + TAG_LIMIT);
-  let i = from;
-  while (i < limit && text[i] !== '>') {
-    if (text[i] === '{') {
-      i = pastBraces(text, i); // a spread, `{...props}`
-      continue;
-    }
-    name.lastIndex = i;
-    const match = name.exec(text);
-    if (!match) {
-      i += 1; // whitespace, the `/` of `/>`, a stray quote
-      continue;
-    }
-    i = name.lastIndex;
-    equals.lastIndex = i;
-    if (!equals.exec(text)) {
-      attributes.set(match[0].toLowerCase(), '');
-      continue;
-    }
-    i = equals.lastIndex;
-    let value;
-    if (text[i] === '"' || text[i] === "'") {
-      const end = text.indexOf(text[i], i + 1);
-      const stop = end === -1 ? text.length : end;
-      value = text.slice(i + 1, stop);
-      i = stop + 1;
-    } else if (text[i] === '{') {
-      const end = pastBraces(text, i);
-      value = text.slice(i + 1, end - 1);
-      i = end;
-    } else {
-      const bare = /[^\s>]*/y;
-      bare.lastIndex = i;
-      value = bare.exec(text)[0];
-      i = bare.lastIndex;
-    }
-    attributes.set(match[0].toLowerCase(), value);
-  }
-  return attributes;
-}
-
-/** An attribute's value with JSX's quotes taken off, in lowercase. */
-const plain = value => (value ?? '').replace(/["'`]/g, '').toLowerCase();
-
-/** The attributes of a `tag` with `attributes` that load an image. */
-function imageAttributes(tag, attributes) {
-  if (tag === 'link') {
-    const rel = plain(attributes.get('rel')).split(/\s+/);
-    const preload = rel.includes('preload') || rel.includes('prefetch');
-    const image =
-      rel.some(token => token.includes('icon')) ||
-      (preload && plain(attributes.get('as')) === 'image');
-    return image ? ['href', 'imagesrcset'] : ['imagesrcset'];
-  }
-  if (tag === 'meta') {
-    const kind = ['property', 'name', 'itemprop']
-      .map(key => plain(attributes.get(key)))
-      .join(' ');
-    return /image|logo/.test(kind) ? ['content'] : [];
-  }
-  return IMAGE_ATTRIBUTES[tag];
-}
-
-/** The `url()` targets in a CSS value, and the strings of its `image-set()`. */
-function cssTargets(value) {
-  const targets = [...value.matchAll(/url\(\s*(["']?)(.*?)\1\s*\)/gi)].map(
-    match => match[2]
-  );
-  const set = value.search(/image-set\(/i);
-  if (set !== -1) {
-    for (const match of value.slice(set).matchAll(/(["'])(.*?)\1/g)) {
-      targets.push(match[2]);
-    }
-  }
-  return targets;
-}
-
-/**
- * The words that name an image, as the last word of a property or a
- * variable (`src`, `heroImage`, `PLACEHOLDER`, `photos`), or the word before
- * a closing `url` (`avatarUrl`).
- */
-const IMAGE_WORDS = [
-  'art',
-  'artwork',
-  'avatar',
-  'background',
-  'banner',
-  'cover',
-  'icon',
-  'illustration',
-  'image',
-  'img',
-  'logo',
-  'photo',
-  'picture',
-  'placeholder',
-  'poster',
-  'src',
-  'srcset',
-  'thumb',
-  'thumbnail',
-];
-
-/** Whether an identifier names an image, by its words (IMAGE_WORDS). */
-function namesImage(identifier) {
-  const words = identifier
-    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-    .toLowerCase()
-    .split(/[\s_$-]+/)
-    .map(word => word.replace(/([^s])s$/, '$1'));
-  const last = words.at(-1) === 'url' ? words.at(-2) : words.at(-1);
-  return IMAGE_WORDS.includes(last);
-}
-
-/**
- * The absolute URLs that script and data name as images: a string, or an
- * array of them, given to a property or a variable named for one
- * (namesImage), such as `src: '...'`, `"image": "..."` in JSON, or
- * `const photos = ['...']`. That is where a port keeps the images it
- * renders with `src={photo}`. An HTML or JSX attribute (`src="..."` on an
- * `<iframe>`) is not one: its images are imageLoads' tags.
- */
-function namedImages(text) {
+export function codeUrls(text) {
   const found = [];
-  const binding =
-    /(?:\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*(?::[^=;]+)?=|(["']?)([A-Za-z_$][\w$-]*)\2\s*:)(?=\s*(\[[^\]]*\]|"[^"]*"|'[^']*'|`[^`]*`))/g;
-  for (const match of text.matchAll(binding)) {
-    if (namesImage(match[1] ?? match[3])) found.push(...absoluteUrls(match[4]));
+  for (const url of outsideUrls(text)) {
+    if (isImageUrl(url)) found.push({ url, image: true });
+    else if (!isAllowedUrl(url)) found.push({ url, image: false });
   }
+  for (const url of dataImages(text)) found.push({ url, image: true });
   return found;
 }
 
 /**
- * Every absolute URL `text` loads as an image, whatever its path ends in: in
- * an image attribute of a tag (IMAGE_ATTRIBUTES, and imageAttributes for
- * `<link>` and `<meta>`), in a `url()` or `image-set()` of an image property
- * (CSS_IMAGE_PROPERTIES), written in CSS, in a `style` attribute or in a JSX
- * style object (`backgroundImage`), and in a property or variable named for
- * an image (namedImages). It reads the places an image loads from, where
- * externalImages reads what a URL looks like, so it finds an image a URL with
- * no extension serves, and leaves fonts, stylesheets, embedded maps and
- * links alone.
+ * The images prose shows from elsewhere: the outside URL of each Markdown
+ * image, inline (`![alt](url)`) or by reference (`![alt][label]` with its
+ * `[label]: url`), each outside URL in an HTML `<img>`, `<picture>` or
+ * `<source>` tag, and each `data:image/` URI. Its links are left alone.
  */
-export function imageLoads(text) {
-  const found = [];
-  for (const match of text.matchAll(/<([A-Za-z][\w.:-]*)/g)) {
-    const tag = match[1].toLowerCase();
-    const known = Object.hasOwn(IMAGE_ATTRIBUTES, tag);
-    if (!known && tag !== 'link' && tag !== 'meta') continue;
-    const attributes = readTag(text, match.index + match[0].length);
-    for (const name of imageAttributes(tag, attributes)) {
-      found.push(...absoluteUrls(attributes.get(name) ?? ''));
-    }
+export function proseImages(text) {
+  const targets = [];
+  for (const match of text.matchAll(/!\[[^\]]*\]\(([^)]*)\)/g)) {
+    targets.push(match[1]);
   }
-  const declaration = /([A-Za-z-]+)\s*:\s*(?:(["'`])([\s\S]*?)\2|([^;{}]*))/g;
-  for (const match of text.matchAll(declaration)) {
-    const property = match[1].replace(/[A-Z]/g, c => `-${c.toLowerCase()}`);
-    if (!CSS_IMAGE_PROPERTIES.includes(property)) continue;
-    for (const target of cssTargets(match[3] ?? match[4])) {
-      found.push(...absoluteUrls(target));
-    }
+  const definitions = new Map();
+  for (const match of text.matchAll(/^ {0,3}\[([^\]]+)\]:[ \t]*(\S+)/gm)) {
+    definitions.set(match[1].toLowerCase(), match[2]);
   }
-  found.push(...namedImages(text));
-  // One place can be read twice, as a tag's style and as a named value.
-  return [...new Set(found)];
+  for (const match of text.matchAll(/!\[([^\]]*)\]\[([^\]]*)\]/g)) {
+    const label = (match[2] || match[1]).toLowerCase();
+    if (definitions.has(label)) targets.push(definitions.get(label));
+  }
+  for (const match of text.matchAll(/<(?:img|picture|source)\b[^>]*>/gi)) {
+    targets.push(match[0]);
+  }
+  // Each target is read as if after a `(`, as an inline one is.
+  return [
+    ...targets.flatMap(target => outsideUrls(`(${target}`)),
+    ...dataImages(text),
+  ];
 }
 
 /** A reference as a message names it: a `data:` URI by its type alone. */
@@ -660,17 +533,14 @@ export function templateImageProblems(root, slug, files) {
   if (parsed) problems.push(...recordProblems(slug, record, images));
 
   for (const file of files) {
-    const extension = extensionOf(file);
-    const svg = SVG_EXTENSIONS.includes(extension);
-    if (file === RECORD || !(svg || SOURCE_EXTENSIONS.includes(extension))) {
-      continue;
-    }
+    const kind = readAs(file);
+    if (file === RECORD || !kind) continue;
     const bytes = readRegular(join(dir, file));
     if (!bytes) continue;
     const at = `templates/${slug}/${file}`;
     let text;
     try {
-      text = (extension === 'svgz' ? gunzipSync(bytes) : bytes).toString(
+      text = (file.endsWith('.svgz') ? gunzipSync(bytes) : bytes).toString(
         'utf8'
       );
     } catch {
@@ -680,7 +550,33 @@ export function templateImageProblems(root, slug, files) {
       );
       continue;
     }
-    const drawn = svg ? svgReferences(text) : [];
+    problems.push(...textProblems(at, kind, text));
+  }
+  return problems;
+}
+
+/** How a file is read: as an SVG's markup, as code, as prose, or not. */
+function readAs(file) {
+  const extension = extensionOf(file);
+  if (SVG_EXTENSIONS.includes(extension)) return 'svg';
+  if (CODE_EXTENSIONS.includes(extension)) return 'code';
+  return PROSE_EXTENSIONS.includes(extension) ? 'prose' : null;
+}
+
+/**
+ * Problems with what the file at `at`, read as `kind`, names outside the
+ * template: what an SVG draws from elsewhere (svgReferences), the URLs code
+ * may not name (codeUrls), and the images prose shows (proseImages). Each
+ * URL is reported once.
+ */
+function textProblems(at, kind, text) {
+  const problems = [];
+  const loads = image =>
+    `${at} loads ${image}, an image the template does not ship; draw one ` +
+    `for the port into public/, record it in ${RECORD}, and point at that ` +
+    `(${GUIDE})`;
+  if (kind === 'svg') {
+    const drawn = svgReferences(text);
     for (const target of drawn) {
       problems.push(
         `${at} draws ${target} from outside the file; an SVG drawn for the ` +
@@ -688,20 +584,29 @@ export function templateImageProblems(root, slug, files) {
           `point at it with a #fragment (${GUIDE})`
       );
     }
-    // An SVG is read as its parser reads it, so a reference written with
-    // character references is found, and matches the one reported above.
-    // Another source is read for its image loads too, each reported once.
-    const loads = svg
-      ? externalImages(decodeXml(text))
-      : new Set([...externalImages(text), ...imageLoads(text)]);
-    for (const image of loads) {
-      if (drawn.some(target => target.includes(image))) continue;
+    // Read as its parser reads it, so a reference written with character
+    // references is found, and matches the one reported above.
+    for (const image of new Set(externalImages(decodeXml(text)))) {
+      if (!drawn.some(target => target.includes(image))) {
+        problems.push(loads(image));
+      }
+    }
+  } else if (kind === 'code') {
+    const seen = new Set();
+    for (const { url, image } of codeUrls(text)) {
+      if (seen.has(url)) continue;
+      seen.add(url);
       problems.push(
-        `${at} loads ${image}, an image the template does not ship; draw ` +
-          `one for the port into public/, record it in ${RECORD}, and point ` +
-          `at that (${GUIDE})`
+        image
+          ? loads(url)
+          : `${at} names ${url}, outside the template on a host ` +
+              'ALLOWED_HOSTS in scripts/lib/template-images.mjs does not ' +
+              'list. If it loads an image, draw that for the port; if not, ' +
+              `add its host there with the reason (${GUIDE})`
       );
     }
+  } else {
+    for (const image of new Set(proseImages(text))) problems.push(loads(image));
   }
   return problems;
 }
