@@ -572,6 +572,12 @@ declares `--bulma-radio-active-color` again on `.styled-radio.is-<color>`, which
 selector, so leave `color` unset when a class sets it. The unchecked ring, `--bulma-radio-border-color`, defaults to `text-weak` for the same 3:1 boundary
 contrast.
 
+`--bulma-radio-size` (default `1.25em`) can't take the circle below 24px: the stylesheet gives the
+`.check` circle a `min-width` and `min-height` of 24px, WCAG 2.2's minimum target size, so with
+Bulma's default font sizes the circle is 24px at the default and `small` sizes. For a smaller circle, set the size and also
+`min-width: 0; min-height: 0` on `.styled-radio.my-radio .check` (mind the class prefix), and keep
+the label text inside the `Radio`, since the whole label is the click target.
+
 ### Rate
 
 `--bulma-rate-color-active`, `--bulma-rate-color-hover`, `--bulma-rate-color-inactive`,
