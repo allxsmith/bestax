@@ -590,16 +590,17 @@ neither, so load what the app still needs once for the whole app, from its entry
 - **`html-asset:stylesheet`**: any other stylesheet. The page's own, beside it (in its folder or
   one below), is imported once for the app in the order the page loads it, so its rules still win
   over Bulma's where they did (a module beside the page imports `css/styles.css` as
-  `./css/styles.css`), or its rules move into the app's stylesheet. A relative `url()` in it
-  resolves against the stylesheet's own folder, not the page's, so the TODO names each one it
-  finds: `url('../media/background.webp')` in `css/styles.css` points at `media/background.webp`
-  beside the page. Imported where it is, the bundler still resolves them. Moved into the app's
-  stylesheet (`src/index.css`), each needs rewriting against that file's folder, or copy the
-  files into the app's `public/` folder and point at them from the site root
-  (`url('/media/background.webp')`), which the TODO spells out for each one inside the page's
-  folder. For one that isn't in the page's folder, the TODO says only that: the page's
-  `<base href>`, if it has one, may have loaded it from somewhere else, so find the one it meant,
-  or drop it.
+  `./css/styles.css`), or its rules move into the app's stylesheet. A relative URL in it (a
+  `url()`, or an `@import` written as a string) resolves against the stylesheet's own folder, not
+  the page's, so the TODO names each one it finds: `url('../media/background.webp')` in
+  `css/styles.css` points at `media/background.webp` beside the page. Imported where it is, the
+  bundler still resolves them. Moved into the app's stylesheet (`src/index.css`), each needs
+  rewriting against that file's folder, or copy the files into the app's `public/` folder and
+  point at them from the site root (`url('/media/background.webp')`), which the TODO spells out
+  for each one inside the page's folder. An `image-set()` that names a file as a bare string
+  isn't read, so check those by hand. For a stylesheet that isn't in the page's folder, the TODO
+  says only that: the page's `<base href>`, if it has one, may have loaded it from somewhere
+  else, so find the one it meant, or drop it.
 - **`html-asset:script`**: any other script. The component runs none: load a library the app still
   needs in `index.html` (or install it), and port what the page's own scripts did into the
   component. A script of the page's own, beside it, is read the way an inline script is, so one

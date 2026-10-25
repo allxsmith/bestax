@@ -309,14 +309,14 @@ export function webfontMessage(
 export type Place = 'beside' | 'missing' | 'elsewhere';
 
 /**
- * The relative `url()`s in a stylesheet of the page's own, which resolve
- * against the stylesheet's folder rather than the page's, as its TODO names
- * them: each list already quoted and in backticks.
+ * The relative URLs in a stylesheet of the page's own (its `url()`s and
+ * `@import`s), which resolve against the stylesheet's folder rather than the
+ * page's, as its TODO names them: each list already quoted and in backticks.
  */
 export interface StylesheetUrls {
   /** The stylesheet's folder, from the page's, or null for the page's own. */
   folder: string | null;
-  /** The `url()`s as they are written. */
+  /** The URLs as they are written. */
   written: string;
   /** The ones inside the page's folder, from the site root, or null if none is. */
   fromRoot: string | null;
@@ -332,7 +332,7 @@ export function stylesheetMessage(
     // Beside the page is inside its folder, so this never climbs out of it.
     const specifier = `./${target.replace(/^(?:\.\/)+/, '')}`;
     const moved = urls
-      ? `; its relative \`url()\`s (${urls.written}) are relative to ${urls.folder === null ? "the stylesheet's folder, the page's" : `\`${urls.folder}/\`, the stylesheet's folder`}, so moving its rules into the app's stylesheet (such as \`src/index.css\`) means rewriting each against that file's folder, or copying the files into the app's \`public/\` folder and pointing at them from the site root${urls.fromRoot === null ? '' : ` (${urls.fromRoot})`}`
+      ? `; the relative URLs in it (${urls.written}) resolve against ${urls.folder === null ? "the stylesheet's folder, the page's" : `\`${urls.folder}/\`, the stylesheet's folder`}, so moving its rules into the app's stylesheet (such as \`src/index.css\`) means rewriting each against that file's folder, or copying the files into the app's \`public/\` folder and pointing at them from the site root${urls.fromRoot === null ? '' : ` (${urls.fromRoot})`}`
       : '';
     return `the page's own stylesheet \`${quoted}\` is beside it, and a component doesn't load it: import it once for the app, in the order the page loads it, so its rules still win over Bulma's where they did (a module beside the page imports it as \`${specifier}\`), or move its rules into the app's stylesheet${moved}`;
   }

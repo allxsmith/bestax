@@ -912,7 +912,7 @@ describe('the stylesheets and scripts it loads', () => {
     ]);
   });
 
-  it("names the relative url()s in a stylesheet of the page's own, which resolve against its folder", () => {
+  it("names the relative URLs in a stylesheet of the page's own, its url()s and @imports, which resolve against its folder", () => {
     const dir = tempDir();
     fs.mkdirSync(path.join(dir, 'css'));
     fs.writeFileSync(
@@ -924,6 +924,10 @@ describe('the stylesheets and scripts it loads', () => {
         '.logo { background: url( /img/logo.svg ), url(https://cdn.example.com/x.png), url(#mask), url(); }',
         '.up { background: url(../../outside.png); }',
         ".again { background: url('../media/background.webp'); }",
+        "@import 'theme.css';",
+        '@import url("print.css") print;',
+        '@import "https://fonts.example.com/inter.css";',
+        '.same { background: url(../css/../media/background.webp); }',
       ].join('\n')
     );
     const { entries } = convert(
@@ -935,11 +939,11 @@ describe('the stylesheets and scripts it loads', () => {
       expect.objectContaining({ rule: 'html-asset:stylesheet' }),
     ]);
     expect(entries[0].message).toContain(
-      "or move its rules into the app's stylesheet; its relative `url()`s (`../media/background.webp`, `../fonts/a.woff2?v=2#x`, `../../outside.png`) are relative to `css/`, the stylesheet's folder, so moving its rules into the app's stylesheet (such as `src/index.css`) means rewriting each against that file's folder, or copying the files into the app's `public/` folder and pointing at them from the site root (`/media/background.webp`, `/fonts/a.woff2?v=2#x`)"
+      "or move its rules into the app's stylesheet; the relative URLs in it (`../media/background.webp`, `../fonts/a.woff2?v=2#x`, `../../outside.png`, `theme.css`, `print.css`, `../css/../media/background.webp`) resolve against `css/`, the stylesheet's folder, so moving its rules into the app's stylesheet (such as `src/index.css`) means rewriting each against that file's folder, or copying the files into the app's `public/` folder and pointing at them from the site root (`/media/background.webp`, `/fonts/a.woff2?v=2#x`, `/css/theme.css`, `/css/print.css`)"
     );
   });
 
-  it("names a stylesheet's url()s against the page's folder when it sits there, and lists six at most", () => {
+  it("names a stylesheet's URLs against the page's folder when it sits there, and lists six at most", () => {
     const dir = tempDir();
     fs.writeFileSync(
       path.join(dir, 'site.css'),
@@ -954,17 +958,17 @@ describe('the stylesheets and scripts it loads', () => {
       path.join(dir, 'home.html')
     );
     expect(entries[0].message).toContain(
-      "its relative `url()`s (`img/a.png`, `img/b.png`, `img/c.png`, `img/d.png`, `img/e.png`, `img/f.png`, …) are relative to the stylesheet's folder, the page's, so"
+      "the relative URLs in it (`img/a.png`, `img/b.png`, `img/c.png`, `img/d.png`, `img/e.png`, `img/f.png`, …) resolve against the stylesheet's folder, the page's, so"
     );
     expect(entries[0].message).toContain(
       'from the site root (`/img/a.png`, `/img/b.png`, `/img/c.png`, `/img/d.png`, `/img/e.png`, `/img/f.png`, …)'
     );
-    // A stylesheet with no relative url() says nothing of them.
+    // A stylesheet with no relative URL says nothing of them.
     expect(entries[1].message).toContain('imports it as `./plain.css`');
-    expect(entries[1].message).not.toContain('url()');
+    expect(entries[1].message).not.toContain('relative URLs');
   });
 
-  it("names no url() outside the page's folder from the site root, nor in a stylesheet too large to be its own", () => {
+  it("names no URL outside the page's folder from the site root, nor in a stylesheet too large to be its own", () => {
     const dir = tempDir();
     fs.mkdirSync(path.join(dir, 'css'));
     fs.writeFileSync(
@@ -981,11 +985,11 @@ describe('the stylesheets and scripts it loads', () => {
       path.join(dir, 'home.html')
     );
     expect(entries[0].message).toContain(
-      "its relative `url()`s (`../../shared/bg.png`) are relative to `css/`, the stylesheet's folder"
+      "the relative URLs in it (`../../shared/bg.png`) resolve against `css/`, the stylesheet's folder"
     );
     expect(entries[0].message).toMatch(/pointing at them from the site root$/);
     expect(entries[1].message).toContain('imports it as `./css/bundle.css`');
-    expect(entries[1].message).not.toContain('url()');
+    expect(entries[1].message).not.toContain('relative URLs');
   });
 
   it("claims nothing about what a page under a <base href> loaded from a path that isn't beside it", () => {

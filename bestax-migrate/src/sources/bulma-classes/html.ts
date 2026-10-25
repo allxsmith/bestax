@@ -548,8 +548,14 @@ function localScriptNotes(
 /** Larger than this, a stylesheet beside the page is a bundle, not the page's. */
 const LOCAL_STYLESHEET_LIMIT = 256 * 1024;
 
-/** A CSS `url()`, its URL double-quoted, single-quoted or bare. */
-const CSS_URL = /\burl\(\s*(?:"([^"]*)"|'([^']*)'|([^)'"\s]*))\s*\)/gi;
+/**
+ * A URL a stylesheet names a file with: a `url()`'s, double-quoted,
+ * single-quoted or bare, or an `@import`'s, as a string. An `image-set()`
+ * can name one as a bare string too, which a regex can't tell from the
+ * `type()` string beside it, so that form is left to the recipe.
+ */
+const CSS_URL =
+  /\burl\(\s*(?:"([^"]*)"|'([^']*)'|([^)'"\s]*))\s*\)|@import\s+(?:"([^"]*)"|'([^']*)')/gi;
 
 /** Values in backticks, each shortened: the first six, then an ellipsis. */
 function codeList(values: readonly string[]): string {
@@ -558,11 +564,12 @@ function codeList(values: readonly string[]): string {
 }
 
 /**
- * The relative `url()`s in a stylesheet beside the page, which resolve
- * against the stylesheet's own folder: what moving its rules has to rewrite,
- * each also from the site root when it stays inside the page's folder. Read
- * from the URL as written, so a path from the root is still a URL. Null when
- * the file can't be read, is too large to be the page's own, or has none.
+ * The relative URLs in a stylesheet beside the page (`CSS_URL`), which
+ * resolve against the stylesheet's own folder: what moving its rules has to
+ * rewrite, each also from the site root when it stays inside the page's
+ * folder. Read from the URL as written, so a path from the root is still a
+ * URL. Null when the file can't be read, is too large to be the page's own,
+ * or names none.
  */
 function stylesheetUrls(url: string, dir: string): StylesheetUrls | null {
   let css: string;
@@ -576,7 +583,7 @@ function stylesheetUrls(url: string, dir: string): StylesheetUrls | null {
   const written = [
     ...new Set(
       [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(CSS_URL)]
-        .map(([, double, single, bare]) => (double ?? single ?? bare).trim())
+        .map(([, ...forms]) => forms.find(form => form !== undefined)!.trim())
         .filter(isRelative)
     ),
   ];
@@ -584,13 +591,18 @@ function stylesheetUrls(url: string, dir: string): StylesheetUrls | null {
   const folder = path.posix.dirname(
     path.posix.normalize(url.trim().replace(/[?#].*$/, ''))
   );
-  const fromRoot = written.flatMap(each => {
-    const [, file, rest] = /^([^?#]*)([\s\S]*)$/.exec(each)!;
-    const joined = path.posix.normalize(path.posix.join(folder, file));
-    return joined === '..' || joined.startsWith('../')
-      ? []
-      : [`/${joined}${rest}`];
-  });
+  // Two spellings of one file (`img/a.png`, `./img/a.png`) are one path.
+  const fromRoot = [
+    ...new Set(
+      written.flatMap(each => {
+        const [, file, rest] = /^([^?#]*)([\s\S]*)$/.exec(each)!;
+        const joined = path.posix.normalize(path.posix.join(folder, file));
+        return joined === '..' || joined.startsWith('../')
+          ? []
+          : [`/${joined}${rest}`];
+      })
+    ),
+  ];
   return {
     folder: folder === '.' ? null : quote(folder),
     written: codeList(written),

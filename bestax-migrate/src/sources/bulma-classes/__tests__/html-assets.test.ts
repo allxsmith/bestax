@@ -416,7 +416,7 @@ describe('web fonts, stylesheets and scripts', () => {
     );
   });
 
-  it("says where a stylesheet's own url()s resolve, and from the site root when it can", () => {
+  it("says where a stylesheet's own relative URLs resolve, and from the site root when it can", () => {
     const urls = {
       folder: 'css',
       written: '`../media/bg.webp`',
@@ -425,7 +425,7 @@ describe('web fonts, stylesheets and scripts', () => {
     expect(
       stylesheetMessage('css/a.css', 'beside', 'css/a.css', urls)
     ).toContain(
-      "; its relative `url()`s (`../media/bg.webp`) are relative to `css/`, the stylesheet's folder, so moving its rules into the app's stylesheet (such as `src/index.css`) means rewriting each against that file's folder, or copying the files into the app's `public/` folder and pointing at them from the site root (`/media/bg.webp`)"
+      "; the relative URLs in it (`../media/bg.webp`) resolve against `css/`, the stylesheet's folder, so moving its rules into the app's stylesheet (such as `src/index.css`) means rewriting each against that file's folder, or copying the files into the app's `public/` folder and pointing at them from the site root (`/media/bg.webp`)"
     );
     const beside = stylesheetMessage('a.css', 'beside', 'a.css', {
       folder: null,
@@ -433,13 +433,13 @@ describe('web fonts, stylesheets and scripts', () => {
       fromRoot: null,
     });
     expect(beside).toContain(
-      "are relative to the stylesheet's folder, the page's, so"
+      "resolve against the stylesheet's folder, the page's, so"
     );
     expect(beside).toMatch(/pointing at them from the site root$/);
     // Only a stylesheet beside the page is read for them.
     expect(
       stylesheetMessage('css/a.css', 'missing', 'css/a.css', urls)
-    ).not.toContain('url()');
+    ).not.toContain('relative URLs');
   });
 
   it("says only what the page's folder shows about a file that isn't there", () => {
