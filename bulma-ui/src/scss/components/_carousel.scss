@@ -416,7 +416,10 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
       padding-bottom: 1.5rem;
     }
 
-    &.#{iv.$class-prefix}is-top {
+    // `is-top` moves only indicators over the slides: below them it has no
+    // edge to move to. `:where()` keeps the rule at the specificity of the
+    // bare `is-top` one it replaces.
+    &.#{iv.$class-prefix}is-top:where(.#{iv.$class-prefix}is-inside) {
       top: 0;
       bottom: auto;
       background: linear-gradient(#{$carousel-gradient-overlay}, transparent);
