@@ -25,6 +25,7 @@ import { afterEach, describe, it } from 'node:test';
 import {
   RECORD,
   checkTemplateImages,
+  decodeXml,
   externalImages,
   isImagePath,
   isImageUrl,
@@ -480,6 +481,38 @@ describe('an SVG', () => {
     const long = `https://example.com/${'a'.repeat(200)}`;
     const [problem] = withImage(svg(`<image href="${long}"/>`));
     assert.ok(problem.includes(`draws ${long.slice(0, 117)}... from`), problem);
+  });
+
+  it('is read under any prefix the XLink namespace is bound to', () => {
+    const bound = body =>
+      `<svg xmlns="http://www.w3.org/2000/svg" ` +
+      `xmlns:x="http://www.w3.org/1999/xlink">${body}</svg>\n`;
+    assertOne(
+      withImage(bound('<image x:href="https://example.com/photo?id=3"/>')),
+      /draws https:\/\/example\.com\/photo\?id=3 from outside the file/
+    );
+    assertOne(
+      withImage(bound('<image x:href="data:image/png;base64,iVBORw0="/>')),
+      /draws a data:image\/png URI from outside the file/
+    );
+    assert.deepEqual(withImage(bound('<use x:href="#a"/>')), []);
+  });
+
+  it('is read as its parser reads it, with references decoded', () => {
+    // `&#100;ata:` is `data:`, and the hot-link is reported once, decoded.
+    const problems = withImage(
+      svg(
+        '<image href="&#100;ata:image/jpeg;base64,/9j/4AAQ"/>' +
+          '<image href="https://x.io/a.png?w=1&amp;h=2"/>' +
+          '<use href="&#x23;a"/><use href="#b&nbsp;"/><use href="&#1114112;"/>'
+      )
+    );
+    assert.deepEqual(
+      problems.map(p => /draws (.*) from outside/.exec(p)?.[1]),
+      ['a data:image/jpeg URI', 'https://x.io/a.png?w=1&h=2', '&#1114112;'],
+      problems.join('\n')
+    );
+    assert.equal(decodeXml('&lt;&gt;&quot;&apos;&#65;&#x42;'), '<>"\'AB');
   });
 
   it('is read gzipped, as an .svgz', () => {

@@ -197,25 +197,44 @@ const describeTarget = target => {
   return target.length > 120 ? `${target.slice(0, 117)}...` : target;
 };
 
+/** The entities XML predefines, by name. */
+const XML_ENTITIES = { amp: '&', apos: "'", gt: '>', lt: '<', quot: '"' };
+
 /**
- * What an SVG draws from outside itself: the target of each `href`,
- * `xlink:href` or `src` attribute, each `url(...)` and each `@import` that
- * is not a fragment of the same file (`#id`). An SVG drawn for the port holds
- * every shape it shows, so any other target is an image, a font or a
- * stylesheet from elsewhere, or a file embedded as a `data:` URI, and the
- * record can vouch for none of them. Namespace declarations (`xmlns`,
- * `xmlns:xlink`) are attributes of another name, and an empty target loads
- * nothing.
+ * `text` with its XML character and entity references decoded, as the
+ * parser reads it: `&#100;ata:` is `data:`, and `&#x23;id` is `#id`. A
+ * reference XML does not define is left as written.
+ */
+export function decodeXml(text) {
+  return text.replace(/&(#x[0-9a-f]+|#\d+|\w+);/gi, (reference, name) => {
+    if (!name.startsWith('#')) return XML_ENTITIES[name] ?? reference;
+    const code = /^#x/i.test(name)
+      ? parseInt(name.slice(2), 16)
+      : Number(name.slice(1));
+    return code <= 0x10ffff ? String.fromCodePoint(code) : reference;
+  });
+}
+
+/**
+ * What an SVG draws from outside itself: the target of each `href` or `src`
+ * attribute, under any namespace prefix (XLink's is `xlink:` by custom, but
+ * a file may bind it to any other), each `url(...)` and each `@import` that
+ * is not a fragment of the same file (`#id`), read after decodeXml as the
+ * parser reads it. An SVG drawn for the port holds every shape it shows, so
+ * any other target is an image, a font or a stylesheet from elsewhere, or a
+ * file embedded as a `data:` URI, and the record can vouch for none of them.
+ * Namespace declarations (`xmlns`, `xmlns:xlink`) are attributes of another
+ * name, and an empty target loads nothing.
  */
 export function svgReferences(text) {
   const found = [];
   for (const re of [
-    /\s(?:xlink:)?(?:href|src)\s*=\s*(["'])(.*?)\1/gis,
+    /\s(?:[\w.-]+:)?(?:href|src)\s*=\s*(["'])(.*?)\1/gis,
     /url\(\s*(["']?)(.*?)\1\s*\)/gis,
     /@import\s+(["'])(.*?)\1/gi,
   ]) {
     for (const match of text.matchAll(re)) {
-      const target = match[2].trim();
+      const target = decodeXml(match[2]).trim();
       if (target !== '' && !target.startsWith('#')) {
         found.push(describeTarget(target));
       }
@@ -412,7 +431,9 @@ export function templateImageProblems(root, slug, files) {
           `point at it with a #fragment (${GUIDE})`
       );
     }
-    for (const image of externalImages(text)) {
+    // An SVG is read as its parser reads it, so a reference written with
+    // character references is found, and matches the one reported above.
+    for (const image of externalImages(svg ? decodeXml(text) : text)) {
       if (drawn.some(target => target.includes(image))) continue;
       problems.push(
         `${at} loads ${image}, an image the template does not ship; draw ` +
