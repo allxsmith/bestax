@@ -34,6 +34,7 @@ import {
   WRAPPER_OWN_PROPS,
   wrapperFor,
   type Absorbs,
+  type PropWrite,
   type RootEntry,
 } from './class-map.js';
 import {
@@ -444,6 +445,90 @@ function secondComponents(
       },
     ];
   });
+}
+
+/** A prop as a TODO writes it: `isLight`, `size="3"`, `minCol={8}`. */
+function propText(write: PropWrite): string {
+  if (write.value === undefined) return `\`${write.prop}\``;
+  return write.numeric
+    ? `\`${write.prop}={${write.value}}\``
+    : `\`${write.prop}="${write.value}"\``;
+}
+
+/** Whether a class is one of the root's colors, as its `color` prop. */
+function isColor(entry: RootEntry, token: string): boolean {
+  return (
+    modifierFor(entry, token)?.writes.some(write => write.prop === 'color') ??
+    false
+  );
+}
+
+/**
+ * A TODO for each other color class on an element that converts (`button
+ * is-black is-primary`). The component takes one `color`, the first class
+ * for it, and the other stays in `className`, which renders the same, but
+ * two colors on one element look the way Bulma's stylesheet settles them,
+ * whatever order they're written in, so each says which one `color` took.
+ * Only the classes the element always carries: one a condition adds is a
+ * state the page asks for on purpose.
+ */
+function secondColors(
+  entry: RootEntry,
+  root: string | undefined,
+  target: string,
+  tokens: readonly string[],
+  converted: ReadonlySet<string>,
+  writes: ReadonlyMap<string, string | true>
+): Todo[] {
+  const first = tokens.find(
+    token => converted.has(token) && isColor(entry, token)
+  );
+  const color = writes.get('color');
+  if (!root || !first || typeof color !== 'string') return [];
+  return tokens
+    .filter(token => !converted.has(token) && isColor(entry, token))
+    .map(token => ({
+      rule: ruleId('modifier', root),
+      message: `\`.${token}\` is a second color on this element, and bestax \`${target}\` takes one \`color\`: \`color="${color}"\` here, from \`.${first}\`, which comes first, so \`.${token}\` stays in its \`className\`, which renders the same; two colors on one element look the way Bulma's stylesheet settles them, whatever order they're written in, so check what the page shows, write the color you want as \`color\`, and drop the other class`,
+    }));
+}
+
+/**
+ * A TODO for a size class left in `className` off the tags it converts on
+ * (`is-3` on an <h1>, which `Title`'s `size="3"` would render as an <h3>),
+ * naming the prop that sizes the element the same and keeps its tag
+ * (`offTag`, `textSize`), as the MCP lookup names it. Only for the one size
+ * class on the element, and only while nothing else writes that prop (an
+ * `is-size-2` beside it): with two, the prop would size it differently.
+ */
+function offTagSizes(
+  entry: RootEntry,
+  root: string | undefined,
+  target: string,
+  tag: string,
+  tokens: readonly string[],
+  converted: ReadonlySet<string>,
+  writes: ReadonlyMap<string, string | true>
+): Todo[] {
+  const sizes = tokens.filter(token => modifierFor(entry, token)?.offTag);
+  if (!root || sizes.length !== 1 || converted.has(sizes[0])) return [];
+  const [token] = sizes;
+  const modifier = modifierFor(entry, token)!;
+  const off = modifier.offTag!;
+  const left =
+    entry.noHelpers ||
+    (entry.helpersLeftOut !== undefined &&
+      Object.hasOwn(entry.helpersLeftOut, off.prop));
+  if (left || writes.has(off.prop) || !modifier.tagIn) return [];
+  const on = modifier.tagIn.map(each => aTag(each)).join(' or ');
+  // The truth e2e holds the class the prop renders to the font size Bulma
+  // gives the class it stands in for.
+  return [
+    {
+      rule: ruleId('modifier', root),
+      message: `\`.${token}\` stays in its \`className\`, which renders the same: bestax \`${target}\` renders it exactly only on ${on}, as ${modifier.writes.map(propText).join(' ')}; on this <${tag}>, write ${propText(off)} in its place, which sizes it the same and keeps the <${tag}>, though \`${off.prop}\` renders a Bulma helper class, which is \`!important\`: check the page's own CSS sets no size on it`,
+    },
+  ];
 }
 
 /**
@@ -1072,6 +1157,10 @@ function planElement(facts: ElementFacts): Plan {
     );
   }
   todos.push(...secondComponents(carried, tokens, root, target, tag, rendered));
+  todos.push(...secondColors(entry, root, target, tokens, converted, writes));
+  todos.push(
+    ...offTagSizes(entry, root, target, tag, tokens, converted, writes)
+  );
   // A glyph the target renders from props takes the place of the only child.
   const glyph =
     moved ?? (entry.readsGlyph ? readGlyph(facts.soleChild) : undefined);
