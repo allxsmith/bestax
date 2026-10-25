@@ -64,12 +64,11 @@ treats the folder as a project of its own.
 ## Images
 
 `public/media/background.svg`, an invented, faceless figure framed by a web designer's tools, was
-drawn for this port on October 23, 2026 by Claude, Anthropic's AI model, writing SVG markup by hand from an idea of its own rather than
-from the image it replaces. No photo, illustration, stock image or image-generation model went into
-it, and it copies no existing artwork.
-The file is its own source: open it in a text editor to see every shape it draws. It replaces the
-original's portrait photo, whose source the original does not record, so this port ships no image of
-unknown origin.
+drawn for this port on October 23, 2026 by Claude, Anthropic's AI model, writing SVG markup by hand
+from an idea of its own rather than from the image it replaces. No photo, illustration, stock image
+or image-generation model went into it, and it copies no existing artwork. The file is its own
+source: open it in a text editor to see every shape it draws. It replaces the original's portrait
+photo, whose source the original does not record, so this port ships no image of unknown origin.
 
 The figure portrays no one, and Kate Woodman is a made-up name. Put your own photo and name in their
 place.
