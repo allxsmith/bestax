@@ -706,6 +706,23 @@ describe('plan', () => {
       );
     });
 
+    it('promises no re-run on an element that converts anyway, which a re-run finds a component', () => {
+      for (const [tag, classes] of [
+        ['figure', 'is-4by3 mx-auto'],
+        ['div', 'card-image is-square'],
+      ]) {
+        const { conversion, todos } = plan(facts(tag, classes));
+        expect({ tag, converts: conversion !== null }).toEqual({
+          tag,
+          converts: true,
+        });
+        expect(todos[0].message).toContain(
+          'if this element is the image, convert it to bestax `Image` by hand, and otherwise drop the class'
+        );
+        expect(todos[0].message).not.toContain('re-run');
+      }
+    });
+
     it('promises a re-run only on a tag `Image` renders', () => {
       for (const tag of ['div', 'figure', 'p']) {
         expect({

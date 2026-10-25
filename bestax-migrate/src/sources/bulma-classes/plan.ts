@@ -477,8 +477,24 @@ function carriedBy(facts: ElementFacts): string[] {
   return [...new Set([...facts.tokens, ...(facts.conditional ?? []).flat()])];
 }
 
+/**
+ * What a TODO that promises a re-run says instead once its element converts:
+ * the next run plans no component, so the re-run would do nothing, and the
+ * fix is by hand.
+ */
+const BY_HAND = new WeakMap<Todo, string>();
+
 export function plan(facts: ElementFacts): Plan {
-  const result = planElement(facts);
+  const planned = planElement(facts);
+  const result = planned.conversion
+    ? {
+        ...planned,
+        todos: planned.todos.map(todo => {
+          const byHand = BY_HAND.get(todo);
+          return byHand === undefined ? todo : { ...todo, message: byHand };
+        }),
+      }
+    : planned;
   // A Bulma 0.9 helper v1 removed converts as the v1 helper that replaced
   // it, and only one that stays a class gets the TODO naming that helper:
   // where it converted, nothing is left to do.
@@ -527,13 +543,21 @@ function planElement(facts: ElementFacts): Plan {
     ) {
       const needed = rootFor(root)!;
       const article = /^[aeiou]/.test(root) ? 'an' : 'a';
-      const fix = reachesTag(needed, tag)
+      const rerun = reachesTag(needed, tag);
+      const fix = rerun
         ? `add \`${root}\`, which bestax \`${needed.target}\` renders, then re-run`
         : `add \`${root}\` for Bulma to style it, though bestax \`${needed.target}\` renders ${tagsItReaches(needed)}, not ${aTag(tag)}, so the element stays markup`;
-      todos.push({
-        rule: ruleId('modifier', root),
-        message: `\`${token}\` is ${article} \`.${root}\` modifier, and Bulma styles it only on the element that carries \`.${root}\`, so on this one it styles nothing unless the project's own CSS gives it a rule; if this element is the ${root}, ${fix}, and otherwise drop the class`,
-      });
+      const says = (remedy: string) =>
+        `\`${token}\` is ${article} \`.${root}\` modifier, and Bulma styles it only on the element that carries \`.${root}\`, so on this one it styles nothing unless the project's own CSS gives it a rule; if this element is the ${root}, ${remedy}, and otherwise drop the class`;
+      const todo = { rule: ruleId('modifier', root), message: says(fix) };
+      // On an element that converts anyway, a re-run finds a component.
+      if (rerun) {
+        BY_HAND.set(
+          todo,
+          says(`convert it to bestax \`${needed.target}\` by hand`)
+        );
+      }
+      todos.push(todo);
     }
   }
 
