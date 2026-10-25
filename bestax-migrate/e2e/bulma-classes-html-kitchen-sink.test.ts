@@ -184,7 +184,9 @@ const LEFTOVER_RULES = [
   'html-url:missing',
   'html-url:relative',
   'legacy:is-paddingless',
+  'modifier:button',
   'modifier:image',
+  'modifier:title',
   'tag:SubTitle',
   'tag:Title',
 ];

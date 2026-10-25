@@ -79,6 +79,7 @@ import {
   type Asset,
   type Loads,
   type Place,
+  type StylesheetUrls,
 } from './html-assets.js';
 import {
   CAROUSEL_CLASS,
@@ -574,6 +575,71 @@ function localScriptNotes(
   }));
 }
 
+/** Larger than this, a stylesheet beside the page is a bundle, not the page's. */
+const LOCAL_STYLESHEET_LIMIT = 256 * 1024;
+
+/**
+ * A URL a stylesheet names a file with: a `url()`'s, double-quoted,
+ * single-quoted or bare, or an `@import`'s, as a string. An `image-set()`
+ * can name one as a bare string too, which a regex can't tell from the
+ * `type()` string beside it, so that form is left to the recipe.
+ */
+const CSS_URL =
+  /\burl\(\s*(?:"([^"]*)"|'([^']*)'|([^)'"\s]*))\s*\)|@import\s+(?:"([^"]*)"|'([^']*)')/gi;
+
+/** Values in backticks, each shortened: the first six, then an ellipsis. */
+function codeList(values: readonly string[]): string {
+  const shown = values.slice(0, 6).map(value => `\`${quote(value, 40)}\``);
+  return values.length > 6 ? `${shown.join(', ')}, …` : shown.join(', ');
+}
+
+/**
+ * The relative URLs in a stylesheet beside the page (`CSS_URL`), which
+ * resolve against the stylesheet's own folder: what moving its rules has to
+ * rewrite, each also from the site root when it stays inside the page's
+ * folder. Read from the URL as written, so a path from the root is still a
+ * URL. Null when the file can't be read, is too large to be the page's own,
+ * or names none.
+ */
+function stylesheetUrls(url: string, dir: string): StylesheetUrls | null {
+  let css: string;
+  try {
+    const file = path.resolve(dir, urlPath(url));
+    if (fs.statSync(file).size > LOCAL_STYLESHEET_LIMIT) return null;
+    css = fs.readFileSync(file, 'utf8');
+  } catch {
+    return null;
+  }
+  const written = [
+    ...new Set(
+      [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(CSS_URL)]
+        .map(([, ...forms]) => forms.find(form => form !== undefined)!.trim())
+        .filter(isRelative)
+    ),
+  ];
+  if (written.length === 0) return null;
+  const folder = path.posix.dirname(
+    path.posix.normalize(url.trim().replace(/[?#].*$/, ''))
+  );
+  // Two spellings of one file (`img/a.png`, `./img/a.png`) are one path.
+  const fromRoot = [
+    ...new Set(
+      written.flatMap(each => {
+        const [, file, rest] = /^([^?#]*)([\s\S]*)$/.exec(each)!;
+        const joined = path.posix.normalize(path.posix.join(folder, file));
+        return joined === '..' || joined.startsWith('../')
+          ? []
+          : [`/${joined}${rest}`];
+      })
+    ),
+  ];
+  return {
+    folder: folder === '.' ? null : quote(folder),
+    written: codeList(written),
+    fromRoot: fromRoot.length > 0 ? codeList(fromRoot) : null,
+  };
+}
+
 /** Whether the page's markup has a primary color class. */
 function usesPrimary(root: ParentNode): boolean {
   return childrenOf(root).some(
@@ -660,9 +726,11 @@ function assetNotes(
         break;
       case 'stylesheet': {
         const { place, target } = placeOf(load.url, page.dir);
+        const urls =
+          place === 'beside' ? stylesheetUrls(load.url, page.dir) : null;
         note(
           htmlRuleId('html-asset', 'stylesheet'),
-          stylesheetMessage(quoted, place, quote(target)),
+          stylesheetMessage(quoted, place, quote(target), urls ?? undefined),
           load.line
         );
         break;

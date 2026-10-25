@@ -284,9 +284,24 @@ export interface CarouselProps
    * a carousel inside a form is not submitted by picking a slide.
    */
   indicator?: boolean;
-  /** Position indicators inside carousel. */
+  /**
+   * Puts the indicators over the slides instead of below them, at the edge
+   * `indicatorPosition` names, on a dark gradient band. It also turns on the
+   * overlay look, made for photos: the arrows and indicators take the
+   * `--bulma-carousel-overlay-*` colors in place of the plain ones, and
+   * `arrowColor` stops applying. No prop moves the indicators without that
+   * look, or gives the look without moving them. To keep the plain colors
+   * over the slides, set each overlay variable to its plain one. The band is
+   * a `background` on the `.carousel-indicator.is-inside` element, not a
+   * variable. The API page's "Indicators Over the Slides" section has the
+   * whole recipe.
+   */
   indicatorInside?: boolean;
-  /** Indicator position. Default: 'bottom'. */
+  /**
+   * The edge of the slides `indicatorInside` puts the indicators on.
+   * Default: 'bottom'. Without `indicatorInside` they sit below the slides
+   * whatever this says, so leave it unset there.
+   */
   indicatorPosition?: 'bottom' | 'top';
   /** Indicator style. Default: 'dots'. */
   indicatorStyle?: 'circles' | 'dots' | 'lines' | 'bars';
@@ -304,7 +319,11 @@ export interface CarouselProps
   iconFeatures?: string | string[];
   /** Show semi-transparent background on arrow buttons. Set to `false` for icon-only arrows. */
   arrowBackground?: boolean;
-  /** Color theme for navigation arrows. */
+  /**
+   * Color theme for navigation arrows. Not applied with `indicatorInside`,
+   * whose overlay look colors the arrows with
+   * `--bulma-carousel-overlay-arrow-color`.
+   */
   arrowColor?: 'light' | 'dark';
   /** Accessible label for the carousel region. Default: 'Image carousel'. */
   ariaLabel?: string;

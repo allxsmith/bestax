@@ -70,12 +70,14 @@ export interface CheckboxProps
   /**
    * Shows the mixed state, as in a "Select all" box when some of what it
    * covers is checked. It's a look and an announcement only: `checked` is
-   * still the value, and a click still toggles `checked`. A browser clears
-   * the mixed state on a click, so the component sets it again from this
-   * prop after every click and every render. Left unset, the component
-   * doesn't touch it, and once it has set it, going back to unset clears it
-   * once and hands it back. It has no HTML attribute, so server-rendered
-   * markup can't carry it, and a mixed box renders unmixed until hydration.
+   * still the value, and a click still toggles `checked`. Set to `true` or
+   * `false`, it's controlled: a browser clears the mixed state on a click,
+   * so the component sets it again from this prop after every click and
+   * every render. Unset isn't `false`. The component leaves the input's own
+   * `indeterminate` property alone, so a ref can set it, and going from set
+   * to unset clears it once and hands it back. It has no HTML attribute, so
+   * server-rendered markup can't carry it, and a mixed box renders unmixed
+   * until hydration.
    */
   indeterminate?: boolean;
   /**
