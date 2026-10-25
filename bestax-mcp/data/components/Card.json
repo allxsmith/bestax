@@ -42,23 +42,23 @@
       "code": "<Card\n  header=\"Upgrade to Pro\"\n  headerIcon={\n    <button className=\"card-header-icon\">\n      <Icon library=\"fa\" name=\"bolt\" textColor=\"warning\" ariaLabel=\"Pro\" />\n    </button>\n  }\n  image=\"https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80\"\n  imageAlt=\"Dashboard analytics\"\n  m=\"3\"\n  textAlign=\"centered\"\n  hasShadow\n  footer={[\n    <Button key=\"upgrade\" color=\"success\">\n      Upgrade Now\n    </Button>,\n    <Button key=\"learn\" color=\"info\" isOutlined>\n      Learn More\n    </Button>,\n  ]}\n>\n  Unlock advanced analytics, priority support, and unlimited exports for your\n  team.\n</Card>"
     },
     {
-      "title": "Compound (dot-notation) usage",
+      "title": "Compound (dot-notation) usage › Complete Card with Compound Components",
       "code": "import { Icon, Image } from '@allxsmith/bestax-bulma';\n\n<Card>\n  <Card.Header>\n    <Card.Header.Title>Compound Component Card</Card.Header.Title>\n    <Card.Header.Icon aria-label=\"more options\">\n      <Icon name=\"angle-down\" variant=\"solid\" ariaLabel=\"expand\" />\n    </Card.Header.Icon>\n  </Card.Header>\n  <Card.Image>\n    <Image\n      src=\"https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80\"\n      alt=\"Beautiful forest\"\n      size=\"4by3\"\n    />\n  </Card.Image>\n  <Card.Content>\n    <Content>\n      This card is built using compound components for maximum flexibility.\n    </Content>\n  </Card.Content>\n  <Card.Footer>\n    <Card.FooterItem>\n      <Button color=\"primary\">Save</Button>\n    </Card.FooterItem>\n    <Card.FooterItem>\n      <Button>Cancel</Button>\n    </Card.FooterItem>\n  </Card.Footer>\n</Card>;"
     },
     {
-      "title": "Compound (dot-notation) usage",
+      "title": "Compound (dot-notation) usage › Minimal Compound Card",
       "code": "<Card>\n  <Card.Header>\n    <Card.Header.Title>Simple Header</Card.Header.Title>\n  </Card.Header>\n  <Card.Content>\n    <Paragraph>Just some minimal content using compound components.</Paragraph>\n  </Card.Content>\n</Card>"
     },
     {
-      "title": "Compound (dot-notation) usage",
+      "title": "Compound (dot-notation) usage › Card Header with Icon",
       "code": "function ExpandableCard() {\n  const [isOpen, setIsOpen] = React.useState(true);\n\n  return (\n    <Card>\n      <Card.Header>\n        <Card.Header.Title>Expandable Card</Card.Header.Title>\n        <Card.Header.Icon\n          aria-label={isOpen ? 'collapse' : 'expand'}\n          onClick={() => setIsOpen(!isOpen)}\n        >\n          <Icon\n            library=\"fa\"\n            name={isOpen ? 'angle-up' : 'angle-down'}\n            ariaLabel={isOpen ? 'collapse' : 'expand'}\n          />\n        </Card.Header.Icon>\n      </Card.Header>\n      {isOpen && (\n        <Card.Content>\n          This card uses React state to toggle content visibility. Click the\n          icon in the header to expand or collapse this section.\n        </Card.Content>\n      )}\n    </Card>\n  );\n}"
     },
     {
-      "title": "Compound (dot-notation) usage",
+      "title": "Compound (dot-notation) usage › Mixed Approach",
       "code": "<Card header=\"Prop-based header\" textColor=\"primary\" m=\"3\">\n  <Card.Content bgColor=\"light\">\n    <Paragraph>\n      You can mix prop-based and compound component approaches!\n    </Paragraph>\n  </Card.Content>\n  <Card.Footer>\n    <Card.FooterItem>Mixed approach example</Card.FooterItem>\n  </Card.Footer>\n</Card>"
     },
     {
-      "title": "Compound (dot-notation) usage",
+      "title": "Compound (dot-notation) usage › Bulma's Own Markup (`p` Title, `a` Footer Items)",
       "code": "<Card>\n  <Card.Header>\n    <Card.Header.Title as=\"p\">Component</Card.Header.Title>\n  </Card.Header>\n  <Card.Content>Card content goes here.</Card.Content>\n  <Card.Footer>\n    <Card.FooterItem as=\"a\" href=\"#save\">\n      Save\n    </Card.FooterItem>\n    <Card.FooterItem as=\"a\" href=\"#edit\">\n      Edit\n    </Card.FooterItem>\n  </Card.Footer>\n</Card>"
     }
   ],

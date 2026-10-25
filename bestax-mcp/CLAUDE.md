@@ -26,7 +26,13 @@ hand-written `## Usage` / `## Accessibility` sections of the API pages.
   read from `node_modules/bulma` with the walk bestax-migrate's vocabulary test
   uses (`e2e/support/bulma-stylesheet.ts`), so a lookup can tell a v1 class with
   no prop from a 0.9 one v1 removed (`REMOVED_IN_V1` in the class map) and from
-  one v1 has no rule for.
+  one v1 has no rule for. Of those, it names what styles one where it can: a
+  root class of bestax's own (`ownClasses`, each record's root class Bulma 1
+  lacks, so `carousel` is `Carousel`'s) and another stylesheet's (`ELSEWHERE`
+  in the class map: Font Awesome, Material Design Icons, bulma-social,
+  bulma-carousel). `BY_HAND` there names the table part that renders a plain
+  `<th>` or `<td>`, which the codemod leaves, and the generator lists the props
+  its record has beside the helper props (#1236).
 - `data/skills/` is **gitignored** and synced from `/skills` by
   `scripts/sync-skills.mjs`, which runs on `build`, `test`, `test:coverage`,
   `test:watch` and `prepack`. Only the manifest (`data/skills.json`) is
@@ -70,7 +76,10 @@ the API pages and the skill catalog.
   a note a model learns to skip. Finding no install is said once, on the first
   answer, since it is also what a server started outside the project looks like;
   `BESTAX_MCP_PROJECT_DIR` points the probe at the project for a client that
-  does that. `BESTAX_MCP_NO_VERSION_CHECK=1` disables the check.
+  does that. `BESTAX_MCP_NO_VERSION_CHECK=1` disables the check. A server run
+  from this repository's source, at its root, finds the workspace's library
+  beside itself (`checkoutVersion` in `src/version.ts`); an installed one, under
+  a `node_modules`, never reads its own copy for the project's.
 - **Unhelpful answers are bugs.** A missing component suggests near misses by
   edit distance; a bad dot-path lists the real ones; a component with no CSS
   variables says so rather than returning blank. An empty response reads as a

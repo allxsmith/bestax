@@ -70,23 +70,23 @@
       "code": "function example() {\n  const v = new Date();\n  v.setHours(11, 30, 0, 0);\n  return (\n    <TimeInput\n      label=\"Lunch hour rejected while typing\"\n      unselectableTimes={d => d.getHours() === 12}\n      defaultValue={v}\n      mobileNative={false}\n      openOnFocus={false}\n    />\n  );\n}"
     },
     {
-      "title": "Manual Keyboard Entry",
+      "title": "Manual Keyboard Entry › Basic",
       "code": "function example() {\n  const v = new Date();\n  v.setHours(13, 45, 0, 0);\n  return (\n    <TimeInput\n      label=\"Click in, then use arrow keys\"\n      defaultValue={v}\n      openOnFocus={false}\n    />\n  );\n}"
     },
     {
-      "title": "Manual Keyboard Entry",
+      "title": "Manual Keyboard Entry › Digit entry and auto-advance",
       "code": "function example() {\n  const v = new Date();\n  v.setHours(9, 0, 0, 0);\n  return (\n    <TimeInput\n      label=\"Type digits — auto-advance after each segment\"\n      defaultValue={v}\n      openOnFocus={false}\n    />\n  );\n}"
     },
     {
-      "title": "Manual Keyboard Entry",
+      "title": "Manual Keyboard Entry › Controlled with live value",
       "code": "function example() {\n  const [v, setV] = useState<Date | null>(() => {\n    const d = new Date();\n    d.setHours(13, 45, 0, 0);\n    return d;\n  });\n  return (\n    <Block>\n      <TimeInput\n        label=\"Arrow or type — value updates live\"\n        value={v}\n        onChange={setV}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">Selected: {v ? v.toLocaleTimeString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
     },
     {
-      "title": "Manual Keyboard Entry",
+      "title": "Manual Keyboard Entry › Free-form fallback",
       "code": "function example() {\n  const v = new Date();\n  v.setHours(13, 45, 0, 0);\n  return (\n    <TimeInput\n      label=\"Free-form (Intl format)\"\n      format={{ hour: '2-digit', minute: '2-digit' }}\n      defaultValue={v}\n      openOnFocus={false}\n    />\n  );\n}"
     },
     {
-      "title": "Manual Keyboard Entry",
+      "title": "Manual Keyboard Entry › 12-hour with seconds",
       "code": "function example() {\n  const v = new Date();\n  v.setHours(13, 45, 30, 0);\n  return (\n    <TimeInput\n      label=\"hh:mm:ss + AM/PM\"\n      hourFormat=\"12\"\n      enableSeconds\n      defaultValue={v}\n      openOnFocus={false}\n    />\n  );\n}"
     },
     {
@@ -110,11 +110,11 @@
       "code": "function example() {\n  const v = new Date();\n  v.setHours(8, 30, 0, 0);\n  return <TimeInput label=\"Inline\" inline defaultValue={v} />;\n}"
     },
     {
-      "title": "Mobile Native",
+      "title": "Mobile Native › Force native",
       "code": "<TimeInput label=\"Always native\" mobileNative={true} />"
     },
     {
-      "title": "Mobile Native",
+      "title": "Mobile Native › Force the custom wheel (even on mobile)",
       "code": "<TimeInput label=\"Always custom wheel\" mobileNative={false} />"
     },
     {
@@ -166,15 +166,15 @@
       "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <TimeInput label=\"Disabled\" disabled />\n  <TimeInput label=\"Read only\" readOnly defaultValue={new Date()} />\n  <TimeInput label=\"Loading\" isLoading />\n</Block>"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › Default (with label)",
       "code": "<TimeInput label=\"Time\" placeholder=\"HH:MM\" />"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field Wrapper",
       "code": "function example() {\n  return (\n    <Field horizontal label=\"Time\" labelProps={{ htmlFor: 'time-field' }}>\n      <Field.Body>\n        <Field>\n          <TimeInput id=\"time-field\" placeholder=\"HH:MM\" />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field and Control Wrappers",
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Time\"\n      labelProps={{ htmlFor: 'time-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"clock\">\n            <TimeInput id=\"time-field-control\" placeholder=\"HH:MM\" />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],

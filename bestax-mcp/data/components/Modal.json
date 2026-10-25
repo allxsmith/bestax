@@ -22,11 +22,11 @@
       "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal active={open} onClose={() => setOpen(false)}>\n        <Box>\n          <Title size=\"4\">Custom Content</Title>\n          <Paragraph>Put any content here!</Paragraph>\n        </Box>\n      </Modal>\n    </>\n  );\n}"
     },
     {
-      "title": "Explicit Modal Types",
+      "title": "Explicit Modal Types › Force content style",
       "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal active={open} onClose={() => setOpen(false)} type=\"content\">\n        <div>Custom content modal (forced type=\"content\")</div>\n      </Modal>\n    </>\n  );\n}"
     },
     {
-      "title": "Explicit Modal Types",
+      "title": "Explicit Modal Types › Force card style",
       "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal active={open} onClose={() => setOpen(false)} type=\"card\">\n        Modal card body (forced type=\"card\")\n      </Modal>\n    </>\n  );\n}"
     },
     {
@@ -38,15 +38,15 @@
       "code": "function example() {\n  const [open, setOpen] = React.useState(false);\n  const [width, setWidth] = React.useState<number | null>(null);\n  const modalRef = React.useRef<HTMLDivElement>(null);\n\n  return (\n    <>\n      <Button color=\"info\" onClick={() => setOpen(true)}>\n        Open and measure\n      </Button>\n      <Modal\n        active={open}\n        onClose={() => setOpen(false)}\n        ref={modalRef}\n        modalCardTitle=\"Measured through the ref\"\n      >\n        <Button\n          onClick={() =>\n            setWidth(modalRef.current?.getBoundingClientRect().width ?? null)\n          }\n        >\n          Measure\n        </Button>\n        <p>Width: {width === null ? '—' : `${Math.round(width)}px`}</p>\n      </Modal>\n    </>\n  );\n}"
     },
     {
-      "title": "Compound (dot-notation) usage",
-      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const closeModal = () => setOpen(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal isActive={open}>\n        <Modal.Background onClick={closeModal} />\n        <Modal.Card>\n          <Modal.Card.Head>\n            <Modal.Card.Title>Compound Component Modal</Modal.Card.Title>\n            <Modal.Close onClick={closeModal} />\n          </Modal.Card.Head>\n          <Modal.Card.Body>\n            This modal uses the compound components API for better control and\n            readability.\n          </Modal.Card.Body>\n          <Modal.Card.Foot>\n            <Buttons>\n              <Button color=\"success\" onClick={closeModal}>\n                Save\n              </Button>\n              <Button onClick={closeModal}>Cancel</Button>\n            </Buttons>\n          </Modal.Card.Foot>\n        </Modal.Card>\n      </Modal>\n    </>\n  );\n}"
+      "title": "Compound (dot-notation) usage › Modal.Card with compound components",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const closeModal = () => setOpen(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal isActive={open} onClose={closeModal}>\n        <Modal.Background onClick={closeModal} />\n        <Modal.Card>\n          <Modal.Card.Head>\n            <Modal.Card.Title>Compound Component Modal</Modal.Card.Title>\n            <Modal.Close />\n          </Modal.Card.Head>\n          <Modal.Card.Body>\n            This modal uses the compound components API for better control and\n            readability.\n          </Modal.Card.Body>\n          <Modal.Card.Foot>\n            <Buttons>\n              <Button color=\"success\" onClick={closeModal}>\n                Save\n              </Button>\n              <Button onClick={closeModal}>Cancel</Button>\n            </Buttons>\n          </Modal.Card.Foot>\n        </Modal.Card>\n      </Modal>\n    </>\n  );\n}"
     },
     {
-      "title": "Compound (dot-notation) usage",
-      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const closeModal = () => setOpen(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal isActive={open}>\n        <Modal.Background onClick={closeModal} />\n        <Modal.Content>\n          <Box>\n            <Title size=\"4\">Custom Content</Title>\n            <Paragraph>Using compound components for full control!</Paragraph>\n          </Box>\n        </Modal.Content>\n        <Modal.Close variant=\"floating\" onClick={closeModal} />\n      </Modal>\n    </>\n  );\n}"
+      "title": "Compound (dot-notation) usage › Modal.Content with compound components",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const closeModal = () => setOpen(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal isActive={open} onClose={closeModal}>\n        <Modal.Background onClick={closeModal} />\n        <Modal.Content>\n          <Box>\n            <Title size=\"4\">Custom Content</Title>\n            <Paragraph>Using compound components for full control!</Paragraph>\n          </Box>\n        </Modal.Content>\n        <Modal.Close variant=\"floating\" />\n      </Modal>\n    </>\n  );\n}"
     }
   ],
-  "accessibility": "- The modal root gets `role=\"dialog\"` and `aria-modal=\"true\"` while active — pass an explicit `role` to override (e.g. `Dialog` passes `role=\"presentation\"` on the `Modal` it wraps so its own `role=\"alertdialog\"` is the only one announced).\n- **Give the dialog an accessible name.** With the legacy API, `modalCardTitle` is wired up as `aria-labelledby` for you. With the compound API, pass your own `aria-label` or `aria-labelledby` on `<Modal>` — a `role=\"dialog\"` with no name is announced as just \"dialog\". An explicit `aria-labelledby` always wins over the generated one.\n- Escape closes the modal (calls `onClose`) by default; opt out with `closeOnEscape={false}`. One Escape closes the topmost overlay only, whichever open Modal, [Dialog](https://bestax.io/docs/api/components/dialog), [Sidebar](https://bestax.io/docs/api/components/sidebar) or full-page [Loading](https://bestax.io/docs/api/components/loading) opened last, and the next Escape closes the one under it. A modal on top with `closeOnEscape={false}` still keeps Escape from the layers under it. A [Toast](https://bestax.io/docs/api/components/toast) waits until no overlay is open.\n- The modal calls `preventDefault()` on the Escape it closes on, so a listener of your own that runs after it can tell the key was used.\n- A popup inside the modal takes its own Escape first. With an Autocomplete list, a Dropdown menu, a Popover or a date picker's calendar open, the first Escape closes that and the next one closes the modal.\n- A popup of your own inside a modal should call `preventDefault()` on the Escape it closes on. The modal leaves an Escape that was prevented alone, whether your popup hears it in a React `onKeyDown` or in a listener on `document`. Call it only when the popup is open and the key was pressed in it, so an Escape with nothing to close still closes the modal, and so does one pressed in a modal opened over your popup.\n- Body scroll is locked while the modal is active; opt out with `lockScroll={false}`. The lock is ref-counted and shared with `Dialog`, `Sidebar` and `Loading`, so whichever overlay closes first doesn't unlock the page underneath one that is still open.\n- Focus moves to the first tab stop (or the modal itself) on open, and is restored to the previously focused element on close — unless another modal is still open on top, in which case that one keeps focus.\n- Tab and Shift+Tab cycle within the modal while it is the topmost modal overlay, so the keyboard order agrees with what `aria-modal=\"true\"` tells assistive technology. They wrap at the same tab stops [`useFocusTrap`](https://bestax.io/docs/api/helpers/usefocustrap) does, so disabled, hidden and `tabIndex={-1}` elements are skipped, and so is inert content, such as a closed [Sidebar](https://bestax.io/docs/api/components/sidebar) inside the modal, and the content of a closed `<details>`. A radio group counts once. A Tab from outside the modal brings focus back in, and so does a Tab the browser takes out anyway, as Safari does past links when its settings say to. With another Modal or Dialog, a [Sidebar](https://bestax.io/docs/api/components/sidebar) with an overlay or a full-page Loading opened over it, the modal leaves Tab alone until that one closes. A Sidebar without an overlay isn't modal: opened over the modal, it takes Escape first, but the modal keeps holding Tab and keeps focus, so the sidebar doesn't take focus when it opens, and a Tab from its controls comes back into the modal. A focus trap of your own inside it, such as a portaled panel's, keeps a Tab it calls `preventDefault()` on, and the modal leaves focus where your trap put it. Note that `aria-modal` does not by itself make background content inert, and no `inert` attribute is applied, so background content remains reachable by pointer and by browser UI such as find-in-page.\n- The modal background closes the modal on click (`onClose` required).\n- Close buttons are provided for both modal-card and modal-content variants.\n\n:::note\nAlways provide an `onClose` handler for accessibility and to allow users to dismiss the modal.\n:::",
+  "accessibility": "- The modal root gets `role=\"dialog\"` and `aria-modal=\"true\"` while active — pass an explicit `role` to override (e.g. `Dialog` passes `role=\"presentation\"` on the `Modal` it wraps so its own `role=\"alertdialog\"` is the only one announced).\n- **Give the dialog an accessible name.** With the legacy API, `modalCardTitle` is wired up as `aria-labelledby` for you. With the compound API, pass your own `aria-label` or `aria-labelledby` on `<Modal>` — a `role=\"dialog\"` with no name is announced as just \"dialog\". An explicit `aria-labelledby` always wins over the generated one.\n- Escape closes the modal (calls `onClose`) by default; opt out with `closeOnEscape={false}`. One Escape closes the topmost overlay only, whichever open Modal, [Dialog](https://bestax.io/docs/api/components/dialog), [Sidebar](https://bestax.io/docs/api/components/sidebar) or full-page [Loading](https://bestax.io/docs/api/components/loading) opened last, and the next Escape closes the one under it. A modal on top with `closeOnEscape={false}` still keeps Escape from the layers under it. A [Toast](https://bestax.io/docs/api/components/toast) waits until no overlay is open.\n- The modal calls `preventDefault()` on the Escape it closes on, so a listener of your own that runs after it can tell the key was used.\n- A popup inside the modal takes its own Escape first. With an Autocomplete list, a Dropdown menu, a Popover or a date picker's calendar open, the first Escape closes that and the next one closes the modal.\n- A popup of your own inside a modal should call `preventDefault()` on the Escape it closes on. The modal leaves an Escape that was prevented alone, whether your popup hears it in a React `onKeyDown` or in a listener on `document`. Call it only when the popup is open and the key was pressed in it, so an Escape with nothing to close still closes the modal, and so does one pressed in a modal opened over your popup.\n- Body scroll is locked while the modal is active; opt out with `lockScroll={false}`. The lock is ref-counted and shared with `Dialog`, `Sidebar` and `Loading`, so whichever overlay closes first doesn't unlock the page underneath one that is still open.\n- Focus moves to the first tab stop (or the modal itself) on open, and is restored to the previously focused element on close — unless another modal is still open on top, in which case that one keeps focus.\n- Tab and Shift+Tab cycle within the modal while it is the topmost modal overlay, so the keyboard order agrees with what `aria-modal=\"true\"` tells assistive technology. They wrap at the same tab stops [`useFocusTrap`](https://bestax.io/docs/api/helpers/usefocustrap) does, so disabled, hidden and `tabIndex={-1}` elements are skipped, and so is inert content, such as a closed [Sidebar](https://bestax.io/docs/api/components/sidebar) inside the modal, and the content of a closed `<details>`. A radio group counts once. A Tab from outside the modal brings focus back in, and so does a Tab the browser takes out anyway, as Safari does past links when its settings say to. With another Modal or Dialog, a [Sidebar](https://bestax.io/docs/api/components/sidebar) with an overlay or a full-page Loading opened over it, the modal leaves Tab alone until that one closes. A Sidebar without an overlay isn't modal: opened over the modal, it takes Escape first, but the modal keeps holding Tab and keeps focus, so the sidebar doesn't take focus when it opens, and a Tab from its controls comes back into the modal. A focus trap of your own inside it, such as a portaled panel's, keeps a Tab it calls `preventDefault()` on, and the modal leaves focus where your trap put it. Note that `aria-modal` does not by itself make background content inert, and no `inert` attribute is applied, so background content remains reachable by pointer and by browser UI such as find-in-page.\n- In the props form, the background closes the modal on click, and a close button is provided for both modal-card and modal-content variants (both call `onClose`, so pass it).\n- In the compound form, `Modal.Close` calls the modal's `onClose` unless you give it an `onClick` of your own, and `Modal.Background` closes the modal only when you pass it `onClick={onClose}`.\n\n:::note\nAlways provide an `onClose` handler for accessibility and to allow users to dismiss the modal.\n:::",
   "related": [
     "Button",
     "Dialog",
@@ -88,7 +88,7 @@
           "name": "onClose",
           "type": "() => void",
           "default": null,
-          "description": "Callback invoked to request modal close (background or close button).",
+          "description": "Called to ask for the modal to close. The props form calls it from the background and the close button it renders. In the compound form, `Modal.Close` calls it unless you give it an `onClick` of your own, and `Modal.Background` doesn't call it on its own: pass it `onClick={onClose}` for a click on the background to close the modal. Escape calls it in both forms unless `closeOnEscape` is `false`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -202,7 +202,7 @@
     },
     {
       "path": "Modal.Background",
-      "summary": "Modal.Background - Renders the modal background overlay.",
+      "summary": "Modal.Background - Renders the modal background overlay. Pass it `onClick={onClose}` for a click on it to close the modal.",
       "component": null,
       "props": [
         {
@@ -215,7 +215,17 @@
           "deprecated": false
         }
       ],
-      "extraProps": [],
+      "extraProps": [
+        {
+          "name": "onClick",
+          "type": "React.MouseEventHandler<HTMLDivElement>",
+          "default": null,
+          "description": "Called when the background is clicked. The background doesn't call the modal's `onClose` on its own, so pass `onClick={onClose}` for a click on it to close the modal.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
       "catchAll": "All standard <div> attributes",
       "types": []
     },
@@ -335,7 +345,7 @@
     },
     {
       "path": "Modal.Close",
-      "summary": "Modal.Close - Renders modal close button with two variant styles.",
+      "summary": "Modal.Close - Renders modal close button with two variant styles. It calls the modal's `onClose` unless given an `onClick` of its own.",
       "component": null,
       "props": [
         {
@@ -381,6 +391,15 @@
           "type": "string",
           "default": "'close'",
           "description": "Accessible name. Pass your own to replace it. An empty one, or a spread carrying `'aria-label': undefined`, keeps the default rather than leaving the button unnamed.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClick",
+          "type": "React.MouseEventHandler<HTMLButtonElement>",
+          "default": null,
+          "description": "Called when the button is clicked. Without one, the button calls the `onClose` of the `Modal` around it. Yours replaces that rather than running before it, so call `onClose` from it if the button should still close the modal.",
           "required": false,
           "inherited": false,
           "deprecated": false

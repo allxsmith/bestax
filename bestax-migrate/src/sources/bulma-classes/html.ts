@@ -43,7 +43,9 @@ import { makeApi, runTransform } from '../../runner.js';
 import { isNumberProp, numberLiteral } from '../_shared/html/attributes.js';
 import { emitJsx, type Reported } from '../_shared/html/emit.js';
 import {
+  attributeOf,
   childrenOf,
+  classesOf,
   isElement,
   isText,
   parseHtml,
@@ -68,6 +70,7 @@ import {
   bulmaStylesheetMessage,
   classifyAsset,
   extensionMessage,
+  extensionPackage,
   fontAwesomeMessage,
   jqueryMessage,
   PRIMARY_CLASS,
@@ -80,6 +83,15 @@ import {
   type StylesheetUrls,
 } from './html-assets.js';
 import {
+  CAROUSEL_CLASS,
+  carouselClassMessage,
+  carouselSelectors,
+  COVERED_SELECTOR,
+  coveredMessage,
+  drivenMessage,
+  selectAll,
+} from './html-extensions.js';
+import {
   htmlRuleId,
   NAVBAR_FIXED_CLASSES,
   THEME_CLASSES,
@@ -88,16 +100,6 @@ import { inNextApp, writesTypeScript } from './project.js';
 import transform, { FILE_RULES } from './transform.js';
 
 const HTML_NS = 'http://www.w3.org/1999/xhtml';
-
-function attributeOf(element: Element, name: string): string | undefined {
-  return element.attrs.find(attr => attr.name === name && !attr.prefix)?.value;
-}
-
-function classesOf(element: Element): string[] {
-  return (attributeOf(element, 'class') ?? '')
-    .split(/[ \t\n\f\r]+/)
-    .filter(Boolean);
-}
 
 function textContent(node: ParentNode): string {
   return childrenOf(node)
@@ -355,7 +357,7 @@ const SCRIPT_PATTERNS: ReadonlyArray<readonly [string, RegExp, string]> = [
   [
     'modal',
     /modal/,
-    "opens or closes a modal: bestax's `Modal` shows while `active` is true and calls `onClose` from its background, its close button and Escape, so keep the open state in `useState`",
+    "opens or closes a modal: bestax's `Modal` shows while `active` is true and calls `onClose` on Escape and from a `Modal.Close` with no `onClick` of its own, while `Modal.Background` closes it only with `onClick={onClose}`, so keep the open state in `useState`",
   ],
   [
     'dismiss',
@@ -397,6 +399,13 @@ interface AssetLoad {
   media?: string;
 }
 
+/** A selector a script of the page's attaches bulma-carousel to. */
+interface Attachment {
+  selector: string;
+  /** The script, as a note names it. */
+  script: string;
+}
+
 /** What the page's notes are read against. */
 interface PageContext {
   /** The page's folder. */
@@ -404,8 +413,14 @@ interface PageContext {
   css: CssMode;
   /** Whether its module goes into a Next.js app. */
   nextjs: boolean;
+  /** Whether a browser reads it in quirks mode, for matching a selector. */
+  quirks: boolean;
   /** The `<link>` and `<script src>` tags, in the page's order. */
   loads: AssetLoad[];
+  /** What its scripts, inline and beside it, attach bulma-carousel to. */
+  carousels: Attachment[];
+  /** Its `.image`s with bulma-carousel's `is-covered`. */
+  covered: Element[];
 }
 
 /** A `media` an import can't stand for: anything but every medium. */
@@ -448,6 +463,15 @@ function scriptNotes(script: Element, page: PageContext): Note[] {
     ];
   }
   const code = textContent(script);
+  for (const selector of carouselSelectors(code)) {
+    page.carousels.push({
+      selector,
+      script:
+        line === null
+          ? 'an inline script'
+          : `the inline script at line ${line}`,
+    });
+  }
   const found = SCRIPT_PATTERNS.filter(([, pattern]) => pattern.test(code));
   if (found.length === 0) {
     return [
@@ -524,16 +548,22 @@ function placeOf(url: string, dir: string): { place: Place; target: string } {
 function localScriptNotes(
   quoted: string,
   target: string,
-  dir: string,
+  page: PageContext,
   line: number | null
 ): Note[] | null {
   let code: string;
   try {
-    const file = path.resolve(dir, target);
+    const file = path.resolve(page.dir, target);
     if (fs.statSync(file).size > LOCAL_SCRIPT_LIMIT) return null;
     code = fs.readFileSync(file, 'utf8');
   } catch {
     return null;
+  }
+  for (const selector of carouselSelectors(code)) {
+    page.carousels.push({
+      selector,
+      script: `the page's script \`${quoted}\``,
+    });
   }
   const found = LOCAL_SCRIPT_PATTERNS.filter(([, pattern]) =>
     pattern.test(code)
@@ -710,7 +740,7 @@ function assetNotes(
         const { place, target } = placeOf(load.url, page.dir);
         const local =
           place === 'beside'
-            ? localScriptNotes(quoted, target, page.dir, load.line)
+            ? localScriptNotes(quoted, target, page, load.line)
             : null;
         if (local) notes.push(...local);
         else {
@@ -746,11 +776,14 @@ function assetNotes(
       });
     } else {
       rule = htmlRuleId('html-asset', 'bulma-extension');
+      const kinds = new Set(loads.map(load => load.loads));
       message = extensionMessage(
         (asset as Extract<Asset, { kind: 'bulma-extension' }>).name,
         quoted,
-        new Set(loads.map(load => load.loads)),
-        page.css
+        kinds,
+        page.css,
+        // Its stylesheet is what crops them (`extensionNotes`).
+        kinds.has('stylesheet') && page.covered.length > 0
       );
     }
     if (message === null) continue;
@@ -762,6 +795,94 @@ function assetNotes(
     });
   }
   return { notes, importsBulma };
+}
+
+/** Where a note about several elements goes: the first, and every line. */
+function atElements(elements: Element[]): Pick<Note, 'line' | 'lines'> {
+  const lines = [
+    ...new Set(
+      elements.flatMap(element => {
+        const line = element.sourceCodeLocation?.startLine;
+        return line === undefined ? [] : [line];
+      })
+    ),
+  ];
+  return {
+    line: elements[0].sourceCodeLocation?.startLine ?? null,
+    ...(lines.length > 1 ? { lines } : {}),
+  };
+}
+
+/**
+ * bulma-carousel's own markup, which no component converts: each selector
+ * the page's scripts attach it to, at the elements it matches; the
+ * `carousel` class anywhere else, on a page that uses bulma-carousel; and
+ * `is-covered` on an `.image`, on a page that loads its stylesheet, the one
+ * thing that styles it. A selector the codemod can't read, or that matches
+ * nothing, has no note of its own: the script's note still stands.
+ */
+function extensionNotes(root: ParentNode, page: PageContext): Note[] {
+  const notes: Note[] = [];
+  const extensions = page.loads.flatMap(load => {
+    const asset = classifyAsset(load.url, load.loads);
+    return asset.kind === 'bulma-extension'
+      ? [{ name: extensionPackage(asset.name), loads: load.loads }]
+      : [];
+  });
+  const driven = new Set<Element>();
+  const read = new Set<string>();
+  for (const { selector, script } of page.carousels) {
+    if (read.has(selector)) continue;
+    read.add(selector);
+    const elements = selectAll(root, selector, page.quirks) ?? [];
+    if (elements.length === 0) continue;
+    for (const element of elements) driven.add(element);
+    const ids = new Set(elements.map(element => attributeOf(element, 'id')));
+    notes.push({
+      rule: htmlRuleId('html-extension', 'carousel'),
+      message: drivenMessage({
+        selector: quote(selector, 40),
+        script,
+        count: elements.length,
+        sharedId:
+          elements.length > 1 && ids.size === 1 ? [...ids][0] : undefined,
+        carouselClass: elements.some(element =>
+          classesOf(element).includes(CAROUSEL_CLASS)
+        ),
+      }),
+      ...atElements(elements),
+    });
+  }
+  const usesCarousel =
+    page.carousels.length > 0 ||
+    extensions.some(({ name }) =>
+      ['bulma-carousel', 'bulma-extensions'].includes(name)
+    );
+  // A class's TODO is about the app's stylesheets, which read it in its own
+  // case: only what a script selects follows the page's quirks.
+  const classed = usesCarousel
+    ? selectAll(root, `.${CAROUSEL_CLASS}`, false)!.filter(
+        element => !driven.has(element)
+      )
+    : [];
+  if (classed.length > 0) {
+    notes.push({
+      rule: htmlRuleId('html-extension', 'carousel'),
+      message: carouselClassMessage(),
+      ...atElements(classed),
+    });
+  }
+  const cropped = extensions.some(
+    ({ name, loads }) => name === 'bulma-carousel' && loads === 'stylesheet'
+  );
+  if (cropped && page.covered.length > 0) {
+    notes.push({
+      rule: htmlRuleId('html-extension', 'is-covered'),
+      message: coveredMessage(),
+      ...atElements(page.covered),
+    });
+  }
+  return notes;
 }
 
 /** A `<meta http-equiv>` that sets the page's Content Security Policy. */
@@ -1461,7 +1582,11 @@ export function convertPage(
     dir: path.dirname(file),
     css: options.cssMode ?? 'keep',
     nextjs: inNextApp(file, options.packageLanguages),
+    quirks: parsed.quirks,
     loads: [],
+    carousels: [],
+    // In its own case, as the rule the TODO gives the app reads it.
+    covered: selectAll(parsed.root, COVERED_SELECTOR, false)!,
   };
   parseNotes(parsed, notes.document);
   headNotes(parsed.head, notes.document, context);
@@ -1477,6 +1602,7 @@ export function convertPage(
   dropScripts(parsed.root, notes.document, context);
   const assets = assetNotes(context, parsed.root);
   notes.document.push(...assets.notes);
+  notes.content.push(...extensionNotes(parsed.root, context));
 
   const emitted = emitJsx(parsed.root, {
     displayOf: pageDisplayOf,

@@ -24,9 +24,13 @@
     {
       "title": "Valid Colors and Sizes",
       "code": "import { Radio, Radios } from '@allxsmith/bestax-bulma';\nimport { radioColors, radioSizes } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  return (\n    <>\n      <Radios label=\"Accent color\" name=\"accent\" defaultValue=\"primary\">\n        {radioColors.map(color => (\n          <Radio key={color} value={color} color={color}>\n            {color}\n          </Radio>\n        ))}\n      </Radios>\n      <Radios label=\"Size\" name=\"accent-size\" defaultValue=\"normal\">\n        {radioSizes.map(size => (\n          <Radio key={size} value={size} size={size}>\n            {size}\n          </Radio>\n        ))}\n      </Radios>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Circle Size",
+      "code": "<Radio name=\"plan\" value=\"basic\" className=\"compact-radio\">\n  Basic\n</Radio>"
     }
   ],
-  "accessibility": "- Each `Radio` is rendered as a `<label>` wrapping an `<input type=\"radio\">` and the label text, for optimal accessibility.\n- Use the same `name` prop for a group of radios to ensure only one can be selected.\n- An unchecked radio shows only its ring, `--bulma-radio-border-color`. It defaults to `--bulma-text-weak`, which holds the 3:1 contrast WCAG asks of a control's boundary (non-text contrast) on Bulma's page and card surfaces in light and dark. Set a replacement on a class you pass through `className`, since `style` goes to the `<input>`, naming the label's class too (`.styled-radio.my-radio`) so load order can't undo it, and hold it to 3:1 as well.",
+  "accessibility": "- Each `Radio` is rendered as a `<label>` wrapping an `<input type=\"radio\">` and the label text, for optimal accessibility.\n- Use the same `name` prop for a group of radios to ensure only one can be selected.\n- The circle is at least 24px across, the minimum size WCAG 2.2 sets for a target (2.5.8), whatever `--bulma-radio-size` says. [Circle Size](https://bestax.io/docs/api/form/radio#circle-size) shows how to make it smaller, and why to keep the label text inside the `Radio` when you do.\n- An unchecked radio shows only its ring, `--bulma-radio-border-color`. It defaults to `--bulma-text-weak`, which holds the 3:1 contrast WCAG asks of a control's boundary (non-text contrast) on Bulma's page and card surfaces in light and dark. Set a replacement on a class you pass through `className`, since `style` goes to the `<input>`, naming the label's class too (`.styled-radio.my-radio`) so load order can't undo it, and hold it to 3:1 as well.",
   "related": ["Field", "Radios", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-radio--mutually-exclusive",
   "summary": "The `Radio` component provides a Bulma-styled radio button input with flexible labels and helper classes.",

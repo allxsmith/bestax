@@ -1204,6 +1204,187 @@ describe('the stylesheets and scripts it loads', () => {
   });
 });
 
+describe("bulma-carousel's own markup", () => {
+  const CSS =
+    '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma-carousel@4.0.4/dist/css/bulma-carousel.min.css">';
+  const JS =
+    '<script src="https://cdn.jsdelivr.net/npm/bulma-carousel@4.0.4/dist/js/bulma-carousel.min.js"></script>';
+  const page = (head: string, body: string) =>
+    `<!DOCTYPE html>\n<html><head>\n${head}\n</head><body>\n${body}\n</body></html>\n`;
+  const slide = (n: number) =>
+    `  <div><figure class="image is-16by9 is-covered"><img src="https://example.com/${n}.jpg" alt=""></figure></div>`;
+  const extensionEntries = (entries: TodoEntry[]) =>
+    entries.filter(entry => entry.rule.startsWith('html-extension'));
+
+  it('notes every element a script attaches it to, a repeated id among them, and its is-covered images', () => {
+    const { entries, output } = convert(
+      page(
+        `${CSS}\n${JS}`,
+        [
+          '<div id="carousel-demo" class="carousel">',
+          slide(1),
+          slide(2),
+          '</div>',
+          '<div class="box">Between</div>',
+          '<div id="carousel-demo" class="carousel">',
+          '  <p>A testimonial</p>',
+          '</div>',
+          "<script>bulmaCarousel.attach('#carousel-demo', { slidesToShow: 1 });</script>",
+        ].join('\n')
+      )
+    );
+    expect(
+      extensionEntries(entries).map(({ line, rule }) => `${line}:${rule}`)
+    ).toEqual(['6:html-extension:carousel', '7:html-extension:is-covered']);
+    const [driven, covered] = extensionEntries(entries);
+    expect(driven.message).toContain(
+      'the inline script at line 14 attaches bulma-carousel to `#carousel-demo`, which selects these 2 elements, since the page gives each one `id="carousel-demo"`, so each is a carousel'
+    );
+    expect(driven.message).toContain(
+      "`carousel` is bestax `Carousel`'s own class"
+    );
+    expect(covered.message).toContain('`Image` has no prop for it');
+    expect(output).toMatch(/so each is a carousel: .*\(case\.html:6, 11\)$/m);
+    expect(output).toMatch(/object-fit: cover; \}`\) \(case\.html:7, 8\)$/m);
+    // The asset's own TODO says what stopping it does to those images.
+    expect(
+      entries.find(entry => entry.rule === 'html-asset:bulma-extension')
+        ?.message
+    ).toContain("the page's `is-covered` images are cropped by its stylesheet");
+    // The script's TODO stands as it was.
+    expect(entries.map(entry => entry.rule)).toContain('html-script:carousel');
+  });
+
+  it('reads the selector from a script beside the page', () => {
+    const dir = tempDir();
+    fs.mkdirSync(path.join(dir, 'js'));
+    fs.writeFileSync(
+      path.join(dir, 'js', 'scripts.js'),
+      "document.addEventListener('DOMContentLoaded', () => {\n  bulmaCarousel.attach('#slider', { infinite: true });\n});\n"
+    );
+    const { entries } = convert(
+      page(
+        `${JS}\n<script defer src="js/scripts.js"></script>`,
+        `<div id="slider">\n${slide(1)}\n</div>`
+      ),
+      {},
+      path.join(dir, 'home.html')
+    );
+    expect(extensionEntries(entries)).toEqual([
+      expect.objectContaining({
+        line: 6,
+        rule: 'html-extension:carousel',
+        message: expect.stringMatching(
+          /^the page's script `js\/scripts\.js` attaches bulma-carousel to this element \(`#slider`\): /
+        ),
+      }),
+    ]);
+    // Without bulma-carousel's stylesheet, nothing on the page styles
+    // `is-covered`, so it has no note, and the asset's TODO no clause.
+    expect(extensionEntries(entries)[0].message).not.toContain(
+      '`carousel` is bestax'
+    );
+    expect(
+      entries.find(entry => entry.rule === 'html-asset:bulma-extension')
+        ?.message
+    ).not.toContain('is-covered');
+  });
+
+  it('notes a carousel class no selector reached, on a page that uses bulma-carousel', () => {
+    const body = (script: string) =>
+      [
+        '<div class="carousel">',
+        slide(1),
+        '</div>',
+        `<script>${script}</script>`,
+      ].join('\n');
+    for (const script of [
+      "bulmaCarousel.attach('#nothing-here');",
+      'bulmaCarousel.attach(selector);',
+      "bulmaCarousel.attach('.hero .carousel');",
+    ]) {
+      const { entries } = convert(page(JS, body(script)));
+      expect({ script, notes: extensionEntries(entries) }).toEqual({
+        script,
+        notes: [
+          expect.objectContaining({
+            line: 5,
+            rule: 'html-extension:carousel',
+            message: expect.stringMatching(
+              /^`carousel` is the class bulma-carousel's markup gives a carousel/
+            ),
+          }),
+        ],
+      });
+    }
+  });
+
+  it("follows a quirks-mode page's case for a script's selector, and the class's own for the app's stylesheet", () => {
+    const { entries } = convert(
+      [
+        '<html><head>',
+        CSS,
+        JS,
+        '</head><body>',
+        '<div id="Slider">',
+        slide(1),
+        '</div>',
+        '<div class="Carousel">',
+        '<figure class="image is-16by9 IS-COVERED"><img src="https://example.com/a.jpg" alt=""></figure>',
+        '</div>',
+        "<script>bulmaCarousel.attach('#slider');</script>",
+        '</body></html>',
+      ].join('\n')
+    );
+    expect(
+      extensionEntries(entries).map(({ line, rule }) => `${line}:${rule}`)
+    ).toEqual(['5:html-extension:carousel', '6:html-extension:is-covered']);
+  });
+
+  it("reads bulma-carousel's own stylesheet inside the bulma-extensions package, which the bundle's own lacks", () => {
+    const covered = (href: string) =>
+      extensionEntries(
+        convert(
+          page(
+            `<link rel="stylesheet" href="${href}">`,
+            '<div class="box">\n<figure class="image is-16by9 is-covered"><img src="https://example.com/a.jpg" alt=""></figure>\n</div>'
+          )
+        ).entries
+      ).map(entry => entry.rule);
+    expect(
+      covered(
+        'https://cdn.jsdelivr.net/npm/bulma-extensions@6.2.7/bulma-carousel/dist/css/bulma-carousel.min.css'
+      )
+    ).toEqual(['html-extension:is-covered']);
+    // The bundle's combined stylesheet has no `is-covered` rule.
+    expect(
+      covered(
+        'https://cdn.jsdelivr.net/npm/bulma-extensions@6.2.7/dist/css/bulma-extensions.min.css'
+      )
+    ).toEqual([]);
+  });
+
+  it('notes nothing on a page that uses no bulma-carousel', () => {
+    const { entries } = convert(
+      page(
+        '',
+        '<div class="carousel">\n<figure class="image is-16by9 is-covered"><img src="https://example.com/a.jpg" alt=""></figure>\n</div>'
+      )
+    );
+    expect(extensionEntries(entries)).toEqual([]);
+  });
+
+  it('notes is-covered only on an .image', () => {
+    const { entries } = convert(
+      page(
+        CSS,
+        '<div class="box">\n<figure class="is-covered"><img src="https://example.com/a.jpg" alt=""></figure>\n<figure class="image"><img src="https://example.com/b.jpg" alt=""></figure>\n</div>'
+      )
+    );
+    expect(extensionEntries(entries)).toEqual([]);
+  });
+});
+
 describe('the file-level gates, read from where the module goes', () => {
   it('leaves the JSX alone for a package whose JSX is not React', () => {
     const dir = tempDir();
