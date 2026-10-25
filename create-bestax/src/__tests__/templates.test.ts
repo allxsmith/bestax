@@ -18,6 +18,8 @@ import { fileURLToPath } from 'url';
 import ts from 'typescript';
 
 const { ProjectCreator } = await import('../project-creator.js');
+const { updatePackageJson } = await import('../file-system.js');
+const { LIBRARY, libraryRange } = await import('../library-range.js');
 const {
   BULMA_FLAVORS,
   CSS_ORDER_COMMENT,
@@ -402,6 +404,37 @@ describe.each(TEMPLATES)('%s template README', template => {
     await projectCreator.updateReadme(without, 'none');
     const plain = await fs.readFile(path.join(without, 'README.md'), 'utf8');
     expect(plain).not.toMatch(/icons/i);
+  });
+});
+
+// A template asks for the library the way this CLI's own manifest does, and
+// the scaffold writes the range that manifest resolves to in its place, so an
+// app is floored at the release the CLI was built with rather than at a number
+// in a template nobody moves. A scaffold that skipped the step would keep the
+// protocol and fail to install instead of quietly taking an old floor (#1240).
+describe.each(TEMPLATES)('%s template library range', template => {
+  const require = createRequire(import.meta.url);
+  const cliPkg = require('../../package.json') as {
+    dependencies: Record<string, string>;
+  };
+  const bulmaUiPkg = require('../../../bulma-ui/package.json') as {
+    version: string;
+  };
+
+  it('spells the library as the CLI does, and scaffolds the checkout release', async () => {
+    const templatePkg = await fs.readJson(
+      path.join(templatesDir, template, 'package.json')
+    );
+    expect(templatePkg.dependencies[LIBRARY]).toBe(
+      cliPkg.dependencies[LIBRARY]
+    );
+
+    const target = await scaffold(template);
+    await updatePackageJson(target, 'app', { [LIBRARY]: libraryRange() });
+
+    const pkg = await fs.readJson(path.join(target, 'package.json'));
+    expect(pkg.dependencies[LIBRARY]).toBe(`^${bulmaUiPkg.version}`);
+    expect(JSON.stringify(pkg)).not.toContain('workspace:');
   });
 });
 

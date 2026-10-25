@@ -1,3 +1,37 @@
+## [2.31.3](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.31.2...bestax-migrate@2.31.3) (2026-10-24)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** exit 1 when a file fails to migrate, and name a duplicate attribute ([c59005d](https://github.com/allxsmith/bestax/commit/c59005d98daeae6ef9dfdfd3933e19d50a755147)), closes [#1253](https://github.com/allxsmith/bestax/issues/1253)
+* **bestax-migrate:** say a file the run cannot read stops it, and narrow the failure wording ([9d4bb42](https://github.com/allxsmith/bestax/commit/9d4bb42bbc4174ea893c09b95b6af0094d9257fa))
+* **bulma-ui:** fail a partial PinInput code in constraint validation ([8c40bfb](https://github.com/allxsmith/bestax/commit/8c40bfb69cbd70839b370d590d3fbc2f7ea4d952)), closes [#1242](https://github.com/allxsmith/bestax/issues/1242)
+* **bulma-ui:** keep a PinInput code to its length ([c267247](https://github.com/allxsmith/bestax/commit/c267247ced024f80ad474d072a8f50e8b6aad166)), closes [#1242](https://github.com/allxsmith/bestax/issues/1242)
+* **bulma-ui:** keep a ratio Image in a carousel slide inside its frame ([bb81aee](https://github.com/allxsmith/bestax/commit/bb81aeed7e84367e57f166c9ffb82a2d2310e5e6))
+* **bulma-ui:** ship Bulma's license notice with the package ([0f245d9](https://github.com/allxsmith/bestax/commit/0f245d9eb6698db25e566fb47ffb79a3cf125096))
+* **bulma-ui:** take PinInput digits from any script as ASCII ([46571ce](https://github.com/allxsmith/bestax/commit/46571ce37972fc52c11bccdbe105e956764f9576)), closes [#1242](https://github.com/allxsmith/bestax/issues/1242)
+* **create-bestax:** floor scaffolds at the bestax-bulma release the CLI ships with ([#1264](https://github.com/allxsmith/bestax/issues/1264)) ([7d9e9ed](https://github.com/allxsmith/bestax/commit/7d9e9ed7bbbe9c38b3d336437dd0f467efd7f62e))
+* **docs:** drop the Hotel and Wedding Planner galleries' ratio-image workaround ([949703c](https://github.com/allxsmith/bestax/commit/949703cc26f91a0d858e01f0f5fe8f19fde8f7c2)), closes [#1166](https://github.com/allxsmith/bestax/issues/1166)
+* **docs:** give the Hotel template's Bulma logo its notice, and its newsletter form a focus ring ([077ff1e](https://github.com/allxsmith/bestax/commit/077ff1e038691a07deba55a6bebbd6f98442aeb9))
+* **docs:** hot-link the Wedding Planner template's Icons8 logo as the original does ([22073de](https://github.com/allxsmith/bestax/commit/22073defcc9d9a6b51915a3b247566799b39aac3))
+* **docs:** keep the 8px the Hotel original's empty label left above Submit ([dba365e](https://github.com/allxsmith/bestax/commit/dba365e431102d89119898cd9580ee8664cbfdd2))
+* **docs:** make the Rent template's Go! button submit its search form ([abf405f](https://github.com/allxsmith/bestax/commit/abf405f650f9f5556b14c2e6c7f44f78ca217303))
+* **docs:** match the Hotel template's phone numbers and make its welcome title the h1 ([3fc2b08](https://github.com/allxsmith/bestax/commit/3fc2b08937e5ea2c2a285cbb80baf4d54e166760))
+* **docs:** set back Bulma 0.9's burger hover and title gap in the Hotel template ([a9a91ff](https://github.com/allxsmith/bestax/commit/a9a91fff1ebf7ea05370fe101ed547bb016660c5))
+* **docs:** skip Wedding Planner's smooth scroll under reduced motion, and name its placeholders ([e369f00](https://github.com/allxsmith/bestax/commit/e369f00776f64986a973277b87d58a60919e5e30))
+
+
+### Features
+
+* **bulma-ui:** add isAligned to Td like Th ([f2ee1af](https://github.com/allxsmith/bestax/commit/f2ee1aff9313c1367647acb88cf6fb631c5679f5)), closes [#1238](https://github.com/allxsmith/bestax/issues/1238)
+* **bulma-ui:** add PinInput, a one-time-code field drawn as boxes ([e74cc99](https://github.com/allxsmith/bestax/commit/e74cc994b80c0d8679ad84cb7b6702edf739ced3)), closes [#1242](https://github.com/allxsmith/bestax/issues/1242)
+* **docs:** add Event Participation template, ported from aldi's bulma-event-participation-template ([#1230](https://github.com/allxsmith/bestax/issues/1230)) ([072a012](https://github.com/allxsmith/bestax/commit/072a012995d264574cf456b3f55001b3310a3823))
+* **docs:** add the CV template, ported from aldi's bulma-cv-template ([5037265](https://github.com/allxsmith/bestax/commit/50372655507f951367377eebb78a709242e397b9))
+* **docs:** add the Hotel template, ported from aldi's bulma-hotel-template ([35cc92b](https://github.com/allxsmith/bestax/commit/35cc92b36132be3f12ad255155b50fe0772e00e4))
+* **docs:** add the Rent template, ported from aldi's bulma-rent-template ([1b44387](https://github.com/allxsmith/bestax/commit/1b44387a598d48a41477661ce4e7dace5600cf39))
+* **docs:** add the Tropico template, ported from restylianos's bulma-tropico-template ([bc0f306](https://github.com/allxsmith/bestax/commit/bc0f30672896a4d45f9ff1e6bb864b7bb13ac4ea))
+* **docs:** add Wedding Planner template, ported from restylianos's bulma-wedding-planner-template ([c9aa0f6](https://github.com/allxsmith/bestax/commit/c9aa0f620b34accea031c4d1f421e0c4c2e72300))
+
 ## [2.31.2](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.31.1...bestax-migrate@2.31.2) (2026-10-23)
 
 

@@ -184,6 +184,8 @@ Use the `isSelected` prop on a `Tr` to highlight a specific row. This is ideal f
 
 To control the alignment and width of table header cells, use the `isAligned` and `width` props on the `Th` component. Set `isAligned` to `left`, `right`, or `centered` to adjust text alignment, and use `width` with a number or string (e.g., `width={200}` or `width="100px"`) to specify the column width. This is useful for formatting tables with specific layout requirements or for emphasizing certain columns.
 
+`Td` takes the same `isAligned` values, so a column's body cells can line up with its header.
+
 ```tsx live
 <Table>
   <Thead>
@@ -196,8 +198,8 @@ To control the alignment and width of table header cells, use the `isAligned` an
   </Thead>
   <Tbody>
     <Tr>
-      <Td>Jane Doe</Td>
-      <Td>98</Td>
+      <Td isAligned="left">Jane Doe</Td>
+      <Td isAligned="right">98</Td>
     </Tr>
   </Tbody>
 </Table>
@@ -281,7 +283,7 @@ For responsive tables, ensure your column headers are clear and concise for smal
 - `Table.Tfoot`: Tfoot component for rendering a styled Bulma table footer. Supports Bulma helper classes for additional styling.
 - `Table.Tr`: Tr component for rendering a styled Bulma table row. Supports the is-selected modifier and color modifiers.
 - `Table.Th`: Th component for rendering a styled Bulma table header cell. Supports alignment, width, and color modifiers.
-- `Table.Td`: Td component for rendering a styled Bulma table cell. Supports Bulma color modifiers and helper classes for additional styling.
+- `Table.Td`: Td component for rendering a styled Bulma table cell. Supports alignment, Bulma color modifiers, and helper classes for additional styling.
 
 ### Table.Thead
 
@@ -338,12 +340,13 @@ For responsive tables, ensure your column headers are clear and concise for smal
 
 ### Table.Td
 
-| Prop        | Type                                                         | Default | Description                                       |
-| ----------- | ------------------------------------------------------------ | ------- | ------------------------------------------------- |
-| `className` | `string`                                                     | —       | Additional CSS classes to apply.                  |
-| `color`     | `TableColor`                                                 | —       | Bulma color modifier for the table cell.          |
-| `children`  | `React.ReactNode`                                            | —       | Table cell content.                               |
-| `...`       | All standard `<td>`/`<th>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                                                         | Default | Description                                                      |
+| ----------- | ------------------------------------------------------------ | ------- | ---------------------------------------------------------------- |
+| `className` | `string`                                                     | —       | Additional CSS classes to apply.                                 |
+| `isAligned` | `'left'` \| `'right'` \| `'centered'`                        | —       | Text alignment for the table cell ('left', 'right', 'centered'). |
+| `color`     | `TableColor`                                                 | —       | Bulma color modifier for the table cell.                         |
+| `children`  | `React.ReactNode`                                            | —       | Table cell content.                                              |
+| `...`       | All standard `<td>`/`<th>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                |
 
 **Types:**
 

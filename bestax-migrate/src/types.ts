@@ -99,6 +99,8 @@ export interface FileResult {
   file: string;
   changed: boolean;
   todos: TodoEntry[];
+  /** Why the file could not be parsed or transformed, when it couldn't. */
+  error?: string;
 }
 
 /** Collects TODO entries for the file currently being transformed. */

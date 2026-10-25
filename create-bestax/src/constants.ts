@@ -441,9 +441,12 @@ export const BULMA_FLAVORS: BulmaFlavor[] = [
 // Sits above the stylesheet import in the templates' entry files, and the
 // scaffolder writes it back when it swaps in a flavor's stylesheet, so the
 // reason for the import order survives. The no-helpers classes depend on it.
+// It names src/index.css, the app's global stylesheet, rather than the starter
+// page's src/App.css, which loads after bestax's too but goes when a port
+// replaces the page (#1240).
 export const CSS_ORDER_COMMENT =
   "// Bestax's stylesheet loads before the app's own CSS, so a named class in\n" +
-  '// src/App.css wins over a Bulma rule of the same weight.';
+  '// src/index.css wins over a Bulma rule of the same weight.';
 
 export interface StarterClass {
   // The helper prop exactly as the starter App writes it.
