@@ -41,7 +41,9 @@ function RoomDetailsModal({ active, onClose }: RoomDetailsModalProps) {
         <Content>
           <Columns>
             <Column>
-              <img src="/media/bulma-logo.png" alt="Bulma Hotels" width={150} />
+              <span className="wordmark wordmark-large">
+                Bulma <span>Hotel</span>
+              </span>
             </Column>
             <Column>
               <div>

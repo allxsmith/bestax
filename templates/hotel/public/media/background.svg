@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1134" width="2400" height="1134" preserveAspectRatio="xMidYMid slice">
+<!-- Drawn for the bestax port of the Hotel template; image-provenance.json records it. -->
+<!-- The hotel by day across its pool: a terracotta facade between palms, under a pale sky. -->
+<defs>
+<linearGradient id="sky" x1="0" y1="0" x2="0" y2="660" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#f3f8fb"/>
+<stop offset="0.45" stop-color="#d3e8f5"/>
+<stop offset="1" stop-color="#9ccbe8"/>
+</linearGradient>
+<linearGradient id="facade" x1="0" y1="330" x2="0" y2="690" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#c97b52"/>
+<stop offset="1" stop-color="#a95c3b"/>
+</linearGradient>
+<linearGradient id="wing" x1="0" y1="450" x2="0" y2="690" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#bb7049"/>
+<stop offset="1" stop-color="#9c5536"/>
+</linearGradient>
+<linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#4f86a6"/>
+<stop offset="1" stop-color="#2c5673"/>
+</linearGradient>
+<linearGradient id="water" x1="0" y1="722" x2="0" y2="1134" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#3fc8da"/>
+<stop offset="0.4" stop-color="#1ba0c0"/>
+<stop offset="1" stop-color="#0b5f82"/>
+</linearGradient>
+<linearGradient id="sheen" x1="0" y1="736" x2="0" y2="1036" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#ffffff" stop-opacity="0.2"/>
+<stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+</linearGradient>
+<linearGradient id="stone" x1="0" y1="690" x2="0" y2="1134" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#e9e0d0"/>
+<stop offset="1" stop-color="#cbbfa9"/>
+</linearGradient>
+<!-- One floor's bay of the main block: a glazed balcony door over a white rail. -->
+<pattern id="bays" x="760" y="350" width="80" height="54" patternUnits="userSpaceOnUse">
+<rect x="20" y="6" width="40" height="34" fill="#f1e7da"/>
+<rect x="23" y="9" width="34" height="31" fill="url(#glass)"/>
+<rect x="38" y="9" width="4" height="31" fill="#f1e7da"/>
+<rect x="8" y="40" width="64" height="4" fill="#f6f1e9"/>
+<rect x="10" y="44" width="60" height="10" fill="none" stroke="#f6f1e9" stroke-width="2"/>
+</pattern>
+<pattern id="wingbays" x="520" y="466" width="60" height="48" patternUnits="userSpaceOnUse">
+<rect x="14" y="8" width="32" height="28" fill="#f1e7da"/>
+<rect x="17" y="11" width="26" height="25" fill="url(#glass)"/>
+<rect x="8" y="38" width="44" height="3" fill="#f6f1e9"/>
+</pattern>
+<g id="palm">
+<path d="M0,0 C6,-90 -10,-190 18,-300" fill="none" stroke="#8a6a4a" stroke-width="16" stroke-linecap="round"/>
+<path d="M2,-60 l12,-4 M4,-120 l12,-4 M6,-180 l12,-4 M10,-240 l12,-4" stroke="#6f5338" stroke-width="4"/>
+<g fill="#3f7d46">
+<path d="M18,-300 C-40,-330 -110,-320 -160,-270 C-100,-300 -50,-300 18,-290 Z"/>
+<path d="M18,-300 C-30,-360 -100,-380 -150,-360 C-90,-350 -40,-330 16,-292 Z"/>
+<path d="M18,-300 C30,-370 80,-400 140,-390 C90,-370 50,-340 22,-292 Z"/>
+<path d="M18,-300 C80,-320 150,-300 190,-250 C140,-280 80,-290 22,-290 Z"/>
+</g>
+<g fill="#2f6a39">
+<path d="M18,-300 C60,-290 100,-250 112,-190 C90,-240 50,-270 18,-288 Z"/>
+<path d="M18,-300 C-20,-280 -60,-240 -70,-180 C-40,-235 -10,-265 18,-288 Z"/>
+</g>
+</g>
+<g id="lounger">
+<path d="M0,0 L84,0 L108,-30 L98,-34 L78,-9 L0,-9 Z" fill="#ffffff"/>
+<path d="M4,-9 L76,-9 L76,-4 L4,-4 Z" fill="#5fb7c9"/>
+<rect x="8" y="0" width="5" height="12" fill="#9a9488"/>
+<rect x="72" y="0" width="5" height="12" fill="#9a9488"/>
+</g>
+<g id="parasol">
+<rect x="-3" y="-110" width="6" height="124" fill="#8a7f70"/>
+<path d="M-84,-100 Q0,-160 84,-100 Z" fill="#f6f1e9"/>
+<path d="M-84,-100 Q-60,-140 -28,-148 Q-36,-120 -28,-100 Z M28,-100 Q36,-120 28,-148 Q60,-140 84,-100 Z" fill="#d86b4a"/>
+</g>
+</defs>
+
+<rect width="2400" height="700" fill="url(#sky)"/>
+<!-- A few soft clouds. -->
+<g fill="#ffffff" opacity="0.9">
+<ellipse cx="300" cy="200" rx="150" ry="34"/><ellipse cx="390" cy="176" rx="100" ry="38"/>
+<ellipse cx="1900" cy="150" rx="170" ry="32"/><ellipse cx="1990" cy="128" rx="96" ry="34"/>
+<ellipse cx="1150" cy="250" rx="120" ry="22"/>
+</g>
+
+<!-- Hills behind the hotel. -->
+<path d="M0,620 C200,570 380,580 560,600 C760,540 980,560 1200,580 C1420,550 1640,540 1860,590 C2040,570 2220,580 2400,610 L2400,700 L0,700 Z" fill="#9db58f"/>
+<path d="M0,650 C260,620 520,640 760,630 C1100,610 1400,630 1700,620 C1960,610 2200,630 2400,640 L2400,700 L0,700 Z" fill="#7f9e74"/>
+
+<!-- The hotel: a main block of six floors between two lower wings. -->
+<rect x="520" y="450" width="240" height="240" fill="url(#wing)"/>
+<rect x="520" y="450" width="240" height="240" fill="url(#wingbays)"/>
+<rect x="1640" y="450" width="240" height="240" fill="url(#wing)"/>
+<rect x="1640" y="450" width="240" height="240" fill="url(#wingbays)"/>
+<rect x="510" y="440" width="260" height="12" fill="#f1ebe1"/>
+<rect x="1630" y="440" width="260" height="12" fill="#f1ebe1"/>
+
+<rect x="760" y="330" width="880" height="360" fill="url(#facade)"/>
+<rect x="760" y="350" width="880" height="270" fill="url(#bays)"/>
+<rect x="744" y="316" width="912" height="16" fill="#f1ebe1"/>
+<!-- Awnings over a few balconies. -->
+<g fill="#f6f1e9">
+<path d="M854,356 h52 l6,10 h-64 Z"/><path d="M1094,410 h52 l6,10 h-64 Z"/>
+<path d="M1414,356 h52 l6,10 h-64 Z"/><path d="M1254,464 h52 l6,10 h-64 Z"/>
+<path d="M934,518 h52 l6,10 h-64 Z"/><path d="M1494,518 h52 l6,10 h-64 Z"/>
+</g>
+<!-- The roof's sign and the lobby's dark glass doors under a white canopy. -->
+<rect x="1110" y="286" width="180" height="32" rx="4" fill="#2f3b44"/>
+<rect x="1124" y="297" width="152" height="10" rx="5" fill="#e6c27a"/>
+<rect x="1060" y="620" width="280" height="70" fill="#22394a"/>
+<path d="M1130,620 V690 M1200,620 V690 M1270,620 V690" stroke="#3d5a6e" stroke-width="4"/>
+<path d="M1030,606 L1370,606 L1350,624 L1050,624 Z" fill="#f6f1e9"/>
+<g fill="#4f7a3f">
+<circle cx="1020" cy="676" r="22"/><circle cx="1380" cy="676" r="22"/>
+</g>
+<rect x="1004" y="682" width="32" height="10" fill="#d0c4b0"/>
+<rect x="1364" y="682" width="32" height="10" fill="#d0c4b0"/>
+
+<!-- Palms. -->
+<use href="#palm" x="420" y="704"/>
+<use href="#palm" x="640" y="708" transform="translate(1280,0) scale(-1,1)"/>
+<use href="#palm" x="1760" y="708" transform="translate(3520,0) scale(-1,1)"/>
+<use href="#palm" x="1990" y="704"/>
+<use href="#palm" x="210" y="740" transform="translate(-60,-130) scale(1.1)"/>
+<use href="#palm" x="2200" y="740" transform="translate(4650,-130) scale(-1.1,1.1)"/>
+
+<!-- The stone deck, the pool and its white coping. -->
+<rect y="690" width="2400" height="444" fill="url(#stone)"/>
+<path d="M0,706 H2400" stroke="#d8ccb6" stroke-width="2"/>
+<path d="M300,722 L2100,722 L2640,1170 L-240,1170 Z" fill="url(#water)" stroke="#fbf8f2" stroke-width="14" stroke-linejoin="round"/>
+
+<!-- Loungers and parasols on the deck beside the pool. -->
+<use href="#parasol" x="150" y="800"/>
+<use href="#lounger" x="20" y="790"/>
+<use href="#lounger" x="0" y="860"/>
+<use href="#parasol" x="2250" y="800"/>
+<use href="#lounger" x="2272" y="790" transform="translate(4652,0) scale(-1,1)"/>
+<use href="#lounger" x="2292" y="860" transform="translate(4692,0) scale(-1,1)"/>
+
+<!-- Light on the water: the facade's glow and the ripples. -->
+<g fill="url(#sheen)">
+<rect x="1060" y="736" width="280" height="300"/>
+<rect x="800" y="736" width="70" height="240"/>
+<rect x="1530" y="736" width="70" height="240"/>
+</g>
+<g fill="none" stroke="#c9f6fa" stroke-linecap="round" opacity="0.6">
+<path d="M420,790 q40,-10 80,0 t80,0 t80,0" stroke-width="4"/>
+<path d="M1680,800 q40,-10 80,0 t80,0 t80,0" stroke-width="4"/>
+<path d="M880,840 q50,-12 100,0 t100,0 t100,0 t100,0 t100,0 t100,0" stroke-width="5"/>
+<path d="M300,930 q60,-14 120,0 t120,0 t120,0" stroke-width="5"/>
+<path d="M1600,950 q60,-14 120,0 t120,0 t120,0 t120,0" stroke-width="5"/>
+<path d="M700,1030 q70,-16 140,0 t140,0 t140,0 t140,0 t140,0" stroke-width="6"/>
+<path d="M60,1090 q70,-16 140,0 t140,0" stroke-width="6"/>
+<path d="M1900,1080 q70,-16 140,0 t140,0 t140,0" stroke-width="6"/>
+</g>
+</svg>

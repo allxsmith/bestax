@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 333" width="500" height="333">
+<!-- Drawn for the bestax port of the Hotel template; image-provenance.json records it. -->
+<!-- The Executive Gold Single: a single bed, a lamp and a gold armchair by the window. -->
+<defs>
+<linearGradient id="wall" x1="0" y1="0" x2="0" y2="250" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#f6ecd9"/>
+<stop offset="1" stop-color="#e8d8bb"/>
+</linearGradient>
+<linearGradient id="floor" x1="0" y1="250" x2="0" y2="333" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#a3744c"/>
+<stop offset="1" stop-color="#815636"/>
+</linearGradient>
+<linearGradient id="sky" x1="0" y1="40" x2="0" y2="200" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#f2b880"/>
+<stop offset="1" stop-color="#fbe1bd"/>
+</linearGradient>
+<radialGradient id="glow" r="0.5">
+<stop offset="0" stop-color="#fff2cc" stop-opacity="0.85"/>
+<stop offset="1" stop-color="#fff2cc" stop-opacity="0"/>
+</radialGradient>
+</defs>
+
+<rect width="500" height="250" fill="url(#wall)"/>
+<rect y="250" width="500" height="83" fill="url(#floor)"/>
+<g stroke="#714a2c" stroke-width="1.5">
+<path d="M0,266 H500 M0,286 H500 M0,310 H500"/>
+</g>
+<rect y="244" width="500" height="8" fill="#fbf6ec"/>
+
+<!-- A window at sunset with drawn curtains, left. -->
+<rect x="18" y="40" width="62" height="160" fill="url(#sky)"/>
+<circle cx="56" cy="150" r="14" fill="#f39a4f"/>
+<path d="M18,170 C34,160 52,166 80,156 L80,200 L18,200 Z" fill="#a08a6a"/>
+<rect x="47" y="40" width="4" height="160" fill="#f8f2e4"/>
+<rect x="18" y="118" width="62" height="4" fill="#f8f2e4"/>
+<rect x="14" y="36" width="70" height="168" fill="none" stroke="#f8f2e4" stroke-width="6"/>
+<path d="M6,30 C14,90 4,160 10,236 L28,236 C22,160 30,90 24,30 Z" fill="#c9973a"/>
+<path d="M74,30 C80,90 72,160 78,236 L94,236 C88,160 98,90 92,30 Z" fill="#c9973a"/>
+<rect x="2" y="26" width="96" height="6" rx="3" fill="#8c6a2c"/>
+
+<!-- A gold armchair. -->
+<rect x="104" y="250" width="6" height="22" fill="#5a3a26"/>
+<rect x="160" y="250" width="6" height="22" fill="#5a3a26"/>
+<path d="M108,182 Q108,168 122,168 L148,168 Q162,168 162,182 L162,236 L108,236 Z" fill="#c9a24a"/>
+<rect x="100" y="222" width="70" height="30" rx="8" fill="#d6af55"/>
+<rect x="96" y="206" width="16" height="44" rx="7" fill="#b98f39"/>
+<rect x="158" y="206" width="16" height="44" rx="7" fill="#b98f39"/>
+
+<!-- Two small framed prints above the bed. -->
+<rect x="210" y="70" width="36" height="46" fill="#b38a3c"/>
+<rect x="214" y="74" width="28" height="38" fill="#fbf3e2"/>
+<path d="M214,104 L224,90 L232,98 L242,86 L242,112 L214,112 Z" fill="#c4a76f"/>
+<rect x="254" y="70" width="36" height="46" fill="#b38a3c"/>
+<rect x="258" y="74" width="28" height="38" fill="#fbf3e2"/>
+<circle cx="272" cy="92" r="8" fill="#e3a64f"/>
+
+<!-- The headboard. -->
+<path d="M190,250 L190,154 Q190,136 208,136 L292,136 Q310,136 310,154 L310,250 Z" fill="#c9a24a"/>
+<path d="M200,148 H300 M200,170 H300 M200,192 H300" stroke="#b08a37" stroke-width="2"/>
+
+<!-- A nightstand and lamp, right. -->
+<ellipse cx="370" cy="180" rx="40" ry="30" fill="url(#glow)"/>
+<rect x="344" y="214" width="52" height="46" fill="#6b4630"/>
+<rect x="344" y="214" width="52" height="5" fill="#80563b"/>
+<rect x="350" y="230" width="40" height="2" fill="#4e3222"/>
+<circle cx="370" cy="244" r="2.5" fill="#d2a74b"/>
+<rect x="367" y="184" width="6" height="30" fill="#b38a3c"/>
+<ellipse cx="370" cy="214" rx="10" ry="3" fill="#8c6a2c"/>
+<path d="M354,184 L359,156 L381,156 L386,184 Z" fill="#f8efd9" stroke="#d8c39a"/>
+<rect x="378" y="206" width="12" height="8" rx="2" fill="#f7f1e3"/>
+
+<!-- The bed, its pillow, duvet and gold throw. -->
+<path d="M200,215 L300,215 L330,318 L170,318 Z" fill="#fbf8f2"/>
+<rect x="212" y="198" width="76" height="36" rx="12" fill="#ffffff" stroke="#e2dccf" stroke-width="2"/>
+<path d="M190,250 L310,250 L330,318 L170,318 Z" fill="#fffaf0"/>
+<path d="M190,250 L310,250" stroke="#e8dfcd" stroke-width="3"/>
+<path d="M181,280 L319,280 L325,300 L175,300 Z" fill="#c9973a"/>
+<path d="M181,280 L319,280" stroke="#a77d2c" stroke-width="2"/>
+<rect x="166" y="318" width="168" height="15" fill="#e6dccb"/>
+<rect x="160" y="316" width="180" height="6" rx="3" fill="#8c6a2c"/>
+
+<!-- A suitcase at the foot of the wall, right. -->
+<rect x="420" y="214" width="46" height="62" rx="6" fill="#4d6b8a"/>
+<rect x="436" y="204" width="14" height="12" rx="3" fill="none" stroke="#2f4560" stroke-width="3"/>
+<rect x="420" y="240" width="46" height="4" fill="#3a5470"/>
+<circle cx="428" cy="278" r="3" fill="#2a2a2a"/><circle cx="458" cy="278" r="3" fill="#2a2a2a"/>
+</svg>

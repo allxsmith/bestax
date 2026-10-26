@@ -6,7 +6,7 @@ import {
   Title,
 } from '@allxsmith/bestax-bulma';
 
-/** The call to action for landlords, over the cartoon city. */
+/** The call to action for landlords, over the city at night. */
 function Landlords() {
   return (
     <Hero size="medium" color="light">
@@ -28,7 +28,7 @@ function Landlords() {
           <div className="m-t-60">
             <img
               className="m-t-50"
-              src="/media/cartoon_city.png"
+              src="/media/city-night.svg"
               alt="Find rentals"
             />
           </div>

@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 563" width="1000" height="563">
+<!-- Drawn for the bestax port of the Hotel template; image-provenance.json records it. -->
+<!-- The hotel's bar: stools at a curved counter, lit shelves of bottles behind it. -->
+<defs>
+<linearGradient id="wall" x1="0" y1="0" x2="0" y2="563" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#1f2b3a"/>
+<stop offset="1" stop-color="#2d3b4d"/>
+</linearGradient>
+<linearGradient id="shelfglow" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#ffcf83" stop-opacity="0.55"/>
+<stop offset="1" stop-color="#ffcf83" stop-opacity="0"/>
+</linearGradient>
+<linearGradient id="counter" x1="0" y1="330" x2="0" y2="563" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#7b4a2c"/>
+<stop offset="1" stop-color="#4a2a18"/>
+</linearGradient>
+<g id="bottles">
+<path d="M0,0 v-46 q0,-8 6,-12 v-16 h6 v16 q6,4 6,12 v46 Z" fill="#3f8a5a"/>
+<path d="M26,0 v-38 q0,-10 8,-14 v-12 h6 v12 q8,4 8,14 v38 Z" fill="#b5462e"/>
+<path d="M56,0 v-56 h20 v56 Z M60,-56 v-14 h12 v14 Z" fill="#d9b25e"/>
+<path d="M84,0 v-42 q0,-8 6,-12 v-18 h6 v18 q6,4 6,12 v42 Z" fill="#6aa9c9"/>
+<path d="M110,0 v-50 q0,-6 8,-10 v-10 h6 v10 q8,4 8,10 v50 Z" fill="#8a3b5a"/>
+<path d="M140,0 v-36 h22 v36 Z M146,-36 v-10 h10 v10 Z" fill="#e9e1cf"/>
+</g>
+<g id="stool">
+<ellipse cx="0" cy="0" rx="38" ry="12" fill="#c46b3c"/>
+<rect x="-38" y="0" width="76" height="10" fill="#a8552c"/>
+<rect x="-4" y="10" width="8" height="120" fill="#b8bec6"/>
+<ellipse cx="0" cy="90" rx="24" ry="6" fill="none" stroke="#b8bec6" stroke-width="4"/>
+<ellipse cx="0" cy="132" rx="30" ry="7" fill="#9aa1aa"/>
+</g>
+<g id="pendant">
+<rect x="-1.5" y="0" width="3" height="110" fill="#11161d"/>
+<path d="M-14,140 L-14,110 L14,110 L14,140 Z" fill="#d9b25e"/>
+<ellipse cx="0" cy="140" rx="14" ry="4" fill="#fff0c8"/>
+</g>
+</defs>
+
+<rect width="1000" height="563" fill="url(#wall)"/>
+
+<!-- Lit shelves of bottles behind the bar. -->
+<rect x="150" y="50" width="700" height="240" fill="#16202b"/>
+<rect x="150" y="50" width="700" height="240" fill="none" stroke="#7b4a2c" stroke-width="10"/>
+<rect x="155" y="55" width="690" height="70" fill="url(#shelfglow)"/>
+<rect x="155" y="135" width="690" height="70" fill="url(#shelfglow)"/>
+<rect x="155" y="215" width="690" height="70" fill="url(#shelfglow)"/>
+<rect x="150" y="122" width="700" height="8" fill="#8a5a38"/>
+<rect x="150" y="202" width="700" height="8" fill="#8a5a38"/>
+<use href="#bottles" x="180" y="122"/><use href="#bottles" x="420" y="122"/><use href="#bottles" x="640" y="122"/>
+<use href="#bottles" x="240" y="202"/><use href="#bottles" x="500" y="202"/><use href="#bottles" x="680" y="202"/>
+<g fill="#cfe3ea" opacity="0.8">
+<path d="M190,286 l8,-30 h20 l8,30 Z"/><path d="M250,286 l8,-30 h20 l8,30 Z"/>
+<path d="M700,286 l8,-30 h20 l8,30 Z"/><path d="M760,286 l8,-30 h20 l8,30 Z"/>
+</g>
+
+<use href="#pendant" x="300" y="0"/>
+<use href="#pendant" x="500" y="0"/>
+<use href="#pendant" x="700" y="0"/>
+
+<!-- The counter, its brass foot rail and the stools. -->
+<rect x="0" y="322" width="1000" height="18" rx="4" fill="#d9c6a6"/>
+<rect x="0" y="340" width="1000" height="223" fill="url(#counter)"/>
+<g fill="#5f3a22">
+<rect x="100" y="356" width="6" height="207"/><rect x="300" y="356" width="6" height="207"/>
+<rect x="500" y="356" width="6" height="207"/><rect x="700" y="356" width="6" height="207"/>
+<rect x="900" y="356" width="6" height="207"/>
+</g>
+<rect x="0" y="500" width="1000" height="8" fill="#d9b25e"/>
+<!-- Two cocktails on the counter. -->
+<path d="M420,320 L398,288 H442 Z" fill="#f28a6a" stroke="#f4f4f4" stroke-width="2"/>
+<circle cx="436" cy="290" r="6" fill="#f6d34a"/>
+<path d="M580,320 L558,288 H602 Z" fill="#7cc6d6" stroke="#f4f4f4" stroke-width="2"/>
+<circle cx="566" cy="288" r="5" fill="#9bd06a"/>
+<use href="#stool" x="200" y="420"/>
+<use href="#stool" x="400" y="420"/>
+<use href="#stool" x="600" y="420"/>
+<use href="#stool" x="800" y="420"/>
+</svg>

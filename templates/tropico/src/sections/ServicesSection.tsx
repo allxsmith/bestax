@@ -33,7 +33,7 @@ function ServicesSection() {
                 <Card.Content>
                   <div className="has-text-centered">
                     <img
-                      src="/images/card-item-1.png"
+                      src="/images/card-item-1.svg"
                       alt=""
                       width={75}
                       height={74}

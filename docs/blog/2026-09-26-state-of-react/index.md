@@ -29,7 +29,7 @@ This edition reflects each library **as of September 26, 2026** and covers every
 
 <!-- truncate -->
 
-If you're new here, _The State of React_ is a dated, side-by-side look at the mainstream React component libraries, capability by capability, with every cell linking to that library's own docs. I maintain [bestax](/docs/intro), a React component library for Bulma v1, so I've got a horse in this race. That's why every cell links out: you shouldn't have to take my word for any of it.
+If you're new here, _The State of React_ is a dated, side-by-side look at the mainstream React component libraries, capability by capability, with every cell linking to that library's own docs. I maintain [bestax](/docs/intro), a React component library for Bulma v1, so I've got a horse in this race. That's why every cell links out: you shouldn't have to take my word for any of it. It isn't affiliated with Devographics' annual State of React survey, which shares the name.
 
 As for why it's late: most of August went into bestax itself (more on that below), and the edition slipped. Two months of release notes is a lot, so I've kept this to what you'd actually notice in an app.
 

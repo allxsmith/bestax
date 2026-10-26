@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1135" height="713" viewBox="0 0 1135 713">
+  <!-- Drawn for the bestax port of the Wedding Planner template; image-provenance.json records how. -->
+  <!-- Two glasses of champagne raised in a toast, under bunting, balloons and confetti. -->
+  <defs>
+    <g id="flute">
+      <ellipse cy="0" rx="52" ry="11" fill="#c7b8ea" />
+      <rect x="-5" y="-160" width="10" height="160" fill="#d9cff0" />
+      <path d="M-12-152C-40-200-48-330-46-404H46C48-330 40-200 12-152Z" fill="#ffffff" opacity="0.9" stroke="#9f93c4" stroke-width="6" />
+      <path d="M-15-164C-38-210-44-300-43-336H43C44-300 38-210 15-164Z" fill="#f2cf6b" />
+      <path d="M-43-336H43" stroke="#e8c36a" stroke-width="6" />
+      <g fill="#ffffff">
+        <circle cx="-10" cy="-200" r="5" />
+        <circle cx="8" cy="-240" r="4" />
+        <circle cx="-6" cy="-280" r="6" />
+        <circle cx="14" cy="-300" r="3" />
+      </g>
+    </g>
+  </defs>
+  <path d="M150 470C100 300 260 160 560 150C860 140 1030 280 1000 460C970 620 800 640 560 640C320 640 190 620 150 470Z" fill="#ede7f9" />
+  <ellipse cx="567" cy="640" rx="330" ry="18" fill="#d9cff0" />
+
+  <!-- Bunting. -->
+  <path d="M90 70Q567 230 1045 70" fill="none" stroke="#3d3b55" stroke-width="4" />
+  <g>
+    <path d="M150 88L200 104L166 150Z" fill="#c7b8ea" />
+    <path d="M250 117L302 128L268 176Z" fill="#eeaeca" />
+    <path d="M356 136L410 142L378 192Z" fill="#72ddf7" />
+    <path d="M466 147L520 149L492 200Z" fill="#c7b8ea" />
+    <path d="M614 149L668 147L642 200Z" fill="#eeaeca" />
+    <path d="M725 142L779 136L757 192Z" fill="#72ddf7" />
+    <path d="M833 128L885 117L867 176Z" fill="#c7b8ea" />
+    <path d="M935 104L985 88L969 150Z" fill="#eeaeca" />
+  </g>
+
+  <!-- Balloons on their strings. -->
+  <g fill="none" stroke="#9f93c4" stroke-width="3">
+    <path d="M196 346C186 400 210 450 196 520" />
+    <path d="M262 316C258 380 236 440 246 520" />
+    <path d="M884 324C892 390 870 450 884 520" />
+    <path d="M950 352C946 410 966 460 952 520" />
+  </g>
+  <ellipse cx="196" cy="290" rx="46" ry="56" fill="#eeaeca" />
+  <ellipse cx="262" cy="262" rx="44" ry="54" fill="#b9a6ec" />
+  <ellipse cx="884" cy="270" rx="44" ry="54" fill="#72ddf7" />
+  <ellipse cx="950" cy="298" rx="46" ry="56" fill="#eeaeca" />
+  <g fill="#ffffff" opacity="0.6">
+    <ellipse cx="180" cy="270" rx="10" ry="16" />
+    <ellipse cx="246" cy="242" rx="10" ry="16" />
+    <ellipse cx="868" cy="250" rx="10" ry="16" />
+    <ellipse cx="934" cy="278" rx="10" ry="16" />
+  </g>
+
+  <!-- The toast. -->
+  <use xlink:href="#flute" transform="translate(446 650) rotate(16) scale(1.15)" />
+  <use xlink:href="#flute" transform="translate(688 650) rotate(-16) scale(1.15)" />
+  <g fill="#e8c36a" transform="translate(0 -30)">
+    <circle cx="540" cy="208" r="7" />
+    <circle cx="596" cy="200" r="6" />
+    <circle cx="567" cy="180" r="8" />
+    <circle cx="524" cy="182" r="4" />
+    <circle cx="612" cy="174" r="5" />
+  </g>
+
+  <!-- Confetti. -->
+  <g>
+    <rect x="360" y="260" width="16" height="8" rx="2" fill="#7d6bd6" transform="rotate(30 368 264)" />
+    <rect x="760" y="250" width="16" height="8" rx="2" fill="#e58fb5" transform="rotate(-25 768 254)" />
+    <rect x="330" y="400" width="16" height="8" rx="2" fill="#72ddf7" transform="rotate(60 338 404)" />
+    <rect x="800" y="410" width="16" height="8" rx="2" fill="#7d6bd6" transform="rotate(15 808 414)" />
+    <rect x="420" y="210" width="14" height="7" rx="2" fill="#e8c36a" transform="rotate(-40 427 214)" />
+    <rect x="700" y="214" width="14" height="7" rx="2" fill="#72ddf7" transform="rotate(50 707 218)" />
+    <circle cx="390" cy="330" r="6" fill="#eeaeca" />
+    <circle cx="742" cy="330" r="6" fill="#b9a6ec" />
+    <circle cx="460" cy="250" r="5" fill="#72ddf7" />
+    <circle cx="676" cy="268" r="5" fill="#e8c36a" />
+    <circle cx="300" cy="560" r="6" fill="#7d6bd6" />
+    <circle cx="840" cy="570" r="6" fill="#eeaeca" />
+  </g>
+</svg>

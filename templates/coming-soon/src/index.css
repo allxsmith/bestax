@@ -15,7 +15,7 @@ body {
 
 html {
   background-color: #c8ccd8;
-  background-image: url('/media/background.webp');
+  background-image: url('/media/background.svg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

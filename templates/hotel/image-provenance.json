@@ -1,0 +1,126 @@
+{
+  "template": "hotel",
+  "images": [
+    {
+      "path": "public/media/background.svg",
+      "sha256": "7ed195885f92dcd89377a2decc3ad8228fb0194782f72ec4a39ef2b126b7dda3",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "The hotel by day across its pool: a terracotta block of six floors between two lower wings, with palms, loungers and parasols under a pale sky.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/media/background.webp, the original's photo of a pool behind the welcome, whose source the original does not record."
+    },
+    {
+      "path": "public/media/room-gold-single.svg",
+      "sha256": "f61d813e2d9c0491a66c3811a2be062494a4e728219a5534bb6b4fbf15912327",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A single hotel room in warm gold tones: a single bed, a lamp on a nightstand, a gold armchair, a suitcase and a window at sunset.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "https://images.unsplash.com/photo-1515510621228-30de609bbd60, the Unsplash photo the original hot-links for the Executive Gold Single room. Replaced so the template ships and loads only images made for it."
+    },
+    {
+      "path": "public/media/room-gold-double.svg",
+      "sha256": "c649c5fc6ce1da34696eb9705fd606d66779ed052f333245eb806a2a2d1702a1",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A double hotel room in warm gold tones: a wide bed with a tufted gold headboard between two lamps, a framed print and a curtained window.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "https://images.unsplash.com/photo-1444201983204-c43cbd584d93, the Unsplash photo the original hot-links for the Executive Gold Double room. Replaced so the template ships and loads only images made for it."
+    },
+    {
+      "path": "public/media/room-diamond-single.svg",
+      "sha256": "e9d2275f96b503e354f20d30dd282b79a348f8ab3a15f789164477363c8bf08a",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A single hotel room in cool blues: a single bed with a navy headboard, a round mirror, a writing desk and a window on a city skyline.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "https://images.unsplash.com/photo-1590490360836-2e3b067c082b, the Unsplash photo the original hot-links for the Premier Diamond Single room. Replaced so the template ships and loads only images made for it."
+    },
+    {
+      "path": "public/media/room-diamond-double.svg",
+      "sha256": "aa24fd84d7ccfbce99c541ed8f48ad9e045d6944ab591584ef392c0987a8533e",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A double hotel room in cool blues: a wide bed with a navy headboard between two lamps, a tall plant and glass doors onto a balcony over the sea.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd, the Unsplash photo the original hot-links for the Premier Diamond Double room. Replaced so the template ships and loads only images made for it."
+    },
+    {
+      "path": "public/media/reception.svg",
+      "sha256": "bae43c7ba5f8872bb4fc36d62319a1ba81d1a3103300c7684bb68bed8c9363d1",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A hotel reception: a marble-topped wooden desk with a bell and flowers under three pendant lamps, a slatted wall, room keys in pigeonholes and a potted palm.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "https://images.unsplash.com/photo-1564501049412-61c2a3083791, the Unsplash photo the original hot-links beside the reception. Replaced so the template ships and loads only images made for it."
+    },
+    {
+      "path": "public/media/gallery-pool.svg",
+      "sha256": "7fd18e13332ff96504ee38d6051acf1efb82bb8ebe48d50ed176fcc7d75abebe",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A hotel pool by day, with loungers and parasols on its deck and the sea beyond.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "https://images.unsplash.com/photo-1550921082-c282cdc432d6, the Unsplash photo the original hot-links as the gallery's first picture. Replaced so the template ships and loads only images made for it."
+    },
+    {
+      "path": "public/media/gallery-restaurant.svg",
+      "sha256": "8be5cce666123f54711c8909d056e613dac969c3223f86a702d23de8e96e8b0e",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A hotel restaurant in the evening: tables laid with white cloths under pendant lights, tall windows behind.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "https://images.unsplash.com/photo-1550945771-515f118cef86, the Unsplash photo the original hot-links as the gallery's second picture. Replaced so the template ships and loads only images made for it."
+    },
+    {
+      "path": "public/media/gallery-spa.svg",
+      "sha256": "8449757a8242f3f5b644033fcc3133d2ec6d75712e84c3f14788824c2c12de10",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A hotel spa: stacked stones, candles, rolled towels, an orchid and lavender on a wooden shelf between bamboo stems.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "https://images.unsplash.com/photo-1550971264-3f7e4a7bb349, the Unsplash photo the original hot-links as the gallery's third picture. Replaced so the template ships and loads only images made for it."
+    },
+    {
+      "path": "public/media/gallery-terrace.svg",
+      "sha256": "305ed84e5fb874c1fddd5bef1a30dc057e5f0300185df6c8685c113cf426c0b2",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A table for two on a hotel terrace, with a candle and wine glasses, as the sun sets over the sea beyond its railing.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "https://images.unsplash.com/photo-1550931937-2dfd45a40da0, the Unsplash photo the original hot-links as the gallery's fourth picture. Replaced so the template ships and loads only images made for it."
+    },
+    {
+      "path": "public/media/gallery-bar.svg",
+      "sha256": "c25a105748d1dd98f1b63fc0a429babd35357fafb997642e6b3286510d661cdf",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A hotel bar: stools at a wooden counter with two cocktails, lit shelves of bottles behind it.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "https://images.unsplash.com/photo-1550930516-af8b8cc4f871, the Unsplash photo the original hot-links as the gallery's fifth picture. Replaced so the template ships and loads only images made for it."
+    }
+  ]
+}

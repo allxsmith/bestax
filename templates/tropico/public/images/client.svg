@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 315" width="380" height="315">
+<!-- Drawn for the bestax port of the Tropico template; image-provenance.json records it. -->
+<!-- A made-up customer in flat shapes: a smiling man with a beard in a green shirt. No real person. -->
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="315" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#ffe8cf"/>
+<stop offset="1" stop-color="#ffd2a6"/>
+</linearGradient>
+</defs>
+<rect width="380" height="315" fill="url(#bg)"/>
+<!-- Leaves in the corners. -->
+<g fill="#7cc47f" opacity="0.6">
+<path d="M0,90 C40,70 70,30 70,0 L0,0 Z"/>
+<path d="M380,240 C330,250 300,290 300,315 L380,315 Z"/>
+</g>
+<g fill="#fc8a1e" opacity="0.5"><circle cx="330" cy="60" r="22"/><circle cx="48" cy="270" r="16"/></g>
+
+<!-- Shoulders and shirt. -->
+<path d="M70,315 C74,252 120,222 190,222 C260,222 306,252 310,315 Z" fill="#3f8f4a"/>
+<path d="M160,226 L190,268 L220,226 Z" fill="#f2f2f2"/>
+<path d="M160,226 L176,272 L190,256 Z M220,226 L204,272 L190,256 Z" fill="#2f7a3c"/>
+<!-- Neck and head. -->
+<rect x="168" y="186" width="44" height="44" rx="12" fill="#c98b62"/>
+<ellipse cx="190" cy="130" rx="66" ry="76" fill="#d99a6c"/>
+<ellipse cx="124" cy="136" rx="12" ry="18" fill="#c98b62"/>
+<ellipse cx="256" cy="136" rx="12" ry="18" fill="#c98b62"/>
+<!-- Hair and beard. -->
+<path d="M124,118 C120,70 150,46 192,46 C236,46 262,74 256,118 C246,92 232,82 212,80 C186,90 154,90 136,84 C130,94 126,104 124,118 Z" fill="#4a3222"/>
+<path d="M126,140 C128,196 160,214 190,214 C220,214 252,196 254,140 C246,166 232,176 218,178 C206,170 174,170 162,178 C148,176 134,166 126,140 Z" fill="#4a3222"/>
+<!-- Face. -->
+<path d="M150,112 q12,-8 24,0 M206,112 q12,-8 24,0" stroke="#3a281c" stroke-width="5" fill="none" stroke-linecap="round"/>
+<circle cx="162" cy="130" r="6" fill="#2a1d14"/>
+<circle cx="218" cy="130" r="6" fill="#2a1d14"/>
+<path d="M190,134 q-6,20 2,24" stroke="#b57a52" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M168,180 q22,16 44,0" stroke="#ffffff" stroke-width="6" fill="none" stroke-linecap="round"/>
+<ellipse cx="146" cy="156" rx="12" ry="7" fill="#e88c78" opacity="0.4"/>
+<ellipse cx="234" cy="156" rx="12" ry="7" fill="#e88c78" opacity="0.4"/>
+</svg>

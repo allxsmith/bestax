@@ -75,10 +75,7 @@ function About() {
                 </div>
               </Column>
               <Column className="reception-image">
-                <img
-                  src="https://images.unsplash.com/photo-1564501049412-61c2a3083791?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=600&q=80"
-                  alt="Bulma Hotels"
-                />
+                <img src="/media/reception.svg" alt="Bulma Hotels" />
               </Column>
             </Columns>
           </Content>

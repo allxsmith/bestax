@@ -65,7 +65,7 @@ function SearchHero() {
           <div className="has-text-centered">
             <img
               className="m-t-50"
-              src="/media/property_image.png"
+              src="/media/hero-house.svg"
               alt="Find rentals"
             />
           </div>

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Drawn for the bestax port of the CV template; image-provenance.json records how. -->
   <rect width="64" height="64" rx="12" fill="#ff470f" />
-  <text x="50%" y="54%" text-anchor="middle" font-family="Quicksand, Arial, sans-serif" font-size="36"
-    font-weight="700" fill="#fff">K</text>
+  <path fill="#fff" d="M19 14h8v14.5L39.5 14h9.5L35.5 29.5 50 50h-9.6L30 35.2l-3 3.3V50h-8z" />
 </svg>

@@ -1,0 +1,16 @@
+{
+  "template": "coming-soon",
+  "images": [
+    {
+      "path": "public/media/background.svg",
+      "sha256": "c04a27d4c1ad13701585204901bccb0e1f83d8c6493be0e0e3b4218fe549f951",
+      "origin": "original",
+      "made": "2026-10-23",
+      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
+      "method": "Written by hand as SVG markup, from an idea of its own rather than from the image it replaces. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A building going up at dawn, with a tower crane on the left, scaffolding on the right and a low skyline along the bottom, under a pale sky; the page's full-screen background.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/media/background.webp, the original's background photo, whose source the original does not record."
+    }
+  ]
+}

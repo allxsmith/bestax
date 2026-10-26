@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1280" width="1920" height="1280" preserveAspectRatio="xMidYMid slice">
+  <!-- Drawn for the bestax port of the Login template; image-provenance.json records how. -->
+  <!-- The sea at sunset: the sun setting on the left, a sailboat on the horizon and a
+       lighthouse on the rocks to the right, with the water darkening toward the shore. -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff2b8" />
+      <stop offset="0.45" stop-color="#fcc56a" />
+      <stop offset="0.8" stop-color="#f59a5e" />
+      <stop offset="1" stop-color="#ec7f6a" />
+    </linearGradient>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c8607a" />
+      <stop offset="0.35" stop-color="#6e3554" />
+      <stop offset="1" stop-color="#241526" />
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff6d6" stop-opacity="0.95" />
+      <stop offset="0.4" stop-color="#ffe2a0" stop-opacity="0.5" />
+      <stop offset="1" stop-color="#ffd27a" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <rect width="1920" height="1280" fill="url(#sky)" />
+
+  <!-- Long, thin clouds. -->
+  <g fill="#ffe7b0" opacity="0.7">
+    <rect x="120" y="230" width="520" height="18" rx="9" />
+    <rect x="220" y="270" width="300" height="12" rx="6" />
+    <rect x="1340" y="320" width="460" height="16" rx="8" />
+    <rect x="1440" y="356" width="240" height="10" rx="5" />
+  </g>
+  <g fill="#f7a86a" opacity="0.6">
+    <rect x="40" y="560" width="440" height="14" rx="7" />
+    <rect x="1420" y="600" width="420" height="12" rx="6" />
+  </g>
+
+  <!-- The sun, half set, and its glow. -->
+  <circle cx="460" cy="760" r="360" fill="url(#glow)" />
+  <circle cx="460" cy="760" r="120" fill="#fff3c9" />
+
+  <!-- The sea, with the sun's path across it. -->
+  <rect y="760" width="1920" height="520" fill="url(#sea)" />
+  <g fill="#ffd98a">
+    <rect x="360" y="778" width="200" height="8" rx="4" opacity="0.9" />
+    <rect x="390" y="804" width="140" height="7" rx="3.5" opacity="0.8" />
+    <rect x="330" y="830" width="180" height="6" rx="3" opacity="0.6" />
+    <rect x="410" y="858" width="110" height="6" rx="3" opacity="0.5" />
+    <rect x="370" y="890" width="150" height="5" rx="2.5" opacity="0.35" />
+    <rect x="420" y="924" width="90" height="5" rx="2.5" opacity="0.25" />
+  </g>
+  <g fill="#e08a8a" opacity="0.35">
+    <rect x="760" y="800" width="160" height="5" rx="2.5" />
+    <rect x="1080" y="840" width="220" height="5" rx="2.5" />
+    <rect x="140" y="870" width="120" height="5" rx="2.5" />
+  </g>
+
+  <!-- A sailboat on the horizon. -->
+  <g fill="#5b2e48">
+    <path d="M1316 752H1388L1376 766H1328Z" />
+    <path d="M1352 666V748H1306Z" />
+    <path d="M1358 676V748H1392Z" />
+  </g>
+
+  <!-- Birds. -->
+  <g fill="none" stroke="#9a5a5a" stroke-width="4" stroke-linecap="round">
+    <path d="M1520 460q12-12 24 0q12-12 24 0" />
+    <path d="M1580 420q9-9 18 0q9-9 18 0" />
+    <path d="M1470 500q8-8 16 0q8-8 16 0" />
+  </g>
+
+  <!-- The rocks and the lighthouse. -->
+  <path d="M1460 1280V900C1500 860 1540 850 1580 830C1620 800 1680 790 1720 800C1780 790 1840 810 1920 800V1280Z" fill="#2b1a2c" />
+  <g>
+    <path d="M1696 800L1708 560H1752L1764 800Z" fill="#f4e6dc" />
+    <path d="M1702 680H1758V710H1700ZM1706 600H1754V626H1704Z" fill="#c8546a" />
+    <rect x="1700" y="520" width="60" height="40" rx="6" fill="#fff3c9" />
+    <path d="M1692 520H1768L1730 476Z" fill="#c8546a" />
+    <rect x="1692" y="556" width="76" height="10" fill="#2b1a2c" />
+    <rect x="1720" y="740" width="20" height="36" rx="4" fill="#2b1a2c" />
+    <path d="M1700 532L1420 470V600Z" fill="#fff3c9" opacity="0.35" />
+  </g>
+</svg>

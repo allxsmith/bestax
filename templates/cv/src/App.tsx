@@ -32,7 +32,7 @@ function App() {
             <Intro />
             <SocialLinks />
           </Column>
-          {/* The photo, a background image from src/index.css. */}
+          {/* The portrait, a background image from src/index.css. */}
           <Column size="6" className="right" />
         </Columns>
       </main>

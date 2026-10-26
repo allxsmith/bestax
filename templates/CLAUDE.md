@@ -13,7 +13,7 @@ below worked out.
 ## What a template folder is
 
 - **A create-bestax scaffold without its lint setup.** The port lives in `src/` (an `App` plus
-  section components) and the upstream's images in `public/`.
+  section components) and its images in `public/`.
 - **Not a workspace package.** It stays out of `pnpm-workspace.yaml`, carries no lockfile, and its
   `package.json` takes registry ranges only, because StackBlitz imports the folder and nothing
   else. To run one inside this repo, `pnpm install --ignore-workspace` in its folder; the root
@@ -21,10 +21,47 @@ below worked out.
 - **What git tracks.** A template is the files git tracks in its folder, which is what the
   checks read and the mirror publishes, so an image you have not added yet is missing from both.
 - **`LICENSE`:** the upstream license notice verbatim, followed by the notice for the bestax
-  port. The docs entry's `license` names that upstream license.
+  port, which says the images were made for the port. The docs entry's `license` names that
+  upstream license.
 - **`README.md`:** who made the original and where it lives, the upstream commit it was ported
-  from, a mention of awesome-bulma-templates, how to run it (`npm install && npm run dev`), and
-  any upstream bug the port fixed.
+  from, a mention of awesome-bulma-templates, how to run it (`npm install && npm run dev`), any
+  upstream bug the port fixed, and an **Images** section saying how its images were made and
+  pointing at `image-provenance.json`.
+- **Every image is made for the port.** Companies that hold image libraries scan the web for
+  their images and send a claim for each copy they find, and a template is published twice,
+  here and in the mirror. So a template ships only images drawn for it, as SVG, which is its own
+  source. Whatever the original ships or hot-links is drawn anew, licensed stock (Unsplash,
+  unDraw, Icons8) included, since a license is one more thing to defend. A trademark such as
+  Bulma's logo or its "made with Bulma" badge is not redrawn: a text wordmark, or a text link,
+  takes its place. An SVG a component draws inline is held to the same rule, and since no check
+  can read one, the README says it was drawn for the port.
+- **`image-provenance.json` records each image**, an entry per image file git tracks in the
+  folder, favicons included:
+
+  ```json
+  {
+    "template": "<slug>",
+    "images": [
+      {
+        "path": "public/media/hero.svg",
+        "sha256": "<the file's SHA-256, lowercase hex>",
+        "origin": "original",
+        "made": "YYYY-MM-DD",
+        "madeBy": "<who drew it>, for this bestax port",
+        "method": "<how it was made, and that no photo or other image was an input or a tracing reference>",
+        "depicts": "<one plain sentence>",
+        "license": "MIT, under this template's LICENSE",
+        "replaces": "<optional: the upstream file or URL it stands in for, and why>"
+      }
+    ]
+  }
+  ```
+
+  `shasum -a 256 <file>` prints the hash (`sha256sum` on Linux). It ties the entry to the file,
+  so an image changed after its entry was written fails until the entry is written anew. An
+  image that must stay someone else's, which the maintainer decides, takes
+  `"origin": "third-party"` with `source`, `author`, `licenseName`, `licenseUrl` and `retrieved`
+  in place of `made`, `madeBy` and `method`.
 
 Its docs entry in `docs/src/data/templates.js` (whose header documents each field) and its
 screenshot in `docs/static/img/templates/` belong to it too. `scripts/templates.test.mjs` holds
@@ -109,15 +146,10 @@ fix.
      - A second component class on a converted element (`box` on a `Notification`) needs its
        own component.
    - Assets:
-     - Large upstream images are recompressed into `public/`. Unsplash hot-links stay hot-links.
-     - Other third-party hot-links that may vanish become small local files in `public/`, and so
-       does one already dead upstream (bulma.io's old `/images/` paths), copied from a source
-       whose license allows it, with that license's notice in `LICENSE`. The Bulma logo is one:
-       copy it from `docs/assets` in jgthms/bulma, whose folder license, `docs/LICENSE`, is MIT,
-       rather than from bulma.io, whose site content is CC BY-NC-SA.
-     - Check the license of any hot-linked asset that needs credit (an Icons8 logo, for one).
-       One whose terms rule out a copy in the template (a photo marked all rights reserved) stays
-       a hot-link, as the original has it, and the README says where it loads from.
+     - Draw each image the original ships or hot-links anew, as an SVG in `public/` at the size
+       and aspect ratio its layout gives it, in colors that suit the page, and record it
+       (**Every image is made for the port**, above). Work from what the layout needs, never by
+       tracing the original's image. A placeholder service's image becomes a drawn placeholder.
      - A web font the original names but never loads stays unloaded: the original's real look is
        its fallback stack, so keep that, and say in the README how to load the font.
 5. **Check parity.** Screenshot the original (the entry's `demo`) and the port side by side at
@@ -143,6 +175,7 @@ fix.
      first. The bestax-theming skill's `examples/dark-mode.tsx` has the script and the app's
      side.
 6. **Finish up.**
+   - Write `image-provenance.json` once the images are final, since each edit changes a hash.
    - `git add` the folder first. The screenshot builds what git tracks, as the checks read it
      (**What git tracks**, above).
    - Take the card's screenshot, which also proves the template installs and builds from its
@@ -261,6 +294,16 @@ its own stylesheet:
 - **`scripts/templates.test.mjs`**, in `pnpm test:scripts`: the folder, the entry and the
   screenshot, each against the others, and the manifest against every package the template
   imports or its scripts run, since StackBlitz installs from the manifest alone.
+- **`scripts/template-images.test.mjs`**, in `pnpm test:scripts`: every image file has an entry
+  in `image-provenance.json` whose hash matches it, every entry names an image the folder has,
+  and every original is an `.svg` or `.svgz`. A template's code names no URL outside the
+  template, wherever it sits, unless `ALLOWED_HOSTS` in `scripts/lib/template-images.mjs` lists
+  its host, and even then not one that looks like an image. That list holds the few non-image
+  uses the templates need (web fonts, a map embed, credit and social links), each with its
+  reason; a new one goes there with its own, once it's checked to load no image. Prose (the
+  README, LICENSE) may link anywhere but shows no outside image, no SVG draws anything from
+  outside its own file (each `href`, `src` and `url()` points at a `#fragment` of it), and a
+  `data:image/` URI fails in any of them.
 - **`scripts/skill-examples-typecheck.test.mjs`**: every template's `src/` compiles under the
   `vite-ts` template's compiler options against the built library. It resolves React and the
   library from this repo's install, so it holds the code, and the templates test holds the

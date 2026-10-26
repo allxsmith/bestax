@@ -15,32 +15,28 @@ const rooms = [
   {
     name: 'Executive Gold Single',
     intro: 'The Executive Gold Single Rooms',
-    photo:
-      'https://images.unsplash.com/photo-1515510621228-30de609bbd60?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=80',
+    photo: '/media/room-gold-single.svg',
     guests: 2,
     price: 119,
   },
   {
     name: 'Executive Gold Double',
     intro: 'The Executive Gold Double Rooms',
-    photo:
-      'https://images.unsplash.com/photo-1444201983204-c43cbd584d93?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=80',
+    photo: '/media/room-gold-double.svg',
     guests: 3,
     price: 239,
   },
   {
     name: 'Premier Diamond Single',
     intro: 'The Premier Diamond Single rooms',
-    photo:
-      'https://images.unsplash.com/photo-1590490360836-2e3b067c082b?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=80',
+    photo: '/media/room-diamond-single.svg',
     guests: 2,
     price: 399,
   },
   {
     name: 'Premier Diamond Double',
     intro: 'The Premier Diamond Double rooms',
-    photo:
-      'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=80',
+    photo: '/media/room-diamond-double.svg',
     guests: 3,
     price: 499,
   },
