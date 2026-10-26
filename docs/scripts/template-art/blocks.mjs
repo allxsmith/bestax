@@ -295,8 +295,10 @@ const grains = new Map();
 /**
  * A block of one color with a grain of texels in shades of it, the look every
  * block-scale scene should use: a flat color reads as plastic, the grain as a
- * block. `id` names the texture, so two calls with the same id share it.
- * `top` and `side` take their own colors when the faces differ.
+ * block. `id` names the texture, so two calls with the same id share it, and
+ * a second call that asks for another color under the same id throws rather
+ * than handing back the first. `top` and `side` take their own colors when
+ * the faces differ.
  */
 export function grain(
   id,
@@ -305,23 +307,24 @@ export function grain(
 ) {
   const make = (suffix, c) => {
     const key = `${id}${suffix}`;
+    const asked = `${c} ${spread} ${seed}`;
+    if (grains.has(key) && grains.get(key).asked !== asked) {
+      throw new Error(
+        `grain "${key}" is already a texture of another color or grain; give this one its own id`
+      );
+    }
     if (!grains.has(key)) {
       const s =
         seed ??
         [...key].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) >>> 0, 7);
-      grains.set(
+      const tex = noise(
         key,
-        noise(
-          key,
-          [c, shade(c, spread), shade(c, -spread), shade(c, -2 * spread)],
-          {
-            weights: [6, 3, 3, 1],
-            seed: s,
-          }
-        )
+        [c, shade(c, spread), shade(c, -spread), shade(c, -2 * spread)],
+        { weights: [6, 3, 3, 1], seed: s }
       );
+      grains.set(key, { tex, asked });
     }
-    return grains.get(key);
+    return grains.get(key).tex;
   };
   return material({
     id,

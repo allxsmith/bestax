@@ -71,13 +71,14 @@ treats the folder as a project of its own.
 
 ## Images
 
-Every image in `public/media` was drawn for this port on October 23, 2026 by Claude, Anthropic's AI
-model, writing the SVG markup by hand. No photo, illustration, stock image or image-generation model
-went into any of them, and none copies existing artwork. Each file is its own source: open it in a
-text editor to see every shape it draws. [`image-provenance.json`](image-provenance.json) records
-each one, with what it shows, its SHA-256 and what it replaces.
+Every image in `public/media` is voxel art drawn by code for this port:
+[`scenes/hotel.mjs`](https://github.com/allxsmith/bestax/blob/main/docs/scripts/template-art/scenes/hotel.mjs)
+in the bestax repository places every block, and the renderer beside it writes the SVG, so running
+it again writes the same files. No photo, illustration, stock image or image-generation model went
+into any of them, and none copies existing artwork. [`image-provenance.json`](image-provenance.json)
+records each one, with what it shows, its SHA-256 and what it replaces.
 
-- `background.svg`, the hotel by day across its pool, behind the welcome.
+- `background.svg`, the hotel round its courtyard pool by day, behind the welcome.
 - `room-gold-single.svg`, `room-gold-double.svg`, `room-diamond-single.svg` and
   `room-diamond-double.svg`, the four rooms.
 - `reception.svg`, the reception desk beside the hotel's phone numbers.
@@ -86,8 +87,8 @@ each one, with what it shows, its SHA-256 and what it replaces.
 
 They replace the original's welcome photo, whose source the original does not record, and the
 Unsplash photos it loads for the rooms, the reception and the gallery, so this port ships and loads
-only images made for it. The mouse under the welcome, an icon `src/WelcomeHero.tsx` draws inline,
-was drawn for this port the same way, in place of the original's.
+only images made for it. The blocky mouse under the welcome, an icon `src/WelcomeHero.tsx` draws
+inline, was drawn for this port in the same style, as a few squares, in place of the original's.
 
 ## License
 
