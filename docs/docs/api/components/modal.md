@@ -290,11 +290,17 @@ function example() {
       <Button color="success" onClick={() => setOpen(true)}>
         Show Modal
       </Button>
-      <Modal isActive={open} onClose={closeModal}>
+      <Modal
+        isActive={open}
+        onClose={closeModal}
+        aria-labelledby="compound-modal-title"
+      >
         <Modal.Background onClick={closeModal} />
         <Modal.Card>
           <Modal.Card.Head>
-            <Modal.Card.Title>Compound Component Modal</Modal.Card.Title>
+            <Modal.Card.Title id="compound-modal-title">
+              Compound Component Modal
+            </Modal.Card.Title>
             <Modal.Close />
           </Modal.Card.Head>
           <Modal.Card.Body>
@@ -330,11 +336,17 @@ function example() {
       <Button color="success" onClick={() => setOpen(true)}>
         Show Modal
       </Button>
-      <Modal isActive={open} onClose={closeModal}>
+      <Modal
+        isActive={open}
+        onClose={closeModal}
+        aria-labelledby="custom-content-title"
+      >
         <Modal.Background onClick={closeModal} />
         <Modal.Content>
           <Box>
-            <Title size="4">Custom Content</Title>
+            <Title size="4" id="custom-content-title">
+              Custom Content
+            </Title>
             <Paragraph>Using compound components for full control!</Paragraph>
           </Box>
         </Modal.Content>
