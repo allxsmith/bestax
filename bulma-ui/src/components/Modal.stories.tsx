@@ -108,12 +108,13 @@ const CompoundModalCardComponent = () => {
   return (
     <>
       <button onClick={() => setOpen(true)}>Show Modal</button>
-      <Modal isActive={open}>
+      {/* Escape and Modal.Close call onClose, the background its own onClick. */}
+      <Modal isActive={open} onClose={closeModal}>
         <Modal.Background onClick={closeModal} />
         <Modal.Card>
           <Modal.Card.Head>
             <Modal.Card.Title>Compound Component Modal</Modal.Card.Title>
-            <Modal.Close onClick={closeModal} />
+            <Modal.Close />
           </Modal.Card.Head>
           <Modal.Card.Body>{declarationLatin}</Modal.Card.Body>
           <Modal.Card.Foot>
@@ -140,7 +141,7 @@ const CompoundModalContentComponent = () => {
   return (
     <>
       <button onClick={() => setOpen(true)}>Show Modal</button>
-      <Modal isActive={open}>
+      <Modal isActive={open} onClose={closeModal}>
         <Modal.Background onClick={closeModal} />
         <Modal.Content>
           <div style={{ background: '#fff', padding: 24, borderRadius: 4 }}>
@@ -148,7 +149,7 @@ const CompoundModalContentComponent = () => {
             <p>{declarationLatin}</p>
           </div>
         </Modal.Content>
-        <Modal.Close variant="floating" onClick={closeModal} />
+        <Modal.Close variant="floating" />
       </Modal>
     </>
   );

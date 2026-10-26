@@ -62,10 +62,13 @@ and `isSize={n}` becomes a column span:
 bloomer's `Modal` was an inert shell: `isActive` toggled the class and nothing else. bestax's
 `Modal` closes on Escape (calling `onClose`), locks body scroll, and traps focus **by default**,
 and renders inline unless `portal` is set. So every conversion changes behaviour, and every one
-is flagged. Pass `onClose` to get the close-on-Escape and background behaviour:
+is flagged. Pass `onClose` for Escape and `Modal.Close` to close it. `Modal.Background` doesn't
+call `onClose` on its own, so give it the same handler as `onClick` for the background to close
+it too:
 
 ```jsx
 <Modal active={open} onClose={() => setOpen(false)}>
+  <Modal.Background onClick={() => setOpen(false)} />
 ```
 
 or keep bloomer's inert behaviour with `closeOnEscape={false} lockScroll={false}`. Add
