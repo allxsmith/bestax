@@ -29,6 +29,9 @@ jobs:
       pull-requests: write # comment, label, close
       issues: write # issue-comment API for the PR conversation
     steps:
+      # The role lookup retries, and an API error fails this step rather than
+      # reading as no access. "When the agent drops a job's first connections"
+      # under rule 10 in .github/CLAUDE.md says why (#1258).
       - name: Verify labeler has triage+ and close
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -37,10 +40,24 @@ jobs:
           SENDER: ${{ github.event.sender.login }}
         run: |
           set -euo pipefail
+          lookup_role() {
+            local delay
+            for delay in 5 10 20 30 30 0; do
+              if ROLE=$(timeout 10 gh api "repos/$REPO/collaborators/$1/permission" \
+                --jq '.role_name'); then
+                return 0
+              fi
+              if [ "$delay" -eq 0 ]; then
+                echo "::error::Could not look up $1's role because every GitHub API call failed (errors above). That is a network, egress or GitHub failure, not a permissions answer, so the run stops here. Re-run or re-trigger it to retry."
+                exit 1
+              fi
+              echo "Role lookup for $1 failed. Retrying in ${delay}s."
+              sleep "$delay"
+            done
+          }
           # GitHub already restricts labeling to triage+; re-verify defensively
           # so an automated/template label can never trigger an auto-close.
-          ROLE=$(gh api "repos/$REPO/collaborators/$SENDER/permission" \
-            --jq '.role_name' || echo none)
+          lookup_role "$SENDER"
           case "$ROLE" in
             admin|maintain|write|triage)
               echo "$SENDER has $ROLE access — closing PR #$PR as slop" ;;
