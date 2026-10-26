@@ -373,6 +373,15 @@ describe('parts that are exports of their own', () => {
     );
   });
 
+  it('puts where the helper props go before the pointer to them', async () => {
+    const [root] = (await loadComponent('Checkbox')).parts;
+    expect(renderPart(root)).toContain(
+      `| ${root.helperPropsNote} See \`get_helper_props\`. |`
+    );
+    const { helperPropsNote: _note, ...plain } = root;
+    expect(renderPart(plain)).toContain('| — | See `get_helper_props`. |');
+  });
+
   it('points at a standalone name only where it has an entry of its own', async () => {
     const thead = (await loadComponent('Table')).parts.find(
       p => p.path === 'Table.Thead'

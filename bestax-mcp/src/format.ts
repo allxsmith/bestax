@@ -276,7 +276,13 @@ export function renderPart(
 
   const rows = [...propRows(part.props), ...propRows(part.extraProps)];
   if (part.catchAll) {
-    rows.push(['`...`', part.catchAll, '—', 'See `get_helper_props`.']);
+    // Where the helper props go, when that is not the element the attributes
+    // go to, which the catch-all alone cannot say (#1273).
+    const notes = [
+      part.helperPropsNote && attributedLinks(part.helperPropsNote),
+      'See `get_helper_props`.',
+    ];
+    rows.push(['`...`', part.catchAll, '—', notes.filter(Boolean).join(' ')]);
   }
   if (rows.length) {
     out.push(table(['Prop', 'Type', 'Default', 'Notes'], rows));

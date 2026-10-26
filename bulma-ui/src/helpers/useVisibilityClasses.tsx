@@ -15,7 +15,11 @@ import {
  */
 export interface BulmaVisibilityProps
   extends BulmaViewportProps, BulmaDisplayProps {
-  /** Visibility (e.g., 'hidden', 'sr-only'). */
+  /**
+   * Hides the element. `'hidden'` takes it off the page, `'invisible'` hides
+   * it and keeps its space, and `'sr-only'` (screen reader only) hides it
+   * visually while screen readers still read it.
+   */
   visibility?: (typeof validVisibilities)[number];
   /** Visibility for mobile viewport (up to 768px). */
   visibilityMobile?: (typeof validVisibilities)[number];

@@ -125,6 +125,25 @@ test('helper pages ship as prose, not as an empty props table', () => {
   assert.ok(trap.api.length < trap.doc.length / 4, 'api is the whole page');
 });
 
+test('the helper props page carries the helper props as rows, and only it (#1273)', () => {
+  const rows = components.get('useBulmaClasses').helperProps;
+  const visibility = rows.find(r => r.name === 'visibility');
+  assert.equal(visibility.type, "'hidden' | 'sr-only' | 'invisible'");
+  assert.match(visibility.description, /screen readers/);
+  for (const [name, record] of components) {
+    if (name !== 'useBulmaClasses') assert.equal(record.helperProps, undefined);
+  }
+});
+
+test('a part says where its helper props go when not with the rest (#1273)', () => {
+  const note = (name, path = name) =>
+    components.get(name).parts.find(p => p.path === path).helperPropsNote;
+  assert.match(note('Checkbox'), /outer `<label>`/);
+  assert.match(note('Select'), /`\.select` wrapper `<div>`/);
+  assert.match(note('Select', 'SelectBase'), /`\.select` wrapper `<div>`/);
+  assert.equal(note('Button'), undefined);
+});
+
 test('components documented on helpers pages get a props table (#933)', () => {
   // Theme, ConfigProvider, Portal and ClientOnly have props interfaces, and
   // shipping them as prose left get_props with no table to give.

@@ -44,6 +44,9 @@ export type PinInputType = 'number' | 'alphanumeric';
  * `Field`.
  * Every other prop goes to the `<input>` that holds the code, except
  * `className` and the helper props, which go to the row of boxes.
+ * @helperProps Helper props go on the `.pin-input` `<div>`, the row of boxes,
+ * with `className`. The other attributes go on the `<input>` that holds the
+ * code.
  * @extraProp {string} [name] - Form field name, on the input, so a form submits the code under it.
  * @extraProp {string} [autoComplete="one-time-code"] - Lets the browser offer a code it received by text message, and tells a password manager this is a one-time code.
  * @extraProp {string} [inputMode] - The keyboard a phone shows: `"numeric"` with `type="number"`, `"text"` with `type="alphanumeric"`.

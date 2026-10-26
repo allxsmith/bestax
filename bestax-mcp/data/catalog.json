@@ -641,7 +641,7 @@
       "import": "import { Input, Field, Control, Button, Select, Icon } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 29,
-      "exampleCount": 30
+      "exampleCount": 31
     },
     {
       "name": "Kbd",

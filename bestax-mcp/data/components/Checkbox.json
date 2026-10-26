@@ -127,6 +127,7 @@
       ],
       "extraProps": [],
       "catchAll": "All standard <input> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the outer `<label>`, with `className`. The other attributes go on the `<input>`.",
       "types": []
     }
   ],

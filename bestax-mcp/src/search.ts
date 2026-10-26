@@ -11,6 +11,7 @@
  */
 import type { Catalog, ComponentRecord, Skill } from './data.js';
 import { attributedLinks } from './format.js';
+import { resolveGroup } from './helper-props.js';
 
 export type HitKind = 'component' | 'prop' | 'example' | 'css-var' | 'skill';
 
@@ -334,6 +335,35 @@ export interface SkillSection {
 }
 
 /**
+ * The fence open after a line, given the one open before it. A run of three or
+ * more backticks or tildes opens one, and only a run of its own character, at
+ * least as long, with nothing after it closes it, so "```ts" inside a "```"
+ * fence is code. A backtick run with a backtick after it is a code span
+ * (```a```), which opens nothing.
+ */
+function fenceAfter(line: string, open: string | null): string | null {
+  const marker = line.match(/^\s*(`{3,}|~{3,})(.*)$/);
+  if (!marker) return open;
+  const [, run, after] = marker;
+  if (open === null) return run[0] === '`' && after.includes('`') ? null : run;
+  const closes =
+    run[0] === open[0] && run.length >= open.length && !after.trim();
+  return closes ? null : open;
+}
+
+/** A section's non-blank lines outside its fenced code, as they are written. */
+function proseLines(lines: string[]): string[] {
+  const out: string[] = [];
+  let fence: string | null = null;
+  for (const line of lines) {
+    const next = fenceAfter(line, fence);
+    if (fence === null && next === null && line.trim()) out.push(line);
+    fence = next;
+  }
+  return out;
+}
+
+/**
  * A skill document's sections, split at each heading outside a code fence.
  * The text before the first heading is a section under the document's name.
  */
@@ -352,13 +382,7 @@ export function skillSections(
     lines = [];
   };
   for (const line of markdown.split('\n')) {
-    const marker = line.match(/^\s*(`{3,}|~{3,})/)?.[1];
-    if (marker) {
-      if (fence === null) fence = marker;
-      else if (marker[0] === fence[0] && marker.length >= fence.length) {
-        fence = null;
-      }
-    }
+    fence = fenceAfter(line, fence);
     const title = fence === null ? line.match(/^#{1,6}\s+(.+?)\s*#*$/) : null;
     if (title) {
       flush();
@@ -380,13 +404,17 @@ export function skillSections(
 const SECTION_DISCOUNT = 10;
 const MAX_SECTIONS = 3;
 
-/** The words around the first place a section matches a query, for a hit's detail. */
-function excerpt(text: string, terms: string[]): string {
+/**
+ * The words around the first place a section matches a query, for a hit's
+ * detail. A query can match the heading alone, and then the detail is the
+ * section's first line of prose, or its heading when it has none.
+ */
+function excerpt(section: SkillSection, terms: string[]): string {
+  const lines = section.text.split('\n').map(l => l.trim());
   const line =
-    text
-      .split('\n')
-      .find(l => terms.some(t => termHit(norm(l), t) > 0))
-      ?.trim() ?? '';
+    lines.find(l => terms.some(t => termHit(norm(l), t) > 0)) ??
+    proseLines(lines)[0] ??
+    section.heading;
   // A link keeps its text alone: cut short, its URL would be half a link, and
   // the call the hit names serves the section with its links whole.
   const flat = line
@@ -414,7 +442,7 @@ function sectionHits(
     hits.push({
       kind: 'skill',
       name: `${section.skill}${where} › ${section.heading}`,
-      detail: excerpt(section.text, terms),
+      detail: excerpt(section, terms),
       next: section.reference
         ? `get_skill({ name: "${section.skill}", reference: "${section.reference}" })`
         : `get_skill({ name: "${section.skill}" })`,
@@ -439,6 +467,21 @@ const COMPONENT_BONUS = 30;
  * returns. Asked for CSS variables alone, it returns them all.
  */
 const CSS_VARS_PER_COMPONENT = 3;
+
+/**
+ * How many helper props of one `get_helper_props` group a search of more than
+ * one kind returns: "margin" matches all seven margin props, and one call
+ * lists them.
+ */
+const HELPER_PROPS_PER_GROUP = 3;
+
+/** How many hits that share this one's next call a search keeps, or null for all. */
+const capPerCall = (h: Hit): number | null =>
+  h.kind === 'css-var'
+    ? CSS_VARS_PER_COMPONENT
+    : h.next.startsWith('get_helper_props(')
+      ? HELPER_PROPS_PER_GROUP
+      : null;
 
 export function searchAll(
   query: string,
@@ -534,6 +577,32 @@ export function searchAll(
           }
         }
       }
+      // The helper props every component takes, on the page that documents
+      // them. One answers only a query that is about it, by most of its words,
+      // and then gets the bonus a component does, since it answers whatever
+      // the builder renders, where a component's prop with the same words
+      // answers for that one component: `visibility` for "screen reader only
+      // label", which only label props answered before (#1273). Short names
+      // are everyday words, and a passing one is no answer: "my" in "style my
+      // button" is no question about `my`.
+      for (const p of record.helperProps ?? []) {
+        const hay = `${p.name} ${p.type} ${p.description}`;
+        const lowerHay = norm(hay);
+        const covered = terms.filter(t => termHit(lowerHay, t) > 0).length;
+        if (covered * 2 <= terms.length) continue;
+        const group = resolveGroup(p.name);
+        hits.push({
+          kind: 'prop',
+          name: `${p.name} (helper prop)`,
+          detail: `${p.type}${
+            p.description ? ` — ${attributedLinks(p.description)}` : ''
+          }`,
+          next: group
+            ? `get_helper_props({ group: "${group}" })`
+            : 'get_helper_props()',
+          score: score(hay, p.name, terms, q) + COMPONENT_BONUS,
+        });
+      }
     }
     if (want('example')) {
       for (const e of record.examples) {
@@ -600,14 +669,16 @@ export function searchAll(
   // And a component's CSS variables share a prefix and one next call, so a query
   // that names the prefix ("bulma-carousel") matched every one of them and filled
   // the limit, above the component and the skill's recipe (#1236). The best few stand.
+  // The same goes for the helper props one group call lists.
   const perCall = new Map<string, number>();
   return hits.filter(h => {
     const key = `${h.kind}\u0000${h.name}`;
     if (seen.has(key)) return false;
     seen.add(key);
-    if (h.kind === 'css-var' && kinds.length > 1) {
+    const cap = kinds.length > 1 ? capPerCall(h) : null;
+    if (cap !== null) {
       const count = perCall.get(h.next) ?? 0;
-      if (count >= CSS_VARS_PER_COMPONENT) return false;
+      if (count >= cap) return false;
       perCall.set(h.next, count + 1);
     }
     return true;

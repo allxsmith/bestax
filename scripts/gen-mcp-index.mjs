@@ -71,6 +71,7 @@ import {
   barrelExports,
   exportedModules,
   extractComponent,
+  extractHelperProps,
   varRootCandidates,
 } from './lib/props-extract.mjs';
 import { componentVars } from './lib/scss-vars.mjs';
@@ -113,6 +114,13 @@ const PACKAGE = '@allxsmith/bestax-bulma';
 /** A name a page can document as a component: an exported identifier, capitalised. */
 const COMPONENT_NAME = /^[A-Z][A-Za-z0-9]*$/;
 const DOCS_BASE = 'https://bestax.io/docs';
+/**
+ * The page that documents the helper props, whose record carries them as rows
+ * (`helperProps`). The server names the same page for `get_helper_props`
+ * (`HELPER_PROPS_PAGE` in bestax-mcp's `format.ts`), and its tests fail on a
+ * record without them, so a retitled page cannot drop them quietly.
+ */
+const HELPER_PROPS_PAGE = 'useBulmaClasses';
 
 /**
  * Bumped when the shape below changes incompatibly. The server refuses an index
@@ -527,6 +535,11 @@ function partOf(t, standalone = null) {
     props: (t.rows ?? []).map(propRow),
     extraProps: (t.extraProps ?? []).map(propRow),
     catchAll: t.catchAll?.text ?? null,
+    // Where the helper props go, from the props type's `@helperProps`, where
+    // that is not the element the catch-all's attributes go to (#1273).
+    ...(t.catchAll?.helperPropsNote
+      ? { helperPropsNote: t.catchAll.helperPropsNote }
+      : {}),
     types: (t.types ?? []).map(a => ({
       name: a.name,
       expansion: a.expansion,
@@ -1018,6 +1031,15 @@ export async function build() {
           doc,
           parts: [],
           cssVars: [],
+          // The page that documents the helper props carries them as rows, with
+          // what each does, so search_bestax can find one by that (#1273).
+          ...(name === HELPER_PROPS_PAGE
+            ? {
+                helperProps: extractHelperProps({ markdown: false }).map(
+                  propRow
+                ),
+              }
+            : {}),
         };
       } else {
         // The sub-components this component declares itself, by their

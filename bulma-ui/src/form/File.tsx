@@ -23,6 +23,9 @@ import { useAutoLabelId } from './useAutoLabelId';
  * for them, nested in the `.control`, and warns in development. Wrap the
  * `Control` in a `Field` instead, and set the `label`, `horizontal` and class
  * name on that `Field`.
+ *
+ * @helperProps Helper props go on the `.file` wrapper `<div>`, with
+ * `className`. The other attributes go on the `<input>`.
  */
 export interface FileProps
   extends

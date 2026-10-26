@@ -157,7 +157,13 @@ function renderProps(info, { pages, relPath }) {
         '`...`',
         t.catchAll.text,
         '—',
-        t.catchAll.helpers ? `See [Helper Props](${t.helpersLink})` : '',
+        // Where the helper props go, when a component says they go somewhere
+        // other than the element the attributes do (`@helperProps`).
+        t.catchAll.helpers
+          ? [t.catchAll.helperPropsNote, `See [Helper Props](${t.helpersLink})`]
+              .filter(Boolean)
+              .join(' ')
+          : '',
       ]);
     }
     return renderTable(['Prop', 'Type', 'Default', 'Description'], rows);

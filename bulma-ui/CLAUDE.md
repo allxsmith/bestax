@@ -103,10 +103,14 @@ These keep it working, and each of them failed once:
 - **TSDoc is the docs source, not a comment.** Every `<Foo>Props` member needs an inline
   `/** … */` — `scripts/gen-api-docs.mjs` renders those into the API page's Props table, so a
   missing one is a build error, and the component's own summary sentence becomes the page's
-  Overview. Two tags: `@defaultValue` when the default is computed rather than destructured
-  (the AST can't see it), and `@extraProp {Type} [name=default] - desc` to document a notable
-  prop inherited from the DOM base type. Do **not** add `@property` blocks above an interface —
-  that older style is unverifiable and drifted from the real types; it has been migrated away.
+  Overview. Three tags: `@defaultValue` when the default is computed rather than destructured
+  (the AST can't see it), `@extraProp {Type} [name=default] - desc` to document a notable
+  prop inherited from the DOM base type, and `@helperProps <sentence>` on the props type of a
+  component that puts its helper props on another element than its other attributes
+  (`Checkbox`: the outer `<label>`, and the `<input>`), which the catch-all row prints and
+  `scripts/helper-props-placement.test.mjs` holds to what renders. Do **not** add `@property`
+  blocks above an interface — that older style is unverifiable and drifted from the real
+  types; it has been migrated away.
   A sub-component's own summary sentence becomes its line in the page's `**Subcomponents:**`
   list, so write it for a reader ("Top bar for navigation or branding"), not for the compiler.
   Type aliases get the same treatment: a union too long to inline in a cell is rendered as its

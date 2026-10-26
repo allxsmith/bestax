@@ -372,6 +372,7 @@
         }
       ],
       "catchAll": "All standard <input> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the `.slider` wrapper `<div>`, with `className`. The other attributes go on the `<input>`, the low thumb's in range mode.",
       "types": []
     }
   ],

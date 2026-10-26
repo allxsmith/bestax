@@ -194,6 +194,37 @@ describe('search_bestax', () => {
     expect(first).toMatch(/^\| component \| DateInput \|/);
   });
 
+  // A port of a `<label class="label sr-only">` asked this, and got label props
+  // that mention screen readers but neither the helper prop nor the pattern a
+  // form needs (#1273).
+  it('answers "screen reader only label" with the helper prop and the form pattern', async () => {
+    const out = text(
+      await call('search_bestax', { query: 'screen reader only label' })
+    );
+    const rows = out.split('\n').slice(2, 7).join('\n');
+    expect(rows).toContain(
+      '| example | Input: Visually Hidden Label for Screen Readers |'
+    );
+    expect(rows).toContain(
+      "| prop | visibility (helper prop) | 'hidden' \\| 'sr-only' \\| 'invisible'"
+    );
+    expect(rows).toContain('`get_helper_props({ group: "layout" })`');
+    const example = text(
+      await call('get_examples', {
+        component: 'Input',
+        query: 'Visually Hidden Label for Screen Readers',
+      })
+    );
+    expect(example).toContain("labelProps={{ className: 'is-sr-only' }}");
+  });
+
+  it('finds a helper prop by what it does', async () => {
+    const out = text(await call('search_bestax', { query: 'margin top' }));
+    const [first] = out.split('\n').slice(2);
+    expect(first).toMatch(/^\| prop \| mt \(helper prop\) \|/);
+    expect(first).toContain('`get_helper_props({ group: "spacing" })`');
+  });
+
   it('suggests DateInput for a DatePicker that does not exist', async () => {
     const res = await call('get_component', { name: 'DatePicker' });
     expect(failed(res)).toBe(true);
@@ -567,6 +598,20 @@ describe('the bestax.io links inside answers', () => {
 });
 
 describe('get_props', () => {
+  // The catch-all row alone read as if both went to the `<input>` (#1273).
+  it.each([
+    ['Checkbox', 'Helper props go on the outer `<label>`, with `className`.'],
+    ['Select', 'Helper props go on the `.select` wrapper `<div>`'],
+  ])(
+    'says where %s puts its helper props, beside the catch-all row',
+    async (component, note) => {
+      const out = text(await call('get_props', { component }));
+      const catchAll = out.split('\n').find(l => l.startsWith('| `...` |'));
+      expect(catchAll).toContain(`${note}`);
+      expect(catchAll).toMatch(/See `get_helper_props`\. \|$/);
+    }
+  );
+
   it('returns a compound subcomponent by dot-path', async () => {
     const out = text(
       await call('get_props', { component: 'Navbar', path: 'Navbar.Brand' })

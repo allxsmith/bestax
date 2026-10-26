@@ -52,6 +52,9 @@ export const radioSizes = ['small', 'normal', 'medium', 'large'] as const;
 
 /**
  * Props for the Radio component.
+ *
+ * @helperProps Helper props go on the outer `<label>`, with `className`. The
+ * other attributes go on the `<input>`.
  */
 export interface RadioProps
   extends

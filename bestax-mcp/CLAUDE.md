@@ -33,6 +33,12 @@ hand-written `## Usage` / `## Accessibility` sections of the API pages.
   bulma-carousel). `BY_HAND` there names the table part that renders a plain
   `<th>` or `<td>`, which the codemod leaves, and the generator lists the props
   its record has beside the helper props (#1236).
+- The `useBulmaClasses` record carries the helper props as rows (`helperProps`),
+  read from `BulmaClassesProps` and the interfaces it extends, less the
+  breakpoint variants, so `search_bestax` finds one by what it does. A part
+  whose helper props go on another element than its attributes carries
+  `helperPropsNote`, from `@helperProps` on its props type, which `get_props`
+  prints beside the catch-all row (#1273).
 - `data/skills/` is **gitignored** and synced from `/skills` by
   `scripts/sync-skills.mjs`, which runs on `build`, `test`, `test:coverage`,
   `test:watch` and `prepack`. Only the manifest (`data/skills.json`) is
