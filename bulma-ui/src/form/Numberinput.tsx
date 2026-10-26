@@ -33,6 +33,8 @@ export type NumberinputVariant = 'plusminus' | 'stepper';
 
 /**
  * Props for the Numberinput component.
+ * @helperProps Helper props go on the outer `.numberinput` `<div>`, with
+ * `className`. The other attributes go on the `<input>`.
  * @extraProp {string} [className] - Additional CSS classes.
  * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the input element.
  */

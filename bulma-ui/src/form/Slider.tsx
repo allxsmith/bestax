@@ -164,6 +164,9 @@ export interface SliderRangeProps extends SliderBaseProps {
  * nested in the `.control`, and warns in development. Wrap the `Control` in a
  * `Field` instead, and set the `label`, `horizontal` and class name on that
  * `Field`.
+ * @helperProps Helper props go on the `.slider` wrapper `<div>`, with
+ * `className`. The other attributes go on the `<input>`, the low thumb's in
+ * range mode.
  * @extraProp {boolean} [disabled=false] - Whether the slider is disabled.
  * @extraProp {string} [className] - Additional CSS classes.
  * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the input element.

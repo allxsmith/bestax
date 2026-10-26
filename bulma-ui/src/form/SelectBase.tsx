@@ -5,6 +5,9 @@ import { useFieldLabelTarget } from './FormContext';
 
 /**
  * Props for the Select component.
+ *
+ * @helperProps Helper props go on the `.select` wrapper `<div>`, with
+ * `className`. The other attributes go on the `<select>`.
  */
 export interface SelectBaseProps
   extends

@@ -49,6 +49,8 @@ export const switchSizes = ['small', 'normal', 'medium', 'large'] as const;
 
 /**
  * Props for the Switch component.
+ * @helperProps Helper props go on the outer `<label>`, with `className`. The
+ * other attributes go on the `<input>`.
  * @extraProp {boolean} [checked] - Controlled checked state.
  * @extraProp {boolean} [defaultChecked=false] - Default checked state for uncontrolled usage.
  * @extraProp {boolean} [disabled=false] - Whether the switch is disabled.
