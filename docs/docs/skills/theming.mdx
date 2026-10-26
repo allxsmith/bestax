@@ -169,8 +169,8 @@ The `Theme` component drives dark mode via its `colorMode` prop.
 :::note Recorded before the first-paint advice
 This run predates the skill's guidance on the first paint. Its toggle starts from the OS scheme
 on every load and keeps no choice between visits. `colorMode` alone can't bring a saved choice
-back without a frame of the OS scheme first, because it writes `data-theme` from an effect, so
-the skill's current
+back without a frame of the OS scheme first, because it writes `data-theme` only once the app's
+script runs, so the skill's current
 [dark-mode example](https://github.com/allxsmith/bestax/blob/main/skills/bestax-theming/examples/dark-mode.tsx)
 adds an inline `<head>` script that writes the saved choice before the first paint.
 :::

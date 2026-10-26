@@ -176,7 +176,7 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 49488
+          "bytes": 51167
         },
         {
           "id": "themeable-components",
@@ -185,11 +185,11 @@
         }
       ],
       "examples": [
-        { "id": "dark-mode", "file": "examples/dark-mode.tsx", "bytes": 4058 },
+        { "id": "dark-mode", "file": "examples/dark-mode.tsx", "bytes": 4109 },
         {
           "id": "theme-config",
           "file": "examples/theme-config.tsx",
-          "bytes": 2501
+          "bytes": 3043
         }
       ]
     }

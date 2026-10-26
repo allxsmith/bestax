@@ -16,9 +16,10 @@ Recolor a brand color by overriding its **hue/saturation/lightness trio**
 follow the hue and saturation, at lightnesses the trio doesn't set. Among those, the stylesheet's
 build picked the label on a solid color (`--bulma-<color>-invert-l`) and the color's text on the
 page (`--bulma-<color>-on-scheme-l`, which for `link` is every link) for contrast with the color
-it was built with, so when the new color reads lighter or darker than the built one, set them in
-your CSS as well, or labels and text lose their contrast (`references/css-variables.md`,
-"Colors").
+it was built with, so when the new color reads lighter or darker than the built one, set them as
+well, or labels and text lose their contrast. `Theme`'s `bulmaVars` takes both, and on an
+`isRoot` `Theme` the on-scheme one takes a value per scheme, `{ light, dark }`
+(`references/css-variables.md`, "Colors").
 
 Choose an override path:
 
@@ -36,10 +37,12 @@ For **dark mode**, pass `colorMode` to `Theme` (`'light' | 'dark' | 'system'`). 
 `data-theme` attribute on `<html>` (plus `data-<prefix>theme` inside a `ConfigProvider` with a
 `classPrefix`, which the prefixed flavors read), flipping the light/dark scheme — global, even on a scoped
 `Theme`; `'system'` follows the OS `prefers-color-scheme`. Drive it from state on the app-root
-`Theme`: `<Theme isRoot colorMode={mode}>`. `Theme` writes the attribute from an effect, after a
-client-rendered app's first paint, so the scheme of that first frame comes from `index.html`:
-`data-theme` on the `<html>` for a scheme that never changes, or an inline `<head>` script that
-writes the visitor's saved choice for a toggle (`examples/dark-mode.tsx`).
+`Theme`: `<Theme isRoot colorMode={mode}>`. `Theme` writes the attribute, and an `isRoot` Theme's
+variables, before the browser paints what it rendered, but the page can paint before the app's
+script runs at all, so the scheme of that first frame comes from `index.html`: `data-theme` on
+the `<html>` for a scheme that never changes, or an inline `<head>` script that writes the
+visitor's saved choice for a toggle (`examples/dark-mode.tsx`). A server render includes neither,
+so a server-rendered page sets what it needs from its first paint in `index.html` and CSS.
 
 ## Contrast rules (dark mode is on by default)
 
@@ -52,8 +55,8 @@ color tokens or fixed-color surfaces exist:
 
 - **Single-mode design → pin the scheme on `<html>`.** `<html lang="en" data-theme="light">` (or
   `"dark"`) in `index.html`, so the first paint has it and an OS preference can never invert text
-  out from under the fixed palette. `<Theme isRoot colorMode="light">` alone sets it only after
-  that paint, which shows the OS scheme first.
+  out from under the fixed palette. `<Theme isRoot colorMode="light">` alone sets it only once
+  the app's script runs, and the page can show the OS scheme before that.
 - **Both modes → no exposed fixed tokens.** Derive custom tokens from scheme variables
   (`--my-canvas: var(--bulma-scheme-main)`) — or flip them yourself under **both** dark-mode
   paths: `[data-theme='dark']` **and** `@media (prefers-color-scheme: dark)` scoped to
@@ -127,7 +130,7 @@ Nest `Theme` and `ConfigProvider` together at the root (order doesn't matter).
 
 ## Checklist
 
-- [ ] Recolor brand colors via the HSL trio (`*-h` / `*-s` / `*-l`), not by hard-coding hex on components; a color that reads lighter or darker than the built one also sets `*-invert-l` and `*-on-scheme-l` in CSS.
+- [ ] Recolor brand colors via the HSL trio (`*-h` / `*-s` / `*-l`), not by hard-coding hex on components. A color that reads lighter or darker than the built one also sets `*-invert-l` and `*-on-scheme-l`, through `Theme bulmaVars` (the on-scheme one per scheme, on an `isRoot` Theme) or CSS.
 - [ ] Apply a global theme once with `<Theme isRoot>` (or `:root`); use scoped `<Theme>` for one-off sections.
 - [ ] Set non-color tokens (radius, fonts, sizes) through `bulmaVars` or `:root`; a custom `--bulma-family-*` needs its font actually loaded (`index.html` `<link>` or an `@fontsource` import).
 - [ ] Implement dark mode with `data-theme` on `<html>` (plus `data-<prefix>theme` inside a `ConfigProvider` with a `classPrefix`, which the prefixed flavors read); do not expect a shipped dark-mode component.

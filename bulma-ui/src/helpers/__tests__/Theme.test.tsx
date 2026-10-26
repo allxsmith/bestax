@@ -1,9 +1,11 @@
-import { StrictMode, useState } from 'react';
+import { StrictMode, Suspense, useState } from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Theme, ThemeProps } from '../Theme';
 import { ConfigProvider } from '../Config';
 import { resetDevWarnings } from '../devWarnings';
+// The browser's useLayoutEffect under jsdom.
+import { useClientLayoutEffect as useLayoutEffect } from '../useClientLayoutEffect';
 
 describe('Theme', () => {
   it('applies CSS variables from bulmaVars object to local div', () => {
@@ -1423,6 +1425,582 @@ describe('Theme', () => {
       expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
       unmount();
       expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+    });
+  });
+
+  // Theme writes at the root before the browser paints what it rendered, so a
+  // client-rendered app shows its colors and scheme from the first frame of
+  // content (#1184). A layout effect of a later sibling runs after Theme's
+  // layout effects and before any passive effect, so what it reads is what
+  // that first frame has.
+  describe('before the first paint (#1184)', () => {
+    afterEach(() => {
+      cleanup();
+      document.documentElement.removeAttribute('data-theme');
+    });
+
+    const rootCss = () =>
+      document.getElementById('bestax-bulma-theme-vars')?.textContent ?? null;
+
+    function Probe({ onLayout }: { onLayout: () => void }) {
+      useLayoutEffect(onLayout);
+      return null;
+    }
+
+    it('writes the root variables and the scheme before passive effects run', () => {
+      let seen: { css: string | null; mode: string | null } | undefined;
+      render(
+        <>
+          <Theme isRoot primaryH="10" colorMode="dark">
+            <span />
+          </Theme>
+          <Probe
+            onLayout={() => {
+              seen = {
+                css: rootCss(),
+                mode: document.documentElement.getAttribute('data-theme'),
+              };
+            }}
+          />
+        </>
+      );
+
+      expect(seen).toEqual({
+        css: ':root { --bulma-primary-h: 10; }',
+        mode: 'dark',
+      });
+    });
+
+    it('writes an update before passive effects run too', () => {
+      const seen: Array<string | null> = [];
+      const tree = (hue: string, mode: 'light' | 'dark') => (
+        <>
+          <Theme isRoot primaryH={hue} colorMode={mode}>
+            <span />
+          </Theme>
+          <Probe
+            onLayout={() => {
+              seen.push(
+                `${rootCss()} ${document.documentElement.getAttribute('data-theme')}`
+              );
+            }}
+          />
+        </>
+      );
+      const { rerender } = render(tree('10', 'dark'));
+      rerender(tree('20', 'light'));
+
+      expect(seen).toEqual([
+        ':root { --bulma-primary-h: 10; } dark',
+        ':root { --bulma-primary-h: 20; } light',
+      ]);
+    });
+
+    it('keeps its variables and scheme while a Suspense fallback hides it', () => {
+      // React cleans up the layout effects of a tree a fallback hides, and
+      // runs them again when it comes back. Theme writes from a layout effect
+      // and lets go only on unmount, so the page keeps its look meanwhile.
+      const pending = new Promise<void>(() => {});
+      function Content({ suspend }: { suspend: boolean }) {
+        if (suspend) {
+          throw pending;
+        }
+        return <span>content</span>;
+      }
+      let hidden = false;
+      function HideProbe() {
+        useLayoutEffect(() => {
+          hidden = false;
+          return () => {
+            hidden = true;
+          };
+        }, []);
+        return null;
+      }
+      const tree = (suspend: boolean) => (
+        <Suspense fallback={<span>loading</span>}>
+          <Theme isRoot primaryH="10" colorMode="dark">
+            <HideProbe />
+            <Content suspend={suspend} />
+          </Theme>
+        </Suspense>
+      );
+
+      const { rerender, unmount } = render(tree(false));
+      rerender(tree(true));
+
+      // The fallback is up and React has hidden the Theme's tree.
+      expect(screen.getByText('loading')).toBeInTheDocument();
+      expect(hidden).toBe(true);
+      expect(rootCss()).toBe(':root { --bulma-primary-h: 10; }');
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+
+      unmount();
+      expect(rootCss()).toBeNull();
+      expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
+    });
+  });
+
+  // Theme writes the scheme attribute before paint and hands it back on
+  // unmount, at different points of a commit, so the attribute keeps a record
+  // of every Theme writing it. Only the latest writer leaving changes the
+  // page, and the last one leaving restores what was there before.
+  describe('colorMode across several Themes', () => {
+    afterEach(() => {
+      cleanup();
+      document.documentElement.removeAttribute('data-theme');
+      document.documentElement.removeAttribute('data-bestax-theme');
+    });
+
+    const mode = () => document.documentElement.getAttribute('data-theme');
+
+    it('keeps the value of a Theme that replaces another', () => {
+      // The new Theme mounts in an earlier branch than the one it replaces,
+      // so it writes before the old one lets go.
+      function App({ which }: { which: 'a' | 'b' }) {
+        return (
+          <>
+            <div>
+              {which === 'b' && (
+                <Theme colorMode="light">
+                  <span />
+                </Theme>
+              )}
+            </div>
+            <div>
+              {which === 'a' && (
+                <Theme colorMode="dark">
+                  <span />
+                </Theme>
+              )}
+            </div>
+          </>
+        );
+      }
+      document.documentElement.setAttribute('data-theme', 'system-default');
+
+      const { rerender, unmount } = render(<App which="a" />);
+      expect(mode()).toBe('dark');
+
+      rerender(<App which="b" />);
+      expect(mode()).toBe('light');
+
+      unmount();
+      expect(mode()).toBe('system-default');
+    });
+
+    it('keeps the value of a Theme that remounts under a new key', () => {
+      const { rerender, unmount } = render(
+        <Theme key="dark" colorMode="dark">
+          <span />
+        </Theme>
+      );
+      rerender(
+        <Theme key="light" colorMode="light">
+          <span />
+        </Theme>
+      );
+      expect(mode()).toBe('light');
+
+      unmount();
+      expect(mode()).toBeNull();
+    });
+
+    it("keeps the outer Theme's value when an inner one unmounts", () => {
+      function App({ inner }: { inner: boolean }) {
+        return (
+          <Theme colorMode="dark">
+            {inner && (
+              <Theme colorMode="light">
+                <span />
+              </Theme>
+            )}
+          </Theme>
+        );
+      }
+      const { rerender, unmount } = render(<App inner />);
+      // The outer Theme's effect runs after the inner one's, so it writes
+      // last and its value is on the page.
+      expect(mode()).toBe('dark');
+
+      rerender(<App inner={false} />);
+      expect(mode()).toBe('dark');
+
+      unmount();
+      expect(mode()).toBeNull();
+    });
+
+    it("goes back to the inner Theme's value when the outer one stops setting it", () => {
+      function App({ outer }: { outer?: 'dark' }) {
+        return (
+          <Theme colorMode={outer}>
+            <Theme colorMode="light">
+              <span />
+            </Theme>
+          </Theme>
+        );
+      }
+      const { rerender } = render(<App outer="dark" />);
+      expect(mode()).toBe('dark');
+
+      rerender(<App />);
+      expect(mode()).toBe('light');
+    });
+
+    it('lets the Theme that changed last decide', () => {
+      function App({ first }: { first: 'light' | 'dark' }) {
+        return (
+          <>
+            <Theme colorMode={first}>
+              <span />
+            </Theme>
+            <Theme colorMode="dark">
+              <span />
+            </Theme>
+          </>
+        );
+      }
+      const { rerender, unmount } = render(<App first="dark" />);
+      rerender(<App first="light" />);
+      expect(mode()).toBe('light');
+
+      unmount();
+      expect(mode()).toBeNull();
+    });
+
+    it('restores what was there when colorMode is cleared', () => {
+      document.documentElement.setAttribute('data-theme', 'light');
+      const { rerender } = render(
+        <Theme colorMode="dark">
+          <span />
+        </Theme>
+      );
+      expect(mode()).toBe('dark');
+
+      rerender(
+        <Theme>
+          <span />
+        </Theme>
+      );
+      expect(mode()).toBe('light');
+    });
+
+    it('hands back the prefixed attribute when the class prefix goes', () => {
+      const tree = (classPrefix: string) => (
+        <ConfigProvider classPrefix={classPrefix}>
+          <Theme colorMode="dark">
+            <span />
+          </Theme>
+        </ConfigProvider>
+      );
+      const { rerender } = render(tree('bestax-'));
+      expect(document.documentElement.getAttribute('data-bestax-theme')).toBe(
+        'dark'
+      );
+
+      rerender(tree(''));
+      expect(document.documentElement.hasAttribute('data-bestax-theme')).toBe(
+        false
+      );
+      expect(mode()).toBe('dark');
+    });
+
+    it('writes the scheme once under StrictMode and restores it on unmount', () => {
+      document.documentElement.setAttribute('data-theme', 'light');
+      const { unmount } = render(
+        <StrictMode>
+          <Theme colorMode="dark">
+            <span />
+          </Theme>
+        </StrictMode>
+      );
+      expect(mode()).toBe('dark');
+
+      unmount();
+      expect(mode()).toBe('light');
+    });
+  });
+
+  // The label on a solid color and the color's text on the page keep the
+  // lightnesses Bulma's build picked for the color it was built with, so a
+  // new trio needs them too (#1184). The text one is set per scheme in Bulma.
+  describe('label and text lightnesses (#1184)', () => {
+    let warnSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      resetDevWarnings();
+      warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      cleanup();
+      warnSpy.mockRestore();
+    });
+
+    const rootCss = () =>
+      document.getElementById('bestax-bulma-theme-vars')?.textContent ?? null;
+
+    it.each(['primary', 'link', 'info', 'success', 'warning', 'danger'])(
+      "takes %s's invert and on-scheme lightness on a scoped Theme",
+      color => {
+        const { container } = render(
+          <Theme
+            bulmaVars={{
+              [`--bulma-${color}-invert-l`]: '5%',
+              [`--bulma-${color}-on-scheme-l`]: '30%',
+            }}
+          >
+            <span />
+          </Theme>
+        );
+        const themeDiv = container.firstChild as HTMLElement;
+        expect(
+          themeDiv.style.getPropertyValue(`--bulma-${color}-invert-l`)
+        ).toBe('5%');
+        expect(
+          themeDiv.style.getPropertyValue(`--bulma-${color}-on-scheme-l`)
+        ).toBe('30%');
+        expect(warnSpy).not.toHaveBeenCalled();
+      }
+    );
+
+    it('writes them at :root on an isRoot Theme, a string for both schemes', () => {
+      render(
+        <Theme
+          isRoot
+          primaryH="171deg"
+          bulmaVars={{
+            '--bulma-primary-invert-l': 'var(--bulma-primary-05-l)',
+            '--bulma-primary-on-scheme-l': '21%',
+          }}
+        >
+          <span />
+        </Theme>
+      );
+      expect(rootCss()).toBe(
+        ':root { --bulma-primary-invert-l: var(--bulma-primary-05-l); ' +
+          '--bulma-primary-on-scheme-l: 21%; --bulma-primary-h: 171deg; }'
+      );
+    });
+
+    it("writes a value per scheme at the root, laid out as Bulma's schemes are", () => {
+      render(
+        <Theme
+          isRoot
+          primaryH="171deg"
+          bulmaVars={{
+            '--bulma-primary-on-scheme-l': { light: '21%', dark: '41%' },
+            '--bulma-link-on-scheme-l': { light: '45%', dark: '70%' },
+          }}
+        >
+          <span />
+        </Theme>
+      );
+      expect(rootCss()).toBe(
+        [
+          ':root { --bulma-primary-h: 171deg; }',
+          '@media (prefers-color-scheme: light) { :root:where(:not(' +
+            '[data-theme=dark], .theme-dark)) { ' +
+            '--bulma-primary-on-scheme-l: 21%; --bulma-link-on-scheme-l: 45%; } }',
+          '@media (prefers-color-scheme: dark) { :root:where(:not(' +
+            '[data-theme=light], .theme-light)) { ' +
+            '--bulma-primary-on-scheme-l: 41%; --bulma-link-on-scheme-l: 70%; } }',
+          '[data-theme=light], .theme-light { ' +
+            '--bulma-primary-on-scheme-l: 21%; --bulma-link-on-scheme-l: 45%; }',
+          '[data-theme=dark], .theme-dark { ' +
+            '--bulma-primary-on-scheme-l: 41%; --bulma-link-on-scheme-l: 70%; }',
+        ].join('\n')
+      );
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('writes only the scheme it is given, leaving the other to the stylesheet', () => {
+      const { rerender } = render(
+        <Theme
+          isRoot
+          bulmaVars={{ '--bulma-primary-on-scheme-l': { dark: '60%' } }}
+        >
+          <span />
+        </Theme>
+      );
+      expect(rootCss()).toBe(
+        '@media (prefers-color-scheme: dark) { :root:where(:not(' +
+          '[data-theme=light], .theme-light)) { ' +
+          '--bulma-primary-on-scheme-l: 60%; } }\n' +
+          '[data-theme=dark], .theme-dark { --bulma-primary-on-scheme-l: 60%; }'
+      );
+
+      rerender(
+        <Theme
+          isRoot
+          bulmaVars={{ '--bulma-primary-on-scheme-l': { light: '25%' } }}
+        >
+          <span />
+        </Theme>
+      );
+      expect(rootCss()).toBe(
+        '@media (prefers-color-scheme: light) { :root:where(:not(' +
+          '[data-theme=dark], .theme-dark)) { ' +
+          '--bulma-primary-on-scheme-l: 25%; } }\n' +
+          '[data-theme=light], .theme-light { --bulma-primary-on-scheme-l: 25%; }'
+      );
+    });
+
+    it('writes nothing for a value per scheme with no value in it', () => {
+      render(
+        <Theme
+          isRoot
+          bulmaVars={{
+            '--bulma-primary-on-scheme-l': {},
+            '--bulma-link-on-scheme-l': { light: '', dark: '' },
+          }}
+        >
+          <span />
+        </Theme>
+      );
+      expect(rootCss()).toBeNull();
+    });
+
+    it("names the prefixed build's scheme selectors under a class prefix", () => {
+      render(
+        <ConfigProvider classPrefix="bestax-">
+          <Theme
+            isRoot
+            bulmaVars={{
+              '--bulma-primary-on-scheme-l': { light: '21%', dark: '41%' },
+            }}
+          >
+            <span />
+          </Theme>
+        </ConfigProvider>
+      );
+      const css = rootCss();
+      expect(css).toContain(
+        ':root:where(:not([data-bestax-theme=dark], .bestax-theme-dark))'
+      );
+      expect(css).toContain(
+        '[data-bestax-theme=dark], .bestax-theme-dark { --bulma-primary-on-scheme-l: 41%; }'
+      );
+      expect(css).not.toContain('[data-theme=');
+    });
+
+    it('uses the plain selectors for a prefix a selector cannot hold', () => {
+      render(
+        <ConfigProvider classPrefix="md/">
+          <Theme
+            isRoot
+            bulmaVars={{ '--bulma-primary-on-scheme-l': { dark: '41%' } }}
+          >
+            <span />
+          </Theme>
+        </ConfigProvider>
+      );
+      expect(rootCss()).toContain(
+        '[data-theme=dark], .theme-dark { --bulma-primary-on-scheme-l: 41%; }'
+      );
+      expect(rootCss()).not.toContain('md/');
+    });
+
+    it('keeps root Themes in order, so a later one still wins', () => {
+      render(
+        <>
+          <Theme
+            isRoot
+            bulmaVars={{ '--bulma-primary-on-scheme-l': { dark: '60%' } }}
+          >
+            <span />
+          </Theme>
+          <Theme isRoot bulmaVars={{ '--bulma-primary-on-scheme-l': '30%' }}>
+            <span />
+          </Theme>
+        </>
+      );
+      const css = rootCss() ?? '';
+      expect(css.indexOf('--bulma-primary-on-scheme-l: 60%')).toBeLessThan(
+        css.indexOf(':root { --bulma-primary-on-scheme-l: 30%; }')
+      );
+    });
+
+    it('skips a value per scheme on a scoped Theme, and warns once naming it', () => {
+      const tree = (vars: ThemeProps['bulmaVars']) => (
+        <Theme bulmaVars={vars}>
+          <span />
+        </Theme>
+      );
+      const { container, rerender } = render(
+        tree({
+          '--bulma-primary-invert-l': '5%',
+          '--bulma-primary-on-scheme-l': { light: '21%', dark: '41%' },
+        })
+      );
+      const themeDiv = container.firstChild as HTMLElement;
+      expect(themeDiv.style.getPropertyValue('--bulma-primary-invert-l')).toBe(
+        '5%'
+      );
+      expect(
+        themeDiv.style.getPropertyValue('--bulma-primary-on-scheme-l')
+      ).toBe('');
+      expect(themeDiv.getAttribute('style')).not.toContain('object');
+      expect(document.getElementById('bestax-bulma-theme-vars')).toBeNull();
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      const message = warnSpy.mock.calls[0][0] as string;
+      expect(message).toContain('--bulma-primary-on-scheme-l is not set');
+      expect(message).toContain('isRoot');
+
+      rerender(
+        tree({ '--bulma-primary-on-scheme-l': { light: '21%', dark: '41%' } })
+      );
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+
+      rerender(
+        tree({
+          '--bulma-primary-on-scheme-l': { dark: '41%' },
+          '--bulma-link-on-scheme-l': { dark: '70%' },
+        })
+      );
+      expect(warnSpy).toHaveBeenCalledTimes(2);
+      expect(warnSpy.mock.calls[1][0]).toContain(
+        '--bulma-link-on-scheme-l, --bulma-primary-on-scheme-l are not set'
+      );
+    });
+
+    it('does not warn about a value per scheme in production', () => {
+      const previous = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        render(
+          <Theme bulmaVars={{ '--bulma-primary-on-scheme-l': { dark: '41%' } }}>
+            <span />
+          </Theme>
+        );
+      } finally {
+        process.env.NODE_ENV = previous;
+      }
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('still writes a number untyped code passes, as it always did', () => {
+      const vars = {
+        '--bulma-primary-h': 210,
+      } as unknown as ThemeProps['bulmaVars'];
+      const { container } = render(
+        <Theme bulmaVars={vars}>
+          <span />
+        </Theme>
+      );
+      expect(
+        (container.firstChild as HTMLElement).style.getPropertyValue(
+          '--bulma-primary-h'
+        )
+      ).toBe('210');
+      cleanup();
+
+      render(
+        <Theme isRoot bulmaVars={vars}>
+          <span />
+        </Theme>
+      );
+      expect(rootCss()).toBe(':root { --bulma-primary-h: 210; }');
     });
   });
 });

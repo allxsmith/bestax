@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Theme } from './Theme';
+import { Block } from '../elements/Block';
 import Box from '../elements/Box';
 import Title from '../elements/Title';
 import Button from '../elements/Button';
@@ -566,6 +567,42 @@ export const RadiusTheme = () => (
     </p>
     <Notification color="primary">A rounder notification.</Notification>
     <Tag color="info">Rounder tag</Tag>
+  </Theme>
+);
+
+// Label and text lightnesses: a trio recolors the color, but the label on a
+// solid surface (--bulma-<color>-invert-l) and the color's text on the page
+// (--bulma-<color>-on-scheme-l) keep the lightnesses the stylesheet was built
+// with, for bestax's dark blue. Stock Bulma's turquoise is light, so it sets
+// a dark label, and text lightnesses that read on a light page and on a dark
+// one. A value per scheme needs an isRoot Theme.
+export const LabelAndTextLightness = () => (
+  <Theme
+    isRoot
+    primaryH="171deg"
+    primaryS="100%"
+    primaryL="41%"
+    bulmaVars={{
+      '--bulma-primary-invert-l': 'var(--bulma-primary-05-l)',
+      '--bulma-primary-on-scheme-l': { light: '21%', dark: '41%' },
+    }}
+  >
+    <Box>
+      <Title size="4">Stock Bulma turquoise</Title>
+      <p className="mb-4">
+        The trio sets the turquoise, <code>--bulma-primary-invert-l</code> gives
+        the button and tag a dark label, and{' '}
+        <code>--bulma-primary-on-scheme-l</code> takes one lightness per scheme
+        for the text below, so it reads in light and dark mode.
+      </p>
+      <div className="buttons">
+        <Button color="primary">Save</Button>
+        <Tag color="primary">New</Tag>
+      </div>
+      <Block textColor="primary" colorShade="on-scheme">
+        Turquoise text on the page.
+      </Block>
+    </Box>
   </Theme>
 );
 

@@ -10,6 +10,7 @@ import { useBulmaClasses, BulmaClassesProps } from './useBulmaClasses';
 import { validGaps, validRadii, type BulmaGapStep } from './bulmaClassHelpers';
 import { isDev, warnOnce } from './devWarnings';
 import { useClassPrefix } from './Config';
+import { useClientLayoutEffect } from './useClientLayoutEffect';
 
 // --- Bulma v1 CSS variables Theme sets (originally generated from
 // CSSVAR_KEYS), in two lists by where Bulma declares them ---
@@ -65,6 +66,21 @@ const bulmaGlobalVars = [
   '--bulma-danger-h',
   '--bulma-danger-s',
   '--bulma-danger-l',
+  // the lightness of each color's label on a solid surface, and of its text
+  // on the page, which Bulma's Sass build picks for contrast with the color
+  // it was built with, so a new trio does not move them
+  '--bulma-primary-invert-l',
+  '--bulma-primary-on-scheme-l',
+  '--bulma-link-invert-l',
+  '--bulma-link-on-scheme-l',
+  '--bulma-info-invert-l',
+  '--bulma-info-on-scheme-l',
+  '--bulma-success-invert-l',
+  '--bulma-success-on-scheme-l',
+  '--bulma-warning-invert-l',
+  '--bulma-warning-on-scheme-l',
+  '--bulma-danger-invert-l',
+  '--bulma-danger-on-scheme-l',
   // shadow (the upstream token .box/.card/.dropdown/.panel derive their own
   // shadow variables from; overriding it from an ancestor is the route that
   // cascades, since those selectors re-declare their derived var on
@@ -603,8 +619,36 @@ const bulmaCssVars = [...bulmaGlobalVars, ...bulmaComponentVars] as const;
 
 /** A single Bulma CSS variable key from the `bulmaCssVars` tuple. */
 type BulmaVarKey = (typeof bulmaCssVars)[number];
-/** A partial record mapping Bulma CSS variable keys to string values. */
-type BulmaVars = Partial<Record<BulmaVarKey, string>>;
+
+/**
+ * The keys Bulma gives a value of its own in each scheme: the lightness of a
+ * color's text on the page, which has to read on a light page and on a dark
+ * one.
+ */
+type BulmaOnSchemeKey = Extract<BulmaVarKey, `--bulma-${string}-on-scheme-l`>;
+
+/**
+ * One value for Bulma's light scheme and one for its dark scheme. A scheme
+ * left out keeps the stylesheet's own value.
+ */
+interface BulmaSchemeValues {
+  /** The value in the light scheme. */
+  light?: string;
+  /** The value in the dark scheme. */
+  dark?: string;
+}
+
+/**
+ * A partial record mapping Bulma CSS variable keys to string values. The
+ * on-scheme keys also take one value per scheme.
+ */
+type BulmaVars = Partial<
+  Record<Exclude<BulmaVarKey, BulmaOnSchemeKey>, string>
+> &
+  Partial<Record<BulmaOnSchemeKey, string | BulmaSchemeValues>>;
+
+/** What Theme writes for one variable: a string, or a value per scheme. */
+type BulmaVarValue = string | BulmaSchemeValues;
 
 /**
  * Convert a Bulma CSS variable name to a camelCase prop name.
@@ -764,7 +808,7 @@ let componentVarKeys: ReadonlySet<string> | undefined;
  * production, and it builds its lookup on the first development call rather
  * than when the module loads.
  */
-const warnComponentVars = (vars: BulmaVars): void => {
+const warnComponentVars = (vars: Readonly<Record<string, unknown>>): void => {
   if (!isDev()) {
     return;
   }
@@ -850,6 +894,137 @@ const setRootThemeRules = (order: number, rules: string): void => {
   renderRootThemeRules();
 };
 
+/** A value given per scheme, rather than as one string. */
+const isSchemeValues = (value: unknown): value is BulmaSchemeValues =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/**
+ * The selector of one of Bulma's schemes, as the stylesheet Theme is used
+ * with writes it: `[data-theme=dark], .theme-dark`, or with the class prefix
+ * in both names (`[data-bestax-theme=dark], .bestax-theme-dark`) for a
+ * prefixed build. A prefix that cannot be written into a selector as it
+ * stands gets the plain names, which `colorMode` writes under any prefix.
+ */
+const schemeSelector = (classPrefix: string, scheme: 'light' | 'dark') => {
+  const prefix = /^[A-Za-z_][\w-]*$/.test(classPrefix) ? classPrefix : '';
+  return `[data-${prefix}theme=${scheme}], .${prefix}theme-${scheme}`;
+};
+
+/**
+ * The `:root` rules for variables given a value per scheme, laid out the
+ * way Bulma lays out its own schemes so each value applies exactly where
+ * Bulma's would: under the visitor's OS preference, unless the page names
+ * the other scheme, and wherever the page names this one, on `<html>` or on
+ * an element inside. A scheme with no value gets no rules, which leaves the
+ * stylesheet's own value there.
+ *
+ * Every selector is as specific as `:root` (the guard is in `:where()`), so
+ * between Themes, and against a plain `:root` rule, the later one still
+ * wins, as it does for every other variable.
+ */
+const schemeRules = (
+  vars: ReadonlyArray<[string, BulmaSchemeValues]>,
+  classPrefix: string
+): string[] => {
+  const other = { light: 'dark', dark: 'light' } as const;
+  const body = (scheme: 'light' | 'dark') =>
+    vars
+      .filter(([, values]) => values[scheme])
+      .map(([key, values]) => `${key}: ${values[scheme]};`)
+      .join(' ');
+  const schemes = (['light', 'dark'] as const)
+    .map(scheme => [scheme, body(scheme)] as const)
+    .filter(([, declarations]) => declarations);
+  // Bulma's order: both preferences, then both names, the dark one last.
+  return [
+    ...schemes.map(
+      ([scheme, declarations]) =>
+        `@media (prefers-color-scheme: ${scheme}) { :root:where(:not(` +
+        `${schemeSelector(classPrefix, other[scheme])})) { ${declarations} } }`
+    ),
+    ...schemes.map(
+      ([scheme, declarations]) =>
+        `${schemeSelector(classPrefix, scheme)} { ${declarations} }`
+    ),
+  ];
+};
+
+/**
+ * Every theme attribute on `<html>` that a mounted Theme's `colorMode` has
+ * written, by name: what the attribute held before the first of them wrote
+ * it, and each Theme's value, the latest writer last.
+ *
+ * Theme writes the attribute from a layout effect, so it is there before the
+ * browser paints, and lets go of it on unmount from a passive one, so a
+ * Theme that a `Suspense` fallback hides for a moment keeps the page's
+ * scheme: React cleans up a hidden tree's layout effects, but not its
+ * passive ones. The two run at different times, so a Theme that replaces
+ * another writes before the one it replaces lets go. Keeping every writer
+ * here is what stops that letting go from undoing the new Theme's value:
+ * only the latest writer's departure changes the page, and the last one's
+ * puts back what was there before any of them.
+ */
+interface SchemeAttribute {
+  original: string | null;
+  writers: Array<{ order: number; value: string | null }>;
+}
+const schemeAttributes = new Map<string, SchemeAttribute>();
+
+/** Set a theme attribute on `<html>`, or remove it for `null`. */
+const setSchemeAttribute = (name: string, value: string | null): void => {
+  const root = document.documentElement;
+  if (value === null) {
+    root.removeAttribute(name);
+  } else {
+    root.setAttribute(name, value);
+  }
+};
+
+/**
+ * Write one Theme's value for a theme attribute, `null` removing it, and
+ * make that Theme the attribute's latest writer. Throws, recording nothing,
+ * when `name` cannot be an attribute name.
+ */
+const writeSchemeAttribute = (
+  order: number,
+  name: string,
+  value: string | null
+): void => {
+  const entry = schemeAttributes.get(name) ?? {
+    original: document.documentElement.getAttribute(name),
+    writers: [],
+  };
+  setSchemeAttribute(name, value);
+  entry.writers = entry.writers.filter(writer => writer.order !== order);
+  entry.writers.push({ order, value });
+  schemeAttributes.set(name, entry);
+};
+
+/**
+ * Take one Theme off every theme attribute it wrote, except those named in
+ * `keep`. An attribute it was the latest writer of goes back to the value of
+ * the writer before it, or to what it held before any of them.
+ */
+const releaseSchemeAttributes = (
+  order: number,
+  keep: readonly string[] = []
+): void => {
+  for (const [name, entry] of schemeAttributes) {
+    const index = entry.writers.findIndex(writer => writer.order === order);
+    if (index === -1 || keep.includes(name)) {
+      continue;
+    }
+    const latest = index === entry.writers.length - 1;
+    entry.writers.splice(index, 1);
+    if (entry.writers.length === 0) {
+      schemeAttributes.delete(name);
+      setSchemeAttribute(name, entry.original);
+    } else if (latest) {
+      setSchemeAttribute(name, entry.writers[entry.writers.length - 1].value);
+    }
+  }
+};
+
 /**
  * Props for the Theme component.
  */
@@ -876,8 +1051,11 @@ export interface ThemeProps extends Omit<
    * Several root Themes can be mounted at once, and each contributes its own
    * variables. Where two set the same one, the inner or later-mounted Theme
    * wins, as with nested scoped Themes, and unmounting a Theme removes only
-   * what it contributed. The variables are written from an effect, so a
-   * server render does not include them.
+   * what it contributed.
+   *
+   * The variables are written before the browser paints. A server render
+   * has none of them, so put what a server-rendered page needs at first
+   * paint in CSS.
    */
   isRoot?: boolean;
   /**
@@ -893,11 +1071,10 @@ export interface ThemeProps extends Omit<
    * If the prefix cannot form an attribute name, `'light'` and `'dark'`
    * write only `data-theme` and warn in development.
    *
-   * The attribute is written from an effect, so a page rendered in the
-   * browser paints its first frame with whatever `<html>` already has, the
-   * visitor's OS scheme when that is nothing. Put a scheme that never changes
-   * on `<html>` in `index.html` instead, and write a saved choice from an
-   * inline `<head>` script, starting `colorMode` from what it wrote.
+   * It is written before the browser paints, but the page can paint before
+   * the app's script runs, in the scheme `<html>` already has. Put a fixed
+   * scheme on `<html>` in `index.html`, and write a saved choice from an
+   * inline `<head>` script, starting `colorMode` from it.
    */
   colorMode?: 'light' | 'dark' | 'system';
   /**
@@ -919,6 +1096,12 @@ export interface ThemeProps extends Omit<
    * Some global variables Bulma also declares again on one component, which
    * keeps its own value while everything else takes the Theme's. Those do not
    * warn, because the value still reaches the rest of the page.
+   *
+   * A color's trio leaves its label (`--bulma-<color>-invert-l`) and text
+   * (`--bulma-<color>-on-scheme-l`) lightnesses where the stylesheet's build
+   * put them, so a new color sets them too. On an `isRoot` Theme the
+   * on-scheme keys also take `{ light, dark }`, one value per scheme, which a
+   * scoped Theme skips with a warning in development.
    */
   bulmaVars?: BulmaVars;
   /**
@@ -1150,8 +1333,10 @@ export const Theme: React.FC<ThemeProps> = ({
   });
 
   // Merge bulmaVars and individual props, with props taking precedence
-  const mergedVars: BulmaVars = useMemo(() => {
-    const vars: BulmaVars = { ...bulmaVars };
+  const mergedVars = useMemo(() => {
+    const vars: Partial<Record<BulmaVarKey, BulmaVarValue>> = {
+      ...bulmaVars,
+    };
     for (const [propName, cssVar] of Object.entries(bulmaVarPropMap)) {
       if (bulmaVarProps[propName] !== undefined) {
         vars[cssVar as BulmaVarKey] = bulmaVarProps[propName] as string;
@@ -1166,6 +1351,26 @@ export const Theme: React.FC<ThemeProps> = ({
     return vars;
   }, [bulmaVars, bulmaVarProps, radiusVar, columnGapVar]);
 
+  // The variables Theme writes, split by form: a value per scheme, or one
+  // value for every scheme. A key Theme does not take, or an empty value, is
+  // left out. A plain value is written as given, so a number untyped code
+  // passes still works.
+  const { plainVars, perSchemeVars } = useMemo(() => {
+    const plain: Array<[string, unknown]> = [];
+    const perScheme: Array<[string, BulmaSchemeValues]> = [];
+    for (const [key, value] of Object.entries(mergedVars)) {
+      if (!value || !bulmaCssVars.includes(key as BulmaVarKey)) {
+        continue;
+      }
+      if (isSchemeValues(value)) {
+        perScheme.push([key, value]);
+      } else {
+        plain.push([key, value]);
+      }
+    }
+    return { plainVars: plain, perSchemeVars: perScheme };
+  }, [mergedVars]);
+
   // From an effect rather than the render body, so rendering does none of
   // this work, and a server render none at all. In production it returns
   // at its development check before looking at the variables.
@@ -1173,64 +1378,84 @@ export const Theme: React.FC<ThemeProps> = ({
     warnComponentVars(mergedVars);
   }, [mergedVars]);
 
-  // This Theme's place among root Themes; see `rootThemeRules`.
+  // A scoped Theme writes its variables as an inline style, which has no way
+  // to say which scheme a value is for, so it skips a value given per
+  // scheme. Say so, since nothing on the page does.
+  useEffect(() => {
+    if (isRoot || perSchemeVars.length === 0 || !isDev()) {
+      return;
+    }
+    const keys = perSchemeVars.map(([key]) => key).sort();
+    warnOnce(
+      `Theme:scoped-scheme-values:${keys.join(',')}`,
+      `[bestax-bulma] <Theme>: a scoped Theme writes its variables as an ` +
+        `inline style, which cannot hold a value per scheme, so ` +
+        `${keys.join(', ')} ${keys.length === 1 ? 'is' : 'are'} not set. ` +
+        'Give a single string, set the values on an isRoot Theme, or set ' +
+        'them in your CSS.'
+    );
+  }, [isRoot, perSchemeVars]);
+
+  // This Theme's place among the Themes on the page; see `rootThemeRules`
+  // and `schemeAttributes`.
   const [rootOrder] = useState(() => nextRootOrder++);
 
-  // The `:root` rules this Theme contributes, or '' when it contributes none.
+  // Bulma names its scheme attribute after the class prefix a stylesheet was
+  // built with (`data-<prefix>theme`), so the prefixed builds read
+  // `data-bestax-theme` and never `data-theme`. Its scheme classes take the
+  // prefix too (`.bestax-theme-dark`).
+  const classPrefix = useClassPrefix();
+
+  // The `:root` rules this Theme contributes, or '' when it contributes none:
+  // one block for the plain values, then the rules for each value given per
+  // scheme.
   const rootRules = useMemo(() => {
     if (!isRoot) {
       return '';
     }
-    const cssRules = Object.entries(mergedVars)
-      .filter(
-        ([key, value]) => bulmaCssVars.includes(key as BulmaVarKey) && value
-      )
-      .map(([key, value]) => `${key}: ${value};`)
-      .join(' ');
-    return cssRules ? `:root { ${cssRules} }` : '';
-  }, [mergedVars, isRoot]);
+    const plain = plainVars.map(([key, value]) => `${key}: ${value};`);
+    return [
+      ...(plain.length > 0 ? [`:root { ${plain.join(' ')} }`] : []),
+      ...schemeRules(perSchemeVars, classPrefix),
+    ].join('\n');
+  }, [plainVars, perSchemeVars, classPrefix, isRoot]);
 
   // Inject CSS variables globally at :root level, alongside any other root
   // Themes. Clearing `isRoot` or every variable passes '', which withdraws
-  // this Theme's rules.
-  useEffect(() => {
+  // this Theme's rules. A layout effect, so they are in place before the
+  // browser paints what this Theme rendered.
+  useClientLayoutEffect(() => {
     setRootThemeRules(rootOrder, rootRules);
   }, [rootOrder, rootRules]);
 
   // Withdraw them on unmount. Kept apart from the effect above so a change
   // rewrites the shared element in place rather than removing and recreating
-  // it between the cleanup and the next run.
+  // it between the cleanup and the next run, and passive, so a Theme that a
+  // `Suspense` fallback hides keeps its variables meanwhile: React cleans up
+  // a hidden tree's layout effects, but not its passive ones.
   useEffect(() => () => setRootThemeRules(rootOrder, ''), [rootOrder]);
-
-  // Bulma names its scheme attribute after the class prefix a stylesheet was
-  // built with (`data-<prefix>theme`), so the prefixed builds read
-  // `data-bestax-theme` and never `data-theme`.
-  const classPrefix = useClassPrefix();
 
   // Toggle Bulma's light/dark scheme by writing the theme attribute on the
   // document root (<html>). This is always global, even on a scoped Theme.
   // Under a class prefix the prefixed attribute is written as well as
   // `data-theme`, so whichever build is loaded sees it; with no prefix only
   // `data-theme` is. `'system'` removes them so Bulma follows the OS
-  // preference.
-  useEffect(() => {
-    if (colorMode === undefined) {
-      return;
-    }
-
-    const root = document.documentElement;
-    const names = classPrefix
-      ? ['data-theme', `data-${classPrefix}theme`]
-      : ['data-theme'];
-    const previous = names.map(name => root.getAttribute(name));
-
+  // preference. Written before the browser paints, and handed back on
+  // unmount, for the reasons the two effects above give; `schemeAttributes`
+  // keeps the two in step.
+  useClientLayoutEffect(() => {
+    const names =
+      colorMode === undefined
+        ? []
+        : classPrefix
+          ? ['data-theme', `data-${classPrefix}theme`]
+          : ['data-theme'];
+    const value =
+      colorMode === undefined || colorMode === 'system' ? null : colorMode;
+    releaseSchemeAttributes(rootOrder, names);
     for (const name of names) {
-      if (colorMode === 'system') {
-        root.removeAttribute(name);
-        continue;
-      }
       try {
-        root.setAttribute(name, colorMode);
+        writeSchemeAttribute(rootOrder, name, value);
       } catch {
         // A class prefix can hold characters an attribute name cannot.
         // `data-theme` is still written, as it was before the prefixed
@@ -1245,19 +1470,10 @@ export const Theme: React.FC<ThemeProps> = ({
         );
       }
     }
+  }, [colorMode, classPrefix, rootOrder]);
 
-    // Restore the previous values when colorMode changes or the component unmounts.
-    return () => {
-      names.forEach((name, i) => {
-        const value = previous[i];
-        if (value === null) {
-          root.removeAttribute(name);
-        } else {
-          root.setAttribute(name, value);
-        }
-      });
-    };
-  }, [colorMode, classPrefix]);
+  // Hand the attributes back on unmount.
+  useEffect(() => () => releaseSchemeAttributes(rootOrder), [rootOrder]);
 
   // For local injection (when isRoot is false), prepare style object for CSS vars
   const style: CSSProperties = useMemo(() => {
@@ -1266,13 +1482,11 @@ export const Theme: React.FC<ThemeProps> = ({
     }
 
     const styleObj: CSSProperties = {};
-    for (const [key, value] of Object.entries(mergedVars)) {
-      if (bulmaCssVars.includes(key as BulmaVarKey) && value) {
-        (styleObj as Record<string, string>)[key] = value;
-      }
+    for (const [key, value] of plainVars) {
+      (styleObj as Record<string, unknown>)[key] = value;
     }
     return styleObj;
-  }, [mergedVars, isRoot]);
+  }, [plainVars, isRoot]);
 
   // Generate combined class names for the wrapper div
   const combinedClassName = useMemo(() => {

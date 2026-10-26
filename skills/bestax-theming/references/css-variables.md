@@ -10,7 +10,11 @@ theming means overriding the right `--bulma-*` values.
 
 `Theme` is exported from the package and writes `--bulma-*` variables for you.
 
-- `isRoot` → injects the variables globally at `:root` (use once, at the app root).
+- `isRoot` → injects the variables globally at `:root` (use once, at the app root). It writes
+  them before the browser paints what it rendered, so an app rendered in the browser has them
+  from its first frame of content. A server render doesn't include them, so a server-rendered
+  page paints with the stylesheet's values until it hydrates: put what it needs from its first
+  paint in CSS (path 2).
 - without `isRoot` → wraps children in a `<div>` and scopes the variables to that subtree.
 - Named props set the color/scheme HSL channels and common values (see "Theme props" below).
 - `bulmaVars` sets any other variable, keyed by its real `--bulma-*` name. It only changes
@@ -112,14 +116,39 @@ the blue too, and is too light for turquoise text on a white page. The other col
 from Bulma's own defaults. For a page made for stock Bulma, the bestax-migrate skill's
 `references/css-migration.md` covers getting its turquoise back.
 
-`Theme` doesn't set either one, so set them in your CSS, loaded after the library's styles:
+Set them alongside the trio, through `Theme`'s `bulmaVars` or in your CSS:
 
 - **The invert** is one value for both schemes. Point it at a shade that reads on the new color: a
   near-black `var(--bulma-<c>-05-l)` on a light color, a near-white `var(--bulma-<c>-100-l)` on a
   dark one.
 - **The on-scheme lightness** has to read on the page's background, so Bulma gives each scheme
-  its own. A value on `:root` in your stylesheet wins in both, so give dark mode its own value on
-  both of its paths, as below.
+  its own. One value applies in both schemes, so give each scheme its own: on an `isRoot`
+  `Theme`, the on-scheme keys of `bulmaVars` take `{ light, dark }`, and `Theme` writes each
+  where Bulma's own value for that scheme applies. A scheme you leave out keeps the
+  stylesheet's value. `bestax-no-dark-mode.css` has no dark scheme, so with it give one string.
+
+```tsx
+// Stock Bulma's turquoise, with the values from bulma/css/bulma.css.
+<Theme
+  isRoot
+  primaryH="171deg"
+  primaryS="100%"
+  primaryL="41%"
+  bulmaVars={{
+    '--bulma-primary-invert-l': 'var(--bulma-primary-05-l)',
+    '--bulma-primary-on-scheme-l': { light: '21%', dark: '41%' },
+  }}
+>
+  <App />
+</Theme>
+```
+
+A scoped `Theme` writes its variables as an inline style, which can't hold a value per scheme, so
+there the on-scheme lightness takes only a string, and `{ light, dark }` is skipped with a warning
+in development. Set it in your CSS instead when a scoped section needs one per scheme, or when
+the page is rendered on the server, which paints before `Theme` runs. In CSS, loaded after the
+library's styles, a value on `:root` wins in both schemes, so give dark mode its own value on
+both of its paths:
 
 ```css
 /* Stock Bulma's turquoise, with the values from bulma/css/bulma.css. */
@@ -762,10 +791,11 @@ own, so a new color sets one per scheme (see "The lightnesses Bulma's build pick
 
 ### The scheme of the first paint
 
-`Theme` writes the attribute from an effect, and a client-rendered app (the create-bestax
-scaffold, for one) paints before its effects run. That first frame takes whatever `<html>`
-already carries: with nothing there, the visitor's OS scheme, which then flips. So the scheme
-for that frame comes from `index.html`:
+`Theme` writes the attribute before the browser paints what it rendered, but a page can paint
+before the app's script runs at all: a client-rendered app (the create-bestax scaffold, for one)
+can show its empty page first, and a server-rendered one shows its server HTML. That first frame
+takes whatever `<html>` already carries: with nothing there, the visitor's OS scheme, which then
+flips. So the scheme for that frame comes from `index.html`:
 
 - **A scheme that never changes** goes on the `<html>` itself,
   `<html lang="en" data-theme="light">`, and needs no `colorMode`.
@@ -796,8 +826,8 @@ white text on cream. The failure is invisible unless the author's own OS is in d
 
 **If the design is single-mode, pin the scheme** on the `<html>` in `index.html`
 (`<html lang="en" data-theme="light">`, as above), so text can't flip out from under the palette.
-`<Theme isRoot colorMode="light">` pins it too, but only from its effect on, after the first
-paint.
+`<Theme isRoot colorMode="light">` pins it too, but only once the app's script runs, so the
+page can show the OS scheme before that.
 
 **If both modes are supported, never expose a fixed custom token to the flip** — derive it from
 scheme variables, or flip it yourself:
@@ -840,4 +870,6 @@ Color trios: `primaryH/primaryS/primaryL`, `linkH/linkS/linkL`, `infoH/S/L`, `su
 `darkInvertL`, `softL`, `boldL`, `softInvertL`, `boldInvertL`. Interaction deltas:
 `hoverBackgroundLDelta`, `activeBackgroundLDelta`, `hoverBorderLDelta`, `activeBorderLDelta`,
 `hoverColorLDelta`, `activeColorLDelta`, `hoverShadowADelta`, `activeShadowADelta`. Everything else:
-`bulmaVars={{ '--bulma-…': '…' }}`. All values are strings.
+`bulmaVars={{ '--bulma-…': '…' }}`, each color's `--bulma-<c>-invert-l` and
+`--bulma-<c>-on-scheme-l` included. All values are strings, except that an on-scheme key also
+takes `{ light, dark }` on an `isRoot` `Theme`.

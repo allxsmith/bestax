@@ -2,12 +2,13 @@
 // the visitor's choice.
 //
 // Bulma reads the scheme from `data-theme` on <html>. `Theme colorMode` writes
-// that attribute from an effect, which runs after a client-rendered app's
-// first paint, so on its own the page shows the OS scheme for a frame and then
-// flips. The scheme for that first frame comes from a script in index.html,
-// which writes the saved choice, or else the OS preference, before anything
-// renders. Put it inside <head> as a plain inline script, not
-// `type="module"`, so it runs before the body renders:
+// that attribute before the browser paints what the app rendered, but only
+// once the app's script runs, and the page can paint before that, so on its
+// own it can show the OS scheme for a frame and then flip. The scheme for
+// that first frame comes from a script in index.html, which writes the saved
+// choice, or else the OS preference, before anything renders. Put it inside
+// <head> as a plain inline script, not `type="module"`, so it runs before the
+// body renders:
 //
 //   <script>
 //     // Bulma's scheme on <html> before the first paint: the saved choice,
