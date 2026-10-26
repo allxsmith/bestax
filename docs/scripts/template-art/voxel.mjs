@@ -385,6 +385,17 @@ function num(n) {
 }
 
 function patternDefs(tex) {
+  const n = tex.size;
+  // The commonest color fills the whole tile first and the rest are drawn
+  // over it, so the edges between texels never let what is behind show
+  // through when the image is drawn small. A texture with see-through texels
+  // ('none') has no such base, since the gaps are the point.
+  const counts = new Map();
+  for (const row of tex.cells)
+    for (const c of row) counts.set(c, (counts.get(c) ?? 0) + 1);
+  const base = counts.has('none')
+    ? null
+    : [...counts].reduce((a, b) => (b[1] > a[1] ? b : a))[0];
   const runs = new Map();
   tex.cells.forEach((row, v) => {
     let u = 0;
@@ -392,15 +403,18 @@ function patternDefs(tex) {
       const color = row[u];
       let end = u + 1;
       while (end < row.length && row[end] === color) end++;
-      if (!runs.has(color)) runs.set(color, []);
-      runs.get(color).push(`M${u} ${v}h${end - u}v1h${u - end}z`);
+      if (color !== base && color !== 'none') {
+        if (!runs.has(color)) runs.set(color, []);
+        runs.get(color).push(`M${u} ${v}h${end - u}v1h${u - end}z`);
+      }
       u = end;
     }
   });
-  const body = [...runs]
-    .map(([color, d]) => `<path fill="${color}" d="${d.join('')}"/>`)
-    .join('');
-  const n = tex.size;
+  const body =
+    (base ? `<rect width="${n}" height="${n}" fill="${base}"/>` : '') +
+    [...runs]
+      .map(([color, d]) => `<path fill="${color}" d="${d.join('')}"/>`)
+      .join('');
   const defs = [];
   for (const [orient, b] of Object.entries(PATTERN_BASIS)) {
     const t = [b.u[0] / n, b.u[1] / n, b.v[0] / n, b.v[1] / n, b.o[0], b.o[1]]

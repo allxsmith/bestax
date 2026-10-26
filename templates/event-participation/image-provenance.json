@@ -3,12 +3,12 @@
   "images": [
     {
       "path": "public/media/event_logo_gold.svg",
-      "sha256": "59ca52a1ca32320c86325c106a2f7c36256dea5e86e1b68cd1d5059bcce294a2",
+      "sha256": "6eeab1d2ff61a6613ee4918cf0d4b2d0772582a81964bb11e2bacb30f57a82ac",
       "origin": "original",
-      "made": "2026-10-23",
-      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
-      "method": "Written as SVG code from a text description. No photograph, illustration, stock image or image-generation model was used as an input or as a tracing reference.",
-      "depicts": "The number 50 in gold, over a gold curve, the event's logo.",
+      "made": "2026-10-26",
+      "madeBy": "Alex Smith, for this bestax port",
+      "method": "Drawn by code: docs/scripts/template-art/scenes/event-participation.mjs places every block and shape, and the voxel renderer in docs/scripts/template-art writes the SVG, with every texture generated from a palette and a seed. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A blocky gold medal with the number 50 in the pixel font standing proud of its face, inside a raised rim, with two small sparkles; the event's logo.",
       "license": "MIT, under this template's LICENSE",
       "replaces": "public/media/event_logo_gold.webp, the original's logo image, whose source the original does not record."
     }

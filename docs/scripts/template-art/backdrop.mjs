@@ -43,14 +43,18 @@ export function gradient(
 
 /**
  * A sky in hard bands rather than a smooth fade, the way a pixel game draws
- * one: `stops` as for gradient(), split into `bands` flat stripes.
+ * one: `stops` as for gradient(), split into `bands` flat stripes. Each band
+ * runs to the bottom and the next is painted over it, so no edge between two
+ * bands can let the page show through when the image is drawn smaller.
  */
 export function bandedSky(width, height, stops, bands = 8, top = 0) {
   const out = [];
   const h = (height - top) / bands;
   for (let i = 0; i < bands; i++) {
     const t = bands === 1 ? 0 : i / (bands - 1);
-    out.push(rect(0, top + i * h, width, h + 0.5, colorAt(stops, t)));
+    out.push(
+      rect(0, top + i * h, width, height - top - i * h, colorAt(stops, t))
+    );
   }
   return out.join('');
 }

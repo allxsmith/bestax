@@ -60,14 +60,15 @@ treats the folder as a project of its own.
 
 ## Images
 
-Every image in `public/media/` was drawn for this port on October 23, 2026 by Claude, Anthropic's
-AI model, writing SVG markup by hand from ideas of its own rather than from the images they replace:
-the street of homes in the hero, the chart beside "All marketplaces", the riverside town, the row
-houses at night, and the listing placeholder. No photo, illustration,
-stock image or image-generation model went into them, and they trace no existing artwork. Each file
-is its own source: open it in a text editor to see every shape it draws. They replace the
-original's illustrations, whose source the original does not record, and the placeholder it
-hot-links, so this port ships no image of unknown origin.
+Every image in `public/media/` is voxel art drawn by code for this port: the street of homes in the
+hero, the chart beside "All marketplaces", the riverside town, the row houses at night, and the
+listing placeholder.
+[`scenes/rent.mjs`](https://github.com/allxsmith/bestax/blob/main/docs/scripts/template-art/scenes/rent.mjs)
+in the bestax repository places every block, and the renderer beside it writes the SVG, so running
+it again writes the same files. No photo, illustration, stock image or image-generation model went
+into them, and none copies existing artwork. They replace the original's illustrations, whose source
+the original does not record, and the placeholder it hot-links, so this port ships no image of
+unknown origin.
 
 `image-provenance.json` records each image with its SHA-256 hash, so anyone can check that the file
 shipped is the one described here.
