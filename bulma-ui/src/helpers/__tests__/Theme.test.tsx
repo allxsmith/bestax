@@ -1668,6 +1668,52 @@ describe('Theme', () => {
       expect(mode()).toBeNull();
     });
 
+    it("keeps a later Theme's value when a Suspense boundary shows an earlier one again", () => {
+      // React runs the layout effects of a tree a fallback hid again when
+      // it comes back. Nothing about the earlier Theme changed, so it must
+      // not take the attribute back from the Theme that wrote after it.
+      const pending = new Promise<void>(() => {});
+      function Content({ suspend }: { suspend: boolean }) {
+        if (suspend) {
+          throw pending;
+        }
+        return <span>content</span>;
+      }
+      let shown = 0;
+      function ShowProbe() {
+        useLayoutEffect(() => {
+          shown += 1;
+        }, []);
+        return null;
+      }
+      const tree = (suspend: boolean) => (
+        <>
+          <Suspense fallback={<span>loading</span>}>
+            <Theme colorMode="light">
+              <ShowProbe />
+              <Content suspend={suspend} />
+            </Theme>
+          </Suspense>
+          <Theme colorMode="dark">
+            <span />
+          </Theme>
+        </>
+      );
+
+      const { rerender, unmount } = render(tree(false));
+      expect(mode()).toBe('dark');
+
+      rerender(tree(true));
+      rerender(tree(false));
+      // The earlier Theme's tree is back, and its layout effects ran again.
+      expect(screen.getByText('content')).toBeInTheDocument();
+      expect(shown).toBe(2);
+      expect(mode()).toBe('dark');
+
+      unmount();
+      expect(mode()).toBeNull();
+    });
+
     it('restores what was there when colorMode is cleared', () => {
       document.documentElement.setAttribute('data-theme', 'light');
       const { rerender } = render(

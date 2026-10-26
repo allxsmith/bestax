@@ -984,13 +984,26 @@ const setSchemeAttribute = (name: string, value: string | null): void => {
  * Write one Theme's value for a theme attribute, `null` removing it, and
  * make that Theme the attribute's latest writer. Throws, recording nothing,
  * when `name` cannot be an attribute name.
+ *
+ * A Theme that writes the value it already holds keeps its place and leaves
+ * the page alone. React runs a layout effect again when a `Suspense`
+ * boundary shows its tree again, with nothing changed, and that must not
+ * take the attribute back from a Theme that wrote after it.
  */
 const writeSchemeAttribute = (
   order: number,
   name: string,
   value: string | null
 ): void => {
-  const entry = schemeAttributes.get(name) ?? {
+  const held = schemeAttributes.get(name);
+  if (
+    held?.writers.some(
+      writer => writer.order === order && writer.value === value
+    )
+  ) {
+    return;
+  }
+  const entry = held ?? {
     original: document.documentElement.getAttribute(name),
     writers: [],
   };
