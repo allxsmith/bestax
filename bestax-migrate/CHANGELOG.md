@@ -1,3 +1,21 @@
+# [2.34.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.33.0...bestax-migrate@2.34.0) (2026-10-26)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** find helper props and a hidden label in search, and say where helper props go ([42d11de](https://github.com/allxsmith/bestax/commit/42d11de1540049227147a6350178e67d432937c6))
+* **bestax-mcp:** match a helper prop only to a query that is about it ([6aaa981](https://github.com/allxsmith/bestax/commit/6aaa981c7ffb676f26881d438c579f31c5f9561f))
+* **bestax-mcp:** split skill sections at fences the way CommonMark closes them ([e03e203](https://github.com/allxsmith/bestax/commit/e03e20372c6684aa28695751b88df6eb80c8d598))
+* **bulma-ui:** keep a later Theme's scheme when Suspense shows an earlier one again ([f8da200](https://github.com/allxsmith/bestax/commit/f8da200ac742e28da5f348386f573095a6189f4b))
+* **docs:** redraw every template image as blocky voxel art ([#1289](https://github.com/allxsmith/bestax/issues/1289)) ([9c6e720](https://github.com/allxsmith/bestax/commit/9c6e72053e17346467a8a115fae8ffa2fc73a1e1))
+
+
+### Features
+
+* **bestax-migrate:** look up bulma-social helpers, and name the release with every brand's file ([9778f68](https://github.com/allxsmith/bestax/commit/9778f686aac508f6b5189cf6aa2864f60e64a1c3))
+* **bestax-migrate:** name bulma-social's per-brand stylesheets in its TODO ([329299e](https://github.com/allxsmith/bestax/commit/329299e400523ca93cc53fee8704218ff59fdfa0)), closes [#1274](https://github.com/allxsmith/bestax/issues/1274)
+* **bulma-ui:** write Theme before the first paint and take label and text lightnesses ([80bc6ec](https://github.com/allxsmith/bestax/commit/80bc6ec970a1eabe29fb94f0b4bc7b4c2461638e)), closes [#1184](https://github.com/allxsmith/bestax/issues/1184)
+
 # [2.33.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.32.1...bestax-migrate@2.33.0) (2026-10-26)
 
 
