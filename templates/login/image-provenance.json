@@ -2,26 +2,26 @@
   "template": "login",
   "images": [
     {
-      "path": "public/favicon.svg",
-      "sha256": "ad7b4423ece4882bc9e067408e38343a10229d6342ac2d3a1e07d5cbf312f98d",
-      "origin": "original",
-      "made": "2026-10-23",
-      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
-      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
-      "depicts": "A turquoise padlock on a black rounded square.",
-      "license": "MIT, under this template's LICENSE",
-      "replaces": "The port's earlier favicon, a person on a black square, whose making was not recorded."
-    },
-    {
       "path": "public/media/background.svg",
-      "sha256": "de811d15b182a51a3189d8f81d97fc02e6ba2d5b4e42509f2ea6508ca99b5d74",
+      "sha256": "e3aeabbf5d121362f6f708b16972c2f020366c039b76bf656d7885d99851a276",
       "origin": "original",
-      "made": "2026-10-23",
-      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
-      "method": "Written by hand as SVG markup, from an idea of its own rather than from the image it replaces. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
-      "depicts": "The sea at sunset, with the sun setting on the left, a sailboat on the horizon and a lighthouse on dark rocks to the right; the page's full-screen background.",
+      "made": "2026-10-26",
+      "madeBy": "Alex Smith, for this bestax port",
+      "method": "Drawn by code: docs/scripts/template-art/scenes/login.mjs places every block and shape, and the voxel renderer in docs/scripts/template-art writes the SVG, with every texture generated from a palette and a seed. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A blocky sea at sunset: a square sun half set on the horizon at the left, a sailboat, and a striped lighthouse on a rocky island at the right with its beam lit; the page's full-screen background.",
       "license": "MIT, under this template's LICENSE",
       "replaces": "public/media/background.webp, the original's background photo, whose source the original does not record."
+    },
+    {
+      "path": "public/favicon.svg",
+      "sha256": "a1a7c323f4b0236b14e9e457dcdaedf8b5b084c2b72a6bfa87da50cbd9f9fb54",
+      "origin": "original",
+      "made": "2026-10-26",
+      "madeBy": "Alex Smith, for this bestax port",
+      "method": "Drawn by code: docs/scripts/template-art/scenes/login.mjs places every block and shape, and the voxel renderer in docs/scripts/template-art writes the SVG, with every texture generated from a palette and a seed. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A blocky gold padlock on a dark rounded square.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "The port's earlier favicon, a person on a black square, whose making was not recorded."
     }
   ]
 }
