@@ -230,6 +230,9 @@ export function bulmaBuildMessage(build: string, quoted: string): string {
 // ---- Font Awesome ------------------------------------------------------------
 
 const ICON_LOADS_NO_FONT = "bestax's `Icon` loads no font of its own";
+/** Where the older names that draw another glyph in 6 and 7 are listed. */
+const OLDER_NAMES =
+  "the bestax-icons skill's `references/icon-libraries.md` names the older names that draw another glyph in 6 and 7";
 const INSTALL_FONT_AWESOME = `install \`@fortawesome/fontawesome-free\` (bestax-bulma's optional peer range is \`${FONT_AWESOME_PEER_RANGE}\`) and import its \`css/all.min.css\` from the app's entry`;
 
 export function fontAwesomeMessage(
@@ -241,14 +244,14 @@ export function fontAwesomeMessage(
     return `the page loads a Font Awesome kit from \`${quoted}\`, whose version the URL doesn't say: ${ICON_LOADS_NO_FONT}, so keep loading the kit once for the app, from its index.html, or ${INSTALL_FONT_AWESOME}`;
   }
   if (major === null) {
-    return `the page loads Font Awesome from \`${quoted}\`, whose version the URL doesn't say: ${ICON_LOADS_NO_FONT} and writes the classes Font Awesome 5 and later read (\`fas fa-<name>\`), so keep loading it once for the app, or ${INSTALL_FONT_AWESOME}, with \`css/v4-shims.min.css\` beside it if the page's names are Font Awesome 4's (\`fa fa-<name>\`)`;
+    return `the page loads Font Awesome from \`${quoted}\`, whose version the URL doesn't say: ${ICON_LOADS_NO_FONT} and writes the classes Font Awesome 5 and later read (\`fas fa-<name>\`), so keep loading it once for the app, or ${INSTALL_FONT_AWESOME}, with \`css/v4-shims.min.css\` beside it if the page's names are Font Awesome 4's (\`fa fa-<name>\`); ${OLDER_NAMES}`;
   }
   const loads = `the page loads Font Awesome ${major} from \`${quoted}\``;
   if (major <= 4) {
-    return `${loads}, whose classes are \`fa fa-<name>\`: the codemod keeps that \`fa\` on each icon it converts (\`variant="fa"\`), which ${major} styles, but bestax's \`Icon\` given no \`variant\` writes \`fas fa-<name>\`, which ${major} doesn't, so for icons written from here on, ${INSTALL_FONT_AWESOME}, then either import \`css/v4-shims.min.css\` beside it, so the page's ${major} names keep working, or move them to the current names (\`fa-envelope-o\` is \`envelope\` with \`variant="regular"\`)`;
+    return `${loads}, whose classes are \`fa fa-<name>\`: the codemod keeps that \`fa\` on each icon it converts (\`variant="fa"\`), which ${major} styles, but bestax's \`Icon\` given no \`variant\` writes \`fas fa-<name>\`, which ${major} doesn't, so for icons written from here on, ${INSTALL_FONT_AWESOME}, then either import \`css/v4-shims.min.css\` beside it, so the page's ${major} names keep working, or move them to the current names: \`fa-envelope-o\` is \`envelope\` with \`variant="regular"\`, and a brand's glyph (\`fa fa-github\`) needs \`variant="brands"\`, since 5 and later draw brands in a style of their own, and show a missing-glyph box for one under \`fa\` without the shims`;
   }
   if (major === 5) {
-    return `${loads}: ${ICON_LOADS_NO_FONT} and writes the \`fas fa-<name>\` classes 5 reads, so the \`<link>\` keeps working from the app's index.html; installed from npm, \`@fortawesome/fontawesome-free\` takes 6 or 7 (bestax-bulma's optional peer range is \`${FONT_AWESOME_PEER_RANGE}\`, and an older one fails \`npm install\` with ERESOLVE), which still read the 5 names`;
+    return `${loads}: ${ICON_LOADS_NO_FONT} and writes the \`fas fa-<name>\` classes 5 reads, so the \`<link>\` keeps working from the app's index.html; installed from npm, \`@fortawesome/fontawesome-free\` takes 6 or 7 (bestax-bulma's optional peer range is \`${FONT_AWESOME_PEER_RANGE}\`, and an older one fails \`npm install\` with ERESOLVE), which still read 5's names, many of them since renamed (\`search\` is \`magnifying-glass\`), but turned the handsets round: to keep the glyph the page shows, write 5's \`phone\` and \`phone-square\` as \`phone-flip\` and \`square-phone-flip\`, and 5's \`phone-alt\` and \`phone-square-alt\` as \`phone\` and \`square-phone\``;
   }
   if (major <= 7) {
     return `${loads}: ${ICON_LOADS_NO_FONT}, so keep loading it once for the app, from a \`<link>\` in its index.html, or ${INSTALL_FONT_AWESOME}`;

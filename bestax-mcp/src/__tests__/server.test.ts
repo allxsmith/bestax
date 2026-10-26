@@ -1104,7 +1104,11 @@ describe('lookup_bulma_classes', () => {
       "write the <i>'s classes as its props and drop the <i>, so it closes itself"
     );
     expect(out).toContain(
-      '`far fa-bell fa-lg` as `library="fa" name="bell" variant="regular" features="fa-lg"`'
+      '`far fa-bell fa-lg` as `name="bell" variant="regular" features="fa-lg"`'
+    );
+    expect(out).toContain('`fa-brands` as `brands`');
+    expect(out).toContain(
+      'in a <button> or a link that its own `aria-label` or `aria-labelledby` names, where the icon is decoration'
     );
     // The attributes it may carry for the move come from the index.
     expect(out).toContain(

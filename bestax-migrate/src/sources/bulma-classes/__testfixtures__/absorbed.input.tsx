@@ -48,6 +48,9 @@ export function Absorbed({
       <figure className="image is-4by3">
         <img src="/photo.jpg" alt="A ratio on the figure Image renders for it" />
       </figure>
+      <figure className="is-4by3 mx-auto">
+        <img src="/photo.jpg" alt="A ratio with no image converts as a Figure" />
+      </figure>
       <div className="image is-3by2">
         <img src="/wide.jpg" alt="A ratio on a div keeps it through as" />
       </div>

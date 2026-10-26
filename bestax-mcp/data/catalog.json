@@ -905,7 +905,7 @@
       "import": "import { Radio, Radios, Control } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 7,
-      "exampleCount": 5
+      "exampleCount": 6
     },
     {
       "name": "Radios",

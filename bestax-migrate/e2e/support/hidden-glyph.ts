@@ -1,8 +1,10 @@
 /**
- * A difference in markup a bulma-classes conversion makes on purpose, and
- * the normalization the render tests allow for it. The other is a Bulma 0.9
- * class v1 removed, written as the v1 class that replaced it, which
- * `withV1Classes` in `render-module.ts` restates.
+ * Two differences in markup a bulma-classes conversion makes on purpose,
+ * both about where an icon is hidden, and the normalizations the render
+ * tests allow for them. The others change a class: a Bulma 0.9 class v1
+ * removed, written as the v1 class that replaced it, which `withV1Classes`
+ * in `render-module.ts` restates, and Font Awesome 6's long name for a style
+ * written as its short one, which `font-awesome-styles.ts` restates.
  *
  * Font Awesome's own markup hides the glyph on the `<i>`:
  * `<span class="icon"><i class="fas fa-home" aria-hidden="true"></i></span>`.
@@ -55,4 +57,118 @@ export function moveGlyphHidden(html: string): string {
       `<span${attributes} aria-hidden="true"><i${className}></i></span>`
     );
   });
+}
+
+/** Elements with no closing tag, which open nothing. */
+const VOID = new Set([
+  'area',
+  'base',
+  'br',
+  'col',
+  'embed',
+  'hr',
+  'img',
+  'input',
+  'link',
+  'meta',
+  'source',
+  'track',
+  'wbr',
+]);
+
+/** Each tag, opening or closing, with its name and attributes. */
+const TAG = /<(\/?)([a-zA-Z][\w-]*)((?:\s+[^\s=>/]+(?:="[^"]*")?)*)\s*(\/?)>/g;
+
+/** Each opening tag, in document order. */
+const OPEN_TAG = /<[a-zA-Z][\w-]*(?:\s+[^\s=>/]+(?:="[^"]*")?)*\s*\/?>/g;
+
+function attributesOf(attributes: string): Map<string, string> {
+  return new Map(
+    [...attributes.matchAll(/\s+([^\s=>/]+)(?:="([^"]*)")?/g)].map(
+      ([, name, value]) => [name, value ?? '']
+    )
+  );
+}
+
+/**
+ * Whether a link or <button> names itself with its own `aria-label` or
+ * `aria-labelledby`, not empty: a <button>, or an <a> with an `href`, since
+ * one with none is no link, and nothing names it.
+ */
+function namesItself(tag: string, attributes: Map<string, string>): boolean {
+  if (tag === 'a' && !attributes.has('href')) return false;
+  return ['aria-label', 'aria-labelledby'].some(
+    name => (attributes.get(name) ?? '').trim() !== ''
+  );
+}
+
+/**
+ * `raw`, normalized, with `aria-hidden="true"` written on each `.icon` that
+ * sits in a link or <button> its own label names, where `converted` has the
+ * attribute on the same element, so the two compare equal there and nowhere
+ * else.
+ *
+ * The label is what assistive tech reads for the control, in place of what
+ * it holds, so an icon there is decoration, and `Icon` hides it: the
+ * conversion adds the attribute, and nothing assistive tech reads changes.
+ *
+ * Narrow on purpose, the shape `moveGlyphHidden` takes but for where the
+ * attribute comes from: a `<span>` with the `icon` class that carries
+ * nothing but a class, an `id`, a `style` and `data-` attributes, no
+ * `aria-hidden` among them, holding a bare, empty `<i>` and nothing else,
+ * whose nearest <a> or <button> around it names itself. Elements pair up in
+ * document order, and a pair that doesn't line up differs anyway.
+ */
+export function withLabelledGlyphsHidden(
+  raw: string,
+  converted: string
+): string {
+  const hidden = [...converted.matchAll(OPEN_TAG)].map(([tag]) =>
+    /\saria-hidden="true"/.test(tag)
+  );
+  // The <a> and <button> elements open around the tag being read: whether
+  // each names itself, and null for any other element.
+  const open: Array<boolean | null> = [];
+  let at = 0;
+  const restated = raw.replace(
+    TAG,
+    (
+      tag: string,
+      closing: string,
+      name: string,
+      written: string,
+      selfClosing: string,
+      offset: number
+    ) => {
+      if (closing) {
+        open.pop();
+        return tag;
+      }
+      const index = at++;
+      const attributes = attributesOf(written);
+      const control = [...open].reverse().find(entry => entry !== null);
+      if (!selfClosing && !VOID.has(name)) {
+        open.push(
+          name === 'a' || name === 'button'
+            ? namesItself(name, attributes)
+            : null
+        );
+      }
+      if (
+        name !== 'span' ||
+        !hidden[index] ||
+        control !== true ||
+        attributes.has('aria-hidden') ||
+        !(attributes.get('class') ?? '').split(' ').includes('icon') ||
+        ![...attributes.keys()].every(movesBeside) ||
+        !/^<i(?: class="[^"]*")?><\/i><\/span>/.test(
+          raw.slice(offset + tag.length)
+        )
+      ) {
+        return tag;
+      }
+      return tag.replace(/^<span/, '<span aria-hidden="true"');
+    }
+  );
+  return normalizeHtml(restated);
 }

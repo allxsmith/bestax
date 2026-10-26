@@ -23,8 +23,9 @@
  * file, so the CLI's manifest step reads the module the same way too.
  *
  * Nothing is ever overwritten: a module already beside the page stops it
- * (`html-file:exists`), so a second run changes nothing, and the page itself
- * stays as it was. A page with no Bulma component class writes nothing (a
+ * (`html-file:exists`), so a second run on the page changes nothing, and the
+ * page itself stays as it was. A re-run a TODO asks for is one on the module,
+ * which is what each says. A page with no Bulma component class writes nothing (a
  * Vite `index.html` is a page like any other), and a server template
  * (`{{`, `{%`, `<?php`, `<%`) is refused rather than read as HTML.
  */
@@ -1557,7 +1558,7 @@ export function convertPage(
         file,
         line: null,
         rule: htmlRuleId('html-file', 'exists'),
-        message: `\`${path.basename(outputPath)}\` is already beside the page, and the codemod never overwrites a file: move or delete it to convert the page again`,
+        message: `\`${path.basename(outputPath)}\` is already beside the page, and the codemod never overwrites a file: to carry on from the TODOs it holds, run the codemod on \`${path.basename(outputPath)}\` itself, and to convert the page again, move or delete it`,
       },
       outputPath
     );
@@ -1641,6 +1642,9 @@ export function convertPage(
   }
   // The transform reads the module's path, so the gates for a server
   // component or another JSX runtime apply to it; its report names the page.
+  // A re-run its TODOs ask for is one on the module, since the page converts
+  // only once (`html-file:exists`), so they say so.
+  const moduleName = path.basename(outputPath);
   const planned = new Map<string, number[]>();
   const onPage: TodoCollector = {
     add: entry => {
@@ -1651,11 +1655,15 @@ export function convertPage(
       // A file-level gate's TODO is about the whole page, so it gets no
       // page line of the element it sits on.
       const forFile = (FILE_RULES as readonly string[]).includes(entry.rule);
-      if (line !== null && !forFile) {
-        const text = todoText(entry.message);
-        planned.set(text, [...(planned.get(text) ?? []), line]);
-      }
-      collector?.add({ ...entry, file, line });
+      const text = todoText(entry.message);
+      const lines = planned.get(text) ?? [];
+      planned.set(text, line !== null && !forFile ? [...lines, line] : lines);
+      collector?.add({
+        ...entry,
+        message: rerunOn(entry.message, moduleName),
+        file,
+        line,
+      });
     },
   };
   const { output } = runTransform(transform, outputPath, intermediate, onPage, {
@@ -1664,9 +1672,19 @@ export function convertPage(
   });
   return {
     outputPath,
-    output: finishModule(withPageLines(output ?? intermediate, planned, page)),
+    output: finishModule(
+      withPageLines(output ?? intermediate, planned, page, moduleName)
+    ),
     intermediate,
   };
+}
+
+/**
+ * A TODO from a page's run with each re-run it asks for named as one on its
+ * module: run again on the page, the codemod writes nothing.
+ */
+function rerunOn(message: string, moduleName: string): string {
+  return message.replace(/\bre-run\b/g, `re-run on \`${moduleName}\``);
 }
 
 /** A TODO's message as its comment writes it, on one line. */
@@ -1675,26 +1693,30 @@ function todoText(message: string): string {
 }
 
 /**
- * The planner's TODO lines, each with the page's lines it is about. The
- * transform writes one line for each message, however many elements share
- * it (five `.icon`s missing the same attribute), above the `return`, so the
- * lines go on after, the way the page's own notes carry theirs. Nothing from
- * the `return` on is read, since the page's text is there.
+ * The transform's TODO lines, each with its re-runs named as ones on the
+ * module and the page's lines it is about, if any. The transform writes one
+ * line for each message, however many elements share it (five `.icon`s
+ * missing the same attribute), above the `return`, so the lines go on after,
+ * the way the page's own notes carry theirs. Nothing from the `return` on is
+ * read, since the page's text is there.
  */
 function withPageLines(
   code: string,
   planned: ReadonlyMap<string, readonly number[]>,
-  page: string
+  page: string,
+  moduleName: string
 ): string {
   if (planned.size === 0) return code;
   const lines = code.split('\n');
   for (let i = 0; i < lines.length; i++) {
     if (/^\s*return\b/.test(lines[i])) break;
-    const todo = /^\s*\/\/ TODO\(bestax-migrate\): (.*)$/.exec(lines[i]);
-    const on = todo ? planned.get(todo[1]) : undefined;
+    const todo = /^(\s*\/\/ TODO\(bestax-migrate\): )(.*)$/.exec(lines[i]);
+    const on = todo ? planned.get(todo[2]) : undefined;
     if (!on) continue;
     const at = [...new Set(on)].sort((a, b) => a - b).join(', ');
-    lines[i] = `${lines[i]} (${page}:${at})`;
+    lines[i] =
+      `${todo![1]}${rerunOn(todo![2], moduleName)}` +
+      (at === '' ? '' : ` (${page}:${at})`);
   }
   return lines.join('\n');
 }
