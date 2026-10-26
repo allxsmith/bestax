@@ -227,6 +227,12 @@ a {
   background-image: none;
 }
 
+/* The logo, set in the headings' font. */
+.wordmark {
+  font-family: Montserrat, sans-serif;
+  color: #363636;
+}
+
 /* The region lists, which the original sized with an inline style. */
 .city-list li {
   font-size: 0.9rem;

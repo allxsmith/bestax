@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <!-- Drawn for the bestax port of the Wedding Planner template; image-provenance.json records how. -->
+  <!-- An arch by the sea at sunset, with rows of chairs either side of the aisle. -->
+  <defs>
+    <linearGradient id="dusk" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b9a6ec" />
+      <stop offset="0.55" stop-color="#f5b5c8" />
+      <stop offset="1" stop-color="#ffd7a8" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#dusk)" />
+  <circle cx="400" cy="232" r="60" fill="#ffe7b8" />
+  <rect y="230" width="800" height="70" fill="#9f93c4" />
+  <g stroke="#c8bde6" stroke-width="4" stroke-linecap="round">
+    <path d="M300 250H360M430 262H520M220 276H300M480 286H560" />
+  </g>
+  <path d="M0 300H800V450H0Z" fill="#f3dfc8" />
+  <path d="M340 300L250 450H550L460 300Z" fill="#ffffff" opacity="0.8" />
+
+  <!-- The arch, hung with cloth and flowers. -->
+  <path d="M300 300V180A100 100 0 0 1 500 180V300" fill="none" stroke="#ffffff" stroke-width="14" stroke-linecap="round" />
+  <path d="M312 120C340 170 330 230 318 290M488 120C460 170 470 230 482 290" fill="none" stroke="#ffffff" stroke-width="10" opacity="0.7" stroke-linecap="round" />
+  <g>
+    <circle cx="352" cy="96" r="14" fill="#e58fb5" />
+    <circle cx="374" cy="86" r="12" fill="#ffffff" />
+    <circle cx="398" cy="82" r="14" fill="#7d6bd6" />
+    <circle cx="424" cy="86" r="12" fill="#ffffff" />
+    <circle cx="446" cy="96" r="14" fill="#e58fb5" />
+    <path d="M334 106l-16 6 10 10zM466 106l16 6-10 10z" fill="#6fb487" />
+  </g>
+
+  <!-- Chairs either side of the aisle. -->
+  <g fill="#ffffff">
+    <rect x="180" y="330" width="34" height="40" rx="4" />
+    <rect x="232" y="330" width="34" height="40" rx="4" />
+    <rect x="534" y="330" width="34" height="40" rx="4" />
+    <rect x="586" y="330" width="34" height="40" rx="4" />
+    <rect x="130" y="384" width="40" height="48" rx="4" />
+    <rect x="190" y="384" width="40" height="48" rx="4" />
+    <rect x="570" y="384" width="40" height="48" rx="4" />
+    <rect x="630" y="384" width="40" height="48" rx="4" />
+  </g>
+  <g fill="#e58fb5">
+    <circle cx="266" cy="334" r="7" />
+    <circle cx="534" cy="334" r="7" />
+    <circle cx="230" cy="388" r="8" />
+    <circle cx="570" cy="388" r="8" />
+  </g>
+</svg>

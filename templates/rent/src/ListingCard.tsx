@@ -3,9 +3,10 @@ import { Card, Image } from '@allxsmith/bestax-bulma';
 
 /**
  * Every listing photo in the original is the same 640x360 placeholder, a
- * hot-link to a placeholder service, kept here as a local copy.
+ * hot-link to a placeholder service. This one is drawn for the port; put
+ * each listing's own photo in its place.
  */
-export const PLACEHOLDER = '/media/placeholder-640x360.png';
+export const PLACEHOLDER = '/media/listing-placeholder.svg';
 
 interface ListingCardProps {
   /** The photo's alt text. */

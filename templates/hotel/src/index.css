@@ -128,9 +128,14 @@ body {
   background-color: #f0f0f0;
 }
 
+/*
+ * The drawing is composed around its middle, so it is centered where the
+ * original's photo hung from its top left corner.
+ */
 .main_hero {
-  background-image: url('/media/background.webp');
+  background-image: url('/media/background.svg');
   background-size: cover;
+  background-position: center;
 }
 
 a {
@@ -355,4 +360,27 @@ footer {
 
 .navbar-item {
   color: #484848;
+}
+
+/*
+ * The hotel's name in text, in the navbar's brand and the room details, where
+ * the original shows Bulma's logo.
+ */
+.wordmark {
+  font-family: var(--bulma-family-primary);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 28px;
+  letter-spacing: -0.02em;
+  color: #363636;
+  white-space: nowrap;
+}
+
+.wordmark span {
+  font-weight: 400;
+}
+
+.wordmark-large {
+  font-size: 2rem;
+  line-height: 1.25;
 }

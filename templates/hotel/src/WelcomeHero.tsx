@@ -1,7 +1,7 @@
 import { Container, Hero, SubTitle, Title } from '@allxsmith/bestax-bulma';
 import SiteNavbar from './SiteNavbar.tsx';
 
-/** The full-height welcome over the pool photo, with the navbar on top. */
+/** The full-height welcome over the hotel and its pool, with the navbar on top. */
 function WelcomeHero() {
   return (
     <Hero as="header" size="fullheight" className="main_hero">
@@ -22,32 +22,22 @@ function WelcomeHero() {
               </SubTitle>
             </div>
           </div>
+          {/* A mouse with its wheel rolling down, the hint to scroll. Drawn
+              for this port; README.md's Images section says so. */}
           <span>
             <svg
               width="30px"
               height="100%"
-              viewBox="0 0 247 390"
-              version="1.1"
+              viewBox="0 0 246 390"
               xmlns="http://www.w3.org/2000/svg"
               aria-hidden="true"
-              style={{
-                fillRule: 'evenodd',
-                clipRule: 'evenodd',
-                strokeLinecap: 'round',
-                strokeLinejoin: 'round',
-                strokeMiterlimit: '1.5',
-              }}
+              fill="none"
+              stroke="#fff"
+              strokeWidth="20"
+              strokeLinecap="round"
             >
-              <path
-                id="wheel"
-                d="M123.359,79.775l0,72.843"
-                style={{ fill: 'none', stroke: '#fff', strokeWidth: '20px' }}
-              />
-              <path
-                id="mouse"
-                d="M236.717,123.359c0,-62.565 -50.794,-113.359 -113.358,-113.359c-62.565,0 -113.359,50.794 -113.359,113.359l0,143.237c0,62.565 50.794,113.359 113.359,113.359c62.564,0 113.358,-50.794 113.358,-113.359l0,-143.237Z"
-                style={{ fill: 'none', stroke: '#fff', strokeWidth: '20px' }}
-              />
+              <line id="wheel" x1="123" y1="80" x2="123" y2="152" />
+              <rect x="10" y="10" width="226" height="370" rx="113" />
             </svg>
           </span>
         </Container>

@@ -11,7 +11,8 @@ const links: { route: Route; label: string }[] = [
 
 /**
  * The navbar every page shares. The burger opens the menu below the touch
- * breakpoint, and choosing a page closes it again.
+ * breakpoint, and choosing a page closes it again. The brand is Bulma's name
+ * in text, linking to bulma.io, where the original shows Bulma's logo.
  */
 function SiteNavbar({ route }: { route: Route }) {
   const [open, setOpen] = useState(false);
@@ -22,12 +23,7 @@ function SiteNavbar({ route }: { route: Route }) {
       <Navbar>
         <Navbar.Brand>
           <Navbar.Item href="https://bulma.io">
-            <img
-              src="/images/bulma-logo.svg"
-              alt="Bulma"
-              width={112}
-              height={28}
-            />
+            <span className="wordmark">Bulma</span>
           </Navbar.Item>
           <Navbar.Burger active={open} onClick={() => setOpen(!open)} />
         </Navbar.Brand>

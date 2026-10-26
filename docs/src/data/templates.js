@@ -111,7 +111,7 @@ export const templates = [
     slug: 'coming-soon',
     title: 'Coming Soon',
     description:
-      'A full-screen launch page over a misty highway, with round social buttons and an email signup.',
+      'A full-screen launch page over a building going up at dawn, with round social buttons and an email signup.',
     author: { name: 'aldi', url: 'https://github.com/aldi' },
     source: 'https://github.com/aldi/bulma-coming-soon-template',
     sourceSha: '7a9d786fe0bc610ec174b2a0a11e994051339345',
@@ -124,7 +124,7 @@ export const templates = [
     slug: 'cv',
     title: 'CV',
     description:
-      'A one-page CV with a full-height portrait, social profile buttons and a light and dark toggle.',
+      'A one-page CV with a full-height illustration, social profile buttons and a light and dark toggle.',
     author: { name: 'aldi', url: 'https://github.com/aldi' },
     source: 'https://github.com/aldi/bulma-cv-template',
     sourceSha: '29108ebb52030480ee40c8224d2f6f8a3587926d',
@@ -163,7 +163,7 @@ export const templates = [
     slug: 'wedding-planner',
     title: 'Wedding Planner',
     description:
-      "A wedding planner's one-page site with illustrated steps, client quotes, a gallery carousel of wedding photos and a contact form.",
+      "A wedding planner's one-page site with illustrated steps, client quotes, a gallery carousel of wedding pictures and a contact form.",
     author: { name: 'restylianos', url: 'https://github.com/restylianos' },
     source: 'https://github.com/restylianos/bulma-wedding-planner-template',
     sourceSha: '1b6a8b961b651ad75e0b0b23abfce362bc28549a',
@@ -189,7 +189,7 @@ export const templates = [
     slug: 'hotel',
     title: 'Hotel',
     description:
-      'A one-page hotel site with rooms and a details modal, a photo gallery carousel, and a contact form beside a map.',
+      'A one-page hotel site with rooms and a details modal, a gallery carousel, and a contact form beside a map.',
     author: { name: 'aldi', url: 'https://github.com/aldi' },
     source: 'https://github.com/aldi/bulma-hotel-template',
     sourceSha: '2f7a1cfdcd96e97dd084aaf27a92ef98ed14bc28',

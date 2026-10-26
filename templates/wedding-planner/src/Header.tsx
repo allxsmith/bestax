@@ -38,12 +38,7 @@ function Header() {
           <Container>
             <Navbar.Brand>
               <Navbar.Item href="#">
-                <img
-                  src="https://img.icons8.com/dusk/64/000000/p.png"
-                  width={30}
-                  height={30}
-                  alt="Home"
-                />
+                <img src="/img/logo.svg" width={30} height={30} alt="Home" />
               </Navbar.Item>
               <Navbar.Item>
                 <h3 className="is-size-4">Wedding Planner</h3>
@@ -109,7 +104,7 @@ function Header() {
               </Button>
             </Column>
             <Column>
-              <img src="/img/undraw_wedding_t1yl.svg" alt="" />
+              <img src="/img/hero-invitation.svg" alt="" />
             </Column>
           </Columns>
         </Container>

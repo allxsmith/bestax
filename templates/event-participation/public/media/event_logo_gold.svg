@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Drawn for the bestax port of the Event Participation template; see the template's README. -->
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff1b8" />
+      <stop offset="0.3" stop-color="#e8c25e" />
+      <stop offset="0.55" stop-color="#b8860b" />
+      <stop offset="0.78" stop-color="#f0cf6a" />
+      <stop offset="1" stop-color="#a8781a" />
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#gold)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round">
+    <!-- the 5: its flag, its stem and its bowl -->
+    <path d="M56 26 H28 L25 57 C33 51 46 50 54 57 C63 65 62 84 52 93 C42 101 27 99 19 90" />
+    <!-- the 0 -->
+    <ellipse cx="92" cy="62" rx="18" ry="33" />
+  </g>
+  <!-- a fine ring sweeping round the pair -->
+  <path d="M12 108 C40 122 96 120 118 96" fill="none" stroke="url(#gold)" stroke-width="3" stroke-linecap="round" />
+</svg>

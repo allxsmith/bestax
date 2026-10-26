@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- Drawn for the bestax port of the Wedding Planner template; image-provenance.json records how. -->
+  <!-- Two linked rings, the right one set with a stone. -->
+  <circle cx="40" cy="40" r="14" fill="none" stroke="#e58fb5" stroke-width="5" />
+  <circle cx="24" cy="40" r="14" fill="none" stroke="#7d6bd6" stroke-width="5" />
+  <path d="M28.53 31.97A14 14 0 0 1 36.38 26.48" fill="none" stroke="#e58fb5" stroke-width="5" />
+  <path d="M33 19L36.5 13H43.5L47 19L40 27Z" fill="#72ddf7" />
+  <path d="M33 19H47M40 27L37.5 19L40 13L42.5 19Z" fill="none" stroke="#ffffff" stroke-width="1.2" stroke-linejoin="round" />
+</svg>

@@ -9,20 +9,23 @@ import {
 
 const LINKS = ['About us', 'Our story', 'Post a listing', 'Contact us'];
 
-/** The footer: the Bulma badge, the site links and the fine print. */
+/** The footer: the Bulma credit, the site links and the fine print. */
 function SiteFooter() {
   return (
     <Hero as="footer" size="small" color="light">
       <Hero.Body>
         <Container textAlign="centered">
-          <a href="https://bulma.io">
-            <img
-              src="/media/made-with-bulma.png"
-              alt="Made with Bulma"
-              width={171}
-              height={32}
-            />
-          </a>
+          {/* A text link where the original shows Bulma's "made with Bulma"
+              badge, a trademark the port draws no copy of. */}
+          <p>
+            <Link
+              href="https://bulma.io"
+              textWeight="semibold"
+              textColor="dark"
+            >
+              Made with Bulma
+            </Link>
+          </p>
           <Columns className="m-t-10">
             <Column>
               <nav className="has-text-grey-light" aria-label="Site">

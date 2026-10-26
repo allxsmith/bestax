@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 338" width="600" height="338">
+<!-- Drawn for the bestax port of the Hotel template; image-provenance.json records it. -->
+<!-- The hotel's reception: a marble-topped desk under three pendant lamps. -->
+<defs>
+<linearGradient id="wall" x1="0" y1="0" x2="0" y2="338" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#f3e9d8"/>
+<stop offset="1" stop-color="#e2d0b2"/>
+</linearGradient>
+<linearGradient id="slats" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#9b6a43"/>
+<stop offset="0.5" stop-color="#b07d52"/>
+<stop offset="1" stop-color="#9b6a43"/>
+</linearGradient>
+<linearGradient id="front" x1="0" y1="222" x2="0" y2="338" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#5e3d2a"/>
+<stop offset="1" stop-color="#3f2819"/>
+</linearGradient>
+<radialGradient id="lampglow" r="0.5">
+<stop offset="0" stop-color="#fff1c9" stop-opacity="0.9"/>
+<stop offset="1" stop-color="#fff1c9" stop-opacity="0"/>
+</radialGradient>
+<pattern id="slat" width="20" height="200" patternUnits="userSpaceOnUse" x="150">
+<rect width="20" height="200" fill="url(#slats)"/>
+<rect x="18" width="2" height="200" fill="#7d5233"/>
+</pattern>
+<g id="lamp">
+<rect x="-1" y="0" width="2" height="62" fill="#6b5a45"/>
+<path d="M-22,82 C-22,64 -12,58 0,58 C12,58 22,64 22,82 Z" fill="#c99a45"/>
+<ellipse cx="0" cy="82" rx="22" ry="4" fill="#fff3d0"/>
+<ellipse cx="0" cy="96" rx="44" ry="26" fill="url(#lampglow)"/>
+</g>
+<g id="key">
+<rect x="-6" y="-6" width="12" height="12" rx="2" fill="#f7efe0" stroke="#b9925a" stroke-width="1.5"/>
+<path d="M0,6 L0,18 M0,13 L3,13 M0,17 L3,17" stroke="#c99a45" stroke-width="2" fill="none"/>
+</g>
+</defs>
+
+<rect width="600" height="338" fill="url(#wall)"/>
+<rect y="0" width="600" height="10" fill="#d8c4a2"/>
+
+<!-- The slatted wall behind the desk, with a brass name bar. -->
+<rect x="150" y="34" width="300" height="200" fill="url(#slat)"/>
+<rect x="232" y="118" width="136" height="22" rx="3" fill="#2f2219"/>
+<rect x="244" y="126" width="112" height="6" rx="3" fill="#d9b25e"/>
+
+<!-- Pigeonholes with room keys, right of the desk. -->
+<rect x="472" y="54" width="104" height="132" fill="#c9a77d"/>
+<g fill="#7a5235">
+<rect x="478" y="60" width="28" height="36"/><rect x="510" y="60" width="28" height="36"/><rect x="542" y="60" width="28" height="36"/>
+<rect x="478" y="102" width="28" height="36"/><rect x="510" y="102" width="28" height="36"/><rect x="542" y="102" width="28" height="36"/>
+<rect x="478" y="144" width="28" height="36"/><rect x="510" y="144" width="28" height="36"/><rect x="542" y="144" width="28" height="36"/>
+</g>
+<use href="#key" x="492" y="70"/><use href="#key" x="556" y="70"/><use href="#key" x="524" y="112"/>
+<use href="#key" x="492" y="154"/><use href="#key" x="556" y="154"/>
+
+<!-- A framed picture of a sunrise over the sea, left. -->
+<rect x="34" y="62" width="88" height="66" fill="#8a6a49"/>
+<rect x="40" y="68" width="76" height="54" fill="#fbe0b4"/>
+<circle cx="78" cy="102" r="12" fill="#f29a5c"/>
+<rect x="40" y="102" width="76" height="20" fill="#5aa9c4"/>
+<path d="M48,110 h14 M70,114 h18 M92,108 h14" stroke="#d9f1f7" stroke-width="2"/>
+
+<!-- Pendant lamps. -->
+<use href="#lamp" x="210" y="0"/>
+<use href="#lamp" x="300" y="0"/>
+<use href="#lamp" x="390" y="0"/>
+
+<!-- The floor. -->
+<rect y="300" width="600" height="38" fill="#cdb898"/>
+<path d="M0,318 H600" stroke="#bfa984" stroke-width="2"/>
+
+<!-- A potted palm, left. -->
+<path d="M40,300 L48,252 L92,252 L100,300 Z" fill="#a0603c"/>
+<rect x="44" y="246" width="52" height="10" rx="2" fill="#b8714a"/>
+<g fill="#4f8a4b">
+<path d="M70,248 C50,210 30,196 10,196 C30,206 46,224 64,250 Z"/>
+<path d="M70,248 C60,200 64,170 80,150 C74,180 74,212 74,248 Z"/>
+<path d="M70,248 C90,206 112,192 134,194 C112,206 96,224 76,250 Z"/>
+<path d="M70,248 C46,226 24,226 6,236 C30,232 48,238 66,252 Z" fill="#3f7540"/>
+<path d="M70,248 C96,228 118,230 136,240 C112,236 94,240 74,252 Z" fill="#3f7540"/>
+</g>
+
+<!-- The desk: a marble top over a dark wooden front with a brass rail. -->
+<rect x="120" y="222" width="360" height="116" fill="url(#front)"/>
+<g fill="#4a2f1f">
+<rect x="180" y="236" width="4" height="102"/><rect x="240" y="236" width="4" height="102"/>
+<rect x="300" y="236" width="4" height="102"/><rect x="360" y="236" width="4" height="102"/>
+<rect x="420" y="236" width="4" height="102"/>
+</g>
+<rect x="120" y="262" width="360" height="5" fill="#c99a45"/>
+<rect x="108" y="206" width="384" height="18" rx="3" fill="#f5f2ec"/>
+<path d="M130,212 C170,208 190,216 240,211 M300,214 C330,209 370,217 420,212" stroke="#d9d3c8" stroke-width="1.5" fill="none"/>
+<rect x="108" y="222" width="384" height="3" fill="#cfc8bb"/>
+
+<!-- On the desk: flowers, a monitor's back, a bell and a card stand. -->
+<path d="M150,206 L154,180 L170,180 L174,206 Z" fill="#e8eef2" stroke="#c4ced6"/>
+<g fill="#e46f6b"><circle cx="152" cy="168" r="7"/><circle cx="166" cy="162" r="7"/><circle cx="176" cy="172" r="6"/></g>
+<g fill="#f2c14e"><circle cx="160" cy="174" r="5"/><circle cx="170" cy="152" r="5"/></g>
+<path d="M162,180 L156,170 M162,180 L166,164 M162,180 L174,174" stroke="#4f8a4b" stroke-width="2"/>
+<rect x="250" y="168" width="78" height="38" rx="3" fill="#30333b"/>
+<rect x="284" y="200" width="10" height="8" fill="#30333b"/>
+<path d="M378,206 C378,192 386,186 396,186 C406,186 414,192 414,206 Z" fill="#d9b25e"/>
+<rect x="374" y="204" width="44" height="4" rx="2" fill="#8c6a35"/>
+<circle cx="396" cy="183" r="3" fill="#8c6a35"/>
+<path d="M436,206 L444,186 L460,186 L452,206 Z" fill="#f7efe0" stroke="#b9925a"/>
+</svg>

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 261 497" width="261" height="497">
+<!-- Drawn for the bestax port of the Tropico template; image-provenance.json records it. -->
+<!-- The left half of a white plate of orange slices with mint, cut by the page's right edge. -->
+<defs>
+<radialGradient id="plate" cx="261" cy="248" r="240" gradientUnits="userSpaceOnUse">
+<stop offset="0.7" stop-color="#ffffff"/>
+<stop offset="1" stop-color="#eae6df"/>
+</radialGradient>
+<g id="slice">
+<circle r="52" fill="#f07c12"/>
+<circle r="46" fill="#ffe3b3"/>
+<g fill="#ffa53a">
+<path d="M0,0 L0,-41 A41,41 0 0,1 35.5,-20.5 Z"/><path d="M0,0 L35.5,-20.5 A41,41 0 0,1 35.5,20.5 Z"/>
+<path d="M0,0 L35.5,20.5 A41,41 0 0,1 0,41 Z"/><path d="M0,0 L0,41 A41,41 0 0,1 -35.5,20.5 Z"/>
+<path d="M0,0 L-35.5,20.5 A41,41 0 0,1 -35.5,-20.5 Z"/><path d="M0,0 L-35.5,-20.5 A41,41 0 0,1 0,-41 Z"/>
+</g>
+<g stroke="#ffe3b3" stroke-width="4"><path d="M0,-43 V43 M-37.2,-21.5 L37.2,21.5 M37.2,-21.5 L-37.2,21.5"/></g>
+<circle r="6" fill="#fff1d6"/>
+</g>
+<g id="mint">
+<path d="M0,0 C8,-18 26,-24 40,-20 C34,-6 18,2 0,0 Z" fill="#46a04a"/>
+<path d="M0,0 C-6,-18 -2,-34 10,-42 C18,-28 14,-12 0,0 Z" fill="#3a8a3f"/>
+<path d="M0,0 C14,-8 26,-14 38,-19 M0,0 C4,-14 6,-28 9,-40" stroke="#2a6a30" stroke-width="1.5" fill="none"/>
+</g>
+</defs>
+<ellipse cx="268" cy="258" rx="246" ry="240" fill="#000000" opacity="0.08"/>
+<circle cx="261" cy="248" r="240" fill="url(#plate)"/>
+<circle cx="261" cy="248" r="188" fill="none" stroke="#efebe4" stroke-width="3"/>
+<!-- Slices in an arc around the plate, mint between them. -->
+<use href="#slice" x="196" y="96"/>
+<use href="#slice" x="122" y="168"/>
+<use href="#slice" x="100" y="268"/>
+<use href="#slice" x="146" y="360"/>
+<use href="#slice" x="222" y="414"/>
+<use href="#slice" x="222" y="248"/>
+<use href="#mint" transform="translate(150 110) rotate(-30)"/>
+<use href="#mint" transform="translate(82 218) rotate(-80)"/>
+<use href="#mint" transform="translate(100 330) rotate(-120)"/>
+<use href="#mint" transform="translate(170 300) rotate(20)"/>
+<g fill="#ffffff" opacity="0.6"><circle cx="196" cy="96" r="3"/><circle cx="100" cy="268" r="3"/></g>
+</svg>

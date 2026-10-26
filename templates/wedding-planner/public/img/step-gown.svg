@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="709" height="779" viewBox="0 0 709 779">
+  <!-- Drawn for the bestax port of the Wedding Planner template; image-provenance.json records how. -->
+  <!-- A wedding gown on a hanger, hung from a hook with its tag, beside a veil, a pair of
+       shoes and a measuring tape. -->
+  <circle cx="354" cy="420" r="300" fill="#f6f2fc" />
+
+  <!-- The rail, and the hanger hooked over it. -->
+  <path d="M240 70H468" stroke="#3d3b55" stroke-width="12" stroke-linecap="round" />
+  <path d="M354 122V96C354 76 380 76 380 92" fill="none" stroke="#3d3b55" stroke-width="7" stroke-linecap="round" />
+  <path d="M354 122L248 178H460Z" fill="none" stroke="#e8c36a" stroke-width="10" stroke-linejoin="round" />
+
+  <!-- The gown: bodice, sash, and a full skirt in soft folds. -->
+  <path d="M300 178C312 210 318 240 316 300H392C390 240 396 210 408 178C380 196 328 196 300 178Z" fill="#ffffff" stroke="#d9cff0" stroke-width="4" stroke-linejoin="round" />
+  <path d="M312 300H396L404 330H304Z" fill="#c7b8ea" />
+  <path d="M304 330C260 450 200 560 168 690Q354 730 540 690C508 560 448 450 404 330Z" fill="#ffffff" stroke="#d9cff0" stroke-width="4" stroke-linejoin="round" />
+  <path d="M330 340C306 460 280 570 262 704M354 340V712M378 340C402 460 428 570 446 704" fill="none" stroke="#efeaf9" stroke-width="4" />
+  <g fill="#e9e3f7">
+    <circle cx="334" cy="230" r="6" /><circle cx="354" cy="246" r="6" /><circle cx="374" cy="230" r="6" />
+    <circle cx="344" cy="266" r="5" /><circle cx="364" cy="266" r="5" />
+  </g>
+  <circle cx="404" cy="316" r="14" fill="#e58fb5" />
+  <circle cx="388" cy="322" r="9" fill="#eeaeca" />
+
+  <!-- The tag on its string. -->
+  <path d="M440 176C470 200 486 220 494 250" fill="none" stroke="#9f93c4" stroke-width="3" />
+  <path d="M478 250H526L534 300L502 324L470 300Z" fill="#fbe3ee" stroke="#e58fb5" stroke-width="3" stroke-linejoin="round" />
+  <circle cx="502" cy="264" r="6" fill="#ffffff" stroke="#e58fb5" stroke-width="3" />
+  <path d="M502 304C494 298 492 294 494 291C496 288 500 289 502 292C504 289 508 288 510 291C512 294 510 298 502 304Z" fill="#e58fb5" />
+
+  <!-- The veil, draped on its own hook. -->
+  <path d="M110 160V190" stroke="#3d3b55" stroke-width="8" stroke-linecap="round" />
+  <path d="M110 196C70 260 60 380 84 480C110 420 140 330 140 240C136 214 124 200 110 196Z" fill="#ffffff" opacity="0.85" stroke="#e9e3f7" stroke-width="3" />
+  <ellipse cx="110" cy="200" rx="22" ry="8" fill="#e8c36a" />
+
+  <!-- Shoes and a measuring tape. -->
+  <g fill="#b9a6ec">
+    <path d="M516 712V690C530 686 546 696 560 704C576 712 600 712 610 716C614 722 608 728 598 728H530Z" />
+    <path d="M584 708V690C598 686 614 696 628 704C644 712 668 712 678 716C682 722 676 728 666 728H598Z" />
+  </g>
+  <g fill="#7d6bd6">
+    <rect x="516" y="712" width="10" height="30" rx="3" />
+    <rect x="584" y="708" width="10" height="30" rx="3" />
+  </g>
+  <g>
+    <circle cx="140" cy="690" r="40" fill="#ffe08a" />
+    <circle cx="140" cy="690" r="14" fill="#f6f2fc" />
+    <path d="M176 708C220 730 250 724 286 740" fill="none" stroke="#ffe08a" stroke-width="18" stroke-linecap="round" />
+    <path d="M196 712V722M214 718V728M232 722V732M250 726V736" stroke="#3d3b55" stroke-width="2" />
+  </g>
+</svg>

@@ -55,7 +55,7 @@ function HeroCarousel() {
                   </Buttons>
                 </Column>
                 <Column size="half">
-                  <Image as="figure" src="/images/slide-img.webp" alt="" />
+                  <Image as="figure" src="/images/slide-img.svg" alt="" />
                 </Column>
               </Columns>
             </CarouselItem>

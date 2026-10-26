@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 780" width="1920" height="780">
+<!-- Drawn for the bestax port of the Tropico template; image-provenance.json records it. -->
+<!-- Fruit scattered on deep green: citrus and kiwi slices, pineapple pieces, berries and leaves, calmer across the middle for the banner's title. -->
+<defs>
+<linearGradient id="ground" x1="0" y1="0" x2="0" y2="390" gradientUnits="userSpaceOnUse" spreadMethod="reflect">
+<stop offset="0" stop-color="#2c7041"/>
+<stop offset="1" stop-color="#1f5532"/>
+</linearGradient>
+<linearGradient id="calm" x1="0" y1="0" x2="0" y2="390" gradientUnits="userSpaceOnUse" spreadMethod="repeat">
+<stop offset="0.25" stop-color="#143a22" stop-opacity="0"/>
+<stop offset="0.5" stop-color="#143a22" stop-opacity="0.55"/>
+<stop offset="0.75" stop-color="#143a22" stop-opacity="0"/>
+</linearGradient>
+<g id="citrus">
+<circle r="46" fill="#f07c12"/>
+<circle r="40" fill="#ffe3b3"/>
+<g fill="#ffa53a">
+<path d="M0,0 L0,-36 A36,36 0 0,1 31.2,-18 Z"/><path d="M0,0 L31.2,-18 A36,36 0 0,1 31.2,18 Z"/>
+<path d="M0,0 L31.2,18 A36,36 0 0,1 0,36 Z"/><path d="M0,0 L0,36 A36,36 0 0,1 -31.2,18 Z"/>
+<path d="M0,0 L-31.2,18 A36,36 0 0,1 -31.2,-18 Z"/><path d="M0,0 L-31.2,-18 A36,36 0 0,1 0,-36 Z"/>
+</g>
+<g stroke="#ffe3b3" stroke-width="4"><path d="M0,-38 V38 M-32.9,-19 L32.9,19 M32.9,-19 L-32.9,19"/></g>
+<circle r="5" fill="#fff1d6"/>
+</g>
+<g id="lime">
+<circle r="36" fill="#4f9a2e"/>
+<circle r="31" fill="#e9f5b8"/>
+<g fill="#a6d24a">
+<path d="M0,0 L0,-28 A28,28 0 0,1 24.2,-14 Z"/><path d="M0,0 L24.2,-14 A28,28 0 0,1 24.2,14 Z"/>
+<path d="M0,0 L24.2,14 A28,28 0 0,1 0,28 Z"/><path d="M0,0 L0,28 A28,28 0 0,1 -24.2,14 Z"/>
+<path d="M0,0 L-24.2,14 A28,28 0 0,1 -24.2,-14 Z"/><path d="M0,0 L-24.2,-14 A28,28 0 0,1 0,-28 Z"/>
+</g>
+<g stroke="#e9f5b8" stroke-width="3"><path d="M0,-30 V30 M-26,-15 L26,15 M26,-15 L-26,15"/></g>
+</g>
+<g id="kiwi">
+<circle r="34" fill="#8a6a3a"/>
+<circle r="30" fill="#8cc63f"/>
+<circle r="12" fill="#f3f7d6"/>
+<g fill="#1f1f1f">
+<circle cx="0" cy="-17" r="2.4"/><circle cx="12" cy="-12" r="2.4"/><circle cx="17" cy="0" r="2.4"/>
+<circle cx="12" cy="12" r="2.4"/><circle cx="0" cy="17" r="2.4"/><circle cx="-12" cy="12" r="2.4"/>
+<circle cx="-17" cy="0" r="2.4"/><circle cx="-12" cy="-12" r="2.4"/>
+</g>
+</g>
+<g id="chunk">
+<path d="M-34,24 L0,-30 L34,24 Z" fill="#ffd34f"/>
+<path d="M-34,24 L34,24 L30,32 L-30,32 Z" fill="#e9a93a"/>
+<path d="M-14,8 L0,-14 L14,8 M-22,20 h44" stroke="#f2b632" stroke-width="3" fill="none"/>
+</g>
+<g id="leaf">
+<path d="M-50,0 C-20,-28 20,-28 50,0 C20,28 -20,28 -50,0 Z" fill="#5fb35a"/>
+<path d="M-50,0 H46" stroke="#3f8f4a" stroke-width="3"/>
+<path d="M-20,0 l14,-14 M0,0 l14,-14 M20,0 l12,-12 M-20,0 l14,14 M0,0 l14,14 M20,0 l12,12" stroke="#3f8f4a" stroke-width="2"/>
+</g>
+<g id="berry">
+<circle r="11" fill="#4a5bb5"/>
+<path d="M-4,-8 l4,4 l4,-4" stroke="#2c3780" stroke-width="2" fill="none"/>
+</g>
+<g id="strawberry">
+<path d="M0,40 C-30,20 -34,-14 -20,-24 C-8,-30 8,-30 20,-24 C34,-14 30,20 0,40 Z" fill="#e5383b"/>
+<path d="M-20,-24 L-10,-36 L0,-26 L10,-36 L20,-24 L8,-20 L0,-28 L-8,-20 Z" fill="#3f8f4a"/>
+<g fill="#ffd8a0"><circle cx="-10" cy="-6" r="2"/><circle cx="8" cy="-8" r="2"/><circle cx="0" cy="8" r="2"/><circle cx="-12" cy="12" r="2"/><circle cx="12" cy="10" r="2"/><circle cx="0" cy="24" r="2"/></g>
+</g>
+<!-- One tile of the scatter, 640 wide and 390 tall: fruit along the top and the foot. -->
+<pattern id="scatter" width="640" height="390" patternUnits="userSpaceOnUse">
+<use href="#citrus" x="64" y="62"/>
+<use href="#leaf" transform="translate(178 44) rotate(-24)"/>
+<use href="#lime" x="276" y="96"/>
+<use href="#chunk" transform="translate(372 46) rotate(14)"/>
+<use href="#kiwi" x="474" y="76"/>
+<use href="#leaf" transform="translate(588 104) rotate(32)"/>
+<use href="#berry" x="208" y="118"/><use href="#berry" x="226" y="128"/>
+<use href="#lime" x="40" y="326"/>
+<use href="#chunk" transform="translate(152 306) rotate(-18)"/>
+<use href="#citrus" x="272" y="330"/>
+<use href="#leaf" transform="translate(386 300) rotate(18)"/>
+<use href="#kiwi" x="482" y="342"/>
+<use href="#strawberry" transform="translate(592 300) rotate(-12)"/>
+<use href="#berry" x="360" y="356"/><use href="#berry" x="378" y="364"/>
+</pattern>
+</defs>
+
+<rect width="1920" height="780" fill="url(#ground)"/>
+<rect width="1920" height="780" fill="url(#scatter)"/>
+<rect width="1920" height="780" fill="url(#calm)"/>
+</svg>

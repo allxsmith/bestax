@@ -34,7 +34,7 @@ export const LIBRARY = '@allxsmith/bestax-bulma';
 /**
  * What a template folder holds: the project create-bestax scaffolds, less
  * its lint setup, plus the upstream's notice and a README crediting it.
- * `public/` holds the upstream's images and the favicon index.html names.
+ * `public/` holds the template's images and the favicon index.html names.
  */
 export const REQUIRED_FILES = [
   'LICENSE',

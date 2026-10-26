@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 563" width="1000" height="563">
+<!-- Drawn for the bestax port of the Hotel template; image-provenance.json records it. -->
+<!-- The hotel's pool by day: loungers and parasols beside the water, the sea beyond. -->
+<defs>
+<linearGradient id="sky" x1="0" y1="0" x2="0" y2="200" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#5fa8dc"/>
+<stop offset="1" stop-color="#cbe7f5"/>
+</linearGradient>
+<linearGradient id="sea" x1="0" y1="200" x2="0" y2="250" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#2f7fb5"/>
+<stop offset="1" stop-color="#4f9fcc"/>
+</linearGradient>
+<linearGradient id="water" x1="0" y1="300" x2="0" y2="563" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#5fdbe6"/>
+<stop offset="1" stop-color="#1898bd"/>
+</linearGradient>
+<g id="lounger">
+<path d="M0,0 L96,0 L122,-34 L112,-38 L90,-10 L0,-10 Z" fill="#ffffff"/>
+<path d="M4,-10 L88,-10 L88,-4 L4,-4 Z" fill="#7cc6d6"/>
+<rect x="8" y="0" width="5" height="14" fill="#9aa4ad"/>
+<rect x="82" y="0" width="5" height="14" fill="#9aa4ad"/>
+</g>
+<g id="parasol">
+<rect x="-3" y="-120" width="6" height="134" fill="#8c8f98"/>
+<path d="M-80,-110 Q0,-170 80,-110 Z" fill="#f27b5a"/>
+<path d="M-80,-110 Q-40,-118 -26,-110 Q0,-120 26,-110 Q40,-118 80,-110" fill="#e2603e"/>
+</g>
+</defs>
+
+<rect width="1000" height="200" fill="url(#sky)"/>
+<g fill="#ffffff" opacity="0.85">
+<ellipse cx="180" cy="70" rx="70" ry="18"/><ellipse cx="230" cy="58" rx="50" ry="20"/>
+<ellipse cx="760" cy="90" rx="80" ry="16"/><ellipse cx="810" cy="80" rx="46" ry="16"/>
+</g>
+<path d="M0,200 C120,170 240,180 330,196 L0,200 Z" fill="#7d9c7a"/>
+<rect y="198" width="1000" height="52" fill="url(#sea)"/>
+<path d="M60,220 h40 M300,232 h60 M620,214 h50 M820,236 h70" stroke="#bfe3f3" stroke-width="3"/>
+<path d="M880,206 l18,0 l-4,8 l-12,0 Z" fill="#ffffff"/>
+<path d="M889,206 l0,-18 l9,16 Z" fill="#ffffff"/>
+
+<!-- The deck, with a glass balustrade at the sea's edge. -->
+<rect y="250" width="1000" height="313" fill="#e8dcc6"/>
+<rect y="244" width="1000" height="10" fill="#f6efe2"/>
+<g stroke="#d9cbb1" stroke-width="2">
+<path d="M0,300 H1000 M0,380 H1000 M0,470 H1000"/>
+</g>
+
+<!-- The pool. -->
+<path d="M150,300 L850,300 L960,563 L40,563 Z" fill="url(#water)" stroke="#ffffff" stroke-width="12" stroke-linejoin="round"/>
+<g fill="none" stroke="#c9f6fa" stroke-width="4" stroke-linecap="round" opacity="0.7">
+<path d="M250,340 q30,-8 60,0 t60,0 t60,0"/>
+<path d="M560,370 q30,-8 60,0 t60,0 t60,0"/>
+<path d="M180,440 q40,-10 80,0 t80,0 t80,0 t80,0"/>
+<path d="M560,480 q40,-10 80,0 t80,0 t80,0"/>
+<path d="M120,530 q45,-12 90,0 t90,0"/>
+<path d="M420,540 q45,-12 90,0 t90,0 t90,0"/>
+</g>
+<!-- A float on the water and a pool ladder. -->
+<circle cx="640" cy="420" r="34" fill="#ffd34f"/>
+<circle cx="640" cy="420" r="16" fill="#3fc0d6"/>
+<path d="M606,420 a34,34 0 0,1 34,-34" stroke="#ff8a5c" stroke-width="10" fill="none"/>
+<path d="M784,296 v40 M806,296 v40" stroke="#c7ccd2" stroke-width="5" fill="none"/>
+<path d="M784,296 q0,-20 11,-20 q11,0 11,20" stroke="#c7ccd2" stroke-width="5" fill="none"/>
+
+<!-- Loungers and parasols on either side. -->
+<use href="#parasol" x="60" y="300"/>
+<use href="#lounger" x="10" y="330"/>
+<use href="#lounger" x="20" y="420"/>
+<use href="#parasol" x="940" y="300"/>
+<use href="#lounger" x="868" y="330" transform="translate(1858,0) scale(-1,1)"/>
+<use href="#lounger" x="858" y="420" transform="translate(1838,0) scale(-1,1)"/>
+<!-- Rolled towels on a stool. -->
+<rect x="460" y="262" width="80" height="26" rx="4" fill="#c9a985"/>
+<circle cx="482" cy="256" r="11" fill="#ffffff" stroke="#e6e1d8" stroke-width="2"/>
+<circle cx="506" cy="256" r="11" fill="#7cc6d6"/>
+<circle cx="530" cy="256" r="11" fill="#ffffff" stroke="#e6e1d8" stroke-width="2"/>
+</svg>

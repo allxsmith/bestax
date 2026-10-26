@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="660" height="309" viewBox="0 0 660 309">
+  <!-- Drawn for the bestax port of the Rent template; image-provenance.json records how. -->
+  <!-- A street of row houses in the evening, under a crescent moon: some rooms lit, a
+       "For rent" sign in one window, and street trees along the curb. -->
+  <path d="M20 309V60A40 40 0 0 1 60 20H600A40 40 0 0 1 640 60V309Z" fill="#26415e" />
+  <g fill="#ffffff">
+    <circle cx="80" cy="60" r="2" /><circle cx="150" cy="44" r="1.5" /><circle cx="240" cy="70" r="2" />
+    <circle cx="330" cy="40" r="1.5" /><circle cx="420" cy="64" r="2" /><circle cx="600" cy="90" r="1.5" />
+  </g>
+  <path d="M548 40a32 32 0 1 0 30 46a26 26 0 1 1-30-46Z" fill="#ffd66b" />
+
+  <!-- Five row houses, each its own color, roof line stepping. -->
+  <g stroke="#1a2c40" stroke-width="2.5">
+    <rect x="40" y="130" width="110" height="179" fill="#3f6e8c" />
+    <rect x="150" y="110" width="110" height="199" fill="#8a4f5c" />
+    <rect x="260" y="140" width="110" height="169" fill="#4a7d6a" />
+    <rect x="370" y="104" width="110" height="205" fill="#6b5a8a" />
+    <rect x="480" y="128" width="140" height="181" fill="#3f6e8c" />
+  </g>
+  <g fill="#1a2c40">
+    <rect x="34" y="122" width="122" height="10" /><rect x="144" y="102" width="122" height="10" />
+    <rect x="254" y="132" width="122" height="10" /><rect x="364" y="96" width="122" height="10" />
+    <rect x="474" y="120" width="152" height="10" />
+  </g>
+
+  <!-- Windows: lit warm, lit by a screen, or dark. -->
+  <g stroke="#1a2c40" stroke-width="2">
+    <rect x="58" y="150" width="30" height="40" fill="#ffd66b" /><rect x="102" y="150" width="30" height="40" fill="#1f3448" />
+    <rect x="58" y="210" width="30" height="40" fill="#1f3448" /><rect x="102" y="210" width="30" height="40" fill="#ffe7a8" />
+    <rect x="168" y="130" width="30" height="40" fill="#1f3448" /><rect x="212" y="130" width="30" height="40" fill="#8fe3d6" />
+    <rect x="168" y="190" width="30" height="40" fill="#ffd66b" /><rect x="212" y="190" width="30" height="40" fill="#1f3448" />
+    <rect x="278" y="160" width="30" height="40" fill="#ffe7a8" /><rect x="322" y="160" width="30" height="40" fill="#ffd66b" />
+    <rect x="388" y="124" width="30" height="40" fill="#1f3448" /><rect x="432" y="124" width="30" height="40" fill="#ffd66b" />
+    <rect x="388" y="184" width="30" height="40" fill="#8fe3d6" /><rect x="432" y="184" width="30" height="40" fill="#1f3448" />
+    <rect x="500" y="148" width="40" height="40" fill="#ffd66b" /><rect x="560" y="148" width="40" height="40" fill="#ffffff" />
+    <rect x="500" y="208" width="40" height="40" fill="#1f3448" /><rect x="560" y="208" width="40" height="40" fill="#ffe7a8" />
+  </g>
+  <rect x="562" y="159" width="36" height="18" fill="#f2777a" />
+  <text x="580" y="170.5" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="6.5" font-weight="700" fill="#ffffff">FOR RENT</text>
+
+  <!-- Front doors and steps. -->
+  <g fill="#1a2c40">
+    <rect x="80" y="262" width="28" height="44" rx="14" /><rect x="190" y="252" width="28" height="54" rx="14" />
+    <rect x="300" y="262" width="28" height="44" rx="14" /><rect x="410" y="252" width="28" height="54" rx="14" />
+    <rect x="536" y="262" width="28" height="44" rx="14" />
+  </g>
+  <g fill="#ffd66b">
+    <circle cx="94" cy="256" r="3" /><circle cx="204" cy="246" r="3" /><circle cx="314" cy="256" r="3" />
+    <circle cx="424" cy="246" r="3" /><circle cx="550" cy="256" r="3" />
+  </g>
+
+  <!-- Street trees in front. -->
+  <g>
+    <rect x="148" y="270" width="5" height="39" fill="#1a2c40" />
+    <circle cx="150" cy="262" r="20" fill="#2f7f6a" />
+    <rect x="368" y="270" width="5" height="39" fill="#1a2c40" />
+    <circle cx="370" cy="262" r="20" fill="#2f7f6a" />
+  </g>
+</svg>

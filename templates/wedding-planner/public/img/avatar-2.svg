@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64pt" height="64pt" viewBox="0 0 64 64">
+  <!-- Drawn for the bestax port of the Wedding Planner template; image-provenance.json records how. -->
+  <!-- A made-up client: long brown hair, a pink top. -->
+  <clipPath id="frame"><circle cx="32" cy="32" r="31" /></clipPath>
+  <circle cx="32" cy="32" r="31" fill="#fbe3ee" />
+  <g clip-path="url(#frame)">
+    <path d="M18 30C16 16 24 11 32 11C40 11 48 16 46 30L49 52H15Z" fill="#6b4a3a" />
+    <path d="M10 66C10 52 20 45 32 45C44 45 54 52 54 66Z" fill="#e58fb5" />
+    <rect x="27.5" y="35" width="9" height="11" rx="3" fill="#e8b48f" />
+    <circle cx="32" cy="27" r="11.5" fill="#f1c7a5" />
+    <path d="M20.5 26C21 17 26 14 32 14C38 14 43 17 43.5 26C39 24 35 20 33 17C30 22 26 25 20.5 26Z" fill="#6b4a3a" />
+    <circle cx="27.5" cy="28.5" r="1.5" fill="#3d2b22" />
+    <circle cx="36.5" cy="28.5" r="1.5" fill="#3d2b22" />
+    <path d="M28 33.5Q32 36.5 36 33.5" fill="none" stroke="#3d2b22" stroke-width="1.5" stroke-linecap="round" />
+  </g>
+</svg>
