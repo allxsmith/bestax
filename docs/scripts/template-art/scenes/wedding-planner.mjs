@@ -631,7 +631,7 @@ function bouquetScene() {
         k ? leafDk : leaf
       );
   }
-  // The stems, gathered, and a white ribbon tied round them with a bow.
+  // The stems, gathered, and a lavender ribbon tied round them with a bow.
   s.cylinder(0, 0, -23, 3.4, 22, stem);
   s.cylinder(0, 0, -12, 4, 2, ribbon);
   // The bow: a loop on each face either side of the front corner, so the
@@ -693,7 +693,7 @@ function galleryBouquet() {
   return document({
     width: W,
     height: H,
-    label: 'A blocky bridal bouquet tied with a white ribbon',
+    label: 'A blocky bridal bouquet tied with a lavender ribbon',
     layers,
   });
 }

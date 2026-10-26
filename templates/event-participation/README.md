@@ -64,7 +64,7 @@ code for this port:
 [`scenes/event-participation.mjs`](https://github.com/allxsmith/bestax/blob/main/docs/scripts/template-art/scenes/event-participation.mjs)
 in the bestax repository places every block, and the renderer beside it writes the SVG, so running
 it again writes the same file. No photo, illustration, stock image or image-generation model went
-into it, and it copies existing artwork. It replaces the original's logo image, whose source the
+into it, and it copies no existing artwork. It replaces the original's logo image, whose source the
 original does not record, so this port ships no image of unknown origin.
 
 `image-provenance.json` records the image with its SHA-256 hash, so anyone can check that the file
