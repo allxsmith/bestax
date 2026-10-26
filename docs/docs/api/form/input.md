@@ -256,6 +256,21 @@ Pair `color` and `messageColor` to produce success and danger validation states 
 
 ---
 
+### Visually Hidden Label for Screen Readers
+
+A field the design shows with no label still needs one for screen readers. Keep the `label` and hide it from view with `labelProps={{ className: 'is-sr-only' }}`. It stays the input's name and takes no space. `visibility="sr-only"` on the `Input` won't do it: `Input` puts its helper props on the `<input>`, so that hides the input instead.
+
+```tsx live
+<Input
+  label="Email"
+  labelProps={{ className: 'is-sr-only' }}
+  type="email"
+  placeholder="you@example.com"
+/>
+```
+
+---
+
 ### Form Addons
 
 For multi-control rows like input + button, drop down to manual `Field` + `Control` composition. Use `<Field hasAddons>` with multiple `<Control>` children. Use `<Control isExpanded>` on the input so it fills the available space.

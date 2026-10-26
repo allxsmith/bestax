@@ -348,6 +348,7 @@
       ],
       "extraProps": [],
       "catchAll": "All standard <select> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the `.select` wrapper `<div>`, with `className`. The other attributes go on the `<select>`.",
       "types": []
     },
     {
@@ -494,6 +495,7 @@
       ],
       "extraProps": [],
       "catchAll": "All standard <select> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the `.select` wrapper `<div>`, with `className`. The other attributes go on the `<select>`.",
       "types": [],
       "standalone": "base"
     }

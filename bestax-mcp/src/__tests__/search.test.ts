@@ -256,6 +256,45 @@ describe('ranking realistic queries', () => {
   });
 });
 
+describe('searchAll over the helper props (#1273)', () => {
+  let helpers: ComponentRecord[];
+  beforeAll(async () => {
+    helpers = [await loadComponent('useBulmaClasses')];
+  });
+  const find = (query: string, kinds = ALL) =>
+    searchAll(query, catalog, helpers, skills, kinds);
+
+  it('names a helper prop and the group call that lists it', () => {
+    expect(find('margin top', ['prop'])[0]).toMatchObject({
+      kind: 'prop',
+      name: 'mt (helper prop)',
+      next: 'get_helper_props({ group: "spacing" })',
+    });
+  });
+
+  it('finds one by what its values do', () => {
+    expect(find('screen reader only', ['prop'])[0]).toMatchObject({
+      name: 'visibility (helper prop)',
+      next: 'get_helper_props({ group: "layout" })',
+    });
+  });
+
+  it('takes one word of three for a passing mention, and no hit', () => {
+    expect(
+      find('screen nothing nowhere', ['prop']).map(h => h.name)
+    ).not.toContain('visibility (helper prop)');
+  });
+
+  it("keeps a few of one group's props beside other kinds, and all alone", () => {
+    const count = (kinds: HitKind[]) =>
+      find('margin', kinds).filter(
+        h => h.next === 'get_helper_props({ group: "spacing" })'
+      ).length;
+    expect(count(ALL)).toBe(3);
+    expect(count(['prop'])).toBeGreaterThan(3);
+  });
+});
+
 describe('skillSections', () => {
   const md = [
     'Intro before any heading.',

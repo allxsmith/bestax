@@ -22,6 +22,8 @@ import {
   barrelExports,
   createProgram,
   extractComponent,
+  extractHelperProps,
+  helperPropsNoteOf,
   topLevelInitializers,
   transparentPropWrapper,
   unsupportedPropWrapper,
@@ -96,6 +98,58 @@ test('the catch-all row loses its code spans in structured mode', () => {
     'Remaining props of the element or component selected by as (default <button>) and Bulma helper props'
   );
   assert.equal(structured.helpers, md.helpers);
+});
+
+test('@helperProps says where the helper props go, from a base too (#1273)', () => {
+  const note = (component, opts) =>
+    extractComponent(component, opts).tables[0].catchAll.helperPropsNote;
+  assert.match(note('Checkbox'), /^Helper props go on the outer `<label>`/);
+  // Select's props type extends SelectBase's, which carries the tag.
+  assert.match(note('Select'), /`\.select` wrapper `<div>`/);
+  // The note keeps its code spans in both modes: it is prose, not a type.
+  assert.equal(note('Checkbox', { markdown: false }), note('Checkbox'));
+  // Where they land with the other attributes, there is nothing to say.
+  assert.equal(note('Button'), undefined);
+});
+
+test('the most-derived @helperProps wins, and one on a type with no helper props stops the build', () => {
+  const helpers = { helpers: true };
+  assert.equal(
+    helperPropsNoteOf('X', [null, 'Base.', 'Root.'], helpers),
+    'Base.'
+  );
+  assert.equal(helperPropsNoteOf('X', [null, null], helpers), null);
+  assert.equal(helperPropsNoteOf('X', [], null), null);
+  for (const catchAll of [null, { helpers: false }]) {
+    assert.throws(
+      () => helperPropsNoteOf('Skeleton', ['On the <div>.'], catchAll),
+      /Skeleton: @helperProps says where its helper props go, but its props type takes none/
+    );
+  }
+});
+
+test('the helper props are read with their TSDoc and values, less breakpoint variants (#1273)', () => {
+  const rows = extractHelperProps({ markdown: false });
+  const visibility = rows.find(r => r.name === 'visibility');
+  assert.equal(visibility.type, "'hidden' | 'sr-only' | 'invisible'");
+  assert.match(visibility.description, /screen readers/);
+  assert.ok(rows.some(r => r.name === 'mt'));
+  // `visibilityMobile` is `visibility` at one `viewport` value.
+  assert.ok(!rows.some(r => r.name === 'visibilityMobile'));
+  // A prop whose name extends another's without a viewport stays.
+  assert.ok(rows.some(r => r.name === 'colorShade'));
+  assert.ok(rows.every(r => !('node' in r)));
+  const md = extractHelperProps().find(r => r.name === 'visibility');
+  assert.equal(md.type, "`'hidden'` | `'sr-only'` | `'invisible'`");
+  // In the tuple's own order, not the order the checker met the literals in.
+  assert.equal(
+    rows.find(r => r.name === 'textWeight').type,
+    "'light' | 'normal' | 'medium' | 'semibold' | 'bold'"
+  );
+  assert.throws(
+    () => extractHelperProps({ type: 'NoSuchProps' }),
+    /exports no NoSuchProps interface/
+  );
 });
 
 // --- the polymorphic `as` contract (#641) --------------------------------

@@ -11,6 +11,7 @@
  */
 import type { Catalog, ComponentRecord, Skill } from './data.js';
 import { attributedLinks } from './format.js';
+import { resolveGroup } from './helper-props.js';
 
 export type HitKind = 'component' | 'prop' | 'example' | 'css-var' | 'skill';
 
@@ -467,6 +468,21 @@ const COMPONENT_BONUS = 30;
  */
 const CSS_VARS_PER_COMPONENT = 3;
 
+/**
+ * How many helper props of one `get_helper_props` group a search of more than
+ * one kind returns: "margin" matches all seven margin props, and one call
+ * lists them.
+ */
+const HELPER_PROPS_PER_GROUP = 3;
+
+/** How many hits that share this one's next call a search keeps, or null for all. */
+const capPerCall = (h: Hit): number | null =>
+  h.kind === 'css-var'
+    ? CSS_VARS_PER_COMPONENT
+    : h.next.startsWith('get_helper_props(')
+      ? HELPER_PROPS_PER_GROUP
+      : null;
+
 export function searchAll(
   query: string,
   catalog: Catalog,
@@ -561,6 +577,36 @@ export function searchAll(
           }
         }
       }
+      // The helper props every component takes, on the page that documents
+      // them. One a query is about, by most of its words, gets the bonus a
+      // component does, since it answers whatever the builder renders, where a
+      // component's prop with the same words answers for that one component:
+      // `visibility` for "screen reader only label", which only label props
+      // answered before (#1273).
+      for (const p of record.helperProps ?? []) {
+        const hay = `${p.name} ${p.type} ${p.description}`;
+        const matched = score(hay, p.name, terms, q);
+        const lowerHay = norm(hay);
+        const covered = terms.filter(t => termHit(lowerHay, t) > 0).length;
+        const s =
+          matched > 0 && covered * 2 > terms.length
+            ? matched + COMPONENT_BONUS
+            : matched;
+        if (s > 20) {
+          const group = resolveGroup(p.name);
+          hits.push({
+            kind: 'prop',
+            name: `${p.name} (helper prop)`,
+            detail: `${p.type}${
+              p.description ? ` — ${attributedLinks(p.description)}` : ''
+            }`,
+            next: group
+              ? `get_helper_props({ group: "${group}" })`
+              : 'get_helper_props()',
+            score: s,
+          });
+        }
+      }
     }
     if (want('example')) {
       for (const e of record.examples) {
@@ -627,14 +673,16 @@ export function searchAll(
   // And a component's CSS variables share a prefix and one next call, so a query
   // that names the prefix ("bulma-carousel") matched every one of them and filled
   // the limit, above the component and the skill's recipe (#1236). The best few stand.
+  // The same goes for the helper props one group call lists.
   const perCall = new Map<string, number>();
   return hits.filter(h => {
     const key = `${h.kind}\u0000${h.name}`;
     if (seen.has(key)) return false;
     seen.add(key);
-    if (h.kind === 'css-var' && kinds.length > 1) {
+    const cap = kinds.length > 1 ? capPerCall(h) : null;
+    if (cap !== null) {
       const count = perCall.get(h.next) ?? 0;
-      if (count >= CSS_VARS_PER_COMPONENT) return false;
+      if (count >= cap) return false;
       perCall.set(h.next, count + 1);
     }
     return true;

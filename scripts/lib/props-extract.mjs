@@ -1609,6 +1609,35 @@ function pickRootClass(name, candidates) {
 }
 
 /**
+ * Where a part's helper props go, from `@helperProps` on its props type or the
+ * first base that has one, most-derived first, as `@extraProp` is read, so
+ * `Select` says what `SelectBase` does. It says so where that is not where the
+ * other attributes go: `Checkbox` puts its helper props on its outer `<label>`
+ * and the rest on its `<input>`, and the catch-all row alone, "All standard
+ * <input> attributes and Bulma helper props", reads as if both went to the
+ * `<input>` (#1273).
+ *
+ * A tag on a props type that takes no helper props stops the build. Split out,
+ * like `unnameablePropsError`, because no fixture can reach that from
+ * `extractComponent`, which reads the real source tree.
+ *
+ * @param {string} impl The component, for the message.
+ * @param {Array<string|null>} notes Each owner's tag text, most-derived first.
+ * @param {{helpers: boolean}|null} catchAll The part's catch-all row.
+ * @returns {string|null}
+ */
+export function helperPropsNoteOf(impl, notes, catchAll) {
+  const note = notes.find(Boolean) ?? null;
+  if (note && !catchAll?.helpers) {
+    throw new Error(
+      `${impl}: @helperProps says where its helper props go, but its props ` +
+        `type takes none. Remove the tag, or take BulmaClassesProps.`
+    );
+  }
+  return note;
+}
+
+/**
  * The loud-failure message for a component whose props type could not be named,
  * or null when there is nothing wrong.
  *
@@ -1641,7 +1670,7 @@ export function unnameablePropsError(impl, ifaceName, fn) {
  *   structured consumer (the MCP index): plain type text, and `deprecated` /
  *   `deprecationNote` / `valuesRef` as their own row fields. Defaults to `true`
  *   so the docs generator's output is unaffected.
- * @returns {{name, tsdoc, rootClass, varPrefix, tables: [{path, rows, catchAll: {text, helpers}|null, extraProps}]}}
+ * @returns {{name, tsdoc, rootClass, varPrefix, tables: [{path, rows, catchAll: {text, helpers, helperPropsNote?}|null, extraProps}]}}
  */
 export function extractComponent(
   name,
@@ -2019,6 +2048,13 @@ export function extractComponent(
       if (rows[i].synthetic && claimed.has(rows[i].name)) rows.splice(i, 1);
     }
 
+    const catchAll = catchAllRow(external, markdown);
+    const helperPropsNote = helperPropsNoteOf(
+      impl,
+      [decl, ...expandedDecls].map(owner => jsdocTag(ts, owner, 'helperProps')),
+      catchAll
+    );
+
     tables.push({
       path,
       impl,
@@ -2033,7 +2069,10 @@ export function extractComponent(
         jsdocText(ts, componentFunction(ts, implInit)),
       rows,
       extraProps,
-      catchAll: catchAllRow(external, markdown),
+      catchAll: catchAll && {
+        ...catchAll,
+        ...(helperPropsNote ? { helperPropsNote } : {}),
+      },
       helpersLink: `${linkBase}helpers/usebulmaclasses.md`,
     });
   }
@@ -2076,4 +2115,114 @@ export function extractComponent(
     compoundNames,
     sourceFile: sf.fileName,
   };
+}
+
+/** The props type every component's helper props come from. */
+export const HELPER_PROPS_TYPE = 'BulmaClassesProps';
+
+/**
+ * The helper props every component takes, `BulmaClassesProps`, as rows with
+ * each one's TSDoc, read through the interfaces it extends. A component's
+ * table sums them up in its catch-all row, so nothing else lists them one by
+ * one with what each does, and `search_bestax` could not find `visibility`
+ * for "screen reader only" (#1273).
+ *
+ * @param {object} [opts]
+ * @param {boolean} [opts.markdown=true] As for `extractComponent`.
+ * @param {string} [opts.type] The interface to read, a test seam.
+ * @returns {Array<{name, type, default, description, inherited}>}
+ */
+export function extractHelperProps({
+  markdown = true,
+  type = HELPER_PROPS_TYPE,
+} = {}) {
+  const { ts, program, checker } = createProgram();
+  const where =
+    exportedModules().get(type) ??
+    starExportedModule(ts, program, checker, type);
+  const sf = where && sourceFileFor(program, where.cat, where.mod);
+  const decl = sf?.statements.find(
+    s => ts.isInterfaceDeclaration(s) && s.name.text === type
+  );
+  if (!decl) {
+    throw new Error(
+      `bulma-ui/src/index.ts exports no ${type} interface, which the helper ` +
+        `props are read from.`
+    );
+  }
+  const aliases = new Map(
+    [...allAliases(ts, program)]
+      .filter(([, a]) => a.expansion.length <= ALIAS_INLINE_MAX)
+      .map(([n, a]) => [n, a.expansion])
+  );
+  const rows = new Map();
+  // Breadth first from the interface itself, as a component's bases are, so
+  // a member it declares again wins over the one it extends.
+  const queue = [{ decl, filter: () => true }];
+  const seen = new Set([decl]);
+  while (queue.length) {
+    const { decl: base, filter } = queue.shift();
+    const merged = new Map([
+      ...aliases,
+      ...localStringUnionAliases(ts, base.getSourceFile()),
+    ]);
+    for (const row of memberRows(ts, base, merged, new Map(), '', false, null, {
+      markdown,
+    })) {
+      if (filter(row.name) && !rows.has(row.name)) rows.set(row.name, row);
+    }
+    for (const next of classifyHeritage(ts, checker, base, seen).expand) {
+      queue.push({
+        decl: next.decl,
+        filter: n => filter(n) && next.filter(n),
+      });
+    }
+  }
+  // The helper interfaces type most props `(typeof validX)[number]`, from a
+  // tuple in another module, which a component's table never shows since its
+  // catch-all row stands for them. Here the type is the row, so the values
+  // are read from the tuple itself, in its order.
+  const tupleValues = member => {
+    let query = member.type;
+    if (!query || !ts.isIndexedAccessTypeNode(query)) return null;
+    query = query.objectType;
+    while (ts.isParenthesizedTypeNode(query)) query = query.type;
+    if (!ts.isTypeQueryNode(query)) return null;
+    let symbol = checker.getSymbolAtLocation(query.exprName);
+    if (symbol && symbol.flags & ts.SymbolFlags.Alias) {
+      symbol = checker.getAliasedSymbol(symbol);
+    }
+    const tuple = symbol?.declarations?.[0];
+    return tuple
+      ? typeofArrayExpansion(
+          ts,
+          tuple.getSourceFile(),
+          query.exprName.getText()
+        )
+      : null;
+  };
+  // A breakpoint variant (`visibilityMobile`) is its base prop at one of the
+  // values `viewport` takes, and says nothing the base does not. The base
+  // answers a search for what it does, and get_helper_props lists them all.
+  const viewport = rows.get('viewport');
+  const suffixes = splitUnion((viewport && tupleValues(viewport.node)) ?? '')
+    .map(v =>
+      v
+        .replace(/^'|'$/g, '')
+        .replace(/(^|-)(\w)/g, (_, _dash, c) => c.toUpperCase())
+    )
+    .filter(Boolean);
+  const variant = name =>
+    suffixes.some(s => name.endsWith(s) && rows.has(name.slice(0, -s.length)));
+  return [...rows.values()]
+    .filter(row => !variant(row.name))
+    .map(({ node, ...row }) => {
+      const values = tupleValues(node);
+      if (!values || values.length > ALIAS_INLINE_MAX) return row;
+      const members = splitUnion(values);
+      return {
+        ...row,
+        type: (markdown ? members.map(v => `\`${v}\``) : members).join(' | '),
+      };
+    });
 }

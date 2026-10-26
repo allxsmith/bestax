@@ -60,6 +60,12 @@ export interface Part {
   noProps?: boolean;
   /** Set on an export of its own that the record documents; see `Standalone`. */
   standalone?: Standalone;
+  /**
+   * Where the helper props go, from the props type's `@helperProps`, when that
+   * is not the element the catch-all's attributes go to: `Checkbox` puts them
+   * on its outer `<label>` and the rest on the `<input>`.
+   */
+  helperPropsNote?: string;
 }
 
 /**
@@ -131,6 +137,11 @@ export interface ComponentRecord {
   doc?: string;
   /** A hook's `## API` signature block, its answer to a props table. */
   api?: string | null;
+  /**
+   * The helper props every component takes, with what each does, on the page
+   * that documents them (useBulmaClasses), which search_bestax reads.
+   */
+  helperProps?: PropRow[];
 }
 
 export interface CatalogEntry {
