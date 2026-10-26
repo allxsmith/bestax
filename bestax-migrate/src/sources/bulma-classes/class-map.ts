@@ -2734,9 +2734,10 @@ export const BY_HAND: Readonly<Record<string, string>> = {
  * The bulma-social brand colors, the classes it adds to Bulma's `.button`,
  * across its majors: read off the stylesheet each publishes (`css/all.css`
  * in 2 and 3, `bin/bulma-social.css` in 1). Nothing here installs it, so a
- * brand a later release adds is missing until it is added here.
+ * brand a later release adds is missing until it is added here. The HTML
+ * input reads them too, to name the per-brand stylesheets a page needs.
  */
-const BULMA_SOCIAL = [
+export const BULMA_SOCIAL = [
   'apple',
   'bitbucket',
   'discord',
@@ -2791,6 +2792,12 @@ export const ELSEWHERE: ReadonlyArray<{
   {
     why: "a bulma-social class, a Bulma extension's brand color for Bulma's `.button`, which bestax's `Button` renders: keep loading bulma-social and keep the class on `Button` in `className`, since bestax has no component for it (the bestax-migrate skill's `html-asset:bulma-extension` has the recipe)",
     match: new RegExp(`^is-(?:${BULMA_SOCIAL.join('|')}|animated)$`),
+  },
+  {
+    why: "a bulma-social helper, a Bulma extension's text or background color in a brand's color, with `-dark` and `-light` for its shades: keep loading bulma-social and keep the class in `className` on the element that has it, since bestax has no prop for it (the bestax-migrate skill's `html-asset:bulma-extension` has the recipe, and the brand's own stylesheet holds it)",
+    match: new RegExp(
+      `^has-(?:text|background)-(?:${BULMA_SOCIAL.join('|')})(?:-dark|-light)?$`
+    ),
   },
   {
     why: "a bulma-carousel class, a Bulma extension bestax's `Carousel` does the job of (the bestax-migrate skill's `html-asset:bulma-extension` says how). Once the page stops loading bulma-carousel nothing styles it: `is-covered`'s `object-fit: cover` on a slide's image goes in the app's own CSS",

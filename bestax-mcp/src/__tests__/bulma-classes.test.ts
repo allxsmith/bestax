@@ -184,7 +184,10 @@ describe('the note on a class another stylesheet styles', () => {
       ['mdi-home', 1],
       ['is-facebook', 2],
       ['is-x', 2],
-      ['is-covered', 3],
+      ['has-text-github', 3],
+      ['has-background-youtube-dark', 3],
+      ['has-text-x-light', 3],
+      ['is-covered', 4],
     ] as const) {
       expect({ token, note: noteOf(token) }).toEqual({
         token,

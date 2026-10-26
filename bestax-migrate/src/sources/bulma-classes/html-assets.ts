@@ -11,6 +11,7 @@
 
 import type { CssMode } from '../../types.js';
 import { FONT_AWESOME_PEER_RANGE } from '../_shared/deps-common.js';
+import { BULMA_SOCIAL } from './class-map.js';
 
 export type Loads = 'stylesheet' | 'script';
 
@@ -291,22 +292,71 @@ export function extensionPackage(name: string): string {
 }
 
 /**
- * What a page's link to an extension leaves to do. `covered`: the page has
- * images with bulma-carousel's `is-covered`, which its stylesheet crops only
- * inside its own slides, so keeping the extension doesn't keep them cropped.
+ * A bulma-social class, captured as the brand it is for: the button color
+ * (`is-github`), and the text and background helpers in the brand's color and
+ * its two shades (`has-text-github-dark`). Each per-brand stylesheet it ships,
+ * `css/single/<brand>/<brand>.min.css` from 2 on, holds all three for its
+ * brand, read off each release from 2.0.0 to 3.2.0. Every brand here has one
+ * from 3.2.0: `slack`'s came in 2.1.0, `x`'s in 3.1.0 and `twitch`'s in 3.2.0.
  */
+const SOCIAL_CLASS = new RegExp(
+  `^(?:is-(${BULMA_SOCIAL.join('|')})|has-(?:text|background)-(${BULMA_SOCIAL.join('|')})(?:-dark|-light)?)$`
+);
+
+/** The bulma-social brand a class is for (`github`), or null for any other. */
+export function socialBrand(token: string): string | null {
+  const match = SOCIAL_CLASS.exec(token);
+  return match ? (match[1] ?? match[2]) : null;
+}
+
+/** `a`, `a and b`, `a, b and c`. */
+function inWords(items: readonly string[]): string {
+  return items.length > 1
+    ? `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`
+    : items[0];
+}
+
+/** What the page shows that bears on keeping an extension. */
+export interface ExtensionFacts {
+  /**
+   * The page has images with bulma-carousel's `is-covered`, which its
+   * stylesheet crops only inside its own slides, so keeping the extension
+   * doesn't keep them cropped.
+   */
+  covered?: boolean;
+  /**
+   * The bulma-social brands its markup shows (`socialBrand`), each once, in
+   * the page's order: the per-brand stylesheets it needs.
+   */
+  brands?: readonly string[];
+}
+
+/**
+ * bulma-social's note. It ships a stylesheet per brand beside the one with
+ * every brand, a few kB each against about 100 kB (3.2.0's `all.min.css` is
+ * 102 kB, its brands 3.6 to 4.6 kB), so the note names the files for the
+ * brands the page's markup shows, or the pattern when it shows none.
+ */
+function socialMessage(from: string, brands: readonly string[]): string {
+  const shown =
+    brands.length > 0
+      ? `this page's markup shows ${inWords(brands)}: ${inWords(brands.map(brand => `\`bulma-social/css/single/${brand}/${brand}.min.css\``))}`
+      : "this page's markup has no brand class, so only the ones a script of the page adds";
+  return `the page loads bulma-social, a Bulma extension for brand-colored buttons, ${from}, and bestax has no component for it: keep loading it once for the app, since its classes (\`is-twitter\`, \`is-github\` and the rest) style Bulma's \`.button\`, which bestax's \`Button\` renders, so they go on \`Button\` through \`className\`; it ships a stylesheet for each brand too, \`css/single/<brand>/<brand>.min.css\`, a few kB each against about 100 kB for every brand in \`css/all.min.css\`, so with \`bulma-social\` 3.2.0 or later from npm, the first release with a file for every brand, import only the brands the app shows from its entry (${shown}), or keep the \`<link>\` in its index.html`;
+}
+
+/** What a page's link to an extension leaves to do. */
 export function extensionMessage(
   name: string,
   quoted: string[],
   loads: ReadonlySet<Loads>,
   css: CssMode,
-  covered = false
+  facts: ExtensionFacts = {}
 ): string {
+  const { covered = false, brands = [] } = facts;
   const from = `from ${quoted.map(url => `\`${url}\``).join(' and ')}`;
   const bare = extensionPackage(name);
-  if (bare === 'bulma-social') {
-    return `the page loads bulma-social, a Bulma extension for brand-colored buttons, ${from}, and bestax has no component for it: keep loading it once for the app (\`bulma-social\` from npm, imported from its entry, or the \`<link>\` in its index.html), since its classes (\`is-twitter\`, \`is-github\` and the rest) style Bulma's \`.button\`, which bestax's \`Button\` renders, so they go on \`Button\` through \`className\``;
-  }
+  if (bare === 'bulma-social') return socialMessage(from, brands);
   if (bare === 'bulma-extensions') {
     return `the page loads bulma-extensions, a bundle of Bulma extensions, ${from}: bestax has components for several of them (the bestax-migrate skill's \`references/bulma-classes/unmappables.md\` lists which), so render those in place of the extensions' markup and scripts, and keep loading the bundle only while the app still uses one bestax has no component for`;
   }

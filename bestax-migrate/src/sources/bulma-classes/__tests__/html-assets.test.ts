@@ -20,6 +20,7 @@ import {
   GUIDE_0_9_TO_1,
   PRIMARY_CLASS,
   scriptMessage,
+  socialBrand,
   stylesheetMessage,
   webfontMessage,
   type Asset,
@@ -415,7 +416,9 @@ describe('Bulma extensions', () => {
 
   it("says bulma-carousel's is-covered images need a rule of their own, only when the page has them", () => {
     const covered = (name: string, has: boolean) =>
-      extensionMessage(name, ['c.css'], new Set(['stylesheet']), 'keep', has);
+      extensionMessage(name, ['c.css'], new Set(['stylesheet']), 'keep', {
+        covered: has,
+      });
     expect(covered('bulma-carousel', true)).toMatch(
       /stop loading the extension once nothing the app keeps uses its classes; the page's `is-covered` images are cropped by its stylesheet only inside its own slides, .*the `html-extension:is-covered` TODO has$/
     );
@@ -439,6 +442,68 @@ describe('Bulma extensions', () => {
     );
     expect(text).toContain('bestax has no component for it');
     expect(text).toContain('go on `Button` through `className`');
+  });
+
+  it("names bulma-social's stylesheet for each brand the page shows, in its order", () => {
+    const text = extensionMessage(
+      'bulma-social',
+      ['s.css'],
+      new Set(['stylesheet']),
+      'bestax',
+      { brands: ['facebook', 'twitter', 'github'] }
+    );
+    expect(text).toContain(
+      "import only the brands the app shows from its entry (this page's markup shows facebook, twitter and github: `bulma-social/css/single/facebook/facebook.min.css`, `bulma-social/css/single/twitter/twitter.min.css` and `bulma-social/css/single/github/github.min.css`), or keep the `<link>` in its index.html"
+    );
+    expect(
+      extensionMessage(
+        'bulma-social',
+        ['s.css'],
+        new Set(['stylesheet']),
+        'keep',
+        {
+          brands: ['x'],
+        }
+      )
+    ).toContain('shows x: `bulma-social/css/single/x/x.min.css`)');
+    // `x`'s file came in 3.1.0 and `twitch`'s in 3.2.0, so the note asks for
+    // the first release with one for every brand.
+    expect(text).toContain(
+      'with `bulma-social` 3.2.0 or later from npm, the first release with a file for every brand'
+    );
+  });
+
+  it("names the pattern of bulma-social's per-brand stylesheets when the page shows no brand", () => {
+    const text = extensionMessage(
+      'bulma-social',
+      ['s.css'],
+      new Set(['stylesheet']),
+      'keep'
+    );
+    expect(text).toContain('`css/single/<brand>/<brand>.min.css`');
+    expect(text).toContain(
+      "(this page's markup has no brand class, so only the ones a script of the page adds)"
+    );
+    expect(text).not.toContain('bulma-social/css/single/');
+  });
+
+  it("reads a bulma-social class as its brand: the button's color, and the text and background helpers in each shade", () => {
+    expect(socialBrand('is-github')).toBe('github');
+    expect(socialBrand('is-x')).toBe('x');
+    expect(socialBrand('has-text-twitter')).toBe('twitter');
+    expect(socialBrand('has-background-youtube-dark')).toBe('youtube');
+    expect(socialBrand('has-text-vk-light')).toBe('vk');
+    for (const other of [
+      'is-github-dark',
+      'is-animated',
+      'is-primary',
+      'has-text-primary',
+      'has-text-github-darker',
+      'is-GitHub',
+      'button',
+    ]) {
+      expect(socialBrand(other)).toBeNull();
+    }
   });
 
   it('points the bundle at the reference, and says to keep an unknown one', () => {

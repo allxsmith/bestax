@@ -628,6 +628,20 @@ neither, so load what the app still needs once for the whole app, from its entry
   </Button>
   ```
 
+  It also ships one stylesheet per brand, `css/single/<brand>/<brand>.min.css`, a few kB each
+  against about 100 kB for every brand in `css/all.min.css`. Each holds the brand's button color
+  (`is-<brand>`) and its text and background helpers (`has-text-<brand>`,
+  `has-background-<brand>`, with `-dark` and `-light`). Every brand has a file from 3.2.0 on
+  (`slack`'s came in 2.1.0, `x`'s in 3.1.0 and `twitch`'s in 3.2.0). So with `bulma-social` 3.2.0
+  or later installed from npm, import only the brands the app shows, from its entry. The TODO names the files for the brands
+  in the page's markup, so an app of several pages imports each brand any of them shows, and one
+  a script adds as well:
+
+  ```ts
+  import 'bulma-social/css/single/github/github.min.css';
+  import 'bulma-social/css/single/twitter/twitter.min.css';
+  ```
+
   Any other extension: keep loading it while the page's markup uses its classes, which go on
   bestax's components through `className`, and under `--css bestax` or `--css bulma` check it
   works with Bulma 1, which an extension can predate.

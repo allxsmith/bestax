@@ -894,6 +894,38 @@ describe('the stylesheets and scripts it loads', () => {
     expect(output).toMatch(/markup and script, .*\(case\.html:2, 5\)$/m);
   });
 
+  it("names bulma-social's stylesheet for each brand the page's markup shows, once each, in its order", () => {
+    const social = link(
+      'https://cdn.jsdelivr.net/npm/bulma-social@3/css/all.min.css'
+    );
+    const { entries } = convert(
+      page(
+        social,
+        [
+          '<div class="buttons">',
+          '<a class="button is-facebook" href="#">Facebook</a>',
+          '<a class="button is-twitter" href="#">Twitter</a>',
+          '<a class="button is-facebook is-outlined" href="#">Again</a>',
+          '</div>',
+          '<p class="has-text-github-dark">GitHub</p>',
+          '<p class="is-primary">Not a brand</p>',
+          '',
+        ].join('\n')
+      )
+    );
+    const note = entries.find(
+      entry => entry.rule === 'html-asset:bulma-extension'
+    );
+    expect(note?.message).toContain(
+      "this page's markup shows facebook, twitter and github: `bulma-social/css/single/facebook/facebook.min.css`, `bulma-social/css/single/twitter/twitter.min.css` and `bulma-social/css/single/github/github.min.css`"
+    );
+    const none = convert(page(social)).entries.find(
+      entry => entry.rule === 'html-asset:bulma-extension'
+    );
+    expect(none?.message).toContain("this page's markup has no brand class");
+    expect(none?.message).not.toContain('bulma-social/css/single/');
+  });
+
   it('reads a script beside the page for the burger, a carousel and a theme toggle, but not a modal', () => {
     const dir = tempDir();
     fs.mkdirSync(path.join(dir, 'js'));
