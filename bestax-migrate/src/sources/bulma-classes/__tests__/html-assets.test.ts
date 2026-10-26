@@ -466,6 +466,11 @@ describe('Bulma extensions', () => {
         }
       )
     ).toContain('shows x: `bulma-social/css/single/x/x.min.css`)');
+    // `x`'s file came in 3.1.0 and `twitch`'s in 3.2.0, so the note asks for
+    // the first release with one for every brand.
+    expect(text).toContain(
+      'with `bulma-social` 3.2.0 or later from npm, the first release with a file for every brand'
+    );
   });
 
   it("names the pattern of bulma-social's per-brand stylesheets when the page shows no brand", () => {

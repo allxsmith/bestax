@@ -296,7 +296,8 @@ export function extensionPackage(name: string): string {
  * (`is-github`), and the text and background helpers in the brand's color and
  * its two shades (`has-text-github-dark`). Each per-brand stylesheet it ships,
  * `css/single/<brand>/<brand>.min.css` from 2 on, holds all three for its
- * brand, read off each release from 2.0.0 to 3.2.0.
+ * brand, read off each release from 2.0.0 to 3.2.0. Every brand here has one
+ * from 3.2.0: `slack`'s came in 2.1.0, `x`'s in 3.1.0 and `twitch`'s in 3.2.0.
  */
 const SOCIAL_CLASS = new RegExp(
   `^(?:is-(${BULMA_SOCIAL.join('|')})|has-(?:text|background)-(${BULMA_SOCIAL.join('|')})(?:-dark|-light)?)$`
@@ -341,7 +342,7 @@ function socialMessage(from: string, brands: readonly string[]): string {
     brands.length > 0
       ? `this page's markup shows ${inWords(brands)}: ${inWords(brands.map(brand => `\`bulma-social/css/single/${brand}/${brand}.min.css\``))}`
       : "this page's markup has no brand class, so only the ones a script of the page adds";
-  return `the page loads bulma-social, a Bulma extension for brand-colored buttons, ${from}, and bestax has no component for it: keep loading it once for the app, since its classes (\`is-twitter\`, \`is-github\` and the rest) style Bulma's \`.button\`, which bestax's \`Button\` renders, so they go on \`Button\` through \`className\`; it ships a stylesheet for each brand too, \`css/single/<brand>/<brand>.min.css\`, a few kB each against about 100 kB for every brand in \`css/all.min.css\`, so with \`bulma-social\` from npm, import only the brands the app shows from its entry (${shown}), or keep the \`<link>\` in its index.html`;
+  return `the page loads bulma-social, a Bulma extension for brand-colored buttons, ${from}, and bestax has no component for it: keep loading it once for the app, since its classes (\`is-twitter\`, \`is-github\` and the rest) style Bulma's \`.button\`, which bestax's \`Button\` renders, so they go on \`Button\` through \`className\`; it ships a stylesheet for each brand too, \`css/single/<brand>/<brand>.min.css\`, a few kB each against about 100 kB for every brand in \`css/all.min.css\`, so with \`bulma-social\` 3.2.0 or later from npm, the first release with a file for every brand, import only the brands the app shows from its entry (${shown}), or keep the \`<link>\` in its index.html`;
 }
 
 /** What a page's link to an extension leaves to do. */

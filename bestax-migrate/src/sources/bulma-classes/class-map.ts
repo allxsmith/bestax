@@ -2794,6 +2794,12 @@ export const ELSEWHERE: ReadonlyArray<{
     match: new RegExp(`^is-(?:${BULMA_SOCIAL.join('|')}|animated)$`),
   },
   {
+    why: "a bulma-social helper, a Bulma extension's text or background color in a brand's color, with `-dark` and `-light` for its shades: keep loading bulma-social and keep the class in `className` on the element that has it, since bestax has no prop for it (the bestax-migrate skill's `html-asset:bulma-extension` has the recipe, and the brand's own stylesheet holds it)",
+    match: new RegExp(
+      `^has-(?:text|background)-(?:${BULMA_SOCIAL.join('|')})(?:-dark|-light)?$`
+    ),
+  },
+  {
     why: "a bulma-carousel class, a Bulma extension bestax's `Carousel` does the job of (the bestax-migrate skill's `html-asset:bulma-extension` says how). Once the page stops loading bulma-carousel nothing styles it: `is-covered`'s `object-fit: cover` on a slide's image goes in the app's own CSS",
     match:
       /^(?:has-carousel|hero-carousel|is-background|is-covered|slider-(?:container|item|navigation-next|navigation-previous|page|pagination)|video-container)$/,
