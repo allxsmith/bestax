@@ -26,10 +26,9 @@ name: Claude Repro
 #
 #       Be precise about what that buys: it raises the cost of the naive path and
 #       converts it into a failed build, but an encoding check cannot be complete
-#       (chunk it, reverse it, rot13 it). I1's real strength is the combination of
-#       no execution primitive and the token never sharing a job with the publish
-#       step, with the credential check as the last line rather than the first. Do
-#       not weaken either of those on the grounds that the check exists.
+#       (chunk it, reverse it, rot13 it). Do not weaken I1's two legs, no
+#       execution primitive and the token never sharing a job with the publish
+#       step, on the grounds that the check exists.
 #
 #       harden-runner's egress block enforces again as of #487 (it used to
 #       degrade to audit on every run), and the step after it asserts the
@@ -288,8 +287,8 @@ jobs:
           # covers feature-flag evaluation, which is why statsig.anthropic.com
           # is no longer needed in the allowlist above.
           # I1: no Bash / Task / web tools, so the session cannot execute code,
-          # read env (the OAuth token), fetch, or reach another issue. It can only
-          # read the checkout + the pre-fetched issue and write ONE test file.
+          # fetch, or reach another issue. `Read` still reaches the OAuth token
+          # (see the header), which is why `Collect draft` checks the draft.
           claude_args: |
             --max-turns 30
             --model claude-sonnet-5
@@ -378,8 +377,8 @@ jobs:
             # Removing Bash stops the session shelling out, but `Read` is NOT
             # confined to the workspace — /proc/self/environ and
             # ~/.claude/.credentials.json are both reachable — and `publish` posts
-            # this file to a public comment. So "no Bash" does not by itself close
-            # the exfil path; this check does.
+            # this file to a public comment. So "no Bash" does not close the
+            # exfil path, and this check is what stands on it.
             #
             # Refuse rather than redact. A draft containing a credential means the
             # session went somewhere it had no business going, and quietly
@@ -389,13 +388,11 @@ jobs:
             # Literal, plus the two encodings a drafter would reach for first.
             # This raises the cost of exfil; it is NOT a proof. An encoding check
             # can never be complete — chunked, reversed, rot13 or arithmetic
-            # encodings all defeat it. The real control is the tool restriction
-            # (no Bash/gh/Task); this catches the naive path and turns it into a
-            # failed build instead of a public comment. Egress-block is the
-            # second real control and enforces again since #487, but note it
-            # cannot help on this particular path: the exfil route this check
-            # guards is the drafted file itself, published by a later job, not
-            # an outbound connection from the drafting session.
+            # encodings all defeat it. It catches the naive path and turns it into
+            # a failed build instead of a public comment. Neither the tool
+            # restriction nor egress-block reaches this path: the route this
+            # check guards is the drafted file itself, published by a later job,
+            # not a shell or an outbound connection from the drafting session.
             for secret in "$OAUTH_TOKEN" "$JOB_TOKEN"; do
               [ -n "$secret" ] || continue
               B64=$(printf '%s' "$secret" | base64 | tr -d '\n=')

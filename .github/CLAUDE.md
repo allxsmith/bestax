@@ -74,7 +74,11 @@ reads. Where the PAT sits differs and is the thing to check: triage hands a fini
 a publish job that holds the PAT and runs no model; repro's publisher holds no PAT at all and
 posts with `GITHUB_TOKEN` (I2); the fix loop and `@bestaxbot` hand the PAT to the session
 itself. That exposure is the job: reviewing and fixing code means running it, and no rule here
-pretends otherwise.
+pretends otherwise. Egress-block does not contain it. Code running in a job can carry a
+credential it can read out over the paths past the list that need no root ("What the agent
+allows beyond the list"), so which job holds a credential is the control, not the list. Whether
+that should change which jobs hold which credentials, bestaxbot's PAT and SSH signing key first,
+is open on #1014.
 
 **The accepted defences.** These are the answer, and a review does not re-litigate whether they
 are sufficient: actions pinned to one SHA repo-wide (rule 1); tool allowlists held as a
@@ -119,9 +123,10 @@ regardless of how convenient it is.
   execution.** `CLAUDE_CODE_OAUTH_TOKEN` pays for a session; anything that can run code in the
   same job can read it out of the environment. `claude-repro.yml` splits drafting from publishing
   for exactly this reason: the drafting job has no `Bash`, no `Task`, no network tool, so it
-  cannot fetch or execute. Note the direction of the guarantee — it raises the cost of
-  exfiltration, it is not a proof. The credential-shape check in `Collect draft` (literal,
-  base64, and hex forms) is a backstop for the same reason, and is documented as one.
+  cannot fetch or execute. It can still read the token, because `Read` is not confined to the
+  workspace (`claude-repro.yml`'s header says what it reaches). What stands between that and the
+  comment `publish` posts is the credential-shape check in `Collect draft` (literal, base64, and
+  hex forms). That check raises the cost of exfiltration and is not a proof.
 
   **Read the scope precisely, because the unqualified version is false.** This is a property
   `claude-repro` is _built_ to preserve, not a repo-wide fact. `claude-implement`,
