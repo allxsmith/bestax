@@ -109,11 +109,17 @@ const CompoundModalCardComponent = () => {
     <>
       <button onClick={() => setOpen(true)}>Show Modal</button>
       {/* Escape and Modal.Close call onClose, the background its own onClick. */}
-      <Modal isActive={open} onClose={closeModal}>
+      <Modal
+        isActive={open}
+        onClose={closeModal}
+        aria-labelledby="compound-modal-title"
+      >
         <Modal.Background onClick={closeModal} />
         <Modal.Card>
           <Modal.Card.Head>
-            <Modal.Card.Title>Compound Component Modal</Modal.Card.Title>
+            <Modal.Card.Title id="compound-modal-title">
+              Compound Component Modal
+            </Modal.Card.Title>
             <Modal.Close />
           </Modal.Card.Head>
           <Modal.Card.Body>{declarationLatin}</Modal.Card.Body>
@@ -141,11 +147,17 @@ const CompoundModalContentComponent = () => {
   return (
     <>
       <button onClick={() => setOpen(true)}>Show Modal</button>
-      <Modal isActive={open} onClose={closeModal}>
+      <Modal
+        isActive={open}
+        onClose={closeModal}
+        aria-labelledby="compound-content-modal-title"
+      >
         <Modal.Background onClick={closeModal} />
         <Modal.Content>
           <div style={{ background: '#fff', padding: 24, borderRadius: 4 }}>
-            <h3 className="title is-4">Compound Component Content Modal</h3>
+            <h3 className="title is-4" id="compound-content-modal-title">
+              Compound Component Content Modal
+            </h3>
             <p>{declarationLatin}</p>
           </div>
         </Modal.Content>
