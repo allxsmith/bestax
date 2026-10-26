@@ -42,15 +42,15 @@
       "code": "<Numberinput defaultValue={5} disabled />"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › Default (with label)",
       "code": "<Numberinput\n  label=\"Quantity\"\n  defaultValue={1}\n  min={1}\n  max={10}\n  color=\"primary\"\n/>"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field Wrapper",
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Quantity\"\n      labelProps={{ htmlFor: 'quantity-field' }}\n    >\n      <Field.Body>\n        <Field>\n          <Numberinput\n            id=\"quantity-field\"\n            bare={false}\n            defaultValue={1}\n            min={1}\n            max={10}\n            color=\"primary\"\n          />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field and Control Wrappers",
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Quantity\"\n      labelProps={{ htmlFor: 'quantity-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control>\n            <Numberinput\n              id=\"quantity-field-control\"\n              defaultValue={1}\n              min={1}\n              max={10}\n              color=\"primary\"\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],

@@ -22,11 +22,11 @@
       "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal active={open} onClose={() => setOpen(false)}>\n        <Box>\n          <Title size=\"4\">Custom Content</Title>\n          <Paragraph>Put any content here!</Paragraph>\n        </Box>\n      </Modal>\n    </>\n  );\n}"
     },
     {
-      "title": "Explicit Modal Types",
+      "title": "Explicit Modal Types › Force content style",
       "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal active={open} onClose={() => setOpen(false)} type=\"content\">\n        <div>Custom content modal (forced type=\"content\")</div>\n      </Modal>\n    </>\n  );\n}"
     },
     {
-      "title": "Explicit Modal Types",
+      "title": "Explicit Modal Types › Force card style",
       "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal active={open} onClose={() => setOpen(false)} type=\"card\">\n        Modal card body (forced type=\"card\")\n      </Modal>\n    </>\n  );\n}"
     },
     {
@@ -38,11 +38,11 @@
       "code": "function example() {\n  const [open, setOpen] = React.useState(false);\n  const [width, setWidth] = React.useState<number | null>(null);\n  const modalRef = React.useRef<HTMLDivElement>(null);\n\n  return (\n    <>\n      <Button color=\"info\" onClick={() => setOpen(true)}>\n        Open and measure\n      </Button>\n      <Modal\n        active={open}\n        onClose={() => setOpen(false)}\n        ref={modalRef}\n        modalCardTitle=\"Measured through the ref\"\n      >\n        <Button\n          onClick={() =>\n            setWidth(modalRef.current?.getBoundingClientRect().width ?? null)\n          }\n        >\n          Measure\n        </Button>\n        <p>Width: {width === null ? '—' : `${Math.round(width)}px`}</p>\n      </Modal>\n    </>\n  );\n}"
     },
     {
-      "title": "Compound (dot-notation) usage",
+      "title": "Compound (dot-notation) usage › Modal.Card with compound components",
       "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const closeModal = () => setOpen(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal isActive={open} onClose={closeModal}>\n        <Modal.Background onClick={closeModal} />\n        <Modal.Card>\n          <Modal.Card.Head>\n            <Modal.Card.Title>Compound Component Modal</Modal.Card.Title>\n            <Modal.Close />\n          </Modal.Card.Head>\n          <Modal.Card.Body>\n            This modal uses the compound components API for better control and\n            readability.\n          </Modal.Card.Body>\n          <Modal.Card.Foot>\n            <Buttons>\n              <Button color=\"success\" onClick={closeModal}>\n                Save\n              </Button>\n              <Button onClick={closeModal}>Cancel</Button>\n            </Buttons>\n          </Modal.Card.Foot>\n        </Modal.Card>\n      </Modal>\n    </>\n  );\n}"
     },
     {
-      "title": "Compound (dot-notation) usage",
+      "title": "Compound (dot-notation) usage › Modal.Content with compound components",
       "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const closeModal = () => setOpen(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal isActive={open} onClose={closeModal}>\n        <Modal.Background onClick={closeModal} />\n        <Modal.Content>\n          <Box>\n            <Title size=\"4\">Custom Content</Title>\n            <Paragraph>Using compound components for full control!</Paragraph>\n          </Box>\n        </Modal.Content>\n        <Modal.Close variant=\"floating\" />\n      </Modal>\n    </>\n  );\n}"
     }
   ],

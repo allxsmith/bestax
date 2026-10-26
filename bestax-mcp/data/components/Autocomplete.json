@@ -42,15 +42,15 @@
       "code": "function example() {\n  const fruits = [\n    'Apple',\n    'Apricot',\n    'Avocado',\n    'Banana',\n    'Blackberry',\n    'Blueberry',\n  ];\n\n  return (\n    <Autocomplete data={fruits} placeholder=\"Type to filter...\" keepFirst />\n  );\n}"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › Default (with label)",
       "code": "<Autocomplete\n  label=\"Fruit\"\n  data={['Apple', 'Banana', 'Cherry']}\n  placeholder=\"Search fruit...\"\n/>"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field Wrapper",
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Fruit\"\n      labelProps={{ htmlFor: 'fruit-field', id: 'fruit-field-label' }}\n    >\n      <Field.Body>\n        <Field>\n          <Autocomplete\n            id=\"fruit-field\"\n            data={['Apple', 'Banana', 'Cherry']}\n            placeholder=\"Search fruit...\"\n          />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field and Control Wrappers",
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Fruit\"\n      labelProps={{\n        htmlFor: 'fruit-field-control',\n        id: 'fruit-field-control-label',\n      }}\n    >\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"search\">\n            <Autocomplete\n              id=\"fruit-field-control\"\n              data={['Apple', 'Banana', 'Cherry']}\n              placeholder=\"Search fruit...\"\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],

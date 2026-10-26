@@ -22,19 +22,19 @@
       "code": "<>\n  <Message title=\"Default Size\">This is the default size message.</Message>\n  <Message size=\"small\" title=\"Small\">\n    This is a small message.\n  </Message>\n  <Message size=\"medium\" title=\"Medium\">\n    This is a medium message.\n  </Message>\n  <Message size=\"large\" title=\"Large\">\n    This is a large message.\n  </Message>\n</>"
     },
     {
-      "title": "Compound (dot-notation) usage",
+      "title": "Compound (dot-notation) usage › Complete Message with Compound Components",
       "code": "<Message color=\"info\">\n  <Message.Header>\n    <Paragraph>Compound Component Message</Paragraph>\n    <Delete aria-label=\"delete\" />\n  </Message.Header>\n  <Message.Body>\n    <Paragraph>\n      This message is built using compound components for maximum flexibility\n      and control over each section.\n    </Paragraph>\n    <Paragraph>\n      You can include multiple paragraphs and elements in the body.\n    </Paragraph>\n  </Message.Body>\n</Message>"
     },
     {
-      "title": "Compound (dot-notation) usage",
+      "title": "Compound (dot-notation) usage › Minimal Message with Body Only",
       "code": "<Message color=\"success\">\n  <Message.Body>\n    <Paragraph>\n      A simple message using only the Message.Body compound component.\n    </Paragraph>\n  </Message.Body>\n</Message>"
     },
     {
-      "title": "Compound (dot-notation) usage",
+      "title": "Compound (dot-notation) usage › Header-Only Message",
       "code": "<Message color=\"warning\">\n  <Message.Header>\n    <Paragraph>Header-only message</Paragraph>\n    <Delete aria-label=\"delete\" />\n  </Message.Header>\n</Message>"
     },
     {
-      "title": "Compound (dot-notation) usage",
+      "title": "Compound (dot-notation) usage › Mixed Approach",
       "code": "<Message color=\"danger\" title=\"Mixed Approach\">\n  <Message.Body>\n    <Paragraph>\n      You can mix prop-based and compound component approaches!\n    </Paragraph>\n    <Paragraph>\n      This message uses the title prop but compound components for the body.\n    </Paragraph>\n  </Message.Body>\n</Message>"
     }
   ],
