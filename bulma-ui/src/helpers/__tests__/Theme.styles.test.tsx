@@ -13,19 +13,29 @@
 import fs from 'fs';
 import path from 'path';
 import * as sass from 'sass';
-import { render } from '@testing-library/react';
+import type { ReactElement } from 'react';
+import { cleanup, render } from '@testing-library/react';
 import { ConfigProvider } from '../Config';
 import { Theme } from '../Theme';
 
 const PKG = path.resolve(__dirname, '../../..');
 const SCSS = path.join(PKG, 'src', 'scss');
 
-const compile = (file: string) =>
-  sass.compile(path.join(SCSS, file), {
-    loadPaths: [path.resolve(PKG, '../node_modules')],
-    quietDeps: true,
-    logger: sass.Logger.silent,
-  }).css;
+/** Each sheet compiled once, for every block below that loads it. */
+const compiled = new Map<string, string>();
+
+const compile = (file: string) => {
+  let css = compiled.get(file);
+  if (css === undefined) {
+    css = sass.compile(path.join(SCSS, file), {
+      loadPaths: [path.resolve(PKG, '../node_modules')],
+      quietDeps: true,
+      logger: sass.Logger.silent,
+    }).css;
+    compiled.set(file, css);
+  }
+  return css;
+};
 
 /**
  * Every published stylesheet, read off `exports` the way
@@ -187,3 +197,122 @@ describe.each(SHEETS)('$file', ({ file, prefix }) => {
     });
   });
 });
+
+// A color's on-scheme lightness given per scheme (#1184) has to land where
+// Bulma's own value for that scheme would, whichever way the page picks its
+// scheme. So these load the same stylesheets, put a root Theme's rules after
+// them as the browser would, and resolve the variable on the root and on an
+// element that names a scheme of its own. jsdom ranks rules by their order
+// alone, not by specificity, so that every one of Theme's selectors is as
+// specific as `:root` is pinned by the rule text in Theme.test.tsx.
+describe.each(SHEETS)(
+  'an on-scheme value per scheme, $file',
+  ({ file, prefix }) => {
+    const KEY = '--bulma-primary-on-scheme-l';
+    let css: string;
+    let bulmaDark: string;
+    let sheet: HTMLStyleElement | undefined;
+
+    beforeAll(() => {
+      css = compile(file);
+      const rule = new RegExp(
+        `\\[data-${prefix}theme=dark\\][^{]*\\{[^}]*${KEY}:\\s*([^;]+);`
+      ).exec(css);
+      if (!rule) throw new Error(`${file} sets no dark ${KEY}`);
+      bulmaDark = rule[1].trim();
+    }, 60000);
+
+    afterEach(() => {
+      cleanup();
+      sheet?.remove();
+      sheet = undefined;
+    });
+
+    /**
+     * Load the sheet as a visitor whose OS prefers `os` sees it, then render
+     * `ui` and give the root Theme's own `prefers-color-scheme` rules the same
+     * treatment, so they keep their place after the sheet.
+     */
+    const renderFor = (os: Os, ui: ReactElement) => {
+      sheet = document.createElement('style');
+      sheet.textContent = forOs(css, os);
+      document.head.appendChild(sheet);
+      const result = render(
+        <ConfigProvider classPrefix={prefix}>{ui}</ConfigProvider>
+      );
+      const own = document.getElementById('bestax-bulma-theme-vars');
+      if (own?.textContent) {
+        own.textContent = own.textContent
+          .split(`@media (prefers-color-scheme: ${os})`)
+          .join('@media screen');
+      }
+      return result;
+    };
+
+    const resolved = (element: Element = document.documentElement) =>
+      getComputedStyle(element).getPropertyValue(KEY).trim();
+
+    const both = { light: '30%', dark: '70%' };
+
+    describe.each(['light', 'dark'] as const)('on a %s OS', os => {
+      it.each([
+        [undefined, os],
+        ['system', os],
+        ['light', 'light'],
+        ['dark', 'dark'],
+      ] as const)(
+        'with colorMode %s, takes the %s value',
+        (colorMode, scheme) => {
+          renderFor(
+            os,
+            <Theme isRoot colorMode={colorMode} bulmaVars={{ [KEY]: both }}>
+              <span />
+            </Theme>
+          );
+          expect(resolved()).toBe(both[scheme]);
+        }
+      );
+
+      it('leaves a scheme it has no value for to the stylesheet', () => {
+        renderFor(
+          os,
+          <Theme
+            isRoot
+            colorMode="dark"
+            bulmaVars={{ [KEY]: { light: '30%' } }}
+          >
+            <span />
+          </Theme>
+        );
+        expect(resolved()).toBe(bulmaDark);
+      });
+
+      it('applies on an element that names the other scheme', () => {
+        const other = os === 'light' ? 'dark' : 'light';
+        const { getByTestId } = renderFor(
+          os,
+          <Theme isRoot bulmaVars={{ [KEY]: both }}>
+            <div data-testid="named" className={`${prefix}theme-${other}`} />
+          </Theme>
+        );
+        expect(resolved()).toBe(both[os]);
+        expect(resolved(getByTestId('named'))).toBe(both[other]);
+      });
+
+      it('loses to a later root Theme that gives one value', () => {
+        renderFor(
+          os,
+          <>
+            <Theme isRoot bulmaVars={{ [KEY]: both }}>
+              <span />
+            </Theme>
+            <Theme isRoot bulmaVars={{ [KEY]: '50%' }}>
+              <span />
+            </Theme>
+          </>
+        );
+        expect(resolved()).toBe('50%');
+      });
+    });
+  }
+);

@@ -12,9 +12,10 @@
 // Of those built lightnesses, the label on a solid color
 // (--bulma-<color>-invert-l) and the color's text on the page
 // (--bulma-<color>-on-scheme-l, which for `link` is every link) were picked
-// for contrast. A color that reads lighter or darker than the stylesheet's
-// own needs those set in your CSS too, which Theme does not do;
-// references/css-variables.md ("Colors") says how.
+// for contrast with the stylesheet's own color. A color that reads lighter or
+// darker than that one sets them too, through bulmaVars. On an isRoot Theme
+// the on-scheme one takes a value for each scheme. references/css-variables.md
+// ("Colors") says how to pick them.
 import type { ReactNode } from 'react';
 import {
   Theme,
@@ -37,6 +38,12 @@ export function ThemedApp({ children }: { children: ReactNode }) {
       // Anything without a named prop goes through `bulmaVars`, keyed by the real
       // --bulma-* variable names (string values).
       bulmaVars={{
+        // Purple text reads darker than the stylesheet's blue at the same
+        // lightness, so on a dark page it needs a lighter shade than the one
+        // built for the blue. Each scheme gets its own, and these read at 4.5:1
+        // or more on Bulma's white and near-black pages. The white label the
+        // blue was built with still reads on this purple, so the invert stays.
+        '--bulma-primary-on-scheme-l': { light: '41%', dark: '65%' },
         '--bulma-radius': '0.75rem',
         '--bulma-radius-large': '1.25rem',
         // 'Inter' must actually be loaded (index.html <link> or an @fontsource

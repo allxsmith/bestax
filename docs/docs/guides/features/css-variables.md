@@ -187,11 +187,29 @@ the color's text on the page (`--bulma-<color>-on-scheme-l`, which for `link` is
 the page) keep lightnesses Bulma's Sass build picked by contrast with the color it was built
 with. bestax's stylesheet builds its primary from a dark blue, so a light primary set through the
 trio alone keeps white labels it can't carry. A color that reads lighter or darker than the built
-one sets both in your CSS too, since `Theme` and `bulmaVars` don't take them. The bestax-theming
-skill's
+one sets both too, through `Theme`'s `bulmaVars` or in your CSS. The on-scheme lightness has to
+read on a light page and on a dark one, so Bulma gives each scheme its own, and on an `isRoot`
+`Theme` its key takes one value per scheme:
+
+```tsx
+<Theme
+  isRoot
+  primaryH="171deg"
+  primaryS="100%"
+  primaryL="41%"
+  bulmaVars={{
+    '--bulma-primary-invert-l': 'var(--bulma-primary-05-l)',
+    '--bulma-primary-on-scheme-l': { light: '21%', dark: '41%' },
+  }}
+>
+  <App />
+</Theme>
+```
+
+The [Theme API page](../../api/helpers/theme.md#label-and-text-lightnesses) has the rest of how
+`Theme` writes them, and the bestax-theming skill's
 [CSS variables reference](https://github.com/allxsmith/bestax/blob/main/skills/bestax-theming/references/css-variables.md)
-says what reads each one, how to pick the values, and why the on-scheme lightness takes one per
-scheme.
+says what reads each one, how to pick the values, and how to set them in CSS.
 
 ### Typography Variables
 
@@ -281,9 +299,9 @@ function DarkModeApp() {
 }
 ```
 
-`colorMode` writes the attribute from an effect, so a page rendered in the browser paints its
-first frame with whatever `<html>` already has: the OS scheme, when nothing set one. A toggle
-that remembers the visitor's choice writes it before that frame, from an inline script in
+`colorMode` writes the attribute before the browser paints what `Theme` rendered, but the page can
+paint before the app's script runs at all, with whatever `<html>` already has: the OS scheme,
+when nothing set one. A toggle that remembers the visitor's choice writes it before that frame, from an inline script in
 `index.html`'s `<head>`, and starts its state from the attribute the script wrote. The
 `bestax-theming` skill's
 [dark-mode example](https://github.com/allxsmith/bestax/blob/main/skills/bestax-theming/examples/dark-mode.tsx)
@@ -376,8 +394,8 @@ Apply exactly one of these rules:
 **Rule 1 — single-mode design: lock the scheme.** If the design is light-only (or dark-only),
 pin it on the `<html>` in your `index.html`, `<html lang="en" data-theme="light">`, so an OS
 preference can never invert text out from under your palette, the first paint included.
-`<Theme isRoot colorMode="light">` pins it as well, but from an effect, so a page rendered in the
-browser shows the OS scheme for its first frame.
+`<Theme isRoot colorMode="light">` pins it as well, but only once the app's script runs, so the
+page can show the OS scheme before that.
 
 **Rule 2 — both modes: never expose a fixed token to the flip.** Derive your tokens from
 Bulma's scheme variables, or provide the dark-mode pair yourself:
