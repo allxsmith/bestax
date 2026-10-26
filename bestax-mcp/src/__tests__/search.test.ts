@@ -285,6 +285,12 @@ describe('searchAll over the helper props (#1273)', () => {
     ).not.toContain('visibility (helper prop)');
   });
 
+  it('takes a short name in a sentence for a word, not the prop', () => {
+    // `my` is a helper prop, and "my" its whole name, worth a name's score.
+    expect(find('style my button', ['prop'])).toEqual([]);
+    expect(find('my', ['prop'])[0].name).toBe('my (helper prop)');
+  });
+
   it("keeps a few of one group's props beside other kinds, and all alone", () => {
     const count = (kinds: HitKind[]) =>
       find('margin', kinds).filter(

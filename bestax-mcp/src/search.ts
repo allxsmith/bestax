@@ -578,34 +578,30 @@ export function searchAll(
         }
       }
       // The helper props every component takes, on the page that documents
-      // them. One a query is about, by most of its words, gets the bonus a
-      // component does, since it answers whatever the builder renders, where a
-      // component's prop with the same words answers for that one component:
-      // `visibility` for "screen reader only label", which only label props
-      // answered before (#1273).
+      // them. One answers only a query that is about it, by most of its words,
+      // and then gets the bonus a component does, since it answers whatever
+      // the builder renders, where a component's prop with the same words
+      // answers for that one component: `visibility` for "screen reader only
+      // label", which only label props answered before (#1273). Short names
+      // are everyday words, and a passing one is no answer: "my" in "style my
+      // button" is no question about `my`.
       for (const p of record.helperProps ?? []) {
         const hay = `${p.name} ${p.type} ${p.description}`;
-        const matched = score(hay, p.name, terms, q);
         const lowerHay = norm(hay);
         const covered = terms.filter(t => termHit(lowerHay, t) > 0).length;
-        const s =
-          matched > 0 && covered * 2 > terms.length
-            ? matched + COMPONENT_BONUS
-            : matched;
-        if (s > 20) {
-          const group = resolveGroup(p.name);
-          hits.push({
-            kind: 'prop',
-            name: `${p.name} (helper prop)`,
-            detail: `${p.type}${
-              p.description ? ` — ${attributedLinks(p.description)}` : ''
-            }`,
-            next: group
-              ? `get_helper_props({ group: "${group}" })`
-              : 'get_helper_props()',
-            score: s,
-          });
-        }
+        if (covered * 2 <= terms.length) continue;
+        const group = resolveGroup(p.name);
+        hits.push({
+          kind: 'prop',
+          name: `${p.name} (helper prop)`,
+          detail: `${p.type}${
+            p.description ? ` — ${attributedLinks(p.description)}` : ''
+          }`,
+          next: group
+            ? `get_helper_props({ group: "${group}" })`
+            : 'get_helper_props()',
+          score: score(hay, p.name, terms, q) + COMPONENT_BONUS,
+        });
       }
     }
     if (want('example')) {
