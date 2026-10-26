@@ -2734,9 +2734,10 @@ export const BY_HAND: Readonly<Record<string, string>> = {
  * The bulma-social brand colors, the classes it adds to Bulma's `.button`,
  * across its majors: read off the stylesheet each publishes (`css/all.css`
  * in 2 and 3, `bin/bulma-social.css` in 1). Nothing here installs it, so a
- * brand a later release adds is missing until it is added here.
+ * brand a later release adds is missing until it is added here. The HTML
+ * input reads them too, to name the per-brand stylesheets a page needs.
  */
-const BULMA_SOCIAL = [
+export const BULMA_SOCIAL = [
   'apple',
   'bitbucket',
   'discord',

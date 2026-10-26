@@ -75,6 +75,7 @@ import {
   jqueryMessage,
   PRIMARY_CLASS,
   scriptMessage,
+  socialBrand,
   stylesheetMessage,
   webfontMessage,
   type Asset,
@@ -652,6 +653,26 @@ function usesPrimary(root: ParentNode): boolean {
 }
 
 /**
+ * The bulma-social brands the page's markup shows (`socialBrand`), each once,
+ * in the order the page first shows it.
+ */
+function socialBrands(root: ParentNode): string[] {
+  const found = new Set<string>();
+  const visit = (parent: ParentNode) => {
+    for (const child of childrenOf(parent)) {
+      if (!isElement(child)) continue;
+      for (const token of classesOf(child)) {
+        const brand = socialBrand(token);
+        if (brand !== null) found.add(brand);
+      }
+      visit(child);
+    }
+  };
+  visit(root);
+  return [...found];
+}
+
+/**
  * The stylesheets and scripts the page loads, as notes: one for each, but
  * one for an extension's stylesheet and script together, since they are one
  * thing to replace. Under `--css bestax` or `--css bulma`, Bulma's standard
@@ -777,14 +798,13 @@ function assetNotes(
     } else {
       rule = htmlRuleId('html-asset', 'bulma-extension');
       const kinds = new Set(loads.map(load => load.loads));
-      message = extensionMessage(
-        (asset as Extract<Asset, { kind: 'bulma-extension' }>).name,
-        quoted,
-        kinds,
-        page.css,
+      const { name } = asset as Extract<Asset, { kind: 'bulma-extension' }>;
+      message = extensionMessage(name, quoted, kinds, page.css, {
         // Its stylesheet is what crops them (`extensionNotes`).
-        kinds.has('stylesheet') && page.covered.length > 0
-      );
+        covered: kinds.has('stylesheet') && page.covered.length > 0,
+        brands:
+          extensionPackage(name) === 'bulma-social' ? socialBrands(root) : [],
+      });
     }
     if (message === null) continue;
     notes.push({
