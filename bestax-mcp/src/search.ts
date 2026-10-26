@@ -334,6 +334,35 @@ export interface SkillSection {
 }
 
 /**
+ * The fence open after a line, given the one open before it. A run of three or
+ * more backticks or tildes opens one, and only a run of its own character, at
+ * least as long, with nothing after it closes it, so "```ts" inside a "```"
+ * fence is code. A backtick run with a backtick after it is a code span
+ * (```a```), which opens nothing.
+ */
+function fenceAfter(line: string, open: string | null): string | null {
+  const marker = line.match(/^\s*(`{3,}|~{3,})(.*)$/);
+  if (!marker) return open;
+  const [, run, after] = marker;
+  if (open === null) return run[0] === '`' && after.includes('`') ? null : run;
+  const closes =
+    run[0] === open[0] && run.length >= open.length && !after.trim();
+  return closes ? null : open;
+}
+
+/** A section's non-blank lines outside its fenced code, as they are written. */
+function proseLines(lines: string[]): string[] {
+  const out: string[] = [];
+  let fence: string | null = null;
+  for (const line of lines) {
+    const next = fenceAfter(line, fence);
+    if (fence === null && next === null && line.trim()) out.push(line);
+    fence = next;
+  }
+  return out;
+}
+
+/**
  * A skill document's sections, split at each heading outside a code fence.
  * The text before the first heading is a section under the document's name.
  */
@@ -352,13 +381,7 @@ export function skillSections(
     lines = [];
   };
   for (const line of markdown.split('\n')) {
-    const marker = line.match(/^\s*(`{3,}|~{3,})/)?.[1];
-    if (marker) {
-      if (fence === null) fence = marker;
-      else if (marker[0] === fence[0] && marker.length >= fence.length) {
-        fence = null;
-      }
-    }
+    fence = fenceAfter(line, fence);
     const title = fence === null ? line.match(/^#{1,6}\s+(.+?)\s*#*$/) : null;
     if (title) {
       flush();
@@ -380,13 +403,17 @@ export function skillSections(
 const SECTION_DISCOUNT = 10;
 const MAX_SECTIONS = 3;
 
-/** The words around the first place a section matches a query, for a hit's detail. */
-function excerpt(text: string, terms: string[]): string {
+/**
+ * The words around the first place a section matches a query, for a hit's
+ * detail. A query can match the heading alone, and then the detail is the
+ * section's first line of prose, or its heading when it has none.
+ */
+function excerpt(section: SkillSection, terms: string[]): string {
+  const lines = section.text.split('\n').map(l => l.trim());
   const line =
-    text
-      .split('\n')
-      .find(l => terms.some(t => termHit(norm(l), t) > 0))
-      ?.trim() ?? '';
+    lines.find(l => terms.some(t => termHit(norm(l), t) > 0)) ??
+    proseLines(lines)[0] ??
+    section.heading;
   // A link keeps its text alone: cut short, its URL would be half a link, and
   // the call the hit names serves the section with its links whole.
   const flat = line
@@ -414,7 +441,7 @@ function sectionHits(
     hits.push({
       kind: 'skill',
       name: `${section.skill}${where} › ${section.heading}`,
-      detail: excerpt(section.text, terms),
+      detail: excerpt(section, terms),
       next: section.reference
         ? `get_skill({ name: "${section.skill}", reference: "${section.reference}" })`
         : `get_skill({ name: "${section.skill}" })`,

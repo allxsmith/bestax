@@ -284,6 +284,33 @@ describe('skillSections', () => {
       'bestax-x'
     );
   });
+
+  it('closes a fence only on a run of its own character, as long, with nothing after it', () => {
+    const fenced = [
+      '## Code',
+      '```md',
+      '```ts',
+      '## inside, under an info string',
+      '```',
+      '````',
+      '~~~~',
+      '```',
+      '## inside, past a tilde run and a shorter one',
+      '````',
+      '## After',
+      'Body.',
+    ].join('\n');
+    expect(
+      skillSections('bestax-x', undefined, fenced).map(s => s.heading)
+    ).toEqual(['Code', 'After']);
+  });
+
+  it('reads backticks with a backtick after them as a code span, not a fence', () => {
+    const span = '```a``` opens nothing\n## Heading\nBody.';
+    expect(
+      skillSections('bestax-x', undefined, span).map(s => s.heading)
+    ).toEqual(['bestax-x', 'Heading']);
+  });
 });
 
 describe('searchAll inside skill sections', () => {
@@ -342,6 +369,32 @@ describe('searchAll inside skill sections', () => {
         linked
       )[0].detail
     ).toBe('See the routing guide for bulma-social.');
+  });
+
+  it('quotes the first line of prose when only the heading matches', () => {
+    const headed = skillSections(
+      'bestax-x',
+      'headed',
+      '## bulma-social icons\n```tsx\n<Icon />\n```\nLoad the stylesheet first.'
+    );
+    expect(
+      searchAll(
+        'bulma-social',
+        catalog,
+        components,
+        skills,
+        ['skill'],
+        headed
+      )[0].detail
+    ).toBe('Load the stylesheet first.');
+  });
+
+  it('quotes the heading when a matching section has no prose line', () => {
+    const bare = skillSections('bestax-x', 'bare', '## bulma-social\n```\n```');
+    expect(
+      searchAll('bulma-social', catalog, components, skills, ['skill'], bare)[0]
+        .detail
+    ).toBe('bulma-social');
   });
 
   it('returns no more than a few, however many match', () => {
