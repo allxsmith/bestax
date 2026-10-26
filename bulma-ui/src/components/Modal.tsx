@@ -1,6 +1,8 @@
 import React, {
+  createContext,
   forwardRef,
   useCallback,
+  useContext,
   useEffect,
   useId,
   useRef,
@@ -42,7 +44,14 @@ export interface ModalProps
   active?: boolean;
   /** Alias for `active`. Whether the modal is open/visible. */
   isActive?: boolean; // Alias for active
-  /** Callback invoked to request modal close (background or close button). */
+  /**
+   * Called to ask for the modal to close. The props form calls it from the
+   * background and the close button it renders. In the compound form,
+   * `Modal.Close` calls it unless you give it an `onClick` of your own, and
+   * `Modal.Background` doesn't call it on its own: pass it
+   * `onClick={onClose}` for a click on the background to close the modal.
+   * Escape calls it in both forms unless `closeOnEscape` is `false`.
+   */
   onClose?: () => void;
   /** Additional CSS classes for the modal. */
   className?: string;
@@ -95,6 +104,7 @@ export interface ModalProps
 
 /**
  * Props for Modal.Background component.
+ * @extraProp {React.MouseEventHandler<HTMLDivElement>} [onClick] - Called when the background is clicked. The background doesn't call the modal's `onClose` on its own, so pass `onClick={onClose}` for a click on it to close the modal.
  */
 export interface ModalBackgroundProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Additional CSS classes. */
@@ -153,6 +163,7 @@ export interface ModalCardFootProps extends React.HTMLAttributes<HTMLElement> {
  * Props for Modal.Close component.
  * @extraProp {'button' | 'submit' | 'reset'} [type='button'] - Button type. Defaults to `'button'`, so a close button inside a form does not submit it. Pass `'submit'` or `'reset'` and yours is used; any other value, or a spread carrying `type: undefined`, renders `'button'`.
  * @extraProp {string} [aria-label='close'] - Accessible name. Pass your own to replace it. An empty one, or a spread carrying `'aria-label': undefined`, keeps the default rather than leaving the button unnamed.
+ * @extraProp {React.MouseEventHandler<HTMLButtonElement>} [onClick] - Called when the button is clicked. Without one, the button calls the `onClose` of the `Modal` around it. Yours replaces that rather than running before it, so call `onClose` from it if the button should still close the modal.
  */
 export interface ModalCloseProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Additional CSS classes. */
@@ -163,8 +174,13 @@ export interface ModalCloseProps extends React.ButtonHTMLAttributes<HTMLButtonEl
   variant?: 'delete' | 'floating';
 }
 
+// The enclosing modal's `onClose`, for a `Modal.Close` written as a part, so
+// it closes the modal the way the button the props form renders does.
+const ModalCloseContext = createContext<(() => void) | undefined>(undefined);
+
 /**
- * Modal.Background - Renders the modal background overlay.
+ * Modal.Background - Renders the modal background overlay. Pass it
+ * `onClick={onClose}` for a click on it to close the modal.
  *
  * @function
  * @param {ModalBackgroundProps} props - Component props.
@@ -289,7 +305,8 @@ const ModalCard = withSubComponents(ModalCardComponent, {
 });
 
 /**
- * Modal.Close - Renders modal close button with two variant styles.
+ * Modal.Close - Renders modal close button with two variant styles. It calls
+ * the modal's `onClose` unless given an `onClick` of its own.
  *
  * @function
  * @param {ModalCloseProps} props - Component props.
@@ -306,8 +323,10 @@ const ModalClose: React.FC<ModalCloseProps> = ({
   className,
   size = 'large',
   variant = 'delete',
+  onClick,
   ...props
 }) => {
+  const onClose = useContext(ModalCloseContext);
   const classes = classNames(
     usePrefixedClassNames(
       variant === 'delete' ? 'delete' : 'modal-close',
@@ -326,6 +345,11 @@ const ModalClose: React.FC<ModalCloseProps> = ({
       // own value still wins; `buttonType` says more.
       aria-label={props['aria-label'] || 'close'}
       type={buttonType(props.type)}
+      // A caller's own `onClick` replaces the close rather than running
+      // before it, unlike `Popover.Close`: this button used to close only
+      // through that handler, so a caller already closing there, as with
+      // `onClick={onClose}`, would otherwise close twice.
+      onClick={onClick ?? (onClose && (() => onClose()))}
     />
   );
 };
@@ -345,12 +369,12 @@ const ModalClose: React.FC<ModalCloseProps> = ({
  *
  * @example
  * // Compound Component API
- * <Modal isActive={isOpen}>
+ * <Modal isActive={isOpen} onClose={handleClose}>
  *   <Modal.Background onClick={handleClose} />
  *   <Modal.Card>
  *     <Modal.Card.Head>
  *       <Modal.Card.Title>Title</Modal.Card.Title>
- *       <Modal.Close onClick={handleClose} />
+ *       <Modal.Close />
  *     </Modal.Card.Head>
  *     <Modal.Card.Body>Content</Modal.Card.Body>
  *   </Modal.Card>
@@ -664,6 +688,13 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
       </div>
     );
   }
+
+  // In both forms, so a `Modal.Close` anywhere inside closes this modal.
+  modalElement = (
+    <ModalCloseContext.Provider value={onClose}>
+      {modalElement}
+    </ModalCloseContext.Provider>
+  );
 
   if (isPortaled) {
     const target = resolveContainer(

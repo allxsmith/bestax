@@ -370,13 +370,47 @@ in the browser:
   `aria-expanded` and keyboard handling. The codemod turned the `.has-dropdown` item around it
   into a `Navbar.Item` that keeps the class; to get the dropdown behavior, replace that item
   with `Navbar.Dropdown` (`hoverable` for `is-hoverable`) and the link with `Navbar.Link`.
-- **`family:checkbox`**, **`family:radio`**, **`family:checkboxes`**, **`family:radios`**:
-  bestax renders its own styled checkbox and radio markup, not Bulma's.
+- **`family:checkbox`**: `Checkbox` renders a `<label class="styled-checkbox checkbox">` around
+  its `<input>`, hidden, and draws a box of its own beside it. Write it in place of the element
+  that carries `.checkbox`, Bulma's `<label>` or a bare `<input type="checkbox">`:
+  - The `<input>`'s attributes go on `Checkbox`, which passes `id`, `name`, `aria-label` and the
+    rest to its `<input>`. A `<label>`'s text becomes its children.
+  - Drive it with `checked` and `onChange`, and add `indeterminate` for a select-all box that
+    shows some of its rows checked.
+  - Its `className` goes on its `<label>`, which declares the `--bulma-checkbox-*` variables. For
+    the page's colors, set those in a rule for your class beside `.styled-checkbox`, so the rule
+    wins whatever order the stylesheets load in, and leave `color` unset.
+  - Where the page put `.checkbox` on a bare `<input>`, drop its own rules for that box. bestax
+    draws its own, and `.checkbox` is on its `<label>` now, so those rules would land there.
+
+  ```tsx
+  <Checkbox
+    id="select-all"
+    aria-label="Select all guests"
+    className="guest-check"
+    checked={allChecked}
+    indeterminate={someChecked && !allChecked}
+    onChange={toggleAll}
+  />
+  ```
+
+  ```css
+  .styled-checkbox.guest-check {
+    --bulma-checkbox-active-color: #e8505b;
+  }
+  ```
+
+- **`family:radio`**, **`family:checkboxes`**, **`family:radios`**: bestax renders its own
+  styled radio markup, and its own `.field` and `.control` around a group, not Bulma's.
 - **`family:modal`**: `Modal` writes a `data-testid` of its own and adds dialog attributes and
   focus handling, so the `.modal` root stays markup while its background, content and card parts
-  convert on their own. Rebuild the root with `Modal` around them, and drive it with its open prop.
+  convert on their own. Rebuild the root with `Modal` around them, drive it with its open prop,
+  and pass `onClose`, which Escape and `Modal.Close` call. The converted `Modal.Background`
+  doesn't call it on its own: give it `onClick={onClose}` for the background to close the modal.
   A `.modal-close` stays too, since `Modal.Close` renders `.delete` unless it's floating: write
-  `<Modal.Close variant="floating" />` in its place. When the
+  `<Modal.Close variant="floating" />` in its place. A card head's `.delete` converts to `Delete`,
+  which doesn't call `onClose` either, so write `<Modal.Close />` there instead: it renders the
+  same `.delete`. When the
   page has to look the same, keep `Modal` rather than `Dialog` or `Toast`: those render
   bestax's own `.dialog` and `.toast` markup, which Bulma's stylesheet doesn't style.
 - **`family:dropdown`**: `Dropdown` renders its own trigger and menu from props.
@@ -651,8 +685,9 @@ read for the burger, a carousel and a theme toggle too, and its TODO names the f
   ```
 
 - **`html-script:modal`** opens or closes a modal. `Modal` shows while `active` is true and calls
-  `onClose` from its background, its close button and Escape, so keep the open state in
-  `useState` (the `family:modal` TODO covers rebuilding the markup).
+  `onClose` on Escape and from a `Modal.Close` with no `onClick` of its own. `Modal.Background`
+  doesn't call it on its own, so give it `onClick={onClose}` for the background to close the
+  modal. Keep the open state in `useState` (the `family:modal` TODO covers rebuilding the markup).
 - **`html-script:dismiss`** removes an element when its `.delete` is clicked. `Notification`
   takes `hasDelete` and `onDelete`, `Tag` takes `onDelete` and `Message` takes `onClose`; render
   the element only while it's in state.
@@ -785,9 +820,9 @@ than `this`. A `<body onload>` becomes an effect.
   report entry.
 
   A link to another page beside this one should point at the route that page becomes: the
-  router's, in an app with one. A site of static pages, with no router to join, can route on the
-  URL's hash in a small module of its own and install no router package, so every page still
-  opens from a static host as it is:
+  router's, in an app with one. A multi-page site of static pages, with no router to join, can do
+  its routing on the URL's hash in a small module of its own and install no router package, so
+  every page still opens from a static host as it is:
 
   ```ts
   // router.ts: the page the address's hash names (`#/about`).
@@ -891,6 +926,11 @@ A page with no Bulma component class writes nothing and reports nothing.
 
 - Helper classes on a `<div>` (`<div className="is-flex mt-4">`): bestax has no plain `<div>`
   wrapper, and the classes are valid Bulma, so the element stays.
+- Helper classes on a table's rows and cells (`<th className="has-text-centered">`): the codemod
+  converts the `.table` and leaves the `<thead>`, `<tbody>`, `<tfoot>`, `<tr>`, `<th>` and `<td>`
+  inside it as they are. To write them by hand, `Table.Thead`, `Table.Tbody`, `Table.Tfoot`,
+  `Table.Tr`, `Table.Th` and `Table.Td` render each tag as it is and take the helper props, and
+  `Table.Th` and `Table.Td` take `isAligned` for their alignment (`<Table.Td isAligned="right">`).
 - `.help`, `.label`, `.loader` and the other classes in the component map's "left alone" list.
 - A class with no bestax prop on a converted element: it stays in `className`. That covers
   v1's `marginless` and `paddingless`, which have the same rules as `m-0` and `p-0` under

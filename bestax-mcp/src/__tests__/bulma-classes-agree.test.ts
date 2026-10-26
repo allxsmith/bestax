@@ -25,6 +25,7 @@ import {
   WRAPPERS,
   type RootEntry,
 } from '../../../bestax-migrate/src/sources/bulma-classes/class-map.js';
+import { readGlyph } from '../../../bestax-migrate/src/sources/bulma-classes/glyph.js';
 import {
   plan,
   type ElementFacts,
@@ -537,6 +538,77 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
       glyph: true,
       moves: true,
     });
+  });
+
+  // The lookup names a component to write by hand for these (#1236), and the
+  // codemod leaves each as it was: the two must still agree on that.
+  it("on markup the lookup answers by hand: a bare glyph <i>, a table part, a class of bestax's own", () => {
+    const cases: Array<[string, string[]]> = [
+      ['i', ['fas', 'fa-moon', 'fa-lg']],
+      ['i', ['fa', 'fa-github']],
+      ['i', ['mdi', 'mdi-home', 'mt-2']],
+      ...Object.keys(table.byHand).flatMap((tag): Array<[string, string[]]> => [
+        [tag, ['has-text-centered']],
+        [tag, ['p-2', 'is-flex', 'is-justify-content-center']],
+      ]),
+      ...Object.keys(table.ownClasses).map((token): [string, string[]] => [
+        'div',
+        [token],
+      ]),
+      ['a', ['button', 'is-facebook']],
+      ['span', ['icon', 'is-left']],
+      ['span', ['icon', 'is-small', 'is-right']],
+    ];
+    expect(compare(cases)).toEqual([]);
+    expect(looked('span', ['icon', 'is-left'])).toMatchObject({
+      kind: 'component',
+      target: 'Icon',
+      className: ['is-left'],
+    });
+  });
+
+  it('answers as a glyph every bare <i> whose classes the codemod reads as one', () => {
+    const styles = [
+      'fas',
+      'far',
+      'fab',
+      'fal',
+      'fad',
+      'fat',
+      'fa',
+      'fa-solid',
+      'fa-regular',
+      'fa-brands',
+      'fa-light',
+      'fa-thin',
+      'fa-duotone',
+    ];
+    const features = [[], ['fa-lg'], ['fa-fw', 'fa-spin']];
+    const combos = [
+      ...styles.flatMap(style =>
+        features.map(rest => [style, 'fa-house', ...rest])
+      ),
+      ...[[], ['mdi-24px'], ['mdi-spin', 'mdi-dark']].map(rest => [
+        'mdi',
+        'mdi-home',
+        ...rest,
+      ]),
+    ];
+    const read = combos.filter(tokens =>
+      readGlyph({
+        tag: 'i',
+        tokens,
+        attributes: new Map(),
+        hasSpread: false,
+        isEmpty: true,
+      })
+    );
+    expect(read.length).toBeGreaterThan(30);
+    const missed = read.filter(
+      tokens =>
+        lookupClasses(table, tokens.join(' '), 'i').element.kind !== 'glyph'
+    );
+    expect(missed).toEqual([]);
   });
 
   it('on a `.file` whose name slot is-empty marks, which File renders itself', () => {

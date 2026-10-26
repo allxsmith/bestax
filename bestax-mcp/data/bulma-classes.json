@@ -3197,7 +3197,7 @@
       "textColor": null,
       "bgColor": null,
       "part": false,
-      "why": "bestax `Checkbox` renders its own styled markup, not Bulma's",
+      "why": "bestax `Checkbox` renders its own styled markup, not Bulma's. Write it by hand in place of the element that carries `.checkbox`, Bulma's `<label>` or a bare `<input>`, with the `<input>`'s attributes on it: `id`, `name`, `aria-label` and the rest reach its `<input>`, and a `<label>`'s text is its children. Drive it with `checked` and `onChange`, and add `indeterminate` for a select-all box. Its `className` goes on its `<label>`, which declares the `--bulma-checkbox-*` variables, so set the page's colors with those in a rule for your class beside `.styled-checkbox`. Where the page put `.checkbox` on a bare `<input>`, drop its own rules for that box, since bestax draws its own and `.checkbox` is on its `<label>` now",
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
@@ -3658,7 +3658,10 @@
         "is-medium": { "writes": [{ "prop": "size", "value": "medium" }] },
         "is-large": { "writes": [{ "prop": "size", "value": "large" }] }
       },
-      "omits": {},
+      "omits": {
+        "is-left": "Bulma places it inside a `.control` with `has-icons-left`, and bestax `Control` renders that icon itself from `iconLeft` (`iconLeft={{ library: \"fa\", name: \"envelope\", size: \"small\" }}`), after its children, so a hidden `.icon` there can go as that prop; on `Icon` the class stays in `className`, which renders the same",
+        "is-right": "Bulma places it inside a `.control` with `has-icons-right`, and bestax `Control` renders that icon itself from `iconRight` (`iconRight={{ library: \"fa\", name: \"envelope\", size: \"small\" }}`), after its children, so a hidden `.icon` there can go as that prop; on `Icon` the class stays in `className`, which renders the same"
+      },
       "wrapsChildren": null,
       "folds": null,
       "absorbs": null,
@@ -13062,5 +13065,69 @@
     "theme-dark",
     "theme-light",
     "title"
-  ]
+  ],
+  "elsewhere": [
+    {
+      "why": "a Font Awesome class: Font Awesome's own stylesheet styles it, not Bulma's, so keep loading Font Awesome (the bestax-migrate skill's `html-asset:font-awesome` says how). bestax `Icon` writes these classes from its props, on the <i> it renders inside a `.icon`",
+      "match": "^(?:fa|fa[srbldt]|fa-[a-z0-9]+(?:-[a-z0-9]+)*|svg-inline--fa)$",
+      "glyph": true
+    },
+    {
+      "why": "a Material Design Icons class: its own stylesheet styles it, not Bulma's, so keep loading it. bestax `Icon` writes these classes from its props, with `library=\"mdi\"`, on the <i> it renders inside a `.icon`",
+      "match": "^mdi(?:-[a-z0-9]+)*$",
+      "glyph": true
+    },
+    {
+      "why": "a bulma-social class, a Bulma extension's brand color for Bulma's `.button`, which bestax's `Button` renders: keep loading bulma-social and keep the class on `Button` in `className`, since bestax has no component for it (the bestax-migrate skill's `html-asset:bulma-extension` has the recipe)",
+      "match": "^is-(?:apple|bitbucket|discord|dropbox|facebook|flickr|foursquare|github|gitlab|instagram|linkedin|microsoft|odnoklassniki|openid|pinterest|reddit|slack|soundcloud|tumblr|twitch|twitter|vimeo|vk|x|yahoo|youtube|animated)$",
+      "glyph": false
+    },
+    {
+      "why": "a bulma-carousel class, a Bulma extension bestax's `Carousel` does the job of (the bestax-migrate skill's `html-asset:bulma-extension` says how). Once the page stops loading bulma-carousel nothing styles it: `is-covered`'s `object-fit: cover` on a slide's image goes in the app's own CSS",
+      "match": "^(?:has-carousel|hero-carousel|is-background|is-covered|slider-(?:container|item|navigation-next|navigation-previous|page|pagination)|video-container)$",
+      "glyph": false
+    }
+  ],
+  "ownClasses": {
+    "autocomplete": "Autocomplete",
+    "avatar": "Avatar",
+    "avatars": "Avatars",
+    "badge": "Badge",
+    "carousel": "Carousel",
+    "styled-checkbox": "Checkbox",
+    "collapse": "Collapse",
+    "collapses": "Collapses",
+    "combobox": "Combobox",
+    "context-menu": "ContextMenu",
+    "daterangeinput": "DateRangeInput",
+    "dialog": "Dialog",
+    "empty-state": "EmptyState",
+    "hover-card": "HoverCard",
+    "kbd": "Kbd",
+    "link-button": "LinkButton",
+    "loading": "Loading",
+    "numberinput": "Numberinput",
+    "pin-input": "PinInput",
+    "popover": "Popover",
+    "styled-radio": "Radio",
+    "rate": "Rate",
+    "reveal": "Reveal",
+    "sidebar": "Sidebar",
+    "slider": "Slider",
+    "steps": "Steps",
+    "switch": "Switch",
+    "taginput": "Taginput",
+    "timeline": "Timeline",
+    "toast": "Toast",
+    "tooltip": "Tooltip",
+    "tree-view": "TreeView"
+  },
+  "byHand": {
+    "thead": { "target": "Table.Thead", "props": [] },
+    "tbody": { "target": "Table.Tbody", "props": [] },
+    "tfoot": { "target": "Table.Tfoot", "props": [] },
+    "tr": { "target": "Table.Tr", "props": ["isSelected", "color"] },
+    "th": { "target": "Table.Th", "props": ["isAligned", "width", "color"] },
+    "td": { "target": "Table.Td", "props": ["isAligned", "color"] }
+  }
 }

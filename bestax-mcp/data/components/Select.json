@@ -46,11 +46,11 @@
       "code": "<>\n  <Select\n    label=\"With Icons Small\"\n    size=\"small\"\n    iconLeftName=\"person\"\n    iconLeftSize=\"small\"\n  >\n    <option value=\"huck\">Huckleberry Finn</option>\n    <option value=\"tom\">Tom Sawyer</option>\n  </Select>\n  <Select label=\"With Icons Normal\" iconLeftName=\"person\">\n    <option value=\"huck\">Huckleberry Finn</option>\n    <option value=\"tom\">Tom Sawyer</option>\n  </Select>\n  <Select\n    label=\"With Icons Medium\"\n    size=\"medium\"\n    iconLeftName=\"person\"\n    iconLeftSize=\"medium\"\n  >\n    <option value=\"huck\">Huckleberry Finn</option>\n    <option value=\"tom\">Tom Sawyer</option>\n  </Select>\n  <Select\n    label=\"With Icons Large\"\n    size=\"large\"\n    iconLeftName=\"person\"\n    iconLeftSize=\"large\"\n  >\n    <option value=\"huck\">Huckleberry Finn</option>\n    <option value=\"tom\">Tom Sawyer</option>\n  </Select>\n</>"
     },
     {
-      "title": "Form Addons",
+      "title": "Form Addons › Currency Select + Input + Button",
       "code": "<Field hasAddons>\n  <Control>\n    <Select aria-label=\"Currency\">\n      <option>$</option>\n      <option>£</option>\n      <option>€</option>\n    </Select>\n  </Control>\n  <Control isExpanded>\n    <Input type=\"text\" placeholder=\"Amount of money\" />\n  </Control>\n  <Control>\n    <Button>Transfer</Button>\n  </Control>\n</Field>"
     },
     {
-      "title": "Form Addons",
+      "title": "Form Addons › Fullwidth Select + Button",
       "code": "<Field hasAddons>\n  <Control isExpanded>\n    <Select isFullwidth aria-label=\"Country\">\n      <option>United States</option>\n      <option>United Kingdom</option>\n      <option>Canada</option>\n      <option>France</option>\n      <option>Germany</option>\n    </Select>\n  </Control>\n  <Control>\n    <Button color=\"primary\">Choose</Button>\n  </Control>\n</Field>"
     },
     {
@@ -58,15 +58,15 @@
       "code": "<Field\n  horizontal\n  label=\"Department\"\n  labelProps={{ htmlFor: 'department-field' }}\n>\n  <Field.Body>\n    <Field narrow>\n      <Control>\n        <Select id=\"department-field\" isFullwidth>\n          <option>Business development</option>\n          <option>Marketing</option>\n          <option>Sales</option>\n        </Select>\n      </Control>\n    </Field>\n  </Field.Body>\n</Field>"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › Default (with label)",
       "code": "<Select label=\"Country\">\n  <option value=\"\">Please select</option>\n  <option value=\"us\">United States</option>\n  <option value=\"uk\">United Kingdom</option>\n  <option value=\"ca\">Canada</option>\n</Select>"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field Wrapper",
       "code": "function example() {\n  return (\n    <Field horizontal label=\"Country\" labelProps={{ htmlFor: 'country-field' }}>\n      <Field.Body>\n        <Field>\n          <Select id=\"country-field\">\n            <option value=\"\">Please select</option>\n            <option value=\"us\">United States</option>\n            <option value=\"uk\">United Kingdom</option>\n            <option value=\"ca\">Canada</option>\n          </Select>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field and Control Wrappers",
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Country\"\n      labelProps={{ htmlFor: 'country-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"globe\">\n            <Select id=\"country-field-control\">\n              <option value=\"\">Please select</option>\n              <option value=\"us\">United States</option>\n              <option value=\"uk\">United Kingdom</option>\n              <option value=\"ca\">Canada</option>\n            </Select>\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
