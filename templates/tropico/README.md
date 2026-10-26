@@ -58,10 +58,11 @@ treats the folder as a project of its own.
 
 ## Images
 
-Every image in `public/images` was drawn for this port on October 23, 2026 by Claude, Anthropic's
-AI model, writing the SVG markup by hand. No photo, illustration, stock image or image-generation
-model went into any of them, and none copies existing artwork. Each file is its own source: open it
-in a text editor to see every shape it draws. [`image-provenance.json`](image-provenance.json)
+Every image in `public/images` is voxel art drawn by code for this port:
+[`scenes/tropico.mjs`](https://github.com/allxsmith/bestax/blob/main/docs/scripts/template-art/scenes/tropico.mjs)
+in the bestax repository places every block, and the renderer beside it writes the SVG, so running
+it again writes the same files. No photo, illustration, stock image or image-generation model went
+into any of them, and none copies existing artwork. [`image-provenance.json`](image-provenance.json)
 records each one, with what it shows, its SHA-256 and what it replaces.
 
 - `slide-img.svg`, a bowl of tropical fruit, in the opening carousel.
@@ -75,8 +76,8 @@ They replace the original's images, whose sources the original does not record, 
 photos it loads from technext.github.io for the banner and the contact section, so this port ships
 and loads only images made for it.
 
-The customer shows no real person: George Ipsum is a made-up name, and the face is a few flat
-shapes. Put your own customers' photos and names in their place.
+The customer shows no real person: George Ipsum is a made-up name, and the face is a few blocks.
+Put your own customers' photos and names in their place.
 
 ## License
 

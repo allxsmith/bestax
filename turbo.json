@@ -50,7 +50,9 @@
     "@allxsmith/bestax-docs#test": {
       "inputs": [
         "$TURBO_DEFAULT$",
-        "$TURBO_ROOT$/create-bestax/templates/vite-ts/**"
+        "$TURBO_ROOT$/create-bestax/templates/vite-ts/**",
+        "$TURBO_ROOT$/templates/**",
+        "$TURBO_ROOT$/scripts/lib/**"
       ]
     },
     "create-bestax#build": {

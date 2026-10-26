@@ -43,7 +43,7 @@ const original = (path, content = HERO) => ({
   sha256: sha256(Buffer.from(content)),
   origin: 'original',
   made: '2026-10-23',
-  madeBy: 'Claude, for this bestax port',
+  madeBy: 'Alex Smith, for this bestax port',
   method: 'Written by hand as SVG markup.',
   depicts: 'A hill.',
   license: "MIT, under this template's LICENSE",

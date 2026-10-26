@@ -63,14 +63,15 @@ treats the folder as a project of its own.
 
 ## Images
 
-Every image in `public/img/` was drawn for this port on October 23, 2026 by Claude, Anthropic's AI
-model, writing SVG markup by hand from ideas of its own rather than from the images they replace:
-the ringed logo, the invitation in the hero, the avatars, the four steps' pictures, the letterbox
-beside the contact form and the gallery's five pictures. No photo, illustration, stock image or
-image-generation model went into them, and they trace no existing artwork. Each file is its own
-source: open it in a text editor to see every shape it draws. They replace the original's unDraw
-illustrations, its avatars, whose source it does not record, and the Unsplash photos and Icons8 logo
-it hot-links, so this port ships only images made for it. The avatars show no real people.
+Every image in `public/img/` is voxel art drawn by code for this port: the ringed logo, the
+invitation in the hero, the avatars, the four steps' pictures, the letterbox beside the contact form
+and the gallery's five pictures.
+[`scenes/wedding-planner.mjs`](https://github.com/allxsmith/bestax/blob/main/docs/scripts/template-art/scenes/wedding-planner.mjs)
+in the bestax repository places every block, and the renderer beside it writes the SVG, so running
+it again writes the same files. No photo, illustration, stock image or image-generation model went
+into them, and none copies existing artwork. They replace the original's unDraw illustrations, its
+avatars, whose source it does not record, and the Unsplash photos and Icons8 logo it hot-links, so
+this port ships only images made for it. The avatars and the couples show no real people.
 
 `image-provenance.json` records each image with its SHA-256 hash, so anyone can check that the file
 shipped is the one described here.

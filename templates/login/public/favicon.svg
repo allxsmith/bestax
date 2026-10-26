@@ -1,8 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Drawn for the bestax port of the Login template; image-provenance.json records how. -->
-  <rect width="64" height="64" rx="14" fill="#0b0b0b" />
-  <path d="M22 29v-7a10 10 0 0 1 20 0v7" fill="none" stroke="#00d1b2" stroke-width="5" stroke-linecap="round" />
-  <rect x="15" y="28" width="34" height="25" rx="5" fill="#00d1b2" />
-  <circle cx="32" cy="38.5" r="4" fill="#0b0b0b" />
-  <rect x="30.25" y="39" width="3.5" height="8" rx="1.75" fill="#0b0b0b" />
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="A blocky padlock"><title>A blocky padlock</title><rect width="64" height="64" rx="12" fill="#2a1a12"/><path fill="#c9c2b8" d="M20 6h24v4h-24zM16 10h8v4h-8zM40 10h8v4h-8zM12 14h8v4h-8zM44 14h8v4h-8zM12 18h4v4h-4zM48 18h4v4h-4zM12 22h4v4h-4zM48 22h4v4h-4z"/><path fill="#b45309" d="M8 26h48v4h-48zM8 30h4v4h-4zM52 30h4v4h-4zM8 34h4v4h-4zM52 34h4v4h-4zM8 38h4v4h-4zM52 38h4v4h-4zM8 42h4v4h-4zM52 42h4v4h-4zM8 46h4v4h-4zM52 46h4v4h-4zM8 50h4v4h-4zM52 50h4v4h-4zM8 54h48v4h-48z"/><path fill="#f2c230" d="M12 30h40v4h-40zM12 34h16v4h-16zM36 34h16v4h-16zM12 38h12v4h-12zM40 38h12v4h-12zM12 42h16v4h-16zM36 42h16v4h-16zM12 46h16v4h-16zM36 46h16v4h-16zM12 50h40v4h-40z"/><path fill="#4a2a0c" d="M28 34h8v4h-8zM24 38h16v4h-16zM28 42h8v4h-8zM28 46h8v4h-8z"/></svg>

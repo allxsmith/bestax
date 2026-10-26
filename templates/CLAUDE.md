@@ -27,16 +27,23 @@ below worked out.
   from, a mention of awesome-bulma-templates, how to run it (`npm install && npm run dev`), any
   upstream bug the port fixed, and an **Images** section saying how its images were made and
   pointing at `image-provenance.json`.
-- **Every image is made for the port.** Companies that hold image libraries scan the web for
-  their images and send a claim for each copy they find, and a template is published twice,
-  here and in the mirror. So a template ships only images drawn for it, as SVG, which is its own
-  source. Whatever the original ships or hot-links is drawn anew, licensed stock (Unsplash,
-  unDraw, Icons8) included, since a license is one more thing to defend. A trademark such as
+- **Every image is made for the port, and drawn by code.** Companies that hold image libraries
+  scan the web for their images and send a claim for each copy they find, or for a picture close
+  enough to one, and a template is published twice, here and in the mirror. So a template ships
+  only images drawn for it, in one style no photo resembles: blocky voxel scenes, inspired by
+  Minecraft but never taken from it, so no texture, mob, character, logo, font or UI from the
+  game, and no template uses its name. The people in them are invented and resemble no one.
+  `docs/scripts/template-art/scenes/<slug>.mjs` draws a template's images with the renderer
+  beside it, which writes SVG, and `docs/scripts/template-art.test.mjs` holds every image a
+  template ships to what its scene draws, byte for byte. So the scene is each image's source, and
+  anyone can run it again. Whatever the original ships or hot-links is drawn anew, licensed stock
+  (Unsplash, unDraw, Icons8) included, since a license is one more thing to defend. A trademark such as
   Bulma's logo or its "made with Bulma" badge is not redrawn: a text wordmark, or a text link,
   takes its place. An SVG a component draws inline is held to the same rule, and since no check
   can read one, the README says it was drawn for the port.
 - **`image-provenance.json` records each image**, an entry per image file git tracks in the
-  folder, favicons included:
+  folder, favicons included. The command that draws the images (step 4) writes their entries
+  too, and keeps the `replaces` an entry already has:
 
   ```json
   {
@@ -61,7 +68,7 @@ below worked out.
   so an image changed after its entry was written fails until the entry is written anew. An
   image that must stay someone else's, which the maintainer decides, takes
   `"origin": "third-party"` with `source`, `author`, `licenseName`, `licenseUrl` and `retrieved`
-  in place of `made`, `madeBy` and `method`.
+  in place of `made`, `madeBy` and `method`, and is the one kind of image no scene draws.
 
 Its docs entry in `docs/src/data/templates.js` (whose header documents each field) and its
 screenshot in `docs/static/img/templates/` belong to it too. `scripts/templates.test.mjs` holds
@@ -146,10 +153,17 @@ fix.
      - A second component class on a converted element (`box` on a `Notification`) needs its
        own component.
    - Assets:
-     - Draw each image the original ships or hot-links anew, as an SVG in `public/` at the size
-       and aspect ratio its layout gives it, in colors that suit the page, and record it
-       (**Every image is made for the port**, above). Work from what the layout needs, never by
-       tracing the original's image. A placeholder service's image becomes a drawn placeholder.
+     - Draw each image the original ships or hot-links anew, in a scene module
+       `docs/scripts/template-art/scenes/<slug>.mjs` (`login.mjs` there shows the shape), at the
+       path in `public/`, size and aspect ratio its layout gives it, in colors that suit the
+       page. Then `pnpm --filter @allxsmith/bestax-docs draw:template-art <slug>` writes the
+       images and their records (**Every image is made for the port**, above). Work from what
+       the layout needs, never by tracing the original's image: a hero keeps calm space where
+       its text sits, and an image shown with `object-fit: cover` keeps its subject inside what
+       a phone's crop leaves. A placeholder service's image becomes a drawn placeholder.
+       Everything in a scene is seeded and uses only arithmetic and `Math.sqrt` for its shapes,
+       with the renderer's own `sin` and `cos`, since the test compares bytes and `Math.sin`
+       may change between Node releases.
      - A web font the original names but never loads stays unloaded: the original's real look is
        its fallback stack, so keep that, and say in the README how to load the font.
 5. **Check parity.** Screenshot the original (the entry's `demo`) and the port side by side at
@@ -175,7 +189,8 @@ fix.
      first. The bestax-theming skill's `examples/dark-mode.tsx` has the script and the app's
      side.
 6. **Finish up.**
-   - Write `image-provenance.json` once the images are final, since each edit changes a hash.
+   - Add a `replaces` to each new image's entry in `image-provenance.json`, saying what upstream
+     image it stands in for; drawing the images again keeps it.
    - `git add` the folder first. The screenshot builds what git tracks, as the checks read it
      (**What git tracks**, above).
    - Take the card's screenshot, which also proves the template installs and builds from its

@@ -1,5 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Drawn for the bestax port of the CV template; image-provenance.json records how. -->
-  <rect width="64" height="64" rx="12" fill="#ff470f" />
-  <path fill="#fff" d="M19 14h8v14.5L39.5 14h9.5L35.5 29.5 50 50h-9.6L30 35.2l-3 3.3V50h-8z" />
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="A blocky letter K"><title>A blocky letter K</title><rect width="64" height="64" rx="12" fill="#c7340a"/><rect width="64" height="58" rx="12" fill="#ff470f"/><rect x="8" y="4" width="48" height="4" fill="#ff6a3a"/><path fill="#a82a06" d="M24 12h4v4h-4zM48 12h4v4h-4zM24 16h4v4h-4zM44 16h8v4h-8zM24 20h4v4h-4zM40 20h8v4h-8zM24 24h4v4h-4zM36 24h8v4h-8zM32 28h8v4h-8zM32 32h4v4h-4zM24 36h4v4h-4zM36 36h4v4h-4zM24 40h8v4h-8zM40 40h4v4h-4zM24 44h4v4h-4zM32 44h4v4h-4zM44 44h4v4h-4zM24 48h4v4h-4zM36 48h4v4h-4zM48 48h4v4h-4zM16 52h12v4h-12zM40 52h12v4h-12z"/><path fill="#fff6ee" d="M16 12h8v4h-8zM40 12h8v4h-8zM16 16h8v4h-8zM36 16h8v4h-8zM16 20h8v4h-8zM32 20h8v4h-8zM16 24h8v4h-8zM28 24h8v4h-8zM16 28h16v4h-16zM16 32h16v4h-16zM16 36h8v4h-8zM28 36h8v4h-8zM16 40h8v4h-8zM32 40h8v4h-8zM16 44h8v4h-8zM36 44h8v4h-8zM16 48h8v4h-8zM40 48h8v4h-8z"/></svg>

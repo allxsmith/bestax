@@ -22,22 +22,21 @@ function WelcomeHero() {
               </SubTitle>
             </div>
           </div>
-          {/* A mouse with its wheel rolling down, the hint to scroll. Drawn
-              for this port; README.md's Images section says so. */}
+          {/* A blocky mouse with its wheel rolling down, the hint to scroll,
+              in pixels 20 units square. Drawn for this port; README.md's
+              Images section says so. */}
           <span>
             <svg
               width="30px"
               height="100%"
-              viewBox="0 0 246 390"
+              viewBox="0 0 240 400"
               xmlns="http://www.w3.org/2000/svg"
               aria-hidden="true"
-              fill="none"
-              stroke="#fff"
-              strokeWidth="20"
-              strokeLinecap="round"
+              fill="#fff"
+              shapeRendering="crispEdges"
             >
-              <line id="wheel" x1="123" y1="80" x2="123" y2="152" />
-              <rect x="10" y="10" width="226" height="370" rx="113" />
+              <path d="M80 0h80v20h-80zM40 20h40v20h-40zM160 20h40v20h-40zM20 40h20v40h-20zM200 40h20v40h-20zM0 80h20v240h-20zM220 80h20v240h-20zM20 320h20v40h-20zM200 320h20v40h-20zM40 360h40v20h-40zM160 360h40v20h-40zM80 380h80v20h-80z" />
+              <rect id="wheel" x="100" y="80" width="40" height="60" />
             </svg>
           </span>
         </Container>

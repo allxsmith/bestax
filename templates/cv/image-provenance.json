@@ -2,26 +2,26 @@
   "template": "cv",
   "images": [
     {
-      "path": "public/favicon.svg",
-      "sha256": "d3c5ba4b8cff287ceb4fb775fa6452eefdda1a16a31710bc225bebdcea1d4eb1",
-      "origin": "original",
-      "made": "2026-10-23",
-      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
-      "method": "Written by hand as SVG markup. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
-      "depicts": "A white letter K on an orange rounded square.",
-      "license": "MIT, under this template's LICENSE",
-      "replaces": "The port's earlier favicon, a K set in type, whose making was not recorded."
-    },
-    {
       "path": "public/media/background.svg",
-      "sha256": "132daab73e3684c12813476f0ca23c089634334250df36ad0b9577843a8c07ac",
+      "sha256": "e7f7f283814417a1e76cf1207bf8f4049ed4c63624760e448440c42d68564955",
       "origin": "original",
-      "made": "2026-10-23",
-      "madeBy": "Claude, Anthropic's AI model, for this bestax port",
-      "method": "Written by hand as SVG markup, from an idea of its own rather than from the image it replaces. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
-      "depicts": "An invented, faceless figure in a teal sweater before an orange sun on a dotted indigo backdrop, framed by a web designer's tools: a browser window, a code tag, a pen curve, a cursor and color swatches. It portrays no one.",
+      "made": "2026-10-26",
+      "madeBy": "Alex Smith, for this bestax port",
+      "method": "Drawn by code: docs/scripts/template-art/scenes/cv.mjs places every block and shape, and the voxel renderer in docs/scripts/template-art writes the SVG, with every texture generated from a palette and a seed. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "An invented blocky figure in a soft purple sweater and orange headphones, holding up a tablet that shows a web page, before a square orange sun framed like a selected layer, with a browser window, a code tag, a pointer, a pen curve and color swatches floating on a dotted indigo backdrop. It portrays no one.",
       "license": "MIT, under this template's LICENSE",
       "replaces": "public/media/background.webp, the original's portrait photo, whose source the original does not record."
+    },
+    {
+      "path": "public/favicon.svg",
+      "sha256": "9d0ff20d98d32f365ff463aff1c11e14d729dfbf7e987387ab942aa002f26be9",
+      "origin": "original",
+      "made": "2026-10-26",
+      "madeBy": "Alex Smith, for this bestax port",
+      "method": "Drawn by code: docs/scripts/template-art/scenes/cv.mjs places every block and shape, and the voxel renderer in docs/scripts/template-art writes the SVG, with every texture generated from a palette and a seed. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A blocky white letter K with a dark orange shadow, on an orange rounded square.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "The port's earlier favicon, a K set in type, whose making was not recorded."
     }
   ]
 }

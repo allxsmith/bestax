@@ -63,18 +63,18 @@ treats the folder as a project of its own.
 
 ## Images
 
-`public/media/background.svg`, an invented, faceless figure framed by a web designer's tools, was
-drawn for this port on October 23, 2026 by Claude, Anthropic's AI model, writing SVG markup by hand
-from an idea of its own rather than from the image it replaces. No photo, illustration, stock image
-or image-generation model went into it, and it copies no existing artwork. The file is its own
-source: open it in a text editor to see every shape it draws. It replaces the original's portrait
-photo, whose source the original does not record, so this port ships no image of unknown origin.
+`public/media/background.svg`, an invented blocky figure in headphones holding up a tablet among a
+web designer's tools, and `public/favicon.svg`, a pixel K on an orange block, are voxel art drawn by
+code for this port:
+[`scenes/cv.mjs`](https://github.com/allxsmith/bestax/blob/main/docs/scripts/template-art/scenes/cv.mjs)
+in the bestax repository places every block, and the renderer beside it writes the SVG, so running
+it again writes the same files. No photo, illustration, stock image or image-generation model went
+into them, and none copies existing artwork. They replace the original's portrait photo, whose
+source the original does not record, and an earlier favicon whose making was not recorded, so this
+port ships no image of unknown origin.
 
 The figure portrays no one, and Kate Woodman is a made-up name. Put your own photo and name in their
 place.
-
-`public/favicon.svg`, a white K on an orange square, was drawn for this port by hand too, in place
-of an earlier favicon whose making was not recorded.
 
 `image-provenance.json` records each image with its SHA-256 hash, so anyone can check that the file
 shipped is the one described here.

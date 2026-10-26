@@ -44,13 +44,13 @@ treats the folder as a project of its own.
 
 ## Images
 
-`public/media/background.svg`, a building going up at dawn between a tower crane and its
-scaffolding, was drawn for this port on October 23, 2026 by Claude, Anthropic's AI model, writing
-SVG markup by hand from an idea of its own rather than from the image it replaces. No photo,
-illustration, stock image or image-generation model went into it, and it copies no existing artwork.
-The file is its own source: open it in a text editor to see every shape it draws. It replaces the
-original's background photo, whose source the original does not record, so this port ships no image
-of unknown origin.
+`public/media/background.svg`, a blocky building site at dawn with a tower crane and a half-built
+block in scaffolding, is voxel art drawn by code for this port:
+[`scenes/coming-soon.mjs`](https://github.com/allxsmith/bestax/blob/main/docs/scripts/template-art/scenes/coming-soon.mjs)
+in the bestax repository places every block, and the renderer beside it writes the SVG, so running
+it again writes the same file. No photo, illustration, stock image or image-generation model went
+into it, and it copies no existing artwork. It replaces the original's background photo, whose source
+the original does not record, so this port ships no image of unknown origin.
 
 `image-provenance.json` records the image with its SHA-256 hash, so anyone can check that the file
 shipped is the one described here.

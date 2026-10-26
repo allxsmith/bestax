@@ -10,6 +10,7 @@
     "test": "node --test \"scripts/*.test.mjs\"",
     "rasterize:cover": "node scripts/rasterize-cover.mjs",
     "screenshot:template": "node scripts/screenshot-template.mjs",
+    "draw:template-art": "node scripts/template-art/draw.mjs",
     "snapshot:comparison": "node scripts/snapshot-comparison.mjs",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",

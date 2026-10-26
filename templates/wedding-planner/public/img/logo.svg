@@ -1,9 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-  <!-- Drawn for the bestax port of the Wedding Planner template; image-provenance.json records how. -->
-  <!-- Two linked rings, the right one set with a stone. -->
-  <circle cx="40" cy="40" r="14" fill="none" stroke="#e58fb5" stroke-width="5" />
-  <circle cx="24" cy="40" r="14" fill="none" stroke="#7d6bd6" stroke-width="5" />
-  <path d="M28.53 31.97A14 14 0 0 1 36.38 26.48" fill="none" stroke="#e58fb5" stroke-width="5" />
-  <path d="M33 19L36.5 13H43.5L47 19L40 27Z" fill="#72ddf7" />
-  <path d="M33 19H47M40 27L37.5 19L40 13L42.5 19Z" fill="none" stroke="#ffffff" stroke-width="1.2" stroke-linejoin="round" />
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Two blocky linked rings"><title>Two blocky linked rings</title><path fill="#d6f7ff" d="M36 4h4v4h-4z"/><path fill="#72ddf7" d="M40 4h8v4h-8zM36 8h8v4h-8z"/><path fill="#3fb5d6" d="M44 8h4v4h-4zM40 12h4v4h-4z"/><path fill="#a996ec" d="M16 16h12v4h-12zM8 20h8v4h-8zM4 24h8v4h-8zM4 28h4v4h-4zM0 32h4v4h-4zM0 36h4v4h-4zM0 40h4v4h-4z"/><path fill="#f6b8d2" d="M36 16h12v4h-12zM28 20h8v4h-8zM24 24h8v4h-8zM24 28h4v4h-4zM20 32h4v4h-4zM20 36h4v4h-4zM20 40h4v4h-4z"/><path fill="#7d6bd6" d="M16 20h8v4h-8zM12 24h8v4h-8zM8 28h4v4h-4zM4 32h8v4h-8zM36 32h4v4h-4zM4 36h4v4h-4zM36 36h4v4h-4zM4 40h8v4h-8zM32 40h8v4h-8zM4 44h8v4h-8zM32 44h4v4h-4zM4 48h16v4h-16zM24 48h8v4h-8zM8 52h20v4h-20z"/><path fill="#e58fb5" d="M36 20h20v4h-20zM32 24h8v4h-8zM44 24h16v4h-16zM28 28h4v4h-4zM52 28h8v4h-8zM24 32h8v4h-8zM52 32h8v4h-8zM24 36h4v4h-4zM56 36h4v4h-4zM24 40h4v4h-4zM52 40h8v4h-8zM52 44h4v4h-4zM44 48h8v4h-8zM40 52h8v4h-8z"/><path fill="#5b48ad" d="M40 32h4v4h-4zM40 36h4v4h-4zM40 40h4v4h-4zM36 44h4v4h-4zM32 48h8v4h-8zM28 52h8v4h-8zM16 56h12v4h-12z"/><path fill="#c8648f" d="M60 32h4v4h-4zM60 36h4v4h-4zM60 40h4v4h-4zM56 44h4v4h-4zM52 48h8v4h-8zM48 52h8v4h-8zM36 56h12v4h-12z"/></svg>
