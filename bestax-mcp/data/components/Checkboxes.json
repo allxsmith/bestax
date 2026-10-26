@@ -10,15 +10,15 @@
       "code": "<Checkboxes>\n  <Checkbox> Make the bed </Checkbox>\n  <Checkbox> Brush teeth </Checkbox>\n  <Checkbox> Do homework </Checkbox>\n  <Checkbox> Feed the pet </Checkbox>\n  <Checkbox> Take out the trash </Checkbox>\n  <Checkbox> Clean your room </Checkbox>\n  <Checkbox> Set the table </Checkbox>\n  <Checkbox> Help with dishes </Checkbox>\n  <Checkbox> Water the plants </Checkbox>\n  <Checkbox> Put away toys </Checkbox>\n</Checkboxes>"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › Default (with label)",
       "code": "<Checkboxes label=\"Chores\">\n  <Checkbox> Make the bed </Checkbox>\n  <Checkbox> Brush teeth </Checkbox>\n  <Checkbox> Do homework </Checkbox>\n</Checkboxes>"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field Wrapper",
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Chores\"\n      labelProps={{ id: 'chores-label', htmlFor: undefined }}\n    >\n      <Field.Body>\n        <Field>\n          <Checkboxes aria-labelledby=\"chores-label\">\n            <Checkbox> Make the bed </Checkbox>\n            <Checkbox> Brush teeth </Checkbox>\n            <Checkbox> Do homework </Checkbox>\n          </Checkboxes>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field and Control Wrappers",
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Chores\"\n      labelProps={{ id: 'chores-label-control', htmlFor: undefined }}\n    >\n      <Field.Body>\n        <Field>\n          <Control>\n            <Checkboxes aria-labelledby=\"chores-label-control\">\n              <Checkbox> Make the bed </Checkbox>\n              <Checkbox> Brush teeth </Checkbox>\n              <Checkbox> Do homework </Checkbox>\n            </Checkboxes>\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {

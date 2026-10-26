@@ -16,10 +16,12 @@ import {
   type ComponentRecord,
   type Skill,
 } from '../data.js';
+import { EXTENSION_COMPONENTS } from '../../../bestax-migrate/src/sources/bulma-classes/html-assets.js';
 import {
   ALIASES,
   escapeRegExp,
   searchAll,
+  skillSections,
   suggest,
   usesExport,
   type HitKind,
@@ -209,6 +211,22 @@ describe('ranking realistic queries', () => {
     }
   });
 
+  // A page being ported names the extension it loads ("bulma-carousel"), and
+  // found only that component's CSS variables (#1236).
+  it('reaches the component for each Bulma extension bestax-migrate names one for', () => {
+    for (const [extension, says] of Object.entries(EXTENSION_COMPONENTS)) {
+      const named = says.match(/`([A-Z]\w*)`/)![1];
+      expect({
+        extension,
+        reaches: ALIASES[extension.replace(/-/g, '')],
+      }).toEqual({
+        extension,
+        reaches: expect.arrayContaining([named]),
+      });
+      expect(top(extension)).toEqual([`component:${named}`]);
+    }
+  });
+
   it('finds an export documented with another component, below that component', () => {
     expect(top('CarouselItem')).toEqual(['component:CarouselItem']);
     const hits = searchAll('carousel', catalog, all, skills, ALL);
@@ -235,6 +253,115 @@ describe('ranking realistic queries', () => {
     );
     expect(props).toContain('Input.isStatic');
     expect(props).not.toContain('InputBase.isStatic');
+  });
+});
+
+describe('skillSections', () => {
+  const md = [
+    'Intro before any heading.',
+    '',
+    '## First',
+    'Body one.',
+    '```md',
+    '## not a heading, inside a fence',
+    '```',
+    '### Second',
+    '',
+    '#### Empty',
+    '## Third ##',
+    'Body three.',
+  ].join('\n');
+
+  it('splits at each heading outside a code fence, naming the text before the first by the document', () => {
+    expect(
+      skillSections('bestax-x', 'ref-id', md).map(s => [s.heading, s.text])
+    ).toEqual([
+      ['ref-id', 'Intro before any heading.'],
+      ['First', 'Body one.\n```md\n## not a heading, inside a fence\n```'],
+      ['Third', 'Body three.'],
+    ]);
+    expect(skillSections('bestax-x', undefined, md)[0].heading).toBe(
+      'bestax-x'
+    );
+  });
+});
+
+describe('searchAll inside skill sections', () => {
+  const sections = [
+    ...skillSections(
+      'bestax-x',
+      'notes',
+      [
+        '## Extensions',
+        'Keep loading **bulma-social** for brand buttons.',
+        '## Unrelated',
+        'Nothing about social media here, or bulma.',
+      ].join('\n')
+    ),
+    ...skillSections('bestax-y', undefined, '## Buttons\nA button recipe.'),
+  ];
+  const find = (query: string, kinds = ALL) =>
+    searchAll(query, catalog, components, skills, kinds, sections);
+
+  it('finds the section holding every word, with the call that reads it', () => {
+    expect(find('bulma-social', ['skill'])).toEqual([
+      {
+        kind: 'skill',
+        name: 'bestax-x › notes › Extensions',
+        detail: 'Keep loading **bulma-social** for brand buttons.',
+        next: 'get_skill({ name: "bestax-x", reference: "notes" })',
+        score: expect.any(Number),
+      },
+    ]);
+    expect(find('button recipe', ['skill'])[0]).toMatchObject({
+      name: 'bestax-y › Buttons',
+      next: 'get_skill({ name: "bestax-y" })',
+    });
+  });
+
+  it('ranks a section below the component a query names', () => {
+    const hits = find('button');
+    expect(hits[0]).toMatchObject({ kind: 'component', name: 'Button' });
+    const section = hits.findIndex(h => h.name === 'bestax-y › Buttons');
+    expect(section).toBeGreaterThan(0);
+  });
+
+  it("quotes a link's text alone, since a cut URL would be half a link", () => {
+    const linked = skillSections(
+      'bestax-x',
+      'links',
+      '## Links\nSee [the routing guide](https://bestax.io/docs/guides/routing) for bulma-social.'
+    );
+    expect(
+      searchAll(
+        'bulma-social',
+        catalog,
+        components,
+        skills,
+        ['skill'],
+        linked
+      )[0].detail
+    ).toBe('See the routing guide for bulma-social.');
+  });
+
+  it('returns no more than a few, however many match', () => {
+    const many = Array.from({ length: 10 }, (_, i) =>
+      skillSections('bestax-z', `r${i}`, `## S${i}\nbulma-social again`)
+    ).flat();
+    expect(
+      searchAll('bulma-social', catalog, components, skills, ['skill'], many)
+    ).toHaveLength(3);
+  });
+
+  it("keeps a few of one component's CSS variables beside other kinds, and all alone", () => {
+    const count = (kinds: HitKind[]) =>
+      searchAll('button', catalog, components, skills, kinds).filter(
+        h =>
+          h.kind === 'css-var' &&
+          h.next === 'get_css_variables({ component: "Button" })'
+      ).length;
+    expect(count(ALL)).toBe(3);
+    expect(count(['css-var'])).toBeGreaterThan(3);
   });
 });
 

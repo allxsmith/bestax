@@ -37,10 +37,8 @@ describe('readGlyph', () => {
       ['fal', 'light'],
       ['fad', 'duotone'],
       ['fat', 'thin'],
+      // Font Awesome 4's, which 4 alone styles as written.
       ['fa', 'fa'],
-      ['fa-solid', 'fa-solid'],
-      ['fa-regular', 'fa-regular'],
-      ['fa-brands', 'fa-brands'],
     ]) {
       expect(readGlyph(glyph([style, 'fa-bell']))).toEqual({
         library: 'fa',
@@ -48,6 +46,45 @@ describe('readGlyph', () => {
         variant,
       });
     }
+  });
+
+  it("reads Font Awesome 6's long name for a style as the skill's variant, which renders the short one", () => {
+    expect(readGlyph(glyph(['fa-solid', 'fa-house']))).toEqual({
+      library: 'fa',
+      name: 'house',
+      longStyle: 'fa-solid',
+    });
+    for (const [style, variant] of [
+      ['fa-regular', 'regular'],
+      ['fa-brands', 'brands'],
+      ['fa-light', 'light'],
+      ['fa-thin', 'thin'],
+      ['fa-duotone', 'duotone'],
+    ]) {
+      expect(readGlyph(glyph([style, 'fa-bell', 'fa-lg']))).toEqual({
+        library: 'fa',
+        name: 'bell',
+        variant,
+        features: ['fa-lg'],
+        longStyle: style,
+      });
+    }
+  });
+
+  it('keeps the long name as written beside `fa-sharp`, whose family a short name would set back', () => {
+    expect(readGlyph(glyph(['fa-sharp', 'fa-solid', 'fa-house']))).toEqual({
+      library: 'fa',
+      name: 'house',
+      variant: 'fa-solid',
+      features: ['fa-sharp'],
+    });
+    // A short name was written short, so it has nothing to keep.
+    expect(readGlyph(glyph(['fa-sharp', 'far', 'fa-bell']))).toEqual({
+      library: 'fa',
+      name: 'bell',
+      variant: 'regular',
+      features: ['fa-sharp'],
+    });
   });
 
   it('reads the classes that modify a glyph, and any other, as features', () => {
@@ -139,9 +176,8 @@ describe('readHiddenGlyph', () => {
 });
 
 describe('glyphProps', () => {
-  it('writes a glyph as Icon is given it, one feature as a string and more as a list', () => {
+  it("writes a glyph as Icon is given it, with no library for Icon's default and one feature as a string, more as a list", () => {
     expect(glyphProps({ library: 'fa', name: 'home' })).toEqual([
-      ['library', 'fa'],
       ['name', 'home'],
     ]);
     expect(
@@ -152,10 +188,21 @@ describe('glyphProps', () => {
         features: ['fa-lg'],
       })
     ).toEqual([
-      ['library', 'fa'],
       ['name', 'bell'],
       ['variant', 'regular'],
       ['features', 'fa-lg'],
+    ]);
+    // What the render tests read is no prop.
+    expect(
+      glyphProps({
+        library: 'fa',
+        name: 'bell',
+        variant: 'brands',
+        longStyle: 'fa-brands',
+      })
+    ).toEqual([
+      ['name', 'bell'],
+      ['variant', 'brands'],
     ]);
     expect(
       glyphProps({ library: 'mdi', name: 'home', features: ['a', 'b'] })
@@ -201,7 +248,8 @@ describe('readDrawnGlyph', () => {
       variant: 'brands',
       features: ['fa-lg'],
     });
-    // Font Awesome 4's `fa`, which the script keeps as it was written.
+    // Font Awesome 4's `fa`, which the script keeps as it was written. The
+    // script is 5's or later, which draws it solid, `Icon`'s default.
     expect(
       readDrawnGlyph(
         svg(['svg-inline--fa', 'fa-search'], {
@@ -209,7 +257,7 @@ describe('readDrawnGlyph', () => {
           'data-icon': 'search',
         })
       )
-    ).toEqual({ library: 'fa', name: 'search', variant: 'fa' });
+    ).toEqual({ library: 'fa', name: 'search' });
   });
 
   it('falls back to its one class naming a glyph, in the default style', () => {

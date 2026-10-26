@@ -1,4 +1,4 @@
-import { Breadcrumb, Image, SelectBase } from "@allxsmith/bestax-bulma";
+import { Breadcrumb, Figure, Image, SelectBase } from "@allxsmith/bestax-bulma";
 export function Absorbed({
   onPick,
   thumb,
@@ -7,6 +7,7 @@ export function Absorbed({
   thumb: string;
 }) {
   // TODO(bestax-migrate): bestax `SelectBase` puts the attributes it is given on the <select> inside `.select`, so this element's `id` would move there; move it onto the <select> if that is what you want, then re-run
+  // TODO(bestax-migrate): `is-4by3` is an `.image` modifier, and Bulma styles it only on the element that carries `.image`, so on this one it styles nothing unless the project's own CSS gives it a rule; if this element is the image, convert it to bestax `Image` by hand, and otherwise drop the class
   // TODO(bestax-migrate): bestax `Image` renders its own <img> when it's given no children, so this empty element would gain one; keep it as markup
   // TODO(bestax-migrate): bestax `Image` renders its own <img> when its children are empty, and it can't be told from here that these never are, so this converts only around HTML elements written out; keep it as markup
   return (
@@ -46,6 +47,9 @@ export function Absorbed({
         size="4by3"
         src="/photo.jpg"
         alt="A ratio on the figure Image renders for it" />
+      <Figure mx="auto" className="is-4by3">
+        <img src="/photo.jpg" alt="A ratio with no image converts as a Figure" />
+      </Figure>
       <Image
         as="div"
         size="3by2"

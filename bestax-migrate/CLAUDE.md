@@ -138,6 +138,25 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   the same whitelist, and leaves every other difference to fail.
   Widen it only with the same care: a new exception is a claim that the page is unchanged for
   everyone who reads it, which identical markup proves and a normalization only asserts.
+  A second exception (#1231) adds the attribute rather than moving it: a `.icon` around a bare
+  glyph `<i>`, carrying no `aria-hidden` and nothing else off that whitelist, in a `<button>` or
+  a link (an `<a>` with an `href` written out) that its own `aria-label` or `aria-labelledby`
+  names, converts to `Icon`, which writes `aria-hidden` on it. The label is what assistive tech
+  reads for the control in place of what it holds, so the icon is decoration there. An `<a>`
+  with no `href` has no role, and ARIA lets nothing name it, so its TODO asks for an `href` or a
+  `<button>` first. The planner marks it `addsHidden`, and the render tests restate the attribute
+  through `withLabelledGlyphsHidden` in the same file, only where the nearest `<a>` or `<button>`
+  around the `.icon` names itself. A third (#1232) changes a class: Font Awesome 6's long name
+  for a style (`fa-brands`) reads as the bestax-icons skill's `variant` (`brands`), which `Icon`
+  renders as the short name (`fab`). The two draw the same in Font Awesome 6, and in 7 too, but
+  that 7's short names also set the classic family, so beside `fa-sharp` the long name stays as
+  written. Font Awesome 5 and older have no long names. `glyph.ts` marks it `longStyle`, and the render tests restate
+  the short name (`e2e/support/font-awesome-styles.ts`). The glyph's props are otherwise the
+  skill's spelling: no `library` for Font Awesome, `Icon`'s default (like every conversion, this
+  takes `ConfigProvider` as unset), and no attribute `Icon` renders by itself with that value
+  (`aria-hidden="true"` with no name, `role="img"` beside one). Font Awesome 4's `fa` stays
+  `variant="fa"`: that version reads no other style, and some of its names mean another glyph
+  in later ones.
   Another deliberate exception (#1167) changes a class rather than moving an attribute:
   Bulma 0.9's `is-marginless` and `is-paddingless`, which v1 removed, style nothing under v1, so
   wherever the element converts they become the v1 helper that does their job (`REPLACED_IN_V1`:
@@ -166,6 +185,12 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   Not in a Next.js app (its Pages Router takes a global stylesheet only in `pages/_app`), and
   not for a `<link media>`, which an import can't stand for. A local file is read only inside
   the page's folder, and a `<script src>` only when its type is JavaScript.
+  The page converts once (`html-file:exists` after that), so each re-run the transform's TODOs
+  ask for names the module ("re-run on `index.tsx`"), in the report and in the module's
+  comments, where they also carry the page's lines. A re-run on the module keeps the earlier copy
+  of a TODO it writes again, page lines and all, and drops one it no longer writes that asked for
+  a re-run (`settleTodos` in `transform.ts`). It drops none in a file that still imports a library
+  source (`LIBRARY_SOURCES`), whose own TODOs ask for a re-run of that source.
   `display.ts` is held to `bulma.css` by `e2e/bulma-classes-display.test.ts`, both tables and
   the out-of-flow list.
 - `src/sources/_shared/html/` turns HTML into JSX source, library-agnostic: `parse.ts` (parse5,

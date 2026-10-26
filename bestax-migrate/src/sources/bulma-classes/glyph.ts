@@ -1,9 +1,14 @@
 /**
  * Read an icon's glyph, the `<i>` inside a `.icon`, as the props bestax
- * `Icon` builds it from. Pure and exact: a glyph reads only when `Icon`,
- * given those props, renders that `<i>` with exactly its classes and nothing
- * else. `library` is always written, so a `ConfigProvider` with another
- * `iconLibrary` can't change what renders.
+ * `Icon` builds it from, spelled the way the bestax-icons skill writes them.
+ * Pure: a glyph reads only when `Icon`, given those props, renders that `<i>`
+ * with exactly its classes and nothing else, but for one exception on
+ * purpose. Font Awesome 6's long name for a style (`fa-brands`) is written as
+ * the skill's `variant` (`brands`), which `Icon` renders as the short name
+ * (`fab`), the same style in 6 and 7 (`longStyle` says so). `library` is left
+ * out for Font Awesome, `Icon`'s default, as the skill writes it: like every
+ * conversion, this assumes no `ConfigProvider` sets another default (its
+ * `iconLibrary` here, as its `classPrefix` would for any component).
  */
 
 import type { ChildFacts } from './plan.js';
@@ -15,13 +20,21 @@ export interface Glyph {
   variant?: string;
   /** The glyph's other classes, which `Icon` renders after its own. */
   features?: string[];
+  /**
+   * The long name of Font Awesome's style the `<i>` was written with
+   * (`fa-brands`), when `variant` is the skill's name for it, which `Icon`
+   * renders as the short one (`fab`): a way a conversion's markup differs
+   * on purpose. The render tests compare it with the short name restated.
+   */
+  longStyle?: string;
 }
 
 /**
- * Font Awesome's style classes. `Icon` renders its `variant` through this
- * table when it's a key (`regular` as `far`), and as written otherwise, so
- * the short forms read as the name `Icon` knows them by and the rest
- * (`fa`, `fa-solid`) as themselves. `fas` is its default.
+ * Font Awesome's style classes, as the `variant` the bestax-icons skill
+ * writes for each. `Icon` renders its `variant` through a table of the
+ * skill's names (`regular` as `far`), and as written otherwise, so `fa`, Font
+ * Awesome 4's, reads as itself: 4 styles nothing else, and 5 and later read
+ * it as solid. `fas` is `Icon`'s default.
  */
 const FA_STYLES: Readonly<Record<string, string | undefined>> = {
   fas: undefined,
@@ -31,13 +44,30 @@ const FA_STYLES: Readonly<Record<string, string | undefined>> = {
   fad: 'duotone',
   fat: 'thin',
   fa: 'fa',
-  'fa-solid': 'fa-solid',
-  'fa-regular': 'fa-regular',
-  'fa-brands': 'fa-brands',
-  'fa-light': 'fa-light',
-  'fa-thin': 'fa-thin',
-  'fa-duotone': 'fa-duotone',
+  'fa-solid': undefined,
+  'fa-regular': 'regular',
+  'fa-brands': 'brands',
+  'fa-light': 'light',
+  'fa-thin': 'thin',
+  'fa-duotone': 'duotone',
 };
+
+/**
+ * Font Awesome 6's long names for its styles, which `Icon` writes as the
+ * short ones (`fab`) once read as the skill's `variant`. Font Awesome 6
+ * styles an `<i>` the same either way, and 7 does too, but that its short
+ * names also set the classic family: so beside `fa-sharp`, which sets
+ * another, the long name is kept as written. 5 and older have no long
+ * names.
+ */
+const LONG_STYLES = new Set([
+  'fa-solid',
+  'fa-regular',
+  'fa-brands',
+  'fa-light',
+  'fa-thin',
+  'fa-duotone',
+]);
 
 /** Font Awesome's classes that modify a glyph rather than name one. */
 const FA_MODIFIERS = new Set([
@@ -122,12 +152,15 @@ export function readGlyph(glyph: ChildFacts | undefined): Glyph | undefined {
     const [style] = styles;
     const named = nameIn(tokens, 'fa-', FA_MODIFIERS, style);
     if (!named) return undefined;
-    const variant = FA_STYLES[style];
+    // Beside another family, the long name stays as written (`LONG_STYLES`).
+    const long = LONG_STYLES.has(style) && !tokens.includes('fa-sharp');
+    const variant = long || !LONG_STYLES.has(style) ? FA_STYLES[style] : style;
     return {
       library: 'fa',
       name: named.name,
       ...(variant && { variant }),
       ...(named.features.length > 0 && { features: named.features }),
+      ...(long && { longStyle: style }),
     };
   }
   if (mdi && styles.length === 0) {
@@ -159,15 +192,18 @@ export function readHiddenGlyph(
 }
 
 /**
- * A glyph as the props `Icon` is given, in the order they're written: one
- * feature as a string, and more than one as a list.
+ * A glyph as the props `Icon` is given, in the order they're written: no
+ * `library` for Font Awesome, `Icon`'s default, and one feature as a string,
+ * more than one as a list.
  */
 export function glyphProps(
   glyph: Glyph
 ): Array<[name: string, value: string | readonly string[]]> {
   const { features } = glyph;
   return [
-    ['library', glyph.library],
+    ...(glyph.library === 'fa'
+      ? []
+      : [['library', glyph.library] as [string, string]]),
     ['name', glyph.name],
     ...(glyph.variant ? [['variant', glyph.variant] as [string, string]] : []),
     ...(features
@@ -186,7 +222,9 @@ export function glyphProps(
  * as the props `Icon` renders the `<i>` it was drawn from: the name from its
  * `data-icon` (else its one class naming a glyph), the style from its
  * `data-prefix`, and its other classes but the width one the script adds.
- * For advice only: `Icon` renders that `<i>`, never the `<svg>`.
+ * The script is Font Awesome 5's or later, which reads the `fa` prefix as
+ * solid, so that one is `Icon`'s default here. For advice only: `Icon`
+ * renders that `<i>`, never the `<svg>`.
  */
 export function readDrawnGlyph(svg: ChildFacts | undefined): Glyph | undefined {
   if (svg?.tag !== 'svg' || !svg.tokens?.includes(DRAWN)) return undefined;
@@ -207,7 +245,7 @@ export function readDrawnGlyph(svg: ChildFacts | undefined): Glyph | undefined {
         }
       : nameIn(tokens, 'fa-', FA_MODIFIERS, style);
   if (!named) return undefined;
-  const variant = FA_STYLES[style];
+  const variant = style === 'fa' ? undefined : FA_STYLES[style];
   return {
     library: 'fa',
     name: named.name,

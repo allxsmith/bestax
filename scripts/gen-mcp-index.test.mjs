@@ -25,6 +25,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   absoluteLinks,
   build,
+  bulmaClassTable,
   helperImport,
   orderDeclarers,
   proseComponentInfo,
@@ -368,6 +369,13 @@ test('usage examples are harvested with their headings', () => {
     0
   );
   assert.ok(total > 500, `only ${total} examples across the library`);
+});
+
+test('an example under a `####` is titled by it after its `###` (#1236)', () => {
+  const titles = components.get('Carousel').examples.map(e => e.title);
+  assert.ok(titles.includes('Several Items in View'));
+  assert.ok(titles.includes('Several Items in View › Stepping and indicators'));
+  assert.ok(titles.includes('Several Items in View › Spacing between items'));
 });
 
 test('CSS variables are indexed back to their component', () => {
@@ -1070,6 +1078,30 @@ test('the stylesheet walk the index shares reads the classes in selectors, and o
     'h',
     'is-gap-0.5',
   ]);
+});
+
+test('the class table names what styles a class Bulma 1 lacks, and who renders a plain table tag (#1236)', async () => {
+  const { byHand, ownClasses, elsewhere, vocabulary } = bulmaClasses;
+  // The table parts, with the props their records list, read off those records.
+  assert.deepEqual(byHand.th, {
+    target: 'Table.Th',
+    props: ['isAligned', 'width', 'color'],
+  });
+  assert.equal(byHand.td.target, 'Table.Td');
+  assert.ok(!Object.hasOwn(byHand, 'div'));
+  // A root class of bestax's own, and none of Bulma's.
+  assert.equal(ownClasses.carousel, 'Carousel');
+  const v1 = new Set(vocabulary);
+  assert.deepEqual(
+    Object.keys(ownClasses).filter(token => v1.has(token)),
+    []
+  );
+  for (const group of elsewhere) {
+    assert.doesNotThrow(() => new RegExp(group.match), group.why);
+    assert.equal(typeof group.glyph, 'boolean');
+  }
+  // A table part with no record stops the build, naming it.
+  await assert.rejects(bulmaClassTable(new Map()), /BY_HAND names Table\.\w+/);
 });
 
 test("the bulma-classes table is bestax-migrate's own, whole", () => {

@@ -5,8 +5,9 @@
  * scope when a lowercase JSX element carries a `className` with a Bulma class
  * `class-map.ts` knows. Each such element goes through `plan()`, which
  * converts it only when the component renders exactly the same markup, but
- * for the exceptions it states (Font Awesome's hidden `<i>`, and a Bulma 0.9
- * helper v1 removed).
+ * for the exceptions it states (Font Awesome's hidden `<i>`, an icon in a
+ * link or button its own label names, Font Awesome 6's long name for a
+ * style, and a Bulma 0.9 helper v1 removed).
  *
  * Passes, in order:
  *   1. the shared stylesheet-import pass (a no-op under the default `keep`)
@@ -17,6 +18,9 @@
  *      Next.js server component (bestax's components are client components)
  *   4. TODOs in reading order; conversions innermost first
  *   5. write the bestax import, after the file's last import
+ *   6. settle the TODOs an earlier run wrote: one this run writes again keeps
+ *      its earlier copy, and one that asked for a re-run it no longer writes
+ *      goes (`settleTodos`)
  */
 
 import type { API, ASTPath, FileInfo } from 'jscodeshift';
@@ -1030,6 +1034,26 @@ function labelOf(
 }
 
 /**
+ * Whether an <a> is a link, as `ElementFacts.clickableAround` says: true with
+ * an `href` written out as a string, false with neither an `href` nor a
+ * `role`, and undefined when that can't be told: an `href` written as an
+ * expression, which may render as none, a `role` of its own, or a spread,
+ * which may carry either.
+ */
+function linkOf(clickable: any): boolean | undefined {
+  if (
+    (clickable.openingElement.attributes ?? []).some(
+      (attr: any) => attr.type === 'JSXSpreadAttribute'
+    )
+  ) {
+    return undefined;
+  }
+  const href = findAttr(clickable, 'href');
+  if (href) return typeof attributeValue(href) === 'string' ? true : undefined;
+  return findAttr(clickable, 'role') ? undefined : false;
+}
+
+/**
  * An element's content as one prop value: its one element, or its text, or
  * a fragment of them all, each text written as the string it renders.
  */
@@ -1097,6 +1121,36 @@ function onlyChildOf(
  * the file, though it sits on the first element that would convert, so no
  * line of the file is where it came from.
  */
+/**
+ * A `TODO(bestax-migrate)` line comment's message as a run compares it: the
+ * page's lines an HTML page's module adds after it left out, and a re-run it
+ * asks for on a named file read as any re-run. So a re-run on that module
+ * finds the TODOs it writes again in the ones the page's run wrote.
+ */
+export function todoKey(text: string): string {
+  return text
+    .replace(/^\s*TODO\(bestax-migrate\):\s*/, '')
+    .replace(/\s+\([^()]+\.html?:[\d, -]+\)$/, '')
+    .replace(/\bre-run on `[^`]+`/g, 're-run')
+    .trim();
+}
+
+function isTodoComment(comment: any): boolean {
+  return (
+    (comment.type === 'CommentLine' || comment.type === 'Line') &&
+    /^\s*TODO\(bestax-migrate\):/.test(comment.value)
+  );
+}
+
+/**
+ * The packages the library sources migrate from. A file that still imports
+ * one may hold that source's TODOs, which ask for a re-run of it, not of
+ * this one, so this one leaves every TODO there as it is. A new library
+ * source joins this list.
+ */
+export const LIBRARY_SOURCES =
+  /^(?:react-bulma-components|rbx|bloomer)(?:\/|$)/;
+
 export const FILE_RULES = [
   'jsx-runtime',
   'imports',
@@ -1128,7 +1182,60 @@ export default function transform(
     overrides: new WeakMap<object, string>(),
     dirty: false,
   };
+  // The TODOs the file holds from an earlier run, and the messages this run
+  // writes, so a re-run can tell the ones it no longer writes.
+  const earlier = new Set<any>();
+  const written = new Set<string>();
+  root.find(j.Node).forEach((nodePath: any) => {
+    for (const comment of nodePath.node.comments ?? []) {
+      if (isTodoComment(comment)) earlier.add(comment);
+    }
+  });
+  const todo = (path: ASTPath<any>, rule: string, message: string): void => {
+    written.add(todoKey(message));
+    addTodo(ctx, path, rule, message);
+  };
+  /**
+   * A re-run's TODOs against the earlier run's: one it writes again keeps
+   * the earlier copy, which carries the page's lines when the file is a
+   * page's module. One it no longer writes that asked for a re-run, above
+   * JSX, is done (the element converts now, or changed), so it goes, unless
+   * the file still imports a library source, whose TODOs this one can't tell
+   * from its own.
+   */
+  const settleTodos = (): void => {
+    if (earlier.size === 0) return;
+    const library = root
+      .find(j.ImportDeclaration)
+      .some((importPath: any) =>
+        LIBRARY_SOURCES.test(String(importPath.node.source.value))
+      );
+    root.find(j.Node).forEach((nodePath: any) => {
+      const node = nodePath.node;
+      const comments: any[] | undefined = node.comments;
+      if (!comments?.some(isTodoComment)) return;
+      const holdsJsx = () =>
+        j(node).find(j.JSXElement).size() > 0 ||
+        j(node).find(j.JSXFragment).size() > 0;
+      const kept = comments.filter(comment => {
+        if (!isTodoComment(comment)) return true;
+        const key = todoKey(comment.value);
+        if (!earlier.has(comment)) {
+          return !comments.some(
+            other => earlier.has(other) && todoKey(other.value) === key
+          );
+        }
+        if (written.has(key) || library) return true;
+        return !(/\bre-run\b/.test(key) && holdsJsx());
+      });
+      if (kept.length !== comments.length) {
+        node.comments = kept;
+        ctx.dirty = true;
+      }
+    });
+  };
   const print = (): string | undefined => {
+    settleTodos();
     if (!ctx.dirty) return undefined;
     forgetJsxParens(j, root);
     reprintDirectives(j, root);
@@ -1406,11 +1513,11 @@ export default function transform(
     );
   };
   /**
-   * Where an element whose target renders a glyph sits, for its TODO: the
-   * classes the element directly around it renders, and the nearest <a> or
-   * <button> around it, reached through markup and bestax components only,
-   * since any other component between could render anything, with what
-   * names that.
+   * Where an element whose target renders a glyph sits: the classes the
+   * element directly around it renders, and the nearest <a> or <button>
+   * around it, reached through markup and bestax components only, since any
+   * other component between could render anything, with what names that and,
+   * for an <a>, whether it is a link.
    */
   const glyphPlace = (elementPath: ASTPath<any>): Partial<ElementFacts> => {
     const parent = elementPath.parent;
@@ -1435,10 +1542,15 @@ export default function transform(
     };
     const label =
       clickable && labelOf(clickable.node, elementPath.node, kindOf);
+    const link = tag === 'a' && clickable ? linkOf(clickable.node) : undefined;
     return {
       ...(parentTokens && { parentTokens }),
       ...(clickable && {
-        clickableAround: { tag: tag!, ...(label && { label }) },
+        clickableAround: {
+          tag: tag!,
+          ...(label && { label }),
+          ...(link !== undefined && { link }),
+        },
       }),
     };
   };
@@ -1660,7 +1772,7 @@ export default function transform(
   // change so a re-run converts them, which is noise when a re-run could not.
   const converting = elements.some(element => element.converts);
   const block = (rule: FileRule, message: string): void => {
-    if (converting) addTodo(ctx, elements[0].path, rule, message);
+    if (converting) todo(elements[0].path, rule, message);
     for (const element of elements) {
       element.plan = { ...element.plan, conversion: null, fold: undefined };
     }
@@ -1717,8 +1829,8 @@ export default function transform(
   const bestaxImportState = seedBestaxImport(ctx, root);
 
   for (const { path: elementPath, plan: result } of elements) {
-    for (const todo of result.todos) {
-      addTodo(ctx, elementPath, todo.rule, todo.message);
+    for (const { rule, message } of result.todos) {
+      todo(elementPath, rule, message);
     }
   }
   for (const { path: elementPath, plan: result } of [...elements].reverse()) {

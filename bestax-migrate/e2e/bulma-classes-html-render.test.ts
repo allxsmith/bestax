@@ -29,7 +29,11 @@ import {
   pageDisplayOf,
 } from '../src/sources/bulma-classes/html.js';
 import { canonical, dropPreloads } from './support/dom-canonical.js';
-import { moveGlyphHidden } from './support/hidden-glyph.js';
+import { withShortStyles } from './support/font-awesome-styles.js';
+import {
+  moveGlyphHidden,
+  withLabelledGlyphsHidden,
+} from './support/hidden-glyph.js';
 import {
   loadModules,
   normalizeHtml,
@@ -89,11 +93,18 @@ function threeWays(file: string, source: string) {
     // (#1108), so the migrated page is held to the intermediate one with
     // that role restated where the migrated list carries it. And both are
     // compared with what the planner changes on purpose restated: Font
-    // Awesome's own `aria-hidden` moved up off the <i>, and a Bulma 0.9 class
-    // v1 removed written as the v1 class in its place.
+    // Awesome's own `aria-hidden` moved up off the <i>, the one `Icon` writes
+    // on an icon in a link or button its own label names, a Bulma 0.9 class
+    // v1 removed written as the v1 class in its place, and Font Awesome 6's
+    // long name for a style written as its short one.
     restated: canonicalOf(
       moveGlyphHidden(
-        withImplicitListRoles(withV1Classes(before, after), after)
+        [
+          withV1Classes,
+          withImplicitListRoles,
+          withShortStyles,
+          withLabelledGlyphsHidden,
+        ].reduce((markup, restate) => restate(markup, after), before)
       ),
       document
     ),

@@ -15,47 +15,47 @@
       "code": "<Skeleton variant=\"lines\" lines={5} />"
     },
     {
-      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx › Skeleton Button",
       "code": "<Button skeleton color=\"dark\">\n  Skeleton Button\n</Button>"
     },
     {
-      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx › Skeleton Buttons Group",
       "code": "<Buttons>\n  <Button skeleton color=\"dark\">\n    Skeleton\n  </Button>\n  <Button skeleton color=\"dark\">\n    Skeleton\n  </Button>\n  <Button skeleton color=\"dark\">\n    Skeleton\n  </Button>\n</Buttons>"
     },
     {
-      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx › Skeleton Icon",
       "code": "<Icon name=\"star\" skeleton ariaLabel=\"Star icon skeleton\" size=\"medium\" />"
     },
     {
-      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx › Skeleton Image",
       "code": "<Image skeleton src=\"/img/react-logo.png\" alt=\"Skeleton image\" size=\"128x128\" />"
     },
     {
-      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx › Skeleton Media",
       "code": "<Media skeleton>\n  <Media.Left>\n    <Image\n      skeleton\n      as=\"p\"\n      size=\"64x64\"\n      src=\"https://bulma.io/assets/images/placeholders/128x128.png\"\n      alt=\"\"\n    />\n  </Media.Left>\n  <Media.Content>\n    <Content>\n      <Paragraph>\n        <Strong>Skeleton Name</Strong> <small>@skelly</small> <small>1m</small>\n        <br />\n        This is a skeleton media example.\n      </Paragraph>\n    </Content>\n  </Media.Content>\n</Media>"
     },
     {
-      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx › Skeleton Notification",
       "code": "<Notification skeleton>Skeleton notification message.</Notification>"
     },
     {
-      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx › Skeleton Tag",
       "code": "<Tag skeleton size=\"medium\">\n  Skeleton Tag\n</Tag>"
     },
     {
-      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx › Skeleton Title",
       "code": "<Title skeleton size=\"2\">\n  Skeleton Title\n</Title>"
     },
     {
-      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx › Skeleton SubTitle",
       "code": "<SubTitle skeleton size=\"4\">\n  Skeleton SubTitle\n</SubTitle>"
     },
     {
-      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx › Skeleton Input",
       "code": "<Input skeleton placeholder=\"Skeleton Input\" />"
     },
     {
-      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx › Skeleton TextArea",
       "code": "<TextArea skeleton placeholder=\"Skeleton TextArea\" rows={3} />"
     }
   ],

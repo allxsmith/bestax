@@ -138,12 +138,38 @@ function example() {
 }
 ```
 
+### Circle Size
+
+The circle is `--bulma-radio-size` across, `1.25em` by default, so it grows with the label's font size and the `size` prop. It doesn't go below 24px, whatever that variable says: the stylesheet gives the circle a `min-width` and `min-height` of 24px, the minimum size WCAG 2.2 sets for a target (2.5.8, Target Size (Minimum)), so a circle with no label text beside it is still easy to hit. With Bulma's default font sizes, `1.25em` comes out under 24px at the default and `small` sizes, so those two circles are both 24px.
+
+For a smaller circle, lower the floor along with the size, on a class you pass through `className`. Name `.styled-radio` beside your class in each selector, so the rules win whatever order the stylesheets load in, and use `.bestax-styled-radio` and `.bestax-check` under the prefixed flavor:
+
+```css
+.styled-radio.compact-radio {
+  --bulma-radio-size: 20px;
+}
+
+.styled-radio.compact-radio .check {
+  min-width: 0;
+  min-height: 0;
+}
+```
+
+```tsx
+<Radio name="plan" value="basic" className="compact-radio">
+  Basic
+</Radio>
+```
+
+Keep the label text inside the `Radio` when you shrink the circle. The whole label is the click target, so it stays easy to hit when the circle alone is small.
+
 ---
 
 ## Accessibility
 
 - Each `Radio` is rendered as a `<label>` wrapping an `<input type="radio">` and the label text, for optimal accessibility.
 - Use the same `name` prop for a group of radios to ensure only one can be selected.
+- The circle is at least 24px across, the minimum size WCAG 2.2 sets for a target (2.5.8), whatever `--bulma-radio-size` says. [Circle Size](#circle-size) shows how to make it smaller, and why to keep the label text inside the `Radio` when you do.
 - An unchecked radio shows only its ring, `--bulma-radio-border-color`. It defaults to `--bulma-text-weak`, which holds the 3:1 contrast WCAG asks of a control's boundary (non-text contrast) on Bulma's page and card surfaces in light and dark. Set a replacement on a class you pass through `className`, since `style` goes to the `<input>`, naming the label's class too (`.styled-radio.my-radio`) so load order can't undo it, and hold it to 3:1 as well.
 
 ---
@@ -201,3 +227,5 @@ function example() {
 | `--bulma-radio-transition-duration` | `$radio-transition-duration` | `var(--bulma-duration)`    |
 
 <!-- /bestax:generated cssvars -->
+
+`--bulma-radio-size` has a floor: the circle doesn't render smaller than 24px, whatever the variable says. [Circle Size](#circle-size) says why, and how to go below it.

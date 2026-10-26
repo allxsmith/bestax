@@ -9,9 +9,14 @@
  * library and compared with the raw markup it replaces. The exceptions are
  * on purpose. Font Awesome's own `<i aria-hidden="true">` alone in a `.icon`
  * that carries nothing assistive tech reads converts to `Icon`, which writes
- * the attribute on the `.icon` instead, since the glyph is hidden either way
- * (see `readsGlyph`). And a Bulma 0.9 helper v1 removed, which styles
- * nothing under v1, converts as the v1 helper that does its job (see
+ * the attribute on the `.icon` instead, since the glyph is hidden either way;
+ * a `.icon` around a bare glyph in a link or button its own label names
+ * converts too, and `Icon` writes the attribute it doesn't carry, since that
+ * label is what assistive tech reads for the control; and Font Awesome 6's
+ * long name for a style (`fa-brands`) is written as the skill's `variant`,
+ * which `Icon` renders as the short one (`fab`), the same style (see
+ * `readsGlyph`). And a Bulma 0.9 helper v1 removed, which styles nothing
+ * under v1, converts as the v1 helper that does its job (see
  * `REPLACED_IN_V1`).
  *
  * Data only: `scripts/gen-mcp-index.mjs` imports it directly for the MCP
@@ -165,13 +170,14 @@ export interface Absorbs {
 export interface ReadsGlyph {
   /**
    * The attributes the element may carry and still take Font Awesome's
-   * `aria-hidden` up off its `<i>`: ones the target renders as given that
-   * assistive tech doesn't read, a name ending in `*` standing for every
-   * attribute it starts. Read by name, whatever the value, since an
-   * expression may render as anything. Anything else (a name, a description,
-   * a `title`, a `role`, a `tabIndex`, a handler) keeps the attribute where
-   * it is: the move would hide what it exposes, and `Icon` writes no
-   * `aria-hidden` beside a `role` or `tabIndex` at all.
+   * `aria-hidden` up off its `<i>`, or take the one the target writes on an
+   * icon in a link or button its own label names: ones the target renders
+   * as given that assistive tech doesn't read, a name ending in `*` standing
+   * for every attribute it starts. Read by name, whatever the value, since
+   * an expression may render as anything. Anything else (a name, a
+   * description, a `title`, a `role`, a `tabIndex`, a handler) keeps the
+   * element as it is: the attribute would hide what it exposes, and `Icon`
+   * writes no `aria-hidden` beside a `role` or `tabIndex` at all.
    */
   readonly hiddenMovesBeside: readonly string[];
 }
@@ -339,7 +345,9 @@ export interface RootEntry {
    * the `aria-hidden` the target writes, as Font Awesome's own markup does,
    * reads too when the element carries nothing assistive tech reads: the
    * attribute moves up onto it, a difference in markup a conversion makes
-   * on purpose.
+   * on purpose. So does a bare `<i>` in an element that carries no
+   * `aria-hidden` and nothing else assistive tech reads, in a link or button
+   * its own label names: the target writes the attribute there.
    */
   readonly readsGlyph?: ReadsGlyph;
   /**
@@ -1901,9 +1909,13 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   },
 
   // ---- Families bestax has but that do not map element by element yet ------
+  // `Checkbox` renders a `<label class="styled-checkbox checkbox">` around
+  // its `<input>`, hidden, and a box of its own drawn beside it. It puts its
+  // `className` on the `<label>` and the rest of what it's given on the
+  // `<input>`, and its `indeterminate` sets the input's mixed state.
   checkbox: todo(
     'Checkbox',
-    "bestax `Checkbox` renders its own styled markup, not Bulma's"
+    "bestax `Checkbox` renders its own styled markup, not Bulma's. Write it by hand in place of the element that carries `.checkbox`, Bulma's `<label>` or a bare `<input>`, with the `<input>`'s attributes on it: `id`, `name`, `aria-label` and the rest reach its `<input>`, and a `<label>`'s text is its children. Drive it with `checked` and `onChange`, and add `indeterminate` for a select-all box. Its `className` goes on its `<label>`, which declares the `--bulma-checkbox-*` variables, so set the page's colors with those in a rule for your class beside `.styled-checkbox`. Where the page put `.checkbox` on a bare `<input>`, drop its own rules for that box, since bestax draws its own and `.checkbox` is on its `<label>` now"
   ),
   checkboxes: todo(
     'Checkboxes',
@@ -1996,6 +2008,18 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     tag: 'span',
     readsGlyph: { hiddenMovesBeside: ['id', 'style', 'key', 'data-*'] },
     modifiers: tokens('is-', ['small', 'medium', 'large'], 'size'),
+    // Bulma places an icon with these inside a `.control` that has icons on
+    // that side, and `Control` renders that icon itself from a prop, which
+    // writes the class with the rest of the icon. On `Icon` the class stays.
+    omits: Object.fromEntries(
+      (['left', 'right'] as const).map(side => {
+        const prop = side === 'left' ? 'iconLeft' : 'iconRight';
+        return [
+          `is-${side}`,
+          `Bulma places it inside a \`.control\` with \`has-icons-${side}\`, and bestax \`Control\` renders that icon itself from \`${prop}\` (\`${prop}={{ library: "fa", name: "envelope", size: "small" }}\`), after its children, so a hidden \`.icon\` there can go as that prop; on \`Icon\` the class stays in \`className\`, which renders the same`,
+        ];
+      })
+    ),
     defaults: { 'aria-hidden': 'true' },
     namedDefaults: {
       by: ['aria-label', 'aria-labelledby'],
@@ -2688,6 +2712,92 @@ export const WRAPPER_OWN_PROPS: Readonly<Record<string, readonly string[]>> = {
   UnorderedList: ['textColor', 'bgColor'],
   Figure: ['textColor', 'bgColor'],
 };
+
+/**
+ * Plain tags a bestax component renders as they are, with no class of its
+ * own, that this source leaves as markup all the same: it converts a table's
+ * `.table` and not the rows and cells inside it. Never read by the codemod.
+ * The MCP lookup names the component for one of these, which would otherwise
+ * say bestax has no component for the tag (#1236), and the index carries the
+ * props each takes beside the helper props, read off its record.
+ */
+export const BY_HAND: Readonly<Record<string, string>> = {
+  thead: 'Table.Thead',
+  tbody: 'Table.Tbody',
+  tfoot: 'Table.Tfoot',
+  tr: 'Table.Tr',
+  th: 'Table.Th',
+  td: 'Table.Td',
+};
+
+/**
+ * The bulma-social brand colors, the classes it adds to Bulma's `.button`,
+ * across its majors: read off the stylesheet each publishes (`css/all.css`
+ * in 2 and 3, `bin/bulma-social.css` in 1). Nothing here installs it, so a
+ * brand a later release adds is missing until it is added here.
+ */
+const BULMA_SOCIAL = [
+  'apple',
+  'bitbucket',
+  'discord',
+  'dropbox',
+  'facebook',
+  'flickr',
+  'foursquare',
+  'github',
+  'gitlab',
+  'instagram',
+  'linkedin',
+  'microsoft',
+  'odnoklassniki',
+  'openid',
+  'pinterest',
+  'reddit',
+  'slack',
+  'soundcloud',
+  'tumblr',
+  'twitch',
+  'twitter',
+  'vimeo',
+  'vk',
+  'x',
+  'yahoo',
+  'youtube',
+];
+
+/**
+ * Classes no Bulma 1 rule matches that a page takes from another stylesheet
+ * it loads, grouped by that stylesheet, each with what to do about them. The
+ * codemod leaves a class it doesn't convert where it is, so it never reads
+ * these; the MCP lookup does, for a class Bulma 1's stylesheet lacks, which
+ * it would otherwise call a class nothing styles (#1236). A `glyph` group's
+ * classes name an icon font's glyph, which bestax `Icon` writes from props.
+ */
+export const ELSEWHERE: ReadonlyArray<{
+  readonly why: string;
+  readonly match: RegExp;
+  readonly glyph?: boolean;
+}> = [
+  {
+    why: "a Font Awesome class: Font Awesome's own stylesheet styles it, not Bulma's, so keep loading Font Awesome (the bestax-migrate skill's `html-asset:font-awesome` says how). bestax `Icon` writes these classes from its props, on the <i> it renders inside a `.icon`",
+    match: /^(?:fa|fa[srbldt]|fa-[a-z0-9]+(?:-[a-z0-9]+)*|svg-inline--fa)$/,
+    glyph: true,
+  },
+  {
+    why: 'a Material Design Icons class: its own stylesheet styles it, not Bulma\'s, so keep loading it. bestax `Icon` writes these classes from its props, with `library="mdi"`, on the <i> it renders inside a `.icon`',
+    match: /^mdi(?:-[a-z0-9]+)*$/,
+    glyph: true,
+  },
+  {
+    why: "a bulma-social class, a Bulma extension's brand color for Bulma's `.button`, which bestax's `Button` renders: keep loading bulma-social and keep the class on `Button` in `className`, since bestax has no component for it (the bestax-migrate skill's `html-asset:bulma-extension` has the recipe)",
+    match: new RegExp(`^is-(?:${BULMA_SOCIAL.join('|')}|animated)$`),
+  },
+  {
+    why: "a bulma-carousel class, a Bulma extension bestax's `Carousel` does the job of (the bestax-migrate skill's `html-asset:bulma-extension` says how). Once the page stops loading bulma-carousel nothing styles it: `is-covered`'s `object-fit: cover` on a slide's image goes in the app's own CSS",
+    match:
+      /^(?:has-carousel|hero-carousel|is-background|is-covered|slider-(?:container|item|navigation-next|navigation-previous|page|pagination)|video-container)$/,
+  },
+];
 
 /**
  * Every class Bulma 0.9.4's compiled stylesheet has and v1's does not, read

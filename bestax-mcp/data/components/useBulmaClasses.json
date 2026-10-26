@@ -30,19 +30,19 @@
       "code": "<Box display=\"grid\">\n  <Notification color=\"primary\" m=\"1\">\n    Cell 1\n  </Notification>\n  <Notification color=\"info\" m=\"1\">\n    Cell 2\n  </Notification>\n</Box>"
     },
     {
-      "title": "With Flexbox Helpers",
+      "title": "With Flexbox Helpers › Item Properties",
       "code": "function example() {\n  const { bulmaHelperClasses } = useBulmaClasses({\n    display: 'flex',\n    flexDirection: 'column',\n    alignItems: 'center',\n    justifyContent: 'center',\n    gap: '4',\n  });\n  return JSON.stringify({ bulmaHelperClasses });\n  // bulmaHelperClasses: 'is-gap-4 is-flex is-flex-direction-column is-align-items-center is-justify-content-center'\n}"
     },
     {
-      "title": "With Flexbox Helpers",
+      "title": "With Flexbox Helpers › Item Properties",
       "code": "// Container with display flex\n<Box display=\"flex\" alignItems=\"center\">\n  {/* Items don't need display flex to use alignSelf, flexGrow, flexShrink */}\n  <Button alignSelf=\"flex-start\">Start</Button>\n  <Button alignSelf=\"center\" flexGrow=\"1\">\n    Center & Grow\n  </Button>\n  <Button alignSelf=\"flex-end\" flexShrink=\"0\">\n    End & No Shrink\n  </Button>\n</Box>"
     },
     {
-      "title": "Using with Components",
+      "title": "Using with Components › Columns",
       "code": "import type { BulmaClassesProps } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  function MyColumns({\n    children,\n    ...props\n  }: BulmaClassesProps & React.ComponentPropsWithoutRef<'div'>) {\n    const { bulmaHelperClasses, rest } = useBulmaClasses(props);\n    return (\n      <div className={classNames('columns', bulmaHelperClasses)} {...rest}>\n        {children}\n      </div>\n    );\n  }\n\n  return (\n    <MyColumns textAlign=\"centered\" textTransform=\"uppercase\">\n      <div className=\"column\">\n        <Notification color=\"primary\">Left</Notification>\n      </div>\n      <div className=\"column\">\n        <Notification color=\"info\">Right</Notification>\n      </div>\n    </MyColumns>\n  );\n}"
     },
     {
-      "title": "Using with Components",
+      "title": "Using with Components › Card",
       "code": "function example() {\n  const props = {};\n\n  const textColor = 'white';\n  const bgColor = 'primary';\n  const hasShadow = true;\n  const className = 'custom-card';\n  const children = <p>Making a custom card</p>;\n  const p = '4';\n\n  const { bulmaHelperClasses, rest } = useBulmaClasses({\n    color: textColor,\n    backgroundColor: bgColor,\n    p,\n    ...props,\n  });\n  const cardClasses = classNames('card', className, bulmaHelperClasses, {\n    'is-shadowless': !hasShadow,\n  });\n  return (\n    <div className={cardClasses} {...rest}>\n      {children}\n    </div>\n  );\n}"
     },
     {
@@ -150,43 +150,43 @@
       "code": "<Columns>\n  <Column>\n    <Notification color=\"primary\" aspectRatio=\"1by1\">\n      1by1\n    </Notification>\n  </Column>\n  <Column>\n    <Notification color=\"info\" aspectRatio=\"4by3\">\n      4by3\n    </Notification>\n  </Column>\n  <Column>\n    <Notification color=\"success\" aspectRatio=\"16by9\">\n      16by9\n    </Notification>\n  </Column>\n</Columns>"
     },
     {
-      "title": "Skeleton Examples",
+      "title": "Skeleton Examples › Skeleton Button",
       "code": "<Button skeleton>Skeleton Button</Button>"
     },
     {
-      "title": "Skeleton Examples",
+      "title": "Skeleton Examples › Skeleton Buttons Group",
       "code": "<Buttons>\n  <Button skeleton>Skeleton</Button>\n  <Button skeleton>Skeleton</Button>\n  <Button skeleton>Skeleton</Button>\n</Buttons>"
     },
     {
-      "title": "Skeleton Examples",
+      "title": "Skeleton Examples › Skeleton Icon",
       "code": "<Icon name=\"star\" skeleton ariaLabel=\"Star icon skeleton\" />"
     },
     {
-      "title": "Skeleton Examples",
+      "title": "Skeleton Examples › Skeleton Image",
       "code": "<Image skeleton src=\"/img/react-logo.png\" alt=\"Skeleton image\" size=\"128x128\" />"
     },
     {
-      "title": "Skeleton Examples",
+      "title": "Skeleton Examples › Skeleton Notification",
       "code": "<Notification skeleton>Skeleton notification message.</Notification>"
     },
     {
-      "title": "Skeleton Examples",
+      "title": "Skeleton Examples › Skeleton Tag",
       "code": "<Tag skeleton>Skeleton Tag</Tag>"
     },
     {
-      "title": "Skeleton Examples",
+      "title": "Skeleton Examples › Skeleton Title",
       "code": "<Title skeleton size=\"2\">\n  Skeleton Title\n</Title>"
     },
     {
-      "title": "Skeleton Examples",
+      "title": "Skeleton Examples › Skeleton SubTitle",
       "code": "<SubTitle skeleton size=\"4\">\n  Skeleton SubTitle\n</SubTitle>"
     },
     {
-      "title": "Skeleton Examples",
+      "title": "Skeleton Examples › Skeleton Input",
       "code": "<Input skeleton placeholder=\"Skeleton Input\" />"
     },
     {
-      "title": "Skeleton Examples",
+      "title": "Skeleton Examples › Skeleton TextArea",
       "code": "<TextArea skeleton placeholder=\"Skeleton TextArea\" rows={3} />"
     }
   ],
