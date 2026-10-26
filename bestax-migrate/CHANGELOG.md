@@ -1,3 +1,33 @@
+# [2.33.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.32.1...bestax-migrate@2.33.0) (2026-10-26)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** answer what the lookup and search missed in the re-ports ([e144b27](https://github.com/allxsmith/bestax/commit/e144b273a79f19480bab61297a81953b5a5db19e)), closes [#1236](https://github.com/allxsmith/bestax/issues/1236)
+* **bestax-mcp:** name isAligned for Table.Td now that it takes one ([b326db1](https://github.com/allxsmith/bestax/commit/b326db1ea33a18767d497bf3b24a77b3d1ec569b)), closes [#1263](https://github.com/allxsmith/bestax/issues/1263)
+* **bestax-mcp:** say what to do with a class of bestax's own either way ([824e2ad](https://github.com/allxsmith/bestax/commit/824e2ad75a2e852b50db224e548794b85eecc72f))
+* **bestax-migrate:** keep aria-hidden beside a role or tabIndex written as an expression ([9dc87fe](https://github.com/allxsmith/bestax/commit/9dc87fe3b51795bccb37b5c5f61840cd69c5420d))
+* **bestax-migrate:** keep the image TODO on an element that converts anyway ([048e8e5](https://github.com/allxsmith/bestax/commit/048e8e514e56c99b2b7cceb75258dfc582edea01))
+* **bestax-migrate:** say which Modal parts call onClose in the modal recipes ([73cd3b1](https://github.com/allxsmith/bestax/commit/73cd3b18ea6d8c367795105c029f5c1559d8b955))
+* **bulma-ui:** close the modal from Modal.Close through its onClose ([332419d](https://github.com/allxsmith/bestax/commit/332419d26c3a7fa7cfb6201fb1707637f24838fc))
+* **docs:** catch template images loaded from extensionless URLs ([180eb5a](https://github.com/allxsmith/bestax/commit/180eb5a8cb5afab030fa18dbc8d96a54ea83098b))
+* **docs:** draw the Rent template's images for the port ([c7f697b](https://github.com/allxsmith/bestax/commit/c7f697b2c94e5750e09fd8f37a7fca64516c970e))
+* **docs:** draw the Wedding Planner template's images for the port ([29eaeea](https://github.com/allxsmith/bestax/commit/29eaeead62049e25cf450f8b30e69e9a169a2b05))
+* **docs:** fail any outside URL in a template's code by default ([cd51641](https://github.com/allxsmith/bestax/commit/cd51641c8cdcff585fa28eabfff02f15622ef796))
+* **docs:** read an SVG's href under any prefix, as its parser reads it ([56c6335](https://github.com/allxsmith/bestax/commit/56c63353e5f45b8fcf862052fbcb2a9ce283a70c)), closes [#100](https://github.com/allxsmith/bestax/issues/100)
+* **docs:** read template SVGs for what they draw from elsewhere ([85a9183](https://github.com/allxsmith/bestax/commit/85a91831edcde6e56ef9c96fff6c79a1d4c96d4f)), closes [#fragment](https://github.com/allxsmith/bestax/issues/fragment)
+* **docs:** recapture the Login card on main's re-port, and rewrap the Images notes ([d6b1bd1](https://github.com/allxsmith/bestax/commit/d6b1bd1c6eb87b102c1c2764c70d09592db4afb9))
+* **docs:** record how each template image was made, and check it ([1dde764](https://github.com/allxsmith/bestax/commit/1dde76413cbeec491adfa8dffd388556feeb450a))
+* **docs:** redraw template images that followed the pictures they replace ([9b661c0](https://github.com/allxsmith/bestax/commit/9b661c0510e14753e0afa5d9a61c6937016da882))
+* **docs:** replace template images of unknown origin with drawn ones ([bd550b3](https://github.com/allxsmith/bestax/commit/bd550b3195d770a24d6e81c30b323f9fd8c61c89))
+* **docs:** ship only images made for the Hotel and Tropico templates ([caa538b](https://github.com/allxsmith/bestax/commit/caa538b4a1534cc8f2224fe93856d53bcc3439ac))
+
+
+### Features
+
+* **bestax-migrate:** convert icons in labelled controls, and spell icons as the skill does ([a3d4d19](https://github.com/allxsmith/bestax/commit/a3d4d19bbc2579df7ad0ba8fcb9fcc4ee862ff44))
+* **bestax-migrate:** give the .checkbox TODO a recipe for Checkbox ([5fd1eca](https://github.com/allxsmith/bestax/commit/5fd1eca1ec4c636d33a181ed1009cf7e2b16c987)), closes [#1235](https://github.com/allxsmith/bestax/issues/1235)
+
 ## [2.32.1](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.32.0...bestax-migrate@2.32.1) (2026-10-25)
 
 
