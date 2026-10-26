@@ -20,6 +20,16 @@
  *     attribute on the `.icon` instead. Where the planner says so
  *     (`movesHidden`), both sides go through `support/hidden-glyph.ts`, which
  *     moves it up in exactly that shape and leaves every other one as it is.
+ *   - A `.icon` around a bare glyph, in a link or <button> its own label
+ *     names, becomes `Icon`, which writes `aria-hidden` on it: the label is
+ *     what assistive tech reads for the control. Where the planner says so
+ *     (`addsHidden`), the raw side has the attribute restated in exactly that
+ *     shape (`withLabelledGlyphsHidden`), rendered inside the control.
+ *   - Font Awesome 6's long name for a style (`fa-brands`) is written as the
+ *     bestax-icons skill's `variant` (`brands`), which `Icon` renders as the
+ *     short name (`fab`), the same style. Where the planner says so
+ *     (`longStyle`), the raw side has the short name restated
+ *     (`support/font-awesome-styles.ts`).
  *   - A Bulma 0.9 class v1 removed styles nothing under v1, and converts as
  *     the v1 helper that does its job (`is-marginless` as `m="0"`, which
  *     renders `m-0`), so the raw side has that class restated where the
@@ -60,7 +70,14 @@ import {
   rawFrom,
   type FileTree,
 } from './support/file-tree.js';
-import { moveGlyphHidden } from './support/hidden-glyph.js';
+import {
+  SHORT_STYLES,
+  withShortStyles,
+} from './support/font-awesome-styles.js';
+import {
+  moveGlyphHidden,
+  withLabelledGlyphsHidden,
+} from './support/hidden-glyph.js';
 import {
   GLYPHS,
   iconChild,
@@ -323,8 +340,16 @@ function renderBoth(
     facts.childElements?.some(child => child.becomes?.movesHidden);
   const compared = (markup: string) =>
     moves ? moveGlyphHidden(markup) : markup;
+  // And Font Awesome 6's long name for a style, where the planner says the
+  // target renders the short one.
+  const restyles =
+    result.conversion.glyph?.longStyle !== undefined ||
+    facts.childElements?.some(
+      child => child.becomes?.glyph?.longStyle !== undefined
+    );
+  const restated = withImplicitListRoles(withV1Classes(raw, html), html);
   return {
-    raw: compared(withImplicitListRoles(withV1Classes(raw, html), html)),
+    raw: compared(restyles ? withShortStyles(restated, html) : restated),
     converted: compared(html),
   };
 }
@@ -1307,6 +1332,29 @@ describe.each(mapped.filter(([, entry]) => entry.readsGlyph))(
       for (const tokens of GLYPHS) same(tokens.join(' '), tokens);
     });
 
+    it("writes Font Awesome 6's long name for a style as the skill's variant, the same with the short one restated", () => {
+      // Each long name the normalization knows, so a long name the planner
+      // reads that it doesn't fails above.
+      for (const long of Object.keys(SHORT_STYLES)) {
+        const conversion = render(long, glyph([long, 'fa-bell']));
+        expect({ long, written: conversion.glyph?.longStyle }).toEqual({
+          long,
+          written: long,
+        });
+      }
+      // Beside `fa-sharp` it keeps the long name, rendered as written.
+      for (const tokens of [
+        ['fa-sharp', 'fa-solid', 'fa-house'],
+        ['fa-sharp', 'fa-brands', 'fa-github'],
+      ]) {
+        const conversion = render(tokens.join(' '), glyph(tokens));
+        expect({ tokens, written: conversion.glyph?.longStyle }).toEqual({
+          tokens,
+          written: undefined,
+        });
+      }
+    });
+
     it('renders each class beside a glyph the same', () => {
       for (const token of [
         ...Object.keys(entry.modifiers ?? {}),
@@ -1556,6 +1604,252 @@ describe('the normalization for a moved aria-hidden', () => {
     })
   )('leaves %s as it is', (_label, markup) => {
     expect(moveGlyphHidden(html(markup))).toBe(html(markup));
+  });
+});
+
+/**
+ * An element whose target renders a glyph from props, around a bare glyph,
+ * in a link or <button> its own label names: the target writes the
+ * `aria-hidden` it doesn't carry, and the markup and the component, each
+ * inside the control, render the same with the attribute restated, with
+ * each glyph, each class and each attribute the move takes.
+ */
+describe.each(mapped.filter(([, entry]) => entry.readsGlyph))(
+  'a glyph `.%s` holds in a control its own label names',
+  (root, entry) => {
+    const controls: Array<
+      [
+        string,
+        Record<string, string>,
+        NonNullable<ElementFacts['clickableAround']>,
+      ]
+    > = [
+      [
+        'a',
+        { href: '/x', 'aria-label': 'Home' },
+        { tag: 'a', label: 'aria-label', link: true },
+      ],
+      [
+        'a',
+        { href: '', 'aria-labelledby': 'x' },
+        { tag: 'a', label: 'aria-labelledby', link: true },
+      ],
+      [
+        'button',
+        { type: 'button', 'aria-label': 'Home' },
+        { tag: 'button', label: 'aria-label' },
+      ],
+    ];
+    const within = (
+      tag: string,
+      attributes: Record<string, string>,
+      inner: string
+    ) =>
+      normalizeHtml(
+        renderElement(tag, attributes, '\u0000').replace('\u0000', inner)
+      );
+    const same = (
+      label: string,
+      tokens: string[],
+      classes: string[] = [],
+      attributes: Attributes = {}
+    ) => {
+      for (const [tag, given, around] of controls) {
+        const facts: ElementFacts = {
+          ...factsFor(entry.tag!, [root, ...classes], attributes),
+          soleChild: { ...bare('i'), tokens },
+          clickableAround: around,
+        };
+        expect({
+          label,
+          tag,
+          adds: plan(facts).conversion?.addsHidden,
+        }).toEqual({ label, tag, adds: true });
+        const found = renderBoth(facts, attributes)!;
+        const raw = within(tag, given, found.raw);
+        const converted = within(tag, given, found.converted);
+        expect({ label, tag, html: converted }).toEqual({
+          label,
+          tag,
+          html: withLabelledGlyphsHidden(raw, converted),
+        });
+        // The attribute is the one difference.
+        expect({ label, tag, differs: raw !== converted }).toEqual({
+          label,
+          tag,
+          differs: true,
+        });
+      }
+    };
+
+    it('renders each glyph the same', () => {
+      for (const tokens of GLYPHS) same(tokens.join(' '), tokens);
+    });
+
+    it('renders each class beside a glyph the same', () => {
+      for (const token of [
+        ...Object.keys(entry.modifiers ?? {}),
+        'is-left',
+        'has-text-info',
+        'my-icon',
+      ]) {
+        same(token, ['fas', 'fa-home'], [token]);
+      }
+    });
+
+    it('renders the same beside each attribute the move takes', () => {
+      // Through the normalization's own list, as the move up off an <i> is.
+      // A `style` is the one this harness can't write, since React takes it
+      // as an object; the normalization's test passes one.
+      const samples: Record<string, Attributes> = {
+        id: { id: 'x' },
+        key: { key: 'k' },
+        'data-*': { 'data-test': 'y' },
+      };
+      for (const allowed of entry.readsGlyph!.hiddenMovesBeside) {
+        if (allowed === 'style') continue;
+        expect({ allowed, sampled: Object.hasOwn(samples, allowed) }).toEqual({
+          allowed,
+          sampled: true,
+        });
+        same(allowed, ['fas', 'fa-home'], [], samples[allowed]);
+      }
+    });
+  }
+);
+
+/**
+ * The normalization for an icon a labelled control holds, which writes the
+ * `aria-hidden` `Icon` adds there and nothing else: every other shape
+ * compares as it is, even where the converted side has the attribute.
+ */
+describe('the normalization for an icon in a labelled control', () => {
+  const html = (markup: string) => normalizeHtml(markup);
+  /** What a conversion that hid the `.icon` would render. */
+  const hid = (markup: string) =>
+    html(
+      markup.replace(
+        /<span class="icon([^"]*)"/,
+        '<span class="icon$1" aria-hidden="true"'
+      )
+    );
+  const restated = (markup: string) =>
+    withLabelledGlyphsHidden(html(markup), hid(markup));
+
+  it.each(
+    Object.entries({
+      'a link its aria-label names':
+        '<a href="/x" aria-label="Home"><span class="icon"><i class="fas fa-home"></i></span></a>',
+      'a link its aria-labelledby names, with an empty href':
+        '<a href="" aria-labelledby="x"><span class="icon"><i class="fas fa-home"></i></span></a>',
+      'a button its aria-label names':
+        '<button aria-label="Home"><span class="icon is-small" id="i" style="color:red" data-test="y"><i class="x"></i></span></button>',
+      'an icon deeper in the control':
+        '<a href="/x" aria-label="Home"><span><span class="icon"><i class="x"></i></span></span><img src="/y.png"/></a>',
+    })
+  )('writes it on an icon in %s', (_label, markup) => {
+    expect(restated(markup)).toBe(hid(markup));
+  });
+
+  it.each(
+    Object.entries({
+      'a link nothing names':
+        '<a href="/x"><span class="icon"><i class="x"></i></span></a>',
+      'a link with an empty name':
+        '<a href="/x" aria-label=" "><span class="icon"><i class="x"></i></span></a>',
+      'an <a> with no href':
+        '<a aria-label="Home"><span class="icon"><i class="x"></i></span></a>',
+      'no control at all': '<p><span class="icon"><i class="x"></i></span></p>',
+      'an unnamed link inside a named button':
+        '<button aria-label="Home"><a href="/x"><span class="icon"><i class="x"></i></span></a></button>',
+      'a control closed before it':
+        '<button aria-label="Home"></button><span class="icon"><i class="x"></i></span>',
+      'a .icon with a title':
+        '<a href="/x" aria-label="Home"><span class="icon" title="Home"><i class="x"></i></span></a>',
+      'a .icon with a role':
+        '<a href="/x" aria-label="Home"><span class="icon" role="note"><i class="x"></i></span></a>',
+      'a .icon that takes focus':
+        '<a href="/x" aria-label="Home"><span class="icon" tabindex="0"><i class="x"></i></span></a>',
+      'a .icon not hidden on purpose':
+        '<a href="/x" aria-label="Home"><span class="icon" aria-hidden="false"><i class="x"></i></span></a>',
+      'a .icon with a language':
+        '<a href="/x" aria-label="Home"><span class="icon" lang="en"><i class="x"></i></span></a>',
+      'an <i> with an id':
+        '<a href="/x" aria-label="Home"><span class="icon"><i class="x" id="y"></i></span></a>',
+      'an <i> with text':
+        '<a href="/x" aria-label="Home"><span class="icon"><i class="x">home</i></span></a>',
+      'a second child':
+        '<a href="/x" aria-label="Home"><span class="icon"><i class="x"></i><b></b></span></a>',
+      'an <svg>':
+        '<a href="/x" aria-label="Home"><span class="icon"><svg></svg></span></a>',
+      'a span that is no .icon':
+        '<a href="/x" aria-label="Home"><span class="tag"><i class="x"></i></span></a>',
+    })
+  )('leaves %s as it is', (_label, markup) => {
+    expect(restated(markup)).toBe(html(markup));
+  });
+
+  it('writes it only where the converted side has it', () => {
+    const markup =
+      '<a href="/x" aria-label="Home"><span class="icon"><i class="x"></i></span></a>';
+    expect(withLabelledGlyphsHidden(html(markup), html(markup))).toBe(
+      html(markup)
+    );
+  });
+});
+
+/**
+ * The normalization for Font Awesome 6's long name for a style, which
+ * restates the short one where the converted `<i>` has it and nothing else.
+ */
+describe("the normalization for a style's long name", () => {
+  const html = (markup: string) => normalizeHtml(markup);
+  const same = (raw: string, converted: string) =>
+    withShortStyles(html(raw), html(converted));
+
+  it.each(Object.entries(SHORT_STYLES))(
+    'writes %s as %s where the converted <i> has it',
+    (long, short) => {
+      expect(
+        same(
+          `<span class="icon"><i class="${long} fa-bell fa-lg"></i></span>`,
+          `<span class="icon"><i class="${short} fa-bell fa-lg"></i></span>`
+        )
+      ).toBe(
+        html(`<span class="icon"><i class="${short} fa-bell fa-lg"></i></span>`)
+      );
+    }
+  );
+
+  it.each(
+    Object.entries({
+      'one beside fa-sharp': [
+        '<i class="fa-sharp fa-solid fa-house"></i>',
+        '<i class="fa-sharp fas fa-house"></i>',
+      ],
+      'a converted <i> that kept the long name': [
+        '<i class="fa-brands fa-github"></i>',
+        '<i class="fa-brands fab fa-github"></i>',
+      ],
+      'a converted <i> with another style': [
+        '<i class="fa-brands fa-github"></i>',
+        '<i class="fas fa-github"></i>',
+      ],
+      'two long names': [
+        '<i class="fa-solid fa-regular fa-bell"></i>',
+        '<i class="fas fa-regular fa-bell"></i>',
+      ],
+      'an element that is no <i>': [
+        '<span class="fa-brands fa-github"></span>',
+        '<span class="fab fa-github"></span>',
+      ],
+      'a short name already': [
+        '<i class="fab fa-github"></i>',
+        '<i class="fab fa-github"></i>',
+      ],
+    })
+  )('leaves %s as it is', (_label, [raw, converted]) => {
+    expect(same(raw, converted)).toBe(html(raw));
   });
 });
 

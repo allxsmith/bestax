@@ -9,6 +9,14 @@ export function Icons() {
       <span className="icon" aria-hidden="true">
         <i className="fa fa-envelope-o"></i>
       </span>
+      {/* Font Awesome 6's long name for a style reads as the skill's. */}
+      <span className="icon" aria-hidden="true">
+        <i className="fa-brands fa-x-twitter"></i>
+      </span>
+      {/* But beside fa-sharp, whose family the short name would undo. */}
+      <span className="icon" aria-hidden="true">
+        <i className="fa-sharp fa-solid fa-house"></i>
+      </span>
       {/* A named icon is an image, as Icon renders one. */}
       <span className="icon" role="img" aria-label="Verified">
         <i className="mdi mdi-check-decagram"></i>
@@ -60,7 +68,26 @@ export function Icons() {
             <i className="fab fa-twitter"></i>
           </span>
         </a>
+        {/* Named by reference, so this icon is decoration too. */}
+        <button className="button" type="button" aria-labelledby="save-label">
+          <span className="icon">
+            <i className="fa-regular fa-floppy-disk"></i>
+          </span>
+        </button>
+        {/* An <a> with no href is no link, so its label names nothing. */}
+        <a className="button" aria-label="Menu">
+          <span className="icon">
+            <i className="fas fa-bars"></i>
+          </span>
+        </a>
+        {/* A title on the icon would be hidden with it. */}
+        <button className="button" type="button" aria-label="Edit">
+          <span className="icon" title="Edit">
+            <i className="fas fa-pen"></i>
+          </span>
+        </button>
       </div>
+      <span id="save-label" className="is-sr-only">Save</span>
       {/* Icon renders only a <span>, so on a <div> the tag is all it says. */}
       <div className="icon">
         <i className="fas fa-home"></i>

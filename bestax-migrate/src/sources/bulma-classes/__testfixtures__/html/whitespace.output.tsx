@@ -1,7 +1,7 @@
 import { Block, Box, Button, Buttons, Level, Span, Tag, Tags } from "@allxsmith/bestax-bulma";
 
 export default function WhitespacePage() {
-  // TODO(bestax-migrate): bestax `Content` renders only <div>, not a <p>; keep the markup, or change the tag and re-run (whitespace.html:5)
+  // TODO(bestax-migrate): bestax `Content` renders only <div>, not a <p>; keep the markup, or change the tag and re-run on `whitespace.jsx` (whitespace.html:5)
   return (
     <>
       <Buttons>
