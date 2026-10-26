@@ -803,6 +803,30 @@ Two things about reading its output, both learned assembling the #578 lists:
 
 Then resolve every host before it goes in the list, per the rule above.
 
+#### When the agent drops a job's first connections
+
+On some hosted runners the agent drops a step's connection to a host the job allows. The agent
+admitted one address for the host and the step's own DNS lookup returned another, so the agent log
+reads `ip address dropped` and the step gets `connection refused`. It shows at the start of a job,
+and a later re-resolution (`refreshDNSEntries`, above) can admit the address. The upstream report is
+step-security/harden-runner#708, and #1258 has this repo's runs.
+
+The cost here was a misread. The checks that re-verify the triggering user's live role read a failed
+call as role `none`, so a dropped run logged that the user lacked access and skipped its work as if
+they were untrusted. Each check now calls `lookup_role`, which retries for about a minute
+and a half and then fails the step with an `::error::` that says the API call failed. An answer from
+the API, `read` and `none` included, is handled as before. `scripts/role-lookup.test.mjs` runs each
+check against a stub `gh` and holds the copies of `lookup_role` equal.
+
+What it does not cover:
+
+- A later step's host can be dropped the same way: a checkout of `github.com`, the npm registry, the
+  model API. The retry gives the agent time before the first call only.
+- On those runners a job can also sit in the runner's post-job cleanup, every step finished, until
+  its `timeout-minutes` ends it. No step timeout reaches that. Where the job's own timeout is long,
+  the role lookup and the checkout after it carry short step timeouts so that a step which hangs
+  fails on its own. The job timeouts are unchanged.
+
 ## Review checklist for a workflow change
 
 - [ ] Does any allowlist grow? If yes, name the credential in that job and justify each entry.
