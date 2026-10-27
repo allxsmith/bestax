@@ -1,6 +1,7 @@
 /**
- * Keeps `show_full_output` off in the Claude jobs that read text anyone can
- * write.
+ * Keeps `show_full_output` off in the Claude jobs listed in `UNTRUSTED_TEXT`.
+ * Each reads text anyone can write and runs no repository code, so a full
+ * transcript in its job log was only ever a debugging aid.
  *
  * `Read` is always available to a session and is not confined to the
  * workspace, so an injected session can put the OAuth token, encoded or split
@@ -11,6 +12,13 @@
  * This test holds each job below to that, so a debugging change can't quietly
  * turn it back on. It reads the workflows with the conformance check's YAML
  * reader, as the other workflow tests do.
+ *
+ * It does not cover every session that reads text other people write.
+ * bestaxbot-reply.yml's `respond`, claude-implement.yml's `implement` and
+ * claude-pr-loop.yml's `fix` and `verify` still turn full output on, and each
+ * says why above the setting: the job log is where a blocked tool call or
+ * commit gets diagnosed. Whether to give that up there is a separate decision,
+ * so this test leaves them alone.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -29,7 +37,7 @@ const WORKFLOWS = path.join(repoRoot, '.github', 'workflows');
 
 const ACTION = 'anthropics/claude-code-action@';
 
-/** Jobs whose session reads issue or PR text from anyone. */
+/** Jobs that read text anyone can write and run no repository code. */
 const UNTRUSTED_TEXT = [
   ['ai-scan.yml', 'scan'],
   ['ai-triage.yml', 'triage'],
