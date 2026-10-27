@@ -134,6 +134,7 @@ describe('ScrollArea', () => {
     });
 
     it('puts the helper props, className and style on the frame, and the rest on the viewport', () => {
+      metrics.scrollHeight = 400;
       const ref = React.createRef<HTMLDivElement>();
       const { container } = renderArea({
         ref,
@@ -231,11 +232,17 @@ describe('ScrollArea', () => {
   });
 
   describe('A tab stop while it overflows', () => {
-    it('is a plain box while the content fits', () => {
-      const { container } = renderArea();
+    it('is a plain box with no name while the content fits', () => {
+      const { container } = render(
+        <ScrollArea aria-labelledby="notes-title" aria-describedby="hint">
+          <p>Some notes.</p>
+        </ScrollArea>
+      );
       const viewport = viewportOf(container);
       expect(viewport).not.toHaveAttribute('role');
       expect(viewport).not.toHaveAttribute('tabindex');
+      expect(viewport).not.toHaveAttribute('aria-labelledby');
+      expect(viewport).toHaveAttribute('aria-describedby', 'hint');
       expect(overflowAttributes(viewport)).toEqual([]);
     });
 
@@ -253,10 +260,46 @@ describe('ScrollArea', () => {
       metrics.scrollHeight = 400;
       observer().fire();
       expect(viewport).toHaveAttribute('role', 'region');
+      expect(viewport).toHaveAttribute('aria-label', 'Notes');
       metrics.scrollHeight = 100;
       observer().fire();
       expect(viewport).not.toHaveAttribute('role');
       expect(viewport).not.toHaveAttribute('tabindex');
+      expect(viewport).not.toHaveAttribute('aria-label');
+    });
+
+    it('becomes one when text it holds grows, which resizes no element', async () => {
+      const Log = ({ text }: { text: string }) => (
+        <ScrollArea aria-label="Log" height={100}>
+          {text}
+        </ScrollArea>
+      );
+      const { container, rerender } = render(<Log text="one line" />);
+      const viewport = viewportOf(container);
+      expect(viewport).not.toHaveAttribute('role');
+      const observed = Array.from(observer().observed);
+      metrics.scrollHeight = 400;
+      // React rewrites the text node in place: a characterData mutation.
+      await act(async () => {
+        rerender(<Log text={'many lines '.repeat(40)} />);
+      });
+      expect(viewport).toHaveAttribute('role', 'region');
+      // A change inside the content leaves what's observed as it was.
+      expect(Array.from(observer().observed)).toEqual(observed);
+    });
+
+    it('becomes one when an inline child grows, which a ResizeObserver never reports', async () => {
+      const Line = ({ text }: { text: string }) => (
+        <ScrollArea aria-label="Line" height={100}>
+          <span>{text}</span>
+        </ScrollArea>
+      );
+      const { container, rerender } = render(<Line text="short" />);
+      metrics.scrollHeight = 400;
+      await act(async () => {
+        rerender(<Line text={'longer '.repeat(80)} />);
+      });
+      expect(viewportOf(container)).toHaveAttribute('role', 'region');
     });
 
     it('keeps its tab stop while it has focus, and drops it once focus leaves', () => {
@@ -599,12 +642,12 @@ describe('ScrollArea', () => {
       </ScrollArea>
     );
 
-    it('renders a plain scroller on the server, with no role, tab stop or edges', () => {
+    it('renders a plain scroller on the server, with no role, name, tab stop or edges', () => {
       metrics.scrollHeight = 400;
       const html = renderToString(<Area />);
       expect(html).toBe(
         '<div class="scroll-area has-fade" style="height:240px">' +
-          '<div class="scroll-area-viewport" aria-label="Notes"><p>Some notes.</p></div></div>'
+          '<div class="scroll-area-viewport"><p>Some notes.</p></div></div>'
       );
     });
 
@@ -624,6 +667,7 @@ describe('ScrollArea', () => {
         });
         expect(errorSpy).not.toHaveBeenCalled();
         expect(viewportOf(container)).toHaveAttribute('role', 'region');
+        expect(viewportOf(container)).toHaveAttribute('aria-label', 'Notes');
       } finally {
         await act(async () => unmountRoot());
         document.body.removeChild(container);

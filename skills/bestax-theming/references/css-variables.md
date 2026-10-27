@@ -624,9 +624,10 @@ the label text inside the `Radio`, since the whole label is the click target.
 ### ScrollArea
 
 Declared on the frame, `.scroll-area`, and read by the viewport inside it, so set them on the
-frame, through `className` or `style`. `--bulma-scroll-area-scrollbar-width` is `thin` or `auto`, the only widths the
-standard property has. Restyled bars owe WCAG's 3:1, so keep a thumb color that clears it against
-the background in both schemes. In forced colors the browser gives the bars the system's colors
+frame, through `className` or `style`. `--bulma-scroll-area-scrollbar-width` takes what
+`scrollbar-width` takes: `thin`, `auto` or `none`. `none` hides the bars while the area still
+scrolls, which hides that it scrolls at all, so keep to `thin` or `auto`. Restyled bars owe
+WCAG's 3:1, so keep a thumb color that clears it against the background in both schemes. In forced colors the browser gives the bars the system's colors
 whatever these say.
 
 `--bulma-scroll-area-fade-size`, `--bulma-scroll-area-scrollbar-width`,

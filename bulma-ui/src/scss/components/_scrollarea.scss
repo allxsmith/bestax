@@ -12,7 +12,8 @@
 @use "bulma/sass/utilities/css-variables" as cv;
 @use "../mixins" as *;
 
-// `thin` or `auto`, the only widths the standard property has.
+// Whatever `scrollbar-width` takes: `thin`, `auto`, or `none`, which hides the
+// bars and with them any sign that the area scrolls.
 $scroll-area-scrollbar-width: thin !default;
 // Restyled bars owe WCAG 1.4.11 its 3:1, and `text-weak` clears it on
 // `scheme-main` in both of Bulma's schemes. `border` doesn't come close.

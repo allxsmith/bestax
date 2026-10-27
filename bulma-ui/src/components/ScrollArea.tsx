@@ -39,7 +39,7 @@ const SLACK = 1;
  * scrolls.
  *
  * @extraProp {React.Ref<HTMLDivElement>} [ref] - Ref forwarded to the viewport, the element that scrolls, for `scrollTo` and the like.
- * @extraProp {string} [aria-label] - Names the region, such as "Release notes". It needs a name, so pass this or `aria-labelledby`, and a development build warns when it has neither.
+ * @extraProp {string} [aria-label] - Names the region, such as "Release notes". It needs a name, so pass this or `aria-labelledby`, and a development build warns when it has neither. The name is rendered with the region's role, while the content overflows, since ARIA doesn't allow naming a plain `div`.
  * @extraProp {string} [aria-labelledby] - The id of a visible heading that names the region, in place of `aria-label`.
  * @extraProp {React.UIEventHandler<HTMLDivElement>} [onScroll] - Called as the viewport scrolls.
  */
@@ -296,16 +296,28 @@ export const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(
         for (const child of Array.from(el.children)) resizes.observe(child);
       };
       observeAll();
-      // A child added or taken away changes what's observed, and may change
-      // the overflow before any size it has is reported.
+      // Content that changes can overflow before any size is reported: a
+      // child added or taken away, or text React rewrites in place, which
+      // resizes no element when the area's height is fixed, and inline
+      // children, which a ResizeObserver doesn't report at all.
       const mutations =
         typeof MutationObserver === 'undefined'
           ? null
-          : new MutationObserver(() => {
-              observeAll();
+          : new MutationObserver(records => {
+              if (
+                records.some(
+                  record => record.target === el && record.type === 'childList'
+                )
+              ) {
+                observeAll();
+              }
               relayout();
             });
-      mutations?.observe(el, { childList: true });
+      mutations?.observe(el, {
+        childList: true,
+        characterData: true,
+        subtree: true,
+      });
       return () => {
         resizes.disconnect();
         mutations?.disconnect();
@@ -329,6 +341,12 @@ export const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(
     // would drop focus to the page, so a viewport that stops overflowing
     // keeps it until focus leaves.
     const isRegion = !!measured?.overflowing || focused;
+    // The name goes with the role: ARIA prohibits naming a plain div.
+    const {
+      'aria-label': ariaLabel,
+      'aria-labelledby': ariaLabelledby,
+      ...viewportRest
+    } = rest;
     const edgeAttributes: Record<string, string> = {};
     if (measured) {
       for (const edge of EDGES) {
@@ -361,9 +379,11 @@ export const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(
           ref={setRefs}
           className={viewportClass}
           style={viewportStyle}
-          {...rest}
+          {...viewportRest}
           {...edgeAttributes}
           role={isRegion ? 'region' : undefined}
+          aria-label={isRegion ? ariaLabel : undefined}
+          aria-labelledby={isRegion ? ariaLabelledby : undefined}
           tabIndex={isRegion ? 0 : undefined}
           onScroll={handleScroll}
           onFocus={handleFocus}
