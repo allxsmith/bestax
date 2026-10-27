@@ -20,6 +20,7 @@ import {
   promptIconLibrary,
   promptBulmaFlavor,
   promptInstallSkills,
+  promptImmediate,
   promptTelemetryConsent,
 } from './prompts.js';
 import { reportScaffold, type ScaffoldChoices } from './telemetry.js';
@@ -29,7 +30,12 @@ import {
   displayError,
   displayCancelled,
 } from './display.js';
-import { validateProjectDirectory, toValidPackageName } from './validators.js';
+import {
+  validateProjectDirectory,
+  toValidPackageName,
+  isCurrentDirectory,
+} from './validators.js';
+import { runCommand } from './run-command.js';
 import {
   MESSAGES,
   TEMPLATES,
@@ -39,6 +45,9 @@ import {
   ESLINT_CONFIG,
   ESLINT_DEV_DEPENDENCIES,
   ESLINT_TYPESCRIPT_DEV_DEPENDENCIES,
+  REACT_COMPILER_DEV_DEPENDENCIES,
+  REACT_COMPILER_TYPESCRIPT_DEV_DEPENDENCIES,
+  REACT_COMPILER_README,
   CLAUDE_MD,
   LAUNCH_JSON,
   CONFIG_PROVIDER_ICON_VALUES,
@@ -78,6 +87,7 @@ export interface CLIOptions {
   telemetry?: boolean;
   yes?: boolean;
   overwrite?: boolean;
+  immediate?: boolean;
 }
 
 /**
@@ -86,6 +96,17 @@ export interface CLIOptions {
  * nothing at all ('stop', with the reason already shown).
  */
 export type ExistingDirectoryPlan = 'empty' | 'overwrite' | 'stop';
+
+/** A dependency map in code-point order, the order the templates keep. */
+function sortedByName(
+  dependencies: Record<string, string>
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(dependencies).sort(([a], [b]) =>
+      a < b ? -1 : a > b ? 1 : 0
+    )
+  );
+}
 
 export class ProjectCreator {
   private templatesDir: string;
@@ -143,7 +164,11 @@ export class ProjectCreator {
     }
 
     if (await this.holdsWorkingDirectory(targetPath)) {
-      displayError(MESSAGES.DIRECTORY_HOLDS_CWD(targetDir));
+      displayError(
+        isCurrentDirectory(targetDir)
+          ? MESSAGES.CURRENT_DIRECTORY_NOT_EMPTY(entries)
+          : MESSAGES.DIRECTORY_HOLDS_CWD(targetDir)
+      );
       return 'stop';
     }
 
@@ -212,7 +237,9 @@ export class ProjectCreator {
   }
 
   getTemplatePath(template: string): string {
-    return path.join(this.templatesDir, template);
+    const directory =
+      TEMPLATES.find(t => t.name === template)?.directory ?? template;
+    return path.join(this.templatesDir, directory);
   }
 
   async copyTemplate(template: string, targetPath: string): Promise<void> {
@@ -293,11 +320,7 @@ export class ProjectCreator {
         ...(isTypeScript ? ESLINT_TYPESCRIPT_DEV_DEPENDENCIES : {}),
       };
       delete devDependencies.oxlint;
-      packageJson.devDependencies = Object.fromEntries(
-        Object.entries(devDependencies).sort(([a], [b]) =>
-          a < b ? -1 : a > b ? 1 : 0
-        )
-      );
+      packageJson.devDependencies = sortedByName(devDependencies);
       packageJson.scripts = { ...packageJson.scripts, lint: 'eslint .' };
       await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
     }
@@ -307,6 +330,83 @@ export class ProjectCreator {
       const readme = await fs.readFile(readmePath, 'utf8');
       await fs.writeFile(readmePath, readme.replace(/\bOxlint\b/g, 'ESLint'));
     }
+  }
+
+  /**
+   * A React Compiler template is its plain template with the compiler turned
+   * on, the way create-vite builds its react-compiler starters: the Babel
+   * packages, the compiler preset in vite.config, and a README section.
+   */
+  async setupReactCompiler(
+    targetPath: string,
+    template: string
+  ): Promise<void> {
+    if (!TEMPLATES.find(t => t.name === template)?.reactCompiler) return;
+    const isTypeScript = template.includes('-ts');
+
+    const packageJsonPath = path.join(targetPath, 'package.json');
+    if (fs.existsSync(packageJsonPath)) {
+      const packageJson = await fs.readJson(packageJsonPath);
+      packageJson.devDependencies = sortedByName({
+        ...packageJson.devDependencies,
+        ...REACT_COMPILER_DEV_DEPENDENCIES,
+        ...(isTypeScript ? REACT_COMPILER_TYPESCRIPT_DEV_DEPENDENCIES : {}),
+      });
+      await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+    }
+
+    const configFileName = isTypeScript ? 'vite.config.ts' : 'vite.config.js';
+    const configPath = path.join(targetPath, configFileName);
+    if (fs.existsSync(configPath)) {
+      const config = await fs.readFile(configPath, 'utf8');
+      const pluginImport =
+        /^import react from ['"]@vitejs\/plugin-react['"];?$/m;
+      const plugins = /^([ \t]*)plugins: \[react\(\)\],$/m;
+      if (pluginImport.test(config) && plugins.test(config)) {
+        await fs.writeFile(
+          configPath,
+          config
+            .replace(
+              pluginImport,
+              "import react, { reactCompilerPreset } from '@vitejs/plugin-react';\n" +
+                "import babel from '@rolldown/plugin-babel';"
+            )
+            .replace(
+              plugins,
+              '$1plugins: [react(), babel({ presets: [reactCompilerPreset()] })],'
+            )
+        );
+      } else {
+        console.log(
+          chalk.yellow(MESSAGES.REACT_COMPILER_NOT_ADDED(configFileName))
+        );
+      }
+    }
+
+    const readmePath = path.join(targetPath, 'README.md');
+    if (fs.existsSync(readmePath)) {
+      const readme = await fs.readFile(readmePath, 'utf8');
+      await fs.writeFile(
+        readmePath,
+        readme.replace(/\n*$/, '\n') + REACT_COMPILER_README
+      );
+    }
+  }
+
+  /**
+   * --immediate: install with the package manager that ran the CLI, then run
+   * the dev server in the foreground until it's stopped, as create-vite does.
+   * A failed install ends the run with its exit code, and so does the server.
+   */
+  installAndStart(targetPath: string, pm: string): void {
+    console.log(chalk.green(MESSAGES.INSTALLING(pm)));
+    const installed = runCommand(`${pm} install`, targetPath);
+    if (installed !== 0) {
+      displayError(MESSAGES.INSTALL_FAILED(pm));
+      process.exit(installed);
+    }
+    console.log(chalk.green(MESSAGES.STARTING_DEV_SERVER));
+    process.exitCode = runCommand(`${pm} run dev`, targetPath);
   }
 
   async setupSkills(
@@ -802,6 +902,22 @@ export class ProjectCreator {
       }
     }
 
+    // Install and start now? (use option -> no under -y or without a
+    // terminal, so a scripted run never starts a server it can't stop -> prompt)
+    const pm = detectPackageManager();
+    let immediate: boolean | null;
+    if (options?.immediate !== undefined) {
+      immediate = options.immediate;
+    } else if (options?.yes || !process.stdin.isTTY) {
+      immediate = false;
+    } else {
+      immediate = await promptImmediate(pm);
+      if (immediate === null) {
+        displayCancelled();
+        process.exit(1);
+      }
+    }
+
     try {
       // Read before the directory is emptied, so a failed read costs nothing.
       const libraryDependency = { [LIBRARY]: libraryRange() };
@@ -832,13 +948,14 @@ export class ProjectCreator {
         template
       );
       await this.setupLinter(targetPath, linter, template);
+      await this.setupReactCompiler(targetPath, template);
       if (installSkills) {
         await this.setupSkills(targetPath, projectName, {
           bulmaFlavor,
           iconLibrary,
         });
       }
-      displaySuccess(targetDir);
+      displaySuccess(targetDir, immediate);
       await this.handleTelemetry(options, {
         template,
         bulmaFlavor,
@@ -848,6 +965,11 @@ export class ProjectCreator {
     } catch (error) {
       displayError((error as Error).message);
       process.exit(1);
+    }
+
+    // Last, since the dev server holds the terminal until it's stopped.
+    if (immediate) {
+      this.installAndStart(targetPath, pm);
     }
   }
 

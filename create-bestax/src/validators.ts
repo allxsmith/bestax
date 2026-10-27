@@ -19,6 +19,8 @@ export function validateProjectName(value: string): boolean | string {
   // every leading-dot name closes that hole for these spellings ("/" and "\" are
   // already blocked). A path reaching the same directory another way, such as
   // "../<its name>", is refused where it resolves, in checkExistingDirectory.
+  // "." alone is let through before this, by validateProjectDirectory, to
+  // scaffold into an empty working directory.
   if (value.startsWith('.')) {
     return MESSAGES.PROJECT_NAME_DOT;
   }
@@ -39,13 +41,34 @@ export function isValidProjectName(name: string): boolean {
 }
 
 /**
+ * Whether targetDir is "." alone, which scaffolds into the working directory
+ * as create-vite takes it. The project is named after that directory, and
+ * checkExistingDirectory lets it through only while it is empty, since the
+ * working directory is never emptied (#310). A longer path ending in "." still
+ * fails the leading-dot rule above.
+ */
+export function isCurrentDirectory(targetDir: string): boolean {
+  return /^\.[\\/]?$/.test(targetDir);
+}
+
+/**
  * The project directory may be a name or a path, absolute or relative, as
  * create-vite takes it (#1154). Its last segment is the project name, the one
  * that names the package and the page title, so that is what is validated, by
  * the same rules as a bare name: a path ending in "." or ".." still fails the
  * leading-dot rule above. A rejected path names the segment it was judged by.
  */
-export function validateProjectDirectory(targetDir: string): boolean | string {
+export function validateProjectDirectory(
+  targetDir: string,
+  cwd: string = process.cwd()
+): boolean | string {
+  if (isCurrentDirectory(targetDir)) {
+    const name = path.basename(cwd);
+    const validation = validateProjectName(name);
+    return typeof validation === 'string'
+      ? MESSAGES.PROJECT_NAME_FROM_CWD(validation, name)
+      : validation;
+  }
   const projectName = path.basename(targetDir);
   const validation = validateProjectName(projectName);
   return typeof validation === 'string' && projectName !== targetDir

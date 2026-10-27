@@ -116,12 +116,24 @@ export function createCLI(): Command {
       '-y, --yes',
       'skip prompts and use defaults or provided options (never removes files: see --overwrite)'
     )
+    .option('--no-interactive', 'never prompt: the same as -y')
     .option(
       '--overwrite',
       'remove existing files if the target directory is not empty'
     )
+    .option(
+      '--immediate',
+      'install dependencies and start the dev server once the project is written'
+    )
+    .option('--no-immediate', 'only write the project')
     .action(async (projectDir?: string, options?: unknown) => {
-      await projectCreator.create(projectDir, options as CLIOptions);
+      const { interactive, ...rest } = (options ?? {}) as CLIOptions & {
+        interactive?: boolean;
+      };
+      await projectCreator.create(
+        projectDir,
+        interactive === false ? { ...rest, yes: true } : rest
+      );
     });
 
   return program;

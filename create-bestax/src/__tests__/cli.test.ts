@@ -151,6 +151,13 @@ describe('cli', () => {
           flags: '--lint <linter>',
         })
       );
+      for (const flags of [
+        '--immediate',
+        '--no-immediate',
+        '--no-interactive',
+      ]) {
+        expect(options).toContainEqual(expect.objectContaining({ flags }));
+      }
       expect(options).toContainEqual(
         expect.objectContaining({
           flags: '-b, --bulma <flavor>',
@@ -307,6 +314,22 @@ describe('cli', () => {
         icon: 'fontawesome',
         yes: true,
       });
+    });
+
+    it.each([
+      [['--no-interactive'], { yes: true }],
+      [['--immediate'], { immediate: true }],
+      [['--no-immediate'], { immediate: false }],
+      [['-y', '--no-interactive'], { yes: true }],
+    ])('passes %j to create as %j', async (flags, expected) => {
+      mockProjectCreator.create.mockResolvedValue(undefined);
+
+      await createCLI().parseAsync(['node', 'create-bestax', 'app', ...flags]);
+
+      const instance = (
+        ProjectCreator as jest.MockedClass<typeof ProjectCreator>
+      ).mock.results[0]?.value;
+      expect(instance.create).toHaveBeenCalledWith('app', expected);
     });
 
     it('should handle no project name', async () => {

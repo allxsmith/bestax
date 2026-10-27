@@ -4,12 +4,64 @@ export interface Template {
   name: string;
   display: string;
   color: typeof chalk.yellow;
+  // The folder under templates/ the scaffold copies.
+  directory: string;
+  // Turn on the React Compiler in the copy, the way create-vite builds its
+  // react-compiler starters from its react ones (setupReactCompiler).
+  reactCompiler?: boolean;
 }
 
 export const TEMPLATES: Template[] = [
-  { name: 'vite', display: 'Vite', color: chalk.yellow },
-  { name: 'vite-ts', display: 'Vite + TypeScript', color: chalk.blue },
+  { name: 'vite', display: 'Vite', color: chalk.yellow, directory: 'vite' },
+  {
+    name: 'vite-ts',
+    display: 'Vite + TypeScript',
+    color: chalk.blue,
+    directory: 'vite-ts',
+  },
+  {
+    name: 'vite-compiler',
+    display: 'Vite + React Compiler',
+    color: chalk.yellow,
+    directory: 'vite',
+    reactCompiler: true,
+  },
+  {
+    name: 'vite-compiler-ts',
+    display: 'Vite + TypeScript + React Compiler',
+    color: chalk.blue,
+    directory: 'vite-ts',
+    reactCompiler: true,
+  },
 ];
+
+// The packages create-vite's react-compiler starters add to its react ones.
+// When create-vite moves them, these follow (create-bestax/CLAUDE.md).
+export const REACT_COMPILER_DEV_DEPENDENCIES: Record<string, string> = {
+  '@babel/core': '^7.29.7',
+  '@rolldown/plugin-babel': '^0.2.4',
+  'babel-plugin-react-compiler': '^1.0.0',
+};
+
+// What the TypeScript starter adds on top.
+export const REACT_COMPILER_TYPESCRIPT_DEV_DEPENDENCIES: Record<
+  string,
+  string
+> = {
+  '@types/babel__core': '^7.20.5',
+};
+
+// Appended to the README of a React Compiler scaffold, as create-vite does.
+export const REACT_COMPILER_README = `
+## React Compiler
+
+The React Compiler is turned on in \`vite.config\`, through Babel. See the
+[React Compiler docs](https://react.dev/learn/react-compiler) for what it does.
+
+It makes Vite's dev server and builds slower. plugin-react also has
+[experimental native support](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md#rust-react-compiler)
+for it, with \`compiler: true\` in its options in place of the Babel plugin.
+`;
 
 export const DEFAULT_PROJECT_NAME = 'my-bestax-app';
 export const MAX_PROJECT_NAME_LENGTH = 214;
@@ -29,11 +81,13 @@ export const MESSAGES = {
   PROJECT_NAME_INVALID_CHARS:
     'Project name can only contain letters, numbers, dots, dashes and underscores',
   PROJECT_NAME_DOT:
-    'Project name cannot start with a dot (names like "." or ".." would scaffold outside a new directory) — pass a directory name',
+    'Project name cannot start with a dot (".." would scaffold outside a new directory) — pass a directory name, or "." alone for the current directory',
   PROJECT_NAME_NO_PACKAGE_NAME:
     'Project name must contain a letter, number or dash (npm package names cannot start with "_" or ".")',
   PROJECT_NAME_FROM_PATH: (message: string, name: string) =>
     `${message} (the project name is "${name}", the last part of the path)`,
+  PROJECT_NAME_FROM_CWD: (message: string, name: string) =>
+    `${message} (the project name is "${name}", the current directory's name)`,
   PACKAGE_NAME_NORMALIZED: (name: string) =>
     `  package.json name: ${name} (npm package names are lower-case and cannot start with "_")`,
   OPERATION_CANCELLED: '✖ Operation cancelled',
@@ -48,6 +102,11 @@ export const MESSAGES = {
     `${dir} already exists and is not a directory, so nothing was written. Choose another project name or path.`,
   // #310: the working directory, or a folder holding it, under another
   // spelling than "." or "..", such as "../<its name>" or its absolute path.
+  // "." names the working directory, which is never emptied (#310), so it
+  // takes a scaffold only while it holds nothing.
+  CURRENT_DIRECTORY_NOT_EMPTY: (entries: string[]) =>
+    `The current directory is not empty (${listEntries(entries)}), so nothing was written.\n` +
+    '  "." scaffolds into it only while it is empty, and it is never emptied, even with --overwrite.',
   DIRECTORY_HOLDS_CWD: (dir: string) =>
     `Directory ${dir} is or holds the current directory, so it is never emptied, even with --overwrite, and nothing was written.\n` +
     '  Choose a new or empty directory.',
@@ -63,6 +122,13 @@ export const MESSAGES = {
   TEMPLATE_NOT_FOUND: (template: string) => `Template not found at ${template}`,
   PROJECT_CREATED: '✔ Done! Project created successfully.',
   NEXT_STEPS: 'Next steps:',
+  INSTALLING: (pm: string) => `\n  Installing dependencies with ${pm}...\n`,
+  STARTING_DEV_SERVER: '\n  Starting the dev server...\n',
+  INSTALL_FAILED: (pm: string) =>
+    `${pm} install failed, so the dev server was not started. Fix what it reported, then run ${pm} install and ${pm} run dev.`,
+  REACT_COMPILER_NOT_ADDED: (file: string) =>
+    `  Warning: ${file} is not shaped the way the scaffolder expects, so the React Compiler was not turned on in it. ` +
+    'Add it by hand (https://react.dev/learn/react-compiler).',
   HAPPY_CODING: 'Happy coding! 🎉',
   SKILLS_ADDED:
     '✔ Installed bestax AI skills into .claude/skills/ (+ CLAUDE.md, .claude/launch.json)',
@@ -110,6 +176,7 @@ export const PROMPTS = {
   PROJECT_NAME: 'Project name:',
   SELECT_FRAMEWORK: 'Select a framework:',
   SELECT_LINTER: 'Which linter would you like to use?',
+  IMMEDIATE: (pm: string) => `Install with ${pm} and start the dev server now?`,
   SELECT_ICON_LIBRARY: 'Would you like to add an icon library?',
   SELECT_BULMA_FLAVOR: 'Which Bulma CSS flavor would you like to use?',
   INSTALL_SKILLS:

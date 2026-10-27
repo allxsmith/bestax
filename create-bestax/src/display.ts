@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import figures from 'figures';
 import { MESSAGES } from './constants.js';
 import { detectPackageManager } from './package-manager.js';
+import { isCurrentDirectory } from './validators.js';
 
 export function displayHeader(): void {
   console.log();
@@ -34,19 +35,27 @@ export function quoteShellArgument(
   return SHELL_SAFE.test(value) ? value : `'${value.replace(/'/g, "'\\''")}'`;
 }
 
-export function displaySuccess(targetDir: string): void {
+/**
+ * The closing message. It lists the next steps unless --immediate is about to
+ * run them, and leaves out the `cd` for a scaffold into the current directory.
+ */
+export function displaySuccess(targetDir: string, startingNow = false): void {
   console.log();
   console.log(chalk.green(MESSAGES.PROJECT_CREATED));
   console.log();
-  console.log(chalk.bold(MESSAGES.NEXT_STEPS));
-  console.log();
-  // Mirror the package manager that invoked the CLI — `<pm> install` and
-  // `<pm> run dev` are valid for all four supported PMs.
-  const pm = detectPackageManager();
-  console.log(chalk.cyan(`  cd ${quoteShellArgument(targetDir)}`));
-  console.log(chalk.cyan(`  ${pm} install`));
-  console.log(chalk.cyan(`  ${pm} run dev`));
-  console.log();
+  if (!startingNow) {
+    console.log(chalk.bold(MESSAGES.NEXT_STEPS));
+    console.log();
+    // Mirror the package manager that invoked the CLI — `<pm> install` and
+    // `<pm> run dev` are valid for all four supported PMs.
+    const pm = detectPackageManager();
+    if (!isCurrentDirectory(targetDir)) {
+      console.log(chalk.cyan(`  cd ${quoteShellArgument(targetDir)}`));
+    }
+    console.log(chalk.cyan(`  ${pm} install`));
+    console.log(chalk.cyan(`  ${pm} run dev`));
+    console.log();
+  }
   console.log(
     chalk.gray('  Your app includes a beautiful logo-centric homepage')
   );

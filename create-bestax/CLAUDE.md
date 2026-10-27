@@ -2,12 +2,17 @@
 
 CLI that scaffolds a Vite app wired for `@allxsmith/bestax-bulma`. Agents and CI are
 first-class consumers: **every prompt must have a flag equivalent**, and the non-interactive
-path (`-y` + flags, no TTY) must never hang or regress (#192).
+path (`-y` + flags, no TTY) must never hang or regress (#192). So a question added later takes
+its default without a TTY, as `--lint` and `--immediate` do: a run that answered every older
+question by flag still finishes. `--immediate` never runs under `-y` or without a TTY unless it's
+passed, so a scripted run never starts a dev server it can't stop.
 
 The one question `-y` does not answer is whether to delete a non-empty target directory: only
 `--overwrite` or a yes at the prompt does, and without either the run stops and changes nothing.
 Neither empties the working directory or a folder holding it (#310). The project directory can
-be a path (#1154), so that is judged where the path resolves, not by how it is spelled.
+be a path (#1154), so that is judged where the path resolves, not by how it is spelled. `.`
+alone scaffolds into the working directory, as create-vite takes it, and so only while it's
+empty.
 Every flag is validated before anything on disk changes, and the directory is emptied only after
 the last prompt, so a typo or a Ctrl+C never costs the user their files (#945).
 
@@ -24,7 +29,9 @@ the last prompt, so a typo or a Ctrl+C never costs the user their files (#945).
 - `src/library-range.ts` — the `@allxsmith/bestax-bulma` range a scaffold gets (see
   Dependencies)
 - `src/validators.ts`, `src/display.ts`, `src/file-system.ts` — support modules
-- `templates/vite`, `templates/vite-ts` — the app templates
+- `src/run-command.ts` — runs `--immediate`'s install and dev server
+- `templates/vite`, `templates/vite-ts` — the app templates. The `vite-compiler` and
+  `vite-compiler-ts` templates copy them and turn the React Compiler on (`setupReactCompiler`)
 
 ## Dependencies
 
@@ -94,7 +101,8 @@ react (#1012), so restore them on its PR; when the peer range itself moves, chan
 - `templates/vite` and `templates/vite-ts` follow the `react` and `react-ts` starters that
   `npm create vite@latest` writes, Oxlint and its `_oxlintrc.json` included, and `--lint eslint`
   follows what create-vite's `--eslint` writes in their place (the `ESLINT_*` constants in
-  `src/constants.ts`). When Vite or create-vite ships a new minor or major, scaffold both
+  `src/constants.ts`), and the compiler templates what its `react-compiler` starters add (the
+  `REACT_COMPILER_*` constants). When Vite or create-vite ships a new minor or major, scaffold both
   starters with and without `--eslint`, compare their tsconfigs, devDependencies, `vite.config`
   and `src/main` with the templates and the constants, and catch up (#1049, #1304). The App,
   its assets and the README differ on purpose. TypeScript follows create-vite too: 7 under

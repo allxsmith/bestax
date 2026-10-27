@@ -77,7 +77,7 @@ describe('validators', () => {
 
     it('should reject project names that start with a dot', () => {
       const dotMessage =
-        'Project name cannot start with a dot (names like "." or ".." would scaffold outside a new directory) — pass a directory name';
+        'Project name cannot start with a dot (".." would scaffold outside a new directory) — pass a directory name, or "." alone for the current directory';
       expect(validateProjectName('.')).toBe(dotMessage);
       expect(validateProjectName('..')).toBe(dotMessage);
       expect(validateProjectName('...')).toBe(dotMessage);
@@ -125,7 +125,7 @@ describe('validators', () => {
     const invalidChars =
       'Project name can only contain letters, numbers, dots, dashes and underscores';
     const dotMessage =
-      'Project name cannot start with a dot (names like "." or ".." would scaffold outside a new directory) — pass a directory name';
+      'Project name cannot start with a dot (".." would scaffold outside a new directory) — pass a directory name, or "." alone for the current directory';
 
     it('accepts a bare name, as validateProjectName does', () => {
       expect(validateProjectDirectory('login')).toBe(true);
@@ -147,9 +147,19 @@ describe('validators', () => {
       expect(validateProjectDirectory('/tmp/My Projects/login')).toBe(true);
     });
 
-    it('rejects "." and ".." as validateProjectName does', () => {
-      expect(validateProjectDirectory('.')).toBe(dotMessage);
+    it('rejects ".." as validateProjectName does', () => {
       expect(validateProjectDirectory('..')).toBe(dotMessage);
+    });
+
+    it('takes "." alone as the current directory, named after it', () => {
+      expect(validateProjectDirectory('.', '/work/my-app')).toBe(true);
+      expect(validateProjectDirectory('./', '/work/my-app')).toBe(true);
+      expect(validateProjectDirectory('.', '/work/My App')).toBe(
+        `${invalidChars} (the project name is "My App", the current directory's name)`
+      );
+      expect(validateProjectDirectory('.', '/')).toBe(
+        'Project name is required (the project name is "", the current directory\'s name)'
+      );
     });
 
     it('rejects a path that ends in "." or "..", naming that part', () => {
