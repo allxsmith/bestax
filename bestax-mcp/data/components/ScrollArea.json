@@ -1,0 +1,240 @@
+{
+  "name": "ScrollArea",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/scrollarea",
+  "docsUrl": "https://bestax.io/docs/api/components/scrollarea",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<Box p=\"0\">\n  <ScrollArea height={200} aria-label=\"Release notes\">\n    <Content p=\"4\">\n      <h3>Version 3.2</h3>\n      <p>\n        Search now matches tags as well as titles, and remembers the last filter\n        you used on each page.\n      </p>\n      <h3>Version 3.1</h3>\n      <p>\n        Exports include the time zone, and a CSV export keeps the column order\n        you set in the table.\n      </p>\n      <h3>Version 3.0</h3>\n      <p>\n        A new dashboard, with the numbers you check most at the top and the rest\n        a click away.\n      </p>\n    </Content>\n  </ScrollArea>\n</Box>"
+    },
+    {
+      "title": "Named by a Heading",
+      "code": "<Card>\n  <Card.Content>\n    <Title as=\"h3\" textSize=\"5\" id=\"terms-title\">\n      Terms of service\n    </Title>\n    <ScrollArea height={160} aria-labelledby=\"terms-title\" className=\"box p-0\">\n      <Content p=\"4\">\n        <p>\n          These terms cover your use of the service. By making an account, you\n          agree to them.\n        </p>\n        <p>\n          You keep the rights to what you upload. We keep a copy only as long as\n          it takes to run the service for you.\n        </p>\n        <p>\n          We may change these terms. When we do, we tell you a month ahead, by\n          email and on this page.\n        </p>\n      </Content>\n    </ScrollArea>\n  </Card.Content>\n</Card>"
+    },
+    {
+      "title": "Growing to a Height",
+      "code": "function example() {\n  const [count, setCount] = useState(2);\n  return (\n    <>\n      <Button size=\"small\" mb=\"3\" onClick={() => setCount(c => c + 2)}>\n        Add two messages\n      </Button>\n      <ScrollArea maxHeight=\"14rem\" aria-label=\"Messages\" className=\"box p-0\">\n        {Array.from({ length: count }, (_, i) => (\n          <Message key={i} title={i % 2 ? 'Sam' : 'Ana'} m=\"3\">\n            Message {i + 1}.\n          </Message>\n        ))}\n      </ScrollArea>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Fading the Edges",
+      "code": "<Notification color=\"info\" p=\"0\">\n  <ScrollArea height={160} aria-label=\"Release notes\" hasFade>\n    <Content p=\"4\">\n      <p>\n        Search now matches tags as well as titles, and remembers the last filter\n        you used on each page.\n      </p>\n      <p>\n        Exports include the time zone, and a CSV export keeps the column order\n        you set in the table.\n      </p>\n      <p>\n        A new dashboard, with the numbers you check most at the top and the rest\n        a click away.\n      </p>\n      <p>Faster loading for long lists, and shortcuts for common actions.</p>\n    </Content>\n  </ScrollArea>\n</Notification>"
+    },
+    {
+      "title": "Which Way It Scrolls",
+      "code": "<ScrollArea\n  orientation=\"horizontal\"\n  aria-label=\"Quarterly results\"\n  className=\"box p-0\"\n>\n  <Table isNarrow mb=\"0\">\n    <Thead>\n      <Tr>\n        <Th>Region</Th>\n        <Th>Q1 2025</Th>\n        <Th>Q2 2025</Th>\n        <Th>Q3 2025</Th>\n        <Th>Q4 2025</Th>\n        <Th>Q1 2026</Th>\n        <Th>Q2 2026</Th>\n        <Th>Q3 2026</Th>\n      </Tr>\n    </Thead>\n    <Tbody>\n      <Tr>\n        <Td>North</Td>\n        <Td>1,812</Td>\n        <Td>1,943</Td>\n        <Td>2,074</Td>\n        <Td>2,205</Td>\n        <Td>2,336</Td>\n        <Td>2,467</Td>\n        <Td>2,598</Td>\n      </Tr>\n      <Tr>\n        <Td>South</Td>\n        <Td>1,715</Td>\n        <Td>1,846</Td>\n        <Td>1,977</Td>\n        <Td>2,108</Td>\n        <Td>2,239</Td>\n        <Td>2,370</Td>\n        <Td>2,501</Td>\n      </Tr>\n    </Tbody>\n  </Table>\n</ScrollArea>"
+    },
+    {
+      "title": "When the Scrollbars Show",
+      "code": "<Columns>\n  <Column>\n    <ScrollArea height={140} aria-label=\"Notes, auto\" className=\"box p-0\">\n      <Content p=\"4\">\n        <p>auto: the bar shows whenever the content overflows.</p>\n        <p>Scroll down to see the rest of the note.</p>\n        <p>This is the end of it.</p>\n      </Content>\n    </ScrollArea>\n  </Column>\n  <Column>\n    <ScrollArea\n      height={140}\n      showScrollbars=\"hover\"\n      aria-label=\"Notes, hover\"\n      className=\"box p-0\"\n    >\n      <Content p=\"4\">\n        <p>hover: the bar shows while the pointer is over it.</p>\n        <p>Scroll down to see the rest of the note.</p>\n        <p>This is the end of it.</p>\n      </Content>\n    </ScrollArea>\n  </Column>\n  <Column>\n    <ScrollArea\n      height={140}\n      showScrollbars=\"always\"\n      aria-label=\"Notes, always\"\n      className=\"box p-0\"\n    >\n      <Content p=\"4\">\n        <p>always: the bar is there even when the content fits.</p>\n      </Content>\n    </ScrollArea>\n  </Column>\n</Columns>"
+    },
+    {
+      "title": "A Sidebar Menu",
+      "code": "<Box p=\"0\">\n  <ScrollArea\n    height={220}\n    aria-label=\"Sections\"\n    showScrollbars=\"hover\"\n    hasStableGutter\n  >\n    <Menu p=\"3\">\n      <Menu.Label>General</Menu.Label>\n      <Menu.List>\n        <Menu.Item href=\"#dashboard\">Dashboard</Menu.Item>\n        <Menu.Item href=\"#customers\">Customers</Menu.Item>\n        <Menu.Item href=\"#orders\">Orders</Menu.Item>\n      </Menu.List>\n      <Menu.Label>Reports</Menu.Label>\n      <Menu.List>\n        <Menu.Item href=\"#sales\">Sales</Menu.Item>\n        <Menu.Item href=\"#traffic\">Traffic</Menu.Item>\n        <Menu.Item href=\"#retention\">Retention</Menu.Item>\n      </Menu.List>\n      <Menu.Label>Settings</Menu.Label>\n      <Menu.List>\n        <Menu.Item href=\"#team\">Team</Menu.Item>\n        <Menu.Item href=\"#billing\">Billing</Menu.Item>\n      </Menu.List>\n    </Menu>\n  </ScrollArea>\n</Box>"
+    },
+    {
+      "title": "Loading More at an Edge",
+      "code": "function example() {\n  const [messages, setMessages] = useState(() =>\n    Array.from({ length: 6 }, (_, i) => `Message ${i + 1}`)\n  );\n  const [status, setStatus] = useState('');\n\n  function loadOlder() {\n    setMessages(current => [\n      ...Array.from(\n        { length: 3 },\n        (_, i) => `Older message ${current.length + i + 1}`\n      ),\n      ...current,\n    ]);\n    setStatus('Loaded three older messages');\n  }\n\n  return (\n    <>\n      <Paragraph role=\"status\" visibility=\"sr-only\">\n        {status}\n      </Paragraph>\n      <ScrollArea\n        height={220}\n        aria-label=\"Messages\"\n        hasFade\n        className=\"box p-0\"\n        onEdgeReach={edge => {\n          if (edge === 'top') loadOlder();\n        }}\n      >\n        {messages.map(text => (\n          <Message key={text} m=\"3\">\n            {text}\n          </Message>\n        ))}\n      </ScrollArea>\n    </>\n  );\n}"
+    }
+  ],
+  "accessibility": "- **A tab stop while it overflows:** while the content overflows on an axis it scrolls, the\n  viewport has `role=\"region\"` and `tabIndex={0}`, so a keyboard user can tab to it and scroll it\n  with the arrow keys, Page Up, Page Down, Home, End and Space. Chrome and Firefox make a scroller\n  reachable on their own, and Safari doesn't, which is what axe's `scrollable-region-focusable`\n  rule catches. While the content fits, it's a plain box and no tab stop. One that stops\n  overflowing while it has focus keeps its tab stop until focus leaves it.\n- **A name:** pass `aria-label`, or `aria-labelledby` with a visible heading's id. It's what a\n  screen reader says when the area takes focus, and a development build warns when there's\n  neither.\n- **The scrollbars are the system's:** ScrollArea adds no key handling and draws no bars of its\n  own, so scrolling works the way it does anywhere in the browser, and the system's settings for\n  its bars still apply.\n- **Contrast:** the thumb is Bulma's `text-weak`, which clears WCAG's 3:1 against `scheme-main` in\n  light and dark mode, and darker while the pointer is over the area.\n- **Forced colors:** the bars take the system's colors on their own, the focus ring is the\n  system's text color, and the fade is off.\n- **More contrast:** the fade is off when the user asks for more contrast.\n- **Focus ring:** Bulma's focus outline, drawn on the frame, so the fade never clips it.\n- **Not live:** content that changes inside it announces nothing on its own. When loading more\n  changes the content out of sight, say so in a `role=\"status\"` region, as in\n  [Loading More at an Edge](https://bestax.io/docs/api/components/scrollarea#loading-more-at-an-edge).\n- **No motion:** nothing animates. Scrolling is the browser's own, so `scroll-behavior` and\n  `prefers-reduced-motion` work as they do anywhere.",
+  "related": ["Box", "Card", "Menu", "Table", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-scrollarea--default",
+  "summary": "The `ScrollArea` component renders a box whose content scrolls inside it, on the browser's own scrollbars in Bulma's colors. The bars are the system's, made thin and colored from Bulma's tokens, so they follow dark mode and keep the system's own settings. While the content overflows, the viewport is a region you can tab to and scroll by keyboard, Safari included, named by `aria-label` or `aria-labelledby`. While it fits, it's a plain box. Setting the bars' colors turns off any `::-webkit-scrollbar` styles inside it.",
+  "import": "import { ScrollArea } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/ScrollArea.tsx",
+  "rootClass": "scroll-area",
+  "parts": [
+    {
+      "path": "ScrollArea",
+      "summary": "The `ScrollArea` component renders a box whose content scrolls inside it, on the browser's own scrollbars in Bulma's colors. The bars are the system's, made thin and colored from Bulma's tokens, so they follow dark mode and keep the system's own settings. While the content overflows, the viewport is a region you can tab to and scroll by keyboard, Safari included, named by `aria-label` or `aria-labelledby`. While it fits, it's a plain box. Setting the bars' colors turns off any `::-webkit-scrollbar` styles inside it.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the outer frame.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "React.CSSProperties",
+          "default": null,
+          "description": "Inline styles for the outer frame.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "What scrolls.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "height",
+          "type": "number | string",
+          "default": null,
+          "description": "The area's height. A number is pixels, and a string is any CSS length (`\"20rem\"`, `\"50vh\"`, `\"100%\"`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "maxHeight",
+          "type": "number | string",
+          "default": null,
+          "description": "The height it grows to with its content, then scrolls past. A number is pixels. Use it in place of `height` for an area that's only as tall as it needs to be.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "orientation",
+          "type": "'vertical' | 'horizontal' | 'both'",
+          "default": "'both'",
+          "description": "Which way it scrolls. `vertical` and `horizontal` clip the other axis, and `both` scrolls whichever overflows.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "showScrollbars",
+          "type": "'auto' | 'hover' | 'always'",
+          "default": "'auto'",
+          "description": "When the scrollbars show. `auto`: whenever the content overflows, the way the system shows them. `hover`: colorless until the pointer is over the area or focus is in it, which hides that the area scrolls until then, so keep it for places where the layout makes that plain. `always`: on every axis it scrolls, even when the content fits. Where the system draws its bars over the content (macOS by default, phones and tablets), they still show only while you scroll, and in forced colors they always show.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasStableGutter",
+          "type": "boolean",
+          "default": "false",
+          "description": "Keeps room for the vertical scrollbar whether or not it shows, so the content doesn't shift when it starts to overflow. It does nothing where the system draws its bars over the content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasFade",
+          "type": "boolean",
+          "default": "false",
+          "description": "Fades the content out toward each edge that has more past it, without fading the scrollbar. It's off in forced colors and when the user asks for more contrast.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onEdgeReach",
+          "type": "(edge: ScrollAreaEdge) => void",
+          "default": null,
+          "description": "Called with the edge when scrolling reaches it, once each time it arrives, such as to load older messages at the top. It isn't called for the edge the area starts at, or when the content changes size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the viewport, the element that scrolls, for `scrollTo` and the like.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "default": null,
+          "description": "Names the region, such as \"Release notes\". It needs a name, so pass this or `aria-labelledby`, and a development build warns when it has neither.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "aria-labelledby",
+          "type": "string",
+          "default": null,
+          "description": "The id of a visible heading that names the region, in place of `aria-label`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onScroll",
+          "type": "React.UIEventHandler<HTMLDivElement>",
+          "default": null,
+          "description": "Called as the viewport scrolls.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "helperPropsNote": "The helper props go on the outer `<div>`, the `.scroll-area` frame, with `className` and `style`. The `ref`, the name, `onScroll` and the other attributes go on the `<div>` inside it, the viewport that scrolls.",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-scroll-area-scrollbar-width",
+      "sass": "$scroll-area-scrollbar-width",
+      "default": "thin",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-scroll-area-thumb-color",
+      "sass": "$scroll-area-thumb-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-scroll-area-thumb-hover-color",
+      "sass": "$scroll-area-thumb-hover-color",
+      "default": "var(--bulma-text)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-scroll-area-track-color",
+      "sass": "$scroll-area-track-color",
+      "default": "transparent",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-scroll-area-fade-size",
+      "sass": "$scroll-area-fade-size",
+      "default": "2rem",
+      "scope": "root"
+    }
+  ]
+}

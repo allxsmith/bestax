@@ -141,6 +141,7 @@ const PUBLIC_EXPORTS = [
   'Radios',
   'Rate',
   'Reveal',
+  'ScrollArea',
   'Section',
   'SegmentedControl',
   'Select',

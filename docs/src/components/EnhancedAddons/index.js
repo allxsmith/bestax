@@ -97,6 +97,12 @@ const ADDONS = [
     desc: 'Scroll-triggered entrance animations, solo or cascading, that respect reduced motion.',
   },
   {
+    name: 'ScrollArea',
+    icon: 'scrollarea',
+    link: '/docs/api/components/scrollarea',
+    desc: 'Content that scrolls on the native scrollbars in Bulma colors, and that a keyboard can reach.',
+  },
+  {
     name: 'Sidebar',
     icon: 'sidebar',
     link: '/docs/api/components/sidebar',

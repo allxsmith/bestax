@@ -225,6 +225,9 @@ export const SCSS_SOURCES = {
   Radios: [],
   Rate: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_rate.scss' }],
   Reveal: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_reveal.scss' }],
+  ScrollArea: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_scrollarea.scss' },
+  ],
   Section: [{ pkg: 'bulma', path: 'sass/layout/section.scss' }],
   SegmentedControl: [],
   Select: [
