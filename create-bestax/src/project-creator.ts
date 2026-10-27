@@ -743,11 +743,14 @@ export class ProjectCreator {
       }
     }
 
-    // Select linter (use option or prompt)
+    // Select linter (use option or prompt). The question is newer than the
+    // others, so a run without a terminal that answers every other one by
+    // flag takes the default here rather than stopping, as it did before the
+    // question existed (#192).
     let linter: string | null;
     if (options?.lint) {
       linter = options.lint;
-    } else if (options?.yes) {
+    } else if (options?.yes || !process.stdin.isTTY) {
       linter = 'oxlint'; // default linter
     } else {
       linter = await promptLinter();

@@ -1438,6 +1438,24 @@ describe('ProjectCreator', () => {
         );
       });
 
+      it('is Oxlint without a terminal, so a run that names every other choice still finishes', async () => {
+        setStdinTTY(undefined);
+
+        await projectCreator.create('test-project', {
+          template: 'vite-ts',
+          bulma: 'complete',
+          icon: 'none',
+          skills: false,
+        });
+
+        expect(setupLinter).toHaveBeenCalledWith(
+          expect.any(String),
+          'oxlint',
+          'vite-ts'
+        );
+        expect(prompts).not.toHaveBeenCalled();
+      });
+
       it('is asked for when no flag names it', async () => {
         (prompts as jest.MockedFunction<typeof prompts>).mockImplementation(
           questions => {

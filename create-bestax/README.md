@@ -78,7 +78,7 @@ with or without it.
   - `oxlint` - Oxlint, as `npm create vite` sets up. `vite-ts` gets TypeScript 7.
   - `eslint` - ESLint with typescript-eslint, as `npm create vite -- --eslint` sets up.
     typescript-eslint doesn't support TypeScript 7 yet, so `vite-ts` stays on TypeScript 6.  
-    **Default:** `oxlint`
+    **Default:** `oxlint`, which a run without a terminal also gets when it leaves `--lint` out
 - `-b, --bulma <flavor>` - Bulma CSS flavor:
   - `complete` - Full Bulma CSS with all components and helpers
   - `prefixed` - Prefixed version for compatibility
