@@ -3,7 +3,6 @@
 [![npm version](https://img.shields.io/npm/v/@allxsmith/bestax-bulma.svg)](https://www.npmjs.com/package/@allxsmith/bestax-bulma)
 [![npm downloads](https://img.shields.io/npm/dm/@allxsmith/bestax-bulma.svg)](https://www.npmjs.com/package/@allxsmith/bestax-bulma)
 [![create-bestax](https://img.shields.io/npm/v/create-bestax.svg?label=create-bestax)](https://www.npmjs.com/package/create-bestax)
-[![bundle size](https://img.shields.io/bundlephobia/minzip/@allxsmith/bestax-bulma.svg)](https://bundlephobia.com/package/@allxsmith/bestax-bulma)
 [![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue.svg)](https://www.typescriptlang.org/)
 [![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)](https://github.com/allxsmith/bestax/blob/main/bulma-ui/jest.config.js)
 [![Bulma](https://img.shields.io/badge/Bulma-v1.0+-00d1b2.svg)](https://bulma.io)
@@ -192,7 +191,7 @@ Building with an AI agent (Claude Code, Cursor, Copilot)? bestax-bulma ships LLM
 - **Built for Bulma v1.x** — most other React Bulma libraries are stuck on Bulma 0.9.4
 - **100% TypeScript** — every component and prop fully typed
 - **One runtime dependency: Bulma** — it ships with the library; clean install, fewer security concerns
-- **Lightweight** — see the live [bundlephobia badge](https://bundlephobia.com/package/@allxsmith/bestax-bulma); tree-shakeable ESM + CJS
+- **Lightweight** — tree-shakeable ESM + CJS, so your app ships only the components it imports
 - **99% test coverage** — enforced in CI by the [jest config](bulma-ui/jest.config.js), not just claimed
 - **Active developer support** — issues, questions, and PRs get fast responses
 
