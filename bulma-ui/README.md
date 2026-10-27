@@ -110,8 +110,8 @@ import { Theme } from '@allxsmith/bestax-bulma';
   `Theme colorMode`, `--bulma-*` variable overrides, and prefixed-class builds via `ConfigProvider`.
 - **Just one dependency: Bulma**
   Every Bulma library depends on it — we ship it automatically. Clean install, fewer security concerns.
-- **Tree-shakeable ESM + CJS**
-  Import only what you use; your bundler drops the rest.
+- **Tree-shakeable ESM**
+  Import only what you use; your bundler drops the rest. A CJS build is there for `require`.
 - **99% unit test coverage**
   Enforced in CI by the [jest config](https://github.com/allxsmith/bestax/blob/main/bulma-ui/jest.config.js) — not just claimed.
 - **100% TypeScript**

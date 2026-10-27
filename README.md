@@ -191,7 +191,7 @@ Building with an AI agent (Claude Code, Cursor, Copilot)? bestax-bulma ships LLM
 - **Built for Bulma v1.x** — most other React Bulma libraries are stuck on Bulma 0.9.4
 - **100% TypeScript** — every component and prop fully typed
 - **One runtime dependency: Bulma** — it ships with the library; clean install, fewer security concerns
-- **Lightweight** — tree-shakeable ESM + CJS, so your app ships only the components it imports
+- **Lightweight** — tree-shakeable ESM, so your app ships only the components it imports, plus a CJS build for `require`
 - **99% test coverage** — enforced in CI by the [jest config](bulma-ui/jest.config.js), not just claimed
 - **Active developer support** — issues, questions, and PRs get fast responses
 
