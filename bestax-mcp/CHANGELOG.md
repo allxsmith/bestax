@@ -1,3 +1,10 @@
+## [1.18.11](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.10...bestax-mcp@1.18.11) (2026-10-27)
+
+
+### Bug Fixes
+
+* **bulma-ui:** publish the shorter npm description ([e52dd79](https://github.com/allxsmith/bestax/commit/e52dd79618a4a960080a4021b2366ae6bf508efe)), closes [#1297](https://github.com/allxsmith/bestax/issues/1297) [#1296](https://github.com/allxsmith/bestax/issues/1296)
+
 ## [1.18.10](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.9...bestax-mcp@1.18.10) (2026-10-27)
 
 
