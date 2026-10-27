@@ -20,6 +20,7 @@ import {
 import { stripModuleLines } from '../src/theme/CodeBlock/sandbox/moduleLines.mjs';
 import {
   ICON_LIBRARIES,
+  SANDBOX_TYPESCRIPT,
   TEMPLATE_FILES,
   codesandboxFiles,
   iconLibrariesIn,
@@ -322,9 +323,17 @@ describe('stackblitzProject', () => {
     assert.equal(pkg.scripts.lint, undefined);
     assert.deepEqual(
       Object.keys(pkg.devDependencies).filter(name =>
-        /eslint|^globals$/.test(name)
+        /eslint|^globals$|^oxlint$/.test(name)
       ),
       []
+    );
+  });
+
+  it('installs TypeScript 6, which WebContainers can run', () => {
+    assert.equal(pkg.devDependencies.typescript, SANDBOX_TYPESCRIPT);
+    assert.match(
+      JSON.parse(TEMPLATE['package.json']).devDependencies.typescript,
+      /^~7\./
     );
   });
 
@@ -392,7 +401,7 @@ describe('stackblitzProject', () => {
 const LEFT_OUT = {
   _gitignore: 'a sandbox is not a repository',
   'README.md': 'it describes the starter app, not the example',
-  'eslint.config.js': 'a sandbox runs no lint, and drops its packages too',
+  '_oxlintrc.json': 'a sandbox runs no lint, and drops its packages too',
   'public/react.svg': 'only the starter App shows it',
   'public/vite.svg': 'only the starter App shows it',
   'src/App.css': 'only the starter App imports it',
@@ -493,6 +502,7 @@ describe('codesandboxFiles', () => {
     assert.equal(pkg.main, 'src/index.tsx');
     assert.equal(pkg.scripts.start, 'react-scripts start');
     assert.ok(pkg.devDependencies['react-scripts']);
+    assert.equal(pkg.devDependencies.typescript, SANDBOX_TYPESCRIPT);
     assert.equal(
       pkg.dependencies.react,
       JSON.parse(TEMPLATE['package.json']).dependencies.react

@@ -109,6 +109,7 @@ export const LAUNCH_JSON =
 export const PROMPTS = {
   PROJECT_NAME: 'Project name:',
   SELECT_FRAMEWORK: 'Select a framework:',
+  SELECT_LINTER: 'Which linter would you like to use?',
   SELECT_ICON_LIBRARY: 'Would you like to add an icon library?',
   SELECT_BULMA_FLAVOR: 'Which Bulma CSS flavor would you like to use?',
   INSTALL_SKILLS:
@@ -437,6 +438,84 @@ export const BULMA_FLAVORS: BulmaFlavor[] = [
       "import '@allxsmith/bestax-bulma/versions/bestax-no-dark-mode.css';",
   },
 ];
+
+export interface Linter {
+  name: string;
+  display: string;
+  description: string;
+  color: typeof chalk.yellow;
+}
+
+// The templates ship create-vite's default lint setup, Oxlint, and the
+// scaffolder writes create-vite's `--eslint` setup in its place for ESLint
+// (ProjectCreator.setupLinter).
+export const LINTERS: Linter[] = [
+  {
+    name: 'oxlint',
+    display: 'Oxlint (Recommended)',
+    description:
+      "create-vite's default, and TypeScript 7 for Vite + TypeScript",
+    color: chalk.green,
+  },
+  {
+    name: 'eslint',
+    display: 'ESLint',
+    description:
+      'with typescript-eslint, which keeps Vite + TypeScript on TypeScript 6',
+    color: chalk.blue,
+  },
+];
+
+// The packages create-vite's `--eslint` puts in place of oxlint. When
+// create-vite moves them, these follow (create-bestax/CLAUDE.md).
+export const ESLINT_DEV_DEPENDENCIES: Record<string, string> = {
+  '@eslint/js': '^10.0.1',
+  eslint: '^10.13.0',
+  'eslint-plugin-react-hooks': '^7.1.1',
+  'eslint-plugin-react-refresh': '^0.5.7',
+  globals: '^17.13.0',
+};
+
+// What `--eslint` adds for a TypeScript app. typescript-eslint loads
+// TypeScript's compiler API, which TypeScript 7.0 doesn't ship, and accepts
+// TypeScript below 6.1 only, so the app stays on TypeScript 6 (#394).
+export const ESLINT_TYPESCRIPT_DEV_DEPENDENCIES: Record<string, string> = {
+  typescript: '~6.0.3',
+  'typescript-eslint': '^8.72.0',
+};
+
+/** The eslint.config.js create-vite's `--eslint` writes. */
+export const ESLINT_CONFIG = (typescript: boolean): string =>
+  [
+    "import js from '@eslint/js';",
+    "import globals from 'globals';",
+    "import reactHooks from 'eslint-plugin-react-hooks';",
+    "import reactRefresh from 'eslint-plugin-react-refresh';",
+    ...(typescript ? ["import tseslint from 'typescript-eslint';"] : []),
+    "import { defineConfig, globalIgnores } from 'eslint/config';",
+    '',
+    'export default defineConfig([',
+    "  globalIgnores(['dist']),",
+    '  {',
+    typescript
+      ? "    files: ['**/*.{ts,tsx}'],"
+      : "    files: ['**/*.{js,jsx}'],",
+    '    extends: [',
+    '      js.configs.recommended,',
+    ...(typescript ? ['      tseslint.configs.recommended,'] : []),
+    '      reactHooks.configs.flat.recommended,',
+    '      reactRefresh.configs.vite,',
+    '    ],',
+    '    languageOptions: {',
+    '      globals: globals.browser,',
+    ...(typescript
+      ? []
+      : ['      parserOptions: { ecmaFeatures: { jsx: true } },']),
+    '    },',
+    '  },',
+    ']);',
+    '',
+  ].join('\n');
 
 // Sits above the stylesheet import in the templates' entry files, and the
 // scaffolder writes it back when it swaps in a flavor's stylesheet, so the

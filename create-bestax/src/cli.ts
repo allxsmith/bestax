@@ -96,6 +96,7 @@ export function createCLI(): Command {
       'project directory to create, a name or a path (its last part names the package)'
     )
     .option('-t, --template <template>', 'template to use (vite, vite-ts)')
+    .option('--lint <linter>', 'linter (oxlint, eslint)')
     .option(
       '-b, --bulma <flavor>',
       'Bulma CSS flavor (complete, prefixed, no-helpers, no-helpers-prefixed, no-dark-mode)'

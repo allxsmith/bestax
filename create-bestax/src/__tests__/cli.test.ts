@@ -148,6 +148,11 @@ describe('cli', () => {
       );
       expect(options).toContainEqual(
         expect.objectContaining({
+          flags: '--lint <linter>',
+        })
+      );
+      expect(options).toContainEqual(
+        expect.objectContaining({
           flags: '-b, --bulma <flavor>',
         })
       );

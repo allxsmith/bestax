@@ -47,6 +47,7 @@ const {
   promptProjectName,
   promptOverwriteDirectory,
   promptTemplate,
+  promptLinter,
   promptBulmaFlavor,
   promptIconLibrary,
   promptInstallSkills,
@@ -62,6 +63,7 @@ const {
   TEMPLATES: _TEMPLATES,
   BULMA_FLAVORS,
   ICON_LIBRARIES,
+  LINTERS,
 } = await import('../constants.js');
 
 // Mock console methods
@@ -112,6 +114,7 @@ describe('prompts', () => {
       ],
       ['promptInstallSkills', () => promptInstallSkills()],
       ['promptTemplate', () => promptTemplate()],
+      ['promptLinter', () => promptLinter()],
       ['promptIconLibrary', () => promptIconLibrary()],
       ['promptBulmaFlavor', () => promptBulmaFlavor()],
     ];
@@ -343,6 +346,37 @@ describe('prompts', () => {
         .calls[0]?.[0] as unknown;
       expect(promptCall.initial).toBe(0);
       expect(BULMA_FLAVORS[0].name).toBe('complete');
+    });
+  });
+
+  describe('promptLinter', () => {
+    it('returns the selected linter', async () => {
+      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+        linter: 'eslint',
+      });
+      expect(await promptLinter()).toBe('eslint');
+    });
+
+    it('returns null when cancelled', async () => {
+      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({});
+      expect(await promptLinter()).toBeNull();
+    });
+
+    it('offers every linter, with Oxlint first and selected', async () => {
+      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+        linter: 'oxlint',
+      });
+      await promptLinter();
+
+      const promptCall = (prompts as jest.MockedFunction<typeof prompts>).mock
+        .calls[0]?.[0] as unknown;
+      expect(promptCall.type).toBe('select');
+      expect(promptCall.message).toBe('Which linter would you like to use?');
+      expect(promptCall.choices.map((c: { value: string }) => c.value)).toEqual(
+        LINTERS.map(l => l.name)
+      );
+      expect(promptCall.initial).toBe(0);
+      expect(LINTERS[0].name).toBe('oxlint');
     });
   });
 
