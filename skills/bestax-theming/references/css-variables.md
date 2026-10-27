@@ -621,6 +621,19 @@ the label text inside the `Radio`, since the whole label is the click target.
 `--bulma-reveal-duration`, `--bulma-reveal-easing`, `--bulma-reveal-flip-angle`,
 `--bulma-reveal-offset`, `--bulma-reveal-offset-large`, `--bulma-reveal-scale`
 
+### ScrollArea
+
+Declared on the frame, `.scroll-area`, and read by the viewport inside it, so set them on the
+frame, through `className` or `style`. `--bulma-scroll-area-scrollbar-width` takes what
+`scrollbar-width` takes: `thin`, `auto` or `none`. `none` hides the bars while the area still
+scrolls, which hides that it scrolls at all, so keep to `thin` or `auto`. Restyled bars owe
+WCAG's 3:1, so keep a thumb color that clears it against the background in both schemes. In forced colors the browser gives the bars the system's colors
+whatever these say.
+
+`--bulma-scroll-area-fade-size`, `--bulma-scroll-area-scrollbar-width`,
+`--bulma-scroll-area-thumb-color`, `--bulma-scroll-area-thumb-hover-color`,
+`--bulma-scroll-area-track-color`
+
 ### Sidebar
 
 `--bulma-sidebar-background`, `--bulma-sidebar-close-color`,

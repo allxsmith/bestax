@@ -122,6 +122,14 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `defaultOpen` on the group holding the current page (or `open`/`onOpenChange` to hold the state).
   Its heading is a real button with `aria-expanded`, and its links stay links, each a tab stop.
   Not `TreeView`, and not a `Collapse` inside a hand-written `<li>`.
+- **Content taller or wider than its space is `ScrollArea`** (release notes in a Card, a sidebar
+  longer than the screen, a feed that grows then scrolls, a wide table on a phone), not a `Box`
+  with `overflowY="auto"` and a height in a style: `<ScrollArea height={240} aria-label="…">`,
+  or `maxHeight="20rem"` to grow with its content first. It needs `aria-label` or
+  `aria-labelledby`, since while it overflows it's a region a keyboard user tabs to. The
+  helper props and `className` go on its frame and the `ref` on the element that scrolls.
+  `hasFade` fades the edges that have more, `orientation="horizontal"` suits a wide table, and
+  `onEdgeReach={edge => …}` loads more at an edge.
 - Link lists (footer nav, sidebars): a bare `UnorderedList` of `ListItem`s is already
   marker-less and flush — Bulma's reset unstyles `ul` — so no prop or CSS is needed;
   bullets appear only inside `Content`.
