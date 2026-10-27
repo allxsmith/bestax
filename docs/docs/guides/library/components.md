@@ -174,6 +174,27 @@ A box whose content scrolls inside it, on the browser's own scrollbars made thin
 
 ---
 
+### Splitter
+
+Panes side by side or one above the other, with a handle between each pair to drag or move by keyboard, each named by its pane's label. [View full documentation.](../../api/components/splitter.md)
+
+```tsx live
+<Splitter height={160} className="box p-0">
+  <Splitter.Pane label="Files" defaultSize={30} minSize="8rem">
+    <Content p="4">
+      <p>Files</p>
+    </Content>
+  </Splitter.Pane>
+  <Splitter.Pane label="Editor">
+    <Content p="4">
+      <p>Editor</p>
+    </Content>
+  </Splitter.Pane>
+</Splitter>
+```
+
+---
+
 ### Pagination
 
 A flexible, composable pagination navigation for lists or multi-page content. [View full documentation.](../../api/components/pagination.md)

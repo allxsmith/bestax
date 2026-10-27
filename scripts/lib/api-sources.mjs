@@ -244,6 +244,9 @@ export const SCSS_SOURCES = {
   Skeleton: [{ pkg: 'bulma', path: 'sass/base/skeleton.scss' }],
   Slider: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_slider.scss' }],
   Span: [],
+  Splitter: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_splitter.scss' },
+  ],
   Steps: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_steps.scss' }],
   Strong: [{ pkg: 'bulma', path: 'sass/base/generic.scss' }],
   SubTitle: [{ pkg: 'bulma', path: 'sass/elements/title.scss' }],

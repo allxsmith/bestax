@@ -666,6 +666,18 @@ whatever these say.
 `--bulma-slider-track-height-small`, `--bulma-slider-transition-duration`,
 `--bulma-slider-vertical-height`
 
+### Splitter
+
+Declared on the root, `.splitter`. The handle reads them, and its line and grip are borders, so a
+forced-colors page keeps them and draws an active handle in `Highlight`.
+`--bulma-splitter-handle-size-coarse` is the strip's width for a coarse pointer, kept at 24px or
+more for WCAG 2.5.8.
+
+`--bulma-splitter-grip-color`, `--bulma-splitter-grip-length`, `--bulma-splitter-grip-radius`,
+`--bulma-splitter-grip-size`, `--bulma-splitter-handle-size`,
+`--bulma-splitter-handle-size-coarse`, `--bulma-splitter-line-active-color`,
+`--bulma-splitter-line-active-size`, `--bulma-splitter-line-color`, `--bulma-splitter-line-size`
+
 ### Steps
 
 `--bulma-steps-animation-duration`, `--bulma-steps-content-margin-top`,

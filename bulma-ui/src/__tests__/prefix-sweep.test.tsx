@@ -62,6 +62,18 @@ const PROPS: Record<string, Record<string, unknown>> = {
     actionText: 'Undo',
   },
   Taginput: { value: ['tag-one'] },
+  // Vertical, with a collapsed pane, so every class it emits is swept.
+  Splitter: {
+    orientation: 'vertical',
+    children: [
+      <Library.Splitter.Pane key="a" label="A" collapsible defaultCollapsed>
+        A
+      </Library.Splitter.Pane>,
+      <Library.Splitter.Pane key="b" label="B">
+        B
+      </Library.Splitter.Pane>,
+    ],
+  },
   // Every modifier, so each class the frame takes is swept.
   ScrollArea: {
     'aria-label': 'Notes',

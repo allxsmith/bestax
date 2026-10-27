@@ -74,6 +74,7 @@
         "ScrollArea",
         "SegmentedControl",
         "Sidebar",
+        "Splitter",
         "Steps",
         "Tabs",
         "Timeline",
@@ -1027,6 +1028,17 @@
       "import": "import { Span } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 4,
+      "exampleCount": 9
+    },
+    {
+      "name": "Splitter",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `Splitter` component lays out two or more panes side by side or one above the other, with a handle between each pair to drag or move by keyboard.",
+      "slug": "components/splitter",
+      "import": "import { Splitter } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 21,
       "exampleCount": 9
     },
     {
@@ -2471,6 +2483,16 @@
     "--bulma-slider-track-height-small": ["Slider"],
     "--bulma-slider-transition-duration": ["Slider"],
     "--bulma-slider-vertical-height": ["Slider"],
+    "--bulma-splitter-grip-color": ["Splitter"],
+    "--bulma-splitter-grip-length": ["Splitter"],
+    "--bulma-splitter-grip-radius": ["Splitter"],
+    "--bulma-splitter-grip-size": ["Splitter"],
+    "--bulma-splitter-handle-size": ["Splitter"],
+    "--bulma-splitter-handle-size-coarse": ["Splitter"],
+    "--bulma-splitter-line-active-color": ["Splitter"],
+    "--bulma-splitter-line-active-size": ["Splitter"],
+    "--bulma-splitter-line-color": ["Splitter"],
+    "--bulma-splitter-line-size": ["Splitter"],
     "--bulma-steps-animation-duration": ["Steps"],
     "--bulma-steps-content-margin-top": ["Steps"],
     "--bulma-steps-default-color": ["Steps"],
@@ -2994,6 +3016,11 @@
       "path": "SelectBase",
       "purpose": "Bulma Select component with full Bulma helper class support.",
       "standalone": "base"
+    },
+    "SplitterPane": {
+      "component": "Splitter",
+      "path": "Splitter.Pane",
+      "purpose": "One pane of a Splitter, sized by the splitter around it."
     },
     "Step": {
       "component": "Steps",

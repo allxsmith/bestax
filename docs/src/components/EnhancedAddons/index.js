@@ -109,6 +109,12 @@ const ADDONS = [
     desc: 'Slide-out navigation panels from either edge.',
   },
   {
+    name: 'Splitter',
+    icon: 'splitter',
+    link: '/docs/api/components/splitter',
+    desc: 'Panes with a handle between each pair to drag or move by keyboard, and panes that collapse.',
+  },
+  {
     name: 'Steps',
     icon: 'steps',
     link: '/docs/api/components/steps',
