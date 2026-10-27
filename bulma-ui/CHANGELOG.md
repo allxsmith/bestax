@@ -1,3 +1,10 @@
+## [5.48.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.48.0...@allxsmith/bestax-bulma@5.48.1) (2026-10-27)
+
+
+### Bug Fixes
+
+* **bulma-ui:** publish the shorter npm description ([e52dd79](https://github.com/allxsmith/bestax/commit/e52dd79618a4a960080a4021b2366ae6bf508efe)), closes [#1297](https://github.com/allxsmith/bestax/issues/1297) [#1296](https://github.com/allxsmith/bestax/issues/1296)
+
 # [5.48.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.47.0...@allxsmith/bestax-bulma@5.48.0) (2026-10-27)
 
 
