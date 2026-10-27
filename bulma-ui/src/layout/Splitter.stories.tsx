@@ -2,8 +2,8 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent, within } from 'storybook/test';
 import { Splitter } from './Splitter';
-import { Menu } from './Menu';
-import { ScrollArea } from './ScrollArea';
+import { Menu } from '../components/Menu';
+import { ScrollArea } from '../components/ScrollArea';
 import { Button } from '../elements/Button';
 import { Content } from '../elements/Content';
 import { Paragraph } from '../elements/Paragraph';
@@ -22,7 +22,7 @@ const words = (title: string) => (
 );
 
 const meta: Meta<typeof Splitter> = {
-  title: 'Components/Splitter',
+  title: 'Layout/Splitter',
   component: Splitter,
   tags: ['autodocs'],
   parameters: {

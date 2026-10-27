@@ -39,7 +39,7 @@
     }
   ],
   "accessibility": "- The container renders as a `<div>` by default, which adds nothing to the page's landmarks.\n- With `as`, it becomes the element you name, landmark role and all: keep one visible `main` per page, and give a `section` an accessible name (`aria-label`, or `aria-labelledby` pointing at its heading) if it should be a region.\n- Use semantic HTML and accessible children within the container for best practices.",
-  "related": ["Notification", "useBulmaClasses"],
+  "related": ["Notification", "Splitter", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/layout-container--default",
   "summary": "The `Container` component provides a responsive and flexible layout wrapper for your Bulma React UI.",
   "import": "import { Container } from '@allxsmith/bestax-bulma';",

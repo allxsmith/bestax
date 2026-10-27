@@ -10,7 +10,7 @@
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
-          "bytes": 21213
+          "bytes": 21209
         },
         {
           "id": "library-contributor",
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 12357
+          "bytes": 12416
         }
       ],
       "examples": []

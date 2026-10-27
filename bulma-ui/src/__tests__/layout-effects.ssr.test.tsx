@@ -18,7 +18,7 @@ import { ContextMenu } from '../components/ContextMenu';
 import { Popover } from '../components/Popover';
 import { SegmentedControl } from '../components/SegmentedControl';
 import { ScrollArea } from '../components/ScrollArea';
-import { Splitter } from '../components/Splitter';
+import { Splitter } from '../layout/Splitter';
 import { Slider } from '../form/Slider';
 import { PinInput } from '../form/PinInput';
 import { DateInput } from '../form/DateInput';

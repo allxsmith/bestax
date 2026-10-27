@@ -74,7 +74,6 @@
         "ScrollArea",
         "SegmentedControl",
         "Sidebar",
-        "Splitter",
         "Steps",
         "Tabs",
         "Timeline",
@@ -120,7 +119,15 @@
     {
       "id": "layout",
       "label": "Layout",
-      "components": ["Container", "Footer", "Hero", "Level", "Media", "Section"]
+      "components": [
+        "Container",
+        "Footer",
+        "Hero",
+        "Level",
+        "Media",
+        "Section",
+        "Splitter"
+      ]
     },
     {
       "id": "helpers",
@@ -1033,9 +1040,9 @@
     {
       "name": "Splitter",
       "kind": "component",
-      "category": "components",
+      "category": "layout",
       "purpose": "The `Splitter` component lays out two or more panes side by side or one above the other, with a handle between each pair to drag or move by keyboard.",
-      "slug": "components/splitter",
+      "slug": "layout/splitter",
       "import": "import { Splitter } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 21,

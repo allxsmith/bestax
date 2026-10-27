@@ -11,7 +11,7 @@ const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
 const compile = (prefix: string) =>
   sass.compileString(
     `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
-     @use 'components/splitter';`,
+     @use 'layout/splitter';`,
     {
       loadPaths: [SCSS, NODE_MODULES],
       quietDeps: true,

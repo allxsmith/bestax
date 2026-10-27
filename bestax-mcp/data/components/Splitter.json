@@ -1,9 +1,9 @@
 {
   "name": "Splitter",
   "kind": "component",
-  "category": "components",
-  "slug": "components/splitter",
-  "docsUrl": "https://bestax.io/docs/api/components/splitter",
+  "category": "layout",
+  "slug": "layout/splitter",
+  "docsUrl": "https://bestax.io/docs/api/layout/splitter",
   "examples": [
     {
       "title": "Basic Usage",
@@ -44,10 +44,10 @@
   ],
   "accessibility": "- **The WAI-ARIA Window Splitter pattern:** each handle is a focusable `separator` whose\n  `aria-valuenow`, `aria-valuemin` and `aria-valuemax` give the size of the pane it speaks for, in\n  percent, with `aria-controls` pointing at that pane.\n- **Names:** a handle is named by its pane's `label`, so a screen reader says \"Files, separator,\n  25\". A development build warns when a handle's pane has no `label`.\n- **Orientation:** `aria-orientation` describes the line, so a handle between side-by-side panes\n  is `vertical`, and one between stacked panes `horizontal`.\n- **Keyboard:** Left and Right Arrow (or Up and Down when stacked) move a handle by `step`, and\n  with Shift ten times as far. Home and End take its pane to its limits. Enter collapses a\n  collapsible pane and brings it back. Right to left, the arrows follow the screen.\n- **Pointer:** dragging works with a mouse, a finger or a pen, and a double-click puts the two\n  panes beside a handle back to their default sizes.\n- **Collapsed panes** are `hidden`, so nothing in them can be reached until they come back.\n- **Focus ring:** Bulma's focus outline, inside the handle.\n- **Target size:** the handle is 0.75rem across for a mouse and 1.5rem for a coarse pointer, which\n  meets WCAG 2.5.8's 24px.\n- **Forced colors:** the line and the grip are borders, which forced colors keeps, and an active\n  handle is drawn in the system's highlight color.\n- **Not live:** a resize announces nothing beyond the handle's value, which a screen reader reads\n  on the focused handle as it changes.",
   "related": ["Columns", "Menu", "ScrollArea", "TreeView", "useBulmaClasses"],
-  "storybook": "https://bestax.io/storybook/?path=/story/components-splitter--default",
+  "storybook": "https://bestax.io/storybook/?path=/story/layout-splitter--default",
   "summary": "The `Splitter` component lays out two or more panes side by side or one above the other, with a handle between each pair to drag or move by keyboard. Each handle is a focusable `separator`, named by the `label` of the pane it speaks for. Sizes are percentages, so the server renders the layout the browser does, and `minSize` and `maxSize` also take `px` and `rem`. A `collapsible` pane shuts when dragged below half its minimum, and Enter on its handle shuts it and brings it back. It doesn't store sizes itself: keep them with `sizes` and `onSizesChange`.",
   "import": "import { Splitter } from '@allxsmith/bestax-bulma';",
-  "sourceFile": "bulma-ui/src/components/Splitter.tsx",
+  "sourceFile": "bulma-ui/src/layout/Splitter.tsx",
   "rootClass": "splitter",
   "parts": [
     {

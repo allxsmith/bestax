@@ -111,7 +111,7 @@ const ADDONS = [
   {
     name: 'Splitter',
     icon: 'splitter',
-    link: '/docs/api/components/splitter',
+    link: '/docs/api/layout/splitter',
     desc: 'Panes with a handle between each pair to drag or move by keyboard, and panes that collapse.',
   },
   {

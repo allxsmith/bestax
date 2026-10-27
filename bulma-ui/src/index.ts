@@ -32,7 +32,6 @@ export * from './components/Carousel';
 export * from './components/Reveal';
 export * from './components/TreeView';
 export * from './components/ScrollArea';
-export * from './components/Splitter';
 
 export * from './elements/Block';
 export * from './elements/Box';
@@ -169,3 +168,4 @@ export * from './layout/Hero';
 export * from './layout/Level';
 export * from './layout/Media';
 export * from './layout/Section';
+export * from './layout/Splitter';

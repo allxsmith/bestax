@@ -179,7 +179,7 @@ function example() {
 ### Scrolling Panes
 
 A pane scrolls content that doesn't fit, so nothing is cut off. For content that's meant to
-scroll, put a [`ScrollArea`](./scrollarea.md) in the pane, so a keyboard user can reach it in
+scroll, put a [`ScrollArea`](../components/scrollarea.md) in the pane, so a keyboard user can reach it in
 every browser.
 
 ```tsx live
@@ -310,17 +310,17 @@ them from the start.
 
 ## Related Components
 
-- [`ScrollArea`](./scrollarea.md): For pane content that scrolls.
+- [`ScrollArea`](../components/scrollarea.md): For pane content that scrolls.
 - [`Columns`](../columns/columns.md): A layout in fixed proportions that nobody resizes.
-- [`Menu`](./menu.md): The usual content of a sidebar pane.
-- [`TreeView`](./treeview.md): A file tree for a sidebar pane.
+- [`Menu`](../components/menu.md): The usual content of a sidebar pane.
+- [`TreeView`](../components/treeview.md): A file tree for a sidebar pane.
 - [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing, color, etc.
 
 ---
 
 ## Additional Resources
 
-- [Storybook: Splitter Stories](https://bestax.io/storybook/?path=/story/components-splitter--default)
+- [Storybook: Splitter Stories](https://bestax.io/storybook/?path=/story/layout-splitter--default)
 - [WAI-ARIA Authoring Practices: Window Splitter](https://www.w3.org/WAI/ARIA/apg/patterns/windowsplitter/)
 - [WAI-ARIA 1.2: separator](https://www.w3.org/TR/wai-aria-1.2/#separator)
 

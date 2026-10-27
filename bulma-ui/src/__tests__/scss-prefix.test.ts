@@ -23,7 +23,13 @@ const BULMA = path.dirname(require.resolve('bulma/package.json'));
 const PREFIX = 'bestax-';
 
 /** Every partial each folder's `_index.scss` can register. */
-const PARTIALS = ['components', 'elements', 'form', 'helpers'].flatMap(dir =>
+const PARTIALS = [
+  'components',
+  'elements',
+  'form',
+  'helpers',
+  'layout',
+].flatMap(dir =>
   readdirSync(path.join(SCSS, dir))
     .filter(
       file =>
