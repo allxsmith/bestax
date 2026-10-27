@@ -128,4 +128,27 @@ Implements Bulma’s media object layout for aligning images/icons with content 
 
 ---
 
+## Splitter
+
+Panes side by side or one above the other, like columns the reader resizes: a handle goes between each pair, to drag or move by keyboard, each named by its pane's label.
+
+```tsx live
+<Splitter height={160} className="box p-0">
+  <Splitter.Pane label="Files" defaultSize={30} minSize="8rem">
+    <Content p="4">
+      <p>Files</p>
+    </Content>
+  </Splitter.Pane>
+  <Splitter.Pane label="Editor">
+    <Content p="4">
+      <p>Editor</p>
+    </Content>
+  </Splitter.Pane>
+</Splitter>
+```
+
+[View full documentation.](../../api/layout/splitter)
+
+---
+
 For more details and advanced usage, see the full documentation for each component linked above.

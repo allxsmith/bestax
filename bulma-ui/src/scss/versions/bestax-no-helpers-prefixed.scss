@@ -18,5 +18,6 @@
 @use '../variables';
 @use '../mixins';
 @use '../components/index' as components;
+@use '../layout/index' as layout;
 @use '../form/index' as form;
 @use '../elements/index' as elements;

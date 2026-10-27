@@ -103,7 +103,6 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [ScrollArea](https://bestax.io/docs/api/components/scrollarea) — The `ScrollArea` component renders a box whose content scrolls inside it, on the browser's own scrollbars in Bulma's colors.
 - [SegmentedControl](https://bestax.io/docs/api/components/segmentedcontrol) — The `SegmentedControl` component renders a row of buttons where only one can be on, and tells a screen reader it's a radio group.
 - [Sidebar](https://bestax.io/docs/api/components/sidebar) — The `Sidebar` component provides a slide-out navigation panel that appears from the left or right side of the screen.
-- [Splitter](https://bestax.io/docs/api/components/splitter) — The `Splitter` component lays out two or more panes side by side or one above the other, with a handle between each pair to drag or move by keyboard.
 - [Steps](https://bestax.io/docs/api/components/steps) — The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow.
 - [Tabs](https://bestax.io/docs/api/components/tabs) — The `Tabs` component provides flexible and fully-featured Bulma tab navigation for your Bulma React UI.
 - [Timeline](https://bestax.io/docs/api/components/timeline) — The `Timeline` component renders a list of events in the order they happened, each with a marker on a line down the side.
@@ -154,6 +153,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Level](https://bestax.io/docs/api/layout/level) — The `Level` component provides a flexible horizontal layout for your Bulma React UI, perfect for aligning items on the left and right…
 - [Media](https://bestax.io/docs/api/layout/media) — The `Media` component implements Bulma’s powerful media object layout for React.
 - [Section](https://bestax.io/docs/api/layout/section) — The `Section` component provides vertical spacing and visual separation for your Bulma React UI.
+- [Splitter](https://bestax.io/docs/api/layout/splitter) — The `Splitter` component lays out two or more panes side by side or one above the other, with a handle between each pair to drag or move by keyboard.
 
 ## Helpers
 

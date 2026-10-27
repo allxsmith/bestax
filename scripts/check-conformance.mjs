@@ -701,7 +701,7 @@ async function checkScssConformance() {
   const visited = new Set();
   // Component partials live here; scss/helpers are static utility classes and
   // scss/versions are build entrypoints (both out of scope).
-  const dirs = ['components', 'elements', 'form'];
+  const dirs = ['components', 'elements', 'form', 'layout'];
   for (const dir of dirs) {
     const dirPath = join(scssRoot, dir);
     let files;
@@ -853,7 +853,7 @@ async function checkSkillsSync() {
   // 1. Every registered component-scoped CSS variable is named (as its full
   //    `--bulma-*` form) in css-variables.md.
   const varsDoc = await readFile(join(refsDir, 'css-variables.md'), 'utf8');
-  for (const dir of ['components', 'elements', 'form']) {
+  for (const dir of ['components', 'elements', 'form', 'layout']) {
     const dirPath = join(REPO, 'bulma-ui', 'src', 'scss', dir);
     let files;
     try {

@@ -172,6 +172,7 @@ Bulma pages often put the container class on a landmark, such as `<main class="c
 ## Related Components
 
 - [`Notification`](../elements/notification.md): Useful for demonstrating container layouts.
+- [`Splitter`](./splitter.md): Panes inside a page that the reader resizes.
 - [Helper Props](../helpers/usebulmaclasses.md): List of all supported Bulma helper props for spacing, colors, etc.
 
 ---
