@@ -1,3 +1,15 @@
+# [5.48.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.47.0...@allxsmith/bestax-bulma@5.48.0) (2026-10-27)
+
+
+### Bug Fixes
+
+* **bulma-ui:** name ScrollArea only while it's a region, and re-measure when its text changes ([ecfaafe](https://github.com/allxsmith/bestax/commit/ecfaafec14c7531cfcbc792b38373131cf7b3d57))
+
+
+### Features
+
+* **bulma-ui:** add ScrollArea, a box that scrolls on the browser's own bars in Bulma's colors ([4e5f037](https://github.com/allxsmith/bestax/commit/4e5f03787281975acc3d639e7bbb58640d2f5f5c)), closes [#1295](https://github.com/allxsmith/bestax/issues/1295)
+
 # [5.47.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.46.0...@allxsmith/bestax-bulma@5.47.0) (2026-10-27)
 
 
