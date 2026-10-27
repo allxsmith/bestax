@@ -1,3 +1,11 @@
+## [1.18.13](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.12...bestax-mcp@1.18.13) (2026-10-27)
+
+
+### Bug Fixes
+
+* **bulma-ui:** claim tree-shaking for the ESM build only ([634c4a8](https://github.com/allxsmith/bestax/commit/634c4a8eba1015f8fe212aed5a1e08eb0de76401))
+* **bulma-ui:** drop the bundlephobia size badge from the README ([c93792e](https://github.com/allxsmith/bestax/commit/c93792ef6a1e0c395d90619d099debe4a8ac84d0))
+
 ## [1.18.12](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.11...bestax-mcp@1.18.12) (2026-10-27)
 
 
