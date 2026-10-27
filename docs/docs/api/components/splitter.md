@@ -385,7 +385,7 @@ them from the start.
 | `--bulma-splitter-line-size`          | `$splitter-line-size`          | `1px`                         |
 | `--bulma-splitter-line-color`         | `$splitter-line-color`         | `var(--bulma-border)`         |
 | `--bulma-splitter-line-active-size`   | `$splitter-line-active-size`   | `2px`                         |
-| `--bulma-splitter-line-active-color`  | `$splitter-line-active-color`  | `var(--bulma-link)`           |
+| `--bulma-splitter-line-active-color`  | `$splitter-line-active-color`  | `var(--bulma-primary)`        |
 | `--bulma-splitter-grip-length`        | `$splitter-grip-length`        | `1.5rem`                      |
 | `--bulma-splitter-grip-size`          | `$splitter-grip-size`          | `0.25rem`                     |
 | `--bulma-splitter-grip-color`         | `$splitter-grip-color`         | `var(--bulma-border-hover)`   |

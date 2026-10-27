@@ -98,7 +98,7 @@ describe('Splitter styles', () => {
       '--bulma-splitter-line-size': '1px',
       '--bulma-splitter-line-color': 'var(--bulma-border)',
       '--bulma-splitter-line-active-size': '2px',
-      '--bulma-splitter-line-active-color': 'var(--bulma-link)',
+      '--bulma-splitter-line-active-color': 'var(--bulma-primary)',
       '--bulma-splitter-grip-color': 'var(--bulma-border-hover)',
       display: 'flex',
       'flex-direction': 'row',
