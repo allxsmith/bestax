@@ -561,6 +561,83 @@ describe('Splitter', () => {
       expect(onCollapsedChange).not.toHaveBeenCalled();
     });
 
+    it('collapses only when the pane across the handle can take the room, as a drag would', () => {
+      const onCollapsedChange = jest.fn();
+      const { container } = render(
+        <Splitter>
+          <Splitter.Pane
+            label="A"
+            defaultSize={40}
+            collapsible
+            onCollapsedChange={onCollapsedChange}
+          >
+            A
+          </Splitter.Pane>
+          <Splitter.Pane label="B" defaultSize={30} maxSize={50}>
+            B
+          </Splitter.Pane>
+          <Splitter.Pane label="C">C</Splitter.Pane>
+        </Splitter>
+      );
+      fireEvent.keyDown(handles()[0], { key: 'Enter' });
+      expect(growOf(container)).toEqual([40, 30, 30]);
+      expect(onCollapsedChange).not.toHaveBeenCalled();
+      const second = value(handles()[1]);
+      expect(second.now).toBeLessThanOrEqual(second.max);
+    });
+
+    it('starts open when defaultCollapsed has nowhere to put the room', () => {
+      const { container } = render(
+        <Splitter>
+          <Splitter.Pane label="A" collapsible defaultCollapsed>
+            A
+          </Splitter.Pane>
+          <Splitter.Pane label="B" maxSize={60}>
+            B
+          </Splitter.Pane>
+        </Splitter>
+      );
+      expect(growOf(container)).toEqual([50, 50]);
+    });
+
+    it('only asks when the app holds collapsed, and leaves the layout to it', () => {
+      lengths = { root: 412, handle: 12 };
+      const onCollapsedChange = jest.fn();
+      const { container } = render(
+        <Inspector collapsed={false} onCollapsedChange={onCollapsedChange} />
+      );
+      const [handle] = handles();
+      fireEvent.keyDown(handle, { key: 'Enter' });
+      expect(onCollapsedChange).toHaveBeenLastCalledWith(true);
+      expect(growOf(container)).toEqual([70, 30]);
+      pointer(handle, 'pointerdown', { clientX: 280 });
+      pointer(handle, 'pointermove', { clientX: 380 });
+      expect(onCollapsedChange).toHaveBeenCalledTimes(2);
+      expect(growOf(container)).toEqual([70, 30]);
+      pointer(handle, 'pointerup', { clientX: 380 });
+    });
+
+    it('reopens a pane without snapping the pane across shut', () => {
+      const { container } = render(
+        <Splitter>
+          <Splitter.Pane
+            label="A"
+            defaultSize={85}
+            collapsible
+            defaultCollapsed
+          >
+            A
+          </Splitter.Pane>
+          <Splitter.Pane label="B" minSize={40} collapsible>
+            B
+          </Splitter.Pane>
+        </Splitter>
+      );
+      expect(growOf(container)).toEqual([0, 100]);
+      fireEvent.keyDown(handles()[0], { key: 'Enter' });
+      expect(growOf(container)).toEqual([60, 40]);
+    });
+
     it('ignores collapsed on a pane that isn’t collapsible', () => {
       const { container } = render(
         <Splitter>
