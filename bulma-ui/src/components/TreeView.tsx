@@ -165,7 +165,7 @@ export interface TreeViewProps
  * Props for TreeView.Item, one row and, nested in it, its children. The other
  * attributes and the `ref` land on its `<li role="treeitem">`.
  *
- * @extraProp {number} [aria-posinset] - The item's number among the items beside it. The tree declares it, and `aria-setsize`, from the items on the page once it mounts, so pass your own only when the page holds part of the set, such as the first page of a long folder. Yours wins.
+ * @extraProp {number} [aria-posinset] - The item's number among the items beside it. The tree declares it, and `aria-setsize`, from the items on the page once it mounts. When the page holds only part of a set, such as the first page of a long folder, pass both on every item of that set: yours win, and the tree's own stay on any item without them.
  * @extraProp {number} [aria-setsize] - How many items sit beside it, itself included. Declared by the tree like `aria-posinset`, and `-1` says the count isn't known.
  * @extraProp {React.Ref<HTMLLIElement>} [ref] - Ref forwarded to the `<li>`.
  */

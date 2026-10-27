@@ -1533,7 +1533,8 @@ describe('TreeView', () => {
       ]);
     });
 
-    it('lets an item’s own position win, for a set the page holds only part of', () => {
+    it('lets the items’ own positions win, for a set the page holds only part of', () => {
+      // The first page of a folder of 40, each item of it given both.
       render(
         <TreeView aria-label="Paged" defaultExpanded={['big']}>
           <TreeView.Item value="big" label="big">
@@ -1541,13 +1542,18 @@ describe('TreeView', () => {
               value="first"
               label="first"
               aria-posinset={1}
-              aria-setsize={-1}
+              aria-setsize={40}
             />
-            <TreeView.Item value="second" label="second" />
+            <TreeView.Item
+              value="second"
+              label="second"
+              aria-posinset={2}
+              aria-setsize={40}
+            />
           </TreeView.Item>
         </TreeView>
       );
-      expect(positions()).toEqual(['big 1/1', 'first 1/-1', 'second 2/2']);
+      expect(positions()).toEqual(['big 1/1', 'first 1/40', 'second 2/40']);
     });
   });
 
