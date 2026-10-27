@@ -1,7 +1,7 @@
 {
   "name": "@allxsmith/bestax-bulma",
   "version": "5.46.0",
-  "description": "Complete React component library for Bulma, with AI tooling",
+  "description": "Component library based on React, Bulma, with Agent Skills and MCP",
   "main": "dist/index.cjs",
   "module": "dist/index.esm.js",
   "types": "dist/types/index.d.ts",
@@ -116,6 +116,7 @@
     }
   },
   "keywords": [
+    "bestax",
     "react",
     "bulma",
     "typescript",
