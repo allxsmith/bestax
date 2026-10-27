@@ -165,6 +165,8 @@ export interface TreeViewProps
  * Props for TreeView.Item, one row and, nested in it, its children. The other
  * attributes and the `ref` land on its `<li role="treeitem">`.
  *
+ * @extraProp {number} [aria-posinset] - The item's number among the items beside it. The tree declares it, and `aria-setsize`, from the items on the page once it mounts, so pass your own only when the page holds part of the set, such as the first page of a long folder. Yours wins.
+ * @extraProp {number} [aria-setsize] - How many items sit beside it, itself included. Declared by the tree like `aria-posinset`, and `-1` says the count isn't known.
  * @extraProp {React.Ref<HTMLLIElement>} [ref] - Ref forwarded to the `<li>`.
  */
 export interface TreeViewItemProps extends Omit<
@@ -507,6 +509,8 @@ export const TreeViewItem = forwardRef<HTMLLIElement, TreeViewItemProps>(
     if (branch.hidden) return <>{items}</>;
 
     const info = { value, parent, disabled, isParent, open };
+    // A position the caller gives wins, for a set the page holds only part of.
+    const position = tree.positionOf(value);
 
     return (
       <li
@@ -516,6 +520,8 @@ export const TreeViewItem = forwardRef<HTMLLIElement, TreeViewItemProps>(
         role="treeitem"
         aria-labelledby={labelId}
         aria-level={branch.path.length + 1}
+        aria-posinset={props['aria-posinset'] ?? position?.posinset}
+        aria-setsize={props['aria-setsize'] ?? position?.setsize}
         aria-expanded={isParent ? open : undefined}
         aria-disabled={disabled || undefined}
         aria-selected={selected}
@@ -676,6 +682,7 @@ function StatusRow({
     open: false,
     retry,
   };
+  const position = tree.positionOf(labelId);
 
   return (
     <li
@@ -684,6 +691,8 @@ function StatusRow({
       role="treeitem"
       aria-labelledby={retry ? `${labelId} ${retryId}` : labelId}
       aria-level={level}
+      aria-posinset={position?.posinset}
+      aria-setsize={position?.setsize}
       aria-disabled={!retry || undefined}
       tabIndex={tree.tabStop === labelId ? 0 : -1}
       onKeyDown={event => tree.onKeyDown(event, info)}
