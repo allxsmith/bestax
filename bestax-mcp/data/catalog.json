@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.48.1"
+    "version": "5.49.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -33,6 +33,7 @@
         "Paragraph",
         "Pre",
         "Progress",
+        "RingProgress",
         "Skeleton",
         "Span",
         "Strong",
@@ -948,6 +949,17 @@
       "compound": false,
       "propCount": 11,
       "exampleCount": 5
+    },
+    {
+      "name": "RingProgress",
+      "kind": "component",
+      "category": "elements",
+      "purpose": "The `RingProgress` component draws a value as a ring that fills as it grows, with anything you pass shown in the middle.",
+      "slug": "elements/ringprogress",
+      "import": "import { RingProgress } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 12,
+      "exampleCount": 7
     },
     {
       "name": "ScrollArea",
@@ -2420,6 +2432,14 @@
     "--bulma-reveal-offset": ["Reveal"],
     "--bulma-reveal-offset-large": ["Reveal"],
     "--bulma-reveal-scale": ["Reveal"],
+    "--bulma-ring-progress-arc-color": ["RingProgress"],
+    "--bulma-ring-progress-duration": ["RingProgress"],
+    "--bulma-ring-progress-label-color": ["RingProgress"],
+    "--bulma-ring-progress-label-size": ["RingProgress"],
+    "--bulma-ring-progress-label-weight": ["RingProgress"],
+    "--bulma-ring-progress-size": ["RingProgress"],
+    "--bulma-ring-progress-thickness": ["RingProgress"],
+    "--bulma-ring-progress-track-color": ["RingProgress"],
     "--bulma-scroll-area-fade-size": ["ScrollArea"],
     "--bulma-scroll-area-scrollbar-width": ["ScrollArea"],
     "--bulma-scroll-area-thumb-color": ["ScrollArea"],

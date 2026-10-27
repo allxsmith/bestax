@@ -1,0 +1,158 @@
+// Bestax Extras - RingProgress Styles
+// A value drawn as a ring, with anything the app passes in the middle. Bulma
+// has a linear progress bar and no ring.
+//
+// The ring is an SVG: a track circle, and an arc per value whose length and
+// start the component sets as custom properties, in percent of the way
+// round. Each arc has `pathLength="100"`, so a percentage is a dash length
+// as it is, and nothing is measured. Forced colors leaves SVG strokes in the
+// author's colours, so a rule here gives them the system's.
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+
+$ring-progress-size: 5rem !default;
+$ring-progress-size-small: 3.5rem !default;
+$ring-progress-size-medium: 7rem !default;
+$ring-progress-size-large: 9rem !default;
+// In the ring's own units: the ring is 100 across and its circle has a
+// radius of 42, so a thickness up to 16 fits.
+$ring-progress-thickness: 10 !default;
+// The unfilled ring, the color Bulma gives a progress bar's track.
+$ring-progress-track-color: cv.getVar("border-weak") !default;
+$ring-progress-arc-color: cv.getVar("primary") !default;
+$ring-progress-duration: cv.getVar("duration") !default;
+$ring-progress-label-color: cv.getVar("text-strong") !default;
+$ring-progress-label-weight: cv.getVar("weight-semibold") !default;
+// A fifth of the ring, so the middle grows and shrinks with it: 1rem at the
+// default size.
+$ring-progress-label-size: calc(#{cv.getVar("ring-progress-size")} / 5) !default;
+
+.#{iv.$class-prefix}ring-progress {
+  @include cv.register-vars(
+    (
+      "ring-progress-size": #{$ring-progress-size},
+      "ring-progress-thickness": #{$ring-progress-thickness},
+      "ring-progress-track-color": #{$ring-progress-track-color},
+      "ring-progress-arc-color": #{$ring-progress-arc-color},
+      "ring-progress-duration": #{$ring-progress-duration},
+      "ring-progress-label-color": #{$ring-progress-label-color},
+      "ring-progress-label-weight": #{$ring-progress-label-weight},
+      "ring-progress-label-size": #{$ring-progress-label-size},
+    )
+  );
+}
+
+@each $size, $value in ("small": $ring-progress-size-small, "medium": $ring-progress-size-medium, "large": $ring-progress-size-large) {
+  .#{iv.$class-prefix}ring-progress.#{iv.$class-prefix}is-#{$size} {
+    @include cv.register-vars(
+      (
+        "ring-progress-size": #{$value},
+      )
+    );
+  }
+}
+
+// ---- The ring and its middle ---------------------------------------------------
+
+// One grid cell holds both the ring and the label, so the label sits in the
+// middle at any size.
+.#{iv.$class-prefix}ring-progress {
+  display: inline-grid;
+  place-items: center;
+  inline-size: cv.getVar("ring-progress-size");
+  block-size: cv.getVar("ring-progress-size");
+  vertical-align: middle;
+  // The gap between sections, in percent of the way round: none until
+  // forced colors needs one, below.
+  --ring-progress-gap: 0;
+}
+
+.#{iv.$class-prefix}ring-progress-ring,
+.#{iv.$class-prefix}ring-progress-label {
+  grid-area: 1 / 1;
+}
+
+.#{iv.$class-prefix}ring-progress-ring {
+  inline-size: 100%;
+  block-size: 100%;
+  // A circle's path starts at three o'clock and runs clockwise; this puts
+  // the start at the top.
+  transform: rotate(-90deg);
+}
+
+.#{iv.$class-prefix}ring-progress-track,
+.#{iv.$class-prefix}ring-progress-arc {
+  fill: none;
+  stroke-width: cv.getVar("ring-progress-thickness");
+}
+
+.#{iv.$class-prefix}ring-progress-track {
+  stroke: cv.getVar("ring-progress-track-color");
+}
+
+.#{iv.$class-prefix}ring-progress-arc {
+  stroke: cv.getVar("ring-progress-arc-color");
+  // In px, which here are the circle's path units: Firefox drops a
+  // dasharray whose calc() works in bare numbers.
+  stroke-dasharray: max(0px, calc((var(--ring-progress-length) - var(--ring-progress-gap)) * 1px)) 100px;
+  stroke-dashoffset: calc(var(--ring-progress-start) * -1px);
+  transition-property: stroke-dasharray, stroke-dashoffset;
+  transition-duration: cv.getVar("ring-progress-duration");
+}
+
+.#{iv.$class-prefix}ring-progress.#{iv.$class-prefix}is-rounded .#{iv.$class-prefix}ring-progress-arc {
+  stroke-linecap: round;
+}
+
+.#{iv.$class-prefix}ring-progress-label {
+  color: cv.getVar("ring-progress-label-color");
+  font-size: cv.getVar("ring-progress-label-size");
+  font-weight: cv.getVar("ring-progress-label-weight");
+  line-height: 1.2;
+  text-align: center;
+  // Inside the ring, clear of the arc.
+  max-inline-size: 70%;
+}
+
+// ---- Colors ----------------------------------------------------------------------
+
+// On the root, the color of every arc; on an arc, that section's own.
+@each $name in "primary", "link", "info", "success", "warning", "danger", "black", "dark", "light", "white" {
+  .#{iv.$class-prefix}ring-progress.#{iv.$class-prefix}is-#{$name} {
+    @include cv.register-vars(
+      (
+        "ring-progress-arc-color": #{cv.getVar($name)},
+      )
+    );
+  }
+
+  .#{iv.$class-prefix}ring-progress-arc.#{iv.$class-prefix}is-#{$name} {
+    stroke: cv.getVar($name);
+  }
+}
+
+// ---- Media ---------------------------------------------------------------------
+
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}ring-progress-arc {
+    transition: none;
+  }
+}
+
+// SVG strokes keep the author's colours in forced colors, so the ring takes
+// the system's, and sections, now one colour, get gaps between them.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}ring-progress.#{iv.$class-prefix}has-sections {
+    --ring-progress-gap: 1.5;
+  }
+
+  .#{iv.$class-prefix}ring-progress-track {
+    stroke: GrayText;
+  }
+
+  // Through the root, so it outranks a section's own color class.
+  .#{iv.$class-prefix}ring-progress .#{iv.$class-prefix}ring-progress-arc {
+    stroke: CanvasText;
+  }
+}

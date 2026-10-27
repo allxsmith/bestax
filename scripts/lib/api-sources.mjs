@@ -225,6 +225,9 @@ export const SCSS_SOURCES = {
   Radios: [],
   Rate: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_rate.scss' }],
   Reveal: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_reveal.scss' }],
+  RingProgress: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/elements/_ringprogress.scss' },
+  ],
   ScrollArea: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_scrollarea.scss' },
   ],
