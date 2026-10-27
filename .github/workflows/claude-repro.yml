@@ -298,7 +298,13 @@ jobs:
           # Read-only job token; explicit so the action skips its OIDC→app
           # exchange. No PAT anywhere in this workflow.
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          show_full_output: true
+          # show_full_output is NOT enabled, for the reason ai-triage.yml gives
+          # at its own Run Claude step: this session reads an issue anyone can
+          # write, and full output writes every tool result to the PUBLIC job
+          # log, where no later check can take it back. "Collect draft" guards
+          # the draft, not the log. "Fail on silent session error" still fails
+          # the job on the #317/#338 shapes, and the execution file stays on
+          # the runner. scripts/workflow-full-output.test.mjs holds this.
           # Telemetry is turned off rather than allow-listed: the CLI's Datadog
           # intake host stays off the egress allowlist above AND the CLI is told
           # not to emit it, so the CLI does not try to reach it (#487). This also
