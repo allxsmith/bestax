@@ -83,6 +83,7 @@ const BESTAX = {
   Panel: 'components/panel',
   Popover: 'components/popover',
   Reveal: 'components/reveal',
+  ScrollArea: 'components/scrollarea',
   SegmentedControl: 'components/segmentedcontrol',
   Sidebar: 'components/sidebar',
   Steps: 'components/steps',
@@ -1246,7 +1247,7 @@ export const categories = [
       ],
       [
         'Scroll area (custom bars)',
-        0,
+        'ScrollArea',
         'ScrollArea',
         0,
         0,

@@ -199,6 +199,17 @@ function StepsIcon() {
   );
 }
 
+// Lines of text in a box, with a thin scrollbar and its thumb at the side
+function ScrollAreaIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M7 8h7M7 12h7M7 16h5" />
+      <path d="M18 7v4" />
+    </svg>
+  );
+}
+
 // Dots on a line down the side, each with a line of text beside it
 function TimelineIcon() {
   return (
@@ -261,6 +272,7 @@ const ADDON_ICONS = {
   pininput: PinInputIcon,
   popover: PopoverIcon,
   reveal: RevealIcon,
+  scrollarea: ScrollAreaIcon,
   sidebar: SidebarIcon,
   steps: StepsIcon,
   timeline: TimelineIcon,

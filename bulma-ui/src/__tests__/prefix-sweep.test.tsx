@@ -62,6 +62,15 @@ const PROPS: Record<string, Record<string, unknown>> = {
     actionText: 'Undo',
   },
   Taginput: { value: ['tag-one'] },
+  // Every modifier, so each class the frame takes is swept.
+  ScrollArea: {
+    'aria-label': 'Notes',
+    orientation: 'vertical',
+    showScrollbars: 'hover',
+    hasStableGutter: true,
+    hasFade: true,
+    children: 'Notes',
+  },
   // Labeled, with a message, colored, sized, rounded and disabled, so the
   // Field, the Control and every class a box takes are swept.
   PinInput: {

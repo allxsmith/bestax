@@ -1,5 +1,5 @@
 // INTERNAL: deliberately not exported from src/index.ts.
-import { useCallback, useReducer, useRef, useState } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import type React from 'react';
 import type { TreeViewSelectionMode } from '../components/TreeView';
 import { useClientLayoutEffect } from './useClientLayoutEffect';
@@ -28,6 +28,15 @@ export interface TreeViewItemInfo extends TreeViewItemRecord {
 
 /** A box's state: checked, unchecked or mixed. */
 export type TreeViewCheckState = boolean | 'mixed';
+
+/**
+ * Where an item sits among the items beside it, for its `aria-posinset` and
+ * `aria-setsize`: its number, from 1, and how many there are.
+ */
+export interface TreeViewPosition {
+  posinset: number;
+  setsize: number;
+}
 
 /**
  * What an item shows of the selection: `selected` in a `single` tree,
@@ -87,6 +96,51 @@ const shownIn = (tree: Element, { values }: Registry): HTMLElement[] =>
 function parentItemOf(element: Element): HTMLElement | null {
   const group = element.parentElement!;
   return group.getAttribute('role') === 'group' ? group.parentElement : null;
+}
+
+/** No positions: on the server, and until the tree has mounted. */
+const NO_POSITIONS = new Map<string, TreeViewPosition>();
+
+/**
+ * Each item's place among the items beside it, by its key, read off the
+ * items on the page: the ones in the same group, or at the top. A loading or
+ * failed load's row counts, as it does for a browser that works positions
+ * out for itself, so the declared ones say what a browser would.
+ */
+function positionsOf(
+  shown: HTMLElement[],
+  { values }: Registry
+): Map<string, TreeViewPosition> {
+  const sets = new Map<Element | null, HTMLElement[]>();
+  shown.forEach(element => {
+    const set = sets.get(element.parentElement);
+    if (set) set.push(element);
+    else sets.set(element.parentElement, [element]);
+  });
+  const positions = new Map<string, TreeViewPosition>();
+  sets.forEach(set =>
+    set.forEach((element, at) =>
+      positions.set(values.get(element)!, {
+        posinset: at + 1,
+        setsize: set.length,
+      })
+    )
+  );
+  return positions;
+}
+
+/** Whether two sets of positions say the same for every item. */
+function samePositions(
+  a: Map<string, TreeViewPosition>,
+  b: Map<string, TreeViewPosition>
+): boolean {
+  return (
+    a.size === b.size &&
+    Array.from(a).every(([key, { posinset, setsize }]) => {
+      const other = b.get(key);
+      return other?.posinset === posinset && other.setsize === setsize;
+    })
+  );
 }
 
 /** The values of the items an item on the page is in, from the top. */
@@ -227,6 +281,12 @@ export interface TreeViewEngine {
     path: string[],
     disabled: boolean
   ) => TreeViewItemState;
+  /**
+   * Where the item with this key sits among the items beside it, read off
+   * the page after each render and whenever items move. Nothing until the
+   * tree has mounted, as on the server.
+   */
+  positionOf: (key: string) => TreeViewPosition | undefined;
   /** Records an item from its layout effect. Returns the function that forgets it. */
   register: (value: string, record: TreeViewItemRecord) => () => void;
   /** For each item's `<li>` ref: records it, and notices focus leaving with it. */
@@ -252,9 +312,11 @@ export interface TreeViewEngine {
 }
 
 /**
- * The open state, the selection, the keys, the tab stop and the registry of
- * a TreeView (#1096). Focus moves for real, with a roving tabindex, rather
- * than through `aria-activedescendant`.
+ * The open state, the selection, the keys, the tab stop, the positions and
+ * the registry of a TreeView (#1096). Focus moves for real, with a roving
+ * tabindex, rather than through `aria-activedescendant`. Each item's
+ * position among the items beside it is declared rather than left to the
+ * browser (#1171), read off the page once the tree has mounted.
  *
  * Every item registers its value, its parent and whether it's disabled from
  * a layout effect. In a checkbox tree a closed item's children still render
@@ -308,6 +370,8 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
   const restingPathRef = useRef<string[]>([]);
   // The values above an item that left the page with focus in it.
   const lostRef = useRef<string[] | null>(null);
+  // Each item's place among the items beside it, by its key.
+  const [positions, setPositions] = useState(NO_POSITIONS);
 
   const { records } = registryRef.current;
   const checks =
@@ -373,11 +437,12 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
     else act(item, list);
   };
 
-  // After every render, put the stop where it belongs. While focus is in
-  // the tree it's the focused item. Otherwise it's the selected item, or the
-  // first checked one on the page, and failing that it stays where it was.
-  // An item that goes away hands it to its nearest ancestor on the page, or
-  // to the first item, and focus goes with it if it had focus.
+  // After every render, read each item's position off the page, and put the
+  // stop where it belongs. While focus is in the tree it's the focused item.
+  // Otherwise it's the selected item, or the first checked one on the page,
+  // and failing that it stays where it was. An item that goes away hands it
+  // to its nearest ancestor on the page, or to the first item, and focus goes
+  // with it if it had focus.
   // eslint-disable-next-line react-hooks/exhaustive-deps -- after every render on purpose: it reads the page, and sets state only when what it reads has changed
   useClientLayoutEffect(() => {
     const tree = treeRef.current!;
@@ -387,6 +452,8 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
     // sharing a value, which they shouldn't, can leave it without one the
     // page still has.
     const shown = shownIn(tree, registry);
+    const placed = positionsOf(shown, registry);
+    if (!samePositions(positions, placed)) setPositions(placed);
     const onPage = shown.map(element => registry.values.get(element)!);
     const elementOf = (value: string) => shown[onPage.indexOf(value)];
     const isShown = (value: string | null | undefined): value is string =>
@@ -413,6 +480,23 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
       restingPathRef.current = next ? pathOf(elementOf(next), registry) : [];
     }
   });
+
+  // Items can also move without the tree rendering, such as children that a
+  // component of the app sorts with state of its own. That changes no record,
+  // so the page is watched for items coming, going and moving, and the
+  // positions are read again.
+  useEffect(() => {
+    const tree = treeRef.current!;
+    const observer = new MutationObserver(() => {
+      const registry = registryRef.current;
+      const placed = positionsOf(shownIn(tree, registry), registry);
+      setPositions(current =>
+        samePositions(current, placed) ? current : placed
+      );
+    });
+    observer.observe(tree, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
 
   const register = useCallback((value: string, record: TreeViewItemRecord) => {
     const { records: known } = registryRef.current;
@@ -547,6 +631,7 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
     tabStop,
     isOpen,
     stateOf,
+    positionOf: key => positions.get(key),
     register,
     setElement,
     onFocus,

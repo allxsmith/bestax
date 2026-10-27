@@ -463,6 +463,13 @@ its row takes focus.
   declares its `aria-level`, which VoiceOver needs according to
   [GitHub's testing](https://github.blog/engineering/user-experience/considerations-for-making-a-tree-view-component-accessible/).
   `aria-expanded` is on parents only.
+- **Positions:** each item also declares `aria-posinset` and `aria-setsize`, its place among the
+  items beside it, so a screen reader that doesn't work positions out for itself still has them.
+  The tree reads them off the page once it mounts, and again whenever items open, close, load or
+  move, so server markup leaves them to the browser until then. They're the values a browser works
+  out on its own: a loading row or a failed load's row counts with the items beside it. When the
+  page holds only part of a set, such as the first page of a long folder, pass both on every item
+  of that set: yours win, and the tree's own stay on any item without them.
 - **One tab stop, with real focus:** one item holds `tabIndex={0}` and the rest `-1`, and focus
   moves from item to item, rather than through `aria-activedescendant`. When focus comes into the
   tree, it lands on the selected item, or in a checkbox tree on the first checked item on the page.
@@ -477,7 +484,9 @@ its row takes focus.
   item's `aria-checked` is what a screen reader hears.
 - **Disabled items** are `aria-disabled` and stay reachable from the arrow keys, Home, End and
   typing, so a screen reader user finds them. They're never selected, checked, opened or closed.
-  One that's already open stays open, so what's under it is still reachable.
+  One that's already open stays open, so what's under it is still reachable. In a `single` tree a
+  disabled item has no `aria-selected`. In a `checkbox` tree it keeps `aria-checked`, so the state
+  its box shows is heard as well as seen, such as "checked, disabled".
 - **A loading item's row** is a `treeitem` that says Loading…, marked `aria-disabled` and reached
   the way a disabled item is, so a screen reader user who moves into the folder hears what's
   happening. It has no value: it's never selected or checked, it has no `aria-selected` or
@@ -497,7 +506,9 @@ its row takes focus.
   goes with the item still open.
   The name is the item's label as a screen reader reads it. A closed item, or one in a closed
   branch, says nothing. Each announcement is written a moment after the change and cleared soon
-  after, so the page doesn't keep a second copy of the text.
+  after, so the page doesn't keep a second copy of the text. A selection or a check isn't written
+  there: it changes `aria-selected` or `aria-checked` on the focused item, which a screen reader
+  reads out again, as the simulated one below does.
 
 Enter and Space do the item's one thing, which depends on the mode:
 
@@ -541,6 +552,42 @@ On a failed load's row, both retry, whatever the mode. The rest work the same in
   the loader's ring stays open.
 - **Motion:** the chevron turns with a short transition, and the loader spins. Both stop when the
   reader asks for reduced motion, and the loader stays drawn.
+
+**What a screen reader says.** What follows is simulated, with
+[Guidepup's Virtual Screen Reader](https://www.guidepup.dev/docs/virtual) 0.33.0, which reads the
+accessibility tree the way the ARIA and HTML specs describe. It isn't a recording of NVDA, JAWS
+or VoiceOver, and each of those words things its own way. The library's tests press these keys
+through it on the FileBrowser, Permissions and DeepTree stories, and fail if what it says changes.
+
+1. **Onto a closed parent, then Right and Left:** "treeitem, helpers, not expanded, level 2,
+   position 2, not selected, set size 3". Right reads it again as "expanded" and Left as "not
+   expanded", with focus staying on it. The items that appear are read when focus reaches them.
+2. **Enter and Space with no `selectionMode`:** each press on a parent reads it again with its new
+   state, "treeitem, src, not expanded, level 1, position 1, set size 4", then "expanded". A tree
+   with no selection says nothing about one.
+3. **A level deeper and back up:** Right from components reads its first child, "treeitem,
+   Button.tsx, level 3, position 1, not selected, set size 3", and Left goes back to "treeitem,
+   components, expanded, level 2, position 1, not selected, set size 3".
+4. **Enter in a `single` tree:** the item is read again, "treeitem, TreeView.tsx, level 3, position
+   3, selected, set size 3". The item that lost the selection says "not selected" when focus gets
+   back to it.
+5. **Space in a `checkbox` tree:** the item is read again as "checked". Its parent turns mixed
+   without a word, and Left to it reads "treeitem, Billing, partially checked, expanded, level 1,
+   position 2, set size 2". Space on the parent reads "checked", and so does each item under it as
+   focus reaches it.
+6. **A disabled item:** in a `single` tree, "treeitem, legacy.ts, disabled, level 2, position 3, set
+   size 3", with no selection state. In a `checkbox` tree, "treeitem, Delete, not checked,
+   disabled, level 4, position 3, set size 3", or "checked, disabled" for one its own value checks.
+   Enter and Space on it change nothing and say nothing.
+7. **Positions:** each item says its place among the items beside it, such as "position 2" and "set
+   size 3", at every level.
+8. **Tab in and back out, with an item selected:** Tab lands on the selected item, "treeitem,
+   Card.tsx, level 3, position 2, selected, set size 3", and Tab again leaves the tree for the next
+   control. Shift+Tab comes back to Card.tsx, wherever focus was in the tree before.
+
+Still open in [#1171](https://github.com/allxsmith/bestax/issues/1171): recordings with NVDA, JAWS
+and VoiceOver on macOS and iOS, a real Windows contrast theme in place of Chromium's forced colors
+emulation, and runs in Firefox and Safari.
 
 ---
 
@@ -600,20 +647,22 @@ On a failed load's row, both retry, whatever the mode. The rest work the same in
 
 ### TreeView.Item
 
-| Prop          | Type                           | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| ------------- | ------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `value`       | `string`                       | —       | **Required.** Identifies the item in `selected`, `checked` and `expanded`. Unique in the tree.                                                                                                                                                                                                                                                                                                                                             |
-| `label`       | `React.ReactNode`              | —       | **Required.** What the row shows, and the item's name for assistive tech. Nothing in it should be a link or a button: a tree item does one thing, and nothing else in its row takes focus.                                                                                                                                                                                                                                                 |
-| `icon`        | `React.ReactNode`              | —       | A picture before the label: an `Icon` name, or a node. Hidden from assistive tech.                                                                                                                                                                                                                                                                                                                                                         |
-| `children`    | `React.ReactNode`              | —       | `TreeView.Item`s under this one. Render them whenever you have them, open or not: the tree hides them while it's closed, and a checkbox tree needs them to know what a check reaches.                                                                                                                                                                                                                                                      |
-| `hasChildren` | `boolean`                      | `false` | Shows the item as a parent before its children are known, such as a folder that loads when it opens.                                                                                                                                                                                                                                                                                                                                       |
-| `isLoading`   | `boolean`                      | `false` | Its children are on their way. While it's open, its group ends in a row that says so, and the tree's live region says it's loading, then that it's loaded once this goes back to `false`. A parent only: pair it with `hasChildren`, or with the children it already has.                                                                                                                                                                  |
-| `loadError`   | `React.ReactNode`              | —       | Its children didn't load. While it's open, its group ends in a row with this message, and a Retry button when there's an `onRetry`, and the live region reads the message out, so name the item in it ("Couldn't load src"), then says it's loaded once this goes with the item still open. A parent only, like `isLoading`. Nothing in it should be a link or a button: the row is what's pressed. `isLoading` wins while both are given. |
-| `onRetry`     | `() => void`                   | —       | Called by the Retry button on a failed load's row, and by Enter or Space there. Set `isLoading` while the retry runs, so the live region says it's loading, and reads the message out again if it fails again. The same message passed a second time with no loading between is no change the tree can see.                                                                                                                                |
-| `disabled`    | `boolean`                      | `false` | Reachable with the arrow keys, Home, End and type-ahead, so a screen reader finds it, but never selected, checked, opened or closed. One that's already open stays open.                                                                                                                                                                                                                                                                   |
-| `className`   | `string`                       | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `ref`         | `React.Ref<HTMLLIElement>`     | —       | Ref forwarded to the `<li>`.                                                                                                                                                                                                                                                                                                                                                                                                               |
-| `...`         | All standard `<li>` attributes | —       |                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Prop            | Type                           | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| --------------- | ------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `value`         | `string`                       | —       | **Required.** Identifies the item in `selected`, `checked` and `expanded`. Unique in the tree.                                                                                                                                                                                                                                                                                                                                             |
+| `label`         | `React.ReactNode`              | —       | **Required.** What the row shows, and the item's name for assistive tech. Nothing in it should be a link or a button: a tree item does one thing, and nothing else in its row takes focus.                                                                                                                                                                                                                                                 |
+| `icon`          | `React.ReactNode`              | —       | A picture before the label: an `Icon` name, or a node. Hidden from assistive tech.                                                                                                                                                                                                                                                                                                                                                         |
+| `children`      | `React.ReactNode`              | —       | `TreeView.Item`s under this one. Render them whenever you have them, open or not: the tree hides them while it's closed, and a checkbox tree needs them to know what a check reaches.                                                                                                                                                                                                                                                      |
+| `hasChildren`   | `boolean`                      | `false` | Shows the item as a parent before its children are known, such as a folder that loads when it opens.                                                                                                                                                                                                                                                                                                                                       |
+| `isLoading`     | `boolean`                      | `false` | Its children are on their way. While it's open, its group ends in a row that says so, and the tree's live region says it's loading, then that it's loaded once this goes back to `false`. A parent only: pair it with `hasChildren`, or with the children it already has.                                                                                                                                                                  |
+| `loadError`     | `React.ReactNode`              | —       | Its children didn't load. While it's open, its group ends in a row with this message, and a Retry button when there's an `onRetry`, and the live region reads the message out, so name the item in it ("Couldn't load src"), then says it's loaded once this goes with the item still open. A parent only, like `isLoading`. Nothing in it should be a link or a button: the row is what's pressed. `isLoading` wins while both are given. |
+| `onRetry`       | `() => void`                   | —       | Called by the Retry button on a failed load's row, and by Enter or Space there. Set `isLoading` while the retry runs, so the live region says it's loading, and reads the message out again if it fails again. The same message passed a second time with no loading between is no change the tree can see.                                                                                                                                |
+| `disabled`      | `boolean`                      | `false` | Reachable with the arrow keys, Home, End and type-ahead, so a screen reader finds it, but never selected, checked, opened or closed. One that's already open stays open.                                                                                                                                                                                                                                                                   |
+| `className`     | `string`                       | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `aria-posinset` | `number`                       | —       | The item's number among the items beside it. The tree declares it, and `aria-setsize`, from the items on the page once it mounts. When the page holds only part of a set, such as the first page of a long folder, pass both on every item of that set: yours win, and the tree's own stay on any item without them.                                                                                                                       |
+| `aria-setsize`  | `number`                       | —       | How many items sit beside it, itself included. Declared by the tree like `aria-posinset`, and `-1` says the count isn't known.                                                                                                                                                                                                                                                                                                             |
+| `ref`           | `React.Ref<HTMLLIElement>`     | —       | Ref forwarded to the `<li>`.                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `...`           | All standard `<li>` attributes | —       |                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
 <!-- /bestax:generated props -->
 

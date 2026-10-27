@@ -81,7 +81,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 **Components** (`@allxsmith/bestax-bulma/scss/components/<name>`):
 `loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
 `toast`, `dialog`, `carousel`, `tabs`, `menu`, `reveal`, `avatar`, `avatars`, `badge`,
-`emptystate`, `timeline`, `treeview`
+`emptystate`, `timeline`, `treeview`, `scrollarea`
 
 **Form** (`@allxsmith/bestax-bulma/scss/form/<name>`):
 `checkbox`, `radio`, `switch`, `slider`, `numberinput`, `pininput`, `rate`, `autocomplete`,

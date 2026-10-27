@@ -1,3 +1,10 @@
+## [1.18.9](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.8...bestax-mcp@1.18.9) (2026-10-27)
+
+
+### Features
+
+* **bulma-ui:** declare aria-posinset and aria-setsize on TreeView items ([8807137](https://github.com/allxsmith/bestax/commit/8807137e5565320151794b2d54cbf240bc8b3aec)), closes [#1171](https://github.com/allxsmith/bestax/issues/1171) [#1171](https://github.com/allxsmith/bestax/issues/1171)
+
 ## [1.18.8](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.7...bestax-mcp@1.18.8) (2026-10-26)
 
 

@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.46.0"
+    "version": "5.47.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -71,6 +71,7 @@
         "Panel",
         "Popover",
         "Reveal",
+        "ScrollArea",
         "SegmentedControl",
         "Sidebar",
         "Steps",
@@ -939,6 +940,17 @@
       "compound": false,
       "propCount": 11,
       "exampleCount": 5
+    },
+    {
+      "name": "ScrollArea",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `ScrollArea` component renders a box whose content scrolls inside it, on the browser's own scrollbars in Bulma's colors.",
+      "slug": "components/scrollarea",
+      "import": "import { ScrollArea } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 12,
+      "exampleCount": 8
     },
     {
       "name": "Section",
@@ -2389,6 +2401,11 @@
     "--bulma-reveal-offset": ["Reveal"],
     "--bulma-reveal-offset-large": ["Reveal"],
     "--bulma-reveal-scale": ["Reveal"],
+    "--bulma-scroll-area-fade-size": ["ScrollArea"],
+    "--bulma-scroll-area-scrollbar-width": ["ScrollArea"],
+    "--bulma-scroll-area-thumb-color": ["ScrollArea"],
+    "--bulma-scroll-area-thumb-hover-color": ["ScrollArea"],
+    "--bulma-scroll-area-track-color": ["ScrollArea"],
     "--bulma-section-padding": ["Section"],
     "--bulma-section-padding-desktop": ["Section"],
     "--bulma-section-padding-large": ["Section"],
