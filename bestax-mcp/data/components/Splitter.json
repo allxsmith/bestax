@@ -207,7 +207,7 @@
           "name": "collapsible",
           "type": "boolean",
           "default": "false",
-          "description": "Lets it collapse: dragging it below half its `minSize` shuts it, and Enter on its handle shuts it and brings it back at the size it had. A collapsed pane stays mounted, hidden, so it keeps its state.",
+          "description": "Lets it collapse: dragging it below half its `minSize` shuts it, and Enter on its handle shuts it and brings it back at the size it had. It collapses only when the pane across its handle can take its room within that pane's `maxSize`, since a handle moves only the two panes beside it. A collapsed pane stays mounted, hidden, so it keeps its state.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -216,7 +216,7 @@
           "name": "collapsed",
           "type": "boolean",
           "default": "false",
-          "description": "Whether it's collapsed, for a `collapsible` pane. With it, the state is yours: update it from `onCollapsedChange`.",
+          "description": "Whether it's collapsed, for a `collapsible` pane. With it, the state is yours: a drag, a key or a double-click that would collapse it or bring it back calls `onCollapsedChange` and leaves it as it is, and it changes when `collapsed` does.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -234,7 +234,7 @@
           "name": "onCollapsedChange",
           "type": "(collapsed: boolean) => void",
           "default": null,
-          "description": "Called when it collapses or comes back by a drag, a key or a double-click. Not called for a change you made with `collapsed`.",
+          "description": "Called when a drag, a key or a double-click collapses it or brings it back, or, with `collapsed`, would. Not called for a change you made with `collapsed`.",
           "required": false,
           "inherited": false,
           "deprecated": false

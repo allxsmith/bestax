@@ -69,20 +69,25 @@ export interface SplitterPaneProps
   maxSize?: SplitterLimit;
   /**
    * Lets it collapse: dragging it below half its `minSize` shuts it, and
-   * Enter on its handle shuts it and brings it back at the size it had. A
-   * collapsed pane stays mounted, hidden, so it keeps its state.
+   * Enter on its handle shuts it and brings it back at the size it had. It
+   * collapses only when the pane across its handle can take its room within
+   * that pane's `maxSize`, since a handle moves only the two panes beside it.
+   * A collapsed pane stays mounted, hidden, so it keeps its state.
    */
   collapsible?: boolean;
   /**
    * Whether it's collapsed, for a `collapsible` pane. With it, the state is
-   * yours: update it from `onCollapsedChange`.
+   * yours: a drag, a key or a double-click that would collapse it or bring
+   * it back calls `onCollapsedChange` and leaves it as it is, and it changes
+   * when `collapsed` does.
    */
   collapsed?: boolean;
   /** Whether a `collapsible` pane starts collapsed. */
   defaultCollapsed?: boolean;
   /**
-   * Called when it collapses or comes back by a drag, a key or a
-   * double-click. Not called for a change you made with `collapsed`.
+   * Called when a drag, a key or a double-click collapses it or brings it
+   * back, or, with `collapsed`, would. Not called for a change you made with
+   * `collapsed`.
    */
   onCollapsedChange?: (collapsed: boolean) => void;
   /** What's in it. Content that scrolls belongs in a `ScrollArea`, so a keyboard can reach it. */
@@ -304,12 +309,15 @@ const SplitterRoot = forwardRef<HTMLDivElement, SplitterProps>(
     const boundsKey = JSON.stringify(bounds);
 
     // Shuts pane `i`, giving its room to the pane across the handle that
-    // speaks for it.
+    // speaks for it, when that pane can take it within its maximum, as a
+    // drag would. A lone pane has no handle and nowhere to give its room.
     const collapseIn = (current: number[], i: number) => {
-      // A lone pane has no handle and nowhere to give its room.
       if (current.length < 2) return current;
       const h = handleFor(i, bounds);
       const across = h === i ? i + 1 : h;
+      if (current[across] + current[i] > bounds[across].max + 1e-6) {
+        return current;
+      }
       const next = [...current];
       next[across] += next[i];
       next[i] = 0;
@@ -354,7 +362,9 @@ const SplitterRoot = forwardRef<HTMLDivElement, SplitterProps>(
       layout.map((size, i) => bounds[i].collapsible && size <= 1e-6);
 
     // Moves the layout on, telling the app and each pane whose collapse
-    // changed, unless the change came from its own `collapsed`.
+    // changed, unless the change came from its own `collapsed`. A move that
+    // would collapse or open a pane whose `collapsed` the app holds only
+    // asks: the app's answer comes back through `collapsed`.
     const sizesRef = useRef(sizes);
     sizesRef.current = sizes;
     const panesRef = useRef(panes);
@@ -364,14 +374,25 @@ const SplitterRoot = forwardRef<HTMLDivElement, SplitterProps>(
       if (sameSizes(previous, next)) return;
       const before = collapsedAt(previous);
       const after = collapsedAt(next);
+      const flipped = after.flatMap((shut, i) =>
+        shut !== before[i] ? [i] : []
+      );
+      if (
+        !fromProp &&
+        flipped.some(i => panesRef.current[i].props.collapsed !== undefined)
+      ) {
+        flipped.forEach(i =>
+          panesRef.current[i].props.onCollapsedChange?.(after[i])
+        );
+        return;
+      }
       sizesRef.current = next;
       if (!sizesProp) setState(current => ({ ...current, sizes: next }));
       onSizesChange?.(next);
       if (!fromProp) {
-        after.forEach((shut, i) => {
-          if (shut !== before[i])
-            panesRef.current[i].props.onCollapsedChange?.(shut);
-        });
+        flipped.forEach(i =>
+          panesRef.current[i].props.onCollapsedChange?.(after[i])
+        );
       }
     };
 
@@ -386,8 +407,8 @@ const SplitterRoot = forwardRef<HTMLDivElement, SplitterProps>(
         current,
         h,
         h === i ? target : total - target,
-        // Opening, it mustn't snap shut again below half its minimum.
-        withBound(bounds, i, { collapsible: false })
+        // Opening one pane snaps neither shut: it stops at the limits.
+        opened(bounds, h)
       );
     };
 
