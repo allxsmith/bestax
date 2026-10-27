@@ -1,3 +1,16 @@
+# [5.49.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.48.1...@allxsmith/bestax-bulma@5.49.0) (2026-10-27)
+
+
+### Bug Fixes
+
+* **bulma-ui:** collapse a Splitter pane only within its neighbour's limit, and let collapsed decide ([3c40955](https://github.com/allxsmith/bestax/commit/3c40955227ccbf47cf36adfe8d3e8bc5a3ef7211))
+* **bulma-ui:** draw Splitter's active line in bestax's primary blue ([4b73e46](https://github.com/allxsmith/bestax/commit/4b73e4688fc312652dd1f6e988f200e576e04d24))
+
+
+### Features
+
+* **bulma-ui:** add Splitter, panes with a handle between each pair to drag or move by keyboard ([3d735ea](https://github.com/allxsmith/bestax/commit/3d735ea208ad46b9bce47c166bbbb8ea25ebfcbf)), closes [#1299](https://github.com/allxsmith/bestax/issues/1299)
+
 ## [5.48.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.48.0...@allxsmith/bestax-bulma@5.48.1) (2026-10-27)
 
 
