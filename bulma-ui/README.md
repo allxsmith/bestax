@@ -2,7 +2,6 @@
 
 [![npm version](https://img.shields.io/npm/v/@allxsmith/bestax-bulma.svg)](https://www.npmjs.com/package/@allxsmith/bestax-bulma)
 [![npm downloads](https://img.shields.io/npm/dm/@allxsmith/bestax-bulma.svg)](https://www.npmjs.com/package/@allxsmith/bestax-bulma)
-[![bundle size](https://img.shields.io/bundlephobia/minzip/@allxsmith/bestax-bulma.svg)](https://bundlephobia.com/package/@allxsmith/bestax-bulma)
 [![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue.svg)](https://www.typescriptlang.org/)
 [![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)](https://github.com/allxsmith/bestax/blob/main/bulma-ui/jest.config.js)
 [![Bulma](https://img.shields.io/badge/Bulma-v1.0+-00d1b2.svg)](https://bulma.io)
@@ -111,8 +110,8 @@ import { Theme } from '@allxsmith/bestax-bulma';
   `Theme colorMode`, `--bulma-*` variable overrides, and prefixed-class builds via `ConfigProvider`.
 - **Just one dependency: Bulma**
   Every Bulma library depends on it — we ship it automatically. Clean install, fewer security concerns.
-- **Tree-shakeable ESM + CJS**
-  Import only what you use — see the live [bundle size](https://bundlephobia.com/package/@allxsmith/bestax-bulma).
+- **Tree-shakeable ESM**
+  Import only what you use; your bundler drops the rest. A CJS build is there for `require`.
 - **99% unit test coverage**
   Enforced in CI by the [jest config](https://github.com/allxsmith/bestax/blob/main/bulma-ui/jest.config.js) — not just claimed.
 - **100% TypeScript**
