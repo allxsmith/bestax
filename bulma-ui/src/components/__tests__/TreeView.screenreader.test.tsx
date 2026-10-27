@@ -10,9 +10,14 @@
 // Accessibility section quotes these logs, so a change here changes it too.
 import React from 'react';
 import { render } from '@testing-library/react';
-import { virtual } from '@guidepup/virtual-screen-reader';
+import { Virtual } from '@guidepup/virtual-screen-reader';
 import { TreeView, type TreeViewProps } from '../TreeView';
 import meta, { DeepTree, FileBrowser, Permissions } from '../TreeView.stories';
+
+// Each key press rebuilds the reader's accessibility tree, which is quick on
+// its own but can pass the default 5 seconds a test when the machine is busy
+// with other suites and builds, as `pnpm all` keeps it.
+jest.setTimeout(30_000);
 
 type Story = () => React.ReactElement;
 // The default story is a tree with no selectionMode, rendered from the meta.
@@ -23,7 +28,11 @@ const FileBrowserStory = FileBrowser.render as unknown as Story;
 const PermissionsStory = Permissions.render as unknown as Story;
 const DeepTreeStory = DeepTree.render as unknown as Story;
 
-/** Renders `ui` between two buttons, and starts the reader on the first. */
+// A reader of each test's own, so one that fails part way can't carry on
+// pressing keys into the next.
+let reader: Virtual;
+
+/** Renders `ui` between two buttons, and starts a reader on the first. */
 async function start(ui: React.ReactElement) {
   const { container } = render(
     <>
@@ -32,30 +41,31 @@ async function start(ui: React.ReactElement) {
       <button type="button">After</button>
     </>
   );
-  await virtual.start({ container });
+  reader = new Virtual();
+  await reader.start({ container });
 }
 
 /** Presses each key in turn, through the reader. */
 async function press(...keys: string[]) {
-  for (const key of keys) await virtual.press(key);
+  for (const key of keys) await reader.press(key);
 }
 
 /** Tabs until focus is on an item, past any buttons before the tree. */
 async function tabIntoTree() {
   do {
-    await virtual.press('Tab');
-  } while (!(await virtual.lastSpokenPhrase()).startsWith('treeitem'));
+    await reader.press('Tab');
+  } while (!(await reader.lastSpokenPhrase()).startsWith('treeitem'));
 }
 
 /** What the reader has said since the last call, after which it's emptied. */
 async function said() {
-  const log = await virtual.spokenPhraseLog();
-  await virtual.clearSpokenPhraseLog();
+  const log = await reader.spokenPhraseLog();
+  await reader.clearSpokenPhraseLog();
   return log;
 }
 
 afterEach(async () => {
-  await virtual.stop();
+  await reader.stop();
 });
 
 describe('TreeView, as a simulated screen reader says it', () => {
