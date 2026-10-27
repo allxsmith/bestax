@@ -18,6 +18,7 @@ import { ContextMenu } from '../components/ContextMenu';
 import { Popover } from '../components/Popover';
 import { SegmentedControl } from '../components/SegmentedControl';
 import { ScrollArea } from '../components/ScrollArea';
+import { Splitter } from '../components/Splitter';
 import { Slider } from '../form/Slider';
 import { PinInput } from '../form/PinInput';
 import { DateInput } from '../form/DateInput';
@@ -66,6 +67,15 @@ const cases: Array<[string, React.ReactElement]> = [
     <ScrollArea key="scroll-area" aria-label="Notes" height={120}>
       <p>Notes</p>
     </ScrollArea>,
+  ],
+  [
+    'Splitter',
+    <Splitter key="splitter" height={200}>
+      <Splitter.Pane label="Files" minSize="10rem" collapsible>
+        Files
+      </Splitter.Pane>
+      <Splitter.Pane label="Editor">Editor</Splitter.Pane>
+    </Splitter>,
   ],
   ['Slider', <Slider key="slider" label="Volume" />],
   ['PinInput', <PinInput key="pin" label="Code" defaultValue="12" />],

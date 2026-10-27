@@ -122,6 +122,13 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `defaultOpen` on the group holding the current page (or `open`/`onOpenChange` to hold the state).
   Its heading is a real button with `aria-expanded`, and its links stay links, each a tab stop.
   Not `TreeView`, and not a `Collapse` inside a hand-written `<li>`.
+- **Panes the user resizes are `Splitter`** (a file tree beside an editor, a list beside its
+  detail, a query above its results), not hand-written drag code or fixed `Columns`:
+  `<Splitter height={480}>` with a `<Splitter.Pane label="Files" defaultSize={25} minSize="12rem">`
+  per pane. The handles go in on their own, each named by its pane's `label`, so give every pane
+  one. Sizes are percentages, limits also take `px` or `rem`, `orientation="vertical"` stacks
+  them (and needs a `height`), and `collapsible` with `collapsed`/`onCollapsedChange` lets a
+  button hide a pane. Put scrolling content in a `ScrollArea` inside the pane.
 - **Content taller or wider than its space is `ScrollArea`** (release notes in a Card, a sidebar
   longer than the screen, a feed that grows then scrolls, a wide table on a phone), not a `Box`
   with `overflowY="auto"` and a height in a style: `<ScrollArea height={240} aria-label="…">`,

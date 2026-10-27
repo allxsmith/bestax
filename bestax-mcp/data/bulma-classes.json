@@ -13120,6 +13120,7 @@
     "scroll-area": "ScrollArea",
     "sidebar": "Sidebar",
     "slider": "Slider",
+    "splitter": "Splitter",
     "steps": "Steps",
     "switch": "Switch",
     "taginput": "Taginput",

@@ -58,6 +58,8 @@ const NAMED_INDIVIDUALLY = [
   'SegmentedControl',
   'SegmentedControl.Segment',
   'Sidebar',
+  'Splitter',
+  'Splitter.Pane',
   'Timeline',
   'Timeline.Item',
   'Toast',

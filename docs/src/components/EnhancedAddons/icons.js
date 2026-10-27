@@ -210,6 +210,17 @@ function ScrollAreaIcon() {
   );
 }
 
+// Two panes in a box, the line between them with a grip on it
+function SplitterIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M10 4v16" />
+      <path d="M10 10.5v3" strokeWidth="3" />
+    </svg>
+  );
+}
+
 // Dots on a line down the side, each with a line of text beside it
 function TimelineIcon() {
   return (
@@ -274,6 +285,7 @@ const ADDON_ICONS = {
   reveal: RevealIcon,
   scrollarea: ScrollAreaIcon,
   sidebar: SidebarIcon,
+  splitter: SplitterIcon,
   steps: StepsIcon,
   timeline: TimelineIcon,
   toast: ToastIcon,

@@ -166,7 +166,7 @@ bestax components don't take `domRef`, but many forward a plain `ref` — the fo
 `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `EmptyState`, `Kbd`,
 `Kbd.Group`, `Link`, `LinkButton`, `Loader`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`,
 `Navbar.Dropdown`, `Navbar.Item`, `Navbar.Link`, `ScrollArea`, `SegmentedControl`, `SegmentedControl.Segment`,
-`Sidebar`, `Timeline`, `Timeline.Item`, `Toast`, `ToggleButton`, `TreeView` and `TreeView.Item`. On
+`Sidebar`, `Splitter`, `Splitter.Pane`, `Timeline`, `Timeline.Item`, `Toast`, `ToggleButton`, `TreeView` and `TreeView.Item`. On
 those, rename `domRef` to `ref` and it works; do not restructure the markup. "The form controls"
 means the inputs themselves: the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios`
 wrappers around them forward nothing, and `Field` is a target this codemod emits.

@@ -187,11 +187,11 @@ Foundational building blocks: typography, buttons, media, lists, data display, a
 
 ---
 
-## Components (23)
+## Components (24)
 
 Higher-level composed UI patterns: navigation, overlays, feedback, and interactive controls.
 
-[Breadcrumb](/docs/api/components/breadcrumb), [Card](/docs/api/components/card), [Carousel](/docs/api/components/carousel), [Collapse](/docs/api/components/collapse), [Dialog](/docs/api/components/dialog), [Dropdown](/docs/api/components/dropdown), [EmptyState](/docs/api/components/emptystate), [Loading](/docs/api/components/loading), [Menu](/docs/api/components/menu), [Message](/docs/api/components/message), [Modal](/docs/api/components/modal), [Navbar](/docs/api/components/navbar), [Pagination](/docs/api/components/pagination), [Panel](/docs/api/components/panel), [ScrollArea](/docs/api/components/scrollarea), [SegmentedControl](/docs/api/components/segmentedcontrol), [Sidebar](/docs/api/components/sidebar), [Steps](/docs/api/components/steps), [Tabs](/docs/api/components/tabs), [Timeline](/docs/api/components/timeline), [Toast](/docs/api/components/toast), [Tooltip](/docs/api/components/tooltip), [TreeView](/docs/api/components/treeview)
+[Breadcrumb](/docs/api/components/breadcrumb), [Card](/docs/api/components/card), [Carousel](/docs/api/components/carousel), [Collapse](/docs/api/components/collapse), [Dialog](/docs/api/components/dialog), [Dropdown](/docs/api/components/dropdown), [EmptyState](/docs/api/components/emptystate), [Loading](/docs/api/components/loading), [Menu](/docs/api/components/menu), [Message](/docs/api/components/message), [Modal](/docs/api/components/modal), [Navbar](/docs/api/components/navbar), [Pagination](/docs/api/components/pagination), [Panel](/docs/api/components/panel), [ScrollArea](/docs/api/components/scrollarea), [SegmentedControl](/docs/api/components/segmentedcontrol), [Sidebar](/docs/api/components/sidebar), [Splitter](/docs/api/components/splitter), [Steps](/docs/api/components/steps), [Tabs](/docs/api/components/tabs), [Timeline](/docs/api/components/timeline), [Toast](/docs/api/components/toast), [Tooltip](/docs/api/components/tooltip), [TreeView](/docs/api/components/treeview)
 
 ```tsx live
 <Columns>
@@ -376,10 +376,10 @@ Every component in this library — including all extras — is free and always 
 
 Beyond the core Bulma wrappers, bestax-bulma ships additional components that fill gaps where Bulma doesn't provide a built-in solution:
 
-| Category       | Extras                                                                                                                                                                                      |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Components** | Avatar, Avatars, Badge, Carousel, Collapse, Collapses, ContextMenu, Dialog, EmptyState, HoverCard, Loading, Popover, Reveal, ScrollArea, Sidebar, Steps, Timeline, Toast, Tooltip, TreeView |
-| **Form**       | Autocomplete, Combobox, DateInput, DateRangeInput, DateTimeInput, Numberinput, PinInput, Rate, Slider, Switch, Taginput, TimeInput                                                          |
-| **Elements**   | Kbd, LinkButton                                                                                                                                                                             |
+| Category       | Extras                                                                                                                                                                                                |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Components** | Avatar, Avatars, Badge, Carousel, Collapse, Collapses, ContextMenu, Dialog, EmptyState, HoverCard, Loading, Popover, Reveal, ScrollArea, Sidebar, Splitter, Steps, Timeline, Toast, Tooltip, TreeView |
+| **Form**       | Autocomplete, Combobox, DateInput, DateRangeInput, DateTimeInput, Numberinput, PinInput, Rate, Slider, Switch, Taginput, TimeInput                                                                    |
+| **Elements**   | Kbd, LinkButton                                                                                                                                                                                       |
 
 These extras include purpose-built SCSS that follows Bulma v1's CSS-variable conventions, so they theme and customise exactly like native Bulma components. They're bundled into `bestax.css` — no separate import needed.

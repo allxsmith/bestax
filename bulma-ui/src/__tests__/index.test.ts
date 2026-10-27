@@ -150,6 +150,8 @@ const PUBLIC_EXPORTS = [
   'Skeleton',
   'Slider',
   'Span',
+  'Splitter',
+  'SplitterPane',
   'Step',
   'Steps',
   'Strong',
