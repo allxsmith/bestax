@@ -18,7 +18,8 @@ $splitter-handle-size-coarse: 1.5rem !default;
 $splitter-line-size: 1px !default;
 $splitter-line-color: cv.getVar("border") !default;
 $splitter-line-active-size: 2px !default;
-$splitter-line-active-color: cv.getVar("link") !default;
+// bestax's blue: 5.7:1 on `scheme-main` in light and 3.2:1 in dark.
+$splitter-line-active-color: cv.getVar("primary") !default;
 $splitter-grip-length: 1.5rem !default;
 $splitter-grip-size: 0.25rem !default;
 $splitter-grip-color: cv.getVar("border-hover") !default;

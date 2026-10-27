@@ -327,7 +327,7 @@
     {
       "css": "--bulma-splitter-line-active-color",
       "sass": "$splitter-line-active-color",
-      "default": "var(--bulma-link)",
+      "default": "var(--bulma-primary)",
       "scope": "root"
     },
     {
