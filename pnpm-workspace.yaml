@@ -92,12 +92,6 @@ minimumReleaseAgeExclude:
   # rather than lag it behind the cooldown (which would cause recurring
   # reformat churn). Dev-only, never shipped to users.
   - prettier
-  # bestax:review 2026-10-28 — drop both once they're past the cooldown
-  # (published 2026-10-22). The body-parser overrides below need these patched
-  # releases for GHSA-27r3-jxmh-p828 before the cooldown would admit them.
-  - 'body-parser@1.20.9'
-  # bestax:review 2026-10-28 — same advisory, 2.x line
-  - 'body-parser@2.4.0'
 
 # Pin a single prettier version workspace-wide so eslint-plugin-prettier and
 # `prettier --check` never disagree (patch versions format union types
@@ -257,9 +251,9 @@ overrides:
   # Force patched body-parser 2.x (the MCP SDK's express under bestax-mcp, whose
   # stdio transport never starts it) for high advisory GHSA-27r3-jxmh-p828:
   # denial of service through trailing bytes after a JSON body. The 1.x line
-  # has its own entry below. 2.4.0 was still inside the cooldown when this
-  # landed, so it has an exact-version exclude above. Prune once the SDK's
-  # express resolves to >=2.4.0 without the force.
+  # has its own entry below. 2.4.0 (2026-10-22) is past the cooldown, so no
+  # exclude entry is needed. Prune once the SDK's express resolves to >=2.4.0
+  # without the force.
   'body-parser@2': '>=2.4.0 <3'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched joi per major for high advisory GHSA-6h2x-m376-mqjq
@@ -324,10 +318,9 @@ overrides:
   # Force patched body-parser 1.x (transitive via the Docusaurus dev server's
   # express@4 chain). 1.20.9 patches the high GHSA-27r3-jxmh-p828 (denial of
   # service through trailing bytes after a JSON body), after 1.20.6 patched the
-  # low-severity GHSA-v422-hmwv-36x6. 1.20.9 was still inside the cooldown when
-  # it landed, so it has an exact-version exclude above. Scoped to the 1.x
-  # major; the 2.x line has its own entry. Prune once express@4's range admits
-  # >=1.20.9.
+  # low-severity GHSA-v422-hmwv-36x6. 1.20.9 (2026-10-22) is past the
+  # cooldown, so no exclude entry is needed. Scoped to the 1.x major; the 2.x
+  # line has its own entry. Prune once express@4's range admits >=1.20.9.
   'body-parser@1': '>=1.20.9 <2'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched webpack-dev-server (the Docusaurus dev server; dev-only,
