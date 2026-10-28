@@ -33,6 +33,10 @@ import { TimeWheels } from './_pickerInternals/TimeWheels';
 import { PickerPopover } from './_pickerInternals/PickerPopover';
 import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker';
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
+import {
+  usePickerLocale,
+  usePickerLocaleScope,
+} from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
 import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
 import { Icon } from '../elements/Icon';
@@ -117,7 +121,11 @@ export interface TimeInputBaseProps
    * keeps what the format leaves out, such as seconds and the date.
    */
   parse?: (s: string) => Date | null;
-  /** BCP-47 locale tag for Intl formatting. */
+  /**
+   * BCP-47 locale tag for Intl formatting. Unset, it is the `locale` of a
+   * `LocaleProvider` around the picker, and with neither, `Intl` uses the
+   * runtime's own locale.
+   */
   locale?: string;
   /** Render the spinner inline (no popover). */
   inline?: boolean;
@@ -214,7 +222,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       placeholder,
       format,
       parse,
-      locale,
+      locale: localeProp,
       inline = false,
       mobileNative = 'auto',
       editable = true,
@@ -249,6 +257,11 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       haptics = false,
       ...rest
     } = props;
+    // A LocaleProvider around the picker sets its default locale.
+    const locale = usePickerLocale(localeProp);
+    // Its own language and direction, which its root and a portaled panel
+    // carry inside a provider.
+    const localeScope = usePickerLocaleScope(localeProp, props.dir);
     const disabled = useFieldsetDisabled(disabledProp);
     // Inside a labeled Field the input takes the id the label points at
     // when the caller set none, as InputBase does, and the popover's ids
@@ -466,6 +479,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
         : incrementMinutes * 60;
       return (
         <input
+          {...localeScope.rootAttrs}
           {...cleanRest}
           ref={combinedRef}
           type="time"
@@ -602,6 +616,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
     if (inline) {
       return (
         <div
+          {...localeScope.rootAttrs}
           {...cleanRest}
           ref={containerRef}
           className={classNames(containerClass, bulmaHelperClasses, className)}
@@ -624,6 +639,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       <div
         ref={containerRef}
         className={classNames(containerClass, bulmaHelperClasses, className)}
+        {...localeScope.rootAttrs}
         {...cleanRest}
       >
         <input
@@ -664,6 +680,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
         )}
         {popover && (
           <PickerPopover
+            localeScope={localeScope.panel}
             isOpen={open}
             onClose={() => setOpen(false)}
             anchorRef={containerRef}

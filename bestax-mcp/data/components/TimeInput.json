@@ -474,7 +474,7 @@
           "name": "locale",
           "type": "string",
           "default": null,
-          "description": "BCP-47 locale tag for Intl formatting.",
+          "description": "BCP-47 locale tag for Intl formatting. Unset, it is the `locale` of a `LocaleProvider` around the picker, and with neither, `Intl` uses the runtime's own locale.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -845,7 +845,7 @@
           "name": "locale",
           "type": "string",
           "default": null,
-          "description": "BCP-47 locale tag for Intl formatting.",
+          "description": "BCP-47 locale tag for Intl formatting. Unset, it is the `locale` of a `LocaleProvider` around the picker, and with neither, `Intl` uses the runtime's own locale.",
           "required": false,
           "inherited": false,
           "deprecated": false

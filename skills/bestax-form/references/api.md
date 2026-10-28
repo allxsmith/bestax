@@ -147,6 +147,22 @@ Passing `triggerIcon` explicitly overrides this.
 </Field>
 ```
 
+For an app in another language, wrap it, or the form, in `LocaleProvider` rather than passing the
+same `locale` to every picker. The pickers inside take its locale for their day and month names
+and any `Intl` `format`, and start the week on that locale's first day (Monday for `"de"`), unless
+one sets `locale` or `firstDayOfWeek` itself. Outside a provider the week starts on Sunday, and so
+does a picker given its own `dayNames`, which it shows exactly as given: pass `firstDayOfWeek` with
+them and list them from that day. With
+server rendering, set a locale: without one, an `inline` calendar names its days in the server's
+language on the server and the reader's in the browser, and hydration fails to match whenever
+the two languages differ.
+
+```tsx
+<LocaleProvider locale="de">
+  <DateInput label="Liefertermin" />
+</LocaleProvider>
+```
+
 For a value that is a month or a year (card expiry, billing period, graduation year), use
 `DateInput` with `granularity="month"` or `granularity="year"` rather than building a select or a
 separate picker. The value is still a `Date`: the first day of the month, or 1 January of the

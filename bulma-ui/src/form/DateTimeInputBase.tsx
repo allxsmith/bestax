@@ -38,6 +38,12 @@ import { TimeWheels } from './_pickerInternals/TimeWheels';
 import { PickerPopover } from './_pickerInternals/PickerPopover';
 import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker';
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
+import {
+  hasOwnDayNames,
+  usePickerFirstDayOfWeek,
+  usePickerLocale,
+  usePickerLocaleScope,
+} from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
 import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
 import { Icon } from '../elements/Icon';
@@ -135,7 +141,15 @@ export interface DateTimeInputBaseProps
    * keeps what the format leaves out, such as seconds.
    */
   parse?: (s: string) => Date | null;
-  /** BCP-47 locale tag. */
+  /**
+   * BCP-47 locale tag for day/month names and Intl formatting. Unset, it is
+   * the `locale` of a `LocaleProvider` around the picker, and with neither,
+   * `Intl` uses the runtime's own locale. On a server render that is the
+   * server's, so an `inline` calendar rendered there names its days in the
+   * server's language and the browser's own render names them in the
+   * browser's: give it a locale, here or through a `LocaleProvider`, where
+   * the two can differ.
+   */
   locale?: string;
   /** Render the panel inline (no popover). */
   inline?: boolean;
@@ -183,9 +197,23 @@ export interface DateTimeInputBaseProps
   shouldDisableDate?: (d: Date) => boolean;
   /** Convenience array of disabled dates, matched by calendar day; also rejected by manual typing. */
   unselectableDates?: Date[];
-  /** Day the calendar week starts on. */
+  /**
+   * Day the week starts on (0 = Sunday). Unset inside a `LocaleProvider`,
+   * it is the first day of the week in the picker's locale, its own `locale`
+   * or else the provider's, such as Monday for `"de"`. Elsewhere, with no
+   * locale from either, or with seven `dayNames` of your own, it is Sunday:
+   * set it with `dayNames` to start the week on another day.
+   * @defaultValue 0
+   */
   firstDayOfWeek?: DayOfWeek;
-  /** Override the 7 day-name labels. */
+  /**
+   * Override the 7 day-name labels (in calendar order, post-rotation). They
+   * are shown exactly as given, from the first column, so they have to start
+   * on the day the week does. With them, an unset `firstDayOfWeek` stays
+   * Sunday even inside a `LocaleProvider`, so names written Sunday first keep
+   * matching their columns; to start on the locale's day, set
+   * `firstDayOfWeek` too and list the names from that day.
+   */
   dayNames?: string[];
   /** Override the 12 month-name labels. */
   monthNames?: string[];
@@ -251,7 +279,7 @@ export const DateTimeInputBase = forwardRef<
     placeholder,
     format,
     parse,
-    locale,
+    locale: localeProp,
     inline = false,
     mobileNative = 'auto',
     editable = true,
@@ -265,7 +293,7 @@ export const DateTimeInputBase = forwardRef<
     isRounded,
     shouldDisableDate,
     unselectableDates,
-    firstDayOfWeek = 0,
+    firstDayOfWeek: firstDayOfWeekProp,
     dayNames,
     monthNames,
     nearbyMonthDays = true,
@@ -293,6 +321,17 @@ export const DateTimeInputBase = forwardRef<
     labels,
     ...rest
   } = props;
+  // A LocaleProvider around the picker sets its default locale and, through
+  // that locale, the day its week starts on.
+  const locale = usePickerLocale(localeProp);
+  // Its own language and direction, which its root and a portaled panel
+  // carry inside a provider.
+  const localeScope = usePickerLocaleScope(localeProp, props.dir);
+  const firstDayOfWeek = usePickerFirstDayOfWeek(
+    firstDayOfWeekProp,
+    locale,
+    hasOwnDayNames(dayNames)
+  );
   const disabled = useFieldsetDisabled(disabledProp);
   // Inside a labeled Field the input takes the id the label points at
   // when the caller set none, as InputBase does, and the popover's ids
@@ -588,6 +627,7 @@ export const DateTimeInputBase = forwardRef<
     const nativeStep = enableSeconds ? incrementSeconds : incrementMinutes * 60;
     return (
       <input
+        {...localeScope.rootAttrs}
         {...cleanRest}
         ref={combinedRef}
         type="datetime-local"
@@ -742,6 +782,7 @@ export const DateTimeInputBase = forwardRef<
   if (inline) {
     return (
       <div
+        {...localeScope.rootAttrs}
         {...cleanRest}
         ref={containerRef}
         className={classNames(containerClass, bulmaHelperClasses, className)}
@@ -764,6 +805,7 @@ export const DateTimeInputBase = forwardRef<
     <div
       ref={containerRef}
       className={classNames(containerClass, bulmaHelperClasses, className)}
+      {...localeScope.rootAttrs}
       {...cleanRest}
     >
       <input
@@ -804,6 +846,7 @@ export const DateTimeInputBase = forwardRef<
       )}
       {popover && (
         <PickerPopover
+          localeScope={localeScope.panel}
           isOpen={open}
           onClose={() => setOpen(false)}
           anchorRef={containerRef}

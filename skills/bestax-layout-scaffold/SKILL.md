@@ -171,7 +171,9 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `<span className="is-size-7 has-text-grey">`. Table cells: `Th`/`Td` take `textAlign="right"`,
   `textWeight`, `textSize` directly (their `color` prop colors the cell; for muted cell text
   wrap content in `Span textColor="grey"`). Set the app-wide icon library once with
-  `<ConfigProvider iconLibrary="…">` at the root rather than `library` on every `<Icon>`.
+  `<ConfigProvider iconLibrary="…">` at the root rather than `library` on every `<Icon>`. An app
+  in another language, or a right-to-left one, also gets `lang` and `dir` on `<html>` and a
+  `<LocaleProvider locale="…">` at the root, so overlays and date pickers follow it.
 - **Alternating section bands are a prop, not CSS: `bgColor="scheme-main-bis"` on every
   other `Section` (next band `scheme-main-ter`).** The scheme values render as a
   dark-mode-safe inline `background-color: var(--bulma-scheme-*)` — zero custom CSS — and

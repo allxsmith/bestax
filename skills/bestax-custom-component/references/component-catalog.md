@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-112 documented components. Generated from the API docs — every exported
+113 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -165,6 +165,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 
 - [ClientOnly](https://bestax.io/docs/api/helpers/clientonly) — `ClientOnly` renders its children only in the browser, after hydration, and a `fallback` until then…
 - [ConfigProvider](https://bestax.io/docs/api/helpers/config) — The `ConfigProvider` component provides a React context for configuring global settings across all Bulma UI components.
+- [LocaleProvider](https://bestax.io/docs/api/helpers/localeprovider) — `LocaleProvider` sets the language and writing direction for the part of the app inside it, on a wrapper `<div>` and on what the library portals out of it.
 - [Portal](https://bestax.io/docs/api/helpers/portal) — `Portal` renders its children into another part of the page, `document.body` unless `container` or a `ConfigProvider` says otherwise…
 - [Theme](https://bestax.io/docs/api/helpers/theme) — The `Theme` component provides a powerful way to customize Bulma's appearance using CSS custom properties (CSS variables).
 - [Valid value constants](https://bestax.io/docs/api/helpers/valid-values) — The helper tuples enumerate the core accepted values for the shared Bulma helper props — public API for building prop types and validation.

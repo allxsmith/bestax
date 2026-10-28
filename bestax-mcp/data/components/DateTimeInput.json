@@ -466,7 +466,7 @@
           "name": "locale",
           "type": "string",
           "default": null,
-          "description": "BCP-47 locale tag.",
+          "description": "BCP-47 locale tag for day/month names and Intl formatting. Unset, it is the `locale` of a `LocaleProvider` around the picker, and with neither, `Intl` uses the runtime's own locale. On a server render that is the server's, so an `inline` calendar rendered there names its days in the server's language and the browser's own render names them in the browser's: give it a locale, here or through a `LocaleProvider`, where the two can differ.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -592,7 +592,7 @@
           "name": "firstDayOfWeek",
           "type": "0 | 1 | 2 | 3 | 4 | 5 | 6",
           "default": "0",
-          "description": "Day the calendar week starts on.",
+          "description": "Day the week starts on (0 = Sunday). Unset inside a `LocaleProvider`, it is the first day of the week in the picker's locale, its own `locale` or else the provider's, such as Monday for `\"de\"`. Elsewhere, with no locale from either, or with seven `dayNames` of your own, it is Sunday: set it with `dayNames` to start the week on another day.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -601,7 +601,7 @@
           "name": "dayNames",
           "type": "string[]",
           "default": null,
-          "description": "Override the 7 day-name labels.",
+          "description": "Override the 7 day-name labels (in calendar order, post-rotation). They are shown exactly as given, from the first column, so they have to start on the day the week does. With them, an unset `firstDayOfWeek` stays Sunday even inside a `LocaleProvider`, so names written Sunday first keep matching their columns; to start on the locale's day, set `firstDayOfWeek` too and list the names from that day.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -891,7 +891,7 @@
           "name": "locale",
           "type": "string",
           "default": null,
-          "description": "BCP-47 locale tag.",
+          "description": "BCP-47 locale tag for day/month names and Intl formatting. Unset, it is the `locale` of a `LocaleProvider` around the picker, and with neither, `Intl` uses the runtime's own locale. On a server render that is the server's, so an `inline` calendar rendered there names its days in the server's language and the browser's own render names them in the browser's: give it a locale, here or through a `LocaleProvider`, where the two can differ.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -1017,7 +1017,7 @@
           "name": "firstDayOfWeek",
           "type": "0 | 1 | 2 | 3 | 4 | 5 | 6",
           "default": "0",
-          "description": "Day the calendar week starts on.",
+          "description": "Day the week starts on (0 = Sunday). Unset inside a `LocaleProvider`, it is the first day of the week in the picker's locale, its own `locale` or else the provider's, such as Monday for `\"de\"`. Elsewhere, with no locale from either, or with seven `dayNames` of your own, it is Sunday: set it with `dayNames` to start the week on another day.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -1026,7 +1026,7 @@
           "name": "dayNames",
           "type": "string[]",
           "default": null,
-          "description": "Override the 7 day-name labels.",
+          "description": "Override the 7 day-name labels (in calendar order, post-rotation). They are shown exactly as given, from the first column, so they have to start on the day the week does. With them, an unset `firstDayOfWeek` stays Sunday even inside a `LocaleProvider`, so names written Sunday first keep matching their columns; to start on the locale's day, set `firstDayOfWeek` too and list the names from that day.",
           "required": false,
           "inherited": false,
           "deprecated": false

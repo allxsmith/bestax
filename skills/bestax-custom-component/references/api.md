@@ -158,6 +158,30 @@ moves there is `position: fixed`, so the element must not sit under an ancestor 
 that includes `paint` or `layout`: that ancestor becomes the containing block, and overlays and
 anchored panels land against it instead of the viewport.
 
+## Language and direction: `LocaleProvider`
+
+`<LocaleProvider locale? dir?>` (`helpers/LocaleProvider.tsx`) renders a `<div>` carrying `lang` and
+`dir` around the part of the app it covers. A `locale` alone sets the direction of its script
+(`"ar-EG"` gives `dir="rtl"`), `dir` sets it whatever the locale, and a nested provider keeps what
+it leaves unset. What the library portals inside it, `Portal`'s children included, keeps the same
+`dir` and `lang`, and the date pickers take its locale and start the week on its first day. With
+no provider nothing changes, and `<html dir="rtl">` still works on its own.
+
+`useLocale()` returns `{ locale, dir }` from the nearest provider, both `undefined` outside one.
+Pass the `locale` to your own `Intl` calls so they match the pickers, and put both on content you
+portal without `Portal`. It isn't the page's direction: a component that moves with Left and Right,
+or lays something out by side, reads `getComputedStyle(element).direction` when the key or the
+pointer arrives, and uses logical properties (`margin-inline-start`, `inset-inline-end`) in its
+CSS, so `<html dir>` works with or without a provider.
+
+```tsx
+const { locale } = useLocale();
+const total = new Intl.NumberFormat(locale, {
+  style: 'currency',
+  currency: 'EUR',
+}).format(amount);
+```
+
 ## Holding focus: `useFocusTrap`
 
 `useFocusTrap(ref, { active, initialFocusRef, restoreFocus })` (`helpers/useFocusTrap.ts`) moves

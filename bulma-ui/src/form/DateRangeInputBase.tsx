@@ -36,6 +36,12 @@ import { Calendar, CALENDAR_FOCUSED_CELL } from './_pickerInternals/Calendar';
 import { PickerPopover } from './_pickerInternals/PickerPopover';
 import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker';
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
+import {
+  hasOwnDayNames,
+  usePickerFirstDayOfWeek,
+  usePickerLocale,
+  usePickerLocaleScope,
+} from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
 import { useAutoLabelledBy } from './useAutoLabelId';
 import { useFieldsetDisabled } from './FormContext';
@@ -106,7 +112,15 @@ export interface DateRangeInputBaseProps
    * Enter and leaving an input call it only if the user changed its text.
    */
   parse?: (s: string) => Date | null;
-  /** BCP-47 locale tag for day/month names and Intl formatting. */
+  /**
+   * BCP-47 locale tag for day/month names and Intl formatting. Unset, it is
+   * the `locale` of a `LocaleProvider` around the picker, and with neither,
+   * `Intl` uses the runtime's own locale. On a server render that is the
+   * server's, so an `inline` calendar rendered there names its days in the
+   * server's language and the browser's own render names them in the
+   * browser's: give it a locale, here or through a `LocaleProvider`, where
+   * the two can differ.
+   */
   locale?: string;
   /**
    * Render the calendar inline, with no inputs and no popover. The hidden
@@ -169,9 +183,23 @@ export interface DateRangeInputBaseProps
    * between, so off, a span too long to walk is refused as well.
    */
   allowDisabledInRange?: boolean;
-  /** Day the week starts on (0 = Sunday). */
+  /**
+   * Day the week starts on (0 = Sunday). Unset inside a `LocaleProvider`,
+   * it is the first day of the week in the picker's locale, its own `locale`
+   * or else the provider's, such as Monday for `"de"`. Elsewhere, with no
+   * locale from either, or with seven `dayNames` of your own, it is Sunday:
+   * set it with `dayNames` to start the week on another day.
+   * @defaultValue 0
+   */
   firstDayOfWeek?: DayOfWeek;
-  /** Override the 7 day-name labels (in calendar order, post-rotation). */
+  /**
+   * Override the 7 day-name labels (in calendar order, post-rotation). They
+   * are shown exactly as given, from the first column, so they have to start
+   * on the day the week does. With them, an unset `firstDayOfWeek` stays
+   * Sunday even inside a `LocaleProvider`, so names written Sunday first keep
+   * matching their columns; to start on the locale's day, set
+   * `firstDayOfWeek` too and list the names from that day.
+   */
   dayNames?: string[];
   /** Override the 12 month-name labels. */
   monthNames?: string[];
@@ -248,7 +276,7 @@ export const DateRangeInputBase = forwardRef<
     placeholder,
     format,
     parse,
-    locale,
+    locale: localeProp,
     inline = false,
     mobileNative = 'auto',
     editable = true,
@@ -263,7 +291,7 @@ export const DateRangeInputBase = forwardRef<
     shouldDisableDate,
     unselectableDates,
     allowDisabledInRange = false,
-    firstDayOfWeek = 0,
+    firstDayOfWeek: firstDayOfWeekProp,
     dayNames,
     monthNames,
     nearbyMonthDays = true,
@@ -282,6 +310,17 @@ export const DateRangeInputBase = forwardRef<
     onFocusCapture,
     ...rest
   } = props;
+  // A LocaleProvider around the picker sets its default locale and, through
+  // that locale, the day its week starts on.
+  const locale = usePickerLocale(localeProp);
+  // Its own language and direction, which its root and a portaled panel
+  // carry inside a provider.
+  const localeScope = usePickerLocaleScope(localeProp, props.dir);
+  const firstDayOfWeek = usePickerFirstDayOfWeek(
+    firstDayOfWeekProp,
+    locale,
+    hasOwnDayNames(dayNames)
+  );
   const disabled = useFieldsetDisabled(disabledProp);
   // The launcher gives way to the loading spinner of a Control this sits in.
   const controlLoading = useControlLoading();
@@ -606,6 +645,7 @@ export const DateRangeInputBase = forwardRef<
     return (
       <div
         aria-labelledby={ariaLabelledBy}
+        {...localeScope.rootAttrs}
         {...cleanRest}
         ref={containerRef}
         role="group"
@@ -679,6 +719,7 @@ export const DateRangeInputBase = forwardRef<
     return (
       <div
         aria-labelledby={ariaLabelledBy}
+        {...localeScope.rootAttrs}
         {...cleanRest}
         ref={containerRef}
         role="group"
@@ -728,6 +769,7 @@ export const DateRangeInputBase = forwardRef<
   return (
     <div
       aria-labelledby={ariaLabelledBy}
+      {...localeScope.rootAttrs}
       {...cleanRest}
       ref={containerRef}
       role="group"
@@ -772,6 +814,7 @@ export const DateRangeInputBase = forwardRef<
       )}
       {popover && (
         <PickerPopover
+          localeScope={localeScope.panel}
           isOpen={open}
           onClose={handlePopoverClose}
           anchorRef={containerRef}

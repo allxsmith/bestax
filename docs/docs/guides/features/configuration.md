@@ -110,6 +110,20 @@ Valid values are `'fa'` (Font Awesome), `'mdi'` (Material Design Icons), `'ion'`
 
 Content a component portals, such as the panel `Popover` renders with `appendToBody`, a `Modal` with `portal`, or a `Toast`, goes to `document.body` unless `portalContainer` names an element or a selector to use instead. Set it when that content has to stay inside something `document.body` is outside of: a scoped `Theme`, whose variables sit on its own wrapper, or a shadow root, whose styles stay inside it. The element must not sit under an ancestor with a `transform`, `filter`, `backdrop-filter`, `perspective`, `will-change: transform`, or a `contain` that includes `paint` or `layout`, because the overlays it receives are `position: fixed` and would be placed against that ancestor instead of the viewport. The [ConfigProvider reference](../../api/helpers/config.md#where-portaled-content-goes) has the rest of what to check, and a worked example.
 
+## Locale and Direction
+
+The language and writing direction aren't `ConfigProvider` settings. They belong to [`LocaleProvider`](../../api/helpers/localeprovider.md), which renders a wrapper carrying `lang` and `dir`, so it can cover one section of a page as well as all of it, and a nested one keeps whatever it leaves unset rather than resetting it as a nested `ConfigProvider` does.
+
+```tsx
+<LocaleProvider locale="ar-EG">
+  <App />
+</LocaleProvider>
+```
+
+A `locale` alone sets the direction its script is written in, and `dir` sets the direction whatever the locale. Inside the provider, what the library portals keeps the same `dir` and `lang`, and the date pickers take its locale and start the week on that locale's first day. Without one, everything works as before: the components that handle direction follow `<html dir>`, and a picker uses the runtime's own locale and starts on Sunday.
+
+For a whole app in one language, set `lang` and `dir` on `<html>` too. With server rendering, give the provider a `locale`: without one, an inline calendar names its days in the server's language on the server and the reader's in the browser. With one, the two match as long as the server's `Intl` data and the browser's spell the names alike, which they don't always do. Where they differ, give the picker its own `dayNames` and `firstDayOfWeek`, as the [LocaleProvider page's server rendering section](../../api/helpers/localeprovider.md#server-rendering) shows.
+
 ## Combining Prefix and Icon Library
 
 Both settings are independent and compose. Set whichever you need:

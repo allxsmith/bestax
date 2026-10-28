@@ -11,6 +11,7 @@ import { isEventInside } from '../helpers/shadowDom';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { usePortalContainer } from '../helpers/portal';
+import { LocalePortalScope } from '../helpers/LocaleProvider';
 import { groupIntoPositionStacks } from '../helpers/positionStacks';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { useOverlayStack } from '../helpers/overlayStack';
@@ -338,7 +339,11 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
     const toastContent = <div className={containerClasses}>{toastElement}</div>;
 
     if (typeof document !== 'undefined') {
-      return createPortal(toastContent, resolveContainer(container));
+      const target = resolveContainer(container);
+      return createPortal(
+        <LocalePortalScope target={target}>{toastContent}</LocalePortalScope>,
+        target
+      );
     }
 
     return null;
@@ -563,23 +568,26 @@ export const ToastContainer: React.FC<{
     toastStackOrder
   );
 
+  const target = resolveContainer();
   return createPortal(
-    stacks.map(stack => (
-      <div key={stack.key} className={`toast-container is-${stack.position}`}>
-        {stack.items.map(t => {
-          const { queue: _queue, ...toastProps } = t.props;
-          return (
-            <Toast
-              key={t.id}
-              {...toastProps}
-              position={stack.position}
-              onClose={() => toast.close(t.id)}
-            />
-          );
-        })}
-      </div>
-    )),
-    resolveContainer()
+    <LocalePortalScope target={target}>
+      {stacks.map(stack => (
+        <div key={stack.key} className={`toast-container is-${stack.position}`}>
+          {stack.items.map(t => {
+            const { queue: _queue, ...toastProps } = t.props;
+            return (
+              <Toast
+                key={t.id}
+                {...toastProps}
+                position={stack.position}
+                onClose={() => toast.close(t.id)}
+              />
+            );
+          })}
+        </div>
+      ))}
+    </LocalePortalScope>,
+    target
   );
 };
 

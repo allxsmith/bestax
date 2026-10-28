@@ -42,6 +42,12 @@ import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker'
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
 import { supportsInputType } from './_pickerInternals/nativeInputSupport';
 import type { SegmentKind } from './_pickerInternals/segmentMap';
+import {
+  hasOwnDayNames,
+  usePickerFirstDayOfWeek,
+  usePickerLocale,
+  usePickerLocaleScope,
+} from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
 import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
 import { useIsHydrated } from '../helpers/useIsHydrated';
@@ -143,7 +149,15 @@ export interface DateInputBaseProps
    * format leaves out, such as the time of day.
    */
   parse?: (s: string) => Date | null;
-  /** BCP-47 locale tag for day/month names and Intl formatting. */
+  /**
+   * BCP-47 locale tag for day/month names and Intl formatting. Unset, it is
+   * the `locale` of a `LocaleProvider` around the picker, and with neither,
+   * `Intl` uses the runtime's own locale. On a server render that is the
+   * server's, so an `inline` calendar rendered there names its days in the
+   * server's language and the browser's own render names them in the
+   * browser's: give it a locale, here or through a `LocaleProvider`, where
+   * the two can differ.
+   */
   locale?: string;
   /** Render the calendar inline (no popover). */
   inline?: boolean;
@@ -194,9 +208,23 @@ export interface DateInputBaseProps
   shouldDisableDate?: (d: Date) => boolean;
   /** Convenience array of disabled dates; merged with `shouldDisableDate`. Matched by calendar day and also rejected during manual typing. */
   unselectableDates?: Date[];
-  /** Day the week starts on (0 = Sunday). */
+  /**
+   * Day the week starts on (0 = Sunday). Unset inside a `LocaleProvider`,
+   * it is the first day of the week in the picker's locale, its own `locale`
+   * or else the provider's, such as Monday for `"de"`. Elsewhere, with no
+   * locale from either, or with seven `dayNames` of your own, it is Sunday:
+   * set it with `dayNames` to start the week on another day.
+   * @defaultValue 0
+   */
   firstDayOfWeek?: DayOfWeek;
-  /** Override the 7 day-name labels (in calendar order, post-rotation). */
+  /**
+   * Override the 7 day-name labels (in calendar order, post-rotation). They
+   * are shown exactly as given, from the first column, so they have to start
+   * on the day the week does. With them, an unset `firstDayOfWeek` stays
+   * Sunday even inside a `LocaleProvider`, so names written Sunday first keep
+   * matching their columns; to start on the locale's day, set
+   * `firstDayOfWeek` too and list the names from that day.
+   */
   dayNames?: string[];
   /** Override the 12 month-name labels. */
   monthNames?: string[];
@@ -241,7 +269,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       granularity = 'day',
       format,
       parse,
-      locale,
+      locale: localeProp,
       inline = false,
       mobileNative = 'auto',
       editable = true,
@@ -255,7 +283,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       isRounded,
       shouldDisableDate,
       unselectableDates,
-      firstDayOfWeek = 0,
+      firstDayOfWeek: firstDayOfWeekProp,
       dayNames,
       monthNames,
       nearbyMonthDays = true,
@@ -274,6 +302,17 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       labels,
       ...rest
     } = props;
+    // A LocaleProvider around the picker sets its default locale and, through
+    // that locale, the day its week starts on.
+    const locale = usePickerLocale(localeProp);
+    // Its own language and direction, which its root and a portaled panel
+    // carry inside a provider.
+    const localeScope = usePickerLocaleScope(localeProp, props.dir);
+    const firstDayOfWeek = usePickerFirstDayOfWeek(
+      firstDayOfWeekProp,
+      locale,
+      hasOwnDayNames(dayNames)
+    );
     const disabled = useFieldsetDisabled(disabledProp);
     // Inside a labeled Field the input takes the id the label points at
     // when the caller set none, as InputBase does, and the popover's ids
@@ -524,6 +563,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     if (useNative) {
       return (
         <input
+          {...localeScope.rootAttrs}
           {...cleanRest}
           ref={combinedRef}
           type={isDayGranularity ? 'date' : 'month'}
@@ -587,6 +627,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     if (inline) {
       return (
         <div
+          {...localeScope.rootAttrs}
           {...cleanRest}
           ref={containerRef}
           className={classNames(containerClass, bulmaHelperClasses, className)}
@@ -609,6 +650,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       <div
         ref={containerRef}
         className={classNames(containerClass, bulmaHelperClasses, className)}
+        {...localeScope.rootAttrs}
         {...cleanRest}
       >
         <input
@@ -649,6 +691,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
         )}
         {popover && (
           <PickerPopover
+            localeScope={localeScope.panel}
             isOpen={open}
             onClose={handlePopoverClose}
             anchorRef={containerRef}
