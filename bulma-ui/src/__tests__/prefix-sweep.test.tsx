@@ -74,6 +74,25 @@ const PROPS: Record<string, Record<string, unknown>> = {
       </Library.Splitter.Pane>,
     ],
   },
+  // Every orientation class and dividers, with an item from its props and
+  // one from its parts, so each class the family emits is swept.
+  DescriptionList: {
+    orientation: 'vertical',
+    orientationMobile: 'vertical',
+    orientationTablet: 'horizontal',
+    orientationDesktop: 'vertical',
+    orientationWidescreen: 'horizontal',
+    orientationFullhd: 'vertical',
+    hasDividers: true,
+    children: [
+      <Library.DescriptionList.Item key="a" label="Order" value="#1234" />,
+      <Library.DescriptionList.Item key="b">
+        <Library.DescriptionList.Label>Tags</Library.DescriptionList.Label>
+        <Library.DescriptionList.Value>Gift</Library.DescriptionList.Value>
+      </Library.DescriptionList.Item>,
+    ],
+  },
+  DescriptionListItem: { label: 'Order', value: '#1234' },
   // Sized, colored and rounded, in sections, so every class it emits is swept.
   RingProgress: {
     label: 'Storage',

@@ -25,6 +25,12 @@ const ADDONS = [
     desc: 'A value drawn as a ring, a progress bar or a meter, and several values around one ring in sections.',
   },
   {
+    name: 'DescriptionList',
+    icon: 'descriptionlist',
+    link: '/docs/api/elements/descriptionlist',
+    desc: 'Facts about one thing, each a label and its value, stacked on a phone and lined up in two columns from tablet up.',
+  },
+  {
     name: 'Avatar',
     icon: 'avatar',
     link: '/docs/api/components/avatar',

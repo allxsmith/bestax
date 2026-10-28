@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-107 documented components. Generated from the API docs — every exported
+108 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -49,6 +49,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Code](https://bestax.io/docs/api/elements/code) — The `Code` component renders a styled `<code>` element with Bulma helper class integration.
 - [Content](https://bestax.io/docs/api/elements/content) — The `Content` component applies Bulma’s typographic styles to its children, enhancing the appearance of HTML elements like paragraphs, headings, lists…
 - [Delete](https://bestax.io/docs/api/elements/delete) — The `Delete` component provides a Bulma-styled close/delete button for dismissing modals, notifications, tags, messages, and more.
+- [DescriptionList](https://bestax.io/docs/api/elements/descriptionlist) — The `DescriptionList` component lists facts about one thing, each a label and its value, such as an order's details or a profile.
 - [Divider](https://bestax.io/docs/api/elements/divider) — The `Divider` component renders a styled horizontal rule (`<hr>`) element with Bulma helper class integration.
 - [Emphasis](https://bestax.io/docs/api/elements/emphasis) — The `Emphasis` component renders a styled `<em>` element with Bulma helper class integration.
 - [Figure](https://bestax.io/docs/api/elements/figure) — The `Figure` component renders a styled `<figure>` element with Bulma helper class integration.

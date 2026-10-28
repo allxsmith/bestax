@@ -42,6 +42,7 @@ export * from './elements/ToggleButton';
 export * from './elements/Code';
 export * from './elements/Content';
 export * from './elements/Delete';
+export * from './elements/DescriptionList';
 export * from './elements/Divider';
 export * from './elements/Emphasis';
 export * from './elements/Figure';

@@ -1,0 +1,436 @@
+{
+  "name": "DescriptionList",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/descriptionlist",
+  "docsUrl": "https://bestax.io/docs/api/elements/descriptionlist",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<>\n  <Title as=\"h2\" size=\"5\" id=\"order-heading\">\n    Order details\n  </Title>\n  <DescriptionList aria-labelledby=\"order-heading\">\n    <DescriptionList.Item label=\"Order\" value=\"#1234\" />\n    <DescriptionList.Item label=\"Placed on\" value=\"14 October 2026\" />\n    <DescriptionList.Item\n      label=\"Estimated delivery\"\n      value=\"Between 18 and 21 October 2026\"\n    />\n    <DescriptionList.Item label=\"Total\" value=\"$86.40\" />\n  </DescriptionList>\n</>"
+    },
+    {
+      "title": "Links, Tags and Other Values",
+      "code": "<DescriptionList>\n  <DescriptionList.Item\n    label=\"Status\"\n    value={<Tag color=\"success\">Shipped</Tag>}\n  />\n  <DescriptionList.Item\n    label=\"Tracking\"\n    value={<Link href=\"#track\">1Z999AA10123456784</Link>}\n  />\n  <DescriptionList.Item label=\"Coupon\" value=\"None used\" />\n</DescriptionList>"
+    },
+    {
+      "title": "Several Values",
+      "code": "<DescriptionList>\n  <DescriptionList.Item label=\"Delivery notes\">\n    <DescriptionList.Value>Leave with a neighbour</DescriptionList.Value>\n    <DescriptionList.Value>Ring twice</DescriptionList.Value>\n  </DescriptionList.Item>\n  <DescriptionList.Item label=\"Gift message\" value=\"Happy birthday, Ada!\" />\n</DescriptionList>"
+    },
+    {
+      "title": "An Info Tip on a Label",
+      "code": "<DescriptionList>\n  <DescriptionList.Item label=\"Order\" value=\"#1234\" />\n  <DescriptionList.Item value=\"Partner warehouse\">\n    <DescriptionList.Label>\n      Fulfilment{' '}\n      <Popover\n        ariaLabel=\"About fulfilment\"\n        trigger={\n          <Button size=\"small\" color=\"ghost\" aria-label=\"About fulfilment\">\n            <Icon name=\"circle-info\" />\n          </Button>\n        }\n      >\n        <Popover.Body>\n          Packed and shipped by a partner warehouse, not by us.\n        </Popover.Body>\n      </Popover>\n    </DescriptionList.Label>\n  </DescriptionList.Item>\n</DescriptionList>"
+    },
+    {
+      "title": "Orientation",
+      "code": "<>\n  <DescriptionList orientation=\"horizontal\">\n    <DescriptionList.Item label=\"Name\" value=\"Ada Lovelace\" />\n    <DescriptionList.Item label=\"Email address\" value=\"ada@example.com\" />\n  </DescriptionList>\n  <DescriptionList orientation=\"vertical\">\n    <DescriptionList.Item label=\"Name\" value=\"Ada Lovelace\" />\n    <DescriptionList.Item label=\"Email address\" value=\"ada@example.com\" />\n  </DescriptionList>\n</>"
+    },
+    {
+      "title": "Per Viewport",
+      "code": "<DescriptionList orientation=\"vertical\" orientationDesktop=\"horizontal\">\n  <DescriptionList.Item label=\"Plan\" value=\"Team\" />\n  <DescriptionList.Item label=\"Seats\" value=\"12 of 15 used\" />\n  <DescriptionList.Item label=\"Renews on\" value=\"1 November 2026\" />\n</DescriptionList>"
+    },
+    {
+      "title": "Dividers",
+      "code": "<DescriptionList hasDividers>\n  <DescriptionList.Item label=\"Name\" value=\"Ada Lovelace\" />\n  <DescriptionList.Item label=\"Email\" value=\"ada@example.com\" />\n  <DescriptionList.Item label=\"Plan\" value=\"Team\" />\n  <DescriptionList.Item label=\"Member since\" value=\"March 2019\" />\n</DescriptionList>"
+    },
+    {
+      "title": "Text Size",
+      "code": "<>\n  <DescriptionList textSize=\"7\">\n    <DescriptionList.Item label=\"Size\" value=\"2.4 MB\" />\n    <DescriptionList.Item label=\"Type\" value=\"PDF document\" />\n  </DescriptionList>\n  <DescriptionList textSize=\"5\">\n    <DescriptionList.Item label=\"Size\" value=\"2.4 MB\" />\n    <DescriptionList.Item label=\"Type\" value=\"PDF document\" />\n  </DescriptionList>\n</>"
+    },
+    {
+      "title": "From an Array",
+      "code": "function example() {\n  const file = [\n    ['Name', 'quarterly-report.pdf'],\n    ['Size', '2.4 MB'],\n    ['Owner', 'Ada Lovelace'],\n    ['Last changed', '27 October 2026'],\n  ];\n  return (\n    <DescriptionList>\n      {file.map(([label, value]) => (\n        <DescriptionList.Item key={label} label={label} value={value} />\n      ))}\n    </DescriptionList>\n  );\n}"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<DescriptionList orientation=\"horizontal\">\n  <DescriptionList.Item>\n    <DescriptionList.Label>Author</DescriptionList.Label>\n    <DescriptionList.Label>Translator</DescriptionList.Label>\n    <DescriptionList.Value>Ada Lovelace</DescriptionList.Value>\n  </DescriptionList.Item>\n  <DescriptionList.Item>\n    <DescriptionList.Label>Languages</DescriptionList.Label>\n    <DescriptionList.Value>English</DescriptionList.Value>\n    <DescriptionList.Value>French</DescriptionList.Value>\n    <DescriptionList.Value>Italian</DescriptionList.Value>\n  </DescriptionList.Item>\n</DescriptionList>"
+    }
+  ],
+  "accessibility": "- **HTML's own elements, and no roles:** a `<dl>`, a `<div>` for each item, a `<dt>` for each\n  label and a `<dd>` for each value. Browsers expose them as a list, terms and definitions.\n- **A name from the heading above:** point `aria-labelledby` at it, as in\n  [Basic Usage](https://bestax.io/docs/api/elements/descriptionlist#basic-usage), so a screen reader names the list when it reaches it.\n- **Reading order is the order you write:** each label is read before its value at every width and\n  in right-to-left text, since the layout only changes where the parts sit.\n- **Screen readers announce it in different ways,** and none of them loses the content. Some count\n  the labels and the values as separate items and some count the pairs, some say \"term\" and\n  \"definition\" and some don't, and some don't say there's a list at all as you move through it.\n  Adrian Roselli's notes, under Additional Resources, follow which does what. Where a user must\n  hear the label with every value, [use a table](https://bestax.io/docs/api/elements/descriptionlist#use-a-table-instead-when).\n- **Info tips:** a real button named \"About\" and the label, opening a `Popover`, as in\n  [An Info Tip on a Label](https://bestax.io/docs/api/elements/descriptionlist#an-info-tip-on-a-label), rather than a tip that opens on hover.\n- **Contrast:** the labels, in Bulma's `text-weak`, and the values, in `text`, both clear WCAG's\n  4.5:1 against Bulma's page background in light and dark mode.\n- **Forced colors:** the layout, the text and the dividers stay. The labels lose their lighter\n  color there, and their place, first or above, still tells them from the values.\n- **Not interactive and not live:** it has no tab stop of its own and announces nothing when it\n  changes.",
+  "related": ["Content", "Popover", "Table", "Title", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-descriptionlist--default",
+  "summary": "The `DescriptionList` component lists facts about one thing, each a label and its value, such as an order's details or a profile. It's a `<dl>`, with a `<div>` for each item, a `<dt>` for each label and a `<dd>` for each value, so assistive tech gets HTML's own list of terms and definitions and no roles are added. Labels sit above their values on a phone and beside them from Bulma's tablet breakpoint up, where every label shares one column so the values line up. For data with two dimensions, such as several records with the same fields, use a `Table`.",
+  "import": "import { DescriptionList } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/DescriptionList.tsx",
+  "rootClass": "description-list",
+  "parts": [
+    {
+      "path": "DescriptionList",
+      "summary": "The `DescriptionList` component lists facts about one thing, each a label and its value, such as an order's details or a profile. It's a `<dl>`, with a `<div>` for each item, a `<dt>` for each label and a `<dd>` for each value, so assistive tech gets HTML's own list of terms and definitions and no roles are added. Labels sit above their values on a phone and beside them from Bulma's tablet breakpoint up, where every label shares one column so the values line up. For data with two dimensions, such as several records with the same fields, use a `Table`.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "`DescriptionList.Item`s, one for each fact.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "orientation",
+          "type": "'vertical' | 'horizontal'",
+          "default": null,
+          "description": "Whether each label sits above its value or beside it, at every width no `orientation<Viewport>` prop covers. Those props read the way a `Column`'s `size<Viewport>` props do: `orientationMobile` applies below Bulma's tablet breakpoint, each of the others from its own breakpoint up, and where several apply the widest one wins. With none of them, labels sit above their values below the tablet breakpoint and beside them from it up. Beside, the labels share one column as wide as the longest label, up to `--bulma-description-list-label-max-width`, so the values line up.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "orientationMobile",
+          "type": "'vertical' | 'horizontal'",
+          "default": null,
+          "description": "The orientation below Bulma's tablet breakpoint (769px). Falls back to `orientation`, then to `vertical`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "orientationTablet",
+          "type": "'vertical' | 'horizontal'",
+          "default": null,
+          "description": "The orientation from Bulma's tablet breakpoint (769px) up, until a wider viewport's prop takes over. Falls back to `orientation`, then to `horizontal`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "orientationDesktop",
+          "type": "'vertical' | 'horizontal'",
+          "default": null,
+          "description": "The orientation from Bulma's desktop breakpoint (1024px) up, until a wider viewport's prop takes over. Falls back to `orientationTablet`, and on down.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "orientationWidescreen",
+          "type": "'vertical' | 'horizontal'",
+          "default": null,
+          "description": "The orientation from Bulma's widescreen breakpoint (1216px) up, until `orientationFullhd` takes over. Falls back to `orientationDesktop`, and on down.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "orientationFullhd",
+          "type": "'vertical' | 'horizontal'",
+          "default": null,
+          "description": "The orientation from Bulma's fullhd breakpoint (1408px) up. Falls back to `orientationWidescreen`, and on down.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasDividers",
+          "type": "boolean",
+          "default": "false",
+          "description": "Draws a line between items, which helps the eye from a label to its value across a wide list, and shows where each item ends to someone zoomed in.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper. It colors the values; the labels keep their own color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDListElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<dl>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "aria-labelledby",
+          "type": "string",
+          "default": null,
+          "description": "The id of the heading above the list, which names it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <dl> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "DescriptionList.Item",
+      "summary": "One fact: its label and its value, in a `<div>`, from the `label` and `value` props or from `Label` and `Value` children.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The label, such as \"Order\", as a `DescriptionList.Label` before the children.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The value, such as \"#1234\", as a `DescriptionList.Value` after the children. Text, a link, a `Tag`: anything that renders. `undefined`, `null` and `''` render nothing, so when a value is missing, say so in words, such as \"Not given\", rather than leave a label with nothing after it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "`DescriptionList.Label`s and `DescriptionList.Value`s, for what `label` and `value` don't cover, such as a label with an info tip or several values. They render between the two, so a `Label` here reads before `value`, and a `Value` here after `label`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<div>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "DescriptionList.Label",
+      "summary": "A label, the name of a fact: a `<dt>`, in the weaker text color.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The label. A button may sit in it, such as one that opens a `Popover` about the label, but not a heading, which HTML doesn't allow here.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<dt>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "DescriptionList.Value",
+      "summary": "A value, what the label says about the thing: a `<dd>`. An item may have several.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The value. Anything goes, a list or a paragraph included.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<dd>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-description-list-gap",
+      "sass": "$description-list-gap",
+      "default": "0.75em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-description-list-column-gap",
+      "sass": "$description-list-column-gap",
+      "default": "1.5em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-description-list-row-gap",
+      "sass": "$description-list-row-gap",
+      "default": "0.25em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-description-list-label-max-width",
+      "sass": "$description-list-label-max-width",
+      "default": "40%",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-description-list-label-color",
+      "sass": "$description-list-label-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-description-list-label-weight",
+      "sass": "$description-list-label-weight",
+      "default": "var(--bulma-weight-normal)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-description-list-value-color",
+      "sass": "$description-list-value-color",
+      "default": "var(--bulma-text)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-description-list-divider-color",
+      "sass": "$description-list-divider-color",
+      "default": "var(--bulma-border-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-description-list-divider-width",
+      "sass": "$description-list-divider-width",
+      "default": "1px",
+      "scope": "root"
+    }
+  ]
+}

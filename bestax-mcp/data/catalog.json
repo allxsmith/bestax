@@ -17,6 +17,7 @@
         "Code",
         "Content",
         "Delete",
+        "DescriptionList",
         "Divider",
         "Emphasis",
         "Figure",
@@ -475,6 +476,17 @@
       "import": "import { Delete } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 8,
+      "exampleCount": 10
+    },
+    {
+      "name": "DescriptionList",
+      "kind": "component",
+      "category": "elements",
+      "purpose": "The `DescriptionList` component lists facts about one thing, each a label and its value, such as an order's details or a profile.",
+      "slug": "elements/descriptionlist",
+      "import": "import { DescriptionList } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 25,
       "exampleCount": 10
     },
     {
@@ -1667,6 +1679,15 @@
     "--bulma-delete-background-l": ["Delete"],
     "--bulma-delete-color": ["Delete"],
     "--bulma-delete-dimensions": ["Delete"],
+    "--bulma-description-list-column-gap": ["DescriptionList"],
+    "--bulma-description-list-divider-color": ["DescriptionList"],
+    "--bulma-description-list-divider-width": ["DescriptionList"],
+    "--bulma-description-list-gap": ["DescriptionList"],
+    "--bulma-description-list-label-color": ["DescriptionList"],
+    "--bulma-description-list-label-max-width": ["DescriptionList"],
+    "--bulma-description-list-label-weight": ["DescriptionList"],
+    "--bulma-description-list-row-gap": ["DescriptionList"],
+    "--bulma-description-list-value-color": ["DescriptionList"],
     "--bulma-dialog-animation-duration": ["Dialog"],
     "--bulma-dialog-background": ["Dialog"],
     "--bulma-dialog-body-color": ["Dialog"],
@@ -2779,6 +2800,21 @@
       "path": "DateTimeInputBase",
       "purpose": "Raw DateTimeInput — combined input + calendar + time spinner without Field/Control wrapping.",
       "standalone": "base"
+    },
+    "DescriptionListItem": {
+      "component": "DescriptionList",
+      "path": "DescriptionList.Item",
+      "purpose": "One fact: its label and its value, in a `<div>`, from the `label` and `value` props or from `Label` and `Value` children."
+    },
+    "DescriptionListLabel": {
+      "component": "DescriptionList",
+      "path": "DescriptionList.Label",
+      "purpose": "A label, the name of a fact: a `<dt>`, in the weaker text color."
+    },
+    "DescriptionListValue": {
+      "component": "DescriptionList",
+      "path": "DescriptionList.Value",
+      "purpose": "A value, what the label says about the thing: a `<dd>`."
     },
     "DialogContainer": {
       "component": "Dialog",

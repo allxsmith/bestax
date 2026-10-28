@@ -199,6 +199,16 @@ function StepsIcon() {
   );
 }
 
+// Three rows, each a short faint label beside a longer value, the values lined up
+function DescriptionListIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M4 6h4M4 12h4M4 18h4" strokeOpacity="0.45" />
+      <path d="M11 6h9M11 12h6M11 18h8" />
+    </svg>
+  );
+}
+
 // A ring with its arc filled most of the way round
 function RingProgressIcon() {
   return (
@@ -286,6 +296,7 @@ const ADDON_ICONS = {
   collapse: CollapseIcon,
   combobox: ComboboxIcon,
   contextmenu: ContextMenuIcon,
+  descriptionlist: DescriptionListIcon,
   dialog: DialogIcon,
   emptystate: EmptyStateIcon,
   hovercard: HoverCardIcon,
