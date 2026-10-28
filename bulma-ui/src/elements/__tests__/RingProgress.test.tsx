@@ -96,6 +96,27 @@ describe('RingProgress', () => {
       ).toBeInTheDocument();
     });
 
+    it('falls back to aria-label when label is empty, as the warning does', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const { rerender } = render(
+        <RingProgress value={10} label="" aria-label="Upload" />
+      );
+      expect(
+        screen.getByRole('progressbar', { name: 'Upload' })
+      ).toBeInTheDocument();
+      rerender(
+        <RingProgress
+          label=""
+          aria-label="Disk"
+          sections={[{ value: 40, label: 'Documents' }]}
+        />
+      );
+      expect(
+        screen.getByRole('img', { name: 'Disk: Documents 40%' })
+      ).toBeInTheDocument();
+      expect(warn).not.toHaveBeenCalled();
+    });
+
     it('never lets a role passed in win', () => {
       render(
         <RingProgress

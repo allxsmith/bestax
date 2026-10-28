@@ -94,6 +94,7 @@ describe('RingProgress styles', () => {
       '--bulma-ring-progress-label-size':
         'calc(var(--bulma-ring-progress-size) / 5)',
       display: 'inline-grid',
+      color: 'var(--bulma-ring-progress-label-color)',
       '--ring-progress-gap': '0',
     });
   });

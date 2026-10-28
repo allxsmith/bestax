@@ -210,7 +210,7 @@ export const RingProgress = forwardRef<HTMLDivElement, RingProgressProps>(
       ? {
           role: 'img',
           'aria-label': [
-            label ?? rest['aria-label'],
+            label || rest['aria-label'],
             sections
               .map(
                 (section, i) =>
@@ -226,7 +226,7 @@ export const RingProgress = forwardRef<HTMLDivElement, RingProgressProps>(
           'aria-valuenow': clamp(value ?? 0, 0, total),
           'aria-valuemin': 0,
           'aria-valuemax': total,
-          'aria-label': label ?? rest['aria-label'],
+          'aria-label': label || rest['aria-label'],
         };
 
     return (

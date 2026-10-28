@@ -63,6 +63,9 @@ $ring-progress-label-size: calc(#{cv.getVar("ring-progress-size")} / 5) !default
   inline-size: cv.getVar("ring-progress-size");
   block-size: cv.getVar("ring-progress-size");
   vertical-align: middle;
+  // On the root, so a `textColor` helper's class outranks it and the middle
+  // inherits either.
+  color: cv.getVar("ring-progress-label-color");
   // The gap between sections, in percent of the way round: none until
   // forced colors needs one, below.
   --ring-progress-gap: 0;
@@ -106,7 +109,6 @@ $ring-progress-label-size: calc(#{cv.getVar("ring-progress-size")} / 5) !default
 }
 
 .#{iv.$class-prefix}ring-progress-label {
-  color: cv.getVar("ring-progress-label-color");
   font-size: cv.getVar("ring-progress-label-size");
   font-weight: cv.getVar("ring-progress-label-weight");
   line-height: 1.2;
