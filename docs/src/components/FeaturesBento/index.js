@@ -1,13 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
+import { useColorMode } from '@docusaurus/theme-common';
+import useIsBrowser from '@docusaurus/useIsBrowser';
 import { FEATURES } from '@site/src/components/HomepageFeatures/features';
 import useInView from '@site/src/components/HomepageFeatures/useInView';
 import styles from './styles.module.css';
 
 const [BULMA, LIGHTWEIGHT, DEVELOPER] = FEATURES;
 
-/** What the Bulma v1 card's little settings window walks through. */
+/**
+ * What the Bulma v1 card's little settings window walks through. The window is
+ * dark on a dark site and for the Dark mode step, and the Dark mode button is
+ * pressed exactly when it is, so on a dark site that button stays pressed while
+ * the others take turns.
+ */
 const STEPS = ['Dark mode', 'CSS variables', 'Grid', 'Skeleton'];
+const DARK_MODE = STEPS.indexOf('Dark mode');
 const STEP_MS = 2600;
 
 /** The six cells of the Grid step, in Bulma's color order. */
@@ -55,15 +63,16 @@ function Card({ className, delay, children }) {
 
 /**
  * A settings form drawn in Bulma v1's styles, stepping through dark mode, a
- * primary hue changed through one CSS variable, the Grid, and Skeleton.
+ * primary hue changed through one CSS variable, the Grid, and Skeleton. Its
+ * scheme is the site's (see `.window` in the stylesheet), switched to dark for
+ * the Dark mode step when the site is light.
  */
 function BulmaWindow({ step }) {
-  const dark = step === 0 || step === 1;
   return (
     <div
       className={clsx(
         styles.window,
-        dark ? styles.dark : styles.light,
+        step === DARK_MODE && styles.dark,
         step === 1 ? styles.hueIndigo : styles.hueTurquoise,
         step === 2 && styles.showGrid,
         step === 3 && styles.showSkeleton
@@ -99,7 +108,10 @@ function BulmaWindow({ step }) {
           <div className={styles.row}>
             <span className={styles.rowLabel}>Theme</span>
             <span className={styles.input}>
-              <span>{dark ? 'Dark' : 'Light'}</span>
+              <span>
+                <span className={styles.themeLight}>Light</span>
+                <span className={styles.themeDark}>Dark</span>
+              </span>
               <svg viewBox="0 0 12 12">
                 <path d="M3 4.5 6 7.5 9 4.5" />
               </svg>
@@ -231,6 +243,11 @@ export default function FeaturesBento({ focusOnMount = false }) {
   const inView = useInView(sectionRef);
   const [step, setStep] = useState(0);
   const [held, setHeld] = useState(false);
+  // Whether the Dark mode button reads as pressed. useColorMode answers "light"
+  // in the prerender, so this waits for the browser rather than mismatch the
+  // hydrated page; the window's own colors come from CSS and never wait.
+  const { colorMode } = useColorMode();
+  const dark = useIsBrowser() && colorMode === 'dark';
   // Steps of the timer to sit out after the reader picks one, so their pick
   // stays on screen long enough to look at.
   const holdTicks = useRef(0);
@@ -287,18 +304,25 @@ export default function FeaturesBento({ focusOnMount = false }) {
                 <h3 className={styles.cardTitle}>{BULMA.title}</h3>
                 <p className={styles.cardText}>{BULMA.description}</p>
                 <div className={styles.steps}>
-                  {STEPS.map((label, i) => (
-                    <button
-                      key={label}
-                      type="button"
-                      className={clsx(styles.step, i === step && styles.stepOn)}
-                      aria-pressed={i === step}
-                      onClick={() => choose(i)}
-                    >
-                      {label}
-                      <span className={styles.stepTimer} aria-hidden="true" />
-                    </button>
-                  ))}
+                  {STEPS.map((label, i) => {
+                    const on = i === step || (i === DARK_MODE && dark);
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        className={clsx(
+                          styles.step,
+                          on && styles.stepOn,
+                          i === step && styles.stepCurrent
+                        )}
+                        aria-pressed={on}
+                        onClick={() => choose(i)}
+                      >
+                        {label}
+                        <span className={styles.stepTimer} aria-hidden="true" />
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
               <div className={styles.stage} aria-hidden="true">

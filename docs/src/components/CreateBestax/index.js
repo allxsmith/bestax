@@ -170,17 +170,23 @@ function StarterApp() {
           Count: {count}
         </button>
       </div>
-      {notice && (
-        <p className={clsx(styles.appNote, styles.appNoteSuccess)}>
-          <strong>Success!</strong> Your Vite + Bestax setup is working
-          perfectly!
-        </p>
-      )}
-      {count > 0 && (
-        <p className={clsx(styles.appNote, styles.appNoteInfo)}>
-          You&apos;ve clicked the button {count} times!
-        </p>
-      )}
+      {/* A status region of its own per notice, kept mounted as in the
+          starter, so a screen reader announces each one as it appears. */}
+      <div role="status" className={styles.status}>
+        {notice && (
+          <p className={clsx(styles.appNote, styles.appNoteSuccess)}>
+            <strong>Success!</strong> Your Vite + Bestax setup is working
+            perfectly!
+          </p>
+        )}
+      </div>
+      <div role="status" className={styles.status}>
+        {count > 0 && (
+          <p className={clsx(styles.appNote, styles.appNoteInfo)}>
+            You&apos;ve clicked the button {count} times!
+          </p>
+        )}
+      </div>
     </div>
   );
 }
