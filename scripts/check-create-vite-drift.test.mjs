@@ -33,6 +33,7 @@ import {
   renderReport,
   renderIssue,
   findMarkerIssue,
+  ISSUE_AUTHOR,
   findDrift,
   readOurTemplates,
   main,
@@ -582,14 +583,20 @@ test('renderIssue carries the marker and names the create-vite version', () => {
   assert.match(body, /3-day cooldown/);
 });
 
-test('findMarkerIssue skips pull requests and other issues', () => {
+const bot = { login: ISSUE_AUTHOR };
+
+test('findMarkerIssue takes only the workflow’s own issue', () => {
+  assert.equal(ISSUE_AUTHOR, 'github-actions[bot]');
   assert.equal(
     findMarkerIssue([
-      { number: 1, body: MARKER, pull_request: {} },
-      { number: 2, body: 'other' },
-      { number: 3, body: `${MARKER}\nx` },
+      { number: 1, body: MARKER, pull_request: {}, user: bot },
+      { number: 2, body: 'other', user: bot },
+      // Anyone can paste the marker; only the bot's issue counts.
+      { number: 3, body: `${MARKER}\nspoof`, user: { login: 'someone' } },
+      { number: 4, body: MARKER },
+      { number: 5, body: `${MARKER}\nx`, user: bot },
     ]).number,
-    3
+    5
   );
   assert.equal(findMarkerIssue(undefined), undefined);
 });
@@ -617,7 +624,12 @@ test('opens one issue, labelled dependencies, when the templates are behind', as
       devDependencies: { ...REACT.devDependencies, vite: '^8.1.0' },
     }),
   });
-  const s = stubFetch({ issues: [{ number: 1, body: 'unrelated' }] });
+  const s = stubFetch({
+    issues: [
+      { number: 1, body: 'unrelated', user: bot },
+      { number: 2, body: MARKER, user: { login: 'someone' } },
+    ],
+  });
   try {
     await quietly(() => main(['--repo=a/b'], paths));
   } finally {
@@ -635,7 +647,9 @@ test('opens one issue, labelled dependencies, when the templates are behind', as
 
 test('updates the open issue rather than opening a second', async () => {
   const paths = await ourTemplatesFixture({ 'vite-ts/tsconfig.json': '{}' });
-  const s = stubFetch({ issues: [{ number: 7, body: `${MARKER}\nold` }] });
+  const s = stubFetch({
+    issues: [{ number: 7, body: `${MARKER}\nold`, user: bot }],
+  });
   try {
     await quietly(() => main(['--repo=a/b'], paths));
   } finally {
@@ -649,7 +663,9 @@ test('updates the open issue rather than opening a second', async () => {
 
 test('closes the open issue with a comment once the templates match', async () => {
   const paths = await ourTemplatesFixture();
-  const s = stubFetch({ issues: [{ number: 7, body: `${MARKER}\nold` }] });
+  const s = stubFetch({
+    issues: [{ number: 7, body: `${MARKER}\nold`, user: bot }],
+  });
   try {
     await quietly(() => main(['--repo=a/b'], paths));
   } finally {
@@ -688,8 +704,8 @@ test('--dry-run says what it would do, and writes nothing', async () => {
   const outputs = [];
   for (const [paths, issues] of [
     [behind, []],
-    [behind, [{ number: 7, body: MARKER }]],
-    [level, [{ number: 7, body: MARKER }]],
+    [behind, [{ number: 7, body: MARKER, user: bot }]],
+    [level, [{ number: 7, body: MARKER, user: bot }]],
   ]) {
     const s = stubFetch({ issues });
     try {

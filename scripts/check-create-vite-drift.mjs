@@ -35,7 +35,9 @@
  *
  * Idempotency: the issue body carries MARKER. A run that finds drift updates
  * the open issue carrying it, or opens one. A run that finds none closes that
- * issue with a comment, so it doesn't outlive the catch-up that fixed it.
+ * issue with a comment, so it doesn't outlive the catch-up that fixed it. Only
+ * an issue the workflow opened counts (ISSUE_AUTHOR), so a copy of the marker
+ * in someone else's issue is never touched.
  *
  * CI consumption: .github/workflows/create-vite-drift.yml, weekly cron plus
  * workflow_dispatch.
@@ -447,11 +449,19 @@ export function renderIssue(drift, version) {
   return { title, body };
 }
 
-/** The open issue carrying our marker, or undefined. */
-export function findMarkerIssue(issues) {
+/**
+ * The account the workflow's GITHUB_TOKEN opens issues as. Only an issue it
+ * opened counts as ours: the marker is plain text anyone can put in an issue,
+ * and one that matched would be updated or closed in place of the real one.
+ */
+export const ISSUE_AUTHOR = 'github-actions[bot]';
+
+/** The open issue carrying our marker that the workflow opened, or undefined. */
+export function findMarkerIssue(issues, author = ISSUE_AUTHOR) {
   return (issues ?? []).find(
     issue =>
       !issue.pull_request &&
+      issue.user?.login === author &&
       typeof issue.body === 'string' &&
       issue.body.includes(MARKER)
   );
