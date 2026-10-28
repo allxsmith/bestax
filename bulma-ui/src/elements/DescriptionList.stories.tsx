@@ -108,7 +108,7 @@ export const Default: Story = {
   render: function DefaultExample(args) {
     return (
       <>
-        <Title as="h2" size="5" id="order-heading">
+        <Title as="h2" textSize="5" id="order-heading">
           Order details
         </Title>
         <DescriptionList {...args} aria-labelledby="order-heading" />
@@ -228,6 +228,9 @@ export const RichValues: Story = {
               <Popover.Body>
                 Packed and shipped by a partner warehouse, not by us.
               </Popover.Body>
+              <Popover.Footer>
+                <Popover.Close size="small">Close</Popover.Close>
+              </Popover.Footer>
             </Popover>
           </DescriptionList.Label>
         </DescriptionList.Item>
@@ -292,7 +295,7 @@ export const InContainers: Story = {
       <Columns>
         <Column>
           <Box>
-            <Title as="h3" size="5" id="account-heading">
+            <Title as="h3" textSize="5" id="account-heading">
               Account
             </Title>
             <DescriptionList aria-labelledby="account-heading">
@@ -307,7 +310,7 @@ export const InContainers: Story = {
         </Column>
         <Column>
           <Box>
-            <Title as="h3" size="5" id="billing-heading">
+            <Title as="h3" textSize="5" id="billing-heading">
               Billing
             </Title>
             <DescriptionList aria-labelledby="billing-heading">

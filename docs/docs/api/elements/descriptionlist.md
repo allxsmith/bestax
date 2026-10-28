@@ -59,7 +59,7 @@ the window narrower than 769px to see the labels move above their values.
 
 ```tsx live
 <>
-  <Title as="h2" size="5" id="order-heading">
+  <Title as="h2" textSize="5" id="order-heading">
     Order details
   </Title>
   <DescriptionList aria-labelledby="order-heading">
@@ -133,6 +133,9 @@ Name each tip for its own label, rather than "Info" on every row.
         <Popover.Body>
           Packed and shipped by a partner warehouse, not by us.
         </Popover.Body>
+        <Popover.Footer>
+          <Popover.Close size="small">Close</Popover.Close>
+        </Popover.Footer>
       </Popover>
     </DescriptionList.Label>
   </DescriptionList.Item>

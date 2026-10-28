@@ -111,7 +111,9 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `<DescriptionList.Item label="Order" value="#1234" />` per fact. It stacks on a phone and puts
   the labels beside their values from tablet up, so add no breakpoint code; `orientation`
   pins it. Several values, or a label with an info tip, go in as `DescriptionList.Label` and
-  `DescriptionList.Value` children. Several records with the same fields stay a `Table`.
+  `DescriptionList.Value` children. Several records with the same fields stay a `Table`, and so
+  do facts a screen reader must announce with their labels, as a `Table` with `scope="row"`
+  headers.
 - **A file browser, a checkbox tree (permissions, filters) or an outline you browse is
   `TreeView`**, with `<TreeView.Item value="…" label="…" icon="folder">` items nested inside each
   other: `<TreeView aria-label="Files" selectionMode="single">` with `selected`/`onSelectedChange`

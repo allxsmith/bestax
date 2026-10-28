@@ -7,7 +7,7 @@
   "examples": [
     {
       "title": "Basic Usage",
-      "code": "<>\n  <Title as=\"h2\" size=\"5\" id=\"order-heading\">\n    Order details\n  </Title>\n  <DescriptionList aria-labelledby=\"order-heading\">\n    <DescriptionList.Item label=\"Order\" value=\"#1234\" />\n    <DescriptionList.Item label=\"Placed on\" value=\"14 October 2026\" />\n    <DescriptionList.Item\n      label=\"Estimated delivery\"\n      value=\"Between 18 and 21 October 2026\"\n    />\n    <DescriptionList.Item label=\"Total\" value=\"$86.40\" />\n  </DescriptionList>\n</>"
+      "code": "<>\n  <Title as=\"h2\" textSize=\"5\" id=\"order-heading\">\n    Order details\n  </Title>\n  <DescriptionList aria-labelledby=\"order-heading\">\n    <DescriptionList.Item label=\"Order\" value=\"#1234\" />\n    <DescriptionList.Item label=\"Placed on\" value=\"14 October 2026\" />\n    <DescriptionList.Item\n      label=\"Estimated delivery\"\n      value=\"Between 18 and 21 October 2026\"\n    />\n    <DescriptionList.Item label=\"Total\" value=\"$86.40\" />\n  </DescriptionList>\n</>"
     },
     {
       "title": "Links, Tags and Other Values",
@@ -19,7 +19,7 @@
     },
     {
       "title": "An Info Tip on a Label",
-      "code": "<DescriptionList>\n  <DescriptionList.Item label=\"Order\" value=\"#1234\" />\n  <DescriptionList.Item value=\"Partner warehouse\">\n    <DescriptionList.Label>\n      Fulfilment{' '}\n      <Popover\n        ariaLabel=\"About fulfilment\"\n        trigger={\n          <Button size=\"small\" color=\"ghost\" aria-label=\"About fulfilment\">\n            <Icon name=\"circle-info\" />\n          </Button>\n        }\n      >\n        <Popover.Body>\n          Packed and shipped by a partner warehouse, not by us.\n        </Popover.Body>\n      </Popover>\n    </DescriptionList.Label>\n  </DescriptionList.Item>\n</DescriptionList>"
+      "code": "<DescriptionList>\n  <DescriptionList.Item label=\"Order\" value=\"#1234\" />\n  <DescriptionList.Item value=\"Partner warehouse\">\n    <DescriptionList.Label>\n      Fulfilment{' '}\n      <Popover\n        ariaLabel=\"About fulfilment\"\n        trigger={\n          <Button size=\"small\" color=\"ghost\" aria-label=\"About fulfilment\">\n            <Icon name=\"circle-info\" />\n          </Button>\n        }\n      >\n        <Popover.Body>\n          Packed and shipped by a partner warehouse, not by us.\n        </Popover.Body>\n        <Popover.Footer>\n          <Popover.Close size=\"small\">Close</Popover.Close>\n        </Popover.Footer>\n      </Popover>\n    </DescriptionList.Label>\n  </DescriptionList.Item>\n</DescriptionList>"
     },
     {
       "title": "Orientation",
