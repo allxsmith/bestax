@@ -61,6 +61,18 @@ function CarouselIcon() {
   );
 }
 
+// Two cards side by side, the first picked with a check and a heavier edge
+function ChoiceCardIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="1.5" y="5" width="9.5" height="14" rx="2" strokeWidth="2.6" />
+      <path d="M4 12l2 2 3-4" />
+      <rect x="13" y="5" width="9.5" height="14" rx="2" />
+      <path d="M15.5 10h5M15.5 13.5h3.5" />
+    </svg>
+  );
+}
+
 // Panel with expanding chevron — collapse
 function CollapseIcon() {
   return (
@@ -306,6 +318,7 @@ const ADDON_ICONS = {
   avatar: AvatarIcon,
   badge: BadgeIcon,
   carousel: CarouselIcon,
+  choicecard: ChoiceCardIcon,
   collapse: CollapseIcon,
   combobox: ComboboxIcon,
   command: CommandIcon,

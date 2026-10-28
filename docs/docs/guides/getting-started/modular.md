@@ -191,7 +191,9 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/form/pininput';
 @use '@allxsmith/bestax-bulma/scss/form/switch';
 @use '@allxsmith/bestax-bulma/scss/form/checkbox';
+@use '@allxsmith/bestax-bulma/scss/form/checkboxcard';
 @use '@allxsmith/bestax-bulma/scss/form/radio';
+@use '@allxsmith/bestax-bulma/scss/form/radiocard';
 
 // bestax elements and helpers
 @use '@allxsmith/bestax-bulma/scss/elements/descriptionlist';
@@ -207,6 +209,8 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 ```
 
 Some of these partials adjust a stock Bulma component rather than add one of bestax's. `elements/notification` is one: it keeps a `Notification`'s text clear of its close button, so a build that uses `bulma/sass/elements/notification` wants it too. A partial like that can end in the same name as the Bulma module it adjusts, and Sass refuses two `@use` lines with the same name in one file, so the block above gives those lines a name of their own with `as`. The name changes nothing in the compiled CSS.
+
+Others draw on a stock Bulma component without adjusting it. `form/checkboxcard` and `form/radiocard` are Bulma cards, so a build that uses them wants `bulma/sass/components/card` too.
 
 :::info Shortcuts
 
