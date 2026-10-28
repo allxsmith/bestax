@@ -1,0 +1,156 @@
+name: create-vite drift
+
+# Weekly check that create-bestax's templates still follow create-vite (#1304).
+#
+# create-bestax/templates/vite and vite-ts follow the react and react-ts
+# starters `npm create vite@latest` writes, and nothing bumps them: they aren't
+# workspace packages, so Dependabot never sees them. scripts/check-create-vite-
+# drift.mjs compares them, and the packages create-bestax adds for --lint
+# eslint and the React Compiler templates, with the create-vite release npm
+# calls latest, and keeps one issue open while they differ.
+#
+# A reminder, not a CI gate: a create-vite release must not red whichever
+# unrelated PR pushes next (#391). Nothing here can fail a build or block a
+# merge.
+#
+# Idempotent: the issue body carries `<!-- create-vite-drift -->`. A run that
+# finds drift updates the open issue carrying it or opens one, and a run that
+# finds none closes it, so it never multiplies.
+#
+# Deliberately NOT gated on vars.AI_LOOP_ENABLED: this workflow uses zero
+# Claude/AI, the script is plain registry and REST calls, and zero-Claude
+# workflows ignore the AI-spend kill switch (the house rule
+# security-txt-expiry.yml follows).
+
+on:
+  schedule:
+    # 09:53 UTC Mondays, a slot none of this repo's other crons fire in.
+    - cron: '53 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Log what would happen without opening, updating or closing an issue.'
+        required: false
+        type: boolean
+        default: false
+
+# No workflow-level grants; the single job takes exactly what it needs.
+permissions: {}
+
+# One check at a time: a manual dispatch overlapping the weekly cron must not
+# race a second creator over the same issue (the marker lookup and the create
+# are not atomic, so two concurrent runs could both miss and both open).
+concurrency:
+  group: create-vite-drift
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Check create-bestax templates against create-vite
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      issues: write # open, update or close the drift issue
+      contents: read # checkout to read the templates and run the script
+    steps:
+      # Rule 10: a new job ships at `block`, and every block job asserts it.
+      # The list is derived from what the steps below documentedly reach, the
+      # same hosts security-txt-expiry.yml allows plus registry.npmjs.org, where
+      # the script reads create-vite's manifest and tarball. Widen it from a
+      # StepSecurity report if one is ever refused. A host that fails to
+      # resolve at startup leaves the agent without `Initialized`, which the
+      # assertion below turns into a red job. Rule 10 carries the mechanism.
+      - uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        with:
+          egress-policy: block
+          disable-sudo-and-containers: true
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
+            nodejs.org:443
+            registry.npmjs.org:443
+
+      # Asserts the policy the pre-step decided (agent.json) AND that the agent
+      # actually came up (agent.status, written only once the firewall rules are
+      # installed). Either alone is a false pass: #487 was the first kind, and an
+      # unresolvable host in this allowlist was the second, on this PR's own run.
+      #
+      # It also checks that disable-sudo-and-containers took effect (see below).
+      #
+      # Scope it honestly: this proves enforcement was armed AT THIS STEP. It does
+      # NOT prove the policy stays armed — the agent writes `Initialized` and then
+      # serves, and a later runtime error makes it revert the firewall with both
+      # files still reading exactly as they do here. Rule 10 in .github/CLAUDE.md
+      # carries the mechanism and what to check when a session looks wrong.
+      #
+      # Linux-only paths (macOS uses /opt/step-security); all runners are ubuntu-latest.
+      - name: Assert egress policy is enforced
+        run: |
+          set -uo pipefail
+          # harden-runner has several deliberate "install nothing, exit 0" paths
+          # (StepSecurity unavailable, the skip-harden-runner repo property, a
+          # container or slim runner). None of them writes agent.json, so name
+          # that case rather than leaving a bare jq "could not open file".
+          if [ ! -e /home/agent/agent.json ]; then
+            echo "::error::harden-runner installed no agent, so nothing is enforcing egress. Usual causes: a StepSecurity outage (its pre-step returns green without installing), the skip-harden-runner repo property, or a container/slim runner. This job holds a credential and will not run unprotected (#487)."
+            exit 1
+          fi
+          if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then
+            echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
+            exit 1
+          fi
+          if ! jq -e '.disable_sudo_and_containers == true' /home/agent/agent.json; then
+            echo "::error::this job sets disable-sudo-and-containers, but agent.json does not record it, so harden-runner did not take the input."
+            exit 1
+          fi
+          # Poll rather than test once: the pre-step waits only for the file to
+          # EXIST and gives up after ~9s, while the agent resolves every
+          # allow-listed host before writing its status, so a cold resolver or a
+          # long list can leave the file absent or still empty here.
+          for _ in $(seq 1 30); do
+            if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              # Proves sudo and docker.sock were closed when this ran. Rule 10 in
+              # .github/CLAUDE.md has what the flag and this check do not prove.
+              if sudo -n true 2>/dev/null; then
+                echo "::error::sudo still works although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
+              if [ -w /var/run/docker.sock ]; then
+                echo "::error::/var/run/docker.sock is still writable although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
+          exit 1
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      # No pnpm, no cache: the script is dependency-free (node: builtins +
+      # global fetch), so plain Node 24 is all it needs. It reads create-vite's
+      # tarball from the registry and never installs or runs it.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+
+      - name: Open, update or close the drift issue
+        env:
+          # GITHUB_TOKEN, not a PAT: issues opened with it do not emit workflow
+          # events, so this cannot re-trigger the comment- and issue-driven
+          # workflows in this repo (invariant I2).
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          DRY_RUN: ${{ inputs.dry-run }}
+        run: |
+          set -euo pipefail
+          ARGS=(--repo="$REPO")
+          if [ "${DRY_RUN:-false}" = "true" ]; then
+            ARGS+=(--dry-run)
+          fi
+          node scripts/check-create-vite-drift.mjs "${ARGS[@]}"

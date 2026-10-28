@@ -102,10 +102,13 @@ react (#1012), so restore them on its PR; when the peer range itself moves, chan
   `npm create vite@latest` writes, Oxlint and its `_oxlintrc.json` included, and `--lint eslint`
   follows what create-vite's `--eslint` writes in their place (the `ESLINT_*` constants in
   `src/constants.ts`), and the compiler templates what its `react-compiler` starters add (the
-  `REACT_COMPILER_*` constants). When Vite or create-vite ships a new minor or major, scaffold both
-  starters with and without `--eslint`, compare their tsconfigs, devDependencies, `vite.config`
-  and `src/main` with the templates and the constants, and catch up (#1049, #1304). The App,
-  its assets and the README differ on purpose. TypeScript follows create-vite too: 7 under
+  `REACT_COMPILER_*` constants). `.github/workflows/create-vite-drift.yml` runs
+  `scripts/check-create-vite-drift.mjs` each Monday and keeps an issue open while they differ
+  from the create-vite release npm calls `latest` (`node scripts/check-create-vite-drift.mjs
+--report` prints the same comparison). To catch up, scaffold both starters with and without
+  `--eslint`, compare their tsconfigs, devDependencies, `vite.config` and `src/main` with the
+  templates and the constants, and close the issue from the PR (#1049, #1304). The App, its
+  assets, the README and `_gitignore` differ on purpose, and the script doesn't compare them. TypeScript follows create-vite too: 7 under
   Oxlint, and 6 under ESLint, since typescript-eslint can't load 7 yet (#394). A file the
   catch-up adds or removes has to reach the docs sandboxes too, and
   `docs/scripts/sandbox.test.mjs` fails until the files the StackBlitz project copies, with the
