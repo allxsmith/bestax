@@ -319,6 +319,9 @@ export default function HiveHero() {
     let step = 0;
     setLight('theme');
     setPalette(PALETTE_CYCLE[step]);
+    // With reduced motion, one palette shows the idea: the walk would keep
+    // flashing the whole hero.
+    if (prefersReducedMotion()) return;
     cycle.current = setInterval(() => {
       step = (step + 1) % PALETTE_CYCLE.length;
       setPalette(PALETTE_CYCLE[step]);
