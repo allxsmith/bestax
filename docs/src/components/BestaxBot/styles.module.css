@@ -1,0 +1,103 @@
+.bot {
+  display: block;
+  overflow: visible;
+}
+
+.wing {
+  fill: #bfe0f5;
+  fill-opacity: 0.55;
+  stroke: #eaf6ff;
+  stroke-width: 1.4;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: buzz 0.09s linear infinite alternate;
+}
+
+.wingLate {
+  animation-delay: 0.045s;
+}
+
+@keyframes buzz {
+  from {
+    transform: scaleY(1);
+  }
+  to {
+    transform: scaleY(0.45);
+  }
+}
+
+.tip {
+  fill: #f4bf4f;
+  animation: glow 2.2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    fill: #f4bf4f;
+  }
+  to {
+    fill: #ffe39a;
+  }
+}
+
+.eyes {
+  fill: #7cc4ef;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: blink 3.8s infinite;
+}
+
+@keyframes blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.1);
+  }
+}
+
+/* The raised arm pivots at the shoulder, in the drawing's own units. */
+.arm {
+  transform-box: view-box;
+  transform-origin: 74px 73px;
+  transform: rotate(-8deg);
+}
+
+.waveA .arm {
+  animation: waveA 0.4s ease-in-out 0.5s 6 alternate both;
+}
+
+.waveB .arm {
+  animation: waveB 0.4s ease-in-out 0.5s 6 alternate both;
+}
+
+/* Two names for one motion: swapping between them is what restarts it. */
+@keyframes waveA {
+  from {
+    transform: rotate(-18deg);
+  }
+  to {
+    transform: rotate(16deg);
+  }
+}
+
+@keyframes waveB {
+  from {
+    transform: rotate(-18deg);
+  }
+  to {
+    transform: rotate(16deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wing,
+  .tip,
+  .eyes,
+  .waveA .arm,
+  .waveB .arm {
+    animation: none;
+  }
+}
