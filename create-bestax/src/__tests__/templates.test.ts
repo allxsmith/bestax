@@ -28,6 +28,9 @@ const {
   ESLINT_TYPESCRIPT_DEV_DEPENDENCIES,
   ICON_LIBRARIES,
   NO_HELPERS_STARTER_CLASSES,
+  REACT_COMPILER_DEV_DEPENDENCIES,
+  REACT_COMPILER_TYPESCRIPT_DEV_DEPENDENCIES,
+  REACT_COMPILER_README,
 } = await import('../constants.js');
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
@@ -466,6 +469,60 @@ describe.each(TEMPLATES)('%s template linter', template => {
     const readme = await fs.readFile(path.join(target, 'README.md'), 'utf8');
     expect(readme).toContain('Run ESLint');
     expect(readme).not.toContain('Oxlint');
+  });
+});
+
+// A React Compiler template copies its plain template and turns the compiler
+// on, the way create-vite builds its react-compiler starters.
+describe.each([
+  ['vite-compiler', 'vite'],
+  ['vite-compiler-ts', 'vite-ts'],
+] as const)('%s template', (template, directory) => {
+  const typescript = directory === 'vite-ts';
+  const config = typescript ? 'vite.config.ts' : 'vite.config.js';
+
+  it(`is the ${directory} folder`, () => {
+    expect(projectCreator.getTemplatePath(template)).toBe(
+      path.join(templatesDir, directory)
+    );
+  });
+
+  it('turns the compiler on in vite.config, with its packages', async () => {
+    const target = await scaffold(directory);
+    await projectCreator.setupReactCompiler(target, template);
+
+    const viteConfig = await fs.readFile(path.join(target, config), 'utf8');
+    expect(viteConfig).toContain(
+      "import react, { reactCompilerPreset } from '@vitejs/plugin-react';\n" +
+        "import babel from '@rolldown/plugin-babel';"
+    );
+    expect(viteConfig).toContain(
+      '  plugins: [react(), babel({ presets: [reactCompilerPreset()] })],'
+    );
+    expect(viteConfig).not.toContain('plugins: [react()],');
+
+    const pkg = await fs.readJson(path.join(target, 'package.json'));
+    expect(pkg.devDependencies).toMatchObject(REACT_COMPILER_DEV_DEPENDENCIES);
+    if (typescript) {
+      expect(pkg.devDependencies).toMatchObject(
+        REACT_COMPILER_TYPESCRIPT_DEV_DEPENDENCIES
+      );
+    } else {
+      expect(pkg.devDependencies).not.toHaveProperty('@types/babel__core');
+    }
+    const names = Object.keys(pkg.devDependencies);
+    expect(names).toEqual([...names].sort());
+
+    const readme = await fs.readFile(path.join(target, 'README.md'), 'utf8');
+    expect(readme.endsWith(REACT_COMPILER_README)).toBe(true);
+  });
+
+  it(`leaves ${directory} itself alone`, async () => {
+    const target = await scaffold(directory);
+    const before = await fs.readFile(path.join(target, config), 'utf8');
+    await projectCreator.setupReactCompiler(target, directory);
+
+    expect(await fs.readFile(path.join(target, config), 'utf8')).toBe(before);
   });
 });
 

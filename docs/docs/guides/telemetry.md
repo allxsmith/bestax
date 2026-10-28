@@ -24,7 +24,7 @@ Sent once after a successful scaffold:
 
 | Field              | Values                                                                            |
 | ------------------ | --------------------------------------------------------------------------------- |
-| `template`         | `vite` or `vite-ts`                                                               |
+| `template`         | `vite`, `vite-ts`, `vite-compiler`, or `vite-compiler-ts`                         |
 | `bulmaFlavor`      | `complete`, `prefixed`, `no-helpers`, `no-helpers-prefixed`, or `no-dark-mode`    |
 | `iconLibrary`      | `none`, `fontawesome`, `mdi`, `ionicons`, `material-icons`, or `material-symbols` |
 | `skills`           | `true` or `false` — whether the bestax AI skills were installed                   |

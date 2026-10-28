@@ -10,6 +10,7 @@ import {
   type ExistingDirectoryPlan,
 } from './project-creator.js';
 import { copyDirectory } from './file-system.js';
+import { TEMPLATES, LINTERS } from './constants.js';
 
 // Re-export for backward compatibility with tests
 export { validateProjectName } from './validators.js';
@@ -95,8 +96,14 @@ export function createCLI(): Command {
       '[project-directory]',
       'project directory to create, a name or a path (its last part names the package)'
     )
-    .option('-t, --template <template>', 'template to use (vite, vite-ts)')
-    .option('--lint <linter>', 'linter (oxlint, eslint)')
+    .option(
+      '-t, --template <template>',
+      `template to use (${TEMPLATES.map(t => t.name).join(', ')})`
+    )
+    .option(
+      '--lint <linter>',
+      `linter (${LINTERS.map(l => l.name).join(', ')})`
+    )
     .option(
       '-b, --bulma <flavor>',
       'Bulma CSS flavor (complete, prefixed, no-helpers, no-helpers-prefixed, no-dark-mode)'
@@ -116,12 +123,24 @@ export function createCLI(): Command {
       '-y, --yes',
       'skip prompts and use defaults or provided options (never removes files: see --overwrite)'
     )
+    .option('--no-interactive', 'never prompt: the same as -y')
     .option(
       '--overwrite',
       'remove existing files if the target directory is not empty'
     )
+    .option(
+      '--immediate',
+      'install dependencies and start the dev server once the project is written'
+    )
+    .option('--no-immediate', 'only write the project')
     .action(async (projectDir?: string, options?: unknown) => {
-      await projectCreator.create(projectDir, options as CLIOptions);
+      const { interactive, ...rest } = (options ?? {}) as CLIOptions & {
+        interactive?: boolean;
+      };
+      await projectCreator.create(
+        projectDir,
+        interactive === false ? { ...rest, yes: true } : rest
+      );
     });
 
   return program;
