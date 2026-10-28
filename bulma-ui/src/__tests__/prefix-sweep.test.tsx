@@ -74,6 +74,15 @@ const PROPS: Record<string, Record<string, unknown>> = {
       </Library.Splitter.Pane>,
     ],
   },
+  // Sized, colored and rounded, in sections, so every class it emits is swept.
+  RingProgress: {
+    label: 'Storage',
+    size: 'small',
+    color: 'info',
+    isRounded: true,
+    sections: [{ value: 40, color: 'warning', label: 'Photos' }],
+    children: '40%',
+  },
   // Every modifier, so each class the frame takes is swept.
   ScrollArea: {
     'aria-label': 'Notes',

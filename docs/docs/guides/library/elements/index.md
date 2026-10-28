@@ -422,6 +422,18 @@ A Bulma-styled progress bar for visualizing task completion, loading states, or 
 
 ---
 
+### RingProgress
+
+A value drawn as a ring that fills as it grows, a progress bar or with `isMeter` a meter, and with `sections` several values around one ring. [View full documentation.](../../../api/elements/ringprogress.md)
+
+```tsx live
+<RingProgress value={72} label="Upload" color="success">
+  72%
+</RingProgress>
+```
+
+---
+
 ### Loader
 
 Bulma's small spinning ring for inline loading states, such as a table cell while a row saves, exposed to screen readers as an indeterminate progress bar. [View full documentation.](../../../api/elements/loader.md)

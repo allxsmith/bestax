@@ -19,6 +19,12 @@ const ADDONS = [
     desc: 'Keys and shortcuts drawn as keycaps that follow the text around them, with names for symbols like ⌘.',
   },
   {
+    name: 'RingProgress',
+    icon: 'ringprogress',
+    link: '/docs/api/elements/ringprogress',
+    desc: 'A value drawn as a ring, a progress bar or a meter, and several values around one ring in sections.',
+  },
+  {
     name: 'Avatar',
     icon: 'avatar',
     link: '/docs/api/components/avatar',

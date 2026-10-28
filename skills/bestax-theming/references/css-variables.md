@@ -616,6 +616,19 @@ the label text inside the `Radio`, since the whole label is the click target.
 `--bulma-rate-spaced-gap`, `--bulma-rate-text-color`, `--bulma-rate-text-size`,
 `--bulma-rate-transition-duration`
 
+### RingProgress
+
+Declared on the root, `.ring-progress`; the color and size classes set `--bulma-ring-progress-arc-color`
+and `--bulma-ring-progress-size`. The thickness is in the ring's own units: it's 100 across with a
+radius of 42, so up to 16 fits. In forced colors the arcs take `CanvasText` and the track `GrayText`
+whatever these say.
+
+`--bulma-ring-progress-arc-color`, `--bulma-ring-progress-duration`,
+`--bulma-ring-progress-label-color`, `--bulma-ring-progress-label-size`,
+`--bulma-ring-progress-label-weight`,
+`--bulma-ring-progress-size`, `--bulma-ring-progress-thickness`,
+`--bulma-ring-progress-track-color`
+
 ### Reveal
 
 `--bulma-reveal-duration`, `--bulma-reveal-easing`, `--bulma-reveal-flip-angle`,
