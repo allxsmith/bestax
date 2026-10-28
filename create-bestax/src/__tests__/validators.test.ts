@@ -162,6 +162,17 @@ describe('validators', () => {
       );
     });
 
+    it('takes only the platform separator after the dot', () => {
+      // On POSIX a backslash is part of a file name, so ".\\" names a folder,
+      // and the leading-dot rule refuses it as before.
+      const backslash = validateProjectDirectory('.\\', '/work/my-app');
+      if (path.sep === '/') {
+        expect(backslash).toBe(dotMessage);
+      } else {
+        expect(backslash).toBe(true);
+      }
+    });
+
     it('rejects a path that ends in "." or "..", naming that part', () => {
       expect(validateProjectDirectory('apps/.')).toBe(
         `${dotMessage} (the project name is ".", the last part of the path)`

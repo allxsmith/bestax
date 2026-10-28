@@ -45,10 +45,14 @@ export function isValidProjectName(name: string): boolean {
  * as create-vite takes it. The project is named after that directory, and
  * checkExistingDirectory lets it through only while it is empty, since the
  * working directory is never emptied (#310). A longer path ending in "." still
- * fails the leading-dot rule above.
+ * fails the leading-dot rule above. Only the platform's own separator may
+ * follow the dot: on POSIX a backslash is part of a file name, so ".\\" is a
+ * folder of that name, which the leading-dot rule refuses.
  */
 export function isCurrentDirectory(targetDir: string): boolean {
-  return /^\.[\\/]?$/.test(targetDir);
+  return (
+    targetDir === '.' || targetDir === './' || targetDir === `.${path.sep}`
+  );
 }
 
 /**

@@ -1563,6 +1563,26 @@ describe('ProjectCreator', () => {
         ).toContain('pnpm install failed, so the dev server was not started');
       });
 
+      it('reports a command that could not start, and exits 1', async () => {
+        run.mockImplementationOnce(() => {
+          throw new Error('spawn pnpm ENOENT');
+        });
+
+        await expect(
+          projectCreator.create('test-project', {
+            yes: true,
+            skills: false,
+            immediate: true,
+          })
+        ).rejects.toThrow('process.exit called');
+
+        expect(run).toHaveBeenCalledTimes(1);
+        expect(mockExit).toHaveBeenCalledWith(1);
+        expect(
+          (console.error as jest.Mock).mock.calls.flat().join('\n')
+        ).toContain('spawn pnpm ENOENT');
+      });
+
       it('only writes the project under -y, without a terminal, or with --no-immediate', async () => {
         await projectCreator.create('test-project', {
           yes: true,

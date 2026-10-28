@@ -97,6 +97,21 @@ export interface CLIOptions {
  */
 export type ExistingDirectoryPlan = 'empty' | 'overwrite' | 'stop';
 
+/**
+ * runCommand, with a command that couldn't start at all, such as a package
+ * manager missing from PATH, reported and ending the run with 1 rather than
+ * escaping create() as an unhandled rejection. The project is written either
+ * way.
+ */
+function runOrExit(command: string, cwd: string): number {
+  try {
+    return runCommand(command, cwd);
+  } catch (error) {
+    displayError((error as Error).message);
+    process.exit(1);
+  }
+}
+
 /** A dependency map in code-point order, the order the templates keep. */
 function sortedByName(
   dependencies: Record<string, string>
@@ -400,13 +415,13 @@ export class ProjectCreator {
    */
   installAndStart(targetPath: string, pm: string): void {
     console.log(chalk.green(MESSAGES.INSTALLING(pm)));
-    const installed = runCommand(`${pm} install`, targetPath);
+    const installed = runOrExit(`${pm} install`, targetPath);
     if (installed !== 0) {
       displayError(MESSAGES.INSTALL_FAILED(pm));
       process.exit(installed);
     }
     console.log(chalk.green(MESSAGES.STARTING_DEV_SERVER));
-    process.exitCode = runCommand(`${pm} run dev`, targetPath);
+    process.exitCode = runOrExit(`${pm} run dev`, targetPath);
   }
 
   async setupSkills(

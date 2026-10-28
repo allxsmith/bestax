@@ -227,8 +227,14 @@ describe('cli', () => {
       const templateOption = program.options.find(opt =>
         opt.flags.includes('--template')
       );
-      expect(templateOption?.description).toContain('vite');
-      expect(templateOption?.description).toContain('vite-ts');
+      expect(templateOption?.description).toBe(
+        'template to use (vite, vite-ts, vite-compiler, vite-compiler-ts)'
+      );
+    });
+
+    it('lists every linter in the --lint help text', () => {
+      const lintOption = createCLI().options.find(opt => opt.long === '--lint');
+      expect(lintOption?.description).toBe('linter (oxlint, eslint)');
     });
 
     it('should have correct Bulma flavor options in help text', () => {
