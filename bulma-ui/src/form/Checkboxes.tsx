@@ -15,6 +15,7 @@ import { Control } from './Control';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelledBy } from './useAutoLabelId';
 import { Checkbox } from './Checkbox';
+import { GroupFieldset } from './groupFieldset';
 
 /**
  * Props for the Checkboxes component.
@@ -46,6 +47,19 @@ export interface CheckboxesProps
   onChange?: (values: string[]) => void;
   /** Checkbox elements to render in the group. */
   children?: React.ReactNode;
+  /**
+   * The element the group renders as. With `fieldset` it's a native
+   * `<fieldset>`. Where the group renders a `Field` of its own, that `Field`
+   * is the `<fieldset>` and the `label` is its `<legend>`, in the label
+   * column when `horizontal`, so the legend names the group with no ids to
+   * wire. Your other attributes then go on the `<fieldset>`, while
+   * `className` and the helper props stay on the box that lays out the
+   * checkboxes. Inside an outer `Field` there's no legend: the group element
+   * itself is the `<fieldset>`, named by that `Field`'s label as before.
+   * `div`, the default, renders the group as it always has.
+   * @defaultValue 'div'
+   */
+  as?: 'div' | 'fieldset';
 }
 
 /**
@@ -87,6 +101,7 @@ const CheckboxesComponent: React.FC<CheckboxesProps> = ({
   onChange,
   children,
   className,
+  as,
   ...props
 }) => {
   const insideField = useInsideField();
@@ -99,10 +114,14 @@ const CheckboxesComponent: React.FC<CheckboxesProps> = ({
     horizontal,
     fieldClassName,
   });
+  // As a fieldset with a Field of its own, the group's label is its legend,
+  // which names it with no id, so nothing points `aria-labelledby` at it.
+  const asFieldset = as === 'fieldset';
+  const fieldsetField = asFieldset && ownField;
   const { ariaLabelledBy, fieldLabelProps } = useAutoLabelledBy({
     label,
     labelProps,
-    rendersLabel: ownField,
+    rendersLabel: ownField && !fieldsetField,
     callerProps: props,
   });
   const { bulmaHelperClasses, rest } = useBulmaClasses({
@@ -142,21 +161,44 @@ const CheckboxesComponent: React.FC<CheckboxesProps> = ({
     [name, groupActive, currentValue, handleChange]
   );
 
-  const checkboxesElement = (
-    <div
+  const choices = (
+    <CheckboxesProvider value={ctx}>{children}</CheckboxesProvider>
+  );
+  // A fieldset is a group already, so it takes no role of its own.
+  const Group = asFieldset ? 'fieldset' : 'div';
+  const checkboxesElement = fieldsetField ? (
+    <div className={wrapperClass}>{choices}</div>
+  ) : (
+    <Group
       className={wrapperClass}
-      role="group"
+      role={asFieldset ? undefined : 'group'}
       aria-labelledby={ariaLabelledBy}
       {...rest}
     >
-      <CheckboxesProvider value={ctx}>{children}</CheckboxesProvider>
-    </div>
+      {choices}
+    </Group>
   );
 
   let content = checkboxesElement;
 
   if (rendersOwnControl('Checkboxes', { insideControl })) {
     content = <Control>{content}</Control>;
+  }
+
+  if (fieldsetField) {
+    return (
+      <GroupFieldset
+        label={label}
+        labelSize={labelSize}
+        labelProps={labelProps}
+        horizontal={horizontal}
+        fieldClassName={fieldClassName}
+        attributes={rest}
+        message={messageEl}
+      >
+        {content}
+      </GroupFieldset>
+    );
   }
 
   if (ownField) {

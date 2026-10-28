@@ -1,5 +1,6 @@
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
+import { expect, within } from 'storybook/test';
 import Checkbox from './Checkbox';
 import Checkboxes from './Checkboxes';
 import { Field } from './Field';
@@ -115,6 +116,36 @@ export const WithFieldControlWrapper: Story = {
       </Field.Body>
     </Field>
   ),
+};
+
+/**
+ * As a fieldset: `as="fieldset"` renders the group's own Field as a native
+ * `<fieldset>` with the label as its `<legend>`, which names the group with no
+ * ids to wire. Horizontal, the legend is the label column.
+ */
+export const AsFieldset: Story = {
+  render: () => (
+    <>
+      <Checkboxes as="fieldset" label="Tags" name="tags-fieldset">
+        <Checkbox value="react">React</Checkbox>
+        <Checkbox value="vue">Vue</Checkbox>
+      </Checkboxes>
+      <Checkboxes
+        as="fieldset"
+        horizontal
+        label="Chores"
+        name="chores-fieldset"
+      >
+        <Checkbox value="bed">Make the bed</Checkbox>
+        <Checkbox value="teeth">Brush teeth</Checkbox>
+      </Checkboxes>
+    </>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const group = canvas.getByRole('group', { name: 'Chores' });
+    await expect(group.tagName).toBe('FIELDSET');
+  },
 };
 
 /**

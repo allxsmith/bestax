@@ -160,8 +160,11 @@ and wire `htmlFor`/`id`, to your `id` when you pass one
 them to its field. Given `data`, its `id`, `aria-label` and `aria-labelledby` go to the field;
 built from parts, put them on `Combobox.Input`, since on the `Combobox` they land on its wrapper
 `div`. The group inputs (`Checkboxes`, `Radios`, `Rate`, `DateRangeInput`) name their
-`role="group"`/`"radiogroup"` wrapper through `aria-labelledby` instead. Inside a `Field` a
-convenience input drops its `label`, and an `inline` date/time picker has no visible input to wire.
+`role="group"`/`"radiogroup"` wrapper through `aria-labelledby` instead. `Checkboxes` and `Radios`
+also take `as="fieldset"`, which renders their own `Field` as a native `<fieldset>` with the `label`
+as its `<legend>` (the label column when `horizontal`), named by the legend with no ids. Inside a
+`Field` a convenience input drops its `label`, and an `inline` date/time picker has no visible
+input to wire.
 
 Composed, a labeled `Field` names the one control it holds: a composed `InputBase`/`SelectBase`/
 `TextAreaBase`, a composed `DateInputBase`/`TimeInputBase`/`DateTimeInputBase` that is not
@@ -173,7 +176,8 @@ label that names nothing: leave the `id` off, or pass the same value as
 `grouped`/`hasAddons` row and in a horizontal `Field` whose body holds an inner `Field` (a nested
 `Field` starts its own scope). For a group there, put `labelProps={{ id, htmlFor: undefined }}` on
 the outer `Field` and a matching `aria-labelledby` on the group; the `htmlFor: undefined` keeps an
-unmatched `for` out of server-rendered HTML.
+unmatched `for` out of server-rendered HTML. For a `Checkboxes` or `Radios` row on its own,
+`<Checkboxes as="fieldset" horizontal label="…">` needs none of that.
 
 A `range` `Slider` points the `for` at its low thumb and starts both thumbs' names with the label
 ("Price range Minimum value"); its `ariaLabel={[low, high]}` replaces those names outright, so

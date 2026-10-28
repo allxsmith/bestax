@@ -75,6 +75,10 @@ Field/Control/message props. `TextArea` adds `rows` and `hasFixedSize`.
   value, so set both from the list.
 - `Checkboxes` — group wrapper managing an **array** value.
 - `Radios` — group wrapper managing a **single** selected value.
+- Both take `as="fieldset"`: their own `Field` renders as a native `<fieldset>` and the `label` as
+  its `<legend>`, in the label column when `horizontal`, naming the group with no ids. Inside an
+  outer `Field` the group element itself is the `<fieldset>`, named by that `Field`'s label.
+  Attributes go on the `<fieldset>`; `className` and helper props stay on the box of choices.
 
 ## Switch — `form/Switch.tsx`
 
