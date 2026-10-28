@@ -436,6 +436,17 @@
   color: #0a2f40;
 }
 
+.status {
+  width: 100%;
+  max-width: 420px;
+}
+
+/* Empty, a region stays mounted so what lands in it is announced, but it
+   takes no room in the column. */
+.status:empty {
+  position: absolute;
+}
+
 .appNote {
   width: 100%;
   max-width: 420px;
