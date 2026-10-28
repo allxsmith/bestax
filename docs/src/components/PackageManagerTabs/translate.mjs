@@ -47,12 +47,11 @@ export const DEFAULT_PACKAGE_MANAGER = 'pnpm';
  * The `groupId` of the Docusaurus `<Tabs>` group, and the localStorage key it
  * derives — `tabsUtils.js` builds the key as `docusaurus.tab.${groupId}`.
  *
- * Both live here because two separate surfaces have to agree on them: the tab
- * group in this directory's index.js, and the homepage hero switcher in
- * src/pages/index.js, which reads the slot directly via `useStorageSlot` to
- * stay in sync with the docs. Hardcoding the strings in both places means a
- * rename silently degrades to "hero and docs no longer share a choice", with
- * nothing failing.
+ * Both live here because the tab group in this directory's index.js and the
+ * homepage components that read the slot directly via `useStorageSlot` have to
+ * agree on them. Hardcoding the strings in each place means a rename silently
+ * degrades to "the homepage and docs no longer share a choice", with nothing
+ * failing.
  */
 export const TAB_GROUP_ID = 'package-manager';
 export const TAB_STORAGE_KEY = `docusaurus.tab.${TAB_GROUP_ID}`;
