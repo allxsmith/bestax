@@ -47,6 +47,7 @@ const NAMED_INDIVIDUALLY = [
   'Link',
   'LinkButton',
   'Loader',
+  'LocaleProvider',
   'Menu.Item',
   'Modal',
   'Navbar',
