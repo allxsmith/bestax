@@ -55,6 +55,12 @@ const ADDONS = [
     desc: 'A field with a list to pick from: give it your data for a searchable select or tags, or build it from parts for a server search.',
   },
   {
+    name: 'Command',
+    icon: 'command',
+    link: '/docs/api/components/command',
+    desc: 'A search over things to do that runs the top match on Enter, inline or as a ⌘K palette.',
+  },
+  {
     name: 'ContextMenu',
     icon: 'contextmenu',
     link: '/docs/api/components/contextmenu',

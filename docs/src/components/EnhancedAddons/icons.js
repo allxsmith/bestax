@@ -84,6 +84,19 @@ function ComboboxIcon() {
   );
 }
 
+// A box with a search field across its top and rows of commands under it
+function CommandIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <circle cx="7.5" cy="7.5" r="1.8" />
+      <path d="M8.8 8.8l1.4 1.4M12.5 7.5h5" />
+      <path d="M3 12h18" />
+      <path d="M7 15.5h10M7 18.5h6" />
+    </svg>
+  );
+}
+
 // Modal bubble with action buttons — dialog
 function DialogIcon() {
   return (
@@ -285,6 +298,7 @@ const ADDON_ICONS = {
   carousel: CarouselIcon,
   collapse: CollapseIcon,
   combobox: ComboboxIcon,
+  command: CommandIcon,
   contextmenu: ContextMenuIcon,
   dialog: DialogIcon,
   emptystate: EmptyStateIcon,

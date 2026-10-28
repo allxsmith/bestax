@@ -187,7 +187,8 @@ TODO rather than write a second `ref`; keep whichever one you meant.
 
 An existing `ref` is passed through untouched — which is safe only where the bestax target forwards
 one. rbx forwards a ref on every component; bestax does so on the form controls, plus `Avatar`,
-`Button`, `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `EmptyState`, `Kbd`, `Kbd.Group`,
+`Button`, `Carousel`, `CarouselItem`, `Command`, `Command.Dialog`, `Command.Input`, `Dialog`,
+`Dropdown`, `EmptyState`, `Kbd`, `Kbd.Group`,
 `Link`, `LinkButton`, `Loader`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`,
 `Navbar.Item`, `Navbar.Link`, `RingProgress`, `ScrollArea`, `SegmentedControl`, `SegmentedControl.Segment`, `Sidebar`, `Splitter`, `Splitter.Pane`, `Timeline`,
 `Timeline.Item`, `Toast`, `ToggleButton`, `TreeView` and `TreeView.Item`. "The form controls" there

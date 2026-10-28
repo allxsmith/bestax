@@ -1,0 +1,246 @@
+// Bestax Extras - Command Styles
+// A search field over a list of things to do. The field is Bulma's `Input`,
+// in its Control, and the box, the list, its groups and its items are
+// written here: the highlight that follows the keyboard is the pair Bulma's
+// dropdown gives an `is-active` item, as Combobox's is. In a dialog the box
+// sits in Bulma's `.modal`, near the top rather than in the middle, so it
+// doesn't jump as the list grows and shrinks.
+//
+// Colors come from Bulma's tokens, so dark mode needs no rules of its own.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+$command-background: cv.getVar('scheme-main') !default;
+// The edge keeps the box apart from the page, and from the background in a
+// dialog, where the shadow all but vanishes on a dark page and is dropped in
+// forced colors.
+$command-border-color: cv.getVar('border-weak') !default;
+$command-radius: cv.getVar('radius-large') !default;
+$command-padding: 0.5rem !default;
+// Between the field and the list.
+$command-gap: 0.5rem !default;
+// The list scrolls past this.
+$command-list-max-height: 20rem !default;
+$command-item-color: cv.getVar('text-strong') !default;
+$command-item-size: 0.875rem !default;
+$command-item-padding-y: 0.5rem !default;
+$command-item-padding-x: 0.75rem !default;
+$command-item-radius: cv.getVar('radius') !default;
+// Between the icon, the label and the hint.
+$command-item-gap: 0.75rem !default;
+$command-item-hover-background: hsl(
+  #{cv.getVar('scheme-h')},
+  #{cv.getVar('scheme-s')},
+  calc(#{cv.getVar('scheme-main-l')} + #{cv.getVar('hover-background-l-delta')})
+) !default;
+$command-highlight-background: cv.getVar('link') !default;
+$command-highlight-color: cv.getVar('link-invert') !default;
+$command-disabled-color: cv.getVar('text-weak') !default;
+$command-icon-color: cv.getVar('text-weak') !default;
+$command-description-color: cv.getVar('text-weak') !default;
+$command-description-size: 0.875em !default;
+$command-hint-color: cv.getVar('text-weak') !default;
+$command-group-label-size: 0.85em !default;
+$command-group-label-weight: cv.getVar('weight-semibold') !default;
+$command-group-label-color: cv.getVar('text-weak') !default;
+$command-divider-color: cv.getVar('border-weak') !default;
+$command-empty-color: cv.getVar('text-weak') !default;
+$command-empty-padding: 1.5rem !default;
+// The dialog: how wide it gets, how far down it sits, and its shadow.
+$command-dialog-width: 40rem !default;
+$command-dialog-offset: 12vh !default;
+$command-dialog-shadow: cv.getVar('shadow') !default;
+
+.#{iv.$class-prefix}command {
+  @include cv.register-vars(
+    (
+      'command-background': #{$command-background},
+      'command-border-color': #{$command-border-color},
+      'command-radius': #{$command-radius},
+      'command-padding': #{$command-padding},
+      'command-gap': #{$command-gap},
+      'command-list-max-height': #{$command-list-max-height},
+      'command-item-color': #{$command-item-color},
+      'command-item-size': #{$command-item-size},
+      'command-item-padding-y': #{$command-item-padding-y},
+      'command-item-padding-x': #{$command-item-padding-x},
+      'command-item-radius': #{$command-item-radius},
+      'command-item-gap': #{$command-item-gap},
+      'command-item-hover-background': #{$command-item-hover-background},
+      'command-highlight-background': #{$command-highlight-background},
+      'command-highlight-color': #{$command-highlight-color},
+      'command-disabled-color': #{$command-disabled-color},
+      'command-icon-color': #{$command-icon-color},
+      'command-description-color': #{$command-description-color},
+      'command-description-size': #{$command-description-size},
+      'command-hint-color': #{$command-hint-color},
+      'command-group-label-size': #{$command-group-label-size},
+      'command-group-label-weight': #{$command-group-label-weight},
+      'command-group-label-color': #{$command-group-label-color},
+      'command-divider-color': #{$command-divider-color},
+      'command-empty-color': #{$command-empty-color},
+      'command-empty-padding': #{$command-empty-padding},
+      'command-dialog-width': #{$command-dialog-width},
+      'command-dialog-offset': #{$command-dialog-offset},
+      'command-dialog-shadow': #{$command-dialog-shadow},
+    )
+  );
+}
+
+.#{iv.$class-prefix}command {
+  display: flex;
+  flex-direction: column;
+  gap: cv.getVar('command-gap');
+  padding: cv.getVar('command-padding');
+  background-color: cv.getVar('command-background');
+  border: 1px solid cv.getVar('command-border-color');
+  border-radius: cv.getVar('command-radius');
+}
+
+// The list's size, which its items, group headings and the empty message
+// beside it take.
+.#{iv.$class-prefix}command-list,
+.#{iv.$class-prefix}command-empty {
+  font-size: cv.getVar('command-item-size');
+}
+
+.#{iv.$class-prefix}command-list {
+  max-height: cv.getVar('command-list-max-height');
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.#{iv.$class-prefix}command-item {
+  display: flex;
+  align-items: center;
+  gap: cv.getVar('command-item-gap');
+  padding: cv.getVar('command-item-padding-y')
+    cv.getVar('command-item-padding-x');
+  border-radius: cv.getVar('command-item-radius');
+  color: cv.getVar('command-item-color');
+  cursor: pointer;
+
+  // Where the pointer is while the highlight is somewhere else, as when the
+  // list scrolls under a pointer that hasn't moved.
+  &:hover:not(.#{iv.$class-prefix}is-active):not(
+      .#{iv.$class-prefix}is-disabled
+    ) {
+    background-color: cv.getVar('command-item-hover-background');
+  }
+
+  &.#{iv.$class-prefix}is-active {
+    background-color: cv.getVar('command-highlight-background');
+    color: cv.getVar('command-highlight-color');
+  }
+
+  &.#{iv.$class-prefix}is-disabled {
+    color: cv.getVar('command-disabled-color');
+    cursor: not-allowed;
+  }
+
+  // The arrows reach a disabled item, so it shows where they are, without
+  // the look of something Enter would run.
+  &.#{iv.$class-prefix}is-active.#{iv.$class-prefix}is-disabled {
+    background-color: cv.getVar('command-item-hover-background');
+    color: cv.getVar('command-disabled-color');
+  }
+}
+
+.#{iv.$class-prefix}command-item-icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  color: cv.getVar('command-icon-color');
+}
+
+// The label over its description, taking the room the icon and hint leave.
+.#{iv.$class-prefix}command-item-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.#{iv.$class-prefix}command-item-description {
+  color: cv.getVar('command-description-color');
+  font-size: cv.getVar('command-description-size');
+}
+
+.#{iv.$class-prefix}command-item-hint {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  margin-inline-start: auto;
+  color: cv.getVar('command-hint-color');
+}
+
+// On the highlight, and on a disabled item, the quieter parts take the item's
+// own color, which is the one that reads against its background.
+.#{iv.$class-prefix}command-item.#{iv.$class-prefix}is-active,
+.#{iv.$class-prefix}command-item.#{iv.$class-prefix}is-disabled {
+  .#{iv.$class-prefix}command-item-icon,
+  .#{iv.$class-prefix}command-item-description,
+  .#{iv.$class-prefix}command-item-hint {
+    color: inherit;
+  }
+}
+
+.#{iv.$class-prefix}command-group:not(:first-child) {
+  border-top: 1px solid cv.getVar('command-divider-color');
+  margin-top: cv.getVar('command-item-padding-y');
+  padding-top: cv.getVar('command-item-padding-y');
+}
+
+.#{iv.$class-prefix}command-group-label {
+  padding: 0.25em cv.getVar('command-item-padding-x');
+  // In em of the list's size, so it follows the Command's.
+  font-size: cv.getVar('command-group-label-size');
+  color: cv.getVar('command-group-label-color');
+  font-weight: cv.getVar('command-group-label-weight');
+}
+
+.#{iv.$class-prefix}command-empty {
+  padding: cv.getVar('command-empty-padding')
+    cv.getVar('command-item-padding-x');
+  color: cv.getVar('command-empty-color');
+  text-align: center;
+}
+
+// In Bulma's `.modal`, a column that centers its content: the box keeps to
+// the top, with the room under it left over, and above the background, which
+// is positioned. Its list takes what height is left, so a short window
+// scrolls the list rather than the page.
+.#{iv.$class-prefix}command.#{iv.$class-prefix}command-dialog {
+  position: relative;
+  width: calc(100% - 2rem);
+  max-width: cv.getVar('command-dialog-width');
+  max-height: calc(100% - 2 * #{cv.getVar('command-dialog-offset')});
+  margin-top: cv.getVar('command-dialog-offset');
+  margin-bottom: auto;
+  box-shadow: cv.getVar('command-dialog-shadow');
+
+  > .#{iv.$class-prefix}command-list {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+}
+
+// Windows high contrast replaces the highlight's fill with the page's, so
+// the highlight is drawn as an outline in the system's highlight color, and
+// a disabled item takes the system's color for disabled text.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}command-item {
+    &.#{iv.$class-prefix}is-active {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
+
+    // The highlighted one too, which the rule for it would otherwise outrank.
+    &.#{iv.$class-prefix}is-disabled,
+    &.#{iv.$class-prefix}is-active.#{iv.$class-prefix}is-disabled {
+      color: GrayText;
+    }
+  }
+}

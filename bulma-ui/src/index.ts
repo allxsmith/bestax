@@ -32,6 +32,7 @@ export * from './components/Carousel';
 export * from './components/Reveal';
 export * from './components/TreeView';
 export * from './components/ScrollArea';
+export * from './components/Command';
 
 export * from './elements/Block';
 export * from './elements/Box';

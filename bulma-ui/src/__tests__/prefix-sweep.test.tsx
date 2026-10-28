@@ -130,6 +130,43 @@ const PROPS: Record<string, Record<string, unknown>> = {
   },
   ComboboxItem: { value: 'apple', checked: true, children: 'Apple' },
   ComboboxGroup: { label: 'Fruit' },
+  // A highlighted item with an icon, a description and a hint, a disabled
+  // one in a group, and an empty message beside the list, so each class the
+  // Command family adds is swept.
+  Command: {
+    label: 'Commands',
+    children: [
+      <Library.Command.Input key="i" />,
+      <Library.Command.List key="l">
+        <Library.Command.Group label="Files">
+          <Library.Command.Item
+            value="open"
+            icon={<svg />}
+            description="Open a file"
+            hint="O"
+          >
+            Open
+          </Library.Command.Item>
+          <Library.Command.Item value="close" disabled>
+            Close
+          </Library.Command.Item>
+        </Library.Command.Group>
+      </Library.Command.List>,
+      <Library.Command.Empty key="e">Nothing else</Library.Command.Empty>,
+    ],
+  },
+  CommandDialog: {
+    defaultOpen: true,
+    actions: [{ id: 'open', label: 'Open', group: 'Files' }],
+  },
+  CommandItem: {
+    value: 'open',
+    icon: <svg />,
+    description: 'Open a file',
+    hint: 'O',
+    children: 'Open',
+  },
+  CommandGroup: { label: 'Files' },
   TagInput: { value: ['tag-one'] },
   Modal: { active: true, children: 'Modal content' },
   Dialog: { isOpen: true, message: 'Are you sure?' },

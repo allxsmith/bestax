@@ -725,6 +725,29 @@ A menu of actions that opens where you right-click an element, such as a table r
 
 ---
 
+### Command
+
+A search field over a list of things to do, which narrows as you type and runs the top match on Enter. It's inline, and `Command.Dialog` is a command palette in a modal, with a `shortcut` such as `"mod+k"` that opens it. [View full documentation.](../../api/components/command.md)
+
+```tsx live
+<Command
+  label="Settings"
+  placeholder="Search settings"
+  actions={[
+    { id: 'profile', label: 'Edit profile', group: 'Account' },
+    { id: 'password', label: 'Change password', group: 'Account' },
+    {
+      id: 'theme',
+      label: 'Dark mode',
+      group: 'Appearance',
+      keywords: ['theme'],
+    },
+  ]}
+/>
+```
+
+---
+
 ## Feedback
 
 ### Badge

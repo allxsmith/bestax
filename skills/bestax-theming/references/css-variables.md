@@ -420,6 +420,26 @@ which Bulma declares on `.dropdown` alone.
 `--bulma-combobox-menu-offset`, `--bulma-combobox-menu-padding-y`, `--bulma-combobox-menu-radius`,
 `--bulma-combobox-menu-shadow`, `--bulma-combobox-menu-z-index`, `--bulma-combobox-portal-z-index`
 
+### Command
+
+Declared on the root, `.command`, which `Command.Dialog` renders too, as the dialog's box, so a
+value set on `.command` reaches both. The highlight is the link color and its invert, the pair
+Bulma gives an active dropdown item, as Combobox's is, and the colors come from Bulma's tokens, so
+the list follows dark mode with no override. The search field is Bulma's `Input`, themed with
+`--bulma-input-*`. `--bulma-command-dialog-offset` is how far down the viewport the dialog sits.
+
+`--bulma-command-background`, `--bulma-command-border-color`, `--bulma-command-description-color`,
+`--bulma-command-description-size`, `--bulma-command-dialog-offset`,
+`--bulma-command-dialog-shadow`, `--bulma-command-dialog-width`, `--bulma-command-disabled-color`,
+`--bulma-command-divider-color`, `--bulma-command-empty-color`, `--bulma-command-empty-padding`,
+`--bulma-command-gap`, `--bulma-command-group-label-color`, `--bulma-command-group-label-size`,
+`--bulma-command-group-label-weight`, `--bulma-command-highlight-background`,
+`--bulma-command-highlight-color`, `--bulma-command-hint-color`, `--bulma-command-icon-color`,
+`--bulma-command-item-color`, `--bulma-command-item-gap`, `--bulma-command-item-hover-background`,
+`--bulma-command-item-padding-x`, `--bulma-command-item-padding-y`, `--bulma-command-item-radius`,
+`--bulma-command-item-size`, `--bulma-command-list-max-height`, `--bulma-command-padding`,
+`--bulma-command-radius`
+
 ### ContextMenu
 
 Both are declared on the box the menu hangs from, `.context-menu-content`, which is portaled away
