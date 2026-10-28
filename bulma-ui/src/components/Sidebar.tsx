@@ -338,9 +338,10 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
 
     // Render to portal for proper stacking
     if (typeof document !== 'undefined') {
+      const target = resolveContainer();
       return createPortal(
-        <LocalePortalScope>{sidebarContent}</LocalePortalScope>,
-        resolveContainer()
+        <LocalePortalScope target={target}>{sidebarContent}</LocalePortalScope>,
+        target
       );
     }
 

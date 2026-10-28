@@ -339,9 +339,10 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
     const toastContent = <div className={containerClasses}>{toastElement}</div>;
 
     if (typeof document !== 'undefined') {
+      const target = resolveContainer(container);
       return createPortal(
-        <LocalePortalScope>{toastContent}</LocalePortalScope>,
-        resolveContainer(container)
+        <LocalePortalScope target={target}>{toastContent}</LocalePortalScope>,
+        target
       );
     }
 
@@ -567,8 +568,9 @@ export const ToastContainer: React.FC<{
     toastStackOrder
   );
 
+  const target = resolveContainer();
   return createPortal(
-    <LocalePortalScope>
+    <LocalePortalScope target={target}>
       {stacks.map(stack => (
         <div key={stack.key} className={`toast-container is-${stack.position}`}>
           {stack.items.map(t => {
@@ -585,7 +587,7 @@ export const ToastContainer: React.FC<{
         </div>
       ))}
     </LocalePortalScope>,
-    resolveContainer()
+    target
   );
 };
 

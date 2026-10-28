@@ -100,6 +100,15 @@ export interface PortalProps {
  * also reaches what the library's components portal, such as Popover's
  * `appendToBody` panel or a `Modal` with `portal`.
  *
+ * Inside a `LocaleProvider`, the children keep its `dir` and `lang`. A
+ * container that already carries them, such as one inside the provider's
+ * own wrapper, takes the children as they are. Any other, `document.body`
+ * included, gets them inside one `<div>` carrying the provider's values,
+ * with `display: contents` so it adds no box. It is still an element, so
+ * content that must be the container's direct child, a `<tr>` in a
+ * `<tbody>`, or that a direct-child selector styles, belongs in a container
+ * inside the provider.
+ *
  * Tab order and focus follow the DOM too. Content portaled from inside a
  * focus trap is no longer inside the trapped element, so the trap neither
  * reaches it nor holds focus there: render nested overlays inside the
@@ -127,8 +136,9 @@ export function Portal({ children, container, disabled = false }: PortalProps) {
   const resolveContainer = usePortalContainer();
   if (disabled) return <>{children}</>;
   if (!hydrated) return null;
+  const target = resolveContainer(container);
   return createPortal(
-    <LocalePortalScope>{children}</LocalePortalScope>,
-    resolveContainer(container)
+    <LocalePortalScope target={target}>{children}</LocalePortalScope>,
+    target
   );
 }

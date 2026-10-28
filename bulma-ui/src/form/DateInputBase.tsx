@@ -46,6 +46,7 @@ import {
   hasOwnDayNames,
   usePickerFirstDayOfWeek,
   usePickerLocale,
+  usePickerLocaleScope,
 } from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
 import { useFieldLabelTarget } from './FormContext';
@@ -304,6 +305,9 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     // A LocaleProvider around the picker sets its default locale and, through
     // that locale, the day its week starts on.
     const locale = usePickerLocale(localeProp);
+    // Its own language and direction, which its root and a portaled panel
+    // carry inside a provider.
+    const localeScope = usePickerLocaleScope(localeProp, props.dir);
     const firstDayOfWeek = usePickerFirstDayOfWeek(
       firstDayOfWeekProp,
       locale,
@@ -558,6 +562,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     if (useNative) {
       return (
         <input
+          {...localeScope.rootAttrs}
           {...cleanRest}
           ref={combinedRef}
           type={isDayGranularity ? 'date' : 'month'}
@@ -621,6 +626,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     if (inline) {
       return (
         <div
+          {...localeScope.rootAttrs}
           {...cleanRest}
           ref={containerRef}
           className={classNames(containerClass, bulmaHelperClasses, className)}
@@ -643,6 +649,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       <div
         ref={containerRef}
         className={classNames(containerClass, bulmaHelperClasses, className)}
+        {...localeScope.rootAttrs}
         {...cleanRest}
       >
         <input
@@ -683,6 +690,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
         )}
         {popover && (
           <PickerPopover
+            localeScope={localeScope.panel}
             isOpen={open}
             onClose={handlePopoverClose}
             anchorRef={containerRef}

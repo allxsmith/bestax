@@ -40,6 +40,7 @@ import {
   hasOwnDayNames,
   usePickerFirstDayOfWeek,
   usePickerLocale,
+  usePickerLocaleScope,
 } from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
 import { useAutoLabelledBy } from './useAutoLabelId';
@@ -311,6 +312,9 @@ export const DateRangeInputBase = forwardRef<
   // A LocaleProvider around the picker sets its default locale and, through
   // that locale, the day its week starts on.
   const locale = usePickerLocale(localeProp);
+  // Its own language and direction, which its root and a portaled panel
+  // carry inside a provider.
+  const localeScope = usePickerLocaleScope(localeProp, props.dir);
   const firstDayOfWeek = usePickerFirstDayOfWeek(
     firstDayOfWeekProp,
     locale,
@@ -639,6 +643,7 @@ export const DateRangeInputBase = forwardRef<
     return (
       <div
         aria-labelledby={ariaLabelledBy}
+        {...localeScope.rootAttrs}
         {...cleanRest}
         ref={containerRef}
         role="group"
@@ -712,6 +717,7 @@ export const DateRangeInputBase = forwardRef<
     return (
       <div
         aria-labelledby={ariaLabelledBy}
+        {...localeScope.rootAttrs}
         {...cleanRest}
         ref={containerRef}
         role="group"
@@ -761,6 +767,7 @@ export const DateRangeInputBase = forwardRef<
   return (
     <div
       aria-labelledby={ariaLabelledBy}
+      {...localeScope.rootAttrs}
       {...cleanRest}
       ref={containerRef}
       role="group"
@@ -805,6 +812,7 @@ export const DateRangeInputBase = forwardRef<
       )}
       {popover && (
         <PickerPopover
+          localeScope={localeScope.panel}
           isOpen={open}
           onClose={handlePopoverClose}
           anchorRef={containerRef}

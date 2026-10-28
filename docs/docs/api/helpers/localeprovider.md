@@ -112,17 +112,21 @@ Outside a provider a picker keeps Sunday, even with a `locale` of its own, so pa
 
 ### Portaled Content
 
-What the library portals renders outside the provider's wrapper, at the end of `document.body` or in the `portalContainer` a [`ConfigProvider`](./config.md) sets. Inside a provider, that content sits in a `<div>` carrying the provider's `dir` and `lang`, with `display: contents`, so it adds no box and changes no layout. That covers a `Portal`'s children, a `Popover`, `HoverCard` or `ContextMenu` panel, a `Combobox` menu or picker popover with `appendToBody`, a `Modal` or `Dialog` with `portal`, a `Sidebar`, and toasts and notifications.
+What the library portals renders outside the provider's wrapper, at the end of `document.body` or in the `portalContainer` a [`ConfigProvider`](./config.md) sets. Inside a provider, that content keeps the provider's `dir` and `lang`. That covers a `Portal`'s children, a `Popover`, `HoverCard` or `ContextMenu` panel, a `Combobox` menu or picker popover with `appendToBody`, a `Modal` or `Dialog` with `portal`, a `Sidebar`, and toasts and notifications.
+
+A container that already carries those values, such as one inside the provider's own wrapper, takes the content as it is. Any other, `document.body` included, gets it inside one `<div>` carrying them, with `display: contents`, so it adds no box and changes no layout. It is still an element, though, so content that must be its container's direct child, such as a `<tr>` portaled into a `<tbody>`, belongs in a container inside the provider.
 
 ```tsx live
 <LocaleProvider locale="fa">
-  <Popover trigger={<Button>جزئیات</Button>} appendToBody>
+  <Popover trigger={<Button>جزئیات</Button>} appendToBody ariaLabel="جزئیات">
     <Popover.Body>
       این پنل بیرون از بخش رندر می‌شود و همچنان راست‌به‌چپ است.
     </Popover.Body>
   </Popover>
 </LocaleProvider>
 ```
+
+A date or time picker with a `locale` of its own is read the way a nested provider is: its popover, portaled or not, and an inline calendar take its `lang`, and the direction of its locale unless it has a `dir` of its own. So a French picker in an Arabic section shows a French calendar laid out left to right.
 
 For content you portal yourself without `Portal`, put the values from `useLocale()` on it.
 
@@ -153,8 +157,21 @@ Set a `locale` when an `inline` picker renders on the server. With none, `Intl` 
 
 For an app that's in one language throughout, also set `lang` and `dir` on `<html>` in your page shell. That reaches what sits outside any provider, and the provider still carries them onto portaled content.
 
-```tsx
-// app/layout.tsx in Next.js
+In the Next.js App Router, `LocaleProvider` is a client component, since it holds React context, so render it from a file marked `'use client'` and use that in the root layout, which stays a Server Component:
+
+```tsx title="app/providers.tsx"
+'use client';
+
+import { LocaleProvider } from '@allxsmith/bestax-bulma';
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return <LocaleProvider locale="ar-EG">{children}</LocaleProvider>;
+}
+```
+
+```tsx title="app/layout.tsx"
+import { Providers } from './providers';
+
 export default function RootLayout({
   children,
 }: {
@@ -163,7 +180,7 @@ export default function RootLayout({
   return (
     <html lang="ar-EG" dir="rtl">
       <body>
-        <LocaleProvider locale="ar-EG">{children}</LocaleProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

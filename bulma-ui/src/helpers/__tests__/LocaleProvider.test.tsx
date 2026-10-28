@@ -1,4 +1,4 @@
-import { createRef } from 'react';
+import React, { createRef } from 'react';
 import { act, render, screen } from '@testing-library/react';
 import {
   LocaleProvider,
@@ -270,7 +270,7 @@ describe('LocaleProvider', () => {
           <Portal>
             <p data-testid="portaled">Portaled</p>
           </Portal>
-          <LocalePortalScope>
+          <LocalePortalScope target={document.body}>
             <p data-testid="scoped">Scoped</p>
           </LocalePortalScope>
         </>
@@ -296,7 +296,7 @@ describe('LocaleProvider', () => {
       expect(scope.style.display).toBe('contents');
     });
 
-    it('wraps it even when the provider sets nothing, with no attributes', () => {
+    it('adds nothing when the provider sets nothing', () => {
       render(
         <LocaleProvider>
           <Portal>
@@ -304,10 +304,77 @@ describe('LocaleProvider', () => {
           </Portal>
         </LocaleProvider>
       );
-      const scope = scopeOf(screen.getByTestId('portaled'));
-      expect(scope.style.display).toBe('contents');
-      expect(scope).not.toHaveAttribute('dir');
-      expect(scope).not.toHaveAttribute('lang');
+      expect(scopeOf(screen.getByTestId('portaled'))).toBe(document.body);
+    });
+
+    it('adds nothing to a container that already carries the values', () => {
+      // A table row portaled into a body inside the provider has to stay the
+      // body's own child, and inherits dir and lang from the provider.
+      function Rows() {
+        const [body, setBody] = React.useState<HTMLElement | null>(null);
+        return (
+          <table>
+            <tbody ref={setBody} />
+            {body && (
+              <Portal container={body}>
+                <tr data-testid="row">
+                  <td>Cell</td>
+                </tr>
+              </Portal>
+            )}
+          </table>
+        );
+      }
+      render(
+        <LocaleProvider locale="he">
+          <Rows />
+        </LocaleProvider>
+      );
+      const row = screen.getByTestId('row');
+      expect(row.parentElement!.tagName).toBe('TBODY');
+      expect(row.closest('[lang]')).toHaveAttribute('lang', 'he');
+    });
+
+    it('wraps it for a container outside the provider', () => {
+      const outside = document.createElement('div');
+      document.body.appendChild(outside);
+      try {
+        render(
+          <LocaleProvider locale="he">
+            <Portal container={outside}>
+              <p data-testid="portaled">Portaled</p>
+            </Portal>
+          </LocaleProvider>
+        );
+        const scope = scopeOf(screen.getByTestId('portaled'));
+        expect(scope.parentElement).toBe(outside);
+        expect(scope).toHaveAttribute('lang', 'he');
+        expect(scope).toHaveAttribute('dir', 'rtl');
+      } finally {
+        outside.remove();
+      }
+    });
+
+    it('wraps it where only part of the values is inherited', () => {
+      // A container in an RTL island with no lang still needs the lang.
+      const island = document.createElement('div');
+      island.setAttribute('dir', 'rtl');
+      document.body.appendChild(island);
+      try {
+        render(
+          <LocaleProvider locale="he">
+            <Portal container={island}>
+              <p data-testid="portaled">Portaled</p>
+            </Portal>
+          </LocaleProvider>
+        );
+        expect(scopeOf(screen.getByTestId('portaled'))).toHaveAttribute(
+          'lang',
+          'he'
+        );
+      } finally {
+        island.remove();
+      }
     });
 
     it('leaves a disabled Portal in place, inside the wrapper', () => {
@@ -432,6 +499,116 @@ describe('LocaleProvider', () => {
       expect(scopeOf(panel)).toHaveAttribute('lang', 'ar-EG');
       expect(scopeOf(panel)).toHaveAttribute('dir', 'rtl');
       expect(scopeOf(panel).parentElement).toBe(document.body);
+    });
+  });
+
+  describe("a picker's own language and direction", () => {
+    /** Opens the picker and returns its panel. */
+    const openPanel = () => {
+      act(() => {
+        screen.getByRole('combobox').focus();
+      });
+      return document.querySelector('[class~="picker-popover"]') as HTMLElement;
+    };
+    /** The values the element and its content take from the DOM. */
+    const inherited = (el: Element) => [
+      el.closest('[lang]')?.getAttribute('lang'),
+      el.closest('[dir]')?.getAttribute('dir'),
+    ];
+
+    it.each([
+      ['portaled', true],
+      ['in place', false],
+    ])(
+      "follow its own locale over an Arabic provider's, %s",
+      (_, appendToBody) => {
+        render(
+          <LocaleProvider locale="ar-EG">
+            <DateInputBase
+              aria-label="Date"
+              locale="fr"
+              appendToBody={appendToBody}
+            />
+          </LocaleProvider>
+        );
+        expect(inherited(openPanel())).toEqual(['fr', 'ltr']);
+      }
+    );
+
+    it('follow its own dir, with the locale it has', () => {
+      render(
+        <LocaleProvider locale="fr">
+          <DateInputBase
+            aria-label="Date"
+            locale="ar-EG"
+            dir="ltr"
+            appendToBody
+          />
+        </LocaleProvider>
+      );
+      expect(inherited(openPanel())).toEqual(['ar-EG', 'ltr']);
+    });
+
+    it("keep the provider's locale with only a dir of its own", () => {
+      render(
+        <LocaleProvider locale="ar-EG">
+          <DateInputBase aria-label="Date" dir="ltr" appendToBody />
+        </LocaleProvider>
+      );
+      const panel = openPanel();
+      expect(inherited(panel)).toEqual(['ar-EG', 'ltr']);
+      expect(scopeOf(panel).parentElement).toBe(document.body);
+    });
+
+    it('put its own values on its root, so an inline calendar follows them', () => {
+      const { container } = render(
+        <LocaleProvider locale="ar-EG">
+          <DateInput inline aria-label="Date" locale="fr" />
+        </LocaleProvider>
+      );
+      const grid = container.querySelector('[role="grid"]')!;
+      expect(inherited(grid)).toEqual(['fr', 'ltr']);
+      expect(dayNames()[0]).toBe('lun.');
+    });
+
+    it('add nothing to the root with no locale of its own', () => {
+      render(
+        <LocaleProvider locale="ar-EG" data-testid="wrapper">
+          <DateInput inline aria-label="Date" />
+        </LocaleProvider>
+      );
+      const grid = document.querySelector('[role="grid"]')!;
+      expect(grid.closest('[lang]')).toBe(screen.getByTestId('wrapper'));
+    });
+
+    it('ignore a locale Intl refuses', () => {
+      render(
+        <LocaleProvider locale="he">
+          <TimeInput aria-label="Time" locale="en_US" appendToBody />
+        </LocaleProvider>
+      );
+      expect(inherited(openPanel())).toEqual(['he', 'rtl']);
+    });
+
+    it('reach the time, range and date-time pickers', () => {
+      const { container } = render(
+        <LocaleProvider locale="ar-EG">
+          <TimeInput inline aria-label="Time" locale="fr" />
+          <DateRangeInput inline aria-label="Stay" locale="fr" />
+          <DateTimeInput inline aria-label="Meeting" locale="fr" />
+        </LocaleProvider>
+      );
+      const roots = container.querySelectorAll('[lang="fr"]');
+      expect(roots).toHaveLength(3);
+      roots.forEach(root => expect(root).toHaveAttribute('dir', 'ltr'));
+    });
+
+    it('change nothing outside a provider', () => {
+      const { container } = render(
+        <DateInput inline aria-label="Date" locale="fr" />
+      );
+      expect(container.querySelector('[lang]')).toBeNull();
+      expect(container.querySelector('[dir]')).toBeNull();
     });
   });
 

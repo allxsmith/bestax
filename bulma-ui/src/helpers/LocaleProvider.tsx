@@ -73,10 +73,13 @@ function validLocale(tag: string | undefined): string | undefined {
  *
  * Inside it, the date and time pickers take its `locale` unless given their
  * own, and their week starts on the first day of the locale they use unless
- * `firstDayOfWeek` is set. The library's portaled content, such as a
+ * `firstDayOfWeek` is set, and a picker with a `locale` of its own is read
+ * like a nested provider. The library's portaled content, such as a
  * `Popover` panel, a `Modal` with `portal`, a `Toast` or a `Portal`'s
- * children, sits in an element carrying the same `dir` and `lang`, since it
- * renders outside the wrapper. Without a provider none of this changes.
+ * children, keeps the same `dir` and `lang` though it renders outside the
+ * wrapper: in a container that doesn't already carry them, it sits in a
+ * `display: contents` element that does. Without a provider none of this
+ * changes.
  *
  * @function
  * @param {LocaleProviderProps} props - Props for the LocaleProvider.
@@ -158,20 +161,58 @@ export function useLocaleScope(): LocaleContextValue | null {
 
 const displayContents: React.CSSProperties = { display: 'contents' };
 
+/** The `dir` and `lang` portaled content carries: a provider's, or a picker's own. */
+export interface PortalLocale {
+  /** The `lang` to carry, unset for none. */
+  locale?: string;
+  /** The `dir` to carry, unset for none. */
+  dir?: string;
+}
+
+/**
+ * Whether content placed in `target` already has `values` from the DOM
+ * around it: the nearest `dir` and `lang` attributes above it say the same.
+ * A setting that is unset needs nothing.
+ */
+function inheritsFrom(target: Element, values: PortalLocale): boolean {
+  const nearest = (name: 'dir' | 'lang') =>
+    target.closest(`[${name}]`)?.getAttribute(name);
+  return (
+    (!values.dir || nearest('dir') === values.dir) &&
+    (!values.locale || nearest('lang') === values.locale)
+  );
+}
+
 /**
  * INTERNAL, deliberately not exported from `src/index.ts`. Wraps content the
- * library portals in an element carrying the nearest provider's `dir` and
- * `lang`, which the content has left behind with the provider's wrapper. The
- * element is `display: contents`, so it adds no box. Outside a provider it
- * renders the children alone, so nothing changes there. Inside one it is
- * there even while the provider sets nothing, so a provider that gains a
- * setting doesn't remount what is open.
+ * library portals into `target` in an element carrying the nearest
+ * provider's `dir` and `lang`, or the `scope` given in their place, which
+ * the content has left behind with the provider's wrapper. The element is
+ * `display: contents`, so it adds no box.
+ *
+ * It renders the children alone outside a provider, so nothing changes
+ * there, and also when `target` already has those values from the DOM above
+ * it, such as a container inside the provider's own wrapper. Content that
+ * must be its container's direct child, a `<tr>` portaled into a `<tbody>`,
+ * then stays one.
  */
-export function LocalePortalScope({ children }: { children: React.ReactNode }) {
-  const scope = useContext(LocaleContext);
-  if (!scope) return <>{children}</>;
+export function LocalePortalScope({
+  children,
+  target,
+  scope,
+}: {
+  children: React.ReactNode;
+  /** The element the content is portaled into. */
+  target: Element;
+  /** Values to carry in place of the provider's, such as a picker's own. */
+  scope?: PortalLocale;
+}) {
+  const provider = useContext(LocaleContext);
+  if (!provider) return <>{children}</>;
+  const values = scope ?? provider;
+  if (inheritsFrom(target, values)) return <>{children}</>;
   return (
-    <div dir={scope.dir} lang={scope.locale} style={displayContents}>
+    <div dir={values.dir} lang={values.locale} style={displayContents}>
       {children}
     </div>
   );

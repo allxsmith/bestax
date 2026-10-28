@@ -1,6 +1,13 @@
 import { useMemo } from 'react';
-import { useLocaleScope } from '../../helpers/LocaleProvider';
-import { canonicalLocale, localeFirstDay } from '../../helpers/localeInfo';
+import {
+  useLocaleScope,
+  type PortalLocale,
+} from '../../helpers/LocaleProvider';
+import {
+  canonicalLocale,
+  localeDirection,
+  localeFirstDay,
+} from '../../helpers/localeInfo';
 import type { DayOfWeek } from './pickerTypes';
 
 /**
@@ -10,6 +17,49 @@ import type { DayOfWeek } from './pickerTypes';
 export function usePickerLocale(own: string | undefined): string | undefined {
   const scope = useLocaleScope();
   return own || scope?.locale;
+}
+
+/** Where a picker's own language and direction go, inside a `LocaleProvider`. */
+export interface PickerLocaleScope {
+  /**
+   * The `lang` and `dir` for the picker's root, so what renders inside it,
+   * an inline calendar or a popover in place, follows them. Empty unless the
+   * picker has a `locale` of its own.
+   */
+  rootAttrs: { lang?: string; dir?: string };
+  /** What its portaled panel carries; unset outside a provider. */
+  panel?: PortalLocale;
+}
+
+const NO_ROOT_ATTRS = {};
+
+/**
+ * A picker's language and direction inside a `LocaleProvider`, by the rule a
+ * nested provider follows: its `lang` is its own `locale`, else the
+ * provider's, and its `dir` is the `dir` passed to it, else its own locale's
+ * direction when it has one, else the provider's. Outside a provider it
+ * changes nothing. A `locale` `Intl` refuses counts as none here, since the
+ * picker's own formatting reports it.
+ */
+export function usePickerLocaleScope(
+  ownLocale: string | undefined,
+  ownDir: string | undefined
+): PickerLocaleScope {
+  const scope = useLocaleScope();
+  return useMemo(() => {
+    if (!scope) return { rootAttrs: NO_ROOT_ATTRS };
+    let own: string | undefined;
+    try {
+      own = canonicalLocale(ownLocale);
+    } catch {
+      own = undefined;
+    }
+    const dir = ownDir || (own ? localeDirection(own) : scope.dir);
+    return {
+      rootAttrs: own ? { lang: own, dir } : NO_ROOT_ATTRS,
+      panel: { locale: own || scope.locale, dir },
+    };
+  }, [scope, ownLocale, ownDir]);
 }
 
 /**

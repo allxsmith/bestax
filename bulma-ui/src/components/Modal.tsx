@@ -702,7 +702,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
       typeof portal === 'boolean' ? undefined : portal
     );
     return createPortal(
-      <LocalePortalScope>{modalElement}</LocalePortalScope>,
+      <LocalePortalScope target={target}>{modalElement}</LocalePortalScope>,
       target
     );
   }

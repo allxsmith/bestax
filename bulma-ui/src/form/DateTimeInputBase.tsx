@@ -42,6 +42,7 @@ import {
   hasOwnDayNames,
   usePickerFirstDayOfWeek,
   usePickerLocale,
+  usePickerLocaleScope,
 } from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
 import { useFieldLabelTarget } from './FormContext';
@@ -323,6 +324,9 @@ export const DateTimeInputBase = forwardRef<
   // A LocaleProvider around the picker sets its default locale and, through
   // that locale, the day its week starts on.
   const locale = usePickerLocale(localeProp);
+  // Its own language and direction, which its root and a portaled panel
+  // carry inside a provider.
+  const localeScope = usePickerLocaleScope(localeProp, props.dir);
   const firstDayOfWeek = usePickerFirstDayOfWeek(
     firstDayOfWeekProp,
     locale,
@@ -622,6 +626,7 @@ export const DateTimeInputBase = forwardRef<
     const nativeStep = enableSeconds ? incrementSeconds : incrementMinutes * 60;
     return (
       <input
+        {...localeScope.rootAttrs}
         {...cleanRest}
         ref={combinedRef}
         type="datetime-local"
@@ -776,6 +781,7 @@ export const DateTimeInputBase = forwardRef<
   if (inline) {
     return (
       <div
+        {...localeScope.rootAttrs}
         {...cleanRest}
         ref={containerRef}
         className={classNames(containerClass, bulmaHelperClasses, className)}
@@ -798,6 +804,7 @@ export const DateTimeInputBase = forwardRef<
     <div
       ref={containerRef}
       className={classNames(containerClass, bulmaHelperClasses, className)}
+      {...localeScope.rootAttrs}
       {...cleanRest}
     >
       <input
@@ -838,6 +845,7 @@ export const DateTimeInputBase = forwardRef<
       )}
       {popover && (
         <PickerPopover
+          localeScope={localeScope.panel}
           isOpen={open}
           onClose={() => setOpen(false)}
           anchorRef={containerRef}

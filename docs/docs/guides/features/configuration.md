@@ -122,7 +122,7 @@ The language and writing direction aren't `ConfigProvider` settings. They belong
 
 A `locale` alone sets the direction its script is written in, and `dir` sets the direction whatever the locale. Inside the provider, what the library portals keeps the same `dir` and `lang`, and the date pickers take its locale and start the week on that locale's first day. Without one, everything works as before: the components that handle direction follow `<html dir>`, and a picker uses the runtime's own locale and starts on Sunday.
 
-For a whole app in one language, set `lang` and `dir` on `<html>` too. With server rendering, give the provider a `locale`, so an inline calendar names its days the same way on the server and in the browser.
+For a whole app in one language, set `lang` and `dir` on `<html>` too. With server rendering, give the provider a `locale`: without one, an inline calendar names its days in the server's language on the server and the reader's in the browser. With one, the two match as long as the server's `Intl` data and the browser's spell the names alike, which they don't always do. Where they differ, give the picker its own `dayNames` and `firstDayOfWeek`, as the [LocaleProvider page's server rendering section](../../api/helpers/localeprovider.md#server-rendering) shows.
 
 ## Combining Prefix and Icon Library
 

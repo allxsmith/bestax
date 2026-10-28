@@ -3,7 +3,10 @@ import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../../helpers/classNames';
 import { useFocusTrap } from '../../helpers/useFocusTrap';
 import { usePortalContainer } from '../../helpers/portal';
-import { LocalePortalScope } from '../../helpers/LocaleProvider';
+import {
+  LocalePortalScope,
+  type PortalLocale,
+} from '../../helpers/LocaleProvider';
 import { isEventInside } from '../../helpers/shadowDom';
 import { useLatestRef } from '../../helpers/useLatestRef';
 import {
@@ -41,6 +44,11 @@ export interface PickerPopoverProps {
    * nothing matches, or the match can't take focus, the first tab stop does.
    */
   initialFocusSelector?: string;
+  /**
+   * The `dir` and `lang` the panel carries when it portals, in place of a
+   * `LocaleProvider`'s: the picker's own, from `usePickerLocaleScope`.
+   */
+  localeScope?: PortalLocale;
 }
 
 const isBrowser = typeof window !== 'undefined';
@@ -62,6 +70,7 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
   id,
   restoreFocusRef,
   initialFocusSelector,
+  localeScope,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const resolveContainer = usePortalContainer();
@@ -186,9 +195,12 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
   );
 
   if (appendToBody && isBrowser) {
+    const target = resolveContainer();
     return createPortal(
-      <LocalePortalScope>{panel}</LocalePortalScope>,
-      resolveContainer()
+      <LocalePortalScope target={target} scope={localeScope}>
+        {panel}
+      </LocalePortalScope>,
+      target
     );
   }
   return panel;

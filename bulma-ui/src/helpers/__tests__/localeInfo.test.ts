@@ -33,9 +33,14 @@ const without = (...keys: string[]) => {
   for (const key of keys) delete proto[key];
 };
 
-/** Gives `Intl.Locale` a getter in place of a method, as Chrome 99 to 129 did. */
+/**
+ * Gives `Intl.Locale` a getter in place of a method, as Chrome 99 to 129 did.
+ * An engine with only the getter, such as Node 22, already is that engine.
+ */
 const asGetter = (method: string, getter: string) => {
-  const call = saved[method]!.value as (this: Intl.Locale) => unknown;
+  const descriptor = saved[method];
+  if (!descriptor) return;
+  const call = descriptor.value as (this: Intl.Locale) => unknown;
   delete proto[method];
   Object.defineProperty(proto, getter, {
     configurable: true,

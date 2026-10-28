@@ -564,8 +564,9 @@ export const NotificationContainer: React.FC<{
     notificationStackOrder
   );
 
+  const target = resolveContainer();
   return createPortal(
-    <LocalePortalScope>
+    <LocalePortalScope target={target}>
       {stacks.map(stack => (
         <div key={stack.key} style={notificationStackStyle(stack.position)}>
           {stack.items.map(item => (
@@ -580,6 +581,6 @@ export const NotificationContainer: React.FC<{
       ))}
       <StatusRegion items={politeItems} describe={describe} />
     </LocalePortalScope>,
-    resolveContainer()
+    target
   );
 };
