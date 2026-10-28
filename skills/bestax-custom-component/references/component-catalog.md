@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-108 documented components. Generated from the API docs — every exported
+110 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -49,6 +49,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Code](https://bestax.io/docs/api/elements/code) — The `Code` component renders a styled `<code>` element with Bulma helper class integration.
 - [Content](https://bestax.io/docs/api/elements/content) — The `Content` component applies Bulma’s typographic styles to its children, enhancing the appearance of HTML elements like paragraphs, headings, lists…
 - [Delete](https://bestax.io/docs/api/elements/delete) — The `Delete` component provides a Bulma-styled close/delete button for dismissing modals, notifications, tags, messages, and more.
+- [DescriptionList](https://bestax.io/docs/api/elements/descriptionlist) — The `DescriptionList` component lists facts about one thing, each a label and its value, such as an order's details or a profile.
 - [Divider](https://bestax.io/docs/api/elements/divider) — The `Divider` component renders a styled horizontal rule (`<hr>`) element with Bulma helper class integration.
 - [Emphasis](https://bestax.io/docs/api/elements/emphasis) — The `Emphasis` component renders a styled `<em>` element with Bulma helper class integration.
 - [Figure](https://bestax.io/docs/api/elements/figure) — The `Figure` component renders a styled `<figure>` element with Bulma helper class integration.
@@ -87,6 +88,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Carousel](https://bestax.io/docs/api/components/carousel) — The `Carousel` component provides an image/content slider with navigation arrows and indicators.
 - [Collapse](https://bestax.io/docs/api/components/collapse) — The `Collapse` component provides an expandable/collapsible content panel.
 - [Collapses](https://bestax.io/docs/api/components/collapses) — The `Collapses` component groups `Collapse` items into an accordion that keeps one item open at a time, or any number with `multiple`.
+- [Command](https://bestax.io/docs/api/components/command) — The `Command` component is a search field over a list of things to do, which narrows as you type and runs the top match on Enter: inline by default…
 - [ContextMenu](https://bestax.io/docs/api/components/contextmenu) — The `ContextMenu` component opens a menu of actions where you right-click an element, such as a table row or a card, or long press it on a touch screen.
 - [Dialog](https://bestax.io/docs/api/components/dialog) — The `Dialog` component provides ready-made confirm and alert dialogs, so a destructive action stays one `await dialog.confirm()` call away.
 - [Dropdown](https://bestax.io/docs/api/components/dropdown) — The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.

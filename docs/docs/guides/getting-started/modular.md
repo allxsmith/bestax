@@ -176,6 +176,7 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/components/timeline';
 @use '@allxsmith/bestax-bulma/scss/components/treeview';
 @use '@allxsmith/bestax-bulma/scss/components/scrollarea';
+@use '@allxsmith/bestax-bulma/scss/components/command';
 
 // bestax layout
 @use '@allxsmith/bestax-bulma/scss/layout/splitter';
@@ -193,6 +194,7 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/form/radio';
 
 // bestax elements and helpers
+@use '@allxsmith/bestax-bulma/scss/elements/descriptionlist';
 @use '@allxsmith/bestax-bulma/scss/elements/kbd';
 @use '@allxsmith/bestax-bulma/scss/elements/linkbutton';
 @use '@allxsmith/bestax-bulma/scss/elements/loader' as bestax-loader;

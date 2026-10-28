@@ -15,7 +15,11 @@
     },
     {
       "title": "Context-Aware Rendering › With Field Wrapper",
-      "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Chores\"\n      labelProps={{ id: 'chores-label', htmlFor: undefined }}\n    >\n      <Field.Body>\n        <Field>\n          <Checkboxes aria-labelledby=\"chores-label\">\n            <Checkbox> Make the bed </Checkbox>\n            <Checkbox> Brush teeth </Checkbox>\n            <Checkbox> Do homework </Checkbox>\n          </Checkboxes>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "<Field label=\"Chores\">\n  <Checkboxes>\n    <Checkbox> Make the bed </Checkbox>\n    <Checkbox> Brush teeth </Checkbox>\n    <Checkbox> Do homework </Checkbox>\n  </Checkboxes>\n</Field>"
+    },
+    {
+      "title": "Context-Aware Rendering › In a Horizontal Form",
+      "code": "<Checkboxes as=\"fieldset\" horizontal label=\"Chores\">\n  <Checkbox> Make the bed </Checkbox>\n  <Checkbox> Brush teeth </Checkbox>\n  <Checkbox> Do homework </Checkbox>\n</Checkboxes>"
     },
     {
       "title": "Context-Aware Rendering › With Field and Control Wrappers",
@@ -26,7 +30,7 @@
       "code": "<Checkboxes name=\"frameworks\" label=\"Frameworks\">\n  <Checkboxes.Checkbox value=\"react\">React</Checkboxes.Checkbox>\n  <Checkboxes.Checkbox value=\"vue\">Vue</Checkboxes.Checkbox>\n</Checkboxes>"
     }
   ],
-  "accessibility": "- The group is rendered as a `<div class=\"checkboxes\" role=\"group\">` containing labeled checkboxes.\n- The `label` prop names the whole group: the rendered `<label>` gets an id (yours via `labelProps.id`, or a generated one) and the group points at it with `aria-labelledby`.\n- Inside a labeled `Field`, that `Field`'s label names the group the same way.\n- An `aria-label` or `aria-labelledby` you give the group wins over either label, whether that label sits on the Checkboxes or on a `Field` around them.\n- Each child should be a `Checkbox` for proper labeling and accessibility.",
+  "accessibility": "- By default the group is rendered as a `<div class=\"checkboxes\" role=\"group\">` containing labeled checkboxes.\n- The `label` prop names the whole group: the rendered `<label>` gets an id (yours via `labelProps.id`, or a generated one) and the group points at it with `aria-labelledby`.\n- Inside a labeled `Field`, that `Field`'s label names the group the same way.\n- With `as=\"fieldset\"`, the group is a native `<fieldset>`, named by its `<legend>` where it renders its own `Field`, or by an outer `Field`'s label through `aria-labelledby` inside one.\n- An `aria-label` or `aria-labelledby` you give the group wins over either label, whether that label sits on the Checkboxes or on a `Field` around them.\n- Each child should be a `Checkbox` for proper labeling and accessibility.",
   "related": ["Checkbox", "Field"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-checkboxes--default",
   "summary": "The `Checkboxes` component wraps multiple `Checkbox` components in a Bulma-styled group.",
@@ -107,6 +111,15 @@
           "type": "React.ReactNode",
           "default": null,
           "description": "Checkbox elements to render in the group.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "as",
+          "type": "'div' | 'fieldset'",
+          "default": "'div'",
+          "description": "The element the group renders as. With `fieldset` it's a native `<fieldset>`. Where the group renders a `Field` of its own, that `Field` is the `<fieldset>` and the `label` is its `<legend>`, in the label column when `horizontal`, so the legend names the group with no ids to wire. Your other attributes then go on the `<fieldset>`, while `className` and the helper props stay on the box that lays out the checkboxes. Inside an outer `Field` there's no legend: the group element itself is the `<fieldset>`, named by that `Field`'s label as before. `div`, the default, renders the group as it always has.",
           "required": false,
           "inherited": false,
           "deprecated": false
