@@ -163,6 +163,9 @@ export const SCSS_SOURCES = {
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
   ],
   Delete: [{ pkg: 'bulma', path: 'sass/utilities/mixins.scss' }],
+  DescriptionList: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/elements/_descriptionlist.scss' },
+  ],
   Dialog: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_dialog.scss' }],
   Divider: [],
   Dropdown: [{ pkg: 'bulma', path: 'sass/components/dropdown.scss' }],
