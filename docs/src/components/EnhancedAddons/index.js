@@ -49,6 +49,12 @@ const ADDONS = [
     desc: 'Slide any content with autoplay, drag, arrows, and indicators.',
   },
   {
+    name: 'CheckboxCard/RadioCard',
+    icon: 'choicecard',
+    link: '/docs/api/form/checkboxcard',
+    desc: 'A checkbox or a radio drawn as a card, with a title and a description, picked wherever you click it.',
+  },
+  {
     name: 'Collapse',
     icon: 'collapse',
     link: '/docs/api/components/collapse',

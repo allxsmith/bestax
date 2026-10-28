@@ -77,11 +77,13 @@ export * from './elements/Tr';
 export * from './elements/UnorderedList';
 
 export * from './form/Checkbox';
+export * from './form/CheckboxCard';
 export * from './form/Checkboxes';
 export * from './form/Control';
 export * from './form/Field';
 export * from './form/File';
 export * from './form/Radio';
+export * from './form/RadioCard';
 export * from './form/Radios';
 export * from './form/Switch';
 export * from './form/Slider';

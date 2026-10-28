@@ -241,22 +241,13 @@ function RadiosFormDemo() {
 }
 ```
 
-The same `name` propagation works through any wrapper — useful for layouts like radio cards:
+The same `name` propagation works through any wrapper of your own. Here a `Plan` component wraps a [`RadioCard`](./radiocard.md), the radio drawn as a card that's picked wherever you click it:
 
 ```tsx live
 function RadiosWrappedFormDemo() {
   const [submitted, setSubmitted] = React.useState('');
-  const RadioCard = ({ value, label }: { value: string; label: string }) => (
-    <div
-      style={{
-        padding: '0.5rem',
-        border: '1px solid #ddd',
-        borderRadius: 4,
-        marginBottom: '0.5rem',
-      }}
-    >
-      <Radio value={value}>{label}</Radio>
-    </div>
+  const Plan = ({ value, price }: { value: string; price: string }) => (
+    <RadioCard value={value} title={value} description={price} />
   );
   return (
     <form
@@ -266,17 +257,15 @@ function RadiosWrappedFormDemo() {
         setSubmitted(JSON.stringify(Array.from(fd.entries()), null, 2));
       }}
     >
-      <Radios name="plan">
-        <RadioCard value="basic" label="Basic — $9/mo" />
-        <RadioCard value="pro" label="Pro — $29/mo" />
-        <RadioCard value="enterprise" label="Enterprise — Contact us" />
+      <Radios name="plan" defaultValue="Pro">
+        <Plan value="Basic" price="$9 a month" />
+        <Plan value="Pro" price="$29 a month" />
+        <Plan value="Enterprise" price="Talk to us" />
       </Radios>
-      <div style={{ marginTop: '1rem' }}>
-        <button type="submit" className="button is-primary">
-          Submit
-        </button>
-      </div>
-      {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
+      <Button type="submit" color="primary">
+        Submit
+      </Button>
+      {submitted && <pre className="mt-4">{submitted}</pre>}
     </form>
   );
 }

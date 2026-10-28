@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-110 documented components. Generated from the API docs — every exported
+112 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -117,6 +117,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 
 - [Autocomplete](https://bestax.io/docs/api/form/autocomplete) — The `Autocomplete` component provides an input field with dropdown suggestions that filter based on user input.
 - [Checkbox](https://bestax.io/docs/api/form/checkbox) — The `Checkbox` component provides a Bulma-styled checkbox input.
+- [CheckboxCard](https://bestax.io/docs/api/form/checkboxcard) — The `CheckboxCard` component is a checkbox drawn as a card, with a title and a description, that toggles wherever you click it.
 - [Checkboxes](https://bestax.io/docs/api/form/checkboxes) — The `Checkboxes` component wraps multiple `Checkbox` components in a Bulma-styled group.
 - [Combobox](https://bestax.io/docs/api/form/combobox) — The `Combobox` component is a text field with a list to pick from under it, for a searchable select, a multi-select with tags, grouped items or a server search…
 - [Control](https://bestax.io/docs/api/form/control) — The `Control` component is a Bulma-styled wrapper for form controls (`Input`, `Select`, `TextArea`, etc.), supporting icons (left/right), loading state…
@@ -129,6 +130,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Numberinput](https://bestax.io/docs/api/form/numberinput) — The `Numberinput` component provides a number input with increment/decrement buttons.
 - [PinInput](https://bestax.io/docs/api/form/pininput) — The `PinInput` component is a field for a short code, such as a one-time code or a PIN, drawn as a row of boxes with one character in each.
 - [Radio](https://bestax.io/docs/api/form/radio) — The `Radio` component provides a Bulma-styled radio button input with flexible labels and helper classes.
+- [RadioCard](https://bestax.io/docs/api/form/radiocard) — The `RadioCard` component is a radio button drawn as a card, with a title and a description, picked wherever you click it.
 - [Radios](https://bestax.io/docs/api/form/radios) — The `Radios` component wraps multiple `Radio` components in a Bulma-styled group.
 - [Rate](https://bestax.io/docs/api/form/rate) — The `Rate` component provides a star/icon-based rating system.
 - [Select](https://bestax.io/docs/api/form/select) — The `Select` component provides a Bulma-styled dropdown for selecting one or more options.
