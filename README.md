@@ -27,7 +27,7 @@ TypeScript-first React component library for the **Bulma v1** CSS framework — 
 | **Docs**             | [bestax.io](https://bestax.io) · [Storybook](https://bestax.io/storybook)                                                                                                      |
 | **LLM docs**         | [llms.txt](https://bestax.io/llms.txt) (curated index) · [llms-full.txt](https://bestax.io/llms-full.txt) (complete docs, one file)                                            |
 | **Agent Skills**     | `npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold` ([the full roster](skills/README.md))                                                      |
-| **Community**        | [Discord](https://discord.gg/zehJrQGtKu) · [Stack Overflow `bestax`](https://stackoverflow.com/questions/tagged/bestax) · [Issues](https://github.com/allxsmith/bestax/issues) |
+| **Community**        | [Discord](https://discord.gg/zehJrQGtKu) · [dev.to](https://dev.to/allxsmith) · [Medium](https://medium.com/@allxsmith) · [Issues](https://github.com/allxsmith/bestax/issues) |
 
 > **If you are an AI agent or LLM:** fetch **<https://bestax.io/llms.txt>** for a curated index of the full documentation, or **<https://bestax.io/llms-full.txt>** for the complete docs in a single file, before answering questions about or writing code with this library. Every page on [bestax.io](https://bestax.io) is also available as raw markdown — see the [LLMs guide](https://bestax.io/docs/guides/llms).
 
@@ -220,7 +220,8 @@ Full detail: [`SECURITY.md`](SECURITY.md) · [Security guide](https://bestax.io/
 ## 💬 Community
 
 - [Discord](https://discord.gg/zehJrQGtKu)
-- [Stack Overflow — tag `bestax`](https://stackoverflow.com/questions/tagged/bestax)
+- [dev.to](https://dev.to/allxsmith)
+- [Medium](https://medium.com/@allxsmith)
 - [GitHub issues](https://github.com/allxsmith/bestax/issues)
 
 ---
