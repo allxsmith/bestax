@@ -404,7 +404,8 @@
 }
 
 .appPrimary,
-.appInfo {
+.appInfo,
+.appWarning {
   height: 32px;
   padding: 0 14px;
   border: 0;
@@ -416,12 +417,14 @@
 }
 
 .appPrimary:active,
-.appInfo:active {
+.appInfo:active,
+.appWarning:active:enabled {
   transform: scale(0.95);
 }
 
 .appPrimary:focus-visible,
-.appInfo:focus-visible {
+.appInfo:focus-visible,
+.appWarning:focus-visible {
   outline: 2px solid #1e6b99;
   outline-offset: 2px;
 }
@@ -434,6 +437,17 @@
 .appInfo {
   background: #66d1ff;
   color: #0a2f40;
+}
+
+.appWarning {
+  background: #ffb70f;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+/* Bulma's disabled button: faded, and no press. */
+.appWarning:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .status {
