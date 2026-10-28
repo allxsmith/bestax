@@ -1,101 +1,55 @@
-import clsx from 'clsx';
-import Heading from '@theme/Heading';
-import styles from './styles.module.css';
-import { useEffect, useRef, useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
+import FeaturesBento from '@site/src/components/FeaturesBento';
+import FeaturesHex from '@site/src/components/FeaturesHex';
 
-const FeatureList = [
-  {
-    title: 'Latest Bulma V1',
-    Svg: require('@site/static/img/card/sync.svg').default,
-    description: (
-      <>
-        Fully supports Bulma v1.x, unlike outdated alternatives stuck on older
-        versions. Enjoy the newest features, improvements, and compatibility
-        without compromises.
-      </>
-    ),
-  },
-  {
-    title: 'Lightweight and Efficient',
-    Svg: require('@site/static/img/card/bolt.svg').default,
-    description: (
-      <>
-        Lean runtime: the entire library is ~65KB min+gzip of JS, and
-        tree-shakeable ESM means your app ships only what it imports. Styles are
-        your call — pick a prebuilt Bulma CSS flavor or trim further with
-        modular Sass. Just one dependency: Bulma.
-      </>
-    ),
-  },
-  {
-    title: 'Developer-Friendly',
-    Svg: require('@site/static/img/card/party.svg').default,
-    description: (
-      <>
-        100% TypeScript, 99% unit test coverage: Reliable, stable components you
-        can trust. 100% Bulma implementation: Access every Bulma element,
-        layout, and component as native React pieces.
-      </>
-    ),
-  },
-];
+const SECTION_ID = 'why-bestax';
 
-function Feature({ Svg, title, description }) {
-  return (
-    <div className={clsx('col col--4')}>
-      <div className="text--center">
-        <Svg className={styles.featureSvg} role="img" />
-      </div>
-      <div className="text--center padding-horiz--md">
-        <Heading as="h3">{title}</Heading>
-        <p>{description}</p>
-      </div>
-    </div>
-  );
+/*
+ * Which layout this visit gets, picked once per page load and kept for the
+ * rest of the session's client-side navigation.
+ *
+ * The prerendered page always carries the bento, so the HTML has the full copy
+ * whatever the reader's browser picks. A reader who lands with the section
+ * already on screen (a reload partway down the page) keeps the bento rather
+ * than watching it swap. `?features=bento` or `?features=hex` pins one, for
+ * checking a layout without reloading until it comes up.
+ */
+let picked = null;
+
+function pickLayout() {
+  if (picked !== null) return picked;
+  const pinned = new URLSearchParams(window.location.search).get('features');
+  if (pinned === 'bento' || pinned === 'hex') {
+    picked = pinned;
+  } else {
+    const section = document.getElementById(SECTION_ID);
+    const onScreen =
+      section !== null &&
+      section.getBoundingClientRect().top < window.innerHeight;
+    picked = onScreen || Math.random() < 0.5 ? 'bento' : 'hex';
+  }
+  return picked;
 }
 
+const noUpdates = () => () => {};
+const prerendered = () => 'bento';
+
+/**
+ * The "Why bestax" section, in one of two layouts at random. Clicking a hex
+ * badge in the hex layout swaps in the bento, whose cards show each feature
+ * working.
+ */
 export default function HomepageFeatures() {
-  const [isVisible, setIsVisible] = useState(false);
-  const sectionRef = useRef(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect(); // Only animate once
-        }
-      },
-      {
-        threshold: 0.1, // Trigger when 10% of the section is visible
-        rootMargin: '0px 0px -50px 0px', // Trigger slightly before it's fully in view
-      }
-    );
-
-    const currentRef = sectionRef.current;
-    if (currentRef) {
-      observer.observe(currentRef);
-    }
-
-    return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef);
-      }
-    };
-  }, []);
+  const layout = useSyncExternalStore(noUpdates, pickLayout, prerendered);
+  const [revealed, setRevealed] = useState(false);
 
   return (
-    <section
-      ref={sectionRef}
-      className={clsx(styles.features, { [styles.visible]: isVisible })}
-    >
-      <div className="container">
-        <div className="row">
-          {FeatureList.map((props, idx) => (
-            <Feature key={idx} {...props} />
-          ))}
-        </div>
-      </div>
-    </section>
+    <div id={SECTION_ID}>
+      {layout === 'hex' && !revealed ? (
+        <FeaturesHex onPick={() => setRevealed(true)} />
+      ) : (
+        <FeaturesBento focusOnMount={revealed} />
+      )}
+    </div>
   );
 }
