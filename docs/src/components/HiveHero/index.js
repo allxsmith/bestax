@@ -523,11 +523,16 @@ export default function HiveHero() {
           >
             {FEATURE_LINKS.map(feature => (
               <li key={feature.label}>
+                {/*
+                  Pointer events, not mouse ones: Docusaurus's Link replaces
+                  any onMouseEnter passed to it with its own, which preloads
+                  the page.
+                */}
                 <Link
                   className={styles.feature}
                   to={feature.to}
-                  onMouseEnter={lightUp(feature)}
-                  onMouseLeave={lightDown(feature)}
+                  onPointerEnter={lightUp(feature)}
+                  onPointerLeave={lightDown(feature)}
                   onFocus={lightUp(feature)}
                   onBlur={lightDown(feature)}
                 >
