@@ -156,6 +156,35 @@ describe.each([
     });
   });
 
+  it("rounds the content with the card, since it isn't the card's first child", () => {
+    // Bulma rounds a `.card-content` only through :first-child and
+    // :last-child, and the input comes first, so a themed content background
+    // would otherwise show square corners past the card's.
+    expect(find(PLAIN, content)).toMatchObject({
+      'border-radius': 'inherit',
+    });
+    // Not clipped instead: overflow on the card would cut off the focus
+    // outline, which sits outside it.
+    for (const rule of PLAIN.filter(r => r.selector === card)) {
+      expect(rule.declarations).not.toHaveProperty('overflow');
+    }
+  });
+
+  it('sizes the indicator from its variable, with no 24px floor', () => {
+    // The whole card is the click target, so the indicator needn't be one,
+    // and with no floor the size variable and the card's textSize reach it.
+    const check = find(PLAIN, `.${kind}-card-check`);
+    expect(check).toMatchObject({
+      width: v('indicator-size'),
+      height: v('indicator-size'),
+      // Centred on the title's first line, whose height is 1.5em.
+      'margin-top': `max(0px, (1.5em - ${v('indicator-size')}) / 2)`,
+    });
+    expect(check).not.toHaveProperty('min-width');
+    expect(check).not.toHaveProperty('min-height');
+    expect(find(PLAIN, `.${kind}-card-body`)['line-height']).toBe('1.5');
+  });
+
   it("leaves the title in the card's text color, so textColor reaches it", () => {
     expect(find(PLAIN, `.${kind}-card-title`)).toEqual({
       display: 'block',

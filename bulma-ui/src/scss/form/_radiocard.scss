@@ -41,6 +41,10 @@ $radio-card-indicator-border-color: cv.getVar('text-weak') !default;
 $radio-card-disabled-opacity: 0.5 !default;
 $radio-card-transition-duration: cv.getVar('duration') !default;
 
+// The text's line height, which also places the indicator: it's centred on
+// the title's first line while it's shorter than that line.
+$-line-height: 1.5;
+
 .#{iv.$class-prefix}radio-card {
   @include cv.register-vars(
     (
@@ -132,21 +136,30 @@ $radio-card-transition-duration: cv.getVar('duration') !default;
   }
 }
 
-// The content fills the card, the indicator beside the text.
+// The content fills the card, the indicator beside the text. Bulma rounds a
+// `.card-content` only as the card's first or last child, and the input comes
+// first here, so the content takes the card's corners itself, or a themed
+// `--bulma-card-content-background-color` would show square ones.
 .#{iv.$class-prefix}radio-card-content {
   display: flex;
   align-items: flex-start;
   gap: cv.getVar('radio-card-gap');
+  border-radius: inherit;
 }
 
 .#{iv.$class-prefix}radio-card-check {
   display: inline-flex;
   flex-shrink: 0;
   position: relative;
+  // Checkbox and Radio hold their box to 24px, the minimum target size. Here
+  // the whole card is the target, so the indicator has no floor and follows
+  // its size variable and the card's text size.
   width: cv.getVar('radio-card-indicator-size');
   height: cv.getVar('radio-card-indicator-size');
-  min-width: 24px;
-  min-height: 24px;
+  margin-top: max(
+    0px,
+    calc((#{$-line-height}em - #{cv.getVar('radio-card-indicator-size')}) / 2)
+  );
   border: cv.getVar('radio-card-indicator-border-width') solid
     cv.getVar('radio-card-indicator-border-color');
   border-radius: 50%;
@@ -177,7 +190,7 @@ $radio-card-transition-duration: cv.getVar('duration') !default;
   display: block;
   flex: 1 1 auto;
   min-width: 0;
-  line-height: 1.5;
+  line-height: $-line-height;
 }
 
 // The title takes the card's own text color, so `textColor` reaches it too.
