@@ -214,6 +214,7 @@ export default function CreateBestax() {
   const [runs, setRuns] = useState(0);
   const timers = useRef([]);
   const typer = useRef(null);
+  const observerRef = useRef(null);
 
   const stop = useCallback(() => {
     timers.current.forEach(clearTimeout);
@@ -222,8 +223,11 @@ export default function CreateBestax() {
     typer.current = null;
   }, []);
 
+  // Disarms the observer first, so a Replay clicked before the terminal
+  // reaches the threshold isn't restarted when it does.
   const play = useCallback(() => {
     stop();
+    observerRef.current?.disconnect();
     setRuns(n => n + 1);
     if (prefersReducedMotion()) {
       setTyped(null);
@@ -258,7 +262,6 @@ export default function CreateBestax() {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          observer.disconnect();
           play();
         } else {
           setStep(HIDDEN);
@@ -266,6 +269,7 @@ export default function CreateBestax() {
       },
       { rootMargin: '0px 0px -25% 0px' }
     );
+    observerRef.current = observer;
     observer.observe(terminalRef.current);
     return () => {
       observer.disconnect();
