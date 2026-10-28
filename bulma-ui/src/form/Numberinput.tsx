@@ -2,7 +2,11 @@ import React, { forwardRef, useState, useCallback, useRef } from 'react';
 import type { JSX } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useInsideField, useInsideControl } from './FormContext';
+import {
+  useFieldsetDisabled,
+  useInsideField,
+  useInsideControl,
+} from './FormContext';
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
@@ -171,7 +175,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
       compact = false,
       bare,
       variant = 'plusminus',
-      disabled = false,
+      disabled: disabledProp,
       editable = true,
       isLoading = false,
       exponential = false,
@@ -181,6 +185,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const insideField = useInsideField();
     // Bare controls join their parent's row, which a `.control` does not lay
     // out. `useInsideControl()` is true anywhere below a `Control`, even past

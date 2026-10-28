@@ -13,7 +13,7 @@ import {
 } from '../helpers/classNames';
 import { useConfig } from '../helpers/Config';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useInsideField } from './FormContext';
+import { useFieldsetDisabled, useInsideField } from './FormContext';
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
@@ -212,7 +212,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       selectOnClickOutside = false,
       maxHeight = 200,
       loading = false,
-      disabled = false,
+      disabled: disabledProp,
       checkInfiniteScroll = false,
       infiniteScrollDistance = 50,
       color,
@@ -247,6 +247,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const insideField = useInsideField();
     // The suggestion list points `aria-labelledby` at the label that names
     // the input, so it needs that label's id.

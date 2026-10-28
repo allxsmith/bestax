@@ -73,6 +73,12 @@ const ADDONS = [
     desc: 'What a list or a search shows when there is nothing in it, with a real heading and a way forward.',
   },
   {
+    name: 'Fieldset',
+    icon: 'fieldset',
+    link: '/docs/api/form/fieldset',
+    desc: 'A section of a form named by its legend, bordered, filled or plain, that one disabled switches off as a whole.',
+  },
+  {
     name: 'HoverCard',
     icon: 'hovercard',
     link: '/docs/api/components/hovercard',

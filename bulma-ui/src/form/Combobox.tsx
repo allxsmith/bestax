@@ -34,6 +34,7 @@ import { Input, InputProps } from './Input';
 import { FormFieldProps } from './fieldProps';
 import {
   rendersOwnField,
+  useFieldsetDisabled,
   useInsideControl,
   useInsideField,
 } from './FormContext';
@@ -1186,7 +1187,7 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
       onSelect,
       onOpenChange,
       inline = false,
-      disabled = false,
+      disabled: disabledProp,
       required = false,
       form,
       id,
@@ -1196,6 +1197,7 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
       children,
       ...rest
     } = props;
+    const disabled = useFieldsetDisabled(disabledProp);
     // A name given in place of a label is the field's and the list's, not
     // the wrapper's. Only the ones given are passed, since an
     // `aria-labelledby` that's there at all, even undefined, keeps the

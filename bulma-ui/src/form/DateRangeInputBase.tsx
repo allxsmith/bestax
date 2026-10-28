@@ -38,6 +38,7 @@ import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker'
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
 import { useControlLoading } from './controlLoading';
 import { useAutoLabelledBy } from './useAutoLabelId';
+import { useFieldsetDisabled } from './FormContext';
 import { Icon } from '../elements/Icon';
 
 export type { DateRangeValue };
@@ -242,7 +243,7 @@ export const DateRangeInputBase = forwardRef<
     onClose,
     min,
     max,
-    disabled,
+    disabled: disabledProp,
     readOnly,
     placeholder,
     format,
@@ -281,6 +282,7 @@ export const DateRangeInputBase = forwardRef<
     onFocusCapture,
     ...rest
   } = props;
+  const disabled = useFieldsetDisabled(disabledProp);
   // The launcher gives way to the loading spinner of a Control this sits in.
   const controlLoading = useControlLoading();
   const triggerIcon = triggerIconProp ?? !controlLoading;

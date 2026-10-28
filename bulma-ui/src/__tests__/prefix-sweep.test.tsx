@@ -83,6 +83,15 @@ const PROPS: Record<string, Record<string, unknown>> = {
     sections: [{ value: 40, color: 'warning', label: 'Photos' }],
     children: '40%',
   },
+  // Filled, with a legend and a colored message, so the legend's and the
+  // help's classes are swept with the variant's.
+  Fieldset: {
+    legend: 'Shipping',
+    variant: 'filled',
+    message: 'We only ship within the EU.',
+    messageColor: 'info',
+    children: 'Fields',
+  },
   // Every modifier, so each class the frame takes is swept.
   ScrollArea: {
     'aria-label': 'Notes',

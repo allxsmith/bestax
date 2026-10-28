@@ -77,6 +77,24 @@ A `grouped` or `hasAddons` Field names none of its controls, and a placeholder d
 the user types, so give each input in the row an `aria-label`, or a visible label on an outer
 `Field` (`references/patterns.md`, "Grouped controls and addons").
 
+### Sections via Fieldset
+
+`Fieldset` groups several fields under one name: a native `<fieldset>` whose `legend` names the
+group. `variant` is `default` (bordered), `filled` or `unstyled`. `disabled` disables every
+control inside, the native ones and bestax's own widgets (`Rate`, the time wheels) alike, so it's
+also how to switch a whole form off while it saves. `message` describes the group; each input
+still carries its own error.
+
+```tsx
+<Fieldset legend="Shipping address" disabled={saving}>
+  <Input label="Street" name="street" />
+  <Input label="City" name="city" />
+</Fieldset>
+```
+
+Prefer it to a hand-written `<fieldset disabled>`, which the browser applies to native controls
+only: a `Rate` inside one keeps taking input while its value is dropped from the form.
+
 ## Component inventory
 
 All import from `@allxsmith/bestax-bulma`. Convenience components auto-wrap Field+Control;
@@ -86,6 +104,7 @@ All import from `@allxsmith/bestax-bulma`. Convenience components auto-wrap Fiel
 | ------------------------------------------------------- | ------------------------------------------------------------------------- |
 | `Field`, `Field.Label`, `Field.Body`                    | Field container + horizontal label/body parts.                            |
 | `Control`                                               | Wraps one input; left/right icons, `isLoading`, `isExpanded`, `size`.     |
+| `Fieldset`                                              | A section named by its `legend`; `disabled` switches off all of it.       |
 | `Input` / `InputBase`                                   | Text input (convenience / raw).                                           |
 | `Select` / `SelectBase`                                 | Dropdown select.                                                          |
 | `TextArea` / `TextAreaBase`                             | Multiline text.                                                           |
@@ -269,8 +288,8 @@ multi-field form plus the advanced inputs.
 ## Reuse the shipped components
 
 bestax ships the whole form surface — Input, Select, TextArea, Checkbox(es), Radio(s), Switch, File,
-Autocomplete, Combobox, Slider, Numberinput, PinInput, Rate, Taginput, and the date/time inputs (see
-the inventory above). **Compose these; don't hand-roll raw `<input class="input">` markup or
+Autocomplete, Combobox, Slider, Numberinput, PinInput, Rate, Taginput, the date/time inputs, and
+Fieldset to group them (see the inventory above). **Compose these; don't hand-roll raw `<input class="input">` markup or
 reinvent a control.** If you think a control is missing, check `bulma-ui/src/index.ts` and
 `docs/docs/api/form/` first — it's probably already there under a different name.
 

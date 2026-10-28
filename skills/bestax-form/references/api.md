@@ -36,6 +36,21 @@ Wraps a single input; adds icons and loading.
 | `size`                           | `'small' \| 'medium' \| 'large'` | Control size.                   |
 | `as`                             | `'div' \| 'p'`                   | Root element (default `div`).   |
 
+## Fieldset — `form/Fieldset.tsx`
+
+A native `<fieldset>` for a section of a form. It starts its own Field scope, so the convenience
+inputs inside render their own `Field`s.
+
+| Prop                    | Type                                  | Notes                                                                                                                                |
+| ----------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `legend`                | `ReactNode`                           | Names the group. Controls in it stay enabled when the Fieldset is disabled, as the browser leaves them.                              |
+| `legendProps`           | legend attributes                     | Props for the `<legend>`.                                                                                                            |
+| `variant`               | `'default' \| 'filled' \| 'unstyled'` | Bordered (default), bordered on a tinted background, or no box.                                                                      |
+| `disabled`              | `boolean`                             | Disables every control inside, and is the default for each bestax input's own `disabled`. An input's own `disabled`, when set, wins. |
+| `message`               | `ReactNode`                           | Help text under the group, in its `aria-describedby`. No `aria-invalid` on the group.                                                |
+| `messageColor`          | Bulma color                           | Colors the message.                                                                                                                  |
+| `textColor` / `bgColor` | Bulma color                           | Helper colors for the fieldset.                                                                                                      |
+
 ## Input / InputBase — `form/Input.tsx`, `form/InputBase.tsx`
 
 `Input` composes `Field` + `Control` + `InputBase`. Beyond `InputBase` props it adds Field-level

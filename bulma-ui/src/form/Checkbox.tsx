@@ -6,7 +6,7 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
-import { useCheckboxesGroup } from './FormContext';
+import { useCheckboxesGroup, useFieldsetDisabled } from './FormContext';
 
 /**
  * The values the Checkbox `color` prop accepts, as a readonly tuple.
@@ -123,7 +123,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
       className,
       children,
       textColor,
-      disabled,
+      disabled: disabledProp,
       name,
       value,
       checked,
@@ -134,6 +134,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color: textColor,
       ...props,

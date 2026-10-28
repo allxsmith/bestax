@@ -18,6 +18,7 @@ import {
   useInsideField,
   useInsideControl,
   rendersOwnField,
+  useFieldsetDisabled,
 } from './FormContext';
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
@@ -228,7 +229,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       attached = false,
       maxTags,
       maxlength,
-      disabled = false,
+      disabled: disabledProp,
       readonly = false,
       rounded = false,
       ellipsis = false,
@@ -260,6 +261,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const insideField = useInsideField();
     const insideControl = useInsideControl();
     const ownField = rendersOwnField('Taginput', {

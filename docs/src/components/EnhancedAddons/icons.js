@@ -106,6 +106,17 @@ function EmptyStateIcon() {
   );
 }
 
+// A box whose top border breaks for its legend, with two fields inside
+function FieldsetIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M5 6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2" />
+      <path d="M9 6h4" />
+      <path d="M7 12h10M7 16h10" />
+    </svg>
+  );
+}
+
 // Spinner arc — loading
 function LoadingIcon() {
   return (
@@ -288,6 +299,7 @@ const ADDON_ICONS = {
   contextmenu: ContextMenuIcon,
   dialog: DialogIcon,
   emptystate: EmptyStateIcon,
+  fieldset: FieldsetIcon,
   hovercard: HoverCardIcon,
   loading: LoadingIcon,
   pininput: PinInputIcon,

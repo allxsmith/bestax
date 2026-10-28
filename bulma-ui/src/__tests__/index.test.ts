@@ -61,6 +61,7 @@ const PUBLIC_EXPORTS = [
   'Field',
   'FieldBody',
   'FieldLabel',
+  'Fieldset',
   'Figure',
   'File',
   'Footer',

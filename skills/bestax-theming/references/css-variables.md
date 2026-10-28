@@ -487,6 +487,21 @@ from Bulma's scheme tokens, so the circle follows dark mode with no override. Th
 `--bulma-empty-state-indicator-radius`, `--bulma-empty-state-indicator-size`,
 `--bulma-empty-state-padding`, `--bulma-empty-state-title-size`
 
+### Fieldset
+
+Declared on the root, `.fieldset`. The surfaces and the border come from Bulma's scheme tokens, so
+the box follows dark mode with no override. `.is-filled` paints
+`--bulma-fieldset-filled-background` in place of `--bulma-fieldset-background`, and `.is-unstyled`
+drops the box. The legend takes Bulma's
+label look from the `--bulma-label-*` tokens. In forced colors the border takes the system's text
+color whatever these say.
+
+`--bulma-fieldset-background`, `--bulma-fieldset-border-color`, `--bulma-fieldset-border-width`,
+`--bulma-fieldset-filled-background`, `--bulma-fieldset-legend-color`,
+`--bulma-fieldset-legend-padding`, `--bulma-fieldset-legend-size`,
+`--bulma-fieldset-legend-spacing`, `--bulma-fieldset-legend-weight`, `--bulma-fieldset-padding`,
+`--bulma-fieldset-padding-top`, `--bulma-fieldset-radius`, `--bulma-fieldset-spacing`
+
 ### HoverCard
 
 All are declared on the card, `.hover-card-content`, so a card rendered with `appendToBody` keeps

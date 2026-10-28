@@ -632,13 +632,13 @@ Use an empty `Field.Label` to align the submit button under the inputs above it.
 
 ### Disabled Fieldset
 
-Wrap multiple Inputs in a native `<fieldset disabled>` to disable every field at once.
+Wrap several Inputs in a disabled [`Fieldset`](./fieldset.md) to disable every field at once.
 
 ```tsx live
-<fieldset disabled>
+<Fieldset variant="unstyled" disabled>
   <Input label="Name" placeholder="Your name" />
   <Input label="Email" type="email" placeholder="Your email" />
-</fieldset>
+</Fieldset>
 ```
 
 ---

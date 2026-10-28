@@ -13107,6 +13107,7 @@
     "daterangeinput": "DateRangeInput",
     "dialog": "Dialog",
     "empty-state": "EmptyState",
+    "fieldset": "Fieldset",
     "hover-card": "HoverCard",
     "kbd": "Kbd",
     "link-button": "LinkButton",

@@ -1,0 +1,256 @@
+{
+  "name": "Fieldset",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/fieldset",
+  "docsUrl": "https://bestax.io/docs/api/form/fieldset",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<Fieldset legend=\"Shipping address\">\n  <Input label=\"Street\" name=\"street\" />\n  <Input label=\"City\" name=\"city\" />\n</Fieldset>"
+    },
+    {
+      "title": "Variants",
+      "code": "<Columns>\n  <Column>\n    <Fieldset legend=\"Default\">\n      <Input label=\"Street\" name=\"street-default\" />\n    </Fieldset>\n  </Column>\n  <Column>\n    <Fieldset variant=\"filled\" legend=\"Filled\">\n      <Input label=\"Street\" name=\"street-filled\" />\n    </Fieldset>\n  </Column>\n  <Column>\n    <Fieldset variant=\"unstyled\" legend=\"Unstyled\">\n      <Input label=\"Street\" name=\"street-unstyled\" />\n    </Fieldset>\n  </Column>\n</Columns>"
+    },
+    {
+      "title": "With a Message",
+      "code": "<Fieldset\n  legend=\"Contact\"\n  message=\"Fill in the phone number or the email.\"\n  messageColor=\"info\"\n>\n  <Input label=\"Phone\" name=\"phone\" type=\"tel\" />\n  <Input label=\"Email\" name=\"email\" type=\"email\" />\n</Fieldset>"
+    },
+    {
+      "title": "Horizontal Fields",
+      "code": "<Fieldset legend=\"Contact details\">\n  <Input horizontal label=\"Phone\" name=\"phone\" type=\"tel\" />\n  <Input horizontal label=\"Email\" name=\"email\" type=\"email\" />\n  <Field horizontal label=\"Subject\">\n    <Control>\n      <Select name=\"subject\">\n        <option>Business</option>\n        <option>Support</option>\n      </Select>\n    </Control>\n  </Field>\n</Fieldset>"
+    },
+    {
+      "title": "Disabled",
+      "code": "<Fieldset legend=\"Preferences\" disabled>\n  <Input label=\"Display name\" name=\"display-name\" defaultValue=\"Ada\" />\n  <Rate label=\"Rating\" name=\"rating\" defaultValue={3} />\n  <Slider label=\"Volume\" name=\"volume\" defaultValue={40} />\n  <Checkboxes label=\"Notifications\" name=\"notifications\">\n    <Checkbox value=\"email\">Email</Checkbox>\n    <Checkbox value=\"sms\">SMS</Checkbox>\n  </Checkboxes>\n</Fieldset>"
+    },
+    {
+      "title": "Turned On From the Legend",
+      "code": "function ShippingAddress() {\n  const [different, setDifferent] = React.useState(false);\n  return (\n    <Fieldset\n      disabled={!different}\n      legend={\n        <Checkbox\n          checked={different}\n          onChange={event => setDifferent(event.target.checked)}\n        >\n          Ship to a different address\n        </Checkbox>\n      }\n    >\n      <Input label=\"Street\" name=\"street\" />\n      <Input label=\"City\" name=\"city\" />\n    </Fieldset>\n  );\n}"
+    },
+    {
+      "title": "Disabling a Form While It Saves",
+      "code": "function SavingForm() {\n  const [saving, setSaving] = React.useState(false);\n  return (\n    <form\n      onSubmit={event => {\n        event.preventDefault();\n        setSaving(true);\n        setTimeout(() => setSaving(false), 2000);\n      }}\n    >\n      <Fieldset variant=\"unstyled\" disabled={saving}>\n        <Input label=\"Name\" name=\"name\" />\n        <Rate label=\"Rating\" name=\"rating\" defaultValue={4} />\n        <Button type=\"submit\" color=\"primary\" isLoading={saving}>\n          Save\n        </Button>\n      </Fieldset>\n    </form>\n  );\n}"
+    }
+  ],
+  "accessibility": "- **Name:** the legend names the group natively, so a screen reader announces it as a group\n  called \"Shipping address\" with no ids to wire. A Fieldset with no legend is an unnamed group,\n  which is fine for one that's only there to disable a form. Screen readers differ in how often\n  they repeat a legend, so keep it short and the labels inside complete on their own.\n- **Description:** the `message` is the group's description through `aria-describedby`, added to\n  any ids you pass there.\n- **Errors:** nothing marks the group invalid, since ARIA deprecates `aria-invalid` on a group.\n  Put each input's error on that input with its own `color` and `message`.\n- **Disabled:** native controls are disabled and left out of the form's data, and bestax's own\n  widgets, such as `Rate` and the time wheels, leave the tab order and ignore input. An input's\n  own `disabled`, when you set it, wins over the Fieldset's, though the browser keeps its native\n  parts disabled. Controls in the legend stay enabled, and a Fieldset inside a disabled one is\n  disabled too.\n- **Not disabled:** links, `LinkButton`s and anything else that isn't a form control stay\n  operable, as in plain HTML, so disable or hide those yourself.\n- **Forced colors:** the border takes the system's text color, since the backgrounds are\n  replaced there.",
+  "related": ["Box", "Checkboxes", "Field", "Radios", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-fieldset--default",
+  "summary": "The `Fieldset` component groups a section of a form in a native `<fieldset>`, named by its `legend`, which a `disabled` switches off as a whole. It starts its own Field scope: inside it, nothing reads as inside a `Field` or `Control`, so the convenience inputs render their own `Field`, and a labeled `Field` around the Fieldset names nothing in it.",
+  "import": "import { Fieldset } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/Fieldset.tsx",
+  "rootClass": "fieldset",
+  "parts": [
+    {
+      "path": "Fieldset",
+      "summary": "The `Fieldset` component groups a section of a form in a native `<fieldset>`, named by its `legend`, which a `disabled` switches off as a whole. It starts its own Field scope: inside it, nothing reads as inside a `Field` or `Control`, so the convenience inputs render their own `Field`, and a labeled `Field` around the Fieldset names nothing in it.",
+      "component": null,
+      "props": [
+        {
+          "name": "legend",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The group's name, shown in a `<legend>`, which names the fieldset with no ids to wire. The `default` and `filled` variants draw it on the border, and `unstyled` above the content. Controls you put in it, such as a `Checkbox` that turns the section on, stay enabled when the Fieldset is disabled, as the browser leaves them.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "legendProps",
+          "type": "React.HTMLAttributes<HTMLLegendElement>",
+          "default": null,
+          "description": "Props for the `<legend>`, such as an `id` or a `className`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "'default' | 'filled' | 'unstyled'",
+          "default": "'default'",
+          "description": "The look: `default` draws a border round the group, `filled` adds a tinted background, and `unstyled` draws no box at all, which suits a Fieldset that's there to name or disable a group.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disables every control inside. The browser disables the native ones and leaves them out of the form's data, and each bestax input with a `disabled` prop takes this as that prop's default, which also stops widgets the browser doesn't reach, such as `Rate`'s stars and the time wheels, and gives them their disabled look. An input's own `disabled` still wins when you set it, though the browser keeps its native parts disabled whatever it says. Links and `LinkButton`s stay operable, as in plain HTML.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Help text under the group. It describes the fieldset through `aria-describedby`, alongside any ids you pass there. Nothing passes it to the inputs, so each still shows its own errors.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "messageColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color for the message.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper, for the text in the group. The legend keeps its own color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The group's content, such as `Field`s and inputs.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLFieldSetElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<fieldset>`, whose `elements` lists the controls inside.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "aria-describedby",
+          "type": "string",
+          "default": null,
+          "description": "Ids of more text that describes the group. The `message`'s id is added after them.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "The fieldset's name in its form's `elements`. Nothing is submitted under it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-fieldset-background",
+      "sass": "$fieldset-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-fieldset-filled-background",
+      "sass": "$fieldset-filled-background",
+      "default": "var(--bulma-background)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-fieldset-border-color",
+      "sass": "$fieldset-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-fieldset-border-width",
+      "sass": "$fieldset-border-width",
+      "default": "1px",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-fieldset-radius",
+      "sass": "$fieldset-radius",
+      "default": "var(--bulma-radius-large)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-fieldset-padding",
+      "sass": "$fieldset-padding",
+      "default": "1.25rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-fieldset-padding-top",
+      "sass": "$fieldset-padding-top",
+      "default": "0.75rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-fieldset-spacing",
+      "sass": "$fieldset-spacing",
+      "default": "var(--bulma-block-spacing)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-fieldset-legend-color",
+      "sass": "$fieldset-legend-color",
+      "default": "var(--bulma-label-color)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-fieldset-legend-size",
+      "sass": "$fieldset-legend-size",
+      "default": "var(--bulma-size-normal)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-fieldset-legend-weight",
+      "sass": "$fieldset-legend-weight",
+      "default": "var(--bulma-label-weight)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-fieldset-legend-padding",
+      "sass": "$fieldset-legend-padding",
+      "default": "0.5em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-fieldset-legend-spacing",
+      "sass": "$fieldset-legend-spacing",
+      "default": "var(--bulma-label-spacing)",
+      "scope": "root"
+    }
+  ]
+}
