@@ -11,6 +11,7 @@ import GapElements from '@site/src/components/GapElements';
 import EnhancedAddons from '@site/src/components/EnhancedAddons';
 import PickerShowcase from '@site/src/components/PickerShowcase';
 import AiReady from '@site/src/components/AiReady';
+import CreateBestax from '@site/src/components/CreateBestax';
 import Heading from '@theme/Heading';
 import { useStorageSlot } from '@docusaurus/theme-common';
 import {
@@ -19,103 +20,7 @@ import {
   TAB_STORAGE_KEY,
   renderCommand,
 } from '@site/src/components/PackageManagerTabs/translate.mjs';
-import {
-  Skeleton,
-  Grid,
-  Cell,
-  Notification,
-  Box,
-} from '@allxsmith/bestax-bulma';
 import styles from './index.module.css';
-
-const CELL_COLORS = ['primary', 'link', 'info', 'success', 'warning', 'danger'];
-
-const v1Slides = [
-  {
-    key: 'skeleton',
-    title: 'Skeleton',
-    description:
-      'Bulma-styled loading placeholders. Use the block or lines variant directly, or flip the skeleton prop on compatible components to show a loading state while real content arrives.',
-    link: '/docs/api/elements/skeleton',
-    linkLabel: 'Skeleton Docs',
-    demo: (
-      <Box style={{ maxWidth: '26rem', margin: '0 auto' }}>
-        <Skeleton variant="block" style={{ height: '7rem' }} />
-        <div className="mt-4">
-          <Skeleton variant="lines" lines={4} />
-        </div>
-      </Box>
-    ),
-  },
-  {
-    key: 'grid',
-    title: 'Grid',
-    description:
-      'Bulma’s modern CSS Grid as a React component. Set minCol and a gap, and the grid responsively fits as many columns as the space allows — no breakpoint math required.',
-    link: '/docs/api/grid',
-    linkLabel: 'Grid Docs',
-    demo: (
-      <Grid minCol={4} gap={1}>
-        {Array.from({ length: 8 }, (_, i) => (
-          <Cell key={i}>
-            <Notification
-              color={CELL_COLORS[i % CELL_COLORS.length]}
-              className="has-text-centered py-3 px-2"
-            >
-              Cell {i + 1}
-            </Notification>
-          </Cell>
-        ))}
-      </Grid>
-    ),
-  },
-  {
-    key: 'cell',
-    title: 'Cell',
-    description:
-      'Place individual grid items with precision. Span columns and rows, set explicit start positions, and build dashboard-style layouts with colSpan, rowSpan, colStart, and friends.',
-    link: '/docs/api/grid/cell',
-    linkLabel: 'Cell Docs',
-    demo: (
-      <Grid isFixed fixedCols={4} gap={1}>
-        <Cell colSpan={2}>
-          <Notification color="primary" className="py-3">
-            colSpan 2
-          </Notification>
-        </Cell>
-        <Cell>
-          <Notification color="info" className="py-3">
-            1
-          </Notification>
-        </Cell>
-        <Cell rowSpan={2}>
-          <Notification
-            color="success"
-            className="py-3"
-            style={{ height: '100%' }}
-          >
-            rowSpan 2
-          </Notification>
-        </Cell>
-        <Cell colStart={2} colSpan={2}>
-          <Notification color="warning" className="py-3">
-            colStart 2, colSpan 2
-          </Notification>
-        </Cell>
-        <Cell>
-          <Notification color="danger" className="py-3">
-            2
-          </Notification>
-        </Cell>
-        <Cell colSpan={3}>
-          <Notification color="link" className="py-3">
-            colSpan 3
-          </Notification>
-        </Cell>
-      </Grid>
-    ),
-  },
-];
 
 const formSlides = [
   {
@@ -452,12 +357,7 @@ export default function Home() {
       <main>
         <AiReady />
         <HomepageFeatures />
-        <HomepageCarousel
-          heading="New in Bulma v1"
-          intro="Brand new components from the latest Bulma v1, available now in Bestax-Bulma — every demo below is the real component, rendered live."
-          slides={v1Slides}
-          alt
-        />
+        <CreateBestax />
         <CategoryCards />
         <GapElements />
         <EnhancedAddons />
