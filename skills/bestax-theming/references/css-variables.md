@@ -385,6 +385,30 @@ Bulma's default font sizes the box is 24px at the default and `small` sizes. For
 `min-width: 0; min-height: 0` on `.styled-checkbox.my-box .check` (mind the class prefix), and keep
 the label text inside the `Checkbox`, since the whole label is the click target.
 
+### CheckboxCard
+
+`--bulma-checkbox-card-active-color`, `--bulma-checkbox-card-border-color`,
+`--bulma-checkbox-card-border-width`, `--bulma-checkbox-card-check-color`,
+`--bulma-checkbox-card-checked-border-width`, `--bulma-checkbox-card-description-color`,
+`--bulma-checkbox-card-disabled-opacity`, `--bulma-checkbox-card-focus-color`,
+`--bulma-checkbox-card-focus-offset`, `--bulma-checkbox-card-focus-width`,
+`--bulma-checkbox-card-gap`, `--bulma-checkbox-card-hover-border-color`,
+`--bulma-checkbox-card-indicator-border-color`, `--bulma-checkbox-card-indicator-border-width`,
+`--bulma-checkbox-card-indicator-radius`, `--bulma-checkbox-card-indicator-size`,
+`--bulma-checkbox-card-min-width`, `--bulma-checkbox-card-title-weight`,
+`--bulma-checkbox-card-transition-duration`
+
+Declared on the card, the `.checkbox-card` label, which is also Bulma's `.card`, so the
+`--bulma-card-*` variables style its surface and `--bulma-card-radius` rounds its edge too. Set
+either family on a class you pass through `className`, with both classes in the selector
+(`.checkbox-card.my-card`, mind the class prefix): `style` goes to the hidden `<input>`. A `color`
+prop declares `--bulma-checkbox-card-active-color` again on `.checkbox-card.is-<color>`, which ties
+that selector. A checked card's edge is `--bulma-checkbox-card-checked-border-width`, thicker than
+`--bulma-checkbox-card-border-width`, so the selection isn't color alone; keep it thicker. The focus
+outline is Bulma's focus color, not the active color. `--bulma-checkbox-card-min-width` is how
+narrow a card gets in a `Checkboxes` row before the row wraps. In forced colors the edge takes
+`CanvasText`, and `Highlight` when checked, whatever these say.
+
 ### Collapse
 
 `--bulma-collapse-border-color`, `--bulma-collapse-group-gap`, `--bulma-collapse-header-weight`,
@@ -604,6 +628,21 @@ contrast.
 Bulma's default font sizes the circle is 24px at the default and `small` sizes. For a smaller circle, set the size and also
 `min-width: 0; min-height: 0` on `.styled-radio.my-radio .check` (mind the class prefix), and keep
 the label text inside the `Radio`, since the whole label is the click target.
+
+### RadioCard
+
+`--bulma-radio-card-active-color`, `--bulma-radio-card-border-color`,
+`--bulma-radio-card-border-width`, `--bulma-radio-card-checked-border-width`,
+`--bulma-radio-card-description-color`, `--bulma-radio-card-disabled-opacity`,
+`--bulma-radio-card-focus-color`, `--bulma-radio-card-focus-offset`,
+`--bulma-radio-card-focus-width`, `--bulma-radio-card-gap`,
+`--bulma-radio-card-hover-border-color`, `--bulma-radio-card-indicator-border-color`,
+`--bulma-radio-card-indicator-border-width`, `--bulma-radio-card-indicator-size`,
+`--bulma-radio-card-min-width`, `--bulma-radio-card-title-weight`,
+`--bulma-radio-card-transition-duration`
+
+The same as CheckboxCard's, on the `.radio-card` label, with a ring and a dot for the indicator and
+`--bulma-radio-card-min-width` for a `Radios` row.
 
 ### Rate
 

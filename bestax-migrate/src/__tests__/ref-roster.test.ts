@@ -78,6 +78,7 @@ const NAMED_INDIVIDUALLY = [
 const SUMMARISED_AS_FORM_CONTROLS = [
   'Autocomplete',
   'Checkbox',
+  'CheckboxCard',
   'Combobox',
   'ComboboxInput',
   'Control',
@@ -93,6 +94,7 @@ const SUMMARISED_AS_FORM_CONTROLS = [
   'NumberInput',
   'PinInput',
   'Radio',
+  'RadioCard',
   'Rate',
   'Select',
   'SelectBase',

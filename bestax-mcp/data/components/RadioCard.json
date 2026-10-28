@@ -1,0 +1,278 @@
+{
+  "name": "RadioCard",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/radiocard",
+  "docsUrl": "https://bestax.io/docs/api/form/radiocard",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<Radios label=\"Plan\" name=\"plan\" defaultValue=\"pro\">\n  <RadioCard\n    value=\"starter\"\n    title=\"Starter\"\n    description=\"One site, community support.\"\n  />\n  <RadioCard value=\"pro\" title=\"Pro\" description=\"Ten sites, email support.\" />\n  <RadioCard\n    value=\"team\"\n    title=\"Team\"\n    description=\"Unlimited sites, a support plan.\"\n  />\n</Radios>"
+    },
+    {
+      "title": "Controlled",
+      "code": "function example() {\n  const [shipping, setShipping] = useState('standard');\n  return (\n    <>\n      <Radios\n        label=\"Shipping\"\n        name=\"shipping\"\n        value={shipping}\n        onChange={setShipping}\n      >\n        <RadioCard\n          value=\"standard\"\n          title=\"Standard\"\n          description=\"Arrives in 4 to 6 days.\"\n        />\n        <RadioCard\n          value=\"express\"\n          title=\"Express\"\n          description=\"Arrives tomorrow.\"\n        />\n        <RadioCard value=\"pickup\" title=\"Pickup\" description=\"From the shop.\" />\n      </Radios>\n      <Paragraph mt=\"3\">Shipping: {shipping}</Paragraph>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Without the Indicator",
+      "code": "<Radios label=\"Delivery time\" name=\"time\" defaultValue=\"morning\">\n  <RadioCard\n    value=\"morning\"\n    hasIndicator={false}\n    title=\"Morning\"\n    description=\"8 to 12\"\n  />\n  <RadioCard\n    value=\"afternoon\"\n    hasIndicator={false}\n    title=\"Afternoon\"\n    description=\"12 to 5\"\n  />\n  <RadioCard\n    value=\"evening\"\n    hasIndicator={false}\n    title=\"Evening\"\n    description=\"5 to 9\"\n  />\n</Radios>"
+    },
+    {
+      "title": "More in the Card",
+      "code": "<Radios label=\"Plan\" name=\"priced-plan\" defaultValue=\"monthly\">\n  <RadioCard value=\"monthly\" title=\"Monthly\" description=\"Cancel anytime.\">\n    <Span display=\"block\" mt=\"2\" textWeight=\"semibold\">\n      $12 a month\n    </Span>\n  </RadioCard>\n  <RadioCard value=\"yearly\" title=\"Yearly\" description=\"Two months free.\">\n    <Span display=\"block\" mt=\"2\" textWeight=\"semibold\">\n      $120 a year\n    </Span>\n    <a href=\"#yearly-terms\">How billing works</a>\n  </RadioCard>\n</Radios>"
+    },
+    {
+      "title": "Columns",
+      "code": "<Radios label=\"Time\" name=\"slot\" defaultValue=\"10\">\n  <Grid minCol={10} flexGrow=\"1\">\n    {['9', '10', '11', '12', '13', '14'].map(hour => (\n      <RadioCard\n        key={hour}\n        value={hour}\n        hasIndicator={false}\n        title={`${hour}:00`}\n        description=\"Open\"\n      />\n    ))}\n  </Grid>\n</Radios>"
+    },
+    {
+      "title": "Colors",
+      "code": "<Radios name=\"accent\" defaultValue=\"success\">\n  {radioColors.map(color => (\n    <RadioCard key={color} value={color} color={color} title={color} />\n  ))}\n</Radios>"
+    },
+    {
+      "title": "Disabled",
+      "code": "<Radios label=\"Size\" name=\"size\" defaultValue=\"m\">\n  <RadioCard value=\"s\" title=\"Small\" description=\"In stock.\" />\n  <RadioCard value=\"m\" title=\"Medium\" description=\"In stock.\" />\n  <RadioCard value=\"l\" disabled title=\"Large\" description=\"Sold out.\" />\n</Radios>"
+    },
+    {
+      "title": "Form Submission",
+      "code": "function example() {\n  const [sent, setSent] = useState('');\n  return (\n    <form\n      onSubmit={e => {\n        e.preventDefault();\n        setSent(String(new FormData(e.currentTarget).get('ship')));\n      }}\n    >\n      <Radios label=\"Shipping\" name=\"ship\">\n        <RadioCard\n          value=\"standard\"\n          required\n          title=\"Standard\"\n          description=\"4 to 6 days.\"\n        />\n        <RadioCard\n          value=\"express\"\n          required\n          title=\"Express\"\n          description=\"Tomorrow.\"\n        />\n      </Radios>\n      <Button type=\"submit\" color=\"primary\">\n        Send\n      </Button>\n      {sent && <Paragraph mt=\"3\">Sent: {sent}</Paragraph>}\n    </form>\n  );\n}"
+    },
+    {
+      "title": "Theming the Card",
+      "code": "<Radios name=\"plan\">\n  <RadioCard className=\"compact-card\" value=\"starter\" title=\"Starter\" />\n  <RadioCard className=\"compact-card\" value=\"pro\" title=\"Pro\" />\n</Radios>"
+    }
+  ],
+  "accessibility": "- The card is a `<label>` around a native `<input type=\"radio\">`, so a click anywhere on it picks\n  the radio and it sends its value with a form.\n- Cards that share a `name` are one group to the browser: Tab lands on the picked card, or the\n  first, and the arrow keys move and pick, skipping disabled cards. Give `Radios` a `name`, or\n  each card the same one; without it each card is a group of its own.\n- The radio is named by the title, through `aria-labelledby`, and described by the description,\n  through `aria-describedby`. An `aria-label` or `aria-labelledby` you pass wins. Without a title,\n  the card's own text names it, as a label's text does.\n- The children aren't read when the radio takes focus. Put what matters in `title` and\n  `description`.\n- A link inside the card is its own Tab stop, and following it doesn't pick the card. A button or\n  another input can't go inside a `<label>`.\n- Keyboard focus draws an outline around the whole card, in Bulma's focus color, whatever the\n  card's color.\n- The selection never rests on color: the radio shows it, and the picked card's edge is twice as\n  thick, with or without the radio.\n- Contrast: against the card, a picked edge in `primary` or `link` clears WCAG 1.4.11's 3:1 on a\n  light page, and in every color on a dark one. `info`, `success`, `warning` and `danger` fall\n  short on a light page, where the edge's width and the radio still show the selection.\n- In forced colors (Windows contrast themes), Bulma's card loses its shadow, so the edge is a\n  real border there: the system's text color, `Highlight` and still thicker when picked, and gray\n  when disabled. The radio takes system colors as `Radio`'s does, and the focus outline is\n  `Highlight`.\n- The edge and the radio change without a transition under `prefers-reduced-motion: reduce`.",
+  "related": [
+    "Card",
+    "CheckboxCard",
+    "Radio",
+    "Radios",
+    "SegmentedControl",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-radiocard--default",
+  "summary": "The `RadioCard` component is a radio button drawn as a card, with a title and a description, picked wherever you click it. It's a `<label>` around a real radio, so it sends its `value` with a form, and the cards that share a `name` are one choice the arrow keys move through. The title names the radio and the description describes it. Inside `Radios` it takes the group's name and selection, as `Radio` does.",
+  "import": "import { RadioCard } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/RadioCard.tsx",
+  "rootClass": "radio-card",
+  "parts": [
+    {
+      "path": "RadioCard",
+      "summary": "The `RadioCard` component is a radio button drawn as a card, with a title and a description, picked wherever you click it. It's a `<label>` around a real radio, so it sends its `value` with a form, and the cards that share a `name` are one choice the arrow keys move through. The title names the radio and the description describes it. Inside `Radios` it takes the group's name and selection, as `Radio` does.",
+      "component": null,
+      "props": [
+        {
+          "name": "title",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "What the option is, such as \"Express\". It names the radio, so a screen reader says it with the state and its place in the group. Without it, the card's whole text names the radio, as a label's text does.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "description",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "A line or two about the option, read after the name and the state. It's the radio's description when `title`, `aria-label` or `aria-labelledby` names it. Without one of those it's part of the name already, so it isn't read twice.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Anything else in the card, after the description, such as a price. A label holds phrasing content only, so spans, images and links: a link works and doesn't pick the card, but a button or another input can't go inside a label at all. It isn't read when the radio takes focus, so put what a screen reader should hear in `title` and `description`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasIndicator",
+          "type": "boolean",
+          "default": "true",
+          "description": "Shows the radio at the start of the card. Without it, the card's edge alone shows the selection, and it's thicker when picked, so the selection never rests on color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "The color of the radio and of a picked card's edge.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper, on the card. The title and the children take it, and the description keeps its own color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the card is disabled. A disabled card dims, takes no clicks, and the arrow keys skip it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes, on the outer `<label>`, the card. That's the element that declares the `--bulma-radio-card-*` variables, and Bulma's `--bulma-card-*` ones, so a class is how to set one: `style` and the other input attributes go to the `<input>`. Name `.radio-card` beside your class in the selector, so it beats the card's own declaration whatever order the stylesheets load in. A `color` prop declares the active color again on `.radio-card.is-<color>`, which ties that selector, so leave `color` unset when a class sets it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "The form field name, which the cards of one choice share, so the arrow keys move between them. Inside `Radios`, the group's `name` when this is unset.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "default": null,
+          "description": "What a form sends when this card is the one picked. Inside a `Radios` group that takes `value`, `defaultValue` or `onChange`, the card is checked while the group's value is this.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <input> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the outer `<label>`, the `.card`, with `className`. The other attributes go on the `<input>`.",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-radio-card-border-width",
+      "sass": "$radio-card-border-width",
+      "default": "1px",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-radio-card-border-color",
+      "sass": "$radio-card-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-radio-card-hover-border-color",
+      "sass": "$radio-card-hover-border-color",
+      "default": "var(--bulma-border-hover)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-radio-card-checked-border-width",
+      "sass": "$radio-card-checked-border-width",
+      "default": "2px",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-radio-card-active-color",
+      "sass": "$radio-card-active-color",
+      "default": "var(--bulma-primary)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-radio-card-focus-color",
+      "sass": "$radio-card-focus-color",
+      "default": "hsl(var(--bulma-focus-h), var(--bulma-focus-s), var(--bulma-focus-l))",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-radio-card-focus-width",
+      "sass": "$radio-card-focus-width",
+      "default": "var(--bulma-focus-width)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-radio-card-focus-offset",
+      "sass": "$radio-card-focus-offset",
+      "default": "2px",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-radio-card-gap",
+      "sass": "$radio-card-gap",
+      "default": "0.75em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-radio-card-min-width",
+      "sass": "$radio-card-min-width",
+      "default": "12rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-radio-card-title-weight",
+      "sass": "$radio-card-title-weight",
+      "default": "var(--bulma-weight-semibold)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-radio-card-description-color",
+      "sass": "$radio-card-description-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-radio-card-indicator-size",
+      "sass": "$radio-card-indicator-size",
+      "default": "1.25em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-radio-card-indicator-border-width",
+      "sass": "$radio-card-indicator-border-width",
+      "default": "2px",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-radio-card-indicator-border-color",
+      "sass": "$radio-card-indicator-border-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-radio-card-disabled-opacity",
+      "sass": "$radio-card-disabled-opacity",
+      "default": "0.5",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-radio-card-transition-duration",
+      "sass": "$radio-card-transition-duration",
+      "default": "var(--bulma-duration)",
+      "scope": "root"
+    }
+  ],
+  "cssVarsFrom": "Card"
+}

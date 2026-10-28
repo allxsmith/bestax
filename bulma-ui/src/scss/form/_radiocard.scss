@@ -1,0 +1,278 @@
+// RadioCard styles
+// A radio button drawn as a card: a <label class="radio-card card"> holding
+// the native input, then a .card-content span with the indicator and the
+// text. Bulma's .card draws the surface. This partial adds the card's edge,
+// which carries the picked state, the focus outline and the indicator.
+//
+// The edge is a pseudo-element of the content span, laid over the whole card,
+// rather than a border on the label. The input comes before the content span,
+// so `input:checked + …` reaches it without :has(), and a thicker edge when
+// picked moves nothing inside the card. It's a real border, since Bulma's
+// card draws its own edge with a box-shadow, which forced colors drops.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+$radio-card-border-width: 1px !default;
+$radio-card-border-color: cv.getVar('border') !default;
+$radio-card-hover-border-color: cv.getVar('border-hover') !default;
+// Twice the edge, so a picked card differs from the others by more than its
+// color (WCAG 1.4.1), with or without the indicator.
+$radio-card-checked-border-width: 2px !default;
+$radio-card-active-color: cv.getVar('primary') !default;
+// Bulma's focus color and width, which every color of card shares, since
+// some of the six fall short of 3:1 on a light page.
+$radio-card-focus-color: hsl(
+  cv.getVar('focus-h'),
+  cv.getVar('focus-s'),
+  cv.getVar('focus-l')
+) !default;
+$radio-card-focus-width: cv.getVar('focus-width') !default;
+$radio-card-focus-offset: 2px !default;
+$radio-card-gap: 0.75em !default;
+$radio-card-min-width: 12rem !default;
+$radio-card-title-weight: cv.getVar('weight-semibold') !default;
+$radio-card-description-color: cv.getVar('text-weak') !default;
+$radio-card-indicator-size: 1.25em !default;
+$radio-card-indicator-border-width: 2px !default;
+// The ring is all that shows of an unpicked radio, so it takes `text-weak`,
+// as Radio's does, which holds 3:1 on the card's surface.
+$radio-card-indicator-border-color: cv.getVar('text-weak') !default;
+$radio-card-disabled-opacity: 0.5 !default;
+$radio-card-transition-duration: cv.getVar('duration') !default;
+
+.#{iv.$class-prefix}radio-card {
+  @include cv.register-vars(
+    (
+      'radio-card-border-width': #{$radio-card-border-width},
+      'radio-card-border-color': #{$radio-card-border-color},
+      'radio-card-hover-border-color': #{$radio-card-hover-border-color},
+      'radio-card-checked-border-width': #{$radio-card-checked-border-width},
+      'radio-card-active-color': #{$radio-card-active-color},
+      'radio-card-focus-color': #{$radio-card-focus-color},
+      'radio-card-focus-width': #{$radio-card-focus-width},
+      'radio-card-focus-offset': #{$radio-card-focus-offset},
+      'radio-card-gap': #{$radio-card-gap},
+      'radio-card-min-width': #{$radio-card-min-width},
+      'radio-card-title-weight': #{$radio-card-title-weight},
+      'radio-card-description-color': #{$radio-card-description-color},
+      'radio-card-indicator-size': #{$radio-card-indicator-size},
+      'radio-card-indicator-border-width': #{$radio-card-indicator-border-width},
+      'radio-card-indicator-border-color': #{$radio-card-indicator-border-color},
+      'radio-card-disabled-opacity': #{$radio-card-disabled-opacity},
+      'radio-card-transition-duration': #{$radio-card-transition-duration},
+    )
+  );
+}
+
+.#{iv.$class-prefix}radio-card {
+  display: block;
+  position: relative;
+  cursor: pointer;
+
+  // The native input, hidden the way Radio hides it. It still takes focus,
+  // clicks through the label and the arrow keys.
+  > input[type='radio'] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    margin: 0;
+  }
+
+  // The edge, laid over the whole card.
+  > .#{iv.$class-prefix}radio-card-content::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: cv.getVar('radio-card-border-width') solid
+      cv.getVar('radio-card-border-color');
+    border-radius: cv.getVar('card-radius');
+    pointer-events: none;
+    transition-property: border-color, border-width;
+    transition-duration: cv.getVar('radio-card-transition-duration');
+    transition-timing-function: ease;
+  }
+
+  &:hover
+    > input[type='radio']:enabled:not(:checked)
+    + .#{iv.$class-prefix}radio-card-content::before {
+    border-color: cv.getVar('radio-card-hover-border-color');
+  }
+
+  > input[type='radio']:checked
+    + .#{iv.$class-prefix}radio-card-content::before {
+    border-color: cv.getVar('radio-card-active-color');
+    border-width: cv.getVar('radio-card-checked-border-width');
+  }
+
+  // Keyboard focus: an outline around the whole card.
+  > input[type='radio']:focus-visible
+    + .#{iv.$class-prefix}radio-card-content::before {
+    outline: cv.getVar('radio-card-focus-width') solid
+      cv.getVar('radio-card-focus-color');
+    outline-offset: cv.getVar('radio-card-focus-offset');
+  }
+
+  > input[type='radio']:disabled + .#{iv.$class-prefix}radio-card-content {
+    opacity: cv.getVar('radio-card-disabled-opacity');
+    cursor: not-allowed;
+  }
+
+  // The indicator follows the input's state, as Radio's ring does.
+  > input[type='radio']:checked
+    + .#{iv.$class-prefix}radio-card-content
+    > .#{iv.$class-prefix}radio-card-check {
+    border-color: cv.getVar('radio-card-active-color');
+
+    &::before {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+}
+
+// The content fills the card, the indicator beside the text.
+.#{iv.$class-prefix}radio-card-content {
+  display: flex;
+  align-items: flex-start;
+  gap: cv.getVar('radio-card-gap');
+}
+
+.#{iv.$class-prefix}radio-card-check {
+  display: inline-flex;
+  flex-shrink: 0;
+  position: relative;
+  width: cv.getVar('radio-card-indicator-size');
+  height: cv.getVar('radio-card-indicator-size');
+  min-width: 24px;
+  min-height: 24px;
+  border: cv.getVar('radio-card-indicator-border-width') solid
+    cv.getVar('radio-card-indicator-border-color');
+  border-radius: 50%;
+  transition-property: border-color;
+  transition-duration: cv.getVar('radio-card-transition-duration');
+  transition-timing-function: ease;
+
+  // The dot.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 50%;
+    height: 50%;
+    border-radius: 50%;
+    background-color: cv.getVar('radio-card-active-color');
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+    transition-property: opacity, transform;
+    transition-duration: cv.getVar('radio-card-transition-duration');
+    transition-timing-function: ease;
+  }
+}
+
+// Block spans, since a label holds phrasing content only.
+.#{iv.$class-prefix}radio-card-body {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: 1.5;
+}
+
+// The title takes the card's own text color, so `textColor` reaches it too.
+.#{iv.$class-prefix}radio-card-title {
+  display: block;
+  font-weight: cv.getVar('radio-card-title-weight');
+}
+
+.#{iv.$class-prefix}radio-card-description {
+  display: block;
+  color: cv.getVar('radio-card-description-color');
+}
+
+// Color variants
+@each $name in 'primary', 'link', 'info', 'success', 'warning', 'danger' {
+  .#{iv.$class-prefix}radio-card.#{iv.$class-prefix}is-#{$name} {
+    @include cv.register-vars(
+      (
+        'radio-card-active-color': #{cv.getVar($name)},
+      )
+    );
+  }
+}
+
+// In a Radios group, a wrapping row: the cards share it equally and wrap
+// before they get narrower than the minimum width.
+.#{iv.$class-prefix}radios
+  > .#{iv.$class-prefix}radio-card.#{iv.$class-prefix}card {
+  flex: 1 1 0;
+  min-width: min(100%, #{cv.getVar('radio-card-min-width')});
+}
+
+// The group's gap, or a Bulma grid's, spaces the cards, so Bulma's margin
+// under a card goes, or the last card would stand taller than the rest.
+.#{iv.$class-prefix}radios,
+.#{iv.$class-prefix}grid {
+  > .#{iv.$class-prefix}radio-card.#{iv.$class-prefix}card {
+    margin-bottom: 0;
+  }
+}
+
+// Forced colors repaints the edge in the text color and drops Bulma's
+// shadow, so a picked card names Highlight on an edge that stays thicker.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}radio-card {
+    > .#{iv.$class-prefix}radio-card-content::before {
+      border-color: CanvasText;
+    }
+
+    > input[type='radio']:checked
+      + .#{iv.$class-prefix}radio-card-content::before {
+      border-color: Highlight;
+    }
+
+    > input[type='radio']:focus-visible
+      + .#{iv.$class-prefix}radio-card-content::before {
+      outline-color: Highlight;
+    }
+
+    > input[type='radio']:disabled + .#{iv.$class-prefix}radio-card-content {
+      color: GrayText;
+
+      &::before {
+        border-color: GrayText;
+      }
+    }
+
+    .#{iv.$class-prefix}radio-card-check {
+      border-color: ButtonText;
+    }
+
+    > input[type='radio']:checked
+      + .#{iv.$class-prefix}radio-card-content
+      > .#{iv.$class-prefix}radio-card-check {
+      border-color: Highlight;
+
+      &::before {
+        background-color: Highlight;
+      }
+    }
+
+    > input[type='radio']:disabled
+      + .#{iv.$class-prefix}radio-card-content
+      > .#{iv.$class-prefix}radio-card-check {
+      border-color: GrayText;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}radio-card {
+    > .#{iv.$class-prefix}radio-card-content::before,
+    .#{iv.$class-prefix}radio-card-check,
+    .#{iv.$class-prefix}radio-card-check::before {
+      transition: none;
+    }
+  }
+}

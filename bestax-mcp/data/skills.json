@@ -10,7 +10,7 @@
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
-          "bytes": 21401
+          "bytes": 21780
         },
         {
           "id": "library-contributor",
@@ -29,7 +29,7 @@
       "promptName": "form",
       "dir": "bestax-form",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 19315 },
+        { "id": "api", "file": "references/api.md", "bytes": 20071 },
         { "id": "patterns", "file": "references/patterns.md", "bytes": 9835 }
       ],
       "examples": []
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 12432
+          "bytes": 12721
         }
       ],
       "examples": []
@@ -176,12 +176,12 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 53667
+          "bytes": 56175
         },
         {
           "id": "themeable-components",
           "file": "references/themeable-components.md",
-          "bytes": 26372
+          "bytes": 27218
         }
       ],
       "examples": [

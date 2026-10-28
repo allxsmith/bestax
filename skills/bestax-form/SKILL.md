@@ -91,6 +91,7 @@ All import from `@allxsmith/bestax-bulma`. Convenience components auto-wrap Fiel
 | `TextArea` / `TextAreaBase`                             | Multiline text.                                                           |
 | `Checkbox` / `Checkboxes`                               | Single checkbox / managed group (array value).                            |
 | `Radio` / `Radios`                                      | Single radio / managed single-select group.                               |
+| `CheckboxCard` / `RadioCard`                            | A checkbox or radio as a card with a title and a description.             |
 | `Switch`                                                | Toggle switch (`isRounded`, `isThin`, `isOutlined`, RTL).                 |
 | `File`                                                  | File upload input with label/message.                                     |
 | `Autocomplete`                                          | Free text with suggestions it filters for you, + keyboard nav.            |

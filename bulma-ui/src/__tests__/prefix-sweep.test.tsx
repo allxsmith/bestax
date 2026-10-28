@@ -51,7 +51,21 @@ const PROPS: Record<string, Record<string, unknown>> = {
   },
   Rate: { value: 2.5, showScore: true, text: 'Good' },
   Checkbox: { children: 'Accept' },
+  // Colored, with the indicator, a title, a description and more, so every
+  // class a card takes is swept.
+  CheckboxCard: {
+    color: 'success',
+    title: 'Backups',
+    description: 'Kept for 30 days',
+    children: '$5',
+  },
   Radio: { children: 'Choose' },
+  RadioCard: {
+    color: 'info',
+    title: 'Express',
+    description: 'Tomorrow',
+    children: '$12',
+  },
   Switch: { children: 'Enable' },
   Loading: { active: true, canCancel: true, children: 'Loading…' },
   Toast: {

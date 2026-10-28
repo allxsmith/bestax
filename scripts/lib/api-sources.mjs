@@ -106,6 +106,9 @@ export const SCSS_SOURCES = {
   ],
   Cell: [],
   Checkbox: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_checkbox.scss' }],
+  CheckboxCard: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_checkboxcard.scss' },
+  ],
   Checkboxes: [],
   ClientOnly: [],
   Code: [{ pkg: 'bulma', path: 'sass/base/generic.scss' }],
@@ -222,6 +225,7 @@ export const SCSS_SOURCES = {
   Pre: [{ pkg: 'bulma', path: 'sass/base/generic.scss' }],
   Progress: [{ pkg: 'bulma', path: 'sass/elements/progress.scss' }],
   Radio: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_radio.scss' }],
+  RadioCard: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_radiocard.scss' }],
   Radios: [],
   Rate: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_rate.scss' }],
   Reveal: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_reveal.scss' }],
@@ -323,8 +327,10 @@ export const SCSS_SOURCES = {
  * missing from this map doesn't mean it renders an element of its own.
  */
 export const RENDERS_ELEMENT_OF = {
+  CheckboxCard: 'Card', // its label is a `.card.checkbox-card`
   LinkButton: 'Button', // renders `.button.link-button` through Button
   PinInput: 'Input', // each of its boxes is an `.input.pin-input-box`
+  RadioCard: 'Card', // its label is a `.card.radio-card`
   ToggleButton: 'Button', // renders a `.button` through Button
 };
 

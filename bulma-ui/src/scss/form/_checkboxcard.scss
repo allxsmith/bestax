@@ -1,0 +1,340 @@
+// CheckboxCard styles
+// A checkbox drawn as a card: a <label class="checkbox-card card"> holding the
+// native input, then a .card-content span with the indicator and the text.
+// Bulma's .card draws the surface. This partial adds the card's edge, which
+// carries the checked state, the focus outline and the indicator.
+//
+// The edge is a pseudo-element of the content span, laid over the whole card,
+// rather than a border on the label. The input comes before the content span,
+// so `input:checked + …` reaches it without :has(), and a thicker edge when
+// checked moves nothing inside the card. It's a real border, since Bulma's
+// card draws its own edge with a box-shadow, which forced colors drops.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+$checkbox-card-border-width: 1px !default;
+$checkbox-card-border-color: cv.getVar('border') !default;
+$checkbox-card-hover-border-color: cv.getVar('border-hover') !default;
+// Twice the edge, so a checked card differs from an unchecked one by more
+// than its color (WCAG 1.4.1), with or without the indicator.
+$checkbox-card-checked-border-width: 2px !default;
+$checkbox-card-active-color: cv.getVar('primary') !default;
+// Bulma's focus color and width, which every color of card shares, since
+// some of the six fall short of 3:1 on a light page.
+$checkbox-card-focus-color: hsl(
+  cv.getVar('focus-h'),
+  cv.getVar('focus-s'),
+  cv.getVar('focus-l')
+) !default;
+$checkbox-card-focus-width: cv.getVar('focus-width') !default;
+$checkbox-card-focus-offset: 2px !default;
+$checkbox-card-gap: 0.75em !default;
+$checkbox-card-min-width: 12rem !default;
+$checkbox-card-title-weight: cv.getVar('weight-semibold') !default;
+$checkbox-card-description-color: cv.getVar('text-weak') !default;
+$checkbox-card-indicator-size: 1.25em !default;
+$checkbox-card-indicator-border-width: 2px !default;
+// The indicator's border is all that shows of an unchecked box, so it takes
+// `text-weak`, as Checkbox's does, which holds 3:1 on the card's surface.
+$checkbox-card-indicator-border-color: cv.getVar('text-weak') !default;
+$checkbox-card-indicator-radius: cv.getVar('radius-small') !default;
+$checkbox-card-check-color: cv.getVar('scheme-invert') !default;
+$checkbox-card-disabled-opacity: 0.5 !default;
+$checkbox-card-transition-duration: cv.getVar('duration') !default;
+
+// The check mark's shape, used as a mask so it's painted with a background
+// color: `checkbox-card-check-color`, or a system color in forced colors.
+$-check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+
+.#{iv.$class-prefix}checkbox-card {
+  @include cv.register-vars(
+    (
+      'checkbox-card-border-width': #{$checkbox-card-border-width},
+      'checkbox-card-border-color': #{$checkbox-card-border-color},
+      'checkbox-card-hover-border-color': #{$checkbox-card-hover-border-color},
+      'checkbox-card-checked-border-width':
+        #{$checkbox-card-checked-border-width},
+      'checkbox-card-active-color': #{$checkbox-card-active-color},
+      'checkbox-card-focus-color': #{$checkbox-card-focus-color},
+      'checkbox-card-focus-width': #{$checkbox-card-focus-width},
+      'checkbox-card-focus-offset': #{$checkbox-card-focus-offset},
+      'checkbox-card-gap': #{$checkbox-card-gap},
+      'checkbox-card-min-width': #{$checkbox-card-min-width},
+      'checkbox-card-title-weight': #{$checkbox-card-title-weight},
+      'checkbox-card-description-color': #{$checkbox-card-description-color},
+      'checkbox-card-indicator-size': #{$checkbox-card-indicator-size},
+      'checkbox-card-indicator-border-width':
+        #{$checkbox-card-indicator-border-width},
+      'checkbox-card-indicator-border-color':
+        #{$checkbox-card-indicator-border-color},
+      'checkbox-card-indicator-radius': #{$checkbox-card-indicator-radius},
+      'checkbox-card-check-color': #{$checkbox-card-check-color},
+      'checkbox-card-disabled-opacity': #{$checkbox-card-disabled-opacity},
+      'checkbox-card-transition-duration': #{$checkbox-card-transition-duration},
+    )
+  );
+}
+
+.#{iv.$class-prefix}checkbox-card {
+  display: block;
+  position: relative;
+  cursor: pointer;
+
+  // The native input, hidden the way Checkbox hides it. It still takes focus
+  // and clicks through the label.
+  > input[type='checkbox'] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    margin: 0;
+  }
+
+  // The edge, laid over the whole card.
+  > .#{iv.$class-prefix}checkbox-card-content::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: cv.getVar('checkbox-card-border-width') solid
+      cv.getVar('checkbox-card-border-color');
+    border-radius: cv.getVar('card-radius');
+    pointer-events: none;
+    transition-property: border-color, border-width;
+    transition-duration: cv.getVar('checkbox-card-transition-duration');
+    transition-timing-function: ease;
+  }
+
+  &:hover
+    > input[type='checkbox']:enabled:not(:checked, :indeterminate)
+    + .#{iv.$class-prefix}checkbox-card-content::before {
+    border-color: cv.getVar('checkbox-card-hover-border-color');
+  }
+
+  > input[type='checkbox']:checked
+    + .#{iv.$class-prefix}checkbox-card-content::before,
+  > input[type='checkbox']:indeterminate
+    + .#{iv.$class-prefix}checkbox-card-content::before {
+    border-color: cv.getVar('checkbox-card-active-color');
+    border-width: cv.getVar('checkbox-card-checked-border-width');
+  }
+
+  // Keyboard focus: an outline around the whole card.
+  > input[type='checkbox']:focus-visible
+    + .#{iv.$class-prefix}checkbox-card-content::before {
+    outline: cv.getVar('checkbox-card-focus-width') solid
+      cv.getVar('checkbox-card-focus-color');
+    outline-offset: cv.getVar('checkbox-card-focus-offset');
+  }
+
+  > input[type='checkbox']:disabled
+    + .#{iv.$class-prefix}checkbox-card-content {
+    opacity: cv.getVar('checkbox-card-disabled-opacity');
+    cursor: not-allowed;
+  }
+
+  // The indicator follows the input's state, as Checkbox's box does.
+  > input[type='checkbox']:checked
+    + .#{iv.$class-prefix}checkbox-card-content
+    > .#{iv.$class-prefix}checkbox-card-check {
+    background-color: cv.getVar('checkbox-card-active-color');
+    border-color: cv.getVar('checkbox-card-active-color');
+
+    &::after {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  > input[type='checkbox']:indeterminate
+    + .#{iv.$class-prefix}checkbox-card-content
+    > .#{iv.$class-prefix}checkbox-card-check {
+    background-color: cv.getVar('checkbox-card-active-color');
+    border-color: cv.getVar('checkbox-card-active-color');
+
+    &::after {
+      opacity: 0;
+    }
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60%;
+      height: cv.getVar('checkbox-card-indicator-border-width');
+      background-color: cv.getVar('checkbox-card-check-color');
+      border-radius: 1px;
+    }
+  }
+}
+
+// The content fills the card, the indicator beside the text.
+.#{iv.$class-prefix}checkbox-card-content {
+  display: flex;
+  align-items: flex-start;
+  gap: cv.getVar('checkbox-card-gap');
+}
+
+.#{iv.$class-prefix}checkbox-card-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  width: cv.getVar('checkbox-card-indicator-size');
+  height: cv.getVar('checkbox-card-indicator-size');
+  min-width: 24px;
+  min-height: 24px;
+  border: cv.getVar('checkbox-card-indicator-border-width') solid
+    cv.getVar('checkbox-card-indicator-border-color');
+  border-radius: cv.getVar('checkbox-card-indicator-radius');
+  transition-property: background-color, border-color;
+  transition-duration: cv.getVar('checkbox-card-transition-duration');
+  transition-timing-function: ease;
+
+  // The check mark: the mask cuts the shape, the background color paints it.
+  &::after {
+    content: '';
+    position: absolute;
+    width: 85%;
+    height: 85%;
+    opacity: 0;
+    transform: scale(0.5);
+    transition-property: opacity, transform;
+    transition-duration: cv.getVar('checkbox-card-transition-duration');
+    transition-timing-function: ease;
+    background-color: cv.getVar('checkbox-card-check-color');
+    -webkit-mask-image: $-check-mark;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-image: $-check-mark;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+  }
+}
+
+// Block spans, since a label holds phrasing content only.
+.#{iv.$class-prefix}checkbox-card-body {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: 1.5;
+}
+
+// The title takes the card's own text color, so `textColor` reaches it too.
+.#{iv.$class-prefix}checkbox-card-title {
+  display: block;
+  font-weight: cv.getVar('checkbox-card-title-weight');
+}
+
+.#{iv.$class-prefix}checkbox-card-description {
+  display: block;
+  color: cv.getVar('checkbox-card-description-color');
+}
+
+// Color variants
+@each $name in 'primary', 'link', 'info', 'success', 'warning', 'danger' {
+  .#{iv.$class-prefix}checkbox-card.#{iv.$class-prefix}is-#{$name} {
+    @include cv.register-vars(
+      (
+        'checkbox-card-active-color': #{cv.getVar($name)},
+      )
+    );
+  }
+}
+
+// In a Checkboxes group, a wrapping row: the cards share it equally and wrap
+// before they get narrower than the minimum width.
+.#{iv.$class-prefix}checkboxes
+  > .#{iv.$class-prefix}checkbox-card.#{iv.$class-prefix}card {
+  flex: 1 1 0;
+  min-width: min(100%, #{cv.getVar('checkbox-card-min-width')});
+}
+
+// The group's gap, or a Bulma grid's, spaces the cards, so Bulma's margin
+// under a card goes, or the last card would stand taller than the rest.
+.#{iv.$class-prefix}checkboxes,
+.#{iv.$class-prefix}grid {
+  > .#{iv.$class-prefix}checkbox-card.#{iv.$class-prefix}card {
+    margin-bottom: 0;
+  }
+}
+
+// Forced colors repaints the edge in the text color and drops Bulma's
+// shadow, so a checked card names Highlight on an edge that stays thicker.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}checkbox-card {
+    > .#{iv.$class-prefix}checkbox-card-content::before {
+      border-color: CanvasText;
+    }
+
+    > input[type='checkbox']:checked
+      + .#{iv.$class-prefix}checkbox-card-content::before,
+    > input[type='checkbox']:indeterminate
+      + .#{iv.$class-prefix}checkbox-card-content::before {
+      border-color: Highlight;
+    }
+
+    > input[type='checkbox']:focus-visible
+      + .#{iv.$class-prefix}checkbox-card-content::before {
+      outline-color: Highlight;
+    }
+
+    > input[type='checkbox']:disabled
+      + .#{iv.$class-prefix}checkbox-card-content {
+      color: GrayText;
+
+      &::before {
+        border-color: GrayText;
+      }
+    }
+
+    .#{iv.$class-prefix}checkbox-card-check {
+      border-color: ButtonText;
+    }
+
+    > input[type='checkbox']:checked
+      + .#{iv.$class-prefix}checkbox-card-content
+      > .#{iv.$class-prefix}checkbox-card-check {
+      background-color: Highlight;
+      border-color: Highlight;
+
+      &::after {
+        background-color: HighlightText;
+      }
+    }
+
+    // A mixed fill and its dash would be repainted in one color, leaving an
+    // empty box, so the dash takes a color of its own.
+    > input[type='checkbox']:indeterminate
+      + .#{iv.$class-prefix}checkbox-card-content
+      > .#{iv.$class-prefix}checkbox-card-check {
+      background-color: Canvas;
+      border-color: Highlight;
+
+      &::before {
+        background-color: CanvasText;
+      }
+    }
+
+    > input[type='checkbox']:disabled
+      + .#{iv.$class-prefix}checkbox-card-content
+      > .#{iv.$class-prefix}checkbox-card-check {
+      border-color: GrayText;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}checkbox-card {
+    > .#{iv.$class-prefix}checkbox-card-content::before,
+    .#{iv.$class-prefix}checkbox-card-check,
+    .#{iv.$class-prefix}checkbox-card-check::after {
+      transition: none;
+    }
+  }
+}
