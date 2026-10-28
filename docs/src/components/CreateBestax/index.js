@@ -129,11 +129,12 @@ const BestaxMark = () => (
 
 /**
  * The starter app create-bestax writes, drawn small: its title, the three
- * cards and the interactive example, whose two buttons work here too.
+ * cards and the interactive example, whose buttons work here as they do there.
  */
 function StarterApp() {
   const [notice, setNotice] = useState(false);
   const [count, setCount] = useState(0);
+  const countRef = useRef(null);
   return (
     <div className={styles.app}>
       <div className={styles.logos} aria-hidden="true">
@@ -163,11 +164,25 @@ function StarterApp() {
           Toggle Notification
         </button>
         <button
+          ref={countRef}
           type="button"
           className={styles.appInfo}
           onClick={() => setCount(n => n + 1)}
         >
           Count: {count}
+        </button>
+        {/* Reset disables itself at zero, so focus moves to Count rather
+            than being dropped with the button that held it. */}
+        <button
+          type="button"
+          className={styles.appWarning}
+          onClick={() => {
+            setCount(0);
+            countRef.current?.focus();
+          }}
+          disabled={count === 0}
+        >
+          Reset
         </button>
       </div>
       {/* A status region of its own per notice, kept mounted as in the
@@ -181,7 +196,7 @@ function StarterApp() {
         )}
       </div>
       <div role="status" className={styles.status}>
-        {count > 0 && (
+        {count > 10 && (
           <p className={clsx(styles.appNote, styles.appNoteInfo)}>
             You&apos;ve clicked the button {count} times!
           </p>
