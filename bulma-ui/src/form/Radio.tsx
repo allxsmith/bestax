@@ -5,7 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useRadiosGroup } from './FormContext';
+import { useFieldsetDisabled, useRadiosGroup } from './FormContext';
 
 /**
  * The values the Radio `color` prop accepts, as a readonly tuple.
@@ -112,7 +112,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
       className,
       children,
       textColor,
-      disabled,
+      disabled: disabledProp,
       name,
       value,
       checked,
@@ -122,6 +122,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color: textColor,
       ...props,

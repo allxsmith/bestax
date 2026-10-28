@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Input } from './Input';
 import { Field } from './Field';
+import { Fieldset } from './Fieldset';
 import { Control } from './Control';
 import { Select } from './Select';
 import { Button } from '../elements/Button';
@@ -575,15 +576,14 @@ export const HorizontalSubmitRow: Story = {
 };
 
 /**
- * A native `<fieldset disabled>` wrapping multiple Inputs disables every
- * field at once.
+ * A disabled `Fieldset` wrapping several Inputs disables every field at once.
  */
 export const DisabledFieldset: Story = {
   render: () => (
-    <fieldset disabled>
+    <Fieldset variant="unstyled" disabled>
       <Input label="Name" placeholder="Your name" />
       <Input label="Email" type="email" placeholder="Your email" />
-    </fieldset>
+    </Fieldset>
   ),
 };
 

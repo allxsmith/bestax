@@ -103,6 +103,7 @@ const BESTAX = {
   Combobox: 'form/combobox',
   Control: 'form/control',
   Field: 'form/field',
+  Fieldset: 'form/fieldset',
   File: 'form/file',
   Input: 'form/input',
   Numberinput: 'form/numberinput',
@@ -921,7 +922,7 @@ export const categories = [
       ],
       [
         'Fieldset',
-        0,
+        'Fieldset',
         'Fieldset',
         '~Form.Group',
         '~FormControl',

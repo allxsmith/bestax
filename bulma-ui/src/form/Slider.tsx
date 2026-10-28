@@ -19,6 +19,7 @@ import {
   useInsideControl,
   rendersOwnField,
   rendersOwnControl,
+  useFieldsetDisabled,
 } from './FormContext';
 import { Field } from './Field';
 import { Control } from './Control';
@@ -273,7 +274,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       color,
       isRounded = false,
       isCircle = false,
-      disabled = false,
+      disabled: disabledProp,
       showOutput = false,
       tooltip,
       ticks,
@@ -313,6 +314,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     void _nameLow;
     void _nameHigh;
 
+    const disabled = useFieldsetDisabled(disabledProp);
     const insideField = useInsideField();
     const insideControl = useInsideControl();
     const ownField = rendersOwnField('Slider', {

@@ -34,7 +34,7 @@ import { PickerPopover } from './_pickerInternals/PickerPopover';
 import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker';
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
 import { useControlLoading } from './controlLoading';
-import { useFieldLabelTarget } from './FormContext';
+import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
 import { Icon } from '../elements/Icon';
 import { Buttons } from '../elements/Buttons';
 
@@ -209,7 +209,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       onClose,
       min,
       max,
-      disabled,
+      disabled: disabledProp,
       readOnly,
       placeholder,
       format,
@@ -249,6 +249,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       haptics = false,
       ...rest
     } = props;
+    const disabled = useFieldsetDisabled(disabledProp);
     // Inside a labeled Field the input takes the id the label points at
     // when the caller set none, as InputBase does, and the popover's ids
     // follow it. Inline there is no input to name, so nothing takes the

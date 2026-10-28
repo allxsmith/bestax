@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-111 documented components. Generated from the API docs — every exported
+112 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -125,6 +125,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [DateRangeInput](https://bestax.io/docs/api/form/datetime/daterangeinput) — The `DateRangeInput` component is a form input for a start and end date, picked from one popover calendar or typed into two segmented inputs.
 - [DateTimeInput](https://bestax.io/docs/api/form/datetime/datetimeinput) — The `DateTimeInput` combines a calendar and a time **wheel spinner** in a single popover — an iOS-style layout.
 - [Field](https://bestax.io/docs/api/form/field) — The `Field` component is a Bulma-styled form field container.
+- [Fieldset](https://bestax.io/docs/api/form/fieldset) — The `Fieldset` component groups a section of a form in a native `<fieldset>`, named by its `legend`, which a `disabled` switches off as a whole.
 - [File](https://bestax.io/docs/api/form/file) — The `File` component provides a Bulma-styled file input, supporting color, size, boxed/fullwidth/align styles, icons, "has name", and filename display.
 - [Input](https://bestax.io/docs/api/form/input) — The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states…
 - [Numberinput](https://bestax.io/docs/api/form/numberinput) — The `Numberinput` component provides a number input with increment/decrement buttons.
