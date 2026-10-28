@@ -11,6 +11,8 @@ import { TextAreaBase } from '../TextAreaBase';
 import { Checkbox } from '../Checkbox';
 import { Checkboxes } from '../Checkboxes';
 import { Radio } from '../Radio';
+import { CheckboxCard } from '../CheckboxCard';
+import { RadioCard } from '../RadioCard';
 import { Switch } from '../Switch';
 import { Slider } from '../Slider';
 import { Numberinput } from '../Numberinput';
@@ -300,6 +302,16 @@ describe('Fieldset disabled', () => {
       c => expect(c.querySelector('input')).toHaveAttribute('disabled'),
     ],
     [
+      'CheckboxCard',
+      <CheckboxCard key="cc" title="x" />,
+      c => expect(c.querySelector('input')).toHaveAttribute('disabled'),
+    ],
+    [
+      'RadioCard',
+      <RadioCard key="rc" title="x" value="a" />,
+      c => expect(c.querySelector('input')).toHaveAttribute('disabled'),
+    ],
+    [
       'Switch',
       <Switch key="w">x</Switch>,
       c => expect(c.querySelector('input')).toHaveAttribute('disabled'),
@@ -428,6 +440,40 @@ describe('Fieldset disabled', () => {
       </Fieldset>
     );
     expect(screen.getByRole('radiogroup')).toHaveAttribute('tabindex', '0');
+  });
+
+  it('leaves the cards alone outside a disabled Fieldset', () => {
+    render(
+      <>
+        <Fieldset>
+          <CheckboxCard title="Inside" />
+        </Fieldset>
+        <RadioCard title="Outside" value="a" />
+      </>
+    );
+    expect(
+      screen.getByRole('checkbox', { name: 'Inside' })
+    ).not.toHaveAttribute('disabled');
+    expect(screen.getByRole('radio', { name: 'Outside' })).not.toHaveAttribute(
+      'disabled'
+    );
+  });
+
+  it("lets a card's own disabled win", () => {
+    render(
+      <Fieldset disabled>
+        <CheckboxCard title="Own" disabled={false} />
+        <RadioCard title="Own radio" value="a" disabled={false} />
+      </Fieldset>
+    );
+    // The attribute is off, though the browser still disables the input
+    // through the fieldset.
+    expect(screen.getByRole('checkbox', { name: 'Own' })).not.toHaveAttribute(
+      'disabled'
+    );
+    expect(
+      screen.getByRole('radio', { name: 'Own radio' })
+    ).not.toHaveAttribute('disabled');
   });
 
   it('leaves the controls in its legend enabled', () => {

@@ -6,7 +6,7 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
-import { useCheckboxesGroup } from './FormContext';
+import { useCheckboxesGroup, useFieldsetDisabled } from './FormContext';
 
 // The colors `Checkbox` takes, as `checkboxColors` lists them. Declared here as
 // well, so the API page can read them off this module, and a type test holds
@@ -126,7 +126,7 @@ export const CheckboxCard = forwardRef<HTMLInputElement, CheckboxCardProps>(
       color,
       className,
       textColor,
-      disabled,
+      disabled: disabledProp,
       name,
       value,
       checked,
@@ -137,6 +137,7 @@ export const CheckboxCard = forwardRef<HTMLInputElement, CheckboxCardProps>(
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color: textColor,
       ...props,
