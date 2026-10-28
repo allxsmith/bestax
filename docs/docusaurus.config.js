@@ -173,8 +173,11 @@ const config = {
         respectPrefersColorScheme: true,
       },
       announcementBar: {
-        id: 'support_v1',
-        content: 'Full support for Bulma v1 !!!',
+        // Docusaurus remembers a dismissal by id, so a new announcement needs a
+        // new id or readers who closed the last one never see it.
+        id: 'templates',
+        content:
+          'New: <a href="/templates">Bulma templates, ported to bestax</a>',
         backgroundColor: '#fafbfc',
         textColor: '#091E42',
         isCloseable: true,
