@@ -1,3 +1,12 @@
+# [5.52.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.51.0...@allxsmith/bestax-bulma@5.52.0) (2026-10-28)
+
+
+### Features
+
+* **bulma-ui:** add CheckboxCard and RadioCard, choices drawn as cards ([5958bda](https://github.com/allxsmith/bestax/commit/5958bda70f0571a73903ba6b0c0eac46f4cebd02))
+* **bulma-ui:** add Command, a search over things to do, inline or as a command palette ([bd7733c](https://github.com/allxsmith/bestax/commit/bd7733cd31a667976970e3ed059a4077ce2f7b76))
+* **bulma-ui:** render Checkboxes and Radios as a native fieldset with as="fieldset" ([d9b1f72](https://github.com/allxsmith/bestax/commit/d9b1f728ea807a7dc5b968aa9613afba715bb857))
+
 # [5.51.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.50.0...@allxsmith/bestax-bulma@5.51.0) (2026-10-28)
 
 
