@@ -471,7 +471,7 @@ describe('ProjectCreator', () => {
       expect(fileSystem.copyDirectory).toHaveBeenCalledWith(
         expect.stringContaining('vite'),
         '/target/path',
-        { _gitignore: '.gitignore' }
+        { _gitignore: '.gitignore', '_oxlintrc.json': '.oxlintrc.json' }
       );
     });
   });
@@ -1372,6 +1372,120 @@ describe('ProjectCreator', () => {
       mockExit.mockRestore();
     });
 
+    it('exits naming the linters for an invalid --lint', async () => {
+      const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+        throw new Error('process.exit called');
+      });
+
+      await expect(
+        projectCreator.create('test-project', { lint: 'biome', yes: true })
+      ).rejects.toThrow('process.exit called');
+
+      expect(mockExit).toHaveBeenCalledWith(1);
+      expect(
+        (console.error as jest.Mock).mock.calls.flat().join('\n')
+      ).toContain('Invalid linter: biome. Valid options are: oxlint, eslint');
+      expect(fileSystem.copyDirectory).not.toHaveBeenCalled();
+      mockExit.mockRestore();
+    });
+
+    describe('the linter', () => {
+      let setupLinter: ReturnType<typeof jest.spyOn>;
+
+      beforeEach(() => {
+        (
+          fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        ).mockReturnValue(false);
+        setupLinter = jest
+          .spyOn(projectCreator, 'setupLinter')
+          .mockResolvedValue(undefined);
+      });
+
+      afterEach(() => {
+        setupLinter.mockRestore();
+      });
+
+      it('is Oxlint under -y', async () => {
+        await projectCreator.create('test-project', {
+          yes: true,
+          skills: false,
+        });
+
+        expect(setupLinter).toHaveBeenCalledWith(
+          expect.any(String),
+          'oxlint',
+          'vite'
+        );
+        expect(prompts).not.toHaveBeenCalled();
+      });
+
+      it('is the one --lint names, without asking', async () => {
+        await projectCreator.create('test-project', {
+          template: 'vite-ts',
+          lint: 'eslint',
+          bulma: 'complete',
+          icon: 'none',
+          skills: false,
+        });
+
+        expect(setupLinter).toHaveBeenCalledWith(
+          expect.any(String),
+          'eslint',
+          'vite-ts'
+        );
+        expect(prompts).not.toHaveBeenCalledWith(
+          expect.objectContaining({ name: 'linter' })
+        );
+      });
+
+      it('is Oxlint without a terminal, so a run that names every other choice still finishes', async () => {
+        setStdinTTY(undefined);
+
+        await projectCreator.create('test-project', {
+          template: 'vite-ts',
+          bulma: 'complete',
+          icon: 'none',
+          skills: false,
+        });
+
+        expect(setupLinter).toHaveBeenCalledWith(
+          expect.any(String),
+          'oxlint',
+          'vite-ts'
+        );
+        expect(prompts).not.toHaveBeenCalled();
+      });
+
+      it('is asked for when no flag names it', async () => {
+        (prompts as jest.MockedFunction<typeof prompts>).mockImplementation(
+          questions => {
+            const question = Array.isArray(questions)
+              ? questions[0]
+              : questions;
+            return Promise.resolve(
+              question.name === 'linter' ? { linter: 'eslint' } : {}
+            );
+          }
+        );
+
+        await projectCreator.create('test-project', {
+          template: 'vite',
+          bulma: 'complete',
+          icon: 'none',
+          skills: false,
+        });
+
+        expect(prompts).toHaveBeenCalledWith(
+          expect.objectContaining({ name: 'linter' })
+        );
+        expect(setupLinter).toHaveBeenCalledWith(
+          expect.any(String),
+          'eslint',
+          'vite'
+        );
+      });
+    });
+
     it('should create project with CLI options', async () => {
       const options = {
         template: 'vite-ts',
@@ -1482,6 +1596,7 @@ describe('ProjectCreator', () => {
 
     it('should prompt for missing template option', async () => {
       const options = {
+        lint: 'oxlint',
         bulma: 'complete',
         icon: 'none',
         skills: false,
@@ -1523,6 +1638,7 @@ describe('ProjectCreator', () => {
 
     it('should prompt for missing bulma option', async () => {
       const options = {
+        lint: 'oxlint',
         template: 'vite',
         icon: 'none',
         skills: false,
@@ -1604,6 +1720,7 @@ describe('ProjectCreator', () => {
       });
 
       const options = {
+        lint: 'oxlint',
         template: 'vite',
         icon: 'none',
       };
@@ -1640,6 +1757,7 @@ describe('ProjectCreator', () => {
       });
 
       const options = {
+        lint: 'oxlint',
         template: 'vite',
         bulma: 'complete',
       };
@@ -1672,6 +1790,7 @@ describe('ProjectCreator', () => {
 
     it('should prompt for missing icon option', async () => {
       const options = {
+        lint: 'oxlint',
         template: 'vite',
         bulma: 'complete',
         skills: false,
@@ -2082,6 +2201,7 @@ describe('ProjectCreator', () => {
     >;
     const fullFlags = {
       template: 'vite-ts',
+      lint: 'oxlint',
       bulma: 'prefixed',
       icon: 'mdi',
       skills: false,
@@ -2241,6 +2361,7 @@ describe('ProjectCreator', () => {
     const answers: Record<string, Record<string, unknown>> = {
       overwrite: { overwrite: true },
       template: { template: 'vite' },
+      linter: { linter: 'oxlint' },
       bulmaFlavor: { bulmaFlavor: 'complete' },
       iconLibrary: { iconLibrary: 'none' },
       skills: { skills: true },
@@ -2360,7 +2481,7 @@ describe('ProjectCreator', () => {
       expect(errorOutput()).toContain('--overwrite');
     });
 
-    it.each(['template', 'bulmaFlavor', 'iconLibrary', 'skills'])(
+    it.each(['template', 'linter', 'bulmaFlavor', 'iconLibrary', 'skills'])(
       'accepting removal, then cancelling at the %s prompt, leaves the files alone',
       async cancelAt => {
         answerPrompts(cancelAt);

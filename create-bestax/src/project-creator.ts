@@ -16,6 +16,7 @@ import {
   promptProjectName,
   promptOverwriteDirectory,
   promptTemplate,
+  promptLinter,
   promptIconLibrary,
   promptBulmaFlavor,
   promptInstallSkills,
@@ -34,6 +35,10 @@ import {
   TEMPLATES,
   ICON_LIBRARIES,
   BULMA_FLAVORS,
+  LINTERS,
+  ESLINT_CONFIG,
+  ESLINT_DEV_DEPENDENCIES,
+  ESLINT_TYPESCRIPT_DEV_DEPENDENCIES,
   CLAUDE_MD,
   LAUNCH_JSON,
   CONFIG_PROVIDER_ICON_VALUES,
@@ -50,8 +55,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // npm strips literal `.gitignore` files from published tarballs, so the
 // templates track `_gitignore` instead and the scaffolder renames it back
 // on copy — otherwise published scaffolds would ship with no .gitignore.
+// The Oxlint config follows create-vite, which names it the same way.
 const TEMPLATE_RENAMES: Record<string, string> = {
   _gitignore: '.gitignore',
+  '_oxlintrc.json': '.oxlintrc.json',
 };
 
 export interface ProjectConfig {
@@ -64,6 +71,7 @@ export interface ProjectConfig {
 
 export interface CLIOptions {
   template?: string;
+  lint?: string;
   bulma?: string;
   icon?: string;
   skills?: boolean;
@@ -185,6 +193,11 @@ export class ProjectCreator {
       return `Invalid template: ${options.template}. Valid options are: ${validTemplates.join(', ')}`;
     }
 
+    const validLinters = LINTERS.map(l => l.name);
+    if (options?.lint && !validLinters.includes(options.lint)) {
+      return `Invalid linter: ${options.lint}. Valid options are: ${validLinters.join(', ')}`;
+    }
+
     const validFlavors = BULMA_FLAVORS.map(f => f.name);
     if (options?.bulma && !validFlavors.includes(options.bulma)) {
       return `Invalid Bulma flavor: ${options.bulma}. Valid options are: ${validFlavors.join(', ')}`;
@@ -249,6 +262,51 @@ export class ProjectCreator {
       );
     }
     await fs.writeFile(readmePath, readme);
+  }
+
+  /**
+   * The templates ship create-vite's default lint setup, Oxlint. For ESLint,
+   * write what create-vite's `--eslint` writes in its place: the config, the
+   * packages and the lint script, and for TypeScript, TypeScript 6, since
+   * typescript-eslint can't load TypeScript 7 (#394).
+   */
+  async setupLinter(
+    targetPath: string,
+    linter: string,
+    template: string
+  ): Promise<void> {
+    if (linter !== 'eslint') return;
+    const isTypeScript = template.includes('-ts');
+
+    await fs.remove(path.join(targetPath, '.oxlintrc.json'));
+    await fs.writeFile(
+      path.join(targetPath, 'eslint.config.js'),
+      ESLINT_CONFIG(isTypeScript)
+    );
+
+    const packageJsonPath = path.join(targetPath, 'package.json');
+    if (fs.existsSync(packageJsonPath)) {
+      const packageJson = await fs.readJson(packageJsonPath);
+      const devDependencies: Record<string, string> = {
+        ...packageJson.devDependencies,
+        ...ESLINT_DEV_DEPENDENCIES,
+        ...(isTypeScript ? ESLINT_TYPESCRIPT_DEV_DEPENDENCIES : {}),
+      };
+      delete devDependencies.oxlint;
+      packageJson.devDependencies = Object.fromEntries(
+        Object.entries(devDependencies).sort(([a], [b]) =>
+          a < b ? -1 : a > b ? 1 : 0
+        )
+      );
+      packageJson.scripts = { ...packageJson.scripts, lint: 'eslint .' };
+      await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+    }
+
+    const readmePath = path.join(targetPath, 'README.md');
+    if (fs.existsSync(readmePath)) {
+      const readme = await fs.readFile(readmePath, 'utf8');
+      await fs.writeFile(readmePath, readme.replace(/\bOxlint\b/g, 'ESLint'));
+    }
   }
 
   async setupSkills(
@@ -685,6 +743,23 @@ export class ProjectCreator {
       }
     }
 
+    // Select linter (use option or prompt). The question is newer than the
+    // others, so a run without a terminal that answers every other one by
+    // flag takes the default here rather than stopping, as it did before the
+    // question existed (#192).
+    let linter: string | null;
+    if (options?.lint) {
+      linter = options.lint;
+    } else if (options?.yes || !process.stdin.isTTY) {
+      linter = 'oxlint'; // default linter
+    } else {
+      linter = await promptLinter();
+      if (linter === null) {
+        displayCancelled();
+        process.exit(1);
+      }
+    }
+
     // Select Bulma flavor (use option or prompt)
     let bulmaFlavor: string | null;
     if (options?.bulma) {
@@ -756,6 +831,7 @@ export class ProjectCreator {
         iconLibrary,
         template
       );
+      await this.setupLinter(targetPath, linter, template);
       if (installSkills) {
         await this.setupSkills(targetPath, projectName, {
           bulmaFlavor,

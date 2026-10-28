@@ -93,7 +93,7 @@ fix.
    `~/.config/bestax/telemetry.json`, and porting a template shouldn't change the porter's own
    setting. The docs' telemetry guide lists the controls.
 
-   Then strip the lint setup: delete `eslint.config.js`, the `lint` script and the lint
+   Then strip the lint setup: delete `.oxlintrc.json`, the `lint` script and the lint
    devDependencies, the same packages the docs StackBlitz builder drops (`isLintPackage` in
    `docs/src/theme/CodeBlock/sandbox/projects.mjs`). Drop the starter page the port replaces too:
    `src/App.css` and the logos in `public/`, with the favicon link that names one. A build of

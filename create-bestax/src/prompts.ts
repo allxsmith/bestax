@@ -7,6 +7,7 @@ import {
   MESSAGES,
   ICON_LIBRARIES,
   BULMA_FLAVORS,
+  LINTERS,
 } from './constants.js';
 import { validateProjectDirectory } from './validators.js';
 import { displayError } from './display.js';
@@ -82,6 +83,22 @@ export async function promptTemplate(): Promise<string | null> {
   });
 
   return response.template || null;
+}
+
+export async function promptLinter(): Promise<string | null> {
+  ensureInteractive();
+  const response = await prompts({
+    type: 'select',
+    name: 'linter',
+    message: PROMPT_MESSAGES.SELECT_LINTER,
+    choices: LINTERS.map(linter => ({
+      title: linter.color(`${linter.display} - ${linter.description}`),
+      value: linter.name,
+    })),
+    initial: 0, // Default to 'oxlint'
+  });
+
+  return response.linter || null;
 }
 
 export async function promptIconLibrary(): Promise<string | null> {
