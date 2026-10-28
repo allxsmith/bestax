@@ -139,7 +139,8 @@ one sets `locale` or `firstDayOfWeek` itself. Outside a provider the week starts
 does a picker given its own `dayNames`, which it shows exactly as given: pass `firstDayOfWeek` with
 them and list them from that day. With
 server rendering, set a locale: without one, an `inline` calendar names its days in the server's
-language on the server and the reader's in the browser, and hydration fails to match.
+language on the server and the reader's in the browser, and hydration fails to match whenever
+the two languages differ.
 
 ```tsx
 <LocaleProvider locale="de">
