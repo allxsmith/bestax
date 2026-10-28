@@ -34,11 +34,37 @@ const {
 describe('constants', () => {
   describe('TEMPLATES', () => {
     it('should have the correct templates defined', () => {
-      expect(TEMPLATES).toHaveLength(2);
-      expect(TEMPLATES[0].name).toBe('vite');
-      expect(TEMPLATES[0].display).toBe('Vite');
-      expect(TEMPLATES[1].name).toBe('vite-ts');
-      expect(TEMPLATES[1].display).toBe('Vite + TypeScript');
+      expect(
+        TEMPLATES.map(({ name, display, directory, reactCompiler }) => ({
+          name,
+          display,
+          directory,
+          reactCompiler,
+        }))
+      ).toEqual([
+        { name: 'vite', display: 'Vite', directory: 'vite' },
+        { name: 'vite-ts', display: 'Vite + TypeScript', directory: 'vite-ts' },
+        {
+          name: 'vite-compiler',
+          display: 'Vite + React Compiler',
+          directory: 'vite',
+          reactCompiler: true,
+        },
+        {
+          name: 'vite-compiler-ts',
+          display: 'Vite + TypeScript + React Compiler',
+          directory: 'vite-ts',
+          reactCompiler: true,
+        },
+      ]);
+    });
+
+    it('builds each TypeScript template from the TypeScript folder', () => {
+      for (const template of TEMPLATES) {
+        expect(template.directory.endsWith('-ts')).toBe(
+          template.name.endsWith('-ts')
+        );
+      }
     });
 
     it('should have color functions for each template', () => {

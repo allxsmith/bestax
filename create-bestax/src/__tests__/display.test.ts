@@ -152,6 +152,29 @@ describe('display', () => {
       expect(output).toContain(projectName);
     });
 
+    it('leaves out the cd for a scaffold into the current directory', () => {
+      displaySuccess('.');
+
+      const lines = (
+        console.log as jest.MockedFunction<typeof console.log>
+      ).mock.calls.map(call => call.join(' '));
+      expect(lines.some(line => line.trim().startsWith('cd '))).toBe(false);
+      expect(lines.some(line => /^\s+\w+ install$/.test(line))).toBe(true);
+    });
+
+    it('lists no next steps when --immediate is about to run them', () => {
+      displaySuccess('my-app', true);
+
+      const output = (
+        console.log as jest.MockedFunction<typeof console.log>
+      ).mock.calls
+        .map(call => call.join(' '))
+        .join('\n');
+      expect(output).toContain('Project created successfully');
+      expect(output).not.toContain('Next steps');
+      expect(output).not.toContain('cd my-app');
+    });
+
     it('quotes a path with a space in its cd line, and leaves others bare (#1154)', () => {
       displaySuccess('/tmp/My Projects/login');
       displaySuccess('/tmp/projects/login');

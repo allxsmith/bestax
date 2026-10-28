@@ -434,6 +434,9 @@ importers:
       '@docusaurus/theme-live-codeblock':
         specifier: ^3.10.2
         version: 3.10.2(@docusaurus/plugin-content-docs@3.10.2(@mdx-js/react@3.1.1(@types/react@19.3.0)(react@19.3.1))(postcss@8.5.29)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@6.0.3))(@mdx-js/react@3.1.1(@types/react@19.3.0)(react@19.3.1))(postcss@8.5.29)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@6.0.3)
+      '@fontsource/poppins':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@fortawesome/fontawesome-free':
         specifier: ^7.3.1
         version: 7.3.1
@@ -2289,6 +2292,9 @@ packages:
   '@faker-js/faker@10.6.0':
     resolution: {integrity: sha512-3RQHgEtvL1Frl/d1cSreo7qhJ3Gk1OdNUai/CtZ8G+wYeRQnJih3s9xJ9/kgYekPQRdwgh0HXRPqMlzWGwivIQ==}
     engines: {node: ^20.19.0 || ^22.13.0 || ^23.5.0 || >=24.0.0, npm: '>=10'}
+
+  '@fontsource/poppins@5.3.0':
+    resolution: {integrity: sha512-cms1nM7U6SN8epIV1WMVOV8VsA645aSm3wHfzIQnkk188U341ThbJGSl2Sv54V29gnDbT2arMPfLzvVIIVCceQ==}
 
   '@fortawesome/fontawesome-free@7.3.1':
     resolution: {integrity: sha512-wmglKKPDIkgV3aWlZzWECCPoGIkYCulzBwxG9+w7rc5BGapZ6cPMpoPOT8k36J0Ni7PPX6c/rsoMWfS4d1MUMg==}
@@ -13606,6 +13612,8 @@ snapshots:
       levn: 0.4.1
 
   '@faker-js/faker@10.6.0': {}
+
+  '@fontsource/poppins@5.3.0': {}
 
   '@fortawesome/fontawesome-free@7.3.1': {}
 

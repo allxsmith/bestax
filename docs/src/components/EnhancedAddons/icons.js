@@ -199,6 +199,16 @@ function StepsIcon() {
   );
 }
 
+// A ring with its arc filled most of the way round
+function RingProgressIcon() {
+  return (
+    <svg {...iconProps}>
+      <circle cx="12" cy="12" r="8" strokeOpacity="0.35" />
+      <path d="M12 4a8 8 0 1 1-7.6 5.5" />
+    </svg>
+  );
+}
+
 // Lines of text in a box, with a thin scrollbar and its thumb at the side
 function ScrollAreaIcon() {
   return (
@@ -283,6 +293,7 @@ const ADDON_ICONS = {
   pininput: PinInputIcon,
   popover: PopoverIcon,
   reveal: RevealIcon,
+  ringprogress: RingProgressIcon,
   scrollarea: ScrollAreaIcon,
   sidebar: SidebarIcon,
   splitter: SplitterIcon,

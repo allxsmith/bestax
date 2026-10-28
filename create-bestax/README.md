@@ -43,11 +43,12 @@ You'll be asked to:
 
 1. Enter a project name or path (and, if that directory already holds files, confirm removing
    them; nothing is removed until you have answered the last question)
-2. Select a framework (Vite or Vite + TypeScript)
+2. Select a framework (Vite or Vite + TypeScript, each with or without the React Compiler)
 3. Choose a linter (Oxlint or ESLint)
 4. Choose a Bulma CSS flavor (the `--bulma` options below)
 5. Select an icon library (Font Awesome, Material Icons, etc.)
 6. Choose whether to install the bestax AI skills into `.claude/skills/`
+7. Choose whether to install the dependencies and start the dev server right away
 
 Every prompt has a flag equivalent, so the whole flow is scriptable and CI-friendly — see the options below.
 
@@ -67,13 +68,19 @@ with or without it.
   absolute or relative, such as `../apps/my-app`, whose missing folders are created. Its last
   part is the project name, held to the same rules as a bare name. It becomes the page title as
   typed, and the `package.json` name lower-cased the way `npm init` does and without a leading
-  `_`, since npm rejects both. A path ending in `.` or `..` is refused, like a bare `.` or `..`,
-  so name the directory you want.
+  `_`, since npm rejects both. A bare `.` scaffolds into the current directory, named after it,
+  as long as it's empty. It's never emptied, even with `--overwrite`. A bare `..`, or a path
+  ending in `.` or `..`, is refused, so name the directory you want. A directory holding only
+  `.git` counts as empty, as create-vite counts it, so `git init` then `.` works.
 
 **Options:**
 
-- `-t, --template <template>` - Template to use: `vite` or `vite-ts`  
-  **Default:** `vite`
+- `-t, --template <template>` - Template to use:
+  - `vite` - Vite + JavaScript
+  - `vite-ts` - Vite + TypeScript
+  - `vite-compiler` - Vite + JavaScript, with the React Compiler
+  - `vite-compiler-ts` - Vite + TypeScript, with the React Compiler  
+    **Default:** `vite`
 - `--lint <linter>` - Linter:
   - `oxlint` - Oxlint, as `npm create vite` sets up. `vite-ts` gets TypeScript 7.
   - `eslint` - ESLint with typescript-eslint, as `npm create vite -- --eslint` sets up.
@@ -104,10 +111,18 @@ with or without it.
   - Bulma flavor: `complete`
   - Icon library: `none`
   - AI skills: installed (pass `--no-skills` to opt out)
+  - Install and start: no (pass `--immediate` to opt in)
 
   `-y` never deletes files. If the target directory is not empty, the run stops, lists what is
   there, and changes nothing; add `--overwrite` to empty it first. Earlier versions emptied the
   directory under `-y` alone, so a script that relied on that now needs `--overwrite`.
+
+- `--no-interactive` - The same as `-y`, for anyone used to create-vite's spelling.
+
+- `--immediate` / `--no-immediate` - Install the dependencies with the package manager that ran
+  the CLI and start the dev server once the project is written (or don't), as create-vite's
+  `--immediate` does. When omitted you're asked. With `-y`, or without a terminal, the project is
+  only written, so a scripted run never starts a server it can't stop.
 
 - `--overwrite` - Remove existing files if the target directory is not empty, without asking.
   Every other flag is checked first, so a typo stops the run before anything is deleted. It
@@ -128,6 +143,12 @@ npm create bestax@latest my-app -- -y
 # Scaffold into a path; the package is named my-app
 npm create bestax@latest ../apps/my-app -- -y
 
+# Scaffold into the current, empty directory, then install and start it
+npm create bestax@latest . -- -y --immediate
+
+# Turn on the React Compiler
+npm create bestax@latest my-app -- -t vite-compiler-ts -y
+
 # The same with bun
 bun create bestax@latest my-app -- -y
 ```
@@ -138,6 +159,11 @@ Available templates:
 
 - `vite` - Vite + JavaScript
 - `vite-ts` - Vite + TypeScript
+- `vite-compiler` - Vite + JavaScript, with the [React Compiler](https://react.dev/learn/react-compiler)
+- `vite-compiler-ts` - Vite + TypeScript, with the React Compiler
+
+The React Compiler templates are the plain ones with the compiler turned on through Babel in
+`vite.config`, the way `npm create vite` builds its `react-compiler` starters.
 
 Each template includes:
 

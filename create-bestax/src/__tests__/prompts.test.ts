@@ -48,6 +48,7 @@ const {
   promptOverwriteDirectory,
   promptTemplate,
   promptLinter,
+  promptImmediate,
   promptBulmaFlavor,
   promptIconLibrary,
   promptInstallSkills,
@@ -115,6 +116,7 @@ describe('prompts', () => {
       ['promptInstallSkills', () => promptInstallSkills()],
       ['promptTemplate', () => promptTemplate()],
       ['promptLinter', () => promptLinter()],
+      ['promptImmediate', () => promptImmediate('npm')],
       ['promptIconLibrary', () => promptIconLibrary()],
       ['promptBulmaFlavor', () => promptBulmaFlavor()],
     ];
@@ -159,8 +161,18 @@ describe('prompts', () => {
         name: 'projectName',
         message: 'Project name:',
         initial: 'my-bestax-app',
-        validate: validateProjectDirectory,
+        validate: expect.any(Function),
       });
+      // It judges an answer as validateProjectDirectory does, and without
+      // reading the answers prompts passes as a second argument.
+      const { validate } = (prompts as jest.Mock).mock.calls[0][0] as {
+        validate: (value: string, answers: unknown) => unknown;
+      };
+      for (const value of ['my-app', '..', '.', 'apps/My App']) {
+        expect(validate(value, { projectName: value })).toBe(
+          validateProjectDirectory(value)
+        );
+      }
     });
 
     it('takes a path, as the project-directory argument does (#1154)', async () => {
@@ -285,7 +297,9 @@ describe('prompts', () => {
         .calls[0]?.[0] as unknown;
       expect(promptCall.type).toBe('select');
       expect(promptCall.message).toBe('Select a framework:');
-      expect(promptCall.choices).toHaveLength(2); // Vite and Vite+TS only
+      expect(promptCall.choices.map((c: { value: string }) => c.value)).toEqual(
+        ['vite', 'vite-ts', 'vite-compiler', 'vite-compiler-ts']
+      );
     });
 
     it('should format template choices correctly', async () => {
@@ -346,6 +360,32 @@ describe('prompts', () => {
         .calls[0]?.[0] as unknown;
       expect(promptCall.initial).toBe(0);
       expect(BULMA_FLAVORS[0].name).toBe('complete');
+    });
+  });
+
+  describe('promptImmediate', () => {
+    it('asks a yes or no question naming the package manager, no by default', async () => {
+      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+        immediate: true,
+      });
+      expect(await promptImmediate('yarn')).toBe(true);
+      expect(prompts).toHaveBeenCalledWith({
+        type: 'confirm',
+        name: 'immediate',
+        message: 'Install with yarn and start the dev server now?',
+        initial: false,
+      });
+    });
+
+    it('returns a no as false and a cancel as null', async () => {
+      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValueOnce({
+        immediate: false,
+      });
+      expect(await promptImmediate('npm')).toBe(false);
+      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValueOnce(
+        {}
+      );
+      expect(await promptImmediate('npm')).toBeNull();
     });
   });
 

@@ -91,7 +91,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `daterangeinput`, `file`
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `kbd`, `linkbutton`, `loader`,
-`notification`, `progress`, `skeleton`
+`notification`, `progress`, `ringprogress`, `skeleton`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`
 

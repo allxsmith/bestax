@@ -258,16 +258,20 @@ const config = {
             title: 'Community',
             items: [
               {
-                label: 'Stack Overflow',
-                href: 'https://stackoverflow.com/questions/tagged/bestax',
-              },
-              {
                 label: 'Discord',
                 href: 'https://discord.gg/zehJrQGtKu',
               },
               {
                 label: 'X',
                 href: 'https://x.com/allxsmith',
+              },
+              {
+                label: 'dev.to',
+                href: 'https://dev.to/allxsmith',
+              },
+              {
+                label: 'Medium',
+                href: 'https://medium.com/@allxsmith',
               },
             ],
           },

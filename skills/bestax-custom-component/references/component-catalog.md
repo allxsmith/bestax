@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-106 documented components. Generated from the API docs — every exported
+107 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -65,6 +65,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Paragraph](https://bestax.io/docs/api/elements/paragraph) — The `Paragraph` component renders a styled `<p>` element with Bulma helper class integration.
 - [Pre](https://bestax.io/docs/api/elements/pre) — The `Pre` component renders a styled `<pre>` element with Bulma helper class integration.
 - [Progress](https://bestax.io/docs/api/elements/progress) — The `Progress` component displays a Bulma-styled progress bar.
+- [RingProgress](https://bestax.io/docs/api/elements/ringprogress) — The `RingProgress` component draws a value as a ring that fills as it grows, with anything you pass shown in the middle.
 - [Skeleton](https://bestax.io/docs/api/elements/skeleton) — The `Skeleton` component provides a Bulma-styled skeleton loader for React applications, useful for indicating that content is loading.
 - [Span](https://bestax.io/docs/api/elements/span) — The `Span` component renders a styled inline `<span>` element with Bulma helper class integration.
 - [Strong](https://bestax.io/docs/api/elements/strong) — The `Strong` component renders a styled `<strong>` element with Bulma helper class integration.

@@ -58,6 +58,7 @@ const BESTAX = {
   Tag: 'elements/tag',
   Tags: 'elements/tags',
   Title: 'elements/title',
+  RingProgress: 'elements/ringprogress',
   ToggleButton: 'elements/togglebutton',
   UnorderedList: 'elements/unorderedlist',
   Avatar: 'components/avatar',
@@ -1632,7 +1633,7 @@ export const categories = [
       ],
       [
         'Ring / circular progress',
-        0,
+        'RingProgress',
         'RingProgress',
         0,
         'CircularProgress',

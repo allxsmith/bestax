@@ -57,6 +57,7 @@ export * from './elements/OrderedList';
 export * from './elements/Paragraph';
 export * from './elements/Pre';
 export * from './elements/Progress';
+export * from './elements/RingProgress';
 export * from './elements/Skeleton';
 export * from './elements/Span';
 export * from './elements/Strong';
