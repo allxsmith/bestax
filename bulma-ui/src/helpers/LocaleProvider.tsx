@@ -1,4 +1,12 @@
-import React, { createContext, forwardRef, useContext, useMemo } from 'react';
+import React, {
+  createContext,
+  forwardRef,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { classNames } from './classNames';
 import { useBulmaClasses, BulmaClassesProps } from './useBulmaClasses';
 import { warnOnce } from './devWarnings';
@@ -22,6 +30,10 @@ export interface LocaleContextValue {
 }
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
+
+/** The nearest provider's wrapper element, for `LocalePortalScope` to test targets against. */
+const LocaleElementContext =
+  createContext<React.RefObject<HTMLDivElement | null> | null>(null);
 
 /**
  * Props for the LocaleProvider component. The helper props, the other
@@ -77,9 +89,9 @@ function validLocale(tag: string | undefined): string | undefined {
  * like a nested provider. The library's portaled content, such as a
  * `Popover` panel, a `Modal` with `portal`, a `Toast` or a `Portal`'s
  * children, keeps the same `dir` and `lang` though it renders outside the
- * wrapper: in a container that doesn't already carry them, it sits in a
- * `display: contents` element that does. Without a provider none of this
- * changes.
+ * wrapper: in a container outside the wrapper, it sits in a
+ * `display: contents` element that carries them. Without a provider none of
+ * this changes.
  *
  * @function
  * @param {LocaleProviderProps} props - Props for the LocaleProvider.
@@ -107,17 +119,45 @@ export const LocaleProvider = forwardRef<HTMLDivElement, LocaleProviderProps>(
 
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
 
+    // The wrapper, for portaled content to tell whether its target is inside
+    // it, and the caller's ref. A callback ref's cleanup is held and run on
+    // detach, as Toast and Modal do, since React 18 discards the return value.
+    const elementRef = useRef<HTMLDivElement | null>(null);
+    const consumerCleanupRef = useRef<(() => void) | null>(null);
+    const setElement = useCallback(
+      (node: HTMLDivElement | null) => {
+        elementRef.current = node;
+        if (typeof ref === 'function') {
+          if (node === null) {
+            const consumerCleanup = consumerCleanupRef.current;
+            consumerCleanupRef.current = null;
+            if (consumerCleanup) consumerCleanup();
+            else ref(null);
+            return;
+          }
+          const cleanup: unknown = ref(node);
+          consumerCleanupRef.current =
+            typeof cleanup === 'function' ? (cleanup as () => void) : null;
+        } else if (ref) {
+          ref.current = node;
+        }
+      },
+      [ref]
+    );
+
     return (
       <LocaleContext.Provider value={value}>
-        <div
-          ref={ref}
-          className={classNames(bulmaHelperClasses, className) || undefined}
-          {...rest}
-          dir={dir}
-          lang={locale}
-        >
-          {children}
-        </div>
+        <LocaleElementContext.Provider value={elementRef}>
+          <div
+            ref={setElement}
+            className={classNames(bulmaHelperClasses, className) || undefined}
+            {...rest}
+            dir={dir}
+            lang={locale}
+          >
+            {children}
+          </div>
+        </LocaleElementContext.Provider>
       </LocaleContext.Provider>
     );
   }
@@ -170,31 +210,27 @@ export interface PortalLocale {
 }
 
 /**
- * Whether content placed in `target` already has `values` from the DOM
- * around it: the nearest `dir` and `lang` attributes above it say the same.
- * A setting that is unset needs nothing.
- */
-function inheritsFrom(target: Element, values: PortalLocale): boolean {
-  const nearest = (name: 'dir' | 'lang') =>
-    target.closest(`[${name}]`)?.getAttribute(name);
-  return (
-    (!values.dir || nearest('dir') === values.dir) &&
-    (!values.locale || nearest('lang') === values.locale)
-  );
-}
-
-/**
- * INTERNAL, deliberately not exported from `src/index.ts`. Wraps content the
- * library portals into `target` in an element carrying the nearest
- * provider's `dir` and `lang`, or the `scope` given in their place, which
- * the content has left behind with the provider's wrapper. The element is
- * `display: contents`, so it adds no box.
+ * INTERNAL, deliberately not exported from `src/index.ts`. Keeps the `dir`
+ * and `lang` of the nearest provider, or the `scope` given in their place,
+ * on content the library portals into `target`, which has left the
+ * provider's wrapper behind.
  *
- * It renders the children alone outside a provider, so nothing changes
- * there, and also when `target` already has those values from the DOM above
- * it, such as a container inside the provider's own wrapper. Content that
- * must be its container's direct child, a `<tr>` portaled into a `<tbody>`,
- * then stays one.
+ * A target inside the provider's own wrapper gets the content as it is: it
+ * inherits from the wrapper, and follows it when the provider changes.
+ * Content that must be its container's direct child, a `<tr>` portaled into
+ * a `<tbody>` there, stays one. Any other target, `document.body` included,
+ * gets the content inside a `display: contents` element carrying the
+ * values, which adds no box. So does content with a `scope` of its own, a
+ * picker's panel, since the provider's values aren't its own.
+ *
+ * Which of the two is decided once, when the content mounts, and kept while
+ * it stays: switching between them would put a different element in its
+ * place and remount everything inside, losing typed text, focus and timers.
+ * A change of locale or direction updates the wrapper's attributes instead.
+ * A target is never left bare because something else, such as `<html>`,
+ * happens to carry the same values, since that can stop being true without
+ * the content remounting. Outside a provider it renders the children alone,
+ * so nothing changes there.
  */
 export function LocalePortalScope({
   children,
@@ -208,9 +244,12 @@ export function LocalePortalScope({
   scope?: PortalLocale;
 }) {
   const provider = useContext(LocaleContext);
-  if (!provider) return <>{children}</>;
+  const element = useContext(LocaleElementContext);
+  const [wrap] = useState(
+    () => scope !== undefined || !element?.current?.contains(target)
+  );
+  if (!provider || !wrap) return <>{children}</>;
   const values = scope ?? provider;
-  if (inheritsFrom(target, values)) return <>{children}</>;
   return (
     <div dir={values.dir} lang={values.locale} style={displayContents}>
       {children}

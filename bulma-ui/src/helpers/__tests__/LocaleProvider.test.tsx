@@ -1,5 +1,5 @@
 import React, { createRef } from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import {
   LocaleProvider,
   LocalePortalScope,
@@ -131,6 +131,23 @@ describe('LocaleProvider', () => {
       expect(ref.current).toHaveClass('p-4', 'extra');
       expect(ref.current).toHaveAttribute('id', 'fr-section');
       expect(ref.current).toHaveAttribute('data-section', 'quote');
+    });
+
+    it('calls a callback ref with the wrapper, and with null on unmount', () => {
+      const ref = jest.fn();
+      const { unmount } = render(<LocaleProvider ref={ref}>x</LocaleProvider>);
+      expect(ref).toHaveBeenCalledWith(expect.any(HTMLDivElement));
+      unmount();
+      expect(ref).toHaveBeenLastCalledWith(null);
+    });
+
+    it("runs a callback ref's cleanup on unmount in place of null", () => {
+      const cleanup = jest.fn();
+      const ref = jest.fn(() => cleanup);
+      const { unmount } = render(<LocaleProvider ref={ref}>x</LocaleProvider>);
+      unmount();
+      expect(cleanup).toHaveBeenCalledTimes(1);
+      expect(ref).toHaveBeenCalledTimes(1);
     });
 
     it('prefixes its helper classes under ConfigProvider classPrefix', () => {
@@ -296,7 +313,7 @@ describe('LocaleProvider', () => {
       expect(scope.style.display).toBe('contents');
     });
 
-    it('adds nothing when the provider sets nothing', () => {
+    it('wraps it with no attributes when the provider sets nothing', () => {
       render(
         <LocaleProvider>
           <Portal>
@@ -304,7 +321,11 @@ describe('LocaleProvider', () => {
           </Portal>
         </LocaleProvider>
       );
-      expect(scopeOf(screen.getByTestId('portaled'))).toBe(document.body);
+      const scope = scopeOf(screen.getByTestId('portaled'));
+      expect(scope.parentElement).toBe(document.body);
+      expect(scope.style.display).toBe('contents');
+      expect(scope).not.toHaveAttribute('dir');
+      expect(scope).not.toHaveAttribute('lang');
     });
 
     it('adds nothing to a container that already carries the values', () => {
@@ -355,6 +376,27 @@ describe('LocaleProvider', () => {
       }
     });
 
+    it('wraps it for <body> even when <html> carries the same values', () => {
+      document.documentElement.setAttribute('lang', 'he');
+      document.documentElement.setAttribute('dir', 'rtl');
+      try {
+        render(
+          <LocaleProvider locale="he">
+            <Portal>
+              <p data-testid="portaled">Portaled</p>
+            </Portal>
+          </LocaleProvider>
+        );
+        expect(scopeOf(screen.getByTestId('portaled'))).toHaveAttribute(
+          'lang',
+          'he'
+        );
+      } finally {
+        document.documentElement.removeAttribute('lang');
+        document.documentElement.removeAttribute('dir');
+      }
+    });
+
     it('wraps it where only part of the values is inherited', () => {
       // A container in an RTL island with no lang still needs the lang.
       const island = document.createElement('div');
@@ -375,6 +417,161 @@ describe('LocaleProvider', () => {
       } finally {
         island.remove();
       }
+    });
+
+    describe('across a change of locale', () => {
+      /** A field portaled with `Portal`, into `container` when given. */
+      function App({
+        locale,
+        container,
+      }: {
+        locale: string;
+        container?: HTMLElement;
+      }) {
+        return (
+          <LocaleProvider locale={locale}>
+            <Portal container={container}>
+              <input aria-label="Note" />
+            </Portal>
+          </LocaleProvider>
+        );
+      }
+      const note = () => screen.getByRole('textbox') as HTMLInputElement;
+
+      afterEach(() => {
+        document.documentElement.removeAttribute('lang');
+        document.documentElement.removeAttribute('dir');
+      });
+
+      it('keeps the portaled node and its state, updating the wrapper', () => {
+        document.documentElement.setAttribute('lang', 'en-US');
+        document.documentElement.setAttribute('dir', 'ltr');
+        const { rerender } = render(<App locale="en-US" />);
+        const field = note();
+        fireEvent.change(field, { target: { value: 'typed' } });
+
+        rerender(<App locale="ar-EG" />);
+        expect(note()).toBe(field);
+        expect(field.value).toBe('typed');
+        expect(scopeOf(field)).toHaveAttribute('lang', 'ar-EG');
+        expect(scopeOf(field)).toHaveAttribute('dir', 'rtl');
+
+        // The app then syncs <html>, as the docs recommend.
+        document.documentElement.setAttribute('lang', 'ar-EG');
+        document.documentElement.setAttribute('dir', 'rtl');
+        rerender(<App locale="ar-EG" />);
+        expect(note()).toBe(field);
+        expect(field.value).toBe('typed');
+      });
+
+      it('keeps a node portaled inside the provider bare as it follows', () => {
+        function Inside({ locale }: { locale: string }) {
+          const [target, setTarget] = React.useState<HTMLElement | null>(null);
+          return (
+            <LocaleProvider locale={locale} data-testid="wrapper">
+              <section ref={setTarget} />
+              {target && (
+                <Portal container={target}>
+                  <input aria-label="Note" />
+                </Portal>
+              )}
+            </LocaleProvider>
+          );
+        }
+        const { rerender } = render(<Inside locale="en-US" />);
+        const field = note();
+        fireEvent.change(field, { target: { value: 'typed' } });
+        rerender(<Inside locale="he" />);
+        expect(note()).toBe(field);
+        expect(field.value).toBe('typed');
+        expect(field.parentElement!.tagName).toBe('SECTION');
+        expect(field.closest('[lang]')).toBe(screen.getByTestId('wrapper'));
+        expect(field.closest('[lang]')).toHaveAttribute('lang', 'he');
+      });
+
+      it("keeps the node when the target's own attributes change", () => {
+        const target = document.createElement('div');
+        document.body.appendChild(target);
+        try {
+          const { rerender } = render(<App locale="he" container={target} />);
+          const field = note();
+          fireEvent.change(field, { target: { value: 'typed' } });
+          target.setAttribute('lang', 'he');
+          target.setAttribute('dir', 'rtl');
+          rerender(<App locale="he" container={target} />);
+          expect(note()).toBe(field);
+          expect(field.value).toBe('typed');
+          target.removeAttribute('lang');
+          rerender(<App locale="fr" container={target} />);
+          expect(note()).toBe(field);
+          expect(scopeOf(field)).toHaveAttribute('lang', 'fr');
+        } finally {
+          target.remove();
+        }
+      });
+
+      it('keeps an open Modal, a Toast and the notifications', () => {
+        function Overlays({ locale }: { locale: string }) {
+          return (
+            <LocaleProvider locale={locale}>
+              <Modal active portal aria-label="Edit">
+                <Modal.Background />
+                <Modal.Content>
+                  <input aria-label="Title" />
+                </Modal.Content>
+              </Modal>
+              <Toast message="Saved" duration={0} />
+              <NotificationContainer />
+            </LocaleProvider>
+          );
+        }
+        const { rerender } = render(<Overlays locale="en-US" />);
+        act(() => {
+          notification.show({ message: 'Hello', duration: 0 });
+        });
+        const title = screen.getByRole('textbox', {
+          name: 'Title',
+        }) as HTMLInputElement;
+        fireEvent.change(title, { target: { value: 'Draft' } });
+        const saved = screen.getByText('Saved');
+        const status = screen.getByRole('status');
+
+        rerender(<Overlays locale="ar-EG" />);
+        expect(screen.getByRole('textbox', { name: 'Title' })).toBe(title);
+        expect(title.value).toBe('Draft');
+        expect(screen.getByText('Saved')).toBe(saved);
+        expect(screen.getByRole('status')).toBe(status);
+        for (const node of [title, saved, status]) {
+          expect(node.closest('[lang]')).toHaveAttribute('lang', 'ar-EG');
+        }
+      });
+    });
+
+    it("wraps a picker's panel portaled inside the provider", () => {
+      // Its own locale isn't the provider's, so the panel can't just
+      // inherit from the provider's wrapper.
+      function Picker() {
+        const [target, setTarget] = React.useState<HTMLElement | null>(null);
+        return (
+          <LocaleProvider locale="ar-EG">
+            <div ref={setTarget} />
+            {target && (
+              <ConfigProvider portalContainer={target}>
+                <DateInputBase aria-label="Date" locale="fr" appendToBody />
+              </ConfigProvider>
+            )}
+          </LocaleProvider>
+        );
+      }
+      render(<Picker />);
+      act(() => {
+        screen.getByRole('combobox').focus();
+      });
+      const panel = document.querySelector(
+        '[class~="picker-popover"]'
+      ) as HTMLElement;
+      expect(scopeOf(panel)).toHaveAttribute('lang', 'fr');
+      expect(scopeOf(panel)).toHaveAttribute('dir', 'ltr');
     });
 
     it('leaves a disabled Portal in place, inside the wrapper', () => {

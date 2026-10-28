@@ -114,7 +114,7 @@ Outside a provider a picker keeps Sunday, even with a `locale` of its own, so pa
 
 What the library portals renders outside the provider's wrapper, at the end of `document.body` or in the `portalContainer` a [`ConfigProvider`](./config.md) sets. Inside a provider, that content keeps the provider's `dir` and `lang`. That covers a `Portal`'s children, a `Popover`, `HoverCard` or `ContextMenu` panel, a `Combobox` menu or picker popover with `appendToBody`, a `Modal` or `Dialog` with `portal`, a `Sidebar`, and toasts and notifications.
 
-A container that already carries those values, such as one inside the provider's own wrapper, takes the content as it is. Any other, `document.body` included, gets it inside one `<div>` carrying them, with `display: contents`, so it adds no box and changes no layout. It is still an element, though, so content that must be its container's direct child, such as a `<tr>` portaled into a `<tbody>`, belongs in a container inside the provider.
+A container inside the provider's own wrapper takes the content as it is, and the content follows the provider through the page. Any other, `document.body` included, gets it inside one `<div>` carrying the values, with `display: contents`, so it adds no box and changes no layout. It is still an element, though, so content that must be its container's direct child, such as a `<tr>` portaled into a `<tbody>`, belongs in a container inside the provider. Which of the two is settled when the content mounts: switching the locale while a dialog or a toast is open updates that `<div>` in place, so what's open keeps its typed text, focus and timers.
 
 ```tsx live
 <LocaleProvider locale="fa">

@@ -101,13 +101,15 @@ export interface PortalProps {
  * `appendToBody` panel or a `Modal` with `portal`.
  *
  * Inside a `LocaleProvider`, the children keep its `dir` and `lang`. A
- * container that already carries them, such as one inside the provider's
- * own wrapper, takes the children as they are. Any other, `document.body`
- * included, gets them inside one `<div>` carrying the provider's values,
- * with `display: contents` so it adds no box. It is still an element, so
- * content that must be the container's direct child, a `<tr>` in a
- * `<tbody>`, or that a direct-child selector styles, belongs in a container
- * inside the provider.
+ * container inside the provider's own wrapper takes the children as they
+ * are, and they follow the provider through the page. Any other,
+ * `document.body` included, gets them inside one `<div>` carrying the
+ * provider's values, with `display: contents` so it adds no box. It is
+ * still an element, so content that must be the container's direct child,
+ * a `<tr>` in a `<tbody>`, or that a direct-child selector styles, belongs
+ * in a container inside the provider. Which of the two is settled when the
+ * children mount, so a change of locale updates them in place rather than
+ * remounting them.
  *
  * Tab order and focus follow the DOM too. Content portaled from inside a
  * focus trap is no longer inside the trapped element, so the trap neither
