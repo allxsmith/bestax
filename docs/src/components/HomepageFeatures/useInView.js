@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react';
 
 /**
- * True once the element has scrolled into view, and from then on. The
- * features section starts its entrance and its demo loops on this, so nothing
- * plays out while the reader is still up in the hero.
+ * True once the element's top has come a quarter of the way up the viewport,
+ * and from then on. The features section starts its entrance and its demo
+ * loops on this, so nothing plays out while the reader is still up in the
+ * hero.
+ *
+ * It watches an edge rather than a share of the element, because a section
+ * taller than the screen (the stacked bento on a phone) may never have a given
+ * share of itself on screen at once.
  */
-export default function useInView(ref, threshold = 0.15) {
+export default function useInView(ref) {
   const [inView, setInView] = useState(false);
 
   useEffect(() => {
@@ -17,11 +22,11 @@ export default function useInView(ref, threshold = 0.15) {
         setInView(true);
         observer.disconnect();
       },
-      { threshold }
+      { rootMargin: '0px 0px -25% 0px' }
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, [ref, threshold]);
+  }, [ref]);
 
   return inView;
 }
