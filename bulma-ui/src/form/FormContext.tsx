@@ -24,6 +24,25 @@ export const FieldProvider = FieldContext.Provider;
 /** Provider for Control context — used internally by Control component. */
 export const ControlProvider = ControlContext.Provider;
 
+const FieldsetDisabledContext = createContext(false);
+
+/**
+ * An input's `disabled`: its own prop when the caller set one, otherwise
+ * whether a disabled `Fieldset` holds it. A `<fieldset disabled>` disables the
+ * native controls inside on its own, and this carries the same state to what
+ * the browser doesn't reach, such as Rate's stars, the time wheels, and the
+ * `is-disabled` classes. The content of a Fieldset's legend reads the state
+ * from outside that Fieldset, as the browser leaves the first legend's
+ * controls enabled. Internal; not part of the public API.
+ */
+export const useFieldsetDisabled = (disabled: boolean | undefined): boolean => {
+  const inherited = useContext(FieldsetDisabledContext);
+  return disabled ?? inherited;
+};
+
+/** Provider for a Fieldset's disabled state, used internally by Fieldset. */
+export const FieldsetDisabledProvider = FieldsetDisabledContext.Provider;
+
 /** The wrapper props that change what its own `Field` renders. */
 interface FieldShapingProps {
   /** Rendered as the `Field`'s label. */

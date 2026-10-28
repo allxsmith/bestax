@@ -180,6 +180,7 @@ export const SCSS_SOURCES = {
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_emptystate.scss' },
   ],
   Field: [{ pkg: 'bulma', path: 'sass/form/tools.scss' }],
+  Fieldset: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_fieldset.scss' }],
   Figure: [],
   File: [{ pkg: 'bulma', path: 'sass/form/file.scss' }],
   Footer: [{ pkg: 'bulma', path: 'sass/layout/footer.scss' }],

@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useFieldLabelTarget } from './FormContext';
+import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
 
 /**
  * Props for the TextArea component.
@@ -78,13 +78,14 @@ export const TextAreaBase = forwardRef<HTMLTextAreaElement, TextAreaBaseProps>(
       isActive,
       hasFixedSize,
       className,
-      disabled,
+      disabled: disabledProp,
       readOnly,
       rows,
       ...props
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color,
       ...props,

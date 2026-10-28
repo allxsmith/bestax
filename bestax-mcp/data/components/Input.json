@@ -115,7 +115,7 @@
     },
     {
       "title": "Disabled Fieldset",
-      "code": "<fieldset disabled>\n  <Input label=\"Name\" placeholder=\"Your name\" />\n  <Input label=\"Email\" type=\"email\" placeholder=\"Your email\" />\n</fieldset>"
+      "code": "<Fieldset variant=\"unstyled\" disabled>\n  <Input label=\"Name\" placeholder=\"Your name\" />\n  <Input label=\"Email\" type=\"email\" placeholder=\"Your email\" />\n</Fieldset>"
     },
     {
       "title": "Context-Aware Rendering › Default (with label)",

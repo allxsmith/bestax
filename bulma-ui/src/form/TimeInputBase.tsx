@@ -38,7 +38,7 @@ import {
   usePickerLocaleScope,
 } from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
-import { useFieldLabelTarget } from './FormContext';
+import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
 import { Icon } from '../elements/Icon';
 import { Buttons } from '../elements/Buttons';
 
@@ -217,7 +217,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       onClose,
       min,
       max,
-      disabled,
+      disabled: disabledProp,
       readOnly,
       placeholder,
       format,
@@ -262,6 +262,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
     // Its own language and direction, which its root and a portaled panel
     // carry inside a provider.
     const localeScope = usePickerLocaleScope(localeProp, props.dir);
+    const disabled = useFieldsetDisabled(disabledProp);
     // Inside a labeled Field the input takes the id the label points at
     // when the caller set none, as InputBase does, and the popover's ids
     // follow it. Inline there is no input to name, so nothing takes the

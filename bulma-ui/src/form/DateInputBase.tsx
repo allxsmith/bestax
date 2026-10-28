@@ -49,7 +49,7 @@ import {
   usePickerLocaleScope,
 } from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
-import { useFieldLabelTarget } from './FormContext';
+import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { Icon } from '../elements/Icon';
 
@@ -263,7 +263,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       onClose,
       min,
       max,
-      disabled,
+      disabled: disabledProp,
       readOnly,
       placeholder,
       granularity = 'day',
@@ -313,6 +313,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       locale,
       hasOwnDayNames(dayNames)
     );
+    const disabled = useFieldsetDisabled(disabledProp);
     // Inside a labeled Field the input takes the id the label points at
     // when the caller set none, as InputBase does, and the popover's ids
     // follow it. Inline there is no input to name, so nothing takes the

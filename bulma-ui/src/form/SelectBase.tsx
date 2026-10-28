@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useFieldLabelTarget } from './FormContext';
+import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
 
 /**
  * Props for the Select component.
@@ -78,7 +78,7 @@ export const SelectBase = forwardRef<HTMLSelectElement, SelectBaseProps>(
       isFullwidth,
       isFullWidth,
       className,
-      disabled,
+      disabled: disabledProp,
       children,
       multiple,
       multipleSize,
@@ -86,6 +86,7 @@ export const SelectBase = forwardRef<HTMLSelectElement, SelectBaseProps>(
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color,
       ...props,

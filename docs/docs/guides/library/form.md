@@ -559,4 +559,19 @@ Wrap inputs, selects, or textareas in `Control` for proper Bulma styling and ico
 
 ---
 
+### Fieldset
+
+A section of a form in a native `<fieldset>`, named by its legend, bordered, filled or unstyled, whose `disabled` switches off every control inside.
+
+```tsx live
+<Fieldset legend="Shipping address" message="We only ship within the EU.">
+  <Input label="Street" name="street" />
+  <Input label="City" name="city" />
+</Fieldset>
+```
+
+[View full documentation.](../../api/form/fieldset)
+
+---
+
 For more details and advanced usage, see the full documentation for each component linked above.

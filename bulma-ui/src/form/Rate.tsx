@@ -12,6 +12,7 @@ import {
   useInsideControl,
   rendersOwnField,
   rendersOwnControl,
+  useFieldsetDisabled,
 } from './FormContext';
 import { Field } from './Field';
 import { Control } from './Control';
@@ -173,7 +174,7 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
       defaultValue = 0,
       max = 5,
       size,
-      disabled = false,
+      disabled: disabledProp,
       showScore = false,
       showText = false,
       texts,
@@ -195,6 +196,7 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const insideField = useInsideField();
     const insideControl = useInsideControl();
     const ownField = rendersOwnField('Rate', {

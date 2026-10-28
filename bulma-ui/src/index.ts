@@ -81,6 +81,7 @@ export * from './form/CheckboxCard';
 export * from './form/Checkboxes';
 export * from './form/Control';
 export * from './form/Field';
+export * from './form/Fieldset';
 export * from './form/File';
 export * from './form/Radio';
 export * from './form/RadioCard';

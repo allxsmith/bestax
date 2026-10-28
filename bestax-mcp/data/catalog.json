@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.51.0"
+    "version": "5.52.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -99,6 +99,7 @@
         "DateRangeInput",
         "DateTimeInput",
         "Field",
+        "Fieldset",
         "File",
         "Input",
         "Numberinput",
@@ -580,6 +581,17 @@
       "compound": true,
       "propCount": 41,
       "exampleCount": 23
+    },
+    {
+      "name": "Fieldset",
+      "kind": "component",
+      "category": "form",
+      "purpose": "The `Fieldset` component groups a section of a form in a native `<fieldset>`, named by its `legend`, which a `disabled` switches off as a whole.",
+      "slug": "form/fieldset",
+      "import": "import { Fieldset } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 10,
+      "exampleCount": 7
     },
     {
       "name": "Figure",
@@ -1836,6 +1848,19 @@
     "--bulma-empty-state-padding": ["EmptyState"],
     "--bulma-empty-state-title-size": ["EmptyState"],
     "--bulma-field-block-spacing": ["Field"],
+    "--bulma-fieldset-background": ["Fieldset"],
+    "--bulma-fieldset-border-color": ["Fieldset"],
+    "--bulma-fieldset-border-width": ["Fieldset"],
+    "--bulma-fieldset-filled-background": ["Fieldset"],
+    "--bulma-fieldset-legend-color": ["Fieldset"],
+    "--bulma-fieldset-legend-padding": ["Fieldset"],
+    "--bulma-fieldset-legend-size": ["Fieldset"],
+    "--bulma-fieldset-legend-spacing": ["Fieldset"],
+    "--bulma-fieldset-legend-weight": ["Fieldset"],
+    "--bulma-fieldset-padding": ["Fieldset"],
+    "--bulma-fieldset-padding-top": ["Fieldset"],
+    "--bulma-fieldset-radius": ["Fieldset"],
+    "--bulma-fieldset-spacing": ["Fieldset"],
     "--bulma-file-active-background-l-delta": ["File"],
     "--bulma-file-active-border-l-delta": ["File"],
     "--bulma-file-active-color-l-delta": ["File"],

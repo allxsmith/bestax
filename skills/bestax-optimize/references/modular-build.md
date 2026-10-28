@@ -88,7 +88,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 **Form** (`@allxsmith/bestax-bulma/scss/form/<name>`):
 `checkbox`, `checkboxcard`, `radio`, `radiocard`, `switch`, `slider`, `numberinput`, `pininput`,
 `rate`, `autocomplete`, `combobox`, `taginput`, `picker-popover`, `dateinput`, `timeinput`,
-`datetimeinput`, `daterangeinput`, `file`
+`datetimeinput`, `daterangeinput`, `file`, `fieldset`
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `descriptionlist`, `kbd`,
 `linkbutton`, `loader`, `notification`, `progress`, `ringprogress`, `skeleton`

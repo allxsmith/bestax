@@ -194,6 +194,7 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/form/checkboxcard';
 @use '@allxsmith/bestax-bulma/scss/form/radio';
 @use '@allxsmith/bestax-bulma/scss/form/radiocard';
+@use '@allxsmith/bestax-bulma/scss/form/fieldset';
 
 // bestax elements and helpers
 @use '@allxsmith/bestax-bulma/scss/elements/descriptionlist';
