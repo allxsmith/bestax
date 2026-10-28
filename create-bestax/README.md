@@ -44,9 +44,10 @@ You'll be asked to:
 1. Enter a project name or path (and, if that directory already holds files, confirm removing
    them; nothing is removed until you have answered the last question)
 2. Select a framework (Vite or Vite + TypeScript)
-3. Choose a Bulma CSS flavor (the `--bulma` options below)
-4. Select an icon library (Font Awesome, Material Icons, etc.)
-5. Choose whether to install the bestax AI skills into `.claude/skills/`
+3. Choose a linter (Oxlint or ESLint)
+4. Choose a Bulma CSS flavor (the `--bulma` options below)
+5. Select an icon library (Font Awesome, Material Icons, etc.)
+6. Choose whether to install the bestax AI skills into `.claude/skills/`
 
 Every prompt has a flag equivalent, so the whole flow is scriptable and CI-friendly — see the options below.
 
@@ -73,6 +74,11 @@ with or without it.
 
 - `-t, --template <template>` - Template to use: `vite` or `vite-ts`  
   **Default:** `vite`
+- `--lint <linter>` - Linter:
+  - `oxlint` - Oxlint, as `npm create vite` sets up. `vite-ts` gets TypeScript 7.
+  - `eslint` - ESLint with typescript-eslint, as `npm create vite -- --eslint` sets up.
+    typescript-eslint doesn't support TypeScript 7 yet, so `vite-ts` stays on TypeScript 6.  
+    **Default:** `oxlint`, which a run without a terminal also gets when it leaves `--lint` out
 - `-b, --bulma <flavor>` - Bulma CSS flavor:
   - `complete` - Full Bulma CSS with all components and helpers
   - `prefixed` - Prefixed version for compatibility
@@ -94,6 +100,7 @@ with or without it.
 - `-y, --yes` - Skip prompts and use defaults or provided options.  
   When used, the following defaults are selected unless overridden by flags:
   - Template: `vite`
+  - Linter: `oxlint`
   - Bulma flavor: `complete`
   - Icon library: `none`
   - AI skills: installed (pass `--no-skills` to opt out)
@@ -111,6 +118,9 @@ with or without it.
 ```bash
 # Create a TypeScript project with Font Awesome icons
 npm create bestax@latest my-app -- -t vite-ts -i fontawesome -b complete
+
+# The same, linted with ESLint (and on TypeScript 6)
+npm create bestax@latest my-app -- -t vite-ts -i fontawesome --lint eslint
 
 # Use all defaults (skip prompts)
 npm create bestax@latest my-app -- -y

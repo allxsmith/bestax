@@ -23,6 +23,9 @@ const { LIBRARY, libraryRange } = await import('../library-range.js');
 const {
   BULMA_FLAVORS,
   CSS_ORDER_COMMENT,
+  ESLINT_CONFIG,
+  ESLINT_DEV_DEPENDENCIES,
+  ESLINT_TYPESCRIPT_DEV_DEPENDENCIES,
   ICON_LIBRARIES,
   NO_HELPERS_STARTER_CLASSES,
 } = await import('../constants.js');
@@ -404,6 +407,65 @@ describe.each(TEMPLATES)('%s template README', template => {
     await projectCreator.updateReadme(without, 'none');
     const plain = await fs.readFile(path.join(without, 'README.md'), 'utf8');
     expect(plain).not.toMatch(/icons/i);
+  });
+});
+
+// The templates ship create-vite's default lint setup, Oxlint, and --lint
+// eslint swaps in what create-vite's --eslint writes.
+describe.each(TEMPLATES)('%s template linter', template => {
+  const typescript = template === 'vite-ts';
+  const readPkg = (target: string) =>
+    fs.readJson(path.join(target, 'package.json')) as Promise<{
+      scripts: Record<string, string>;
+      devDependencies: Record<string, string>;
+    }>;
+
+  it('lints with Oxlint, and carries no ESLint', async () => {
+    const target = await scaffold(template);
+    await projectCreator.setupLinter(target, 'oxlint', template);
+
+    expect(fs.existsSync(path.join(target, '.oxlintrc.json'))).toBe(true);
+    expect(fs.existsSync(path.join(target, '_oxlintrc.json'))).toBe(false);
+    expect(fs.existsSync(path.join(target, 'eslint.config.js'))).toBe(false);
+    const pkg = await readPkg(target);
+    expect(pkg.scripts.lint).toBe('oxlint');
+    expect(Object.keys(pkg.devDependencies)).toContain('oxlint');
+    expect(
+      Object.keys(pkg.devDependencies).filter(name => /eslint/.test(name))
+    ).toEqual([]);
+    if (typescript) {
+      expect(pkg.devDependencies.typescript).toMatch(/^~7\./);
+    }
+  });
+
+  it('swaps in ESLint for --lint eslint, and TypeScript 6 with it', async () => {
+    const target = await scaffold(template);
+    await projectCreator.updateReadme(target, 'none');
+    await projectCreator.setupLinter(target, 'eslint', template);
+
+    expect(fs.existsSync(path.join(target, '.oxlintrc.json'))).toBe(false);
+    expect(
+      await fs.readFile(path.join(target, 'eslint.config.js'), 'utf8')
+    ).toBe(ESLINT_CONFIG(typescript));
+
+    const pkg = await readPkg(target);
+    expect(pkg.scripts.lint).toBe('eslint .');
+    expect(pkg.devDependencies).not.toHaveProperty('oxlint');
+    expect(pkg.devDependencies).toMatchObject(ESLINT_DEV_DEPENDENCIES);
+    if (typescript) {
+      expect(pkg.devDependencies).toMatchObject(
+        ESLINT_TYPESCRIPT_DEV_DEPENDENCIES
+      );
+    } else {
+      expect(pkg.devDependencies).not.toHaveProperty('typescript');
+      expect(pkg.devDependencies).not.toHaveProperty('typescript-eslint');
+    }
+    const names = Object.keys(pkg.devDependencies);
+    expect(names).toEqual([...names].sort());
+
+    const readme = await fs.readFile(path.join(target, 'README.md'), 'utf8');
+    expect(readme).toContain('Run ESLint');
+    expect(readme).not.toContain('Oxlint');
   });
 });
 
