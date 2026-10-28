@@ -13,7 +13,8 @@
   animation: buzz 0.09s linear infinite alternate;
 }
 
-.wingLate {
+/* Compounded so the delay outranks `.wing`'s animation on specificity. */
+.wing.wingLate {
   animation-delay: 0.045s;
 }
 

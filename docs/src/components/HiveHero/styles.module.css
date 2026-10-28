@@ -32,8 +32,12 @@
   color: #fff;
 }
 
-/* The palettes Theming walks through. */
-.palTeal {
+/*
+ * The palettes Theming walks through. State classes like these are compounded
+ * with the class they override, so they win on specificity rather than on
+ * source order, which the production minifier can change.
+ */
+.hero.palTeal {
   --p0: #0a2027;
   --p0e: #17414b;
   --p1: #0c2a33;
@@ -50,7 +54,7 @@
   --glowc: rgba(79, 209, 187, 0.4);
 }
 
-.palViolet {
+.hero.palViolet {
   --p0: #14102e;
   --p0e: #2b2461;
   --p1: #1a1540;
@@ -67,7 +71,7 @@
   --glowc: rgba(165, 148, 255, 0.4);
 }
 
-.palHoney {
+.hero.palHoney {
   --p0: #1d1509;
   --p0e: #402d10;
   --p1: #281c0b;
@@ -1699,8 +1703,8 @@
   border-radius: 6px;
 }
 
-.pmItemActive,
-.pmItemActive:hover {
+.pmItem.pmItemActive,
+.pmItem.pmItemActive:hover {
   color: #fff;
   font-weight: 700;
 }
@@ -1781,7 +1785,7 @@
   animation: blink 1.05s steps(1) infinite;
 }
 
-.caretTyping {
+.caret.caretTyping {
   animation: none;
 }
 

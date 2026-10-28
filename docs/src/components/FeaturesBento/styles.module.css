@@ -243,8 +243,13 @@
   outline-offset: 2px;
 }
 
-.stepOn,
-.stepOn:hover {
+/*
+ * State classes like this one are compounded with the class they override, so
+ * they win on specificity rather than on source order, which the production
+ * minifier can change.
+ */
+.step.stepOn,
+.step.stepOn:hover {
   border-color: var(--bestax-primary);
   background: var(--bestax-primary);
   color: #fff;
@@ -461,7 +466,7 @@
   opacity: 0.6;
 }
 
-.inputFocus {
+.input.inputFocus {
   border-color: var(--w-primary);
   box-shadow: 0 0 0 3px var(--w-primary-soft);
 }
@@ -512,7 +517,7 @@
   transform: translateX(18px);
 }
 
-.actions {
+.row.actions {
   gap: 8px;
   margin-top: 4px;
 }
@@ -532,7 +537,7 @@
     color 0.45s;
 }
 
-.formPrimary {
+.formButton.formPrimary {
   background: var(--w-primary);
   color: var(--w-primary-text);
 }
@@ -640,7 +645,7 @@
   animation: bones 1.3s linear infinite;
 }
 
-.boneBlock {
+.bone.boneBlock {
   height: 40px;
   border-radius: 9px;
 }
@@ -770,7 +775,7 @@
   animation: fallRight 7s cubic-bezier(0.55, 0, 0.7, 0.2) infinite;
 }
 
-.shakenLeft {
+.shaken.shakenLeft {
   animation-name: fallLeft;
 }
 

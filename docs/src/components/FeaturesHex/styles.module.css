@@ -365,7 +365,8 @@
 
 /* --- Picking a badge: it spins, and the section steps aside for the bento --- */
 
-.leaving {
+/* Compounded so the delay outranks `.section`'s transition on specificity. */
+.section.leaving {
   opacity: 0;
   transform: scale(0.98);
   transition-delay: 0.15s;
