@@ -1,3 +1,22 @@
+## [1.18.15](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.14...bestax-mcp@1.18.15) (2026-10-28)
+
+
+### Bug Fixes
+
+* **docs:** answer create-bestax's install-and-start question in the run ([0cdb40b](https://github.com/allxsmith/bestax/commit/0cdb40b04f68cd2f9bece66482bc92469ade8e41))
+* **docs:** give the create-bestax browser frame the site's color mode ([ec2c3b5](https://github.com/allxsmith/bestax/commit/ec2c3b5066a33c8952483a8538fceabb79f65cb7))
+* **docs:** keep the Bulma v1 card's window in the site's color mode ([#1321](https://github.com/allxsmith/bestax/issues/1321)) ([6296bd0](https://github.com/allxsmith/bestax/commit/6296bd0ae3141c21476bc6172af14608373bffb6))
+* **docs:** keep the scroll trigger from restarting a Replay ([b41bc3f](https://github.com/allxsmith/bestax/commit/b41bc3f7b954e31b5c59ea4e26a4589d79024785))
+* **docs:** stop calling the MCP server upcoming in the AI section ([9864c30](https://github.com/allxsmith/bestax/commit/9864c30f5b032e1b6053eaef66a2eabbe844ecb2))
+
+
+### Features
+
+* **bulma-ui:** add DescriptionList, facts about one thing as labels and values ([78dd1b6](https://github.com/allxsmith/bestax/commit/78dd1b6ada3d650fdfef4257a78846fd72caca00))
+* **docs:** rebuild the homepage hero and features to match the social card ([#1316](https://github.com/allxsmith/bestax/issues/1316)) ([aadc45d](https://github.com/allxsmith/bestax/commit/aadc45df992bd6f186979d8694606db0594ea712))
+* **docs:** show create-bestax scaffolding an app on the homepage ([3d11ce9](https://github.com/allxsmith/bestax/commit/3d11ce918ddbdf1c1ebf1bf37e604fa540e315e3))
+* **docs:** show create-bestax scaffolding an app on the homepage ([#1320](https://github.com/allxsmith/bestax/issues/1320)) ([6335f24](https://github.com/allxsmith/bestax/commit/6335f2440cfc3387682699e1a6a9d4aef8473451))
+
 ## [1.18.14](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.13...bestax-mcp@1.18.14) (2026-10-28)
 
 
