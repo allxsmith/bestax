@@ -31,7 +31,16 @@ the last prompt, so a typo or a Ctrl+C never costs the user their files (#945).
 - `src/validators.ts`, `src/display.ts`, `src/file-system.ts` — support modules
 - `src/run-command.ts` — runs `--immediate`'s install and dev server
 - `templates/vite`, `templates/vite-ts` — the app templates. The `vite-compiler` and
-  `vite-compiler-ts` templates copy them and turn the React Compiler on (`setupReactCompiler`)
+  `vite-compiler-ts` templates copy them and turn the React Compiler on (`setupReactCompiler`).
+  The `react-router` and `react-router-ts` templates copy them and lay the files in
+  `templates/overlays/react-router/<vite|vite-ts>` over them (`setupRouter`): a navbar layout, the
+  routes and a second page, with `App`, the starter page, as the home page. That step runs after
+  the flavor, icon and provider steps, which edit `App` and the entry file as they do in the plain
+  template, and then makes the entry file render the router where it rendered `App`. The files it
+  adds use no helper prop, so a no-helpers flavor needs nothing from it, and
+  `src/__tests__/templates.test.ts` holds them to that. `REACT_ROUTER_DEPENDENCIES` floors React
+  Router at a release past the cooldown; move it with the major, and check the Node floor
+  (`REACT_ROUTER_NODE_ENGINE`) when you do.
 
 ## Dependencies
 
@@ -102,10 +111,13 @@ react (#1012), so restore them on its PR; when the peer range itself moves, chan
   `npm create vite@latest` writes, Oxlint and its `_oxlintrc.json` included, and `--lint eslint`
   follows what create-vite's `--eslint` writes in their place (the `ESLINT_*` constants in
   `src/constants.ts`), and the compiler templates what its `react-compiler` starters add (the
-  `REACT_COMPILER_*` constants). When Vite or create-vite ships a new minor or major, scaffold both
-  starters with and without `--eslint`, compare their tsconfigs, devDependencies, `vite.config`
-  and `src/main` with the templates and the constants, and catch up (#1049, #1304). The App,
-  its assets and the README differ on purpose. TypeScript follows create-vite too: 7 under
+  `REACT_COMPILER_*` constants). `.github/workflows/create-vite-drift.yml` runs
+  `scripts/check-create-vite-drift.mjs` each Monday and keeps an issue open while they differ
+  from the create-vite release npm calls `latest` (`node scripts/check-create-vite-drift.mjs
+--report` prints the same comparison). To catch up, scaffold both starters with and without
+  `--eslint`, compare their tsconfigs, devDependencies, `vite.config` and `src/main` with the
+  templates and the constants, and close the issue from the PR (#1049, #1304). The App, its
+  assets, the README and `_gitignore` differ on purpose, and the script doesn't compare them. TypeScript follows create-vite too: 7 under
   Oxlint, and 6 under ESLint, since typescript-eslint can't load 7 yet (#394). A file the
   catch-up adds or removes has to reach the docs sandboxes too, and
   `docs/scripts/sandbox.test.mjs` fails until the files the StackBlitz project copies, with the

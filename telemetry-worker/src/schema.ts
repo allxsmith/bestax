@@ -25,6 +25,8 @@ const TEMPLATE_VALUES = [
   'vite-ts',
   'vite-compiler',
   'vite-compiler-ts',
+  'react-router',
+  'react-router-ts',
 ] as const;
 // create-bestax/src/constants.ts → BULMA_FLAVORS
 const BULMA_FLAVOR_VALUES = [

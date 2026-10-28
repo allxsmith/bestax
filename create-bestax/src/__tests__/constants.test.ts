@@ -35,12 +35,15 @@ describe('constants', () => {
   describe('TEMPLATES', () => {
     it('should have the correct templates defined', () => {
       expect(
-        TEMPLATES.map(({ name, display, directory, reactCompiler }) => ({
-          name,
-          display,
-          directory,
-          reactCompiler,
-        }))
+        TEMPLATES.map(
+          ({ name, display, directory, reactCompiler, router }) => ({
+            name,
+            display,
+            directory,
+            reactCompiler,
+            router,
+          })
+        )
       ).toEqual([
         { name: 'vite', display: 'Vite', directory: 'vite' },
         { name: 'vite-ts', display: 'Vite + TypeScript', directory: 'vite-ts' },
@@ -55,6 +58,18 @@ describe('constants', () => {
           display: 'Vite + TypeScript + React Compiler',
           directory: 'vite-ts',
           reactCompiler: true,
+        },
+        {
+          name: 'react-router',
+          display: 'React Router',
+          directory: 'vite',
+          router: true,
+        },
+        {
+          name: 'react-router-ts',
+          display: 'React Router + TypeScript',
+          directory: 'vite-ts',
+          router: true,
         },
       ]);
     });
@@ -258,6 +273,22 @@ describe('constants', () => {
   });
 
   describe('CLAUDE_MD', () => {
+    it('describes the routing only for a React Router app', () => {
+      const routed = CLAUDE_MD('my-app', {
+        bulmaFlavor: 'complete',
+        iconLibrary: 'none',
+        router: true,
+      });
+      expect(routed).toContain('- Routing: React Router in data mode.');
+      expect(routed).toContain('<Navbar.Item as={Link} to="...">');
+      expect(routed).toContain(
+        'https://bestax.io/docs/guides/features/routing'
+      );
+      expect(
+        CLAUDE_MD('my-app', { bulmaFlavor: 'complete', iconLibrary: 'none' })
+      ).not.toContain('Routing:');
+    });
+
     it('tells agents to customize the scaffolded title and README', () => {
       const content = CLAUDE_MD('my-app', {
         bulmaFlavor: 'complete',

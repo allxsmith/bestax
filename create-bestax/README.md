@@ -43,7 +43,8 @@ You'll be asked to:
 
 1. Enter a project name or path (and, if that directory already holds files, confirm removing
    them; nothing is removed until you have answered the last question)
-2. Select a framework (Vite or Vite + TypeScript, each with or without the React Compiler)
+2. Select a framework (Vite or Vite + TypeScript, each plain, with the React Compiler, or with
+   React Router)
 3. Choose a linter (Oxlint or ESLint)
 4. Choose a Bulma CSS flavor (the `--bulma` options below)
 5. Select an icon library (Font Awesome, Material Icons, etc.)
@@ -79,7 +80,9 @@ with or without it.
   - `vite` - Vite + JavaScript
   - `vite-ts` - Vite + TypeScript
   - `vite-compiler` - Vite + JavaScript, with the React Compiler
-  - `vite-compiler-ts` - Vite + TypeScript, with the React Compiler  
+  - `vite-compiler-ts` - Vite + TypeScript, with the React Compiler
+  - `react-router` - Vite + JavaScript, with React Router and two pages
+  - `react-router-ts` - Vite + TypeScript, with React Router and two pages  
     **Default:** `vite`
 - `--lint <linter>` - Linter:
   - `oxlint` - Oxlint, as `npm create vite` sets up. `vite-ts` gets TypeScript 7.
@@ -149,6 +152,9 @@ npm create bestax@latest . -- -y --immediate
 # Turn on the React Compiler
 npm create bestax@latest my-app -- -t vite-compiler-ts -y
 
+# Start with React Router, a navbar and two pages
+npm create bestax@latest my-app -- -t react-router-ts -y
+
 # The same with bun
 bun create bestax@latest my-app -- -y
 ```
@@ -161,9 +167,17 @@ Available templates:
 - `vite-ts` - Vite + TypeScript
 - `vite-compiler` - Vite + JavaScript, with the [React Compiler](https://react.dev/learn/react-compiler)
 - `vite-compiler-ts` - Vite + TypeScript, with the React Compiler
+- `react-router` - Vite + JavaScript, with [React Router](https://reactrouter.com)
+- `react-router-ts` - Vite + TypeScript, with React Router
 
 The React Compiler templates are the plain ones with the compiler turned on through Babel in
 `vite.config`, the way `npm create vite` builds its `react-compiler` starters.
+
+The React Router templates are the plain ones with React Router 8 in data mode on top: a navbar
+every page shares (`src/Layout`), the routes (`src/router`), and a second page
+(`src/pages/About`), with the starter page as the home page. Each navbar item renders the router's
+`Link` through `as`, as the [routing guide](https://bestax.io/docs/guides/features/routing)
+describes. React Router 8 needs Node 22.22 or newer, so these scaffolds say so in `engines`.
 
 Each template includes:
 

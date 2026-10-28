@@ -298,7 +298,14 @@ describe('prompts', () => {
       expect(promptCall.type).toBe('select');
       expect(promptCall.message).toBe('Select a framework:');
       expect(promptCall.choices.map((c: { value: string }) => c.value)).toEqual(
-        ['vite', 'vite-ts', 'vite-compiler', 'vite-compiler-ts']
+        [
+          'vite',
+          'vite-ts',
+          'vite-compiler',
+          'vite-compiler-ts',
+          'react-router',
+          'react-router-ts',
+        ]
       );
     });
 

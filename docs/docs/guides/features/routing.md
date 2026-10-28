@@ -11,8 +11,11 @@ Router, or any library whose navigation primitive is a component you render `as`
 covers the first-hour questions: making `Navbar.Item`/`Menu.Item` navigate, making a
 `Button` navigate, and styling the active route.
 
-All examples use React Router v6/v7 (`react-router-dom`); the Next.js differences are at the
-end.
+All examples use React Router 7 or 8, which import from `react-router`. In a v6 app, import the
+same names from `react-router-dom`. The Next.js differences are at the end.
+
+To start from these patterns, `npm create bestax@latest my-app -- -t react-router-ts` scaffolds a
+Vite app on React Router 8 with a shared navbar and two pages, wired the way this page describes.
 
 ## Menu items as router links
 
@@ -21,7 +24,7 @@ end.
 against the router's own types and no cast is needed:
 
 ```tsx
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Menu } from '@allxsmith/bestax-bulma';
 
 <Menu>
@@ -44,7 +47,7 @@ any other router prop) is forwarded to it. Like `Menu.Item`, its props follow `a
 compiles without a cast:
 
 ```tsx
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Navbar } from '@allxsmith/bestax-bulma';
 
 <Navbar color="dark">
@@ -66,7 +69,7 @@ import { Navbar } from '@allxsmith/bestax-bulma';
 `Button`'s `as` prop is polymorphic (any `React.ElementType`), so the same two options apply:
 
 ```tsx
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { Button } from '@allxsmith/bestax-bulma';
 
 // Option 1 — render the Button AS the router link:
@@ -92,10 +95,26 @@ submit, a confirmation). For plain external URLs, no router is needed:
 
 ## Active-route styling
 
-`Navbar.Item` and `Menu.Item` both take an `active` boolean — drive it from the router:
+`Navbar.Item` and `Menu.Item` both take an `active` boolean — drive it from the router.
+`Menu.Item` also sets `aria-current="page"` when it's active, so assistive tech hears which item is
+current. `Navbar.Item` only adds `is-active`, so pass `aria-current` on it too, as the
+`react-router` starter's navbar does:
 
 ```tsx
-import { Link, useLocation } from 'react-router-dom';
+<Navbar.Item
+  as={Link}
+  to="/about"
+  active={pathname === '/about'}
+  aria-current={pathname === '/about' ? 'page' : undefined}
+>
+  About
+</Navbar.Item>
+```
+
+The same with `Menu.Item`, which needs no `aria-current` of its own:
+
+```tsx
+import { Link, useLocation } from 'react-router';
 
 function SideNav() {
   const { pathname } = useLocation();
