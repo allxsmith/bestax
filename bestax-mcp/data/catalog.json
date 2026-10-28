@@ -313,8 +313,8 @@
       "slug": "form/checkboxes",
       "import": "import { Checkboxes, Checkbox } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 21,
-      "exampleCount": 5
+      "propCount": 22,
+      "exampleCount": 6
     },
     {
       "name": "ClientOnly",
@@ -973,8 +973,8 @@
       "slug": "form/radios",
       "import": "import { Radios, Radio } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 20,
-      "exampleCount": 5
+      "propCount": 21,
+      "exampleCount": 6
     },
     {
       "name": "Rate",
