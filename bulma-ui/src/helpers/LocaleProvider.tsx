@@ -88,7 +88,7 @@ function validLocale(tag: string | undefined): string | undefined {
  * `firstDayOfWeek` is set, and a picker with a `locale` of its own is read
  * like a nested provider. With a `locale`, the numbers the library writes,
  * such as page numbers and badge counts, follow it, and so does the
- * filtering in `Combobox`, `Autocomplete` and `Taginput`, which then ignores
+ * filtering in `Combobox`, `Autocomplete`, `Taginput` and `Command`, which then ignores
  * accents where the language treats letters as the same. The library's
  * portaled content, such as a `Popover` panel, a `Modal` with `portal`, a
  * `Toast` or a `Portal`'s children, keeps the same `dir` and `lang` though

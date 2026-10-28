@@ -166,7 +166,7 @@ anchored panels land against it instead of the viewport.
 it leaves unset. What the library portals inside it, `Portal`'s children included, keeps the same
 `dir` and `lang`, and the date pickers take its locale and start the week on its first day. With a
 `locale`, the numbers the library writes (page numbers, badge counts, a slider's output) follow
-it, and `Combobox`, `Autocomplete` and `Taginput` filter ignoring accents where the language
+it, and `Combobox`, `Autocomplete`, `Taginput` and `Command` filter ignoring accents where the language
 does. With no provider nothing changes, and `<html dir="rtl">` still works on its own.
 
 `useLocale()` returns `{ locale, dir }` from the nearest provider, both `undefined` outside one.

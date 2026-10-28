@@ -19,6 +19,7 @@ import { Slider } from '../../form/Slider';
 import { Rate } from '../../form/Rate';
 import { Combobox } from '../../form/Combobox';
 import { Autocomplete } from '../../form/Autocomplete';
+import { Command, type CommandAction } from '../../components/Command';
 
 /** How `locale` writes `value`, as the tests expect to see it. */
 const write = (
@@ -341,5 +342,77 @@ describe('matching inside a LocaleProvider', () => {
     render(<Taginput data={drinks} />);
     type('the');
     expect(shown()).toEqual([]);
+  });
+
+  describe('in Command', () => {
+    const actions: CommandAction[] = [
+      { id: 'cafe', label: 'Café' },
+      { id: 'tea', label: 'Thé', keywords: ['infusion'] },
+      { id: 'dessert', label: 'Dessert', description: 'Crème brûlée' },
+      { id: 'water', label: 'Eau', keywords: ['Évian'] },
+    ];
+    const search = (value: string) =>
+      fireEvent.change(screen.getByRole('combobox'), { target: { value } });
+    /** The labels of the actions shown, in order. */
+    const labels = () =>
+      screen
+        .queryAllByRole('option')
+        .map(
+          option =>
+            actions.find(a => option.textContent!.startsWith(a.label))!.label
+        );
+
+    it('finds labels, descriptions and keywords from plain letters', () => {
+      render(
+        <LocaleProvider locale="fr">
+          <Command actions={actions} />
+        </LocaleProvider>
+      );
+      search('  cafe ');
+      expect(labels()).toEqual(['Café']);
+      search('creme');
+      expect(labels()).toEqual(['Dessert']);
+      search('evian');
+      expect(labels()).toEqual(['Eau']);
+      search('');
+      expect(labels()).toEqual(['Café', 'Thé', 'Dessert', 'Eau']);
+    });
+
+    it('keeps label matches first', () => {
+      render(
+        <LocaleProvider locale="fr">
+          <Command
+            actions={[
+              { id: 'one', label: 'Fichiers', keywords: ['thé'] },
+              { id: 'two', label: 'Thème' },
+            ]}
+          />
+        </LocaleProvider>
+      );
+      search('the');
+      expect(
+        screen.queryAllByRole('option').map(option => option.textContent)
+      ).toEqual(['Thème', 'Fichiers']);
+    });
+
+    it('keeps its matching as it was outside a provider', () => {
+      render(<Command actions={actions} />);
+      search('cafe');
+      expect(labels()).toEqual([]);
+      search('CAF');
+      expect(labels()).toEqual(['Café']);
+    });
+
+    it('lets a filter of its own take over inside a provider', () => {
+      const filter = jest.fn((_: string, all: CommandAction[]) => all.slice(3));
+      render(
+        <LocaleProvider locale="fr">
+          <Command actions={actions} filter={filter} />
+        </LocaleProvider>
+      );
+      search('cafe');
+      expect(labels()).toEqual(['Eau']);
+      expect(filter).toHaveBeenLastCalledWith('cafe', actions);
+    });
   });
 });

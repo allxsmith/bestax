@@ -16,7 +16,7 @@ The direction lives on the wrapper as a `dir` attribute, so CSS follows it, and 
 - a section of the page in another language or direction than the page around it;
 - the content the library portals to the end of `document.body`, such as a `Popover` panel, a `Modal` with `portal`, a `Toast` or a `Portal`'s children, which leaves the section it came from and gets the provider's `dir` and `lang` back;
 - the date and time pickers inside, which take its `locale` and start the week on that locale's first day;
-- the numbers the library writes, such as page numbers, badge counts and a slider's output, and the filtering in `Combobox`, `Autocomplete` and `Taginput`, which follow the `locale` too.
+- the numbers the library writes, such as page numbers, badge counts and a slider's output, and the filtering in `Combobox`, `Autocomplete`, `Taginput` and `Command`, which follow the `locale` too.
 
 Without a provider none of this changes: a picker uses the runtime's own locale and starts the week on Sunday, numbers are written as they always have been, and filtering ignores case only.
 
@@ -121,7 +121,7 @@ With a `locale`, the numbers the library writes itself are written the way that 
 </LocaleProvider>
 ```
 
-Typing in `Combobox`, `Autocomplete` and `Taginput` filters the list the way the language compares letters: case and accents are ignored where it treats them as the same letter, so "cafe" finds "Café", while in Swedish "a" doesn't find "å", a letter of its own there.
+Typing in `Combobox`, `Autocomplete`, `Taginput` and `Command` filters the list the way the language compares letters: case and accents are ignored where it treats them as the same letter, so "cafe" finds "Café", while in Swedish "a" doesn't find "å", a letter of its own there.
 
 ```tsx live
 <LocaleProvider locale="fr">

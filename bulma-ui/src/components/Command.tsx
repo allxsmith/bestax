@@ -15,6 +15,7 @@ import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { flattenChildren } from '../helpers/flattenChildren';
 import { warnOnce } from '../helpers/devWarnings';
+import { useLocaleMatcher, type TextMatcher } from '../helpers/localeFormat';
 import { isModalOverlayOpen } from '../helpers/overlayStack';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
 import {
@@ -118,8 +119,10 @@ export interface CommandActionsProps extends CommandBaseProps {
   /**
    * The actions, for a Command that renders the field, the list, the groups
    * and the empty message itself. Typing filters them by label, keywords and
-   * description, ignoring case, with label matches first. Leave it out to
-   * build the Command from parts.
+   * description, ignoring case, with label matches first. Inside a
+   * `LocaleProvider` with a `locale`, it ignores accents too where that
+   * language does, so "cafe" finds "Café". Leave it out to build the
+   * Command from parts.
    */
   actions: CommandAction[];
   /**
@@ -404,22 +407,29 @@ function setRefs<T>(
 /**
  * The default filter: the actions whose label, keywords or description hold
  * the search, ignoring case and the spaces around it, label matches first and
- * the order otherwise kept. An empty search keeps them all.
+ * the order otherwise kept. An empty search keeps them all. `matchText`, a
+ * `LocaleProvider`'s locale-aware matcher, replaces the lowercased
+ * comparison when there is one.
  */
 const filterActions = (
   query: string,
-  actions: CommandAction[]
+  actions: CommandAction[],
+  matchText?: TextMatcher | null
 ): CommandAction[] => {
-  const term = query.trim().toLowerCase();
-  if (term === '') return actions;
+  const search = query.trim();
+  if (search === '') return actions;
+  const term = search.toLowerCase();
+  const holds = matchText
+    ? (text: string) => matchText(text, search)
+    : (text: string) => text.toLowerCase().includes(term);
   const byLabel: CommandAction[] = [];
   const byOther: CommandAction[] = [];
   for (const action of actions) {
-    if (action.label.toLowerCase().includes(term)) {
+    if (holds(action.label)) {
       byLabel.push(action);
     } else if (
-      action.description?.toLowerCase().includes(term) ||
-      action.keywords?.some(keyword => keyword.toLowerCase().includes(term))
+      (action.description !== undefined && holds(action.description)) ||
+      action.keywords?.some(holds)
     ) {
       byOther.push(action);
     }
@@ -882,12 +892,15 @@ interface CommandActionsContentProps {
  */
 const CommandActionsContent = ({
   actions,
-  filter = filterActions,
+  filter,
   placeholder,
   empty,
 }: CommandActionsContentProps) => {
   const { query } = useCommand();
-  const shown = filter(query, actions);
+  const matchText = useLocaleMatcher();
+  const shown = filter
+    ? filter(query, actions)
+    : filterActions(query, actions, matchText);
 
   // Each group where the matches first name it, and the actions with none
   // together where the first of them is, so the best match stays on top.
