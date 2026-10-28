@@ -290,8 +290,9 @@
 
 /*
  * The window follows the site's color mode, whether the device picked it or the
- * navbar toggle did, and keeps it for every step. CSS rather than useColorMode,
- * so the prerendered page is already right and hydration has nothing to fix.
+ * navbar toggle did, and keeps it for every step but Dark mode, which shows dark
+ * on a light site too. CSS rather than useColorMode, so the prerendered page is
+ * already right and hydration has nothing to fix.
  */
 .window {
   --w-bg: #fff;
@@ -318,7 +319,8 @@
     border-color 0.45s;
 }
 
-[data-theme='dark'] .window {
+[data-theme='dark'] .window,
+.window.dark {
   --w-bg: #14161a;
   --w-text: #d7dbe3;
   --w-border: #2b2f38;
@@ -512,21 +514,25 @@
   transition: transform 0.45s cubic-bezier(0.3, 1.6, 0.5, 1);
 }
 
-[data-theme='dark'] .toggle {
+[data-theme='dark'] .toggle,
+.dark .toggle {
   background: var(--w-primary);
 }
 
-[data-theme='dark'] .toggle span {
+[data-theme='dark'] .toggle span,
+.dark .toggle span {
   transform: translateX(18px);
 }
 
 /* The Theme field names the scheme the window is showing. */
 [data-theme='dark'] .themeLight,
+.dark .themeLight,
 .themeDark {
   display: none;
 }
 
-[data-theme='dark'] .themeDark {
+[data-theme='dark'] .themeDark,
+.dark .themeDark {
   display: inline;
 }
 

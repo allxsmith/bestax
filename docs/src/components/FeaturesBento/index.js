@@ -9,9 +9,10 @@ import styles from './styles.module.css';
 const [BULMA, LIGHTWEIGHT, DEVELOPER] = FEATURES;
 
 /**
- * What the Bulma v1 card's little settings window walks through. The window
- * keeps the site's color mode the whole way, so on a dark site the Dark mode
- * button stays pressed while the others take turns.
+ * What the Bulma v1 card's little settings window walks through. The window is
+ * dark on a dark site and for the Dark mode step, and the Dark mode button is
+ * pressed exactly when it is, so on a dark site that button stays pressed while
+ * the others take turns.
  */
 const STEPS = ['Dark mode', 'CSS variables', 'Grid', 'Skeleton'];
 const DARK_MODE = STEPS.indexOf('Dark mode');
@@ -63,13 +64,15 @@ function Card({ className, delay, children }) {
 /**
  * A settings form drawn in Bulma v1's styles, stepping through dark mode, a
  * primary hue changed through one CSS variable, the Grid, and Skeleton. Its
- * scheme comes from the site's (see `.window` in the stylesheet), not the step.
+ * scheme is the site's (see `.window` in the stylesheet), switched to dark for
+ * the Dark mode step when the site is light.
  */
 function BulmaWindow({ step }) {
   return (
     <div
       className={clsx(
         styles.window,
+        step === DARK_MODE && styles.dark,
         step === 1 ? styles.hueIndigo : styles.hueTurquoise,
         step === 2 && styles.showGrid,
         step === 3 && styles.showSkeleton
