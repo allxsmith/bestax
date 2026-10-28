@@ -492,3 +492,63 @@ test.describe('Scaffolded App - Layout and Accessibility', () => {
     );
   });
 });
+
+// Only the React Router templates have more than one page. CI names each
+// scenario template-flavor-icon, so a router scenario's name starts with
+// react-router; every other scenario skips these.
+test.describe('Scaffolded App - Routing', () => {
+  test.beforeEach(() => {
+    test.skip(
+      !process.env.TEST_SCENARIO?.startsWith('react-router'),
+      'only the React Router templates have pages'
+    );
+  });
+
+  test('moves between pages from the navbar, marking the current one', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    const nav = page.getByRole('navigation');
+    const home = nav.getByRole('link', { name: 'Home', exact: true });
+    const about = nav.getByRole('link', { name: 'About', exact: true });
+    await expect(home).toHaveAttribute('aria-current', 'page');
+    await expect(home).toHaveClass(/is-active/);
+    await expect(about).not.toHaveAttribute('aria-current', /.*/);
+
+    await about.click();
+    await expect(page).toHaveURL(/\/about$/);
+    await expect(page.locator('h1')).toHaveText('About');
+    await expect(about).toHaveAttribute('aria-current', 'page');
+    await expect(home).not.toHaveAttribute('aria-current', /.*/);
+
+    await page.goBack();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.locator('img[alt="Bestax"]')).toBeVisible();
+  });
+
+  test('loads a page from its own address', async ({ page }) => {
+    await page.goto('/about');
+    await expect(page.locator('h1')).toHaveText('About');
+    await expect(page.getByRole('main')).toHaveCount(1);
+  });
+
+  test('opens the menu from the burger at phone width, and closes it on a link', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/');
+    const burger = page.getByRole('button', { name: 'menu' });
+    const about = page
+      .getByRole('navigation')
+      .getByRole('link', { name: 'About', exact: true });
+    await expect(about).toBeHidden();
+
+    await burger.click();
+    await expect(burger).toHaveAttribute('aria-expanded', 'true');
+    await about.click();
+
+    await expect(page).toHaveURL(/\/about$/);
+    await expect(burger).toHaveAttribute('aria-expanded', 'false');
+    await expect(about).toBeHidden();
+  });
+});

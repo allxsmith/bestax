@@ -2349,6 +2349,56 @@ describe('ProjectCreator', () => {
     });
   });
 
+  describe('setupRouter', () => {
+    it('warns, and leaves the entry file alone, when it no longer renders App', async () => {
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockImplementation(p => String(p).endsWith('main.tsx'));
+      (
+        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+      ).mockResolvedValue(
+        "import Root from './Root.tsx';\n<Root />\n" as unknown
+      );
+
+      await projectCreator.setupRouter('/app', 'react-router-ts');
+
+      expect(fs.default.copy).toHaveBeenCalledWith(
+        expect.stringContaining(
+          path.join('templates', 'overlays', 'react-router', 'vite-ts')
+        ),
+        '/app'
+      );
+      expect(fs.default.writeFile).not.toHaveBeenCalled();
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'src/main.tsx is not shaped the way the scaffolder expects'
+        )
+      );
+    });
+
+    it('tells the skills step the app routes, so CLAUDE.md says how', async () => {
+      const setupSkills = jest
+        .spyOn(projectCreator, 'setupSkills')
+        .mockResolvedValue(undefined);
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockReturnValue(false);
+
+      await projectCreator.create('test-project', {
+        template: 'react-router-ts',
+        yes: true,
+        skills: true,
+      });
+
+      expect(setupSkills).toHaveBeenCalledWith(
+        expect.any(String),
+        'test-project',
+        expect.objectContaining({ router: true })
+      );
+      setupSkills.mockRestore();
+    });
+  });
+
   describe('setupReactCompiler', () => {
     it('warns, and leaves vite.config alone, when it is not shaped as the template ships it', async () => {
       (

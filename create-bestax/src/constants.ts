@@ -9,6 +9,8 @@ export interface Template {
   // Turn on the React Compiler in the copy, the way create-vite builds its
   // react-compiler starters from its react ones (setupReactCompiler).
   reactCompiler?: boolean;
+  // Add React Router's pages and navbar to the copy (setupRouter).
+  router?: boolean;
 }
 
 export const TEMPLATES: Template[] = [
@@ -33,7 +35,44 @@ export const TEMPLATES: Template[] = [
     directory: 'vite-ts',
     reactCompiler: true,
   },
+  {
+    name: 'react-router',
+    display: 'React Router',
+    color: chalk.yellow,
+    directory: 'vite',
+    router: true,
+  },
+  {
+    name: 'react-router-ts',
+    display: 'React Router + TypeScript',
+    color: chalk.blue,
+    directory: 'vite-ts',
+    router: true,
+  },
 ];
+
+// What a React Router template adds to its plain template's dependencies. 8.5.1
+// was inside the 3-day cooldown when this was written, so the floor is 8.5.0;
+// installs still take the newest 8.x.
+export const REACT_ROUTER_DEPENDENCIES: Record<string, string> = {
+  'react-router': '^8.5.0',
+};
+
+// React Router 8 needs Node 22.22 or later, past the templates' own floor.
+export const REACT_ROUTER_NODE_ENGINE = '>=22.22.0';
+
+// Appended to the README of a React Router scaffold.
+export const REACT_ROUTER_README = (ext: 'jsx' | 'tsx'): string => `
+## Routing
+
+[React Router](https://reactrouter.com) runs in data mode. The routes are in
+\`src/router.${ext}\`, where \`App\`, the starter page, is the home page and
+\`src/pages/About.${ext}\` is the second. \`src/Layout.${ext}\` holds the navbar every
+page shares. To add a page, write it in \`src/pages\`, add a route for it, and link
+to it from the navbar. The bestax routing guide
+(https://bestax.io/docs/guides/features/routing) covers links, buttons and
+active items.
+`;
 
 // The packages create-vite's react-compiler starters add to its react ones.
 // When create-vite moves them, these follow (create-bestax/CLAUDE.md).
@@ -130,6 +169,9 @@ export const MESSAGES = {
   REACT_COMPILER_NOT_ADDED: (file: string) =>
     `  Warning: ${file} is not shaped the way the scaffolder expects, so the React Compiler was not turned on in it. ` +
     'Add it by hand (https://react.dev/learn/react-compiler).',
+  REACT_ROUTER_NOT_ADDED: (file: string) =>
+    `  Warning: ${file} is not shaped the way the scaffolder expects, so it still renders App rather than the router. ` +
+    'Render <RouterProvider router={router} /> from ./router there by hand.',
   HAPPY_CODING: 'Happy coding! 🎉',
   SKILLS_ADDED:
     '✔ Installed bestax AI skills into .claude/skills/ (+ CLAUDE.md, .claude/launch.json)',
@@ -203,6 +245,8 @@ export const CONFIG_PROVIDER_ICON_VALUES: Record<string, string> = {
 export interface ClaudeMdOptions {
   bulmaFlavor: string;
   iconLibrary: string;
+  // The app routes with React Router (a react-router template).
+  router?: boolean;
 }
 
 // The house style opens with the inline-style table for a flavor that has the
@@ -239,7 +283,7 @@ render nothing. Write a named class in \`src/App.css\`, which loads after Bulma'
 
 export const CLAUDE_MD = (
   projectName: string,
-  { bulmaFlavor, iconLibrary }: ClaudeMdOptions
+  { bulmaFlavor, iconLibrary, router }: ClaudeMdOptions
 ): string => {
   const flavor = BULMA_FLAVORS.find(f => f.name === bulmaFlavor);
   const icon = ICON_LIBRARIES.find(lib => lib.name === iconLibrary);
@@ -275,6 +319,16 @@ export const CLAUDE_MD = (
             : '') +
           (icon?.setupInstructions ? ` ${icon.setupInstructions}` : '')
   );
+  if (router) {
+    setupLines.push(
+      `- Routing: React Router in data mode. Routes are in \`src/router\`, pages in ` +
+        `\`src/pages\`, and the navbar every page shares in \`src/Layout\`. Link with ` +
+        `\`<Navbar.Item as={Link} to="...">\` and \`<Menu.Item as={Link} ...>\`, and set \`active\` ` +
+        `and \`aria-current\` from \`useLocation\` rather than using \`NavLink\`, whose ` +
+        `function \`className\` bypasses Bulma's \`is-active\` ` +
+        `(https://bestax.io/docs/guides/features/routing).`
+    );
+  }
   const houseStyleOpening = flavor?.noHelpers
     ? NO_HELPERS_HOUSE_STYLE
     : HELPER_HOUSE_STYLE;

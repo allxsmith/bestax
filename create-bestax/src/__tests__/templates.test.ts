@@ -31,6 +31,9 @@ const {
   REACT_COMPILER_DEV_DEPENDENCIES,
   REACT_COMPILER_TYPESCRIPT_DEV_DEPENDENCIES,
   REACT_COMPILER_README,
+  REACT_ROUTER_DEPENDENCIES,
+  REACT_ROUTER_NODE_ENGINE,
+  REACT_ROUTER_README,
 } = await import('../constants.js');
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
@@ -523,6 +526,110 @@ describe.each([
     await projectCreator.setupReactCompiler(target, directory);
 
     expect(await fs.readFile(path.join(target, config), 'utf8')).toBe(before);
+  });
+});
+
+// A React Router template copies its plain template, runs the same steps on it,
+// and lays the router's files over it. These run the real files through the
+// steps a scaffold takes, in its order, since the router step rewrites what
+// the provider step wrote.
+describe.each([
+  ['react-router', 'vite', 'jsx'],
+  ['react-router-ts', 'vite-ts', 'tsx'],
+] as const)('%s template', (template, directory, ext) => {
+  const read = (target: string, file: string) =>
+    fs.readFile(path.join(target, file), 'utf8');
+
+  it(`is the ${directory} folder`, () => {
+    expect(projectCreator.getTemplatePath(template)).toBe(
+      path.join(templatesDir, directory)
+    );
+  });
+
+  it('adds the layout, the routes and a second page, each importing what exists', async () => {
+    const target = await scaffold(directory);
+    await projectCreator.setupRouter(target, template);
+
+    for (const file of [
+      `src/Layout.${ext}`,
+      `src/router.${ext}`,
+      `src/pages/About.${ext}`,
+    ]) {
+      const source = await read(target, file);
+      for (const [, relative] of source.matchAll(/from '(\.[^']+)'/g)) {
+        expect({
+          file,
+          import: relative,
+          exists: fs.existsSync(
+            path.resolve(target, path.dirname(file), relative)
+          ),
+        }).toEqual({ file, import: relative, exists: true });
+      }
+    }
+    expect(await read(target, `src/router.${ext}`)).toContain(
+      '{ index: true, element: <App /> }'
+    );
+  });
+
+  it('renders the router in place of App, inside the provider an earlier step wrote', async () => {
+    const target = await scaffold(directory);
+    await projectCreator.setupBulmaFlavor(target, 'prefixed', template);
+    await projectCreator.setupIconLibrary(target, 'mdi', template);
+    await projectCreator.setupConfigProvider(
+      target,
+      'prefixed',
+      'mdi',
+      template
+    );
+    await projectCreator.setupRouter(target, template);
+
+    const main = await read(target, `src/main.${ext}`);
+    expect(main).toContain(
+      "import { RouterProvider } from 'react-router';\n" +
+        `import { router } from './router.${ext}';`
+    );
+    expect(main).not.toMatch(/import App\b/);
+    expect(main).not.toMatch(/<App\s*\/>/);
+    expect(main).toMatch(
+      /<ConfigProvider classPrefix="bestax-" iconLibrary="mdi">\s*<RouterProvider router=\{router\} \/>\s*<\/ConfigProvider>/
+    );
+  });
+
+  it('depends on React Router, needs its Node, and says so in the README', async () => {
+    const target = await scaffold(directory);
+    await projectCreator.setupIconLibrary(target, 'fontawesome', template);
+    await projectCreator.setupRouter(target, template);
+
+    const pkg = await fs.readJson(path.join(target, 'package.json'));
+    expect(pkg.dependencies).toMatchObject(REACT_ROUTER_DEPENDENCIES);
+    const names = Object.keys(pkg.dependencies);
+    expect(names).toEqual([...names].sort());
+    expect(pkg.engines.node).toBe(REACT_ROUTER_NODE_ENGINE);
+
+    const readme = await read(target, 'README.md');
+    expect(readme.endsWith(REACT_ROUTER_README(ext))).toBe(true);
+  });
+
+  it(`leaves ${directory} itself alone`, async () => {
+    const target = await scaffold(directory);
+    const before = await read(target, `src/main.${ext}`);
+    await projectCreator.setupRouter(target, directory);
+
+    expect(await read(target, `src/main.${ext}`)).toBe(before);
+    expect(fs.existsSync(path.join(target, `src/router.${ext}`))).toBe(false);
+  });
+
+  it('uses no helper prop in the files it adds, so a no-helpers flavor renders them as written', async () => {
+    const target = await scaffold(directory);
+    await projectCreator.setupRouter(target, template);
+    const helpers = helperPropsOfUseBulmaClasses();
+    for (const file of [`src/Layout.${ext}`, `src/pages/About.${ext}`]) {
+      const source = await read(target, file);
+      const used = helpers.filter(prop =>
+        new RegExp(`\\s${prop}=`).test(source)
+      );
+      expect({ file, used }).toEqual({ file, used: [] });
+    }
   });
 });
 
