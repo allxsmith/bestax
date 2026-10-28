@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../../helpers/classNames';
 import { useFocusTrap } from '../../helpers/useFocusTrap';
 import { usePortalContainer } from '../../helpers/portal';
+import { LocalePortalScope } from '../../helpers/LocaleProvider';
 import { isEventInside } from '../../helpers/shadowDom';
 import { useLatestRef } from '../../helpers/useLatestRef';
 import {
@@ -185,7 +186,10 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
   );
 
   if (appendToBody && isBrowser) {
-    return createPortal(panel, resolveContainer());
+    return createPortal(
+      <LocalePortalScope>{panel}</LocalePortalScope>,
+      resolveContainer()
+    );
   }
   return panel;
 };

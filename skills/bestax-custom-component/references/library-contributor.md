@@ -173,6 +173,16 @@ Rules that keep components consistent:
   target with `usePortalContainer` from the same module, so the `portalContainer` a
   `ConfigProvider` sets reaches it too. Add it to `src/__tests__/portal-container.test.tsx`.
 
+- **Portaled content keeps the locale.** A component that calls `createPortal` itself wraps what
+  it portals in `LocalePortalScope` (`helpers/LocaleProvider.tsx`), so the `dir` and `lang` of a
+  `LocaleProvider` around it reach content that has left its wrapper. `Portal` already does.
+  Outside a provider the scope renders its children alone, so the markup there doesn't change.
+
+- **Direction comes from the DOM.** A component that handles Left and Right, or places things by
+  side, reads `getComputedStyle(el).direction` when the key or pointer arrives, as `Splitter` and
+  `useTreeView` do, and uses logical properties or `:dir(rtl)` in its SCSS. It never reads
+  `useLocale().dir`, which is unset on a page that only has `<html dir="rtl">`.
+
 - **Focus management builds on `useFocusTrap`.** A new component that holds focus while it is
   open uses `useFocusTrap` (`helpers/useFocusTrap.ts`) rather than its own Tab handler, so it
   gets the same tab-stop rules (hidden, disabled, inert, radio groups, shadow roots) as the rest

@@ -136,6 +136,7 @@
       "components": [
         "ClientOnly",
         "ConfigProvider",
+        "LocaleProvider",
         "Portal",
         "Theme",
         "Valid value constants",
@@ -442,7 +443,7 @@
       "import": "import { DateInput } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 53,
-      "exampleCount": 42
+      "exampleCount": 43
     },
     {
       "name": "DateRangeInput",
@@ -729,6 +730,17 @@
       "compound": false,
       "propCount": 10,
       "exampleCount": 7
+    },
+    {
+      "name": "LocaleProvider",
+      "kind": "component",
+      "category": "helpers",
+      "purpose": "`LocaleProvider` sets the language and writing direction for the part of the app inside it, on a wrapper `<div>` and on what the library portals out of it.",
+      "slug": "helpers/localeprovider",
+      "import": "import { LocaleProvider, useLocale } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 5,
+      "exampleCount": 6
     },
     {
       "name": "Media",

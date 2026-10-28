@@ -27,6 +27,7 @@ import {
   getDeepestActiveElement,
 } from '../helpers/shadowDom';
 import { usePortalContainer } from '../helpers/portal';
+import { LocalePortalScope } from '../helpers/LocaleProvider';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { useOverlayStack } from '../helpers/overlayStack';
@@ -700,7 +701,10 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     const target = resolveContainer(
       typeof portal === 'boolean' ? undefined : portal
     );
-    return createPortal(modalElement, target);
+    return createPortal(
+      <LocalePortalScope>{modalElement}</LocalePortalScope>,
+      target
+    );
   }
 
   return modalElement;

@@ -5,6 +5,7 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { useScrollLock } from '../helpers/scrollLock';
 import { usePortalContainer } from '../helpers/portal';
+import { LocalePortalScope } from '../helpers/LocaleProvider';
 import { useConfig } from '../helpers/Config';
 import { buttonType } from '../helpers/buttonType';
 import { useLatestRef } from '../helpers/useLatestRef';
@@ -337,7 +338,10 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
 
     // Render to portal for proper stacking
     if (typeof document !== 'undefined') {
-      return createPortal(sidebarContent, resolveContainer());
+      return createPortal(
+        <LocalePortalScope>{sidebarContent}</LocalePortalScope>,
+        resolveContainer()
+      );
     }
 
     return null;

@@ -416,4 +416,21 @@ A context provider for global settings like class prefix and icon library. Wrap 
 
 ---
 
+## LocaleProvider
+
+Sets the language and writing direction for the part of the app inside it. Its wrapper carries `lang` and `dir`, the content the library portals keeps them, and the date pickers inside take its locale and start the week on that locale's first day.
+
+```tsx live
+<LocaleProvider locale="ar-EG">
+  <Buttons>
+    <Button color="primary">حفظ</Button>
+    <Button>إلغاء</Button>
+  </Buttons>
+</LocaleProvider>
+```
+
+[View full documentation.](../../api/helpers/localeprovider) · [Configuration guide](../features/configuration#locale-and-direction)
+
+---
+
 For more details and advanced usage, see the full documentation for each helper linked above.

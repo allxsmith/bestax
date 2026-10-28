@@ -33,6 +33,7 @@ import { TimeWheels } from './_pickerInternals/TimeWheels';
 import { PickerPopover } from './_pickerInternals/PickerPopover';
 import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker';
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
+import { usePickerLocale } from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
 import { useFieldLabelTarget } from './FormContext';
 import { Icon } from '../elements/Icon';
@@ -117,7 +118,11 @@ export interface TimeInputBaseProps
    * keeps what the format leaves out, such as seconds and the date.
    */
   parse?: (s: string) => Date | null;
-  /** BCP-47 locale tag for Intl formatting. */
+  /**
+   * BCP-47 locale tag for Intl formatting. Unset, it is the `locale` of a
+   * `LocaleProvider` around the picker, and with neither, `Intl` uses the
+   * runtime's own locale.
+   */
   locale?: string;
   /** Render the spinner inline (no popover). */
   inline?: boolean;
@@ -214,7 +219,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       placeholder,
       format,
       parse,
-      locale,
+      locale: localeProp,
       inline = false,
       mobileNative = 'auto',
       editable = true,
@@ -249,6 +254,8 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       haptics = false,
       ...rest
     } = props;
+    // A LocaleProvider around the picker sets its default locale.
+    const locale = usePickerLocale(localeProp);
     // Inside a labeled Field the input takes the id the label points at
     // when the caller set none, as InputBase does, and the popover's ids
     // follow it. Inline there is no input to name, so nothing takes the

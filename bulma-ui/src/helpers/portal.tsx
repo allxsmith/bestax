@@ -2,6 +2,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { useIsHydrated } from './useIsHydrated';
 import { useConfig } from './Config';
+import { LocalePortalScope } from './LocaleProvider';
 
 /**
  * Resolves a portal target: an `HTMLElement` is used directly, a non-empty
@@ -126,5 +127,8 @@ export function Portal({ children, container, disabled = false }: PortalProps) {
   const resolveContainer = usePortalContainer();
   if (disabled) return <>{children}</>;
   if (!hydrated) return null;
-  return createPortal(children, resolveContainer(container));
+  return createPortal(
+    <LocalePortalScope>{children}</LocalePortalScope>,
+    resolveContainer(container)
+  );
 }

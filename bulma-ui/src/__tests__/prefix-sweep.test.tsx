@@ -54,6 +54,16 @@ const PROPS: Record<string, Record<string, unknown>> = {
   Radio: { children: 'Choose' },
   Switch: { children: 'Enable' },
   Loading: { active: true, canCancel: true, children: 'Loading…' },
+  // Its helper classes, and the element it puts portaled content in.
+  LocaleProvider: {
+    locale: 'ar',
+    p: '2',
+    children: (
+      <Library.Portal>
+        <Library.Tag>Portaled</Library.Tag>
+      </Library.Portal>
+    ),
+  },
   Toast: {
     message: 'Saved',
     inline: true,

@@ -342,7 +342,7 @@
           "name": "locale",
           "type": "string",
           "default": null,
-          "description": "BCP-47 locale tag for day/month names and Intl formatting.",
+          "description": "BCP-47 locale tag for day/month names and Intl formatting. Unset, it is the `locale` of a `LocaleProvider` around the picker, and with neither, `Intl` uses the runtime's own locale. On a server render that is the server's, so an `inline` calendar rendered there names its days in the server's language and the browser's own render names them in the browser's: give it a locale, here or through a `LocaleProvider`, where the two can differ.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -477,7 +477,7 @@
           "name": "firstDayOfWeek",
           "type": "0 | 1 | 2 | 3 | 4 | 5 | 6",
           "default": "0",
-          "description": "Day the week starts on (0 = Sunday).",
+          "description": "Day the week starts on (0 = Sunday). Unset inside a `LocaleProvider`, it is the first day of the week in the picker's locale, its own `locale` or else the provider's, such as Monday for `\"de\"`. Elsewhere, or with no locale from either, it is Sunday.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -731,7 +731,7 @@
           "name": "locale",
           "type": "string",
           "default": null,
-          "description": "BCP-47 locale tag for day/month names and Intl formatting.",
+          "description": "BCP-47 locale tag for day/month names and Intl formatting. Unset, it is the `locale` of a `LocaleProvider` around the picker, and with neither, `Intl` uses the runtime's own locale. On a server render that is the server's, so an `inline` calendar rendered there names its days in the server's language and the browser's own render names them in the browser's: give it a locale, here or through a `LocaleProvider`, where the two can differ.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -866,7 +866,7 @@
           "name": "firstDayOfWeek",
           "type": "0 | 1 | 2 | 3 | 4 | 5 | 6",
           "default": "0",
-          "description": "Day the week starts on (0 = Sunday).",
+          "description": "Day the week starts on (0 = Sunday). Unset inside a `LocaleProvider`, it is the first day of the week in the picker's locale, its own `locale` or else the provider's, such as Monday for `\"de\"`. Elsewhere, or with no locale from either, it is Sunday.",
           "required": false,
           "inherited": false,
           "deprecated": false

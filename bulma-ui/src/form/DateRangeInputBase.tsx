@@ -36,6 +36,10 @@ import { Calendar, CALENDAR_FOCUSED_CELL } from './_pickerInternals/Calendar';
 import { PickerPopover } from './_pickerInternals/PickerPopover';
 import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker';
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
+import {
+  usePickerFirstDayOfWeek,
+  usePickerLocale,
+} from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
 import { useAutoLabelledBy } from './useAutoLabelId';
 import { Icon } from '../elements/Icon';
@@ -105,7 +109,15 @@ export interface DateRangeInputBaseProps
    * Enter and leaving an input call it only if the user changed its text.
    */
   parse?: (s: string) => Date | null;
-  /** BCP-47 locale tag for day/month names and Intl formatting. */
+  /**
+   * BCP-47 locale tag for day/month names and Intl formatting. Unset, it is
+   * the `locale` of a `LocaleProvider` around the picker, and with neither,
+   * `Intl` uses the runtime's own locale. On a server render that is the
+   * server's, so an `inline` calendar rendered there names its days in the
+   * server's language and the browser's own render names them in the
+   * browser's: give it a locale, here or through a `LocaleProvider`, where
+   * the two can differ.
+   */
   locale?: string;
   /**
    * Render the calendar inline, with no inputs and no popover. The hidden
@@ -168,7 +180,13 @@ export interface DateRangeInputBaseProps
    * between, so off, a span too long to walk is refused as well.
    */
   allowDisabledInRange?: boolean;
-  /** Day the week starts on (0 = Sunday). */
+  /**
+   * Day the week starts on (0 = Sunday). Unset inside a `LocaleProvider`,
+   * it is the first day of the week in the picker's locale, its own `locale`
+   * or else the provider's, such as Monday for `"de"`. Elsewhere, or with no
+   * locale from either, it is Sunday.
+   * @defaultValue 0
+   */
   firstDayOfWeek?: DayOfWeek;
   /** Override the 7 day-name labels (in calendar order, post-rotation). */
   dayNames?: string[];
@@ -247,7 +265,7 @@ export const DateRangeInputBase = forwardRef<
     placeholder,
     format,
     parse,
-    locale,
+    locale: localeProp,
     inline = false,
     mobileNative = 'auto',
     editable = true,
@@ -262,7 +280,7 @@ export const DateRangeInputBase = forwardRef<
     shouldDisableDate,
     unselectableDates,
     allowDisabledInRange = false,
-    firstDayOfWeek = 0,
+    firstDayOfWeek: firstDayOfWeekProp,
     dayNames,
     monthNames,
     nearbyMonthDays = true,
@@ -281,6 +299,10 @@ export const DateRangeInputBase = forwardRef<
     onFocusCapture,
     ...rest
   } = props;
+  // A LocaleProvider around the picker sets its default locale and, through
+  // that locale, the day its week starts on.
+  const locale = usePickerLocale(localeProp);
+  const firstDayOfWeek = usePickerFirstDayOfWeek(firstDayOfWeekProp, locale);
   // The launcher gives way to the loading spinner of a Control this sits in.
   const controlLoading = useControlLoading();
   const triggerIcon = triggerIconProp ?? !controlLoading;

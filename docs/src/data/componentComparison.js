@@ -131,6 +131,7 @@ const BESTAX = {
   classNames: 'helpers/classnames',
   ClientOnly: 'helpers/clientonly',
   Portal: 'helpers/portal',
+  LocaleProvider: 'helpers/localeprovider',
   useFocusTrap: 'helpers/usefocustrap',
   'Notification / Message': 'elements/notification',
   'Tag / Tags': 'elements/tag',
@@ -1821,7 +1822,7 @@ export const categories = [
       ],
       [
         'Locale / direction provider',
-        0,
+        'LocaleProvider',
         'DirectionProvider',
         '~ThemeProvider dir',
         '~ThemeProvider direction',

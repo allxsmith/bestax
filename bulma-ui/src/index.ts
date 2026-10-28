@@ -159,6 +159,14 @@ export { useIsHydrated } from './helpers/useIsHydrated';
 export { Portal } from './helpers/portal';
 export type { PortalProps } from './helpers/portal';
 
+// Language and writing direction
+export { LocaleProvider, useLocale } from './helpers/LocaleProvider';
+export type {
+  LocaleContextValue,
+  LocaleProviderProps,
+  TextDirection,
+} from './helpers/LocaleProvider';
+
 // Keeping keyboard focus inside an overlay
 export { useFocusTrap } from './helpers/useFocusTrap';
 export type { UseFocusTrapOptions } from './helpers/useFocusTrap';

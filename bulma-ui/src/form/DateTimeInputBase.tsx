@@ -38,6 +38,10 @@ import { TimeWheels } from './_pickerInternals/TimeWheels';
 import { PickerPopover } from './_pickerInternals/PickerPopover';
 import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker';
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
+import {
+  usePickerFirstDayOfWeek,
+  usePickerLocale,
+} from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
 import { useFieldLabelTarget } from './FormContext';
 import { Icon } from '../elements/Icon';
@@ -135,7 +139,15 @@ export interface DateTimeInputBaseProps
    * keeps what the format leaves out, such as seconds.
    */
   parse?: (s: string) => Date | null;
-  /** BCP-47 locale tag. */
+  /**
+   * BCP-47 locale tag for day/month names and Intl formatting. Unset, it is
+   * the `locale` of a `LocaleProvider` around the picker, and with neither,
+   * `Intl` uses the runtime's own locale. On a server render that is the
+   * server's, so an `inline` calendar rendered there names its days in the
+   * server's language and the browser's own render names them in the
+   * browser's: give it a locale, here or through a `LocaleProvider`, where
+   * the two can differ.
+   */
   locale?: string;
   /** Render the panel inline (no popover). */
   inline?: boolean;
@@ -183,7 +195,13 @@ export interface DateTimeInputBaseProps
   shouldDisableDate?: (d: Date) => boolean;
   /** Convenience array of disabled dates, matched by calendar day; also rejected by manual typing. */
   unselectableDates?: Date[];
-  /** Day the calendar week starts on. */
+  /**
+   * Day the week starts on (0 = Sunday). Unset inside a `LocaleProvider`,
+   * it is the first day of the week in the picker's locale, its own `locale`
+   * or else the provider's, such as Monday for `"de"`. Elsewhere, or with no
+   * locale from either, it is Sunday.
+   * @defaultValue 0
+   */
   firstDayOfWeek?: DayOfWeek;
   /** Override the 7 day-name labels. */
   dayNames?: string[];
@@ -251,7 +269,7 @@ export const DateTimeInputBase = forwardRef<
     placeholder,
     format,
     parse,
-    locale,
+    locale: localeProp,
     inline = false,
     mobileNative = 'auto',
     editable = true,
@@ -265,7 +283,7 @@ export const DateTimeInputBase = forwardRef<
     isRounded,
     shouldDisableDate,
     unselectableDates,
-    firstDayOfWeek = 0,
+    firstDayOfWeek: firstDayOfWeekProp,
     dayNames,
     monthNames,
     nearbyMonthDays = true,
@@ -293,6 +311,10 @@ export const DateTimeInputBase = forwardRef<
     labels,
     ...rest
   } = props;
+  // A LocaleProvider around the picker sets its default locale and, through
+  // that locale, the day its week starts on.
+  const locale = usePickerLocale(localeProp);
+  const firstDayOfWeek = usePickerFirstDayOfWeek(firstDayOfWeekProp, locale);
   // Inside a labeled Field the input takes the id the label points at
   // when the caller set none, as InputBase does, and the popover's ids
   // follow it. Inline there is no input to name, so nothing takes the

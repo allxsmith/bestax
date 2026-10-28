@@ -6,16 +6,16 @@
       "promptName": "custom-component",
       "dir": "bestax-custom-component",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 12390 },
+        { "id": "api", "file": "references/api.md", "bytes": 13692 },
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
-          "bytes": 21401
+          "bytes": 21631
         },
         {
           "id": "library-contributor",
           "file": "references/library-contributor.md",
-          "bytes": 21340
+          "bytes": 22090
         },
         { "id": "patterns", "file": "references/patterns.md", "bytes": 4601 }
       ],
@@ -29,7 +29,7 @@
       "promptName": "form",
       "dir": "bestax-form",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 19315 },
+        { "id": "api", "file": "references/api.md", "bytes": 19985 },
         { "id": "patterns", "file": "references/patterns.md", "bytes": 9835 }
       ],
       "examples": []

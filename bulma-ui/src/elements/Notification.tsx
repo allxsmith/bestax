@@ -17,6 +17,7 @@ import { warnUnstyledColor } from '../helpers/colorDeprecations';
 import { groupIntoPositionStacks } from '../helpers/positionStacks';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { usePortalContainer } from '../helpers/portal';
+import { LocalePortalScope } from '../helpers/LocaleProvider';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
 
 /**
@@ -564,7 +565,7 @@ export const NotificationContainer: React.FC<{
   );
 
   return createPortal(
-    <>
+    <LocalePortalScope>
       {stacks.map(stack => (
         <div key={stack.key} style={notificationStackStyle(stack.position)}>
           {stack.items.map(item => (
@@ -578,7 +579,7 @@ export const NotificationContainer: React.FC<{
         </div>
       ))}
       <StatusRegion items={politeItems} describe={describe} />
-    </>,
+    </LocalePortalScope>,
     resolveContainer()
   );
 };
