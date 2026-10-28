@@ -43,6 +43,7 @@ import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
 import { supportsInputType } from './_pickerInternals/nativeInputSupport';
 import type { SegmentKind } from './_pickerInternals/segmentMap';
 import {
+  hasOwnDayNames,
   usePickerFirstDayOfWeek,
   usePickerLocale,
 } from './_pickerInternals/useLocaleDefaults';
@@ -209,12 +210,20 @@ export interface DateInputBaseProps
   /**
    * Day the week starts on (0 = Sunday). Unset inside a `LocaleProvider`,
    * it is the first day of the week in the picker's locale, its own `locale`
-   * or else the provider's, such as Monday for `"de"`. Elsewhere, or with no
-   * locale from either, it is Sunday.
+   * or else the provider's, such as Monday for `"de"`. Elsewhere, with no
+   * locale from either, or with seven `dayNames` of your own, it is Sunday:
+   * set it with `dayNames` to start the week on another day.
    * @defaultValue 0
    */
   firstDayOfWeek?: DayOfWeek;
-  /** Override the 7 day-name labels (in calendar order, post-rotation). */
+  /**
+   * Override the 7 day-name labels (in calendar order, post-rotation). They
+   * are shown exactly as given, from the first column, so they have to start
+   * on the day the week does. With them, an unset `firstDayOfWeek` stays
+   * Sunday even inside a `LocaleProvider`, so names written Sunday first keep
+   * matching their columns; to start on the locale's day, set
+   * `firstDayOfWeek` too and list the names from that day.
+   */
   dayNames?: string[];
   /** Override the 12 month-name labels. */
   monthNames?: string[];
@@ -295,7 +304,11 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     // A LocaleProvider around the picker sets its default locale and, through
     // that locale, the day its week starts on.
     const locale = usePickerLocale(localeProp);
-    const firstDayOfWeek = usePickerFirstDayOfWeek(firstDayOfWeekProp, locale);
+    const firstDayOfWeek = usePickerFirstDayOfWeek(
+      firstDayOfWeekProp,
+      locale,
+      hasOwnDayNames(dayNames)
+    );
     // Inside a labeled Field the input takes the id the label points at
     // when the caller set none, as InputBase does, and the popover's ids
     // follow it. Inline there is no input to name, so nothing takes the

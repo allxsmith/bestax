@@ -100,7 +100,7 @@ An inner provider keeps whatever it leaves unset. One that sets only a `locale` 
 
 ### Date Pickers
 
-The date and time pickers take the provider's `locale` unless they have their own, for their day and month names and any `Intl` format. Inside a provider, the week starts on the first day of the locale the picker uses: Monday for `"de"`, Saturday for `"ar-EG"`, Sunday for `"en-US"`. A picker's own `firstDayOfWeek` still wins.
+The date and time pickers take the provider's `locale` unless they have their own, for their day and month names and any `Intl` format. Inside a provider, the week starts on the first day of the locale the picker uses: Monday for `"de"`, Saturday for `"ar-EG"`, Sunday for `"en-US"`. A picker's own `firstDayOfWeek` still wins, and a picker with its own `dayNames` keeps Sunday unless it sets `firstDayOfWeek` too, since it shows those names exactly as given.
 
 ```tsx live
 <LocaleProvider locale="de">
@@ -130,7 +130,26 @@ For content you portal yourself without `Portal`, put the values from `useLocale
 
 The wrapper's `dir` and `lang` come from its props, so the server and the browser write the same ones, and portaled content only renders after hydration.
 
-Set a `locale` when an `inline` picker renders on the server. With none, `Intl` names its days in the runtime's own language, which is the server's on the server and the reader's in the browser, and the two renders don't match when those differ. With a locale they match, as long as the server's `Intl` data and the browser's spell the names alike. They don't always: Node and Safari write the short name for Saturday differently in Arabic. Where that matters, pass the picker its own `dayNames`.
+Set a `locale` when an `inline` picker renders on the server. With none, `Intl` names its days in the runtime's own language, which is the server's on the server and the reader's in the browser, and the two renders don't match when those differ. With a locale they match, as long as the server's `Intl` data and the browser's spell the names alike. They don't always: Node and Safari write the short name for Saturday differently in Arabic. Where that matters, pass the picker its own `dayNames`, and with them the `firstDayOfWeek` they start on. The calendar shows `dayNames` exactly as given, from the first column, so a picker that brings its own keeps the week on Sunday, as it did before the provider, unless `firstDayOfWeek` says otherwise.
+
+```tsx live
+<LocaleProvider locale="ar-EG">
+  <DateInput
+    inline
+    label="تاريخ التسليم"
+    firstDayOfWeek={6}
+    dayNames={[
+      'السبت',
+      'الأحد',
+      'الاثنين',
+      'الثلاثاء',
+      'الأربعاء',
+      'الخميس',
+      'الجمعة',
+    ]}
+  />
+</LocaleProvider>
+```
 
 For an app that's in one language throughout, also set `lang` and `dir` on `<html>` in your page shell. That reaches what sits outside any provider, and the provider still carries them onto portaled content.
 

@@ -524,6 +524,108 @@ describe('LocaleProvider', () => {
       }
     });
 
+    describe('with their own dayNames', () => {
+      // October 2026 starts on a Thursday, so the first cell of the grid is
+      // the Sunday, Monday, Wednesday or Saturday before it as the week does.
+      const october = new Date(2026, 9, 1);
+      const sundayFirst = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+      /** The day of the month in each grid's first cell, in order. */
+      const firstCells = () =>
+        Array.from(document.querySelectorAll('[role="grid"]')).map(
+          grid => grid.querySelector('[role="gridcell"]')!.textContent
+        );
+
+      it.each(['de', 'ar-EG'])(
+        'keep Sunday inside a %s provider, under the names as given',
+        locale => {
+          render(
+            <LocaleProvider locale={locale}>
+              <DateInput
+                inline
+                aria-label="Date"
+                defaultValue={october}
+                dayNames={sundayFirst}
+              />
+            </LocaleProvider>
+          );
+          expect(dayNames()).toEqual(sundayFirst);
+          expect(firstCells()).toEqual(['27']);
+        }
+      );
+
+      it.each([
+        ['de', 1, ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'], '28'],
+        [
+          'ar-EG',
+          6,
+          [
+            'السبت',
+            'الأحد',
+            'الاثنين',
+            'الثلاثاء',
+            'الأربعاء',
+            'الخميس',
+            'الجمعة',
+          ],
+          '26',
+        ],
+      ] as const)(
+        'start where firstDayOfWeek says inside a %s provider',
+        (locale, firstDayOfWeek, names, firstCell) => {
+          render(
+            <LocaleProvider locale={locale}>
+              <DateInput
+                inline
+                aria-label="Date"
+                defaultValue={october}
+                firstDayOfWeek={firstDayOfWeek}
+                dayNames={[...names]}
+              />
+            </LocaleProvider>
+          );
+          expect(dayNames()).toEqual(names);
+          expect(firstCells()).toEqual([firstCell]);
+        }
+      );
+
+      it('keep Sunday in the range and date-time pickers too', () => {
+        render(
+          <LocaleProvider locale="de">
+            <DateRangeInput
+              inline
+              aria-label="Stay"
+              defaultValue={[october, null]}
+              dayNames={sundayFirst}
+            />
+            <DateTimeInput
+              inline
+              aria-label="Meeting"
+              defaultValue={october}
+              dayNames={sundayFirst}
+            />
+          </LocaleProvider>
+        );
+        expect(firstCells()).toEqual(['27', '27']);
+      });
+
+      it('move with the locale when the names are not a full week', () => {
+        // The calendar ignores anything but seven names and shows its own,
+        // which follow the week wherever it starts.
+        render(
+          <LocaleProvider locale="de">
+            <DateInput
+              inline
+              aria-label="Date"
+              defaultValue={october}
+              dayNames={['A', 'B']}
+            />
+          </LocaleProvider>
+        );
+        expect(dayNames()[0]).toBe('Mo');
+        expect(firstCells()).toEqual(['28']);
+      });
+    });
+
     it("give the time picker the provider's locale for Intl formats", () => {
       render(
         <LocaleProvider locale="de">
