@@ -4,7 +4,9 @@ Bulma's _elements_: single-purpose components that render (mostly) one HTML elem
 classes — Button, Box, Icon, Tag, Title, and friends (the generated
 `skills/bestax-custom-component/references/component-catalog.md` is the authoritative list).
 
-**Belongs here?** One element, one Bulma concept, no subcomponents. An element may keep a
+**Belongs here?** One element, one Bulma concept, no subcomponents beyond the elements HTML
+nests inside it: a table's rows and cells, a list's items, a description list's labels and
+values, which share no state and are parts only for the markup. An element may keep a
 little state of its own, the kind a native control keeps (a toggle's pressed flag that a caller
 can take over), but nothing that coordinates several parts. Interactive multi-part widgets
 (dropdowns, modals, …) go in `../components/`; page structure in `../layout/`; anything with a

@@ -13106,6 +13106,7 @@
     "command": "Command",
     "context-menu": "ContextMenu",
     "daterangeinput": "DateRangeInput",
+    "description-list": "DescriptionList",
     "dialog": "Dialog",
     "empty-state": "EmptyState",
     "hover-card": "HoverCard",

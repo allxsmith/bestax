@@ -90,8 +90,8 @@ is **more complete** than the docs page's Option C example, which omits several)
 `combobox`, `taginput`, `picker-popover`, `dateinput`, `timeinput`, `datetimeinput`,
 `daterangeinput`, `file`
 
-**Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `kbd`, `linkbutton`, `loader`,
-`notification`, `progress`, `ringprogress`, `skeleton`
+**Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `descriptionlist`, `kbd`,
+`linkbutton`, `loader`, `notification`, `progress`, `ringprogress`, `skeleton`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`
 

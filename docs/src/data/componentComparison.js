@@ -33,6 +33,7 @@ const BESTAX = {
   Code: 'elements/code',
   Content: 'elements/content',
   Delete: 'elements/delete',
+  DescriptionList: 'elements/descriptionlist',
   Divider: 'elements/divider',
   Emphasis: 'elements/emphasis',
   'Emphasis/Strong/Span': 'elements/emphasis',
@@ -1400,7 +1401,7 @@ export const categories = [
       ],
       [
         'Description / data list',
-        0,
+        'DescriptionList',
         'DataList',
         0,
         0,

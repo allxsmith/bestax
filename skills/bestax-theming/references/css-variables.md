@@ -484,6 +484,19 @@ The field around the two inputs. Its calendar is the `DateInput` one, with the v
 `--bulma-datetimeinput-time-card-radius`, `--bulma-datetimeinput-time-card-shadow`,
 `--bulma-datetimeinput-time-overlay-background`, `--bulma-datetimeinput-time-overlay-blur`
 
+### DescriptionList
+
+Declared on the root, `.description-list`. The values take the root's color, so a `textColor` on
+the list recolors them, and the labels keep `--bulma-description-list-label-color`. The gaps are in
+`em`, so `textSize` scales them. `--bulma-description-list-label-max-width` is the most the labels'
+column takes when the labels sit beside their values; it's a percentage of the list by default.
+
+`--bulma-description-list-column-gap`, `--bulma-description-list-divider-color`,
+`--bulma-description-list-divider-width`, `--bulma-description-list-gap`,
+`--bulma-description-list-label-color`, `--bulma-description-list-label-max-width`,
+`--bulma-description-list-label-weight`, `--bulma-description-list-row-gap`,
+`--bulma-description-list-value-color`
+
 ### Dialog
 
 `--bulma-dialog-animation-duration`, `--bulma-dialog-background`, `--bulma-dialog-body-color`,

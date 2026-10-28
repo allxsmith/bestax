@@ -163,8 +163,7 @@ The same TODO marks a `Heading` that sets `size` and `textSize` both: drop `size
 ## `domRef`
 
 bestax components don't take `domRef`, but many forward a plain `ref` — the form controls, plus
-`Avatar`, `Button`, `Carousel`, `CarouselItem`, `Command`, `Command.Dialog`, `Command.Input`,
-`Dialog`, `Dropdown`, `EmptyState`, `Kbd`,
+`Avatar`, `Button`, `Carousel`, `CarouselItem`, `Command`, `Command.Dialog`, `Command.Input`, `DescriptionList`, `DescriptionList.Item`, `DescriptionList.Label`, `DescriptionList.Value`, `Dialog`, `Dropdown`, `EmptyState`, `Kbd`,
 `Kbd.Group`, `Link`, `LinkButton`, `Loader`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`,
 `Navbar.Dropdown`, `Navbar.Item`, `Navbar.Link`, `RingProgress`, `ScrollArea`, `SegmentedControl`, `SegmentedControl.Segment`,
 `Sidebar`, `Splitter`, `Splitter.Pane`, `Timeline`, `Timeline.Item`, `Toast`, `ToggleButton`, `TreeView` and `TreeView.Item`. On
