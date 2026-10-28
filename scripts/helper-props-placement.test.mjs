@@ -44,6 +44,7 @@ const HELPER = { prop: 'mt', value: '3', className: 'mt-3' };
 /** What a part needs before it renders the element its helper props go on. */
 const RENDER_WITH = {
   Badge: ({ createElement }) => ({ children: createElement('span') }),
+  'Command.Dialog': () => ({ defaultOpen: true, actions: [] }),
   Dialog: () => ({ isOpen: true }),
   HoverCard: ({ createElement }) => ({ trigger: createElement('button') }),
   Loading: () => ({ active: true }),

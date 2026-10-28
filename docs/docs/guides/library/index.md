@@ -156,11 +156,11 @@ Every Bulma class has a corresponding React component in the matching tier, so t
 
 ---
 
-## Elements (34)
+## Elements (35)
 
 Foundational building blocks: typography, buttons, media, lists, data display, and feedback.
 
-[Block](/docs/api/elements/block), [Box](/docs/api/elements/box), [Button](/docs/api/elements/button), [Buttons](/docs/api/elements/buttons), [Code](/docs/api/elements/code), [Content](/docs/api/elements/content), [Delete](/docs/api/elements/delete), [Divider](/docs/api/elements/divider), [Emphasis](/docs/api/elements/emphasis), [Figure](/docs/api/elements/figure), [Icon](/docs/api/elements/icon), [IconText](/docs/api/elements/icontext), [Image](/docs/api/elements/image), [Kbd](/docs/api/elements/kbd), [Link](/docs/api/elements/link), [LinkButton](/docs/api/elements/linkbutton), [ListItem](/docs/api/elements/listitem), [Loader](/docs/api/elements/loader), [Notification](/docs/api/elements/notification), [OrderedList](/docs/api/elements/orderedlist), [Paragraph](/docs/api/elements/paragraph), [Pre](/docs/api/elements/pre), [Progress](/docs/api/elements/progress), [RingProgress](/docs/api/elements/ringprogress), [Skeleton](/docs/api/elements/skeleton), [Span](/docs/api/elements/span), [Strong](/docs/api/elements/strong), [SubTitle](/docs/api/elements/subtitle), [Table](/docs/api/elements/table), [Tag](/docs/api/elements/tag), [Tags](/docs/api/elements/tags), [Title](/docs/api/elements/title), [ToggleButton](/docs/api/elements/togglebutton), [UnorderedList](/docs/api/elements/unorderedlist)
+[Block](/docs/api/elements/block), [Box](/docs/api/elements/box), [Button](/docs/api/elements/button), [Buttons](/docs/api/elements/buttons), [Code](/docs/api/elements/code), [Content](/docs/api/elements/content), [Delete](/docs/api/elements/delete), [DescriptionList](/docs/api/elements/descriptionlist), [Divider](/docs/api/elements/divider), [Emphasis](/docs/api/elements/emphasis), [Figure](/docs/api/elements/figure), [Icon](/docs/api/elements/icon), [IconText](/docs/api/elements/icontext), [Image](/docs/api/elements/image), [Kbd](/docs/api/elements/kbd), [Link](/docs/api/elements/link), [LinkButton](/docs/api/elements/linkbutton), [ListItem](/docs/api/elements/listitem), [Loader](/docs/api/elements/loader), [Notification](/docs/api/elements/notification), [OrderedList](/docs/api/elements/orderedlist), [Paragraph](/docs/api/elements/paragraph), [Pre](/docs/api/elements/pre), [Progress](/docs/api/elements/progress), [RingProgress](/docs/api/elements/ringprogress), [Skeleton](/docs/api/elements/skeleton), [Span](/docs/api/elements/span), [Strong](/docs/api/elements/strong), [SubTitle](/docs/api/elements/subtitle), [Table](/docs/api/elements/table), [Tag](/docs/api/elements/tag), [Tags](/docs/api/elements/tags), [Title](/docs/api/elements/title), [ToggleButton](/docs/api/elements/togglebutton), [UnorderedList](/docs/api/elements/unorderedlist)
 
 ```tsx live
 <div>
@@ -187,11 +187,11 @@ Foundational building blocks: typography, buttons, media, lists, data display, a
 
 ---
 
-## Components (23)
+## Components (24)
 
 Higher-level composed UI patterns: navigation, overlays, feedback, and interactive controls.
 
-[Breadcrumb](/docs/api/components/breadcrumb), [Card](/docs/api/components/card), [Carousel](/docs/api/components/carousel), [Collapse](/docs/api/components/collapse), [Dialog](/docs/api/components/dialog), [Dropdown](/docs/api/components/dropdown), [EmptyState](/docs/api/components/emptystate), [Loading](/docs/api/components/loading), [Menu](/docs/api/components/menu), [Message](/docs/api/components/message), [Modal](/docs/api/components/modal), [Navbar](/docs/api/components/navbar), [Pagination](/docs/api/components/pagination), [Panel](/docs/api/components/panel), [ScrollArea](/docs/api/components/scrollarea), [SegmentedControl](/docs/api/components/segmentedcontrol), [Sidebar](/docs/api/components/sidebar), [Steps](/docs/api/components/steps), [Tabs](/docs/api/components/tabs), [Timeline](/docs/api/components/timeline), [Toast](/docs/api/components/toast), [Tooltip](/docs/api/components/tooltip), [TreeView](/docs/api/components/treeview)
+[Breadcrumb](/docs/api/components/breadcrumb), [Card](/docs/api/components/card), [Carousel](/docs/api/components/carousel), [Collapse](/docs/api/components/collapse), [Command](/docs/api/components/command), [Dialog](/docs/api/components/dialog), [Dropdown](/docs/api/components/dropdown), [EmptyState](/docs/api/components/emptystate), [Loading](/docs/api/components/loading), [Menu](/docs/api/components/menu), [Message](/docs/api/components/message), [Modal](/docs/api/components/modal), [Navbar](/docs/api/components/navbar), [Pagination](/docs/api/components/pagination), [Panel](/docs/api/components/panel), [ScrollArea](/docs/api/components/scrollarea), [SegmentedControl](/docs/api/components/segmentedcontrol), [Sidebar](/docs/api/components/sidebar), [Steps](/docs/api/components/steps), [Tabs](/docs/api/components/tabs), [Timeline](/docs/api/components/timeline), [Toast](/docs/api/components/toast), [Tooltip](/docs/api/components/tooltip), [TreeView](/docs/api/components/treeview)
 
 ```tsx live
 <Columns>
@@ -224,11 +224,11 @@ Higher-level composed UI patterns: navigation, overlays, feedback, and interacti
 
 ---
 
-## Form (19)
+## Form (21)
 
 Input controls for building accessible, flexible forms.
 
-[Autocomplete](/docs/api/form/autocomplete), [Checkbox](/docs/api/form/checkbox), [Checkboxes](/docs/api/form/checkboxes), [Combobox](/docs/api/form/combobox), [Control](/docs/api/form/control), [Field](/docs/api/form/field), [Fieldset](/docs/api/form/fieldset), [File](/docs/api/form/file), [Input](/docs/api/form/input), [Numberinput](/docs/api/form/numberinput), [PinInput](/docs/api/form/pininput), [Radio](/docs/api/form/radio), [Radios](/docs/api/form/radios), [Rate](/docs/api/form/rate), [Select](/docs/api/form/select), [Slider](/docs/api/form/slider), [Switch](/docs/api/form/switch), [Taginput](/docs/api/form/taginput), [TextArea](/docs/api/form/textarea)
+[Autocomplete](/docs/api/form/autocomplete), [Checkbox](/docs/api/form/checkbox), [CheckboxCard](/docs/api/form/checkboxcard), [Checkboxes](/docs/api/form/checkboxes), [Combobox](/docs/api/form/combobox), [Control](/docs/api/form/control), [Field](/docs/api/form/field), [Fieldset](/docs/api/form/fieldset), [File](/docs/api/form/file), [Input](/docs/api/form/input), [Numberinput](/docs/api/form/numberinput), [PinInput](/docs/api/form/pininput), [Radio](/docs/api/form/radio), [RadioCard](/docs/api/form/radiocard), [Radios](/docs/api/form/radios), [Rate](/docs/api/form/rate), [Select](/docs/api/form/select), [Slider](/docs/api/form/slider), [Switch](/docs/api/form/switch), [Taginput](/docs/api/form/taginput), [TextArea](/docs/api/form/textarea)
 
 `Input`, `Select`, and `TextArea` accept `label`, icon, and `message` props to auto-wrap with `Field` + `Control`. For complex layouts, use the raw `InputBase`, `SelectBase`, and `TextAreaBase` primitives.
 
@@ -376,11 +376,11 @@ Every component in this library — including all extras — is free and always 
 
 Beyond the core Bulma wrappers, bestax-bulma ships additional components that fill gaps where Bulma doesn't provide a built-in solution:
 
-| Category       | Extras                                                                                                                                                                                      |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Components** | Avatar, Avatars, Badge, Carousel, Collapse, Collapses, ContextMenu, Dialog, EmptyState, HoverCard, Loading, Popover, Reveal, ScrollArea, Sidebar, Steps, Timeline, Toast, Tooltip, TreeView |
-| **Form**       | Autocomplete, Combobox, DateInput, DateRangeInput, DateTimeInput, Fieldset, Numberinput, PinInput, Rate, Slider, Switch, Taginput, TimeInput                                                |
-| **Elements**   | Kbd, LinkButton, RingProgress                                                                                                                                                               |
-| **Layout**     | Splitter                                                                                                                                                                                    |
+| Category       | Extras                                                                                                                                                                                               |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Components** | Avatar, Avatars, Badge, Carousel, Collapse, Collapses, Command, ContextMenu, Dialog, EmptyState, HoverCard, Loading, Popover, Reveal, ScrollArea, Sidebar, Steps, Timeline, Toast, Tooltip, TreeView |
+| **Form**       | Autocomplete, CheckboxCard, Combobox, DateInput, DateRangeInput, DateTimeInput, Fieldset, Numberinput, PinInput, RadioCard, Rate, Slider, Switch, Taginput, TimeInput                                |
+| **Elements**   | DescriptionList, Kbd, LinkButton, RingProgress                                                                                                                                                       |
+| **Layout**     | Splitter                                                                                                                                                                                             |
 
 These extras include purpose-built SCSS that follows Bulma v1's CSS-variable conventions, so they theme and customise exactly like native Bulma components. They're bundled into `bestax.css` — no separate import needed.

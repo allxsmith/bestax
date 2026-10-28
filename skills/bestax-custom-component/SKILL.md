@@ -102,14 +102,18 @@ works, and the menu needs `aria-label`. Put the same items in a visible `Dropdow
 nothing tells a screen reader user a context menu is there, and on macOS only VoiceOver opens
 it from the keyboard.
 
-Building something else that floats (a command palette)? Render it through the library's
-`Portal` rather than `createPortal`: it renders nothing on the server and during hydration, so
-the server and client markup match. `references/api.md` has the details.
+A command palette, a search over things to do that opens on ⌘K or Ctrl+K, is
+`Command.Dialog`: `<Command.Dialog shortcut="mod+k" actions={[{ id, label, onSelect }]} />`, or
+built from parts for a server search. Don't hand-build one from `Portal`, `useFocusTrap` and a
+`keydown` listener. Inline, without the modal, it's `Command`.
 
-Building some other overlay that holds focus until it is dismissed (a command palette)? Use the
-library's `useFocusTrap` rather than a hand-rolled Tab handler: it finds the tab stops the
-browser visits and hands focus back on close. `references/api.md` has the signature and a worked
-panel.
+Building something else that floats? Render it through the library's `Portal` rather than
+`createPortal`: it renders nothing on the server and during hydration, so the server and client
+markup match. `references/api.md` has the details.
+
+Building some other overlay that holds focus until it is dismissed? Use the library's
+`useFocusTrap` rather than a hand-rolled Tab handler: it finds the tab stops the browser visits
+and hands focus back on close. `references/api.md` has the signature and a worked panel.
 
 ## The component spine
 

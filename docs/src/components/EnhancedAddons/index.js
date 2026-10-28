@@ -25,6 +25,12 @@ const ADDONS = [
     desc: 'A value drawn as a ring, a progress bar or a meter, and several values around one ring in sections.',
   },
   {
+    name: 'DescriptionList',
+    icon: 'descriptionlist',
+    link: '/docs/api/elements/descriptionlist',
+    desc: 'Facts about one thing, each a label and its value, stacked on a phone and lined up in two columns from tablet up.',
+  },
+  {
     name: 'Avatar',
     icon: 'avatar',
     link: '/docs/api/components/avatar',
@@ -43,6 +49,12 @@ const ADDONS = [
     desc: 'Slide any content with autoplay, drag, arrows, and indicators.',
   },
   {
+    name: 'CheckboxCard/RadioCard',
+    icon: 'choicecard',
+    link: '/docs/api/form/checkboxcard',
+    desc: 'A checkbox or a radio drawn as a card, with a title and a description, picked wherever you click it.',
+  },
+  {
     name: 'Collapse',
     icon: 'collapse',
     link: '/docs/api/components/collapse',
@@ -53,6 +65,12 @@ const ADDONS = [
     icon: 'combobox',
     link: '/docs/api/form/combobox',
     desc: 'A field with a list to pick from: give it your data for a searchable select or tags, or build it from parts for a server search.',
+  },
+  {
+    name: 'Command',
+    icon: 'command',
+    link: '/docs/api/components/command',
+    desc: 'A search over things to do that runs the top match on Enter, inline or as a ⌘K palette.',
   },
   {
     name: 'ContextMenu',

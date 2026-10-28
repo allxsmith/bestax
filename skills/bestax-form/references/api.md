@@ -81,7 +81,7 @@ Same convenience/raw split as Input. `Select` supports `isLoading` (a spinner in
 chevron), `color`, `size`, `isRounded`, `isFullwidth`, `multiple` + `multipleSize`, plus the
 Field/Control/message props. `TextArea` adds `rows` and `hasFixedSize`.
 
-## Checkbox / Checkboxes, Radio / Radios
+## Checkbox / Checkboxes, Radio / Radios, CheckboxCard / RadioCard
 
 - `Checkbox` / `Radio` — single controls with `color`, `size`, `checked`/`defaultChecked`,
   `onChange`, `disabled`.
@@ -90,6 +90,18 @@ Field/Control/message props. `TextArea` adds `rows` and `hasFixedSize`.
   value, so set both from the list.
 - `Checkboxes` — group wrapper managing an **array** value.
 - `Radios` — group wrapper managing a **single** selected value.
+- Both take `as="fieldset"`: their own `Field` renders as a native `<fieldset>` and the `label` as
+  its `<legend>`, in the label column when `horizontal`, naming the group with no ids. Inside an
+  outer `Field` the group element itself is the `<fieldset>`, named by that `Field`'s label.
+  Attributes go on the `<fieldset>`; `className` and helper props stay on the box of choices.
+- `CheckboxCard` / `RadioCard`: a checkbox or radio drawn as a card, a `<label>` around the
+  real input, so a click anywhere toggles it and it sends its `value` with a form. `title` names
+  the input and `description` describes it; children (a price, a link) follow but aren't read on
+  focus, and must be phrasing content, never a button or another input. They read the same group
+  context as `Checkbox` and `Radio`, so put them straight inside `Checkboxes` or `Radios` (or a
+  `Grid` with `flexGrow="1"` inside the group, for columns). `hasIndicator={false}` drops the
+  checkbox or radio; the edge, thicker when checked, then shows the selection. Both take `color`
+  and `disabled`, and `CheckboxCard` takes `indeterminate`.
 
 ## Switch — `form/Switch.tsx`
 

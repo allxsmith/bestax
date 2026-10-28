@@ -87,6 +87,7 @@ const DOM_ELEMENT_LABELS = {
   HTMLAnchorElement: '`<a>`',
   HTMLButtonElement: '`<button>`',
   HTMLDivElement: '`<div>`',
+  HTMLDListElement: '`<dl>`',
   HTMLElement: 'HTML',
   HTMLHRElement: '`<hr>`',
   HTMLHeadingElement: '`<h1>`–`<h6>`',

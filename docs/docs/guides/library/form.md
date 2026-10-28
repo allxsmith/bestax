@@ -145,6 +145,29 @@ Wraps multiple `Checkbox` components in a vertical group for lists of boolean op
 
 ---
 
+### CheckboxCard
+
+A checkbox drawn as a card, with a title and a description, that toggles wherever you click it. It joins a `Checkboxes` group as `Checkbox` does.
+
+```tsx live
+<Checkboxes label="Add-ons" name="extras" defaultValue={['backups']}>
+  <CheckboxCard
+    value="backups"
+    title="Daily backups"
+    description="Kept for 30 days."
+  />
+  <CheckboxCard
+    value="domain"
+    title="Custom domain"
+    description="Bring your own."
+  />
+</Checkboxes>
+```
+
+[View full documentation.](../../api/form/checkboxcard)
+
+---
+
 ### Radio
 
 A Bulma-styled radio button for mutually exclusive choices. Use the same `name` prop for grouping.
@@ -169,6 +192,25 @@ Groups multiple `Radio` components vertically for single-choice lists (e.g., RSV
 ```
 
 [View full documentation.](../../api/form/radios)
+
+---
+
+### RadioCard
+
+A radio button drawn as a card, with a title and a description, picked wherever you click it. The cards in a `Radios` group are one choice the arrow keys move through.
+
+```tsx live
+<Radios label="Plan" name="plan" defaultValue="pro">
+  <RadioCard
+    value="starter"
+    title="Starter"
+    description="One site, community support."
+  />
+  <RadioCard value="pro" title="Pro" description="Ten sites, email support." />
+</Radios>
+```
+
+[View full documentation.](../../api/form/radiocard)
 
 ---
 

@@ -1,0 +1,292 @@
+{
+  "name": "CheckboxCard",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/checkboxcard",
+  "docsUrl": "https://bestax.io/docs/api/form/checkboxcard",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<CheckboxCard title=\"Daily backups\" description=\"Kept for 30 days.\" />"
+    },
+    {
+      "title": "In a Group",
+      "code": "function example() {\n  const [extras, setExtras] = useState(['backups']);\n  return (\n    <>\n      <Checkboxes\n        label=\"Add-ons\"\n        name=\"extras\"\n        value={extras}\n        onChange={setExtras}\n      >\n        <CheckboxCard\n          value=\"backups\"\n          title=\"Daily backups\"\n          description=\"Kept for 30 days.\"\n        />\n        <CheckboxCard\n          value=\"domain\"\n          title=\"Custom domain\"\n          description=\"Bring your own.\"\n        />\n        <CheckboxCard\n          value=\"support\"\n          title=\"Priority support\"\n          description=\"Answers within the hour.\"\n        />\n      </Checkboxes>\n      <Paragraph mt=\"3\">Picked: {extras.join(', ') || 'nothing'}</Paragraph>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Without the Indicator",
+      "code": "<Checkboxes label=\"Email me about\" name=\"topics\" defaultValue={['news']}>\n  <CheckboxCard\n    value=\"news\"\n    hasIndicator={false}\n    title=\"Newsletter\"\n    description=\"Once a month.\"\n  />\n  <CheckboxCard\n    value=\"releases\"\n    hasIndicator={false}\n    title=\"Releases\"\n    description=\"When something ships.\"\n  />\n  <CheckboxCard\n    value=\"events\"\n    hasIndicator={false}\n    title=\"Events\"\n    description=\"Meetups near you.\"\n  />\n</Checkboxes>"
+    },
+    {
+      "title": "More in the Card",
+      "code": "<CheckboxCard title=\"Priority support\" description=\"Answers within the hour.\">\n  <Span display=\"block\" mt=\"2\" textWeight=\"semibold\">\n    $9 a month\n  </Span>\n  <a href=\"#support-terms\">What's covered</a>\n</CheckboxCard>"
+    },
+    {
+      "title": "Columns",
+      "code": "<Checkboxes label=\"Toppings\" name=\"toppings\">\n  <Grid minCol={12} flexGrow=\"1\">\n    {['Cheese', 'Mushrooms', 'Olives', 'Peppers', 'Onions', 'Basil'].map(\n      topping => (\n        <CheckboxCard\n          key={topping}\n          value={topping}\n          title={topping}\n          description=\"Free\"\n        />\n      )\n    )}\n  </Grid>\n</Checkboxes>"
+    },
+    {
+      "title": "Colors",
+      "code": "<Checkboxes name=\"colors\" defaultValue={[...checkboxColors]}>\n  {checkboxColors.map(color => (\n    <CheckboxCard\n      key={color}\n      value={color}\n      color={color}\n      title={color}\n      description=\"Checked.\"\n    />\n  ))}\n</Checkboxes>"
+    },
+    {
+      "title": "Disabled and Mixed",
+      "code": "<Checkboxes name=\"states\">\n  <CheckboxCard\n    value=\"disabled\"\n    disabled\n    title=\"Disabled\"\n    description=\"Not on your plan.\"\n  />\n  <CheckboxCard\n    value=\"included\"\n    disabled\n    defaultChecked\n    title=\"Included\"\n    description=\"Part of every plan.\"\n  />\n  <CheckboxCard\n    value=\"mixed\"\n    indeterminate\n    title=\"Mixed\"\n    description=\"Some of what it covers.\"\n  />\n</Checkboxes>"
+    },
+    {
+      "title": "Form Submission",
+      "code": "function example() {\n  const [sent, setSent] = useState('');\n  return (\n    <form\n      onSubmit={e => {\n        e.preventDefault();\n        const data = new FormData(e.currentTarget);\n        setSent(data.getAll('extras').join(', ') || 'nothing');\n      }}\n    >\n      <Checkboxes label=\"Add-ons\" name=\"extras\" defaultValue={['backups']}>\n        <CheckboxCard\n          value=\"backups\"\n          title=\"Daily backups\"\n          description=\"Kept for 30 days.\"\n        />\n        <CheckboxCard\n          value=\"domain\"\n          title=\"Custom domain\"\n          description=\"Bring your own.\"\n        />\n      </Checkboxes>\n      <Button type=\"submit\" color=\"primary\">\n        Send\n      </Button>\n      {sent && <Paragraph mt=\"3\">Sent: {sent}</Paragraph>}\n    </form>\n  );\n}"
+    },
+    {
+      "title": "Theming the Card",
+      "code": "<CheckboxCard\n  className=\"compact-card\"\n  title=\"Daily backups\"\n  description=\"Kept for 30 days.\"\n/>"
+    }
+  ],
+  "accessibility": "- The card is a `<label>` around a native `<input type=\"checkbox\">`, so a click anywhere on it\n  toggles the checkbox, Space toggles it from the keyboard, and it sends its value with a form.\n- The checkbox is named by the title, through `aria-labelledby`, and described by the\n  description, through `aria-describedby`. An `aria-label` or `aria-labelledby` you pass wins.\n  Without a title, the card's own text names it, as a label's text does.\n- The children aren't read when the checkbox takes focus. Put what matters in `title` and\n  `description`.\n- A link inside the card is its own Tab stop, and following it doesn't toggle the card. A button\n  or another input can't go inside a `<label>`.\n- Keyboard focus draws an outline around the whole card, in Bulma's focus color, whatever the\n  card's color.\n- The selection never rests on color: the checkbox shows it, and a checked card's edge is twice\n  as thick, with or without the checkbox.\n- Contrast: against the card, a checked edge in `primary` or `link` clears WCAG 1.4.11's 3:1 on a\n  light page, and in every color on a dark one. `info`, `success`, `warning` and `danger` fall\n  short on a light page, where the edge's width and the checkbox still show the selection.\n- In forced colors (Windows contrast themes), Bulma's card loses its shadow, so the edge is a\n  real border there: the system's text color, `Highlight` and still thicker when checked, and\n  gray when disabled. The checkbox takes system colors as `Checkbox`'s does, and the focus outline\n  is `Highlight`.\n- The edge and the checkbox change without a transition under `prefers-reduced-motion: reduce`.",
+  "related": ["Card", "Checkbox", "Checkboxes", "RadioCard", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-checkboxcard--default",
+  "summary": "The `CheckboxCard` component is a checkbox drawn as a card, with a title and a description, that toggles wherever you click it. It's a `<label>` around a real checkbox, so it sends its `value` with a form and Space toggles it. The title names the checkbox and the description describes it. Alone it's one choice; inside `Checkboxes` it takes the group's name and selection, as `Checkbox` does.",
+  "import": "import { CheckboxCard } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/CheckboxCard.tsx",
+  "rootClass": "checkbox-card",
+  "parts": [
+    {
+      "path": "CheckboxCard",
+      "summary": "The `CheckboxCard` component is a checkbox drawn as a card, with a title and a description, that toggles wherever you click it. It's a `<label>` around a real checkbox, so it sends its `value` with a form and Space toggles it. The title names the checkbox and the description describes it. Alone it's one choice; inside `Checkboxes` it takes the group's name and selection, as `Checkbox` does.",
+      "component": null,
+      "props": [
+        {
+          "name": "title",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "What the option is, such as \"Daily backups\". It names the checkbox, so a screen reader says it with the state. Without it, the card's whole text names the checkbox, as a label's text does.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "description",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "A line or two about the option, read after the name and the state. It's the checkbox's description when `title`, `aria-label` or `aria-labelledby` names it. Without one of those it's part of the name already, so it isn't read twice.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Anything else in the card, after the description, such as a price. A label holds phrasing content only, so spans, images and links: a link works and doesn't toggle the card, but a button or another input can't go inside a label at all. It isn't read when the checkbox takes focus, so put what a screen reader should hear in `title` and `description`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasIndicator",
+          "type": "boolean",
+          "default": "true",
+          "description": "Shows the checkbox at the start of the card. Without it, the card's edge alone shows the selection, and it's thicker when checked, so the selection never rests on color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "The color of the checkbox and of a checked card's edge.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper, on the card. The title and the children take it, and the description keeps its own color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the card is disabled. A disabled card dims, takes no clicks, and leaves the Tab order.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "indeterminate",
+          "type": "boolean",
+          "default": null,
+          "description": "Shows the mixed state, as in a \"Select all\" card when some of what it covers is checked. It's a look and an announcement only: `checked` is still the value, and a click still toggles `checked`. Set to `true` or `false`, it's controlled: a browser clears the mixed state on a click, so the component sets it again from this prop after every click and every render. Unset isn't `false`. The component leaves the input's own `indeterminate` property alone, so a ref can set it, and going from set to unset clears it once and hands it back. It has no HTML attribute, so server-rendered markup can't carry it, and a mixed card renders unmixed until hydration.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes, on the outer `<label>`, the card. That's the element that declares the `--bulma-checkbox-card-*` variables, and Bulma's `--bulma-card-*` ones, so a class is how to set one: `style` and the other input attributes go to the `<input>`. Name `.checkbox-card` beside your class in the selector, so it beats the card's own declaration whatever order the stylesheets load in. A `color` prop declares the active color again on `.checkbox-card.is-<color>`, which ties that selector, so leave `color` unset when a class sets it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "The form field name. Inside `Checkboxes`, the group's `name` when this is unset.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "default": null,
+          "description": "What a form sends for the card when it's checked. Inside a `Checkboxes` group that takes `value`, `defaultValue` or `onChange`, the card is checked while the group's value holds it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <input> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the outer `<label>`, the `.card`, with `className`. The other attributes go on the `<input>`.",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-checkbox-card-border-width",
+      "sass": "$checkbox-card-border-width",
+      "default": "1px",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-checkbox-card-border-color",
+      "sass": "$checkbox-card-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-checkbox-card-hover-border-color",
+      "sass": "$checkbox-card-hover-border-color",
+      "default": "var(--bulma-border-hover)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-checkbox-card-checked-border-width",
+      "sass": "$checkbox-card-checked-border-width",
+      "default": "2px",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-checkbox-card-active-color",
+      "sass": "$checkbox-card-active-color",
+      "default": "var(--bulma-primary)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-checkbox-card-focus-color",
+      "sass": "$checkbox-card-focus-color",
+      "default": "hsl(var(--bulma-focus-h), var(--bulma-focus-s), var(--bulma-focus-l))",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-checkbox-card-focus-width",
+      "sass": "$checkbox-card-focus-width",
+      "default": "var(--bulma-focus-width)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-checkbox-card-focus-offset",
+      "sass": "$checkbox-card-focus-offset",
+      "default": "2px",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-checkbox-card-gap",
+      "sass": "$checkbox-card-gap",
+      "default": "0.75em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-checkbox-card-min-width",
+      "sass": "$checkbox-card-min-width",
+      "default": "12rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-checkbox-card-title-weight",
+      "sass": "$checkbox-card-title-weight",
+      "default": "var(--bulma-weight-semibold)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-checkbox-card-description-color",
+      "sass": "$checkbox-card-description-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-checkbox-card-indicator-size",
+      "sass": "$checkbox-card-indicator-size",
+      "default": "1.25em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-checkbox-card-indicator-border-width",
+      "sass": "$checkbox-card-indicator-border-width",
+      "default": "2px",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-checkbox-card-indicator-border-color",
+      "sass": "$checkbox-card-indicator-border-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-checkbox-card-indicator-radius",
+      "sass": "$checkbox-card-indicator-radius",
+      "default": "var(--bulma-radius-small)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-checkbox-card-check-color",
+      "sass": "$checkbox-card-check-color",
+      "default": "var(--bulma-scheme-invert)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-checkbox-card-disabled-opacity",
+      "sass": "$checkbox-card-disabled-opacity",
+      "default": "0.5",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-checkbox-card-transition-duration",
+      "sass": "$checkbox-card-transition-duration",
+      "default": "var(--bulma-duration)",
+      "scope": "root"
+    }
+  ],
+  "cssVarsFrom": "Card"
+}
