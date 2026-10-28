@@ -137,15 +137,15 @@ export const Orientations: Story = {
   render: function OrientationsExample() {
     return (
       <>
-        <Title as="h3" size="6">
+        <Title as="h3" textSize="6">
           Beside
         </Title>
         <DescriptionList orientation="horizontal">{order}</DescriptionList>
-        <Title as="h3" size="6">
+        <Title as="h3" textSize="6">
           Above
         </Title>
         <DescriptionList orientation="vertical">{order}</DescriptionList>
-        <Title as="h3" size="6">
+        <Title as="h3" textSize="6">
           Above until desktop
         </Title>
         <DescriptionList orientation="vertical" orientationDesktop="horizontal">
