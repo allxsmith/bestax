@@ -59,6 +59,7 @@
         "Carousel",
         "Collapse",
         "Collapses",
+        "Command",
         "ContextMenu",
         "Dialog",
         "Dropdown",
@@ -378,6 +379,17 @@
       "compound": true,
       "propCount": 69,
       "exampleCount": 14
+    },
+    {
+      "name": "Command",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `Command` component is a search field over a list of things to do, which narrows as you type and runs the top match on Enter: inline by default, and a…",
+      "slug": "components/command",
+      "import": "import { Command } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 66,
+      "exampleCount": 11
     },
     {
       "name": "ConfigProvider",
@@ -1552,6 +1564,35 @@
     "--bulma-combobox-menu-shadow": ["Combobox"],
     "--bulma-combobox-menu-z-index": ["Combobox"],
     "--bulma-combobox-portal-z-index": ["Combobox"],
+    "--bulma-command-background": ["Command"],
+    "--bulma-command-border-color": ["Command"],
+    "--bulma-command-description-color": ["Command"],
+    "--bulma-command-description-size": ["Command"],
+    "--bulma-command-dialog-offset": ["Command"],
+    "--bulma-command-dialog-shadow": ["Command"],
+    "--bulma-command-dialog-width": ["Command"],
+    "--bulma-command-disabled-color": ["Command"],
+    "--bulma-command-divider-color": ["Command"],
+    "--bulma-command-empty-color": ["Command"],
+    "--bulma-command-empty-padding": ["Command"],
+    "--bulma-command-gap": ["Command"],
+    "--bulma-command-group-label-color": ["Command"],
+    "--bulma-command-group-label-size": ["Command"],
+    "--bulma-command-group-label-weight": ["Command"],
+    "--bulma-command-highlight-background": ["Command"],
+    "--bulma-command-highlight-color": ["Command"],
+    "--bulma-command-hint-color": ["Command"],
+    "--bulma-command-icon-color": ["Command"],
+    "--bulma-command-item-color": ["Command"],
+    "--bulma-command-item-gap": ["Command"],
+    "--bulma-command-item-hover-background": ["Command"],
+    "--bulma-command-item-padding-x": ["Command"],
+    "--bulma-command-item-padding-y": ["Command"],
+    "--bulma-command-item-radius": ["Command"],
+    "--bulma-command-item-size": ["Command"],
+    "--bulma-command-list-max-height": ["Command"],
+    "--bulma-command-padding": ["Command"],
+    "--bulma-command-radius": ["Command"],
     "--bulma-content-block-margin-bottom": ["Content"],
     "--bulma-content-blockquote-background-color": ["Content"],
     "--bulma-content-blockquote-border-left": ["Content"],
@@ -2782,6 +2823,36 @@
       "component": "Combobox",
       "path": "Combobox.Menu",
       "purpose": "The floating panel under the field, on screen while the list is open and its children aren't all empty."
+    },
+    "CommandDialog": {
+      "component": "Command",
+      "path": "Command.Dialog",
+      "purpose": "The Command in a modal, a command palette, opened by its `shortcut` or by `open`, that closes once an item has run."
+    },
+    "CommandEmpty": {
+      "component": "Command",
+      "path": "Command.Empty",
+      "purpose": "The message shown in place of the list when nothing matches, announced when typing brings it on screen."
+    },
+    "CommandGroup": {
+      "component": "Command",
+      "path": "Command.Group",
+      "purpose": "Items under a heading, a `group` named by it."
+    },
+    "CommandInput": {
+      "component": "Command",
+      "path": "Command.Input",
+      "purpose": "The search field, with the combobox role and the keys, rendered as an `Input` with a search icon."
+    },
+    "CommandItem": {
+      "component": "Command",
+      "path": "Command.Item",
+      "purpose": "One thing to do in the list, named by its label and described by its description and hint."
+    },
+    "CommandList": {
+      "component": "Command",
+      "path": "Command.List",
+      "purpose": "The list of items, a `listbox` named by the Command's `label`."
     },
     "DateInputBase": {
       "component": "DateInput",

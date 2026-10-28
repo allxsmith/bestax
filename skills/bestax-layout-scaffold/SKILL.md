@@ -146,6 +146,15 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   helper props and `className` go on its frame and the `ref` on the element that scrolls.
   `hasFade` fades the edges that have more, `orientation="horizontal"` suits a wide table, and
   `onEdgeReach={edge => …}` loads more at an edge.
+- **A command palette (⌘K or Ctrl+K) is `Command.Dialog`**, not a `Modal` with an `Input` and a
+  hand-written `keydown` listener: `<Command.Dialog shortcut="mod+k" placeholder="…" actions={[…]} />`,
+  each action `{ id, label, onSelect }` with `group`, `keywords`, `description`, `icon` and `hint`
+  (a `Kbd.Group`) as it needs them. Typing filters the actions by label, keywords and description,
+  Enter runs the top match, and running one closes the dialog. `shortcut` is off unless given, and
+  it does nothing while the user types in a field. A button that opens it too uses `open` and
+  `onOpenChange`, with `aria-keyshortcuts` on the button. The same list inline, in a page or a
+  Popover, is `Command`. For server results, build it from parts: `Command.Input`, then
+  `Command.List` of `Command.Item`s, or `Command.Empty`, filtered from `onQueryChange`.
 - Link lists (footer nav, sidebars): a bare `UnorderedList` of `ListItem`s is already
   marker-less and flush — Bulma's reset unstyles `ul` — so no prop or CSS is needed;
   bullets appear only inside `Content`.

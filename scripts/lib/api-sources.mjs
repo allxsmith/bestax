@@ -116,6 +116,9 @@ export const SCSS_SOURCES = {
   Column: [{ pkg: 'bulma', path: 'sass/grid/columns.scss' }],
   Columns: [],
   Combobox: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_combobox.scss' }],
+  Command: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_command.scss' },
+  ],
   Config: [],
   Container: [],
   Content: [{ pkg: 'bulma', path: 'sass/elements/content.scss' }],
