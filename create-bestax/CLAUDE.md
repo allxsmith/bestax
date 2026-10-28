@@ -12,7 +12,7 @@ The one question `-y` does not answer is whether to delete a non-empty target di
 Neither empties the working directory or a folder holding it (#310). The project directory can
 be a path (#1154), so that is judged where the path resolves, not by how it is spelled. `.`
 alone scaffolds into the working directory, as create-vite takes it, and so only while it's
-empty.
+empty. A directory holding only `.git` counts as empty, as create-vite counts it.
 Every flag is validated before anything on disk changes, and the directory is emptied only after
 the last prompt, so a typo or a Ctrl+C never costs the user their files (#945).
 

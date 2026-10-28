@@ -241,6 +241,22 @@ describe('ProjectCreator', () => {
       expect(confirm).not.toHaveBeenCalled();
     });
 
+    it('counts a directory holding only .git as empty, as create-vite does, --overwrite or not', async () => {
+      listDirectoryEntries.mockResolvedValue(['.git']);
+
+      for (const options of [undefined, { yes: true, overwrite: true }]) {
+        expect(
+          await projectCreator.checkExistingDirectory(
+            '/path/to/project',
+            'project',
+            options
+          )
+        ).toBe('empty');
+      }
+      expect(confirm).not.toHaveBeenCalled();
+      expect(fileSystem.emptyDirectory).not.toHaveBeenCalled();
+    });
+
     it('asks before removing files, and only records the answer (#945)', async () => {
       listDirectoryEntries.mockResolvedValue(['notes.txt']);
       confirm.mockResolvedValue({ overwrite: true });
@@ -1560,7 +1576,29 @@ describe('ProjectCreator', () => {
         expect(mockExit).toHaveBeenCalledWith(2);
         expect(
           (console.error as jest.Mock).mock.calls.flat().join('\n')
-        ).toContain('pnpm install failed, so the dev server was not started');
+        ).toContain(
+          'pnpm install failed, so the dev server was not started. Fix what it reported, then cd test-project, then run pnpm install and pnpm run dev.'
+        );
+      });
+
+      it('names no cd after a failed install into the current directory', async () => {
+        run.mockReturnValueOnce(1);
+
+        await expect(
+          projectCreator.create('.', {
+            yes: true,
+            skills: false,
+            immediate: true,
+          })
+        ).rejects.toThrow('process.exit called');
+
+        const output = (console.error as jest.Mock).mock.calls
+          .flat()
+          .join('\n');
+        expect(output).toContain(
+          'Fix what it reported, then run pnpm install and pnpm run dev.'
+        );
+        expect(output).not.toContain('cd ');
       });
 
       it('reports a command that could not start, and exits 1', async () => {

@@ -70,7 +70,8 @@ with or without it.
   typed, and the `package.json` name lower-cased the way `npm init` does and without a leading
   `_`, since npm rejects both. A bare `.` scaffolds into the current directory, named after it,
   as long as it's empty. It's never emptied, even with `--overwrite`. A bare `..`, or a path
-  ending in `.` or `..`, is refused, so name the directory you want.
+  ending in `.` or `..`, is refused, so name the directory you want. A directory holding only
+  `.git` counts as empty, as create-vite counts it, so `git init` then `.` works.
 
 **Options:**
 

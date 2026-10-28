@@ -29,6 +29,7 @@ import {
   displaySuccess,
   displayError,
   displayCancelled,
+  quoteShellArgument,
 } from './display.js';
 import {
   validateProjectDirectory,
@@ -173,8 +174,14 @@ export class ProjectCreator {
       return 'stop';
     }
 
+    // A directory holding only .git counts as empty, as create-vite counts
+    // it, so `git init` then `create bestax .` works. The scaffold is written
+    // beside .git, which nothing here ever removes.
     const entries = await listDirectoryEntries(targetPath);
-    if (entries.length === 0) {
+    if (
+      entries.length === 0 ||
+      (entries.length === 1 && entries[0] === '.git')
+    ) {
       return 'empty';
     }
 
@@ -412,12 +419,17 @@ export class ProjectCreator {
    * --immediate: install with the package manager that ran the CLI, then run
    * the dev server in the foreground until it's stopped, as create-vite does.
    * A failed install ends the run with its exit code, and so does the server.
+   * Its message names the cd into the project, since the next steps that
+   * would have named it weren't printed.
    */
-  installAndStart(targetPath: string, pm: string): void {
+  installAndStart(targetPath: string, targetDir: string, pm: string): void {
     console.log(chalk.green(MESSAGES.INSTALLING(pm)));
     const installed = runOrExit(`${pm} install`, targetPath);
     if (installed !== 0) {
-      displayError(MESSAGES.INSTALL_FAILED(pm));
+      const cd = isCurrentDirectory(targetDir)
+        ? ''
+        : `cd ${quoteShellArgument(targetDir)}, then `;
+      displayError(MESSAGES.INSTALL_FAILED(pm, cd));
       process.exit(installed);
     }
     console.log(chalk.green(MESSAGES.STARTING_DEV_SERVER));
@@ -984,7 +996,7 @@ export class ProjectCreator {
 
     // Last, since the dev server holds the terminal until it's stopped.
     if (immediate) {
-      this.installAndStart(targetPath, pm);
+      this.installAndStart(targetPath, targetDir, pm);
     }
   }
 

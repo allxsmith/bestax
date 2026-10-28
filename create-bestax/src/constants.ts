@@ -124,8 +124,9 @@ export const MESSAGES = {
   NEXT_STEPS: 'Next steps:',
   INSTALLING: (pm: string) => `\n  Installing dependencies with ${pm}...\n`,
   STARTING_DEV_SERVER: '\n  Starting the dev server...\n',
-  INSTALL_FAILED: (pm: string) =>
-    `${pm} install failed, so the dev server was not started. Fix what it reported, then run ${pm} install and ${pm} run dev.`,
+  // cd is the step into the project, "cd <dir>, then ", or empty for ".".
+  INSTALL_FAILED: (pm: string, cd: string) =>
+    `${pm} install failed, so the dev server was not started. Fix what it reported, then ${cd}run ${pm} install and ${pm} run dev.`,
   REACT_COMPILER_NOT_ADDED: (file: string) =>
     `  Warning: ${file} is not shaped the way the scaffolder expects, so the React Compiler was not turned on in it. ` +
     'Add it by hand (https://react.dev/learn/react-compiler).',
