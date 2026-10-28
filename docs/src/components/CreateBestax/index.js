@@ -13,9 +13,9 @@ import styles from './styles.module.css';
 /**
  * The questions create-bestax asks, worded the way the CLI words them
  * (create-bestax/src/constants.ts), with the answers this run picks. Change
- * both together.
+ * both together. The last one names the package manager running it.
  */
-const PROMPTS = [
+const prompts = manager => [
   ['Select a framework:', 'Vite + TypeScript'],
   ['Which linter would you like to use?', 'Oxlint (Recommended)'],
   ['Which Bulma CSS flavor would you like to use?', 'Complete (Recommended)'],
@@ -24,6 +24,7 @@ const PROMPTS = [
     'Install the bestax AI skills (.claude/skills) for Claude Code and other agents?',
     'Yes',
   ],
+  [`Install with ${manager} and start the dev server now?`, 'Yes'],
 ];
 
 /** What the run writes, as it lands in the file tree. */
@@ -44,15 +45,18 @@ const FILES = [
 
 /*
  * The run, one step at a time: 0 types the command, 1 prints the banner,
- * 2-6 ask the questions (each answer shows as the next question arrives),
- * 7-9 write the project, 10 starts the dev server and 11 has the app up.
- * HOLD is how long each step stays before the next.
+ * 2-7 ask the questions (each answer shows as the next question arrives),
+ * 8-10 write the project, 11 installs, 12 starts the dev server and 13 has
+ * the app up. HOLD is how long each step stays before the next.
  */
 const HIDDEN = -1;
 const FIRST_PROMPT = 2;
-const WRITING = 7;
-const LIVE = 11;
-const HOLD = [0, 700, 900, 900, 900, 900, 1000, 1500, 1000, 900, 1100];
+const WRITING = 8;
+const INSTALLING = 11;
+const LIVE = 13;
+const HOLD = [
+  0, 700, 900, 900, 900, 900, 900, 1000, 1500, 1000, 900, 1400, 1100,
+];
 
 /** Tools around the scaffold that the rest of the homepage never shows. */
 const TOOLS = [
@@ -188,8 +192,8 @@ function StarterApp() {
  *
  * The prerendered page carries the finished run, so it reads complete without
  * JavaScript. In the browser the run hides until the section scrolls into
- * view, then plays once; Replay plays it again. The commands follow the
- * package manager picked in the hero, the same way the docs tabs do.
+ * view, then plays once; Replay plays it again. The run follows the package
+ * manager picked in the hero, the same way the docs tabs do.
  */
 export default function CreateBestax() {
   const [storedManager] = useStorageSlot(TAB_STORAGE_KEY);
@@ -197,8 +201,6 @@ export default function CreateBestax() {
     ? storedManager
     : DEFAULT_PACKAGE_MANAGER;
   const command = renderCommand('create bestax@latest my-app', manager);
-  const install = renderCommand('install', manager);
-  const dev = renderCommand('run dev', manager);
 
   const terminalRef = useRef(null);
   const commandRef = useRef(command);
@@ -323,9 +325,9 @@ export default function CreateBestax() {
               <span className={clsx(styles.line, shown(1) && styles.on)}>
                 <span className={styles.rule}>{'━'.repeat(40)}</span>
               </span>
-              {PROMPTS.map(([question, answer], i) => (
+              {prompts(manager).map(([question, answer], i) => (
                 <span
-                  key={question}
+                  key={i}
                   className={clsx(
                     styles.line,
                     shown(FIRST_PROMPT + i) && styles.on
@@ -354,9 +356,13 @@ export default function CreateBestax() {
                 <span className={styles.ok}>✔ Done!</span> Project created
                 successfully.
               </span>
+              <span
+                className={clsx(styles.line, shown(INSTALLING) && styles.on)}
+              >
+                {'  '}Installing dependencies with {manager}...
+              </span>
               <span className={clsx(styles.line, shown(LIVE - 1) && styles.on)}>
-                <span className={styles.prompt}>$ </span>cd my-app &amp;&amp;{' '}
-                {install} &amp;&amp; {dev}
+                {'  '}Starting the dev server...
               </span>
               <span className={clsx(styles.line, shown(LIVE) && styles.on)}>
                 <span className={styles.dim}>{'  ➜  Local:   '}</span>
