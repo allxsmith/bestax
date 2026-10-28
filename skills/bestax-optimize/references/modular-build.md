@@ -81,7 +81,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 **Components** (`@allxsmith/bestax-bulma/scss/components/<name>`):
 `loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
 `toast`, `dialog`, `carousel`, `tabs`, `menu`, `reveal`, `avatar`, `avatars`, `badge`,
-`emptystate`, `timeline`, `treeview`, `scrollarea`
+`emptystate`, `timeline`, `treeview`, `scrollarea`, `command`
 
 **Layout** (`@allxsmith/bestax-bulma/scss/layout/<name>`): `splitter`
 
@@ -90,8 +90,8 @@ is **more complete** than the docs page's Option C example, which omits several)
 `rate`, `autocomplete`, `combobox`, `taginput`, `picker-popover`, `dateinput`, `timeinput`,
 `datetimeinput`, `daterangeinput`, `file`
 
-**Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `kbd`, `linkbutton`, `loader`,
-`notification`, `progress`, `ringprogress`, `skeleton`
+**Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `descriptionlist`, `kbd`,
+`linkbutton`, `loader`, `notification`, `progress`, `ringprogress`, `skeleton`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`
 

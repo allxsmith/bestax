@@ -119,6 +119,9 @@ export const SCSS_SOURCES = {
   Column: [{ pkg: 'bulma', path: 'sass/grid/columns.scss' }],
   Columns: [],
   Combobox: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_combobox.scss' }],
+  Command: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_command.scss' },
+  ],
   Config: [],
   Container: [],
   Content: [{ pkg: 'bulma', path: 'sass/elements/content.scss' }],
@@ -166,6 +169,9 @@ export const SCSS_SOURCES = {
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
   ],
   Delete: [{ pkg: 'bulma', path: 'sass/utilities/mixins.scss' }],
+  DescriptionList: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/elements/_descriptionlist.scss' },
+  ],
   Dialog: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_dialog.scss' }],
   Divider: [],
   Dropdown: [{ pkg: 'bulma', path: 'sass/components/dropdown.scss' }],

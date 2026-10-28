@@ -96,6 +96,19 @@ function ComboboxIcon() {
   );
 }
 
+// A box with a search field across its top and rows of commands under it
+function CommandIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <circle cx="7.5" cy="7.5" r="1.8" />
+      <path d="M8.8 8.8l1.4 1.4M12.5 7.5h5" />
+      <path d="M3 12h18" />
+      <path d="M7 15.5h10M7 18.5h6" />
+    </svg>
+  );
+}
+
 // Modal bubble with action buttons — dialog
 function DialogIcon() {
   return (
@@ -211,6 +224,16 @@ function StepsIcon() {
   );
 }
 
+// Three rows, each a short faint label beside a longer value, the values lined up
+function DescriptionListIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M4 6h4M4 12h4M4 18h4" strokeOpacity="0.45" />
+      <path d="M11 6h9M11 12h6M11 18h8" />
+    </svg>
+  );
+}
+
 // A ring with its arc filled most of the way round
 function RingProgressIcon() {
   return (
@@ -298,7 +321,9 @@ const ADDON_ICONS = {
   choicecard: ChoiceCardIcon,
   collapse: CollapseIcon,
   combobox: ComboboxIcon,
+  command: CommandIcon,
   contextmenu: ContextMenuIcon,
+  descriptionlist: DescriptionListIcon,
   dialog: DialogIcon,
   emptystate: EmptyStateIcon,
   hovercard: HoverCardIcon,

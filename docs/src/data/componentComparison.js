@@ -33,6 +33,7 @@ const BESTAX = {
   Code: 'elements/code',
   Content: 'elements/content',
   Delete: 'elements/delete',
+  DescriptionList: 'elements/descriptionlist',
   Divider: 'elements/divider',
   Emphasis: 'elements/emphasis',
   'Emphasis/Strong/Span': 'elements/emphasis',
@@ -69,6 +70,7 @@ const BESTAX = {
   Carousel: 'components/carousel',
   Collapse: 'components/collapse',
   Collapses: 'components/collapses',
+  Command: 'components/command',
   ContextMenu: 'components/contextmenu',
   Dialog: 'components/dialog',
   Dropdown: 'components/dropdown',
@@ -1172,7 +1174,7 @@ export const categories = [
       ['Table of contents', 0, 'TableOfContents', 0, 0, 0, 0, 0],
       [
         'Command palette / spotlight',
-        0,
+        'Command',
         'Spotlight',
         0,
         0,
@@ -1402,7 +1404,7 @@ export const categories = [
       ],
       [
         'Description / data list',
-        0,
+        'DescriptionList',
         'DataList',
         0,
         0,

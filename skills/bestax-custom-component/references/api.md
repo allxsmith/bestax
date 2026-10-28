@@ -117,8 +117,8 @@ hard-coding values.
 A panel anchored to the button that opens it is `Popover`, which already portals
 (`appendToBody`), traps focus and dismisses itself, a preview that opens on hover is
 `HoverCard`, which portals the same way, and a menu that opens at a right-click or a long press
-is `ContextMenu`, which always portals and places itself at the point. `Portal` is for the
-overlays they don't cover.
+is `ContextMenu`, which always portals and places itself at the point. A command palette is
+`Command.Dialog`, which is a `Modal`. `Portal` is for the overlays they don't cover.
 
 `<Portal container?>` (`helpers/portal.tsx`) renders its children into `container` (an element or
 a selector), or without one into the `portalContainer` a `ConfigProvider` sets, and
