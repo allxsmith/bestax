@@ -87,7 +87,7 @@
           "name": "data",
           "type": "(string | ComboboxItemData)[]",
           "default": null,
-          "description": "The items, for a Combobox that renders the field, the menu, the list, the groups and the empty message itself. A string is an item whose label is its value, and an object is `{ value, label?, disabled?, group? }`. Typing filters the items by label, ignoring case, and the Combobox keeps the value. Leave it out to build the Combobox from parts.",
+          "description": "The items, for a Combobox that renders the field, the menu, the list, the groups and the empty message itself. A string is an item whose label is its value, and an object is `{ value, label?, disabled?, group? }`. Typing filters the items by label, ignoring case, and inside a `LocaleProvider` with a `locale`, ignoring accents too where that language does, so \"cafe\" finds \"Café\". The Combobox keeps the value. Leave it out to build the Combobox from parts.",
           "required": false,
           "inherited": true,
           "deprecated": false

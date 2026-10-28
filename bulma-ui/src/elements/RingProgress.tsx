@@ -5,6 +5,7 @@ import {
   usePrefixedClassNames,
 } from '../helpers/classNames';
 import { useClassPrefix } from '../helpers/Config';
+import { useNumberFormat } from '../helpers/localeFormat';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -64,8 +65,9 @@ export interface RingProgressProps
    * Several values around one ring, in order clockwise from the top, each
    * with its own color and label. The ring is then an image whose name
    * writes them out, such as "Storage: Documents 40%, Photos 15%", since a
-   * screen reader can't take several values from one element. A total over
-   * `max` fills the ring and stops.
+   * screen reader can't take several values from one element. Inside a
+   * `LocaleProvider` with a `locale`, the shares are written as that locale
+   * writes a percentage. A total over `max` fills the ring and stops.
    */
   sections?: RingProgressSection[];
   /**
@@ -205,6 +207,11 @@ export const RingProgress = forwardRef<HTMLDivElement, RingProgressProps>(
     const labelClass = usePrefixedClassNames('ring-progress-label');
     // A section's color class, prefixed like the rest.
     const classPrefix = useClassPrefix();
+    const formatNumber = useNumberFormat();
+    const writeShare = (share: number) =>
+      formatNumber
+        ? formatNumber(share / 100, { style: 'percent' })
+        : `${share}%`;
 
     const roleProps = sections
       ? {
@@ -214,7 +221,7 @@ export const RingProgress = forwardRef<HTMLDivElement, RingProgressProps>(
             sections
               .map(
                 (section, i) =>
-                  `${section.label} ${Math.round(arcs[i].length)}%`
+                  `${section.label} ${writeShare(Math.round(arcs[i].length))}`
               )
               .join(', '),
           ]

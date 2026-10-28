@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useNumberFormat } from '../helpers/localeFormat';
 
 const badgeColors = [
   'primary',
@@ -36,7 +37,7 @@ export interface BadgeProps
   className?: string;
   /** Additional CSS classes applied to the badge pill itself (unprefixed, like `Tooltip`'s `tooltipClassName`). */
   badgeClassName?: string;
-  /** Count, short text, or a custom node to display; omit with `dot` for a plain dot. `max`/`showZero` apply only to numeric content. */
+  /** Count, short text, or a custom node to display; omit with `dot` for a plain dot. `max`/`showZero` apply only to numeric content. A numeric count is written the way the `locale` of a `LocaleProvider` around it writes numbers. */
   content?: React.ReactNode;
   /** Numeric `content` above this renders as `"{max}+"`. A negative or non-integer value falls back to the default. */
   max?: number;
@@ -110,15 +111,19 @@ export const Badge: React.FC<BadgeProps> = ({
   // A negative or non-integer max is nonsensical; fall back to the default
   // rather than render e.g. "-1+" (mirrors Avatars' max sanitization).
   const sanitizedMax = Number.isInteger(max) && max >= 0 ? max : 99;
+  const formatNumber = useNumberFormat();
 
   const displayValue = useMemo<React.ReactNode>(() => {
     if (dot || !hasContent) return undefined;
     // max only applies to numeric content; any other node renders verbatim.
     if (typeof content === 'number') {
-      return content > sanitizedMax ? `${sanitizedMax}+` : String(content);
+      const write = formatNumber ?? String;
+      return content > sanitizedMax
+        ? `${write(sanitizedMax)}+`
+        : write(content);
     }
     return content;
-  }, [dot, hasContent, content, sanitizedMax]);
+  }, [dot, hasContent, content, sanitizedMax, formatNumber]);
 
   // Only primitive content produces a meaningful aria-label; a custom node
   // supplies its own accessible text, so we leave role="status" unlabeled.

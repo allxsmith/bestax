@@ -163,6 +163,11 @@ the two languages differ.
 </LocaleProvider>
 ```
 
+The same provider makes `Combobox` (with `data`), `Autocomplete` and `Taginput` filter the way its
+language compares letters, ignoring accents where it treats them alike ("cafe" finds "Café"), and
+writes the numbers `Slider`'s output, `Rate`'s score, `Taginput`'s counter and `File`'s count show
+in its digits. Don't fold accents by hand in `data` for those.
+
 For a value that is a month or a year (card expiry, billing period, graduation year), use
 `DateInput` with `granularity="month"` or `granularity="year"` rather than building a select or a
 separate picker. The value is still a `Date`: the first day of the month, or 1 January of the

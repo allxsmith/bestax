@@ -7,6 +7,7 @@ import {
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { Icon } from '../elements/Icon';
 import { useClassPrefix, useIconLibrary } from '../helpers/Config';
+import { useNumberFormat } from '../helpers/localeFormat';
 import {
   useInsideField,
   useInsideControl,
@@ -78,7 +79,10 @@ export interface RateProps
   size?: RateSize;
   /** Whether the rating is disabled. */
   disabled?: boolean;
-  /** Show the numeric score next to stars. */
+  /**
+   * Show the numeric score next to stars, written the way the `locale` of a
+   * `LocaleProvider` around it writes numbers.
+   */
   showScore?: boolean;
   /** Show custom text based on value. */
   showText?: boolean;
@@ -214,6 +218,7 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
       callerProps: props,
     });
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+    const formatNumber = useNumberFormat();
     const starBaseId = useId();
     const [internalValue, setInternalValue] = useState(defaultValue);
     const [hoverValue, setHoverValue] = useState<number | null>(null);
@@ -341,7 +346,16 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
 
     // Format score display
     const getScoreDisplay = () => {
-      if (precision < 1 && currentValue % 1 !== 0) {
+      const fractional = precision < 1 && currentValue % 1 !== 0;
+      if (formatNumber) {
+        return formatNumber(
+          currentValue,
+          fractional
+            ? { minimumFractionDigits: 1, maximumFractionDigits: 1 }
+            : undefined
+        );
+      }
+      if (fractional) {
         return currentValue.toFixed(1);
       }
       return currentValue;
