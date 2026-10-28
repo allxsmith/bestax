@@ -1,3 +1,18 @@
+# [4.4.0](https://github.com/allxsmith/bestax/compare/create-bestax@4.3.0...create-bestax@4.4.0) (2026-10-28)
+
+
+### Bug Fixes
+
+* **bulma-ui:** name an empty-labelled RingProgress from aria-label, and color its middle ([56db798](https://github.com/allxsmith/bestax/commit/56db79870b8db8bb84a0cf1d0b703387539283fb))
+* **create-bestax:** name the cd when an --immediate install fails, and let .git sit in "." ([56051f9](https://github.com/allxsmith/bestax/commit/56051f948cf79cde76fa8ec7fe71597db905b777))
+* **create-bestax:** take only the platform separator after ".", and list every template in --help ([d2ee3e0](https://github.com/allxsmith/bestax/commit/d2ee3e0c3f7c5534a0e39dbaa497b19bd838e40d))
+
+
+### Features
+
+* **bulma-ui:** add RingProgress, a value drawn as a ring ([d47beca](https://github.com/allxsmith/bestax/commit/d47beca369055fcc2346f7e7c7690b4dc609dc0f)), closes [#1303](https://github.com/allxsmith/bestax/issues/1303)
+* **create-bestax:** add React Compiler templates, --immediate, and "." for the current directory ([fa18980](https://github.com/allxsmith/bestax/commit/fa189805b56d2fc930358acf416eb588438e595a))
+
 # [4.3.0](https://github.com/allxsmith/bestax/compare/create-bestax@4.2.19...create-bestax@4.3.0) (2026-10-28)
 
 
