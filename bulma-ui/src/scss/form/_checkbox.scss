@@ -4,6 +4,13 @@
 
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
+@use "bulma/sass/utilities/mixins" as mx;
+
+// Bulma's horizontal field: `.field-label` takes one part of the row and
+// `.field-body` five, after the label's `margin-inline-end`. Private, since
+// they restate Bulma's layout rather than set a look of their own.
+$-field-label-gap: 1.5rem;
+$-field-label-parts: 6;
 
 // Checkbox-specific SCSS variables
 $checkbox-size: 1.25em !default;
@@ -246,6 +253,38 @@ $-check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
   .#{iv.$class-prefix}field-body {
     .#{iv.$class-prefix}checkboxes {
       padding-top: 0.375em;
+    }
+  }
+}
+
+// `<Checkboxes as="fieldset">` renders a native fieldset: the group's own
+// `.field`, with its label as the legend, or the `.checkboxes` box itself inside
+// an outer `Field`. Bulma resets a fieldset's margin, border and padding but
+// keeps the browser's `min-inline-size: min-content`, which lets a long row
+// of choices push it out of its column.
+fieldset.#{iv.$class-prefix}checkboxes,
+fieldset.#{iv.$class-prefix}field:has(.#{iv.$class-prefix}checkboxes) {
+  min-inline-size: 0;
+}
+
+// Horizontal, the legend is the label column. The browser draws a
+// fieldset's legend above the content rather than beside it. A floated
+// legend escapes that, though not in a flex fieldset in every engine, so the
+// fieldset is a block here and the legend floats, taking the share of the
+// row Bulma's `.field-label` takes beside `.field-body` (one part in six of
+// what's left after its margin), and growing as that does for a word too
+// long to wrap. `.field-body`, a flex box, sits beside it. Below tablet the
+// row stacks, and the legend sits on top as it is.
+@include mx.tablet {
+  fieldset.#{iv.$class-prefix}field.#{iv.$class-prefix}is-horizontal:has(
+      .#{iv.$class-prefix}checkboxes
+    ) {
+    display: flow-root;
+
+    > legend.#{iv.$class-prefix}field-label {
+      float: inline-start;
+      inline-size: calc((100% - #{$-field-label-gap}) / #{$-field-label-parts});
+      min-inline-size: min-content;
     }
   }
 }
