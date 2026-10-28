@@ -187,10 +187,23 @@ $command-dialog-shadow: cv.getVar('shadow') !default;
   }
 }
 
+// A line between a group and whatever comes before it, and between a group
+// and items with no group after it, which would otherwise read as the group's
+// last items. The line is the group's own edge rather than the item's, so it
+// stays straight beside a rounded, highlighted item, and it's a border, which
+// forced colors keeps.
 .#{iv.$class-prefix}command-group:not(:first-child) {
   border-top: 1px solid cv.getVar('command-divider-color');
   margin-top: cv.getVar('command-item-padding-y');
   padding-top: cv.getVar('command-item-padding-y');
+}
+
+.#{iv.$class-prefix}command-group:has(
+    + :not(.#{iv.$class-prefix}command-group)
+  ) {
+  border-bottom: 1px solid cv.getVar('command-divider-color');
+  margin-bottom: cv.getVar('command-item-padding-y');
+  padding-bottom: cv.getVar('command-item-padding-y');
 }
 
 .#{iv.$class-prefix}command-group-label {

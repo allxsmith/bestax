@@ -147,6 +147,33 @@ describe('Command styles', () => {
     expect(rule?.declarations).toEqual({ color: 'inherit' });
   });
 
+  it('draws a line on the group’s own edge between it and anything around it that isn’t a group', () => {
+    const line = {
+      'margin-top': 'var(--bulma-command-item-padding-y)',
+      'padding-top': 'var(--bulma-command-item-padding-y)',
+      'border-top': '1px solid var(--bulma-command-divider-color)',
+    };
+    expect(find(PLAIN, '.command-group:not(:first-child)')).toEqual(line);
+    // Items with no group after one, which would otherwise read as its last
+    // items, get the same line under the group.
+    expect(find(PLAIN, '.command-group:has(+ :not(.command-group))')).toEqual({
+      'border-bottom': '1px solid var(--bulma-command-divider-color)',
+      'margin-bottom': 'var(--bulma-command-item-padding-y)',
+      'padding-bottom': 'var(--bulma-command-item-padding-y)',
+    });
+    // Neither is on the item, whose rounded, highlighted box would bend it.
+    for (const rule of PLAIN.filter(r => r.selector.startsWith(item))) {
+      expect(Object.keys(rule.declarations)).not.toEqual(
+        expect.arrayContaining(['border-top'])
+      );
+    }
+    expect(
+      find(PREFIXED, '.bestax-command-group:has(+ :not(.bestax-command-group))')
+    ).toMatchObject({
+      'border-bottom': '1px solid var(--bulma-command-divider-color)',
+    });
+  });
+
   it('pushes the hint to the end of the row, which turns around right to left', () => {
     expect(find(PLAIN, '.command-item-hint')).toMatchObject({
       'margin-inline-start': 'auto',
