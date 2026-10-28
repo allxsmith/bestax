@@ -86,7 +86,11 @@ describe.each([
   describe.each(['', 'bestax-'])('prefix "%s"', prefix => {
     const rules = rulesOf(compile(partial, prefix));
     const p = (name: string) => `${prefix}${name}`;
-    const row = `fieldset.${p('field')}.${p('is-horizontal')}:has(.${p(box)})`;
+    // A horizontal fieldset whose own legend is the label column, with the
+    // group in the body after it: the markup `as="fieldset"` renders.
+    const row =
+      `fieldset.${p('field')}.${p('is-horizontal')}` +
+      `:has(> legend.${p('field-label')} + .${p('field-body')} .${p(box)})`;
 
     it('lets the fieldset shrink to its column', () => {
       expect(
@@ -99,6 +103,21 @@ describe.each([
 
     it('makes a horizontal fieldset a block, from tablet up', () => {
       expect(find(rules, row, [TABLET])).toEqual({ display: 'flow-root' });
+    });
+
+    it('leaves a horizontal fieldset with no legend column on Bulma’s flex row', () => {
+      // A fieldset laid out by hand with a `div.field-label` and the group
+      // somewhere in its body must keep `display: flex`, so every rule that
+      // changes a fieldset's layout asks for the legend column first.
+      const layout = rules.filter(
+        r =>
+          r.selector.startsWith('fieldset') &&
+          ('display' in r.declarations || 'float' in r.declarations)
+      );
+      expect(layout.length).toBeGreaterThan(0);
+      for (const rule of layout) {
+        expect(rule.selector.startsWith(row)).toBe(true);
+      }
     });
 
     it("floats the legend into Bulma's label column, from tablet up", () => {

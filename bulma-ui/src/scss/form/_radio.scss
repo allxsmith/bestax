@@ -222,10 +222,15 @@ fieldset.#{iv.$class-prefix}field:has(.#{iv.$class-prefix}radios) {
 // row Bulma's `.field-label` takes beside `.field-body` (one part in six of
 // what's left after its margin), and growing as that does for a word too
 // long to wrap. `.field-body`, a flex box, sits beside it. Below tablet the
-// row stacks, and the legend sits on top as it is.
+// row stacks, and the legend sits on top as it is. It applies only where the
+// fieldset's own legend is the label column and the body after it holds the
+// group, so a fieldset you lay out with a `div.field-label` keeps Bulma's
+// flex row whatever its body holds.
 @include mx.tablet {
   fieldset.#{iv.$class-prefix}field.#{iv.$class-prefix}is-horizontal:has(
-      .#{iv.$class-prefix}radios
+      > legend.#{iv.$class-prefix}field-label
+        + .#{iv.$class-prefix}field-body
+        .#{iv.$class-prefix}radios
     ) {
     display: flow-root;
 
