@@ -23,7 +23,7 @@ It renders bestax's own [`Table`](../elements/table.md) parts, with the table's 
 [`Checkbox`](../form/checkbox.md) per row and a [`Pagination`](./pagination.md) under the rows. It
 sorts by one column, selects rows with checkboxes, pages, and filters by a search and by values per
 column. Each of those is its own state, which the table keeps or you hold, and `manual` hands them
-to a server.
+to a server. It writes what's shown as CSV too.
 
 It runs on `useDataTable`, which is public. The hook returns the table: its rows, its state, and
 props for bestax's `Th`, `Tr`, `Td`, `Checkbox` and `Pagination`, so markup of your own behaves the
@@ -607,6 +607,96 @@ function example() {
 A table from the hook takes no `columns`, `data` or state props: they go to the hook, and a
 development build warns when both are given.
 
+### Downloading CSV
+
+`table.toCSV()` writes what the user sees as CSV: the columns in order, under their headers, and the
+rows the search and filters let through, sorted as shown, from every page. `{ rows: 'selected' }`
+writes the selected ones instead, `{ rows: 'page' }` the page shown and `{ rows: 'all' }` every row,
+and `columns` picks and orders the columns by id. Each field is the column's `format` text, never
+its `cell`.
+
+A field that starts with `=`, `+`, `-`, `@`, a tab or a carriage return gets a `'` in front, so a
+spreadsheet shows it as text rather than running it as a formula, unless it's a plain number such as
+`-12.5`. Here the last order's note tries it.
+
+Saving the text is up to the page. This puts a byte order mark in front, which Excel needs to read the
+file as UTF-8, and downloads it.
+
+```tsx live
+function example() {
+  const orders = [
+    {
+      id: 'A-1041',
+      customer: 'Zoë Ørsted',
+      total: 1249.5,
+      note: 'Gift, wrapped',
+    },
+    { id: 'A-1042', customer: 'Alan Turing', total: -89, note: 'Refund' },
+    {
+      id: 'A-1043',
+      customer: 'Grace Hopper',
+      total: 405.25,
+      note: '=HYPERLINK("x")',
+    },
+  ];
+  const download = (csv: string, name: string) => {
+    // The byte order mark tells Excel the file is UTF-8.
+    const blob = new Blob(['﻿', csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = name;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url));
+  };
+
+  return (
+    <DataTable
+      caption="Orders"
+      columns={[
+        { id: 'id', header: 'Order', isRowHeader: true },
+        { id: 'customer', header: 'Customer', sortable: true },
+        {
+          id: 'total',
+          header: 'Total',
+          sortable: true,
+          align: 'right',
+          format: value => (value as number).toFixed(2),
+        },
+        { id: 'note', header: 'Note' },
+      ]}
+      data={orders}
+      selectionMode="multiple"
+      isFullwidth
+      toolbar={table => (
+        <Buttons>
+          <Button
+            size="small"
+            onClick={() => download(table.toCSV(), 'orders.csv')}
+          >
+            Download CSV
+          </Button>
+          <Button
+            size="small"
+            disabled={table.state.selected.length === 0}
+            onClick={() =>
+              download(table.toCSV({ rows: 'selected' }), 'selected-orders.csv')
+            }
+          >
+            Download selected
+          </Button>
+        </Buttons>
+      )}
+    />
+  );
+}
+```
+
+There's no Excel export in bestax. Its columns keep their raw value (`accessor`) apart from their
+text, and `meta` takes options of an add-on's own, so one can come later.
+
 ### Custom Markup
 
 The table hands out props for bestax's own table parts: `getHeaderCellProps` for a column's `Th`
@@ -761,6 +851,7 @@ What `useDataTable` returns, what `toolbar` is given, and what `table` takes.
 | `rowCount`, `pageCount`                                                                                                                                     | How many rows the search and filters let through (or `rowCount` with `manual`), and how many pages |
 | `selectionMode`, `manual`, `labels`                                                                                                                         | The options it was given, with the labels' defaults filled in                                      |
 | `getRows(scope?)`                                                                                                                                           | The rows in the table's order: `'filtered'` by default, or `'all'`, `'page'` or `'selected'`       |
+| `toCSV(options?)`                                                                                                                                           | The rows as CSV: `rows`, `columns`, `header` and `delimiter` choose what and how                   |
 | `getRowId(row)`, `getRowLabel(row)`                                                                                                                         | A row's id, and what names it                                                                      |
 | `getValue(row, columnId)`, `getText(row, columnId)`                                                                                                         | A column's raw value for a row, and its text                                                       |
 | `isSelected(row)`                                                                                                                                           | Whether a row is selected                                                                          |

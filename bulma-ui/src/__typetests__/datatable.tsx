@@ -69,7 +69,17 @@ export const mismatched = (
 export function FromHook() {
   const table = useDataTable({ columns, data: users, pageSize: 10 });
   const first: User | undefined = table.getRows('page')[0];
+  const csv: string = table.toCSV({ rows: 'selected', columns: ['name'] });
   return (
-    <DataTable table={table} caption={first ? first.name : 'Users'} hasSearch />
+    <>
+      <a download="users.csv" href={`data:text/csv,${encodeURIComponent(csv)}`}>
+        Download
+      </a>
+      <DataTable
+        table={table}
+        caption={first ? first.name : 'Users'}
+        hasSearch
+      />
+    </>
   );
 }

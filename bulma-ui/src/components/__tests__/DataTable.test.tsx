@@ -1706,6 +1706,123 @@ describe('DataTable', () => {
     });
   });
 
+  describe('CSV', () => {
+    const csv = (
+      options: Partial<UseDataTableOptions<Person>> = {},
+      csvOptions?: Parameters<DataTableModel<Person>['toCSV']>[0]
+    ) =>
+      renderHook(() =>
+        useDataTable<Person>({ columns, data: people, ...options })
+      ).result.current.toCSV(csvOptions);
+
+    it('writes the filtered rows in the table order, from every page, as text', () => {
+      expect(
+        csv({
+          sort: [{ id: 'name', direction: 'ascending' }],
+          search: 'a',
+          filters: { role: 'admin' },
+          pageSize: 1,
+        })
+      ).toBe(
+        [
+          'Name,Role,Score',
+          'Ada Lovelace,Admin,98',
+          'Katherine Johnson,Admin,90',
+        ].join('\r\n')
+      );
+      // The format's text, not the raw value: Grace's score is null.
+      expect(csv({ search: 'grace' })).toBe(
+        'Name,Role,Score\r\nGrace Hopper,Viewer,—'
+      );
+    });
+
+    it('writes all rows, the page or the selected ones on request', () => {
+      const options = {
+        selectionMode: 'multiple' as const,
+        defaultSelected: ['p4', 'p2'],
+        pageSize: 2,
+        defaultPage: 2,
+        search: 'e',
+      };
+      const lines = (rows: 'all' | 'page' | 'selected') =>
+        csv(options, { rows, header: false }).split('\r\n');
+      expect(lines('all')).toHaveLength(people.length);
+      expect(lines('page')).toEqual([
+        'Grace Hopper,Viewer,—',
+        'Katherine Johnson,Admin,90',
+      ]);
+      expect(lines('selected')).toEqual([
+        'Alan Turing,Editor,95',
+        'Katherine Johnson,Admin,90',
+      ]);
+    });
+
+    it('writes the columns asked for, in that order', () => {
+      expect(
+        csv({ search: 'ada' }, { columns: ['score', 'nope', 'name'] })
+      ).toBe('Score,Name\r\n98,Ada Lovelace');
+    });
+
+    it('writes only the header with no rows, and nothing with neither', () => {
+      expect(csv({ data: [] })).toBe('Name,Role,Score');
+      expect(csv({ data: [] }, { header: false })).toBe('');
+    });
+
+    it('quotes a field with the delimiter, a quote or a line break', () => {
+      const rows: Person[] = [
+        { id: '1', name: 'Lovelace, Ada', role: 'Says "hi"', score: 1 },
+        { id: '2', name: 'Two\nlines', role: 'Carriage\rreturn', score: 2 },
+        { id: '3', name: 'Semi;colon', role: 'Plain', score: 3 },
+      ];
+      expect(csv({ data: rows }, { header: false }).split('\r\n')).toEqual([
+        '"Lovelace, Ada","Says ""hi""",1',
+        '"Two\nlines","Carriage\rreturn",2',
+        'Semi;colon,Plain,3',
+      ]);
+      expect(
+        csv({ data: rows }, { header: false, delimiter: ';' }).split('\r\n')
+      ).toEqual([
+        'Lovelace, Ada;"Says ""hi""";1',
+        '"Two\nlines";"Carriage\rreturn";2',
+        '"Semi;colon";Plain;3',
+      ]);
+    });
+
+    it('keeps a spreadsheet from running a field as a formula', () => {
+      const texts = [
+        '=SUM(A1:A9)',
+        '+cmd|"/c calc"!A1',
+        '-2+3',
+        '@IMPORTXML(x)',
+        '\tTabbed',
+        '\rReturned',
+        '-12.5',
+        '+3',
+        '-1,234.50',
+        'Fine = fine',
+      ];
+      const { result } = renderHook(() =>
+        useDataTable({
+          columns: [{ id: 'text', header: '=Header' }],
+          data: texts.map((text, i) => ({ id: String(i), text })),
+        })
+      );
+      expect(result.current.toCSV().split('\r\n')).toEqual([
+        "'=Header",
+        "'=SUM(A1:A9)",
+        `"'+cmd|""/c calc""!A1"`,
+        "'-2+3",
+        "'@IMPORTXML(x)",
+        "'\tTabbed",
+        `"'\rReturned"`,
+        '-12.5',
+        '+3',
+        '"-1,234.50"',
+        'Fine = fine',
+      ]);
+    });
+  });
+
   describe('server rendering', () => {
     it('hydrates without a mismatch', () => {
       const ui = (

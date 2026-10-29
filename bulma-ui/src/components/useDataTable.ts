@@ -363,6 +363,33 @@ export interface DataTablePaginationProps {
   onPageChange: (page: number) => void;
 }
 
+/** What `toCSV` writes. */
+export interface DataTableCSVOptions {
+  /**
+   * Which rows, in the order the table shows them: the ones the search and
+   * filters let through, from every page, by default, or `all`, `page` or
+   * `selected`.
+   *
+   * @defaultValue 'filtered'
+   */
+  rows?: DataTableRowScope;
+  /** The ids of the columns to write, in that order. Every column, in the order shown, by default. */
+  columns?: string[];
+  /**
+   * Writes the columns' headers as the first line.
+   *
+   * @defaultValue true
+   */
+  header?: boolean;
+  /**
+   * What separates the fields. A semicolon suits a spreadsheet that reads
+   * a comma as the decimal point, as Excel does in much of Europe.
+   *
+   * @defaultValue ','
+   */
+  delimiter?: string;
+}
+
 /**
  * A table: what `useDataTable` returns, what `DataTable`'s `toolbar` is
  * given, and what its `table` takes. It reads the rows and the state, changes
@@ -395,6 +422,16 @@ export interface DataTableModel<TRow> {
   getText: (row: TRow, columnId: string) => string;
   /** What names a row: its row header's text, or its first column's. */
   getRowLabel: (row: TRow) => string;
+  /**
+   * The rows as CSV, from the columns' text (`format`, not `cell`), with a
+   * line break of `\r\n` between rows and fields quoted as RFC 4180 asks.
+   * A field that starts with `=`, `+`, `-`, `@`, a tab or a carriage return
+   * gets a `'` in front, so a spreadsheet shows it as text rather than
+   * running it as a formula, unless it's a plain number such as `-12.5`.
+   * Excel takes a file as UTF-8 only when it starts with a byte order mark,
+   * so put `\uFEFF` in front of the text when you save it for Excel.
+   */
+  toCSV: (options?: DataTableCSVOptions) => string;
   /** Whether a row is selected. */
   isSelected: (row: TRow) => boolean;
   /** Sets the sort. */
@@ -504,6 +541,23 @@ function isActiveFilter(value: unknown): boolean {
     value !== '' &&
     !(Array.isArray(value) && value.length === 0)
   );
+}
+
+/** A field a spreadsheet would read as the start of a formula. */
+const formulaStart = /^[=+\-@\t\r]/;
+/** A plain number, signed, with any grouping, which no spreadsheet runs. */
+const plainNumber = /^[+-]?\d[\d.,]*$/;
+
+/**
+ * One CSV field: a `'` in front of what would start a formula, then quoted
+ * when it holds the delimiter, a quote or a line break, its quotes doubled.
+ */
+function csvField(text: string, delimiter: string): string {
+  const safe =
+    formulaStart.test(text) && !plainNumber.test(text) ? `'${text}` : text;
+  return safe.includes(delimiter) || /["\r\n]/.test(safe)
+    ? `"${safe.replace(/"/g, '""')}"`
+    : safe;
 }
 
 /**
@@ -1023,6 +1077,31 @@ export function useDataTable<TRow>(
     noResults: labels?.noResults || 'No rows match.',
   };
 
+  const toCSV = useCallback(
+    ({
+      rows = 'filtered',
+      columns: ids,
+      header = true,
+      delimiter = ',',
+    }: DataTableCSVOptions = {}) => {
+      const written = ids
+        ? ids
+            .map(id => columnsById.get(id))
+            .filter(
+              (column): column is DataTableColumn<TRow> => column !== undefined
+            )
+        : columns;
+      const line = (fields: string[]) =>
+        fields.map(field => csvField(field, delimiter)).join(delimiter);
+      const lines = getRows(rows).map(row =>
+        line(written.map(column => getText(row, column.id)))
+      );
+      if (header) lines.unshift(line(written.map(column => column.header)));
+      return lines.join('\r\n');
+    },
+    [columnsById, columns, getRows, getText]
+  );
+
   const sortButtonClass = prefixedClassNames(prefix, 'data-table-sort');
 
   return {
@@ -1038,6 +1117,7 @@ export function useDataTable<TRow>(
     getValue,
     getText,
     getRowLabel,
+    toCSV,
     isSelected,
     setSort,
     toggleSort,

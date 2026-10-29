@@ -419,6 +419,54 @@ export const CustomMarkup: Story = {
   },
 };
 
+/** `table.toCSV()` writes what's shown, and the page saves it as a file. */
+export const DownloadCSV: Story = {
+  args: { selectionMode: 'multiple', pageSize: 5, hasSearch: true },
+  render: function DownloadCSVExample(args) {
+    const download = (csv: string, name: string) => {
+      // The byte order mark tells Excel the file is UTF-8.
+      const blob = new Blob(['\uFEFF', csv], {
+        type: 'text/csv;charset=utf-8',
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = name;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url));
+    };
+    return (
+      <DataTable
+        {...args}
+        toolbar={table => (
+          <Buttons>
+            <Button
+              size="small"
+              onClick={() => download(table.toCSV(), 'users.csv')}
+            >
+              Download CSV
+            </Button>
+            <Button
+              size="small"
+              disabled={table.state.selected.length === 0}
+              onClick={() =>
+                download(
+                  table.toCSV({ rows: 'selected' }),
+                  'selected-users.csv'
+                )
+              }
+            >
+              Download selected
+            </Button>
+          </Buttons>
+        )}
+      />
+    );
+  },
+};
+
 /** A table wider than its space scrolls sideways, from the keyboard too. */
 export const Responsive: Story = {
   args: { isResponsive: true, isFullwidth: false },
