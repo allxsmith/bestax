@@ -1,3 +1,15 @@
+## [1.18.19](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.18...bestax-mcp@1.18.19) (2026-10-29)
+
+
+### Bug Fixes
+
+* **bulma-ui:** let a file dropped on File reach its input ([354d289](https://github.com/allxsmith/bestax/commit/354d2893749a5664ce3e1f6a496c6268dac73698))
+
+
+### Features
+
+* **create-bestax:** add a TanStack Router template, with a navbar that checks its links ([8a37944](https://github.com/allxsmith/bestax/commit/8a379446fddc129ad336f227848e30fadc7419f4))
+
 ## [1.18.18](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.17...bestax-mcp@1.18.18) (2026-10-29)
 
 
