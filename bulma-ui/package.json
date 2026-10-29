@@ -1,6 +1,6 @@
 {
   "name": "@allxsmith/bestax-bulma",
-  "version": "5.53.0",
+  "version": "5.54.0",
   "description": "Component library based on React, Bulma, with Agent Skills and MCP",
   "main": "dist/index.cjs",
   "module": "dist/index.esm.js",
