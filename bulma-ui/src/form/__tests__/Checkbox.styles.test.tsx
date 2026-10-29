@@ -367,6 +367,36 @@ describe.each([
       }
     );
 
+    // A row with a color of its own hands that color to every cell, which
+    // paints it over the selected fill, so the boxes keep their usual look.
+    it.each(['white', 'light', 'primary'] as const)(
+      'keeps its own colors in a selected %s row',
+      color => {
+        const { container } = render(
+          <ConfigProvider classPrefix={prefix}>
+            <Table>
+              <Tbody>
+                <Tr color={color} isSelected>
+                  <Th scope="row">{box({ checked: true })}</Th>
+                  <Td>{box({ checked: true })}</Td>
+                </Tr>
+              </Tbody>
+            </Table>
+          </ConfigProvider>
+        );
+        const row = container.querySelector('tr') as HTMLElement;
+        expect(row).toHaveClass(`${prefix}is-${color}`, `${prefix}is-selected`);
+        for (const label of Array.from(
+          container.querySelectorAll<HTMLElement>(`.${prefix}styled-checkbox`)
+        )) {
+          expect(takesRowColors(label)).toBe(false);
+          expect(resolve(label, '--bulma-checkbox-active-color')).toBe(
+            'var(--bulma-primary)'
+          );
+        }
+      }
+    );
+
     it('takes the row colors in a colored cell that is selected itself', () => {
       // Bulma paints a selected cell in the row's fill whatever its color.
       const { container } = render(
