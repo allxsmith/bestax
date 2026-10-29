@@ -471,7 +471,7 @@
       "import": "import { DataTable, useDataTable } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 38,
-      "exampleCount": 13
+      "exampleCount": 14
     },
     {
       "name": "DateInput",

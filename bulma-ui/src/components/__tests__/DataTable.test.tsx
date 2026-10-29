@@ -879,6 +879,172 @@ describe('DataTable', () => {
       expect(shown()).toEqual(people.map(person => person.id));
     });
 
+    it('passes a row whose text matches any entry of an array', () => {
+      const filterFn = jest.fn(() => true);
+      const { result } = renderHook(() =>
+        useDataTable<Person>({
+          columns: [...columns, { id: 'id', header: 'Id', filterFn }],
+          data: people,
+        })
+      );
+      const shown = () => result.current.getRows().map(row => row.id);
+      act(() => result.current.setFilter('role', ['Admin', 'viewer']));
+      expect(shown()).toEqual(['p1', 'p3', 'p4']);
+      act(() => result.current.setFilter('role', ['editor']));
+      expect(shown()).toEqual(['p2', 'p5']);
+      // Numbers are matched as their text, as a single value is.
+      act(() => result.current.setFilters({ score: [98, 91] }));
+      expect(shown()).toEqual(['p1', 'p5']);
+      // A filterFn gets the array as it is.
+      act(() => result.current.setFilters({ id: ['p1', 'p2'] }));
+      expect(filterFn).toHaveBeenCalledWith(people[0], ['p1', 'p2']);
+    });
+
+    it('matches array entries in the LocaleProvider locale', () => {
+      const { result } = renderHook(
+        () =>
+          useDataTable({
+            columns: [{ id: 'word', header: 'Word' }],
+            data: [
+              { id: '1', word: 'Café' },
+              { id: '2', word: 'Thé' },
+              { id: '3', word: 'Eau' },
+            ],
+            filters: { word: ['cafe', 'the'] },
+          }),
+        {
+          wrapper: ({ children }) => (
+            <LocaleProvider locale="fr">{children}</LocaleProvider>
+          ),
+        }
+      );
+      expect(result.current.getRows().map(row => row.id)).toEqual(['1', '2']);
+    });
+
+    it('builds a second change in one handler on the first', () => {
+      const onFiltersChange = jest.fn();
+      const onSelectedChange = jest.fn();
+      const { result } = renderHook(() =>
+        useDataTable<Person>({
+          columns,
+          data: people,
+          selectionMode: 'multiple',
+          pageSize: 2,
+          onFiltersChange,
+          onSelectedChange,
+        })
+      );
+      act(() => {
+        result.current.setFilter('role', 'admin');
+        result.current.setFilter('name', 'ada');
+      });
+      expect(result.current.state.filters).toEqual({
+        role: 'admin',
+        name: 'ada',
+      });
+      expect(onFiltersChange).toHaveBeenLastCalledWith({
+        role: 'admin',
+        name: 'ada',
+      });
+      act(() => {
+        result.current.setFilter('role', undefined);
+        result.current.setFilter('name', undefined);
+      });
+      expect(result.current.state.filters).toEqual({});
+      act(() => {
+        result.current.toggleRowSelected(people[0]);
+        result.current.toggleRowSelected(people[2]);
+      });
+      expect(result.current.state.selected).toEqual(['p1', 'p3']);
+      act(() => {
+        // The page is p1 and p2: p1 is selected already, so this adds p2.
+        result.current.togglePageSelected();
+        result.current.toggleRowSelected(people[0], false);
+      });
+      expect(result.current.state.selected).toEqual(['p3', 'p2']);
+      act(() => {
+        result.current.togglePageSelected(false);
+        result.current.togglePageSelected();
+      });
+      expect(onSelectedChange).toHaveBeenLastCalledWith(['p3', 'p1', 'p2']);
+    });
+
+    it('builds each change on the state as rendered while the parent holds it', () => {
+      const onFiltersChange = jest.fn();
+      const onSelectedChange = jest.fn();
+      const { result } = renderHook(() =>
+        useDataTable<Person>({
+          columns,
+          data: people,
+          selectionMode: 'multiple',
+          filters: { role: 'admin' },
+          selected: ['p3'],
+          onFiltersChange,
+          onSelectedChange,
+        })
+      );
+      act(() => {
+        result.current.setFilter('name', 'ada');
+        result.current.setFilter('score', '98');
+      });
+      expect(onFiltersChange).toHaveBeenLastCalledWith({
+        role: 'admin',
+        score: '98',
+      });
+      act(() => {
+        result.current.toggleRowSelected(people[0]);
+        result.current.toggleRowSelected(people[1]);
+      });
+      expect(onSelectedChange).toHaveBeenLastCalledWith(['p3', 'p2']);
+    });
+
+    it('goes back to the page it holds, not the one it shows, on a new search', () => {
+      // Five rows in pages of two, held on page 3, then down to one row, so
+      // page 3 shows as page 1. A search then has to reset the page held, or
+      // page 3 comes back when the rows do.
+      const { result, rerender } = renderHook(
+        ({ data }: { data: Person[] }) =>
+          useDataTable<Person>({
+            columns,
+            data,
+            pageSize: 2,
+            defaultPage: 3,
+          }),
+        { initialProps: { data: people } }
+      );
+      expect(result.current.state.page).toBe(3);
+      rerender({ data: people.slice(0, 1) });
+      expect(result.current.state.page).toBe(1);
+      act(() => result.current.setSearch(''));
+      rerender({ data: people });
+      expect(result.current.state.page).toBe(1);
+      expect(result.current.getRows('page')).toEqual(people.slice(0, 2));
+    });
+
+    it('tells the parent to go to page 1 when the page it holds is past the end', () => {
+      const onPageChange = jest.fn();
+      const { result, rerender } = renderHook(
+        ({ data, page }: { data: Person[]; page: number }) =>
+          useDataTable<Person>({
+            columns,
+            data,
+            pageSize: 2,
+            page,
+            onPageChange,
+          }),
+        { initialProps: { data: people, page: 3 } }
+      );
+      rerender({ data: people.slice(0, 1), page: 3 });
+      expect(result.current.state.page).toBe(1);
+      act(() => result.current.setFilter('role', 'admin'));
+      expect(onPageChange).toHaveBeenCalledTimes(1);
+      expect(onPageChange).toHaveBeenLastCalledWith(1);
+      // On page 1 already, a new search asks for nothing.
+      rerender({ data: people, page: 1 });
+      act(() => result.current.setSearch('a'));
+      expect(onPageChange).toHaveBeenCalledTimes(1);
+    });
+
     it('waits for the parent with controlled search and filters', () => {
       const onSearchChange = jest.fn();
       renderTable({
@@ -1303,6 +1469,37 @@ describe('DataTable', () => {
       expect(result.current.getText(people[0], 'name')).toBe('Ada Lovelace');
       expect(warn).toHaveBeenCalledWith(
         expect.stringContaining('same id, so selecting one selects both')
+      );
+    });
+
+    it('warns when manual paging has no rowCount', () => {
+      const { rerender } = render(
+        <DataTable caption="People" columns={columns} data={people} manual />
+      );
+      // Not paging, so nothing is missing.
+      expect(warn).not.toHaveBeenCalled();
+      rerender(
+        <DataTable
+          caption="People"
+          columns={columns}
+          data={people}
+          manual
+          pageSize={2}
+          rowCount={40}
+        />
+      );
+      expect(warn).not.toHaveBeenCalled();
+      rerender(
+        <DataTable
+          caption="People"
+          columns={columns}
+          data={people}
+          manual
+          pageSize={2}
+        />
+      );
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining('`manual` and a `pageSize` has no `rowCount`')
       );
     });
 

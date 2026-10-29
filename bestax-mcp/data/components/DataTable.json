@@ -30,6 +30,10 @@
       "code": "function example() {\n  const books = [\n    { id: 'b1', title: 'Le Petit Prince', author: 'Saint-Exupéry', year: 1943 },\n    { id: 'b2', title: 'Les Misérables', author: 'Hugo', year: 1862 },\n    { id: 'b3', title: 'L’Étranger', author: 'Camus', year: 1942 },\n    { id: 'b4', title: 'Madame Bovary', author: 'Flaubert', year: 1857 },\n    { id: 'b5', title: 'La Peste', author: 'Camus', year: 1947 },\n  ];\n\n  return (\n    <LocaleProvider locale=\"fr\">\n      <DataTable\n        caption=\"Livres\"\n        columns={[\n          { id: 'title', header: 'Titre', sortable: true, isRowHeader: true },\n          { id: 'author', header: 'Auteur', sortable: true },\n          {\n            id: 'year',\n            header: 'Année',\n            align: 'right',\n            filterFn: (row, value) => row.year < Number(value),\n          },\n        ]}\n        data={books}\n        hasSearch\n        isFullwidth\n        labels={{ search: 'Rechercher' }}\n        toolbar={table => (\n          <Select\n            aria-label=\"Parution\"\n            value={String(table.state.filters.year ?? '')}\n            onChange={event => table.setFilter('year', event.target.value)}\n          >\n            <option value=\"\">Toutes les années</option>\n            <option value=\"1900\">Avant 1900</option>\n          </Select>\n        )}\n      />\n    </LocaleProvider>\n  );\n}"
     },
     {
+      "title": "Filtering by Several Values",
+      "code": "function example() {\n  const roles = ['Admin', 'Editor', 'Viewer'];\n  const people = [\n    { id: 'u1', name: 'Ada Lovelace', role: 'Admin' },\n    { id: 'u2', name: 'Alan Turing', role: 'Editor' },\n    { id: 'u3', name: 'Grace Hopper', role: 'Viewer' },\n    { id: 'u4', name: 'Katherine Johnson', role: 'Admin' },\n    { id: 'u5', name: 'Edsger Dijkstra', role: 'Editor' },\n  ];\n\n  return (\n    <DataTable\n      caption=\"People\"\n      columns={[\n        { id: 'name', header: 'Name', sortable: true, isRowHeader: true },\n        { id: 'role', header: 'Role', sortable: true },\n      ]}\n      data={people}\n      defaultFilters={{ role: ['Admin', 'Viewer'] }}\n      isFullwidth\n      toolbar={table => (\n        <Checkboxes\n          label=\"Roles\"\n          value={(table.state.filters.role as string[] | undefined) ?? []}\n          onChange={picked => table.setFilter('role', picked)}\n        >\n          {roles.map(role => (\n            <Checkbox key={role} value={role}>\n              {role}\n            </Checkbox>\n          ))}\n        </Checkboxes>\n      )}\n    />\n  );\n}"
+    },
+    {
       "title": "Empty and No Results",
       "code": "function example() {\n  const [search, setSearch] = useState('kraken');\n  const searchRef = React.useRef<HTMLInputElement>(null);\n  const projects = [\n    { id: 'p1', name: 'Apollo' },\n    { id: 'p2', name: 'Gemini' },\n    { id: 'p3', name: 'Mercury' },\n  ];\n\n  return (\n    <DataTable\n      caption=\"Projects\"\n      columns={[{ id: 'name', header: 'Project', isRowHeader: true }]}\n      data={projects}\n      search={search}\n      onSearchChange={setSearch}\n      isFullwidth\n      toolbar={table => (\n        <Input\n          ref={searchRef}\n          label=\"Search projects\"\n          {...table.getSearchProps()}\n        />\n      )}\n      noResults={\n        <EmptyState\n          size=\"small\"\n          title={`No projects match “${search}”`}\n          titleAs=\"h3\"\n          description=\"Check the spelling, or clear the search.\"\n        >\n          <Button\n            size=\"small\"\n            onClick={() => {\n              setSearch('');\n              searchRef.current?.focus();\n            }}\n          >\n            Clear search\n          </Button>\n        </EmptyState>\n      }\n    />\n  );\n}"
     },
@@ -335,7 +339,7 @@
           "name": "onPageChange",
           "type": "(page: number) => void",
           "default": null,
-          "description": "Called with the page chosen in the pager, and with 1 when the search or a filter changes through the table.",
+          "description": "Called with the page chosen in the pager, and with 1 when the search or a filter changes through the table while the page held isn't 1, even when a page past the end shows as the last.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -371,7 +375,7 @@
           "name": "filters",
           "type": "DataTableFilters",
           "default": null,
-          "description": "A value per column, by `id`, when you hold them. A row passes when every column with a value passes it. A value of `undefined`, `null`, `''` or an empty array is no filter.",
+          "description": "A value per column, by `id`, when you hold them. A row passes when every column with a value passes it: the column's `filterFn` if it has one, given the value as it is, or else the column's text has to contain the value's text, compared as the search compares. An array is a choice of values, as a multiple-choice filter gives, and passes a row whose text contains any of them. A value of `undefined`, `null`, `''` or an empty array is no filter.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -407,7 +411,7 @@
           "name": "rowCount",
           "type": "number",
           "default": null,
-          "description": "With `manual`, how many rows match in all, which sets the page count and the announced count.",
+          "description": "With `manual`, how many rows match in all, which sets the page count and the announced count. Without it, the table counts the rows in `data`, which with a `pageSize` is one page and no pager, and a development build warns.",
           "required": false,
           "inherited": true,
           "deprecated": false

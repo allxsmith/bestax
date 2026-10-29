@@ -1,9 +1,11 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { prefixedClassNames } from '../helpers/classNames';
 import { useClassPrefix } from '../helpers/Config';
 import { isDev, warnOnce } from '../helpers/devWarnings';
 import { useLocale } from '../helpers/LocaleProvider';
 import { useLocaleMatcher, useNumberFormat } from '../helpers/localeFormat';
+import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
+import { useLatestRef } from '../helpers/useLatestRef';
 import type { TableAlignment } from '../elements/tableAlignment';
 
 /**
@@ -242,7 +244,11 @@ export interface DataTableStateOptions<TRow> {
    * @defaultValue 1
    */
   defaultPage?: number;
-  /** Called with the page chosen in the pager, and with 1 when the search or a filter changes through the table. */
+  /**
+   * Called with the page chosen in the pager, and with 1 when the search or
+   * a filter changes through the table while the page held isn't 1, even
+   * when a page past the end shows as the last.
+   */
   onPageChange?: (page: number) => void;
   /**
    * The search when you hold it, matched against every filterable column's
@@ -256,8 +262,12 @@ export interface DataTableStateOptions<TRow> {
   onSearchChange?: (search: string) => void;
   /**
    * A value per column, by `id`, when you hold them. A row passes when every
-   * column with a value passes it. A value of `undefined`, `null`, `''` or
-   * an empty array is no filter.
+   * column with a value passes it: the column's `filterFn` if it has one,
+   * given the value as it is, or else the column's text has to contain the
+   * value's text, compared as the search compares. An array is a choice of
+   * values, as a multiple-choice filter gives, and passes a row whose text
+   * contains any of them. A value of `undefined`, `null`, `''` or an empty
+   * array is no filter.
    */
   filters?: DataTableFilters;
   /** The filters to start with when the table holds them. */
@@ -270,7 +280,12 @@ export interface DataTableStateOptions<TRow> {
    * changes.
    */
   manual?: boolean;
-  /** With `manual`, how many rows match in all, which sets the page count and the announced count. */
+  /**
+   * With `manual`, how many rows match in all, which sets the page count and
+   * the announced count. Without it, the table counts the rows in `data`,
+   * which with a `pageSize` is one page and no pager, and a development
+   * build warns.
+   */
   rowCount?: number;
   /** The words the table writes, in your app's language. */
   labels?: DataTableLabels;
@@ -388,17 +403,35 @@ export interface DataTableModel<TRow> {
   toggleSort: (columnId: string) => void;
   /** Sets the selected ids. */
   setSelected: (selected: string[]) => void;
-  /** Selects a row, or clears it, or with no `selected` flips it. */
+  /**
+   * Selects a row, or clears it, or with no `selected` flips it. Called
+   * twice in one handler, the second call builds on the first while the
+   * table holds the selection. While you hold it, each call builds on the
+   * selection as rendered, so make several changes at once with
+   * `setSelected`.
+   */
   toggleRowSelected: (row: TRow, selected?: boolean) => void;
-  /** Selects every row on the page, or clears them, or with no `selected` does what the header checkbox does. */
+  /**
+   * Selects every row on the page, or clears them, or with no `selected`
+   * does what the header checkbox does. It builds on earlier calls as
+   * `toggleRowSelected` does.
+   */
   togglePageSelected: (selected?: boolean) => void;
   /** Goes to a page, counting from 1. */
   setPage: (page: number) => void;
-  /** Sets the search, and goes back to page 1. */
+  /**
+   * Sets the search, and goes back to page 1, calling `onPageChange` with 1
+   * unless the page held is 1 already.
+   */
   setSearch: (search: string) => void;
-  /** Sets one column's filter value, and goes back to page 1. */
+  /**
+   * Sets one column's filter value, and goes back to page 1. Called twice in
+   * one handler, the second call builds on the first while the table holds
+   * the filters. While you hold them, each call builds on the filters as
+   * rendered, so set several at once with `setFilters`.
+   */
   setFilter: (columnId: string, value: unknown) => void;
-  /** Sets every filter value, and goes back to page 1. */
+  /** Sets every filter value, and goes back to page 1, as `setSearch` does. */
   setFilters: (filters: DataTableFilters) => void;
   /** Props for a column's `Th`: its scope, its `aria-sort` while sorted, its alignment and width. */
   getHeaderCellProps: (
@@ -491,22 +524,42 @@ function idOf(row: unknown): string | undefined {
 /**
  * A piece of state that's the caller's when they pass its value, and the
  * table's own otherwise. Setting it calls the change handler either way.
+ *
+ * It also returns `latest`, what a change should build on. While the table
+ * holds the state, that's the value last set, even before React renders it,
+ * so two changes in one handler build on each other. While the caller holds
+ * it, it's the value as rendered, since only the caller knows what it made
+ * of a change.
  */
 function useTableState<T>(
   value: T | undefined,
   initial: T,
   onChange: ((next: T) => void) | undefined
-): [T, (next: T) => void] {
+): [T, (next: T) => void, () => T] {
   const [own, setOwn] = useState(initial);
   const held = value !== undefined;
+  const current = held ? value : own;
+  const rendered = useLatestRef(current);
+  // A value set since the last commit, cleared once a commit shows it.
+  const pendingRef = useRef<{ value: T } | null>(null);
+  useClientLayoutEffect(() => {
+    pendingRef.current = null;
+  });
   const set = useCallback(
     (next: T) => {
-      if (!held) setOwn(next);
+      if (!held) {
+        pendingRef.current = { value: next };
+        setOwn(next);
+      }
       onChange?.(next);
     },
     [held, onChange]
   );
-  return [value !== undefined ? value : own, set];
+  const latest = useCallback(
+    () => (pendingRef.current ? pendingRef.current.value : rendered.current),
+    [rendered]
+  );
+  return [current, set, latest];
 }
 
 const noSort: DataTableSort[] = [];
@@ -555,12 +608,12 @@ export function useDataTable<TRow>(
   } = options;
 
   const [sort, setSort] = useTableState(sortProp, defaultSort, onSortChange);
-  const [selected, setSelected] = useTableState(
+  const [selected, setSelected, latestSelected] = useTableState(
     selectedProp,
     defaultSelected,
     onSelectedChange
   );
-  const [pageState, setPageState] = useTableState(
+  const [pageState, setPageState, latestPage] = useTableState(
     pageProp,
     defaultPage,
     onPageChange
@@ -570,7 +623,7 @@ export function useDataTable<TRow>(
     defaultSearch,
     onSearchChange
   );
-  const [filters, setFiltersState] = useTableState(
+  const [filters, setFiltersState, latestFilters] = useTableState(
     filtersProp,
     defaultFilters,
     onFiltersChange
@@ -729,9 +782,12 @@ export function useDataTable<TRow>(
       const row = data[rowIndex];
       const rowTexts = texts[rowIndex];
       for (const { column, index, value } of filtered) {
+        // An array is any of its entries, as a multiple-choice filter gives.
         const passes = column!.filterFn
           ? column!.filterFn(row, value)
-          : holds(rowTexts[index], String(value));
+          : Array.isArray(value)
+            ? value.some(entry => holds(rowTexts[index], String(entry)))
+            : holds(rowTexts[index], String(value));
         if (!passes) return false;
       }
       return (
@@ -751,11 +807,20 @@ export function useDataTable<TRow>(
     texts,
   ]);
 
+  const knowsCount =
+    rowCountProp !== undefined && Number.isFinite(rowCountProp);
+  if (manual && pageSize !== undefined && !knowsCount) {
+    warnOnce(
+      'DataTable:manual-row-count',
+      '[bestax-bulma] A DataTable with `manual` and a `pageSize` has no ' +
+        '`rowCount`, so it counts only the rows in `data`, makes one page ' +
+        'of them and shows no pager. Pass `rowCount`, how many rows match ' +
+        'on the server.'
+    );
+  }
   const rowCount = manual
     ? Math.max(
-        Math.floor(
-          Number.isFinite(rowCountProp) ? (rowCountProp as number) : data.length
-        ),
+        Math.floor(knowsCount ? (rowCountProp as number) : data.length),
         0
       )
     : filteredIndexes.length;
@@ -835,30 +900,37 @@ export function useDataTable<TRow>(
     [page, setPageState]
   );
 
+  // A new search or filter starts from the first page. It's measured against
+  // the page as stored, not as shown: a page past the end shows the last,
+  // and left stored it would come back once the rows grew again.
+  const resetPage = useCallback(() => {
+    if (latestPage() !== 1) setPageState(1);
+  }, [latestPage, setPageState]);
+
   const setSearch = useCallback(
     (next: string) => {
       setSearchState(next);
-      setPage(1);
+      resetPage();
     },
-    [setSearchState, setPage]
+    [setSearchState, resetPage]
   );
 
   const setFilters = useCallback(
     (next: DataTableFilters) => {
       setFiltersState(next);
-      setPage(1);
+      resetPage();
     },
-    [setFiltersState, setPage]
+    [setFiltersState, resetPage]
   );
 
   const setFilter = useCallback(
     (columnId: string, value: unknown) => {
-      const next = { ...filters };
+      const next = { ...latestFilters() };
       if (isActiveFilter(value)) next[columnId] = value;
       else delete next[columnId];
       setFilters(next);
     },
-    [filters, setFilters]
+    [latestFilters, setFilters]
   );
 
   const toggleSort = useCallback(
@@ -888,11 +960,13 @@ export function useDataTable<TRow>(
   const toggleRowSelected = useCallback(
     (row: TRow, value?: boolean) => {
       const id = getRowId(row);
-      const on = value ?? !selectedSet.has(id);
-      if (on === selectedSet.has(id)) return;
-      setSelected(on ? [...selected, id] : selected.filter(s => s !== id));
+      const current = latestSelected();
+      const has = current.includes(id);
+      const on = value ?? !has;
+      if (on === has) return;
+      setSelected(on ? [...current, id] : current.filter(s => s !== id));
     },
-    [getRowId, selectedSet, selected, setSelected]
+    [getRowId, latestSelected, setSelected]
   );
 
   const pageIds = useMemo(
@@ -905,17 +979,20 @@ export function useDataTable<TRow>(
 
   const togglePageSelected = useCallback(
     (value?: boolean) => {
-      const on = value ?? !allPageSelected;
+      const current = latestSelected();
+      const has = new Set(current);
+      const on =
+        value ?? !(pageIds.length > 0 && pageIds.every(id => has.has(id)));
       if (on) {
-        const adding = pageIds.filter(id => !selectedSet.has(id));
-        if (adding.length > 0) setSelected([...selected, ...adding]);
+        const adding = pageIds.filter(id => !has.has(id));
+        if (adding.length > 0) setSelected([...current, ...adding]);
       } else {
         const onPage = new Set(pageIds);
-        const kept = selected.filter(id => !onPage.has(id));
-        if (kept.length !== selected.length) setSelected(kept);
+        const kept = current.filter(id => !onPage.has(id));
+        if (kept.length !== current.length) setSelected(kept);
       }
     },
-    [allPageSelected, pageIds, selectedSet, selected, setSelected]
+    [latestSelected, pageIds, setSelected]
   );
 
   const count = useCallback(
