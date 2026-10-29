@@ -22,7 +22,8 @@ export interface TrProps
    * straight in one of the row's cells takes the row's text color, so a
    * checked box shows on the row's fill. One in a menu or a table nested in a
    * cell, or in a cell with a `color` of its own, keeps its own colors, since
-   * it sits on that surface instead.
+   * it sits on that surface instead, and so does every one in a row with a
+   * `color`, whose cells paint that color over the fill.
    */
   isSelected?: boolean;
   /** Bulma color modifier for the table row. */
