@@ -1,3 +1,33 @@
+# [4.5.0](https://github.com/allxsmith/bestax/compare/create-bestax@4.4.0...create-bestax@4.5.0) (2026-10-29)
+
+
+### Bug Fixes
+
+* **docs:** answer create-bestax's install-and-start question in the run ([0cdb40b](https://github.com/allxsmith/bestax/commit/0cdb40b04f68cd2f9bece66482bc92469ade8e41))
+* **docs:** give the create-bestax browser frame the site's color mode ([ec2c3b5](https://github.com/allxsmith/bestax/commit/ec2c3b5066a33c8952483a8538fceabb79f65cb7))
+* **docs:** keep the Bulma v1 card's window in the site's color mode ([#1321](https://github.com/allxsmith/bestax/issues/1321)) ([6296bd0](https://github.com/allxsmith/bestax/commit/6296bd0ae3141c21476bc6172af14608373bffb6))
+* **docs:** keep the scroll trigger from restarting a Replay ([b41bc3f](https://github.com/allxsmith/bestax/commit/b41bc3f7b954e31b5c59ea4e26a4589d79024785))
+* **docs:** match the drawn starter app's Count to the real one ([8efe24b](https://github.com/allxsmith/bestax/commit/8efe24b460bbe2510b0bd83ad0b7da3d5521211a))
+* **docs:** stop calling the MCP server upcoming in the AI section ([9864c30](https://github.com/allxsmith/bestax/commit/9864c30f5b032e1b6053eaef66a2eabbe844ecb2))
+
+
+### Features
+
+* **bulma-ui:** add CheckboxCard and RadioCard, choices drawn as cards ([5958bda](https://github.com/allxsmith/bestax/commit/5958bda70f0571a73903ba6b0c0eac46f4cebd02))
+* **bulma-ui:** add Command, a search over things to do, inline or as a command palette ([bd7733c](https://github.com/allxsmith/bestax/commit/bd7733cd31a667976970e3ed059a4077ce2f7b76))
+* **bulma-ui:** add DescriptionList, facts about one thing as labels and values ([78dd1b6](https://github.com/allxsmith/bestax/commit/78dd1b6ada3d650fdfef4257a78846fd72caca00))
+* **bulma-ui:** add Fieldset, a form section named by its legend that disabled switches off ([8fc1780](https://github.com/allxsmith/bestax/commit/8fc178059b9a692d7a396c925856b31839d95a49))
+* **bulma-ui:** add LocaleProvider for language and writing direction ([7cba193](https://github.com/allxsmith/bestax/commit/7cba193eff08cfdfd1b109bf747e0b8cebe796a5))
+* **bulma-ui:** keep the Sunday default when a picker brings its own day names ([3be12b0](https://github.com/allxsmith/bestax/commit/3be12b0e974ba29dbade072306b55a3e71db60ae))
+* **bulma-ui:** let CheckboxCard and RadioCard take a disabled Fieldset's state ([0a95531](https://github.com/allxsmith/bestax/commit/0a95531650e37d56d9c5aeaca3af722bc4e47b13))
+* **bulma-ui:** read a picker's own locale like a nested provider; wrap portals only if needed ([acb1157](https://github.com/allxsmith/bestax/commit/acb11575d2b86fdd923b81eba7159458f580a317))
+* **bulma-ui:** render Checkboxes and Radios as a native fieldset with as="fieldset" ([d9b1f72](https://github.com/allxsmith/bestax/commit/d9b1f728ea807a7dc5b968aa9613afba715bb857))
+* **bulma-ui:** settle the portal wrapper when content mounts, so a locale switch remounts nothing ([25d72d2](https://github.com/allxsmith/bestax/commit/25d72d20bbacc3d789fc94e3b3e23b6666e50e48))
+* **create-bestax:** add React Router templates with a shared navbar and two pages ([47fbcf4](https://github.com/allxsmith/bestax/commit/47fbcf435395f2b1a063165d7693ed303f9ccf10))
+* **docs:** rebuild the homepage hero and features to match the social card ([#1316](https://github.com/allxsmith/bestax/issues/1316)) ([aadc45d](https://github.com/allxsmith/bestax/commit/aadc45df992bd6f186979d8694606db0594ea712))
+* **docs:** show create-bestax scaffolding an app on the homepage ([3d11ce9](https://github.com/allxsmith/bestax/commit/3d11ce918ddbdf1c1ebf1bf37e604fa540e315e3))
+* **docs:** show create-bestax scaffolding an app on the homepage ([#1320](https://github.com/allxsmith/bestax/issues/1320)) ([6335f24](https://github.com/allxsmith/bestax/commit/6335f2440cfc3387682699e1a6a9d4aef8473451))
+
 # [4.4.0](https://github.com/allxsmith/bestax/compare/create-bestax@4.3.0...create-bestax@4.4.0) (2026-10-28)
 
 
