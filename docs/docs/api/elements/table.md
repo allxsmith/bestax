@@ -184,7 +184,7 @@ Use the `isSelected` prop on a `Tr` to highlight a specific row. This is ideal f
 
 To control the alignment and width of table header cells, use the `isAligned` and `width` props on the `Th` component. Set `isAligned` to `left`, `right`, or `centered` to adjust text alignment, and use `width` with a number or string (e.g., `width={200}` or `width="100px"`) to specify the column width. This is useful for formatting tables with specific layout requirements or for emphasizing certain columns.
 
-`Td` takes the same `isAligned` values, so a column's body cells can line up with its header.
+`Td` takes the same `isAligned` values, so a column's body cells can line up with its header. A `style` on a `Th` keeps its `width`, and a `width` inside that `style` wins.
 
 ```tsx live
 <Table>
@@ -325,14 +325,14 @@ For responsive tables, ensure your column headers are clear and concise for smal
 
 ### Table.Th
 
-| Prop        | Type                                                         | Default | Description                                                       |
-| ----------- | ------------------------------------------------------------ | ------- | ----------------------------------------------------------------- |
-| `className` | `string`                                                     | —       | Additional CSS classes to apply.                                  |
-| `isAligned` | `'left'` \| `'right'` \| `'centered'`                        | —       | Text alignment for the header cell ('left', 'right', 'centered'). |
-| `width`     | `string` \| `number`                                         | —       | Width of the header cell (e.g., '100px' or 100).                  |
-| `color`     | `TableColor`                                                 | —       | Bulma color modifier for the header cell.                         |
-| `children`  | `React.ReactNode`                                            | —       | Table header cell content.                                        |
-| `...`       | All standard `<td>`/`<th>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                 |
+| Prop        | Type                                                         | Default | Description                                                                                                                                       |
+| ----------- | ------------------------------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className` | `string`                                                     | —       | Additional CSS classes to apply.                                                                                                                  |
+| `isAligned` | `'left'` \| `'right'` \| `'centered'`                        | —       | Text alignment for the header cell ('left', 'right', 'centered').                                                                                 |
+| `width`     | `string` \| `number`                                         | —       | Width of the header cell (e.g., '100px' or 100), written into its `style`. A `style` passed as well keeps it, and a `width` in that `style` wins. |
+| `color`     | `TableColor`                                                 | —       | Bulma color modifier for the header cell.                                                                                                         |
+| `children`  | `React.ReactNode`                                            | —       | Table header cell content.                                                                                                                        |
+| `...`       | All standard `<td>`/`<th>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                 |
 
 **Types:**
 

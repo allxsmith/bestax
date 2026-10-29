@@ -189,6 +189,49 @@ describe('Th Component', () => {
     expect(th).toHaveStyle({ width: '10rem' });
   });
 
+  test('keeps the width when a style is passed too', () => {
+    render(
+      <table>
+        <thead>
+          <tr>
+            <Th {...defaultProps} width={120} style={{ color: 'red' }} />
+          </tr>
+        </thead>
+      </table>
+    );
+    const th = screen.getByRole('columnheader', { name: 'Test' });
+    expect(th).toHaveStyle({ width: '120px', color: 'rgb(255, 0, 0)' });
+  });
+
+  test('lets a width in style win over the width prop', () => {
+    render(
+      <table>
+        <thead>
+          <tr>
+            <Th {...defaultProps} width={120} style={{ width: '50%' }} />
+          </tr>
+        </thead>
+      </table>
+    );
+    const th = screen.getByRole('columnheader', { name: 'Test' });
+    expect(th).toHaveStyle({ width: '50%' });
+  });
+
+  test('passes a style through when there is no width', () => {
+    render(
+      <table>
+        <thead>
+          <tr>
+            <Th {...defaultProps} style={{ color: 'red' }} />
+          </tr>
+        </thead>
+      </table>
+    );
+    const th = screen.getByRole('columnheader', { name: 'Test' });
+    expect(th).toHaveStyle({ color: 'rgb(255, 0, 0)' });
+    expect(th.style.width).toBe('');
+  });
+
   test('does not apply style when width is undefined', () => {
     render(
       <table>

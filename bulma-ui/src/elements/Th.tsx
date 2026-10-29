@@ -18,7 +18,11 @@ export interface ThProps
   className?: string;
   /** Text alignment for the header cell ('left', 'right', 'centered'). */
   isAligned?: TableAlignment;
-  /** Width of the header cell (e.g., '100px' or 100). */
+  /**
+   * Width of the header cell (e.g., '100px' or 100), written into its
+   * `style`. A `style` passed as well keeps it, and a `width` in that
+   * `style` wins.
+   */
   width?: string | number;
   /** Bulma color modifier for the header cell. */
   color?: TableColor;
@@ -41,6 +45,7 @@ export const Th: React.FC<ThProps> = ({
   isAligned,
   width,
   color,
+  style,
   children,
   ...props
 }) => {
@@ -62,8 +67,11 @@ export const Th: React.FC<ThProps> = ({
       className={thClasses || undefined}
       style={
         width
-          ? { width: typeof width === 'number' ? `${width}px` : width }
-          : undefined
+          ? {
+              width: typeof width === 'number' ? `${width}px` : width,
+              ...style,
+            }
+          : style
       }
       {...rest}
     >
