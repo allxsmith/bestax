@@ -14,7 +14,13 @@ import { useNumberFormat, NumberFormatter } from '../../helpers/localeFormat';
 import { useClientLayoutEffect } from '../../helpers/useClientLayoutEffect';
 import { warnOnce } from '../../helpers/devWarnings';
 import { useNativeMobilePicker } from '../_pickerInternals/useNativeMobilePicker';
-import { ColorFormat, Hsva, formatColor, parseColor } from './colorMath';
+import {
+  ColorFormat,
+  Hsva,
+  formatColor,
+  namesHue,
+  parseColor,
+} from './colorMath';
 import type { ColorPickerLabels, ColorPickerSwatch } from '../ColorPicker';
 
 const DEFAULT_LABELS: Required<ColorPickerLabels> = {
@@ -44,13 +50,20 @@ export const mergeColorLabels = (
 export const BLACK: Hsva = { h: 0, s: 0, v: 0, a: 1 };
 
 /**
- * A color read from outside the picker, with the hue and saturation the
- * picker had where the new color has none: a gray has no hue, and black no
- * saturation either, so they'd otherwise jump to 0.
+ * A color read from outside the picker, written as `source`, with the hue
+ * and saturation the picker had where the new color has none, so the thumbs
+ * don't jump to 0. A gray written as hex, `rgb()` or a name has no hue, so
+ * it keeps the picker's; one written as `hsl()` names its hue, which wins.
+ * Black has no saturation in the square either way, and keeps the picker's,
+ * which writes no differently.
  */
-export const keepingChannels = (next: Hsva, previous: Hsva): Hsva => ({
+export const keepingChannels = (
+  next: Hsva,
+  previous: Hsva,
+  source: string
+): Hsva => ({
   ...next,
-  h: next.s === 0 || next.v === 0 ? previous.h : next.h,
+  h: (next.s === 0 || next.v === 0) && !namesHue(source) ? previous.h : next.h,
   s: next.v === 0 ? previous.s : next.s,
 });
 
@@ -182,7 +195,10 @@ export function useColorPicker({
   if (isControlled && value !== own.text) {
     const parsed = parseColor(value);
     if (parsed) {
-      setOwn({ text: value, color: keepingChannels(parsed, own.color) });
+      setOwn({
+        text: value,
+        color: keepingChannels(parsed, own.color, value),
+      });
     }
   }
   const color = alpha ? own.color : { ...own.color, a: 1 };

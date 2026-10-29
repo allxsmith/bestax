@@ -20,7 +20,8 @@
 $-black: hsl(0, 0%, 0%);
 $-white: hsl(0, 0%, 100%);
 $-hue-stops: hsl(0, 100%, 50%), hsl(60, 100%, 50%), hsl(120, 100%, 50%), hsl(180, 100%, 50%), hsl(240, 100%, 50%), hsl(300, 100%, 50%), hsl(360, 100%, 50%);
-// The check on a chosen swatch, black or white, whichever reads better.
+// The check on a chosen swatch, black or white, whichever reads better, in
+// a ring of the other, so it shows whatever is under it.
 $-ink-dark: hsl(0, 0%, 0%);
 $-ink-light: hsl(0, 0%, 100%);
 
@@ -278,8 +279,31 @@ $color-picker-disabled-opacity: 0.5 !default;
     font-size: calc(#{cv.getVar('color-picker-swatch-size')} * 0.75);
   }
 
-  &.#{iv.$class-prefix}is-dark-ink .#{iv.$class-prefix}color-swatch {
-    color: $-ink-dark;
+  .#{iv.$class-prefix}color-picker-check-halo {
+    stroke: $-ink-dark;
+  }
+
+  &.#{iv.$class-prefix}is-dark-ink {
+    .#{iv.$class-prefix}color-swatch {
+      color: $-ink-dark;
+    }
+
+    .#{iv.$class-prefix}color-picker-check-halo {
+      stroke: $-ink-light;
+    }
+  }
+
+  // A see-through swatch shows the checkerboard under it, which is drawn in
+  // the scheme's colors, so the check takes the scheme's text color in a ring
+  // of its background, and follows dark mode.
+  &.#{iv.$class-prefix}is-see-through {
+    .#{iv.$class-prefix}color-swatch {
+      color: cv.getVar('text-strong');
+    }
+
+    .#{iv.$class-prefix}color-picker-check-halo {
+      stroke: cv.getVar('scheme-main');
+    }
   }
 
   &.#{iv.$class-prefix}is-checked {

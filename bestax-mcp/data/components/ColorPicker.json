@@ -148,7 +148,7 @@
           "name": "swatches",
           "type": "ColorPickerSwatch[] | 'bulma'",
           "default": null,
-          "description": "Preset colors shown as a radio group under the picker: a list of CSS colors, each a string or `{ color, label }`, or `\"bulma\"` for the page's primary, link, info, success, warning and danger, read from Bulma's CSS variables once the picker is on the page, so a themed app shows its own. The `\"bulma\"` names are English; for others, pass the list yourself, such as `{ color: 'var(--bulma-primary)', label: 'Primär' }`.",
+          "description": "Preset colors shown as a radio group under the picker: a list of CSS colors, each a string or `{ color, label }`, or `\"bulma\"` for the page's primary, link, info, success, warning and danger, from Bulma's CSS variables, so a themed app shows its own. A color the picker can't read as written, such as a `var()`, is read off the page each time the picker renders, so after a theme change the swatches show the new colors at once and the chosen one is marked again on the picker's next render, which a `Theme` around it causes. The `\"bulma\"` names are English; for others, pass the list yourself, such as `{ color: 'var(--bulma-primary)', label: 'Primär' }`.",
           "required": false,
           "inherited": false,
           "deprecated": false

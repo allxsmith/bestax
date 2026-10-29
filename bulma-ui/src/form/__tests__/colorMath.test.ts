@@ -4,6 +4,7 @@ import {
   hsvaToHsla,
   hsvaToRgba,
   luminance,
+  namesHue,
   parseColor,
   prefersDarkInk,
   rgbaToHsva,
@@ -172,6 +173,16 @@ describe('colorMath', () => {
       expect(hsla.s).toBeCloseTo(67);
       expect(hsla.l).toBeCloseTo(36);
       expect(hslaToHsva(0, 50, 0, 1)).toEqual({ h: 0, s: 0, v: 0, a: 1 });
+    });
+  });
+
+  describe('namesHue', () => {
+    it('is true for hsl() and hsla() text only', () => {
+      expect(namesHue('hsl(200, 0%, 50%)')).toBe(true);
+      expect(namesHue('  HSLA(200deg 0% 50% / 1)')).toBe(true);
+      for (const text of ['#808080', 'gray', 'rgb(128, 128, 128)', '']) {
+        expect(namesHue(text)).toBe(false);
+      }
     });
   });
 

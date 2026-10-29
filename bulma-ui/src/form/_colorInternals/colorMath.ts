@@ -323,6 +323,12 @@ function parseFunction(text: string): Hsva | null {
 }
 
 /**
+ * Whether a color's text names its own hue, as `hsl()` and `hsla()` do even
+ * for a gray, where hex, `rgb()` and the color names leave it out.
+ */
+export const namesHue = (text: string): boolean => /^\s*hsla?\(/i.test(text);
+
+/**
  * Reads a CSS color: hex (with or without `#`), `rgb()`, `rgba()`, `hsl()`
  * and `hsla()` in either syntax, the named colors, and `transparent`. Null
  * for anything else, such as `oklch()` or `var(--x)`, which only the

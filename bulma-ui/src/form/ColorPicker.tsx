@@ -599,29 +599,39 @@ export const ColorPickerSwatches = forwardRef<
       ),
     [given]
   );
-  const listKey = list.map(entry => entry.color).join('|');
 
   // A color the picker can't read as written, such as a var(), is read off
-  // the page once it's drawn, from the swatch's own custom property.
+  // the page, as the text the swatch's own custom property resolves to.
   const chipsRef = useRef<Array<HTMLSpanElement | null>>([]);
-  const readChip = useCallback(
-    (i: number): Hsva | null =>
-      parseColor(
-        getComputedStyle(chipsRef.current[i] as Element).getPropertyValue(
-          '--color-swatch-color'
-        )
-      ),
-    []
+  const textOf = useCallback(
+    (i: number): string => {
+      const chip = chipsRef.current[i];
+      if (parseColor(list[i].color) || !chip) return list[i].color;
+      return getComputedStyle(chip)
+        .getPropertyValue('--color-swatch-color')
+        .trim();
+    },
+    [list]
   );
-  const [resolved, setResolved] = useState<Array<Hsva | null>>([]);
+  // Those texts, read after every render rather than once: a Theme can
+  // change the variables behind them while the picker is open, and the
+  // chosen swatch has to follow. A read that changes nothing renders
+  // nothing more.
+  const [resolved, setResolved] = useState<string[]>([]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- after every render on purpose; the updater keeps the state when nothing changed, so it settles
   useEffect(() => {
+    const next = list.map((_, i) => textOf(i));
     // eslint-disable-next-line react-hooks/set-state-in-effect -- a var() color can only be read off the page once its swatch is on it
-    setResolved(list.map((entry, i) => parseColor(entry.color) ?? readChip(i)));
-    // listKey stands for list.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [listKey, readChip]);
+    setResolved(previous =>
+      previous.length === next.length &&
+      previous.every((text, i) => text === next[i])
+        ? previous
+        : next
+    );
+  });
 
-  const colorOf = (i: number) => parseColor(list[i].color) ?? resolved[i];
+  const colorOf = (i: number) =>
+    parseColor(list[i].color) ?? parseColor(resolved[i]);
   // The same color, as far as the picker's value can tell: the same 8-bit
   // color, or the same text, since an HSL value is rounded.
   const shownText = formatColor(color, format, alpha);
@@ -636,16 +646,11 @@ export const ColorPickerSwatches = forwardRef<
   const [focused, setFocused] = useState<number | null>(null);
   const tabStop = focused ?? (checked >= 0 ? checked : 0);
 
+  // Read afresh, so a theme that changed since the last render counts.
   const pick = (i: number) => {
-    const swatch = parseColor(list[i].color) ?? readChip(i);
-    if (!swatch) return;
-    change(
-      {
-        ...swatch,
-        h: swatch.s === 0 || swatch.v === 0 ? color.h : swatch.h,
-      },
-      true
-    );
+    const text = textOf(i);
+    const swatch = parseColor(text);
+    if (swatch) change(keepingChannels(swatch, color, text), true);
   };
 
   const onKeyDown = (i: number) => (event: React.KeyboardEvent) => {
@@ -684,6 +689,11 @@ export const ColorPickerSwatches = forwardRef<
       {list.map((entry, i) => {
         const swatch = colorOf(i);
         const isChecked = i === checked;
+        // The check is drawn in black or white with a ring of the other, so
+        // it shows on any color. On a see-through swatch the page shows
+        // through, so it takes the scheme's text color and background,
+        // which follow dark mode, in place of the swatch's own.
+        const seeThrough = !!swatch && swatch.a < 1;
         return (
           <button
             key={`${entry.color}-${i}`}
@@ -696,7 +706,8 @@ export const ColorPickerSwatches = forwardRef<
             disabled={disabled}
             className={prefixedClassNames(classPrefix, 'color-picker-swatch', {
               'is-checked': isChecked,
-              'is-dark-ink': !!swatch && prefersDarkInk(swatch),
+              'is-see-through': seeThrough,
+              'is-dark-ink': !!swatch && !seeThrough && prefersDarkInk(swatch),
             })}
             onClick={() => pick(i)}
             onKeyDown={onKeyDown(i)}
@@ -710,7 +721,14 @@ export const ColorPickerSwatches = forwardRef<
               color={entry.color}
               aria-hidden="true"
             >
-              {isChecked && <CheckIcon />}
+              {isChecked && (
+                <CheckIcon
+                  haloClass={prefixedClassNames(
+                    classPrefix,
+                    'color-picker-check-halo'
+                  )}
+                />
+              )}
             </ColorSwatch>
           </button>
         );
@@ -721,17 +739,24 @@ export const ColorPickerSwatches = forwardRef<
 
 ColorPickerSwatches.displayName = 'ColorPicker.Swatches';
 
-/** The check on the chosen swatch. */
-const CheckIcon = () => (
+/**
+ * The check on the chosen swatch: a ring in `haloClass`, and the check over
+ * it in the current color.
+ */
+const CheckIcon = ({ haloClass }: { haloClass: string }) => (
   <svg viewBox="0 0 16 16" width="1em" height="1em" aria-hidden="true">
-    <path
-      d="M3.5 8.5l3 3 6-7"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
+    {['halo', 'ink'].map(part => (
+      <path
+        key={part}
+        className={part === 'halo' ? haloClass : undefined}
+        d="M3.5 8.5l3 3 6-7"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={part === 'halo' ? 4.5 : 2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ))}
   </svg>
 );
 
@@ -795,7 +820,7 @@ export const ColorPickerInput = forwardRef<
     if (draft === null) return;
     const parsed = parseColor(draft);
     setDraft(null);
-    if (parsed) change(keepingChannels(parsed, color), true);
+    if (parsed) change(keepingChannels(parsed, color, draft), true);
   };
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -817,8 +842,14 @@ export const ColorPickerInput = forwardRef<
   const pickFromScreen = (Dropper: EyeDropperConstructor) =>
     new Dropper().open().then(({ sRGBHex }) => {
       const parsed = parseColor(sRGBHex);
-      // The screen gives a solid color; the alpha stays as it was.
-      if (parsed) change({ ...parsed, a: color.a }, true);
+      // The screen gives a solid color as hex; the alpha stays as it was,
+      // and a gray keeps the hue the picker had.
+      if (parsed) {
+        change(
+          keepingChannels({ ...parsed, a: color.a }, color, sRGBHex),
+          true
+        );
+      }
     }, noop);
 
   if (!picker) return null;
@@ -948,10 +979,14 @@ export interface ColorPickerProps
   /**
    * Preset colors shown as a radio group under the picker: a list of CSS
    * colors, each a string or `{ color, label }`, or `"bulma"` for the page's
-   * primary, link, info, success, warning and danger, read from Bulma's CSS
-   * variables once the picker is on the page, so a themed app shows its
-   * own. The `"bulma"` names are English; for others, pass the list
-   * yourself, such as `{ color: 'var(--bulma-primary)', label: 'Primär' }`.
+   * primary, link, info, success, warning and danger, from Bulma's CSS
+   * variables, so a themed app shows its own. A color the picker can't read
+   * as written, such as a `var()`, is read off the page each time the picker
+   * renders, so after a theme change the swatches show the new colors at
+   * once and the chosen one is marked again on the picker's next render,
+   * which a `Theme` around it causes. The `"bulma"` names are English; for
+   * others, pass the list yourself, such as
+   * `{ color: 'var(--bulma-primary)', label: 'Primär' }`.
    */
   swatches?: ColorPickerSwatch[] | 'bulma';
   /**

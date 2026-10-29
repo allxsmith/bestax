@@ -535,6 +535,30 @@ describe('ColorPicker', () => {
       render(<ColorPicker swatches={['#ffdd57', '#1e6b99']} />);
       expect(radios()[0]).toHaveClass('is-dark-ink');
       expect(radios()[1]).not.toHaveClass('is-dark-ink');
+      expect(radios()[0]).not.toHaveClass('is-see-through');
+    });
+
+    it('gives a see-through swatch the scheme ink, not black or white', () => {
+      render(
+        <ColorPicker
+          alpha
+          swatches={['transparent', 'rgba(255, 255, 255, 0.3)', '#ffdd5780']}
+        />
+      );
+      for (const radio of radios()) {
+        expect(radio).toHaveClass('is-see-through');
+        expect(radio).not.toHaveClass('is-dark-ink');
+      }
+    });
+
+    it('draws the check with a ring under it', () => {
+      render(<ColorPicker defaultValue="#1e6b99" swatches={['#1e6b99']} />);
+      const paths = radios()[0].querySelectorAll('svg path');
+      expect(paths).toHaveLength(2);
+      expect(paths[0]).toHaveClass('color-picker-check-halo');
+      expect(paths[0]).toHaveAttribute('stroke-width', '4.5');
+      expect(paths[1]).not.toHaveAttribute('class');
+      expect(paths[1]).toHaveAttribute('stroke-width', '2');
     });
 
     it('chooses a swatch on a click, in the picker format', () => {
@@ -556,6 +580,18 @@ describe('ColorPicker', () => {
       expect(field()).toHaveValue('hsl(200, 0%, 100%)');
       expect(hue()).toHaveAttribute('aria-valuetext', '200 degrees');
       expect(radios()[0]).toHaveAttribute('aria-checked', 'true');
+    });
+
+    it('takes the hue a gray swatch names in hsl()', () => {
+      render(
+        <ColorPicker
+          defaultValue="hsl(100, 100%, 50%)"
+          swatches={['hsl(200, 0%, 50%)']}
+        />
+      );
+      fireEvent.click(radios()[0]);
+      expect(field()).toHaveValue('hsl(200, 0%, 50%)');
+      expect(hue()).toHaveAttribute('aria-valuetext', '200 degrees');
     });
 
     it('moves and chooses with the arrows, wrapping, and Home and End', () => {
@@ -606,6 +642,28 @@ describe('ColorPicker', () => {
       expect(onChange).toHaveBeenCalledWith('hsl(171, 100%, 41%)');
       // Each of them reads the same here, so the first one is checked.
       expect(radios()[0]).toHaveAttribute('aria-checked', 'true');
+    });
+
+    it('reads the theme again as it renders, so the chosen one follows a change', () => {
+      customProperty = 'hsla(171deg, 100%, 41%, 1)';
+      const { rerender } = render(
+        <ColorPicker value="hsl(171, 100%, 41%)" swatches="bulma" />
+      );
+      expect(radios()[0]).toHaveAttribute('aria-checked', 'true');
+      // The theme changes while the picker is open.
+      customProperty = 'hsla(348deg, 86%, 61%, 1)';
+      rerender(<ColorPicker value="hsl(171, 100%, 41%)" swatches="bulma" />);
+      expect(radios()[0]).toHaveAttribute('aria-checked', 'false');
+      rerender(<ColorPicker value="hsl(348, 86%, 61%)" swatches="bulma" />);
+      expect(radios()[0]).toHaveAttribute('aria-checked', 'true');
+    });
+
+    it('picks the color the theme has now, even before a render', () => {
+      customProperty = 'hsla(171deg, 100%, 41%, 1)';
+      const { onChange } = setup({ swatches: 'bulma' });
+      customProperty = 'hsla(348deg, 86%, 61%, 1)';
+      fireEvent.click(radios()[1]);
+      expect(onChange).toHaveBeenCalledWith('hsl(348, 86%, 61%)');
     });
 
     it('chooses nothing from a swatch it cannot read', () => {
@@ -672,11 +730,28 @@ describe('ColorPicker', () => {
       expect(onChange).toHaveBeenCalledTimes(1);
     });
 
-    it('keeps the hue when a gray is typed', () => {
-      render(<ColorPicker defaultValue="hsl(200, 100%, 50%)" />);
-      fireEvent.change(field(), { target: { value: '#808080' } });
-      fireEvent.blur(field());
+    it.each(['#808080', 'gray', 'rgb(128, 128, 128)'])(
+      'keeps the hue when a gray is typed as %s',
+      gray => {
+        render(<ColorPicker defaultValue="hsl(200, 100%, 50%)" />);
+        fireEvent.change(field(), { target: { value: gray } });
+        fireEvent.blur(field());
+        expect(hue()).toHaveAttribute('aria-valuetext', '200 degrees');
+        expect(field()).toHaveValue('hsl(200, 0%, 50%)');
+      }
+    );
+
+    it('takes the hue a typed hsl() gray names', () => {
+      const { container } = render(
+        <ColorPicker defaultValue="hsl(100, 100%, 50%)" name="tone" />
+      );
+      fireEvent.change(field(), { target: { value: 'hsl(200, 0%, 50%)' } });
+      fireEvent.keyDown(field(), { key: 'Enter' });
+      expect(field()).toHaveValue('hsl(200, 0%, 50%)');
       expect(hue()).toHaveAttribute('aria-valuetext', '200 degrees');
+      expect(container.querySelector('input[type="hidden"]')).toHaveValue(
+        'hsl(200, 0%, 50%)'
+      );
     });
 
     it('leaves Enter, Escape and leaving alone when nothing was typed', () => {
@@ -737,6 +812,15 @@ describe('ColorPicker', () => {
       expect(onChangeEnd).toHaveBeenCalledWith('hsla(0, 100%, 50%, 0.5)');
     });
 
+    it('keeps the hue for a gray from the screen', async () => {
+      eyeDropper(Promise.resolve({ sRGBHex: '#808080' }));
+      setup({ eyeDropper: true, defaultValue: 'hsl(200, 100%, 50%)' });
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button'));
+      });
+      expect(field()).toHaveValue('hsl(200, 0%, 50%)');
+    });
+
     it('does nothing when it is cancelled or gives back nothing readable', async () => {
       const open = eyeDropper(Promise.resolve({ sRGBHex: 'nope' }));
       open.mockReturnValueOnce(Promise.reject(new DOMException('', 'Abort')));
@@ -757,7 +841,7 @@ describe('ColorPicker', () => {
       return (
         <>
           <ColorPicker value={value} onChange={setValue} format="hex" />
-          <button onClick={() => setValue('hsl(0, 0%, 50%)')}>Gray</button>
+          <button onClick={() => setValue('#808080')}>Gray</button>
           <button onClick={() => setValue('garbage')}>Garbage</button>
           <output>{value}</output>
         </>
@@ -781,6 +865,23 @@ describe('ColorPicker', () => {
       expect(field()).toHaveValue('#808080');
       const [x] = areaInputs(container);
       expect(x).toHaveValue('0');
+    });
+
+    it('takes the hue a controlled hsl() gray names, however late it comes', () => {
+      const { container, rerender } = render(
+        <ColorPicker value="hsl(100, 100%, 50%)" name="tone" />
+      );
+      rerender(<ColorPicker value="hsl(200, 0%, 50%)" name="tone" />);
+      expect(field()).toHaveValue('hsl(200, 0%, 50%)');
+      expect(container.querySelector('input[type="hidden"]')).toHaveValue(
+        'hsl(200, 0%, 50%)'
+      );
+      expect(hue()).toHaveAttribute('aria-valuetext', '200 degrees');
+      // A hex or named gray still keeps the hue the picker had.
+      rerender(<ColorPicker value="#666666" name="tone" />);
+      expect(hue()).toHaveAttribute('aria-valuetext', '200 degrees');
+      rerender(<ColorPicker value="silver" name="tone" />);
+      expect(field()).toHaveValue('hsl(200, 0%, 75%)');
     });
 
     it('keeps the saturation for a black value', () => {
@@ -927,6 +1028,8 @@ describe('ColorPicker', () => {
     ] as const)('%s warns and renders nothing', (name, Part) => {
       const { container } = render(<Part />);
       expect(container).toBeEmptyDOMElement();
+      // Given swatches it can't read, it still renders nothing.
+      render(<Part swatches={['var(--bulma-primary)']} />);
       expect(warnSpy).toHaveBeenCalledWith(
         expect.stringContaining(`<ColorPicker.${name}>`)
       );

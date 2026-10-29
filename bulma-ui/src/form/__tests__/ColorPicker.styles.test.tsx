@@ -149,6 +149,28 @@ describe('ColorPicker styles', () => {
     });
   });
 
+  it('draws the check in black or white in a ring of the other, and in the scheme’s colors on a see-through swatch', () => {
+    const swatch = '.color-picker-swatch';
+    expect(find(PLAIN, `${swatch} .color-swatch`).color).toBe(
+      'hsl(0, 0%, 100%)'
+    );
+    expect(find(PLAIN, `${swatch} .color-picker-check-halo`)).toEqual({
+      stroke: 'hsl(0, 0%, 0%)',
+    });
+    expect(find(PLAIN, `${swatch}.is-dark-ink .color-swatch`)).toEqual({
+      color: 'hsl(0, 0%, 0%)',
+    });
+    expect(
+      find(PLAIN, `${swatch}.is-dark-ink .color-picker-check-halo`)
+    ).toEqual({ stroke: 'hsl(0, 0%, 100%)' });
+    expect(find(PLAIN, `${swatch}.is-see-through .color-swatch`)).toEqual({
+      color: 'var(--bulma-text-strong)',
+    });
+    expect(
+      find(PLAIN, `${swatch}.is-see-through .color-picker-check-halo`)
+    ).toEqual({ stroke: 'var(--bulma-scheme-main)' });
+  });
+
   it('keeps the colors in forced colors, with system edges and rings', () => {
     expect(find(PLAIN, '.color-area, .color-slider-track', FORCED)).toEqual({
       'box-shadow': 'inset 0 0 0 1px CanvasText',
