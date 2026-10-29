@@ -73,6 +73,21 @@ function ChoiceCardIcon() {
   );
 }
 
+// A square with its thumb, a hue slider under it, and a row of swatches
+function ColorPickerIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="2.5" width="18" height="11" rx="1.5" />
+      <circle cx="14.5" cy="6.5" r="1.6" />
+      <path d="M3 17h18" />
+      <circle cx="8" cy="17" r="1.6" />
+      <rect x="3" y="20" width="3" height="2" rx="0.5" />
+      <rect x="8" y="20" width="3" height="2" rx="0.5" />
+      <rect x="13" y="20" width="3" height="2" rx="0.5" />
+    </svg>
+  );
+}
+
 // Panel with expanding chevron — collapse
 function CollapseIcon() {
   return (
@@ -331,6 +346,7 @@ const ADDON_ICONS = {
   carousel: CarouselIcon,
   choicecard: ChoiceCardIcon,
   collapse: CollapseIcon,
+  colorpicker: ColorPickerIcon,
   combobox: ComboboxIcon,
   command: CommandIcon,
   contextmenu: ContextMenuIcon,

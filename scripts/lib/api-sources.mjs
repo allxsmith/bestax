@@ -116,6 +116,12 @@ export const SCSS_SOURCES = {
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_collapse.scss' },
   ],
   Collapses: [],
+  ColorPicker: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_colorpicker.scss' },
+  ],
+  ColorSwatch: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/elements/_colorswatch.scss' },
+  ],
   Column: [{ pkg: 'bulma', path: 'sass/grid/columns.scss' }],
   Columns: [],
   Combobox: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_combobox.scss' }],
@@ -205,6 +211,7 @@ export const SCSS_SOURCES = {
   Loading: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_loading.scss' },
   ],
+  LocaleProvider: [],
   Media: [{ pkg: 'bulma', path: 'sass/layout/media.scss' }],
   Menu: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_menu.scss' },

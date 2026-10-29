@@ -16,6 +16,7 @@ import { Radio } from '../Radio';
 import { Slider } from '../Slider';
 import { PinInput } from '../PinInput';
 import { Rate } from '../Rate';
+import { ColorPicker } from '../ColorPicker';
 import { File as FileInput } from '../File';
 import { Taginput } from '../Taginput';
 import { Combobox } from '../Combobox';
@@ -130,6 +131,11 @@ const wrappers: Wrapper[] = [
   { name: 'Slider', render: p => <Slider {...p} />, root: '.slider' },
   { name: 'PinInput', render: p => <PinInput {...p} />, root: '.pin-input' },
   { name: 'Rate', render: p => <Rate {...p} />, root: '.rate' },
+  {
+    name: 'ColorPicker',
+    render: p => <ColorPicker {...p} />,
+    root: '.color-picker',
+  },
   {
     name: 'File',
     // Its own `iconLeft` is narrower than the Control's, and the tests that

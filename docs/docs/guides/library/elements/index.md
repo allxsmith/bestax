@@ -414,6 +414,16 @@ A container for grouping multiple `Tag` components, supporting add-ons and multi
 
 ---
 
+### ColorSwatch
+
+A color shown as a small chip, an image named by its label or by the color itself, with a checkerboard behind a see-through color. [View full documentation.](../../../api/elements/colorswatch.md)
+
+```tsx live
+<ColorSwatch color="#1e6b99" label="Brand blue" />
+```
+
+---
+
 ## Feedback
 
 ### Notification

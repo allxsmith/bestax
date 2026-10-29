@@ -59,6 +59,13 @@ const UNRENDERED = new Map([
     'ContextMenu',
     'its menu, which takes the helper props, opens on a right-click',
   ],
+  // The picker's parts read its color from the ColorPicker around them and
+  // render nothing alone. Each puts both on its root <div>, as the
+  // ColorPicker tests show.
+  ...['Area', 'HueSlider', 'AlphaSlider', 'Swatches', 'Input'].map(part => [
+    `ColorPicker.${part}`,
+    'it renders only inside a ColorPicker, which holds its color',
+  ]),
 ]);
 
 /** Every opening tag in some markup, with its attributes and classes. */

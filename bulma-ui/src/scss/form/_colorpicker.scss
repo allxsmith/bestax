@@ -1,0 +1,330 @@
+// Bestax Extras - ColorPicker Styles
+// A panel for choosing a color: a saturation and brightness square, a hue
+// slider, an alpha slider, the value as text, and swatches. Bulma has no
+// color picker.
+//
+// The square and the sliders are drawn here, and the native range inputs
+// that operate them are visually hidden inside their thumbs. The component
+// sets the hue as `--color-picker-hue`, the color's channels as
+// `--color-picker-rgb`, and the thumbs' places as `--color-area-x`,
+// `--color-area-y` and `--color-slider-position`. Forced colors would wipe
+// the gradients, so everything that shows a color opts out of it and takes
+// an edge in the system's text color instead.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+@use '../mixins' as *;
+
+// The square and the hue track are the color model itself, so they're
+// fixed, not themed.
+$-black: hsl(0, 0%, 0%);
+$-white: hsl(0, 0%, 100%);
+$-hue-stops: hsl(0, 100%, 50%), hsl(60, 100%, 50%), hsl(120, 100%, 50%), hsl(180, 100%, 50%), hsl(240, 100%, 50%), hsl(300, 100%, 50%), hsl(360, 100%, 50%);
+// The check on a chosen swatch, black or white, whichever reads better.
+$-ink-dark: hsl(0, 0%, 0%);
+$-ink-light: hsl(0, 0%, 100%);
+
+$color-picker-width: 16rem !default;
+$color-picker-gap: 0.75rem !default;
+$color-picker-area-height: 10rem !default;
+$color-picker-area-radius: cv.getVar('radius') !default;
+// The sliders' height is what a press lands on; the track is drawn thinner
+// inside it.
+$color-picker-slider-height: 1.5rem !default;
+$color-picker-track-height: 0.75rem !default;
+$color-picker-track-radius: cv.getVar('radius-rounded') !default;
+$color-picker-thumb-size: 1.25rem !default;
+$color-picker-thumb-border-width: 3px !default;
+$color-picker-thumb-color: hsl(0, 0%, 100%) !default;
+// A dark ring each side of the white one, so a thumb shows on any color.
+$color-picker-thumb-shadow: 0 0 0 1px hsla(0, 0%, 0%, 0.45), inset 0 0 0 1px hsla(0, 0%, 0%, 0.45) !default;
+$color-picker-edge-color: hsla(
+  cv.getVar('text-h'),
+  cv.getVar('text-s'),
+  cv.getVar('text-l'),
+  0.2
+) !default;
+$color-picker-checker-color: cv.getVar('border') !default;
+$color-picker-checker-background: cv.getVar('scheme-main') !default;
+$color-picker-checker-size: 0.375rem !default;
+$color-picker-swatch-size: 1.5rem !default;
+$color-picker-swatch-gap: 0.25rem !default;
+$color-picker-swatch-radius: cv.getVar('radius') !default;
+$color-picker-swatch-ring-color: cv.getVar('text-strong') !default;
+$color-picker-preview-size: 1.875rem !default;
+$color-picker-disabled-opacity: 0.5 !default;
+
+.#{iv.$class-prefix}color-picker {
+  @include cv.register-vars(
+    (
+      'color-picker-width': #{$color-picker-width},
+      'color-picker-gap': #{$color-picker-gap},
+      'color-picker-area-height': #{$color-picker-area-height},
+      'color-picker-area-radius': #{$color-picker-area-radius},
+      'color-picker-slider-height': #{$color-picker-slider-height},
+      'color-picker-track-height': #{$color-picker-track-height},
+      'color-picker-track-radius': #{$color-picker-track-radius},
+      'color-picker-thumb-size': #{$color-picker-thumb-size},
+      'color-picker-thumb-border-width': #{$color-picker-thumb-border-width},
+      'color-picker-thumb-color': #{$color-picker-thumb-color},
+      'color-picker-thumb-shadow': #{$color-picker-thumb-shadow},
+      'color-picker-edge-color': #{$color-picker-edge-color},
+      'color-picker-checker-color': #{$color-picker-checker-color},
+      'color-picker-checker-background': #{$color-picker-checker-background},
+      'color-picker-checker-size': #{$color-picker-checker-size},
+      'color-picker-swatch-size': #{$color-picker-swatch-size},
+      'color-picker-swatch-gap': #{$color-picker-swatch-gap},
+      'color-picker-swatch-radius': #{$color-picker-swatch-radius},
+      'color-picker-swatch-ring-color': #{$color-picker-swatch-ring-color},
+      'color-picker-preview-size': #{$color-picker-preview-size},
+      'color-picker-disabled-opacity': #{$color-picker-disabled-opacity},
+    )
+  );
+}
+
+// ---- The panel -------------------------------------------------------------------
+
+.#{iv.$class-prefix}color-picker {
+  display: flex;
+  flex-direction: column;
+  gap: cv.getVar('color-picker-gap');
+  inline-size: cv.getVar('color-picker-width');
+  max-inline-size: 100%;
+}
+
+// ---- The square ------------------------------------------------------------------
+
+.#{iv.$class-prefix}color-area {
+  position: relative;
+  block-size: cv.getVar('color-picker-area-height');
+  border-radius: cv.getVar('color-picker-area-radius');
+  // White to the hue across, black up from the bottom: saturation by
+  // brightness at this hue.
+  background:
+    linear-gradient(to top, #{$-black}, transparent),
+    linear-gradient(
+      to right,
+      #{$-white},
+      hsl(var(--color-picker-hue, 0) 100% 50%)
+    );
+  box-shadow: inset 0 0 0 1px cv.getVar('color-picker-edge-color');
+  cursor: crosshair;
+  // A drag moves the thumb rather than scrolling the page.
+  touch-action: none;
+  user-select: none;
+  forced-color-adjust: none;
+}
+
+// Saturation runs from the inline start, so right to left it grows leftward.
+.#{iv.$class-prefix}color-area:dir(rtl) {
+  background:
+    linear-gradient(to top, #{$-black}, transparent),
+    linear-gradient(
+      to left,
+      #{$-white},
+      hsl(var(--color-picker-hue, 0) 100% 50%)
+    );
+}
+
+// ---- The sliders -----------------------------------------------------------------
+
+.#{iv.$class-prefix}color-slider {
+  position: relative;
+  block-size: cv.getVar('color-picker-slider-height');
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  forced-color-adjust: none;
+}
+
+.#{iv.$class-prefix}color-slider-track {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 50%;
+  block-size: cv.getVar('color-picker-track-height');
+  margin-block-start: calc(#{cv.getVar('color-picker-track-height')} / -2);
+  border-radius: cv.getVar('color-picker-track-radius');
+  box-shadow: inset 0 0 0 1px cv.getVar('color-picker-edge-color');
+}
+
+.#{iv.$class-prefix}color-slider.#{iv.$class-prefix}is-hue
+  .#{iv.$class-prefix}color-slider-track {
+  background: linear-gradient(to right, $-hue-stops);
+}
+
+.#{iv.$class-prefix}color-slider.#{iv.$class-prefix}is-hue
+  .#{iv.$class-prefix}color-slider-track:dir(rtl) {
+  background: linear-gradient(to left, $-hue-stops);
+}
+
+// From see-through to the solid color, over a checkerboard.
+.#{iv.$class-prefix}color-slider.#{iv.$class-prefix}is-alpha
+  .#{iv.$class-prefix}color-slider-track {
+  background:
+    linear-gradient(
+      to right,
+      rgb(var(--color-picker-rgb, 0 0 0) / 0),
+      rgb(var(--color-picker-rgb, 0 0 0))
+    ),
+    repeating-conic-gradient(
+        cv.getVar('color-picker-checker-color') 0% 25%,
+        cv.getVar('color-picker-checker-background') 0% 50%
+      )
+      0 0 / calc(#{cv.getVar('color-picker-checker-size')} * 2)
+      calc(#{cv.getVar('color-picker-checker-size')} * 2);
+}
+
+.#{iv.$class-prefix}color-slider.#{iv.$class-prefix}is-alpha
+  .#{iv.$class-prefix}color-slider-track:dir(rtl) {
+  background:
+    linear-gradient(
+      to left,
+      rgb(var(--color-picker-rgb, 0 0 0) / 0),
+      rgb(var(--color-picker-rgb, 0 0 0))
+    ),
+    repeating-conic-gradient(
+        cv.getVar('color-picker-checker-color') 0% 25%,
+        cv.getVar('color-picker-checker-background') 0% 50%
+      )
+      0 0 / calc(#{cv.getVar('color-picker-checker-size')} * 2)
+      calc(#{cv.getVar('color-picker-checker-size')} * 2);
+}
+
+// ---- Thumbs ----------------------------------------------------------------------
+
+// A ring that shows the color under it; its centre is the value.
+.#{iv.$class-prefix}color-area-thumb,
+.#{iv.$class-prefix}color-slider-thumb {
+  position: absolute;
+  inline-size: cv.getVar('color-picker-thumb-size');
+  block-size: cv.getVar('color-picker-thumb-size');
+  margin-inline-start: calc(#{cv.getVar('color-picker-thumb-size')} / -2);
+  margin-block-start: calc(#{cv.getVar('color-picker-thumb-size')} / -2);
+  border: cv.getVar('color-picker-thumb-border-width') solid
+    cv.getVar('color-picker-thumb-color');
+  border-radius: 50%;
+  box-shadow: cv.getVar('color-picker-thumb-shadow');
+  pointer-events: none;
+}
+
+.#{iv.$class-prefix}color-area-thumb {
+  inset-inline-start: var(--color-area-x, 0%);
+  inset-block-start: var(--color-area-y, 100%);
+}
+
+.#{iv.$class-prefix}color-slider-thumb {
+  inset-inline-start: var(--color-slider-position, 0%);
+  inset-block-start: 50%;
+}
+
+// The inputs that operate them, there for the keyboard and assistive tech.
+.#{iv.$class-prefix}color-area-input,
+.#{iv.$class-prefix}color-slider-input {
+  @include extras-sr-only;
+}
+
+.#{iv.$class-prefix}color-area-thumb:has(:focus-visible),
+.#{iv.$class-prefix}color-slider-thumb:has(:focus-visible) {
+  @include extras-focus-outline;
+}
+
+// ---- The value -------------------------------------------------------------------
+
+.#{iv.$class-prefix}color-picker-value {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.#{iv.$class-prefix}color-picker-value
+  > .#{iv.$class-prefix}color-picker-preview {
+  inline-size: cv.getVar('color-picker-preview-size');
+  block-size: cv.getVar('color-picker-preview-size');
+}
+
+.#{iv.$class-prefix}color-picker-value > .#{iv.$class-prefix}input {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+// ---- Swatches --------------------------------------------------------------------
+
+.#{iv.$class-prefix}color-picker-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: cv.getVar('color-picker-swatch-gap');
+}
+
+// The button rings the swatch when it's chosen, so the choice shows as an
+// edge and a check as well as a color.
+.#{iv.$class-prefix}color-picker-swatch {
+  @include extras-button-reset;
+  display: inline-flex;
+  padding: 2px;
+  border: 2px solid transparent;
+  border-radius: calc(#{cv.getVar('color-picker-swatch-radius')} + 4px);
+  line-height: 0;
+
+  &:focus-visible {
+    @include extras-focus-outline;
+  }
+
+  .#{iv.$class-prefix}color-swatch {
+    inline-size: cv.getVar('color-picker-swatch-size');
+    block-size: cv.getVar('color-picker-swatch-size');
+    border-radius: cv.getVar('color-picker-swatch-radius');
+    color: $-ink-light;
+    font-size: calc(#{cv.getVar('color-picker-swatch-size')} * 0.75);
+  }
+
+  &.#{iv.$class-prefix}is-dark-ink .#{iv.$class-prefix}color-swatch {
+    color: $-ink-dark;
+  }
+
+  &.#{iv.$class-prefix}is-checked {
+    border-color: cv.getVar('color-picker-swatch-ring-color');
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+// ---- Disabled --------------------------------------------------------------------
+
+.#{iv.$class-prefix}color-picker.#{iv.$class-prefix}is-disabled,
+.#{iv.$class-prefix}color-area.#{iv.$class-prefix}is-disabled,
+.#{iv.$class-prefix}color-slider.#{iv.$class-prefix}is-disabled {
+  cursor: not-allowed;
+}
+
+.#{iv.$class-prefix}color-area.#{iv.$class-prefix}is-disabled,
+.#{iv.$class-prefix}color-slider.#{iv.$class-prefix}is-disabled,
+.#{iv.$class-prefix}color-picker-swatches[aria-disabled='true'] {
+  opacity: cv.getVar('color-picker-disabled-opacity');
+}
+
+// ---- Forced colors ---------------------------------------------------------------
+
+@media (forced-colors: active) {
+  // The colors stay, edged in the system's text color.
+  .#{iv.$class-prefix}color-area,
+  .#{iv.$class-prefix}color-slider-track {
+    box-shadow: inset 0 0 0 1px CanvasText;
+  }
+
+  .#{iv.$class-prefix}color-area-thumb:has(:focus-visible),
+  .#{iv.$class-prefix}color-slider-thumb:has(:focus-visible) {
+    outline-color: Highlight;
+  }
+
+  // An unchosen swatch's border would otherwise show like the chosen one's.
+  .#{iv.$class-prefix}color-picker-swatch {
+    border-color: Canvas;
+  }
+
+  .#{iv.$class-prefix}color-picker-swatch.#{iv.$class-prefix}is-checked {
+    border-color: Highlight;
+  }
+}

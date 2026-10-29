@@ -209,6 +209,21 @@ const [stay, setStay] = useState<DateRangeValue>([null, null]);
 />;
 ```
 
+## Color — `form/ColorPicker.tsx`
+
+`ColorPicker` is a panel: a saturation and brightness square, a hue slider, and the value as text
+you can type in. `value`/`defaultValue` take any color it reads (hex, `rgb()`, `hsl()`, a CSS
+name); `onChange(value)` fires on every drag step and `onChangeEnd(value)` once a change is done
+(the place to save). `format` writes `'hsl'` (default, `hsl(171, 100%, 41%)`, the channels
+`Theme`'s `primaryH`/`primaryS`/`primaryL` take), `'hex'` or `'rgb'`; `alpha` adds a slider and
+writes `hsla()`, `#rrggbbaa` or `rgba()`. `swatches` takes colors (strings or `{ color, label }`)
+or `"bulma"` for the page's six theme colors, read from its CSS variables. `eyeDropper` adds a
+screen picker where the browser has one. `name` adds a hidden input; it takes the Field props and
+a disabled `Fieldset`. Parts for a layout of your own: `ColorPicker.Area`, `.HueSlider`,
+`.AlphaSlider`, `.Swatches`, `.Input`, inside a `ColorPicker`. Don't hand-build a picker from
+`Slider`s, and don't reach for `<Input type="color">` unless the browser's own well (hex only,
+never empty) is enough. `ColorSwatch` (`color`, `label`) shows a color without choosing one.
+
 ## Validation-related props (no library)
 
 There is no validation engine. The props you use to reflect externally-computed validation are:
