@@ -6,8 +6,10 @@
 // with forced colors on (or off) would.
 import * as sass from 'sass';
 import path from 'path';
+import React from 'react';
 import { render } from '@testing-library/react';
 import { Checkbox, type CheckboxProps } from '../Checkbox';
+import { Dropdown } from '../../components/Dropdown';
 import { ConfigProvider } from '../../helpers/Config';
 
 const SCSS = path.resolve(__dirname, '../../scss');
@@ -242,22 +244,26 @@ describe.each([
         'var(--bulma-table-row-active-background-color)',
     };
 
-    /** The Checkbox's label, in a cell of a row or a cell marked selected. */
-    const labelIn = (selected: 'row' | 'cell' | 'none', props = {}) => {
+    /**
+     * The first Checkbox's label in `content`, which sits in a cell of a
+     * row, or in a cell, marked selected (or neither).
+     */
+    const labelIn = (
+      selected: 'row' | 'cell' | 'none',
+      content: React.ReactNode,
+      cell: 'td' | 'th' = 'td'
+    ) => {
+      const Cell = cell;
       const { container } = render(
         <ConfigProvider classPrefix={prefix}>
           <table className={`${prefix}table`}>
             <tbody>
               <tr className={selected === 'row' ? `${prefix}is-selected` : ''}>
-                <td
+                <Cell
                   className={selected === 'cell' ? `${prefix}is-selected` : ''}
                 >
-                  <Checkbox
-                    aria-label="Select Ada"
-                    onChange={() => {}}
-                    {...props}
-                  />
-                </td>
+                  {content}
+                </Cell>
               </tr>
             </tbody>
           </table>
@@ -268,28 +274,88 @@ describe.each([
       ) as HTMLElement;
     };
 
+    const box = (props: CheckboxProps = {}) => (
+      <Checkbox aria-label="Select Ada" onChange={() => {}} {...props} />
+    );
+
+    /** Whether a label takes the selected row's colors. */
+    const takesRowColors = (label: HTMLElement) =>
+      Object.entries(ROW_VARS).every(
+        ([name, value]) => resolve(label, name) === value
+      );
+
     it.each([
-      ['row', 'row'],
-      ['cell', 'cell'],
-    ] as const)('takes the colors of a selected %s', (_name, selected) => {
-      const label = labelIn(selected, { checked: true });
-      for (const [name, value] of Object.entries(ROW_VARS)) {
-        expect(resolve(label, name)).toBe(value);
+      ['row', 'row', 'td'],
+      ['row, in its row header', 'row', 'th'],
+      ['cell', 'cell', 'td'],
+    ] as const)(
+      'takes the colors of a selected %s',
+      (_name, selected, cell) => {
+        const label = labelIn(selected, box({ checked: true }), cell);
+        for (const [name, value] of Object.entries(ROW_VARS)) {
+          expect(resolve(label, name)).toBe(value);
+        }
       }
-    });
+    );
 
     it('outranks a color variant there', () => {
-      const label = labelIn('row', { checked: true, color: 'danger' });
+      const label = labelIn('row', box({ checked: true, color: 'danger' }));
       expect(resolve(label, '--bulma-checkbox-active-color')).toBe(
         ROW_VARS['--bulma-checkbox-active-color']
       );
     });
 
     it('keeps its own colors on a row that is not selected', () => {
-      const label = labelIn('none', { checked: true });
+      const label = labelIn('none', box({ checked: true }));
       expect(resolve(label, '--bulma-checkbox-active-color')).toBe(
         'var(--bulma-primary)'
       );
+    });
+
+    // Anything that puts a surface of its own between the cell and the box
+    // puts the box on that surface's background, not the row's fill.
+    it('keeps its own colors in a Dropdown menu in the row', () => {
+      const label = labelIn(
+        'row',
+        <Dropdown label="Actions" active>
+          <Dropdown.Item as="div">{box({ checked: true })}</Dropdown.Item>
+        </Dropdown>
+      );
+      expect(label.closest(`.${prefix}dropdown-content`)).not.toBeNull();
+      expect(takesRowColors(label)).toBe(false);
+      expect(resolve(label, '--bulma-checkbox-active-color')).toBe(
+        'var(--bulma-primary)'
+      );
+    });
+
+    it('keeps its own colors in a table nested in the row', () => {
+      const nested = (rowSelected: boolean) => (
+        <table className={`${prefix}table`}>
+          <tbody>
+            <tr className={rowSelected ? `${prefix}is-selected` : ''}>
+              <td>{box({ checked: true })}</td>
+            </tr>
+          </tbody>
+        </table>
+      );
+      expect(takesRowColors(labelIn('row', nested(false)))).toBe(false);
+      // A selected row of the nested table is a fill of its own again.
+      expect(takesRowColors(labelIn('none', nested(true)))).toBe(true);
+    });
+
+    it('keeps its system colors in forced colors', () => {
+      const forced = { forcedColors: true };
+      const checkOn = (props: CheckboxProps) =>
+        labelIn('row', box(props)).querySelector(
+          `.${prefix}check`
+        ) as HTMLElement;
+      const checked = checkOn({ checked: true });
+      expect(resolve(checked, 'background-color', forced)).toBe('Highlight');
+      expect(resolve(checked, 'border-color', forced)).toBe('Highlight');
+      expect(
+        resolve(checked, 'background-color', { ...forced, pseudo: '::after' })
+      ).toBe('HighlightText');
+      expect(resolve(checkOn({}), 'border-color', forced)).toBe('ButtonText');
     });
   });
 

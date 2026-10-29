@@ -190,11 +190,17 @@ $-check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
 // the text color too. This outranks the color variants on purpose: any color
 // on that fill is a guess, and the row's own pair is the one Bulma made to
 // read.
+//
+// Only a Checkbox placed straight in one of those cells sits on the row's
+// fill, so the rule names each step down to it rather than any checkbox
+// below the row. One inside a menu, a card or a table nested in the cell sits
+// on that surface's own background, and keeps its own colors there.
 .#{iv.$class-prefix}table {
-  tr.#{iv.$class-prefix}is-selected,
+  tr.#{iv.$class-prefix}is-selected > td,
+  tr.#{iv.$class-prefix}is-selected > th,
   td.#{iv.$class-prefix}is-selected,
   th.#{iv.$class-prefix}is-selected {
-    .#{iv.$class-prefix}styled-checkbox {
+    > .#{iv.$class-prefix}styled-checkbox {
       @include cv.register-vars(
         (
           "checkbox-border-color": #{cv.getVar("table-row-active-color")},
