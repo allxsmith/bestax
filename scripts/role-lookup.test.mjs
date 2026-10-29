@@ -43,12 +43,7 @@ const WORKFLOWS = path.join(repoRoot, '.github', 'workflows');
  * now calls `lookup_role`, or no longer exists, fails the test, so none
  * outlives its reason.
  */
-const PENDING = new Map([
-  [
-    'claude-review.yml:review:Check labeler permission',
-    'a PR whose copy of claude-review.yml differs from the default branch is not deep-reviewed, so this step changes in a PR of its own',
-  ],
-]);
+const PENDING = new Map([]);
 
 /** A shell script with its comment lines removed. */
 const shellCode = script =>
