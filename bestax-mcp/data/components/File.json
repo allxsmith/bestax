@@ -18,6 +18,10 @@
       "code": "<File\n  hasName\n  fileName=\"resume.pdf\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n/>"
     },
     {
+      "title": "Dropping Files",
+      "code": "<File\n  isBoxed\n  hasName\n  multiple\n  accept=\".pdf,application/pdf\"\n  buttonLabel=\"Choose or drop PDFs…\"\n  iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n/>"
+    },
+    {
       "title": "CTA on Right",
       "code": "<File\n  hasName\n  isRight\n  fileName=\"contract.pdf\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n/>"
     },
@@ -74,7 +78,7 @@
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Document\"\n      labelProps={{ htmlFor: 'document-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"paperclip\">\n            <File\n              id=\"document-field-control\"\n              buttonLabel=\"Choose a file…\"\n              iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
-  "accessibility": "- The root is a `<div class=\"file\">` with a nested `<label>` and `<input type=\"file\">`.\n- The label is always clickable.\n- The focus ring shows for keyboard focus only, drawn inside the CTA in Bulma's focus color, width and style (`--bulma-focus-h`, `--bulma-focus-s`, `--bulma-focus-l`, `--bulma-focus-width`, `--bulma-focus-style`). On a colored `File` it takes the CTA's text color instead, so it shows against the fill. It comes from the bestax extras (`extras.css`, or `bestax.css`, which includes them); with Bulma's CSS alone the input shows no focus ring.\n- When `File` renders its own `Field` (that is, outside an existing one), the Field-level `label` prop is automatically associated with the file input via `htmlFor`, so the input then has two labels (the Field label plus the wrapping CTA label); assistive technology reads both. An explicit `labelProps.htmlFor` overrides the association and no id is generated. Inside a labeled `Field`, that `Field`'s label is associated with the file input the same way, so the input again has two labels.\n- The name area sits inside the CTA's label, so with `hasName` its text joins the input's accessible name (\"Choose a file… resume.pdf\"). Browsers can also expose a picked file on the input itself, so a screen reader may read the name twice. It stays in the label because text you pass in `fileName`, such as a file uploaded earlier, reaches assistive technology only from there.\n- Add `aria-label` to the `<input>` for accessibility if your label is not plain text.",
+  "accessibility": "- The root is a `<div class=\"file\">` with a nested `<label>` and `<input type=\"file\">`.\n- The label is always clickable.\n- Dropping a file is never the only way to choose one: the same input opens the picker on a click, and on Enter or Space once it has focus.\n- The focus ring shows for keyboard focus only, drawn inside the CTA in Bulma's focus color, width and style (`--bulma-focus-h`, `--bulma-focus-s`, `--bulma-focus-l`, `--bulma-focus-width`, `--bulma-focus-style`). On a colored `File` it takes the CTA's text color instead, so it shows against the fill. It comes from the bestax extras (`extras.css`, or `bestax.css`, which includes them); with Bulma's CSS alone the input shows no focus ring.\n- When `File` renders its own `Field` (that is, outside an existing one), the Field-level `label` prop is automatically associated with the file input via `htmlFor`, so the input then has two labels (the Field label plus the wrapping CTA label); assistive technology reads both. An explicit `labelProps.htmlFor` overrides the association and no id is generated. Inside a labeled `Field`, that `Field`'s label is associated with the file input the same way, so the input again has two labels.\n- The name area sits inside the CTA's label, so with `hasName` its text joins the input's accessible name (\"Choose a file… resume.pdf\"). Browsers can also expose a picked file on the input itself, so a screen reader may read the name twice. It stays in the label because text you pass in `fileName`, such as a file uploaded earlier, reaches assistive technology only from there.\n- Add `aria-label` to the `<input>` for accessibility if your label is not plain text.",
   "related": ["Field", "Icon", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-file--default",
   "summary": "The `File` component provides a Bulma-styled file input, supporting color, size, boxed/fullwidth/align styles, icons, \"has name\", and filename display.",
@@ -296,7 +300,26 @@
           "deprecated": false
         }
       ],
-      "extraProps": [],
+      "extraProps": [
+        {
+          "name": "accept",
+          "type": "string",
+          "default": null,
+          "description": "File types the picker offers, as the native attribute takes them (`.pdf`, `image/*`, `application/pdf`). Browsers apply it in the picker only: a file dropped on the input lands whatever its type, so check `files` in `onChange` when the type matters.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(event: React.ChangeEvent<HTMLInputElement>) => void",
+          "default": null,
+          "description": "Called when the user picks files, or drops them on the input. With the extras stylesheet loaded, a drop does what a pick does: it replaces what was picked and fires `input` and `change`. A drop of several files lands only with `multiple`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
       "catchAll": "All standard <input> attributes and Bulma helper props",
       "helperPropsNote": "Helper props go on the `.file` wrapper `<div>`, with `className`. The other attributes go on the `<input>`.",
       "types": []

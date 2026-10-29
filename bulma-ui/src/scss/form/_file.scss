@@ -1,8 +1,36 @@
 // File Component Styles
-// Bulma already styles the file input; this adds its keyboard focus ring
+// Bulma already styles the file input; this lets a dropped file reach it and
+// adds its keyboard focus ring
 
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
+
+// Bulma lays the transparent <input> over the whole widget, but its CTA and
+// name are positioned too and come after it, so they paint over it. A
+// browser hands a dropped file only to a file input under the pointer, so a
+// drop on them did nothing. Lifting the input puts it on top, where it takes
+// the drop the way a plain file input does. The label isolates the lift, so
+// the input rises above the CTA and name only, never above something else on
+// the page that overlaps the widget. The input then also takes the pointer,
+// so it carries the pointer cursor Bulma gives the label, and so does the
+// button inside it, which browsers give a cursor of its own. That button is
+// stretched over the whole input too: in a shadow root, Chromium hands a
+// file input a drop only over its button, not over the "No file chosen"
+// beside it. The input is transparent, so none of this shows.
+.#{iv.$class-prefix}file-label {
+  isolation: isolate;
+}
+
+.#{iv.$class-prefix}file-input {
+  cursor: pointer;
+  z-index: 1;
+
+  &::file-selector-button {
+    cursor: pointer;
+    height: 100%;
+    width: 100%;
+  }
+}
 
 // Keyboard focus ring for File. The focusable element is the <input>, which
 // Bulma lays transparent over the whole widget, so the ring goes on the CTA

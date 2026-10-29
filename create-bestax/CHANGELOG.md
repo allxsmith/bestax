@@ -1,3 +1,18 @@
+# [4.6.0](https://github.com/allxsmith/bestax/compare/create-bestax@4.5.0...create-bestax@4.6.0) (2026-10-29)
+
+
+### Bug Fixes
+
+* **bulma-ui:** let a file dropped on File reach its input ([354d289](https://github.com/allxsmith/bestax/commit/354d2893749a5664ce3e1f6a496c6268dac73698))
+
+
+### Features
+
+* **bulma-ui:** let the locale matcher find text whose marks differ from the query ([025bb82](https://github.com/allxsmith/bestax/commit/025bb827ec44a08371de034267e6292fb27d5c49))
+* **bulma-ui:** match Command's actions in the LocaleProvider's locale ([bc9ef1f](https://github.com/allxsmith/bestax/commit/bc9ef1f333a6e333407535059b89e9626d840c7a))
+* **bulma-ui:** write numbers and match typed text in the LocaleProvider's locale ([2f50b5e](https://github.com/allxsmith/bestax/commit/2f50b5e07456f8c8b5863df33e896138aedc78db))
+* **create-bestax:** add a TanStack Router template, with a navbar that checks its links ([8a37944](https://github.com/allxsmith/bestax/commit/8a379446fddc129ad336f227848e30fadc7419f4))
+
 # [4.5.0](https://github.com/allxsmith/bestax/compare/create-bestax@4.4.0...create-bestax@4.5.0) (2026-10-29)
 
 

@@ -27,6 +27,8 @@ import { useAutoLabelId } from './useAutoLabelId';
  *
  * @helperProps Helper props go on the `.file` wrapper `<div>`, with
  * `className`. The other attributes go on the `<input>`.
+ * @extraProp {string} [accept] - File types the picker offers, as the native attribute takes them (`.pdf`, `image/*`, `application/pdf`). Browsers apply it in the picker only: a file dropped on the input lands whatever its type, so check `files` in `onChange` when the type matters.
+ * @extraProp {(event: React.ChangeEvent<HTMLInputElement>) => void} [onChange] - Called when the user picks files, or drops them on the input. With the extras stylesheet loaded, a drop does what a pick does: it replaces what was picked and fires `input` and `change`. A drop of several files lands only with `multiple`.
  */
 export interface FileProps
   extends
