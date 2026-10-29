@@ -20,7 +20,15 @@ export const EVENT_FOR_TOOL = {
 } as const;
 
 // create-bestax/src/constants.ts → TEMPLATES
-const TEMPLATE_VALUES = ['vite', 'vite-ts'] as const;
+const TEMPLATE_VALUES = [
+  'vite',
+  'vite-ts',
+  'vite-compiler',
+  'vite-compiler-ts',
+  'react-router',
+  'react-router-ts',
+  'tanstack-router-ts',
+] as const;
 // create-bestax/src/constants.ts → BULMA_FLAVORS
 const BULMA_FLAVOR_VALUES = [
   'complete',

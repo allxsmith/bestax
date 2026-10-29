@@ -197,7 +197,7 @@
           "name": "getPageLabel",
           "type": "(page: number) => string",
           "default": null,
-          "description": "The accessible name of a page's link, when rendering from `total`, since its content is only the number (`page => 'Page ' + page` by default).",
+          "description": "The accessible name of a page's link, when rendering from `total`, since its content is only the number (`page => 'Page ' + page` by default). Inside a `LocaleProvider` with a `locale`, the number on the link, and in the default name, is written the way that locale writes numbers, so the name still holds the text on screen.",
           "required": false,
           "inherited": false,
           "deprecated": false

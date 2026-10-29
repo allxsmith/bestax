@@ -93,8 +93,8 @@ export default function AiReady() {
           Bring Bestax to your AI tools
         </Heading>
         <p className={styles.subtitle}>
-          Point your coding assistant at machine-readable docs and drop-in agent
-          skills today — with an MCP server on the way.
+          Point your coding assistant at machine-readable docs, drop-in agent
+          skills, and an MCP server it can query while it builds.
         </p>
         <div className={styles.grid}>
           {CARDS.map((card, i) => (

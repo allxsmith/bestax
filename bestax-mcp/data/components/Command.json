@@ -1,0 +1,929 @@
+{
+  "name": "Command",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/command",
+  "docsUrl": "https://bestax.io/docs/api/components/command",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "function example() {\n  const [ran, setRan] = useState('nothing yet');\n\n  return (\n    <>\n      <Command\n        label=\"Settings\"\n        placeholder=\"Search settings\"\n        actions={[\n          {\n            id: 'profile',\n            label: 'Edit profile',\n            onSelect: () => setRan('Edit profile'),\n          },\n          {\n            id: 'password',\n            label: 'Change password',\n            onSelect: () => setRan('Change password'),\n          },\n          {\n            id: 'theme',\n            label: 'Dark mode',\n            keywords: ['theme', 'appearance'],\n            onSelect: () => setRan('Dark mode'),\n          },\n          {\n            id: 'sign-out',\n            label: 'Sign out',\n            onSelect: () => setRan('Sign out'),\n          },\n        ]}\n      />\n      <Paragraph mt=\"3\">Ran: {ran}</Paragraph>\n    </>\n  );\n}"
+    },
+    {
+      "title": "A Command Palette",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const [ran, setRan] = useState<string | null>(null);\n\n  return (\n    <>\n      <Button\n        onClick={() => setOpen(true)}\n        aria-keyshortcuts=\"Control+J Meta+J\"\n      >\n        Open the palette\n      </Button>\n      <Paragraph mt=\"3\">\n        Or press{' '}\n        <Kbd.Group>\n          <Kbd>Ctrl</Kbd>\n          <Kbd>J</Kbd>\n        </Kbd.Group>{' '}\n        or{' '}\n        <Kbd.Group>\n          <Kbd label=\"Command\">⌘</Kbd>\n          <Kbd>J</Kbd>\n        </Kbd.Group>\n        .{ran && ` Last run: ${ran}.`}\n      </Paragraph>\n      <Command.Dialog\n        shortcut=\"mod+j\"\n        open={open}\n        onOpenChange={setOpen}\n        placeholder=\"Type a command or search\"\n        onSelect={setRan}\n        actions={[\n          {\n            id: 'Go to dashboard',\n            label: 'Go to dashboard',\n            group: 'Navigation',\n          },\n          { id: 'Go to issues', label: 'Go to issues', group: 'Navigation' },\n          {\n            id: 'New issue',\n            label: 'New issue',\n            group: 'Actions',\n            keywords: ['create', 'bug'],\n          },\n          {\n            id: 'Dark mode',\n            label: 'Dark mode',\n            group: 'Settings',\n            keywords: ['theme'],\n          },\n        ]}\n      />\n    </>\n  );\n}"
+    },
+    {
+      "title": "Groups, Icons, Descriptions and Hints",
+      "code": "<Command\n  label=\"Project\"\n  placeholder=\"Search the project\"\n  actions={[\n    {\n      id: 'dashboard',\n      label: 'Go to dashboard',\n      group: 'Navigation',\n      icon: <Icon name=\"house\" />,\n      hint: (\n        <Kbd.Group separator=\"then\">\n          <Kbd>G</Kbd>\n          <Kbd>D</Kbd>\n        </Kbd.Group>\n      ),\n    },\n    {\n      id: 'issues',\n      label: 'Go to issues',\n      group: 'Navigation',\n      icon: <Icon name=\"circle-dot\" />,\n      hint: (\n        <Kbd.Group separator=\"then\">\n          <Kbd>G</Kbd>\n          <Kbd>I</Kbd>\n        </Kbd.Group>\n      ),\n    },\n    {\n      id: 'new-issue',\n      label: 'New issue',\n      group: 'Actions',\n      description: 'File a bug or ask for a feature',\n      icon: <Icon name=\"plus\" />,\n      hint: <Kbd>C</Kbd>,\n    },\n    {\n      id: 'archive',\n      label: 'Archive project',\n      group: 'Actions',\n      description: 'Only an owner can archive a project',\n      icon: <Icon name=\"box-archive\" />,\n      disabled: true,\n    },\n    {\n      id: 'theme',\n      label: 'Dark mode',\n      group: 'Settings',\n      icon: <Icon name=\"moon\" />,\n      hint: <Tag color=\"info\">New</Tag>,\n    },\n  ]}\n/>"
+    },
+    {
+      "title": "How It Matches",
+      "code": "<Command\n  label=\"Settings\"\n  placeholder=\"Try “theme” or “mail”\"\n  empty=\"No settings match\"\n  actions={[\n    { id: 'dark', label: 'Dark mode', keywords: ['theme', 'appearance'] },\n    { id: 'font', label: 'Font size', keywords: ['text', 'zoom'] },\n    {\n      id: 'notifications',\n      label: 'Notifications',\n      description: 'Email and push alerts',\n      keywords: ['mail'],\n    },\n    { id: 'language', label: 'Language', description: 'English' },\n  ]}\n/>"
+    },
+    {
+      "title": "Fuzzy Matching",
+      "code": "import type { CommandAction } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const fuzzy = (query: string, actions: CommandAction[]) => {\n    const term = query.replace(/\\s+/g, '').toLowerCase();\n    if (!term) return actions;\n    return actions\n      .flatMap(action => {\n        const label = action.label.toLowerCase();\n        let at = -1;\n        let first = -1;\n        for (const letter of term) {\n          at = label.indexOf(letter, at + 1);\n          if (at === -1) return [];\n          if (first === -1) first = at;\n        }\n        return [{ action, spread: at - first }];\n      })\n      .sort((a, b) => a.spread - b.spread)\n      .map(match => match.action);\n  };\n\n  return (\n    <Command\n      placeholder=\"Try “gti” or “nis”\"\n      filter={fuzzy}\n      actions={[\n        { id: 'dashboard', label: 'Go to dashboard' },\n        { id: 'issues', label: 'Go to issues' },\n        { id: 'new-issue', label: 'New issue' },\n        { id: 'settings', label: 'Settings' },\n      ]}\n    />\n  );\n}"
+    },
+    {
+      "title": "Fuzzy Matching",
+      "code": "import Fuse from 'fuse.js';\n\nconst fuse = new Fuse(actions, {\n  keys: ['label', 'keywords', 'description'],\n  threshold: 0.3,\n});\n\n<Command\n  actions={actions}\n  filter={query =>\n    query.trim() ? fuse.search(query).map(result => result.item) : actions\n  }\n/>;"
+    },
+    {
+      "title": "Building It Yourself",
+      "code": "function example() {\n  const files = [\n    { path: 'README.md', folder: 'Docs' },\n    { path: 'guide.md', folder: 'Docs' },\n    { path: 'index.ts', folder: 'Source' },\n    { path: 'Command.tsx', folder: 'Source' },\n  ];\n  const [query, setQuery] = useState('');\n  const [opened, setOpened] = useState<string | null>(null);\n  const term = query.trim().toLowerCase();\n  const matches = files.filter(f => f.path.toLowerCase().includes(term));\n  const folders = [...new Set(matches.map(f => f.folder))];\n\n  return (\n    <>\n      <Command label=\"Files\" onQueryChange={setQuery} onSelect={setOpened}>\n        <Command.Input placeholder=\"Open a file\" />\n        {matches.length > 0 ? (\n          <Command.List>\n            {folders.map(folder => (\n              <Command.Group key={folder} label={folder}>\n                {matches\n                  .filter(f => f.folder === folder)\n                  .map(f => (\n                    <Command.Item\n                      key={f.path}\n                      value={f.path}\n                      icon={<Icon name=\"file\" />}\n                    >\n                      {f.path}\n                    </Command.Item>\n                  ))}\n              </Command.Group>\n            ))}\n          </Command.List>\n        ) : (\n          <Command.Empty>No files match</Command.Empty>\n        )}\n      </Command>\n      <Paragraph mt=\"3\">\n        {opened ? `Opened ${opened}` : 'Nothing open'}\n      </Paragraph>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Server Search",
+      "code": "function example() {\n  const people = [\n    'Ada Lovelace',\n    'Alan Turing',\n    'Grace Hopper',\n    'Katherine Johnson',\n    'Margaret Hamilton',\n    'Radia Perlman',\n  ];\n  const [query, setQuery] = useState('');\n  const [results, setResults] = useState(people);\n  const [loading, setLoading] = useState(false);\n\n  // A stand-in for a fetch, which answers after a moment.\n  useEffect(() => {\n    setLoading(true);\n    const timer = setTimeout(() => {\n      const term = query.trim().toLowerCase();\n      setResults(people.filter(p => p.toLowerCase().includes(term)));\n      setLoading(false);\n    }, 400);\n    return () => clearTimeout(timer);\n  }, [query]);\n\n  return (\n    <Command label=\"People\" onQueryChange={setQuery}>\n      <Command.Input placeholder=\"Find a person\" isLoading={loading} />\n      {results.length > 0 ? (\n        <Command.List>\n          {results.map(person => (\n            <Command.Item\n              key={person}\n              value={person}\n              icon={<Icon name=\"user\" />}\n            >\n              {person}\n            </Command.Item>\n          ))}\n        </Command.List>\n      ) : (\n        <Command.Empty>No one matches</Command.Empty>\n      )}\n    </Command>\n  );\n}"
+    },
+    {
+      "title": "Pages",
+      "code": "import type { CommandAction } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const [open, setOpen] = useState(false);\n  const [page, setPage] = useState<'home' | 'theme'>('home');\n  const [query, setQuery] = useState('');\n  const [theme, setTheme] = useState('System');\n  const close = () => {\n    setOpen(false);\n    setPage('home');\n  };\n  const home: CommandAction[] = [\n    {\n      id: 'theme',\n      label: 'Change theme…',\n      hint: theme,\n      onSelect: () => {\n        setPage('theme');\n        setQuery('');\n      },\n    },\n    { id: 'help', label: 'Help and feedback', onSelect: close },\n  ];\n  const themes: CommandAction[] = ['Light', 'Dark', 'System'].map(name => ({\n    id: name,\n    label: name,\n    onSelect: () => {\n      setTheme(name);\n      close();\n    },\n  }));\n\n  return (\n    <>\n      <Button onClick={() => setOpen(true)}>Open the palette</Button>\n      <Paragraph mt=\"3\">Theme: {theme}</Paragraph>\n      <Command.Dialog\n        open={open}\n        onOpenChange={next => (next ? setOpen(true) : close())}\n        closeOnSelect={false}\n        label={page === 'home' ? 'Commands' : 'Themes'}\n        placeholder={page === 'home' ? 'Type a command' : 'Pick a theme'}\n        query={query}\n        onQueryChange={setQuery}\n        actions={page === 'home' ? home : themes}\n        onKeyDown={event => {\n          if (event.key === 'Backspace' && query === '' && page !== 'home') {\n            setPage('home');\n          }\n        }}\n      />\n    </>\n  );\n}"
+    },
+    {
+      "title": "In a Popover",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const [project, setProject] = useState('Inbox');\n\n  return (\n    <Popover\n      open={open}\n      onOpenChange={setOpen}\n      ariaLabel=\"Move to\"\n      trigger={<Button>Move to… ({project})</Button>}\n    >\n      <Popover.Body>\n        <Command\n          label=\"Projects\"\n          placeholder=\"Search projects\"\n          onSelect={next => {\n            setProject(next);\n            setOpen(false);\n          }}\n          actions={['Inbox', 'Website', 'Mobile app', 'Marketing'].map(\n            name => ({\n              id: name,\n              label: name,\n            })\n          )}\n        />\n      </Popover.Body>\n    </Popover>\n  );\n}"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const [query, setQuery] = useState('');\n  const [ran, setRan] = useState<string | null>(null);\n  const colors = [\n    'primary',\n    'link',\n    'info',\n    'success',\n    'warning',\n    'danger',\n  ] as const;\n  const matches = colors.filter(c => c.includes(query.trim().toLowerCase()));\n\n  return (\n    <>\n      <Button onClick={() => setOpen(true)}>Pick a color</Button>\n      <Paragraph mt=\"3\">{ran ? `Picked ${ran}` : 'No color yet'}</Paragraph>\n      <Command.Dialog\n        open={open}\n        onOpenChange={setOpen}\n        label=\"Colors\"\n        query={query}\n        onQueryChange={setQuery}\n        onSelect={setRan}\n      >\n        <Command.Input placeholder=\"Search colors\" />\n        {matches.length > 0 ? (\n          <Command.List>\n            <Command.Group label=\"Bulma colors\">\n              {matches.map(color => (\n                <Command.Item\n                  key={color}\n                  value={color}\n                  hint={<Tag color={color}>is-{color}</Tag>}\n                >\n                  {color}\n                </Command.Item>\n              ))}\n            </Command.Group>\n          </Command.List>\n        ) : (\n          <Command.Empty>No colors match</Command.Empty>\n        )}\n      </Command.Dialog>\n    </>\n  );\n}"
+    }
+  ],
+  "accessibility": "- **The roles:** the field is `role=\"combobox\"` with `aria-autocomplete=\"list\"` and\n  `aria-haspopup=\"listbox\"`, and the list is a `listbox` of `option`s, the ARIA 1.2 combobox the\n  ARIA Authoring Practices describe. A group is a `group` named by its heading.\n- **Focus stays in the field:** the highlighted item is the field's `aria-activedescendant`, and\n  the only item that's `aria-selected`. When a key moves it, it's scrolled into view. A click on an\n  item keeps focus in the field too.\n- **`aria-expanded`** is `true` while the list has an item in it, with `aria-controls` pointing\n  at it, and `false` while only the empty message shows.\n- **Names:** `label` names the field and the list, and in `Command.Dialog` the dialog as well.\n  It's \"Commands\" unless you give one. An `aria-label` or `aria-labelledby` on `Command.Input`,\n  `Command.List` or `Command.Dialog` names that one instead.\n- **An item is named by its label alone,** and described by its description and hint, so a\n  screen reader says what it does first and the rest after. Its icon is hidden.\n- **Disabled items** are `aria-disabled`, reachable with the arrows, never run, and never\n  highlighted when the list changes.\n- **The empty message** is announced through a polite status region when your typing brings it on\n  screen, once each time the matches run out, and after `isLoading` ends. An empty search\n  announces nothing.\n- **No count is announced,** as with [`Combobox`](https://bestax.io/docs/api/form/combobox#a-result-count): a screen\n  reader reads how many items there are from the list itself, and a count read out on each\n  keystroke talks over the typing.\n- **The dialog** is a modal `dialog` with `aria-modal`, around the Command's box, inside a\n  `Modal` that's `role=\"presentation\"`. Focus moves to the search field when it opens, stays\n  inside while it's open, and goes back to where it was when it closes. The page behind it\n  doesn't scroll.\n- **The shortcut** never fires while someone is typing, so it can't swallow a letter, and it\n  leaves a key the page has already used alone. Nothing announces it, so put it on a button with\n  `aria-keyshortcuts`, and show it with `Kbd`.\n- **Forced colors:** in Windows high contrast mode the highlight is drawn as an outline in the\n  system's highlight color, and a disabled item takes the system's color for disabled text.\n- **No motion:** nothing animates.",
+  "related": [
+    "Combobox",
+    "Dropdown",
+    "Kbd",
+    "Modal",
+    "Popover",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-command--default",
+  "summary": "The `Command` component is a search field over a list of things to do, which narrows as you type and runs the top match on Enter: inline by default, and a command palette in a modal as `Command.Dialog`. Given `actions`, it's one element. It renders the field, the list, the groups and the empty message, and filters the actions by label, keywords and description as the user types, with label matches first. `filter` takes over the matching, for fuzzy search. Built from parts, the app owns the items: what's in the list and how it's filtered, from the search `onQueryChange` reports. Nothing filters them, so a server's answer shows as it came. Either way, focus stays in the field, and the highlighted item is its `aria-activedescendant`. The first enabled item is highlighted whenever the items change, so Enter runs the top match. Running an item calls its own `onSelect`, then the Command's. When typing leaves the empty message on screen, its text is announced through a polite status region, once, after any loading ends. Result counts aren't announced: a screen reader reads the list's size from the markup, and a count on every keystroke talks over the typing.",
+  "import": "import { Command } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Command.tsx",
+  "rootClass": "command",
+  "parts": [
+    {
+      "path": "Command",
+      "summary": "The `Command` component is a search field over a list of things to do, which narrows as you type and runs the top match on Enter: inline by default, and a command palette in a modal as `Command.Dialog`. Given `actions`, it's one element. It renders the field, the list, the groups and the empty message, and filters the actions by label, keywords and description as the user types, with label matches first. `filter` takes over the matching, for fuzzy search. Built from parts, the app owns the items: what's in the list and how it's filtered, from the search `onQueryChange` reports. Nothing filters them, so a server's answer shows as it came. Either way, focus stays in the field, and the highlighted item is its `aria-activedescendant`. The first enabled item is highlighted whenever the items change, so Enter runs the top match. Running an item calls its own `onSelect`, then the Command's. When typing leaves the empty message on screen, its text is announced through a polite status region, once, after any loading ends. Result counts aren't announced: a screen reader reads the list's size from the markup, and a count on every keystroke talks over the typing.",
+      "component": null,
+      "props": [
+        {
+          "name": "actions",
+          "type": "CommandAction[]",
+          "default": null,
+          "description": "The actions, for a Command that renders the field, the list, the groups and the empty message itself. Typing filters them by label, keywords and description, ignoring case, with label matches first. Inside a `LocaleProvider` with a `locale`, it ignores accents too where that language does, so \"cafe\" finds \"Café\". Leave it out to build the Command from parts.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "filter",
+          "type": "(query: string, actions: CommandAction[]) => CommandAction[]",
+          "default": null,
+          "description": "Takes over the filtering, with `actions`: it's handed the search as typed and every action, and returns the ones to show, in the order to show them, which is how to plug in fuzzy matching or cut the list short. It's called with an empty search too.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": null,
+          "description": "The field's placeholder, with `actions`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "empty",
+          "type": "React.ReactNode",
+          "default": "'No results'",
+          "description": "What shows in place of the list, with `actions`, when nothing matches. It's announced the way `Command.Empty` is. `null` shows nothing.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The parts, in order: `Command.Input`, then `Command.List` while there are items and `Command.Empty` while there aren't. Nothing filters them, so render the items that match the search `onQueryChange` reports. With `actions` there are none to give: children given with it are ignored, with a warning in development.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "default": "'Commands'",
+          "description": "What the Command is for, such as \"Commands\" or \"Settings\". It's never shown: it names the search field and the list for assistive tech, and in `Command.Dialog` the dialog too. An empty string counts as none.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "query",
+          "type": "string",
+          "default": null,
+          "description": "The search, controlled: the text in the field. Pair it with `onQueryChange`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "defaultQuery",
+          "type": "string",
+          "default": "''",
+          "description": "The search to start with when uncontrolled.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onQueryChange",
+          "type": "(query: string) => void",
+          "default": null,
+          "description": "Called with the search as the user types it. Built from parts, this is where the app filters its items.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onSelect",
+          "type": "(value: string) => void",
+          "default": null,
+          "description": "Called with the picked item's `value`, an action's `id`, when it's run with Enter or a click, after the item's own `onSelect`. A disabled item is never run.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the `div.command` around the field and the list.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Command.Input",
+      "summary": "The search field, with the combobox role and the keys, rendered as an `Input` with a search icon.",
+      "component": null,
+      "props": [
+        {
+          "name": "iconLeft",
+          "type": "IconProps | React.ReactNode",
+          "default": null,
+          "description": "Icon props for left icon. Bulma gives control icons `pointer-events: none`, so a clickable node here never receives a click. Put a button beside the input in its own addon `Control` instead.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "iconRight",
+          "type": "IconProps | React.ReactNode",
+          "default": null,
+          "description": "Icon props for right icon. Bulma gives control icons `pointer-events: none`, so a clickable node here never receives a click. Put a button beside the input in its own addon `Control` instead.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeftName",
+          "type": "string",
+          "default": null,
+          "description": "Shortcut for left icon name.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "iconRightName",
+          "type": "string",
+          "default": null,
+          "description": "Shortcut for right icon name.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeftSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Shortcut for left icon size.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "iconRightSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Shortcut for right icon size.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "hasIconsLeft",
+          "type": "boolean",
+          "default": "false",
+          "description": "Force left icon container.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "hasIconsRight",
+          "type": "boolean",
+          "default": "false",
+          "description": "Force right icon container.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows a loading spinner on the `Control` it renders. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). The spinner sits at the right edge, where `iconRight` also sits, and the two overlap; leave the right icon out while loading.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isExpanded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Expand the control.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "controlSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Control size.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "controlClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Control.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
+          "default": null,
+          "description": "Bulma color modifier for the input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size modifier for the input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Rounded input corners.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isStatic",
+          "type": "boolean",
+          "default": "false",
+          "description": "Styles the input as static text. It stays editable; add `readOnly` to stop edits.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isHovered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies hovered state.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFocused",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies focused state.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disabled input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": "false",
+          "description": "Read-only input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <input> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Command.List",
+      "summary": "The list of items, a `listbox` named by the Command's `label`.",
+      "component": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "`Command.Item`s and `Command.Group`s, in the order they're shown.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes",
+      "types": []
+    },
+    {
+      "path": "Command.Group",
+      "summary": "Items under a heading, a `group` named by it.",
+      "component": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The heading, which also names the group for assistive tech, unless you give the group an `aria-label` or `aria-labelledby` of its own.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The group's `Command.Item`s.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes",
+      "types": []
+    },
+    {
+      "path": "Command.Item",
+      "summary": "One thing to do in the list, named by its label and described by its description and hint.",
+      "component": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "string",
+          "default": null,
+          "description": "What the Command's `onSelect` hands back. Unique within the Command.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Can't be run. The arrows still reach it, so a screen reader user finds it, and it's never `aria-selected`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onSelect",
+          "type": "() => void",
+          "default": null,
+          "description": "Runs the item, when it's picked with Enter or a click, before the Command's `onSelect`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Shown before the label, and hidden from assistive tech.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "description",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "A line under the label. A screen reader hears it after the label, as the item's description.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hint",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Shown at the end of the row, such as a keyboard shortcut in a `Kbd.Group`, or a `Tag`. It only shows. A screen reader hears it after the label, with the description.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The label, which names the item.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes",
+      "types": []
+    },
+    {
+      "path": "Command.Empty",
+      "summary": "The message shown in place of the list when nothing matches, announced when typing brings it on screen.",
+      "component": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The message, such as \"No commands match\". Its text is announced when typing brings it on screen and isn't read again while it stays, so a message that names the search is heard for the first search only.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes",
+      "types": []
+    },
+    {
+      "path": "Command.Dialog",
+      "summary": "The Command in a modal, a command palette, opened by its `shortcut` or by `open`, that closes once an item has run. It renders nothing while it's closed. Open, it's a `Modal` with a background and the Command's box as the `dialog`, named by `label`: focus goes to the search field, Tab stays inside, Escape and a click on the background close it, the page behind it doesn't scroll, and focus goes back to where it was when it closes.",
+      "component": null,
+      "props": [
+        {
+          "name": "actions",
+          "type": "CommandAction[]",
+          "default": null,
+          "description": "The actions, for a Command that renders the field, the list, the groups and the empty message itself. Typing filters them by label, keywords and description, ignoring case, with label matches first. Inside a `LocaleProvider` with a `locale`, it ignores accents too where that language does, so \"cafe\" finds \"Café\". Leave it out to build the Command from parts.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "filter",
+          "type": "(query: string, actions: CommandAction[]) => CommandAction[]",
+          "default": null,
+          "description": "Takes over the filtering, with `actions`: it's handed the search as typed and every action, and returns the ones to show, in the order to show them, which is how to plug in fuzzy matching or cut the list short. It's called with an empty search too.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": null,
+          "description": "The field's placeholder, with `actions`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "empty",
+          "type": "React.ReactNode",
+          "default": "'No results'",
+          "description": "What shows in place of the list, with `actions`, when nothing matches. It's announced the way `Command.Empty` is. `null` shows nothing.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": null,
+          "description": "Controlled open state. When set, opening and closing only report through `onOpenChange`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "default": "false",
+          "description": "Initial open state when uncontrolled.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "default": null,
+          "description": "Called with the open state asked for: `true` from the `shortcut`, and `false` from Escape, a click on the background, or a pick while `closeOnSelect` is on. Fires in controlled and uncontrolled use.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "shortcut",
+          "type": "string",
+          "default": null,
+          "description": "A key combination that opens the dialog from anywhere on the page, such as `\"mod+k\"`: modifiers and a key joined by `+`, where `mod` is Ctrl or ⌘ (either one, on every platform), and the others are `ctrl`, `meta`, `alt` and `shift`. It's ignored while the user is typing in a text field, a select or editable content, while an IME is composing, while a modal overlay is open (a `Modal`, a `Dialog`, a `Sidebar` with its overlay or a full-page `Loading`), and when something else has already used the key. It only opens the dialog. Off unless given.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnSelect",
+          "type": "boolean",
+          "default": "true",
+          "description": "Closes the dialog once an item has run. Turn it off for an item that opens another page of the palette, and close it yourself with `open`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "clearOnClose",
+          "type": "boolean",
+          "default": "true",
+          "description": "Clears the search when the dialog closes: an uncontrolled one itself, and a controlled one through `onQueryChange('')`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "portal",
+          "type": "boolean | string | HTMLElement",
+          "default": "false",
+          "description": "Renders the dialog into a portal target instead of inline. Forwarded to the underlying `Modal`; see its `portal` prop for the accepted values.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The parts, in order: `Command.Input`, then `Command.List` while there are items and `Command.Empty` while there aren't. Nothing filters them, so render the items that match the search `onQueryChange` reports. With `actions` there are none to give: children given with it are ignored, with a warning in development.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "default": "'Commands'",
+          "description": "What the Command is for, such as \"Commands\" or \"Settings\". It's never shown: it names the search field and the list for assistive tech, and in `Command.Dialog` the dialog too. An empty string counts as none.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "query",
+          "type": "string",
+          "default": null,
+          "description": "The search, controlled: the text in the field. Pair it with `onQueryChange`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "defaultQuery",
+          "type": "string",
+          "default": "''",
+          "description": "The search to start with when uncontrolled.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onQueryChange",
+          "type": "(query: string) => void",
+          "default": null,
+          "description": "Called with the search as the user types it. Built from parts, this is where the app filters its items.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onSelect",
+          "type": "(value: string) => void",
+          "default": null,
+          "description": "Called with the picked item's `value`, an action's `id`, when it's run with Enter or a click, after the item's own `onSelect`. A disabled item is never run.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the `div.command` that is the dialog.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-command-background",
+      "sass": "$command-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-border-color",
+      "sass": "$command-border-color",
+      "default": "var(--bulma-border-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-radius",
+      "sass": "$command-radius",
+      "default": "var(--bulma-radius-large)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-padding",
+      "sass": "$command-padding",
+      "default": "0.5rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-gap",
+      "sass": "$command-gap",
+      "default": "0.5rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-list-max-height",
+      "sass": "$command-list-max-height",
+      "default": "20rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-item-color",
+      "sass": "$command-item-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-item-size",
+      "sass": "$command-item-size",
+      "default": "0.875rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-item-padding-y",
+      "sass": "$command-item-padding-y",
+      "default": "0.5rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-item-padding-x",
+      "sass": "$command-item-padding-x",
+      "default": "0.75rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-item-radius",
+      "sass": "$command-item-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-item-gap",
+      "sass": "$command-item-gap",
+      "default": "0.75rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-item-hover-background",
+      "sass": "$command-item-hover-background",
+      "default": "hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), calc(var(--bulma-scheme-main-l) + var(--bulma-hover-background-l-delta)))",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-highlight-background",
+      "sass": "$command-highlight-background",
+      "default": "var(--bulma-link)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-highlight-color",
+      "sass": "$command-highlight-color",
+      "default": "var(--bulma-link-invert)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-disabled-color",
+      "sass": "$command-disabled-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-icon-color",
+      "sass": "$command-icon-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-description-color",
+      "sass": "$command-description-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-description-size",
+      "sass": "$command-description-size",
+      "default": "0.875em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-hint-color",
+      "sass": "$command-hint-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-group-label-size",
+      "sass": "$command-group-label-size",
+      "default": "0.85em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-group-label-weight",
+      "sass": "$command-group-label-weight",
+      "default": "var(--bulma-weight-semibold)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-group-label-color",
+      "sass": "$command-group-label-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-divider-color",
+      "sass": "$command-divider-color",
+      "default": "var(--bulma-border-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-empty-color",
+      "sass": "$command-empty-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-empty-padding",
+      "sass": "$command-empty-padding",
+      "default": "1.5rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-dialog-width",
+      "sass": "$command-dialog-width",
+      "default": "40rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-dialog-offset",
+      "sass": "$command-dialog-offset",
+      "default": "12vh",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-command-dialog-shadow",
+      "sass": "$command-dialog-shadow",
+      "default": "var(--bulma-shadow)",
+      "scope": "root"
+    }
+  ]
+}

@@ -19,6 +19,18 @@ const ADDONS = [
     desc: 'Keys and shortcuts drawn as keycaps that follow the text around them, with names for symbols like ⌘.',
   },
   {
+    name: 'RingProgress',
+    icon: 'ringprogress',
+    link: '/docs/api/elements/ringprogress',
+    desc: 'A value drawn as a ring, a progress bar or a meter, and several values around one ring in sections.',
+  },
+  {
+    name: 'DescriptionList',
+    icon: 'descriptionlist',
+    link: '/docs/api/elements/descriptionlist',
+    desc: 'Facts about one thing, each a label and its value, stacked on a phone and lined up in two columns from tablet up.',
+  },
+  {
     name: 'Avatar',
     icon: 'avatar',
     link: '/docs/api/components/avatar',
@@ -37,6 +49,12 @@ const ADDONS = [
     desc: 'Slide any content with autoplay, drag, arrows, and indicators.',
   },
   {
+    name: 'CheckboxCard/RadioCard',
+    icon: 'choicecard',
+    link: '/docs/api/form/checkboxcard',
+    desc: 'A checkbox or a radio drawn as a card, with a title and a description, picked wherever you click it.',
+  },
+  {
     name: 'Collapse',
     icon: 'collapse',
     link: '/docs/api/components/collapse',
@@ -47,6 +65,12 @@ const ADDONS = [
     icon: 'combobox',
     link: '/docs/api/form/combobox',
     desc: 'A field with a list to pick from: give it your data for a searchable select or tags, or build it from parts for a server search.',
+  },
+  {
+    name: 'Command',
+    icon: 'command',
+    link: '/docs/api/components/command',
+    desc: 'A search over things to do that runs the top match on Enter, inline or as a ⌘K palette.',
   },
   {
     name: 'ContextMenu',
@@ -65,6 +89,12 @@ const ADDONS = [
     icon: 'emptystate',
     link: '/docs/api/components/emptystate',
     desc: 'What a list or a search shows when there is nothing in it, with a real heading and a way forward.',
+  },
+  {
+    name: 'Fieldset',
+    icon: 'fieldset',
+    link: '/docs/api/form/fieldset',
+    desc: 'A section of a form named by its legend, bordered, filled or plain, that one disabled switches off as a whole.',
   },
   {
     name: 'HoverCard',
@@ -97,10 +127,22 @@ const ADDONS = [
     desc: 'Scroll-triggered entrance animations, solo or cascading, that respect reduced motion.',
   },
   {
+    name: 'ScrollArea',
+    icon: 'scrollarea',
+    link: '/docs/api/components/scrollarea',
+    desc: 'Content that scrolls on the native scrollbars in Bulma colors, and that a keyboard can reach.',
+  },
+  {
     name: 'Sidebar',
     icon: 'sidebar',
     link: '/docs/api/components/sidebar',
     desc: 'Slide-out navigation panels from either edge.',
+  },
+  {
+    name: 'Splitter',
+    icon: 'splitter',
+    link: '/docs/api/layout/splitter',
+    desc: 'Panes with a handle between each pair to drag or move by keyboard, and panes that collapse.',
   },
   {
     name: 'Steps',

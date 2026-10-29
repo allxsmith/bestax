@@ -9,7 +9,7 @@ of their own — Bulma provides it. A partial exists only for components that ex
 
 - `bestax.scss` — main entrypoint: `@use 'bulma/sass' with ($primary: #1e6b99)` + all the extras
 - `extras.scss` — extras-only entrypoint (builds `dist/extras.css`, for apps bringing their own Bulma)
-- `components/`, `form/`, `elements/`, `helpers/` — one `_foo.scss` partial per extra,
+- `components/`, `form/`, `elements/`, `layout/`, `helpers/` — one `_foo.scss` partial per extra,
   **registered in that folder's `_index.scss`** (an unregistered partial silently ships nothing)
 - `_variables.scss` — `$extras-*` tokens derived from Bulma's HSL channel vars (`--bulma-primary-h/s/l`)
 - `_mixins.scss` — shared mixins: `extras-transition`, `extras-focus-outline` (a11y), `extras-sr-only`

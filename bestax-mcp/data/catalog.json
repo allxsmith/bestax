@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.46.0"
+    "version": "5.54.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -17,6 +17,7 @@
         "Code",
         "Content",
         "Delete",
+        "DescriptionList",
         "Divider",
         "Emphasis",
         "Figure",
@@ -33,6 +34,7 @@
         "Paragraph",
         "Pre",
         "Progress",
+        "RingProgress",
         "Skeleton",
         "Span",
         "Strong",
@@ -57,6 +59,7 @@
         "Carousel",
         "Collapse",
         "Collapses",
+        "Command",
         "ContextMenu",
         "Dialog",
         "Dropdown",
@@ -71,6 +74,7 @@
         "Panel",
         "Popover",
         "Reveal",
+        "ScrollArea",
         "SegmentedControl",
         "Sidebar",
         "Steps",
@@ -87,6 +91,7 @@
       "components": [
         "Autocomplete",
         "Checkbox",
+        "CheckboxCard",
         "Checkboxes",
         "Combobox",
         "Control",
@@ -94,11 +99,13 @@
         "DateRangeInput",
         "DateTimeInput",
         "Field",
+        "Fieldset",
         "File",
         "Input",
         "Numberinput",
         "PinInput",
         "Radio",
+        "RadioCard",
         "Radios",
         "Rate",
         "Select",
@@ -118,7 +125,15 @@
     {
       "id": "layout",
       "label": "Layout",
-      "components": ["Container", "Footer", "Hero", "Level", "Media", "Section"]
+      "components": [
+        "Container",
+        "Footer",
+        "Hero",
+        "Level",
+        "Media",
+        "Section",
+        "Splitter"
+      ]
     },
     {
       "id": "helpers",
@@ -126,6 +141,7 @@
       "components": [
         "ClientOnly",
         "ConfigProvider",
+        "LocaleProvider",
         "Portal",
         "Theme",
         "Valid value constants",
@@ -281,6 +297,17 @@
       "exampleCount": 8
     },
     {
+      "name": "CheckboxCard",
+      "kind": "component",
+      "category": "form",
+      "purpose": "The `CheckboxCard` component is a checkbox drawn as a card, with a title and a description, that toggles wherever you click it.",
+      "slug": "form/checkboxcard",
+      "import": "import { CheckboxCard } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 10,
+      "exampleCount": 9
+    },
+    {
       "name": "Checkboxes",
       "kind": "component",
       "category": "form",
@@ -288,8 +315,8 @@
       "slug": "form/checkboxes",
       "import": "import { Checkboxes, Checkbox } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 21,
-      "exampleCount": 5
+      "propCount": 22,
+      "exampleCount": 6
     },
     {
       "name": "ClientOnly",
@@ -369,6 +396,17 @@
       "exampleCount": 14
     },
     {
+      "name": "Command",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `Command` component is a search field over a list of things to do, which narrows as you type and runs the top match on Enter: inline by default, and a…",
+      "slug": "components/command",
+      "import": "import { Command } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 66,
+      "exampleCount": 11
+    },
+    {
       "name": "ConfigProvider",
       "kind": "component",
       "category": "helpers",
@@ -432,7 +470,7 @@
       "import": "import { DateInput } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 53,
-      "exampleCount": 42
+      "exampleCount": 43
     },
     {
       "name": "DateRangeInput",
@@ -465,6 +503,17 @@
       "import": "import { Delete } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 8,
+      "exampleCount": 10
+    },
+    {
+      "name": "DescriptionList",
+      "kind": "component",
+      "category": "elements",
+      "purpose": "The `DescriptionList` component lists facts about one thing, each a label and its value, such as an order's details or a profile.",
+      "slug": "elements/descriptionlist",
+      "import": "import { DescriptionList } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 25,
       "exampleCount": 10
     },
     {
@@ -532,6 +581,17 @@
       "compound": true,
       "propCount": 41,
       "exampleCount": 23
+    },
+    {
+      "name": "Fieldset",
+      "kind": "component",
+      "category": "form",
+      "purpose": "The `Fieldset` component groups a section of a form in a native `<fieldset>`, named by its `legend`, which a `disabled` switches off as a whole.",
+      "slug": "form/fieldset",
+      "import": "import { Fieldset } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 10,
+      "exampleCount": 7
     },
     {
       "name": "Figure",
@@ -721,6 +781,17 @@
       "exampleCount": 7
     },
     {
+      "name": "LocaleProvider",
+      "kind": "component",
+      "category": "helpers",
+      "purpose": "`LocaleProvider` sets the language and writing direction for the part of the app inside it, on a wrapper `<div>` and on what the library portals out of it.",
+      "slug": "helpers/localeprovider",
+      "import": "import { LocaleProvider, useLocale } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 5,
+      "exampleCount": 10
+    },
+    {
       "name": "Media",
       "kind": "component",
       "category": "layout",
@@ -908,6 +979,17 @@
       "exampleCount": 6
     },
     {
+      "name": "RadioCard",
+      "kind": "component",
+      "category": "form",
+      "purpose": "The `RadioCard` component is a radio button drawn as a card, with a title and a description, picked wherever you click it.",
+      "slug": "form/radiocard",
+      "import": "import { RadioCard } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 9,
+      "exampleCount": 9
+    },
+    {
       "name": "Radios",
       "kind": "component",
       "category": "form",
@@ -915,8 +997,8 @@
       "slug": "form/radios",
       "import": "import { Radios, Radio } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 20,
-      "exampleCount": 5
+      "propCount": 21,
+      "exampleCount": 6
     },
     {
       "name": "Rate",
@@ -939,6 +1021,28 @@
       "compound": false,
       "propCount": 11,
       "exampleCount": 5
+    },
+    {
+      "name": "RingProgress",
+      "kind": "component",
+      "category": "elements",
+      "purpose": "The `RingProgress` component draws a value as a ring that fills as it grows, with anything you pass shown in the middle.",
+      "slug": "elements/ringprogress",
+      "import": "import { RingProgress } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 12,
+      "exampleCount": 7
+    },
+    {
+      "name": "ScrollArea",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `ScrollArea` component renders a box whose content scrolls inside it, on the browser's own scrollbars in Bulma's colors.",
+      "slug": "components/scrollarea",
+      "import": "import { ScrollArea } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 12,
+      "exampleCount": 8
     },
     {
       "name": "Section",
@@ -1015,6 +1119,17 @@
       "import": "import { Span } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 4,
+      "exampleCount": 9
+    },
+    {
+      "name": "Splitter",
+      "kind": "component",
+      "category": "layout",
+      "purpose": "The `Splitter` component lays out two or more panes side by side or one above the other, with a handle between each pair to drag or move by keyboard.",
+      "slug": "layout/splitter",
+      "import": "import { Splitter } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 21,
       "exampleCount": 9
     },
     {
@@ -1453,6 +1568,25 @@
     "--bulma-checkbox-background": ["Checkbox"],
     "--bulma-checkbox-border-color": ["Checkbox"],
     "--bulma-checkbox-border-width": ["Checkbox"],
+    "--bulma-checkbox-card-active-color": ["CheckboxCard"],
+    "--bulma-checkbox-card-border-color": ["CheckboxCard"],
+    "--bulma-checkbox-card-border-width": ["CheckboxCard"],
+    "--bulma-checkbox-card-check-color": ["CheckboxCard"],
+    "--bulma-checkbox-card-checked-border-width": ["CheckboxCard"],
+    "--bulma-checkbox-card-description-color": ["CheckboxCard"],
+    "--bulma-checkbox-card-disabled-opacity": ["CheckboxCard"],
+    "--bulma-checkbox-card-focus-color": ["CheckboxCard"],
+    "--bulma-checkbox-card-focus-offset": ["CheckboxCard"],
+    "--bulma-checkbox-card-focus-width": ["CheckboxCard"],
+    "--bulma-checkbox-card-gap": ["CheckboxCard"],
+    "--bulma-checkbox-card-hover-border-color": ["CheckboxCard"],
+    "--bulma-checkbox-card-indicator-border-color": ["CheckboxCard"],
+    "--bulma-checkbox-card-indicator-border-width": ["CheckboxCard"],
+    "--bulma-checkbox-card-indicator-radius": ["CheckboxCard"],
+    "--bulma-checkbox-card-indicator-size": ["CheckboxCard"],
+    "--bulma-checkbox-card-min-width": ["CheckboxCard"],
+    "--bulma-checkbox-card-title-weight": ["CheckboxCard"],
+    "--bulma-checkbox-card-transition-duration": ["CheckboxCard"],
     "--bulma-checkbox-check-color": ["Checkbox"],
     "--bulma-checkbox-focus-shadow-size": ["Checkbox"],
     "--bulma-checkbox-indeterminate-color": ["Checkbox"],
@@ -1497,6 +1631,35 @@
     "--bulma-combobox-menu-shadow": ["Combobox"],
     "--bulma-combobox-menu-z-index": ["Combobox"],
     "--bulma-combobox-portal-z-index": ["Combobox"],
+    "--bulma-command-background": ["Command"],
+    "--bulma-command-border-color": ["Command"],
+    "--bulma-command-description-color": ["Command"],
+    "--bulma-command-description-size": ["Command"],
+    "--bulma-command-dialog-offset": ["Command"],
+    "--bulma-command-dialog-shadow": ["Command"],
+    "--bulma-command-dialog-width": ["Command"],
+    "--bulma-command-disabled-color": ["Command"],
+    "--bulma-command-divider-color": ["Command"],
+    "--bulma-command-empty-color": ["Command"],
+    "--bulma-command-empty-padding": ["Command"],
+    "--bulma-command-gap": ["Command"],
+    "--bulma-command-group-label-color": ["Command"],
+    "--bulma-command-group-label-size": ["Command"],
+    "--bulma-command-group-label-weight": ["Command"],
+    "--bulma-command-highlight-background": ["Command"],
+    "--bulma-command-highlight-color": ["Command"],
+    "--bulma-command-hint-color": ["Command"],
+    "--bulma-command-icon-color": ["Command"],
+    "--bulma-command-item-color": ["Command"],
+    "--bulma-command-item-gap": ["Command"],
+    "--bulma-command-item-hover-background": ["Command"],
+    "--bulma-command-item-padding-x": ["Command"],
+    "--bulma-command-item-padding-y": ["Command"],
+    "--bulma-command-item-radius": ["Command"],
+    "--bulma-command-item-size": ["Command"],
+    "--bulma-command-list-max-height": ["Command"],
+    "--bulma-command-padding": ["Command"],
+    "--bulma-command-radius": ["Command"],
     "--bulma-content-block-margin-bottom": ["Content"],
     "--bulma-content-blockquote-background-color": ["Content"],
     "--bulma-content-blockquote-border-left": ["Content"],
@@ -1624,6 +1787,15 @@
     "--bulma-delete-background-l": ["Delete"],
     "--bulma-delete-color": ["Delete"],
     "--bulma-delete-dimensions": ["Delete"],
+    "--bulma-description-list-column-gap": ["DescriptionList"],
+    "--bulma-description-list-divider-color": ["DescriptionList"],
+    "--bulma-description-list-divider-width": ["DescriptionList"],
+    "--bulma-description-list-gap": ["DescriptionList"],
+    "--bulma-description-list-label-color": ["DescriptionList"],
+    "--bulma-description-list-label-max-width": ["DescriptionList"],
+    "--bulma-description-list-label-weight": ["DescriptionList"],
+    "--bulma-description-list-row-gap": ["DescriptionList"],
+    "--bulma-description-list-value-color": ["DescriptionList"],
     "--bulma-dialog-animation-duration": ["Dialog"],
     "--bulma-dialog-background": ["Dialog"],
     "--bulma-dialog-body-color": ["Dialog"],
@@ -1676,6 +1848,19 @@
     "--bulma-empty-state-padding": ["EmptyState"],
     "--bulma-empty-state-title-size": ["EmptyState"],
     "--bulma-field-block-spacing": ["Field"],
+    "--bulma-fieldset-background": ["Fieldset"],
+    "--bulma-fieldset-border-color": ["Fieldset"],
+    "--bulma-fieldset-border-width": ["Fieldset"],
+    "--bulma-fieldset-filled-background": ["Fieldset"],
+    "--bulma-fieldset-legend-color": ["Fieldset"],
+    "--bulma-fieldset-legend-padding": ["Fieldset"],
+    "--bulma-fieldset-legend-size": ["Fieldset"],
+    "--bulma-fieldset-legend-spacing": ["Fieldset"],
+    "--bulma-fieldset-legend-weight": ["Fieldset"],
+    "--bulma-fieldset-padding": ["Fieldset"],
+    "--bulma-fieldset-padding-top": ["Fieldset"],
+    "--bulma-fieldset-radius": ["Fieldset"],
+    "--bulma-fieldset-spacing": ["Fieldset"],
     "--bulma-file-active-background-l-delta": ["File"],
     "--bulma-file-active-border-l-delta": ["File"],
     "--bulma-file-active-color-l-delta": ["File"],
@@ -2358,6 +2543,23 @@
     "--bulma-radio-background": ["Radio"],
     "--bulma-radio-border-color": ["Radio"],
     "--bulma-radio-border-width": ["Radio"],
+    "--bulma-radio-card-active-color": ["RadioCard"],
+    "--bulma-radio-card-border-color": ["RadioCard"],
+    "--bulma-radio-card-border-width": ["RadioCard"],
+    "--bulma-radio-card-checked-border-width": ["RadioCard"],
+    "--bulma-radio-card-description-color": ["RadioCard"],
+    "--bulma-radio-card-disabled-opacity": ["RadioCard"],
+    "--bulma-radio-card-focus-color": ["RadioCard"],
+    "--bulma-radio-card-focus-offset": ["RadioCard"],
+    "--bulma-radio-card-focus-width": ["RadioCard"],
+    "--bulma-radio-card-gap": ["RadioCard"],
+    "--bulma-radio-card-hover-border-color": ["RadioCard"],
+    "--bulma-radio-card-indicator-border-color": ["RadioCard"],
+    "--bulma-radio-card-indicator-border-width": ["RadioCard"],
+    "--bulma-radio-card-indicator-size": ["RadioCard"],
+    "--bulma-radio-card-min-width": ["RadioCard"],
+    "--bulma-radio-card-title-weight": ["RadioCard"],
+    "--bulma-radio-card-transition-duration": ["RadioCard"],
     "--bulma-radio-dot-color": ["Radio"],
     "--bulma-radio-focus-shadow-size": ["Radio"],
     "--bulma-radio-label-gap": ["Radio"],
@@ -2389,6 +2591,19 @@
     "--bulma-reveal-offset": ["Reveal"],
     "--bulma-reveal-offset-large": ["Reveal"],
     "--bulma-reveal-scale": ["Reveal"],
+    "--bulma-ring-progress-arc-color": ["RingProgress"],
+    "--bulma-ring-progress-duration": ["RingProgress"],
+    "--bulma-ring-progress-label-color": ["RingProgress"],
+    "--bulma-ring-progress-label-size": ["RingProgress"],
+    "--bulma-ring-progress-label-weight": ["RingProgress"],
+    "--bulma-ring-progress-size": ["RingProgress"],
+    "--bulma-ring-progress-thickness": ["RingProgress"],
+    "--bulma-ring-progress-track-color": ["RingProgress"],
+    "--bulma-scroll-area-fade-size": ["ScrollArea"],
+    "--bulma-scroll-area-scrollbar-width": ["ScrollArea"],
+    "--bulma-scroll-area-thumb-color": ["ScrollArea"],
+    "--bulma-scroll-area-thumb-hover-color": ["ScrollArea"],
+    "--bulma-scroll-area-track-color": ["ScrollArea"],
     "--bulma-section-padding": ["Section"],
     "--bulma-section-padding-desktop": ["Section"],
     "--bulma-section-padding-large": ["Section"],
@@ -2454,6 +2669,16 @@
     "--bulma-slider-track-height-small": ["Slider"],
     "--bulma-slider-transition-duration": ["Slider"],
     "--bulma-slider-vertical-height": ["Slider"],
+    "--bulma-splitter-grip-color": ["Splitter"],
+    "--bulma-splitter-grip-length": ["Splitter"],
+    "--bulma-splitter-grip-radius": ["Splitter"],
+    "--bulma-splitter-grip-size": ["Splitter"],
+    "--bulma-splitter-handle-size": ["Splitter"],
+    "--bulma-splitter-handle-size-coarse": ["Splitter"],
+    "--bulma-splitter-line-active-color": ["Splitter"],
+    "--bulma-splitter-line-active-size": ["Splitter"],
+    "--bulma-splitter-line-color": ["Splitter"],
+    "--bulma-splitter-line-size": ["Splitter"],
     "--bulma-steps-animation-duration": ["Steps"],
     "--bulma-steps-content-margin-top": ["Steps"],
     "--bulma-steps-default-color": ["Steps"],
@@ -2696,6 +2921,36 @@
       "path": "Combobox.Menu",
       "purpose": "The floating panel under the field, on screen while the list is open and its children aren't all empty."
     },
+    "CommandDialog": {
+      "component": "Command",
+      "path": "Command.Dialog",
+      "purpose": "The Command in a modal, a command palette, opened by its `shortcut` or by `open`, that closes once an item has run."
+    },
+    "CommandEmpty": {
+      "component": "Command",
+      "path": "Command.Empty",
+      "purpose": "The message shown in place of the list when nothing matches, announced when typing brings it on screen."
+    },
+    "CommandGroup": {
+      "component": "Command",
+      "path": "Command.Group",
+      "purpose": "Items under a heading, a `group` named by it."
+    },
+    "CommandInput": {
+      "component": "Command",
+      "path": "Command.Input",
+      "purpose": "The search field, with the combobox role and the keys, rendered as an `Input` with a search icon."
+    },
+    "CommandItem": {
+      "component": "Command",
+      "path": "Command.Item",
+      "purpose": "One thing to do in the list, named by its label and described by its description and hint."
+    },
+    "CommandList": {
+      "component": "Command",
+      "path": "Command.List",
+      "purpose": "The list of items, a `listbox` named by the Command's `label`."
+    },
     "DateInputBase": {
       "component": "DateInput",
       "path": "DateInputBase",
@@ -2713,6 +2968,21 @@
       "path": "DateTimeInputBase",
       "purpose": "Raw DateTimeInput — combined input + calendar + time spinner without Field/Control wrapping.",
       "standalone": "base"
+    },
+    "DescriptionListItem": {
+      "component": "DescriptionList",
+      "path": "DescriptionList.Item",
+      "purpose": "One fact: its label and its value, in a `<div>`, from the `label` and `value` props or from `Label` and `Value` children."
+    },
+    "DescriptionListLabel": {
+      "component": "DescriptionList",
+      "path": "DescriptionList.Label",
+      "purpose": "A label, the name of a fact: a `<dt>`, in the weaker text color."
+    },
+    "DescriptionListValue": {
+      "component": "DescriptionList",
+      "path": "DescriptionList.Value",
+      "purpose": "A value, what the label says about the thing: a `<dd>`."
     },
     "DialogContainer": {
       "component": "Dialog",
@@ -2977,6 +3247,11 @@
       "path": "SelectBase",
       "purpose": "Bulma Select component with full Bulma helper class support.",
       "standalone": "base"
+    },
+    "SplitterPane": {
+      "component": "Splitter",
+      "path": "Splitter.Pane",
+      "purpose": "One pane of a Splitter, sized by the splitter around it."
     },
     "Step": {
       "component": "Steps",

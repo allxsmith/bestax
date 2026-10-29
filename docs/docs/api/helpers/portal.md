@@ -9,7 +9,7 @@ sidebar_label: Portal
 
 `Portal` renders its children into another part of the page, `document.body` unless `container` or a `ConfigProvider` says otherwise, so floating content escapes an ancestor's `overflow`, `transform` or stacking context.
 
-It is the building block for your own overlays: a command palette, a floating panel. The library's own overlays, such as `Modal`, `Popover` and `HoverCard`, already portal through their own props, so reach for `Portal` when you are building something they don't cover.
+It is the building block for your own overlays, such as a floating panel. The library's own overlays, such as `Modal`, `Popover`, `HoverCard` and `Command.Dialog`, already portal through their own props, so reach for `Portal` when you are building something they don't cover.
 
 React's server renderer can't render a portal, so `Portal` renders nothing on the server and during hydration, and mounts its children in the commit that follows. The first client render matches the server markup, and there is no hydration warning to chase. In an app without server rendering it portals on the first render.
 
@@ -103,6 +103,8 @@ Focus follows the DOM too. Content portaled to the end of `document.body` is las
 ### Context and styles
 
 React context reaches portaled children, so a `ConfigProvider` class prefix still applies, and their React events bubble up the React tree to the components around the `Portal`. CSS inheritance follows the DOM instead. A scoped `Theme` (one without `isRoot`) sets its CSS variables on a wrapper element that portaled content has left, so that content sees the page-level theme, and styles scoped to a shadow root don't reach `document.body` at all. To keep them, portal into an element inside the themed area or the shadow root: pass it as `container`, or make it the [default container](#a-default-container) of a `ConfigProvider` around that area, which also reaches the content components such as `Popover` portal.
+
+The `dir` and `lang` of a [`LocaleProvider`](./localeprovider.md) are the exception: the children keep them wherever they go. A container inside the provider's own wrapper takes the children as they are. Any other, `document.body` included, gets them inside one `<div>` carrying the provider's values, with `display: contents`, so it adds no box but is still an element. Which of the two is settled when the children mount, so a change of locale updates them in place rather than remounting them. Content that must be the container's direct child, such as a `<tr>` in a `<tbody>`, belongs in a container inside the provider.
 
 ---
 

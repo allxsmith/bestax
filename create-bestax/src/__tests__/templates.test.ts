@@ -23,8 +23,15 @@ const { LIBRARY, libraryRange } = await import('../library-range.js');
 const {
   BULMA_FLAVORS,
   CSS_ORDER_COMMENT,
+  ESLINT_CONFIG,
+  ESLINT_DEV_DEPENDENCIES,
+  ESLINT_TYPESCRIPT_DEV_DEPENDENCIES,
   ICON_LIBRARIES,
   NO_HELPERS_STARTER_CLASSES,
+  REACT_COMPILER_DEV_DEPENDENCIES,
+  REACT_COMPILER_TYPESCRIPT_DEV_DEPENDENCIES,
+  REACT_COMPILER_README,
+  ROUTER_SETUPS,
 } = await import('../constants.js');
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
@@ -406,6 +413,249 @@ describe.each(TEMPLATES)('%s template README', template => {
     expect(plain).not.toMatch(/icons/i);
   });
 });
+
+// The templates ship create-vite's default lint setup, Oxlint, and --lint
+// eslint swaps in what create-vite's --eslint writes.
+describe.each(TEMPLATES)('%s template linter', template => {
+  const typescript = template === 'vite-ts';
+  const readPkg = (target: string) =>
+    fs.readJson(path.join(target, 'package.json')) as Promise<{
+      scripts: Record<string, string>;
+      devDependencies: Record<string, string>;
+    }>;
+
+  it('lints with Oxlint, and carries no ESLint', async () => {
+    const target = await scaffold(template);
+    await projectCreator.setupLinter(target, 'oxlint', template);
+
+    expect(fs.existsSync(path.join(target, '.oxlintrc.json'))).toBe(true);
+    expect(fs.existsSync(path.join(target, '_oxlintrc.json'))).toBe(false);
+    expect(fs.existsSync(path.join(target, 'eslint.config.js'))).toBe(false);
+    const pkg = await readPkg(target);
+    expect(pkg.scripts.lint).toBe('oxlint');
+    expect(Object.keys(pkg.devDependencies)).toContain('oxlint');
+    expect(
+      Object.keys(pkg.devDependencies).filter(name => /eslint/.test(name))
+    ).toEqual([]);
+    if (typescript) {
+      expect(pkg.devDependencies.typescript).toMatch(/^~7\./);
+    }
+  });
+
+  it('swaps in ESLint for --lint eslint, and TypeScript 6 with it', async () => {
+    const target = await scaffold(template);
+    await projectCreator.updateReadme(target, 'none');
+    await projectCreator.setupLinter(target, 'eslint', template);
+
+    expect(fs.existsSync(path.join(target, '.oxlintrc.json'))).toBe(false);
+    expect(
+      await fs.readFile(path.join(target, 'eslint.config.js'), 'utf8')
+    ).toBe(ESLINT_CONFIG(typescript));
+
+    const pkg = await readPkg(target);
+    expect(pkg.scripts.lint).toBe('eslint .');
+    expect(pkg.devDependencies).not.toHaveProperty('oxlint');
+    expect(pkg.devDependencies).toMatchObject(ESLINT_DEV_DEPENDENCIES);
+    if (typescript) {
+      expect(pkg.devDependencies).toMatchObject(
+        ESLINT_TYPESCRIPT_DEV_DEPENDENCIES
+      );
+    } else {
+      expect(pkg.devDependencies).not.toHaveProperty('typescript');
+      expect(pkg.devDependencies).not.toHaveProperty('typescript-eslint');
+    }
+    const names = Object.keys(pkg.devDependencies);
+    expect(names).toEqual([...names].sort());
+
+    const readme = await fs.readFile(path.join(target, 'README.md'), 'utf8');
+    expect(readme).toContain('Run ESLint');
+    expect(readme).not.toContain('Oxlint');
+  });
+});
+
+// A React Compiler template copies its plain template and turns the compiler
+// on, the way create-vite builds its react-compiler starters.
+describe.each([
+  ['vite-compiler', 'vite'],
+  ['vite-compiler-ts', 'vite-ts'],
+] as const)('%s template', (template, directory) => {
+  const typescript = directory === 'vite-ts';
+  const config = typescript ? 'vite.config.ts' : 'vite.config.js';
+
+  it(`is the ${directory} folder`, () => {
+    expect(projectCreator.getTemplatePath(template)).toBe(
+      path.join(templatesDir, directory)
+    );
+  });
+
+  it('turns the compiler on in vite.config, with its packages', async () => {
+    const target = await scaffold(directory);
+    await projectCreator.setupReactCompiler(target, template);
+
+    const viteConfig = await fs.readFile(path.join(target, config), 'utf8');
+    expect(viteConfig).toContain(
+      "import react, { reactCompilerPreset } from '@vitejs/plugin-react';\n" +
+        "import babel from '@rolldown/plugin-babel';"
+    );
+    expect(viteConfig).toContain(
+      '  plugins: [react(), babel({ presets: [reactCompilerPreset()] })],'
+    );
+    expect(viteConfig).not.toContain('plugins: [react()],');
+
+    const pkg = await fs.readJson(path.join(target, 'package.json'));
+    expect(pkg.devDependencies).toMatchObject(REACT_COMPILER_DEV_DEPENDENCIES);
+    if (typescript) {
+      expect(pkg.devDependencies).toMatchObject(
+        REACT_COMPILER_TYPESCRIPT_DEV_DEPENDENCIES
+      );
+    } else {
+      expect(pkg.devDependencies).not.toHaveProperty('@types/babel__core');
+    }
+    const names = Object.keys(pkg.devDependencies);
+    expect(names).toEqual([...names].sort());
+
+    const readme = await fs.readFile(path.join(target, 'README.md'), 'utf8');
+    expect(readme.endsWith(REACT_COMPILER_README)).toBe(true);
+  });
+
+  it(`leaves ${directory} itself alone`, async () => {
+    const target = await scaffold(directory);
+    const before = await fs.readFile(path.join(target, config), 'utf8');
+    await projectCreator.setupReactCompiler(target, directory);
+
+    expect(await fs.readFile(path.join(target, config), 'utf8')).toBe(before);
+  });
+});
+
+// A router template copies its plain template, runs the same steps on it, and
+// lays the router's files over it. These run the real files through the steps
+// a scaffold takes, in its order, since the router step rewrites what the
+// provider step wrote.
+describe.each([
+  {
+    template: 'react-router',
+    directory: 'vite',
+    ext: 'jsx',
+    router: 'react-router',
+    files: ['src/Layout.jsx', 'src/router.jsx', 'src/pages/About.jsx'],
+    homeRoute: '{ index: true, element: <App /> }',
+  },
+  {
+    template: 'react-router-ts',
+    directory: 'vite-ts',
+    ext: 'tsx',
+    router: 'react-router',
+    files: ['src/Layout.tsx', 'src/router.tsx', 'src/pages/About.tsx'],
+    homeRoute: '{ index: true, element: <App /> }',
+  },
+  {
+    template: 'tanstack-router-ts',
+    directory: 'vite-ts',
+    ext: 'tsx',
+    router: 'tanstack-router',
+    files: [
+      'src/Layout.tsx',
+      'src/NavbarLink.tsx',
+      'src/router.tsx',
+      'src/pages/About.tsx',
+    ],
+    homeRoute: "path: '/',\n  component: App,",
+  },
+] as const)(
+  '$template template',
+  ({ template, directory, ext, router, files, homeRoute }) => {
+    const setup = ROUTER_SETUPS[router];
+    const read = (target: string, file: string) =>
+      fs.readFile(path.join(target, file), 'utf8');
+
+    it(`is the ${directory} folder`, () => {
+      expect(projectCreator.getTemplatePath(template)).toBe(
+        path.join(templatesDir, directory)
+      );
+    });
+
+    it('adds the layout, the routes and a second page, each importing what exists', async () => {
+      const target = await scaffold(directory);
+      await projectCreator.setupRouter(target, template);
+
+      for (const file of files) {
+        const source = await read(target, file);
+        for (const [, relative] of source.matchAll(/from '(\.[^']+)'/g)) {
+          expect({
+            file,
+            import: relative,
+            exists: fs.existsSync(
+              path.resolve(target, path.dirname(file), relative)
+            ),
+          }).toEqual({ file, import: relative, exists: true });
+        }
+      }
+      expect(await read(target, `src/router.${ext}`)).toContain(homeRoute);
+    });
+
+    it('renders the router in place of App, inside the provider an earlier step wrote', async () => {
+      const target = await scaffold(directory);
+      await projectCreator.setupBulmaFlavor(target, 'prefixed', template);
+      await projectCreator.setupIconLibrary(target, 'mdi', template);
+      await projectCreator.setupConfigProvider(
+        target,
+        'prefixed',
+        'mdi',
+        template
+      );
+      await projectCreator.setupRouter(target, template);
+
+      const main = await read(target, `src/main.${ext}`);
+      expect(main).toContain(
+        `import { RouterProvider } from '${setup.providerModule}';\n` +
+          `import { router } from './router.${ext}';`
+      );
+      expect(main).not.toMatch(/import App\b/);
+      expect(main).not.toMatch(/<App\s*\/>/);
+      expect(main).toMatch(
+        /<ConfigProvider classPrefix="bestax-" iconLibrary="mdi">\s*<RouterProvider router=\{router\} \/>\s*<\/ConfigProvider>/
+      );
+    });
+
+    it('depends on its router, sets any Node floor it needs, and says so in the README', async () => {
+      const target = await scaffold(directory);
+      const before = await fs.readJson(path.join(target, 'package.json'));
+      await projectCreator.setupIconLibrary(target, 'fontawesome', template);
+      await projectCreator.setupRouter(target, template);
+
+      const pkg = await fs.readJson(path.join(target, 'package.json'));
+      expect(pkg.dependencies).toMatchObject(setup.dependencies);
+      const names = Object.keys(pkg.dependencies);
+      expect(names).toEqual([...names].sort());
+      expect(pkg.engines.node).toBe(setup.nodeEngine ?? before.engines.node);
+
+      const readme = await read(target, 'README.md');
+      expect(readme.endsWith(setup.readme(ext))).toBe(true);
+    });
+
+    it(`leaves ${directory} itself alone`, async () => {
+      const target = await scaffold(directory);
+      const before = await read(target, `src/main.${ext}`);
+      await projectCreator.setupRouter(target, directory);
+
+      expect(await read(target, `src/main.${ext}`)).toBe(before);
+      expect(fs.existsSync(path.join(target, `src/router.${ext}`))).toBe(false);
+    });
+
+    it('uses no helper prop in the files it adds, so a no-helpers flavor renders them as written', async () => {
+      const target = await scaffold(directory);
+      await projectCreator.setupRouter(target, template);
+      const helpers = helperPropsOfUseBulmaClasses();
+      for (const file of files.filter(f => !f.endsWith(`router.${ext}`))) {
+        const source = await read(target, file);
+        const used = helpers.filter(prop =>
+          new RegExp(`\\s${prop}=`).test(source)
+        );
+        expect({ file, used }).toEqual({ file, used: [] });
+      }
+    });
+  }
+);
 
 // A template asks for the library the way this CLI's own manifest does, and
 // the scaffold writes the range that manifest resolves to in its place, so an

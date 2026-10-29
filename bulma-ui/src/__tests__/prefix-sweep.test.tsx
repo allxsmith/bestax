@@ -51,9 +51,33 @@ const PROPS: Record<string, Record<string, unknown>> = {
   },
   Rate: { value: 2.5, showScore: true, text: 'Good' },
   Checkbox: { children: 'Accept' },
+  // Colored, with the indicator, a title, a description and more, so every
+  // class a card takes is swept.
+  CheckboxCard: {
+    color: 'success',
+    title: 'Backups',
+    description: 'Kept for 30 days',
+    children: '$5',
+  },
   Radio: { children: 'Choose' },
+  RadioCard: {
+    color: 'info',
+    title: 'Express',
+    description: 'Tomorrow',
+    children: '$12',
+  },
   Switch: { children: 'Enable' },
   Loading: { active: true, canCancel: true, children: 'Loading…' },
+  // Its helper classes, and the element it puts portaled content in.
+  LocaleProvider: {
+    locale: 'ar',
+    p: '2',
+    children: (
+      <Library.Portal>
+        <Library.Tag>Portaled</Library.Tag>
+      </Library.Portal>
+    ),
+  },
   Toast: {
     message: 'Saved',
     inline: true,
@@ -62,6 +86,64 @@ const PROPS: Record<string, Record<string, unknown>> = {
     actionText: 'Undo',
   },
   Taginput: { value: ['tag-one'] },
+  // Vertical, with a collapsed pane, so every class it emits is swept.
+  Splitter: {
+    orientation: 'vertical',
+    children: [
+      <Library.Splitter.Pane key="a" label="A" collapsible defaultCollapsed>
+        A
+      </Library.Splitter.Pane>,
+      <Library.Splitter.Pane key="b" label="B">
+        B
+      </Library.Splitter.Pane>,
+    ],
+  },
+  // Every orientation class and dividers, with an item from its props and
+  // one from its parts, so each class the family emits is swept.
+  DescriptionList: {
+    orientation: 'vertical',
+    orientationMobile: 'vertical',
+    orientationTablet: 'horizontal',
+    orientationDesktop: 'vertical',
+    orientationWidescreen: 'horizontal',
+    orientationFullhd: 'vertical',
+    hasDividers: true,
+    children: [
+      <Library.DescriptionList.Item key="a" label="Order" value="#1234" />,
+      <Library.DescriptionList.Item key="b">
+        <Library.DescriptionList.Label>Tags</Library.DescriptionList.Label>
+        <Library.DescriptionList.Value>Gift</Library.DescriptionList.Value>
+      </Library.DescriptionList.Item>,
+    ],
+  },
+  DescriptionListItem: { label: 'Order', value: '#1234' },
+  // Sized, colored and rounded, in sections, so every class it emits is swept.
+  RingProgress: {
+    label: 'Storage',
+    size: 'small',
+    color: 'info',
+    isRounded: true,
+    sections: [{ value: 40, color: 'warning', label: 'Photos' }],
+    children: '40%',
+  },
+  // Filled, with a legend and a colored message, so the legend's and the
+  // help's classes are swept with the variant's.
+  Fieldset: {
+    legend: 'Shipping',
+    variant: 'filled',
+    message: 'We only ship within the EU.',
+    messageColor: 'info',
+    children: 'Fields',
+  },
+  // Every modifier, so each class the frame takes is swept.
+  ScrollArea: {
+    'aria-label': 'Notes',
+    orientation: 'vertical',
+    showScrollbars: 'hover',
+    hasStableGutter: true,
+    hasFade: true,
+    children: 'Notes',
+  },
   // Labeled, with a message, colored, sized, rounded and disabled, so the
   // Field, the Control and every class a box takes are swept.
   PinInput: {
@@ -100,6 +182,43 @@ const PROPS: Record<string, Record<string, unknown>> = {
   },
   ComboboxItem: { value: 'apple', checked: true, children: 'Apple' },
   ComboboxGroup: { label: 'Fruit' },
+  // A highlighted item with an icon, a description and a hint, a disabled
+  // one in a group, and an empty message beside the list, so each class the
+  // Command family adds is swept.
+  Command: {
+    label: 'Commands',
+    children: [
+      <Library.Command.Input key="i" />,
+      <Library.Command.List key="l">
+        <Library.Command.Group label="Files">
+          <Library.Command.Item
+            value="open"
+            icon={<svg />}
+            description="Open a file"
+            hint="O"
+          >
+            Open
+          </Library.Command.Item>
+          <Library.Command.Item value="close" disabled>
+            Close
+          </Library.Command.Item>
+        </Library.Command.Group>
+      </Library.Command.List>,
+      <Library.Command.Empty key="e">Nothing else</Library.Command.Empty>,
+    ],
+  },
+  CommandDialog: {
+    defaultOpen: true,
+    actions: [{ id: 'open', label: 'Open', group: 'Files' }],
+  },
+  CommandItem: {
+    value: 'open',
+    icon: <svg />,
+    description: 'Open a file',
+    hint: 'O',
+    children: 'Open',
+  },
+  CommandGroup: { label: 'Files' },
   TagInput: { value: ['tag-one'] },
   Modal: { active: true, children: 'Modal content' },
   Dialog: { isOpen: true, message: 'Are you sure?' },

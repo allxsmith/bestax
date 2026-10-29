@@ -1,3 +1,122 @@
+# [5.54.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.53.0...@allxsmith/bestax-bulma@5.54.0) (2026-10-29)
+
+
+### Features
+
+* **bulma-ui:** let the locale matcher find text whose marks differ from the query ([025bb82](https://github.com/allxsmith/bestax/commit/025bb827ec44a08371de034267e6292fb27d5c49))
+* **bulma-ui:** match Command's actions in the LocaleProvider's locale ([bc9ef1f](https://github.com/allxsmith/bestax/commit/bc9ef1f333a6e333407535059b89e9626d840c7a))
+* **bulma-ui:** write numbers and match typed text in the LocaleProvider's locale ([2f50b5e](https://github.com/allxsmith/bestax/commit/2f50b5e07456f8c8b5863df33e896138aedc78db))
+
+# [5.53.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.52.0...@allxsmith/bestax-bulma@5.53.0) (2026-10-29)
+
+
+### Bug Fixes
+
+* **docs:** match the drawn starter app's Count to the real one ([8efe24b](https://github.com/allxsmith/bestax/commit/8efe24b460bbe2510b0bd83ad0b7da3d5521211a))
+
+
+### Features
+
+* **bulma-ui:** add Fieldset, a form section named by its legend that disabled switches off ([8fc1780](https://github.com/allxsmith/bestax/commit/8fc178059b9a692d7a396c925856b31839d95a49))
+* **bulma-ui:** add LocaleProvider for language and writing direction ([7cba193](https://github.com/allxsmith/bestax/commit/7cba193eff08cfdfd1b109bf747e0b8cebe796a5))
+* **bulma-ui:** keep the Sunday default when a picker brings its own day names ([3be12b0](https://github.com/allxsmith/bestax/commit/3be12b0e974ba29dbade072306b55a3e71db60ae))
+* **bulma-ui:** let CheckboxCard and RadioCard take a disabled Fieldset's state ([0a95531](https://github.com/allxsmith/bestax/commit/0a95531650e37d56d9c5aeaca3af722bc4e47b13))
+* **bulma-ui:** read a picker's own locale like a nested provider; wrap portals only if needed ([acb1157](https://github.com/allxsmith/bestax/commit/acb11575d2b86fdd923b81eba7159458f580a317))
+* **bulma-ui:** settle the portal wrapper when content mounts, so a locale switch remounts nothing ([25d72d2](https://github.com/allxsmith/bestax/commit/25d72d20bbacc3d789fc94e3b3e23b6666e50e48))
+* **create-bestax:** add React Router templates with a shared navbar and two pages ([47fbcf4](https://github.com/allxsmith/bestax/commit/47fbcf435395f2b1a063165d7693ed303f9ccf10))
+
+# [5.52.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.51.0...@allxsmith/bestax-bulma@5.52.0) (2026-10-28)
+
+
+### Features
+
+* **bulma-ui:** add CheckboxCard and RadioCard, choices drawn as cards ([5958bda](https://github.com/allxsmith/bestax/commit/5958bda70f0571a73903ba6b0c0eac46f4cebd02))
+* **bulma-ui:** add Command, a search over things to do, inline or as a command palette ([bd7733c](https://github.com/allxsmith/bestax/commit/bd7733cd31a667976970e3ed059a4077ce2f7b76))
+* **bulma-ui:** render Checkboxes and Radios as a native fieldset with as="fieldset" ([d9b1f72](https://github.com/allxsmith/bestax/commit/d9b1f728ea807a7dc5b968aa9613afba715bb857))
+
+# [5.51.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.50.0...@allxsmith/bestax-bulma@5.51.0) (2026-10-28)
+
+
+### Bug Fixes
+
+* **docs:** answer create-bestax's install-and-start question in the run ([0cdb40b](https://github.com/allxsmith/bestax/commit/0cdb40b04f68cd2f9bece66482bc92469ade8e41))
+* **docs:** give the create-bestax browser frame the site's color mode ([ec2c3b5](https://github.com/allxsmith/bestax/commit/ec2c3b5066a33c8952483a8538fceabb79f65cb7))
+* **docs:** keep the Bulma v1 card's window in the site's color mode ([#1321](https://github.com/allxsmith/bestax/issues/1321)) ([6296bd0](https://github.com/allxsmith/bestax/commit/6296bd0ae3141c21476bc6172af14608373bffb6))
+* **docs:** keep the scroll trigger from restarting a Replay ([b41bc3f](https://github.com/allxsmith/bestax/commit/b41bc3f7b954e31b5c59ea4e26a4589d79024785))
+* **docs:** stop calling the MCP server upcoming in the AI section ([9864c30](https://github.com/allxsmith/bestax/commit/9864c30f5b032e1b6053eaef66a2eabbe844ecb2))
+
+
+### Features
+
+* **bulma-ui:** add DescriptionList, facts about one thing as labels and values ([78dd1b6](https://github.com/allxsmith/bestax/commit/78dd1b6ada3d650fdfef4257a78846fd72caca00))
+* **docs:** rebuild the homepage hero and features to match the social card ([#1316](https://github.com/allxsmith/bestax/issues/1316)) ([aadc45d](https://github.com/allxsmith/bestax/commit/aadc45df992bd6f186979d8694606db0594ea712))
+* **docs:** show create-bestax scaffolding an app on the homepage ([3d11ce9](https://github.com/allxsmith/bestax/commit/3d11ce918ddbdf1c1ebf1bf37e604fa540e315e3))
+* **docs:** show create-bestax scaffolding an app on the homepage ([#1320](https://github.com/allxsmith/bestax/issues/1320)) ([6335f24](https://github.com/allxsmith/bestax/commit/6335f2440cfc3387682699e1a6a9d4aef8473451))
+
+# [5.50.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.49.1...@allxsmith/bestax-bulma@5.50.0) (2026-10-28)
+
+
+### Bug Fixes
+
+* **bulma-ui:** name an empty-labelled RingProgress from aria-label, and color its middle ([56db798](https://github.com/allxsmith/bestax/commit/56db79870b8db8bb84a0cf1d0b703387539283fb))
+* **create-bestax:** name the cd when an --immediate install fails, and let .git sit in "." ([56051f9](https://github.com/allxsmith/bestax/commit/56051f948cf79cde76fa8ec7fe71597db905b777))
+* **create-bestax:** take only the platform separator after ".", and list every template in --help ([d2ee3e0](https://github.com/allxsmith/bestax/commit/d2ee3e0c3f7c5534a0e39dbaa497b19bd838e40d))
+* **create-bestax:** take Oxlint without a terminal when --lint is left out ([fbd8640](https://github.com/allxsmith/bestax/commit/fbd86405e170d1a6917d9296126ab5b4b4fe304d))
+
+
+### Features
+
+* **bulma-ui:** add RingProgress, a value drawn as a ring ([d47beca](https://github.com/allxsmith/bestax/commit/d47beca369055fcc2346f7e7c7690b4dc609dc0f)), closes [#1303](https://github.com/allxsmith/bestax/issues/1303)
+* **create-bestax:** add React Compiler templates, --immediate, and "." for the current directory ([fa18980](https://github.com/allxsmith/bestax/commit/fa189805b56d2fc930358acf416eb588438e595a))
+* **create-bestax:** scaffold with Oxlint and TypeScript 7, with ESLint behind --lint ([0bfa7e1](https://github.com/allxsmith/bestax/commit/0bfa7e137b56242c138cc81d01fca21f7a66092f)), closes [#1304](https://github.com/allxsmith/bestax/issues/1304)
+
+## [5.49.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.49.0...@allxsmith/bestax-bulma@5.49.1) (2026-10-27)
+
+
+### Bug Fixes
+
+* **bulma-ui:** claim tree-shaking for the ESM build only ([634c4a8](https://github.com/allxsmith/bestax/commit/634c4a8eba1015f8fe212aed5a1e08eb0de76401))
+* **bulma-ui:** drop the bundlephobia size badge from the README ([c93792e](https://github.com/allxsmith/bestax/commit/c93792ef6a1e0c395d90619d099debe4a8ac84d0))
+
+# [5.49.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.48.1...@allxsmith/bestax-bulma@5.49.0) (2026-10-27)
+
+
+### Bug Fixes
+
+* **bulma-ui:** collapse a Splitter pane only within its neighbour's limit, and let collapsed decide ([3c40955](https://github.com/allxsmith/bestax/commit/3c40955227ccbf47cf36adfe8d3e8bc5a3ef7211))
+* **bulma-ui:** draw Splitter's active line in bestax's primary blue ([4b73e46](https://github.com/allxsmith/bestax/commit/4b73e4688fc312652dd1f6e988f200e576e04d24))
+
+
+### Features
+
+* **bulma-ui:** add Splitter, panes with a handle between each pair to drag or move by keyboard ([3d735ea](https://github.com/allxsmith/bestax/commit/3d735ea208ad46b9bce47c166bbbb8ea25ebfcbf)), closes [#1299](https://github.com/allxsmith/bestax/issues/1299)
+
+## [5.48.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.48.0...@allxsmith/bestax-bulma@5.48.1) (2026-10-27)
+
+
+### Bug Fixes
+
+* **bulma-ui:** publish the shorter npm description ([e52dd79](https://github.com/allxsmith/bestax/commit/e52dd79618a4a960080a4021b2366ae6bf508efe)), closes [#1297](https://github.com/allxsmith/bestax/issues/1297) [#1296](https://github.com/allxsmith/bestax/issues/1296)
+
+# [5.48.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.47.0...@allxsmith/bestax-bulma@5.48.0) (2026-10-27)
+
+
+### Bug Fixes
+
+* **bulma-ui:** name ScrollArea only while it's a region, and re-measure when its text changes ([ecfaafe](https://github.com/allxsmith/bestax/commit/ecfaafec14c7531cfcbc792b38373131cf7b3d57))
+
+
+### Features
+
+* **bulma-ui:** add ScrollArea, a box that scrolls on the browser's own bars in Bulma's colors ([4e5f037](https://github.com/allxsmith/bestax/commit/4e5f03787281975acc3d639e7bbb58640d2f5f5c)), closes [#1295](https://github.com/allxsmith/bestax/issues/1295)
+
+# [5.47.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.46.0...@allxsmith/bestax-bulma@5.47.0) (2026-10-27)
+
+
+### Features
+
+* **bulma-ui:** declare aria-posinset and aria-setsize on TreeView items ([8807137](https://github.com/allxsmith/bestax/commit/8807137e5565320151794b2d54cbf240bc8b3aec)), closes [#1171](https://github.com/allxsmith/bestax/issues/1171) [#1171](https://github.com/allxsmith/bestax/issues/1171)
+
 # [5.46.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.45.1...@allxsmith/bestax-bulma@5.46.0) (2026-10-26)
 
 

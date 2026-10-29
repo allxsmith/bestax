@@ -1,0 +1,184 @@
+// Bestax Extras - Splitter Styles
+// Panes side by side or one above the other, with a handle between each pair
+// to drag. Bulma has no resizable layout.
+//
+// The root is a flex row or column, and each pane grows by its percentage
+// over a zero basis, which the component sets inline, so the server and the
+// client lay it out the same. A handle is a strip of fixed size with a line
+// down its middle and a short grip, both borders, so forced colors keeps them.
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+@use "../mixins" as *;
+
+// The strip across the line: what a mouse grabs. It reaches 24px for a
+// coarse pointer, WCAG 2.5.8's minimum target.
+$splitter-handle-size: 0.75rem !default;
+$splitter-handle-size-coarse: 1.5rem !default;
+$splitter-line-size: 1px !default;
+$splitter-line-color: cv.getVar("border") !default;
+$splitter-line-active-size: 2px !default;
+// bestax's blue: 5.7:1 on `scheme-main` in light and 3.2:1 in dark.
+$splitter-line-active-color: cv.getVar("primary") !default;
+$splitter-grip-length: 1.5rem !default;
+$splitter-grip-size: 0.25rem !default;
+$splitter-grip-color: cv.getVar("border-hover") !default;
+$splitter-grip-radius: cv.getVar("radius-rounded") !default;
+
+.#{iv.$class-prefix}splitter {
+  @include cv.register-vars(
+    (
+      "splitter-handle-size": #{$splitter-handle-size},
+      "splitter-handle-size-coarse": #{$splitter-handle-size-coarse},
+      "splitter-line-size": #{$splitter-line-size},
+      "splitter-line-color": #{$splitter-line-color},
+      "splitter-line-active-size": #{$splitter-line-active-size},
+      "splitter-line-active-color": #{$splitter-line-active-color},
+      "splitter-grip-length": #{$splitter-grip-length},
+      "splitter-grip-size": #{$splitter-grip-size},
+      "splitter-grip-color": #{$splitter-grip-color},
+      "splitter-grip-radius": #{$splitter-grip-radius},
+    )
+  );
+}
+
+// ---- The root and the panes ----------------------------------------------------
+
+.#{iv.$class-prefix}splitter {
+  display: flex;
+  flex-direction: row;
+  min-width: 0;
+  min-height: 0;
+
+  &.#{iv.$class-prefix}is-vertical {
+    flex-direction: column;
+  }
+
+  &:not(:last-child) {
+    margin-bottom: cv.getVar("block-spacing");
+  }
+}
+
+// A pane can be narrower than its content, which scrolls rather than being
+// cut off. For content meant to scroll, a ScrollArea in the pane gives the
+// keyboard a way in.
+.#{iv.$class-prefix}splitter-pane {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+// ---- The handle ------------------------------------------------------------------
+
+.#{iv.$class-prefix}splitter-handle {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: cv.getVar("splitter-handle-size");
+  cursor: col-resize;
+  touch-action: none;
+  user-select: none;
+
+  // The line, down the middle of the strip.
+  &::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 50%;
+    border-inline-start: cv.getVar("splitter-line-size") solid cv.getVar("splitter-line-color");
+  }
+
+  // The grip: a short bar across the middle of the line.
+  &::after {
+    content: "";
+    position: relative;
+    block-size: cv.getVar("splitter-grip-length");
+    inline-size: 0;
+    border-inline: calc(#{cv.getVar("splitter-grip-size")} / 2) solid cv.getVar("splitter-grip-color");
+    border-radius: cv.getVar("splitter-grip-radius");
+  }
+
+  &:hover::before,
+  &:focus-visible::before,
+  &.#{iv.$class-prefix}is-active::before {
+    border-inline-start-width: cv.getVar("splitter-line-active-size");
+    border-inline-start-color: cv.getVar("splitter-line-active-color");
+  }
+
+  &:hover::after,
+  &:focus-visible::after,
+  &.#{iv.$class-prefix}is-active::after {
+    border-color: cv.getVar("splitter-line-active-color");
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include extras-focus-outline;
+    outline-offset: -2px;
+  }
+}
+
+// Stacked panes: the handle lies across, and the line and grip turn with it.
+.#{iv.$class-prefix}splitter.#{iv.$class-prefix}is-vertical > .#{iv.$class-prefix}splitter-handle {
+  inline-size: auto;
+  block-size: cv.getVar("splitter-handle-size");
+  cursor: row-resize;
+
+  &::before {
+    inset-block: auto;
+    inset-inline: 0;
+    inset-block-start: 50%;
+    border-inline-start: 0;
+    border-block-start: cv.getVar("splitter-line-size") solid cv.getVar("splitter-line-color");
+  }
+
+  &::after {
+    block-size: 0;
+    inline-size: cv.getVar("splitter-grip-length");
+    border-inline: 0;
+    border-block: calc(#{cv.getVar("splitter-grip-size")} / 2) solid cv.getVar("splitter-grip-color");
+  }
+
+  &:hover::before,
+  &:focus-visible::before,
+  &.#{iv.$class-prefix}is-active::before {
+    border-block-start-width: cv.getVar("splitter-line-active-size");
+    border-block-start-color: cv.getVar("splitter-line-active-color");
+  }
+}
+
+// ---- Media ---------------------------------------------------------------------
+
+// A finger needs a wider strip than a mouse.
+@media (pointer: coarse) {
+  .#{iv.$class-prefix}splitter-handle {
+    inline-size: cv.getVar("splitter-handle-size-coarse");
+  }
+
+  .#{iv.$class-prefix}splitter.#{iv.$class-prefix}is-vertical > .#{iv.$class-prefix}splitter-handle {
+    inline-size: auto;
+    block-size: cv.getVar("splitter-handle-size-coarse");
+  }
+}
+
+// The line and grip are borders, which forced colors keeps; the active one
+// takes the system's highlight.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}splitter-handle:hover::before,
+  .#{iv.$class-prefix}splitter-handle:focus-visible::before,
+  .#{iv.$class-prefix}splitter-handle.#{iv.$class-prefix}is-active::before,
+  .#{iv.$class-prefix}splitter-handle:hover::after,
+  .#{iv.$class-prefix}splitter-handle:focus-visible::after,
+  .#{iv.$class-prefix}splitter-handle.#{iv.$class-prefix}is-active::after {
+    border-color: Highlight;
+  }
+
+  .#{iv.$class-prefix}splitter-handle:focus-visible {
+    outline-color: CanvasText;
+  }
+}

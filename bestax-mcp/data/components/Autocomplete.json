@@ -98,7 +98,7 @@
           "name": "data",
           "type": "AutocompleteItem[] | string[]",
           "default": "[]",
-          "description": "The options data to display (required).",
+          "description": "The options data to display (required). The list shows the options that contain what's typed, ignoring case, and inside a `LocaleProvider` with a `locale`, ignoring accents too where that language does, so \"cafe\" finds \"Café\".",
           "required": false,
           "inherited": false,
           "deprecated": false

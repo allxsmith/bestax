@@ -2,12 +2,17 @@
 
 CLI that scaffolds a Vite app wired for `@allxsmith/bestax-bulma`. Agents and CI are
 first-class consumers: **every prompt must have a flag equivalent**, and the non-interactive
-path (`-y` + flags, no TTY) must never hang or regress (#192).
+path (`-y` + flags, no TTY) must never hang or regress (#192). So a question added later takes
+its default without a TTY, as `--lint` and `--immediate` do: a run that answered every older
+question by flag still finishes. `--immediate` never runs under `-y` or without a TTY unless it's
+passed, so a scripted run never starts a dev server it can't stop.
 
 The one question `-y` does not answer is whether to delete a non-empty target directory: only
 `--overwrite` or a yes at the prompt does, and without either the run stops and changes nothing.
 Neither empties the working directory or a folder holding it (#310). The project directory can
-be a path (#1154), so that is judged where the path resolves, not by how it is spelled.
+be a path (#1154), so that is judged where the path resolves, not by how it is spelled. `.`
+alone scaffolds into the working directory, as create-vite takes it, and so only while it's
+empty. A directory holding only `.git` counts as empty, as create-vite counts it.
 Every flag is validated before anything on disk changes, and the directory is emptied only after
 the last prompt, so a typo or a Ctrl+C never costs the user their files (#945).
 
@@ -24,7 +29,21 @@ the last prompt, so a typo or a Ctrl+C never costs the user their files (#945).
 - `src/library-range.ts` — the `@allxsmith/bestax-bulma` range a scaffold gets (see
   Dependencies)
 - `src/validators.ts`, `src/display.ts`, `src/file-system.ts` — support modules
-- `templates/vite`, `templates/vite-ts` — the app templates
+- `src/run-command.ts` — runs `--immediate`'s install and dev server
+- `templates/vite`, `templates/vite-ts` — the app templates. The `vite-compiler` and
+  `vite-compiler-ts` templates copy them and turn the React Compiler on (`setupReactCompiler`).
+  The router templates (`react-router`, `react-router-ts` and `tanstack-router-ts`) copy them and
+  lay the files in `templates/overlays/<router>/<vite|vite-ts>` over them (`setupRouter`): a navbar
+  layout, the routes and a second page, with `App`, the starter page, as the home page. That step
+  runs after the flavor, icon and provider steps, which edit `App` and the entry file as they do
+  in the plain template, and then makes the entry file render the router where it rendered `App`.
+  The files it adds use no helper prop, so a no-helpers flavor needs nothing from it, and
+  `src/__tests__/templates.test.ts` holds them to that. `ROUTER_SETUPS` in `src/constants.ts`
+  holds what each router adds: its dependency, floored at a release past the cooldown, any Node
+  floor it needs, and its README and `CLAUDE.md` text. Move a router's floor with its major, and
+  check its Node floor when you do. The TanStack Router navbar links through `createLink`
+  (`NavbarLink`) rather than `as={Link}`, since `as` keeps the props but stops checking `to`
+  against the routes.
 
 ## Dependencies
 
@@ -91,11 +110,18 @@ react (#1012), so restore them on its PR; when the peer range itself moves, chan
   silently dropped at ingest.
 - Templates pin the library's CSS import and icon setup — a change to bulma-ui's published
   exports or flavors (`bestax.css`, `versions/*.css`) may require a template update.
-- `templates/vite-ts` follows the `react-ts` starter that `npm create vite@latest` writes.
-  When Vite or create-vite ships a new major, scaffold that starter, compare its tsconfigs,
-  devDependencies, `vite.config.ts` and `src/main.tsx` with the template's, and catch up
-  (#1049). The App, its assets and the README differ on purpose, and so does lint: the
-  template keeps ESLint with typescript-eslint whatever linter create-vite ships. A file the
+- `templates/vite` and `templates/vite-ts` follow the `react` and `react-ts` starters that
+  `npm create vite@latest` writes, Oxlint and its `_oxlintrc.json` included, and `--lint eslint`
+  follows what create-vite's `--eslint` writes in their place (the `ESLINT_*` constants in
+  `src/constants.ts`), and the compiler templates what its `react-compiler` starters add (the
+  `REACT_COMPILER_*` constants). `.github/workflows/create-vite-drift.yml` runs
+  `scripts/check-create-vite-drift.mjs` each Monday and keeps an issue open while they differ
+  from the create-vite release npm calls `latest` (`node scripts/check-create-vite-drift.mjs
+--report` prints the same comparison). To catch up, scaffold both starters with and without
+  `--eslint`, compare their tsconfigs, devDependencies, `vite.config` and `src/main` with the
+  templates and the constants, and close the issue from the PR (#1049, #1304). The App, its
+  assets, the README and `_gitignore` differ on purpose, and the script doesn't compare them. TypeScript follows create-vite too: 7 under
+  Oxlint, and 6 under ESLint, since typescript-eslint can't load 7 yet (#394). A file the
   catch-up adds or removes has to reach the docs sandboxes too, and
   `docs/scripts/sandbox.test.mjs` fails until the files the StackBlitz project copies, with the
   ones it names as left out, are exactly the template's. The CodeSandbox project is a Create
@@ -105,7 +131,9 @@ react (#1012), so restore them on its PR; when the peer range itself moves, chan
   from (`docs/src/theme/CodeBlock/sandbox/`, read at docs build time). The builders edit
   `src/main.tsx` by string pattern, so `docs/scripts/sandbox.test.mjs` runs them against the
   real template and fails if the bestax stylesheet import or the `./App.tsx` import moves, or
-  a file they copy is renamed.
+  a file they copy is renamed. Both install TypeScript 6 (`SANDBOX_TYPESCRIPT`) in place of the
+  template's 7: StackBlitz's WebContainers can't run 7's native `tsc`, and react-scripts loads
+  the compiler API 7 doesn't ship.
 - The scaffolder edits the starter `App` with string patterns, so `src/__tests__/templates.test.ts`
   runs every edit against the real templates. Under a `noHelpers` flavor each helper prop in
   the starter becomes a named class from `NO_HELPERS_STARTER_CLASSES` in `src/constants.ts`;

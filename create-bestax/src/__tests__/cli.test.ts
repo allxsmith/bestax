@@ -148,6 +148,18 @@ describe('cli', () => {
       );
       expect(options).toContainEqual(
         expect.objectContaining({
+          flags: '--lint <linter>',
+        })
+      );
+      for (const flags of [
+        '--immediate',
+        '--no-immediate',
+        '--no-interactive',
+      ]) {
+        expect(options).toContainEqual(expect.objectContaining({ flags }));
+      }
+      expect(options).toContainEqual(
+        expect.objectContaining({
           flags: '-b, --bulma <flavor>',
         })
       );
@@ -215,8 +227,14 @@ describe('cli', () => {
       const templateOption = program.options.find(opt =>
         opt.flags.includes('--template')
       );
-      expect(templateOption?.description).toContain('vite');
-      expect(templateOption?.description).toContain('vite-ts');
+      expect(templateOption?.description).toBe(
+        'template to use (vite, vite-ts, vite-compiler, vite-compiler-ts, react-router, react-router-ts, tanstack-router-ts)'
+      );
+    });
+
+    it('lists every linter in the --lint help text', () => {
+      const lintOption = createCLI().options.find(opt => opt.long === '--lint');
+      expect(lintOption?.description).toBe('linter (oxlint, eslint)');
     });
 
     it('should have correct Bulma flavor options in help text', () => {
@@ -302,6 +320,22 @@ describe('cli', () => {
         icon: 'fontawesome',
         yes: true,
       });
+    });
+
+    it.each([
+      [['--no-interactive'], { yes: true }],
+      [['--immediate'], { immediate: true }],
+      [['--no-immediate'], { immediate: false }],
+      [['-y', '--no-interactive'], { yes: true }],
+    ])('passes %j to create as %j', async (flags, expected) => {
+      mockProjectCreator.create.mockResolvedValue(undefined);
+
+      await createCLI().parseAsync(['node', 'create-bestax', 'app', ...flags]);
+
+      const instance = (
+        ProjectCreator as jest.MockedClass<typeof ProjectCreator>
+      ).mock.results[0]?.value;
+      expect(instance.create).toHaveBeenCalledWith('app', expected);
     });
 
     it('should handle no project name', async () => {

@@ -105,6 +105,15 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   parcel or a deployment, `active={i}` marks progress and `pending="Out for delivery"` ends it on
   what's under way, oldest first. A journey the user moves through, like a wizard or a checkout,
   stays `Steps`.
+- **Facts about one thing, each a label and its value (an order summary, a profile, a file's
+  details), are `DescriptionList`**, not `Columns` of label and value or a two-column `Table`:
+  `<DescriptionList aria-labelledby="order-heading">` under a `Title id="order-heading"`, with a
+  `<DescriptionList.Item label="Order" value="#1234" />` per fact. It stacks on a phone and puts
+  the labels beside their values from tablet up, so add no breakpoint code; `orientation`
+  pins it. Several values, or a label with an info tip, go in as `DescriptionList.Label` and
+  `DescriptionList.Value` children. Several records with the same fields stay a `Table`, and so
+  do facts a screen reader must announce with their labels, as a `Table` with `scope="row"`
+  headers.
 - **A file browser, a checkbox tree (permissions, filters) or an outline you browse is
   `TreeView`**, with `<TreeView.Item value="…" label="…" icon="folder">` items nested inside each
   other: `<TreeView aria-label="Files" selectionMode="single">` with `selected`/`onSelectedChange`
@@ -122,6 +131,30 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `defaultOpen` on the group holding the current page (or `open`/`onOpenChange` to hold the state).
   Its heading is a real button with `aria-expanded`, and its links stay links, each a tab stop.
   Not `TreeView`, and not a `Collapse` inside a hand-written `<li>`.
+- **Panes the user resizes are `Splitter`** (a file tree beside an editor, a list beside its
+  detail, a query above its results), not hand-written drag code or fixed `Columns`:
+  `<Splitter height={480}>` with a `<Splitter.Pane label="Files" defaultSize={25} minSize="12rem">`
+  per pane. The handles go in on their own, each named by its pane's `label`, so give every pane
+  one. Sizes are percentages, limits also take `px` or `rem`, `orientation="vertical"` stacks
+  them (and needs a `height`), and `collapsible` with `collapsed`/`onCollapsedChange` lets a
+  button hide a pane. Put scrolling content in a `ScrollArea` inside the pane.
+- **Content taller or wider than its space is `ScrollArea`** (release notes in a Card, a sidebar
+  longer than the screen, a feed that grows then scrolls, a wide table on a phone), not a `Box`
+  with `overflowY="auto"` and a height in a style: `<ScrollArea height={240} aria-label="…">`,
+  or `maxHeight="20rem"` to grow with its content first. It needs `aria-label` or
+  `aria-labelledby`, since while it overflows it's a region a keyboard user tabs to. The
+  helper props and `className` go on its frame and the `ref` on the element that scrolls.
+  `hasFade` fades the edges that have more, `orientation="horizontal"` suits a wide table, and
+  `onEdgeReach={edge => …}` loads more at an edge.
+- **A command palette (⌘K or Ctrl+K) is `Command.Dialog`**, not a `Modal` with an `Input` and a
+  hand-written `keydown` listener: `<Command.Dialog shortcut="mod+k" placeholder="…" actions={[…]} />`,
+  each action `{ id, label, onSelect }` with `group`, `keywords`, `description`, `icon` and `hint`
+  (a `Kbd.Group`) as it needs them. Typing filters the actions by label, keywords and description,
+  Enter runs the top match, and running one closes the dialog. `shortcut` is off unless given, and
+  it does nothing while the user types in a field. A button that opens it too uses `open` and
+  `onOpenChange`, with `aria-keyshortcuts` on the button. The same list inline, in a page or a
+  Popover, is `Command`. For server results, build it from parts: `Command.Input`, then
+  `Command.List` of `Command.Item`s, or `Command.Empty`, filtered from `onQueryChange`.
 - Link lists (footer nav, sidebars): a bare `UnorderedList` of `ListItem`s is already
   marker-less and flush — Bulma's reset unstyles `ul` — so no prop or CSS is needed;
   bullets appear only inside `Content`.
@@ -138,7 +171,9 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `<span className="is-size-7 has-text-grey">`. Table cells: `Th`/`Td` take `textAlign="right"`,
   `textWeight`, `textSize` directly (their `color` prop colors the cell; for muted cell text
   wrap content in `Span textColor="grey"`). Set the app-wide icon library once with
-  `<ConfigProvider iconLibrary="…">` at the root rather than `library` on every `<Icon>`.
+  `<ConfigProvider iconLibrary="…">` at the root rather than `library` on every `<Icon>`. An app
+  in another language, or a right-to-left one, also gets `lang` and `dir` on `<html>` and a
+  `<LocaleProvider locale="…">` at the root, so overlays and date pickers follow it.
 - **Alternating section bands are a prop, not CSS: `bgColor="scheme-main-bis"` on every
   other `Section` (next band `scheme-main-ter`).** The scheme values render as a
   dark-mode-safe inline `background-color: var(--bulma-scheme-*)` — zero custom CSS — and

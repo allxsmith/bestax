@@ -376,6 +376,20 @@ A highly composable, Bulma-styled table system with full support for Bulma's tab
 
 ---
 
+### DescriptionList
+
+Facts about one thing, each a label and its value, as HTML's description list: labels above their values on a phone and beside them from tablet up, lined up in one column. [View full documentation.](../../../api/elements/descriptionlist.md)
+
+```tsx live
+<DescriptionList>
+  <DescriptionList.Item label="Order" value="#1234" />
+  <DescriptionList.Item label="Placed on" value="14 October 2026" />
+  <DescriptionList.Item label="Total" value="$86.40" />
+</DescriptionList>
+```
+
+---
+
 ### Tag
 
 A Bulma-styled label or badge, supporting color (with an `isLight` variant), size, rounded, hoverable, and delete variants. [View full documentation.](../../../api/elements/tag.md)
@@ -418,6 +432,18 @@ A Bulma-styled progress bar for visualizing task completion, loading states, or 
 
 ```tsx live
 <Progress value={50} max={100} />
+```
+
+---
+
+### RingProgress
+
+A value drawn as a ring that fills as it grows, a progress bar or with `isMeter` a meter, and with `sections` several values around one ring. [View full documentation.](../../../api/elements/ringprogress.md)
+
+```tsx live
+<RingProgress value={72} label="Upload" color="success">
+  72%
+</RingProgress>
 ```
 
 ---

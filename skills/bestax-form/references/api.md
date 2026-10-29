@@ -36,6 +36,21 @@ Wraps a single input; adds icons and loading.
 | `size`                           | `'small' \| 'medium' \| 'large'` | Control size.                   |
 | `as`                             | `'div' \| 'p'`                   | Root element (default `div`).   |
 
+## Fieldset — `form/Fieldset.tsx`
+
+A native `<fieldset>` for a section of a form. It starts its own Field scope, so the convenience
+inputs inside render their own `Field`s.
+
+| Prop                    | Type                                  | Notes                                                                                                                                |
+| ----------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `legend`                | `ReactNode`                           | Names the group. Controls in it stay enabled when the Fieldset is disabled, as the browser leaves them.                              |
+| `legendProps`           | legend attributes                     | Props for the `<legend>`.                                                                                                            |
+| `variant`               | `'default' \| 'filled' \| 'unstyled'` | Bordered (default), bordered on a tinted background, or no box.                                                                      |
+| `disabled`              | `boolean`                             | Disables every control inside, and is the default for each bestax input's own `disabled`. An input's own `disabled`, when set, wins. |
+| `message`               | `ReactNode`                           | Help text under the group, in its `aria-describedby`. No `aria-invalid` on the group.                                                |
+| `messageColor`          | Bulma color                           | Colors the message.                                                                                                                  |
+| `textColor` / `bgColor` | Bulma color                           | Helper colors for the fieldset.                                                                                                      |
+
 ## Input / InputBase — `form/Input.tsx`, `form/InputBase.tsx`
 
 `Input` composes `Field` + `Control` + `InputBase`. Beyond `InputBase` props it adds Field-level
@@ -66,7 +81,7 @@ Same convenience/raw split as Input. `Select` supports `isLoading` (a spinner in
 chevron), `color`, `size`, `isRounded`, `isFullwidth`, `multiple` + `multipleSize`, plus the
 Field/Control/message props. `TextArea` adds `rows` and `hasFixedSize`.
 
-## Checkbox / Checkboxes, Radio / Radios
+## Checkbox / Checkboxes, Radio / Radios, CheckboxCard / RadioCard
 
 - `Checkbox` / `Radio` — single controls with `color`, `size`, `checked`/`defaultChecked`,
   `onChange`, `disabled`.
@@ -75,6 +90,18 @@ Field/Control/message props. `TextArea` adds `rows` and `hasFixedSize`.
   value, so set both from the list.
 - `Checkboxes` — group wrapper managing an **array** value.
 - `Radios` — group wrapper managing a **single** selected value.
+- Both take `as="fieldset"`: their own `Field` renders as a native `<fieldset>` and the `label` as
+  its `<legend>`, in the label column when `horizontal`, naming the group with no ids. Inside an
+  outer `Field` the group element itself is the `<fieldset>`, named by that `Field`'s label.
+  Attributes go on the `<fieldset>`; `className` and helper props stay on the box of choices.
+- `CheckboxCard` / `RadioCard`: a checkbox or radio drawn as a card, a `<label>` around the
+  real input, so a click anywhere toggles it and it sends its `value` with a form. `title` names
+  the input and `description` describes it; children (a price, a link) follow but aren't read on
+  focus, and must be phrasing content, never a button or another input. They read the same group
+  context as `Checkbox` and `Radio`, so put them straight inside `Checkboxes` or `Radios` (or a
+  `Grid` with `flexGrow="1"` inside the group, for columns). `hasIndicator={false}` drops the
+  checkbox or radio; the edge, thicker when checked, then shows the selection. Both take `color`
+  and `disabled`, and `CheckboxCard` takes `indeterminate`.
 
 ## Switch — `form/Switch.tsx`
 
@@ -119,6 +146,27 @@ Passing `triggerIcon` explicitly overrides this.
   </Control>
 </Field>
 ```
+
+For an app in another language, wrap it, or the form, in `LocaleProvider` rather than passing the
+same `locale` to every picker. The pickers inside take its locale for their day and month names
+and any `Intl` `format`, and start the week on that locale's first day (Monday for `"de"`), unless
+one sets `locale` or `firstDayOfWeek` itself. Outside a provider the week starts on Sunday, and so
+does a picker given its own `dayNames`, which it shows exactly as given: pass `firstDayOfWeek` with
+them and list them from that day. With
+server rendering, set a locale: without one, an `inline` calendar names its days in the server's
+language on the server and the reader's in the browser, and hydration fails to match whenever
+the two languages differ.
+
+```tsx
+<LocaleProvider locale="de">
+  <DateInput label="Liefertermin" />
+</LocaleProvider>
+```
+
+The same provider makes `Combobox` (with `data`), `Autocomplete` and `Taginput` filter the way its
+language compares letters, ignoring accents where it treats them alike ("cafe" finds "Café"), and
+writes the numbers `Slider`'s output, `Rate`'s score, `Taginput`'s counter and `File`'s count show
+in its digits. Don't fold accents by hand in `data` for those.
 
 For a value that is a month or a year (card expiry, billing period, graduation year), use
 `DateInput` with `granularity="month"` or `granularity="year"` rather than building a select or a

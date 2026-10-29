@@ -9,7 +9,7 @@ sidebar_label: useFocusTrap
 
 `useFocusTrap` keeps keyboard focus inside a container while it is active: focus moves in when the trap turns on, Tab and Shift+Tab wrap between the first and last tab stops, and focus goes back where it came from when the trap turns off.
 
-Use it for your own floating or modal content, such as a command palette or a custom overlay. `Modal`, `Dialog`, `Sidebar`, `Popover` and the date and time pickers already manage focus themselves, and a panel opened from a button is what [`Popover`](../components/popover.md) is for.
+Use it for your own floating or modal content, such as a custom overlay. `Modal`, `Dialog`, `Sidebar`, `Popover`, `Command.Dialog` and the date and time pickers already manage focus themselves, a panel opened from a button is what [`Popover`](../components/popover.md) is for, and a command palette is what [`Command.Dialog`](../components/command.md) is for.
 
 ---
 
@@ -79,11 +79,11 @@ The trap doesn't close anything. Escape, a click outside and the buttons that di
 
 ### Where focus starts
 
-On its own the trap focuses the first tab stop inside the container that takes focus, or the container when none does. `initialFocusRef` picks a specific element inside the container instead, such as the search box of a command palette. The element has to be able to take focus, so a heading needs `tabIndex={-1}`. When focusing it doesn't put focus inside the container, because the ref is empty or its element is outside, disabled, hidden or can't take focus, the trap starts on the first tab stop as it would without the ref.
+On its own the trap focuses the first tab stop inside the container that takes focus, or the container when none does. `initialFocusRef` picks a specific element inside the container instead, such as a search box at the top of a panel. The element has to be able to take focus, so a heading needs `tabIndex={-1}`. When focusing it doesn't put focus inside the container, because the ref is empty or its element is outside, disabled, hidden or can't take focus, the trap starts on the first tab stop as it would without the ref.
 
 ```tsx
 const searchRef = useRef<HTMLInputElement>(null);
-useFocusTrap(paletteRef, { active: open, initialFocusRef: searchRef });
+useFocusTrap(panelRef, { active: open, initialFocusRef: searchRef });
 ```
 
 ### Where focus goes back to

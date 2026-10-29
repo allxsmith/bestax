@@ -385,6 +385,30 @@ Bulma's default font sizes the box is 24px at the default and `small` sizes. For
 `min-width: 0; min-height: 0` on `.styled-checkbox.my-box .check` (mind the class prefix), and keep
 the label text inside the `Checkbox`, since the whole label is the click target.
 
+### CheckboxCard
+
+`--bulma-checkbox-card-active-color`, `--bulma-checkbox-card-border-color`,
+`--bulma-checkbox-card-border-width`, `--bulma-checkbox-card-check-color`,
+`--bulma-checkbox-card-checked-border-width`, `--bulma-checkbox-card-description-color`,
+`--bulma-checkbox-card-disabled-opacity`, `--bulma-checkbox-card-focus-color`,
+`--bulma-checkbox-card-focus-offset`, `--bulma-checkbox-card-focus-width`,
+`--bulma-checkbox-card-gap`, `--bulma-checkbox-card-hover-border-color`,
+`--bulma-checkbox-card-indicator-border-color`, `--bulma-checkbox-card-indicator-border-width`,
+`--bulma-checkbox-card-indicator-radius`, `--bulma-checkbox-card-indicator-size`,
+`--bulma-checkbox-card-min-width`, `--bulma-checkbox-card-title-weight`,
+`--bulma-checkbox-card-transition-duration`
+
+Declared on the card, the `.checkbox-card` label, which is also Bulma's `.card`, so the
+`--bulma-card-*` variables style its surface and `--bulma-card-radius` rounds its edge too. Set
+either family on a class you pass through `className`, with both classes in the selector
+(`.checkbox-card.my-card`, mind the class prefix): `style` goes to the hidden `<input>`. A `color`
+prop declares `--bulma-checkbox-card-active-color` again on `.checkbox-card.is-<color>`, which ties
+that selector. A checked card's edge is `--bulma-checkbox-card-checked-border-width`, thicker than
+`--bulma-checkbox-card-border-width`, so the selection isn't color alone; keep it thicker. The focus
+outline is Bulma's focus color, not the active color. `--bulma-checkbox-card-min-width` is how
+narrow a card gets in a `Checkboxes` row before the row wraps. In forced colors the edge takes
+`CanvasText`, and `Highlight` when checked, whatever these say.
+
 ### Collapse
 
 `--bulma-collapse-border-color`, `--bulma-collapse-group-gap`, `--bulma-collapse-header-weight`,
@@ -419,6 +443,26 @@ which Bulma declares on `.dropdown` alone.
 `--bulma-combobox-menu-background`, `--bulma-combobox-menu-border-color`,
 `--bulma-combobox-menu-offset`, `--bulma-combobox-menu-padding-y`, `--bulma-combobox-menu-radius`,
 `--bulma-combobox-menu-shadow`, `--bulma-combobox-menu-z-index`, `--bulma-combobox-portal-z-index`
+
+### Command
+
+Declared on the root, `.command`, which `Command.Dialog` renders too, as the dialog's box, so a
+value set on `.command` reaches both. The highlight is the link color and its invert, the pair
+Bulma gives an active dropdown item, as Combobox's is, and the colors come from Bulma's tokens, so
+the list follows dark mode with no override. The search field is Bulma's `Input`, themed with
+`--bulma-input-*`. `--bulma-command-dialog-offset` is how far down the viewport the dialog sits.
+
+`--bulma-command-background`, `--bulma-command-border-color`, `--bulma-command-description-color`,
+`--bulma-command-description-size`, `--bulma-command-dialog-offset`,
+`--bulma-command-dialog-shadow`, `--bulma-command-dialog-width`, `--bulma-command-disabled-color`,
+`--bulma-command-divider-color`, `--bulma-command-empty-color`, `--bulma-command-empty-padding`,
+`--bulma-command-gap`, `--bulma-command-group-label-color`, `--bulma-command-group-label-size`,
+`--bulma-command-group-label-weight`, `--bulma-command-highlight-background`,
+`--bulma-command-highlight-color`, `--bulma-command-hint-color`, `--bulma-command-icon-color`,
+`--bulma-command-item-color`, `--bulma-command-item-gap`, `--bulma-command-item-hover-background`,
+`--bulma-command-item-padding-x`, `--bulma-command-item-padding-y`, `--bulma-command-item-radius`,
+`--bulma-command-item-size`, `--bulma-command-list-max-height`, `--bulma-command-padding`,
+`--bulma-command-radius`
 
 ### ContextMenu
 
@@ -464,6 +508,19 @@ The field around the two inputs. Its calendar is the `DateInput` one, with the v
 `--bulma-datetimeinput-time-card-radius`, `--bulma-datetimeinput-time-card-shadow`,
 `--bulma-datetimeinput-time-overlay-background`, `--bulma-datetimeinput-time-overlay-blur`
 
+### DescriptionList
+
+Declared on the root, `.description-list`. The values take the root's color, so a `textColor` on
+the list recolors them, and the labels keep `--bulma-description-list-label-color`. The gaps are in
+`em`, so `textSize` scales them. `--bulma-description-list-label-max-width` is the most the labels'
+column takes when the labels sit beside their values; it's a percentage of the list by default.
+
+`--bulma-description-list-column-gap`, `--bulma-description-list-divider-color`,
+`--bulma-description-list-divider-width`, `--bulma-description-list-gap`,
+`--bulma-description-list-label-color`, `--bulma-description-list-label-max-width`,
+`--bulma-description-list-label-weight`, `--bulma-description-list-row-gap`,
+`--bulma-description-list-value-color`
+
 ### Dialog
 
 `--bulma-dialog-animation-duration`, `--bulma-dialog-background`, `--bulma-dialog-body-color`,
@@ -486,6 +543,21 @@ from Bulma's scheme tokens, so the circle follows dark mode with no override. Th
 `--bulma-empty-state-indicator-background`, `--bulma-empty-state-indicator-color`,
 `--bulma-empty-state-indicator-radius`, `--bulma-empty-state-indicator-size`,
 `--bulma-empty-state-padding`, `--bulma-empty-state-title-size`
+
+### Fieldset
+
+Declared on the root, `.fieldset`. The surfaces and the border come from Bulma's scheme tokens, so
+the box follows dark mode with no override. `.is-filled` paints
+`--bulma-fieldset-filled-background` in place of `--bulma-fieldset-background`, and `.is-unstyled`
+drops the box. The legend takes Bulma's
+label look from the `--bulma-label-*` tokens. In forced colors the border takes the system's text
+color whatever these say.
+
+`--bulma-fieldset-background`, `--bulma-fieldset-border-color`, `--bulma-fieldset-border-width`,
+`--bulma-fieldset-filled-background`, `--bulma-fieldset-legend-color`,
+`--bulma-fieldset-legend-padding`, `--bulma-fieldset-legend-size`,
+`--bulma-fieldset-legend-spacing`, `--bulma-fieldset-legend-weight`, `--bulma-fieldset-padding`,
+`--bulma-fieldset-padding-top`, `--bulma-fieldset-radius`, `--bulma-fieldset-spacing`
 
 ### HoverCard
 
@@ -605,6 +677,21 @@ Bulma's default font sizes the circle is 24px at the default and `small` sizes. 
 `min-width: 0; min-height: 0` on `.styled-radio.my-radio .check` (mind the class prefix), and keep
 the label text inside the `Radio`, since the whole label is the click target.
 
+### RadioCard
+
+`--bulma-radio-card-active-color`, `--bulma-radio-card-border-color`,
+`--bulma-radio-card-border-width`, `--bulma-radio-card-checked-border-width`,
+`--bulma-radio-card-description-color`, `--bulma-radio-card-disabled-opacity`,
+`--bulma-radio-card-focus-color`, `--bulma-radio-card-focus-offset`,
+`--bulma-radio-card-focus-width`, `--bulma-radio-card-gap`,
+`--bulma-radio-card-hover-border-color`, `--bulma-radio-card-indicator-border-color`,
+`--bulma-radio-card-indicator-border-width`, `--bulma-radio-card-indicator-size`,
+`--bulma-radio-card-min-width`, `--bulma-radio-card-title-weight`,
+`--bulma-radio-card-transition-duration`
+
+The same as CheckboxCard's, on the `.radio-card` label, with a ring and a dot for the indicator and
+`--bulma-radio-card-min-width` for a `Radios` row.
+
 ### Rate
 
 `--bulma-rate-color-active`, `--bulma-rate-color-hover`, `--bulma-rate-color-inactive`,
@@ -616,10 +703,36 @@ the label text inside the `Radio`, since the whole label is the click target.
 `--bulma-rate-spaced-gap`, `--bulma-rate-text-color`, `--bulma-rate-text-size`,
 `--bulma-rate-transition-duration`
 
+### RingProgress
+
+Declared on the root, `.ring-progress`; the color and size classes set `--bulma-ring-progress-arc-color`
+and `--bulma-ring-progress-size`. The thickness is in the ring's own units: it's 100 across with a
+radius of 42, so up to 16 fits. In forced colors the arcs take `CanvasText` and the track `GrayText`
+whatever these say.
+
+`--bulma-ring-progress-arc-color`, `--bulma-ring-progress-duration`,
+`--bulma-ring-progress-label-color`, `--bulma-ring-progress-label-size`,
+`--bulma-ring-progress-label-weight`,
+`--bulma-ring-progress-size`, `--bulma-ring-progress-thickness`,
+`--bulma-ring-progress-track-color`
+
 ### Reveal
 
 `--bulma-reveal-duration`, `--bulma-reveal-easing`, `--bulma-reveal-flip-angle`,
 `--bulma-reveal-offset`, `--bulma-reveal-offset-large`, `--bulma-reveal-scale`
+
+### ScrollArea
+
+Declared on the frame, `.scroll-area`, and read by the viewport inside it, so set them on the
+frame, through `className` or `style`. `--bulma-scroll-area-scrollbar-width` takes what
+`scrollbar-width` takes: `thin`, `auto` or `none`. `none` hides the bars while the area still
+scrolls, which hides that it scrolls at all, so keep to `thin` or `auto`. Restyled bars owe
+WCAG's 3:1, so keep a thumb color that clears it against the background in both schemes. In forced colors the browser gives the bars the system's colors
+whatever these say.
+
+`--bulma-scroll-area-fade-size`, `--bulma-scroll-area-scrollbar-width`,
+`--bulma-scroll-area-thumb-color`, `--bulma-scroll-area-thumb-hover-color`,
+`--bulma-scroll-area-track-color`
 
 ### Sidebar
 
@@ -652,6 +765,18 @@ the label text inside the `Radio`, since the whole label is the click target.
 `--bulma-slider-track-height-large`, `--bulma-slider-track-height-medium`,
 `--bulma-slider-track-height-small`, `--bulma-slider-transition-duration`,
 `--bulma-slider-vertical-height`
+
+### Splitter
+
+Declared on the root, `.splitter`. The handle reads them, and its line and grip are borders, so a
+forced-colors page keeps them and draws an active handle in `Highlight`.
+`--bulma-splitter-handle-size-coarse` is the strip's width for a coarse pointer, kept at 24px or
+more for WCAG 2.5.8.
+
+`--bulma-splitter-grip-color`, `--bulma-splitter-grip-length`, `--bulma-splitter-grip-radius`,
+`--bulma-splitter-grip-size`, `--bulma-splitter-handle-size`,
+`--bulma-splitter-handle-size-coarse`, `--bulma-splitter-line-active-color`,
+`--bulma-splitter-line-active-size`, `--bulma-splitter-line-color`, `--bulma-splitter-line-size`
 
 ### Steps
 

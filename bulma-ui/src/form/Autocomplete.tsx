@@ -13,13 +13,14 @@ import {
 } from '../helpers/classNames';
 import { useConfig } from '../helpers/Config';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useInsideField } from './FormContext';
+import { useFieldsetDisabled, useInsideField } from './FormContext';
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
 import { useControlLoading } from './controlLoading';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
 import { useLatestRef } from '../helpers/useLatestRef';
+import { useLocaleMatcher } from '../helpers/localeFormat';
 
 /**
  * An item in the Autocomplete dropdown list.
@@ -74,7 +75,12 @@ export interface AutocompleteProps
   };
   /** Applied to the inner text input (the labellable control), not the wrapper div. */
   id?: string;
-  /** The options data to display (required). */
+  /**
+   * The options data to display (required). The list shows the options that
+   * contain what's typed, ignoring case, and inside a `LocaleProvider` with a
+   * `locale`, ignoring accents too where that language does, so "cafe" finds
+   * "Café".
+   */
   data: AutocompleteItem[] | string[];
   /** The current input value (controlled). */
   value?: string;
@@ -212,7 +218,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       selectOnClickOutside = false,
       maxHeight = 200,
       loading = false,
-      disabled = false,
+      disabled: disabledProp,
       checkInfiniteScroll = false,
       infiniteScrollDistance = 50,
       color,
@@ -247,6 +253,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const insideField = useInsideField();
     // The suggestion list points `aria-labelledby` at the label that names
     // the input, so it needs that label's id.
@@ -262,6 +269,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       needsLabelId: true,
     });
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+    const matchText = useLocaleMatcher();
     const { classPrefix } = useConfig();
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -293,6 +301,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     // Filter data based on input
     const filteredData = data.filter(item => {
       const displayValue = getDisplayValue(item);
+      if (matchText) return matchText(displayValue, inputValue);
       return displayValue.toLowerCase().includes(inputValue.toLowerCase());
     });
 

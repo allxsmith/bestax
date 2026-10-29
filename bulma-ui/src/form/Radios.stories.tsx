@@ -1,5 +1,6 @@
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
+import { expect, within } from 'storybook/test';
 import Radio from './Radio';
 import Radios from './Radios';
 import { Field } from './Field';
@@ -138,6 +139,31 @@ export const WithFieldControlWrapper: Story = {
       </Field.Body>
     </Field>
   ),
+};
+
+/**
+ * As a fieldset: `as="fieldset"` renders the group's own Field as a native
+ * `<fieldset role="radiogroup">` with the label as its `<legend>`, which names
+ * the group with no ids to wire. Horizontal, the legend is the label column.
+ */
+export const AsFieldset: Story = {
+  render: () => (
+    <>
+      <Radios as="fieldset" label="Color" name="color-fieldset">
+        <Radio value="red">Red</Radio>
+        <Radio value="blue">Blue</Radio>
+      </Radios>
+      <Radios as="fieldset" horizontal label="RSVP" name="rsvp-fieldset">
+        <Radio value="yes">Yes</Radio>
+        <Radio value="no">No</Radio>
+      </Radios>
+    </>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const group = canvas.getByRole('radiogroup', { name: 'RSVP' });
+    await expect(group.tagName).toBe('FIELDSET');
+  },
 };
 
 /**

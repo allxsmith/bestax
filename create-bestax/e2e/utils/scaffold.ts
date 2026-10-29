@@ -6,7 +6,14 @@ import * as path from 'path';
  * Configuration for scaffolding a test app
  */
 export interface ScaffoldConfig {
-  template: 'vite' | 'vite-ts';
+  template:
+    | 'vite'
+    | 'vite-ts'
+    | 'vite-compiler'
+    | 'vite-compiler-ts'
+    | 'react-router'
+    | 'react-router-ts'
+    | 'tanstack-router-ts';
   bulmaFlavor:
     | 'complete'
     | 'prefixed'

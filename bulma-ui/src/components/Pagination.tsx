@@ -7,6 +7,7 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 import { warnDeprecatedColorProp } from '../helpers/colorDeprecations';
+import { useNumberFormat } from '../helpers/localeFormat';
 
 /**
  * Props for the Pagination component.
@@ -82,6 +83,9 @@ export interface PaginationProps
   /**
    * The accessible name of a page's link, when rendering from `total`, since
    * its content is only the number (`page => 'Page ' + page` by default).
+   * Inside a `LocaleProvider` with a `locale`, the number on the link, and
+   * in the default name, is written the way that locale writes numbers, so
+   * the name still holds the text on screen.
    */
   getPageLabel?: (page: number) => string;
   /** Additional CSS classes. */
@@ -259,6 +263,7 @@ const PaginationComponent: React.FC<PaginationProps> = ({
     backgroundColor: bgColor,
     ...props,
   });
+  const formatNumber = useNumberFormat();
 
   // Generate Bulma classes with prefix
   const bulmaClasses = usePrefixedClassNames('pagination', {
@@ -323,21 +328,23 @@ const PaginationComponent: React.FC<PaginationProps> = ({
             page,
             whole(siblingCount, 1),
             whole(boundaryCount, 1)
-          ).map(item =>
-            typeof item === 'number' ? (
+          ).map(item => {
+            if (typeof item !== 'number') {
+              return <PaginationEllipsis key={item} />;
+            }
+            const shown = formatNumber ? formatNumber(item) : item;
+            return (
               <PaginationLink
                 key={item}
-                aria-label={getPageLabel ? getPageLabel(item) : `Page ${item}`}
+                aria-label={getPageLabel ? getPageLabel(item) : `Page ${shown}`}
                 active={item === page}
                 disabled={disabled}
                 {...linkTo(item, Boolean(disabled))}
               >
-                {item}
+                {shown}
               </PaginationLink>
-            ) : (
-              <PaginationEllipsis key={item} />
-            )
-          )}
+            );
+          })}
         </PaginationList>
       </>
     );

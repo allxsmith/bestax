@@ -82,7 +82,7 @@ async function candidatePartials() {
       }
     }
   }
-  for (const dir of ['components', 'elements', 'form']) {
+  for (const dir of ['components', 'elements', 'form', 'layout']) {
     const d = join(REPO, 'bulma-ui', 'src', 'scss', dir);
     if (!existsSync(d)) continue;
     for (const f of (await readdir(d)).sort(byCodePoint)) {

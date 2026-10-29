@@ -13,12 +13,14 @@ import {
 } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useClassPrefix } from '../helpers/Config';
+import { useNumberFormat } from '../helpers/localeFormat';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import {
   useInsideField,
   useInsideControl,
   rendersOwnField,
   rendersOwnControl,
+  useFieldsetDisabled,
 } from './FormContext';
 import { Field } from './Field';
 import { Control } from './Control';
@@ -89,11 +91,18 @@ interface SliderBaseProps
   marks?: SliderMark[];
   /** Orientation of the slider. */
   orientation?: SliderOrientation;
-  /** Function to scale the displayed value. */
+  /**
+   * Function to scale the displayed value. With it, and no `getAriaValueText`,
+   * the scaled value is also the thumb's `aria-valuetext`.
+   */
   scale?: (value: number) => number;
   /** Function to generate the `aria-valuetext` attribute. */
   getAriaValueText?: (value: number) => string;
-  /** Format function for output display. */
+  /**
+   * Format function for output display. Without it, the output shows the
+   * value as it is, or inside a `LocaleProvider` with a `locale`, written
+   * the way that locale writes numbers, to at most three decimals.
+   */
   formatOutput?: (value: number) => string;
 }
 
@@ -273,7 +282,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       color,
       isRounded = false,
       isCircle = false,
-      disabled = false,
+      disabled: disabledProp,
       showOutput = false,
       tooltip,
       ticks,
@@ -313,6 +322,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     void _nameLow;
     void _nameHigh;
 
+    const disabled = useFieldsetDisabled(disabledProp);
     const insideField = useInsideField();
     const insideControl = useInsideControl();
     const ownField = rendersOwnField('Slider', {
@@ -440,13 +450,18 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       [scale]
     );
 
-    // Format helper
+    // Format helper: the caller's, else the locale's, else the number as is.
+    const formatNumber = useNumberFormat();
+    const writeNumber = useCallback(
+      (v: number) => (formatNumber ? formatNumber(v) : v.toString()),
+      [formatNumber]
+    );
     const formatValue = useCallback(
       (v: number) => {
         const scaled = scaleValue(v);
-        return formatOutput ? formatOutput(scaled) : scaled.toString();
+        return formatOutput ? formatOutput(scaled) : writeNumber(scaled);
       },
-      [formatOutput, scaleValue]
+      [formatOutput, scaleValue, writeNumber]
     );
 
     // --- Handlers ---
@@ -593,7 +608,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       if (getAriaValueText) {
         ariaProps['aria-valuetext'] = getAriaValueText(value);
       } else if (scale) {
-        ariaProps['aria-valuetext'] = scaleValue(value).toString();
+        ariaProps['aria-valuetext'] = writeNumber(scaleValue(value));
       }
       return ariaProps;
     };

@@ -2,6 +2,7 @@ import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useNumberFormat } from '../helpers/localeFormat';
 
 /** Available size modifiers for the Steps component. */
 export type StepsSize = 'small' | 'medium' | 'large';
@@ -118,7 +119,10 @@ export interface StepProps
   clickable?: boolean;
   /** Click handler */
   onClick?: () => void;
-  /** Step number to display in marker (1-indexed) */
+  /**
+   * Step number to display in marker (1-indexed), written the way the
+   * `locale` of a `LocaleProvider` around it writes numbers.
+   */
   stepNumber?: number;
   /**
    * Icon shown when the step is completed.
@@ -148,6 +152,7 @@ export const Step: React.FC<StepProps> = ({
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+  const formatNumber = useNumberFormat();
 
   const stepClasses = classNames(
     usePrefixedClassNames('steps-segment', {
@@ -168,7 +173,9 @@ export const Step: React.FC<StepProps> = ({
     icon ||
     (isCompleted && resolvedCompletedIcon
       ? resolvedCompletedIcon
-      : (stepNumber ?? null));
+      : stepNumber == null || !formatNumber
+        ? (stepNumber ?? null)
+        : formatNumber(stepNumber));
   const title = label || children;
   const current = isActive ? 'step' : undefined;
 

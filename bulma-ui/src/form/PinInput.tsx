@@ -19,6 +19,7 @@ import {
   useInsideControl,
   rendersOwnField,
   rendersOwnControl,
+  useFieldsetDisabled,
 } from './FormContext';
 import { Field } from './Field';
 import { Control } from './Control';
@@ -189,7 +190,7 @@ export const PinInput = forwardRef<HTMLInputElement, PinInputProps>(
       color,
       size,
       isRounded = false,
-      disabled = false,
+      disabled: disabledProp,
       onChange,
       onComplete,
       onPaste,
@@ -200,6 +201,7 @@ export const PinInput = forwardRef<HTMLInputElement, PinInputProps>(
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const insideField = useInsideField();
     const insideControl = useInsideControl();
     const ownField = rendersOwnField('PinInput', {

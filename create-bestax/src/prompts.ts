@@ -7,6 +7,7 @@ import {
   MESSAGES,
   ICON_LIBRARIES,
   BULMA_FLAVORS,
+  LINTERS,
 } from './constants.js';
 import { validateProjectDirectory } from './validators.js';
 import { displayError } from './display.js';
@@ -31,7 +32,7 @@ export async function promptProjectName(): Promise<string | null> {
     name: 'projectName',
     message: PROMPT_MESSAGES.PROJECT_NAME,
     initial: DEFAULT_PROJECT_NAME,
-    validate: validateProjectDirectory,
+    validate: (value: string) => validateProjectDirectory(value),
   });
 
   return response.projectName || null;
@@ -82,6 +83,38 @@ export async function promptTemplate(): Promise<string | null> {
   });
 
   return response.template || null;
+}
+
+export async function promptLinter(): Promise<string | null> {
+  ensureInteractive();
+  const response = await prompts({
+    type: 'select',
+    name: 'linter',
+    message: PROMPT_MESSAGES.SELECT_LINTER,
+    choices: LINTERS.map(linter => ({
+      title: linter.color(`${linter.display} - ${linter.description}`),
+      value: linter.name,
+    })),
+    initial: 0, // Default to 'oxlint'
+  });
+
+  return response.linter || null;
+}
+
+/**
+ * Whether to install and start the dev server once the scaffold is written,
+ * as create-vite asks. Returns null when the user cancels (Ctrl+C).
+ */
+export async function promptImmediate(pm: string): Promise<boolean | null> {
+  ensureInteractive();
+  const response = await prompts({
+    type: 'confirm',
+    name: 'immediate',
+    message: PROMPT_MESSAGES.IMMEDIATE(pm),
+    initial: false,
+  });
+
+  return typeof response.immediate === 'boolean' ? response.immediate : null;
 }
 
 export async function promptIconLibrary(): Promise<string | null> {

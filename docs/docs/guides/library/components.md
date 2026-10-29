@@ -157,6 +157,23 @@ A list of events in the order they happened, each with a marker on a line down t
 
 ---
 
+### ScrollArea
+
+A box whose content scrolls inside it, on the browser's own scrollbars made thin and colored from Bulma's tokens, which a keyboard user can tab to and scroll while it overflows. [View full documentation.](../../api/components/scrollarea.md)
+
+```tsx live
+<ScrollArea height={140} aria-label="Release notes" hasFade className="box p-0">
+  <Content p="4">
+    <p>Search now matches tags as well as titles.</p>
+    <p>Exports include the time zone.</p>
+    <p>A CSV export keeps the column order you set in the table.</p>
+    <p>A new dashboard, with the numbers you check most at the top.</p>
+  </Content>
+</ScrollArea>
+```
+
+---
+
 ### Pagination
 
 A flexible, composable pagination navigation for lists or multi-page content. [View full documentation.](../../api/components/pagination.md)
@@ -704,6 +721,29 @@ A menu of actions that opens where you right-click an element, such as a table r
     Delete
   </ContextMenu.Item>
 </ContextMenu>
+```
+
+---
+
+### Command
+
+A search field over a list of things to do, which narrows as you type and runs the top match on Enter. It's inline, and `Command.Dialog` is a command palette in a modal, with a `shortcut` such as `"mod+k"` that opens it. [View full documentation.](../../api/components/command.md)
+
+```tsx live
+<Command
+  label="Settings"
+  placeholder="Search settings"
+  actions={[
+    { id: 'profile', label: 'Edit profile', group: 'Account' },
+    { id: 'password', label: 'Change password', group: 'Account' },
+    {
+      id: 'theme',
+      label: 'Dark mode',
+      group: 'Appearance',
+      keywords: ['theme'],
+    },
+  ]}
+/>
 ```
 
 ---

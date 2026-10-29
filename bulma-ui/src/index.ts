@@ -31,6 +31,8 @@ export * from './components/Dialog';
 export * from './components/Carousel';
 export * from './components/Reveal';
 export * from './components/TreeView';
+export * from './components/ScrollArea';
+export * from './components/Command';
 
 export * from './elements/Block';
 export * from './elements/Box';
@@ -41,6 +43,7 @@ export * from './elements/ToggleButton';
 export * from './elements/Code';
 export * from './elements/Content';
 export * from './elements/Delete';
+export * from './elements/DescriptionList';
 export * from './elements/Divider';
 export * from './elements/Emphasis';
 export * from './elements/Figure';
@@ -56,6 +59,7 @@ export * from './elements/OrderedList';
 export * from './elements/Paragraph';
 export * from './elements/Pre';
 export * from './elements/Progress';
+export * from './elements/RingProgress';
 export * from './elements/Skeleton';
 export * from './elements/Span';
 export * from './elements/Strong';
@@ -73,11 +77,14 @@ export * from './elements/Tr';
 export * from './elements/UnorderedList';
 
 export * from './form/Checkbox';
+export * from './form/CheckboxCard';
 export * from './form/Checkboxes';
 export * from './form/Control';
 export * from './form/Field';
+export * from './form/Fieldset';
 export * from './form/File';
 export * from './form/Radio';
+export * from './form/RadioCard';
 export * from './form/Radios';
 export * from './form/Switch';
 export * from './form/Slider';
@@ -157,6 +164,14 @@ export { useIsHydrated } from './helpers/useIsHydrated';
 export { Portal } from './helpers/portal';
 export type { PortalProps } from './helpers/portal';
 
+// Language and writing direction
+export { LocaleProvider, useLocale } from './helpers/LocaleProvider';
+export type {
+  LocaleContextValue,
+  LocaleProviderProps,
+  TextDirection,
+} from './helpers/LocaleProvider';
+
 // Keeping keyboard focus inside an overlay
 export { useFocusTrap } from './helpers/useFocusTrap';
 export type { UseFocusTrapOptions } from './helpers/useFocusTrap';
@@ -167,3 +182,4 @@ export * from './layout/Hero';
 export * from './layout/Level';
 export * from './layout/Media';
 export * from './layout/Section';
+export * from './layout/Splitter';

@@ -1377,6 +1377,186 @@ describe('TreeView', () => {
     });
   });
 
+  describe('Positions', () => {
+    /** Each item on the page, as its label and its `aria-posinset`/`aria-setsize`. */
+    const positions = () =>
+      screen
+        .getAllByRole('treeitem')
+        .map(
+          el =>
+            `${el.querySelector(':scope > div > [id]')!.textContent} ${el.getAttribute('aria-posinset')}/${el.getAttribute('aria-setsize')}`
+        );
+
+    it('declares each item’s place among the items beside it, at every level', () => {
+      render(<Files defaultExpanded={['src', 'components']} />);
+      expect(positions()).toEqual([
+        'src 1/3',
+        'components 1/3',
+        'Button.tsx 1/2',
+        'Card.tsx 2/2',
+        'index.ts 2/3',
+        'legacy.ts 3/3',
+        'docs 2/3',
+        'package.json 3/3',
+      ]);
+    });
+
+    it('counts only the items on the page in a checkbox tree', () => {
+      render(<Permissions />);
+      expect(positions()).toEqual([
+        'Projects 1/2',
+        'Read 1/3',
+        'Write 2/3',
+        'Delete 3/3',
+        'Billing 2/2',
+      ]);
+    });
+
+    it('counts again as items come, go, move and close', () => {
+      function Listed({ names }: { names: string[] }) {
+        return (
+          <TreeView aria-label="Listed" defaultExpanded={['top']}>
+            <TreeView.Item value="top" label="top">
+              {names.map(name => (
+                <TreeView.Item key={name} value={name} label={name} />
+              ))}
+            </TreeView.Item>
+            <TreeView.Item value="end" label="end" />
+          </TreeView>
+        );
+      }
+      const { rerender } = render(<Listed names={['a', 'b']} />);
+      expect(positions()).toEqual(['top 1/2', 'a 1/2', 'b 2/2', 'end 2/2']);
+      rerender(<Listed names={['a', 'x', 'b']} />);
+      expect(positions()).toEqual([
+        'top 1/2',
+        'a 1/3',
+        'x 2/3',
+        'b 3/3',
+        'end 2/2',
+      ]);
+      rerender(<Listed names={['b', 'a']} />);
+      expect(positions()).toEqual(['top 1/2', 'b 1/2', 'a 2/2', 'end 2/2']);
+      // As many items as before, one of them new.
+      rerender(<Listed names={['c', 'a']} />);
+      expect(positions()).toEqual(['top 1/2', 'c 1/2', 'a 2/2', 'end 2/2']);
+      fireEvent.click(row('top'));
+      expect(positions()).toEqual(['top 1/2', 'end 2/2']);
+    });
+
+    it('counts again when items move without the tree rendering', async () => {
+      // The app sorts the children with state of its own, from a key of its
+      // own on the parent, so the tree neither renders nor hears of it.
+      function Letters() {
+        const [reversed, setReversed] = useState(false);
+        const names = reversed ? ['c', 'b', 'a'] : ['a', 'b', 'c'];
+        return (
+          <TreeView.Item
+            value="letters"
+            label="letters"
+            onKeyDown={event => {
+              if (event.key === 'r') {
+                event.preventDefault();
+                setReversed(true);
+              }
+            }}
+          >
+            {names.map(name => (
+              <TreeView.Item key={name} value={name} label={name} />
+            ))}
+          </TreeView.Item>
+        );
+      }
+      render(
+        <TreeView aria-label="Letters" defaultExpanded={['letters']}>
+          <Letters />
+        </TreeView>
+      );
+      expect(positions()).toEqual(['letters 1/1', 'a 1/3', 'b 2/3', 'c 3/3']);
+      press(item('letters'), 'r');
+      await act(async () => {});
+      expect(shown()).toEqual(['letters', 'c', 'b', 'a']);
+      expect(positions()).toEqual(['letters 1/1', 'c 1/3', 'b 2/3', 'a 3/3']);
+    });
+
+    it('counts a loading row and a failed load’s row with the items beside them', () => {
+      const { rerender } = render(
+        <Folders defaultExpanded={['src']} src={{ isLoading: true }} />
+      );
+      expect(positions()).toEqual(['src 1/2', 'Loading… 1/1', 'docs 2/2']);
+      rerender(
+        <Folders
+          defaultExpanded={['src']}
+          src={{
+            isLoading: true,
+            children: <TreeView.Item value="a" label="a.ts" />,
+          }}
+        />
+      );
+      expect(positions()).toEqual([
+        'src 1/2',
+        'a.ts 1/2',
+        'Loading… 2/2',
+        'docs 2/2',
+      ]);
+      rerender(
+        <Folders
+          defaultExpanded={['src']}
+          src={{
+            loadError: FAILED,
+            children: <TreeView.Item value="a" label="a.ts" />,
+          }}
+        />
+      );
+      expect(positions()).toEqual([
+        'src 1/2',
+        'a.ts 1/2',
+        `${FAILED} 2/2`,
+        'docs 2/2',
+      ]);
+      rerender(
+        <Folders
+          defaultExpanded={['src']}
+          src={{
+            children: [
+              <TreeView.Item key="a" value="a" label="a.ts" />,
+              <TreeView.Item key="b" value="b" label="b.ts" />,
+            ],
+          }}
+        />
+      );
+      expect(positions()).toEqual([
+        'src 1/2',
+        'a.ts 1/2',
+        'b.ts 2/2',
+        'docs 2/2',
+      ]);
+    });
+
+    it('lets the items’ own positions win, for a set the page holds only part of', () => {
+      // The first page of a folder of 40, each item of it given both.
+      render(
+        <TreeView aria-label="Paged" defaultExpanded={['big']}>
+          <TreeView.Item value="big" label="big">
+            <TreeView.Item
+              value="first"
+              label="first"
+              aria-posinset={1}
+              aria-setsize={40}
+            />
+            <TreeView.Item
+              value="second"
+              label="second"
+              aria-posinset={2}
+              aria-setsize={40}
+            />
+          </TreeView.Item>
+        </TreeView>
+      );
+      expect(positions()).toEqual(['big 1/1', 'first 1/40', 'second 2/40']);
+    });
+  });
+
   describe('Loading', () => {
     const LOADING = 'Loading…';
 
@@ -2154,6 +2334,11 @@ describe('TreeView', () => {
         expect(
           container.querySelectorAll('[role="treeitem"][tabindex="0"]')
         ).toHaveLength(1);
+        // The positions arrive once the tree has mounted.
+        for (const li of container.querySelectorAll('[role="treeitem"]')) {
+          expect(li).toHaveAttribute('aria-posinset');
+          expect(li).toHaveAttribute('aria-setsize');
+        }
       } finally {
         error.mockRestore();
         await act(async () => root!.unmount());
@@ -2175,6 +2360,14 @@ describe('TreeView', () => {
       expect(loading).toHaveTextContent('Loading…');
       expect(loading).toHaveAttribute('aria-disabled', 'true');
       expect(loading).toHaveAttribute('tabindex', '-1');
+    });
+
+    it('leaves the positions to the browser until the tree mounts', () => {
+      const html = renderToStaticMarkup(
+        <Files defaultExpanded={['src']} selectionMode="single" />
+      );
+      expect(html).toContain('aria-level="2"');
+      expect(html).not.toMatch(/aria-posinset|aria-setsize/);
     });
 
     it('shows a mixed parent once a hydrated checkbox tree has mounted', async () => {

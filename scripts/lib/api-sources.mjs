@@ -106,6 +106,9 @@ export const SCSS_SOURCES = {
   ],
   Cell: [],
   Checkbox: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_checkbox.scss' }],
+  CheckboxCard: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_checkboxcard.scss' },
+  ],
   Checkboxes: [],
   ClientOnly: [],
   Code: [{ pkg: 'bulma', path: 'sass/base/generic.scss' }],
@@ -116,6 +119,9 @@ export const SCSS_SOURCES = {
   Column: [{ pkg: 'bulma', path: 'sass/grid/columns.scss' }],
   Columns: [],
   Combobox: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_combobox.scss' }],
+  Command: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_command.scss' },
+  ],
   Config: [],
   Container: [],
   Content: [{ pkg: 'bulma', path: 'sass/elements/content.scss' }],
@@ -163,6 +169,9 @@ export const SCSS_SOURCES = {
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
   ],
   Delete: [{ pkg: 'bulma', path: 'sass/utilities/mixins.scss' }],
+  DescriptionList: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/elements/_descriptionlist.scss' },
+  ],
   Dialog: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_dialog.scss' }],
   Divider: [],
   Dropdown: [{ pkg: 'bulma', path: 'sass/components/dropdown.scss' }],
@@ -171,6 +180,7 @@ export const SCSS_SOURCES = {
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_emptystate.scss' },
   ],
   Field: [{ pkg: 'bulma', path: 'sass/form/tools.scss' }],
+  Fieldset: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_fieldset.scss' }],
   Figure: [],
   File: [{ pkg: 'bulma', path: 'sass/form/file.scss' }],
   Footer: [{ pkg: 'bulma', path: 'sass/layout/footer.scss' }],
@@ -222,9 +232,16 @@ export const SCSS_SOURCES = {
   Pre: [{ pkg: 'bulma', path: 'sass/base/generic.scss' }],
   Progress: [{ pkg: 'bulma', path: 'sass/elements/progress.scss' }],
   Radio: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_radio.scss' }],
+  RadioCard: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_radiocard.scss' }],
   Radios: [],
   Rate: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_rate.scss' }],
   Reveal: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_reveal.scss' }],
+  RingProgress: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/elements/_ringprogress.scss' },
+  ],
+  ScrollArea: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_scrollarea.scss' },
+  ],
   Section: [{ pkg: 'bulma', path: 'sass/layout/section.scss' }],
   SegmentedControl: [],
   Select: [
@@ -241,6 +258,7 @@ export const SCSS_SOURCES = {
   Skeleton: [{ pkg: 'bulma', path: 'sass/base/skeleton.scss' }],
   Slider: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_slider.scss' }],
   Span: [],
+  Splitter: [{ pkg: 'repo', path: 'bulma-ui/src/scss/layout/_splitter.scss' }],
   Steps: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_steps.scss' }],
   Strong: [{ pkg: 'bulma', path: 'sass/base/generic.scss' }],
   SubTitle: [{ pkg: 'bulma', path: 'sass/elements/title.scss' }],
@@ -316,8 +334,10 @@ export const SCSS_SOURCES = {
  * missing from this map doesn't mean it renders an element of its own.
  */
 export const RENDERS_ELEMENT_OF = {
+  CheckboxCard: 'Card', // its label is a `.card.checkbox-card`
   LinkButton: 'Button', // renders `.button.link-button` through Button
   PinInput: 'Input', // each of its boxes is an `.input.pin-input-box`
+  RadioCard: 'Card', // its label is a `.card.radio-card`
   ToggleButton: 'Button', // renders a `.button` through Button
 };
 

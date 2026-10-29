@@ -549,7 +549,8 @@ jobs (`ci.yml`, `deploy.yml`, `test-deploy.yml`, `visual-regression.yml`, `story
 - **Enforcing and asserted** — every `ai-scan` job (`gate`, `scan`, `label`), every
   `ai-triage` job (`gate`, `triage`, `publish`, `cleanup`), `claude-repro` (`author` **only**),
   `deploy-worker` (`deploy`), `supply-chain` (`consumer-sbom` and `sign-sbom`),
-  `security-txt-expiry` (`check`), `auto-close-duplicates` (`auto-close`), `claude` (`claude`),
+  `security-txt-expiry` (`check`), `create-vite-drift` (`check`), `auto-close-duplicates`
+  (`auto-close`), `claude` (`claude`),
   `claude-implement` (`implement`), `bestaxbot-reply` (`respond`), `claude-review` (`review`),
   `claude-pr-loop` (`fix` and `verify`), `mcp-registry` (`publish`), `codemod-registry`
   (`validate` and `publish`), `review-converged` (`sync`), `skills-publish` (`relay`, `generate`

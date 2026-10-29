@@ -77,6 +77,24 @@ A `grouped` or `hasAddons` Field names none of its controls, and a placeholder d
 the user types, so give each input in the row an `aria-label`, or a visible label on an outer
 `Field` (`references/patterns.md`, "Grouped controls and addons").
 
+### Sections via Fieldset
+
+`Fieldset` groups several fields under one name: a native `<fieldset>` whose `legend` names the
+group. `variant` is `default` (bordered), `filled` or `unstyled`. `disabled` disables every
+control inside, the native ones and bestax's own widgets (`Rate`, the time wheels) alike, so it's
+also how to switch a whole form off while it saves. `message` describes the group; each input
+still carries its own error.
+
+```tsx
+<Fieldset legend="Shipping address" disabled={saving}>
+  <Input label="Street" name="street" />
+  <Input label="City" name="city" />
+</Fieldset>
+```
+
+Prefer it to a hand-written `<fieldset disabled>`, which the browser applies to native controls
+only: a `Rate` inside one keeps taking input while its value is dropped from the form.
+
 ## Component inventory
 
 All import from `@allxsmith/bestax-bulma`. Convenience components auto-wrap Field+Control;
@@ -86,11 +104,13 @@ All import from `@allxsmith/bestax-bulma`. Convenience components auto-wrap Fiel
 | ------------------------------------------------------- | ------------------------------------------------------------------------- |
 | `Field`, `Field.Label`, `Field.Body`                    | Field container + horizontal label/body parts.                            |
 | `Control`                                               | Wraps one input; left/right icons, `isLoading`, `isExpanded`, `size`.     |
+| `Fieldset`                                              | A section named by its `legend`; `disabled` switches off all of it.       |
 | `Input` / `InputBase`                                   | Text input (convenience / raw).                                           |
 | `Select` / `SelectBase`                                 | Dropdown select.                                                          |
 | `TextArea` / `TextAreaBase`                             | Multiline text.                                                           |
 | `Checkbox` / `Checkboxes`                               | Single checkbox / managed group (array value).                            |
 | `Radio` / `Radios`                                      | Single radio / managed single-select group.                               |
+| `CheckboxCard` / `RadioCard`                            | A checkbox or radio as a card with a title and a description.             |
 | `Switch`                                                | Toggle switch (`isRounded`, `isThin`, `isOutlined`, RTL).                 |
 | `File`                                                  | File upload input with label/message.                                     |
 | `Autocomplete`                                          | Free text with suggestions it filters for you, + keyboard nav.            |
@@ -160,8 +180,11 @@ and wire `htmlFor`/`id`, to your `id` when you pass one
 them to its field. Given `data`, its `id`, `aria-label` and `aria-labelledby` go to the field;
 built from parts, put them on `Combobox.Input`, since on the `Combobox` they land on its wrapper
 `div`. The group inputs (`Checkboxes`, `Radios`, `Rate`, `DateRangeInput`) name their
-`role="group"`/`"radiogroup"` wrapper through `aria-labelledby` instead. Inside a `Field` a
-convenience input drops its `label`, and an `inline` date/time picker has no visible input to wire.
+`role="group"`/`"radiogroup"` wrapper through `aria-labelledby` instead. `Checkboxes` and `Radios`
+also take `as="fieldset"`, which renders their own `Field` as a native `<fieldset>` with the `label`
+as its `<legend>` (the label column when `horizontal`), named by the legend with no ids. Inside a
+`Field` a convenience input drops its `label`, and an `inline` date/time picker has no visible
+input to wire.
 
 Composed, a labeled `Field` names the one control it holds: a composed `InputBase`/`SelectBase`/
 `TextAreaBase`, a composed `DateInputBase`/`TimeInputBase`/`DateTimeInputBase` that is not
@@ -173,7 +196,8 @@ label that names nothing: leave the `id` off, or pass the same value as
 `grouped`/`hasAddons` row and in a horizontal `Field` whose body holds an inner `Field` (a nested
 `Field` starts its own scope). For a group there, put `labelProps={{ id, htmlFor: undefined }}` on
 the outer `Field` and a matching `aria-labelledby` on the group; the `htmlFor: undefined` keeps an
-unmatched `for` out of server-rendered HTML.
+unmatched `for` out of server-rendered HTML. For a `Checkboxes` or `Radios` row on its own,
+`<Checkboxes as="fieldset" horizontal label="…">` needs none of that.
 
 A `range` `Slider` points the `for` at its low thumb and starts both thumbs' names with the label
 ("Price range Minimum value"); its `ariaLabel={[low, high]}` replaces those names outright, so
@@ -269,8 +293,8 @@ multi-field form plus the advanced inputs.
 ## Reuse the shipped components
 
 bestax ships the whole form surface — Input, Select, TextArea, Checkbox(es), Radio(s), Switch, File,
-Autocomplete, Combobox, Slider, Numberinput, PinInput, Rate, Taginput, and the date/time inputs (see
-the inventory above). **Compose these; don't hand-roll raw `<input class="input">` markup or
+Autocomplete, Combobox, Slider, Numberinput, PinInput, Rate, Taginput, the date/time inputs, and
+Fieldset to group them (see the inventory above). **Compose these; don't hand-roll raw `<input class="input">` markup or
 reinvent a control.** If you think a control is missing, check `bulma-ui/src/index.ts` and
 `docs/docs/api/form/` first — it's probably already there under a different name.
 

@@ -14,10 +14,12 @@ import {
 import { useConfig, useIconLibrary } from '../helpers/Config';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { isEventInside } from '../helpers/shadowDom';
+import { useLocaleMatcher, useNumberFormat } from '../helpers/localeFormat';
 import {
   useInsideField,
   useInsideControl,
   rendersOwnField,
+  useFieldsetDisabled,
 } from './FormContext';
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
@@ -78,7 +80,10 @@ export interface TaginputProps
    * Autocomplete suggestions. With `data` set, even to an empty array, the
    * text input is a `role="combobox"` that controls the suggestion list and
    * points `aria-activedescendant` at the highlighted suggestion. Without it
-   * there's no list, so the input stays a plain text field.
+   * there's no list, so the input stays a plain text field. The list shows
+   * the suggestions that contain what's typed, ignoring case, and inside a
+   * `LocaleProvider` with a `locale`, ignoring accents too where that
+   * language does, so "cafe" finds "Café".
    */
   data?: string[];
   /** Placeholder text when no tags. */
@@ -117,7 +122,10 @@ export interface TaginputProps
   rounded?: boolean;
   /** Truncates long tag text with ellipsis. */
   ellipsis?: boolean;
-  /** Shows a counter of the number of tags. */
+  /**
+   * Shows a counter of the number of tags, written the way the `locale` of
+   * a `LocaleProvider` around it writes numbers.
+   */
   hasCounter?: boolean;
   /**
    * Characters that split pasted text into tags. Each part goes through the
@@ -228,7 +236,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       attached = false,
       maxTags,
       maxlength,
-      disabled = false,
+      disabled: disabledProp,
       readonly = false,
       rounded = false,
       ellipsis = false,
@@ -260,6 +268,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const insideField = useInsideField();
     const insideControl = useInsideControl();
     const ownField = rendersOwnField('Taginput', {
@@ -273,6 +282,8 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     const { classPrefix } = useConfig();
     const defaultIconLibrary = useIconLibrary();
+    const formatNumber = useNumberFormat();
+    const matchText = useLocaleMatcher();
     const resolvedLibrary = iconLibraryProp || defaultIconLibrary || 'fa';
     const pcn = (
       ...args: (
@@ -334,7 +345,9 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     // Filter autocomplete data
     const filteredData = data.filter(item => {
       const displayValue = item.toLowerCase();
-      const matchesInput = displayValue.includes(inputValue.toLowerCase());
+      const matchesInput = matchText
+        ? matchText(item, inputValue)
+        : displayValue.includes(inputValue.toLowerCase());
       const notAlreadyAdded =
         allowDuplicates ||
         !tags.some(tag => getDisplayValue(tag).toLowerCase() === displayValue);
@@ -643,11 +656,12 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     // Counter text
     const showCounter =
       hasCounter && (maxTags !== undefined || maxlength !== undefined);
+    const write = formatNumber ?? String;
     const counterText =
       maxTags !== undefined
-        ? `${tags.length} / ${maxTags}`
+        ? `${write(tags.length)} / ${write(maxTags)}`
         : maxlength !== undefined
-          ? `${inputValue.length} / ${maxlength}`
+          ? `${write(inputValue.length)} / ${write(maxlength)}`
           : '';
 
     const counterClasses = pcn('help', 'counter');

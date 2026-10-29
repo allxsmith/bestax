@@ -1,7 +1,7 @@
 {
   "name": "@allxsmith/bestax-bulma",
-  "version": "5.46.0",
-  "description": "A fully-typed React component library for the Bulma CSS framework. Build modern UIs quickly with reusable, accessible, and customizable Bulma-based React components.",
+  "version": "5.54.0",
+  "description": "Component library based on React, Bulma, with Agent Skills and MCP",
   "main": "dist/index.cjs",
   "module": "dist/index.esm.js",
   "types": "dist/types/index.d.ts",
@@ -47,6 +47,7 @@
   "devDependencies": {
     "@faker-js/faker": "^10.6.0",
     "@fortawesome/fontawesome-free": "^7.3.1",
+    "@guidepup/virtual-screen-reader": "0.33.0",
     "@mdi/font": "^7.4.47",
     "@rollup/plugin-commonjs": "^29.0.3",
     "@rollup/plugin-node-resolve": "^16.0.1",
@@ -116,6 +117,7 @@
     }
   },
   "keywords": [
+    "bestax",
     "react",
     "bulma",
     "typescript",

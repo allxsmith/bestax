@@ -175,6 +175,11 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/components/emptystate';
 @use '@allxsmith/bestax-bulma/scss/components/timeline';
 @use '@allxsmith/bestax-bulma/scss/components/treeview';
+@use '@allxsmith/bestax-bulma/scss/components/scrollarea';
+@use '@allxsmith/bestax-bulma/scss/components/command';
+
+// bestax layout
+@use '@allxsmith/bestax-bulma/scss/layout/splitter';
 
 // bestax form components
 @use '@allxsmith/bestax-bulma/scss/form/autocomplete';
@@ -186,20 +191,27 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/form/pininput';
 @use '@allxsmith/bestax-bulma/scss/form/switch';
 @use '@allxsmith/bestax-bulma/scss/form/checkbox';
+@use '@allxsmith/bestax-bulma/scss/form/checkboxcard';
 @use '@allxsmith/bestax-bulma/scss/form/radio';
+@use '@allxsmith/bestax-bulma/scss/form/radiocard';
+@use '@allxsmith/bestax-bulma/scss/form/fieldset';
 
 // bestax elements and helpers
+@use '@allxsmith/bestax-bulma/scss/elements/descriptionlist';
 @use '@allxsmith/bestax-bulma/scss/elements/kbd';
 @use '@allxsmith/bestax-bulma/scss/elements/linkbutton';
 @use '@allxsmith/bestax-bulma/scss/elements/loader' as bestax-loader;
 @use '@allxsmith/bestax-bulma/scss/elements/notification' as bestax-notification;
 @use '@allxsmith/bestax-bulma/scss/elements/progress' as bestax-progress;
+@use '@allxsmith/bestax-bulma/scss/elements/ringprogress';
 @use '@allxsmith/bestax-bulma/scss/elements/skeleton' as bestax-skeleton;
 @use '@allxsmith/bestax-bulma/scss/helpers/cursor';
 @use '@allxsmith/bestax-bulma/scss/helpers/sizing';
 ```
 
 Some of these partials adjust a stock Bulma component rather than add one of bestax's. `elements/notification` is one: it keeps a `Notification`'s text clear of its close button, so a build that uses `bulma/sass/elements/notification` wants it too. A partial like that can end in the same name as the Bulma module it adjusts, and Sass refuses two `@use` lines with the same name in one file, so the block above gives those lines a name of their own with `as`. The name changes nothing in the compiled CSS.
+
+Others draw on a stock Bulma component without adjusting it. `form/checkboxcard` and `form/radiocard` are Bulma cards, so a build that uses them wants `bulma/sass/components/card` too.
 
 :::info Shortcuts
 

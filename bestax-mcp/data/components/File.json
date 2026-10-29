@@ -236,7 +236,7 @@
           "name": "pickedFilesLabel",
           "type": "(count: number) => string",
           "default": null,
-          "description": "Builds the text `hasName` shows when several files are picked, from their count, for localization. Default: `` `${count} files` ``. A single pick shows its file's name.",
+          "description": "Builds the text `hasName` shows when several files are picked, from their count, for localization. Default: `` `${count} files` ``, with the count written the way the `locale` of a `LocaleProvider` around it writes numbers. A single pick shows its file's name.",
           "required": false,
           "inherited": false,
           "deprecated": false

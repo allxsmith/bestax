@@ -117,8 +117,8 @@ hard-coding values.
 A panel anchored to the button that opens it is `Popover`, which already portals
 (`appendToBody`), traps focus and dismisses itself, a preview that opens on hover is
 `HoverCard`, which portals the same way, and a menu that opens at a right-click or a long press
-is `ContextMenu`, which always portals and places itself at the point. `Portal` is for the
-overlays they don't cover.
+is `ContextMenu`, which always portals and places itself at the point. A command palette is
+`Command.Dialog`, which is a `Modal`. `Portal` is for the overlays they don't cover.
 
 `<Portal container?>` (`helpers/portal.tsx`) renders its children into `container` (an element or
 a selector), or without one into the `portalContainer` a `ConfigProvider` sets, and
@@ -157,6 +157,32 @@ moves there is `position: fixed`, so the element must not sit under an ancestor 
 `transform`, `filter`, `backdrop-filter`, `perspective`, `will-change: transform`, or a `contain`
 that includes `paint` or `layout`: that ancestor becomes the containing block, and overlays and
 anchored panels land against it instead of the viewport.
+
+## Language and direction: `LocaleProvider`
+
+`<LocaleProvider locale? dir?>` (`helpers/LocaleProvider.tsx`) renders a `<div>` carrying `lang` and
+`dir` around the part of the app it covers. A `locale` alone sets the direction of its script
+(`"ar-EG"` gives `dir="rtl"`), `dir` sets it whatever the locale, and a nested provider keeps what
+it leaves unset. What the library portals inside it, `Portal`'s children included, keeps the same
+`dir` and `lang`, and the date pickers take its locale and start the week on its first day. With a
+`locale`, the numbers the library writes (page numbers, badge counts, a slider's output) follow
+it, and `Combobox`, `Autocomplete`, `Taginput` and `Command` filter ignoring accents where the language
+does. With no provider nothing changes, and `<html dir="rtl">` still works on its own.
+
+`useLocale()` returns `{ locale, dir }` from the nearest provider, both `undefined` outside one.
+Pass the `locale` to your own `Intl` calls so they match the pickers, and put both on content you
+portal without `Portal`. It isn't the page's direction: a component that moves with Left and Right,
+or lays something out by side, reads `getComputedStyle(element).direction` when the key or the
+pointer arrives, and uses logical properties (`margin-inline-start`, `inset-inline-end`) in its
+CSS, so `<html dir>` works with or without a provider.
+
+```tsx
+const { locale } = useLocale();
+const total = new Intl.NumberFormat(locale, {
+  style: 'currency',
+  currency: 'EUR',
+}).format(amount);
+```
 
 ## Holding focus: `useFocusTrap`
 

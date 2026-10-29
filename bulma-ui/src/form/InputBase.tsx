@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useFieldLabelTarget } from './FormContext';
+import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
 
 /**
  * Props for the Input component.
@@ -64,12 +64,13 @@ export const InputBase = forwardRef<HTMLInputElement, InputBaseProps>(
       isFocused,
       isLoading,
       className,
-      disabled,
+      disabled: disabledProp,
       readOnly,
       ...props
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color,
       ...props,

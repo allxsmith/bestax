@@ -53,6 +53,11 @@ jest.unstable_mockModule('../file-system.js', () => ({
   updatePackageJson: jest.fn(),
 }));
 
+// Mock the command runner so --immediate never installs or starts anything
+jest.unstable_mockModule('../run-command.js', () => ({
+  runCommand: jest.fn(() => 0),
+}));
+
 // Mock telemetry so create() never reads the real config or hits the network
 jest.unstable_mockModule('../telemetry.js', () => ({
   reportScaffold: jest.fn(async () => undefined),
@@ -71,6 +76,7 @@ const fs = await import('fs-extra');
 const prompts = (await import('prompts')).default;
 const fileSystem = await import('../file-system.js');
 const telemetry = await import('../telemetry.js');
+const { runCommand } = await import('../run-command.js');
 const { libraryRange } = await import('../library-range.js');
 const { ProjectCreator } = await import('../project-creator.js');
 const listDirectoryEntries =
@@ -173,14 +179,18 @@ describe('ProjectCreator', () => {
       );
     });
 
-    it('should return null for dot names that would target the current or parent directory', async () => {
-      for (const name of ['.', '..', '.hidden']) {
+    it('should return null for dot names that would target the parent directory', async () => {
+      for (const name of ['..', '.hidden', 'apps/.']) {
         const result = await projectCreator.getProjectName(name);
         expect(result).toBeNull();
         expect(console.log).toHaveBeenCalledWith(
           expect.stringContaining('Project name cannot start with a dot')
         );
       }
+    });
+
+    it('takes "." alone as the current directory, named after it', async () => {
+      expect(await projectCreator.getProjectName('.')).toBe('.');
     });
 
     it('returns a path as typed when its last part is a valid name (#1154)', async () => {
@@ -229,6 +239,22 @@ describe('ProjectCreator', () => {
 
       expect(result).toBe('empty');
       expect(confirm).not.toHaveBeenCalled();
+    });
+
+    it('counts a directory holding only .git as empty, as create-vite does, --overwrite or not', async () => {
+      listDirectoryEntries.mockResolvedValue(['.git']);
+
+      for (const options of [undefined, { yes: true, overwrite: true }]) {
+        expect(
+          await projectCreator.checkExistingDirectory(
+            '/path/to/project',
+            'project',
+            options
+          )
+        ).toBe('empty');
+      }
+      expect(confirm).not.toHaveBeenCalled();
+      expect(fileSystem.emptyDirectory).not.toHaveBeenCalled();
     });
 
     it('asks before removing files, and only records the answer (#945)', async () => {
@@ -471,7 +497,7 @@ describe('ProjectCreator', () => {
       expect(fileSystem.copyDirectory).toHaveBeenCalledWith(
         expect.stringContaining('vite'),
         '/target/path',
-        { _gitignore: '.gitignore' }
+        { _gitignore: '.gitignore', '_oxlintrc.json': '.oxlintrc.json' }
       );
     });
   });
@@ -1104,7 +1130,7 @@ describe('ProjectCreator', () => {
         const flavor = _BULMA_FLAVORS.find(f => f.name === flavorName)!;
         const library = _ICON_LIBRARIES.find(l => l.name === libraryName)!;
 
-        for (const { name: template } of TEMPLATES) {
+        for (const { name: template, directory } of TEMPLATES) {
           // The same entry-file rule setupIconLibrary applies.
           const mainFile = template.includes('-ts') ? 'main.tsx' : 'main.jsx';
           const root = `/app-${template}`;
@@ -1113,7 +1139,7 @@ describe('ProjectCreator', () => {
             mainPath,
             readFileSync(
               new URL(
-                `../../templates/${template}/src/${mainFile}`,
+                `../../templates/${directory}/src/${mainFile}`,
                 import.meta.url
               ),
               'utf8'
@@ -1372,6 +1398,285 @@ describe('ProjectCreator', () => {
       mockExit.mockRestore();
     });
 
+    it('exits naming the linters for an invalid --lint', async () => {
+      const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+        throw new Error('process.exit called');
+      });
+
+      await expect(
+        projectCreator.create('test-project', { lint: 'biome', yes: true })
+      ).rejects.toThrow('process.exit called');
+
+      expect(mockExit).toHaveBeenCalledWith(1);
+      expect(
+        (console.error as jest.Mock).mock.calls.flat().join('\n')
+      ).toContain('Invalid linter: biome. Valid options are: oxlint, eslint');
+      expect(fileSystem.copyDirectory).not.toHaveBeenCalled();
+      mockExit.mockRestore();
+    });
+
+    describe('the linter', () => {
+      let setupLinter: ReturnType<typeof jest.spyOn>;
+
+      beforeEach(() => {
+        (
+          fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        ).mockReturnValue(false);
+        setupLinter = jest
+          .spyOn(projectCreator, 'setupLinter')
+          .mockResolvedValue(undefined);
+      });
+
+      afterEach(() => {
+        setupLinter.mockRestore();
+      });
+
+      it('is Oxlint under -y', async () => {
+        await projectCreator.create('test-project', {
+          yes: true,
+          skills: false,
+        });
+
+        expect(setupLinter).toHaveBeenCalledWith(
+          expect.any(String),
+          'oxlint',
+          'vite'
+        );
+        expect(prompts).not.toHaveBeenCalled();
+      });
+
+      it('is the one --lint names, without asking', async () => {
+        await projectCreator.create('test-project', {
+          template: 'vite-ts',
+          lint: 'eslint',
+          bulma: 'complete',
+          icon: 'none',
+          skills: false,
+          immediate: false,
+        });
+
+        expect(setupLinter).toHaveBeenCalledWith(
+          expect.any(String),
+          'eslint',
+          'vite-ts'
+        );
+        expect(prompts).not.toHaveBeenCalledWith(
+          expect.objectContaining({ name: 'linter' })
+        );
+      });
+
+      it('is Oxlint without a terminal, so a run that names every other choice still finishes', async () => {
+        setStdinTTY(undefined);
+
+        await projectCreator.create('test-project', {
+          template: 'vite-ts',
+          bulma: 'complete',
+          icon: 'none',
+          skills: false,
+        });
+
+        expect(setupLinter).toHaveBeenCalledWith(
+          expect.any(String),
+          'oxlint',
+          'vite-ts'
+        );
+        expect(prompts).not.toHaveBeenCalled();
+      });
+
+      it('is asked for when no flag names it', async () => {
+        (prompts as jest.MockedFunction<typeof prompts>).mockImplementation(
+          questions => {
+            const question = Array.isArray(questions)
+              ? questions[0]
+              : questions;
+            return Promise.resolve(
+              question.name === 'linter' ? { linter: 'eslint' } : {}
+            );
+          }
+        );
+
+        await projectCreator.create('test-project', {
+          template: 'vite',
+          bulma: 'complete',
+          icon: 'none',
+          skills: false,
+          immediate: false,
+        });
+
+        expect(prompts).toHaveBeenCalledWith(
+          expect.objectContaining({ name: 'linter' })
+        );
+        expect(setupLinter).toHaveBeenCalledWith(
+          expect.any(String),
+          'eslint',
+          'vite'
+        );
+      });
+    });
+
+    describe('installing and starting (--immediate)', () => {
+      const run = runCommand as jest.MockedFunction<typeof runCommand>;
+      const originalAgent = process.env.npm_config_user_agent;
+      let mockExit: ReturnType<typeof jest.spyOn>;
+
+      beforeEach(() => {
+        process.env.npm_config_user_agent = 'pnpm/11.9.0 node/v22 darwin arm64';
+        process.exitCode = undefined;
+        run.mockReturnValue(0);
+        (
+          fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        ).mockReturnValue(false);
+        mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+          throw new Error('process.exit called');
+        });
+      });
+
+      afterEach(() => {
+        mockExit.mockRestore();
+        process.exitCode = undefined;
+        if (originalAgent === undefined)
+          delete process.env.npm_config_user_agent;
+        else process.env.npm_config_user_agent = originalAgent;
+      });
+
+      const target = path.resolve(process.cwd(), 'test-project');
+
+      it('installs, then starts the dev server, after the scaffold and the telemetry', async () => {
+        run.mockReturnValueOnce(0).mockReturnValueOnce(3);
+
+        await projectCreator.create('test-project', {
+          yes: true,
+          skills: false,
+          immediate: true,
+        });
+
+        expect(run.mock.calls).toEqual([
+          ['pnpm install', target],
+          ['pnpm run dev', target],
+        ]);
+        expect(run.mock.invocationCallOrder[0]).toBeGreaterThan(
+          (telemetry.reportScaffold as jest.Mock).mock.invocationCallOrder[0]
+        );
+        // The server's exit code is the run's.
+        expect(process.exitCode).toBe(3);
+      });
+
+      it('does not start the server after a failed install, and exits with its code', async () => {
+        run.mockReturnValueOnce(2);
+
+        await expect(
+          projectCreator.create('test-project', {
+            yes: true,
+            skills: false,
+            immediate: true,
+          })
+        ).rejects.toThrow('process.exit called');
+
+        expect(run).toHaveBeenCalledTimes(1);
+        expect(mockExit).toHaveBeenCalledWith(2);
+        expect(
+          (console.error as jest.Mock).mock.calls.flat().join('\n')
+        ).toContain(
+          'pnpm install failed, so the dev server was not started. Fix what it reported, then cd test-project, then run pnpm install and pnpm run dev.'
+        );
+      });
+
+      it('names no cd after a failed install into the current directory', async () => {
+        run.mockReturnValueOnce(1);
+
+        await expect(
+          projectCreator.create('.', {
+            yes: true,
+            skills: false,
+            immediate: true,
+          })
+        ).rejects.toThrow('process.exit called');
+
+        const output = (console.error as jest.Mock).mock.calls
+          .flat()
+          .join('\n');
+        expect(output).toContain(
+          'Fix what it reported, then run pnpm install and pnpm run dev.'
+        );
+        expect(output).not.toContain('cd ');
+      });
+
+      it('reports a command that could not start, and exits 1', async () => {
+        run.mockImplementationOnce(() => {
+          throw new Error('spawn pnpm ENOENT');
+        });
+
+        await expect(
+          projectCreator.create('test-project', {
+            yes: true,
+            skills: false,
+            immediate: true,
+          })
+        ).rejects.toThrow('process.exit called');
+
+        expect(run).toHaveBeenCalledTimes(1);
+        expect(mockExit).toHaveBeenCalledWith(1);
+        expect(
+          (console.error as jest.Mock).mock.calls.flat().join('\n')
+        ).toContain('spawn pnpm ENOENT');
+      });
+
+      it('only writes the project under -y, without a terminal, or with --no-immediate', async () => {
+        await projectCreator.create('test-project', {
+          yes: true,
+          skills: false,
+        });
+        setStdinTTY(undefined);
+        await projectCreator.create('test-project', {
+          template: 'vite',
+          bulma: 'complete',
+          icon: 'none',
+          skills: false,
+        });
+        setStdinTTY(true);
+        await projectCreator.create('test-project', {
+          template: 'vite',
+          lint: 'oxlint',
+          bulma: 'complete',
+          icon: 'none',
+          skills: false,
+          immediate: false,
+        });
+
+        expect(run).not.toHaveBeenCalled();
+        expect(prompts).not.toHaveBeenCalled();
+      });
+
+      it('asks, naming the package manager, when nothing answers it', async () => {
+        (prompts as jest.MockedFunction<typeof prompts>).mockImplementation(
+          questions => {
+            const question = Array.isArray(questions)
+              ? questions[0]
+              : questions;
+            return Promise.resolve(
+              question.name === 'immediate' ? { immediate: true } : {}
+            );
+          }
+        );
+
+        await projectCreator.create('test-project', {
+          template: 'vite',
+          lint: 'oxlint',
+          bulma: 'complete',
+          icon: 'none',
+          skills: false,
+        });
+
+        expect(prompts).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'immediate',
+            message: 'Install with pnpm and start the dev server now?',
+          })
+        );
+        expect(run).toHaveBeenCalledWith('pnpm install', target);
+      });
+    });
+
     it('should create project with CLI options', async () => {
       const options = {
         template: 'vite-ts',
@@ -1482,6 +1787,8 @@ describe('ProjectCreator', () => {
 
     it('should prompt for missing template option', async () => {
       const options = {
+        lint: 'oxlint',
+        immediate: false,
         bulma: 'complete',
         icon: 'none',
         skills: false,
@@ -1523,6 +1830,8 @@ describe('ProjectCreator', () => {
 
     it('should prompt for missing bulma option', async () => {
       const options = {
+        lint: 'oxlint',
+        immediate: false,
         template: 'vite',
         icon: 'none',
         skills: false,
@@ -1604,6 +1913,8 @@ describe('ProjectCreator', () => {
       });
 
       const options = {
+        lint: 'oxlint',
+        immediate: false,
         template: 'vite',
         icon: 'none',
       };
@@ -1640,6 +1951,8 @@ describe('ProjectCreator', () => {
       });
 
       const options = {
+        lint: 'oxlint',
+        immediate: false,
         template: 'vite',
         bulma: 'complete',
       };
@@ -1672,6 +1985,8 @@ describe('ProjectCreator', () => {
 
     it('should prompt for missing icon option', async () => {
       const options = {
+        lint: 'oxlint',
+        immediate: false,
         template: 'vite',
         bulma: 'complete',
         skills: false,
@@ -2034,6 +2349,78 @@ describe('ProjectCreator', () => {
     });
   });
 
+  describe('setupRouter', () => {
+    it('warns, and leaves the entry file alone, when it no longer renders App', async () => {
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockImplementation(p => String(p).endsWith('main.tsx'));
+      (
+        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+      ).mockResolvedValue(
+        "import Root from './Root.tsx';\n<Root />\n" as unknown
+      );
+
+      await projectCreator.setupRouter('/app', 'react-router-ts');
+
+      expect(fs.default.copy).toHaveBeenCalledWith(
+        expect.stringContaining(
+          path.join('templates', 'overlays', 'react-router', 'vite-ts')
+        ),
+        '/app'
+      );
+      expect(fs.default.writeFile).not.toHaveBeenCalled();
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'src/main.tsx is not shaped the way the scaffolder expects'
+        )
+      );
+    });
+
+    it('tells the skills step the app routes, so CLAUDE.md says how', async () => {
+      const setupSkills = jest
+        .spyOn(projectCreator, 'setupSkills')
+        .mockResolvedValue(undefined);
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockReturnValue(false);
+
+      await projectCreator.create('test-project', {
+        template: 'react-router-ts',
+        yes: true,
+        skills: true,
+      });
+
+      expect(setupSkills).toHaveBeenCalledWith(
+        expect.any(String),
+        'test-project',
+        expect.objectContaining({ router: 'react-router' })
+      );
+      setupSkills.mockRestore();
+    });
+  });
+
+  describe('setupReactCompiler', () => {
+    it('warns, and leaves vite.config alone, when it is not shaped as the template ships it', async () => {
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockImplementation(p => String(p).endsWith('vite.config.ts'));
+      (
+        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+      ).mockResolvedValue(
+        "import react from '@vitejs/plugin-react';\nexport default { plugins: [react({})] };\n" as unknown
+      );
+
+      await projectCreator.setupReactCompiler('/app', 'vite-compiler-ts');
+
+      expect(fs.default.writeFile).not.toHaveBeenCalled();
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'vite.config.ts is not shaped the way the scaffolder expects'
+        )
+      );
+    });
+  });
+
   describe('setupIconLibrary edge cases', () => {
     it('should handle package.json without dependencies object', async () => {
       const targetPath = '/test/project';
@@ -2082,6 +2469,8 @@ describe('ProjectCreator', () => {
     >;
     const fullFlags = {
       template: 'vite-ts',
+      lint: 'oxlint',
+      immediate: false,
       bulma: 'prefixed',
       icon: 'mdi',
       skills: false,
@@ -2241,9 +2630,11 @@ describe('ProjectCreator', () => {
     const answers: Record<string, Record<string, unknown>> = {
       overwrite: { overwrite: true },
       template: { template: 'vite' },
+      linter: { linter: 'oxlint' },
       bulmaFlavor: { bulmaFlavor: 'complete' },
       iconLibrary: { iconLibrary: 'none' },
       skills: { skills: true },
+      immediate: { immediate: false },
     };
     let mockExit: ReturnType<typeof jest.spyOn>;
 
@@ -2360,7 +2751,14 @@ describe('ProjectCreator', () => {
       expect(errorOutput()).toContain('--overwrite');
     });
 
-    it.each(['template', 'bulmaFlavor', 'iconLibrary', 'skills'])(
+    it.each([
+      'template',
+      'linter',
+      'bulmaFlavor',
+      'iconLibrary',
+      'skills',
+      'immediate',
+    ])(
       'accepting removal, then cancelling at the %s prompt, leaves the files alone',
       async cancelAt => {
         answerPrompts(cancelAt);
@@ -2520,7 +2918,41 @@ describe('ProjectCreator', () => {
       expect(writtenTitle()).toBe('MyApp');
     });
 
-    it.each(['.', '..', `${scratch}/..`, `${scratch}/My App`])(
+    it('scaffolds into an empty current directory for ".", named after it', async () => {
+      listDirectoryEntries.mockResolvedValue([]);
+
+      await projectCreator.create('.', { yes: true, skills: false });
+
+      const cwd = process.cwd();
+      expect(fileSystem.emptyDirectory).not.toHaveBeenCalled();
+      expect(fileSystem.copyDirectory).toHaveBeenCalledWith(
+        expect.any(String),
+        cwd,
+        expect.anything()
+      );
+      expect(fileSystem.updatePackageJson).toHaveBeenCalledWith(
+        cwd,
+        path.basename(cwd).toLowerCase(),
+        LIBRARY_DEPENDENCY
+      );
+    });
+
+    it('stops at "." when the current directory holds anything, --overwrite or not', async () => {
+      listDirectoryEntries.mockResolvedValue(['notes.txt']);
+
+      await expect(
+        projectCreator.create('.', { yes: true, overwrite: true })
+      ).rejects.toThrow('process.exit called');
+
+      expect(mockExit).toHaveBeenCalledWith(1);
+      expect(fileSystem.emptyDirectory).not.toHaveBeenCalled();
+      expect(fileSystem.copyDirectory).not.toHaveBeenCalled();
+      expect(
+        (console.error as jest.Mock).mock.calls.flat().join('\n')
+      ).toContain('The current directory is not empty (notes.txt)');
+    });
+
+    it.each(['..', `${scratch}/..`, `${scratch}/My App`])(
       'stops at %s before touching anything',
       async dir => {
         await expect(

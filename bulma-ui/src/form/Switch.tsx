@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useFieldsetDisabled } from './FormContext';
 
 /**
  * The values the Switch `color` and `passiveType` props accept, as a readonly
@@ -124,11 +125,12 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
       className,
       children,
       textColor,
-      disabled,
+      disabled: disabledProp,
       ...props
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color: textColor,
       ...props,

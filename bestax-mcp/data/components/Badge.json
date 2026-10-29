@@ -98,7 +98,7 @@
           "name": "content",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Count, short text, or a custom node to display; omit with `dot` for a plain dot. `max`/`showZero` apply only to numeric content.",
+          "description": "Count, short text, or a custom node to display; omit with `dot` for a plain dot. `max`/`showZero` apply only to numeric content. A numeric count is written the way the `locale` of a `LocaleProvider` around it writes numbers.",
           "required": false,
           "inherited": false,
           "deprecated": false

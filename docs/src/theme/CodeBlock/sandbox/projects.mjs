@@ -220,7 +220,17 @@ function darkRoot(html) {
  * @param {string} name
  */
 export const isLintPackage = name =>
-  name.includes('eslint') || name === 'globals';
+  name.includes('eslint') || name === 'globals' || name === 'oxlint';
+
+/**
+ * The TypeScript both sandboxes install, in place of the template's. The
+ * template is on TypeScript 7, whose compiler is a native binary with no
+ * WebAssembly build, so StackBlitz's WebContainers can't run its `tsc`, and
+ * whose package has no compiler API, which react-scripts loads to check
+ * types. TypeScript 6 is the one create-bestax's `--lint eslint` scaffolds
+ * keep, and the template's tsconfigs read the same under it.
+ */
+export const SANDBOX_TYPESCRIPT = '~6.0.3';
 
 /**
  * A project for the StackBlitz SDK's `openProject`.
@@ -243,6 +253,7 @@ export function stackblitzProject({
   pkg.devDependencies = Object.fromEntries(
     Object.entries(pkg.devDependencies).filter(([name]) => !isLintPackage(name))
   );
+  pkg.devDependencies.typescript = SANDBOX_TYPESCRIPT;
   pkg.dependencies = sortKeys({
     ...pkg.dependencies,
     [LIBRARY]: versionOf(versions, LIBRARY),
@@ -392,7 +403,8 @@ export function codesandboxFiles({
           [LIBRARY]: versionOf(versions, LIBRARY),
         }),
         devDependencies: sortKeys({
-          ...fromTemplate(['@types/react', '@types/react-dom', 'typescript']),
+          ...fromTemplate(['@types/react', '@types/react-dom']),
+          typescript: SANDBOX_TYPESCRIPT,
           // The Vite template has none to copy, so it is pinned here.
           'react-scripts': '^5.0.1',
         }),

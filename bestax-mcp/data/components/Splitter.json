@@ -1,0 +1,358 @@
+{
+  "name": "Splitter",
+  "kind": "component",
+  "category": "layout",
+  "slug": "layout/splitter",
+  "docsUrl": "https://bestax.io/docs/api/layout/splitter",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<Splitter height={240} className=\"box p-0\">\n  <Splitter.Pane label=\"Files\" defaultSize={30}>\n    <Content p=\"4\">\n      <p>Drag the handle, or tab to it and use the arrow keys.</p>\n    </Content>\n  </Splitter.Pane>\n  <Splitter.Pane label=\"Editor\">\n    <Content p=\"4\">\n      <p>Shift with an arrow moves ten times as far.</p>\n    </Content>\n  </Splitter.Pane>\n</Splitter>"
+    },
+    {
+      "title": "Limits",
+      "code": "<Splitter height={240} className=\"box p-0\">\n  <Splitter.Pane label=\"Sidebar\" defaultSize={25} minSize=\"12rem\" maxSize={50}>\n    <Content p=\"4\">\n      <p>At least 12rem, at most half.</p>\n    </Content>\n  </Splitter.Pane>\n  <Splitter.Pane label=\"Main\">\n    <Content p=\"4\">\n      <p>Home and End take the sidebar to its limits.</p>\n    </Content>\n  </Splitter.Pane>\n</Splitter>"
+    },
+    {
+      "title": "Stacked Panes",
+      "code": "<Splitter orientation=\"vertical\" height={320} className=\"box p-0\">\n  <Splitter.Pane label=\"Query\" defaultSize={40} minSize=\"4rem\">\n    <Content p=\"4\">\n      <p>The query.</p>\n    </Content>\n  </Splitter.Pane>\n  <Splitter.Pane label=\"Results\">\n    <Content p=\"4\">\n      <p>Its results. Up and Down move this handle.</p>\n    </Content>\n  </Splitter.Pane>\n</Splitter>"
+    },
+    {
+      "title": "Three or More Panes",
+      "code": "<Splitter height={240} className=\"box p-0\">\n  <Splitter.Pane label=\"Folders\" defaultSize={20} minSize={10}>\n    <Content p=\"4\">\n      <p>Folders</p>\n    </Content>\n  </Splitter.Pane>\n  <Splitter.Pane label=\"Messages\" defaultSize={30} minSize={20}>\n    <Content p=\"4\">\n      <p>Messages</p>\n    </Content>\n  </Splitter.Pane>\n  <Splitter.Pane label=\"Message\">\n    <Content p=\"4\">\n      <p>Message</p>\n    </Content>\n  </Splitter.Pane>\n</Splitter>"
+    },
+    {
+      "title": "Collapsible Panes",
+      "code": "function example() {\n  const [hidden, setHidden] = useState(false);\n  return (\n    <>\n      <Button size=\"small\" mb=\"3\" onClick={() => setHidden(h => !h)}>\n        {hidden ? 'Show inspector' : 'Hide inspector'}\n      </Button>\n      <Splitter height={240} className=\"box p-0\">\n        <Splitter.Pane label=\"Canvas\">\n          <Content p=\"4\">\n            <p>The canvas.</p>\n          </Content>\n        </Splitter.Pane>\n        <Splitter.Pane\n          label=\"Inspector\"\n          defaultSize={35}\n          minSize=\"12rem\"\n          collapsible\n          collapsed={hidden}\n          onCollapsedChange={setHidden}\n        >\n          <Content p=\"4\">\n            <p>The inspector.</p>\n          </Content>\n        </Splitter.Pane>\n      </Splitter>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Scrolling Panes",
+      "code": "<Splitter height={240} className=\"box p-0\">\n  <Splitter.Pane label=\"Notes\" defaultSize={40}>\n    <ScrollArea height=\"100%\" aria-label=\"Notes\">\n      <Content p=\"4\">\n        <p>Search now matches tags as well as titles.</p>\n        <p>Exports include the time zone.</p>\n        <p>A CSV export keeps the column order you set in the table.</p>\n        <p>A new dashboard puts the numbers you check most at the top.</p>\n        <p>Long lists load faster.</p>\n      </Content>\n    </ScrollArea>\n  </Splitter.Pane>\n  <Splitter.Pane label=\"Preview\">\n    <Content p=\"4\">\n      <p>The preview.</p>\n    </Content>\n  </Splitter.Pane>\n</Splitter>"
+    },
+    {
+      "title": "Keeping the Sizes",
+      "code": "function example() {\n  const [sizes, setSizes] = useState([30, 70]);\n  return (\n    <>\n      <Paragraph mb=\"3\">\n        {sizes.map(size => `${Math.round(size)}%`).join(' and ')}\n      </Paragraph>\n      <Splitter\n        height={200}\n        className=\"box p-0\"\n        sizes={sizes}\n        onSizesChange={setSizes}\n      >\n        <Splitter.Pane label=\"Filters\">\n          <Content p=\"4\">\n            <p>Filters</p>\n          </Content>\n        </Splitter.Pane>\n        <Splitter.Pane label=\"Results\">\n          <Content p=\"4\">\n            <p>Results</p>\n          </Content>\n        </Splitter.Pane>\n      </Splitter>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Keeping the Sizes",
+      "code": "const [sizes, setSizes] = useState<number[]>(() =>\n  JSON.parse(localStorage.getItem('layout') ?? '[30, 70]')\n);\n\n<Splitter\n  sizes={sizes}\n  onSizesChange={next => {\n    setSizes(next);\n    localStorage.setItem('layout', JSON.stringify(next));\n  }}\n>\n  …\n</Splitter>;"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Splitter height={160} className=\"box p-0\">\n  <SplitterPane label=\"Left\">\n    <Content p=\"4\">\n      <p>SplitterPane</p>\n    </Content>\n  </SplitterPane>\n  <Splitter.Pane label=\"Right\">\n    <Content p=\"4\">\n      <p>Splitter.Pane</p>\n    </Content>\n  </Splitter.Pane>\n</Splitter>"
+    }
+  ],
+  "accessibility": "- **The WAI-ARIA Window Splitter pattern:** each handle is a focusable `separator` whose\n  `aria-valuenow`, `aria-valuemin` and `aria-valuemax` give the size of the pane it speaks for, in\n  percent, with `aria-controls` pointing at that pane.\n- **Names:** a handle is named by its pane's `label`, so a screen reader says \"Files, separator,\n  25\". A development build warns when a handle's pane has no `label`.\n- **Orientation:** `aria-orientation` describes the line, so a handle between side-by-side panes\n  is `vertical`, and one between stacked panes `horizontal`.\n- **Keyboard:** Left and Right Arrow (or Up and Down when stacked) move a handle by `step`, and\n  with Shift ten times as far. Home and End take its pane to its limits. Enter collapses a\n  collapsible pane and brings it back. Right to left, the arrows follow the screen.\n- **Pointer:** dragging works with a mouse, a finger or a pen, and a double-click puts the two\n  panes beside a handle back to their default sizes.\n- **Collapsed panes** are `hidden`, so nothing in them can be reached until they come back.\n- **Focus ring:** Bulma's focus outline, inside the handle.\n- **Target size:** the handle is 0.75rem across for a mouse and 1.5rem for a coarse pointer, which\n  meets WCAG 2.5.8's 24px.\n- **Forced colors:** the line and the grip are borders, which forced colors keeps, and an active\n  handle is drawn in the system's highlight color.\n- **Not live:** a resize announces nothing beyond the handle's value, which a screen reader reads\n  on the focused handle as it changes.",
+  "related": ["Columns", "Menu", "ScrollArea", "TreeView", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/layout-splitter--default",
+  "summary": "The `Splitter` component lays out two or more panes side by side or one above the other, with a handle between each pair to drag or move by keyboard. Each handle is a focusable `separator`, named by the `label` of the pane it speaks for. Sizes are percentages, so the server renders the layout the browser does, and `minSize` and `maxSize` also take `px` and `rem`. A `collapsible` pane shuts when dragged below half its minimum, and Enter on its handle shuts it and brings it back. It doesn't store sizes itself: keep them with `sizes` and `onSizesChange`.",
+  "import": "import { Splitter } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/layout/Splitter.tsx",
+  "rootClass": "splitter",
+  "parts": [
+    {
+      "path": "Splitter",
+      "summary": "The `Splitter` component lays out two or more panes side by side or one above the other, with a handle between each pair to drag or move by keyboard. Each handle is a focusable `separator`, named by the `label` of the pane it speaks for. Sizes are percentages, so the server renders the layout the browser does, and `minSize` and `maxSize` also take `px` and `rem`. A `collapsible` pane shuts when dragged below half its minimum, and Enter on its handle shuts it and brings it back. It doesn't store sizes itself: keep them with `sizes` and `onSizesChange`.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "`Splitter.Pane`s, two or more, each a direct child, with Fragments opened up. A handle goes between each pair. Changing which panes there are puts every pane back to its default size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "orientation",
+          "type": "'horizontal' | 'vertical'",
+          "default": "'horizontal'",
+          "description": "The way the panes run: side by side (`horizontal`) or one above the other (`vertical`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "height",
+          "type": "number | string",
+          "default": null,
+          "description": "The splitter's height. A number is pixels, and a string any CSS length. A vertical splitter needs a height to split.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "sizes",
+          "type": "number[]",
+          "default": null,
+          "description": "Each pane's size, in percent, in order, adding up to 100. With it, the sizes are yours: update them from `onSizesChange`. Without it, each pane starts at its `defaultSize`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onSizesChange",
+          "type": "(sizes: number[]) => void",
+          "default": null,
+          "description": "Called with every pane's size, in percent, whenever they change: on each step of a drag or a key, on a collapse and on a reset.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "step",
+          "type": "number",
+          "default": "1",
+          "description": "How far an arrow key moves a handle, in percent. Shift moves ten times as far.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the root `<div>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Splitter.Pane",
+      "summary": "One pane of a Splitter, sized by the splitter around it.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "default": null,
+          "description": "What the pane is, such as \"Files\". It names the handle that speaks for this pane, which is announced as \"Files, separator, 25\". That's the handle after it, or the one before it when only this pane, of the two beside that handle, can collapse. A development build warns when a handle's pane has none.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultSize",
+          "type": "number",
+          "default": null,
+          "description": "Its starting size, in percent of the room the panes share. Panes without one share what's left equally, and a total over 100 is scaled down.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "minSize",
+          "type": "number | string",
+          "default": null,
+          "description": "The smallest it can be dragged: a percentage, or a CSS length in `px` or `rem` such as `\"12rem\"`. A length applies once the splitter has measured itself in the browser, so the server renders the default size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "maxSize",
+          "type": "number | string",
+          "default": null,
+          "description": "The largest it can be dragged, in the same units as `minSize`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "collapsible",
+          "type": "boolean",
+          "default": "false",
+          "description": "Lets it collapse: dragging it below half its `minSize` shuts it, and Enter on its handle shuts it and brings it back at the size it had. It collapses only when the pane across its handle can take its room within that pane's `maxSize`, since a handle moves only the two panes beside it. A collapsed pane stays mounted, hidden, so it keeps its state.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "collapsed",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether it's collapsed, for a `collapsible` pane. With it, the state is yours: a drag, a key or a double-click that would collapse it or bring it back calls `onCollapsedChange` and leaves it as it is, and it changes when `collapsed` does.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultCollapsed",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether a `collapsible` pane starts collapsed.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onCollapsedChange",
+          "type": "(collapsed: boolean) => void",
+          "default": null,
+          "description": "Called when a drag, a key or a double-click collapses it or brings it back, or, with `collapsed`, would. Not called for a change you made with `collapsed`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "What's in it. Content that scrolls belongs in a `ScrollArea`, so a keyboard can reach it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the pane's `<div>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "default": null,
+          "description": "The pane's id, which its handle's `aria-controls` points at. The splitter makes one when there's none.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-splitter-handle-size",
+      "sass": "$splitter-handle-size",
+      "default": "0.75rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-splitter-handle-size-coarse",
+      "sass": "$splitter-handle-size-coarse",
+      "default": "1.5rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-splitter-line-size",
+      "sass": "$splitter-line-size",
+      "default": "1px",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-splitter-line-color",
+      "sass": "$splitter-line-color",
+      "default": "var(--bulma-border)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-splitter-line-active-size",
+      "sass": "$splitter-line-active-size",
+      "default": "2px",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-splitter-line-active-color",
+      "sass": "$splitter-line-active-color",
+      "default": "var(--bulma-primary)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-splitter-grip-length",
+      "sass": "$splitter-grip-length",
+      "default": "1.5rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-splitter-grip-size",
+      "sass": "$splitter-grip-size",
+      "default": "0.25rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-splitter-grip-color",
+      "sass": "$splitter-grip-color",
+      "default": "var(--bulma-border-hover)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-splitter-grip-radius",
+      "sass": "$splitter-grip-radius",
+      "default": "var(--bulma-radius-rounded)",
+      "scope": "root"
+    }
+  ]
+}

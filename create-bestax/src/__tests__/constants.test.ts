@@ -34,11 +34,58 @@ const {
 describe('constants', () => {
   describe('TEMPLATES', () => {
     it('should have the correct templates defined', () => {
-      expect(TEMPLATES).toHaveLength(2);
-      expect(TEMPLATES[0].name).toBe('vite');
-      expect(TEMPLATES[0].display).toBe('Vite');
-      expect(TEMPLATES[1].name).toBe('vite-ts');
-      expect(TEMPLATES[1].display).toBe('Vite + TypeScript');
+      expect(
+        TEMPLATES.map(
+          ({ name, display, directory, reactCompiler, router }) => ({
+            name,
+            display,
+            directory,
+            reactCompiler,
+            router,
+          })
+        )
+      ).toEqual([
+        { name: 'vite', display: 'Vite', directory: 'vite' },
+        { name: 'vite-ts', display: 'Vite + TypeScript', directory: 'vite-ts' },
+        {
+          name: 'vite-compiler',
+          display: 'Vite + React Compiler',
+          directory: 'vite',
+          reactCompiler: true,
+        },
+        {
+          name: 'vite-compiler-ts',
+          display: 'Vite + TypeScript + React Compiler',
+          directory: 'vite-ts',
+          reactCompiler: true,
+        },
+        {
+          name: 'react-router',
+          display: 'React Router',
+          directory: 'vite',
+          router: 'react-router',
+        },
+        {
+          name: 'react-router-ts',
+          display: 'React Router + TypeScript',
+          directory: 'vite-ts',
+          router: 'react-router',
+        },
+        {
+          name: 'tanstack-router-ts',
+          display: 'TanStack Router + TypeScript',
+          directory: 'vite-ts',
+          router: 'tanstack-router',
+        },
+      ]);
+    });
+
+    it('builds each TypeScript template from the TypeScript folder', () => {
+      for (const template of TEMPLATES) {
+        expect(template.directory.endsWith('-ts')).toBe(
+          template.name.endsWith('-ts')
+        );
+      }
     });
 
     it('should have color functions for each template', () => {
@@ -232,6 +279,31 @@ describe('constants', () => {
   });
 
   describe('CLAUDE_MD', () => {
+    it('describes the routing only for a router app, for its router', () => {
+      const routed = CLAUDE_MD('my-app', {
+        bulmaFlavor: 'complete',
+        iconLibrary: 'none',
+        router: 'react-router',
+      });
+      expect(routed).toContain('- Routing: React Router in data mode.');
+      expect(routed).toContain('<Navbar.Item as={Link} to="...">');
+      expect(routed).toContain(
+        'https://bestax.io/docs/guides/features/routing'
+      );
+
+      const tanstack = CLAUDE_MD('my-app', {
+        bulmaFlavor: 'complete',
+        iconLibrary: 'none',
+        router: 'tanstack-router',
+      });
+      expect(tanstack).toContain('- Routing: TanStack Router');
+      expect(tanstack).toContain('`NavbarLink`');
+      expect(tanstack).toContain('activeProps={{ active: true }}');
+      expect(
+        CLAUDE_MD('my-app', { bulmaFlavor: 'complete', iconLibrary: 'none' })
+      ).not.toContain('Routing:');
+    });
+
     it('tells agents to customize the scaffolded title and README', () => {
       const content = CLAUDE_MD('my-app', {
         bulmaFlavor: 'complete',

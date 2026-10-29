@@ -61,6 +61,18 @@ function CarouselIcon() {
   );
 }
 
+// Two cards side by side, the first picked with a check and a heavier edge
+function ChoiceCardIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="1.5" y="5" width="9.5" height="14" rx="2" strokeWidth="2.6" />
+      <path d="M4 12l2 2 3-4" />
+      <rect x="13" y="5" width="9.5" height="14" rx="2" />
+      <path d="M15.5 10h5M15.5 13.5h3.5" />
+    </svg>
+  );
+}
+
 // Panel with expanding chevron — collapse
 function CollapseIcon() {
   return (
@@ -84,6 +96,19 @@ function ComboboxIcon() {
   );
 }
 
+// A box with a search field across its top and rows of commands under it
+function CommandIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <circle cx="7.5" cy="7.5" r="1.8" />
+      <path d="M8.8 8.8l1.4 1.4M12.5 7.5h5" />
+      <path d="M3 12h18" />
+      <path d="M7 15.5h10M7 18.5h6" />
+    </svg>
+  );
+}
+
 // Modal bubble with action buttons — dialog
 function DialogIcon() {
   return (
@@ -102,6 +127,17 @@ function EmptyStateIcon() {
       <circle cx="12" cy="7.5" r="4.5" />
       <path d="M10 7.5h4" />
       <path d="M6.5 16h11M9 20h6" />
+    </svg>
+  );
+}
+
+// A box whose top border breaks for its legend, with two fields inside
+function FieldsetIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M5 6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2" />
+      <path d="M9 6h4" />
+      <path d="M7 12h10M7 16h10" />
     </svg>
   );
 }
@@ -199,6 +235,48 @@ function StepsIcon() {
   );
 }
 
+// Three rows, each a short faint label beside a longer value, the values lined up
+function DescriptionListIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M4 6h4M4 12h4M4 18h4" strokeOpacity="0.45" />
+      <path d="M11 6h9M11 12h6M11 18h8" />
+    </svg>
+  );
+}
+
+// A ring with its arc filled most of the way round
+function RingProgressIcon() {
+  return (
+    <svg {...iconProps}>
+      <circle cx="12" cy="12" r="8" strokeOpacity="0.35" />
+      <path d="M12 4a8 8 0 1 1-7.6 5.5" />
+    </svg>
+  );
+}
+
+// Lines of text in a box, with a thin scrollbar and its thumb at the side
+function ScrollAreaIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M7 8h7M7 12h7M7 16h5" />
+      <path d="M18 7v4" />
+    </svg>
+  );
+}
+
+// Two panes in a box, the line between them with a grip on it
+function SplitterIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M10 4v16" />
+      <path d="M10 10.5v3" strokeWidth="3" />
+    </svg>
+  );
+}
+
 // Dots on a line down the side, each with a line of text beside it
 function TimelineIcon() {
   return (
@@ -251,17 +329,24 @@ const ADDON_ICONS = {
   avatar: AvatarIcon,
   badge: BadgeIcon,
   carousel: CarouselIcon,
+  choicecard: ChoiceCardIcon,
   collapse: CollapseIcon,
   combobox: ComboboxIcon,
+  command: CommandIcon,
   contextmenu: ContextMenuIcon,
+  descriptionlist: DescriptionListIcon,
   dialog: DialogIcon,
   emptystate: EmptyStateIcon,
+  fieldset: FieldsetIcon,
   hovercard: HoverCardIcon,
   loading: LoadingIcon,
   pininput: PinInputIcon,
   popover: PopoverIcon,
   reveal: RevealIcon,
+  ringprogress: RingProgressIcon,
+  scrollarea: ScrollAreaIcon,
   sidebar: SidebarIcon,
+  splitter: SplitterIcon,
   steps: StepsIcon,
   timeline: TimelineIcon,
   toast: ToastIcon,
