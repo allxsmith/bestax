@@ -79,6 +79,12 @@ const ADDONS = [
     desc: 'Menus of actions that open where you right-click, or long press on a touch screen.',
   },
   {
+    name: 'DataTable',
+    icon: 'datatable',
+    link: '/docs/api/components/datatable',
+    desc: 'A table people can sort, search, page through and pick rows from, built on Bulma’s own table, checkboxes and pager.',
+  },
+  {
     name: 'Dialog',
     icon: 'dialog',
     link: '/docs/api/components/dialog',

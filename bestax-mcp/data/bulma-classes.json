@@ -13106,6 +13106,7 @@
     "combobox": "Combobox",
     "command": "Command",
     "context-menu": "ContextMenu",
+    "data-table": "DataTable",
     "daterangeinput": "DateRangeInput",
     "description-list": "DescriptionList",
     "dialog": "Dialog",

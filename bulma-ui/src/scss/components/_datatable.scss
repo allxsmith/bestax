@@ -1,0 +1,152 @@
+// Bestax Extras - DataTable Styles
+// DataTable renders Bulma's own table, checkboxes and pager, which Bulma and
+// the Checkbox partial style. This adds what Bulma has no class for: the
+// toolbar above the table, the button a sortable header holds, and the
+// indicator that shows which way it sorts.
+//
+// The sort button is styled on its own class rather than inside
+// `.data-table`, so a table built from `useDataTable`'s props, with no
+// DataTable around it, gets the same button. Its variables are declared on
+// the button for the same reason.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+@use '../mixins' as *;
+
+// Between the toolbar's items, and under the toolbar.
+$data-table-gap: 0.75rem !default;
+// Between a header's text and its indicator.
+$data-table-sort-gap: 0.375em !default;
+$data-table-sort-indicator-size: 0.75em !default;
+// How strongly an unsorted column shows that it sorts.
+$data-table-sort-unsorted-opacity: 0.35 !default;
+
+// The indicator's shapes, used as masks so they're painted in the text's
+// color, or a system color in forced colors. Private, since they're shapes
+// rather than themable values; the fill only marks what each mask keeps.
+// An unsorted column shows both triangles, a sorted one the one pointing
+// the way it sorts, up for ascending as the APG example draws it.
+$-unsorted: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1.5 12.5 7h-9zM8 14.5 3.5 9h9z'/%3E%3C/svg%3E");
+$-ascending: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 3.5 13.5 11h-11z'/%3E%3C/svg%3E");
+$-descending: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 12.5 2.5 5h11z'/%3E%3C/svg%3E");
+
+.#{iv.$class-prefix}data-table {
+  @include cv.register-vars(
+    (
+      'data-table-gap': #{$data-table-gap},
+    )
+  );
+}
+
+.#{iv.$class-prefix}data-table-sort {
+  @include cv.register-vars(
+    (
+      'data-table-sort-gap': #{$data-table-sort-gap},
+      'data-table-sort-indicator-size': #{$data-table-sort-indicator-size},
+      'data-table-sort-unsorted-opacity': #{$data-table-sort-unsorted-opacity},
+    )
+  );
+}
+
+// A block, spaced as Bulma spaces its table and its other blocks.
+.#{iv.$class-prefix}data-table:not(:last-child) {
+  margin-block-end: cv.getVar('block-spacing');
+}
+
+// The caption names the table from the start of the line, over the header
+// cells it names, rather than centered over them as browsers place it.
+.#{iv.$class-prefix}data-table .#{iv.$class-prefix}table > caption {
+  padding-block-end: cv.getVar('data-table-gap');
+  text-align: start;
+}
+
+// The toolbar: the search field at the start, anything else at the end, and
+// the two stacked when the line runs out of room.
+.#{iv.$class-prefix}data-table-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: cv.getVar('data-table-gap');
+  margin-block-end: cv.getVar('data-table-gap');
+
+  > .#{iv.$class-prefix}field {
+    margin-block-end: 0;
+  }
+}
+
+.#{iv.$class-prefix}data-table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: cv.getVar('data-table-gap');
+  margin-inline-start: auto;
+}
+
+// A sortable header's button reads as the header's own text, with the
+// indicator after it.
+.#{iv.$class-prefix}data-table-sort {
+  @include extras-button-reset;
+  display: inline-flex;
+  align-items: center;
+  gap: cv.getVar('data-table-sort-gap');
+  font-weight: inherit;
+  line-height: inherit;
+  text-align: inherit;
+
+  &::after {
+    content: '';
+    flex-shrink: 0;
+    width: cv.getVar('data-table-sort-indicator-size');
+    height: cv.getVar('data-table-sort-indicator-size');
+    background-color: currentColor;
+    opacity: cv.getVar('data-table-sort-unsorted-opacity');
+    -webkit-mask-image: $-unsorted;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-image: $-unsorted;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+  }
+
+  &:hover::after {
+    opacity: 1;
+  }
+
+  &:focus-visible {
+    @include extras-focus-outline;
+  }
+}
+
+// The sorted header says which way in `aria-sort`, so the indicator reads it
+// from there, and markup built from `useDataTable`'s props shows it too.
+th[aria-sort='ascending'] > .#{iv.$class-prefix}data-table-sort::after {
+  opacity: 1;
+  -webkit-mask-image: $-ascending;
+  mask-image: $-ascending;
+}
+
+th[aria-sort='descending'] > .#{iv.$class-prefix}data-table-sort::after {
+  opacity: 1;
+  -webkit-mask-image: $-descending;
+  mask-image: $-descending;
+}
+
+// Forced colors replaces a background color that isn't a system one, which
+// would take the indicator's paint away. The mask is left alone, so the
+// shape stays.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}data-table-sort {
+    // A faint indicator would fall short of the contrast forced colors is
+    // for. The two shapes, one triangle or both, still tell the states apart.
+    &::after {
+      background-color: ButtonText;
+      opacity: 1;
+    }
+
+    &:focus-visible {
+      outline-color: Highlight;
+    }
+  }
+}

@@ -132,6 +132,9 @@ export const SCSS_SOURCES = {
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
     { pkg: 'bulma', path: 'sass/utilities/controls.scss' },
   ],
+  DataTable: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_datatable.scss' },
+  ],
   DateInput: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_dateinput.scss' },
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
@@ -353,6 +356,7 @@ export const IMPORT_COMPANIONS = {
   Breadcrumb: ['Breadcrumb', 'Icon'],
   Carousel: ['Carousel', 'CarouselItem'],
   Collapses: ['Collapses', 'Collapse'],
+  DataTable: ['DataTable', 'useDataTable'],
   Dialog: ['Dialog', 'DialogContainer', 'dialog'],
   Dropdown: ['Dropdown', 'Button', 'Field', 'Control', 'Span'],
   Toast: ['Toast', 'ToastContainer', 'toast'],
