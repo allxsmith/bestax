@@ -1,3 +1,21 @@
+# [5.53.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.52.0...@allxsmith/bestax-bulma@5.53.0) (2026-10-29)
+
+
+### Bug Fixes
+
+* **docs:** match the drawn starter app's Count to the real one ([8efe24b](https://github.com/allxsmith/bestax/commit/8efe24b460bbe2510b0bd83ad0b7da3d5521211a))
+
+
+### Features
+
+* **bulma-ui:** add Fieldset, a form section named by its legend that disabled switches off ([8fc1780](https://github.com/allxsmith/bestax/commit/8fc178059b9a692d7a396c925856b31839d95a49))
+* **bulma-ui:** add LocaleProvider for language and writing direction ([7cba193](https://github.com/allxsmith/bestax/commit/7cba193eff08cfdfd1b109bf747e0b8cebe796a5))
+* **bulma-ui:** keep the Sunday default when a picker brings its own day names ([3be12b0](https://github.com/allxsmith/bestax/commit/3be12b0e974ba29dbade072306b55a3e71db60ae))
+* **bulma-ui:** let CheckboxCard and RadioCard take a disabled Fieldset's state ([0a95531](https://github.com/allxsmith/bestax/commit/0a95531650e37d56d9c5aeaca3af722bc4e47b13))
+* **bulma-ui:** read a picker's own locale like a nested provider; wrap portals only if needed ([acb1157](https://github.com/allxsmith/bestax/commit/acb11575d2b86fdd923b81eba7159458f580a317))
+* **bulma-ui:** settle the portal wrapper when content mounts, so a locale switch remounts nothing ([25d72d2](https://github.com/allxsmith/bestax/commit/25d72d20bbacc3d789fc94e3b3e23b6666e50e48))
+* **create-bestax:** add React Router templates with a shared navbar and two pages ([47fbcf4](https://github.com/allxsmith/bestax/commit/47fbcf435395f2b1a063165d7693ed303f9ccf10))
+
 # [5.52.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.51.0...@allxsmith/bestax-bulma@5.52.0) (2026-10-28)
 
 
