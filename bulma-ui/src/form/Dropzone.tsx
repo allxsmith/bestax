@@ -55,7 +55,7 @@ export interface DropzoneRejection {
  * @extraProp {boolean} [required=false] - The browser's own check: a form won't submit with no file chosen.
  * @extraProp {boolean} [disabled=false] - Disables the input, hides the remove buttons and takes no drops. A disabled `Fieldset` around it does the same.
  * @extraProp {(event: React.ChangeEvent<HTMLInputElement>) => void} [onChange] - Called on the input's `change`, after each pick, drop, paste or removal that changes the files, with `event.target.files` holding the new list.
- * @extraProp {React.Ref<HTMLInputElement>} [ref] - Forwarded to the `<input>`, so `ref.current.showPicker()` opens the picker from a button of your own.
+ * @extraProp {React.Ref<HTMLInputElement>} [ref] - Forwarded to the `<input>`, so `ref.current.showPicker()` opens the picker from a button of your own. A script that writes the input through it, such as `value = ''` to clear it or a form library setting `files`, changes what the input holds and what the next pick, drop or paste adds to, but no event reports the write, so the list shows it only from the next change. To clear the list at once, reset the form, or control it with `files` and set that to `[]`.
  */
 export interface DropzoneProps
   extends
@@ -111,7 +111,8 @@ export interface DropzoneProps
   maxFiles?: number;
   /**
    * The chosen files, to control the list. The input and the list follow it,
-   * and a change you don't take through `onFilesChange` is undone.
+   * and a change you don't take through `onFilesChange` is undone. Setting it
+   * to `[]` clears both.
    */
   files?: File[];
   /** Called with the whole list of chosen files each time it changes. */
@@ -369,6 +370,7 @@ export const Dropzone = forwardRef<HTMLInputElement, DropzoneProps>(
       multiple,
       disabled: disabledProp,
       onChange,
+      onClick,
       onDragEnter,
       onDragOver,
       onDragLeave,
@@ -399,6 +401,10 @@ export const Dropzone = forwardRef<HTMLInputElement, DropzoneProps>(
     // The row a removal emptied, whose neighbour takes focus.
     const removedRowRef = useRef<number | null>(null);
     const announcedRef = useRef(0);
+    // What the input held when it was last clicked (Enter and Space click it
+    // too), which a pick adds to: by the time the pick's change arrives, the
+    // browser has replaced the input's files with the picked ones.
+    const pickBaseRef = useRef<File[] | null>(null);
 
     const setInputRef = useCallback(
       (node: HTMLInputElement | null) => {
@@ -417,6 +423,17 @@ export const Dropzone = forwardRef<HTMLInputElement, DropzoneProps>(
     const sizeText = (bytes: number) => formatFileSize(bytes, formatNumber);
     const countText = (count: number) =>
       formatNumber ? formatNumber(count) : String(count);
+
+    // The files a pick, drop or paste builds on, and a removal takes one from.
+    // Controlled, that's `files`. Uncontrolled, it's the input itself rather
+    // than the list: a script can rewrite the input through the ref, emptying
+    // it with `value = ''` or setting its `files`, and no event reports that,
+    // so the list catches up only at the next change. Where there's no
+    // DataTransfer to write the input with, the list is all there is.
+    const current = (): File[] =>
+      controlled || typeof DataTransfer !== 'function'
+        ? files
+        : Array.from((inputRef.current as HTMLInputElement).files as FileList);
 
     const messageFor = (refusal: Refusal): string => {
       const { file, code } = refusal;
@@ -445,6 +462,7 @@ export const Dropzone = forwardRef<HTMLInputElement, DropzoneProps>(
      * reports the new list.
      */
     const commit = (next: File[]) => {
+      pickBaseRef.current = null;
       const input = inputRef.current as HTMLInputElement;
       if (!sameFiles(input.files, next)) writeFiles(input, next);
       if (sameFiles(files, next)) return;
@@ -461,8 +479,8 @@ export const Dropzone = forwardRef<HTMLInputElement, DropzoneProps>(
     };
 
     /** Checks the files a pick, drop or paste brings, and takes those that pass. */
-    const take = (incoming: Incoming[]) => {
-      const kept = multiple ? files : noFiles;
+    const take = (incoming: Incoming[], base: File[] = current()) => {
+      const kept = multiple ? base : noFiles;
       const room = multiple ? (maxFiles ?? Infinity) - kept.length : 1;
       const added: File[] = [];
       const refused: Refusal[] = [];
@@ -490,7 +508,7 @@ export const Dropzone = forwardRef<HTMLInputElement, DropzoneProps>(
       if (refused.length > 0) {
         onReject?.(refused.map(({ file, code }) => ({ file, code })));
       }
-      commit(added.length > 0 ? [...kept, ...added] : files);
+      commit(added.length > 0 ? [...kept, ...added] : base);
       const addedText =
         added.length === 0
           ? []
@@ -507,7 +525,7 @@ export const Dropzone = forwardRef<HTMLInputElement, DropzoneProps>(
     const remove = (index: number) => {
       const file = files[index];
       removedRowRef.current = index;
-      commit(files.filter((_, i) => i !== index));
+      commit(current().filter(held => !sameFile(held, file)));
       announce([
         removedMessage ? removedMessage(file) : `${file.name} removed`,
       ]);
@@ -518,11 +536,23 @@ export const Dropzone = forwardRef<HTMLInputElement, DropzoneProps>(
         onChange?.(event);
         return;
       }
-      // A pick: the browser has put the picked files in the input. With
-      // none (a cancelled pick, in a browser that clears it), the list stays.
+      // A pick: the browser has put the picked files in the input. They're
+      // added to what it held when it was clicked, or, for a picker opened
+      // with showPicker(), which clicks nothing, to the list. With none (a
+      // cancelled pick, in a browser that clears it), that stays.
+      const base = pickBaseRef.current ?? files;
       const picked = Array.from(event.target.files ?? []);
-      if (picked.length === 0) commit(files);
-      else take(picked.map(file => ({ file, folder: false })));
+      if (picked.length === 0) commit(base);
+      else
+        take(
+          picked.map(file => ({ file, folder: false })),
+          base
+        );
+    };
+
+    const handleClick = (event: React.MouseEvent<HTMLInputElement>) => {
+      onClick?.(event);
+      pickBaseRef.current = current();
     };
 
     // While files are dragged over the input it's cancelled, which makes the
@@ -539,7 +569,7 @@ export const Dropzone = forwardRef<HTMLInputElement, DropzoneProps>(
       event.dataTransfer.dropEffect = 'copy';
       // Only the dragged files' types can be read, so a file is known to be
       // refused only when `accept` names no extension and its type is known.
-      const room = multiple ? (maxFiles ?? Infinity) - files.length : 1;
+      const room = multiple ? (maxFiles ?? Infinity) - current().length : 1;
       const types = Array.from(event.dataTransfer.items ?? [])
         .filter(item => item.kind === 'file')
         .map(item => item.type);
@@ -611,6 +641,7 @@ export const Dropzone = forwardRef<HTMLInputElement, DropzoneProps>(
         timer = setTimeout(() => {
           if (event.defaultPrevented) return;
           const latest = latestRef.current;
+          pickBaseRef.current = null;
           setRefusals(noRefusals);
           if (latest.files.length === 0) return;
           if (latest.controlled) rerender();
@@ -747,6 +778,7 @@ export const Dropzone = forwardRef<HTMLInputElement, DropzoneProps>(
               disabled={disabled}
               aria-describedby={describedBy}
               onChange={handleChange}
+              onClick={handleClick}
               onDragEnter={handleDragOver}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}

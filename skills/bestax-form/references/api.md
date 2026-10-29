@@ -131,6 +131,10 @@ them with no wiring.
   `hint`, which describes the input. `icon`, `color` and `size` as on `File`.
 - Words: `removeLabel`, `rejectionMessage`, `addedMessage`, `removedMessage`. It doesn't upload:
   send the files yourself from the form's submit or from `onFilesChange`.
+- To clear it, reset its form, or control it with `files` and set `[]`. A write to the input
+  through the `ref` (`value = ''`, or a form library setting `files`) fires no event, so the
+  list shows it only from the next change; control it with `files` when the app clears or sets
+  files itself.
 
 ## Advanced inputs
 

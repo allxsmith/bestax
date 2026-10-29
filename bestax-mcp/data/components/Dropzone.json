@@ -152,7 +152,7 @@
           "name": "files",
           "type": "File[]",
           "default": null,
-          "description": "The chosen files, to control the list. The input and the list follow it, and a change you don't take through `onFilesChange` is undone.",
+          "description": "The chosen files, to control the list. The input and the list follow it, and a change you don't take through `onFilesChange` is undone. Setting it to `[]` clears both.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -352,7 +352,7 @@
           "name": "ref",
           "type": "React.Ref<HTMLInputElement>",
           "default": null,
-          "description": "Forwarded to the `<input>`, so `ref.current.showPicker()` opens the picker from a button of your own.",
+          "description": "Forwarded to the `<input>`, so `ref.current.showPicker()` opens the picker from a button of your own. A script that writes the input through it, such as `value = ''` to clear it or a form library setting `files`, changes what the input holds and what the next pick, drop or paste adds to, but no event reports the write, so the list shows it only from the next change. To clear the list at once, reset the form, or control it with `files` and set that to `[]`.",
           "required": false,
           "inherited": false,
           "deprecated": false

@@ -20,7 +20,8 @@ import { resetDevWarnings } from '../../helpers/devWarnings';
 // jsdom has no DataTransfer, DragEvent or ClipboardEvent, and its file input
 // takes only a FileList jsdom made itself. These stand in for them: a
 // DataTransfer that collects files, a FileList that is an array with
-// `item()`, and a `files` property on every input that holds what it's given.
+// `item()`, and a `files` property on every input that holds what it's given,
+// which a file input's `value = ''` empties, as it does in a browser.
 // Testing Library builds a drag or clipboard event's data on a new
 // DataTransfer when one exists, so the mock is what handlers receive.
 
@@ -47,6 +48,10 @@ const nativeFiles = Object.getOwnPropertyDescriptor(
   HTMLInputElement.prototype,
   'files'
 ) as PropertyDescriptor;
+const nativeValue = Object.getOwnPropertyDescriptor(
+  HTMLInputElement.prototype,
+  'value'
+) as PropertyDescriptor;
 const globals = globalThis as { DataTransfer?: unknown };
 
 beforeAll(() => {
@@ -59,11 +64,24 @@ beforeAll(() => {
       held.set(this, Array.from(list));
     },
   });
+  Object.defineProperty(HTMLInputElement.prototype, 'value', {
+    configurable: true,
+    get(this: HTMLInputElement) {
+      if (this.type !== 'file') return nativeValue.get?.call(this);
+      const first = held.get(this)?.[0];
+      return first ? `C:\\fakepath\\${first.name}` : '';
+    },
+    set(this: HTMLInputElement, value: string) {
+      if (this.type !== 'file') nativeValue.set?.call(this, value);
+      else if (value === '') held.delete(this);
+    },
+  });
   globals.DataTransfer = MockDataTransfer;
 });
 
 afterAll(() => {
   Object.defineProperty(HTMLInputElement.prototype, 'files', nativeFiles);
+  Object.defineProperty(HTMLInputElement.prototype, 'value', nativeValue);
   delete globals.DataTransfer;
 });
 
@@ -139,8 +157,17 @@ const refusals = (container: HTMLElement) =>
     p => p.textContent
   );
 
-/** A pick: the browser puts the picked files in the input and fires change. */
+/**
+ * A pick: the input is clicked (Enter and Space click it too), then the
+ * browser puts the picked files in it and fires change.
+ */
 const pick = (input: HTMLInputElement, files: File[]) => {
+  fireEvent.click(input);
+  held.set(input, files);
+  fireEvent.change(input);
+};
+/** A pick from a picker opened with `showPicker()`, which clicks nothing. */
+const pickWithoutClick = (input: HTMLInputElement, files: File[]) => {
   held.set(input, files);
   fireEvent.change(input);
 };
@@ -1116,6 +1143,111 @@ describe('Dropzone', () => {
       unmountGuarded();
       expect(dragOutside(outside, 'drop').defaultPrevented).toBe(false);
       outside.remove();
+    });
+  });
+
+  // A script can write an uncontrolled Dropzone's input through the ref:
+  // `value = ''` is the usual way to clear a file input, and a form library
+  // may set `files`. No event reports either, so the list shows the write
+  // only from the next change, and that change builds on the input.
+  describe('a script writing the input through the ref', () => {
+    const setup = (props: DropzoneProps = {}) => {
+      const ref = createRef<HTMLInputElement>();
+      const onFilesChange = jest.fn();
+      const utils = render(
+        <Dropzone ref={ref} multiple onFilesChange={onFilesChange} {...props} />
+      );
+      const input = ref.current as HTMLInputElement;
+      drop(input, [pdf('a.pdf'), pdf('b.pdf')]);
+      onFilesChange.mockClear();
+      return { ...utils, input, onFilesChange };
+    };
+    const writeFiles = (input: HTMLInputElement, files: File[]) => {
+      const transfer = new MockDataTransfer();
+      for (const f of files) transfer.items.add(f);
+      input.files = transfer.files;
+    };
+
+    it('keeps cleared files out of the next drop', () => {
+      const { container, input, onFilesChange } = setup();
+      input.value = '';
+      expect(namesIn(input)).toEqual([]);
+      // The list catches up only at the next change.
+      expect(rows(container)).toHaveLength(2);
+      drop(input, [pdf('c.pdf')]);
+      expect(namesIn(input)).toEqual(['c.pdf']);
+      expect(rows(container)).toEqual(['c.pdf | 100 bytes | Remove c.pdf']);
+      expect(onFilesChange).toHaveBeenCalledWith([
+        expect.objectContaining({ name: 'c.pdf' }),
+      ]);
+    });
+
+    it('keeps cleared files out of the next paste', () => {
+      const { input } = setup();
+      input.value = '';
+      fireEvent.paste(input, { clipboardData: transfer([png()]) });
+      expect(namesIn(input)).toEqual(['photo.png']);
+    });
+
+    it('keeps cleared files out of the next pick', () => {
+      const { input } = setup();
+      input.value = '';
+      pick(input, [pdf('c.pdf')]);
+      expect(namesIn(input)).toEqual(['c.pdf']);
+    });
+
+    it('builds the next add on files a script set', () => {
+      const { container, input } = setup();
+      writeFiles(input, [pdf('x.pdf')]);
+      drop(input, [pdf('y.pdf')]);
+      expect(namesIn(input)).toEqual(['x.pdf', 'y.pdf']);
+      expect(rows(container)).toHaveLength(2);
+      writeFiles(input, [pdf('z.pdf')]);
+      pick(input, [pdf('w.pdf')]);
+      expect(namesIn(input)).toEqual(['z.pdf', 'w.pdf']);
+    });
+
+    it('catches the list up when a stale row is removed', () => {
+      const { container, input, onFilesChange } = setup();
+      input.value = '';
+      fireEvent.click(screen.getByRole('button', { name: 'Remove a.pdf' }));
+      expect(namesIn(input)).toEqual([]);
+      expect(rows(container)).toEqual([]);
+      expect(onFilesChange).toHaveBeenCalledWith([]);
+    });
+
+    it('counts the room left from the input', () => {
+      const { container, input } = setup({ maxFiles: 2 });
+      input.value = '';
+      fireEvent.dragEnter(input, {
+        dataTransfer: dragging(['application/pdf']),
+      });
+      expect(rootOf(container)).toHaveClass('is-dragover');
+      drop(input, [pdf('c.pdf'), pdf('d.pdf')]);
+      expect(namesIn(input)).toEqual(['c.pdf', 'd.pdf']);
+      expect(refusals(container)).toEqual([]);
+    });
+
+    it('builds a pick opened with showPicker() on the list', () => {
+      const { input } = setup();
+      pickWithoutClick(input, [pdf('c.pdf')]);
+      expect(namesIn(input)).toEqual(['a.pdf', 'b.pdf', 'c.pdf']);
+    });
+
+    it('forgets the clicked input once something else changes it', () => {
+      const { input } = setup();
+      // A click whose picker is cancelled, then a drop.
+      fireEvent.click(input);
+      drop(input, [pdf('c.pdf')]);
+      pickWithoutClick(input, [pdf('d.pdf')]);
+      expect(namesIn(input)).toEqual(['a.pdf', 'b.pdf', 'c.pdf', 'd.pdf']);
+    });
+
+    it('hands a click to your handler too', () => {
+      const onClick = jest.fn();
+      const { container } = render(<Dropzone onClick={onClick} />);
+      fireEvent.click(inputOf(container));
+      expect(onClick).toHaveBeenCalledTimes(1);
     });
   });
 
