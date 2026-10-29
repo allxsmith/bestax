@@ -9,9 +9,12 @@ export interface Template {
   // Turn on the React Compiler in the copy, the way create-vite builds its
   // react-compiler starters from its react ones (setupReactCompiler).
   reactCompiler?: boolean;
-  // Add React Router's pages and navbar to the copy (setupRouter).
-  router?: boolean;
+  // Add this router's pages and navbar to the copy (setupRouter).
+  router?: RouterName;
 }
+
+/** The routers a template can start with, each set up by ROUTER_SETUPS. */
+export type RouterName = 'react-router' | 'tanstack-router';
 
 export const TEMPLATES: Template[] = [
   { name: 'vite', display: 'Vite', color: chalk.yellow, directory: 'vite' },
@@ -40,29 +43,50 @@ export const TEMPLATES: Template[] = [
     display: 'React Router',
     color: chalk.yellow,
     directory: 'vite',
-    router: true,
+    router: 'react-router',
   },
   {
     name: 'react-router-ts',
     display: 'React Router + TypeScript',
     color: chalk.blue,
     directory: 'vite-ts',
-    router: true,
+    router: 'react-router',
+  },
+  // TypeScript only: checking `to` against the routes is why people pick it.
+  {
+    name: 'tanstack-router-ts',
+    display: 'TanStack Router + TypeScript',
+    color: chalk.blue,
+    directory: 'vite-ts',
+    router: 'tanstack-router',
   },
 ];
 
-// What a React Router template adds to its plain template's dependencies. 8.5.1
-// was inside the 3-day cooldown when this was written, so the floor is 8.5.0;
-// installs still take the newest 8.x.
-export const REACT_ROUTER_DEPENDENCIES: Record<string, string> = {
-  'react-router': '^8.5.0',
-};
+export interface RouterSetup {
+  // What a router template adds to its plain template's dependencies.
+  dependencies: Record<string, string>;
+  // The Node range the scaffold's engines field takes, when the router needs
+  // more than the plain template.
+  nodeEngine?: string;
+  // Where the entry file imports RouterProvider from.
+  providerModule: string;
+  // Appended to the scaffold's README.
+  readme: (ext: 'jsx' | 'tsx') => string;
+  // The routing line in the scaffold's CLAUDE.md.
+  claudeMd: string;
+}
 
-// React Router 8 needs Node 22.22 or later, past the templates' own floor.
-export const REACT_ROUTER_NODE_ENGINE = '>=22.22.0';
-
-// Appended to the README of a React Router scaffold.
-export const REACT_ROUTER_README = (ext: 'jsx' | 'tsx'): string => `
+// How setupRouter lays each router over a plain template. Its files are in
+// templates/overlays/<router>/<directory>.
+export const ROUTER_SETUPS: Record<RouterName, RouterSetup> = {
+  'react-router': {
+    // 8.5.1 was inside the 3-day cooldown when this was written, so the floor
+    // is 8.5.0; installs still take the newest 8.x.
+    dependencies: { 'react-router': '^8.5.0' },
+    // React Router 8 needs Node 22.22 or later, past the templates' own floor.
+    nodeEngine: '>=22.22.0',
+    providerModule: 'react-router',
+    readme: ext => `
 ## Routing
 
 [React Router](https://reactrouter.com) runs in data mode. The routes are in
@@ -72,7 +96,38 @@ page shares. To add a page, write it in \`src/pages\`, add a route for it, and l
 to it from the navbar. The bestax routing guide
 (https://bestax.io/docs/guides/features/routing) covers links, buttons and
 active items.
-`;
+`,
+    claudeMd:
+      `- Routing: React Router in data mode. Routes are in \`src/router\`, pages in ` +
+      `\`src/pages\`, and the navbar every page shares in \`src/Layout\`. Link with ` +
+      `\`<Navbar.Item as={Link} to="...">\` and \`<Menu.Item as={Link} ...>\`, and set \`active\` ` +
+      `and \`aria-current\` from \`useLocation\` rather than using \`NavLink\`, whose ` +
+      `function \`className\` bypasses Bulma's \`is-active\` ` +
+      `(https://bestax.io/docs/guides/features/routing).`,
+  },
+  'tanstack-router': {
+    dependencies: { '@tanstack/react-router': '^1.170.46' },
+    providerModule: '@tanstack/react-router',
+    readme: () => `
+## Routing
+
+[TanStack Router](https://tanstack.com/router) runs with code-based routes, all
+in \`src/router.tsx\`, where \`App\`, the starter page, is the home page and
+\`src/pages/About.tsx\` is the second. \`src/Layout.tsx\` holds the navbar every
+page shares. Its items are \`NavbarLink\` (\`src/NavbarLink.tsx\`), \`Navbar.Item\`
+made into a TanStack link with \`createLink\`, so each \`to\` is checked against
+the routes. To add a page, write it in \`src/pages\`, add a route for it, and link
+to it from the navbar.
+`,
+    claudeMd:
+      `- Routing: TanStack Router with code-based routes, all in \`src/router.tsx\`, pages ` +
+      `in \`src/pages\`, and the navbar every page shares in \`src/Layout.tsx\`. Link ` +
+      `navbar items with \`NavbarLink\` (\`src/NavbarLink.tsx\`, \`Navbar.Item\` through ` +
+      `TanStack's \`createLink\`), not \`<Navbar.Item as={Link}>\`, which compiles but stops ` +
+      `checking \`to\` against the routes. Mark the current one with ` +
+      `\`activeProps={{ active: true }}\`; TanStack adds \`aria-current\` itself.`,
+  },
+};
 
 // The packages create-vite's react-compiler starters add to its react ones.
 // When create-vite moves them, these follow (create-bestax/CLAUDE.md).
@@ -245,8 +300,8 @@ export const CONFIG_PROVIDER_ICON_VALUES: Record<string, string> = {
 export interface ClaudeMdOptions {
   bulmaFlavor: string;
   iconLibrary: string;
-  // The app routes with React Router (a react-router template).
-  router?: boolean;
+  // The router the app starts with, for a router template.
+  router?: RouterName;
 }
 
 // The house style opens with the inline-style table for a flavor that has the
@@ -320,14 +375,7 @@ export const CLAUDE_MD = (
           (icon?.setupInstructions ? ` ${icon.setupInstructions}` : '')
   );
   if (router) {
-    setupLines.push(
-      `- Routing: React Router in data mode. Routes are in \`src/router\`, pages in ` +
-        `\`src/pages\`, and the navbar every page shares in \`src/Layout\`. Link with ` +
-        `\`<Navbar.Item as={Link} to="...">\` and \`<Menu.Item as={Link} ...>\`, and set \`active\` ` +
-        `and \`aria-current\` from \`useLocation\` rather than using \`NavLink\`, whose ` +
-        `function \`className\` bypasses Bulma's \`is-active\` ` +
-        `(https://bestax.io/docs/guides/features/routing).`
-    );
+    setupLines.push(ROUTER_SETUPS[router].claudeMd);
   }
   const houseStyleOpening = flavor?.noHelpers
     ? NO_HELPERS_HOUSE_STYLE

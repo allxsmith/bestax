@@ -22,16 +22,16 @@ you opted in.
 
 Sent once after a successful scaffold:
 
-| Field              | Values                                                                                       |
-| ------------------ | -------------------------------------------------------------------------------------------- |
-| `template`         | `vite`, `vite-ts`, `vite-compiler`, `vite-compiler-ts`, `react-router`, or `react-router-ts` |
-| `bulmaFlavor`      | `complete`, `prefixed`, `no-helpers`, `no-helpers-prefixed`, or `no-dark-mode`               |
-| `iconLibrary`      | `none`, `fontawesome`, `mdi`, `ionicons`, `material-icons`, or `material-symbols`            |
-| `skills`           | `true` or `false` — whether the bestax AI skills were installed                              |
-| `packageManager`   | `npm`, `pnpm`, `yarn`, or `bun`                                                              |
-| CLI version        | the `create-bestax` version that ran                                                         |
-| Node major version | e.g. `22`                                                                                    |
-| OS platform        | the platform name, e.g. `darwin`, `linux`, `win32`                                           |
+| Field              | Values                                                                                                             |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `template`         | `vite`, `vite-ts`, `vite-compiler`, `vite-compiler-ts`, `react-router`, `react-router-ts`, or `tanstack-router-ts` |
+| `bulmaFlavor`      | `complete`, `prefixed`, `no-helpers`, `no-helpers-prefixed`, or `no-dark-mode`                                     |
+| `iconLibrary`      | `none`, `fontawesome`, `mdi`, `ionicons`, `material-icons`, or `material-symbols`                                  |
+| `skills`           | `true` or `false` — whether the bestax AI skills were installed                                                    |
+| `packageManager`   | `npm`, `pnpm`, `yarn`, or `bun`                                                                                    |
+| CLI version        | the `create-bestax` version that ran                                                                               |
+| Node major version | e.g. `22`                                                                                                          |
+| OS platform        | the platform name, e.g. `darwin`, `linux`, `win32`                                                                 |
 
 ### bestax-migrate
 

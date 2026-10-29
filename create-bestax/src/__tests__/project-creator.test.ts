@@ -2393,7 +2393,7 @@ describe('ProjectCreator', () => {
       expect(setupSkills).toHaveBeenCalledWith(
         expect.any(String),
         'test-project',
-        expect.objectContaining({ router: true })
+        expect.objectContaining({ router: 'react-router' })
       );
       setupSkills.mockRestore();
     });

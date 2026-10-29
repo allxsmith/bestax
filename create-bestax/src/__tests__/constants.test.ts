@@ -63,13 +63,19 @@ describe('constants', () => {
           name: 'react-router',
           display: 'React Router',
           directory: 'vite',
-          router: true,
+          router: 'react-router',
         },
         {
           name: 'react-router-ts',
           display: 'React Router + TypeScript',
           directory: 'vite-ts',
-          router: true,
+          router: 'react-router',
+        },
+        {
+          name: 'tanstack-router-ts',
+          display: 'TanStack Router + TypeScript',
+          directory: 'vite-ts',
+          router: 'tanstack-router',
         },
       ]);
     });
@@ -273,17 +279,26 @@ describe('constants', () => {
   });
 
   describe('CLAUDE_MD', () => {
-    it('describes the routing only for a React Router app', () => {
+    it('describes the routing only for a router app, for its router', () => {
       const routed = CLAUDE_MD('my-app', {
         bulmaFlavor: 'complete',
         iconLibrary: 'none',
-        router: true,
+        router: 'react-router',
       });
       expect(routed).toContain('- Routing: React Router in data mode.');
       expect(routed).toContain('<Navbar.Item as={Link} to="...">');
       expect(routed).toContain(
         'https://bestax.io/docs/guides/features/routing'
       );
+
+      const tanstack = CLAUDE_MD('my-app', {
+        bulmaFlavor: 'complete',
+        iconLibrary: 'none',
+        router: 'tanstack-router',
+      });
+      expect(tanstack).toContain('- Routing: TanStack Router');
+      expect(tanstack).toContain('`NavbarLink`');
+      expect(tanstack).toContain('activeProps={{ active: true }}');
       expect(
         CLAUDE_MD('my-app', { bulmaFlavor: 'complete', iconLibrary: 'none' })
       ).not.toContain('Routing:');

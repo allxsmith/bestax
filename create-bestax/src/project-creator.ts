@@ -49,9 +49,7 @@ import {
   REACT_COMPILER_DEV_DEPENDENCIES,
   REACT_COMPILER_TYPESCRIPT_DEV_DEPENDENCIES,
   REACT_COMPILER_README,
-  REACT_ROUTER_DEPENDENCIES,
-  REACT_ROUTER_NODE_ENGINE,
-  REACT_ROUTER_README,
+  ROUTER_SETUPS,
   CLAUDE_MD,
   LAUNCH_JSON,
   CONFIG_PROVIDER_ICON_VALUES,
@@ -440,10 +438,10 @@ export class ProjectCreator {
   }
 
   /**
-   * A React Router template is its plain template with the router's files
-   * copied over it from templates/overlays/react-router: a navbar layout, a
-   * second page and the routes, with App, the starter page, as the home page.
-   * The entry file then renders the router where it rendered App, inside any
+   * A router template is its plain template with the router's files copied
+   * over it from templates/overlays/<router>: a navbar layout, a second page
+   * and the routes, with App, the starter page, as the home page. The entry
+   * file then renders the router where it rendered App, inside any
    * ConfigProvider the earlier steps wrapped App in, so a prefix or an icon
    * library reaches every page. It runs after those steps, which edit the
    * entry file and App as they do in the plain template.
@@ -451,10 +449,11 @@ export class ProjectCreator {
   async setupRouter(targetPath: string, template: string): Promise<void> {
     const entry = TEMPLATES.find(t => t.name === template);
     if (!entry?.router) return;
+    const setup = ROUTER_SETUPS[entry.router];
     const ext = template.includes('-ts') ? 'tsx' : 'jsx';
 
     await fs.copy(
-      path.join(this.templatesDir, 'overlays', 'react-router', entry.directory),
+      path.join(this.templatesDir, 'overlays', entry.router, entry.directory),
       targetPath
     );
 
@@ -463,12 +462,14 @@ export class ProjectCreator {
       const packageJson = await fs.readJson(packageJsonPath);
       packageJson.dependencies = sortedByName({
         ...packageJson.dependencies,
-        ...REACT_ROUTER_DEPENDENCIES,
+        ...setup.dependencies,
       });
-      packageJson.engines = {
-        ...packageJson.engines,
-        node: REACT_ROUTER_NODE_ENGINE,
-      };
+      if (setup.nodeEngine) {
+        packageJson.engines = {
+          ...packageJson.engines,
+          node: setup.nodeEngine,
+        };
+      }
       await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
     }
 
@@ -487,7 +488,7 @@ export class ProjectCreator {
           main
             .replace(
               appImport,
-              "import { RouterProvider } from 'react-router';\n" +
+              `import { RouterProvider } from '${setup.providerModule}';\n` +
                 `import { router } from './router.${ext}';`
             )
             .replace(appElement, '<RouterProvider router={router} />')
@@ -504,7 +505,7 @@ export class ProjectCreator {
       const readme = await fs.readFile(readmePath, 'utf8');
       await fs.writeFile(
         readmePath,
-        readme.replace(/\n*$/, '\n') + REACT_ROUTER_README(ext)
+        readme.replace(/\n*$/, '\n') + setup.readme(ext)
       );
     }
   }
@@ -1054,7 +1055,7 @@ export class ProjectCreator {
         await this.setupSkills(targetPath, projectName, {
           bulmaFlavor,
           iconLibrary,
-          router: TEMPLATES.find(t => t.name === template)?.router === true,
+          router: TEMPLATES.find(t => t.name === template)?.router,
         });
       }
       displaySuccess(targetDir, immediate);
