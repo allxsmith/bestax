@@ -121,7 +121,7 @@ With a `locale`, the numbers the library writes itself are written the way that 
 </LocaleProvider>
 ```
 
-Typing in `Combobox`, `Autocomplete`, `Taginput` and `Command` filters the list the way the language compares letters: case and accents are ignored where it treats them as the same letter, so "cafe" finds "Café", while in Swedish "a" doesn't find "å", a letter of its own there.
+Typing in `Combobox`, `Autocomplete`, `Taginput` and `Command` filters the list the way the language compares letters: case and accents are ignored where it treats them as the same letter, so "cafe" finds "Café", while in Swedish "a" doesn't find "å", a letter of its own there. Vowel marks the language leaves out of comparisons, such as Arabic harakat and Hebrew niqqud, don't count on either side, so a name typed without them finds one written with them, and the other way round.
 
 ```tsx live
 <LocaleProvider locale="fr">

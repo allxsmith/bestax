@@ -6,6 +6,9 @@
 import { useMemo } from 'react';
 import { useLocaleScope } from './LocaleProvider';
 
+/** A combining mark: an accent, a vowel sign or a point written on a letter. */
+const MARK = /\p{M}/u;
+
 /** Formats a number for display, with `Intl.NumberFormat` options. */
 export type NumberFormatter = (
   value: number,
@@ -58,8 +61,10 @@ export function useNumberFormat(own?: string): NumberFormatter | null {
  * locale. It compares with `Intl.Collator` at `usage: 'search'` and
  * `sensitivity: 'base'`, so it ignores case and accents where the language
  * treats the letters as the same: "cafe" finds "Café", while in Swedish "a"
- * doesn't find "å", a letter of its own there. An empty query matches
- * everything.
+ * doesn't find "å", a letter of its own there. Marks the language ignores
+ * count for nothing on either side, so in Arabic محمد finds مُحَمَّد and the
+ * other way round. An empty query, or one of nothing but such marks,
+ * matches everything.
  */
 export function useLocaleMatcher(): TextMatcher | null {
   const locale = useScopedLocale(undefined);
@@ -71,13 +76,34 @@ export function useLocaleMatcher(): TextMatcher | null {
     });
     return (text, query) => {
       const needle = query.normalize('NFC');
-      if (needle.length === 0) return true;
-      const haystack = text.normalize('NFC');
-      for (let i = 0; i + needle.length <= haystack.length; i++) {
-        if (
-          collator.compare(haystack.slice(i, i + needle.length), needle) === 0
-        ) {
-          return true;
+      if (collator.compare(needle, '') === 0) return true;
+      // Compared by code point, so a slice never splits a surrogate pair.
+      const chars = Array.from(text.normalize('NFC'));
+      const marks = chars.map(char => MARK.test(char));
+      // A slice equal to the needle can be longer or shorter than it: the
+      // marks the collator ignores, Arabic harakat or Hebrew niqqud, take
+      // code points on one side and not the other, and the expansions the
+      // collator makes, "ß" against "ss" or "æ" against "ae", turn one letter
+      // into two. So each slice runs from a letter to just before the next
+      // letter, never cutting a letter from its marks, and the slices from
+      // one start grow until they hold twice the needle's letters, which
+      // those expansions can't get past. That keeps the work proportional to
+      // the text's length, however long a label is, rather than to its
+      // square.
+      const most =
+        2 * Array.from(needle).filter(char => !MARK.test(char)).length;
+      for (let start = 0; start < chars.length; start++) {
+        if (marks[start]) continue;
+        let letters = 0;
+        for (let end = start + 1; end <= chars.length; end++) {
+          if (!marks[end - 1]) letters++;
+          if (letters > most) break;
+          if (marks[end]) continue;
+          if (
+            collator.compare(chars.slice(start, end).join(''), needle) === 0
+          ) {
+            return true;
+          }
         }
       }
       return false;

@@ -131,6 +131,91 @@ describe('useLocaleMatcher', () => {
     );
     expect(seen!('Åre', 'are')).toBe(false);
     expect(seen!('Åre', 'åre')).toBe(true);
+    // Decomposed, the ring is a mark, and still a letter of its own here.
+    expect(seen!('A\u030Are', 'are')).toBe(false);
+    expect(seen!('Vasa', 'va\u030A')).toBe(false);
+  });
+
+  /** The matcher for `locale`, read through a provider. */
+  const matcherFor = (locale: string) => {
+    render(
+      <LocaleProvider locale={locale}>
+        <Probe />
+      </LocaleProvider>
+    );
+    return seen!;
+  };
+
+  it('finds Arabic with and without harakat, either way round', () => {
+    const match = matcherFor('ar-EG');
+    expect(match('مُحَمَّد علي', 'محمد')).toBe(true);
+    expect(match('علي مُحَمَّد', 'محمد')).toBe(true);
+    expect(match('محمد علي', 'مُحَمَّد')).toBe(true);
+    expect(match('محمد علي', 'علي')).toBe(true);
+    expect(match('محمد علي', 'حسن')).toBe(false);
+  });
+
+  it('finds Hebrew with and without niqqud, either way round', () => {
+    const match = matcherFor('he');
+    expect(match('שָׁלוֹם עֲלֵיכֶם', 'שלום')).toBe(true);
+    expect(match('שלום עליכם', 'שָׁלוֹם')).toBe(true);
+    expect(match('שלום עליכם', 'תודה')).toBe(false);
+  });
+
+  it('finds a Latin letter with a mark it has no single character for', () => {
+    const match = matcherFor('en');
+    // q with a tilde stays a q and a combining tilde under NFC.
+    expect(match('Taq\u0303i', 'taqi')).toBe(true);
+    expect(match('Taqi', 'taq\u0303')).toBe(true);
+    expect(match('Taq\u0303i', 'tai')).toBe(false);
+  });
+
+  it('finds an expansion either way round', () => {
+    const match = matcherFor('de');
+    expect(match('Straße', 'strasse')).toBe(true);
+    expect(match('Strasse', 'straße')).toBe(true);
+  });
+
+  it('matches everything for a query of only ignored marks', () => {
+    const match = matcherFor('ar-EG');
+    expect(match('محمد', '\u064E')).toBe(true);
+    expect(match('محمد', '')).toBe(true);
+  });
+
+  it('finds nothing for a query longer than the text', () => {
+    const match = matcherFor('fr');
+    expect(match('Ca', 'Café')).toBe(false);
+    expect(match('', 'a')).toBe(false);
+  });
+
+  it('compares a bounded number of slices on a long label', () => {
+    const RealCollator = Intl.Collator;
+    let compared = 0;
+    const spy = jest
+      .spyOn(Intl, 'Collator')
+      .mockImplementation(
+        (...args: ConstructorParameters<typeof Intl.Collator>) => {
+          const real = new RealCollator(...args);
+          return {
+            compare: (a: string, b: string) => {
+              compared++;
+              return real.compare(a, b);
+            },
+          } as Intl.Collator;
+        }
+      );
+    try {
+      const match = matcherFor('ar-EG');
+      const label = 'مُحَمَّد '.repeat(250);
+      compared = 0;
+      expect(match(label, 'علي')).toBe(false);
+      // Each letter starts at most twice the query's three letters of slices.
+      const letters = Array.from(label).filter(c => !/\p{M}/u.test(c)).length;
+      expect(compared).toBeLessThanOrEqual(letters * 6 + 1);
+      expect(match(label + 'علي', 'علي')).toBe(true);
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
 
