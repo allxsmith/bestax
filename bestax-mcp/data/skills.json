@@ -6,7 +6,7 @@
       "promptName": "custom-component",
       "dir": "bestax-custom-component",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 13751 },
+        { "id": "api", "file": "references/api.md", "bytes": 13964 },
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
@@ -29,7 +29,7 @@
       "promptName": "form",
       "dir": "bestax-form",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 23303 },
+        { "id": "api", "file": "references/api.md", "bytes": 23664 },
         { "id": "patterns", "file": "references/patterns.md", "bytes": 9835 }
       ],
       "examples": []

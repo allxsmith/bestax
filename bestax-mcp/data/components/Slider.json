@@ -273,7 +273,7 @@
           "name": "scale",
           "type": "(value: number) => number",
           "default": null,
-          "description": "Function to scale the displayed value.",
+          "description": "Function to scale the displayed value. With it, and no `getAriaValueText`, the scaled value is also the thumb's `aria-valuetext`.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -291,7 +291,7 @@
           "name": "formatOutput",
           "type": "(value: number) => string",
           "default": null,
-          "description": "Format function for output display.",
+          "description": "Format function for output display. Without it, the output shows the value as it is, or inside a `LocaleProvider` with a `locale`, written the way that locale writes numbers, to at most three decimals.",
           "required": false,
           "inherited": true,
           "deprecated": false

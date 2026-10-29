@@ -164,8 +164,10 @@ anchored panels land against it instead of the viewport.
 `dir` around the part of the app it covers. A `locale` alone sets the direction of its script
 (`"ar-EG"` gives `dir="rtl"`), `dir` sets it whatever the locale, and a nested provider keeps what
 it leaves unset. What the library portals inside it, `Portal`'s children included, keeps the same
-`dir` and `lang`, and the date pickers take its locale and start the week on its first day. With
-no provider nothing changes, and `<html dir="rtl">` still works on its own.
+`dir` and `lang`, and the date pickers take its locale and start the week on its first day. With a
+`locale`, the numbers the library writes (page numbers, badge counts, a slider's output) follow
+it, and `Combobox`, `Autocomplete`, `Taginput` and `Command` filter ignoring accents where the language
+does. With no provider nothing changes, and `<html dir="rtl">` still works on its own.
 
 `useLocale()` returns `{ locale, dir }` from the nearest provider, both `undefined` outside one.
 Pass the `locale` to your own `Intl` calls so they match the pickers, and put both on content you

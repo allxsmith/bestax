@@ -86,12 +86,15 @@ function validLocale(tag: string | undefined): string | undefined {
  * Inside it, the date and time pickers take its `locale` unless given their
  * own, and their week starts on the first day of the locale they use unless
  * `firstDayOfWeek` is set, and a picker with a `locale` of its own is read
- * like a nested provider. The library's portaled content, such as a
- * `Popover` panel, a `Modal` with `portal`, a `Toast` or a `Portal`'s
- * children, keeps the same `dir` and `lang` though it renders outside the
- * wrapper: in a container outside the wrapper, it sits in a
- * `display: contents` element that carries them. Without a provider none of
- * this changes.
+ * like a nested provider. With a `locale`, the numbers the library writes,
+ * such as page numbers and badge counts, follow it, and so does the
+ * filtering in `Combobox`, `Autocomplete`, `Taginput` and `Command`, which then ignores
+ * accents where the language treats letters as the same. The library's
+ * portaled content, such as a `Popover` panel, a `Modal` with `portal`, a
+ * `Toast` or a `Portal`'s children, keeps the same `dir` and `lang` though
+ * it renders outside the wrapper: in a container outside the wrapper, it
+ * sits in a `display: contents` element that carries them. Without a
+ * provider none of this changes.
  *
  * @function
  * @param {LocaleProviderProps} props - Props for the LocaleProvider.

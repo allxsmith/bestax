@@ -15,6 +15,7 @@ import { useIsHydrated } from '../helpers/useIsHydrated';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { flattenChildren } from '../helpers/flattenChildren';
 import { warnOnce } from '../helpers/devWarnings';
+import { useLocaleMatcher } from '../helpers/localeFormat';
 import {
   AnchoredPosition,
   marginGap,
@@ -230,8 +231,9 @@ export interface ComboboxSingleDataProps extends ComboboxDataBaseProps {
    * The items, for a Combobox that renders the field, the menu, the list,
    * the groups and the empty message itself. A string is an item whose label
    * is its value, and an object is `{ value, label?, disabled?, group? }`.
-   * Typing filters the items by label, ignoring case, and the Combobox keeps
-   * the value. Leave it out to build the Combobox from parts.
+   * Typing filters the items by label, ignoring case, and inside a
+   * `LocaleProvider` with a `locale`, ignoring accents too where that
+   * language does, so "cafe" finds "Café". The Combobox keeps the value. Leave it out to build the Combobox from parts.
    */
   data: (string | ComboboxItemData)[];
   /**
@@ -1224,6 +1226,7 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
 
     const controlled = value !== undefined;
     const [ownValue, setOwnValue] = useState(() => asList(defaultValue));
+    const matchText = useLocaleMatcher();
     const picked = controlled ? asList(value) : ownValue;
     const change = (next: string[]) => {
       if (!controlled) setOwnValue(next);
@@ -1249,9 +1252,12 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
       }
       setQuery(null);
     };
-    const term = (query ?? '').trim().toLowerCase();
+    const typed = (query ?? '').trim();
+    const term = typed.toLowerCase();
     const shown = items.filter(item =>
-      labelOf(item).toLowerCase().includes(term)
+      matchText
+        ? matchText(labelOf(item), typed)
+        : labelOf(item).toLowerCase().includes(term)
     );
     const inputRef = useRef<HTMLInputElement>(null);
 

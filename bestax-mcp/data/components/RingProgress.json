@@ -78,7 +78,7 @@
           "name": "sections",
           "type": "{ value: number; color?: RingProgressColor; label: string }[]",
           "default": null,
-          "description": "Several values around one ring, in order clockwise from the top, each with its own color and label. The ring is then an image whose name writes them out, such as \"Storage: Documents 40%, Photos 15%\", since a screen reader can't take several values from one element. A total over `max` fills the ring and stops.",
+          "description": "Several values around one ring, in order clockwise from the top, each with its own color and label. The ring is then an image whose name writes them out, such as \"Storage: Documents 40%, Photos 15%\", since a screen reader can't take several values from one element. Inside a `LocaleProvider` with a `locale`, the shares are written as that locale writes a percentage. A total over `max` fills the ring and stops.",
           "required": false,
           "inherited": false,
           "deprecated": false

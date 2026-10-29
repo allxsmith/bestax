@@ -15,9 +15,10 @@ The direction lives on the wrapper as a `dir` attribute, so CSS follows it, and 
 
 - a section of the page in another language or direction than the page around it;
 - the content the library portals to the end of `document.body`, such as a `Popover` panel, a `Modal` with `portal`, a `Toast` or a `Portal`'s children, which leaves the section it came from and gets the provider's `dir` and `lang` back;
-- the date and time pickers inside, which take its `locale` and start the week on that locale's first day.
+- the date and time pickers inside, which take its `locale` and start the week on that locale's first day;
+- the numbers the library writes, such as page numbers, badge counts and a slider's output, and the filtering in `Combobox`, `Autocomplete`, `Taginput` and `Command`, which follow the `locale` too.
 
-Without a provider none of this changes: a picker uses the runtime's own locale and starts the week on Sunday, as it always has.
+Without a provider none of this changes: a picker uses the runtime's own locale and starts the week on Sunday, numbers are written as they always have been, and filtering ignores case only.
 
 ---
 
@@ -109,6 +110,30 @@ The date and time pickers take the provider's `locale` unless they have their ow
 ```
 
 Outside a provider a picker keeps Sunday, even with a `locale` of its own, so pages that never asked for a different first day don't get one. The first day comes from a copy of [CLDR](https://cldr.unicode.org/)'s week data that the library carries, rather than from each browser's, because browsers disagree about a few regions, China among them, and a calendar rendered on the server has to come out the same in the browser. A `-u-fw-` extension in the tag, such as `"en-US-u-fw-mon"`, picks the day outright.
+
+### Numbers and Matching
+
+With a `locale`, the numbers the library writes itself are written the way that locale writes them, with its digits and separators: `Pagination`'s page numbers, `Steps` markers, a `Badge` count, the `Avatars` surplus, a `RingProgress` in sections, `Rate`'s score, the `Slider` output, `Taginput`'s counter and the count of files `File` shows. Where an accessible name repeats a number on screen, as a page link's does, it's written the same way, so the name still holds the text. A label function you pass, such as `getPageLabel` or `formatOutput`, takes over as before.
+
+```tsx live
+<LocaleProvider locale="ar-EG">
+  <Pagination total={12} current={5} />
+</LocaleProvider>
+```
+
+Typing in `Combobox`, `Autocomplete`, `Taginput` and `Command` filters the list the way the language compares letters: case and accents are ignored where it treats them as the same letter, so "cafe" finds "Café", while in Swedish "a" doesn't find "å", a letter of its own there. Vowel marks the language leaves out of comparisons, such as Arabic harakat and Hebrew niqqud, don't count on either side, so a name typed without them finds one written with them, and the other way round.
+
+```tsx live
+<LocaleProvider locale="fr">
+  <Combobox
+    label="Boisson"
+    data={['Café', 'Thé', 'Chocolat chaud']}
+    placeholder="Tapez « the »"
+  />
+</LocaleProvider>
+```
+
+The pickers' digits stay as they are: their typed text is a token format of ASCII digits, and a calendar in another set of digits would sit under it. Numbers inside the library's English labels that aren't on screen, such as a carousel slide's "1 of 3", stay as they are too, since they get translated together with their words.
 
 ### Portaled Content
 

@@ -6,6 +6,7 @@ import {
 } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useConfig } from '../helpers/Config';
+import { useNumberFormat } from '../helpers/localeFormat';
 import {
   useInsideField,
   useInsideControl,
@@ -97,7 +98,8 @@ export interface FileProps
   fileName?: string;
   /**
    * Builds the text `hasName` shows when several files are picked, from their count, for
-   * localization. Default: `` `${count} files` ``. A single pick shows its file's name.
+   * localization. Default: `` `${count} files` ``, with the count written the way the `locale`
+   * of a `LocaleProvider` around it writes numbers. A single pick shows its file's name.
    */
   pickedFilesLabel?: (count: number) => string;
 }
@@ -173,11 +175,13 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
       );
       onChange?.(event);
     };
+    const formatNumber = useNumberFormat();
     const pickedText =
       picked &&
       (picked.count === 1
         ? picked.firstName
-        : (pickedFilesLabel?.(picked.count) ?? `${picked.count} files`));
+        : (pickedFilesLabel?.(picked.count) ??
+          `${formatNumber ? formatNumber(picked.count) : picked.count} files`));
     const shownName = fileName ?? pickedText;
 
     const insideField = useInsideField();

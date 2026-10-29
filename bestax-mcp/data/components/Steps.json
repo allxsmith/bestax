@@ -299,7 +299,7 @@
           "name": "stepNumber",
           "type": "number",
           "default": null,
-          "description": "Step number to display in marker (1-indexed)",
+          "description": "Step number to display in marker (1-indexed), written the way the `locale` of a `LocaleProvider` around it writes numbers.",
           "required": false,
           "inherited": false,
           "deprecated": false

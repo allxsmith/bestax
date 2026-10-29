@@ -74,7 +74,7 @@
           "name": "actions",
           "type": "CommandAction[]",
           "default": null,
-          "description": "The actions, for a Command that renders the field, the list, the groups and the empty message itself. Typing filters them by label, keywords and description, ignoring case, with label matches first. Leave it out to build the Command from parts.",
+          "description": "The actions, for a Command that renders the field, the list, the groups and the empty message itself. Typing filters them by label, keywords and description, ignoring case, with label matches first. Inside a `LocaleProvider` with a `locale`, it ignores accents too where that language does, so \"cafe\" finds \"Café\". Leave it out to build the Command from parts.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -576,7 +576,7 @@
           "name": "actions",
           "type": "CommandAction[]",
           "default": null,
-          "description": "The actions, for a Command that renders the field, the list, the groups and the empty message itself. Typing filters them by label, keywords and description, ignoring case, with label matches first. Leave it out to build the Command from parts.",
+          "description": "The actions, for a Command that renders the field, the list, the groups and the empty message itself. Typing filters them by label, keywords and description, ignoring case, with label matches first. Inside a `LocaleProvider` with a `locale`, it ignores accents too where that language does, so \"cafe\" finds \"Café\". Leave it out to build the Command from parts.",
           "required": false,
           "inherited": true,
           "deprecated": false

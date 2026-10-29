@@ -3,6 +3,7 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { flattenChildren } from '../helpers/flattenChildren';
+import { useNumberFormat } from '../helpers/localeFormat';
 import { Avatar, AvatarProps } from './Avatar';
 
 /** Valid overlap spacing values for the Avatars component. */
@@ -27,7 +28,7 @@ export interface AvatarsProps
   spacing?: AvatarsSpacing | number;
   /** Lay the avatars out side by side (non-overlapping), using `spacing` as the gap. */
   spaced?: boolean;
-  /** Builds the surplus avatar's accessible name from the hidden count, for localization. Default: `` `${count} more` ``. */
+  /** Builds the surplus avatar's accessible name from the hidden count, for localization. Default: `` `${count} more` ``. Inside a `LocaleProvider` with a `locale`, the visible `+count` and the count in the default name are written the way that locale writes numbers. */
   surplusLabel?: (count: number) => string;
   /** `Avatar` elements to render inside the group. */
   children?: React.ReactNode;
@@ -58,6 +59,7 @@ const AvatarsComponent: React.FC<AvatarsProps> = ({
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
+  const formatNumber = useNumberFormat();
 
   // A preset spacing maps to a class; a numeric spacing sets the CSS var inline
   // (mirrors Sidebar's inline --bulma-* width var).
@@ -114,12 +116,17 @@ const AvatarsComponent: React.FC<AvatarsProps> = ({
       )}
       {overflowCount > 0 && (
         <Avatar
-          initials={`+${overflowCount}`}
+          initials={
+            formatNumber
+              ? formatNumber(overflowCount, { signDisplay: 'always' })
+              : `+${overflowCount}`
+          }
           alt={
             // `||` (not a plain ternary): an empty string from surplusLabel
             // would make the bubble decorative (alt="") and hide the count
             // from assistive tech — fall back to the default label instead.
-            surplusLabel?.(overflowCount) || `${overflowCount} more`
+            surplusLabel?.(overflowCount) ||
+            `${formatNumber ? formatNumber(overflowCount) : overflowCount} more`
           }
           size={size}
           shape={shape}

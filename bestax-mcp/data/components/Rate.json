@@ -149,7 +149,7 @@
           "name": "showScore",
           "type": "boolean",
           "default": "false",
-          "description": "Show the numeric score next to stars.",
+          "description": "Show the numeric score next to stars, written the way the `locale` of a `LocaleProvider` around it writes numbers.",
           "required": false,
           "inherited": false,
           "deprecated": false
