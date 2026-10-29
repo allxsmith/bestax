@@ -32,15 +32,18 @@ the last prompt, so a typo or a Ctrl+C never costs the user their files (#945).
 - `src/run-command.ts` — runs `--immediate`'s install and dev server
 - `templates/vite`, `templates/vite-ts` — the app templates. The `vite-compiler` and
   `vite-compiler-ts` templates copy them and turn the React Compiler on (`setupReactCompiler`).
-  The `react-router` and `react-router-ts` templates copy them and lay the files in
-  `templates/overlays/react-router/<vite|vite-ts>` over them (`setupRouter`): a navbar layout, the
-  routes and a second page, with `App`, the starter page, as the home page. That step runs after
-  the flavor, icon and provider steps, which edit `App` and the entry file as they do in the plain
-  template, and then makes the entry file render the router where it rendered `App`. The files it
-  adds use no helper prop, so a no-helpers flavor needs nothing from it, and
-  `src/__tests__/templates.test.ts` holds them to that. `REACT_ROUTER_DEPENDENCIES` floors React
-  Router at a release past the cooldown; move it with the major, and check the Node floor
-  (`REACT_ROUTER_NODE_ENGINE`) when you do.
+  The router templates (`react-router`, `react-router-ts` and `tanstack-router-ts`) copy them and
+  lay the files in `templates/overlays/<router>/<vite|vite-ts>` over them (`setupRouter`): a navbar
+  layout, the routes and a second page, with `App`, the starter page, as the home page. That step
+  runs after the flavor, icon and provider steps, which edit `App` and the entry file as they do
+  in the plain template, and then makes the entry file render the router where it rendered `App`.
+  The files it adds use no helper prop, so a no-helpers flavor needs nothing from it, and
+  `src/__tests__/templates.test.ts` holds them to that. `ROUTER_SETUPS` in `src/constants.ts`
+  holds what each router adds: its dependency, floored at a release past the cooldown, any Node
+  floor it needs, and its README and `CLAUDE.md` text. Move a router's floor with its major, and
+  check its Node floor when you do. The TanStack Router navbar links through `createLink`
+  (`NavbarLink`) rather than `as={Link}`, since `as` keeps the props but stops checking `to`
+  against the routes.
 
 ## Dependencies
 

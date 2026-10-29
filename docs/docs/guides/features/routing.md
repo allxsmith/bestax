@@ -143,6 +143,35 @@ React Router's `NavLink` also works via `as` — but its function-style `classNa
 props bypass the components' own class handling, so the explicit `active` prop with
 `useLocation` is the pattern that keeps Bulma's `is-active` styling.
 
+## TanStack Router
+
+TanStack Router's `Link` checks `to` against your routes, and that check is the reason to choose
+it. Rendered through `as`, its props follow `as` like any other link, so `<Navbar.Item as={Link}
+to="/about">` compiles and navigates. But the check is gone: a `to` naming no route compiles too.
+Make the component a TanStack link with `createLink` instead, and `to` is checked again:
+
+```tsx
+import type { ComponentProps } from 'react';
+import { createLink } from '@tanstack/react-router';
+import { Navbar } from '@allxsmith/bestax-bulma';
+
+const NavbarLink = createLink(
+  (props: ComponentProps<typeof Navbar.Item<'a'>>) => <Navbar.Item {...props} />
+);
+
+<NavbarLink to="/about" activeProps={{ active: true }}>
+  About
+</NavbarLink>;
+```
+
+`activeProps` is how TanStack styles the active link, and `{ active: true }` passes bestax's own
+`active`, so the item gets `is-active` with any class prefix applied. TanStack adds
+`aria-current="page"` to the active link itself, so there's nothing to pass for that. A link to
+`/` is active on every page unless you give it `activeOptions={{ exact: true }}`.
+
+`npm create bestax@latest my-app -- -t tanstack-router-ts` scaffolds a Vite app with this navbar,
+code-based routes and two pages.
+
 ## Next.js
 
 Modern Next.js `<Link>` (13+) renders the anchor itself and uses **`href`** — which `Navbar.Item`

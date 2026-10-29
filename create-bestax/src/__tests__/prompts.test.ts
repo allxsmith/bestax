@@ -305,6 +305,7 @@ describe('prompts', () => {
           'vite-compiler-ts',
           'react-router',
           'react-router-ts',
+          'tanstack-router-ts',
         ]
       );
     });

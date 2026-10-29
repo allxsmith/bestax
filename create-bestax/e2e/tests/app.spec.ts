@@ -493,14 +493,14 @@ test.describe('Scaffolded App - Layout and Accessibility', () => {
   });
 });
 
-// Only the React Router templates have more than one page. CI names each
-// scenario template-flavor-icon, so a router scenario's name starts with
-// react-router; every other scenario skips these.
+// Only the router templates have more than one page. CI names each scenario
+// template-flavor-icon, so a router scenario's name starts with react-router
+// or tanstack-router; every other scenario skips these.
 test.describe('Scaffolded App - Routing', () => {
   test.beforeEach(() => {
     test.skip(
-      !process.env.TEST_SCENARIO?.startsWith('react-router'),
-      'only the React Router templates have pages'
+      !/^(react|tanstack)-router/.test(process.env.TEST_SCENARIO ?? ''),
+      'only the router templates have pages'
     );
   });
 
