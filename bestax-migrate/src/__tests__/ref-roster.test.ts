@@ -88,6 +88,8 @@ const SUMMARISED_AS_FORM_CONTROLS = [
   'Autocomplete',
   'Checkbox',
   'CheckboxCard',
+  'ColorInput',
+  'ColorInputBase',
   'ColorPicker',
   'ColorPickerAlphaSlider',
   'ColorPickerArea',

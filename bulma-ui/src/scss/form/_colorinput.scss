@@ -1,0 +1,106 @@
+// Bestax Extras - ColorInput Styles
+// A text field for a color, with its swatch at the start and a launcher at
+// the end, which opens a color picker in the pickers' popover. Bulma has no
+// color field.
+//
+// The swatch and the launcher are real buttons laid over the input, the way
+// the date pickers' launcher is, since Bulma's Control icons take no clicks.
+// Both sit on the logical sides, so they swap places right to left. The panel
+// is a `.color-picker`, styled by `_colorpicker.scss`, in a
+// `.picker-popover`.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+@use '../mixins' as *;
+
+// Each side's room, in em so it tracks the input's size, as Bulma's icon
+// slots do.
+$colorinput-side-width: 2.5em !default;
+$colorinput-swatch-size: 1.25em !default;
+$colorinput-trigger-color: cv.getVar('text') !default;
+$colorinput-trigger-hover-color: cv.getVar('text-strong') !default;
+$colorinput-disabled-opacity: 0.5 !default;
+
+.#{iv.$class-prefix}colorinput {
+  @include cv.register-vars(
+    (
+      'colorinput-side-width': #{$colorinput-side-width},
+      'colorinput-swatch-size': #{$colorinput-swatch-size},
+      'colorinput-trigger-color': #{$colorinput-trigger-color},
+      'colorinput-trigger-hover-color': #{$colorinput-trigger-hover-color},
+      'colorinput-disabled-opacity': #{$colorinput-disabled-opacity},
+    )
+  );
+}
+
+.#{iv.$class-prefix}colorinput {
+  position: relative;
+
+  // Room for the swatch, and for the launcher when it shows, so typed text
+  // doesn't slide under either.
+  > .#{iv.$class-prefix}input {
+    padding-inline-start: cv.getVar('colorinput-side-width');
+  }
+
+  &.#{iv.$class-prefix}has-trigger > .#{iv.$class-prefix}input {
+    padding-inline-end: cv.getVar('colorinput-side-width');
+  }
+
+  > .#{iv.$class-prefix}colorinput-swatch,
+  > .#{iv.$class-prefix}colorinput-trigger {
+    @include extras-button-reset;
+    position: absolute;
+    inset-block: 0;
+    z-index: 4;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: cv.getVar('colorinput-side-width');
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: cv.getVar('colorinput-disabled-opacity');
+    }
+  }
+
+  > .#{iv.$class-prefix}colorinput-swatch {
+    inset-inline-start: 0;
+
+    .#{iv.$class-prefix}color-swatch {
+      inline-size: cv.getVar('colorinput-swatch-size');
+      block-size: cv.getVar('colorinput-swatch-size');
+    }
+  }
+
+  > .#{iv.$class-prefix}colorinput-trigger {
+    inset-inline-end: 0;
+    color: cv.getVar('colorinput-trigger-color');
+
+    &:hover:not(:disabled) {
+      color: cv.getVar('colorinput-trigger-hover-color');
+    }
+
+    &:focus-visible {
+      @include extras-focus-outline;
+    }
+
+    .#{iv.$class-prefix}icon {
+      pointer-events: none;
+    }
+  }
+
+  // The sides track the input's size, as Bulma's icons do.
+  @each $size in 'small', 'medium', 'large' {
+    > .#{iv.$class-prefix}input.#{iv.$class-prefix}is-#{$size}
+      ~ .#{iv.$class-prefix}colorinput-swatch,
+    > .#{iv.$class-prefix}input.#{iv.$class-prefix}is-#{$size}
+      ~ .#{iv.$class-prefix}colorinput-trigger {
+      font-size: cv.getVar('size-#{$size}');
+    }
+  }
+}
+
+// The eye dropper sits at the end of the panel.
+.#{iv.$class-prefix}colorinput-eyedropper {
+  align-self: flex-end;
+}

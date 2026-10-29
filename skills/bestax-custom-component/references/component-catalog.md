@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-116 documented components. Generated from the API docs — every exported
+117 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -120,6 +120,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Checkbox](https://bestax.io/docs/api/form/checkbox) — The `Checkbox` component provides a Bulma-styled checkbox input.
 - [CheckboxCard](https://bestax.io/docs/api/form/checkboxcard) — The `CheckboxCard` component is a checkbox drawn as a card, with a title and a description, that toggles wherever you click it.
 - [Checkboxes](https://bestax.io/docs/api/form/checkboxes) — The `Checkboxes` component wraps multiple `Checkbox` components in a Bulma-styled group.
+- [ColorInput](https://bestax.io/docs/api/form/colorinput) — The `ColorInput` component is a form field for a color: type it, or open a color picker from its launcher or its swatch.
 - [ColorPicker](https://bestax.io/docs/api/form/colorpicker) — The `ColorPicker` component is a panel for choosing a color: a saturation and brightness square, a hue slider, and the value as text…
 - [Combobox](https://bestax.io/docs/api/form/combobox) — The `Combobox` component is a text field with a list to pick from under it, for a searchable select, a multi-select with tags, grouped items or a server search…
 - [Control](https://bestax.io/docs/api/form/control) — The `Control` component is a Bulma-styled wrapper for form controls (`Input`, `Select`, `TextArea`, etc.), supporting icons (left/right), loading state…

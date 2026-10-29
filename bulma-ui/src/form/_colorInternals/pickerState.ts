@@ -34,6 +34,7 @@ const DEFAULT_LABELS: Required<ColorPickerLabels> = {
   value: 'Color value',
   swatches: 'Swatches',
   eyeDropper: 'Pick a color from the screen',
+  chooseColor: 'Choose color',
 };
 
 /** The labels with each one left out, or empty, at its default. */

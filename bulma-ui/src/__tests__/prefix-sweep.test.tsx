@@ -60,6 +60,14 @@ const PROPS: Record<string, Record<string, unknown>> = {
     swatches: ['#ffdd57'],
     defaultValue: '#ffdd57',
   },
+  // Sized, rounded and colored, so every class the field takes is swept.
+  ColorInput: {
+    label: 'Brand',
+    size: 'small',
+    isRounded: true,
+    color: 'info',
+    defaultValue: 'red',
+  },
   // Sized and round, so every class it takes is swept.
   ColorSwatch: { color: 'red', size: 'small', isRounded: true },
   // Colored, with the indicator, a title, a description and more, so every

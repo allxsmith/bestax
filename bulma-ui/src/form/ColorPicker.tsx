@@ -13,7 +13,6 @@ import {
 } from '../helpers/classNames';
 import { useClassPrefix } from '../helpers/Config';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useIsHydrated } from '../helpers/useIsHydrated';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { ColorSwatch } from '../elements/ColorSwatch';
@@ -29,11 +28,11 @@ import {
 import {
   ColorPickerContext,
   keepingChannels,
-  noop,
   standalone,
   useColorPicker,
   usePicker,
 } from './_colorInternals/pickerState';
+import { EyeDropperButton } from './_colorInternals/EyeDropperButton';
 import { Field } from './Field';
 import { Control } from './Control';
 import { FormFieldProps } from './fieldProps';
@@ -112,6 +111,11 @@ export interface ColorPickerLabels {
    * @defaultValue 'Pick a color from the screen'
    */
   eyeDropper?: string;
+  /**
+   * Names `ColorInput`'s launcher and the panel it opens.
+   * @defaultValue 'Choose color'
+   */
+  chooseColor?: string;
 }
 
 // The theme colors `swatches="bulma"` shows, read off the page.
@@ -778,12 +782,6 @@ export interface ColorPickerInputProps
   className?: string;
 }
 
-/** The browser's eye dropper, where it has one. */
-interface EyeDropperLike {
-  open: () => Promise<{ sRGBHex: string }>;
-}
-type EyeDropperConstructor = new () => EyeDropperLike;
-
 /**
  * The value as text you can type in, beside a preview swatch, with the eye dropper when the picker has `eyeDropper`.
  *
@@ -798,7 +796,7 @@ export const ColorPickerInput = forwardRef<
 >(({ className, ...props }, ref) => {
   const picker = usePicker('Input');
   const live = picker ?? standalone;
-  const { color, text, change, disabled, labels, eyeDropper } = live;
+  const { color, text, change, disabled, labels } = live;
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
   const rowClass = usePrefixedClassNames('color-picker-value');
   const previewClass = usePrefixedClassNames('color-picker-preview');
@@ -810,11 +808,6 @@ export const ColorPickerInput = forwardRef<
     'is-small': true,
     'is-danger': invalid,
   });
-  const buttonClass = usePrefixedClassNames('button', { 'is-small': true });
-  const hydrated = useIsHydrated();
-  const EyeDropper = hydrated
-    ? (window as unknown as { EyeDropper?: EyeDropperConstructor }).EyeDropper
-    : undefined;
 
   const commit = () => {
     if (draft === null) return;
@@ -837,20 +830,6 @@ export const ColorPickerInput = forwardRef<
       setDraft(null);
     }
   };
-
-  // Escape, or a click away, cancels it, which rejects.
-  const pickFromScreen = (Dropper: EyeDropperConstructor) =>
-    new Dropper().open().then(({ sRGBHex }) => {
-      const parsed = parseColor(sRGBHex);
-      // The screen gives a solid color as hex; the alpha stays as it was,
-      // and a gray keeps the hue the picker had.
-      if (parsed) {
-        change(
-          keepingChannels({ ...parsed, a: color.a }, color, sRGBHex),
-          true
-        );
-      }
-    }, noop);
 
   if (!picker) return null;
 
@@ -875,36 +854,12 @@ export const ColorPickerInput = forwardRef<
         onKeyDown={onKeyDown}
         onBlur={commit}
       />
-      {eyeDropper && EyeDropper && (
-        <button
-          type="button"
-          className={buttonClass}
-          aria-label={labels.eyeDropper}
-          title={labels.eyeDropper}
-          disabled={disabled}
-          onClick={() => pickFromScreen(EyeDropper)}
-        >
-          <EyeDropperIcon />
-        </button>
-      )}
+      <EyeDropperButton />
     </div>
   );
 });
 
 ColorPickerInput.displayName = 'ColorPicker.Input';
-
-/** A pipette. */
-const EyeDropperIcon = () => (
-  <svg viewBox="0 0 16 16" width="1em" height="1em" aria-hidden="true">
-    <path
-      d="M10.5 2.5l3 3M9 4l3 3-6.5 6.5H3v-3z"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
 
 // ---------------------------------------------------------------------------
 // ColorPicker (root)

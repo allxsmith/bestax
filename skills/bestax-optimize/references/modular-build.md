@@ -88,7 +88,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 **Form** (`@allxsmith/bestax-bulma/scss/form/<name>`):
 `checkbox`, `checkboxcard`, `radio`, `radiocard`, `switch`, `slider`, `numberinput`, `pininput`,
 `rate`, `autocomplete`, `combobox`, `taginput`, `picker-popover`, `dateinput`, `timeinput`,
-`datetimeinput`, `daterangeinput`, `file`, `fieldset`, `dropzone`, `colorpicker`
+`datetimeinput`, `daterangeinput`, `file`, `fieldset`, `dropzone`, `colorpicker`, `colorinput`
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `colorswatch`,
 `descriptionlist`, `kbd`, `linkbutton`, `loader`, `notification`, `progress`, `ringprogress`,
@@ -144,6 +144,8 @@ Notes:
   dropper button are Bulma's, so an app using it needs `scss/elements/colorswatch`,
   `bulma/sass/form/input-textarea` and `bulma/sass/elements/button` next to
   `scss/form/colorpicker`, and `bulma/sass/form/tools` for the label and help text around it.
+- `ColorInput` opens a `ColorPicker` in the pickers' popover, so it needs `colorpicker` (and what
+  that needs) and `picker-popover` next to `colorinput`.
 - `PinInput`'s boxes are Bulma inputs, so an app using it needs `bulma/sass/form/input-textarea`
   next to `scss/form/pininput`, and `bulma/sass/form/tools` for the label and help text around it.
 - `Popover.Close` renders a Bulma button, so an app using it needs `bulma/sass/elements/button`

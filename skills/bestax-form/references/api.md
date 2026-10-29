@@ -233,7 +233,7 @@ const [stay, setStay] = useState<DateRangeValue>([null, null]);
 />;
 ```
 
-## Color — `form/ColorPicker.tsx`
+## Color — `form/ColorPicker.tsx`, `form/ColorInput.tsx`
 
 `ColorPicker` is a panel: a saturation and brightness square, a hue slider, and the value as text
 you can type in. `value`/`defaultValue` take any color it reads (hex, `rgb()`, `hsl()`, a CSS
@@ -247,6 +247,13 @@ a disabled `Fieldset`. Parts for a layout of your own: `ColorPicker.Area`, `.Hue
 `.AlphaSlider`, `.Swatches`, `.Input`, inside a `ColorPicker`. Don't hand-build a picker from
 `Slider`s, and don't reach for `<Input type="color">` unless the browser's own well (hex only,
 never empty) is enough. `ColorSwatch` (`color`, `label`) shows a color without choosing one.
+
+`ColorInput` is the field: the value as text you can type (committed on Enter or blur, `''`
+for none, so `required` works), a swatch, and a launcher that opens the same square, hue,
+`alpha`, `swatches` and `eyeDropper` in the pickers' popover. It opens on the launcher, the
+swatch or Alt+ArrowDown; `openOnFocus` and `closeOnSwatchClick` are opt-in. It takes the same
+`value`/`onChange`/`onChangeEnd`/`format`, the Field props, `isLoading`, and `Input`'s
+`color`/`size`/`isRounded`. `ColorInputBase` is the field without Field and Control.
 
 ## Validation-related props (no library)
 

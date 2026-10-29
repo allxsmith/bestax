@@ -466,6 +466,22 @@ Combines the calendar and time wheels in a single popover with an iOS-style foot
 
 ## Color
 
+### ColorInput
+
+A form field for a color: type it, or open a color picker from its launcher or its swatch. The value is a CSS color string, HSL by default, or empty, and the panel takes `alpha`, `swatches` and an eye dropper.
+
+```tsx live
+<ColorInput
+  label="Brand color"
+  defaultValue="hsl(202, 67%, 36%)"
+  swatches="bulma"
+/>
+```
+
+[View full documentation.](../../api/form/colorinput)
+
+---
+
 ### ColorPicker
 
 A panel for choosing a color: drag in the square for saturation and brightness, pick the hue on the slider, or type a value. The value is a CSS color string, HSL by default, and `alpha` and `swatches` add transparency and preset colors.

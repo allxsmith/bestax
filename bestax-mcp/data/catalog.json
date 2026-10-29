@@ -94,6 +94,7 @@
         "Checkbox",
         "CheckboxCard",
         "Checkboxes",
+        "ColorInput",
         "ColorPicker",
         "Combobox",
         "Control",
@@ -364,6 +365,17 @@
       "compound": true,
       "propCount": 19,
       "exampleCount": 8
+    },
+    {
+      "name": "ColorInput",
+      "kind": "component",
+      "category": "form",
+      "purpose": "The `ColorInput` component is a form field for a color: type it, or open a color picker from its launcher or its swatch.",
+      "slug": "form/colorinput",
+      "import": "import { ColorInput } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 35,
+      "exampleCount": 11
     },
     {
       "name": "ColorPicker",
@@ -1668,6 +1680,11 @@
     "--bulma-color-swatch-edge-color": ["ColorSwatch"],
     "--bulma-color-swatch-radius": ["ColorSwatch"],
     "--bulma-color-swatch-size": ["ColorSwatch"],
+    "--bulma-colorinput-disabled-opacity": ["ColorInput"],
+    "--bulma-colorinput-side-width": ["ColorInput"],
+    "--bulma-colorinput-swatch-size": ["ColorInput"],
+    "--bulma-colorinput-trigger-color": ["ColorInput"],
+    "--bulma-colorinput-trigger-hover-color": ["ColorInput"],
     "--bulma-column-gap": ["Column"],
     "--bulma-combobox-check-color": ["Combobox"],
     "--bulma-combobox-check-gap": ["Combobox"],
@@ -2543,48 +2560,56 @@
     "--bulma-panel-tab-border-bottom-width": ["Panel"],
     "--bulma-panel-tabs-font-size": ["Panel"],
     "--bulma-picker-popover-animation-duration": [
+      "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
       "TimeInput"
     ],
     "--bulma-picker-popover-background": [
+      "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
       "TimeInput"
     ],
     "--bulma-picker-popover-border-color": [
+      "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
       "TimeInput"
     ],
     "--bulma-picker-popover-offset": [
+      "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
       "TimeInput"
     ],
     "--bulma-picker-popover-padding": [
+      "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
       "TimeInput"
     ],
     "--bulma-picker-popover-radius": [
+      "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
       "TimeInput"
     ],
     "--bulma-picker-popover-shadow": [
+      "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
       "TimeInput"
     ],
     "--bulma-picker-popover-z-index": [
+      "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
@@ -2970,6 +2995,12 @@
       "path": "CarouselItem",
       "purpose": "Individual carousel item/slide.",
       "standalone": "companion"
+    },
+    "ColorInputBase": {
+      "component": "ColorInput",
+      "path": "ColorInputBase",
+      "purpose": "The raw ColorInput: a text field with a swatch and a launcher that opens a color picker in a popover, without Field/Control wrapping.",
+      "standalone": "base"
     },
     "ColorPickerAlphaSlider": {
       "component": "ColorPicker",
