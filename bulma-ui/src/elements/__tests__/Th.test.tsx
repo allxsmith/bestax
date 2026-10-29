@@ -217,6 +217,24 @@ describe('Th Component', () => {
     expect(th).toHaveStyle({ width: '50%' });
   });
 
+  test('keeps the width when the style names a width it leaves undefined', () => {
+    render(
+      <table>
+        <thead>
+          <tr>
+            <Th
+              {...defaultProps}
+              width={120}
+              style={{ width: undefined, color: 'red' }}
+            />
+          </tr>
+        </thead>
+      </table>
+    );
+    const th = screen.getByRole('columnheader', { name: 'Test' });
+    expect(th).toHaveStyle({ width: '120px', color: 'rgb(255, 0, 0)' });
+  });
+
   test('passes a style through when there is no width', () => {
     render(
       <table>

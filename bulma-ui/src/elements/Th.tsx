@@ -28,8 +28,8 @@ export interface ThProps
   isVcentered?: boolean;
   /**
    * Width of the header cell (e.g., '100px' or 100), written into its
-   * `style`. A `style` passed as well keeps it, and a `width` in that
-   * `style` wins.
+   * `style`. A `style` passed as well keeps it, and a `width` that `style`
+   * sets wins.
    */
   width?: string | number;
   /** Bulma color modifier for the header cell. */
@@ -78,10 +78,12 @@ export const Th: React.FC<ThProps> = ({
     <th
       className={thClasses || undefined}
       style={
-        width
+        // A `width` key the style leaves undefined isn't a width, so the
+        // prop's stays.
+        width && style?.width === undefined
           ? {
-              width: typeof width === 'number' ? `${width}px` : width,
               ...style,
+              width: typeof width === 'number' ? `${width}px` : width,
             }
           : style
       }

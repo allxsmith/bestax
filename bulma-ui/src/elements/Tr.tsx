@@ -21,7 +21,8 @@ export interface TrProps
    * for the row when the selection matters. A bestax `Checkbox` placed
    * straight in one of the row's cells takes the row's text color, so a
    * checked box shows on the row's fill. One in a menu or a table nested in a
-   * cell keeps its own colors, since it sits on that surface instead.
+   * cell, or in a cell with a `color` of its own, keeps its own colors, since
+   * it sits on that surface instead.
    */
   isSelected?: boolean;
   /** Bulma color modifier for the table row. */

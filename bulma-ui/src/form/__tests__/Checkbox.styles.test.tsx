@@ -10,6 +10,11 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { Checkbox, type CheckboxProps } from '../Checkbox';
 import { Dropdown } from '../../components/Dropdown';
+import { Table } from '../../elements/Table';
+import { Tbody } from '../../elements/Tbody';
+import { Td } from '../../elements/Td';
+import { Th } from '../../elements/Th';
+import { Tr } from '../../elements/Tr';
 import { ConfigProvider } from '../../helpers/Config';
 
 const SCSS = path.resolve(__dirname, '../../scss');
@@ -326,6 +331,61 @@ describe.each([
       expect(resolve(label, '--bulma-checkbox-active-color')).toBe(
         'var(--bulma-primary)'
       );
+    });
+
+    // A cell with a color of its own paints its own background over the
+    // row's fill, so a box there keeps its usual look on that color.
+    it.each(['white', 'dark', 'primary'] as const)(
+      'keeps its own colors in a %s cell of the row',
+      color => {
+        const { container } = render(
+          <ConfigProvider classPrefix={prefix}>
+            <Table>
+              <Tbody>
+                <Tr isSelected>
+                  <Th scope="row" color={color}>
+                    {box({ checked: true })}
+                  </Th>
+                  <Td color={color}>{box({ checked: true })}</Td>
+                  <Td>{box({ checked: true })}</Td>
+                </Tr>
+              </Tbody>
+            </Table>
+          </ConfigProvider>
+        );
+        const [header, cell, plain] = Array.from(
+          container.querySelectorAll<HTMLElement>(`.${prefix}styled-checkbox`)
+        );
+        expect(header.parentElement).toHaveClass(`${prefix}is-${color}`);
+        for (const label of [header, cell]) {
+          expect(takesRowColors(label)).toBe(false);
+          expect(resolve(label, '--bulma-checkbox-active-color')).toBe(
+            'var(--bulma-primary)'
+          );
+        }
+        expect(takesRowColors(plain)).toBe(true);
+      }
+    );
+
+    it('takes the row colors in a colored cell that is selected itself', () => {
+      // Bulma paints a selected cell in the row's fill whatever its color.
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Table>
+            <Tbody>
+              <Tr>
+                <Td color="white" className={`${prefix}is-selected`}>
+                  {box({ checked: true })}
+                </Td>
+              </Tr>
+            </Tbody>
+          </Table>
+        </ConfigProvider>
+      );
+      const label = container.querySelector(
+        `.${prefix}styled-checkbox`
+      ) as HTMLElement;
+      expect(takesRowColors(label)).toBe(true);
     });
 
     it('keeps its own colors in a table nested in the row', () => {
