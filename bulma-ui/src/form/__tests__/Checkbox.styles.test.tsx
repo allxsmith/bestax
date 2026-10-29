@@ -229,6 +229,70 @@ describe.each([
     });
   });
 
+  describe('a Checkbox on a selected table row', () => {
+    // Bulma fills a selected row with `table-row-active-background-color`,
+    // primary by default, the color a checked box fills and borders with too,
+    // so only the tick showed. The box takes the row's text color instead.
+    const ROW_VARS = {
+      '--bulma-checkbox-border-color': 'var(--bulma-table-row-active-color)',
+      '--bulma-checkbox-active-color': 'var(--bulma-table-row-active-color)',
+      '--bulma-checkbox-indeterminate-color':
+        'var(--bulma-table-row-active-color)',
+      '--bulma-checkbox-check-color':
+        'var(--bulma-table-row-active-background-color)',
+    };
+
+    /** The Checkbox's label, in a cell of a row or a cell marked selected. */
+    const labelIn = (selected: 'row' | 'cell' | 'none', props = {}) => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <table className={`${prefix}table`}>
+            <tbody>
+              <tr className={selected === 'row' ? `${prefix}is-selected` : ''}>
+                <td
+                  className={selected === 'cell' ? `${prefix}is-selected` : ''}
+                >
+                  <Checkbox
+                    aria-label="Select Ada"
+                    onChange={() => {}}
+                    {...props}
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </ConfigProvider>
+      );
+      return container.querySelector(
+        `.${prefix}styled-checkbox`
+      ) as HTMLElement;
+    };
+
+    it.each([
+      ['row', 'row'],
+      ['cell', 'cell'],
+    ] as const)('takes the colors of a selected %s', (_name, selected) => {
+      const label = labelIn(selected, { checked: true });
+      for (const [name, value] of Object.entries(ROW_VARS)) {
+        expect(resolve(label, name)).toBe(value);
+      }
+    });
+
+    it('outranks a color variant there', () => {
+      const label = labelIn('row', { checked: true, color: 'danger' });
+      expect(resolve(label, '--bulma-checkbox-active-color')).toBe(
+        ROW_VARS['--bulma-checkbox-active-color']
+      );
+    });
+
+    it('keeps its own colors on a row that is not selected', () => {
+      const label = labelIn('none', { checked: true });
+      expect(resolve(label, '--bulma-checkbox-active-color')).toBe(
+        'var(--bulma-primary)'
+      );
+    });
+  });
+
   describe('the check mark of a checked Checkbox', () => {
     const MASK = ['mask-image', 'mask-size', 'mask-repeat', 'mask-position'];
 

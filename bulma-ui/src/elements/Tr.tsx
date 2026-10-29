@@ -15,7 +15,12 @@ export interface TrProps
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   /** Additional CSS classes to apply. */
   className?: string;
-  /** Whether the row is selected (adds Bulma's is-selected class). */
+  /**
+   * Whether the row is selected (adds Bulma's is-selected class). It's a look
+   * only: it says nothing to assistive tech, so pair it with a checkbox named
+   * for the row when the selection matters. A bestax `Checkbox` in the row
+   * takes the row's text color, so a checked box shows on the row's fill.
+   */
   isSelected?: boolean;
   /** Bulma color modifier for the table row. */
   color?: TableColor;
