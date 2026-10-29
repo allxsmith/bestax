@@ -55,6 +55,14 @@ export interface TdProps
   className?: string;
   /** Text alignment for the table cell ('left', 'right', 'centered'). */
   isAligned?: TableAlignment;
+  /**
+   * Shrinks the cell to its content and keeps that on one line (Bulma's
+   * `is-narrow`), as for a column of checkboxes or actions. Not the table's
+   * own `isNarrow`, which tightens every cell's padding.
+   */
+  isNarrow?: boolean;
+  /** Centers the content vertically (Bulma's `is-vcentered`). Cells sit at the top otherwise. */
+  isVcentered?: boolean;
   /** Bulma color modifier for the table cell. */
   color?: TableColor;
   /** Table cell content. */
@@ -64,7 +72,7 @@ export interface TdProps
 /**
  * Td component for rendering a styled Bulma table cell.
  *
- * Supports alignment, Bulma color modifiers, and helper classes for additional styling.
+ * Supports alignment, narrow and vertically centered cells, Bulma color modifiers, and helper classes for additional styling.
  *
  * @function
  * @param {TdProps} props - Props for the Td component.
@@ -74,6 +82,8 @@ export interface TdProps
 export const Td: React.FC<TdProps> = ({
   className,
   isAligned,
+  isNarrow,
+  isVcentered,
   color,
   children,
   ...props
@@ -82,6 +92,8 @@ export const Td: React.FC<TdProps> = ({
     [`has-text-${isAligned}`]:
       isAligned && validTableAlignments.includes(isAligned),
     [`is-${color}`]: color && validTableColors.includes(color),
+    'is-narrow': isNarrow,
+    'is-vcentered': isVcentered,
   });
 
   /**

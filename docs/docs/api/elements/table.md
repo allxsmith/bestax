@@ -205,6 +205,52 @@ To control the alignment and width of table header cells, use the `isAligned` an
 </Table>
 ```
 
+### A Column of Checkboxes
+
+`isNarrow` on a `Th` or `Td` shrinks the cell to its content and keeps it on one line, Bulma's `is-narrow` cell, which suits a column of checkboxes or actions. It isn't the table's own `isNarrow`, which tightens every cell's padding. `isVcentered` centers a cell's content vertically, where cells otherwise sit at the top.
+
+`isSelected` is a look only, so a row picked for an action needs a checkbox named for it, as here. A bestax `Checkbox` on a selected row takes the row's text color, so a checked box still shows on the row's fill.
+
+```tsx live
+function example() {
+  const teams = ['Ice Wolves', 'Frost Giants', 'Snow Owls'];
+  const [picked, setPicked] = useState(['Ice Wolves']);
+  const toggle = (team: string) =>
+    setPicked(current =>
+      current.includes(team)
+        ? current.filter(name => name !== team)
+        : [...current, team]
+    );
+
+  return (
+    <Table isFullwidth>
+      <Thead>
+        <Tr>
+          <Th isNarrow>
+            <Span visibility="sr-only">Picked</Span>
+          </Th>
+          <Th>Team</Th>
+        </Tr>
+      </Thead>
+      <Tbody>
+        {teams.map(team => (
+          <Tr key={team} isSelected={picked.includes(team)}>
+            <Td isNarrow isVcentered>
+              <Checkbox
+                aria-label={`Pick ${team}`}
+                checked={picked.includes(team)}
+                onChange={() => toggle(team)}
+              />
+            </Td>
+            <Td isVcentered>{team}</Td>
+          </Tr>
+        ))}
+      </Tbody>
+    </Table>
+  );
+}
+```
+
 ---
 
 ### Compound (dot-notation) usage
@@ -282,8 +328,8 @@ For responsive tables, ensure your column headers are clear and concise for smal
 - `Table.Tbody`: Tbody component for rendering a styled Bulma table body. Supports Bulma helper classes for additional styling.
 - `Table.Tfoot`: Tfoot component for rendering a styled Bulma table footer. Supports Bulma helper classes for additional styling.
 - `Table.Tr`: Tr component for rendering a styled Bulma table row. Supports the is-selected modifier and color modifiers.
-- `Table.Th`: Th component for rendering a styled Bulma table header cell. Supports alignment, width, and color modifiers.
-- `Table.Td`: Td component for rendering a styled Bulma table cell. Supports alignment, Bulma color modifiers, and helper classes for additional styling.
+- `Table.Th`: Th component for rendering a styled Bulma table header cell. Supports alignment, width, narrow and vertically centered cells, and color modifiers.
+- `Table.Td`: Td component for rendering a styled Bulma table cell. Supports alignment, narrow and vertically centered cells, Bulma color modifiers, and helper classes for additional styling.
 
 ### Table.Thead
 
@@ -311,13 +357,13 @@ For responsive tables, ensure your column headers are clear and concise for smal
 
 ### Table.Tr
 
-| Prop         | Type                                                  | Default | Description                                                   |
-| ------------ | ----------------------------------------------------- | ------- | ------------------------------------------------------------- |
-| `className`  | `string`                                              | —       | Additional CSS classes to apply.                              |
-| `isSelected` | `boolean`                                             | `false` | Whether the row is selected (adds Bulma's is-selected class). |
-| `color`      | `TableColor`                                          | —       | Bulma color modifier for the table row.                       |
-| `children`   | `React.ReactNode`                                     | —       | Table row content (cells).                                    |
-| `...`        | All standard `<tr>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)             |
+| Prop         | Type                                                  | Default | Description                                                                                                                                                                                                                                                                                      |
+| ------------ | ----------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `className`  | `string`                                              | —       | Additional CSS classes to apply.                                                                                                                                                                                                                                                                 |
+| `isSelected` | `boolean`                                             | `false` | Whether the row is selected (adds Bulma's is-selected class). It's a look only: it says nothing to assistive tech, so pair it with a checkbox named for the row when the selection matters. A bestax `Checkbox` in the row takes the row's text color, so a checked box shows on the row's fill. |
+| `color`      | `TableColor`                                          | —       | Bulma color modifier for the table row.                                                                                                                                                                                                                                                          |
+| `children`   | `React.ReactNode`                                     | —       | Table row content (cells).                                                                                                                                                                                                                                                                       |
+| `...`        | All standard `<tr>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                |
 
 **Types:**
 
@@ -325,14 +371,16 @@ For responsive tables, ensure your column headers are clear and concise for smal
 
 ### Table.Th
 
-| Prop        | Type                                                         | Default | Description                                                                                                                                       |
-| ----------- | ------------------------------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `className` | `string`                                                     | —       | Additional CSS classes to apply.                                                                                                                  |
-| `isAligned` | `'left'` \| `'right'` \| `'centered'`                        | —       | Text alignment for the header cell ('left', 'right', 'centered').                                                                                 |
-| `width`     | `string` \| `number`                                         | —       | Width of the header cell (e.g., '100px' or 100), written into its `style`. A `style` passed as well keeps it, and a `width` in that `style` wins. |
-| `color`     | `TableColor`                                                 | —       | Bulma color modifier for the header cell.                                                                                                         |
-| `children`  | `React.ReactNode`                                            | —       | Table header cell content.                                                                                                                        |
-| `...`       | All standard `<td>`/`<th>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                 |
+| Prop          | Type                                                         | Default | Description                                                                                                                                                                                      |
+| ------------- | ------------------------------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `className`   | `string`                                                     | —       | Additional CSS classes to apply.                                                                                                                                                                 |
+| `isAligned`   | `'left'` \| `'right'` \| `'centered'`                        | —       | Text alignment for the header cell ('left', 'right', 'centered').                                                                                                                                |
+| `isNarrow`    | `boolean`                                                    | `false` | Shrinks the cell to its content and keeps that on one line (Bulma's `is-narrow`), as for a column of checkboxes or actions. Not the table's own `isNarrow`, which tightens every cell's padding. |
+| `isVcentered` | `boolean`                                                    | `false` | Centers the content vertically (Bulma's `is-vcentered`). Cells sit at the top otherwise.                                                                                                         |
+| `width`       | `string` \| `number`                                         | —       | Width of the header cell (e.g., '100px' or 100), written into its `style`. A `style` passed as well keeps it, and a `width` in that `style` wins.                                                |
+| `color`       | `TableColor`                                                 | —       | Bulma color modifier for the header cell.                                                                                                                                                        |
+| `children`    | `React.ReactNode`                                            | —       | Table header cell content.                                                                                                                                                                       |
+| `...`         | All standard `<td>`/`<th>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                |
 
 **Types:**
 
@@ -340,13 +388,15 @@ For responsive tables, ensure your column headers are clear and concise for smal
 
 ### Table.Td
 
-| Prop        | Type                                                         | Default | Description                                                      |
-| ----------- | ------------------------------------------------------------ | ------- | ---------------------------------------------------------------- |
-| `className` | `string`                                                     | —       | Additional CSS classes to apply.                                 |
-| `isAligned` | `'left'` \| `'right'` \| `'centered'`                        | —       | Text alignment for the table cell ('left', 'right', 'centered'). |
-| `color`     | `TableColor`                                                 | —       | Bulma color modifier for the table cell.                         |
-| `children`  | `React.ReactNode`                                            | —       | Table cell content.                                              |
-| `...`       | All standard `<td>`/`<th>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                |
+| Prop          | Type                                                         | Default | Description                                                                                                                                                                                      |
+| ------------- | ------------------------------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `className`   | `string`                                                     | —       | Additional CSS classes to apply.                                                                                                                                                                 |
+| `isAligned`   | `'left'` \| `'right'` \| `'centered'`                        | —       | Text alignment for the table cell ('left', 'right', 'centered').                                                                                                                                 |
+| `isNarrow`    | `boolean`                                                    | `false` | Shrinks the cell to its content and keeps that on one line (Bulma's `is-narrow`), as for a column of checkboxes or actions. Not the table's own `isNarrow`, which tightens every cell's padding. |
+| `isVcentered` | `boolean`                                                    | `false` | Centers the content vertically (Bulma's `is-vcentered`). Cells sit at the top otherwise.                                                                                                         |
+| `color`       | `TableColor`                                                 | —       | Bulma color modifier for the table cell.                                                                                                                                                         |
+| `children`    | `React.ReactNode`                                            | —       | Table cell content.                                                                                                                                                                              |
+| `...`         | All standard `<td>`/`<th>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                |
 
 **Types:**
 

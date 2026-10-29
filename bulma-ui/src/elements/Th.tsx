@@ -19,6 +19,14 @@ export interface ThProps
   /** Text alignment for the header cell ('left', 'right', 'centered'). */
   isAligned?: TableAlignment;
   /**
+   * Shrinks the cell to its content and keeps that on one line (Bulma's
+   * `is-narrow`), as for a column of checkboxes or actions. Not the table's
+   * own `isNarrow`, which tightens every cell's padding.
+   */
+  isNarrow?: boolean;
+  /** Centers the content vertically (Bulma's `is-vcentered`). Cells sit at the top otherwise. */
+  isVcentered?: boolean;
+  /**
    * Width of the header cell (e.g., '100px' or 100), written into its
    * `style`. A `style` passed as well keeps it, and a `width` in that
    * `style` wins.
@@ -33,7 +41,7 @@ export interface ThProps
 /**
  * Th component for rendering a styled Bulma table header cell.
  *
- * Supports alignment, width, and color modifiers.
+ * Supports alignment, width, narrow and vertically centered cells, and color modifiers.
  *
  * @function
  * @param {ThProps} props - Props for the Th component.
@@ -43,6 +51,8 @@ export interface ThProps
 export const Th: React.FC<ThProps> = ({
   className,
   isAligned,
+  isNarrow,
+  isVcentered,
   width,
   color,
   style,
@@ -53,6 +63,8 @@ export const Th: React.FC<ThProps> = ({
     [`has-text-${isAligned}`]:
       isAligned && validTableAlignments.includes(isAligned),
     [`is-${color}`]: color && validTableColors.includes(color),
+    'is-narrow': isNarrow,
+    'is-vcentered': isVcentered,
   });
 
   /**

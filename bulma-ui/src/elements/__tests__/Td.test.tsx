@@ -117,6 +117,38 @@ describe('Td Component', () => {
     expect(td).toHaveClass('m-4');
   });
 
+  test.each([
+    ['isNarrow', 'is-narrow'],
+    ['isVcentered', 'is-vcentered'],
+  ])('applies %s as %s', (prop, expectedClass) => {
+    render(
+      <table>
+        <tbody>
+          <tr>
+            <Td {...defaultProps} {...{ [prop]: true }} />
+          </tr>
+        </tbody>
+      </table>
+    );
+    const td = screen.getByRole('cell', { name: 'Test' });
+    expect(td).toHaveClass(expectedClass);
+  });
+
+  test('adds neither cell modifier by default', () => {
+    render(
+      <table>
+        <tbody>
+          <tr>
+            <Td {...defaultProps} />
+          </tr>
+        </tbody>
+      </table>
+    );
+    const td = screen.getByRole('cell', { name: 'Test' });
+    expect(td).not.toHaveClass('is-narrow');
+    expect(td).not.toHaveClass('is-vcentered');
+  });
+
   test('applies custom className', () => {
     render(
       <table>
@@ -223,6 +255,25 @@ describe('Td Component', () => {
       const td = screen.getByRole('cell', { name: 'Test' });
       expect(td).toHaveClass('my-prefix-has-text-right');
       expect(td).not.toHaveClass('has-text-right');
+    });
+
+    it('prefixes the cell modifiers', () => {
+      render(
+        <ConfigProvider classPrefix="bestax-">
+          <table>
+            <tbody>
+              <tr>
+                <Td isNarrow isVcentered>
+                  Test
+                </Td>
+              </tr>
+            </tbody>
+          </table>
+        </ConfigProvider>
+      );
+      const td = screen.getByRole('cell', { name: 'Test' });
+      expect(td).toHaveClass('bestax-is-narrow', 'bestax-is-vcentered');
+      expect(td).not.toHaveClass('is-narrow');
     });
 
     it('applies prefix to color, alignment and helper classes', () => {
