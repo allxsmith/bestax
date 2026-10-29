@@ -64,6 +64,7 @@ const PUBLIC_EXPORTS = [
   'Dropdown',
   'DropdownDivider',
   'DropdownItem',
+  'Dropzone',
   'Emphasis',
   'EmptyState',
   'EmptyStateActions',

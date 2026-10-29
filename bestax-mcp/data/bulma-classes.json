@@ -13109,6 +13109,7 @@
     "daterangeinput": "DateRangeInput",
     "description-list": "DescriptionList",
     "dialog": "Dialog",
+    "dropzone": "Dropzone",
     "empty-state": "EmptyState",
     "fieldset": "Fieldset",
     "hover-card": "HoverCard",

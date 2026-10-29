@@ -131,6 +131,19 @@ function EmptyStateIcon() {
   );
 }
 
+// A dashed box with an arrow dropping into it
+function DropzoneIcon() {
+  return (
+    <svg {...iconProps}>
+      <path
+        d="M4 9v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"
+        strokeDasharray="3 2.5"
+      />
+      <path d="M12 3v10M8.5 9.5 12 13l3.5-3.5" />
+    </svg>
+  );
+}
+
 // A box whose top border breaks for its legend, with two fields inside
 function FieldsetIcon() {
   return (
@@ -336,6 +349,7 @@ const ADDON_ICONS = {
   contextmenu: ContextMenuIcon,
   descriptionlist: DescriptionListIcon,
   dialog: DialogIcon,
+  dropzone: DropzoneIcon,
   emptystate: EmptyStateIcon,
   fieldset: FieldsetIcon,
   hovercard: HoverCardIcon,

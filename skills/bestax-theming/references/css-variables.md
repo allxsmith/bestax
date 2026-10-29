@@ -530,6 +530,25 @@ column takes when the labels sit beside their values; it's a percentage of the l
 `--bulma-dialog-radius`, `--bulma-dialog-shadow`, `--bulma-dialog-title-color`,
 `--bulma-dialog-title-size`, `--bulma-dialog-title-weight`, `--bulma-dialog-width`
 
+### Dropzone
+
+Declared on the root, `.dropzone`. The zone is Bulma's `.file`, so its fill, text and resting
+border color, its hover look and its color modifiers come from the `--bulma-file-*` tokens on
+that `.file`. These add the dashed border, the drag states and the file list, whose surfaces come
+from Bulma's scheme tokens, so the list follows dark mode with no override. While files are
+dragged over the zone it gives File's `--bulma-file-background-l-delta`,
+`--bulma-file-border-l-delta` and `--bulma-file-color-l-delta` their hover values on the zone's
+label, and a disabled zone sets them to `0%`. In forced colors the drop target's border takes the
+system highlight color whatever these say.
+
+`--bulma-dropzone-border-style`, `--bulma-dropzone-border-width`,
+`--bulma-dropzone-disabled-opacity`, `--bulma-dropzone-dragover-border-color`,
+`--bulma-dropzone-item-background`, `--bulma-dropzone-item-border-color`,
+`--bulma-dropzone-item-border-width`, `--bulma-dropzone-item-gap`, `--bulma-dropzone-item-padding`,
+`--bulma-dropzone-item-radius`, `--bulma-dropzone-item-spacing`, `--bulma-dropzone-min-height`,
+`--bulma-dropzone-name-color`, `--bulma-dropzone-reject-border-color`,
+`--bulma-dropzone-size-color`, `--bulma-dropzone-size-font-size`, `--bulma-dropzone-spacing`
+
 ### EmptyState
 
 Declared on the root, `.empty-state`. Each size class (`.is-small`, `.is-medium`, `.is-large`)

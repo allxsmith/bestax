@@ -126,6 +126,19 @@ const PROPS: Record<string, Record<string, unknown>> = {
     sections: [{ value: 40, color: 'warning', label: 'Photos' }],
     children: '40%',
   },
+  // Coloured and sized, with an icon, a hint, a message and a file in its
+  // list, so the zone's, the list's and the help lines' classes are swept.
+  Dropzone: {
+    label: 'Attachments',
+    multiple: true,
+    color: 'primary',
+    size: 'small',
+    icon: <span />,
+    hint: 'Any files',
+    message: 'Required',
+    messageColor: 'danger',
+    files: [new File(['%PDF'], 'report.pdf', { type: 'application/pdf' })],
+  },
   // Filled, with a legend and a colored message, so the legend's and the
   // help's classes are swept with the variant's.
   Fieldset: {

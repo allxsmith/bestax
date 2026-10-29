@@ -112,6 +112,26 @@ Field/Control/message props. `TextArea` adds `rows` and `hasFixedSize`.
 
 File input with `label`, `message`, color/size, and icon support.
 
+## Dropzone — `form/Dropzone.tsx`
+
+An area to drop files on or click to pick them. The real `<input type="file">` lies over Bulma's
+boxed `.file`, so `name`, `accept`, `multiple`, `required`, `disabled` and `ref` are the input's,
+and the input holds the chosen files: a plain form submit, `FormData` and React 19 actions carry
+them with no wiring.
+
+- Checks every pick, drop and paste against `accept` (the attribute's syntax: `.pdf`, `image/*`,
+  `application/pdf`), `maxSize` (bytes) and, with `multiple`, `maxFiles`. Without `multiple` a
+  new file replaces the one chosen; with it, files are added and a repeat is skipped.
+- `onFilesChange(files)` gets the whole list on each change; `files` controls it. `onReject`
+  gets `{ file, code }` with `code` one of `file-invalid-type`, `file-too-large`,
+  `too-many-files`.
+- Shows a row per file (name, size, a remove button) and a `help is-danger` line per refusal,
+  and announces both. `showFileList={false}` leaves the list to you.
+- `buttonLabel` is the zone's text and the input's name: keep it short and put details in
+  `hint`, which describes the input. `icon`, `color` and `size` as on `File`.
+- Words: `removeLabel`, `rejectionMessage`, `addedMessage`, `removedMessage`. It doesn't upload:
+  send the files yourself from the form's submit or from `onFilesChange`.
+
 ## Advanced inputs
 
 | Component      | Key props                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |

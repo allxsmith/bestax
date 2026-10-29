@@ -1,0 +1,471 @@
+{
+  "name": "Dropzone",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/dropzone",
+  "docsUrl": "https://bestax.io/docs/api/form/dropzone",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<Dropzone\n  label=\"Attachments\"\n  name=\"attachments\"\n  multiple\n  icon={<Icon name=\"upload\" />}\n  hint=\"Any files, as many as you like\"\n/>"
+    },
+    {
+      "title": "One File of One Type",
+      "code": "<Dropzone\n  label=\"CV\"\n  name=\"cv\"\n  accept=\".pdf,application/pdf\"\n  maxSize={5_000_000}\n  hint=\"PDF up to 5 MB\"\n  required\n/>"
+    },
+    {
+      "title": "Several Files, Up to a Limit",
+      "code": "<Dropzone\n  label=\"Photos\"\n  name=\"photos\"\n  multiple\n  maxFiles={5}\n  accept=\"image/*\"\n  icon={<Icon name=\"images\" />}\n  buttonLabel=\"Choose or drop photos\"\n  hint=\"Up to 5 images\"\n/>"
+    },
+    {
+      "title": "In a Form",
+      "code": "function ApplicationForm() {\n  const [sent, setSent] = useState('');\n  return (\n    <form\n      onSubmit={event => {\n        event.preventDefault();\n        const names = new FormData(event.currentTarget)\n          .getAll('documents')\n          .map(entry => (typeof entry === 'string' ? entry : entry.name));\n        setSent(names.join(', '));\n      }}\n    >\n      <Dropzone\n        label=\"Documents\"\n        name=\"documents\"\n        multiple\n        required\n        hint=\"Required\"\n      />\n      <Buttons>\n        <Button type=\"submit\" color=\"primary\">\n          Send\n        </Button>\n        <Button type=\"reset\">Reset</Button>\n      </Buttons>\n      {sent && <p>Sent: {sent}</p>}\n    </form>\n  );\n}"
+    },
+    {
+      "title": "Controlled",
+      "code": "function ControlledDropzone() {\n  const [files, setFiles] = useState<Array<globalThis.File>>([]);\n  return (\n    <>\n      <Dropzone\n        label=\"Documents\"\n        multiple\n        files={files}\n        onFilesChange={setFiles}\n      />\n      <Buttons>\n        <Button onClick={() => setFiles([])} disabled={files.length === 0}>\n          Clear {files.length} files\n        </Button>\n      </Buttons>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Refusals",
+      "code": "<Dropzone\n  label=\"Spreadsheet\"\n  accept=\".csv,text/csv\"\n  maxSize={1_000_000}\n  hint=\"One CSV up to 1 MB\"\n  rejectionMessage={({ file, code }) =>\n    code === 'file-too-large'\n      ? `${file.name} is over 1 MB. Try splitting it.`\n      : code === 'file-invalid-type'\n        ? `${file.name} isn't a CSV.`\n        : `${file.name}: one file at a time.`\n  }\n  onReject={rejections => console.log(rejections)}\n/>"
+    },
+    {
+      "title": "Your Own List",
+      "code": "function PhotoPreviews() {\n  const [files, setFiles] = useState<Array<globalThis.File>>([]);\n  const [urls, setUrls] = useState<string[]>([]);\n  useEffect(() => {\n    const made = files.map(file => URL.createObjectURL(file));\n    setUrls(made);\n    return () => made.forEach(url => URL.revokeObjectURL(url));\n  }, [files]);\n  return (\n    <>\n      <Dropzone\n        label=\"Photos\"\n        multiple\n        accept=\"image/*\"\n        showFileList={false}\n        files={files}\n        onFilesChange={setFiles}\n      />\n      <Columns isMultiline isMobile>\n        {urls.map((url, index) => (\n          <Column key={url} size=\"one-quarter\">\n            <Image src={url} alt={files[index]?.name ?? ''} size=\"square\" />\n          </Column>\n        ))}\n      </Columns>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Uploading",
+      "code": "function UploadForm() {\n  const [busy, setBusy] = useState(false);\n  return (\n    <form\n      onSubmit={async event => {\n        event.preventDefault();\n        setBusy(true);\n        try {\n          await fetch('/api/upload', {\n            method: 'POST',\n            body: new FormData(event.currentTarget),\n          });\n        } finally {\n          setBusy(false);\n        }\n      }}\n    >\n      <Dropzone label=\"Attachments\" name=\"attachments\" multiple required />\n      {busy && <Progress color=\"primary\" aria-label=\"Uploading\" />}\n      <Button type=\"submit\" color=\"primary\" isLoading={busy}>\n        Upload\n      </Button>\n    </form>\n  );\n}"
+    },
+    {
+      "title": "Opening the Picker From a Button",
+      "code": "function BrowseButton() {\n  const ref = React.useRef<HTMLInputElement>(null);\n  return (\n    <>\n      <Dropzone ref={ref} label=\"Attachments\" multiple />\n      <Button onClick={() => ref.current?.showPicker()}>Browse…</Button>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Colors and Sizes",
+      "code": "<Columns isMultiline>\n  <Column size=\"half\">\n    <Dropzone label=\"Primary\" color=\"primary\" icon={<Icon name=\"upload\" />} />\n  </Column>\n  <Column size=\"half\">\n    <Dropzone label=\"Small and info\" color=\"info\" size=\"small\" />\n  </Column>\n</Columns>"
+    },
+    {
+      "title": "In Another Language",
+      "code": "<LocaleProvider locale=\"de\">\n  <Dropzone\n    label=\"Anhänge\"\n    multiple\n    buttonLabel=\"Dateien wählen oder ablegen\"\n    hint=\"Beliebige Dateien\"\n    removeLabel={file => `${file.name} entfernen`}\n    addedMessage={files =>\n      files.length === 1\n        ? `${files[0].name} hinzugefügt`\n        : `${files.length} Dateien hinzugefügt`\n    }\n    removedMessage={file => `${file.name} entfernt`}\n    rejectionMessage={({ file }) => `${file.name} wurde nicht hinzugefügt`}\n  />\n</LocaleProvider>"
+    },
+    {
+      "title": "Disabled",
+      "code": "<Dropzone label=\"Attachments\" disabled hint=\"Uploads are closed\" />"
+    }
+  ],
+  "accessibility": "- **One control:** the native file input, the zone's one tab stop, named by the zone's text and\n  by a `label` through `htmlFor`. The browser reports its state itself (\"No file chosen\", \"2\n  files\"), in its own language.\n- **Not drag only:** a click on the zone, or Enter or Space on the input, opens the picker, so\n  dropping is never the only way to choose a file (WCAG 2.5.7 and 2.1.1). Dropping needs a pointer\n  and a desktop; on phones the picker is the way in.\n- **Descriptions:** the input's `aria-describedby` points at the `hint`, at the refusals while\n  there are any, and at the Field `message`, after any ids you pass.\n- **Announcements:** additions (\"report.pdf added\", \"2 files added\"), refusals and removals are\n  announced politely through a status region, since a screen reader can't see the list change.\n  Nothing is announced while a file is dragged over the zone.\n- **The list:** a `<ul>` with a row per file, each with a real remove button named \"Remove\" and\n  the file's name. After a removal, focus moves to the next row's button, the one before, or the\n  input.\n- **Drag states:** the zone's dashed border turns solid while files are dragged over it, so the\n  state shows without color, and in forced colors too. Only the files' types can be read during a\n  drag, so the refused look shows only when `accept` names no extension and every type is one it\n  refuses; the drop's result is what counts.\n- **Forced colors:** the drop target's border takes the system highlight color, and the remove\n  buttons keep their circle and cross in the system's button colors, which Bulma's delete button\n  otherwise loses there.\n- **No ARIA drag attributes:** `aria-dropeffect` and `aria-grabbed` are deprecated, and nothing\n  overrides the input's role.",
+  "related": ["Field", "Fieldset", "File", "Progress", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-dropzone--default",
+  "summary": "The `Dropzone` component is an area to drop files on or click to pick them, which checks each file and lists the chosen ones with a way to remove each. It's Bulma's boxed, full-width file widget with the real `<input type=\"file\">` lying over it, so the input is the one tab stop, the click target and the drop target, and Enter and Space open the picker. The input holds the chosen files: a pick, drop or paste that passes the checks is written to it, so a form submits the files under `name`. It doesn't upload anything.",
+  "import": "import { Dropzone } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/Dropzone.tsx",
+  "rootClass": "dropzone",
+  "parts": [
+    {
+      "path": "Dropzone",
+      "summary": "The `Dropzone` component is an area to drop files on or click to pick them, which checks each file and lists the chosen ones with a way to remove each. It's Bulma's boxed, full-width file widget with the real `<input type=\"file\">` lying over it, so the input is the one tab stop, the click target and the drop target, and Enter and Space open the picker. The input holds the chosen files: a pick, drop or paste that passes the checks is written to it, so a form submits the files under `name`. It doesn't upload anything.",
+      "component": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field label, rendered above the zone. It names the input along with the zone's own text, through `htmlFor` (your `id` when you pass one). Inside an outer `Field` it's dropped, and that `Field`'s label names the input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
+          "default": null,
+          "description": "Bulma color modifier for the zone, as `File` takes it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size modifier for the zone.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "buttonLabel",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The zone's text. It's the input's accessible name, so keep it short, and put details such as \"PDF up to 5 MB\" in `hint`. Default: \"Choose or drop a file\", or \"Choose or drop files\" with `multiple`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "An icon above the zone's text. It sits inside the `<label>` that names the input, so leave an `Icon` here unnamed (`<Icon name=\"upload\" />`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hint",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "A line under the zone that describes the input through `aria-describedby`, such as \"PDF up to 5 MB\".",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "maxSize",
+          "type": "number",
+          "default": null,
+          "description": "The largest file it takes, in bytes. A bigger one is refused with `file-too-large`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "maxFiles",
+          "type": "number",
+          "default": null,
+          "description": "With `multiple`, how many files the list holds at most. A drop that would go over adds files up to the limit and refuses the rest with `too-many-files`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "files",
+          "type": "File[]",
+          "default": null,
+          "description": "The chosen files, to control the list. The input and the list follow it, and a change you don't take through `onFilesChange` is undone.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onFilesChange",
+          "type": "(files: File[]) => void",
+          "default": null,
+          "description": "Called with the whole list of chosen files each time it changes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onReject",
+          "type": "(rejections: DropzoneRejection[]) => void",
+          "default": null,
+          "description": "Called with the files a pick, drop or paste refused, and why.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "showFileList",
+          "type": "boolean",
+          "default": "true",
+          "description": "Shows the chosen files under the zone, each with its size and a remove button. Turn it off to show them your own way from `onFilesChange`. The refusals still show.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "allowPaste",
+          "type": "boolean",
+          "default": "true",
+          "description": "Takes files pasted while the input has focus, through the same checks as a drop.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "preventDocumentDrop",
+          "type": "boolean",
+          "default": "true",
+          "description": "While it's on the page, stops the browser opening a file dropped outside any drop target, which would leave the page. Drops on other file inputs and on editable fields are left alone.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "removeLabel",
+          "type": "(file: File) => string",
+          "default": null,
+          "description": "Names a file's remove button, for localization. Default: `` `Remove ${file.name}` ``.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "rejectionMessage",
+          "type": "(rejection: DropzoneRejection) => string",
+          "default": null,
+          "description": "The text shown and announced for a refused file, for localization. Default: the file's name and the reason, such as \"photo.png: only PDF files\".",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "addedMessage",
+          "type": "(files: File[]) => string",
+          "default": null,
+          "description": "What's announced when files are added, for localization. Default: the file's name and \"added\", or a count (\"2 files added\").",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "removedMessage",
+          "type": "(file: File) => string",
+          "default": null,
+          "description": "What's announced when a file is removed, for localization. Default: `` `${file.name} removed` ``.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Help or validation message under the Dropzone. It describes the input through `aria-describedby`, after the hint and any refusals.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the root.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelSize",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size for the label (used in horizontal layouts).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "horizontal",
+          "type": "boolean",
+          "default": "false",
+          "description": "Horizontal field layout.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "messageColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color for the message.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "fieldClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Field wrapper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "accept",
+          "type": "string",
+          "default": null,
+          "description": "File types it takes, as the native attribute writes them (`.pdf`, `image/*`, `application/pdf`). The picker offers them, and Dropzone checks every pick, drop and paste against them by the same rules, since browsers don't check a dropped file. It goes by a file's name and type, not its contents.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "multiple",
+          "type": "boolean",
+          "default": "false",
+          "description": "Takes several files, and each pick, drop or paste adds to the list. Without it, a new file replaces the one chosen.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "The files' name in the form's data. The input holds the chosen files, so a plain form submit, `FormData` and React 19 actions all carry them.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": "false",
+          "description": "The browser's own check: a form won't submit with no file chosen.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disables the input, hides the remove buttons and takes no drops. A disabled `Fieldset` around it does the same.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(event: React.ChangeEvent<HTMLInputElement>) => void",
+          "default": null,
+          "description": "Called on the input's `change`, after each pick, drop, paste or removal that changes the files, with `event.target.files` holding the new list.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Forwarded to the `<input>`, so `ref.current.showPicker()` opens the picker from a button of your own.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <input> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the `.dropzone` root `<div>`, with `className`. The other attributes go on the `<input>`.",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-dropzone-border-style",
+      "sass": "$dropzone-border-style",
+      "default": "dashed",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dropzone-border-width",
+      "sass": "$dropzone-border-width",
+      "default": "2px",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dropzone-min-height",
+      "sass": "$dropzone-min-height",
+      "default": "8rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dropzone-dragover-border-color",
+      "sass": "$dropzone-dragover-border-color",
+      "default": "var(--bulma-primary)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dropzone-reject-border-color",
+      "sass": "$dropzone-reject-border-color",
+      "default": "var(--bulma-danger)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dropzone-disabled-opacity",
+      "sass": "$dropzone-disabled-opacity",
+      "default": "0.5",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dropzone-spacing",
+      "sass": "$dropzone-spacing",
+      "default": "0.5rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dropzone-item-background",
+      "sass": "$dropzone-item-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dropzone-item-border-color",
+      "sass": "$dropzone-item-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dropzone-item-border-width",
+      "sass": "$dropzone-item-border-width",
+      "default": "var(--bulma-control-border-width)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dropzone-item-radius",
+      "sass": "$dropzone-item-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dropzone-item-padding",
+      "sass": "$dropzone-item-padding",
+      "default": "0.5em 0.75em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dropzone-item-gap",
+      "sass": "$dropzone-item-gap",
+      "default": "0.75em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dropzone-item-spacing",
+      "sass": "$dropzone-item-spacing",
+      "default": "0.25rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dropzone-name-color",
+      "sass": "$dropzone-name-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dropzone-size-color",
+      "sass": "$dropzone-size-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-dropzone-size-font-size",
+      "sass": "$dropzone-size-font-size",
+      "default": "var(--bulma-size-small)",
+      "scope": "root"
+    }
+  ],
+  "cssVarsFrom": "File"
+}

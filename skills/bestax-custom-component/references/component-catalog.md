@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-113 documented components. Generated from the API docs — every exported
+114 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -124,6 +124,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [DateInput](https://bestax.io/docs/api/form/datetime/dateinput) — The `DateInput` component is a form input that opens a popover calendar for date selection.
 - [DateRangeInput](https://bestax.io/docs/api/form/datetime/daterangeinput) — The `DateRangeInput` component is a form input for a start and end date, picked from one popover calendar or typed into two segmented inputs.
 - [DateTimeInput](https://bestax.io/docs/api/form/datetime/datetimeinput) — The `DateTimeInput` combines a calendar and a time **wheel spinner** in a single popover — an iOS-style layout.
+- [Dropzone](https://bestax.io/docs/api/form/dropzone) — The `Dropzone` component is an area to drop files on or click to pick them, which checks each file and lists the chosen ones with a way to remove each.
 - [Field](https://bestax.io/docs/api/form/field) — The `Field` component is a Bulma-styled form field container.
 - [Fieldset](https://bestax.io/docs/api/form/fieldset) — The `Fieldset` component groups a section of a form in a native `<fieldset>`, named by its `legend`, which a `disabled` switches off as a whole.
 - [File](https://bestax.io/docs/api/form/file) — The `File` component provides a Bulma-styled file input, supporting color, size, boxed/fullwidth/align styles, icons, "has name", and filename display.
