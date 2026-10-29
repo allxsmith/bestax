@@ -275,7 +275,7 @@ jobs:
           # that reddens a block job weeks after a flip. Denied, not allow-listed
           # (#578).
           TURBO_TELEMETRY_DISABLED: '1'
-        uses: anthropics/claude-code-action@e4a6faad497d33dbc7144135c75e41f82f0bf6c0 # v1.0.255
+        uses: anthropics/claude-code-action@8041f1d17e0e7d2f2cfe35002962e9f26237c0bb # v1.0.263
         with:
           # OAuth token from a Claude Pro/Max subscription (flat cost, no
           # per-token dollar billing). Generate with `claude setup-token` and
