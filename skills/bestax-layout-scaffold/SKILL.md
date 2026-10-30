@@ -107,7 +107,8 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `table.state.selected` or call `table.setFilter`; `useDataTable({ columns, data, … })` returns
   the same table for `<DataTable table={table} />` or for markup of your own through its
   `get…Props` getters; `manual` with `rowCount` hands sorting, filtering and paging to a server.
-  A table with nothing to sort, search or pick stays `Table`.
+  `table.toCSV()` writes what's shown as CSV, escaping formulas, for a download button; there's
+  no Excel export. A table with nothing to sort, search or pick stays `Table`.
 - **An order's history, a ticket's activity, a changelog or an activity feed is `Timeline`**,
   not a hand-built list with a border down the side: `<Timeline titleAs="h3">` with a
   `<Timeline.Item title="Shipped" time="14 October 2026" dateTime="2026-10-14">` per event, any

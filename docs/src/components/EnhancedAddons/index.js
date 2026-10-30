@@ -88,7 +88,7 @@ const ADDONS = [
     name: 'DataTable',
     icon: 'datatable',
     link: '/docs/api/components/datatable',
-    desc: 'A table people can sort, search, page through and pick rows from, built on Bulma’s own table, checkboxes and pager.',
+    desc: 'A table people can sort, search, page through and pick rows from, on Bulma’s own table, and download as CSV.',
   },
   {
     name: 'Dialog',

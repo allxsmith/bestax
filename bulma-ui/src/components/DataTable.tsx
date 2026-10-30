@@ -26,6 +26,7 @@ import {
 
 export { useDataTable } from './useDataTable';
 export type {
+  DataTableCSVOptions,
   DataTableCellContext,
   DataTableCellProps,
   DataTableCheckboxProps,
