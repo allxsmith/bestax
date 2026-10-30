@@ -104,6 +104,7 @@ const BESTAX = {
   'CheckboxCard / RadioCard': 'form/checkboxcard',
   Combobox: 'form/combobox',
   Control: 'form/control',
+  Dropzone: 'form/dropzone',
   Field: 'form/field',
   Fieldset: 'form/fieldset',
   File: 'form/file',
@@ -1792,7 +1793,7 @@ export const categories = [
     rows: [
       [
         'Dropzone (drag-drop upload)',
-        0,
+        'Dropzone',
         'Dropzone',
         0,
         0,

@@ -13111,6 +13111,7 @@
     "daterangeinput": "DateRangeInput",
     "description-list": "DescriptionList",
     "dialog": "Dialog",
+    "dropzone": "Dropzone",
     "empty-state": "EmptyState",
     "fieldset": "Fieldset",
     "hover-card": "HoverCard",
@@ -13142,7 +13143,13 @@
     "tbody": { "target": "Table.Tbody", "props": [] },
     "tfoot": { "target": "Table.Tfoot", "props": [] },
     "tr": { "target": "Table.Tr", "props": ["isSelected", "color"] },
-    "th": { "target": "Table.Th", "props": ["isAligned", "width", "color"] },
-    "td": { "target": "Table.Td", "props": ["isAligned", "color"] }
+    "th": {
+      "target": "Table.Th",
+      "props": ["isAligned", "isNarrow", "isVcentered", "width", "color"]
+    },
+    "td": {
+      "target": "Table.Td",
+      "props": ["isAligned", "isNarrow", "isVcentered", "color"]
+    }
   }
 }

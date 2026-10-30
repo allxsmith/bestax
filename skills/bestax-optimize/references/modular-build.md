@@ -88,7 +88,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 **Form** (`@allxsmith/bestax-bulma/scss/form/<name>`):
 `checkbox`, `checkboxcard`, `radio`, `radiocard`, `switch`, `slider`, `numberinput`, `pininput`,
 `rate`, `autocomplete`, `combobox`, `taginput`, `picker-popover`, `dateinput`, `timeinput`,
-`datetimeinput`, `daterangeinput`, `file`, `fieldset`, `colorpicker`
+`datetimeinput`, `daterangeinput`, `file`, `fieldset`, `dropzone`, `colorpicker`
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `colorswatch`,
 `descriptionlist`, `kbd`, `linkbutton`, `loader`, `notification`, `progress`, `ringprogress`,
@@ -130,6 +130,10 @@ Notes:
   @use '@allxsmith/bestax-bulma/scss/form/file' as bestax-file;
   ```
 
+- `Dropzone`'s zone is Bulma's file widget, so an app using it needs `bulma/sass/form/file` and the
+  `file` partial (its keyboard focus ring) next to `scss/form/dropzone`, plus
+  `bulma/sass/elements/delete` for the remove buttons and `bulma/sass/form/tools` for its help
+  lines.
 - `DateInput`/`TimeInput`/`DateTimeInput` also need `picker-popover`.
 - `DateRangeInput` needs `daterangeinput` for its field and `dateinput` for its calendar, and
   `picker-popover` too.

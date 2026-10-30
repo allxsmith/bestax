@@ -535,6 +535,22 @@ A Bulma-styled file input with support for color, size, boxed/fullwidth/align st
 
 [View full documentation.](../../api/form/file)
 
+### Dropzone
+
+An area to drop files on or click to pick them, which checks each one against `accept`, `maxSize` and `maxFiles`, lists the chosen files with a remove button each, and says why it refused any. The input holds the files, so a form submits them under `name`. Use `File` instead for a single pick shown by its name.
+
+```tsx live
+<Dropzone
+  label="Attachments"
+  name="attachments"
+  multiple
+  maxFiles={5}
+  hint="Up to 5 files"
+/>
+```
+
+[View full documentation.](../../api/form/dropzone)
+
 ---
 
 ## Layout

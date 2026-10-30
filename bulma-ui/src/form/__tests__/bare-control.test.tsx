@@ -18,6 +18,7 @@ import { PinInput } from '../PinInput';
 import { Rate } from '../Rate';
 import { ColorPicker } from '../ColorPicker';
 import { File as FileInput } from '../File';
+import { Dropzone } from '../Dropzone';
 import { Taginput } from '../Taginput';
 import { Combobox } from '../Combobox';
 import { resetDevWarnings } from '../../helpers/devWarnings';
@@ -142,6 +143,12 @@ const wrappers: Wrapper[] = [
     // pass Control-level props skip it, since it renders no Control.
     render: p => <FileInput {...(p as FormFieldProps)} />,
     root: '.file',
+    ownControl: false,
+  },
+  {
+    name: 'Dropzone',
+    render: p => <Dropzone {...p} />,
+    root: '.dropzone',
     ownControl: false,
   },
   {

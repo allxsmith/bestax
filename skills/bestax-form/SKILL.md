@@ -113,6 +113,7 @@ All import from `@allxsmith/bestax-bulma`. Convenience components auto-wrap Fiel
 | `CheckboxCard` / `RadioCard`                            | A checkbox or radio as a card with a title and a description.             |
 | `Switch`                                                | Toggle switch (`isRounded`, `isThin`, `isOutlined`, RTL).                 |
 | `File`                                                  | File upload input with label/message.                                     |
+| `Dropzone`                                              | Drop or pick files; checks `accept`/size/count, lists them, form-ready.   |
 | `Autocomplete`                                          | Free text with suggestions it filters for you, + keyboard nav.            |
 | `Combobox`                                              | A value from a list: `data` for a select, tags or groups, or parts.       |
 | `Slider`                                                | Range slider; single/dual thumbs, steps, tooltips, vertical.              |
@@ -294,7 +295,7 @@ multi-field form plus the advanced inputs.
 ## Reuse the shipped components
 
 bestax ships the whole form surface — Input, Select, TextArea, Checkbox(es), Radio(s), Switch, File,
-Autocomplete, Combobox, Slider, Numberinput, PinInput, Rate, Taginput, the date/time inputs, and
+Dropzone, Autocomplete, Combobox, Slider, Numberinput, PinInput, Rate, Taginput, the date/time inputs, and
 Fieldset to group them (see the inventory above). **Compose these; don't hand-roll raw `<input class="input">` markup or
 reinvent a control.** If you think a control is missing, check `bulma-ui/src/index.ts` and
 `docs/docs/api/form/` first — it's probably already there under a different name.

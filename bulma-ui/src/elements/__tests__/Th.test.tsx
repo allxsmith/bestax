@@ -189,6 +189,99 @@ describe('Th Component', () => {
     expect(th).toHaveStyle({ width: '10rem' });
   });
 
+  test('keeps the width when a style is passed too', () => {
+    render(
+      <table>
+        <thead>
+          <tr>
+            <Th {...defaultProps} width={120} style={{ color: 'red' }} />
+          </tr>
+        </thead>
+      </table>
+    );
+    const th = screen.getByRole('columnheader', { name: 'Test' });
+    expect(th).toHaveStyle({ width: '120px', color: 'rgb(255, 0, 0)' });
+  });
+
+  test('lets a width in style win over the width prop', () => {
+    render(
+      <table>
+        <thead>
+          <tr>
+            <Th {...defaultProps} width={120} style={{ width: '50%' }} />
+          </tr>
+        </thead>
+      </table>
+    );
+    const th = screen.getByRole('columnheader', { name: 'Test' });
+    expect(th).toHaveStyle({ width: '50%' });
+  });
+
+  test('keeps the width when the style names a width it leaves undefined', () => {
+    render(
+      <table>
+        <thead>
+          <tr>
+            <Th
+              {...defaultProps}
+              width={120}
+              style={{ width: undefined, color: 'red' }}
+            />
+          </tr>
+        </thead>
+      </table>
+    );
+    const th = screen.getByRole('columnheader', { name: 'Test' });
+    expect(th).toHaveStyle({ width: '120px', color: 'rgb(255, 0, 0)' });
+  });
+
+  test('passes a style through when there is no width', () => {
+    render(
+      <table>
+        <thead>
+          <tr>
+            <Th {...defaultProps} style={{ color: 'red' }} />
+          </tr>
+        </thead>
+      </table>
+    );
+    const th = screen.getByRole('columnheader', { name: 'Test' });
+    expect(th).toHaveStyle({ color: 'rgb(255, 0, 0)' });
+    expect(th.style.width).toBe('');
+  });
+
+  test.each([
+    ['isNarrow', 'is-narrow'],
+    ['isVcentered', 'is-vcentered'],
+  ])('applies %s as %s', (prop, expectedClass) => {
+    render(
+      <table>
+        <thead>
+          <tr>
+            <Th {...defaultProps} {...{ [prop]: true }} />
+          </tr>
+        </thead>
+      </table>
+    );
+    const th = screen.getByRole('columnheader', { name: 'Test' });
+    expect(th).toHaveClass(expectedClass);
+  });
+
+  test('adds neither cell modifier by default', () => {
+    render(
+      <table>
+        <thead>
+          <tr>
+            <Th {...defaultProps} />
+          </tr>
+        </thead>
+      </table>
+    );
+    const th = screen.getByRole('columnheader', { name: 'Test' });
+    expect(th).not.toHaveClass('is-narrow');
+    expect(th).not.toHaveClass('is-vcentered');
+  });
+
   test('does not apply style when width is undefined', () => {
     render(
       <table>
@@ -372,6 +465,25 @@ describe('Th Component', () => {
       const th = screen.getByRole('columnheader', { name: 'Test' });
       expect(th).toHaveClass('is-primary');
       expect(th).toHaveClass('has-text-centered');
+    });
+
+    it('prefixes the cell modifiers', () => {
+      render(
+        <ConfigProvider classPrefix="bestax-">
+          <table>
+            <thead>
+              <tr>
+                <Th isNarrow isVcentered>
+                  Test
+                </Th>
+              </tr>
+            </thead>
+          </table>
+        </ConfigProvider>
+      );
+      const th = screen.getByRole('columnheader', { name: 'Test' });
+      expect(th).toHaveClass('bestax-is-narrow', 'bestax-is-vcentered');
+      expect(th).not.toHaveClass('is-narrow');
     });
 
     it('applies prefix to both modifier and helper classes', () => {

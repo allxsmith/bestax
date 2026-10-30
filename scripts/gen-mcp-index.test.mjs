@@ -1104,7 +1104,7 @@ test('the class table names what styles a class Bulma 1 lacks, and who renders a
   // The table parts, with the props their records list, read off those records.
   assert.deepEqual(byHand.th, {
     target: 'Table.Th',
-    props: ['isAligned', 'width', 'color'],
+    props: ['isAligned', 'isNarrow', 'isVcentered', 'width', 'color'],
   });
   assert.equal(byHand.td.target, 'Table.Td');
   assert.ok(!Object.hasOwn(byHand, 'div'));

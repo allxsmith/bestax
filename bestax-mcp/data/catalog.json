@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.54.0"
+    "version": "5.54.1"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -100,6 +100,7 @@
         "DateInput",
         "DateRangeInput",
         "DateTimeInput",
+        "Dropzone",
         "Field",
         "Fieldset",
         "File",
@@ -574,6 +575,17 @@
       "exampleCount": 9
     },
     {
+      "name": "Dropzone",
+      "kind": "component",
+      "category": "form",
+      "purpose": "The `Dropzone` component is an area to drop files on or click to pick them, which checks each file and lists the chosen ones with a way to remove each.",
+      "slug": "form/dropzone",
+      "import": "import { Dropzone } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 25,
+      "exampleCount": 12
+    },
+    {
       "name": "Emphasis",
       "kind": "component",
       "category": "elements",
@@ -637,7 +649,7 @@
       "import": "import { File, Icon } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 23,
-      "exampleCount": 17
+      "exampleCount": 18
     },
     {
       "name": "Footer",
@@ -1208,8 +1220,8 @@
       "slug": "elements/table",
       "import": "import { Table, Thead, Tbody, Tfoot, Tr, Th, Td } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 28,
-      "exampleCount": 7
+      "propCount": 32,
+      "exampleCount": 8
     },
     {
       "name": "Tabs",
@@ -1887,6 +1899,23 @@
     "--bulma-dropdown-item-selected-l": ["Dropdown"],
     "--bulma-dropdown-item-selected-s": ["Dropdown"],
     "--bulma-dropdown-menu-min-width": ["Dropdown"],
+    "--bulma-dropzone-border-style": ["Dropzone"],
+    "--bulma-dropzone-border-width": ["Dropzone"],
+    "--bulma-dropzone-disabled-opacity": ["Dropzone"],
+    "--bulma-dropzone-dragover-border-color": ["Dropzone"],
+    "--bulma-dropzone-item-background": ["Dropzone"],
+    "--bulma-dropzone-item-border-color": ["Dropzone"],
+    "--bulma-dropzone-item-border-width": ["Dropzone"],
+    "--bulma-dropzone-item-gap": ["Dropzone"],
+    "--bulma-dropzone-item-padding": ["Dropzone"],
+    "--bulma-dropzone-item-radius": ["Dropzone"],
+    "--bulma-dropzone-item-spacing": ["Dropzone"],
+    "--bulma-dropzone-min-height": ["Dropzone"],
+    "--bulma-dropzone-name-color": ["Dropzone"],
+    "--bulma-dropzone-reject-border-color": ["Dropzone"],
+    "--bulma-dropzone-size-color": ["Dropzone"],
+    "--bulma-dropzone-size-font-size": ["Dropzone"],
+    "--bulma-dropzone-spacing": ["Dropzone"],
     "--bulma-empty-state-description-color": ["EmptyState"],
     "--bulma-empty-state-description-max-width": ["EmptyState"],
     "--bulma-empty-state-description-size": ["EmptyState"],

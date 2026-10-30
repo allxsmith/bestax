@@ -19,6 +19,7 @@ import { Numberinput } from '../Numberinput';
 import { PinInput } from '../PinInput';
 import { Rate } from '../Rate';
 import { Taginput } from '../Taginput';
+import { Dropzone } from '../Dropzone';
 import { Autocomplete } from '../Autocomplete';
 import { Combobox } from '../Combobox';
 import { DateInputBase } from '../DateInputBase';
@@ -355,6 +356,20 @@ describe('Fieldset disabled', () => {
       c => {
         expect(c.querySelector('.taginput')).toHaveClass('is-disabled');
         // A disabled Taginput shows no remove buttons on its tags.
+        expect(c.querySelector('.delete')).toBeNull();
+      },
+    ],
+    [
+      'Dropzone',
+      <Dropzone
+        key="dz"
+        aria-label="x"
+        files={[new File(['%PDF'], 'a.pdf', { type: 'application/pdf' })]}
+      />,
+      c => {
+        expect(c.querySelector('.dropzone')).toHaveClass('is-disabled');
+        expect(c.querySelector('input')).toHaveAttribute('disabled');
+        // Nor does a disabled Dropzone on its files.
         expect(c.querySelector('.delete')).toBeNull();
       },
     ],
