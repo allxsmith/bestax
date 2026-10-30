@@ -97,6 +97,17 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   "Clear search" put focus back in the field. While data loads show a `Skeleton` or a `Loader`,
   and a failed load is a `Message` or a `Notification`, never an EmptyState. The archetypes
   reference has the full pattern under Card grid.
+- **A table people sort, search, page through or pick rows from is `DataTable`**, not a `Table`
+  with sort state, `aria-sort`, checkboxes and a `Pagination` wired by hand:
+  `<DataTable caption="Users" columns={[{ id: 'name', header: 'Name', sortable: true, isRowHeader: true }, …]} data={rows} selectionMode="multiple" pageSize={10} hasSearch />`.
+  A column is `{ id, header }`, reading `row[id]`, plus `accessor` (the raw value, which sorts),
+  `format` (its text, which the cell shows and the search matches) and `cell` (rich content).
+  It needs a `caption`, `aria-label` or `aria-labelledby`, and it shows its own `EmptyState` and
+  says the match count itself. `toolbar={table => …}` holds buttons that act on
+  `table.state.selected` or call `table.setFilter`; `useDataTable({ columns, data, … })` returns
+  the same table for `<DataTable table={table} />` or for markup of your own through its
+  `get…Props` getters; `manual` with `rowCount` hands sorting, filtering and paging to a server.
+  A table with nothing to sort, search or pick stays `Table`.
 - **An order's history, a ticket's activity, a changelog or an activity feed is `Timeline`**,
   not a hand-built list with a border down the side: `<Timeline titleAs="h3">` with a
   `<Timeline.Item title="Shipped" time="14 October 2026" dateTime="2026-10-14">` per event, any

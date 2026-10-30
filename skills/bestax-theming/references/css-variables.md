@@ -512,6 +512,18 @@ The menu inside that box is Bulma's dropdown markup, and the box is a `.dropdown
 takes a value set on the box: `.dropdown.context-menu-content { --bulma-dropdown-content-radius: … }`
 changes context menus and leaves `Dropdown` alone.
 
+### DataTable
+
+`--bulma-data-table-gap` is declared on the root, `.data-table`, and spaces the toolbar's items
+and the toolbar from the table. The sort button declares its own on `.data-table-sort`, so markup
+built from `useDataTable`'s props looks the same with no `.data-table` around it: set those on
+`.data-table-sort` too. The table, its checkboxes and its pager are Bulma's, themed with
+`--bulma-table-*`, `--bulma-checkbox-*` and `--bulma-pagination-*`, and a selected row is
+`--bulma-table-row-active-background-color` and `--bulma-table-row-active-color`.
+
+`--bulma-data-table-gap`, `--bulma-data-table-sort-gap`, `--bulma-data-table-sort-indicator-size`,
+`--bulma-data-table-sort-unsorted-opacity`
+
 ### DateInput
 
 `--bulma-dateinput-cell-color`, `--bulma-dateinput-cell-disabled-color`,

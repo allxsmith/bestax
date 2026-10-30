@@ -418,6 +418,30 @@ A tree of items you browse and pick from, the way a file explorer works: one tab
 
 ---
 
+### DataTable
+
+A table of records people can sort, search, page through and pick rows from, rendered with the `Table` parts, `Checkbox` and `Pagination`. Give it `columns` and `data`, and `useDataTable` runs the same table for markup of your own. [View full documentation.](../../api/components/datatable.md)
+
+```tsx live
+<DataTable
+  caption="Users"
+  columns={[
+    { id: 'name', header: 'Name', sortable: true, isRowHeader: true },
+    { id: 'role', header: 'Role', sortable: true },
+  ]}
+  data={[
+    { id: 'u1', name: 'Ada Lovelace', role: 'Admin' },
+    { id: 'u2', name: 'Alan Turing', role: 'Editor' },
+    { id: 'u3', name: 'Grace Hopper', role: 'Viewer' },
+  ]}
+  selectionMode="multiple"
+  hasSearch
+  isFullwidth
+/>
+```
+
+---
+
 ### Reveal
 
 Animates content into view as it scrolls onto screen, powered by IntersectionObserver. Supports cascading children and respects `prefers-reduced-motion`. [View full documentation.](../../api/components/reveal.md)
