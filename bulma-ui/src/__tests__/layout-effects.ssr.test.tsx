@@ -23,6 +23,7 @@ import { DataTable } from '../components/DataTable';
 import { Splitter } from '../layout/Splitter';
 import { Slider } from '../form/Slider';
 import { PinInput } from '../form/PinInput';
+import { ColorPicker } from '../form/ColorPicker';
 import { DateInput } from '../form/DateInput';
 import { TimeInput } from '../form/TimeInput';
 import { DateTimeInput } from '../form/DateTimeInput';
@@ -110,6 +111,10 @@ const cases: Array<[string, React.ReactElement]> = [
   ],
   ['Slider', <Slider key="slider" label="Volume" />],
   ['PinInput', <PinInput key="pin" label="Code" defaultValue="12" />],
+  [
+    'ColorPicker',
+    <ColorPicker key="color" label="Color" alpha swatches={['red']} />,
+  ],
   ['DateInput', <DateInput key="date" label="Date" />],
   ['TimeInput', <TimeInput key="time" label="Time" />],
   ['DateTimeInput', <DateTimeInput key="datetime" label="When" />],

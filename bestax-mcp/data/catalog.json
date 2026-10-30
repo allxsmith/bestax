@@ -15,6 +15,7 @@
         "Button",
         "Buttons",
         "Code",
+        "ColorSwatch",
         "Content",
         "Delete",
         "DescriptionList",
@@ -94,6 +95,7 @@
         "Checkbox",
         "CheckboxCard",
         "Checkboxes",
+        "ColorPicker",
         "Combobox",
         "Control",
         "DateInput",
@@ -363,6 +365,28 @@
       "compound": true,
       "propCount": 19,
       "exampleCount": 8
+    },
+    {
+      "name": "ColorPicker",
+      "kind": "component",
+      "category": "form",
+      "purpose": "The `ColorPicker` component is a panel for choosing a color: a saturation and brightness square, a hue slider, and the value as text, with alpha and swatches…",
+      "slug": "form/colorpicker",
+      "import": "import { ColorPicker } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 27,
+      "exampleCount": 11
+    },
+    {
+      "name": "ColorSwatch",
+      "kind": "component",
+      "category": "elements",
+      "purpose": "The `ColorSwatch` component shows a color as a small chip, named by its label or by the color itself.",
+      "slug": "elements/colorswatch",
+      "import": "import { ColorSwatch } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 7,
+      "exampleCount": 5
     },
     {
       "name": "Column",
@@ -725,7 +749,7 @@
       "import": "import { Input, Field, Control, Button, Select, Icon } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 29,
-      "exampleCount": 31
+      "exampleCount": 32
     },
     {
       "name": "Kbd",
@@ -1629,6 +1653,33 @@
     "--bulma-collapse-radius": ["Collapse"],
     "--bulma-collapse-trigger-icon-margin": ["Collapse"],
     "--bulma-collapse-trigger-icon-size": ["Collapse"],
+    "--bulma-color-picker-area-height": ["ColorPicker"],
+    "--bulma-color-picker-area-radius": ["ColorPicker"],
+    "--bulma-color-picker-checker-background": ["ColorPicker"],
+    "--bulma-color-picker-checker-color": ["ColorPicker"],
+    "--bulma-color-picker-checker-size": ["ColorPicker"],
+    "--bulma-color-picker-disabled-opacity": ["ColorPicker"],
+    "--bulma-color-picker-edge-color": ["ColorPicker"],
+    "--bulma-color-picker-gap": ["ColorPicker"],
+    "--bulma-color-picker-preview-size": ["ColorPicker"],
+    "--bulma-color-picker-slider-height": ["ColorPicker"],
+    "--bulma-color-picker-swatch-gap": ["ColorPicker"],
+    "--bulma-color-picker-swatch-radius": ["ColorPicker"],
+    "--bulma-color-picker-swatch-ring-color": ["ColorPicker"],
+    "--bulma-color-picker-swatch-size": ["ColorPicker"],
+    "--bulma-color-picker-thumb-border-width": ["ColorPicker"],
+    "--bulma-color-picker-thumb-color": ["ColorPicker"],
+    "--bulma-color-picker-thumb-shadow": ["ColorPicker"],
+    "--bulma-color-picker-thumb-size": ["ColorPicker"],
+    "--bulma-color-picker-track-height": ["ColorPicker"],
+    "--bulma-color-picker-track-radius": ["ColorPicker"],
+    "--bulma-color-picker-width": ["ColorPicker"],
+    "--bulma-color-swatch-checker-background": ["ColorSwatch"],
+    "--bulma-color-swatch-checker-color": ["ColorSwatch"],
+    "--bulma-color-swatch-checker-size": ["ColorSwatch"],
+    "--bulma-color-swatch-edge-color": ["ColorSwatch"],
+    "--bulma-color-swatch-radius": ["ColorSwatch"],
+    "--bulma-color-swatch-size": ["ColorSwatch"],
     "--bulma-column-gap": ["Column"],
     "--bulma-combobox-check-color": ["Combobox"],
     "--bulma-combobox-check-gap": ["Combobox"],
@@ -2935,6 +2986,31 @@
       "path": "CarouselItem",
       "purpose": "Individual carousel item/slide.",
       "standalone": "companion"
+    },
+    "ColorPickerAlphaSlider": {
+      "component": "ColorPicker",
+      "path": "ColorPicker.AlphaSlider",
+      "purpose": "The alpha slider, from see-through to solid."
+    },
+    "ColorPickerArea": {
+      "component": "ColorPicker",
+      "path": "ColorPicker.Area",
+      "purpose": "The saturation and brightness square, operated by pointer or by keyboard as one 2D slider."
+    },
+    "ColorPickerHueSlider": {
+      "component": "ColorPicker",
+      "path": "ColorPicker.HueSlider",
+      "purpose": "The hue slider, from red round the spectrum and back to red."
+    },
+    "ColorPickerInput": {
+      "component": "ColorPicker",
+      "path": "ColorPicker.Input",
+      "purpose": "The value as text you can type in, beside a preview swatch, with the eye dropper when the picker has `eyeDropper`."
+    },
+    "ColorPickerSwatches": {
+      "component": "ColorPicker",
+      "path": "ColorPicker.Swatches",
+      "purpose": "The swatches, a radio group of preset colors that sets the picker's color."
     },
     "ComboboxEmpty": {
       "component": "Combobox",

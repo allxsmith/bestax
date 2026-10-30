@@ -420,6 +420,42 @@ items of a `Collapses` group, which reads it with a 0.5rem fallback and declares
 so set it on the group or on any ancestor, `:root` included. (`Theme`'s `bulmaVars` does not
 list it, so set it in your CSS or through a `style` prop.)
 
+### ColorPicker
+
+Declared on the root, `.color-picker`, and inherited by its parts, so a value set there, or on a
+class passed through `className`, reaches the square, the sliders, the swatches and the value row.
+The square's black, white and hue gradients and the hue track are the color model itself, so they
+take no variable. The thumbs are a white ring between two dark ones
+(`--bulma-color-picker-thumb-color` and `--bulma-color-picker-thumb-shadow`), which shows on any
+color. `--bulma-color-picker-slider-height` is what a press lands on, at least 24px for WCAG 2.5.8,
+and `--bulma-color-picker-track-height` the drawn track inside it. The swatches inside are
+`ColorSwatch`es sized by `--bulma-color-picker-swatch-size`. In forced colors the square and the
+tracks keep their colors with a `CanvasText` edge, and the chosen swatch's ring is `Highlight`,
+whatever these say.
+
+`--bulma-color-picker-area-height`, `--bulma-color-picker-area-radius`,
+`--bulma-color-picker-checker-background`, `--bulma-color-picker-checker-color`,
+`--bulma-color-picker-checker-size`, `--bulma-color-picker-disabled-opacity`,
+`--bulma-color-picker-edge-color`, `--bulma-color-picker-gap`, `--bulma-color-picker-preview-size`,
+`--bulma-color-picker-slider-height`, `--bulma-color-picker-swatch-gap`,
+`--bulma-color-picker-swatch-radius`, `--bulma-color-picker-swatch-ring-color`,
+`--bulma-color-picker-swatch-size`, `--bulma-color-picker-thumb-border-width`,
+`--bulma-color-picker-thumb-color`, `--bulma-color-picker-thumb-shadow`,
+`--bulma-color-picker-thumb-size`, `--bulma-color-picker-track-height`,
+`--bulma-color-picker-track-radius`, `--bulma-color-picker-width`
+
+### ColorSwatch
+
+Declared on the swatch, `.color-swatch`; the size classes set `--bulma-color-swatch-size`. The color
+itself is the component's `color` prop, painted over a checkerboard of
+`--bulma-color-swatch-checker-color` and `--bulma-color-swatch-checker-background`, from scheme
+colors so it follows dark mode. In forced colors it keeps its color and takes a `CanvasText` edge
+in place of `--bulma-color-swatch-edge-color`.
+
+`--bulma-color-swatch-checker-background`, `--bulma-color-swatch-checker-color`,
+`--bulma-color-swatch-checker-size`, `--bulma-color-swatch-edge-color`,
+`--bulma-color-swatch-radius`, `--bulma-color-swatch-size`
+
 ### Combobox
 
 Declared on the root, `.combobox`, and again on a menu rendered with `appendToBody`,

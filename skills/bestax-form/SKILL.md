@@ -121,6 +121,7 @@ All import from `@allxsmith/bestax-bulma`. Convenience components auto-wrap Fiel
 | `PinInput`                                              | A one-time code or PIN as a row of boxes, all in one real input.          |
 | `Rate`                                                  | Star rating; `max`, `precision` (half/quarter), custom icons, `disabled`. |
 | `Taginput`                                              | Tag/chip input; suggestions, confirm keys, closable tags.                 |
+| `ColorPicker`                                           | A color as a CSS string, HSL by default: square, hue, alpha, swatches.    |
 | `DateInput` / `TimeInput` / `DateTimeInput` (+ `*Base`) | Date / time / datetime pickers; month or year via `granularity`.          |
 | `DateRangeInput` (+ `*Base`)                            | Start and end date: `[Date \| null, Date \| null]`, one calendar.         |
 

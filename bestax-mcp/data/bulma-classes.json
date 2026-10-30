@@ -13103,6 +13103,8 @@
     "checkbox-card": "CheckboxCard",
     "collapse": "Collapse",
     "collapses": "Collapses",
+    "color-picker": "ColorPicker",
+    "color-swatch": "ColorSwatch",
     "combobox": "Combobox",
     "command": "Command",
     "context-menu": "ContextMenu",

@@ -1,0 +1,562 @@
+{
+  "name": "ColorPicker",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/colorpicker",
+  "docsUrl": "https://bestax.io/docs/api/form/colorpicker",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<ColorPicker label=\"Brand color\" defaultValue=\"hsl(202, 67%, 36%)\" />"
+    },
+    {
+      "title": "Formats",
+      "code": "<Columns>\n  {(['hsl', 'hex', 'rgb'] as const).map(format => (\n    <Column key={format} isNarrow>\n      <ColorPicker label={format} format={format} defaultValue=\"tomato\" />\n    </Column>\n  ))}\n</Columns>"
+    },
+    {
+      "title": "Alpha",
+      "code": "<ColorPicker label=\"Highlight\" alpha defaultValue=\"hsla(171, 100%, 41%, 0.6)\" />"
+    },
+    {
+      "title": "Swatches",
+      "code": "<ColorPicker\n  label=\"Label color\"\n  format=\"hex\"\n  defaultValue=\"#00d1b2\"\n  swatches={[\n    { color: '#1e6b99', label: 'Ocean' },\n    { color: '#00d1b2', label: 'Turquoise' },\n    { color: '#ff6685', label: 'Pink' },\n    { color: '#ffdd57', label: 'Sunflower' },\n    { color: '#4a4a4a', label: 'Charcoal' },\n  ]}\n/>"
+    },
+    {
+      "title": "The Page's Theme Colors",
+      "code": "<ColorPicker label=\"Accent\" swatches=\"bulma\" />"
+    },
+    {
+      "title": "Controlled, and Saving When Done",
+      "code": "function example() {\n  const [color, setColor] = useState('hsl(348, 86%, 61%)');\n  const [saved, setSaved] = useState(color);\n  return (\n    <>\n      <ColorPicker\n        label=\"Danger\"\n        value={color}\n        onChange={setColor}\n        onChangeEnd={setSaved}\n      />\n      <Paragraph mt=\"3\">\n        Showing <Code>{color}</Code>, saved <Code>{saved}</Code>\n      </Paragraph>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Theming With It",
+      "code": "function example() {\n  const [brand, setBrand] = useState('hsl(202, 67%, 36%)');\n  const [h, s, l] = brand.match(/[\\d.]+/g) ?? [];\n  return (\n    <Columns>\n      <Column isNarrow>\n        <ColorPicker label=\"Primary\" value={brand} onChange={setBrand} />\n      </Column>\n      <Column>\n        <Theme primaryH={h} primaryS={`${s}%`} primaryL={`${l}%`}>\n          <Buttons>\n            <Button color=\"primary\">Primary</Button>\n            <Button color=\"primary\" isOutlined>\n              Outlined\n            </Button>\n          </Buttons>\n        </Theme>\n      </Column>\n    </Columns>\n  );\n}"
+    },
+    {
+      "title": "Picking From the Screen",
+      "code": "<ColorPicker label=\"Sample a color\" eyeDropper />"
+    },
+    {
+      "title": "In a Form",
+      "code": "<form onSubmit={event => event.preventDefault()}>\n  <ColorPicker label=\"Calendar color\" name=\"calendarColor\" format=\"hex\" />\n  <ColorPicker label=\"Locked\" disabled defaultValue=\"#ff6685\" />\n</form>"
+    },
+    {
+      "title": "Right to Left",
+      "code": "<LocaleProvider locale=\"ar\" dir=\"rtl\">\n  <ColorPicker\n    label=\"اللون\"\n    labels={{\n      area: 'التشبع والسطوع',\n      saturation: 'التشبع',\n      brightness: 'السطوع',\n      hue: 'تدرج اللون',\n      value: 'قيمة اللون',\n    }}\n    defaultValue=\"hsl(150, 60%, 40%)\"\n  />\n</LocaleProvider>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<ColorPicker\n  aria-label=\"Accent\"\n  format=\"hex\"\n  defaultValue=\"#00d1b2\"\n  swatches={['#1e6b99', '#00d1b2', '#ff6685', '#ffdd57']}\n>\n  <ColorPicker.Swatches />\n  <ColorPickerArea />\n  <ColorPicker.HueSlider />\n  <ColorPicker.Input />\n</ColorPicker>"
+    }
+  ],
+  "accessibility": "- **The square is one 2D slider made of two native range inputs**, saturation and brightness,\n  the way React Aria builds it. Only the input for the axis moved last is a tab stop, and the\n  other is hidden until a key moves it, so a screen reader lists one control, \"Saturation and\n  brightness, 2D slider\", with value text such as \"Saturation 50%, Brightness 80%\", the moved\n  channel first. On a touch device both inputs stay exposed, so a touch screen reader can adjust\n  each with its own gestures.\n- **Keys in the square:** the arrows move by 1, with Shift by 10; Page Up and Page Down move\n  brightness by 10, and Home and End move saturation by 10. Focus follows the axis a key moved.\n- **The sliders** are native range inputs named \"Hue\" and \"Alpha\", read as \"171 degrees\" and\n  \"50%\". The arrows step by 1, with Shift or Page Up and Page Down by 10, and Home and End go to\n  the ends.\n- **Right to left,** the horizontal arrows follow the screen.\n- **Pointer:** a press anywhere on the square or a track sets the value there, so nothing needs a\n  drag (WCAG 2.5.7), and the sliders, the square and the swatch buttons are at least 24 by 24 CSS\n  pixels (WCAG 2.5.8).\n- **Swatches** are a radio group named \"Swatches\": each swatch is a radio named by its label or\n  its color, the chosen one checked and marked by a check and a ring as well as its color.\n- **The value is always in words:** the field shows it and takes a typed color, and a value it\n  can't read is marked invalid and put back when you leave the field.\n- **The group** is named by its `label`, or by `aria-label`.\n- **Strings** come from `labels`, with English defaults.\n- **Forced colors:** the square, the tracks and the swatches keep their colors with an edge in the\n  system's text color, and the chosen swatch's ring is drawn in the system's highlight color.\n- **The eye dropper** button is named \"Pick a color from the screen\" and only appears where the\n  browser can do it.",
+  "related": ["ColorSwatch", "Slider", "Theme", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-colorpicker--default",
+  "summary": "The `ColorPicker` component is a panel for choosing a color: a saturation and brightness square, a hue slider, and the value as text, with alpha and swatches when asked for. Every part is operable by keyboard, and the square is two native range inputs, one per axis, with one tab stop. The value is a CSS color string in `format`, HSL by default.",
+  "import": "import { ColorPicker } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/ColorPicker.tsx",
+  "rootClass": "color-picker",
+  "parts": [
+    {
+      "path": "ColorPicker",
+      "summary": "The `ColorPicker` component is a panel for choosing a color: a saturation and brightness square, a hue slider, and the value as text, with alpha and swatches when asked for. Every part is operable by keyboard, and the square is two native range inputs, one per axis, with one tab stop. The value is a CSS color string in `format`, HSL by default.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field label naming the picker's group, through `aria-labelledby`. Dropped inside an outer `Field`, whose own label names it instead. An `aria-label` or `aria-labelledby` you set wins over either.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element. An explicit `id` here is used as the `aria-labelledby` target instead of a generated one; any `htmlFor` is ignored (a group label names the group, never a single control).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "default": null,
+          "description": "The color, controlled: any CSS color the picker reads (hex, `rgb()`, `hsl()` or a color name), in any format, since `onChange` hands back the `format` asked for. One it can't read leaves the picker showing the last color it could. A value it gave you comes back without moving the thumbs, and a gray or black keeps the hue and saturation the user had.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "default": null,
+          "description": "The color to start with, uncontrolled. Black without one.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(value: string) => void",
+          "default": null,
+          "description": "Called with the color, in `format`, as it changes: on every step of a drag, and on a key, a swatch, a typed value or the eye dropper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChangeEnd",
+          "type": "(value: string) => void",
+          "default": null,
+          "description": "Called with the color, in `format`, once a change is done: when a drag ends, and with `onChange` for a key, a swatch, a typed value or the eye dropper. The place to save it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "format",
+          "type": "'hsl' | 'hex' | 'rgb'",
+          "default": "'hsl'",
+          "description": "How the value is written: `'hsl'` (`hsl(171, 100%, 41%)`), Bulma's own color space and what `Theme`'s `primaryH`, `primaryS` and `primaryL` take, `'hex'` (`#00d1b2`) or `'rgb'` (`rgb(0, 209, 178)`). With `alpha`, `hsla()`, `#rrggbbaa` and `rgba()`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "alpha",
+          "type": "boolean",
+          "default": "false",
+          "description": "Adds an alpha slider and writes the alpha into the value. Without it, the value is always solid.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "swatches",
+          "type": "ColorPickerSwatch[] | 'bulma'",
+          "default": null,
+          "description": "Preset colors shown as a radio group under the picker: a list of CSS colors, each a string or `{ color, label }`, or `\"bulma\"` for the page's primary, link, info, success, warning and danger, from Bulma's CSS variables, so a themed app shows its own. A color the picker can't read as written, such as a `var()`, is read off the page each time the picker renders, so after a theme change the swatches show the new colors at once and the chosen one is marked again on the picker's next render, which a `Theme` around it causes. The `\"bulma\"` names are English; for others, pass the list yourself, such as `{ color: 'var(--bulma-primary)', label: 'Primär' }`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "eyeDropper",
+          "type": "boolean",
+          "default": "false",
+          "description": "Adds a button that picks a color from anywhere on the screen, where the browser has the EyeDropper API (desktop Chromium today). Elsewhere, and until the page hydrates, it isn't shown.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disables every part. A disabled `Fieldset` around it does too.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "Form field name. When set, a hidden input carries the value.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "form",
+          "type": "string",
+          "default": null,
+          "description": "The id of the form the hidden input belongs to.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "ColorPickerLabels",
+          "default": null,
+          "description": "The strings it says, each with an English default.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Parts for a layout of your own: `ColorPicker.Area`, `ColorPicker.HueSlider`, `ColorPicker.AlphaSlider`, `ColorPicker.Swatches` and `ColorPicker.Input`, with anything else between them. Without children, the picker shows the square, the hue slider, the alpha slider with `alpha`, the value, and the swatches when there are some.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelSize",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size for the label (used in horizontal layouts).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "horizontal",
+          "type": "boolean",
+          "default": "false",
+          "description": "Horizontal field layout.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Help/validation message below the input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "messageColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color for the message.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "fieldClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Field wrapper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the picker's `<div>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "default": null,
+          "description": "Names the picker's group when there's no `label`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "ColorPicker.Area",
+      "summary": "The saturation and brightness square, operated by pointer or by keyboard as one 2D slider.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the square's `<div>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "ColorPicker.HueSlider",
+      "summary": "The hue slider, from red round the spectrum and back to red.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the slider's `<div>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "ColorPicker.AlphaSlider",
+      "summary": "The alpha slider, from see-through to solid.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the slider's `<div>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "ColorPicker.Swatches",
+      "summary": "The swatches, a radio group of preset colors that sets the picker's color.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "swatches",
+          "type": "ColorPickerSwatch[] | 'bulma'",
+          "default": null,
+          "description": "The colors to offer, in place of the picker's own `swatches`: a list, or `\"bulma\"` for the page's theme colors.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the group's `<div>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "ColorPicker.Input",
+      "summary": "The value as text you can type in, beside a preview swatch, with the eye dropper when the picker has `eyeDropper`.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the row's `<div>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-color-picker-width",
+      "sass": "$color-picker-width",
+      "default": "16rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-picker-gap",
+      "sass": "$color-picker-gap",
+      "default": "0.75rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-picker-area-height",
+      "sass": "$color-picker-area-height",
+      "default": "10rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-picker-area-radius",
+      "sass": "$color-picker-area-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-picker-slider-height",
+      "sass": "$color-picker-slider-height",
+      "default": "1.5rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-picker-track-height",
+      "sass": "$color-picker-track-height",
+      "default": "0.75rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-picker-track-radius",
+      "sass": "$color-picker-track-radius",
+      "default": "var(--bulma-radius-rounded)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-picker-thumb-size",
+      "sass": "$color-picker-thumb-size",
+      "default": "1.25rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-picker-thumb-border-width",
+      "sass": "$color-picker-thumb-border-width",
+      "default": "3px",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-picker-thumb-color",
+      "sass": "$color-picker-thumb-color",
+      "default": "hsl(0, 0%, 100%)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-picker-thumb-shadow",
+      "sass": "$color-picker-thumb-shadow",
+      "default": "0 0 0 1px hsla(0, 0%, 0%, 0.45), inset 0 0 0 1px hsla(0, 0%, 0%, 0.45)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-picker-edge-color",
+      "sass": "$color-picker-edge-color",
+      "default": "hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-l), 0.2)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-picker-checker-color",
+      "sass": "$color-picker-checker-color",
+      "default": "var(--bulma-border)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-picker-checker-background",
+      "sass": "$color-picker-checker-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-picker-checker-size",
+      "sass": "$color-picker-checker-size",
+      "default": "0.375rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-picker-swatch-size",
+      "sass": "$color-picker-swatch-size",
+      "default": "1.5rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-picker-swatch-gap",
+      "sass": "$color-picker-swatch-gap",
+      "default": "0.25rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-picker-swatch-radius",
+      "sass": "$color-picker-swatch-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-picker-swatch-ring-color",
+      "sass": "$color-picker-swatch-ring-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-picker-preview-size",
+      "sass": "$color-picker-preview-size",
+      "default": "1.875rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-picker-disabled-opacity",
+      "sass": "$color-picker-disabled-opacity",
+      "default": "0.5",
+      "scope": "root"
+    }
+  ]
+}
