@@ -37,8 +37,11 @@ $colorinput-disabled-opacity: 0.5 !default;
   position: relative;
 
   // Room for the swatch, and for the launcher when it shows, so typed text
-  // doesn't slide under either.
-  > .#{iv.$class-prefix}input {
+  // doesn't slide under either. Bulma gives a rounded input its own side
+  // padding at two classes, so each rule here reaches it at three, which
+  // wins in whichever order the stylesheets load.
+  > .#{iv.$class-prefix}input,
+  > .#{iv.$class-prefix}input.#{iv.$class-prefix}is-rounded {
     padding-inline-start: cv.getVar('colorinput-side-width');
   }
 

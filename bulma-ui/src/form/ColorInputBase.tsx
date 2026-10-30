@@ -247,6 +247,9 @@ export const ColorInputBase = forwardRef<HTMLInputElement, ColorInputBaseProps>(
       swatches,
       eyeDropper,
       labels,
+      // Empty, the panel shows the last color the field held, or black, and
+      // choosing that same color still fills the field.
+      empty: value === '',
     });
 
     const commit = () => {

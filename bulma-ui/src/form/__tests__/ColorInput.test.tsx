@@ -272,6 +272,93 @@ describe('ColorInput', () => {
   });
 
   describe('The panel', () => {
+    it('fills an emptied field with the color it held, chosen again from the panel', () => {
+      const { onChange, onChangeEnd } = setup({
+        defaultValue: '#ff0000',
+        format: 'hex',
+        name: 'brand',
+        swatches: ['#ff0000', '#00d1b2'],
+      });
+      fireEvent.change(field(), { target: { value: '' } });
+      fireEvent.blur(field());
+      expect(field()).toHaveValue('');
+      onChange.mockClear();
+      onChangeEnd.mockClear();
+      open();
+      // The panel shows red, the color it held, and red is chosen again.
+      expect(screen.getAllByRole('radio')[0]).toHaveAttribute(
+        'aria-checked',
+        'true'
+      );
+      fireEvent.click(screen.getAllByRole('radio')[0]);
+      expect(field()).toHaveValue('#ff0000');
+      expect(field()).toHaveAttribute('name', 'brand');
+      expect(onChange).toHaveBeenCalledWith('#ff0000');
+      expect(onChangeEnd).toHaveBeenCalledWith('#ff0000');
+    });
+
+    it('fills a field that was never filled with the black the panel shows, by key or by pointer', () => {
+      const { container, onChange, onChangeEnd } = setup({ format: 'hex' });
+      open();
+      // Saturation is already 0, so the key changes nothing but the field.
+      fireEvent.keyDown(areaX(container), { key: 'ArrowLeft' });
+      expect(field()).toHaveValue('#000000');
+      expect(onChange).toHaveBeenCalledWith('#000000');
+      expect(onChangeEnd).toHaveBeenCalledWith('#000000');
+    });
+
+    it('fills a never-filled field from a press on the square at black', () => {
+      jest
+        .spyOn(Element.prototype, 'getBoundingClientRect')
+        .mockImplementation(function (this: Element) {
+          const size = this.classList.contains('color-area') ? 100 : 0;
+          return {
+            width: size,
+            height: size,
+            top: 0,
+            left: 0,
+            right: size,
+            bottom: size,
+            x: 0,
+            y: 0,
+            toJSON() {},
+          } as DOMRect;
+        });
+      try {
+        const { container, onChange, onChangeEnd } = setup({ format: 'hex' });
+        open();
+        const square = container.querySelector('.color-area') as HTMLElement;
+        // jsdom has no PointerEvent; a MouseEvent of the type carries the
+        // coordinates, and React reads the native event.
+        const press = (type: string, y: number) => {
+          const event = new MouseEvent(type, {
+            bubbles: true,
+            cancelable: true,
+            clientX: 0,
+            clientY: y,
+          });
+          Object.defineProperty(event, 'pointerId', { value: 1 });
+          Object.defineProperty(event, 'pointerType', { value: 'mouse' });
+          fireEvent(square, event);
+        };
+        press('pointerdown', 100);
+        press('pointerup', 100);
+        expect(field()).toHaveValue('#000000');
+        expect(onChange).toHaveBeenCalledWith('#000000');
+        expect(onChangeEnd).toHaveBeenLastCalledWith('#000000');
+      } finally {
+        jest.restoreAllMocks();
+      }
+    });
+
+    it('reports each change once on an empty field', () => {
+      const { onChange, onChangeEnd } = setup({ format: 'hex' });
+      open();
+      fireEvent.keyDown(hue(), { key: 'End' });
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChangeEnd).toHaveBeenCalledTimes(1);
+    });
+
     it('holds the square and the hue, with alpha, swatches and the eye dropper when asked', () => {
       (window as { EyeDropper?: unknown }).EyeDropper = jest.fn();
       const { container, rerender } = render(<ColorInput />);

@@ -91,7 +91,9 @@ describe('ColorInput styles', () => {
   });
 
   it('keeps room on the logical sides, so they swap right to left', () => {
-    expect(find(PLAIN, '.colorinput > .input')).toEqual({
+    expect(
+      find(PLAIN, '.colorinput > .input, .colorinput > .input.is-rounded')
+    ).toEqual({
       'padding-inline-start': 'var(--bulma-colorinput-side-width)',
     });
     expect(find(PLAIN, '.colorinput.has-trigger > .input')).toEqual({
@@ -103,6 +105,27 @@ describe('ColorInput styles', () => {
     expect(
       find(PLAIN, '.colorinput > .colorinput-trigger')['inset-inline-end']
     ).toBe('0');
+  });
+
+  it('outranks Bulma’s rounded input padding, so the order the sheets load in doesn’t matter', () => {
+    // Bulma's `.input.is-rounded` sets both side paddings at two classes.
+    const classes = (selector: string) =>
+      (selector.match(/\.[\w-]+/g) ?? []).length;
+    const padding = PLAIN.filter(r =>
+      Object.keys(r.declarations).some(d => d.startsWith('padding-inline'))
+    );
+    expect(padding).toHaveLength(2);
+    for (const rule of padding) {
+      const rounded = rule.selector
+        .split(',')
+        .map(part => part.trim())
+        .filter(
+          part =>
+            part.endsWith('.input.is-rounded') || part.includes('.has-trigger')
+        );
+      expect(rounded).toHaveLength(1);
+      expect(classes(rounded[0])).toBeGreaterThan(2);
+    }
   });
 
   it('sizes the swatch and launcher with the input', () => {

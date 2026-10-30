@@ -163,6 +163,12 @@ export interface PickerOptions {
   swatches: ColorPickerSwatch[] | 'bulma' | undefined;
   eyeDropper: boolean;
   labels: ColorPickerLabels | undefined;
+  /**
+   * Whether the field the picker serves is empty, as ColorInput's can be.
+   * The picker still shows a color then, and any change, even to that same
+   * color, is reported, so it fills the field.
+   */
+  empty?: boolean;
 }
 
 /**
@@ -181,6 +187,7 @@ export function useColorPicker({
   swatches,
   eyeDropper,
   labels,
+  empty = false,
 }: PickerOptions): ColorPickerContextValue {
   const isControlled = value !== undefined;
   // The color the picker last set or started with, and its text. While
@@ -218,13 +225,13 @@ export function useColorPicker({
       const solid = alpha ? next : { ...next, a: 1 };
       const nextText = formatColor(solid, format, alpha);
       setOwn({ text: nextText, color: solid });
-      if (nextText !== lastTextRef.current) {
+      if (empty || nextText !== lastTextRef.current) {
         lastTextRef.current = nextText;
         onChange?.(nextText);
       }
       if (finished) onChangeEnd?.(nextText);
     },
-    [disabled, alpha, format, onChange, onChangeEnd]
+    [disabled, alpha, format, onChange, onChangeEnd, empty]
   );
   const end = useCallback(
     () => onChangeEnd?.(lastTextRef.current),
