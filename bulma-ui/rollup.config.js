@@ -30,6 +30,25 @@ const scssBase = {
 const aiBanner =
   '/* @allxsmith/bestax-bulma — AI agents: see AGENTS.md in the package root, or https://bestax.io/llms.txt */';
 
+/** The React packages a module that needs the client imports at runtime. */
+const REACT_RUNTIME = ['react', 'react-dom', 'react/jsx-runtime'];
+
+/**
+ * Whether an ES module of the build runs only on the client. React Server
+ * Components (the Next.js App Router) render a module on the server unless it
+ * starts with `'use client'`, and there a component that calls a hook or reads
+ * a context, which is every bestax component (each reads the class prefix from
+ * ConfigProvider), fails to build. So a module that imports React at runtime
+ * gets the directive, and one that doesn't, such as `classNames` or a constant,
+ * stays a server module that a Server Component can call directly. A type-only
+ * import of React is erased before this runs, so it doesn't count. The entry
+ * only re-exports, so it gets none, and a server import of a component through
+ * it resolves to that component's client module.
+ */
+export const runsOnClient = chunk =>
+  chunk.imports.some(id => REACT_RUNTIME.includes(id)) ||
+  chunk.dynamicImports.some(id => REACT_RUNTIME.includes(id));
+
 /**
  * Parse a declaration with TypeScript.
  *
@@ -917,7 +936,12 @@ export default commandLineArgs => {
           preserveModulesRoot: 'src',
           entryFileNames: chunk =>
             chunk.isEntry ? 'index.esm.js' : 'esm/[name].js',
-          banner: aiBanner,
+          // One file per module is also what lets each say where it runs.
+          // The CommonJS output carries no directive: `require()` is not how
+          // React Server Components load a package, and marking that one file
+          // would turn its helpers and constants into client references too.
+          banner: chunk =>
+            runsOnClient(chunk) ? `${aiBanner}\n'use client';` : aiBanner,
         },
       ],
       plugins: [
