@@ -228,7 +228,7 @@ describe('cli', () => {
         opt.flags.includes('--template')
       );
       expect(templateOption?.description).toBe(
-        'template to use (vite, vite-ts, vite-compiler, vite-compiler-ts, react-router, react-router-ts, tanstack-router-ts)'
+        'template to use (vite, vite-ts, vite-compiler, vite-compiler-ts, react-router, react-router-ts, tanstack-router-ts, next, next-ts)'
       );
     });
 

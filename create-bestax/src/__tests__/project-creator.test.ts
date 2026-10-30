@@ -78,7 +78,7 @@ const fileSystem = await import('../file-system.js');
 const telemetry = await import('../telemetry.js');
 const { runCommand } = await import('../run-command.js');
 const { libraryRange } = await import('../library-range.js');
-const { ProjectCreator } = await import('../project-creator.js');
+const { ProjectCreator, entryFile } = await import('../project-creator.js');
 const listDirectoryEntries =
   fileSystem.listDirectoryEntries as jest.MockedFunction<
     typeof fileSystem.listDirectoryEntries
@@ -1131,15 +1131,16 @@ describe('ProjectCreator', () => {
         const library = _ICON_LIBRARIES.find(l => l.name === libraryName)!;
 
         for (const { name: template, directory } of TEMPLATES) {
-          // The same entry-file rule setupIconLibrary applies.
-          const mainFile = template.includes('-ts') ? 'main.tsx' : 'main.jsx';
+          // The same entry-file rule setupIconLibrary applies: src/main, or
+          // a Next.js app's root layout.
+          const mainFile = entryFile(template);
           const root = `/app-${template}`;
-          const mainPath = `${root}/src/${mainFile}`;
+          const mainPath = `${root}/${mainFile}`;
           files.set(
             mainPath,
             readFileSync(
               new URL(
-                `../../templates/${directory}/src/${mainFile}`,
+                `../../templates/${directory}/${mainFile}`,
                 import.meta.url
               ),
               'utf8'

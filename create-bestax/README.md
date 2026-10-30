@@ -44,7 +44,7 @@ You'll be asked to:
 1. Enter a project name or path (and, if that directory already holds files, confirm removing
    them; nothing is removed until you have answered the last question)
 2. Select a framework (Vite or Vite + TypeScript, each plain, with the React Compiler, or with
-   React Router; or Vite + TypeScript with TanStack Router)
+   React Router; Vite + TypeScript with TanStack Router; or Next.js, with or without TypeScript)
 3. Choose a linter (Oxlint or ESLint)
 4. Choose a Bulma CSS flavor (the `--bulma` options below)
 5. Select an icon library (Font Awesome, Material Icons, etc.)
@@ -83,7 +83,9 @@ with or without it.
   - `vite-compiler-ts` - Vite + TypeScript, with the React Compiler
   - `react-router` - Vite + JavaScript, with React Router and two pages
   - `react-router-ts` - Vite + TypeScript, with React Router and two pages
-  - `tanstack-router-ts` - Vite + TypeScript, with TanStack Router and two pages  
+  - `tanstack-router-ts` - Vite + TypeScript, with TanStack Router and two pages
+  - `next` - Next.js App Router, with two pages
+  - `next-ts` - Next.js App Router + TypeScript, with two pages  
     **Default:** `vite`
 - `--lint <linter>` - Linter:
   - `oxlint` - Oxlint, as `npm create vite` sets up. `vite-ts` gets TypeScript 7.
@@ -159,6 +161,9 @@ npm create bestax@latest my-app -- -t react-router-ts -y
 # The same with TanStack Router
 npm create bestax@latest my-app -- -t tanstack-router-ts -y
 
+# A Next.js App Router app
+npm create bestax@latest my-app -- -t next-ts -y
+
 # The same with bun
 bun create bestax@latest my-app -- -y
 ```
@@ -174,6 +179,8 @@ Available templates:
 - `react-router` - Vite + JavaScript, with [React Router](https://reactrouter.com)
 - `react-router-ts` - Vite + TypeScript, with React Router
 - `tanstack-router-ts` - Vite + TypeScript, with [TanStack Router](https://tanstack.com/router)
+- `next` - [Next.js](https://nextjs.org) App Router
+- `next-ts` - Next.js App Router + TypeScript
 
 The React Compiler templates are the plain ones with the compiler turned on through Babel in
 `vite.config`, the way `npm create vite` builds its `react-compiler` starters.
@@ -188,6 +195,15 @@ The TanStack Router template does the same with TanStack Router's code-based rou
 `src/router.tsx`. Its navbar items are `NavbarLink`, `Navbar.Item` made into a TanStack link with
 `createLink`, so each `to` is checked against the routes. It's TypeScript only, since that check
 is the reason to choose TanStack Router.
+
+The Next.js templates are Next.js App Router apps, laid out the way `create-next-app --src-dir`
+lays them out, with the same starter page as the Vite templates, naming Next.js. The root layout
+(`src/app/layout`) loads the stylesheets and the navbar (`src/Navigation`, a client component that
+links with `next/link`), so the flavor, icon and provider steps write there. The About page is a
+Server Component: bestax-bulma marks its components `'use client'`, so they render from either.
+`--lint` works as it does for the Vite templates: Oxlint by default, with TypeScript 7, and
+`--lint eslint` for create-next-app's `eslint-config-next`, which keeps TypeScript 6. The
+`.claude/launch.json` they get runs `next dev` on port 3000.
 
 Each template includes:
 

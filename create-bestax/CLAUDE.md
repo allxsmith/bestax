@@ -32,6 +32,20 @@ the last prompt, so a typo or a Ctrl+C never costs the user their files (#945).
 - `src/run-command.ts` — runs `--immediate`'s install and dev server
 - `templates/vite`, `templates/vite-ts` — the app templates. The `vite-compiler` and
   `vite-compiler-ts` templates copy them and turn the React Compiler on (`setupReactCompiler`).
+  The Next.js templates (`templates/next`, `templates/next-ts`) are Next.js App Router
+  skeletons with no starter page of their own: `copyTemplate` copies `src/App`, `src/App.css`
+  and `src/index.css` in from `vite` or `vite-ts` (`Template.starter`) and applies
+  `NEXT_STARTER_EDITS` (`'use client'`, Next.js for Vite, no Vite logo). Each edit must match, so
+  a change to the Vite starter page that breaks one fails the scaffold, and `templates.test.ts`,
+  rather than shipping a half-adapted page. `entryFile` names where a template loads its
+  stylesheets and wraps the app: `src/main` for Vite, `src/app/layout` for Next.js, where the
+  flavor, icon and provider steps write, the provider around everything in `<body>`. A Next.js
+  app's title is its layout's `metadata.title`, Ionicons load through `next/script`, and its
+  `launch.json` (`NEXT_LAUNCH_JSON`) runs `next dev --port 3000`, which fails rather than moving
+  when the port is busy. `--lint eslint` writes create-next-app's `eslint-config-next` setup
+  (`NEXT_ESLINT_*`). The About page stays a Server Component, which needs bestax-bulma's
+  `'use client'` modules (#1355): a scaffold floored below the release that added them fails
+  `next build`.
   The router templates (`react-router`, `react-router-ts` and `tanstack-router-ts`) copy them and
   lay the files in `templates/overlays/<router>/<vite|vite-ts>` over them (`setupRouter`): a navbar
   layout, the routes and a second page, with `App`, the starter page, as the home page. That step

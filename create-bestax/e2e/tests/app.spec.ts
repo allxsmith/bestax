@@ -14,13 +14,20 @@ import { test, expect } from '@playwright/test';
  * for visual regression detection.
  */
 
+// CI names each scenario template-flavor-icon. A Next.js scaffold's starter
+// page names Next.js where a Vite one names Vite, and shows no Vite logo.
+const IS_NEXT = /^next(-ts)?-/.test(process.env.TEST_SCENARIO ?? '');
+const STARTER_TITLE = IS_NEXT
+  ? 'Bestax + Next.js + React'
+  : 'Bestax + Vite + React';
+
 test.describe('Scaffolded App - Logo Section', () => {
   test('logo section renders with correct branding', async ({ page }) => {
     await page.goto('/');
 
     // Verify logo section title
     const logoTitle = page.locator('h1').first();
-    await expect(logoTitle).toContainText('Bestax + Vite + React');
+    await expect(logoTitle).toContainText(STARTER_TITLE);
 
     // Verify all three logos are present
     const bestaxLogo = page.locator('img[alt="Bestax"]');
@@ -28,7 +35,11 @@ test.describe('Scaffolded App - Logo Section', () => {
     const reactLogo = page.locator('img[alt="React"]');
 
     await expect(bestaxLogo).toBeVisible();
-    await expect(viteLogo).toBeVisible();
+    if (IS_NEXT) {
+      await expect(viteLogo).toHaveCount(0);
+    } else {
+      await expect(viteLogo).toBeVisible();
+    }
     await expect(reactLogo).toBeVisible();
 
     // Visual regression check
@@ -240,9 +251,7 @@ test.describe('Scaffolded App - Responsive Design', () => {
     await page.goto('/');
 
     // Verify content is still visible
-    await expect(page.locator('h1').first()).toContainText(
-      'Bestax + Vite + React'
-    );
+    await expect(page.locator('h1').first()).toContainText(STARTER_TITLE);
 
     // Visual regression check
     await expect(page).toHaveScreenshot('08-tablet-view.png', {
@@ -255,9 +264,7 @@ test.describe('Scaffolded App - Responsive Design', () => {
     await page.goto('/');
 
     // Verify content is still visible
-    await expect(page.locator('h1').first()).toContainText(
-      'Bestax + Vite + React'
-    );
+    await expect(page.locator('h1').first()).toContainText(STARTER_TITLE);
 
     // Visual regression check
     await expect(page).toHaveScreenshot('09-mobile-view.png', {
@@ -493,14 +500,16 @@ test.describe('Scaffolded App - Layout and Accessibility', () => {
   });
 });
 
-// Only the router templates have more than one page. CI names each scenario
-// template-flavor-icon, so a router scenario's name starts with react-router
-// or tanstack-router; every other scenario skips these.
+// Only the router and Next.js templates have more than one page. CI names
+// each scenario template-flavor-icon, so theirs start with react-router,
+// tanstack-router or next; every other scenario skips these.
 test.describe('Scaffolded App - Routing', () => {
   test.beforeEach(() => {
     test.skip(
-      !/^(react|tanstack)-router/.test(process.env.TEST_SCENARIO ?? ''),
-      'only the router templates have pages'
+      !/^(react-router|tanstack-router|next(-ts)?)-/.test(
+        process.env.TEST_SCENARIO ?? ''
+      ),
+      'only the router and Next.js templates have pages'
     );
   });
 

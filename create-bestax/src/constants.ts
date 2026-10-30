@@ -11,6 +11,14 @@ export interface Template {
   reactCompiler?: boolean;
   // Add this router's pages and navbar to the copy (setupRouter).
   router?: RouterName;
+  // What builds the app. A Next.js template has no index.html or src/main:
+  // its stylesheets, icons and provider go in src/app/layout, its title in
+  // that file's metadata.
+  framework?: 'vite' | 'next';
+  // The template folder whose starter page (src/App, src/App.css and
+  // src/index.css) the copy takes, so every template shows the same page,
+  // with NEXT_STARTER_EDITS applied.
+  starter?: string;
 }
 
 /** The routers a template can start with, each set up by ROUTER_SETUPS. */
@@ -60,7 +68,71 @@ export const TEMPLATES: Template[] = [
     directory: 'vite-ts',
     router: 'tanstack-router',
   },
+  {
+    name: 'next',
+    display: 'Next.js',
+    color: chalk.yellow,
+    directory: 'next',
+    framework: 'next',
+    starter: 'vite',
+  },
+  {
+    name: 'next-ts',
+    display: 'Next.js + TypeScript',
+    color: chalk.blue,
+    directory: 'next-ts',
+    framework: 'next',
+    starter: 'vite-ts',
+  },
 ];
+
+// What a Next.js template changes in the Vite starter page it takes: it's a
+// client component, since it keeps state, and it names Next.js where the Vite
+// one names Vite. The Vite logo goes, since Next.js ships no square mark. Each
+// must match, so the starter page can't drift from the Vite one silently.
+export const NEXT_STARTER_EDITS: Array<[RegExp, string]> = [
+  [/^/, "'use client';\n\n"],
+  [
+    /\n[ \t]*<Column isNarrow>\n[ \t]*<Image src="\/vite\.svg" alt="Vite" size="128x128" \/>\n[ \t]*<\/Column>/,
+    '',
+  ],
+  [/Bestax \+ Vite \+ React/, 'Bestax + Next.js + React'],
+  [/Your Vite \+ Bestax setup/, 'Your Next.js + Bestax setup'],
+];
+
+// The packages create-next-app's ESLint setup adds, in place of oxlint.
+// eslint-config-next brings typescript-eslint, which can't load TypeScript 7,
+// so a TypeScript app stays on 6, as the Vite templates' --lint eslint does.
+export const NEXT_ESLINT_DEV_DEPENDENCIES: Record<string, string> = {
+  eslint: '^9.39.4',
+  'eslint-config-next': '^16.4.3',
+};
+
+/** The eslint.config.mjs create-next-app writes. */
+export const NEXT_ESLINT_CONFIG = (typescript: boolean): string =>
+  [
+    "import { defineConfig, globalIgnores } from 'eslint/config';",
+    "import nextVitals from 'eslint-config-next/core-web-vitals';",
+    ...(typescript
+      ? ["import nextTs from 'eslint-config-next/typescript';"]
+      : []),
+    '',
+    'const eslintConfig = defineConfig([',
+    '  ...nextVitals,',
+    ...(typescript ? ['  ...nextTs,'] : []),
+    '  // Override default ignores of eslint-config-next.',
+    '  globalIgnores([',
+    '    // Default ignores of eslint-config-next:',
+    "    '.next/**',",
+    "    'out/**',",
+    "    'build/**',",
+    "    'next-env.d.ts',",
+    '  ]),',
+    ']);',
+    '',
+    'export default eslintConfig;',
+    '',
+  ].join('\n');
 
 export interface RouterSetup {
   // What a router template adds to its plain template's dependencies.
@@ -224,6 +296,12 @@ export const MESSAGES = {
   REACT_COMPILER_NOT_ADDED: (file: string) =>
     `  Warning: ${file} is not shaped the way the scaffolder expects, so the React Compiler was not turned on in it. ` +
     'Add it by hand (https://react.dev/learn/react-compiler).',
+  IONICONS_NOT_ADDED: (file: string, url: string) =>
+    `  Warning: ${file} is not shaped the way the scaffolder expects, so it does not load Ionicons. ` +
+    `Add <Script type="module" src="${url}" /> from next/script to its <body> by hand, or the icons will not render.`,
+  STARTER_NOT_ADAPTED: (starter: string, pattern: string) =>
+    `templates/${starter}'s starter page no longer matches ${pattern}, so the Next.js starter can't be made from it. ` +
+    'This is a bug in create-bestax: https://github.com/allxsmith/bestax/issues',
   REACT_ROUTER_NOT_ADDED: (file: string) =>
     `  Warning: ${file} is not shaped the way the scaffolder expects, so it still renders App rather than the router. ` +
     'Render <RouterProvider router={router} /> from ./router there by hand.',
@@ -270,6 +348,26 @@ export const LAUNCH_JSON =
     2
   ) + '\n';
 
+// The same for a Next.js app. `next dev` with an explicit --port fails when
+// the port is busy rather than moving to another, so it needs no flag of its
+// own for that.
+export const NEXT_LAUNCH_JSON =
+  JSON.stringify(
+    {
+      version: '0.0.1',
+      configurations: [
+        {
+          name: 'dev',
+          runtimeExecutable: 'npm',
+          runtimeArgs: ['run', 'dev', '--', '--port', '3000'],
+          port: 3000,
+        },
+      ],
+    },
+    null,
+    2
+  ) + '\n';
+
 export const PROMPTS = {
   PROJECT_NAME: 'Project name:',
   SELECT_FRAMEWORK: 'Select a framework:',
@@ -302,6 +400,8 @@ export interface ClaudeMdOptions {
   iconLibrary: string;
   // The router the app starts with, for a router template.
   router?: RouterName;
+  // What builds the app, `vite` when left out.
+  framework?: 'vite' | 'next';
 }
 
 // The house style opens with the inline-style table for a flavor that has the
@@ -338,8 +438,11 @@ render nothing. Write a named class in \`src/App.css\`, which loads after Bulma'
 
 export const CLAUDE_MD = (
   projectName: string,
-  { bulmaFlavor, iconLibrary, router }: ClaudeMdOptions
+  { bulmaFlavor, iconLibrary, router, framework = 'vite' }: ClaudeMdOptions
 ): string => {
+  const next = framework === 'next';
+  // Where the app's <html> and <body> are, and its title.
+  const documentFile = next ? '`src/app/layout`' : '`index.html`';
   const flavor = BULMA_FLAVORS.find(f => f.name === bulmaFlavor);
   const icon = ICON_LIBRARIES.find(lib => lib.name === iconLibrary);
   const setupLines = [
@@ -377,6 +480,18 @@ export const CLAUDE_MD = (
   if (router) {
     setupLines.push(ROUTER_SETUPS[router].claudeMd);
   }
+  if (next) {
+    setupLines.push(
+      `- Framework: the Next.js App Router. A page or component is a Server Component unless its ` +
+        `file starts with \`'use client'\`, and bestax components render from either. In a Server ` +
+        `Component, reach a component's parts by their own export (\`NavbarItem\`, \`NavbarBrand\`), ` +
+        `since \`Navbar.Item\` comes out \`undefined\` there; inside a client component the dotted ` +
+        `names work as usual. The starter page (\`src/App\`) and the navbar (\`src/Navigation\`) keep ` +
+        `state, so they're client components, and the About page is a Server Component. Link with ` +
+        `\`<Navbar.Item as={NextLink} href="...">\`, with \`active\` and \`aria-current\` from ` +
+        `\`usePathname\` (https://bestax.io/docs/guides/features/routing).`
+    );
+  }
   const houseStyleOpening = flavor?.noHelpers
     ? NO_HELPERS_HOUSE_STYLE
     : HELPER_HOUSE_STYLE;
@@ -400,7 +515,7 @@ ${setupLines.join('\n')}
 ${houseStyleOpening}
 ${utilityClassRule}
   The one exception: companion classes Bulma requires on \`<html>\`/\`<body>\` (e.g.
-  \`has-navbar-fixed-top\` with \`Navbar fixed="top"\`) are hand-added in \`index.html\` — no
+  \`has-navbar-fixed-top\` with \`Navbar fixed="top"\`) are hand-added in ${documentFile} — no
   component renders those elements.
 - Compound sub-parts (\`Modal.*\`, \`Tabs.*\`, \`Message.*\`) take \`className\` + HTML
   attributes and their own few props — no Bulma helper props, no \`as\`/\`href\`: nest a
@@ -417,7 +532,7 @@ ${utilityClassRule}
   \`bulmaHelperClasses\` it returns into \`className\`, and spread **its** \`rest\` (not the raw
   props) — the bestax-custom-component skill has the full template.
 - There is no test runner or Storybook in this app — don't assume one.
-- \`index.html\`'s \`<title>\` starts as the project name and \`README.md\` is stock template
+- ${next ? "The `title` in `src/app/layout`'s `metadata`" : "`index.html`'s `<title>`"} starts as the project name and \`README.md\` is stock template
   boilerplate — once this app has a real identity, set the title (and any meta tags) to match
   it and rewrite the README to describe *this* app, not the template.
 - Before adding a dependency, match the package manager to the app's lockfile
@@ -456,11 +571,19 @@ automatically when the task matches:
 Prefer the library's components and these skills over hand-written Bulma markup or custom CSS.
 Read skill \`references/\` files with absolute paths — the shell's cwd is not stable between commands.
 
-\`.claude/launch.json\` declares this app's dev server for Claude Code's browser preview
+${
+  next
+    ? `\`.claude/launch.json\` declares this app's dev server for Claude Code's browser preview
+(\`npm run dev -- --port 3000\`) — start it from there rather than rediscovering the command.
+\`next dev\` failing with \`EADDRINUSE\` means an orphaned dev server from an earlier session owns
+port 3000 — kill the listener (\`lsof -tiTCP:3000 -sTCP:LISTEN | xargs kill\`) and relaunch; don't
+move the app to another port.`
+    : `\`.claude/launch.json\` declares this app's dev server for Claude Code's browser preview
 (\`npm run dev\` on port 5173, \`--strictPort\`) — start it from there rather than rediscovering
 the command. \`--strictPort\` failing because 5173 is busy means an orphaned dev server from an
 earlier session owns the port — kill the listener (\`lsof -tiTCP:5173 -sTCP:LISTEN | xargs kill\`)
-and relaunch; don't move the app to another port.
+and relaunch; don't move the app to another port.`
+}
 
 ## Docs
 
@@ -512,7 +635,7 @@ export const ICON_LIBRARIES: IconLibrary[] = [
     display: 'Ionicons',
     color: chalk.green,
     // Note: ionicons doesn't need packageName or importStatement
-    // as it's loaded via CDN in index.html
+    // as it's loaded via CDN, from index.html or a Next.js app's layout
   },
   {
     name: 'material-icons',

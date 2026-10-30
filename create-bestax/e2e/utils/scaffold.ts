@@ -13,7 +13,9 @@ export interface ScaffoldConfig {
     | 'vite-compiler-ts'
     | 'react-router'
     | 'react-router-ts'
-    | 'tanstack-router-ts';
+    | 'tanstack-router-ts'
+    | 'next'
+    | 'next-ts';
   bulmaFlavor:
     | 'complete'
     | 'prefixed'

@@ -306,6 +306,8 @@ describe('prompts', () => {
           'react-router',
           'react-router-ts',
           'tanstack-router-ts',
+          'next',
+          'next-ts',
         ]
       );
     });

@@ -50,6 +50,10 @@ import {
   REACT_COMPILER_TYPESCRIPT_DEV_DEPENDENCIES,
   REACT_COMPILER_README,
   ROUTER_SETUPS,
+  NEXT_STARTER_EDITS,
+  NEXT_ESLINT_CONFIG,
+  NEXT_ESLINT_DEV_DEPENDENCIES,
+  NEXT_LAUNCH_JSON,
   CLAUDE_MD,
   LAUNCH_JSON,
   CONFIG_PROVIDER_ICON_VALUES,
@@ -112,6 +116,77 @@ function runOrExit(command: string, cwd: string): number {
     displayError((error as Error).message);
     process.exit(1);
   }
+}
+
+// The Ionicons loader, pinned to an immutable unpkg URL.
+const IONICONS_URL =
+  'https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.esm.js';
+
+const templateNamed = (template: string) =>
+  TEMPLATES.find(t => t.name === template);
+
+const isNext = (template: string) =>
+  templateNamed(template)?.framework === 'next';
+
+/**
+ * The file, from the project root, that loads the stylesheets and wraps the
+ * app in any provider: `src/main` for a Vite app, the root layout for a
+ * Next.js one, which has no `src/main`.
+ */
+export function entryFile(template: string): string {
+  const ext = template.includes('-ts') ? 'tsx' : 'jsx';
+  return isNext(template) ? `src/app/layout.${ext}` : `src/main.${ext}`;
+}
+
+/**
+ * The ConfigProvider props a flavor and icon library need: the class prefix,
+ * and the provider value of an icon library other than the default.
+ */
+function configPropsFor(
+  flavor: { needsPrefix?: boolean } | undefined,
+  iconLibrary: string
+): string[] {
+  const configProps: string[] = [];
+  if (flavor?.needsPrefix) {
+    configProps.push('classPrefix="bestax-"');
+  }
+  if (iconLibrary !== 'none' && iconLibrary !== 'fontawesome') {
+    // Shared with the CLAUDE_MD template so the generated docs always
+    // name the same provider value the scaffolder writes here.
+    const iconLibraryValue = CONFIG_PROVIDER_ICON_VALUES[iconLibrary];
+    if (iconLibraryValue) {
+      configProps.push(`iconLibrary="${iconLibraryValue}"`);
+    }
+  }
+  return configProps;
+}
+
+/**
+ * A Next.js root layout with ConfigProvider imported after its Navigation
+ * import and wrapped around everything inside <body>, indented one step.
+ */
+function wrapNextBody(
+  layout: string,
+  importLine: string,
+  configProps: string[]
+): string {
+  const props = configProps.length > 0 ? ' ' + configProps.join(' ') : '';
+  return layout
+    .replace(
+      /^import Navigation from '\.\.\/Navigation';$/m,
+      `$&\n${importLine}`
+    )
+    .replace(
+      /^([ \t]*)<body>\n([\s\S]*?)\n\1<\/body>$/m,
+      (_match, indent: string, inner: string) =>
+        [
+          `${indent}<body>`,
+          `${indent}  <ConfigProvider${props}>`,
+          ...inner.split('\n').map(line => `  ${line}`),
+          `${indent}  </ConfigProvider>`,
+          `${indent}</body>`,
+        ].join('\n')
+    );
 }
 
 /** A dependency map in code-point order, the order the templates keep. */
@@ -269,6 +344,30 @@ export class ProjectCreator {
     const templatePath = this.getTemplatePath(template);
     await ensureDirectory(targetPath);
     await copyDirectory(templatePath, targetPath, TEMPLATE_RENAMES);
+
+    // A template that takes its starter page from another copies it in, so
+    // every template shows the same page, and a Next.js one adapts it.
+    const starter = templateNamed(template)?.starter;
+    if (!starter) return;
+    const ext = template.includes('-ts') ? 'tsx' : 'jsx';
+    const from = path.join(this.templatesDir, starter, 'src');
+    const to = path.join(targetPath, 'src');
+    for (const file of [`App.${ext}`, 'App.css', 'index.css']) {
+      await fs.copy(path.join(from, file), path.join(to, file));
+    }
+    if (isNext(template)) {
+      const appPath = path.join(to, `App.${ext}`);
+      let app = await fs.readFile(appPath, 'utf8');
+      for (const [pattern, replacement] of NEXT_STARTER_EDITS) {
+        if (!pattern.test(app)) {
+          throw new Error(
+            MESSAGES.STARTER_NOT_ADAPTED(starter, String(pattern))
+          );
+        }
+        app = app.replace(pattern, replacement);
+      }
+      await fs.writeFile(appPath, app);
+    }
   }
 
   async updateIndexHtmlTitle(
@@ -276,7 +375,10 @@ export class ProjectCreator {
     projectName: string
   ): Promise<void> {
     const indexHtmlPath = path.join(targetPath, 'index.html');
-    if (!fs.existsSync(indexHtmlPath)) return;
+    if (!fs.existsSync(indexHtmlPath)) {
+      await this.updateNextTitle(targetPath, projectName);
+      return;
+    }
 
     const htmlContent = await fs.readFile(indexHtmlPath, 'utf8');
     // projectName is validated against PROJECT_NAME_REGEX (letters, digits,
@@ -287,6 +389,27 @@ export class ProjectCreator {
     );
     if (updated !== htmlContent) {
       await fs.writeFile(indexHtmlPath, updated);
+    }
+  }
+
+  /**
+   * A Next.js app has no index.html: its title is the first `title` in its
+   * root layout's metadata. projectName holds only letters, digits, dots,
+   * dashes and underscores, so it needs no escaping in a string literal.
+   */
+  async updateNextTitle(
+    targetPath: string,
+    projectName: string
+  ): Promise<void> {
+    for (const ext of ['tsx', 'jsx']) {
+      const layoutPath = path.join(targetPath, 'src', 'app', `layout.${ext}`);
+      if (!fs.existsSync(layoutPath)) continue;
+      const layout = await fs.readFile(layoutPath, 'utf8');
+      const updated = layout.replace(
+        /^([ \t]*title: )'[^'\n]*',$/m,
+        `$1'${projectName}',`
+      );
+      if (updated !== layout) await fs.writeFile(layoutPath, updated);
     }
   }
 
@@ -327,6 +450,10 @@ export class ProjectCreator {
   ): Promise<void> {
     if (linter !== 'eslint') return;
     const isTypeScript = template.includes('-ts');
+    if (isNext(template)) {
+      await this.setupNextEslint(targetPath, isTypeScript);
+      return;
+    }
 
     await fs.remove(path.join(targetPath, '.oxlintrc.json'));
     await fs.writeFile(
@@ -345,6 +472,44 @@ export class ProjectCreator {
       delete devDependencies.oxlint;
       packageJson.devDependencies = sortedByName(devDependencies);
       packageJson.scripts = { ...packageJson.scripts, lint: 'eslint .' };
+      await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+    }
+
+    const readmePath = path.join(targetPath, 'README.md');
+    if (fs.existsSync(readmePath)) {
+      const readme = await fs.readFile(readmePath, 'utf8');
+      await fs.writeFile(readmePath, readme.replace(/\bOxlint\b/g, 'ESLint'));
+    }
+  }
+
+  /**
+   * ESLint for a Next.js app, as create-next-app sets it up: eslint-config-next
+   * in place of oxlint, and for TypeScript, TypeScript 6, since the config
+   * brings typescript-eslint, which can't load TypeScript 7.
+   */
+  async setupNextEslint(
+    targetPath: string,
+    isTypeScript: boolean
+  ): Promise<void> {
+    await fs.remove(path.join(targetPath, '.oxlintrc.json'));
+    await fs.writeFile(
+      path.join(targetPath, 'eslint.config.mjs'),
+      NEXT_ESLINT_CONFIG(isTypeScript)
+    );
+
+    const packageJsonPath = path.join(targetPath, 'package.json');
+    if (fs.existsSync(packageJsonPath)) {
+      const packageJson = await fs.readJson(packageJsonPath);
+      const devDependencies: Record<string, string> = {
+        ...packageJson.devDependencies,
+        ...NEXT_ESLINT_DEV_DEPENDENCIES,
+        ...(isTypeScript
+          ? { typescript: ESLINT_TYPESCRIPT_DEV_DEPENDENCIES.typescript }
+          : {}),
+      };
+      delete devDependencies.oxlint;
+      packageJson.devDependencies = sortedByName(devDependencies);
+      packageJson.scripts = { ...packageJson.scripts, lint: 'eslint' };
       await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
     }
 
@@ -526,7 +691,7 @@ export class ProjectCreator {
     await fs.copy(skillsSrc, path.join(targetPath, '.claude', 'skills'));
     await fs.writeFile(
       path.join(targetPath, '.claude', 'launch.json'),
-      LAUNCH_JSON
+      options.framework === 'next' ? NEXT_LAUNCH_JSON : LAUNCH_JSON
     );
     await fs.writeFile(
       path.join(targetPath, 'CLAUDE.md'),
@@ -548,9 +713,7 @@ export class ProjectCreator {
       return;
     }
 
-    const isTypeScript = template.includes('-ts');
-    const mainFileName = isTypeScript ? 'main.tsx' : 'main.jsx';
-    const mainFilePath = path.join(targetPath, 'src', mainFileName);
+    const mainFilePath = path.join(targetPath, entryFile(template));
 
     if (fs.existsSync(mainFilePath)) {
       let content = await fs.readFile(mainFilePath, 'utf8');
@@ -681,7 +844,37 @@ export class ProjectCreator {
     if (!library) return;
 
     // Special handling for ionicons - add to index.html instead of package.json
-    if (iconLibrary === 'ionicons') {
+    if (iconLibrary === 'ionicons' && isNext(template)) {
+      // A Next.js app has no index.html, so its root layout loads the script
+      // through next/script, from the same pinned URL.
+      const layoutPath = path.join(targetPath, entryFile(template));
+      if (fs.existsSync(layoutPath)) {
+        const layout = await fs.readFile(layoutPath, 'utf8');
+        const navigationImport =
+          /^import Navigation from '\.\.\/Navigation';$/m;
+        const body = /^([ \t]*)<body>$/m;
+        if (navigationImport.test(layout) && body.test(layout)) {
+          await fs.writeFile(
+            layoutPath,
+            layout
+              .replace(
+                navigationImport,
+                "$&\nimport Script from 'next/script';"
+              )
+              .replace(
+                body,
+                `$&\n$1  <Script type="module" src="${IONICONS_URL}" />`
+              )
+          );
+        } else {
+          console.log(
+            chalk.yellow(
+              MESSAGES.IONICONS_NOT_ADDED(entryFile(template), IONICONS_URL)
+            )
+          );
+        }
+      }
+    } else if (iconLibrary === 'ionicons') {
       const indexHtmlPath = path.join(targetPath, 'index.html');
       if (fs.existsSync(indexHtmlPath)) {
         let htmlContent = await fs.readFile(indexHtmlPath, 'utf8');
@@ -694,7 +887,7 @@ export class ProjectCreator {
           // loader dynamically imports per-icon chunks that cannot carry
           // integrity hashes, so entry-file SRI would give false assurance.
           const ioniconScripts = `    <!-- Ionicons (v8 is ESM-only; no legacy nomodule fallback exists) -->
-    <script type="module" src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.esm.js"></script>
+    <script type="module" src="${IONICONS_URL}"></script>
   `;
           htmlContent =
             htmlContent.slice(0, insertPosition) +
@@ -723,9 +916,7 @@ export class ProjectCreator {
 
         // Add import statement to main file
         if (library.importStatement) {
-          const isTypeScript = template.includes('-ts');
-          const mainFileName = isTypeScript ? 'main.tsx' : 'main.jsx';
-          const mainFilePath = path.join(targetPath, 'src', mainFileName);
+          const mainFilePath = path.join(targetPath, entryFile(template));
 
           if (fs.existsSync(mainFilePath)) {
             let content = await fs.readFile(mainFilePath, 'utf8');
@@ -750,7 +941,7 @@ export class ProjectCreator {
               console.log(
                 chalk.yellow(
                   MESSAGES.ICON_CSS_NOT_ADDED(
-                    `src/${mainFileName}`,
+                    entryFile(template),
                     library.importStatement
                   )
                 )
@@ -839,9 +1030,7 @@ export class ProjectCreator {
     // Only add ConfigProvider if we need prefix or non-default icon library
     if (!needsPrefix && !needsIconLibrary) return;
 
-    const isTypeScript = template.includes('-ts');
-    const mainFileName = isTypeScript ? 'main.tsx' : 'main.jsx';
-    const mainFilePath = path.join(targetPath, 'src', mainFileName);
+    const mainFilePath = path.join(targetPath, entryFile(template));
 
     if (fs.existsSync(mainFilePath)) {
       let content = await fs.readFile(mainFilePath, 'utf8');
@@ -849,6 +1038,21 @@ export class ProjectCreator {
       // Add ConfigProvider import from bestax-bulma
       const configProviderImport =
         "import { ConfigProvider } from '@allxsmith/bestax-bulma';";
+
+      // A Next.js root layout has no App to wrap: the provider goes around
+      // everything in <body>, so the navbar and every page are inside it.
+      // bestax marks it 'use client', so the server layout can render it.
+      if (isNext(template)) {
+        await fs.writeFile(
+          mainFilePath,
+          wrapNextBody(
+            content,
+            configProviderImport,
+            configPropsFor(flavor, iconLibrary)
+          )
+        );
+        return;
+      }
 
       // Check if ConfigProvider is already imported
       if (!content.includes('ConfigProvider')) {
@@ -867,19 +1071,7 @@ export class ProjectCreator {
         }
       }
 
-      // Build ConfigProvider props
-      const configProps: string[] = [];
-      if (needsPrefix) {
-        configProps.push('classPrefix="bestax-"');
-      }
-      if (needsIconLibrary) {
-        // Shared with the CLAUDE_MD template so the generated docs always
-        // name the same provider value the scaffolder writes here.
-        const iconLibraryValue = CONFIG_PROVIDER_ICON_VALUES[iconLibrary];
-        if (iconLibraryValue) {
-          configProps.push(`iconLibrary="${iconLibraryValue}"`);
-        }
-      }
+      const configProps = configPropsFor(flavor, iconLibrary);
 
       // Wrap <App /> with ConfigProvider in the render call
       const appRegex = /<App\s*\/>/;
@@ -1056,6 +1248,7 @@ export class ProjectCreator {
           bulmaFlavor,
           iconLibrary,
           router: TEMPLATES.find(t => t.name === template)?.router,
+          framework: isNext(template) ? 'next' : 'vite',
         });
       }
       displaySuccess(targetDir, immediate);

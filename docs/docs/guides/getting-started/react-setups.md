@@ -292,6 +292,14 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
 
 Next.js is a popular React framework that provides server-side rendering, static site generation, and many other features out of the box.
 
+:::tip Start from a scaffold
+
+`npm create bestax@latest my-app -- -t next-ts` (or `-t next` for JavaScript) sets all of this up
+for you: an App Router app with the stylesheets in the root layout, a navbar that links with
+`next/link`, the starter page, and an About page that's a Server Component.
+
+:::
+
 ### JavaScript Example (Next.js 13+ with App Router)
 
 1. **Create a new Next.js project:**
