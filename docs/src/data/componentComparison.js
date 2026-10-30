@@ -73,6 +73,7 @@ const BESTAX = {
   Collapses: 'components/collapses',
   Command: 'components/command',
   ContextMenu: 'components/contextmenu',
+  DataTable: 'components/datatable',
   Dialog: 'components/dialog',
   Dropdown: 'components/dropdown',
   EmptyState: 'components/emptystate',
@@ -1418,7 +1419,7 @@ export const categories = [
       ],
       [
         'Data grid (sort/filter/page)',
-        0,
+        'DataTable',
         0,
         0,
         'DataGrid',

@@ -62,6 +62,7 @@
         "Collapses",
         "Command",
         "ContextMenu",
+        "DataTable",
         "Dialog",
         "Dropdown",
         "EmptyState",
@@ -497,6 +498,17 @@
       "compound": false,
       "propCount": 18,
       "exampleCount": 12
+    },
+    {
+      "name": "DataTable",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `DataTable` component is a table of records that people can sort, search, page through and select rows from, rendered with bestax's own `Table` parts…",
+      "slug": "components/datatable",
+      "import": "import { DataTable, useDataTable } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 38,
+      "exampleCount": 14
     },
     {
       "name": "DateInput",
@@ -1768,6 +1780,10 @@
     "--bulma-control-radius": ["Control"],
     "--bulma-control-radius-small": ["Control"],
     "--bulma-control-size": ["Control"],
+    "--bulma-data-table-gap": ["DataTable"],
+    "--bulma-data-table-sort-gap": ["DataTable"],
+    "--bulma-data-table-sort-indicator-size": ["DataTable"],
+    "--bulma-data-table-sort-unsorted-opacity": ["DataTable"],
     "--bulma-dateinput-cell-color": [
       "DateInput",
       "DateRangeInput",

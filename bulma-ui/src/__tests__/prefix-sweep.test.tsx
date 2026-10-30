@@ -251,6 +251,27 @@ const PROPS: Record<string, Record<string, unknown>> = {
     children: 'Open',
   },
   CommandGroup: { label: 'Files' },
+  // Sorted, selectable, searched and paged, with a toolbar and a scroll
+  // area, so each class DataTable adds, and the parts it renders, are swept.
+  DataTable: {
+    caption: 'People',
+    columns: [
+      { id: 'name', header: 'Name', sortable: true, isRowHeader: true },
+      { id: 'role', header: 'Role', align: 'right' },
+    ],
+    data: [
+      { id: '1', name: 'Ada', role: 'Admin' },
+      { id: '2', name: 'Alan', role: 'Editor' },
+      { id: '3', name: 'Grace', role: 'Viewer' },
+    ],
+    selectionMode: 'multiple',
+    defaultSelected: ['1'],
+    defaultSort: [{ id: 'name', direction: 'ascending' }],
+    pageSize: 2,
+    hasSearch: true,
+    isResponsive: true,
+    toolbar: () => <Library.Button>Export</Library.Button>,
+  },
   TagInput: { value: ['tag-one'] },
   Modal: { active: true, children: 'Modal content' },
   Dialog: { isOpen: true, message: 'Are you sure?' },

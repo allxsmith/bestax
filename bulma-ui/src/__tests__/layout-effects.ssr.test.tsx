@@ -19,6 +19,7 @@ import { Popover } from '../components/Popover';
 import { SegmentedControl } from '../components/SegmentedControl';
 import { ScrollArea } from '../components/ScrollArea';
 import { Command } from '../components/Command';
+import { DataTable } from '../components/DataTable';
 import { Splitter } from '../layout/Splitter';
 import { Slider } from '../form/Slider';
 import { PinInput } from '../form/PinInput';
@@ -95,6 +96,18 @@ const cases: Array<[string, React.ReactElement]> = [
       key="command-dialog"
       defaultOpen
       actions={[{ id: 'open', label: 'Open' }]}
+    />,
+  ],
+  [
+    // Selectable, for its checkboxes, and responsive, for its ScrollArea.
+    'DataTable',
+    <DataTable
+      key="data-table"
+      caption="People"
+      columns={[{ id: 'name', header: 'Name', sortable: true }]}
+      data={[{ id: '1', name: 'Ada' }]}
+      selectionMode="multiple"
+      isResponsive
     />,
   ],
   ['Slider', <Slider key="slider" label="Volume" />],
