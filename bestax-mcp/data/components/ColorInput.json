@@ -27,7 +27,7 @@
     },
     {
       "title": "Controlled, and Theming With It",
-      "code": "function example() {\n  const [color, setColor] = useState('hsl(202, 67%, 36%)');\n  const [h, s, l] = color.match(/[\\d.]+/g) ?? [];\n  return (\n    <>\n      <ColorInput label=\"Primary\" value={color} onChange={setColor} />\n      <Theme primaryH={h} primaryS={`${s}%`} primaryL={`${l}%`}>\n        <Buttons>\n          <Button color=\"primary\">Primary</Button>\n          <Button color=\"primary\" isOutlined>\n            Outlined\n          </Button>\n        </Buttons>\n      </Theme>\n    </>\n  );\n}"
+      "code": "function example() {\n  const [color, setColor] = useState('hsl(202, 67%, 36%)');\n  const [h, s, l] = color.match(/[\\d.]+/g) ?? [];\n  return (\n    <>\n      <ColorInput label=\"Primary\" value={color} onChange={setColor} />\n      <Theme primaryH={h} primaryS={s && `${s}%`} primaryL={l && `${l}%`}>\n        <Buttons>\n          <Button color=\"primary\">Primary</Button>\n          <Button color=\"primary\" isOutlined>\n            Outlined\n          </Button>\n        </Buttons>\n      </Theme>\n    </>\n  );\n}"
     },
     {
       "title": "Opening on Focus",

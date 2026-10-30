@@ -198,6 +198,8 @@ export const Sizes: Story = {
 export const Controlled: Story = {
   render: function ControlledExample() {
     const [color, setColor] = useState('hsl(202, 67%, 36%)');
+    // An empty field has no channels, so Theme sets none and the page's
+    // primary shows.
     const [h, s, l] = color.match(/[\d.]+/g) ?? [];
     return (
       <>
@@ -205,7 +207,7 @@ export const Controlled: Story = {
         <Paragraph mb="3">
           Value: <Code>{color || 'none'}</Code>
         </Paragraph>
-        <Theme primaryH={h} primaryS={`${s}%`} primaryL={`${l}%`}>
+        <Theme primaryH={h} primaryS={s && `${s}%`} primaryL={l && `${l}%`}>
           <Buttons>
             <Button color="primary">Primary</Button>
             <Button color="primary" isOutlined>

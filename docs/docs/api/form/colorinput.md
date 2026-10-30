@@ -109,7 +109,8 @@ keys only move between them.
 ### Controlled, and Theming With It
 
 `onChange` fires on every step of a drag in the panel, and `onChangeEnd` once a change is done,
-the place to save. An HSL value splits into the channels [`Theme`](../helpers/theme.md) takes.
+the place to save. An HSL value splits into the channels [`Theme`](../helpers/theme.md) takes;
+an empty field has none, so `Theme` gets none and keeps the page's own primary.
 
 ```tsx live
 function example() {
@@ -118,7 +119,7 @@ function example() {
   return (
     <>
       <ColorInput label="Primary" value={color} onChange={setColor} />
-      <Theme primaryH={h} primaryS={`${s}%`} primaryL={`${l}%`}>
+      <Theme primaryH={h} primaryS={s && `${s}%`} primaryL={l && `${l}%`}>
         <Buttons>
           <Button color="primary">Primary</Button>
           <Button color="primary" isOutlined>

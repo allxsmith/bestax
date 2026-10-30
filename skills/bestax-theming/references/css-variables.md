@@ -718,7 +718,9 @@ in `em`, so they follow the size of the boxes, and the caret is `currentColor`, 
 
 ### Picker popover (DateInput / TimeInput / DateTimeInput / DateRangeInput / ColorInput)
 
-ColorInput's panel takes the `--bulma-picker-popover-*` variables; its launcher is its own, below.
+ColorInput's panel takes the `--bulma-picker-popover-*` variables here. The `--bulma-picker-trigger-*`
+ones are the date and time pickers' launcher; ColorInput's swatch and launcher take the
+`--bulma-colorinput-*` variables in its own section, above.
 
 `--bulma-picker-popover-animation-duration`, `--bulma-picker-popover-background`,
 `--bulma-picker-popover-border-color`, `--bulma-picker-popover-offset`,
