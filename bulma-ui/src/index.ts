@@ -81,6 +81,7 @@ export * from './form/Checkbox';
 export * from './form/CheckboxCard';
 export * from './form/Checkboxes';
 export * from './form/Control';
+export * from './form/Dropzone';
 export * from './form/Field';
 export * from './form/Fieldset';
 export * from './form/File';

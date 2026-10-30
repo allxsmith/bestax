@@ -97,6 +97,7 @@ const SUMMARISED_AS_FORM_CONTROLS = [
   'DateRangeInputBase',
   'DateTimeInput',
   'DateTimeInputBase',
+  'Dropzone',
   'Fieldset',
   'File',
   'Input',

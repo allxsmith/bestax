@@ -178,6 +178,7 @@ export const SCSS_SOURCES = {
   Dialog: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_dialog.scss' }],
   Divider: [],
   Dropdown: [{ pkg: 'bulma', path: 'sass/components/dropdown.scss' }],
+  Dropzone: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_dropzone.scss' }],
   Emphasis: [],
   EmptyState: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_emptystate.scss' },
@@ -208,6 +209,7 @@ export const SCSS_SOURCES = {
   Loading: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_loading.scss' },
   ],
+  LocaleProvider: [],
   Media: [{ pkg: 'bulma', path: 'sass/layout/media.scss' }],
   Menu: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_menu.scss' },
@@ -338,6 +340,7 @@ export const SCSS_SOURCES = {
  */
 export const RENDERS_ELEMENT_OF = {
   CheckboxCard: 'Card', // its label is a `.card.checkbox-card`
+  Dropzone: 'File', // its zone is a `.file.is-boxed.is-fullwidth`
   LinkButton: 'Button', // renders `.button.link-button` through Button
   PinInput: 'Input', // each of its boxes is an `.input.pin-input-box`
   RadioCard: 'Card', // its label is a `.card.radio-card`
