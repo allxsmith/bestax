@@ -61,6 +61,12 @@ const ADDONS = [
     desc: 'Smoothly expanding panels for accordions and FAQs.',
   },
   {
+    name: 'ColorPicker/ColorSwatch',
+    icon: 'colorpicker',
+    link: '/docs/api/form/colorpicker',
+    desc: 'Choose a color by keyboard or pointer, in HSL, hex or RGB, with alpha and the page’s theme colors as swatches, and show one as a chip.',
+  },
+  {
     name: 'Combobox',
     icon: 'combobox',
     link: '/docs/api/form/combobox',

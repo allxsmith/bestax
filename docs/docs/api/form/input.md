@@ -468,6 +468,16 @@ function CopyButton() {
 
 ---
 
+### Choosing a Color
+
+`type="color"` is the browser's own color well, with no JavaScript: a click opens the system's color dialog, and the value is a hex color such as `#1e6b99`. It always holds a color, so it can't be left empty, and `required` and `placeholder` don't apply to it. It takes alpha only in Safari, and Firefox for Android offers only preset colors. For an empty value, alpha, swatches, HSL, or one look on every device, use [`ColorPicker`](./colorpicker.md).
+
+```tsx live
+<Input type="color" label="Brand color" defaultValue="#1e6b99" />
+```
+
+---
+
 ### Form Group
 
 Use `<Field grouped>` to lay multiple controls out on a single row with consistent spacing — common for form action buttons and search-style rows.

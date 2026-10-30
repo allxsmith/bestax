@@ -51,6 +51,17 @@ const PROPS: Record<string, Record<string, unknown>> = {
   },
   Rate: { value: 2.5, showScore: true, text: 'Good' },
   Checkbox: { children: 'Accept' },
+  // Every part, alpha, a chosen swatch with its check and the disabled
+  // state, so each class it emits is swept.
+  ColorPicker: {
+    label: 'Brand',
+    alpha: true,
+    disabled: true,
+    swatches: ['#ffdd57'],
+    defaultValue: '#ffdd57',
+  },
+  // Sized and round, so every class it takes is swept.
+  ColorSwatch: { color: 'red', size: 'small', isRounded: true },
   // Colored, with the indicator, a title, a description and more, so every
   // class a card takes is swept.
   CheckboxCard: {

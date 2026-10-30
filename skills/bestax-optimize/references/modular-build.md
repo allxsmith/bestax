@@ -88,10 +88,11 @@ is **more complete** than the docs page's Option C example, which omits several)
 **Form** (`@allxsmith/bestax-bulma/scss/form/<name>`):
 `checkbox`, `checkboxcard`, `radio`, `radiocard`, `switch`, `slider`, `numberinput`, `pininput`,
 `rate`, `autocomplete`, `combobox`, `taginput`, `picker-popover`, `dateinput`, `timeinput`,
-`datetimeinput`, `daterangeinput`, `file`, `fieldset`, `dropzone`
+`datetimeinput`, `daterangeinput`, `file`, `fieldset`, `dropzone`, `colorpicker`
 
-**Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `descriptionlist`, `kbd`,
-`linkbutton`, `loader`, `notification`, `progress`, `ringprogress`, `skeleton`
+**Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `colorswatch`,
+`descriptionlist`, `kbd`, `linkbutton`, `loader`, `notification`, `progress`, `ringprogress`,
+`skeleton`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`
 
@@ -139,6 +140,10 @@ Notes:
 - `CheckboxCard` and `RadioCard` are Bulma cards, so an app using them needs
   `bulma/sass/components/card` next to `scss/form/checkboxcard` or `scss/form/radiocard`, and
   `bulma/sass/form/checkbox-radio` for the `Checkboxes` and `Radios` groups around them.
+- `ColorPicker` draws its swatches and its preview with `ColorSwatch`, and its value field and eye
+  dropper button are Bulma's, so an app using it needs `scss/elements/colorswatch`,
+  `bulma/sass/form/input-textarea` and `bulma/sass/elements/button` next to
+  `scss/form/colorpicker`, and `bulma/sass/form/tools` for the label and help text around it.
 - `PinInput`'s boxes are Bulma inputs, so an app using it needs `bulma/sass/form/input-textarea`
   next to `scss/form/pininput`, and `bulma/sass/form/tools` for the label and help text around it.
 - `Popover.Close` renders a Bulma button, so an app using it needs `bulma/sass/elements/button`

@@ -41,6 +41,7 @@ export * from './elements/Buttons';
 export * from './elements/LinkButton';
 export * from './elements/ToggleButton';
 export * from './elements/Code';
+export * from './elements/ColorSwatch';
 export * from './elements/Content';
 export * from './elements/Delete';
 export * from './elements/DescriptionList';
@@ -95,6 +96,7 @@ export * from './form/Rate';
 export * from './form/Autocomplete';
 export * from './form/Combobox';
 export * from './form/Taginput';
+export * from './form/ColorPicker';
 
 // Raw form components — exported with "Base" suffix as escape hatch
 export { InputBase } from './form/InputBase';
