@@ -85,6 +85,12 @@ const ADDONS = [
     desc: 'Confirmation and alert dialogs with customizable actions.',
   },
   {
+    name: 'Dropzone',
+    icon: 'dropzone',
+    link: '/docs/api/form/dropzone',
+    desc: 'An area to drop files on or click to pick them, which checks each one, lists the chosen files and puts them in your form.',
+  },
+  {
     name: 'EmptyState',
     icon: 'emptystate',
     link: '/docs/api/components/emptystate',
