@@ -849,7 +849,7 @@
       "import": "import { LocaleProvider, useLocale } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 5,
-      "exampleCount": 10
+      "exampleCount": 9
     },
     {
       "name": "Media",
