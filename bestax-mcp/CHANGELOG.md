@@ -1,3 +1,12 @@
+## [1.18.21](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.20...bestax-mcp@1.18.21) (2026-10-30)
+
+
+### Features
+
+* **bulma-ui:** add ColorInput, a color field that opens the picker ([d7400f4](https://github.com/allxsmith/bestax/commit/d7400f4479d117683189aeba6c401a9c3be6622e))
+* **bulma-ui:** fill an empty ColorInput with the color its panel shows ([4d47c10](https://github.com/allxsmith/bestax/commit/4d47c10931c3704d104fa97d7ec7c71720df2c6d))
+* **bulma-ui:** write a DataTable's rows as CSV with table.toCSV ([ad63763](https://github.com/allxsmith/bestax/commit/ad6376351f98cc7936b9f148f4c0b3517a9fc9c7))
+
 ## [1.18.20](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.19...bestax-mcp@1.18.20) (2026-10-30)
 
 
