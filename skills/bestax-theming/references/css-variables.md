@@ -420,6 +420,17 @@ items of a `Collapses` group, which reads it with a 0.5rem fallback and declares
 so set it on the group or on any ancestor, `:root` included. (`Theme`'s `bulmaVars` does not
 list it, so set it in your CSS or through a `style` prop.)
 
+### ColorInput
+
+Declared on the field's container, `.colorinput`. The swatch at the field's start and
+the launcher at its end each take `--bulma-colorinput-side-width`, in em so they grow with the
+input's size, and they swap sides right to left. The panel is a `.color-picker` in a
+`.picker-popover`, so the ColorPicker and picker popover variables style it.
+
+`--bulma-colorinput-disabled-opacity`, `--bulma-colorinput-side-width`,
+`--bulma-colorinput-swatch-size`, `--bulma-colorinput-trigger-color`,
+`--bulma-colorinput-trigger-hover-color`
+
 ### ColorPicker
 
 Declared on the root, `.color-picker`, and inherited by its parts, so a value set there, or on a
@@ -705,7 +716,11 @@ in `em`, so they follow the size of the boxes, and the caret is `currentColor`, 
 `--bulma-pin-input-caret-color`, `--bulma-pin-input-caret-height`, `--bulma-pin-input-caret-width`,
 `--bulma-pin-input-gap`
 
-### Picker popover (DateInput / TimeInput / DateTimeInput / DateRangeInput)
+### Picker popover (DateInput / TimeInput / DateTimeInput / DateRangeInput / ColorInput)
+
+ColorInput's panel takes the `--bulma-picker-popover-*` variables here. The `--bulma-picker-trigger-*`
+ones are the date and time pickers' launcher; ColorInput's swatch and launcher take the
+`--bulma-colorinput-*` variables in its own section, above.
 
 `--bulma-picker-popover-animation-duration`, `--bulma-picker-popover-background`,
 `--bulma-picker-popover-border-color`, `--bulma-picker-popover-offset`,

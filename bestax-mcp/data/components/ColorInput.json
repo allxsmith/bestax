@@ -1,0 +1,752 @@
+{
+  "name": "ColorInput",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/colorinput",
+  "docsUrl": "https://bestax.io/docs/api/form/colorinput",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<ColorInput label=\"Brand color\" defaultValue=\"hsl(202, 67%, 36%)\" />"
+    },
+    {
+      "title": "Empty",
+      "code": "<ColorInput label=\"Highlight\" placeholder=\"No color\" />"
+    },
+    {
+      "title": "Typing",
+      "code": "<ColorInput label=\"Type tomato, then Enter\" format=\"hex\" />"
+    },
+    {
+      "title": "Formats and Alpha",
+      "code": "<ColorInput\n  label=\"Overlay\"\n  alpha\n  format=\"rgb\"\n  defaultValue=\"rgba(10, 10, 10, 0.6)\"\n/>"
+    },
+    {
+      "title": "Swatches",
+      "code": "<ColorInput\n  label=\"Label color\"\n  format=\"hex\"\n  closeOnSwatchClick\n  swatches={[\n    { color: '#1e6b99', label: 'Ocean' },\n    { color: '#00d1b2', label: 'Turquoise' },\n    { color: '#ff6685', label: 'Pink' },\n    { color: '#ffdd57', label: 'Sunflower' },\n  ]}\n/>"
+    },
+    {
+      "title": "Controlled, and Theming With It",
+      "code": "function example() {\n  const [color, setColor] = useState('hsl(202, 67%, 36%)');\n  const [h, s, l] = color.match(/[\\d.]+/g) ?? [];\n  return (\n    <>\n      <ColorInput label=\"Primary\" value={color} onChange={setColor} />\n      <Theme primaryH={h} primaryS={s && `${s}%`} primaryL={l && `${l}%`}>\n        <Buttons>\n          <Button color=\"primary\">Primary</Button>\n          <Button color=\"primary\" isOutlined>\n            Outlined\n          </Button>\n        </Buttons>\n      </Theme>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Opening on Focus",
+      "code": "<ColorInput label=\"Accent\" openOnFocus defaultValue=\"#ffdd57\" />"
+    },
+    {
+      "title": "In a Form",
+      "code": "<form onSubmit={event => event.preventDefault()}>\n  <ColorInput label=\"Calendar color\" name=\"calendarColor\" required />\n  <ColorInput label=\"Locked\" disabled defaultValue=\"#ff6685\" />\n</form>"
+    },
+    {
+      "title": "Sizes and Colors",
+      "code": "<>\n  <ColorInput label=\"Small\" size=\"small\" isRounded defaultValue=\"#00d1b2\" />\n  <ColorInput label=\"Large\" size=\"large\" color=\"info\" defaultValue=\"#1e6b99\" />\n</>"
+    },
+    {
+      "title": "Right to Left",
+      "code": "<LocaleProvider locale=\"ar\" dir=\"rtl\">\n  <ColorInput\n    label=\"اللون\"\n    defaultValue=\"hsl(150, 60%, 40%)\"\n    labels={{ chooseColor: 'اختر لونًا' }}\n  />\n</LocaleProvider>"
+    },
+    {
+      "title": "Without the Field",
+      "code": "<Field label=\"Bare\">\n  <Control>\n    <ColorInputBase defaultValue=\"#ff6685\" />\n  </Control>\n</Field>"
+    }
+  ],
+  "accessibility": "- **The field is a combobox that opens a dialog**, as the date pickers' is: `role=\"combobox\"`,\n  `aria-haspopup=\"dialog\"`, `aria-expanded` and `aria-controls`, named by its `label`. The\n  launcher is a button named \"Choose color\" with the same attributes.\n- **Keys in the field:** Alt+ArrowDown opens the panel; Enter commits typed text; Escape puts\n  typed text back without closing a `Modal` around the field.\n- **The panel** is a non-modal `dialog` named \"Choose color\" that holds focus while it's open.\n  Focus starts on the saturation and brightness square, and Escape, Alt+ArrowUp or a press\n  outside closes it and hands focus back to the field.\n- **The square and the sliders** are `ColorPicker`'s: native range inputs, the square one 2D\n  slider with one tab stop. See [`ColorPicker`](https://bestax.io/docs/api/form/colorpicker#accessibility).\n- **The swatch in the field** is for the pointer only: it's hidden from assistive tech and takes\n  no tab stop, since the launcher does the same from the keyboard.\n- **The value is always text** in the field, and text it can't read is marked `aria-invalid`.\n- **Forced colors:** the swatch keeps its color with an edge in the system's text color.\n- **Strings** come from `labels`, with English defaults.",
+  "related": ["ColorPicker", "ColorSwatch", "DateInput", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-colorinput--default",
+  "summary": "The `ColorInput` component is a form field for a color: type it, or open a color picker from its launcher or its swatch. The value is a CSS color string, HSL by default, or empty. The panel is the `ColorPicker`'s square, hue slider and, when asked for, alpha slider, swatches and eye dropper, in the same popover the date pickers use.",
+  "import": "import { ColorInput } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/ColorInput.tsx",
+  "rootClass": "colorinput",
+  "parts": [
+    {
+      "path": "ColorInput",
+      "summary": "The `ColorInput` component is a form field for a color: type it, or open a color picker from its launcher or its swatch. The value is a CSS color string, HSL by default, or empty. The panel is the `ColorPicker`'s square, hue slider and, when asked for, alpha slider, swatches and eye dropper, in the same popover the date pickers use.",
+      "component": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field label (component auto-wraps in a `Field` if not already inside). Automatically associated with the text field via `htmlFor`, using your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelSize",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size for the label.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "horizontal",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the field with horizontal layout.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows a loading spinner on the `Control` it renders, and hides the launcher (`triggerIcon`) while it does. Inside your own `Control` it renders none, so this draws nothing and warns in development; set `isLoading` on that `Control`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIcon",
+          "type": "boolean",
+          "default": "true",
+          "description": "Shows the launcher on the field's end that toggles the panel. Hidden by default while a spinner shows at the same edge: this component's `isLoading` when it renders its own `Control`, or the enclosing `Control`'s `isLoading` inside one.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isExpanded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Expand the control to fill its container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "controlSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the wrapping Control.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Help/validation text below the field.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "messageColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Color modifier for the help message.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "fieldClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Field wrapper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "controlClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Control wrapper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "default": null,
+          "description": "The color, controlled, as a CSS color the picker reads (hex, `rgb()`, `hsl()` or a color name), or `''` for none.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "default": null,
+          "description": "The color to start with, uncontrolled; empty without one.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(value: string) => void",
+          "default": null,
+          "description": "Called with the color, in `format`, as it changes: on every step of a drag in the panel, on a key or a swatch, and when typed text is committed. Clearing the field calls it with `''`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onChangeEnd",
+          "type": "(value: string) => void",
+          "default": null,
+          "description": "Called with the color, in `format`, once a change is done: when a drag ends, and with `onChange` for everything else. The place to save it.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "format",
+          "type": "'hsl' | 'hex' | 'rgb'",
+          "default": "'hsl'",
+          "description": "How the value is written: `'hsl'` (`hsl(171, 100%, 41%)`), `'hex'` or `'rgb'`, with alpha as `hsla()`, `#rrggbbaa` and `rgba()`. Typed text in any of them is written back in this one.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "alpha",
+          "type": "boolean",
+          "default": "false",
+          "description": "Adds an alpha slider to the panel and writes the alpha into the value.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "swatches",
+          "type": "ColorPickerSwatch[] | 'bulma'",
+          "default": null,
+          "description": "Preset colors in the panel: a list of CSS colors, each a string or `{ color, label }`, or `\"bulma\"` for the page's theme colors.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "eyeDropper",
+          "type": "boolean",
+          "default": "false",
+          "description": "Adds a button to the panel that picks a color from anywhere on the screen, where the browser has the EyeDropper API.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onOpen",
+          "type": "() => void",
+          "default": null,
+          "description": "Fired when the panel opens.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "default": null,
+          "description": "Fired when the panel closes.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "openOnFocus",
+          "type": "boolean",
+          "default": "false",
+          "description": "Opens the panel when the field takes focus, and moves focus into it. Off by default, since typing a value is the quick way in and the launcher, a click on the swatch or Alt+ArrowDown open it.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnSwatchClick",
+          "type": "boolean",
+          "default": "false",
+          "description": "Closes the panel once a swatch is chosen.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto'",
+          "default": "'bottom-left'",
+          "description": "The panel's place relative to the field.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "appendToBody",
+          "type": "boolean",
+          "default": "false",
+          "description": "Renders the panel through a portal, into the `portalContainer` a `ConfigProvider` sets, `document.body` by default.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier for the field.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "The field's size.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Renders the field with rounded ends.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disables the field and its panel. A disabled `Fieldset` does too.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the field read-only, with no panel.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": null,
+          "description": "Text shown while the field is empty.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIconName",
+          "type": "string",
+          "default": "'chevron-down'",
+          "description": "The launcher's glyph.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "ColorPickerLabels",
+          "default": null,
+          "description": "The strings it says, each with an English default.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "Form field name. The field submits the text it shows, the value in `format`, or nothing when it's empty.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": "false",
+          "description": "Marks the field required, so an empty one fails the form's constraint validation.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Forwarded to the text `<input>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <input> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the `.colorinput` `<div>`, with `className`. The other attributes go on the text `<input>`.",
+      "types": []
+    },
+    {
+      "path": "ColorInputBase",
+      "summary": "The raw ColorInput: a text field with a swatch and a launcher that opens a color picker in a popover, without Field/Control wrapping. Use `ColorInput` for the convenience wrapper.",
+      "component": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "string",
+          "default": null,
+          "description": "The color, controlled, as a CSS color the picker reads (hex, `rgb()`, `hsl()` or a color name), or `''` for none.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "default": null,
+          "description": "The color to start with, uncontrolled; empty without one.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(value: string) => void",
+          "default": null,
+          "description": "Called with the color, in `format`, as it changes: on every step of a drag in the panel, on a key or a swatch, and when typed text is committed. Clearing the field calls it with `''`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChangeEnd",
+          "type": "(value: string) => void",
+          "default": null,
+          "description": "Called with the color, in `format`, once a change is done: when a drag ends, and with `onChange` for everything else. The place to save it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "format",
+          "type": "'hsl' | 'hex' | 'rgb'",
+          "default": "'hsl'",
+          "description": "How the value is written: `'hsl'` (`hsl(171, 100%, 41%)`), `'hex'` or `'rgb'`, with alpha as `hsla()`, `#rrggbbaa` and `rgba()`. Typed text in any of them is written back in this one.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "alpha",
+          "type": "boolean",
+          "default": "false",
+          "description": "Adds an alpha slider to the panel and writes the alpha into the value.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "swatches",
+          "type": "ColorPickerSwatch[] | 'bulma'",
+          "default": null,
+          "description": "Preset colors in the panel: a list of CSS colors, each a string or `{ color, label }`, or `\"bulma\"` for the page's theme colors.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "eyeDropper",
+          "type": "boolean",
+          "default": "false",
+          "description": "Adds a button to the panel that picks a color from anywhere on the screen, where the browser has the EyeDropper API.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onOpen",
+          "type": "() => void",
+          "default": null,
+          "description": "Fired when the panel opens.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "default": null,
+          "description": "Fired when the panel closes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "openOnFocus",
+          "type": "boolean",
+          "default": "false",
+          "description": "Opens the panel when the field takes focus, and moves focus into it. Off by default, since typing a value is the quick way in and the launcher, a click on the swatch or Alt+ArrowDown open it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnSwatchClick",
+          "type": "boolean",
+          "default": "false",
+          "description": "Closes the panel once a swatch is chosen.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto'",
+          "default": "'bottom-left'",
+          "description": "The panel's place relative to the field.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "appendToBody",
+          "type": "boolean",
+          "default": "false",
+          "description": "Renders the panel through a portal, into the `portalContainer` a `ConfigProvider` sets, `document.body` by default.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier for the field.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "The field's size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Renders the field with rounded ends.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disables the field and its panel. A disabled `Fieldset` does too.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the field read-only, with no panel.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": null,
+          "description": "Text shown while the field is empty.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIcon",
+          "type": "boolean",
+          "default": "true",
+          "description": "Shows the launcher on the field's end that toggles the panel. Hidden by default while a `Control` it sits in shows its `isLoading` spinner, which shares that edge.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIconName",
+          "type": "string",
+          "default": "'chevron-down'",
+          "description": "The launcher's glyph.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "ColorPickerLabels",
+          "default": null,
+          "description": "The strings it says, each with an English default.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "Form field name. The field submits the text it shows, the value in `format`, or nothing when it's empty.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": "false",
+          "description": "Marks the field required, so an empty one fails the form's constraint validation.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Forwarded to the text `<input>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <input> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the `.colorinput` `<div>`, with `className`. The other attributes go on the text `<input>`.",
+      "types": [],
+      "standalone": "base"
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-colorinput-side-width",
+      "sass": "$colorinput-side-width",
+      "default": "2.5em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-colorinput-swatch-size",
+      "sass": "$colorinput-swatch-size",
+      "default": "1.25em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-colorinput-trigger-color",
+      "sass": "$colorinput-trigger-color",
+      "default": "var(--bulma-text)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-colorinput-trigger-hover-color",
+      "sass": "$colorinput-trigger-hover-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-colorinput-disabled-opacity",
+      "sass": "$colorinput-disabled-opacity",
+      "default": "0.5",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-picker-popover-z-index",
+      "sass": "$picker-popover-z-index",
+      "default": "30",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-background",
+      "sass": "$picker-popover-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-radius",
+      "sass": "$picker-popover-radius",
+      "default": "var(--bulma-radius-large)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-shadow",
+      "sass": "$picker-popover-shadow",
+      "default": "0 8px 24px hsla(0, 0%, 0%, 0.18)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-border-color",
+      "sass": "$picker-popover-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-padding",
+      "sass": "$picker-popover-padding",
+      "default": "0.75rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-offset",
+      "sass": "$picker-popover-offset",
+      "default": "4px",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-animation-duration",
+      "sass": "$picker-popover-animation-duration",
+      "default": "0.15s",
+      "scope": "element"
+    }
+  ]
+}

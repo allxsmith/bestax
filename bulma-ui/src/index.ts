@@ -135,6 +135,10 @@ export type {
 } from './form/DateRangeInputBase';
 export { DateRangeInput } from './form/DateRangeInput';
 export type { DateRangeInputProps } from './form/DateRangeInput';
+export { ColorInputBase } from './form/ColorInputBase';
+export type { ColorInputBaseProps } from './form/ColorInputBase';
+export { ColorInput } from './form/ColorInput';
+export type { ColorInputProps } from './form/ColorInput';
 
 // Form contexts and shared types
 export { useInsideField, useInsideControl } from './form/FormContext';

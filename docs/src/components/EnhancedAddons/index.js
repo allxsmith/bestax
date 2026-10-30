@@ -64,7 +64,7 @@ const ADDONS = [
     name: 'ColorPicker/ColorSwatch',
     icon: 'colorpicker',
     link: '/docs/api/form/colorpicker',
-    desc: 'Choose a color by keyboard or pointer, in HSL, hex or RGB, with alpha and the page’s theme colors as swatches, and show one as a chip.',
+    desc: 'A field and a panel for choosing a color by keyboard or pointer, in HSL, hex or RGB, with alpha and the page’s theme colors as swatches, and a chip to show one.',
   },
   {
     name: 'Combobox',

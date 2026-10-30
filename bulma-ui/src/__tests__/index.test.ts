@@ -26,6 +26,8 @@ const PUBLIC_EXPORTS = [
   'Code',
   'Collapse',
   'Collapses',
+  'ColorInput',
+  'ColorInputBase',
   'ColorPicker',
   'ColorPickerAlphaSlider',
   'ColorPickerArea',

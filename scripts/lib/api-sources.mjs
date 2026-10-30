@@ -116,6 +116,14 @@ export const SCSS_SOURCES = {
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_collapse.scss' },
   ],
   Collapses: [],
+  ColorInput: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_colorinput.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
+  ],
+  ColorInputBase: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_colorinput.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
+  ],
   ColorPicker: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_colorpicker.scss' },
   ],
