@@ -1196,8 +1196,8 @@
       "slug": "elements/table",
       "import": "import { Table, Thead, Tbody, Tfoot, Tr, Th, Td } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 28,
-      "exampleCount": 7
+      "propCount": 32,
+      "exampleCount": 8
     },
     {
       "name": "Tabs",
