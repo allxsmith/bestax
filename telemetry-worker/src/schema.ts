@@ -28,6 +28,8 @@ const TEMPLATE_VALUES = [
   'react-router',
   'react-router-ts',
   'tanstack-router-ts',
+  'next',
+  'next-ts',
 ] as const;
 // create-bestax/src/constants.ts → BULMA_FLAVORS
 const BULMA_FLAVOR_VALUES = [
