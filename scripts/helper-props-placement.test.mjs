@@ -23,14 +23,14 @@
  * cannot be opened that way is in UNRENDERED, with why. A part this cannot
  * measure and that neither names fails, so a new component is measured rather
  * than skipped. It needs the build, and asserts it rather than skipping, since
- * `node --test` exits 0 on a skip.
+ * Vitest exits 0 on a skip.
  */
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const PKG_DIR = join(REPO, 'bulma-ui');

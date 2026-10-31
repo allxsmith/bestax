@@ -12,11 +12,8 @@
  * changed the default path too" — `pnpm gen:api-docs:check` catches it in CI,
  * but only after a full 87-page regeneration. These assertions pin the contract
  * directly, both directions.
- *
- * `.mjs` and `node --test` rather than jest: these are root-level scripts with
- * no package of their own, matching how docs/scripts is covered.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
   barrelExports,

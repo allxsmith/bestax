@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, sep } from 'node:path';
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import {
   VITE_TS_TEMPLATE,
   appCompilerOptions,

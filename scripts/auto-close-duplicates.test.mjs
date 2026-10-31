@@ -6,11 +6,8 @@
  * close; loosen the marker match and the wrong issue gets closed. Neither shows
  * up in a diff review — the code reads fine either way — so the assertions here
  * are written around the *consequence* rather than the implementation.
- *
- * `.mjs` and `node --test` rather than jest: these are root-level scripts with
- * no package of their own, matching how docs/scripts is covered.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
   AUTOCLOSE_SENTENCE,

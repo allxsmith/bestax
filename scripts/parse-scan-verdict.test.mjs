@@ -16,15 +16,12 @@
  * the parsing cannot quietly widen what counts as clean. Assertions are
  * written around the consequence (does this input leave the label off?)
  * rather than the implementation.
- *
- * `.mjs` and `node --test` rather than jest: these are root-level scripts
- * with no package of their own, matching auto-close-duplicates.test.mjs.
  */
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { test } from 'node:test';
+import { test } from 'vitest';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import {

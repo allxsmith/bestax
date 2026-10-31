@@ -35,7 +35,7 @@ import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import ts from 'typescript';
 import { appCompilerOptions } from './lib/template-tsconfig.mjs';
 

@@ -8,7 +8,7 @@
 import { strict as assert } from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 
 import { isImagePath, RECORD } from '../../scripts/lib/template-images.mjs';
 import {

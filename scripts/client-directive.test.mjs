@@ -23,7 +23,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import ts from 'typescript';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -32,7 +32,7 @@ const REACT_RUNTIME = new Set(['react', 'react-dom', 'react/jsx-runtime']);
 
 /**
  * Asserted rather than skipped, like the other suites that read the build:
- * `node --test` exits 0 on a skip.
+ * Vitest exits 0 on a skip.
  */
 const requireBuilt = () =>
   assert.ok(

@@ -21,7 +21,7 @@ import { tmpdir } from 'node:os';
 import { gzipSync } from 'node:zlib';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { afterEach, describe, it } from 'node:test';
+import { afterEach, describe, it } from 'vitest';
 import {
   RECORD,
   checkTemplateImages,

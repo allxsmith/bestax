@@ -7,7 +7,7 @@
  * excluded from coverage, which is exactly why it needs a sibling test here.
  */
 import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import {
   build,
   bulmaComponentClasses,

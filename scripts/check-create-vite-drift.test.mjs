@@ -6,10 +6,8 @@
  * is how #1304 happened. So the assertions are written around what it would
  * tell a maintainer, and the create-vite side is a real tarball built here,
  * read back through the same tar reader and integrity check the live run uses.
- *
- * `.mjs` and `node --test` rather than jest, like the other root scripts.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';

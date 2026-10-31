@@ -10,7 +10,7 @@
  * .github/workflows/codemod-registry.yml calls this file and carries the trust
  * reasoning: why it is a workflow of its own, why it checks out `main`, and
  * what its egress list allows. This file holds the logic rule 9 of
- * .github/CLAUDE.md wants out of YAML and under `node --test`. Its modes:
+ * .github/CLAUDE.md wants out of YAML and under test. Its modes:
  *
  *   check    codemod.yaml's version, every bestax-migrate pin in the package
  *            and bestax-migrate/package.json name one release, the committed

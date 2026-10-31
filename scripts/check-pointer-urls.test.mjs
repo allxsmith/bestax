@@ -10,7 +10,7 @@
  * returned a free 200, which meant a regression that fetched twice, or retried
  * something it should not have, still passed every assertion.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { mkdtemp, writeFile, mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';

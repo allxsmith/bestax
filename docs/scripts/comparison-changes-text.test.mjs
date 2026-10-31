@@ -4,9 +4,9 @@
  * edition has some, so these pin the text before a post depends on it.
  *
  * Lives in docs/scripts/ for the same reason as comparison-snapshots.test.mjs:
- * `node --test "scripts/*.test.mjs"` is where this package's unit tests run.
+ * `docs/vitest.config.ts` looks for this package's unit tests there alone.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
   fixedInLine,

@@ -12,11 +12,8 @@
  * Runs the real extraction (no fixtures): the contract worth testing is the one
  * against the actual library, and the TypeScript Program it needs is built once
  * and cached.
- *
- * `.mjs` and `node --test` rather than jest: these are root-level scripts with
- * no package of their own, matching how docs/scripts is covered.
  */
-import { test, before } from 'node:test';
+import { test, beforeAll } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
@@ -46,7 +43,7 @@ let missing;
 let skills;
 let bulmaClasses;
 
-before(async () => {
+beforeAll(async () => {
   ({ catalog, components, missing, skills, bulmaClasses } = await build());
 });
 
@@ -772,7 +769,7 @@ test('the skills manifest lists exactly what the sync scripts ship', async t => 
   const { tmpdir } = await import('node:os');
 
   const root = mkdtempSync(join(tmpdir(), 'bestax-mcp-skills-'));
-  t.after(() => rmSync(root, { recursive: true, force: true }));
+  t.onTestFinished(() => rmSync(root, { recursive: true, force: true }));
   const skillsDir = join(root, 'skills');
   const skill = join(skillsDir, 'bestax-form');
   mkdirSync(join(skill, 'references', 'sub'), { recursive: true });
@@ -826,7 +823,7 @@ test('the index refuses a symbolic link wherever the sync scripts do', async t =
   const { tmpdir } = await import('node:os');
 
   const root = mkdtempSync(join(tmpdir(), 'bestax-mcp-links-'));
-  t.after(() => rmSync(root, { recursive: true, force: true }));
+  t.onTestFinished(() => rmSync(root, { recursive: true, force: true }));
   const skillsDir = join(root, 'skills');
   const skill = join(skillsDir, 'bestax-form');
   mkdirSync(join(skill, 'references'), { recursive: true });
