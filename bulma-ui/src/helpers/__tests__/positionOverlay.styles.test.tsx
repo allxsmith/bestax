@@ -6,10 +6,9 @@
 // changes either side fails here rather than leaving the docs wrong.
 import fs from 'fs';
 import path from 'path';
-import * as sass from 'sass-embedded';
+import { compileSheet } from '../../__tests__/compile-scss';
 import { validPositions } from '../bulmaClassHelpers';
 
-const PKG = path.resolve(__dirname, '../../..');
 const OFFSETS = ['top', 'right', 'bottom', 'left'];
 
 type Declaration = { value: string; important: boolean };
@@ -99,15 +98,7 @@ it('reads rules inside at-rules and the inset shorthand', () => {
 });
 
 const SHEETS: Array<[string, () => string]> = [
-  [
-    'bestax.css',
-    () =>
-      sass.compile(path.join(PKG, 'src', 'scss', 'bestax.scss'), {
-        loadPaths: [path.resolve(PKG, '../node_modules')],
-        quietDeps: true,
-        logger: sass.Logger.silent,
-      }).css,
-  ],
+  ['bestax.css', () => compileSheet('bestax.scss')],
   [
     // What an app linking extras.css beside Bulma's own CSS gets.
     "Bulma's bulma.css",

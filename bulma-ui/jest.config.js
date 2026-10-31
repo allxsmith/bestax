@@ -1,6 +1,9 @@
 export default {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
+  // Only `*.test.*` files run, so a helper the suites share can sit beside
+  // them in `__tests__/`.
+  testMatch: ['**/__tests__/**/*.test.{ts,tsx}'],
   // Environment polyfills, which must exist before test modules load.
   setupFiles: ['<rootDir>/jest.setup.js'],
   setupFilesAfterEnv: ['@testing-library/jest-dom'],

@@ -3,24 +3,16 @@
 // compile the real partial, plain and under a class prefix, and assert
 // computed style instead (pattern: Popover.styles.test.tsx). jsdom leaves
 // `var()` unresolved and does no layout, so values are compared as written.
-import * as sass from 'sass-embedded';
 import { readdirSync } from 'fs';
 import path from 'path';
 import type { ReactElement } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import { SCSS, compileScss, compileSheet } from '../../__tests__/compile-scss';
 import { DateInput } from '../DateInput';
 import { TimeInput } from '../TimeInput';
 import { DateTimeInput } from '../DateTimeInput';
 import { ConfigProvider } from '../../helpers/Config';
 import type { PickerPosition } from '../_pickerInternals/pickerTypes';
-
-const SCSS = path.resolve(__dirname, '../../scss');
-const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
-const OPTIONS = {
-  loadPaths: [SCSS, NODE_MODULES],
-  quietDeps: true,
-  logger: sass.Logger.silent,
-};
 
 /** The partial, compiled under each class prefix, by prefix. */
 const sheets: Record<string, HTMLStyleElement> = {};
@@ -32,7 +24,7 @@ beforeAll(() => {
      @use 'form/picker-popover';`,
   })) {
     const el = document.createElement('style');
-    el.textContent = sass.compileString(source, OPTIONS).css;
+    el.textContent = compileScss(source);
     document.head.appendChild(el);
     sheets[prefix] = el;
   }
@@ -443,7 +435,7 @@ describe.each(published)('panel placement in %s', file => {
   let sheet: CSSStyleSheet;
 
   beforeAll(() => {
-    sheet = parseSheet(sass.compile(path.join(SCSS, file), OPTIONS).css);
+    sheet = parseSheet(compileSheet(file));
   }, 30_000);
 
   describe.each([PHONE, DESKTOP])('at %ipx wide', width => {
