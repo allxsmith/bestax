@@ -3244,11 +3244,30 @@ export function modifiesRoot(entry: RootEntry, token: string): boolean {
   );
 }
 
+/**
+ * Each class a root with `modifiersNeedRoot` takes or omits, to that root:
+ * the first in table order where two share one, as a scan would find. Built
+ * on first use, since the planner asks for every class of every element.
+ */
+let neededRoots: Map<string, string> | undefined;
+
+function collectNeededRoots(): Map<string, string> {
+  const needed = new Map<string, string>();
+  for (const [root, entry] of Object.entries(ROOTS)) {
+    if (!entry.modifiersNeedRoot) continue;
+    for (const table of [entry.modifiers, entry.omits]) {
+      for (const [token, value] of Object.entries(table ?? {})) {
+        if (value !== undefined && !needed.has(token)) needed.set(token, root);
+      }
+    }
+  }
+  return needed;
+}
+
 /** The root a class modifies when Bulma styles it only on that root. */
 export function rootItNeeds(token: string): string | undefined {
-  return Object.keys(ROOTS).find(
-    root => ROOTS[root].modifiersNeedRoot && modifiesRoot(ROOTS[root], token)
-  );
+  neededRoots ??= collectNeededRoots();
+  return neededRoots.get(token);
 }
 
 /** What replaced a Bulma 0.9 class v1 removed. */
