@@ -1,3 +1,23 @@
+## [1.18.22](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.21...bestax-mcp@1.18.22) (2026-10-31)
+
+
+### Bug Fixes
+
+* **create-bestax:** name the parts a Next.js Server Component can't reach yet ([f619f67](https://github.com/allxsmith/bestax/commit/f619f6778c34a1cb7b2a4aef2d87a115a1518acc)), closes [#1356](https://github.com/allxsmith/bestax/issues/1356)
+* **create-bestax:** point a Next.js app's CLAUDE.md icon imports at its layout, and test it ([7ef1aae](https://github.com/allxsmith/bestax/commit/7ef1aae1323d3ac760362ee5dd27b0da70a21a2c))
+* **create-bestax:** send a Next.js app's named classes to src/index.css ([896253a](https://github.com/allxsmith/bestax/commit/896253a5bc4b84e1922e1e6efd86654246bcc8db))
+
+
+### Features
+
+* **bulma-ui:** mark the client modules 'use client', so Next.js Server Components can import bestax ([96521b2](https://github.com/allxsmith/bestax/commit/96521b22f3aaa5bc43cfdff6586771d171dd8059))
+* **create-bestax:** add Next.js App Router templates, next and next-ts ([293e43a](https://github.com/allxsmith/bestax/commit/293e43a07a1cc24c8da162f7b1e742a070350765))
+
+
+### Performance Improvements
+
+* **bestax-migrate:** look up the root a modifier needs in one table ([843adca](https://github.com/allxsmith/bestax/commit/843adcaf4eb6567b88d4a52936763342b8b38359))
+
 ## [1.18.21](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.20...bestax-mcp@1.18.21) (2026-10-30)
 
 
