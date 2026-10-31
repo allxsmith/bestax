@@ -65,9 +65,8 @@ The monorepo applies defense-in-depth against supply-chain attacks:
 - **Isolated `node_modules`.** pnpm's isolated linker makes undeclared
   (phantom) dependencies fail loudly instead of silently resolving.
 - **Frozen-lockfile CI.** Build and release jobs install with
-  `--frozen-lockfile`; the only exception is the React 18/19 compatibility
-  matrix, which deliberately re-resolves React for testing and never
-  publishes.
+  `--frozen-lockfile`; the only exception is the React 18 compatibility leg,
+  which deliberately re-resolves React for testing and never publishes.
 - **SHA-pinned GitHub Actions.** Every third-party action is pinned to a full
   commit SHA, so a moved tag can't inject code into the pipeline.
 - **CodeQL, dependency review, and Dependabot.** Code scanning covers the

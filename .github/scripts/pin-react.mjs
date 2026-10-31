@@ -1,6 +1,6 @@
 // Pin the React family to a single major across every workspace manifest, so
-// `pnpm install` resolves a consistent tree for the React 18/19 compatibility
-// matrix (see .github/workflows/ci.yml). Usage: node .github/scripts/pin-react.mjs 18
+// `pnpm install` resolves a consistent tree for the React compatibility leg
+// (see .github/workflows/ci.yml). Usage: node .github/scripts/pin-react.mjs 18
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const major = process.argv[2];
