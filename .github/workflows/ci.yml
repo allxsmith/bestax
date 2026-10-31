@@ -358,9 +358,11 @@ jobs:
         timeout-minutes: 10
         run: pnpm install --frozen-lockfile
 
-      # Always build: the smoke pass below needs the static build, and the old
-      # changed-files condition never matched on PRs (changed_files is an
-      # integer count, not a path list).
+      # Always build: a story that breaks the production build fails here, and
+      # the light leg archives it. The smoke pass below renders the stories
+      # through Vite rather than this build. The old changed-files condition
+      # never matched on PRs (changed_files is an integer count, not a path
+      # list).
       - name: Build Storybook (bulma-ui)
         run: pnpm --filter @allxsmith/bestax-bulma run build-storybook
 
