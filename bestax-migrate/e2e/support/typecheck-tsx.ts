@@ -82,12 +82,15 @@ const resultOf = (
   diagnostics: `${stdout}\n${stderr}`.trim(),
 });
 
+/** How both paths below start tsc over one project. */
+const tscCommand = (dir: string) =>
+  ['pnpm', ['exec', 'tsc', '-p', dir], { cwd: packageRoot }] as const;
+
 /** tsc over one project, without blocking, so runs can go side by side. */
 function tsc(dir: string): Promise<TypecheckResult> {
   return new Promise((resolve, reject) => {
-    const child = spawn('pnpm', ['exec', 'tsc', '-p', dir], {
-      cwd: packageRoot,
-    });
+    const [command, args, options] = tscCommand(dir);
+    const child = spawn(command, args, options);
     let stdout = '';
     let stderr = '';
     child.stdout.setEncoding('utf8').on('data', chunk => (stdout += chunk));
@@ -134,7 +137,12 @@ export async function typecheckTsxFiles(
       dirs.push(dir);
       writeProject(dir, share.files);
     }
-    const results = await Promise.all(dirs.map(tsc));
+    // Every run settles before `finally` removes the projects they read.
+    const settled = await Promise.allSettled(dirs.map(tsc));
+    const results = settled.map(run => {
+      if (run.status === 'rejected') throw run.reason;
+      return run.value;
+    });
     return {
       status: results.find(result => result.status !== 0)?.status ?? 0,
       diagnostics: results
@@ -152,10 +160,8 @@ export function typecheckTsx(source: string, label: string): TypecheckResult {
   const dir = scratchDir(label);
   try {
     writeProject(dir, { check: source });
-    const result = spawnSync('pnpm', ['exec', 'tsc', '-p', dir], {
-      cwd: packageRoot,
-      encoding: 'utf8',
-    });
+    const [command, args, options] = tscCommand(dir);
+    const result = spawnSync(command, args, { ...options, encoding: 'utf8' });
     return resultOf(result.status, result.stdout ?? '', result.stderr ?? '');
   } finally {
     removeDir(dir);
