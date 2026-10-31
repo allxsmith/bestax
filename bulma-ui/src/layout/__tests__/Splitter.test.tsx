@@ -36,9 +36,8 @@ beforeEach(() => {
   MockResizeObserver.instances = [];
   (globalThis as { ResizeObserver?: unknown }).ResizeObserver =
     MockResizeObserver;
-  jest
-    .spyOn(Element.prototype, 'getBoundingClientRect')
-    .mockImplementation(function (this: Element) {
+  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(
+    function (this: Element) {
       const size = !lengths
         ? 0
         : this.matches('[role="separator"]')
@@ -57,18 +56,19 @@ beforeEach(() => {
         y: 0,
         toJSON() {},
       } as DOMRect;
-    });
+    }
+  );
 });
 
 afterEach(() => {
   delete (globalThis as { ResizeObserver?: unknown }).ResizeObserver;
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
 });
 
 /** Makes the page right to left, as far as the splitter can tell. */
 const rightToLeft = () => {
   const real = window.getComputedStyle;
-  jest.spyOn(window, 'getComputedStyle').mockImplementation((el, pseudo) => {
+  vi.spyOn(window, 'getComputedStyle').mockImplementation((el, pseudo) => {
     const style = real(el, pseudo);
     return el.matches('.splitter')
       ? ({ ...style, direction: 'rtl' } as CSSStyleDeclaration)
@@ -207,7 +207,7 @@ describe('Splitter', () => {
     });
 
     it('calls a function ref with the root, and forwards a pane’s ref', () => {
-      const rootRef = jest.fn();
+      const rootRef = vi.fn();
       const paneRef = React.createRef<HTMLDivElement>();
       const { container, unmount } = render(
         <Splitter ref={rootRef}>
@@ -300,7 +300,7 @@ describe('Splitter', () => {
 
   describe('Sizes', () => {
     it('reports every change through onSizesChange, and keeps them itself', () => {
-      const onSizesChange = jest.fn();
+      const onSizesChange = vi.fn();
       const { container } = render(<TwoPanes onSizesChange={onSizesChange} />);
       act(() => handles()[0].focus());
       fireEvent.keyDown(handles()[0], { key: 'ArrowRight' });
@@ -309,7 +309,7 @@ describe('Splitter', () => {
     });
 
     it('takes sizes from the sizes prop, and reports what a key would make them', () => {
-      const onSizesChange = jest.fn();
+      const onSizesChange = vi.fn();
       const { container, rerender } = render(
         <TwoPanes sizes={[40, 60]} onSizesChange={onSizesChange} />
       );
@@ -429,7 +429,7 @@ describe('Splitter', () => {
     });
 
     it('leaves other keys alone', () => {
-      const onSizesChange = jest.fn();
+      const onSizesChange = vi.fn();
       render(<TwoPanes onSizesChange={onSizesChange} />);
       const event = fireEvent.keyDown(handles()[0], { key: 'a' });
       expect(event).toBe(true);
@@ -465,7 +465,7 @@ describe('Splitter', () => {
     );
 
     it('shuts the primary pane with Enter, hides it, and brings it back at the size it had', () => {
-      const onCollapsedChange = jest.fn();
+      const onCollapsedChange = vi.fn();
       const { container } = render(
         <Inspector onCollapsedChange={onCollapsedChange} />
       );
@@ -527,7 +527,7 @@ describe('Splitter', () => {
 
     it('shuts a pane dragged below half its minimum, and calls onCollapsedChange', () => {
       lengths = { root: 412, handle: 12 };
-      const onCollapsedChange = jest.fn();
+      const onCollapsedChange = vi.fn();
       const { container } = render(
         <Inspector onCollapsedChange={onCollapsedChange} />
       );
@@ -547,7 +547,7 @@ describe('Splitter', () => {
     });
 
     it('follows collapsed, without calling onCollapsedChange for it', () => {
-      const onCollapsedChange = jest.fn();
+      const onCollapsedChange = vi.fn();
       const { container, rerender } = render(
         <Inspector collapsed onCollapsedChange={onCollapsedChange} />
       );
@@ -562,7 +562,7 @@ describe('Splitter', () => {
     });
 
     it('collapses only when the pane across the handle can take the room, as a drag would', () => {
-      const onCollapsedChange = jest.fn();
+      const onCollapsedChange = vi.fn();
       const { container } = render(
         <Splitter>
           <Splitter.Pane
@@ -602,7 +602,7 @@ describe('Splitter', () => {
 
     it('only asks when the app holds collapsed, and leaves the layout to it', () => {
       lengths = { root: 412, handle: 12 };
-      const onCollapsedChange = jest.fn();
+      const onCollapsedChange = vi.fn();
       const { container } = render(
         <Inspector collapsed={false} onCollapsedChange={onCollapsedChange} />
       );
@@ -716,7 +716,7 @@ describe('Splitter', () => {
     });
 
     it('moves the line with the pointer, marks the handle and shows the cursor everywhere', () => {
-      const onSizesChange = jest.fn();
+      const onSizesChange = vi.fn();
       const { container } = render(<TwoPanes onSizesChange={onSizesChange} />);
       const [handle] = handles();
       pointer(handle, 'pointerdown', { clientX: 100 });
@@ -768,8 +768,8 @@ describe('Splitter', () => {
     it('captures the pointer where it can', () => {
       render(<TwoPanes />);
       const [handle] = handles();
-      const setPointerCapture = jest.fn();
-      const releasePointerCapture = jest.fn();
+      const setPointerCapture = vi.fn();
+      const releasePointerCapture = vi.fn();
       Object.assign(handle, { setPointerCapture, releasePointerCapture });
       pointer(handle, 'pointerdown', { clientX: 100 });
       pointer(handle, 'pointerup', { clientX: 100 });
@@ -867,14 +867,12 @@ describe('Splitter', () => {
     it('reads the rem from the root element', () => {
       lengths = { root: 412, handle: 12 };
       const real = window.getComputedStyle;
-      jest
-        .spyOn(window, 'getComputedStyle')
-        .mockImplementation((el, pseudo) => {
-          const style = real(el, pseudo);
-          return el === document.documentElement
-            ? ({ ...style, fontSize: '20px' } as CSSStyleDeclaration)
-            : style;
-        });
+      vi.spyOn(window, 'getComputedStyle').mockImplementation((el, pseudo) => {
+        const style = real(el, pseudo);
+        return el === document.documentElement
+          ? ({ ...style, fontSize: '20px' } as CSSStyleDeclaration)
+          : style;
+      });
       render(
         <Splitter>
           <Splitter.Pane label="A" minSize="5rem">
@@ -889,14 +887,12 @@ describe('Splitter', () => {
     it('falls back to 16px for a rem it cannot read', () => {
       lengths = { root: 412, handle: 12 };
       const real = window.getComputedStyle;
-      jest
-        .spyOn(window, 'getComputedStyle')
-        .mockImplementation((el, pseudo) => {
-          const style = real(el, pseudo);
-          return el === document.documentElement
-            ? ({ ...style, fontSize: '' } as CSSStyleDeclaration)
-            : style;
-        });
+      vi.spyOn(window, 'getComputedStyle').mockImplementation((el, pseudo) => {
+        const style = real(el, pseudo);
+        return el === document.documentElement
+          ? ({ ...style, fontSize: '' } as CSSStyleDeclaration)
+          : style;
+      });
       render(
         <Splitter>
           <Splitter.Pane label="A" minSize="5rem">
@@ -918,7 +914,7 @@ describe('Splitter', () => {
 
   describe('Names', () => {
     it('warns in development when a handle’s pane has no label', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(
         <Splitter>
           <Splitter.Pane>A</Splitter.Pane>
@@ -933,7 +929,7 @@ describe('Splitter', () => {
     });
 
     it('doesn’t warn about a last pane no handle speaks for', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(
         <Splitter>
           <Splitter.Pane label="A">A</Splitter.Pane>
@@ -976,9 +972,7 @@ describe('Splitter', () => {
       const container = document.createElement('div');
       container.innerHTML = renderToString(<Layout />);
       document.body.appendChild(container);
-      const errorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       let unmountRoot = () => {};
       try {
         await act(async () => {

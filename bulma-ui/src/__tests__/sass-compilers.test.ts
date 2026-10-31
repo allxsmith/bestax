@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 // compile-scss.ts compiles whole published stylesheets with `sass-embedded`,
 // and it says why. The build compiles with `sass`, so this holds the two to

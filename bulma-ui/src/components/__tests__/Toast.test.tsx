@@ -4,11 +4,11 @@ import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { Toast, ToastContainer, toast } from '../Toast';
 
-jest.useFakeTimers();
+vi.useFakeTimers();
 
 describe('Toast', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
     toast.closeAll();
   });
 
@@ -227,14 +227,14 @@ describe('Toast', () => {
     });
 
     it('close button triggers onClose', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={0} closable onClose={onClose} />);
       fireEvent.click(screen.getByRole('button', { name: /close/i }));
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
     it('close button click does not double-fire close', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={0} closable onClose={onClose} />);
       fireEvent.click(screen.getByRole('button', { name: /close/i }));
       expect(onClose).toHaveBeenCalledTimes(1);
@@ -253,7 +253,7 @@ describe('Toast', () => {
     });
 
     it('calls onAction when action button is clicked', () => {
-      const onAction = jest.fn();
+      const onAction = vi.fn();
       render(
         <Toast
           message="Test"
@@ -267,7 +267,7 @@ describe('Toast', () => {
     });
 
     it('closes toast after action click', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast
           message="Test"
@@ -282,7 +282,7 @@ describe('Toast', () => {
     });
 
     it('handles action click without throwing when onAction is omitted', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast
           message="Test"
@@ -298,8 +298,8 @@ describe('Toast', () => {
     });
 
     it('action button click does not double-fire close', () => {
-      const onClose = jest.fn();
-      const onAction = jest.fn();
+      const onClose = vi.fn();
+      const onAction = vi.fn();
       render(
         <Toast
           message="Test"
@@ -324,7 +324,7 @@ describe('Toast', () => {
     });
 
     it('closes toast when cancel button is clicked', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast
           message="Test"
@@ -338,7 +338,7 @@ describe('Toast', () => {
     });
 
     it('cancel button click does not double-fire close', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast
           message="Test"
@@ -406,24 +406,24 @@ describe('Toast', () => {
 
   describe('Auto Close', () => {
     it('closes automatically after duration (default 2000)', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" onClose={onClose} />);
 
       expect(screen.getByRole('alert')).toBeInTheDocument();
 
       act(() => {
-        jest.advanceTimersByTime(2000);
+        vi.advanceTimersByTime(2000);
       });
 
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
     it('does not auto-close when duration is 0', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={0} onClose={onClose} />);
 
       act(() => {
-        jest.advanceTimersByTime(10000);
+        vi.advanceTimersByTime(10000);
       });
 
       expect(onClose).not.toHaveBeenCalled();
@@ -431,13 +431,13 @@ describe('Toast', () => {
     });
 
     it('stays open when indefinite is true', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast message="Test" indefinite duration={2000} onClose={onClose} />
       );
 
       act(() => {
-        jest.advanceTimersByTime(10000);
+        vi.advanceTimersByTime(10000);
       });
 
       expect(onClose).not.toHaveBeenCalled();
@@ -447,7 +447,7 @@ describe('Toast', () => {
 
   describe('Pause on Hover', () => {
     it('pauses timer on mouse enter', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast message="Test" duration={3000} pauseOnHover onClose={onClose} />
       );
@@ -456,14 +456,14 @@ describe('Toast', () => {
       fireEvent.mouseEnter(toastEl);
 
       act(() => {
-        jest.advanceTimersByTime(5000);
+        vi.advanceTimersByTime(5000);
       });
 
       expect(onClose).not.toHaveBeenCalled();
     });
 
     it('resumes timer on mouse leave', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast message="Test" duration={3000} pauseOnHover onClose={onClose} />
       );
@@ -472,27 +472,27 @@ describe('Toast', () => {
       fireEvent.mouseEnter(toastEl);
 
       act(() => {
-        jest.advanceTimersByTime(2000);
+        vi.advanceTimersByTime(2000);
       });
 
       fireEvent.mouseLeave(toastEl);
 
       act(() => {
-        jest.advanceTimersByTime(3000);
+        vi.advanceTimersByTime(3000);
       });
 
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
     it('does not pause when pauseOnHover is false (default)', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={3000} onClose={onClose} />);
 
       const toastEl = screen.getByRole('alert');
       fireEvent.mouseEnter(toastEl);
 
       act(() => {
-        jest.advanceTimersByTime(3000);
+        vi.advanceTimersByTime(3000);
       });
 
       expect(onClose).toHaveBeenCalledTimes(1);
@@ -507,7 +507,7 @@ describe('Toast', () => {
 
   describe('Click to Dismiss', () => {
     it('closes when clicked (dismissible=true by default)', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={0} onClose={onClose} />);
 
       fireEvent.click(screen.getByRole('alert'));
@@ -516,7 +516,7 @@ describe('Toast', () => {
     });
 
     it('does not close when clicked if dismissible is false', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast
           message="Test"
@@ -532,12 +532,12 @@ describe('Toast', () => {
     });
 
     it('closes when clicking outside the toast (dismissible=true)', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={0} onClose={onClose} />);
 
       // Flush the deferred requestAnimationFrame that attaches the listener
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       fireEvent.click(document.body);
@@ -546,7 +546,7 @@ describe('Toast', () => {
     });
 
     it('does not close when clicking outside if dismissible is false', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast
           message="Test"
@@ -557,7 +557,7 @@ describe('Toast', () => {
       );
 
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       fireEvent.click(document.body);
@@ -568,7 +568,7 @@ describe('Toast', () => {
 
   describe('Escape Key', () => {
     it('closes on Escape when cancelable (default)', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={0} onClose={onClose} />);
 
       fireEvent.keyDown(document, { key: 'Escape' });
@@ -577,7 +577,7 @@ describe('Toast', () => {
     });
 
     it('stays up on an Escape that something on the page already used', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <>
           <Toast message="Test" duration={0} onClose={onClose} />
@@ -596,7 +596,7 @@ describe('Toast', () => {
     it('hears Escape after a document listener added once it showed', () => {
       // A popup opened while the toast is up adds its listener after this
       // one, and still gets the key first.
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={0} onClose={onClose} />);
       const claim = (e: KeyboardEvent) => e.preventDefault();
       document.addEventListener('keydown', claim);
@@ -609,7 +609,7 @@ describe('Toast', () => {
     });
 
     it('stops listening for Escape once it has closed', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={0} onClose={onClose} />);
 
       fireEvent.keyDown(document, { key: 'Escape' });
@@ -619,7 +619,7 @@ describe('Toast', () => {
     });
 
     it('does not close on Escape when cancelable is false', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast
           message="Test"
@@ -635,7 +635,7 @@ describe('Toast', () => {
     });
 
     it('non-Escape key with cancelable does not close (covers if-false branch)', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast message="Test" duration={0} cancelable onClose={onClose} />
       );
@@ -651,11 +651,11 @@ describe('Toast', () => {
     });
 
     it('does not close when click is inside the toast (covers contains-true branch)', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Hello" duration={0} onClose={onClose} />);
 
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       fireEvent.click(screen.getByRole('alert'));
@@ -766,7 +766,7 @@ describe('Toast', () => {
     });
 
     it('invokes a function ref', () => {
-      const fnRef = jest.fn();
+      const fnRef = vi.fn();
       render(<Toast message="Fn ref test" duration={0} ref={fnRef} />);
 
       expect(fnRef).toHaveBeenCalled();
@@ -778,7 +778,7 @@ describe('Toast', () => {
 
 describe('Toast Programmatic API', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
     toast.closeAll();
   });
 
@@ -872,7 +872,7 @@ describe('Toast Programmatic API', () => {
 
   describe('toast.subscribe', () => {
     it('notifies subscribers of changes', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       const unsubscribe = toast.subscribe(listener);
 
       act(() => {
@@ -884,7 +884,7 @@ describe('Toast Programmatic API', () => {
     });
 
     it('returns unsubscribe function', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       const unsubscribe = toast.subscribe(listener);
 
       unsubscribe();
@@ -912,13 +912,13 @@ describe('ToastContainer', () => {
       toast.show({ message: 'First', duration: 2000 });
     });
     act(() => {
-      jest.advanceTimersByTime(1500);
+      vi.advanceTimersByTime(1500);
     });
     act(() => {
       toast.show({ message: 'Second', duration: 10000 });
     });
     act(() => {
-      jest.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(1000);
     });
 
     expect(screen.queryByText('First')).toBeNull();
@@ -932,7 +932,7 @@ describe('ToastContainer', () => {
     });
     // Its outside-click listener goes on a frame after it shows.
     act(() => {
-      jest.advanceTimersByTime(20);
+      vi.advanceTimersByTime(20);
     });
     act(() => {
       toast.show({ message: 'Second', duration: 0 });
@@ -984,7 +984,7 @@ describe('ToastContainer', () => {
 
 describe('ToastContainer mounted after toasts are raised', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
     // The container is still mounted here, so closing re-renders it.
     act(() => {
       toast.closeAll();
@@ -1037,17 +1037,17 @@ describe('ToastContainer mounted after toasts are raised', () => {
     toast.show({ message: 'Timed', duration: 2000 });
     // Time spent waiting for a container does not count against the toast.
     act(() => {
-      jest.advanceTimersByTime(5000);
+      vi.advanceTimersByTime(5000);
     });
 
     render(<ToastContainer />);
     act(() => {
-      jest.advanceTimersByTime(1999);
+      vi.advanceTimersByTime(1999);
     });
     expect(screen.getByText('Timed')).toBeInTheDocument();
 
     act(() => {
-      jest.advanceTimersByTime(1);
+      vi.advanceTimersByTime(1);
     });
     expect(screen.queryByText('Timed')).not.toBeInTheDocument();
 
@@ -1098,7 +1098,7 @@ describe('ToastContainer mounted after toasts are raised', () => {
     // the hydrating render has to produce none either.
     expect(container.innerHTML).toBe('<main></main>');
 
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     let unmountRoot = () => {};
     try {
       await act(async () => {
@@ -1121,7 +1121,7 @@ describe('ToastContainer mounted after toasts are raised', () => {
     const id = toast.show({ message: 'Gone', duration: 0 });
     toast.close(id);
 
-    const onRender = jest.fn();
+    const onRender = vi.fn();
     const app = (
       <main>
         <React.Profiler id="toasts" onRender={onRender}>
@@ -1152,7 +1152,7 @@ describe('ToastContainer mounted after toasts are raised', () => {
 
 describe('ToastContainer with toasts shown at their own position', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
     act(() => {
       toast.closeAll();
     });
@@ -1309,7 +1309,7 @@ describe('ToastContainer with toasts shown at their own position', () => {
     });
 
     act(() => {
-      jest.advanceTimersByTime(999);
+      vi.advanceTimersByTime(999);
     });
     expect(placements()).toEqual([
       ['Stay', 'toast-container is-top-right'],
@@ -1317,7 +1317,7 @@ describe('ToastContainer with toasts shown at their own position', () => {
     ]);
 
     act(() => {
-      jest.advanceTimersByTime(1);
+      vi.advanceTimersByTime(1);
     });
     expect(placements()).toEqual([['Stay', 'toast-container is-top-right']]);
     expect(stacks()).toEqual(['toast-container is-top-right']);
@@ -1413,7 +1413,7 @@ describe('ToastContainer with toasts shown at their own position', () => {
     document.body.appendChild(container);
     expect(container.innerHTML).toBe('<main></main>');
 
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     let unmountRoot = () => {};
     try {
       await act(async () => {
@@ -1436,7 +1436,7 @@ describe('ToastContainer with toasts shown at their own position', () => {
 
 describe('Toast Queue', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
     toast.closeAll();
   });
 
@@ -1530,7 +1530,7 @@ describe('Toast Queue', () => {
     // setRef must stay referentially stable: an unstable ref identity makes
     // React detach and re-attach on every render, which would fire the
     // consumer's cleanup each time.
-    const cleanup = jest.fn();
+    const cleanup = vi.fn();
     const callbackRef = (node: HTMLDivElement | null) => {
       if (!node) return undefined;
       return () => {
@@ -1554,7 +1554,7 @@ describe('Toast Queue', () => {
   // ref, so neither this nor its siblings branch on React.version.
   it('runs a forwarded callback ref cleanup on unmount instead of calling it with null', () => {
     const calls: (HTMLDivElement | null)[] = [];
-    const cleanup = jest.fn();
+    const cleanup = vi.fn();
     const callbackRef = (node: HTMLDivElement | null) => {
       calls.push(node);
       if (!node) return undefined;

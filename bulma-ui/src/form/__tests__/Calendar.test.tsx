@@ -72,7 +72,7 @@ describe('Calendar', () => {
   });
 
   it('selecting via click fires onSelect', () => {
-    const onSelect = jest.fn();
+    const onSelect = vi.fn();
     const { container } = render(<Harness onSelect={onSelect} />);
     const cells = container.querySelectorAll('[role="gridcell"]');
     fireEvent.click(cells[10]);
@@ -80,7 +80,7 @@ describe('Calendar', () => {
   });
 
   it('keyboard ArrowRight moves focusedDate +1 day', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <Harness onFocusedDateChange={onFocusedDateChange} />
     );
@@ -93,7 +93,7 @@ describe('Calendar', () => {
   });
 
   it('keyboard ArrowDown moves +7 days', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <Harness onFocusedDateChange={onFocusedDateChange} />
     );
@@ -107,7 +107,7 @@ describe('Calendar', () => {
   it('ArrowRight skips disabled weekend in one keypress (Fri -> Mon)', () => {
     // June 14, 2024 is a Friday. With Sat+Sun disabled, ArrowRight should
     // land on Monday June 17 in a single keypress, not on Saturday.
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const friday = new Date(2024, 5, 14);
     const { container } = render(
       <Harness
@@ -126,7 +126,7 @@ describe('Calendar', () => {
   });
 
   it('ArrowLeft skips disabled weekend in one keypress (Mon -> Fri)', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const monday = new Date(2024, 5, 17);
     const { container } = render(
       <Harness
@@ -147,7 +147,7 @@ describe('Calendar', () => {
   it('Arrow keys leave focus put when range is entirely disabled', () => {
     // With min and max both pointing at the only disabled date, there is no
     // valid neighbour to move to. Focus should stay where it is.
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const day = new Date(2024, 5, 15);
     const { container } = render(
       <Harness
@@ -165,7 +165,7 @@ describe('Calendar', () => {
   });
 
   it('PageUp without shift moves -1 month', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <Harness onFocusedDateChange={onFocusedDateChange} />
     );
@@ -177,7 +177,7 @@ describe('Calendar', () => {
   });
 
   it('Shift+PageUp moves -1 year', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <Harness onFocusedDateChange={onFocusedDateChange} />
     );
@@ -190,7 +190,7 @@ describe('Calendar', () => {
   });
 
   it('Enter on focused selects', () => {
-    const onSelect = jest.fn();
+    const onSelect = vi.fn();
     const { container } = render(<Harness onSelect={onSelect} />);
     fireEvent.keyDown(container.querySelector('[role="grid"]')!, {
       key: 'Enter',
@@ -238,7 +238,7 @@ describe('Calendar', () => {
       ) as HTMLButtonElement;
 
     it('selects a day in year 1 and disables the days before it', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       const { container, getByLabelText } = render(
         <PeriodHarness focusedDate={makeDate(1, 0, 15)} onSelect={onSelect} />
       );
@@ -249,7 +249,7 @@ describe('Calendar', () => {
     });
 
     it('keeps keyboard focus from leaving year 1 backwards', () => {
-      const onFocusedDateChange = jest.fn();
+      const onFocusedDateChange = vi.fn();
       const { container } = render(
         <PeriodHarness
           focusedDate={makeDate(1, 0, 1)}
@@ -306,7 +306,7 @@ describe('Calendar', () => {
   });
 
   it('shouldDisableDate predicate disables matching cells', () => {
-    const onSelect = jest.fn();
+    const onSelect = vi.fn();
     const { container } = render(
       <Harness
         shouldDisableDate={d => d.getDate() === 15}
@@ -331,7 +331,7 @@ describe('Calendar', () => {
   });
 
   it('clicking the next-month button advances focusedDate', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { getByLabelText } = render(
       <Harness onFocusedDateChange={onFocusedDateChange} />
     );
@@ -341,7 +341,7 @@ describe('Calendar', () => {
   });
 
   it('clicking the previous-month button moves focusedDate back', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { getByLabelText } = render(
       <Harness onFocusedDateChange={onFocusedDateChange} />
     );
@@ -351,7 +351,7 @@ describe('Calendar', () => {
   });
 
   it('keyboard ArrowUp moves -7 days', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <Harness onFocusedDateChange={onFocusedDateChange} />
     );
@@ -364,7 +364,7 @@ describe('Calendar', () => {
   });
 
   it('PageDown without shift moves +1 month', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <Harness onFocusedDateChange={onFocusedDateChange} />
     );
@@ -377,7 +377,7 @@ describe('Calendar', () => {
   });
 
   it('Shift+PageDown moves +1 year', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <Harness onFocusedDateChange={onFocusedDateChange} />
     );
@@ -393,7 +393,7 @@ describe('Calendar', () => {
   it('Home moves to the first day of the week', () => {
     // June 12, 2024 is a Wednesday; with Sunday-first weeks Home lands on
     // Sunday June 9.
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const wednesday = new Date(2024, 5, 12);
     const { container } = render(
       <Harness
@@ -412,7 +412,7 @@ describe('Calendar', () => {
   it('End moves to the last day of the week', () => {
     // June 12, 2024 is a Wednesday; with Sunday-first weeks End lands on
     // Saturday June 15.
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const wednesday = new Date(2024, 5, 12);
     const { container } = render(
       <Harness
@@ -429,7 +429,7 @@ describe('Calendar', () => {
   });
 
   it('Home/End respect firstDayOfWeek=1 (Monday-first weeks)', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const wednesday = new Date(2024, 5, 12);
     const { container } = render(
       <Harness
@@ -447,7 +447,7 @@ describe('Calendar', () => {
   });
 
   it('ArrowUp stays put when the jump would land before min', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <Harness
         min={new Date(2024, 5, 10)}
@@ -462,7 +462,7 @@ describe('Calendar', () => {
   });
 
   it('ArrowDown stays put when the jump would land after max', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <Harness
         max={new Date(2024, 5, 18)}
@@ -477,7 +477,7 @@ describe('Calendar', () => {
   });
 
   it('Enter does not select when the focused date is unselectable', () => {
-    const onSelect = jest.fn();
+    const onSelect = vi.fn();
     const { container } = render(
       <Harness
         shouldDisableDate={d => d.getDate() === 15}
@@ -491,8 +491,8 @@ describe('Calendar', () => {
   });
 
   it('clicking an unselectable cell does not select or move focus', () => {
-    const onSelect = jest.fn();
-    const onFocusedDateChange = jest.fn();
+    const onSelect = vi.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <Harness
         shouldDisableDate={d => d.getDate() === 20}
@@ -588,7 +588,7 @@ describe('Calendar', () => {
   });
 
   describe('year-picker view', () => {
-    const scrollIntoViewMock = jest.fn();
+    const scrollIntoViewMock = vi.fn();
 
     beforeAll(() => {
       HTMLElement.prototype.scrollIntoView = scrollIntoViewMock;
@@ -698,7 +698,7 @@ describe('Calendar', () => {
     });
 
     it('selecting a year updates focusedDate and returns to the day view', () => {
-      const onFocusedDateChange = jest.fn();
+      const onFocusedDateChange = vi.fn();
       const { container, getByText } = render(
         <Harness
           min={new Date(2020, 0, 1)}
@@ -734,7 +734,7 @@ describe('Calendar', () => {
 
     it('arrows move focus through the years and Enter jumps to the one with focus', async () => {
       const user = userEvent.setup();
-      const onFocusedDateChange = jest.fn();
+      const onFocusedDateChange = vi.fn();
       const { container } = render(
         <PeriodHarness
           autoFocusCell
@@ -861,8 +861,8 @@ describe('Calendar month granularity', () => {
   });
 
   it('reports the first of the clicked month and focuses it inside min', () => {
-    const onSelect = jest.fn();
-    const onFocusedDateChange = jest.fn();
+    const onSelect = vi.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <PeriodHarness
         granularity="month"
@@ -923,7 +923,7 @@ describe('Calendar month granularity', () => {
     ['PageDown', 2025, 5],
     ['PageUp', 2023, 5],
   ])('%s moves focus to %i-%i', (key, year, month) => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <PeriodHarness
         granularity="month"
@@ -967,7 +967,7 @@ describe('Calendar month granularity', () => {
   });
 
   it('stays put at the min and max months', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <PeriodHarness
         granularity="month"
@@ -982,7 +982,7 @@ describe('Calendar month granularity', () => {
   });
 
   it('gives up when no month nearby has a selectable day', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <PeriodHarness
         granularity="month"
@@ -995,7 +995,7 @@ describe('Calendar month granularity', () => {
   });
 
   it('ignores keys the grid does not handle', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <PeriodHarness
         granularity="month"
@@ -1007,7 +1007,7 @@ describe('Calendar month granularity', () => {
   });
 
   it.each(['Enter', ' '])('%p selects the first of the focused month', key => {
-    const onSelect = jest.fn();
+    const onSelect = vi.fn();
     const { container } = render(
       <PeriodHarness granularity="month" onSelect={onSelect} />
     );
@@ -1016,7 +1016,7 @@ describe('Calendar month granularity', () => {
   });
 
   it('Enter does not select a month with no selectable day', () => {
-    const onSelect = jest.fn();
+    const onSelect = vi.fn();
     const { container } = render(
       <PeriodHarness
         granularity="month"
@@ -1090,8 +1090,8 @@ describe('Calendar month granularity', () => {
     );
 
     it('makes the month Tab reaches the focused one, so keys move from it', () => {
-      const onFocusedDateChange = jest.fn();
-      const onSelect = jest.fn();
+      const onFocusedDateChange = vi.fn();
+      const onSelect = vi.fn();
       const { container } = render(
         <PeriodHarness
           granularity="month"
@@ -1118,7 +1118,7 @@ describe('Calendar month granularity', () => {
 
   it('stops stepping back at year 1', () => {
     for (const min of [undefined, makeDate(0, 6, 1), makeDate(-5, 0, 1)]) {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       const { container, getByLabelText, unmount } = render(
         <PeriodHarness
           granularity="month"
@@ -1137,7 +1137,7 @@ describe('Calendar month granularity', () => {
   it('keeps a year below 100 when a month is picked', () => {
     const early = new Date(2024, 5, 15);
     early.setFullYear(19);
-    const onSelect = jest.fn();
+    const onSelect = vi.fn();
     const { container, getByText } = render(
       <PeriodHarness
         granularity="month"
@@ -1186,7 +1186,7 @@ describe('Calendar month granularity', () => {
 
   describe('year list as navigation', () => {
     beforeAll(() => {
-      HTMLElement.prototype.scrollIntoView = jest.fn();
+      HTMLElement.prototype.scrollIntoView = vi.fn();
     });
 
     const openYears = (container: HTMLElement) =>
@@ -1233,7 +1233,7 @@ describe('Calendar month granularity', () => {
     // centred on it, so moving it would reflow the list under the keyboard.
     it('moves focus through the years with the arrows, Home and End', async () => {
       const user = userEvent.setup();
-      const onFocusedDateChange = jest.fn();
+      const onFocusedDateChange = vi.fn();
       const { container } = render(
         <PeriodHarness
           granularity="month"
@@ -1271,7 +1271,7 @@ describe('Calendar month granularity', () => {
       '%s jumps to the year with focus and returns to the month grid',
       async (_key, keys) => {
         const user = userEvent.setup();
-        const onFocusedDateChange = jest.fn();
+        const onFocusedDateChange = vi.fn();
         const { container } = render(
           <PeriodHarness
             granularity="month"
@@ -1292,7 +1292,7 @@ describe('Calendar month granularity', () => {
 
     it('Escape after moving returns to the month grid on the year it left', async () => {
       const user = userEvent.setup();
-      const onFocusedDateChange = jest.fn();
+      const onFocusedDateChange = vi.fn();
       const { container, getByText } = render(
         <PeriodHarness
           granularity="month"
@@ -1386,7 +1386,7 @@ describe('Calendar year granularity', () => {
   const press = (container: HTMLElement, key: string) =>
     fireEvent.keyDown(list(container), { key });
 
-  const scrollIntoView = jest.fn();
+  const scrollIntoView = vi.fn();
   beforeAll(() => {
     HTMLElement.prototype.scrollIntoView = scrollIntoView;
   });
@@ -1474,7 +1474,7 @@ describe('Calendar year granularity', () => {
     );
 
     it('makes the year Tab reaches the focused one, so keys move from it', () => {
-      const onFocusedDateChange = jest.fn();
+      const onFocusedDateChange = vi.fn();
       const { container } = render(
         <PeriodHarness
           granularity="year"
@@ -1489,7 +1489,7 @@ describe('Calendar year granularity', () => {
     });
 
     it('leaves focus moving through the list alone', () => {
-      const onFocusedDateChange = jest.fn();
+      const onFocusedDateChange = vi.fn();
       const { container } = render(
         <PeriodHarness
           granularity="year"
@@ -1528,7 +1528,7 @@ describe('Calendar year granularity', () => {
     );
 
     it('makes the end of the list Tab reaches the focused year', () => {
-      const onFocusedDateChange = jest.fn();
+      const onFocusedDateChange = vi.fn();
       const { container } = render(
         <PeriodHarness
           granularity="year"
@@ -1544,8 +1544,8 @@ describe('Calendar year granularity', () => {
   });
 
   it('reports the first day of the clicked year and focuses it inside min', () => {
-    const onSelect = jest.fn();
-    const onFocusedDateChange = jest.fn();
+    const onSelect = vi.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <PeriodHarness
         granularity="year"
@@ -1617,7 +1617,7 @@ describe('Calendar year granularity', () => {
   });
 
   it('stays put at the ends of the list', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <PeriodHarness
         granularity="year"
@@ -1641,8 +1641,8 @@ describe('Calendar year granularity', () => {
   it('keeps a year below 100 when it is picked or reached', () => {
     const early = new Date(2024, 5, 15);
     early.setFullYear(19);
-    const onSelect = jest.fn();
-    const onFocusedDateChange = jest.fn();
+    const onSelect = vi.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <PeriodHarness
         granularity="year"
@@ -1665,7 +1665,7 @@ describe('Calendar year granularity', () => {
 
   it('lists no year before 1', () => {
     for (const min of [undefined, makeDate(0, 6, 1), makeDate(-5, 0, 1)]) {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       const { container, unmount } = render(
         <PeriodHarness
           granularity="year"
@@ -1693,16 +1693,17 @@ describe('Calendar year granularity', () => {
   });
 
   describe('focus and scrolling', () => {
-    afterEach(() => jest.restoreAllMocks());
+    afterEach(() => vi.restoreAllMocks());
 
     it('centres the focused year by scrolling the list itself', () => {
-      jest
-        .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
-        .mockImplementation(function (this: Element) {
-          const isList = this.getAttribute('role') === 'listbox';
-          return { top: isList ? 100 : 400, height: 36 } as DOMRect;
-        });
-      jest.spyOn(Element.prototype, 'clientHeight', 'get').mockReturnValue(200);
+      vi.spyOn(
+        HTMLElement.prototype,
+        'getBoundingClientRect'
+      ).mockImplementation(function (this: Element) {
+        const isList = this.getAttribute('role') === 'listbox';
+        return { top: isList ? 100 : 400, height: 36 } as DOMRect;
+      });
+      vi.spyOn(Element.prototype, 'clientHeight', 'get').mockReturnValue(200);
       const { container } = render(<PeriodHarness granularity="year" />);
       // 400 - 100 puts the year 300px down; centring it in a 200px list
       // leaves (200 - 36) / 2 above it.
@@ -1831,8 +1832,8 @@ describe('Calendar day grid focus', () => {
     );
 
     it('makes the day Tab reaches the focused one, so keys move from it', () => {
-      const onFocusedDateChange = jest.fn();
-      const onSelect = jest.fn();
+      const onFocusedDateChange = vi.fn();
+      const onSelect = vi.fn();
       const { container } = render(
         <PeriodHarness
           shouldDisableDate={d => d.getMonth() === 5 && d.getDate() === 15}
@@ -1849,7 +1850,7 @@ describe('Calendar day grid focus', () => {
     });
 
     it("leaves a nearby month's day to its click, which turns the grid", () => {
-      const onFocusedDateChange = jest.fn();
+      const onFocusedDateChange = vi.fn();
       const { container } = render(
         <PeriodHarness onFocusedDateChange={onFocusedDateChange} />
       );
@@ -1906,7 +1907,7 @@ describe('Calendar day grid focus', () => {
       // there and then, inside React's commit, so this does the same.
       const setAttribute = Element.prototype.setAttribute;
       let dropped = false;
-      const spy = jest
+      const spy = vi
         .spyOn(Element.prototype, 'setAttribute')
         .mockImplementation(function (this: Element, name, value) {
           setAttribute.call(this, name, value);
@@ -1949,7 +1950,7 @@ describe('Calendar day grid focus', () => {
   describe('with autoFocusCell, as the popover renders it', () => {
     beforeAll(() => {
       // jsdom has no scrollIntoView, which the year list calls.
-      HTMLElement.prototype.scrollIntoView ??= jest.fn();
+      HTMLElement.prototype.scrollIntoView ??= vi.fn();
     });
 
     it('leaves focus on the header button the user pressed', () => {
@@ -2041,7 +2042,7 @@ describe('Calendar and the popover toggle keys', () => {
   // Alt+ArrowDown and Alt+ArrowUp open and close a picker's popover, so the
   // calendar leaves them to it in every view rather than moving focus.
   beforeAll(() => {
-    HTMLElement.prototype.scrollIntoView = jest.fn();
+    HTMLElement.prototype.scrollIntoView = vi.fn();
   });
   const toggleKeys = (el: Element) =>
     ['ArrowUp', 'ArrowDown'].map(key =>
@@ -2053,7 +2054,7 @@ describe('Calendar and the popover toggle keys', () => {
     ['the month grid', 'month', '[data-focused="true"]'],
     ['the year list', 'year', '[data-focused-year="true"]'],
   ] as const)('in %s', (_view, granularity, selector) => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <PeriodHarness
         granularity={granularity}
@@ -2066,7 +2067,7 @@ describe('Calendar and the popover toggle keys', () => {
   });
 
   it('in the year list opened from the header', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <PeriodHarness onFocusedDateChange={onFocusedDateChange} />
     );

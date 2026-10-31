@@ -376,7 +376,7 @@ describe('Steps', () => {
     });
 
     it('calls onStepClick with value-1 when Previous is clicked', () => {
-      const handleClick = jest.fn();
+      const handleClick = vi.fn();
       render(
         <Steps
           hasNavigation
@@ -390,7 +390,7 @@ describe('Steps', () => {
     });
 
     it('calls onStepClick with value+1 when Next is clicked', () => {
-      const handleClick = jest.fn();
+      const handleClick = vi.fn();
       render(
         <Steps
           hasNavigation
@@ -404,8 +404,8 @@ describe('Steps', () => {
     });
 
     it('uses custom onPrev/onNext when provided', () => {
-      const handlePrev = jest.fn();
-      const handleNext = jest.fn();
+      const handlePrev = vi.fn();
+      const handleNext = vi.fn();
       render(
         <Steps
           hasNavigation
@@ -479,7 +479,7 @@ describe('Steps', () => {
     });
 
     it('calls onStepClick with index when clickable child is clicked (children branch)', () => {
-      const handleClick = jest.fn();
+      const handleClick = vi.fn();
       const { container } = render(
         <Steps value={0} onStepClick={handleClick}>
           <Steps.Step label="A" clickable />
@@ -492,8 +492,8 @@ describe('Steps', () => {
     });
 
     it('preserves child onClick when child is not clickable (children branch fallback)', () => {
-      const childHandler = jest.fn();
-      const stepsHandler = jest.fn();
+      const childHandler = vi.fn();
+      const stepsHandler = vi.fn();
       const { container } = render(
         <Steps value={0} onStepClick={stepsHandler}>
           <Steps.Step label="A" clickable onClick={childHandler} />
@@ -505,7 +505,7 @@ describe('Steps', () => {
     });
 
     it('falls back to child onClick when no onStepClick is provided', () => {
-      const childHandler = jest.fn();
+      const childHandler = vi.fn();
       const { container } = render(
         <Steps value={0}>
           <Steps.Step label="A" clickable onClick={childHandler} />
@@ -532,7 +532,7 @@ describe('Steps', () => {
 
   describe('clickable steps', () => {
     it('calls onStepClick when clickable step is clicked', () => {
-      const handleClick = jest.fn();
+      const handleClick = vi.fn();
       const { container } = render(
         <Steps
           value={0}
@@ -550,7 +550,7 @@ describe('Steps', () => {
     });
 
     it('does not call onStepClick when non-clickable step is clicked', () => {
-      const handleClick = jest.fn();
+      const handleClick = vi.fn();
       const { container } = render(
         <Steps
           value={0}
@@ -627,7 +627,7 @@ describe('Steps', () => {
 
     it('presses a clickable step with Enter and with Space', async () => {
       const user = userEvent.setup();
-      const handleClick = jest.fn();
+      const handleClick = vi.fn();
       render(
         <Steps
           value={0}
@@ -651,7 +651,7 @@ describe('Steps', () => {
 
     it('does nothing on other keys', async () => {
       const user = userEvent.setup();
-      const handleClick = jest.fn();
+      const handleClick = vi.fn();
       render(
         <Steps
           value={0}
@@ -667,7 +667,7 @@ describe('Steps', () => {
 
   describe('navigation fallback branches', () => {
     it('uses onStepClick fallback for Previous when onPrev is omitted', () => {
-      const handleStep = jest.fn();
+      const handleStep = vi.fn();
       render(
         <Steps
           hasNavigation
@@ -681,7 +681,7 @@ describe('Steps', () => {
     });
 
     it('uses onStepClick fallback for Next when onNext is omitted', () => {
-      const handleStep = jest.fn();
+      const handleStep = vi.fn();
       render(
         <Steps
           hasNavigation
@@ -871,7 +871,7 @@ describe('Step subcomponent', () => {
   });
 
   it('calls onClick when clickable and clicked', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(<Step clickable onClick={handleClick} label="Test" />);
     fireEvent.click(screen.getByRole('button', { name: /Test/ }));
     expect(handleClick).toHaveBeenCalledTimes(1);

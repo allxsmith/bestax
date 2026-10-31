@@ -27,8 +27,8 @@ This project is a modern, flexible React component library built on top of Bulma
 Before contributing, your PR **must** satisfy the following:
 
 - **All tests pass** (`pnpm test` & `pnpm test:coverage`)
-  - Coverage thresholds are enforced per package by jest: **bulma-ui 99%** on all metrics
-    ([`bulma-ui/jest.config.js`](./bulma-ui/jest.config.js)); **every other jest
+  - Coverage thresholds are enforced per package by Vitest: **bulma-ui 99%** on all metrics
+    ([`bulma-ui/vitest.config.ts`](./bulma-ui/vitest.config.ts)); **every other published
     package** 95% (78% branches), each in its own config. `docs` runs
     `node --test` and has no coverage threshold
   - The root `scripts/` suite holds each file to its own floor in
@@ -190,9 +190,9 @@ pnpm run all
 ```bash
 pnpm run build          # turbo build all packages
 pnpm run typecheck
-pnpm run test           # jest in every package + the docs and scripts/ node:test suites
+pnpm run test           # Vitest in the packages + the docs and scripts/ node:test suites
 pnpm run test:scripts   # the scripts/ suite alone, held to its per-file coverage floors
-pnpm run test:coverage  # coverage (bulma-ui 99%; every other jest package 95%, 78% branches)
+pnpm run test:coverage  # coverage (bulma-ui 99%; every other published package 95%, 78% branches)
 pnpm run lint
 pnpm run format:check   # prettier check (use `pnpm run format` to auto-fix)
 pnpm run bundle:stats   # writes bulma-ui/dist/stats.html
@@ -298,7 +298,7 @@ no `npm publish`, no tag, no GitHub release.
    pnpm install
    ```
 4. **Make your changes** in the appropriate workspace (`bulma-ui` for components, `docs` for documentation).
-5. **Update/add unit tests** (coverage must stay above each package's jest threshold — 99% for bulma-ui, 95% with 78% branches for every other jest package).
+5. **Update/add unit tests** (coverage must stay above each package's threshold — 99% for bulma-ui, 95% with 78% branches for every other published package).
 6. **Add or update Storybook stories** for UI-related changes.
 7. **Update documentation** in `/docs` as needed.
 8. **Run all checks**:
@@ -615,7 +615,7 @@ To rotate the key, repeat steps 3 to 5, then remove the old deploy key with `gh 
 ## Code Quality Standards
 
 - **Unit tests** required for all new features and bug fixes.
-- **Coverage must not drop below the per-package jest thresholds** (bulma-ui 99%; every other jest package 95%, 78% branches). `docs` has no jest suite and no threshold.
+- **Coverage must not drop below the per-package thresholds** (bulma-ui 99%; every other published package 95%, 78% branches). `docs` has no threshold.
 - **Linting, formatting, and type checks** must all pass.
 - **Storybook stories** required for any visible or interactive UI change.
 - **Documentation** must be updated to reflect your changes (see [Documentation](#documentation)).

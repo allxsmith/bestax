@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import { useState, type SyntheticEvent } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { render, screen, fireEvent, act } from '@testing-library/react';
@@ -113,7 +114,7 @@ describe('Collapse', () => {
 
   describe('callbacks', () => {
     it('calls onOpen when opening', () => {
-      const handleOpen = jest.fn();
+      const handleOpen = vi.fn();
       const { container } = render(
         <Collapse trigger={<button>Toggle</button>} onOpen={handleOpen}>
           Content
@@ -127,7 +128,7 @@ describe('Collapse', () => {
     });
 
     it('calls onClose when closing', () => {
-      const handleClose = jest.fn();
+      const handleClose = vi.fn();
       const { container } = render(
         <Collapse
           trigger={<button>Toggle</button>}
@@ -165,9 +166,9 @@ describe('Collapse', () => {
     });
 
     it('reports a controlled trigger through onOpenChange and leaves the state to the caller', () => {
-      const handleToggle = jest.fn();
-      const handleOpen = jest.fn();
-      const handleClose = jest.fn();
+      const handleToggle = vi.fn();
+      const handleOpen = vi.fn();
+      const handleClose = vi.fn();
       const { container, rerender } = render(
         <Collapse
           trigger={<span>Toggle</span>}
@@ -231,10 +232,10 @@ describe('Collapse', () => {
     it('still accepts the inherited DOM onToggle, which the trigger does not call', () => {
       // Typed as the DOM event handler it has always been, so existing code
       // passing one keeps compiling; onOpenChange is the trigger's report.
-      const domToggle = jest.fn(
+      const domToggle = vi.fn(
         (event: SyntheticEvent<HTMLDivElement>) => event.type
       );
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       const { container } = render(
         <Collapse
           trigger={<span>Toggle</span>}
@@ -251,8 +252,8 @@ describe('Collapse', () => {
     });
 
     it('does not call callbacks when controlled', () => {
-      const handleOpen = jest.fn();
-      const handleClose = jest.fn();
+      const handleOpen = vi.fn();
+      const handleClose = vi.fn();
       const { container } = render(
         <Collapse
           trigger={<button>Toggle</button>}
@@ -405,7 +406,9 @@ describe('Collapse', () => {
     it.each(['fade', 'slide', false] as const)(
       'with animation=%s, takes a closed panel out and puts it back on open',
       animation => {
-        const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+        const errorSpy = vi
+          .spyOn(console, 'error')
+          .mockImplementation(() => {});
         const { container } = render(
           <Collapse trigger={<span>Toggle</span>} animation={animation}>
             {panel}
@@ -665,13 +668,13 @@ describe('Collapse', () => {
   });
 
   describe('slide animation height transitions', () => {
-    let rafSpy: jest.SpyInstance;
-    let scrollHeightSpy: jest.SpyInstance | undefined;
+    let rafSpy: MockInstance;
+    let scrollHeightSpy: MockInstance | undefined;
 
     beforeEach(() => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       // Run rAF callbacks synchronously so the close transition can be observed
-      rafSpy = jest
+      rafSpy = vi
         .spyOn(window, 'requestAnimationFrame')
         .mockImplementation((cb: FrameRequestCallback) => {
           cb(0);
@@ -679,7 +682,7 @@ describe('Collapse', () => {
         });
       // jsdom returns 0 for scrollHeight; stub it so the open path uses a
       // realistic measured pixel value
-      scrollHeightSpy = jest
+      scrollHeightSpy = vi
         .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
         .mockReturnValue(123);
     });
@@ -688,9 +691,9 @@ describe('Collapse', () => {
       rafSpy.mockRestore();
       scrollHeightSpy?.mockRestore();
       act(() => {
-        jest.runOnlyPendingTimers();
+        vi.runOnlyPendingTimers();
       });
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
 
     it('sets measured height then auto when opening with slide animation', () => {
@@ -716,7 +719,7 @@ describe('Collapse', () => {
 
       // After the 300ms transition timer fires, height should be 'auto'
       act(() => {
-        jest.advanceTimersByTime(300);
+        vi.advanceTimersByTime(300);
       });
       expect(wrapper.style.height).toBe('auto');
     });
@@ -739,13 +742,13 @@ describe('Collapse', () => {
 
       // After the 300ms transition timer, height collapses to 'auto'
       act(() => {
-        jest.advanceTimersByTime(300);
+        vi.advanceTimersByTime(300);
       });
       expect(wrapper.style.height).toBe('auto');
     });
 
     it('clears the open-transition timer on unmount', () => {
-      const clearSpy = jest.spyOn(global, 'clearTimeout');
+      const clearSpy = vi.spyOn(global, 'clearTimeout');
       const { unmount } = render(
         <Collapse
           trigger={<button>Toggle</button>}
@@ -777,7 +780,7 @@ describe('Collapse', () => {
 
       // Let the open transition settle so internal height becomes 'auto'
       act(() => {
-        jest.advanceTimersByTime(300);
+        vi.advanceTimersByTime(300);
       });
       expect(wrapper.style.height).toBe('auto');
 

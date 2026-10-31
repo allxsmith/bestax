@@ -1,20 +1,20 @@
-import { describe, it, expect, jest } from '@jest/globals';
+import { describe, it, expect, vi } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 // Mock chalk
-jest.unstable_mockModule('chalk', () => ({
+vi.doMock('chalk', () => ({
   default: {
-    yellow: jest.fn((str: string) => str),
-    blue: jest.fn((str: string) => str),
-    cyan: jest.fn((str: string) => str),
-    magenta: jest.fn((str: string) => str),
-    green: jest.fn((str: string) => str),
-    red: jest.fn((str: string) => str),
-    dim: jest.fn((str: string) => str),
-    bold: jest.fn((str: string) => str),
-    gray: jest.fn((str: string) => str),
+    yellow: vi.fn((str: string) => str),
+    blue: vi.fn((str: string) => str),
+    cyan: vi.fn((str: string) => str),
+    magenta: vi.fn((str: string) => str),
+    green: vi.fn((str: string) => str),
+    red: vi.fn((str: string) => str),
+    dim: vi.fn((str: string) => str),
+    bold: vi.fn((str: string) => str),
+    gray: vi.fn((str: string) => str),
   },
 }));
 

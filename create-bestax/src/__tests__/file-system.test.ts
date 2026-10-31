@@ -2,41 +2,43 @@ import {
   describe,
   it,
   expect,
-  jest,
+  vi,
   beforeEach,
   afterEach,
-} from '@jest/globals';
+  type Mock,
+  type MockedFunction,
+} from 'vitest';
 import path from 'path';
 const _path = path;
 
 // Mock fs-extra
-jest.unstable_mockModule('fs-extra', () => ({
+vi.doMock('fs-extra', () => ({
   default: {
-    existsSync: jest.fn(),
-    readdirSync: jest.fn(),
-    statSync: jest.fn(),
-    realpathSync: jest.fn(),
-    emptyDir: jest.fn(),
-    ensureDir: jest.fn(),
-    copy: jest.fn(),
-    move: jest.fn(),
-    readJson: jest.fn(),
-    writeJson: jest.fn(),
-    readFile: jest.fn(),
-    writeFile: jest.fn(),
+    existsSync: vi.fn(),
+    readdirSync: vi.fn(),
+    statSync: vi.fn(),
+    realpathSync: vi.fn(),
+    emptyDir: vi.fn(),
+    ensureDir: vi.fn(),
+    copy: vi.fn(),
+    move: vi.fn(),
+    readJson: vi.fn(),
+    writeJson: vi.fn(),
+    readFile: vi.fn(),
+    writeFile: vi.fn(),
   },
-  existsSync: jest.fn(),
-  readdirSync: jest.fn(),
-  statSync: jest.fn(),
-  realpathSync: jest.fn(),
-  emptyDir: jest.fn(),
-  ensureDir: jest.fn(),
-  copy: jest.fn(),
-  move: jest.fn(),
-  readJson: jest.fn(),
-  writeJson: jest.fn(),
-  readFile: jest.fn(),
-  writeFile: jest.fn(),
+  existsSync: vi.fn(),
+  readdirSync: vi.fn(),
+  statSync: vi.fn(),
+  realpathSync: vi.fn(),
+  emptyDir: vi.fn(),
+  ensureDir: vi.fn(),
+  copy: vi.fn(),
+  move: vi.fn(),
+  readJson: vi.fn(),
+  writeJson: vi.fn(),
+  readFile: vi.fn(),
+  writeFile: vi.fn(),
 }));
 
 const fs = await import('fs-extra');
@@ -58,9 +60,9 @@ const {
 const originalConsole = { ...console };
 
 beforeEach(() => {
-  console.log = jest.fn();
-  console.error = jest.fn();
-  jest.clearAllMocks();
+  console.log = vi.fn();
+  console.error = vi.fn();
+  vi.clearAllMocks();
 });
 
 afterEach(() => {
@@ -72,7 +74,7 @@ describe('file-system', () => {
   describe('checkDirectoryExists', () => {
     it('should return true when directory exists', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       const result = await checkDirectoryExists('/test/path');
       expect(result).toBe(true);
@@ -81,7 +83,7 @@ describe('file-system', () => {
 
     it('should return false when directory does not exist', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
       const result = await checkDirectoryExists('/test/path');
       expect(result).toBe(false);
@@ -91,7 +93,7 @@ describe('file-system', () => {
   describe('isDirectoryEmpty', () => {
     it('should return true for non-existent directory', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
       const result = await isDirectoryEmpty('/test/path');
       expect(result).toBe(true);
@@ -99,10 +101,10 @@ describe('file-system', () => {
 
     it('should return true for empty directory', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       (
-        fs.default.readdirSync as jest.MockedFunction<typeof fs.readdirSync>
+        fs.default.readdirSync as MockedFunction<typeof fs.readdirSync>
       ).mockReturnValue([] as unknown);
       const result = await isDirectoryEmpty('/test/path');
       expect(result).toBe(true);
@@ -110,10 +112,10 @@ describe('file-system', () => {
 
     it('should return false for non-empty directory', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       (
-        fs.default.readdirSync as jest.MockedFunction<typeof fs.readdirSync>
+        fs.default.readdirSync as MockedFunction<typeof fs.readdirSync>
       ).mockReturnValue(['file.txt'] as unknown);
       const result = await isDirectoryEmpty('/test/path');
       expect(result).toBe(false);
@@ -123,7 +125,7 @@ describe('file-system', () => {
   describe('listDirectoryEntries', () => {
     it('returns no entries for a directory that does not exist', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
       expect(await listDirectoryEntries('/test/path')).toEqual([]);
       expect(fs.default.readdirSync).not.toHaveBeenCalled();
@@ -131,10 +133,10 @@ describe('file-system', () => {
 
     it('returns the top-level entries in a stable, sorted order', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       (
-        fs.default.readdirSync as jest.MockedFunction<typeof fs.readdirSync>
+        fs.default.readdirSync as MockedFunction<typeof fs.readdirSync>
       ).mockReturnValue(['src', 'notes.txt', '.git'] as unknown);
       expect(await listDirectoryEntries('/test/path')).toEqual([
         '.git',
@@ -145,9 +147,7 @@ describe('file-system', () => {
   });
 
   describe('findNonDirectoryInPath', () => {
-    const statSync = fs.default.statSync as jest.MockedFunction<
-      typeof fs.statSync
-    >;
+    const statSync = fs.default.statSync as MockedFunction<typeof fs.statSync>;
     type Stat = ReturnType<typeof fs.statSync>;
     const directory = { isDirectory: () => true } as unknown as Stat;
     const file = { isDirectory: () => false } as unknown as Stat;
@@ -208,7 +208,7 @@ describe('file-system', () => {
   });
 
   describe('realPath', () => {
-    const realpathSync = fs.default.realpathSync as unknown as jest.Mock;
+    const realpathSync = fs.default.realpathSync as unknown as Mock;
 
     it('resolves symbolic links', async () => {
       realpathSync.mockReturnValue('/private/tmp/app');
@@ -240,7 +240,7 @@ describe('file-system', () => {
   describe('copyDirectory', () => {
     it('should copy directory successfully', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
 
       await copyDirectory('/source', '/target');
@@ -250,7 +250,7 @@ describe('file-system', () => {
 
     it('should throw error when source does not exist', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
 
       await expect(
@@ -260,7 +260,7 @@ describe('file-system', () => {
 
     it('should not call copy when source does not exist', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
 
       try {
@@ -275,7 +275,7 @@ describe('file-system', () => {
     it('should rename _gitignore to .gitignore when the placeholder was copied', async () => {
       // Call 1: the source-directory existence check; call 2: the copied
       // placeholder in the destination.
-      (fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>)
+      (fs.default.existsSync as MockedFunction<typeof fs.existsSync>)
         .mockReturnValueOnce(true)
         .mockReturnValueOnce(true);
 
@@ -290,7 +290,7 @@ describe('file-system', () => {
     });
 
     it('should skip the rename when the placeholder is absent from the destination', async () => {
-      (fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>)
+      (fs.default.existsSync as MockedFunction<typeof fs.existsSync>)
         .mockReturnValueOnce(true)
         .mockReturnValueOnce(false);
 
@@ -302,7 +302,7 @@ describe('file-system', () => {
 
     it('should not run a rename pass when renames is omitted', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
 
       await copyDirectory('/source', '/target');
@@ -317,10 +317,10 @@ describe('file-system', () => {
   describe('updatePackageJson', () => {
     it('should update package.json with project name', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       (
-        fs.default.readJson as jest.MockedFunction<typeof fs.readJson>
+        fs.default.readJson as MockedFunction<typeof fs.readJson>
       ).mockResolvedValue({ name: 'old-name', version: '1.0.0' });
 
       await updatePackageJson('/target', 'new-project');
@@ -335,10 +335,10 @@ describe('file-system', () => {
 
     it('sets a dependency in its place among the others, or adds it (#1240)', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       (
-        fs.default.readJson as jest.MockedFunction<typeof fs.readJson>
+        fs.default.readJson as MockedFunction<typeof fs.readJson>
       ).mockResolvedValueOnce({
         name: 'old-name',
         dependencies: { lib: 'workspace:^', react: '^19.2.3' },
@@ -349,7 +349,7 @@ describe('file-system', () => {
         extra: '^1.0.0',
       });
 
-      const [, written] = (fs.default.writeJson as jest.Mock).mock.calls[0];
+      const [, written] = (fs.default.writeJson as Mock).mock.calls[0];
       expect(written).toEqual({
         name: 'new-project',
         dependencies: { lib: '^5.43.0', react: '^19.2.3', extra: '^1.0.0' },
@@ -361,10 +361,10 @@ describe('file-system', () => {
 
     it('gives a manifest with no dependencies the ones it is handed', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       (
-        fs.default.readJson as jest.MockedFunction<typeof fs.readJson>
+        fs.default.readJson as MockedFunction<typeof fs.readJson>
       ).mockResolvedValueOnce({ name: 'old-name' });
 
       await updatePackageJson('/target', 'new-project', { lib: '^5.43.0' });
@@ -378,7 +378,7 @@ describe('file-system', () => {
 
     it('should do nothing when package.json does not exist', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
 
       await updatePackageJson('/target', 'new-project');
@@ -389,10 +389,10 @@ describe('file-system', () => {
 
     it('should preserve other package.json properties', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       (
-        fs.default.readJson as jest.MockedFunction<typeof fs.readJson>
+        fs.default.readJson as MockedFunction<typeof fs.readJson>
       ).mockResolvedValue({
         name: 'old-name',
         version: '1.0.0',
@@ -418,7 +418,7 @@ describe('file-system', () => {
   describe('isDirectoryEmpty', () => {
     it('should return true for non-existent directory', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
 
       const result = await isDirectoryEmpty('/path/to/dir');
@@ -427,10 +427,10 @@ describe('file-system', () => {
 
     it('should return true for empty directory', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       (
-        fs.default.readdirSync as jest.MockedFunction<typeof fs.readdirSync>
+        fs.default.readdirSync as MockedFunction<typeof fs.readdirSync>
       ).mockReturnValue([] as unknown);
 
       const result = await isDirectoryEmpty('/path/to/dir');
@@ -439,10 +439,10 @@ describe('file-system', () => {
 
     it('should return false for directory with files', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       (
-        fs.default.readdirSync as jest.MockedFunction<typeof fs.readdirSync>
+        fs.default.readdirSync as MockedFunction<typeof fs.readdirSync>
       ).mockReturnValue(['file.txt'] as unknown);
 
       const result = await isDirectoryEmpty('/path/to/dir');
@@ -451,10 +451,10 @@ describe('file-system', () => {
 
     it('should return false for directory with hidden files only', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       (
-        fs.default.readdirSync as jest.MockedFunction<typeof fs.readdirSync>
+        fs.default.readdirSync as MockedFunction<typeof fs.readdirSync>
       ).mockReturnValue(['.gitignore', '.DS_Store'] as unknown);
 
       const result = await isDirectoryEmpty('/path/to/dir');
@@ -466,7 +466,7 @@ describe('file-system', () => {
     it('should read and parse JSON file', async () => {
       const mockData = { name: 'test', version: '1.0.0' };
       (
-        fs.default.readJson as jest.MockedFunction<typeof fs.readJson>
+        fs.default.readJson as MockedFunction<typeof fs.readJson>
       ).mockResolvedValue(mockData);
 
       const result = await readJsonFile('/path/to/file.json');
@@ -476,7 +476,7 @@ describe('file-system', () => {
 
     it('should throw error for invalid JSON file', async () => {
       (
-        fs.default.readJson as jest.MockedFunction<typeof fs.readJson>
+        fs.default.readJson as MockedFunction<typeof fs.readJson>
       ).mockRejectedValue(new Error('Invalid JSON'));
 
       await expect(readJsonFile('/path/to/invalid.json')).rejects.toThrow(
@@ -486,7 +486,7 @@ describe('file-system', () => {
 
     it('should throw error for non-existent file', async () => {
       (
-        fs.default.readJson as jest.MockedFunction<typeof fs.readJson>
+        fs.default.readJson as MockedFunction<typeof fs.readJson>
       ).mockRejectedValue(new Error('ENOENT'));
 
       await expect(readJsonFile('/path/to/missing.json')).rejects.toThrow(
@@ -522,7 +522,7 @@ describe('file-system', () => {
 
     it('should throw error for write failure', async () => {
       (
-        fs.default.writeJson as jest.MockedFunction<typeof fs.writeJson>
+        fs.default.writeJson as MockedFunction<typeof fs.writeJson>
       ).mockRejectedValue(new Error('Permission denied'));
 
       await expect(
@@ -534,7 +534,7 @@ describe('file-system', () => {
   describe('emptyDirectory edge cases', () => {
     it('should handle permission errors', async () => {
       (
-        fs.default.emptyDir as jest.MockedFunction<typeof fs.emptyDir>
+        fs.default.emptyDir as MockedFunction<typeof fs.emptyDir>
       ).mockRejectedValue(new Error('Permission denied'));
 
       await expect(emptyDirectory('/protected/path')).rejects.toThrow(
@@ -546,7 +546,7 @@ describe('file-system', () => {
   describe('ensureDirectory edge cases', () => {
     it('should handle permission errors', async () => {
       (
-        fs.default.ensureDir as jest.MockedFunction<typeof fs.ensureDir>
+        fs.default.ensureDir as MockedFunction<typeof fs.ensureDir>
       ).mockRejectedValue(new Error('Permission denied'));
 
       await expect(ensureDirectory('/protected/path')).rejects.toThrow(
@@ -558,10 +558,10 @@ describe('file-system', () => {
   describe('updatePackageJson edge cases', () => {
     it('should handle readJson errors gracefully', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       (
-        fs.default.readJson as jest.MockedFunction<typeof fs.readJson>
+        fs.default.readJson as MockedFunction<typeof fs.readJson>
       ).mockRejectedValue(new Error('Corrupted JSON'));
 
       await expect(updatePackageJson('/target', 'new-project')).rejects.toThrow(
@@ -571,13 +571,13 @@ describe('file-system', () => {
 
     it('should handle writeJson errors', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       (
-        fs.default.readJson as jest.MockedFunction<typeof fs.readJson>
+        fs.default.readJson as MockedFunction<typeof fs.readJson>
       ).mockResolvedValue({ name: 'old-name' });
       (
-        fs.default.writeJson as jest.MockedFunction<typeof fs.writeJson>
+        fs.default.writeJson as MockedFunction<typeof fs.writeJson>
       ).mockRejectedValue(new Error('Write failed'));
 
       await expect(updatePackageJson('/target', 'new-project')).rejects.toThrow(

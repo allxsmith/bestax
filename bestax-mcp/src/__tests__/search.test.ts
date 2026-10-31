@@ -6,7 +6,7 @@
  * mode and tokens but never "theme"), and a first-letter suggester answered
  * "Buton" with "Badge, Block, Box". The cases below pin the fixes.
  */
-import { describe, expect, it, beforeAll } from '@jest/globals';
+import { describe, expect, it, beforeAll } from 'vitest';
 
 import {
   loadCatalog,

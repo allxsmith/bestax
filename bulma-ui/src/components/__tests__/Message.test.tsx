@@ -31,7 +31,7 @@ describe('Message', () => {
   });
 
   it('calls onClose when close button clicked', () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     render(
       <Message title="Closable" onClose={onClose}>
         Bye

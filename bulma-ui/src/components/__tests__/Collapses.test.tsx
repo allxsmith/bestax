@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import { useState } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { render, screen, fireEvent } from '@testing-library/react';
@@ -75,7 +76,7 @@ describe('Collapses', () => {
     });
 
     it('renders text children in place without making them items', () => {
-      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const { container } = render(
         <Collapses defaultValue={1}>
           {'Intro'}
@@ -104,7 +105,7 @@ describe('Collapses', () => {
     });
 
     it('keeps one item open at a time, and closes it from its own trigger', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Collapses onChange={onChange}>{threeItems}</Collapses>);
 
       fireEvent.click(trigger('A'));
@@ -150,7 +151,7 @@ describe('Collapses', () => {
     });
 
     it('opens and closes items independently', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Collapses multiple onChange={onChange}>
           {threeItems}
@@ -167,7 +168,7 @@ describe('Collapses', () => {
     });
 
     it('reports open indexes in ascending order, not the order opened', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Collapses multiple onChange={onChange}>
           {threeItems}
@@ -182,7 +183,7 @@ describe('Collapses', () => {
     });
 
     it('sorts a controlled value it reports on, however it was passed', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Collapses multiple value={[2, 0]} onChange={onChange}>
           {threeItems}
@@ -195,7 +196,7 @@ describe('Collapses', () => {
 
   describe('controlled', () => {
     it('follows value in single mode, and reports without changing', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { rerender } = render(
         <Collapses value={0} onChange={onChange}>
           {threeItems}
@@ -248,7 +249,7 @@ describe('Collapses', () => {
     });
 
     it('closes an item in single mode even when value lists several', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       // Not a typed use: plain JavaScript can hand single mode an array.
       const props = { value: [0, 2], onChange } as unknown as {
         value: number;
@@ -264,8 +265,8 @@ describe('Collapses', () => {
 
   describe('items', () => {
     it('leaves a child that sets its own open alone', () => {
-      const onChange = jest.fn();
-      const ownToggle = jest.fn();
+      const onChange = vi.fn();
+      const ownToggle = vi.fn();
       render(
         <Collapses defaultValue={1} onChange={onChange}>
           <Collapse trigger="A">Panel A</Collapse>
@@ -293,10 +294,10 @@ describe('Collapses', () => {
 
     it("fires an item's onOpenChange, but not its onOpen or onClose", () => {
       // The warning these props draw is covered below.
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
-      const onOpenChange = jest.fn();
-      const onOpen = jest.fn();
-      const onClose = jest.fn();
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const onOpenChange = vi.fn();
+      const onOpen = vi.fn();
+      const onClose = vi.fn();
       render(
         <Collapses>
           <Collapse
@@ -320,7 +321,7 @@ describe('Collapses', () => {
     });
 
     it("ignores an item's defaultOpen in favour of the group's defaultValue", () => {
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(
         <Collapses defaultValue={1}>
           <Collapse trigger="A" defaultOpen>
@@ -334,7 +335,7 @@ describe('Collapses', () => {
     });
 
     it('indexes the children of a fragment one by one', () => {
-      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       render(
         <Collapses defaultValue={2}>
           <Collapse trigger="A">Panel A</Collapse>
@@ -387,11 +388,11 @@ describe('Collapses', () => {
   });
 
   describe('development warnings for props the group makes inert', () => {
-    let warnSpy: jest.SpyInstance;
+    let warnSpy: MockInstance;
 
     beforeEach(() => {
       resetDevWarnings();
-      warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     });
 
     afterEach(() => {

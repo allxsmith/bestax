@@ -13,7 +13,7 @@ pieces in an app, or as a full library "extra" inside the bestax monorepo.
 
 - **The bestax monorepo** (the repo contains `bulma-ui/src/`) → follow
   `references/library-contributor.md` instead of this file: five-file layout, SCSS partial,
-  stories, jest tests, docs page, wiring.
+  stories, Vitest tests, docs page, wiring.
 - **An app depending on `@allxsmith/bestax-bulma`** (e.g. scaffolded by `npm create bestax`) →
   continue here. Everything below assumes public package imports and a plain Vite app.
 

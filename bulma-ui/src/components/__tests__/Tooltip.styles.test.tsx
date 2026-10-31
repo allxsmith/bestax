@@ -59,7 +59,7 @@ const hoverOpen = () => {
   Object.defineProperty(event, 'pointerType', { value: 'mouse' });
   fireEvent(screen.getByRole('button', { name: 'Trigger' }), event);
   act(() => {
-    jest.runOnlyPendingTimers();
+    vi.runOnlyPendingTimers();
   });
 };
 
@@ -77,11 +77,11 @@ const bridge = (selector: string) => {
 };
 
 beforeEach(() => {
-  jest.useFakeTimers();
+  vi.useFakeTimers();
 });
 
 afterEach(() => {
-  jest.useRealTimers();
+  vi.useRealTimers();
 });
 
 describe('Tooltip styles under a class prefix', () => {

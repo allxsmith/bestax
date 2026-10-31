@@ -191,19 +191,20 @@ describe('useLocaleMatcher', () => {
   it('compares a bounded number of slices on a long label', () => {
     const RealCollator = Intl.Collator;
     let compared = 0;
-    const spy = jest
+    const spy = vi
       .spyOn(Intl, 'Collator')
-      .mockImplementation(
-        (...args: ConstructorParameters<typeof Intl.Collator>) => {
-          const real = new RealCollator(...args);
-          return {
-            compare: (a: string, b: string) => {
-              compared++;
-              return real.compare(a, b);
-            },
-          } as Intl.Collator;
-        }
-      );
+      // A `function`, not an arrow: the code under test calls it with `new`.
+      .mockImplementation(function (
+        ...args: ConstructorParameters<typeof Intl.Collator>
+      ) {
+        const real = new RealCollator(...args);
+        return {
+          compare: (a: string, b: string) => {
+            compared++;
+            return real.compare(a, b);
+          },
+        } as Intl.Collator;
+      });
     try {
       const match = matcherFor('ar-EG');
       const label = 'مُحَمَّد '.repeat(250);
@@ -489,7 +490,7 @@ describe('matching inside a LocaleProvider', () => {
     });
 
     it('lets a filter of its own take over inside a provider', () => {
-      const filter = jest.fn((_: string, all: CommandAction[]) => all.slice(3));
+      const filter = vi.fn((_: string, all: CommandAction[]) => all.slice(3));
       render(
         <LocaleProvider locale="fr">
           <Command actions={actions} filter={filter} />

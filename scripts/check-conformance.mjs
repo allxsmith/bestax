@@ -926,7 +926,7 @@ async function checkSkillsSync() {
 // The inline-style → helper-prop mapping (#350) is deliberately triplicated so
 // it is in context at generation time: the scaffolded CLAUDE_MD template plus
 // the two skills that generate the most JSX. Only the template copy is guarded
-// by jest, so this check pins the mapping three ways:
+// by a test, so this check pins the mapping three ways:
 //   1. the load-bearing facts (spacing scale, value sets, the gap scale, the
 //      named-class fallback) appear verbatim in every copy;
 //   2. the copies name the same set of props, so a row added to one skill

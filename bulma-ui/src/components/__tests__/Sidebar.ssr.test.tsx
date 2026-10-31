@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * SSR coverage for Sidebar: when `typeof document === 'undefined'` and the
  * sidebar is not inline, the component should return null (no portal).

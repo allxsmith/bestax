@@ -25,7 +25,7 @@ const pointer = (
 
 const advance = (ms: number) =>
   act(() => {
-    jest.advanceTimersByTime(ms);
+    vi.advanceTimersByTime(ms);
   });
 
 interface HarnessProps {
@@ -91,16 +91,16 @@ const trigger = () => screen.getByRole('button', { name: 'Trigger' });
 const floating = () => screen.queryByTestId('floating');
 
 beforeEach(() => {
-  jest.useFakeTimers();
+  vi.useFakeTimers();
 });
 
 afterEach(() => {
-  jest.useRealTimers();
+  vi.useRealTimers();
 });
 
 describe('useHoverOpen', () => {
   it('asks to open after openDelay on hover, and to close after closeDelay once the pointer leaves', () => {
-    const onOpenChange = jest.fn();
+    const onOpenChange = vi.fn();
     render(<Stateful onOpenChange={onOpenChange} />);
     pointer(trigger(), 'pointerover');
     advance(99);
@@ -136,8 +136,8 @@ describe('useHoverOpen', () => {
   });
 
   it('calls the onOpenChange of the latest render when a delay runs out', () => {
-    const first = jest.fn();
-    const latest = jest.fn();
+    const first = vi.fn();
+    const latest = vi.fn();
     const { rerender } = render(<Harness onOpenChange={first} />);
     pointer(trigger(), 'pointerover');
     rerender(<Harness onOpenChange={latest} />);
@@ -151,7 +151,7 @@ describe('useHoverOpen', () => {
     const focusTrigger = (answer: boolean | Error) => {
       const el = trigger();
       const matches = el.matches.bind(el);
-      const spy = jest.spyOn(el, 'matches').mockImplementation(selector => {
+      const spy = vi.spyOn(el, 'matches').mockImplementation(selector => {
         if (selector !== ':focus-visible') return matches(selector);
         if (answer instanceof Error) throw answer;
         return answer;
@@ -164,7 +164,7 @@ describe('useHoverOpen', () => {
     };
 
     it('asks the browser, which shows keyboard focus as :focus-visible', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<Harness onOpenChange={onOpenChange} />);
       focusTrigger(true);
       advance(100);
@@ -172,7 +172,7 @@ describe('useHoverOpen', () => {
     });
 
     it('opens nothing for focus the browser does not show, such as a press brings or a script moves after one', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<Harness onOpenChange={onOpenChange} />);
       pointer(trigger(), 'pointerdown');
       focusTrigger(false);
@@ -181,7 +181,7 @@ describe('useHoverOpen', () => {
     });
 
     it('counts any focus where the browser cannot match :focus-visible, so keyboard users can still open it', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<Harness onOpenChange={onOpenChange} />);
       focusTrigger(new SyntaxError("':focus-visible' is not a valid selector"));
       advance(100);
@@ -189,10 +189,10 @@ describe('useHoverOpen', () => {
     });
 
     it('holds an open floating element for any focus inside it, shown or not', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<Harness open onOpenChange={onOpenChange} />);
       const inside = screen.getByRole('button', { name: 'Inside' });
-      const spy = jest.spyOn(inside, 'matches').mockReturnValue(false);
+      const spy = vi.spyOn(inside, 'matches').mockReturnValue(false);
       inside.focus();
       spy.mockRestore();
       advance(1000);
@@ -201,7 +201,7 @@ describe('useHoverOpen', () => {
   });
 
   it('stops Escape at the document while open, and lets it through while closed', () => {
-    const outer = jest.fn();
+    const outer = vi.fn();
     document.addEventListener('keydown', outer);
     try {
       const { rerender } = render(<Harness />);
@@ -217,8 +217,8 @@ describe('useHoverOpen', () => {
   });
 
   it('closes on Escape and lets the key go on with consumeEscape off', () => {
-    const outer = jest.fn();
-    const onOpenChange = jest.fn();
+    const outer = vi.fn();
+    const onOpenChange = vi.fn();
     document.addEventListener('keydown', outer);
     try {
       render(
@@ -234,7 +234,7 @@ describe('useHoverOpen', () => {
   });
 
   it('listens on the page’s document when there is no trigger', () => {
-    const onOpenChange = jest.fn();
+    const onOpenChange = vi.fn();
     render(<Harness open withTrigger={false} onOpenChange={onOpenChange} />);
     fireEvent.keyDown(document.body, { key: 'Escape' });
     expect(onOpenChange).toHaveBeenCalledWith(false);
@@ -248,7 +248,7 @@ describe('useHoverOpen', () => {
   });
 
   it('hands focus back to the trigger when the floating element closes with focus inside', () => {
-    const onOpenChange = jest.fn();
+    const onOpenChange = vi.fn();
     const { rerender } = render(<Harness open onOpenChange={onOpenChange} />);
     // jsdom shows every focus as :focus-visible, so the trigger reads as
     // keyboard focus when it gets it back: only the handback guard keeps
@@ -263,7 +263,7 @@ describe('useHoverOpen', () => {
   });
 
   it('asks for nothing after it unmounts', () => {
-    const onOpenChange = jest.fn();
+    const onOpenChange = vi.fn();
     const { unmount } = render(<Harness onOpenChange={onOpenChange} />);
     pointer(trigger(), 'pointerover');
     unmount();
@@ -276,7 +276,7 @@ describe('useHoverOpen', () => {
     pointer(trigger(), 'pointerover');
     advance(100);
     unmount();
-    expect(jest.getTimerCount()).toBe(0);
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   describe('a pointerover React sends no enter for', () => {
@@ -293,7 +293,7 @@ describe('useHoverOpen', () => {
     const page = () => screen.getByText('Page');
 
     it('counts one from outside the holder as the pointer arriving', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<Page onOpenChange={onOpenChange} />);
       pointer(trigger(), 'pointerover', page());
       advance(99);
@@ -303,7 +303,7 @@ describe('useHoverOpen', () => {
     });
 
     it('does not count one from inside the holder', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<Page onOpenChange={onOpenChange} />);
       pointer(trigger(), 'pointerover', screen.getByTestId('root'));
       advance(1000);
@@ -311,7 +311,7 @@ describe('useHoverOpen', () => {
     });
 
     it('does not count one from a touch pointer', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<Page onOpenChange={onOpenChange} />);
       const event = new MouseEvent('pointerover', {
         bubbles: true,
@@ -330,8 +330,8 @@ describe('useHoverOpen', () => {
      * still on: those added since the spy started, less those taken off.
      */
     const watchDocument = () => {
-      const add = jest.spyOn(document, 'addEventListener');
-      const remove = jest.spyOn(document, 'removeEventListener');
+      const add = vi.spyOn(document, 'addEventListener');
+      const remove = vi.spyOn(document, 'removeEventListener');
       const live = (type: string) =>
         add.mock.calls.filter(([t, , capture]) => t === type && capture)
           .length -
@@ -401,7 +401,7 @@ describe('useHoverOpen', () => {
     it('stops listening for Escape once it cancels an opening', () => {
       const listeners = watchDocument();
       try {
-        const onOpenChange = jest.fn();
+        const onOpenChange = vi.fn();
         render(<Harness onOpenChange={onOpenChange} />);
         pointer(trigger(), 'pointerover');
         fireEvent.keyDown(trigger(), { key: 'Escape' });
@@ -416,7 +416,7 @@ describe('useHoverOpen', () => {
     it('keeps listening from the ask to open until a commit answers it', () => {
       const listeners = watchDocument();
       try {
-        const onOpenChange = jest.fn();
+        const onOpenChange = vi.fn();
         const { rerender } = render(<Harness onOpenChange={onOpenChange} />);
         pointer(trigger(), 'pointerover');
         advance(100);
@@ -448,7 +448,7 @@ describe('useHoverOpen', () => {
 
   describe('Escape between the ask to open and the open showing', () => {
     it('takes the ask back, and lets the key through', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<Harness onOpenChange={onOpenChange} />);
       pointer(trigger(), 'pointerover');
       advance(100);
@@ -459,7 +459,7 @@ describe('useHoverOpen', () => {
     });
 
     it('leaves alone an ask the caller already turned down', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       const { rerender } = render(<Harness onOpenChange={onOpenChange} />);
       pointer(trigger(), 'pointerover');
       advance(100);
@@ -470,9 +470,9 @@ describe('useHoverOpen', () => {
     });
 
     it('lets an ask lapse once the event is over, when the caller turns it down without rendering', () => {
-      const listeners = jest.spyOn(document, 'removeEventListener');
+      const listeners = vi.spyOn(document, 'removeEventListener');
       try {
-        const onOpenChange = jest.fn();
+        const onOpenChange = vi.fn();
         // A controlled caller that ignores the ask: nothing renders.
         render(<Harness onOpenChange={onOpenChange} />);
         pointer(trigger(), 'pointerover');
@@ -503,15 +503,15 @@ describe('useHoverOpen', () => {
       // for React to render it, as it does in a browser, and Escape lands
       // before that. React warns about exactly that, so the warning is
       // expected here and nothing else is.
-      const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
       try {
-        const onOpenChange = jest.fn();
+        const onOpenChange = vi.fn();
         render(<Stateful onOpenChange={onOpenChange} />);
         pointer(trigger(), 'pointerover');
-        jest.advanceTimersByTime(100);
+        vi.advanceTimersByTime(100);
         fireEvent.keyDown(document.body, { key: 'Escape' });
         act(() => {
-          jest.runOnlyPendingTimers();
+          vi.runOnlyPendingTimers();
         });
         expect(onOpenChange.mock.calls).toEqual([[true], [false]]);
         expect(floating()).toBeNull();
@@ -526,8 +526,8 @@ describe('useHoverOpen', () => {
 
   describe('Escape with more than one open', () => {
     it('closes the one that opened last, and stops the key only for it', () => {
-      const first = jest.fn();
-      const second = jest.fn();
+      const first = vi.fn();
+      const second = vi.fn();
       const { rerender } = render(
         <>
           <Harness open onOpenChange={first} />
@@ -546,8 +546,8 @@ describe('useHoverOpen', () => {
     });
 
     it('cancels every opening that is waiting, and closes the open one', () => {
-      const open = jest.fn();
-      const waiting = jest.fn();
+      const open = vi.fn();
+      const waiting = vi.fn();
       render(
         <>
           <Harness open onOpenChange={open} />
@@ -565,8 +565,8 @@ describe('useHoverOpen', () => {
     });
 
     it('keeps the order across a close and a reopen', () => {
-      const first = jest.fn();
-      const second = jest.fn();
+      const first = vi.fn();
+      const second = vi.fn();
       const ui = (firstOpen: boolean) => (
         <>
           <Harness open={firstOpen} onOpenChange={first} />
@@ -588,8 +588,8 @@ describe('useHoverOpen', () => {
     ])(
       'goes by when each opened, not when it started waiting to, when %s',
       (_, callerOpens) => {
-        const hovered = jest.fn();
-        const other = jest.fn();
+        const hovered = vi.fn();
+        const other = vi.fn();
         const ui = (otherOpen: boolean, hoveredOpen?: boolean) => (
           <>
             {hoveredOpen === undefined ? (
@@ -618,8 +618,8 @@ describe('useHoverOpen', () => {
     );
 
     it('leaves the closing of the ones below the top to their own delays', () => {
-      const below = jest.fn();
-      const top = jest.fn();
+      const below = vi.fn();
+      const top = vi.fn();
       const ui = (topOpen: boolean) => (
         <>
           <Stateful onOpenChange={below} />

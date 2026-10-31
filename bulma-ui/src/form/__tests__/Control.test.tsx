@@ -6,14 +6,14 @@ import { ConfigProvider } from '../../helpers/Config';
 // Mock Icon so we can test for its appearance. The `isIconProps` guard deciding
 // which branch Control takes lives in its own module and is deliberately NOT
 // mocked — a stub would be testing the stub (#663).
-jest.mock('../../elements/Icon', () => ({
+vi.mock('../../elements/Icon', () => ({
   Icon: ({ name, ...props }: { name: string; [key: string]: unknown }) => (
     <span data-testid={`icon-${name}`} {...props} />
   ),
 }));
 
 // Mock useBulmaClasses to avoid Bulma dependencies here
-jest.mock('../../helpers/useBulmaClasses', () => ({
+vi.mock('../../helpers/useBulmaClasses', () => ({
   useBulmaClasses: () => ({
     bulmaHelperClasses: 'bulma-helpers',
     rest: {},

@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -113,7 +114,7 @@ describe('Autocomplete', () => {
 
   describe('Selection', () => {
     it('calls onSelect when item is clicked', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(<Autocomplete data={fruits} onSelect={onSelect} />);
       const input = screen.getByRole('combobox');
 
@@ -167,7 +168,7 @@ describe('Autocomplete', () => {
     });
 
     it('returns object on selection', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(
         <Autocomplete data={countries} field="label" onSelect={onSelect} />
       );
@@ -216,7 +217,7 @@ describe('Autocomplete', () => {
     });
 
     it('selects highlighted item on Enter', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(<Autocomplete data={fruits} onSelect={onSelect} />);
       const input = screen.getByRole('combobox');
 
@@ -240,7 +241,7 @@ describe('Autocomplete', () => {
     });
 
     it('selects on Tab when item is highlighted', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(<Autocomplete data={fruits} onSelect={onSelect} />);
       const input = screen.getByRole('combobox');
 
@@ -302,8 +303,8 @@ describe('Autocomplete', () => {
     });
 
     it('clears input when clear button is clicked', () => {
-      const onInput = jest.fn();
-      const onSelect = jest.fn();
+      const onInput = vi.fn();
+      const onSelect = vi.fn();
       render(
         <Autocomplete
           data={fruits}
@@ -323,7 +324,7 @@ describe('Autocomplete', () => {
 
     it('reaches the clear button by keyboard and clears with Enter or Space', async () => {
       const user = userEvent.setup();
-      const onInput = jest.fn();
+      const onInput = vi.fn();
       render(<Autocomplete data={fruits} clearable onInput={onInput} />);
       const input = screen.getByRole('combobox');
 
@@ -552,7 +553,7 @@ describe('Autocomplete', () => {
         { value: 'a', label: 'Apple', disabled: true },
         { value: 'b', label: 'Banana' },
       ];
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(
         <Autocomplete
           data={dataWithDisabled}
@@ -600,7 +601,7 @@ describe('Autocomplete', () => {
     });
 
     it('selects highlighted on click outside when selectOnClickOutside is true', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(
         <div>
           <Autocomplete
@@ -643,17 +644,17 @@ describe('Autocomplete', () => {
       </div>
     );
 
-    const mousedownCalls = (spy: jest.SpyInstance) =>
+    const mousedownCalls = (spy: MockInstance) =>
       spy.mock.calls.filter(([type]) => type === 'mousedown');
 
     it('keeps its listener while the user arrows through suggestions and the parent renders', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       const { rerender } = render(<Page onSelect={onSelect} />);
       const input = screen.getByRole('combobox');
       fireEvent.change(input, { target: { value: 'a' } });
       expect(screen.getByRole('listbox')).toBeInTheDocument();
-      const addSpy = jest.spyOn(document, 'addEventListener');
-      const removeSpy = jest.spyOn(document, 'removeEventListener');
+      const addSpy = vi.spyOn(document, 'addEventListener');
+      const removeSpy = vi.spyOn(document, 'removeEventListener');
       try {
         fireEvent.keyDown(input, { key: 'ArrowDown' });
         fireEvent.keyDown(input, { key: 'ArrowDown' });
@@ -667,8 +668,8 @@ describe('Autocomplete', () => {
     });
 
     it('selects the suggestion highlighted last, through the onSelect of the latest render', () => {
-      const first = jest.fn();
-      const latest = jest.fn();
+      const first = vi.fn();
+      const latest = vi.fn();
       const { rerender } = render(<Page onSelect={first} />);
       const input = screen.getByRole('combobox');
       // Apple, Banana and Date.
@@ -693,8 +694,8 @@ describe('Autocomplete', () => {
     ])(
       'selects nothing on a click outside once the list %s, and closes',
       (_, arrows, typed) => {
-        const onSelect = jest.fn();
-        const onError = jest.fn((e: ErrorEvent) => e.preventDefault());
+        const onSelect = vi.fn();
+        const onError = vi.fn((e: ErrorEvent) => e.preventDefault());
         window.addEventListener('error', onError);
         try {
           render(
@@ -731,7 +732,7 @@ describe('Autocomplete', () => {
     // A disabled suggestion can't be picked, so a click outside with one
     // highlighted only closes the dropdown, as Enter on it does.
     it('selects nothing on a click outside with a disabled suggestion highlighted', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(
         <div>
           <Autocomplete
@@ -768,7 +769,7 @@ describe('Autocomplete', () => {
     });
 
     it('calls onInput when value changes', () => {
-      const onInput = jest.fn();
+      const onInput = vi.fn();
       render(<Autocomplete data={fruits} value="" onInput={onInput} />);
       const input = screen.getByRole('combobox');
 
@@ -1300,7 +1301,7 @@ describe('Autocomplete', () => {
 
   describe('Callbacks', () => {
     it('calls onActiveChange when dropdown opens', () => {
-      const onActiveChange = jest.fn();
+      const onActiveChange = vi.fn();
       render(<Autocomplete data={fruits} onActiveChange={onActiveChange} />);
       const input = screen.getByRole('combobox');
 
@@ -1310,7 +1311,7 @@ describe('Autocomplete', () => {
     });
 
     it('calls onActiveChange when dropdown closes', () => {
-      const onActiveChange = jest.fn();
+      const onActiveChange = vi.fn();
       render(<Autocomplete data={fruits} onActiveChange={onActiveChange} />);
       const input = screen.getByRole('combobox');
 
@@ -1333,8 +1334,8 @@ describe('Autocomplete', () => {
           onActiveChange={active => onActiveChange(active)}
         />
       );
-      const first = jest.fn();
-      const latest = jest.fn();
+      const first = vi.fn();
+      const latest = vi.fn();
       const { rerender } = render(<Page onActiveChange={first} />);
       // Where it starts, as it mounts.
       expect(first).toHaveBeenCalledTimes(1);
@@ -1364,7 +1365,7 @@ describe('Autocomplete', () => {
     });
 
     it('supports callback refs', () => {
-      const refCallback = jest.fn();
+      const refCallback = vi.fn();
       render(<Autocomplete data={fruits} ref={refCallback} />);
       expect(refCallback).toHaveBeenCalledWith(expect.any(HTMLInputElement));
     });
@@ -1391,7 +1392,7 @@ describe('Autocomplete', () => {
       screen.getByRole('listbox').closest('.dropdown-content') as HTMLElement;
 
     it('calls onInfiniteScroll when scrolled near bottom', () => {
-      const onInfiniteScroll = jest.fn();
+      const onInfiniteScroll = vi.fn();
       render(
         <Autocomplete
           data={fruits}
@@ -1426,7 +1427,7 @@ describe('Autocomplete', () => {
     });
 
     it('does not call onInfiniteScroll when far from bottom', () => {
-      const onInfiniteScroll = jest.fn();
+      const onInfiniteScroll = vi.fn();
       render(
         <Autocomplete
           data={fruits}
@@ -1459,7 +1460,7 @@ describe('Autocomplete', () => {
     });
 
     it('does nothing when checkInfiniteScroll is disabled', () => {
-      const onInfiniteScroll = jest.fn();
+      const onInfiniteScroll = vi.fn();
       render(
         <Autocomplete data={fruits} onInfiniteScroll={onInfiniteScroll} />
       );
@@ -1474,7 +1475,7 @@ describe('Autocomplete', () => {
 
   describe('ScrollIntoView', () => {
     it('calls scrollIntoView when highlight changes', () => {
-      const scrollIntoViewMock = jest.fn();
+      const scrollIntoViewMock = vi.fn();
       // Stub scrollIntoView on the prototype so JSDOM picks it up for all anchors.
       const original = (
         HTMLElement.prototype as unknown as { scrollIntoView: () => void }
@@ -1587,7 +1588,7 @@ describe('Autocomplete', () => {
     });
 
     it('does not open dropdown when input change has empty newValue', () => {
-      const onInput = jest.fn();
+      const onInput = vi.fn();
       // Controlled with current value 'x', dispatch a change to '' -> branch !isActive && !newValue is false-side
       render(<Autocomplete data={fruits} value="x" onInput={onInput} />);
       const input = screen.getByRole('combobox');
@@ -1599,8 +1600,8 @@ describe('Autocomplete', () => {
     });
 
     it('does not update internal value on selection when controlled', () => {
-      const onSelect = jest.fn();
-      const onInput = jest.fn();
+      const onSelect = vi.fn();
+      const onInput = vi.fn();
       render(
         <Autocomplete
           data={fruits}
@@ -1621,8 +1622,8 @@ describe('Autocomplete', () => {
     });
 
     it('does not update internal value on clear when controlled', () => {
-      const onInput = jest.fn();
-      const onSelect = jest.fn();
+      const onInput = vi.fn();
+      const onSelect = vi.fn();
       render(
         <Autocomplete
           data={fruits}
@@ -1642,7 +1643,7 @@ describe('Autocomplete', () => {
     });
 
     it('closes on click outside without selecting when no item is highlighted (selectOnClickOutside)', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(
         <div>
           <Autocomplete
@@ -1688,7 +1689,7 @@ describe('Autocomplete', () => {
     });
 
     it('does nothing on Enter when no item is highlighted', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(<Autocomplete data={fruits} onSelect={onSelect} />);
       const input = screen.getByRole('combobox');
 
@@ -1699,7 +1700,7 @@ describe('Autocomplete', () => {
     });
 
     it('closes on Tab without selecting when no item is highlighted', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(<Autocomplete data={fruits} onSelect={onSelect} />);
       const input = screen.getByRole('combobox');
 
@@ -1736,7 +1737,7 @@ describe('Autocomplete', () => {
     });
 
     it('returns early in handleSelect when item is disabled (via Tab w/ keepFirst)', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       const data = [
         { value: 'a', label: 'Apple', disabled: true },
         { value: 'b', label: 'Banana' },
@@ -1864,7 +1865,9 @@ describe('Autocomplete keeps its deprecated selected and dropdown props off the 
   // test file: a test earlier in this file that passed `dropdown` would use
   // up the warning, and the console check here would pass on its own.
   it('puts neither on the wrapper, and logs no warning for dropdown', () => {
-    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
     try {
       const { container } = render(
         <Autocomplete data={fruits} selected="Banana" dropdown />
@@ -1888,16 +1891,16 @@ describe('Autocomplete keeps its deprecated selected and dropdown props off the 
 
 describe('Autocomplete announces when nothing matches (#1066)', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   const advance = (ms: number) =>
     act(() => {
-      jest.advanceTimersByTime(ms);
+      vi.advanceTimersByTime(ms);
     });
 
   // What the status region says, one entry per announcement.
@@ -1981,7 +1984,9 @@ describe('Autocomplete announces when nothing matches (#1066)', () => {
   });
 
   it('announces a second empty search made while the first is still being read', () => {
-    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
     try {
       render(<Autocomplete data={fruits} empty="No results" />);
       type('xyz');
@@ -2228,8 +2233,8 @@ describe('Enter submits the form around an Autocomplete unless it picks (#1079)'
   // user-event submits the form on an Enter that nothing prevented, the way
   // a browser does from a text field.
   const renderInForm = (props: Partial<AutocompleteProps> = {}) => {
-    const onSubmit = jest.fn((e: React.FormEvent) => e.preventDefault());
-    const onSelect = jest.fn();
+    const onSubmit = vi.fn((e: React.FormEvent) => e.preventDefault());
+    const onSelect = vi.fn();
     render(
       <form onSubmit={onSubmit}>
         <Autocomplete
@@ -2404,7 +2409,7 @@ describe('Autocomplete opens on a highlight and leaves keys to an IME (#1081)', 
     ['keyCode 229', { keyCode: 229 }],
   ])('while an IME is composing (%s)', (_, composing) => {
     it('leaves Enter to it rather than picking the highlighted option', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(<Autocomplete data={fruits} keepFirst onSelect={onSelect} />);
       const input = screen.getByRole('combobox');
       fireEvent.change(input, { target: { value: 'a' } });

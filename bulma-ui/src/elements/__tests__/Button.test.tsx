@@ -88,7 +88,7 @@ describe('Button Component', () => {
     });
 
     it('handles onClick for <a> and isDisabled', () => {
-      const handleClick = jest.fn();
+      const handleClick = vi.fn();
       render(
         <Button as="a" href="https://example.com" onClick={handleClick}>
           Anchor Button
@@ -100,7 +100,7 @@ describe('Button Component', () => {
     });
 
     it('prevents default when isDisabled for <a>', () => {
-      const handleClick = jest.fn();
+      const handleClick = vi.fn();
       render(
         <Button
           as="a"
@@ -322,7 +322,7 @@ describe('Button Component', () => {
     });
 
     it('handles onClick for <button> and isDisabled', () => {
-      const handleClick = jest.fn();
+      const handleClick = vi.fn();
       render(
         <Button onClick={handleClick} isDisabled>
           Disabled Button

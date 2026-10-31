@@ -879,7 +879,7 @@ describe('server rendering', () => {
     document.body.appendChild(container);
     const before = container.innerHTML;
 
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     let unmountRoot = () => {};
     try {
       await act(async () => {

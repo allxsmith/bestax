@@ -29,16 +29,16 @@ const said = () =>
 
 const advance = (ms: number) =>
   act(() => {
-    jest.advanceTimersByTime(ms);
+    vi.advanceTimersByTime(ms);
   });
 
 describe('StatusRegion', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   it('renders an empty, polite status region that reads only what is added', () => {
@@ -186,7 +186,9 @@ describe('StatusRegion', () => {
   });
 
   it('gives an item that comes back while it is still written a node of its own', () => {
-    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
     try {
       const { rerender } = render(region([alpha]));
       advance(announceDelay);
@@ -293,7 +295,7 @@ describe('StatusRegion', () => {
 
       act(() => {
         showNow([alpha, bravo]);
-        jest.advanceTimersByTime(1);
+        vi.advanceTimersByTime(1);
       });
       expect(said()).toEqual(['Alpha']);
 
@@ -308,7 +310,7 @@ describe('StatusRegion', () => {
 
       act(() => {
         showNow([alpha, bravo]);
-        jest.advanceTimersByTime(1);
+        vi.advanceTimersByTime(1);
       });
       advance(announceDelay);
 
@@ -321,7 +323,7 @@ describe('StatusRegion', () => {
 
       act(() => {
         showNow([alpha, bravo]);
-        jest.advanceTimersByTime(1);
+        vi.advanceTimersByTime(1);
       });
       expect(said()).toEqual([]);
 
@@ -348,16 +350,16 @@ describe('StatusRegion', () => {
   it('stops its timers when it unmounts', () => {
     // A write still waiting.
     const waiting = render(region([alpha]));
-    expect(jest.getTimerCount()).toBeGreaterThan(0);
+    expect(vi.getTimerCount()).toBeGreaterThan(0);
     waiting.unmount();
-    expect(jest.getTimerCount()).toBe(0);
+    expect(vi.getTimerCount()).toBe(0);
 
     // A clear still to come, which outlives the batch that started it.
     const written = render(region([bravo]));
     advance(announceDelay);
-    expect(jest.getTimerCount()).toBeGreaterThan(0);
+    expect(vi.getTimerCount()).toBeGreaterThan(0);
     written.unmount();
-    expect(jest.getTimerCount()).toBe(0);
+    expect(vi.getTimerCount()).toBe(0);
   });
 });
 

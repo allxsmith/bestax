@@ -154,7 +154,7 @@ describe('Loading', () => {
     });
 
     it('calls onCancel when cancel button is clicked', () => {
-      const handleCancel = jest.fn();
+      const handleCancel = vi.fn();
       render(<Loading active canCancel onCancel={handleCancel} />);
 
       fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
@@ -162,7 +162,7 @@ describe('Loading', () => {
     });
 
     it('calls onCancel when overlay is clicked', () => {
-      const handleCancel = jest.fn();
+      const handleCancel = vi.fn();
       const { container } = render(
         <Loading active canCancel onCancel={handleCancel} />
       );
@@ -172,7 +172,7 @@ describe('Loading', () => {
     });
 
     it('does not call onCancel on overlay click when canCancel is false', () => {
-      const handleCancel = jest.fn();
+      const handleCancel = vi.fn();
       const { container } = render(
         <Loading active canCancel={false} onCancel={handleCancel} />
       );
@@ -182,7 +182,7 @@ describe('Loading', () => {
     });
 
     it('calls onCancel when Escape key is pressed', () => {
-      const handleCancel = jest.fn();
+      const handleCancel = vi.fn();
       render(<Loading active canCancel onCancel={handleCancel} />);
 
       fireEvent.keyDown(document, { key: 'Escape' });
@@ -190,7 +190,7 @@ describe('Loading', () => {
     });
 
     it('leaves an Escape that something on the page already used', () => {
-      const handleCancel = jest.fn();
+      const handleCancel = vi.fn();
       render(
         <>
           <Loading active canCancel onCancel={handleCancel} />
@@ -209,7 +209,7 @@ describe('Loading', () => {
     it('hears Escape after a document listener added once it was active', () => {
       // A popup that opens while it shows adds its listener after this one,
       // and still gets the key first.
-      const handleCancel = jest.fn();
+      const handleCancel = vi.fn();
       render(<Loading active canCancel onCancel={handleCancel} />);
       const claim = (e: KeyboardEvent) => e.preventDefault();
       document.addEventListener('keydown', claim);
@@ -222,7 +222,7 @@ describe('Loading', () => {
     });
 
     it('does not call onCancel on Escape when canCancel is false', () => {
-      const handleCancel = jest.fn();
+      const handleCancel = vi.fn();
       render(<Loading active canCancel={false} onCancel={handleCancel} />);
 
       fireEvent.keyDown(document, { key: 'Escape' });
@@ -230,7 +230,7 @@ describe('Loading', () => {
     });
 
     it('does not call onCancel on Escape when not active', () => {
-      const handleCancel = jest.fn();
+      const handleCancel = vi.fn();
       render(<Loading active={false} canCancel onCancel={handleCancel} />);
 
       fireEvent.keyDown(document, { key: 'Escape' });
@@ -239,7 +239,7 @@ describe('Loading', () => {
 
     it('does not call onCancel on non-Escape keys', () => {
       // Hits the `e.key === 'Escape'` false branch in the keydown handler.
-      const handleCancel = jest.fn();
+      const handleCancel = vi.fn();
       render(<Loading active canCancel onCancel={handleCancel} />);
 
       fireEvent.keyDown(document, { key: 'Enter' });

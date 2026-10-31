@@ -5,11 +5,10 @@
   // into the published declaration emit. A second project checks them without
   // touching what ships.
   //
-  // ts-jest does not stand in for this: the root `tsconfig.json` sets
-  // `isolatedModules`, and ts-jest gates its language service on exactly that,
-  // so `pnpm test` transpiles types away rather than checking them. Until this
-  // project existed, an `@ts-expect-error` in a test file suppressed nothing
-  // because nothing looked (#663).
+  // The test runner does not stand in for this: Vitest strips types without
+  // checking them, so `pnpm test` passes a test that does not type-check.
+  // Until this project existed, an `@ts-expect-error` in a test file
+  // suppressed nothing because nothing looked (#663).
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "rootDir": "."

@@ -1,3 +1,4 @@
+import type { Mock, MockInstance } from 'vitest';
 import React, { createRef, useState } from 'react';
 import { renderToStaticMarkup, renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
@@ -112,7 +113,7 @@ const press = (el: Element, key: string, init: KeyboardEventInit = {}) =>
 const focus = (name: string) => act(() => item(name).focus());
 const sorted = (list: string[]) => [...list].sort();
 /** The values the last call reported, sorted, since the order means nothing. */
-const lastList = (fn: jest.Mock) =>
+const lastList = (fn: Mock) =>
   sorted(fn.mock.calls[fn.mock.calls.length - 1][0]);
 
 beforeEach(() => resetDevWarnings());
@@ -245,9 +246,9 @@ describe('TreeView', () => {
     });
 
     it('passes other attributes and handlers to the item’s li', () => {
-      const onClick = jest.fn();
-      const onFocus = jest.fn();
-      const onBlur = jest.fn();
+      const onClick = vi.fn();
+      const onFocus = vi.fn();
+      const onBlur = vi.fn();
       render(
         <TreeView aria-label="Attrs">
           <TreeView.Item
@@ -351,7 +352,7 @@ describe('TreeView', () => {
     it.each(['Enter', ' '])(
       'opens and closes a parent with %p, and does nothing on a leaf',
       key => {
-        const onExpandedChange = jest.fn();
+        const onExpandedChange = vi.fn();
         render(<Files onExpandedChange={onExpandedChange} />);
         expect(press(item('src'), key)).toBe(false);
         expect(onExpandedChange).toHaveBeenLastCalledWith(['src']);
@@ -383,7 +384,7 @@ describe('TreeView', () => {
     });
 
     it('acts once for a held key', () => {
-      const onExpandedChange = jest.fn();
+      const onExpandedChange = vi.fn();
       render(<Files onExpandedChange={onExpandedChange} />);
       press(item('src'), 'Enter', { repeat: true });
       press(item('src'), ' ', { repeat: true });
@@ -433,7 +434,7 @@ describe('TreeView', () => {
     });
 
     it.each(['Enter', ' '])('selects the focused item with %p', key => {
-      const onSelectedChange = jest.fn();
+      const onSelectedChange = vi.fn();
       render(
         <Files
           selectionMode="single"
@@ -449,7 +450,7 @@ describe('TreeView', () => {
     });
 
     it('selects with a click, and a click on a parent opens or closes it too', () => {
-      const onSelectedChange = jest.fn();
+      const onSelectedChange = vi.fn();
       render(
         <Files selectionMode="single" onSelectedChange={onSelectedChange} />
       );
@@ -462,7 +463,7 @@ describe('TreeView', () => {
     });
 
     it('only opens or closes with a click on the chevron', () => {
-      const onSelectedChange = jest.fn();
+      const onSelectedChange = vi.fn();
       render(
         <Files selectionMode="single" onSelectedChange={onSelectedChange} />
       );
@@ -473,7 +474,7 @@ describe('TreeView', () => {
     });
 
     it('selects a leaf with a click in the space a chevron would take', () => {
-      const onSelectedChange = jest.fn();
+      const onSelectedChange = vi.fn();
       render(
         <Files selectionMode="single" onSelectedChange={onSelectedChange} />
       );
@@ -483,7 +484,7 @@ describe('TreeView', () => {
     });
 
     it('does nothing when the selected item is picked again', () => {
-      const onSelectedChange = jest.fn();
+      const onSelectedChange = vi.fn();
       render(
         <Files
           selectionMode="single"
@@ -497,7 +498,7 @@ describe('TreeView', () => {
     });
 
     it('never selects as focus moves', () => {
-      const onSelectedChange = jest.fn();
+      const onSelectedChange = vi.fn();
       render(
         <Files selectionMode="single" onSelectedChange={onSelectedChange} />
       );
@@ -509,7 +510,7 @@ describe('TreeView', () => {
     });
 
     it('never selects a disabled item', () => {
-      const onSelectedChange = jest.fn();
+      const onSelectedChange = vi.fn();
       render(
         <Files
           selectionMode="single"
@@ -524,7 +525,7 @@ describe('TreeView', () => {
     });
 
     it('only reports a pick while controlled, until the new value comes back', () => {
-      const onSelectedChange = jest.fn();
+      const onSelectedChange = vi.fn();
       const { rerender } = render(
         <Files
           selectionMode="single"
@@ -581,8 +582,8 @@ describe('TreeView', () => {
     });
 
     it('toggles with Space and a click on the row, and opens and closes with Enter', () => {
-      const onCheckedChange = jest.fn();
-      const onExpandedChange = jest.fn();
+      const onCheckedChange = vi.fn();
+      const onExpandedChange = vi.fn();
       render(
         <Permissions
           onCheckedChange={onCheckedChange}
@@ -604,7 +605,7 @@ describe('TreeView', () => {
     });
 
     it('checks a leaf with a click in the space a chevron would take', () => {
-      const onCheckedChange = jest.fn();
+      const onCheckedChange = vi.fn();
       render(<Permissions onCheckedChange={onCheckedChange} />);
       fireEvent.click(item('Write').querySelector('.tree-view-toggle')!);
       expect(lastList(onCheckedChange)).toEqual(['projects/write']);
@@ -612,7 +613,7 @@ describe('TreeView', () => {
     });
 
     it('toggles once for a click on the box’s input or its label, and leaves focus on the item', () => {
-      const onCheckedChange = jest.fn();
+      const onCheckedChange = vi.fn();
       render(<Permissions onCheckedChange={onCheckedChange} />);
       fireEvent.click(box('Write'));
       expect(onCheckedChange).toHaveBeenCalledTimes(1);
@@ -629,7 +630,7 @@ describe('TreeView', () => {
     });
 
     it('checks every enabled item under a closed parent, and reports them all', () => {
-      const onCheckedChange = jest.fn();
+      const onCheckedChange = vi.fn();
       render(<Permissions onCheckedChange={onCheckedChange} />);
       fireEvent.click(row('Billing'));
       expect(lastList(onCheckedChange)).toEqual(
@@ -648,7 +649,7 @@ describe('TreeView', () => {
     });
 
     it('checks a mixed parent’s whole branch, leaving a disabled item as it was', () => {
-      const onCheckedChange = jest.fn();
+      const onCheckedChange = vi.fn();
       render(
         <Permissions
           defaultChecked={['projects/read']}
@@ -665,7 +666,7 @@ describe('TreeView', () => {
     });
 
     it('unchecks a checked parent’s branch, and a disabled item keeps its own value', () => {
-      const onCheckedChange = jest.fn();
+      const onCheckedChange = vi.fn();
       render(
         <Permissions
           defaultChecked={['projects', 'projects/delete']}
@@ -681,7 +682,7 @@ describe('TreeView', () => {
     });
 
     it('checks a disabled item by its own value only, and never toggles it', () => {
-      const onCheckedChange = jest.fn();
+      const onCheckedChange = vi.fn();
       render(
         <Permissions
           defaultChecked={['projects']}
@@ -696,7 +697,7 @@ describe('TreeView', () => {
     });
 
     it('reads a parent with only disabled items under it as an end of its own', () => {
-      const onCheckedChange = jest.fn();
+      const onCheckedChange = vi.fn();
       render(
         <TreeView
           aria-label="Ends"
@@ -737,7 +738,7 @@ describe('TreeView', () => {
     });
 
     it('keeps values the tree doesn’t know in what it reports', () => {
-      const onCheckedChange = jest.fn();
+      const onCheckedChange = vi.fn();
       render(
         <Permissions
           defaultChecked={['archive/old', 'projects/read']}
@@ -773,7 +774,7 @@ describe('TreeView', () => {
     });
 
     it('only reports a check while controlled, until the new list comes back', () => {
-      const onCheckedChange = jest.fn();
+      const onCheckedChange = vi.fn();
       render(<Permissions checked={[]} onCheckedChange={onCheckedChange} />);
       press(item('Read'), ' ');
       expect(onCheckedChange).toHaveBeenCalledWith(['projects/read']);
@@ -809,7 +810,7 @@ describe('TreeView', () => {
     });
 
     it('renders a closed item’s children as nothing, but they still count', () => {
-      const mounted = jest.fn();
+      const mounted = vi.fn();
       function Counted({ value }: { value: string }) {
         mounted(value);
         return <TreeView.Item value={value} label={value} />;
@@ -832,7 +833,7 @@ describe('TreeView', () => {
     });
 
     it('doesn’t render a closed item’s children at all outside a checkbox tree', () => {
-      const mounted = jest.fn();
+      const mounted = vi.fn();
       function Counted() {
         mounted();
         return <TreeView.Item value="inside" label="Inside" />;
@@ -888,7 +889,7 @@ describe('TreeView', () => {
     });
 
     it('opens a closed parent with Right, then moves into it, and does nothing on a leaf', () => {
-      const onExpandedChange = jest.fn();
+      const onExpandedChange = vi.fn();
       render(<Files onExpandedChange={onExpandedChange} />);
       focus('src');
       press(item('src'), 'ArrowRight');
@@ -916,7 +917,7 @@ describe('TreeView', () => {
     });
 
     it('closes an open parent with Left, then moves to its parent, and stops at the top', () => {
-      const onExpandedChange = jest.fn();
+      const onExpandedChange = vi.fn();
       render(
         <Files
           defaultExpanded={['src', 'components']}
@@ -938,7 +939,7 @@ describe('TreeView', () => {
     });
 
     it('never opens or closes a disabled parent, and Left moves past an open one', () => {
-      const onExpandedChange = jest.fn();
+      const onExpandedChange = vi.fn();
       render(
         <TreeView
           aria-label="Disabled"
@@ -992,7 +993,7 @@ describe('TreeView', () => {
     });
 
     it('opens every closed, enabled parent beside the item with *, itself included', () => {
-      const onExpandedChange = jest.fn();
+      const onExpandedChange = vi.fn();
       render(
         <TreeView
           aria-label="Siblings"
@@ -1030,7 +1031,7 @@ describe('TreeView', () => {
     });
 
     it('moves to the next item whose label starts with what was typed', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       try {
         render(
           <TreeView aria-label="Typing" defaultExpanded={['src']}>
@@ -1049,21 +1050,21 @@ describe('TreeView', () => {
         // The same letter again moves on.
         press(item('package.json'), 'p');
         expect(focused()).toBe('pnpm-lock.yaml');
-        act(() => jest.advanceTimersByTime(TYPEAHEAD_TIMEOUT));
+        act(() => vi.advanceTimersByTime(TYPEAHEAD_TIMEOUT));
         // Characters typed together add up to one search.
         press(item('pnpm-lock.yaml'), 'i');
         press(item('index.ts'), 'n');
         press(item('index.ts'), 'p');
         expect(focused()).toBe('input.ts');
-        act(() => jest.advanceTimersByTime(TYPEAHEAD_TIMEOUT));
+        act(() => vi.advanceTimersByTime(TYPEAHEAD_TIMEOUT));
         // A disabled item takes focus from typing, and a miss stays put.
         press(item('input.ts'), 'L');
         expect(focused()).toBe('legacy.ts');
-        act(() => jest.advanceTimersByTime(TYPEAHEAD_TIMEOUT));
+        act(() => vi.advanceTimersByTime(TYPEAHEAD_TIMEOUT));
         press(item('legacy.ts'), 'z');
         expect(focused()).toBe('legacy.ts');
       } finally {
-        jest.useRealTimers();
+        vi.useRealTimers();
       }
     });
 
@@ -1107,7 +1108,7 @@ describe('TreeView', () => {
     });
 
     it('runs the item’s own onKeyDown first, and a preventDefault there claims the key', () => {
-      const onKeyDown = jest.fn((event: React.KeyboardEvent) => {
+      const onKeyDown = vi.fn((event: React.KeyboardEvent) => {
         if (event.key === 'ArrowDown') event.preventDefault();
       });
       render(
@@ -1354,7 +1355,7 @@ describe('TreeView', () => {
     });
 
     it('only reports a change while controlled, until the new list comes back', () => {
-      const onExpandedChange = jest.fn();
+      const onExpandedChange = vi.fn();
       const { rerender } = render(
         <Files expanded={[]} onExpandedChange={onExpandedChange} />
       );
@@ -1607,9 +1608,9 @@ describe('TreeView', () => {
     it.each<TreeViewSelectionMode>(['none', 'single', 'checkbox'])(
       'never selects, checks or opens the row with %s',
       selectionMode => {
-        const onSelectedChange = jest.fn();
-        const onCheckedChange = jest.fn();
-        const onExpandedChange = jest.fn();
+        const onSelectedChange = vi.fn();
+        const onCheckedChange = vi.fn();
+        const onExpandedChange = vi.fn();
         render(
           <Folders
             selectionMode={selectionMode}
@@ -1712,7 +1713,7 @@ describe('TreeView', () => {
       const RETRY = `${FAILED} Retry`;
 
       it('ends the group in a row with the message and a Retry button, which retries', () => {
-        const onRetry = jest.fn();
+        const onRetry = vi.fn();
         render(
           <Folders
             defaultExpanded={['src']}
@@ -1743,10 +1744,10 @@ describe('TreeView', () => {
       it.each<TreeViewSelectionMode>(['none', 'single', 'checkbox'])(
         'retries with Enter and Space with %s, once for a held key, and does nothing else',
         selectionMode => {
-          const onRetry = jest.fn();
-          const onSelectedChange = jest.fn();
-          const onCheckedChange = jest.fn();
-          const onExpandedChange = jest.fn();
+          const onRetry = vi.fn();
+          const onSelectedChange = vi.fn();
+          const onCheckedChange = vi.fn();
+          const onExpandedChange = vi.fn();
           render(
             <Folders
               selectionMode={selectionMode}
@@ -1789,7 +1790,7 @@ describe('TreeView', () => {
         render(
           <Folders
             defaultExpanded={['src']}
-            src={{ loadError: false, onRetry: jest.fn() }}
+            src={{ loadError: false, onRetry: vi.fn() }}
           />
         );
         expect(item('src').querySelector('ul')).toBeNull();
@@ -1799,7 +1800,7 @@ describe('TreeView', () => {
         render(
           <Folders
             defaultExpanded={['src']}
-            src={{ isLoading: true, loadError: FAILED, onRetry: jest.fn() }}
+            src={{ isLoading: true, loadError: FAILED, onRetry: vi.fn() }}
           />
         );
         expect(item(LOADING)).toHaveAttribute('aria-disabled', 'true');
@@ -1845,7 +1846,7 @@ describe('TreeView', () => {
           <Folders
             defaultExpanded={['src']}
             retryLabel="Réessayer"
-            src={{ loadError: FAILED, onRetry: jest.fn() }}
+            src={{ loadError: FAILED, onRetry: vi.fn() }}
           />
         );
         expect(item(`${FAILED} Réessayer`)).toBeInTheDocument();
@@ -1862,7 +1863,7 @@ describe('TreeView', () => {
                     {FAILED} <a href="#status">Status</a>
                   </>
                 ),
-                onRetry: jest.fn(),
+                onRetry: vi.fn(),
               }}
             />
             <button>After</button>
@@ -1880,8 +1881,8 @@ describe('TreeView', () => {
     });
 
     it('never counts the rows in a checkbox tree’s boxes or the lists it reports', () => {
-      const onCheckedChange = jest.fn();
-      const onRetry = jest.fn();
+      const onCheckedChange = vi.fn();
+      const onRetry = vi.fn();
       render(
         <TreeView
           aria-label="Lazy"
@@ -1920,16 +1921,16 @@ describe('TreeView', () => {
 
     describe('the live region', () => {
       beforeEach(() => {
-        jest.useFakeTimers();
+        vi.useFakeTimers();
       });
 
       afterEach(() => {
-        jest.useRealTimers();
+        vi.useRealTimers();
       });
 
       const advance = (ms: number) =>
         act(() => {
-          jest.advanceTimersByTime(ms);
+          vi.advanceTimersByTime(ms);
         });
 
       /** What the status region says, one entry per announcement. */
@@ -2145,9 +2146,9 @@ describe('TreeView', () => {
   });
 
   describe('Development warnings', () => {
-    let warn: jest.SpyInstance;
+    let warn: MockInstance;
     beforeEach(() => {
-      warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     });
     afterEach(() => warn.mockRestore());
 
@@ -2324,7 +2325,7 @@ describe('TreeView', () => {
       document.body.appendChild(container);
       // Only after the server render: under jsdom it runs the client's layout
       // effect, which React 18's server renderer warns about.
-      const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
       let root: ReturnType<typeof hydrateRoot> | undefined;
       try {
         await act(async () => {

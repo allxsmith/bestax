@@ -59,7 +59,7 @@ import {
 
 const PKG = path.resolve(__dirname, '../../..');
 
-// Resolved through package.json: jest maps any `.css` specifier to a stub.
+// Found through the package.json of the Bulma bulma-ui depends on.
 const bulmaCss = () =>
   fs.readFileSync(
     path.join(

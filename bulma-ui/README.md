@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/@allxsmith/bestax-bulma.svg)](https://www.npmjs.com/package/@allxsmith/bestax-bulma)
 [![npm downloads](https://img.shields.io/npm/dm/@allxsmith/bestax-bulma.svg)](https://www.npmjs.com/package/@allxsmith/bestax-bulma)
 [![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue.svg)](https://www.typescriptlang.org/)
-[![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)](https://github.com/allxsmith/bestax/blob/main/bulma-ui/jest.config.js)
+[![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)](https://github.com/allxsmith/bestax/blob/main/bulma-ui/vitest.config.ts)
 [![Bulma](https://img.shields.io/badge/Bulma-v1.0+-00d1b2.svg)](https://bulma.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Socket Badge](https://badge.socket.dev/npm/package/@allxsmith/bestax-bulma/latest)](https://socket.dev/npm/package/@allxsmith/bestax-bulma/overview)
@@ -113,7 +113,7 @@ import { Theme } from '@allxsmith/bestax-bulma';
 - **Tree-shakeable ESM**
   Import only what you use; your bundler drops the rest. A CJS build is there for `require`.
 - **99% unit test coverage**
-  Enforced in CI by the [jest config](https://github.com/allxsmith/bestax/blob/main/bulma-ui/jest.config.js) — not just claimed.
+  Enforced in CI by the [Vitest config](https://github.com/allxsmith/bestax/blob/main/bulma-ui/vitest.config.ts) — not just claimed.
 - **100% TypeScript**
   Full type safety for you and your team.
 - **Active developer support**

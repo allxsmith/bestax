@@ -9,7 +9,7 @@
  * name**. Everything else here is about size; that one is about correctness, and it is the
  * reason the default keeps the whole table instead of a curated subset.
  */
-import { describe, expect, it, beforeAll } from '@jest/globals';
+import { describe, expect, it, beforeAll } from 'vitest';
 
 import { loadComponent } from '../data.js';
 import {

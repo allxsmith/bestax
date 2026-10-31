@@ -104,7 +104,7 @@ describe('Escape with overlays on top of each other', () => {
 
   it('keeps the order under StrictMode, and leaves nothing behind once both close', () => {
     const closed: string[] = [];
-    const onToastClose = jest.fn();
+    const onToastClose = vi.fn();
     render(
       <StrictMode>
         <Toast
@@ -129,8 +129,8 @@ describe('Escape with overlays on top of each other', () => {
   });
 
   it('closes a Dialog opened over a Sidebar first, as the Modal it renders', () => {
-    const onSidebarClose = jest.fn();
-    const onCancel = jest.fn();
+    const onSidebarClose = vi.fn();
+    const onCancel = vi.fn();
     const Page = ({ dialog }: { dialog: boolean }) => (
       <>
         <Sidebar isOpen onClose={onSidebarClose} aria-label="Filters">
@@ -152,8 +152,8 @@ describe('Escape with overlays on top of each other', () => {
   });
 
   it('keeps Escape from the overlay under one that does not close on it', () => {
-    const onSidebarClose = jest.fn();
-    const onModalClose = jest.fn();
+    const onSidebarClose = vi.fn();
+    const onModalClose = vi.fn();
     const Page = ({ modal }: { modal: boolean }) => (
       <>
         <Sidebar isOpen onClose={onSidebarClose} aria-label="Filters">
@@ -186,7 +186,7 @@ describe('Escape with overlays on top of each other', () => {
   ])(
     'leaves Escape unused from a Sidebar on top when %s, and the Modal under it open',
     (_, props) => {
-      const onModalClose = jest.fn();
+      const onModalClose = vi.fn();
       const Page = ({ sidebar }: { sidebar: boolean }) => (
         <>
           <Modal active onClose={onModalClose} aria-label="Edit item">
@@ -565,8 +565,8 @@ describe('Escape with a Loading up', () => {
   };
 
   it('cancels a full-page Loading shown over a Modal first, and closes the Modal on the next Escape', () => {
-    const onModalClose = jest.fn();
-    const onCancel = jest.fn();
+    const onModalClose = vi.fn();
+    const onCancel = vi.fn();
     render(
       <Saving isFullPage onModalClose={onModalClose} onCancel={onCancel} />
     );
@@ -581,8 +581,8 @@ describe('Escape with a Loading up', () => {
   });
 
   it('closes a Modal opened over a full-page Loading first', () => {
-    const onModalClose = jest.fn();
-    const onCancel = jest.fn();
+    const onModalClose = vi.fn();
+    const onCancel = vi.fn();
     const Page = ({ modal }: { modal: boolean }) => (
       <>
         <Loading active isFullPage canCancel onCancel={onCancel} />
@@ -600,7 +600,7 @@ describe('Escape with a Loading up', () => {
   });
 
   it('keeps the Modal under a full-page Loading that cannot be cancelled open', () => {
-    const onModalClose = jest.fn();
+    const onModalClose = vi.fn();
     const Page = ({ saving }: { saving: boolean }) => (
       <>
         <Modal active onClose={onModalClose} aria-label="Edit item">
@@ -617,8 +617,8 @@ describe('Escape with a Loading up', () => {
   });
 
   it('closes the Modal before a Loading in a container, which cancels on the next Escape', () => {
-    const onModalClose = jest.fn();
-    const onCancel = jest.fn();
+    const onModalClose = vi.fn();
+    const onCancel = vi.fn();
     render(
       <Saving
         isFullPage={false}
@@ -637,7 +637,7 @@ describe('Escape with a Loading up', () => {
   });
 
   it('cancels a Loading in a container with no overlay open, and marks the Escape used', () => {
-    const onCancel = jest.fn();
+    const onCancel = vi.fn();
     render(<Loading active canCancel onCancel={onCancel} />);
 
     expect(fireEvent.keyDown(document.body, { key: 'Escape' })).toBe(false);
@@ -652,8 +652,8 @@ describe('Escape with a Toast up', () => {
   ])(
     'closes the Modal first and the Toast on the next Escape, with the Toast %s',
     (_, when) => {
-      const onModalClose = jest.fn();
-      const onToastClose = jest.fn();
+      const onModalClose = vi.fn();
+      const onToastClose = vi.fn();
       const toastEl = (
         <Toast
           key="toast"
@@ -699,7 +699,7 @@ describe('Escape with a Toast up', () => {
     // runs, and then no overlay is open by the time the Toast asks. The
     // Modal marked the key used, so the Toast still leaves it.
     // `flushSync` does here what the browser does between listeners.
-    const onToastClose = jest.fn();
+    const onToastClose = vi.fn();
     const Page = ({ toast }: { toast: boolean }) => {
       const [open, setOpen] = useState(true);
       return (
@@ -735,7 +735,7 @@ describe('Escape with a Toast up', () => {
   });
 
   it('leaves the Escape it closes on unused', () => {
-    const onToastClose = jest.fn();
+    const onToastClose = vi.fn();
     render(
       <Toast
         message="Saved"

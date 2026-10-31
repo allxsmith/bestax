@@ -283,8 +283,8 @@ describe('bulma-ui export map', () => {
     );
     // Same gap as the subpath, one package over: `moduleResolution: bundler`
     // accepts an extensionless relative import and `tsc` emits it verbatim,
-    // which Node ESM rejects — while jest's moduleNameMapper strips `.js` and
-    // so passes either spelling. Nothing else in the repo loads this file.
+    // which Node ESM rejects — while the test runner's resolver accepts either
+    // spelling. Nothing else in the repo loads this file.
     const plugin = await import(pathToFileURL(dist).href);
     const p = plugin.default;
     assert.equal(typeof p.meta?.version, 'string');

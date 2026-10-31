@@ -153,14 +153,15 @@ describe.each(pickers)('%s auto placement in place', (_name, picker) => {
           fireEvent.click(screen.getByRole('combobox'));
           const panel = screen.getByRole('dialog');
           const height = 300;
-          jest
-            .spyOn(panel.parentElement!, 'getBoundingClientRect')
-            .mockReturnValue(
-              box(window.innerHeight - room - height - 40, 20, 40, 200)
-            );
-          jest
-            .spyOn(panel, 'getBoundingClientRect')
-            .mockReturnValue(box(0, 0, height, 280));
+          vi.spyOn(
+            panel.parentElement!,
+            'getBoundingClientRect'
+          ).mockReturnValue(
+            box(window.innerHeight - room - height - 40, 20, 40, 200)
+          );
+          vi.spyOn(panel, 'getBoundingClientRect').mockReturnValue(
+            box(0, 0, height, 280)
+          );
           act(() => {
             fireEvent(window, new Event('resize'));
           });

@@ -164,7 +164,7 @@ describe('Combobox with data', () => {
     });
 
     it('shows and announces the empty message when nothing matches', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       try {
         render(
           <Combobox
@@ -179,18 +179,18 @@ describe('Combobox with data', () => {
         expect(empty.closest('.combobox-menu')).not.toBeNull();
         expect(screen.queryByRole('listbox')).toBeNull();
         act(() => {
-          jest.advanceTimersByTime(announceDelay);
+          vi.advanceTimersByTime(announceDelay);
         });
         expect(screen.getByRole('status')).toHaveTextContent(
           'No countries match'
         );
       } finally {
-        jest.useRealTimers();
+        vi.useRealTimers();
       }
     });
 
     it('renders an item through itemTemplate, handing a string over as value and label', () => {
-      const template = jest.fn((item: ComboboxItemData) => (
+      const template = vi.fn((item: ComboboxItemData) => (
         <strong>{`${item.label} (${item.value})`}</strong>
       ));
       render(
@@ -253,8 +253,8 @@ describe('Combobox with data', () => {
     });
 
     it('reaches a disabled item and never picks it', () => {
-      const onChange = jest.fn();
-      const onSelect = jest.fn();
+      const onChange = vi.fn();
+      const onSelect = vi.fn();
       render(
         <Combobox
           label="Drink"
@@ -277,8 +277,8 @@ describe('Combobox with data', () => {
 
   describe('One value', () => {
     it('keeps the pick, shows its label and reports it', () => {
-      const onChange = jest.fn();
-      const onSelect = jest.fn();
+      const onChange = vi.fn();
+      const onSelect = vi.fn();
       render(
         <Combobox
           label="Drink"
@@ -302,7 +302,7 @@ describe('Combobox with data', () => {
     });
 
     it('picks with the keys', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Combobox label="Country" data={COUNTRIES} onChange={onChange} />);
       act(() => field().focus());
       key('ArrowDown');
@@ -313,7 +313,7 @@ describe('Combobox with data', () => {
     });
 
     it('picks the top match on Enter with keepFirst', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Combobox
           label="Country"
@@ -328,8 +328,8 @@ describe('Combobox with data', () => {
     });
 
     it('reports a pick of the value it already has to onSelect only', () => {
-      const onChange = jest.fn();
-      const onSelect = jest.fn();
+      const onChange = vi.fn();
+      const onSelect = vi.fn();
       render(
         <Combobox
           label="Country"
@@ -351,7 +351,7 @@ describe('Combobox with data', () => {
     });
 
     it('puts the label back when the field loses focus without a pick', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Combobox
           label="Country"
@@ -368,7 +368,7 @@ describe('Combobox with data', () => {
     });
 
     it('follows a controlled value, and reports a pick without taking it', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { rerender } = render(
         <Combobox
           label="Country"
@@ -424,8 +424,8 @@ describe('Combobox with data', () => {
 
   describe('Several values', () => {
     it('toggles picks, keeps the list open and shows them as tags', () => {
-      const onChange = jest.fn();
-      const onSelect = jest.fn();
+      const onChange = vi.fn();
+      const onSelect = vi.fn();
       const { container } = render(
         <Combobox
           label="Drinks"
@@ -462,7 +462,7 @@ describe('Combobox with data', () => {
     });
 
     it('takes a value off with its tag button, and focus goes back to the field', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Combobox
           label="Drinks"
@@ -510,7 +510,7 @@ describe('Combobox with data', () => {
     });
 
     it('follows a controlled array', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { rerender } = render(
         <Combobox
           label="Drinks"
@@ -589,7 +589,7 @@ describe('Combobox with data', () => {
 
   describe('Form basics', () => {
     it('disables the field, the items, the tag buttons and the hidden inputs', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { container } = render(
         <form>
           <Combobox
@@ -729,7 +729,7 @@ describe('Combobox with data', () => {
 
   describe('Leaving a search', () => {
     it('puts the pick back in the field on Escape', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { container } = render(
         <form>
           <Combobox
@@ -759,7 +759,7 @@ describe('Combobox with data', () => {
     });
 
     it('still reports the list closing to onOpenChange', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(
         <Combobox
           label="Country"
@@ -830,7 +830,7 @@ describe('Combobox with data', () => {
 
   describe('Clearing one value', () => {
     it('clears it when the field is left empty', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { container } = render(
         <form>
           <Combobox
@@ -858,7 +858,7 @@ describe('Combobox with data', () => {
     ] as const)(
       'clears it once when Enter takes an empty field to the form, %s',
       (_, inline) => {
-        const onChange = jest.fn();
+        const onChange = vi.fn();
         render(
           <Combobox
             label="Country"
@@ -877,7 +877,7 @@ describe('Combobox with data', () => {
     );
 
     it('clears it once when Tab closes the list and then leaves the field', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Combobox
           label="Country"
@@ -894,7 +894,7 @@ describe('Combobox with data', () => {
     });
 
     it('keeps a new pick made after emptying the field', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Combobox
           label="Country"
@@ -911,7 +911,7 @@ describe('Combobox with data', () => {
     });
 
     it('keeps it when the field is left with other text', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Combobox
           label="Country"
@@ -928,7 +928,7 @@ describe('Combobox with data', () => {
     });
 
     it('leaves several values alone when the field is left empty', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Combobox
           label="Drinks"
@@ -1062,7 +1062,7 @@ describe('Combobox with data', () => {
 
   describe('children', () => {
     it('ignores children given with data, and warns once in development', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       try {
         const props = {
           label: 'Country',
@@ -1121,7 +1121,7 @@ describe('Combobox with data', () => {
         const container = document.createElement('div');
         container.innerHTML = html;
         document.body.appendChild(container);
-        const errorSpy = jest
+        const errorSpy = vi
           .spyOn(console, 'error')
           .mockImplementation(() => {});
         let root: ReturnType<typeof hydrateRoot> | undefined;

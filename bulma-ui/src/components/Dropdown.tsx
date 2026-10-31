@@ -178,6 +178,7 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
     useEffect(() => {
       if (!active) return;
 
+      /* istanbul ignore next: React DOM runs effects only in a browser */
       if (!isBrowser(window, document)) return;
 
       const handleClick = (e: MouseEvent) => {

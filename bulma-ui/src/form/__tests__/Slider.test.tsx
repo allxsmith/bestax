@@ -81,7 +81,7 @@ describe('Slider', () => {
 
   describe('onChange', () => {
     it('calls onChange when value changes', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Slider onChange={handleChange} />);
       const input = screen.getByRole('slider') as HTMLInputElement;
 
@@ -371,7 +371,7 @@ describe('Slider', () => {
 
   describe('keyboard navigation', () => {
     it('Home key sets value to min', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Slider min={10} max={90} onChange={handleChange} />);
       const input = screen.getByRole('slider');
 
@@ -380,7 +380,7 @@ describe('Slider', () => {
     });
 
     it('End key sets value to max', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Slider min={10} max={90} onChange={handleChange} />);
       const input = screen.getByRole('slider');
 
@@ -405,7 +405,7 @@ describe('Slider', () => {
     });
 
     it('Home key on controlled slider only fires onChange (covers !isControlled false branch)', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Slider value={50} min={0} max={100} onChange={handleChange} />);
       const input = screen.getByRole('slider');
       fireEvent.keyDown(input, { key: 'Home' });
@@ -413,7 +413,7 @@ describe('Slider', () => {
     });
 
     it('End key on controlled slider only fires onChange (covers !isControlled false branch)', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Slider value={50} min={0} max={100} onChange={handleChange} />);
       const input = screen.getByRole('slider');
       fireEvent.keyDown(input, { key: 'End' });
@@ -421,7 +421,7 @@ describe('Slider', () => {
     });
 
     it('non-Home/End keys are ignored (covers else-if false branch)', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Slider min={0} max={100} onChange={handleChange} />);
       const input = screen.getByRole('slider');
       fireEvent.keyDown(input, { key: 'PageUp' });
@@ -612,7 +612,7 @@ describe('Slider', () => {
     });
 
     it('calls onChange with tuple', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Slider range value={[20, 80]} onChange={handleChange} />);
       const inputs = screen.getAllByRole('slider');
 
@@ -621,7 +621,7 @@ describe('Slider', () => {
     });
 
     it('calls onChange for high thumb', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Slider range value={[20, 80]} onChange={handleChange} />);
       const inputs = screen.getAllByRole('slider');
 
@@ -630,7 +630,7 @@ describe('Slider', () => {
     });
 
     it('enforces minDistance', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Slider
           range
@@ -647,7 +647,7 @@ describe('Slider', () => {
     });
 
     it('enforces minDistance on high thumb', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Slider
           range
@@ -857,7 +857,7 @@ describe('Slider', () => {
 
     it('keyDown on high thumb does not throw and does not change values', () => {
       // High thumb has no onKeyDown wired, but it should accept the event silently.
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Slider range value={[20, 80]} onChange={handleChange} />);
       const inputs = screen.getAllByRole('slider') as HTMLInputElement[];
 
@@ -1044,7 +1044,7 @@ describe('Slider', () => {
 
   describe('function ref forwarding', () => {
     it('invokes function ref with the input node', () => {
-      const refFn = jest.fn();
+      const refFn = vi.fn();
       render(<Slider ref={refFn} />);
       expect(refFn).toHaveBeenCalled();
       const node = refFn.mock.calls[0][0];
@@ -1053,7 +1053,7 @@ describe('Slider', () => {
     });
 
     it('invokes function ref for range mode (first input)', () => {
-      const refFn = jest.fn();
+      const refFn = vi.fn();
       render(<Slider range defaultValue={[10, 90]} ref={refFn} />);
       expect(refFn).toHaveBeenCalled();
     });

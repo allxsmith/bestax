@@ -78,7 +78,7 @@ describe('SelectBase', () => {
   });
 
   it('calls onChange when changed', () => {
-    const handleChange = jest.fn();
+    const handleChange = vi.fn();
     render(
       <SelectBase onChange={handleChange}>
         <option value="a">A</option>

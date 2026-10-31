@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import React, { useRef, useState } from 'react';
 import { render, fireEvent, act, screen } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
@@ -551,7 +552,7 @@ describe('useFocusTrap', () => {
           {renderKind()}
         </Trap>
       );
-      const focusSpy = jest.spyOn(screen.getByTestId('kind'), 'focus');
+      const focusSpy = vi.spyOn(screen.getByTestId('kind'), 'focus');
       expect(button('First')).toHaveFocus();
       expect(pressTab().defaultPrevented).toBe(false);
       expect(pressTab(true).defaultPrevented).toBe(true);
@@ -578,7 +579,7 @@ describe('useFocusTrap', () => {
         </Trap>
       );
       expect(getComputedStyle(area('Kitchen')).display).toBe('none');
-      const focusSpy = jest.spyOn(area('Kitchen'), 'focus');
+      const focusSpy = vi.spyOn(area('Kitchen'), 'focus');
       expect(pressTab().defaultPrevented).toBe(false);
       expect(pressTab(true).defaultPrevented).toBe(true);
       expect(focusSpy).toHaveBeenCalled();
@@ -1077,9 +1078,9 @@ describe('useFocusTrap', () => {
     // An `<object>` with nothing to show counts as a stop by its kind, but
     // browsers won't focus it (#1211). jsdom can't tell, so `focus()` on one
     // does nothing here, the way it does in a browser for that object.
-    let objectFocus: jest.SpyInstance;
+    let objectFocus: MockInstance;
     beforeEach(() => {
-      objectFocus = jest
+      objectFocus = vi
         .spyOn(HTMLObjectElement.prototype, 'focus')
         .mockImplementation(() => {});
     });
@@ -1509,9 +1510,7 @@ describe('useFocusTrap', () => {
       container.innerHTML = renderToString(<PortaledPanel />);
       document.body.appendChild(container);
 
-      const errorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       let unmountRoot = () => {};
       try {
         await act(async () => {

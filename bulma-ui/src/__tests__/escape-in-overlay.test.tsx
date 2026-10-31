@@ -58,7 +58,7 @@ const pressEscape = () => {
  * focus. Returns its `onClose`.
  */
 const renderInModal = (content: React.ReactNode) => {
-  const onClose = jest.fn();
+  const onClose = vi.fn();
   render(
     <Modal active onClose={onClose} aria-label="Edit">
       <button type="button">Save</button>
@@ -327,7 +327,7 @@ describe('Escape in a popup inside a Modal', () => {
 
 describe('Escape in a popup inside a Sidebar', () => {
   const renderInSidebar = (content: React.ReactNode) => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     render(
       <Sidebar isOpen onClose={onClose} aria-label="Filters">
         <button type="button">Reset</button>
@@ -488,7 +488,7 @@ describe('Escape in a Modal opened over an open picker', () => {
   // A dialog that opens on its own, such as a session timeout, or from a
   // button pressed with the keyboard, which closes nothing on the way.
   it('closes the Modal, since the key was not pressed in the picker', () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     const Page = ({ modal }: { modal: boolean }) => (
       <>
         <DateInput label="Due" />
@@ -587,7 +587,7 @@ describe('Escape in a popup inside a Dropdown menu', () => {
 
 describe('Escape with a Toast up', () => {
   it('leaves the Toast up when the Escape closed a Dropdown menu in a Modal', () => {
-    const onToastClose = jest.fn();
+    const onToastClose = vi.fn();
     const onClose = renderInModal(
       <>
         <Toast
@@ -613,7 +613,7 @@ describe('Escape with a Toast up', () => {
   });
 
   it('leaves the Toast up when the Escape closed a picker opened after it', () => {
-    const onToastClose = jest.fn();
+    const onToastClose = vi.fn();
     render(
       <>
         <Toast

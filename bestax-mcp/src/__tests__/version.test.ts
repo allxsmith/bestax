@@ -7,7 +7,7 @@
  * missed major bump means confidently documenting props that do not exist, and
  * a warning on every response is a warning a model learns to ignore.
  */
-import { describe, expect, it, afterEach } from '@jest/globals';
+import { describe, expect, it, afterEach } from 'vitest';
 import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';

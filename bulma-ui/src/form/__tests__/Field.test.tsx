@@ -165,7 +165,7 @@ describe('Field', () => {
     // React itself will refuse to render the fake child, so we silence and catch.
     const real = React.createElement('div');
     const fake = { ...real, type: null } as unknown as React.ReactElement;
-    const errorSpy = jest
+    const errorSpy = vi
       .spyOn(console, 'error')
       .mockImplementation(() => undefined);
     try {
@@ -819,7 +819,7 @@ describe('label names the convenience controls (#939)', () => {
   );
 
   it("keeps a File's picked name and onChange beside the Field label's id", () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     const { container } = render(
       <Field label="Resume">
         <File id={undefined} hasName onChange={onChange} />
@@ -1529,7 +1529,7 @@ describe('a label over content that takes no for (#1004)', () => {
   });
 
   it('renders a Field whose content takes the id only once', () => {
-    const onRender = jest.fn();
+    const onRender = vi.fn();
     render(
       <Profiler id="field" onRender={onRender}>
         <Field label="Email">
@@ -1546,9 +1546,7 @@ describe('a label over content that takes no for (#1004)', () => {
       // React 18 warns about each layout effect a server render meets, and
       // under jsdom the reports use the client's layout effect, so that one
       // warning is expected here. A real server picks the plain effect.
-      const serverSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const serverSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       container.innerHTML = renderToString(ui);
       const serverErrors = serverSpy.mock.calls.filter(
         ([message]) =>
@@ -1560,10 +1558,8 @@ describe('a label over content that takes no for (#1004)', () => {
       expect(serverErrors).toEqual([]);
       document.body.appendChild(container);
       const serverHtml = container.innerHTML;
-      const errorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
-      const onRecoverableError = jest.fn();
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const onRecoverableError = vi.fn();
       let root: ReturnType<typeof hydrateRoot> | undefined;
       await act(async () => {
         root = hydrateRoot(container, ui, { onRecoverableError });

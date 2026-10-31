@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { render, screen, fireEvent, act } from '@testing-library/react';
@@ -44,7 +45,7 @@ const contextMenu = (el: Element, x = 20, y = 10) =>
 
 const advance = (ms: number) =>
   act(() => {
-    jest.advanceTimersByTime(ms);
+    vi.advanceTimersByTime(ms);
   });
 
 const rect = (left: number, top: number, width: number, height: number) =>
@@ -89,15 +90,15 @@ const region = (testId = 'region') => screen.getByTestId(testId);
 const details = () => screen.getByRole('button', { name: 'Details' });
 
 beforeEach(() => {
-  jest.useFakeTimers();
-  jest
-    .spyOn(Element.prototype, 'getBoundingClientRect')
-    .mockReturnValue(rect(0, 0, 400, 100));
+  vi.useFakeTimers();
+  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue(
+    rect(0, 0, 400, 100)
+  );
 });
 
 afterEach(() => {
-  jest.useRealTimers();
-  jest.restoreAllMocks();
+  vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 describe('useContextMenuTrigger', () => {
@@ -108,14 +109,14 @@ describe('useContextMenuTrigger', () => {
 
   describe('contextmenu', () => {
     it('asks to open at the event’s point, with the trigger, and prevents the browser’s menu', () => {
-      const onOpen = jest.fn();
+      const onOpen = vi.fn();
       render(<Region onOpen={onOpen} />);
       expect(contextMenu(details(), 30, 40)).toBe(false);
       expect(onOpen).toHaveBeenCalledWith({ x: 30, y: 40 }, region());
     });
 
     it('asks again for each one, so a right-click elsewhere moves it', () => {
-      const onOpen = jest.fn();
+      const onOpen = vi.fn();
       render(<Region onOpen={onOpen} />);
       contextMenu(region(), 30, 40);
       contextMenu(region(), 300, 60);
@@ -126,11 +127,11 @@ describe('useContextMenuTrigger', () => {
     });
 
     it('asks at the bottom-left corner of the element it was fired at when its point is off it', () => {
-      const onOpen = jest.fn();
+      const onOpen = vi.fn();
       render(<Region onOpen={onOpen} />);
-      jest
-        .spyOn(details(), 'getBoundingClientRect')
-        .mockReturnValue(rect(50, 20, 80, 30));
+      vi.spyOn(details(), 'getBoundingClientRect').mockReturnValue(
+        rect(50, 20, 80, 30)
+      );
       for (const [x, y] of [
         [0, 0],
         [49, 30],
@@ -150,7 +151,7 @@ describe('useContextMenuTrigger', () => {
     });
 
     it('leaves one a handler before it prevented', () => {
-      const onOpen = jest.fn();
+      const onOpen = vi.fn();
       render(
         <Region onOpen={onOpen}>
           <span onContextMenu={e => e.preventDefault()}>Mine</span>
@@ -161,22 +162,22 @@ describe('useContextMenuTrigger', () => {
     });
 
     it('leaves the browser’s menu alone while disabled', () => {
-      const onOpen = jest.fn();
+      const onOpen = vi.fn();
       render(<Region onOpen={onOpen} disabled />);
       expect(contextMenu(region())).toBe(true);
       expect(onOpen).not.toHaveBeenCalled();
     });
 
     it('ignores one from content portaled out of the trigger', () => {
-      const onOpen = jest.fn();
+      const onOpen = vi.fn();
       render(<Region onOpen={onOpen} portaled={<p>Portaled</p>} />);
       expect(contextMenu(screen.getByText('Portaled'))).toBe(true);
       expect(onOpen).not.toHaveBeenCalled();
     });
 
     it('lets the innermost of nested triggers ask', () => {
-      const outer = jest.fn();
-      const inner = jest.fn();
+      const outer = vi.fn();
+      const inner = vi.fn();
       render(
         <Region onOpen={outer} testId="outer">
           <Region onOpen={inner} testId="inner" />
@@ -190,8 +191,8 @@ describe('useContextMenuTrigger', () => {
 
   describe('long press', () => {
     it('fires a contextmenu at what the press landed on, at its point, once held long enough', () => {
-      const onOpen = jest.fn();
-      const seen = jest.fn();
+      const onOpen = vi.fn();
+      const seen = vi.fn();
       render(<Region onOpen={onOpen} />);
       details().addEventListener('contextmenu', seen);
       pointer(details(), 'pointerdown', { x: 60, y: 30 });
@@ -213,7 +214,7 @@ describe('useContextMenuTrigger', () => {
     });
 
     it.each(['touch', 'pen'] as const)('starts for a %s', pointerType => {
-      const onOpen = jest.fn();
+      const onOpen = vi.fn();
       render(<Region onOpen={onOpen} />);
       pointer(region(), 'pointerdown', { pointerType });
       advance(LONG_PRESS_DELAY);
@@ -223,17 +224,17 @@ describe('useContextMenuTrigger', () => {
     it.each(['mouse', ''] as const)(
       'never starts for a pointer of type "%s"',
       pointerType => {
-        const onOpen = jest.fn();
+        const onOpen = vi.fn();
         render(<Region onOpen={onOpen} />);
         pointer(region(), 'pointerdown', { pointerType });
         advance(LONG_PRESS_DELAY * 2);
         expect(onOpen).not.toHaveBeenCalled();
-        expect(jest.getTimerCount()).toBe(0);
+        expect(vi.getTimerCount()).toBe(0);
       }
     );
 
     it('allows a move up to the tolerance', () => {
-      const onOpen = jest.fn();
+      const onOpen = vi.fn();
       render(<Region onOpen={onOpen} />);
       pointer(region(), 'pointerdown', { x: 20, y: 10 });
       pointer(region(), 'pointermove', { x: 26, y: 18 });
@@ -266,17 +267,17 @@ describe('useContextMenuTrigger', () => {
           }),
       ],
     ])('is cancelled by %s', (_, interrupt) => {
-      const onOpen = jest.fn();
+      const onOpen = vi.fn();
       render(<Region onOpen={onOpen} />);
       pointer(region(), 'pointerdown', { x: 20, y: 10 });
       interrupt();
       advance(LONG_PRESS_DELAY * 2);
       expect(onOpen).not.toHaveBeenCalled();
-      expect(jest.getTimerCount()).toBe(0);
+      expect(vi.getTimerCount()).toBe(0);
     });
 
     it('ignores the movement, lifting and cancelling of another pointer', () => {
-      const onOpen = jest.fn();
+      const onOpen = vi.fn();
       render(<Region onOpen={onOpen} />);
       pointer(region(), 'pointerdown', { pointerId: 1 });
       pointer(region(), 'pointermove', { pointerId: 2, x: 300 });
@@ -287,7 +288,7 @@ describe('useContextMenuTrigger', () => {
     });
 
     it('ignores movement once it has opened', () => {
-      const onOpen = jest.fn();
+      const onOpen = vi.fn();
       render(<Region onOpen={onOpen} />);
       pointer(region(), 'pointerdown');
       advance(LONG_PRESS_DELAY);
@@ -297,7 +298,7 @@ describe('useContextMenuTrigger', () => {
     });
 
     it('asks once when the browser fires its own contextmenu during the hold', () => {
-      const onOpen = jest.fn();
+      const onOpen = vi.fn();
       render(<Region onOpen={onOpen} />);
       pointer(region(), 'pointerdown', { x: 20, y: 10 });
       advance(100);
@@ -338,7 +339,7 @@ describe('useContextMenuTrigger', () => {
     });
 
     it('stays closed when a handler before it prevents the contextmenu it fires', () => {
-      const onOpen = jest.fn();
+      const onOpen = vi.fn();
       render(
         <Region onOpen={onOpen}>
           <span onContextMenu={e => e.preventDefault()}>Mine</span>
@@ -351,23 +352,23 @@ describe('useContextMenuTrigger', () => {
     });
 
     it('goes to the innermost of nested triggers, and only it starts a timer', () => {
-      const outer = jest.fn();
-      const inner = jest.fn();
+      const outer = vi.fn();
+      const inner = vi.fn();
       render(
         <Region onOpen={outer} testId="outer">
           <Region onOpen={inner} testId="inner" />
         </Region>
       );
       pointer(region('inner'), 'pointerdown');
-      expect(jest.getTimerCount()).toBe(1);
+      expect(vi.getTimerCount()).toBe(1);
       advance(LONG_PRESS_DELAY);
       expect(inner).toHaveBeenCalledTimes(1);
       expect(outer).not.toHaveBeenCalled();
     });
 
     it('cancels the trigger around it too when another pointer comes down on the inner one', () => {
-      const outer = jest.fn();
-      const inner = jest.fn();
+      const outer = vi.fn();
+      const inner = vi.fn();
       render(
         <Region onOpen={outer} testId="outer">
           <Region onOpen={inner} testId="inner" />
@@ -378,11 +379,11 @@ describe('useContextMenuTrigger', () => {
       advance(LONG_PRESS_DELAY * 2);
       expect(inner).not.toHaveBeenCalled();
       expect(outer).not.toHaveBeenCalled();
-      expect(jest.getTimerCount()).toBe(0);
+      expect(vi.getTimerCount()).toBe(0);
     });
 
     it('goes to the trigger around a disabled one', () => {
-      const outer = jest.fn();
+      const outer = vi.fn();
       render(
         <Region onOpen={outer} testId="outer">
           <Region disabled testId="inner" />
@@ -394,10 +395,10 @@ describe('useContextMenuTrigger', () => {
     });
 
     it('starts nothing while disabled, and asks nothing once disabled turns on', () => {
-      const onOpen = jest.fn();
+      const onOpen = vi.fn();
       const { rerender } = render(<Region onOpen={onOpen} disabled />);
       pointer(region(), 'pointerdown');
-      expect(jest.getTimerCount()).toBe(0);
+      expect(vi.getTimerCount()).toBe(0);
       pointer(region(), 'pointerup');
 
       rerender(<Region onOpen={onOpen} />);
@@ -408,15 +409,15 @@ describe('useContextMenuTrigger', () => {
     });
 
     it('ignores a press in content portaled out of the trigger', () => {
-      const onOpen = jest.fn();
+      const onOpen = vi.fn();
       render(<Region onOpen={onOpen} portaled={<p>Portaled</p>} />);
       pointer(screen.getByText('Portaled'), 'pointerdown');
-      expect(jest.getTimerCount()).toBe(0);
+      expect(vi.getTimerCount()).toBe(0);
     });
 
     it('opens neither of two sibling triggers held at once', () => {
-      const first = jest.fn();
-      const second = jest.fn();
+      const first = vi.fn();
+      const second = vi.fn();
       render(
         <>
           <Region onOpen={first} testId="first" />
@@ -426,7 +427,7 @@ describe('useContextMenuTrigger', () => {
       pointer(region('first'), 'pointerdown', { pointerId: 1 });
       advance(100);
       pointer(region('second'), 'pointerdown', { pointerId: 2 });
-      expect(jest.getTimerCount()).toBe(0);
+      expect(vi.getTimerCount()).toBe(0);
       advance(LONG_PRESS_DELAY * 2);
       expect(first).not.toHaveBeenCalled();
       expect(second).not.toHaveBeenCalled();
@@ -440,9 +441,9 @@ describe('useContextMenuTrigger', () => {
     });
 
     it('listens on the document only while a finger is down', () => {
-      const listen = jest.spyOn(document, 'addEventListener');
-      const unlisten = jest.spyOn(document, 'removeEventListener');
-      const presses = (spy: jest.SpyInstance) =>
+      const listen = vi.spyOn(document, 'addEventListener');
+      const unlisten = vi.spyOn(document, 'removeEventListener');
+      const presses = (spy: MockInstance) =>
         spy.mock.calls.filter(([type]) => type === 'pointerdown');
       render(<Region />);
       pointer(region(), 'pointerdown', { pointerType: 'mouse' });
@@ -460,13 +461,13 @@ describe('useContextMenuTrigger', () => {
     });
 
     it('leaves no timer and no listener behind once it unmounts', () => {
-      const unlisten = jest.spyOn(document, 'removeEventListener');
-      const onOpen = jest.fn();
+      const unlisten = vi.spyOn(document, 'removeEventListener');
+      const onOpen = vi.fn();
       const { unmount } = render(<Region onOpen={onOpen} />);
       pointer(region(), 'pointerdown');
-      expect(jest.getTimerCount()).toBe(1);
+      expect(vi.getTimerCount()).toBe(1);
       unmount();
-      expect(jest.getTimerCount()).toBe(0);
+      expect(vi.getTimerCount()).toBe(0);
       expect(
         unlisten.mock.calls.filter(([type]) => type === 'pointerdown')
       ).toHaveLength(1);

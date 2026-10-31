@@ -2,29 +2,30 @@ import {
   describe,
   it,
   expect,
-  jest,
+  vi,
   beforeEach,
   afterEach,
-} from '@jest/globals';
+  type MockedFunction,
+} from 'vitest';
 import { execFileSync } from 'node:child_process';
 
 // Mock chalk
-jest.unstable_mockModule('chalk', () => ({
+vi.doMock('chalk', () => ({
   default: {
-    yellow: jest.fn((str: string) => str),
-    blue: jest.fn((str: string) => str),
-    cyan: jest.fn((str: string) => str),
-    magenta: jest.fn((str: string) => str),
-    green: jest.fn((str: string) => str),
-    red: jest.fn((str: string) => str),
-    dim: jest.fn((str: string) => str),
-    bold: jest.fn((str: string) => str),
-    gray: jest.fn((str: string) => str),
+    yellow: vi.fn((str: string) => str),
+    blue: vi.fn((str: string) => str),
+    cyan: vi.fn((str: string) => str),
+    magenta: vi.fn((str: string) => str),
+    green: vi.fn((str: string) => str),
+    red: vi.fn((str: string) => str),
+    dim: vi.fn((str: string) => str),
+    bold: vi.fn((str: string) => str),
+    gray: vi.fn((str: string) => str),
   },
 }));
 
 // Mock figures
-jest.unstable_mockModule('figures', () => ({
+vi.doMock('figures', () => ({
   default: {
     star: '⭐',
     cross: '✖',
@@ -48,9 +49,9 @@ const {
 const originalConsole = { ...console };
 
 beforeEach(() => {
-  console.log = jest.fn();
-  console.error = jest.fn();
-  jest.clearAllMocks();
+  console.log = vi.fn();
+  console.error = vi.fn();
+  vi.clearAllMocks();
 });
 
 afterEach(() => {
@@ -65,8 +66,8 @@ describe('display', () => {
       expect(console.log).toHaveBeenCalled();
 
       // Check that some text was logged
-      const calls = (console.log as jest.MockedFunction<typeof console.log>)
-        .mock.calls;
+      const calls = (console.log as MockedFunction<typeof console.log>).mock
+        .calls;
       expect(calls.length).toBeGreaterThan(0);
     });
 
@@ -82,8 +83,8 @@ describe('display', () => {
       displayHeader();
 
       // Check for the title in the output
-      const calls = (console.log as jest.MockedFunction<typeof console.log>)
-        .mock.calls;
+      const calls = (console.log as MockedFunction<typeof console.log>).mock
+        .calls;
       const output = calls.map(call => call.join(' ')).join('\n');
       expect(output).toContain('Create Bestax');
     });
@@ -137,8 +138,8 @@ describe('display', () => {
       expect(console.log).toHaveBeenCalled();
 
       // Check that multiple lines were logged
-      const calls = (console.log as jest.MockedFunction<typeof console.log>)
-        .mock.calls;
+      const calls = (console.log as MockedFunction<typeof console.log>).mock
+        .calls;
       expect(calls.length).toBeGreaterThan(3);
     });
 
@@ -146,8 +147,8 @@ describe('display', () => {
       const projectName = 'test-project';
       displaySuccess(projectName);
 
-      const calls = (console.log as jest.MockedFunction<typeof console.log>)
-        .mock.calls;
+      const calls = (console.log as MockedFunction<typeof console.log>).mock
+        .calls;
       const output = calls.map(call => call.join(' ')).join('\n');
       expect(output).toContain(projectName);
     });
@@ -156,7 +157,7 @@ describe('display', () => {
       displaySuccess('.');
 
       const lines = (
-        console.log as jest.MockedFunction<typeof console.log>
+        console.log as MockedFunction<typeof console.log>
       ).mock.calls.map(call => call.join(' '));
       expect(lines.some(line => line.trim().startsWith('cd '))).toBe(false);
       expect(lines.some(line => /^\s+\w+ install$/.test(line))).toBe(true);
@@ -166,7 +167,7 @@ describe('display', () => {
       displaySuccess('my-app', true);
 
       const output = (
-        console.log as jest.MockedFunction<typeof console.log>
+        console.log as MockedFunction<typeof console.log>
       ).mock.calls
         .map(call => call.join(' '))
         .join('\n');
@@ -180,7 +181,7 @@ describe('display', () => {
       displaySuccess('/tmp/projects/login');
 
       const lines = (
-        console.log as jest.MockedFunction<typeof console.log>
+        console.log as MockedFunction<typeof console.log>
       ).mock.calls.map(call => call.join(' '));
       expect(lines).toContain(
         `  cd ${quoteShellArgument('/tmp/My Projects/login')}`
@@ -206,8 +207,8 @@ describe('display', () => {
       it('should fall back to npm commands without an invoking package manager', () => {
         displaySuccess('my-app');
 
-        const calls = (console.log as jest.MockedFunction<typeof console.log>)
-          .mock.calls;
+        const calls = (console.log as MockedFunction<typeof console.log>).mock
+          .calls;
         const output = calls.map(call => call.join(' ')).join('\n');
 
         expect(output).toContain('cd my-app');
@@ -220,8 +221,8 @@ describe('display', () => {
           'pnpm/9.12.0 npm/? node/v22.0.0 darwin arm64';
         displaySuccess('my-app');
 
-        const calls = (console.log as jest.MockedFunction<typeof console.log>)
-          .mock.calls;
+        const calls = (console.log as MockedFunction<typeof console.log>).mock
+          .calls;
         const output = calls.map(call => call.join(' ')).join('\n');
 
         expect(output).toContain('cd my-app');
@@ -242,8 +243,8 @@ describe('display', () => {
     it('should display success message', () => {
       displaySuccess('my-app');
 
-      const calls = (console.log as jest.MockedFunction<typeof console.log>)
-        .mock.calls;
+      const calls = (console.log as MockedFunction<typeof console.log>).mock
+        .calls;
       const output = calls.map(call => call.join(' ')).join('\n');
 
       // Check for success-related content
@@ -254,11 +255,11 @@ describe('display', () => {
       const projectNames = ['app1', 'my-special-project', 'test_app'];
 
       projectNames.forEach(name => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         displaySuccess(name);
 
-        const calls = (console.log as jest.MockedFunction<typeof console.log>)
-          .mock.calls;
+        const calls = (console.log as MockedFunction<typeof console.log>).mock
+          .calls;
         const output = calls.map(call => call.join(' ')).join('\n');
         expect(output).toContain(name);
         expect(output).toContain(`cd ${name}`);
@@ -268,8 +269,8 @@ describe('display', () => {
     it('should provide clear next steps', () => {
       displaySuccess('my-app');
 
-      const calls = (console.log as jest.MockedFunction<typeof console.log>)
-        .mock.calls;
+      const calls = (console.log as MockedFunction<typeof console.log>).mock
+        .calls;
       const output = calls.map(call => call.join(' ')).join('\n');
 
       // Check for step indicators or numbered instructions

@@ -48,7 +48,7 @@ async function hydrateFromGermanServer(app: React.ReactElement) {
   container.innerHTML = html;
   document.body.appendChild(container);
   const recoverable: unknown[] = [];
-  const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
   let unmount = () => {};
   try {
     await act(async () => {
