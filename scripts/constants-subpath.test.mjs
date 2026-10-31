@@ -52,6 +52,15 @@ const manifest = JSON.parse(
   readFileSync(join(PKG_DIR, 'package.json'), 'utf8')
 );
 
+/**
+ * The environment every `tsc` child runs in, with coverage off. The root suite
+ * runs under node's test coverage, which node hands to every child it spawns
+ * (it copies NODE_V8_COVERAGE whenever the environment passed lacks the key),
+ * and the compiler runs about three times slower instrumented, none of its
+ * code being this repo's.
+ */
+const TSC_ENV = { ...process.env, NODE_V8_COVERAGE: '' };
+
 /** Absolute path for an export-map target such as `./dist/constants.cjs`. */
 const target = spec => resolve(PKG_DIR, spec);
 
@@ -357,6 +366,7 @@ describe('bulma-ui export map', () => {
     );
     const run = spawnSync(process.execPath, [tsc, '-p', dir], {
       encoding: 'utf8',
+      env: TSC_ENV,
     });
     assert.equal(
       run.status,
@@ -530,6 +540,7 @@ describe('bulma-ui export map', () => {
       );
       return spawnSync(process.execPath, [tsc, '-p', dir], {
         encoding: 'utf8',
+        env: TSC_ENV,
       });
     };
 
@@ -617,6 +628,7 @@ describe('bulma-ui export map', () => {
     );
     const run = spawnSync(process.execPath, [tsc, '-p', dir], {
       encoding: 'utf8',
+      env: TSC_ENV,
     });
     assert.equal(
       run.status,
@@ -688,6 +700,7 @@ describe('bulma-ui export map', () => {
     );
     const run = spawnSync(process.execPath, [tsc, '-p', dir], {
       encoding: 'utf8',
+      env: TSC_ENV,
     });
     assert.equal(
       run.status,
@@ -934,6 +947,7 @@ describe('the declaration-extension guard', () => {
     );
     const compiled = spawnSync(process.execPath, [tsc, '-p', dir], {
       encoding: 'utf8',
+      env: TSC_ENV,
     });
     assert.equal(
       compiled.status,
@@ -1231,6 +1245,7 @@ describe('the declaration-extension guard', () => {
     );
     const compiled = spawnSync(process.execPath, [tsc, '-p', dir], {
       encoding: 'utf8',
+      env: TSC_ENV,
     });
     assert.equal(
       compiled.status,
