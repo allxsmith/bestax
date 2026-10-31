@@ -1,9 +1,10 @@
-// How a suite that compiles a whole published stylesheet compiles it: with
-// `sass-embedded`, which runs Dart Sass natively and compiles a full sheet
-// faster than `sass`, the same compiler built to JavaScript, and with the load
-// path the build gives Sass (`includePaths` in rollup.config.js). It starts
-// slower, so the suites that compile one partial keep `sass`.
-// sass-compilers.test.ts holds the two to the version the build compiles with.
+// How a suite that compiles a whole published stylesheet compiles its SCSS,
+// partials included: with `sass-embedded`, which runs Dart Sass natively and
+// compiles a full sheet faster than `sass`, the same compiler built to
+// JavaScript, and with the load path the build gives Sass (`includePaths` in
+// rollup.config.js). It starts slower, so a suite that compiles only partials
+// keeps `sass`. sass-compilers.test.ts holds the two to the version the build
+// compiles with.
 import path from 'path';
 import * as sass from 'sass-embedded';
 

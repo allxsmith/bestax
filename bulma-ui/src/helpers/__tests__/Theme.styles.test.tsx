@@ -20,24 +20,16 @@ import { Theme } from '../Theme';
 
 const PKG = path.resolve(__dirname, '../../..');
 
-/**
- * Each sheet compiled and parsed once, for every block below that loads it:
- * its CSS, and its rules as jsdom reads them.
- */
-const compiled = new Map<string, { css: string; cssRules: CSSRule[] }>();
+/** Each sheet compiled once, for every block below that loads it. */
+const compiled = new Map<string, string>();
 
 const compile = (file: string) => {
-  let sheet = compiled.get(file);
-  if (sheet === undefined) {
-    const css = compileSheet(file);
-    const el = document.createElement('style');
-    el.textContent = css;
-    document.head.appendChild(el);
-    sheet = { css, cssRules: Array.from((el.sheet as CSSStyleSheet).cssRules) };
-    el.remove();
-    compiled.set(file, sheet);
+  let css = compiled.get(file);
+  if (css === undefined) {
+    css = compileSheet(file);
+    compiled.set(file, css);
   }
-  return sheet;
+  return css;
 };
 
 /**
@@ -98,12 +90,17 @@ const forOs = (css: string, os: Os) => {
 };
 
 /**
- * The `rules` that declare `property`, in source order, inside the `@media`
- * blocks they sit in. A custom property takes its value only from the rules
- * that declare it, so the root resolves it as it does with the whole sheet
- * loaded, and each test loads a few rules rather than all of Bulma.
+ * The rules in `css` that declare `property`, in source order, inside the
+ * `@media` blocks they sit in. A custom property takes its value only from the
+ * rules that declare it, so the root resolves it as it does with the whole
+ * sheet loaded, and each test loads a few rules rather than all of Bulma.
  */
-const declaring = (rules: CSSRule[], property: string) => {
+const declaring = (css: string, property: string) => {
+  const el = document.createElement('style');
+  el.textContent = css;
+  document.head.appendChild(el);
+  const rules = Array.from((el.sheet as CSSStyleSheet).cssRules);
+  el.remove();
   const declares = (rule: CSSRule) =>
     rule instanceof CSSStyleRule &&
     rule.style.getPropertyValue(property) !== '';
@@ -140,8 +137,8 @@ describe.each(SHEETS)('$file', ({ file, prefix }) => {
   };
 
   beforeAll(() => {
-    const { css, cssRules } = compile(file);
-    rules = declaring(cssRules, '--bulma-scheme-main-l');
+    const css = compile(file);
+    rules = declaring(css, '--bulma-scheme-main-l');
     // The scheme each of Bulma's own theme blocks sets, read off the sheet,
     // so the expectations follow Bulma rather than restating its values.
     const value = (scheme: Os) => {
@@ -241,8 +238,8 @@ describe.each(SHEETS)(
     let sheet: HTMLStyleElement | undefined;
 
     beforeAll(() => {
-      const { css, cssRules } = compile(file);
-      rules = declaring(cssRules, KEY);
+      const css = compile(file);
+      rules = declaring(css, KEY);
       const rule = new RegExp(
         `\\[data-${prefix}theme=dark\\][^{]*\\{[^}]*${KEY}:\\s*([^;]+);`
       ).exec(css);
