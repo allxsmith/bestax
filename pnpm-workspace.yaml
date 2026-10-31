@@ -92,6 +92,12 @@ minimumReleaseAgeExclude:
   # rather than lag it behind the cooldown (which would cause recurring
   # reformat churn). Dev-only, never shipped to users.
   - prettier
+  # bestax:review 2026-11-07 — joi's patch for GHSA-4528-x5fx-h6hg, inside the
+  # cooldown when the advisory published; drop once past it (the joi overrides
+  # below carry the floor)
+  - 'joi@17.13.9'
+  # bestax:review 2026-11-07 — same, for the 18.x line
+  - 'joi@18.3.1'
 
 # Pin a single prettier version workspace-wide so eslint-plugin-prettier and
 # `prettier --check` never disagree (patch versions format union types
@@ -256,16 +262,17 @@ overrides:
   # without the force.
   'body-parser@2': '>=2.4.0 <3'
   # bestax:review 2026-11-13 — quarterly sweep
-  # Force patched joi per major for high advisory GHSA-6h2x-m376-mqjq
-  # (quadratic backtracking in `Joi.string().isoDate()`). The 17.x copy rides
-  # the Docusaurus types and the storybook test runner's wait-on; the 18.x copy
-  # is create-bestax's wait-on, a dev dependency. Both patched releases are
-  # past the cooldown and every parent range admits them; the lockfile just
-  # predates them. Prune each entry once its line resolves to >=17.13.7 /
-  # >=18.2.6 without the force.
-  'joi@17': '>=17.13.7 <18'
+  # Force patched joi per major for high advisories GHSA-6h2x-m376-mqjq
+  # (quadratic backtracking in `Joi.string().isoDate()`) and
+  # GHSA-4528-x5fx-h6hg (quadratic-time split in `string().email()`). The 17.x
+  # copy rides the Docusaurus types and the storybook test runner's wait-on;
+  # the 18.x copy is create-bestax's wait-on, a dev dependency. Every parent
+  # range admits the patched releases; the lockfile just predates them. Prune
+  # each entry once its line resolves to >=17.13.9 / >=18.3.1 without the
+  # force.
+  'joi@17': '>=17.13.9 <18'
   # bestax:review 2026-11-13 — quarterly sweep; 18.x line, prunable on its own
-  'joi@18': '>=18.2.6 <19'
+  'joi@18': '>=18.3.1 <19'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched minimatch/yaml under docusaurus-plugin-llms. From 0.5.0 that
   # plugin pins its own dependencies exactly ("minimatch": "9.0.3" rather than
