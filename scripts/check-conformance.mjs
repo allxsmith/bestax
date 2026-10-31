@@ -68,7 +68,9 @@
  *                        (templates, flavors, icons, sources, css modes, PMs)
  *   turbo-tasks          every task the root `all` chain runs through turbo is
  *                        implemented by at least one package, so a renamed
- *                        script cannot leave the gate green and empty (#663)
+ *                        script cannot leave the gate green and empty (#663),
+ *                        and every package with tests declares test:coverage,
+ *                        which pnpm all and CI run package tests through
  *   peer-ranges          every copy of a bestax-bulma peer that bulma-ui or
  *                        the docs site installs sits in the newest arm of
  *                        that peer range, so a release Dependabot brings in
@@ -4177,6 +4179,20 @@ export function turboTasksIn(scripts, entry) {
   return tasks;
 }
 
+/**
+ * The packages that declare `test` and no `test:coverage`. pnpm all and CI
+ * run package tests through test:coverage, so such a package's tests run in
+ * neither, with both green. A package with no coverage tool aliases
+ * test:coverage to its test.
+ *
+ * Exported for `scripts/turbo-tasks.test.mjs`.
+ */
+export function testsOutsideTheGate(manifests) {
+  return manifests.filter(
+    ({ scripts }) => scripts?.test && !scripts?.['test:coverage']
+  );
+}
+
 async function checkTurboTasks() {
   const violations = [];
   const root = JSON.parse(await readFile(join(REPO, 'package.json'), 'utf8'));
@@ -4191,6 +4207,7 @@ async function checkTurboTasks() {
     await readFile(join(REPO, 'pnpm-workspace.yaml'), 'utf8')
   );
   const owners = new Map([...tasks.keys()].map(t => [t, []]));
+  const manifests = [];
   for (const dir of dirs) {
     let pkg;
     try {
@@ -4199,9 +4216,19 @@ async function checkTurboTasks() {
       continue; // `publishable-manifests` reports an unreadable manifest
     }
     if (!pkg || typeof pkg !== 'object' || Array.isArray(pkg)) continue;
+    manifests.push({ dir, scripts: pkg.scripts });
     for (const task of tasks.keys()) {
       if (pkg.scripts?.[task]) owners.get(task).push(pkg.name ?? dir);
     }
+  }
+
+  for (const { dir } of testsOutsideTheGate(manifests)) {
+    violations.push(
+      `${dir}/package.json declares "test" and no "test:coverage". pnpm all ` +
+        `and CI run package tests through test:coverage, so its tests run in ` +
+        `neither. Add "test:coverage": "pnpm run test" when the package has ` +
+        `no coverage tool.`
+    );
   }
 
   for (const [task, found] of [...owners].sort()) {

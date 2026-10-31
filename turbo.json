@@ -55,6 +55,18 @@
         "$TURBO_ROOT$/scripts/lib/**"
       ]
     },
+    "@allxsmith/bestax-docs#test:coverage": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/create-bestax/templates/vite-ts/**",
+        "$TURBO_ROOT$/templates/**",
+        "$TURBO_ROOT$/scripts/lib/**"
+      ],
+      "outputs": []
+    },
+    "telemetry-worker#test:coverage": {
+      "outputs": []
+    },
     "create-bestax#build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/skills/**"],

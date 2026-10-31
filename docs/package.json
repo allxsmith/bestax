@@ -8,6 +8,7 @@
     "start": "docusaurus start",
     "build": "docusaurus build && node scripts/check-generated-markers.mjs",
     "test": "node --test \"scripts/*.test.mjs\"",
+    "test:coverage": "pnpm run test",
     "rasterize:cover": "node scripts/rasterize-cover.mjs",
     "screenshot:template": "node scripts/screenshot-template.mjs",
     "draw:template-art": "node scripts/template-art/draw.mjs",

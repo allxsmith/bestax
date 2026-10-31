@@ -13,20 +13,25 @@ on:
 permissions:
   contents: read
 
+# Build and Test runs as parallel parts, each named "Build and Test (…)" and
+# on a runner of its own. The build-and-test job at the end is the check the
+# main ruleset requires, and it passes only when every part did.
 jobs:
-  build-and-test:
-    name: Build and Test
+  checks:
+    name: Build and Test (checks)
     runs-on: ubuntu-latest
     # Without a cap a job runs to GitHub's default timeout, and a stalled step
     # holds the PR's checks pending, and review-converged with them, that long
     # (#1219: `pnpm install` finished and never exited). A cap fails it in
     # minutes, where a re-run of the failed job picks it up.
-    timeout-minutes: 45
+    timeout-minutes: 20
 
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          # Full history and tags: the version-regression conformance check
+          # compares each publishable manifest with its release tags.
           fetch-depth: 0
           # This job runs PR code; don't leave the token in .git/config.
           persist-credentials: false
@@ -45,8 +50,8 @@ jobs:
         timeout-minutes: 10
         run: pnpm install --frozen-lockfile
 
-      # Fast, source-only check (no build deps) — fail early if the generated
-      # skill catalog is stale.
+      # Source-only check (no build deps): fail if the generated skill
+      # catalog is stale.
       - name: Component catalog up to date
         run: pnpm run gen:catalog:check
 
@@ -61,9 +66,9 @@ jobs:
       # The plugin reads its deprecation and text-alias metadata from a
       # committed table generated off the same extractor as the API docs, so a
       # stale one lints against props that have moved. Placed beside the other
-      # generated-artefact gates so they fail together rather than a build
-      # apart; it runs after install because the extractor resolves the
-      # library the same way gen:mcp:check does.
+      # generated-artefact gates so they fail together; it runs after install
+      # because the extractor resolves the library the same way gen:mcp:check
+      # does.
       - name: ESLint plugin metadata up to date
         run: pnpm run gen:eslint-meta:check
 
@@ -71,6 +76,61 @@ jobs:
       # stories, inline-style ratchet). Error messages name the file and fix.
       - name: Conformance checks
         run: pnpm run check:conformance
+
+      # The templates are linted with the bestax rules, which
+      # templates/eslint.config.js loads from eslint-plugin/dist. The
+      # packages' own lint needs no build.
+      - name: Build the ESLint plugin
+        run: pnpm exec turbo run build --filter=@allxsmith/eslint-plugin-bestax
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Format Check
+        run: pnpm run format:check
+
+      # github.com URLs are verified through the REST API rather than the web
+      # UI (#525): during the 2026-08-17 incident the API answered 200 for the
+      # same file whose blob page was 404ing, and this failed every open PR.
+      # The token is the job's own read-only GITHUB_TOKEN — it buys the
+      # authenticated rate limit, so a shared runner IP does not get throttled
+      # into a false "link is gone". The check falls back to unauthenticated
+      # requests when it is unset, which is how it runs on a contributor's
+      # laptop.
+      - name: Pointer file URLs resolve
+        run: pnpm run check:urls
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Audit (high severity)
+        run: pnpm audit --audit-level=high
+
+  build:
+    name: Build and Test (build)
+    runs-on: ubuntu-latest
+    # Same reason as the checks job's cap.
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # This job runs PR code; don't leave the token in .git/config.
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        # Same reason as the checks job's install cap.
+        timeout-minutes: 10
+        run: pnpm install --frozen-lockfile
 
       - name: Build
         run: pnpm run build
@@ -98,36 +158,144 @@ jobs:
       - name: Typecheck tests and stories
         run: pnpm run typecheck:tests
 
-      - name: Test
-        run: pnpm run test
-
-      - name: Test Coverage
-        run: pnpm run test:coverage
-
       - name: Bundle Stats
         run: pnpm run bundle:stats
 
-      - name: Lint
-        run: pnpm run lint
+      - name: Archive Bundle Stats
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: bundle-stats
+          path: |
+            bulma-ui/dist/stats.html
+            docs/build/stats.html
+          retention-days: 7
 
-      - name: Format Check
-        run: pnpm run format:check
+  scripts:
+    name: Build and Test (scripts)
+    runs-on: ubuntu-latest
+    # Same reason as the checks job's cap.
+    timeout-minutes: 20
 
-      # github.com URLs are verified through the REST API rather than the web
-      # UI (#525): during the 2026-08-17 incident the API answered 200 for the
-      # same file whose blob page was 404ing, and this failed every open PR.
-      # The token is the job's own read-only GITHUB_TOKEN — it buys the
-      # authenticated rate limit, so a shared runner IP does not get throttled
-      # into a false "link is gone". The check falls back to unauthenticated
-      # requests when it is unset, which is how it runs on a contributor's
-      # laptop.
-      - name: Pointer file URLs resolve
-        run: pnpm run check:urls
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # Full history: gen-skills-repo counts commits for the plugin's
+          # version and refuses a shallow clone, and the root suite runs it.
+          fetch-depth: 0
+          # This job runs PR code; don't leave the token in .git/config.
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        # Same reason as the checks job's install cap.
+        timeout-minutes: 10
+        run: pnpm install --frozen-lockfile
+
+      # The root suite reads the built packages (coverage-floors.mjs says how
+      # it fails without them) and never the docs site, which the build part
+      # builds.
+      - name: Build the packages
+        run: pnpm exec turbo run build --filter=!@allxsmith/bestax-docs
+
+      - name: Root scripts tests
+        run: pnpm run test:scripts
+
+  test:
+    name: Build and Test (${{ matrix.part }})
+    runs-on: ubuntu-latest
+    # Same reason as the checks job's cap.
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        # The two longest suites get a runner each and the rest share one,
+        # where a package named in neither of the first two lands.
+        include:
+          - part: bulma-ui
+            filter: --filter=@allxsmith/bestax-bulma
+          - part: bestax-migrate
+            filter: --filter=bestax-migrate
+          - part: others
+            filter: --filter=!@allxsmith/bestax-bulma --filter=!bestax-migrate
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # This job runs PR code; don't leave the token in .git/config.
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        # Same reason as the checks job's install cap.
+        timeout-minutes: 10
+        run: pnpm install --frozen-lockfile
+
+      # test:coverage is each package's test run here, with the coverage
+      # thresholds where the package has them. turbo builds what turbo.json
+      # says a suite depends on and nothing else, so a suite reading a build
+      # output turbo.json does not name fails here.
+      - name: Test Coverage
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FILTER: ${{ matrix.filter }}
+        # $FILTER is unquoted on purpose: it holds one or more --filter flags.
+        run: pnpm exec turbo run test:coverage $FILTER
 
-      - name: Audit (high severity)
-        run: pnpm audit --audit-level=high
+      - name: Archive Coverage
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-${{ matrix.part }}
+          path: |
+            bulma-ui/coverage
+            create-bestax/coverage
+            bestax-migrate/coverage
+            bestax-mcp/coverage
+            eslint-plugin/coverage
+          retention-days: 7
+
+  storybook:
+    name: Build and Test (storybook)
+    runs-on: ubuntu-latest
+    # Same reason as the checks job's cap.
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # This job runs PR code; don't leave the token in .git/config.
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        # Same reason as the checks job's install cap.
+        timeout-minutes: 10
+        run: pnpm install --frozen-lockfile
 
       # Always build: the smoke pass below needs the static build, and the old
       # changed-files condition never matched on PRs (changed_files is an
@@ -146,32 +314,31 @@ jobs:
       - name: Storybook smoke test (light + dark)
         run: pnpm --filter @allxsmith/bestax-bulma run test-storybook:ci
 
-      - name: Archive Coverage
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: coverage
-          path: |
-            bulma-ui/coverage
-            create-bestax/coverage
-            bestax-migrate/coverage
-            bestax-mcp/coverage
-            eslint-plugin/coverage
-          retention-days: 7
-
-      - name: Archive Bundle Stats
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: bundle-stats
-          path: |
-            bulma-ui/dist/stats.html
-            docs/build/stats.html
-          retention-days: 7
-
       - name: Archive Storybook
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: storybook
           path: bulma-ui/storybook-static
+
+  build-and-test:
+    # The check the main ruleset requires, and the one the PR loop's gate
+    # reads beside the parts (claude-pr-loop.yml). `always()` runs it when a
+    # part failed or was cancelled, so it reports a failure there: a required
+    # check that was skipped does not block a merge.
+    name: Build and Test
+    runs-on: ubuntu-latest
+    needs: [checks, build, scripts, test, storybook]
+    if: always()
+    timeout-minutes: 5
+
+    steps:
+      # Names each part beside its result, so a red check says which one.
+      - name: Every part passed
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          jq -r 'to_entries[] | "\(.key): \(.value.result)"' <<<"$NEEDS"
+          jq -e 'all(.[]; .result == "success")' <<<"$NEEDS" > /dev/null
 
   react-compat:
     # bestax-bulma supports React 18 and 19 (see peerDependencies). Build,
@@ -179,7 +346,7 @@ jobs:
     # depends on a React-19-only API (or breaks React 18) fails CI.
     name: React ${{ matrix.react }} compatibility
     runs-on: ubuntu-latest
-    # Same reason as build-and-test's cap.
+    # Same reason as the checks job's cap.
     timeout-minutes: 25
     strategy:
       fail-fast: false
@@ -208,7 +375,7 @@ jobs:
         run: node .github/scripts/pin-react.mjs ${{ matrix.react }}
 
       - name: Install dependencies
-        # Same reason as build-and-test's install cap.
+        # Same reason as the checks job's install cap.
         timeout-minutes: 10
         run: pnpm install --no-frozen-lockfile
 
@@ -232,7 +399,7 @@ jobs:
       - name: Build bulma-ui
         run: pnpm --filter @allxsmith/bestax-bulma run build
 
-      # Both projects, for the reason the build-and-test job states: the second
+      # Both projects, for the reason the build job states: the second
       # is a strict superset of the first in FILES, but only the first checks
       # the published program without `types/assets.d.ts` in scope.
       - name: Typecheck bulma-ui
@@ -413,11 +580,12 @@ jobs:
       # A failure here stops the job before bestax-mcp and eslint-plugin
       # release, and skips the restamp push at the end of the job. In a run
       # that released bulma-ui, main is then stale as described above, so
-      # build-and-test fails gen:mcp:check on the pushes to main that follow
-      # and publish, which needs it, is skipped. Neither package releases
-      # until someone runs `pnpm gen:mcp` on main and merges the result.
-      # build-and-test has already run this generator over this commit in
-      # gen:mcp:check, so the released version is the only new input here.
+      # Build and Test fails gen:mcp:check (in its checks part) on the pushes
+      # to main that follow, and publish, which needs it, is skipped. Neither
+      # package releases until someone runs `pnpm gen:mcp` on main and merges
+      # the result. The checks part has already run this generator over this
+      # commit in gen:mcp:check, so the released version is the only new input
+      # here.
       #
       # No-ops when nothing released: with no version change the generator's
       # output is byte-identical and the guard exits early.
