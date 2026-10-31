@@ -14,20 +14,20 @@ const loading = () =>
 /** Runs the recipe's debounce and its pretend server, and what they resolve. */
 const settleSearch = async () => {
   await act(async () => {
-    jest.advanceTimersByTime(250);
+    vi.advanceTimersByTime(250);
   });
   await act(async () => {
-    jest.advanceTimersByTime(600);
+    vi.advanceTimersByTime(600);
   });
 };
 
 describe('The Server Search recipe', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   it('stops loading when a city is picked while a search is still out', async () => {

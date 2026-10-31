@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * SSR coverage for NotificationContainer: it portals into `document.body`,
  * which the server does not have, so it renders nothing there whatever

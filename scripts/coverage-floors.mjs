@@ -1,7 +1,7 @@
 /**
  * Per-file coverage floors for the root `scripts/` suite (#724).
  *
- * Every jest package holds a coverage threshold in its config; the scripts
+ * Every package's suite holds a coverage threshold in its config; the scripts
  * here had none, so a drop in what their tests reach went unnoticed. During
  * #716 it was a manual coverage run that kept locating real gaps (an exported
  * installer nothing called, a default nothing could reach), each behind a

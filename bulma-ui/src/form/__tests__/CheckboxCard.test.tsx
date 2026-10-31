@@ -231,7 +231,7 @@ describe('CheckboxCard', () => {
     });
 
     it('is disabled, and a click changes nothing', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<CheckboxCard disabled onChange={onChange} title="Off" />);
       const input = box('Off');
       expect(input).toBeDisabled();
@@ -315,7 +315,7 @@ describe('CheckboxCard', () => {
     });
 
     it('forwards a callback ref to the input', () => {
-      const ref = jest.fn();
+      const ref = vi.fn();
       const { unmount } = render(<CheckboxCard ref={ref} title="Ref" />);
       expect(ref).toHaveBeenLastCalledWith(box('Ref'));
       unmount();
@@ -359,7 +359,7 @@ describe('CheckboxCard', () => {
     });
 
     it('starts from the group defaultValue and reports changes, uncontrolled', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Checkboxes
           name="extras"
@@ -401,7 +401,7 @@ describe('CheckboxCard', () => {
     });
 
     it('does not add a value twice', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Checkboxes value={['backups']} onChange={onChange}>
           <CheckboxCard value="backups" checked={false} title="Backups" />
@@ -415,9 +415,9 @@ describe('CheckboxCard', () => {
       // A group with only onChange holds no value until the first change, so
       // React warns that the input went from uncontrolled to controlled. It
       // does the same for Checkbox; the group decides it, not the card.
-      const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
       try {
-        const onChange = jest.fn();
+        const onChange = vi.fn();
         render(
           <Checkboxes onChange={onChange}>
             <CheckboxCard value="backups" title="Backups" />
@@ -454,8 +454,8 @@ describe('CheckboxCard', () => {
     });
 
     it('tells the group nothing without a value, but still calls its own onChange', () => {
-      const group = jest.fn();
-      const own = jest.fn();
+      const group = vi.fn();
+      const own = vi.fn();
       render(
         <Checkboxes onChange={group}>
           <CheckboxCard onChange={own} title="No value" />
@@ -502,7 +502,7 @@ describe('CheckboxCard', () => {
     });
 
     it('keeps the mixed state after a click', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<CheckboxCard indeterminate onChange={onChange} title="All" />);
       const input = box('All');
       fireEvent.click(input);
@@ -548,7 +548,7 @@ describe('CheckboxCard', () => {
       const serverIds = Array.from(container.querySelectorAll('input'), input =>
         input.getAttribute('aria-labelledby')
       );
-      const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
       let root: ReturnType<typeof hydrateRoot> | undefined;
       try {
         await act(async () => {

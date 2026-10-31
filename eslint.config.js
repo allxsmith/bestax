@@ -171,7 +171,7 @@ export default [
     },
   },
 
-  // Jest environment for test files
+  // Vitest globals for test files
   {
     files: [
       '**/__tests__/**/*.{ts,tsx}',
@@ -180,7 +180,7 @@ export default [
     ],
     languageOptions: {
       globals: {
-        ...cleanGlobals(globals.jest),
+        ...cleanGlobals(globals.vitest),
       },
     },
   },

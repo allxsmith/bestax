@@ -1,3 +1,4 @@
+import type { Mock, MockInstance } from 'vitest';
 import React, { createRef, useState } from 'react';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -597,7 +598,7 @@ describe('Combobox', () => {
 
   describe('Opening', () => {
     it('opens on typing, with nothing highlighted', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<CountrySelect onOpenChange={onOpenChange} />);
       type('a');
       expect(onOpenChange).toHaveBeenCalledWith(true);
@@ -691,7 +692,7 @@ describe('Combobox', () => {
     });
 
     it('only reports through onOpenChange when open is controlled', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       const { rerender } = render(
         <CountrySelect open={false} onOpenChange={onOpenChange} />
       );
@@ -708,7 +709,7 @@ describe('Combobox', () => {
     });
 
     it("doesn't report a state it's already in", () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<CountrySelect onOpenChange={onOpenChange} />);
       type('a');
       type('an');
@@ -752,7 +753,7 @@ describe('Combobox', () => {
     });
 
     it('picks the highlighted option with Enter, and closes', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(<CountrySelect onSelect={onSelect} />);
       key('ArrowDown');
       key('ArrowDown');
@@ -763,12 +764,12 @@ describe('Combobox', () => {
     });
 
     it('does nothing on Enter over a disabled option, and keeps the key', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(
         <CountrySelect
           disabledItems={['Canada']}
           onSelect={onSelect}
-          onOpenChange={jest.fn()}
+          onOpenChange={vi.fn()}
         />
       );
       key('ArrowDown', { altKey: true });
@@ -780,7 +781,7 @@ describe('Combobox', () => {
     });
 
     it('closes on Enter with nothing highlighted, and lets the key through', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(<CountrySelect onSelect={onSelect} />);
       type('a');
       expect(key('Enter')).toBe(true);
@@ -807,7 +808,7 @@ describe('Combobox', () => {
     });
 
     it("leaves Escape's default alone when the open list shows nothing", () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(
         <Combobox defaultOpen onOpenChange={onOpenChange}>
           <Combobox.Input aria-label="Search" />
@@ -820,7 +821,7 @@ describe('Combobox', () => {
     });
 
     it('never stops Escape propagating', () => {
-      const outer = jest.fn();
+      const outer = vi.fn();
       render(
         <div onKeyDown={e => outer(e.defaultPrevented)}>
           <CountrySelect />
@@ -841,7 +842,7 @@ describe('Combobox', () => {
     });
 
     it('closes on Tab and picks nothing', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(<CountrySelect onSelect={onSelect} />);
       key('ArrowDown');
       expect(key('Tab')).toBe(true);
@@ -903,7 +904,7 @@ describe('Combobox', () => {
     });
 
     it('runs none of it while an IME is composing', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(<CountrySelect onSelect={onSelect} />);
       expect(key('ArrowDown', { isComposing: true })).toBe(true);
       expect(screen.queryByRole('listbox')).toBeNull();
@@ -1010,7 +1011,7 @@ describe('Combobox', () => {
     });
 
     it('only highlights: Tab still picks nothing', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(<CountrySelect keepFirst onSelect={onSelect} />);
       type('fr');
       expect(highlighted()).toBe('France');
@@ -1106,7 +1107,7 @@ describe('Combobox', () => {
     });
 
     it('passes over an element given the option role by hand', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(
         <Combobox defaultOpen onSelect={onSelect}>
           <Combobox.Input aria-label="Search" />
@@ -1129,7 +1130,7 @@ describe('Combobox', () => {
     });
 
     it('brings the highlighted option into view', () => {
-      const scrollIntoView = jest.fn();
+      const scrollIntoView = vi.fn();
       Element.prototype.scrollIntoView = scrollIntoView;
       try {
         render(<CountrySelect />);
@@ -1143,7 +1144,7 @@ describe('Combobox', () => {
     });
 
     it('leaves the list where it is when the pointer moves the highlight', () => {
-      const scrollIntoView = jest.fn();
+      const scrollIntoView = vi.fn();
       Element.prototype.scrollIntoView = scrollIntoView;
       try {
         render(<CountrySelect />);
@@ -1164,7 +1165,7 @@ describe('Combobox', () => {
     });
 
     it('scrolls to where a landing puts the highlight', () => {
-      const scrollIntoView = jest.fn();
+      const scrollIntoView = vi.fn();
       Element.prototype.scrollIntoView = scrollIntoView;
       try {
         render(<CountrySelect keepFirst />);
@@ -1187,7 +1188,7 @@ describe('Combobox', () => {
   describe('Picking with the pointer', () => {
     it('picks an option on a click, closes, and keeps focus in the field', async () => {
       const user = userEvent.setup();
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(<CountrySelect onSelect={onSelect} />);
       await user.click(field());
       await user.click(option('Japan'));
@@ -1207,7 +1208,7 @@ describe('Combobox', () => {
 
     it('never picks a disabled option', async () => {
       const user = userEvent.setup();
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(<CountrySelect disabledItems={['Japan']} onSelect={onSelect} />);
       await user.click(field());
       await user.click(option('Japan'));
@@ -1216,7 +1217,7 @@ describe('Combobox', () => {
     });
 
     it("lets an option's own onClick keep the pick", () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(
         <Combobox defaultOpen onSelect={onSelect}>
           <Combobox.Input aria-label="Search" />
@@ -1234,7 +1235,7 @@ describe('Combobox', () => {
     });
 
     it('highlights an enabled option the pointer moves over, and not a disabled one', () => {
-      const onPointerMove = jest.fn();
+      const onPointerMove = vi.fn();
       render(<CountrySelect disabledItems={['Japan']} />);
       key('ArrowDown');
       fireEvent.pointerMove(option('Germany'));
@@ -1246,7 +1247,7 @@ describe('Combobox', () => {
     });
 
     it("runs an option's own onPointerMove", () => {
-      const onPointerMove = jest.fn();
+      const onPointerMove = vi.fn();
       render(
         <Combobox defaultOpen>
           <Combobox.Input aria-label="Search" />
@@ -1265,7 +1266,7 @@ describe('Combobox', () => {
     });
 
     it('cancels a mousedown anywhere in the dropdown, so the field keeps focus', () => {
-      const onMouseDown = jest.fn();
+      const onMouseDown = vi.fn();
       render(
         <Combobox defaultOpen>
           <Combobox.Input aria-label="Search" />
@@ -1290,7 +1291,7 @@ describe('Combobox', () => {
   });
 
   describe('multiple', () => {
-    function Labels({ onSelect }: { onSelect?: jest.Mock }) {
+    function Labels({ onSelect }: { onSelect?: Mock }) {
       const [picked, setPicked] = useState<string[]>(['docs']);
       return (
         <Combobox
@@ -1342,7 +1343,7 @@ describe('Combobox', () => {
     });
 
     it('keeps the list open and its highlight after a pick', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(<Labels onSelect={onSelect} />);
       key('ArrowDown');
       key('ArrowDown');
@@ -1460,7 +1461,7 @@ describe('Combobox', () => {
     });
 
     it('closes when focus leaves for nowhere', () => {
-      const onBlur = jest.fn();
+      const onBlur = vi.fn();
       render(<CountrySelect inputProps={{ onBlur }} />);
       key('ArrowDown');
       fireEvent.blur(field());
@@ -1469,7 +1470,7 @@ describe('Combobox', () => {
     });
 
     it('stops listening outside once closed or unmounted', () => {
-      const removeSpy = jest.spyOn(document, 'removeEventListener');
+      const removeSpy = vi.spyOn(document, 'removeEventListener');
       const { unmount } = render(<CountrySelect />);
       key('ArrowDown');
       unmount();
@@ -1559,9 +1560,9 @@ describe('Combobox', () => {
     });
 
     describe('appendToBody', () => {
-      let rects: jest.SpyInstance;
+      let rects: MockInstance;
       beforeEach(() => {
-        rects = jest
+        rects = vi
           .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
           .mockImplementation(function (this: HTMLElement) {
             const root = this.classList.contains('combobox');
@@ -1647,7 +1648,7 @@ describe('Combobox', () => {
       });
 
       it('runs the caller handlers on the portaled panel', () => {
-        const onPointerDownCapture = jest.fn();
+        const onPointerDownCapture = vi.fn();
         render(
           <Combobox defaultOpen appendToBody>
             <Combobox.Input aria-label="Search" />
@@ -1686,7 +1687,7 @@ describe('Combobox', () => {
     });
 
     it('takes the arrows and Enter as an open list does', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(<PeopleList onSelect={onSelect} />);
       expect(key('ArrowDown')).toBe(false);
       expect(highlighted()).toBe('Ada Lovelace');
@@ -1700,7 +1701,7 @@ describe('Combobox', () => {
     });
 
     it('leaves Escape and Alt+Up Arrow to whatever is around it', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<PeopleList onOpenChange={onOpenChange} />);
       key('ArrowDown');
       expect(key('Escape')).toBe(true);
@@ -1737,7 +1738,7 @@ describe('Combobox', () => {
   describe('Forms', () => {
     it('submits the form on Enter while closed', async () => {
       const user = userEvent.setup();
-      const onSubmit = jest.fn((e: React.FormEvent) => e.preventDefault());
+      const onSubmit = vi.fn((e: React.FormEvent) => e.preventDefault());
       render(
         <form onSubmit={onSubmit}>
           <CountrySelect />
@@ -1752,7 +1753,7 @@ describe('Combobox', () => {
 
     it('closes the list and submits the form on Enter with nothing highlighted', async () => {
       const user = userEvent.setup();
-      const onSubmit = jest.fn((e: React.FormEvent) => e.preventDefault());
+      const onSubmit = vi.fn((e: React.FormEvent) => e.preventDefault());
       render(
         <form onSubmit={onSubmit}>
           <CountrySelect />
@@ -1768,7 +1769,7 @@ describe('Combobox', () => {
 
     it("doesn't submit while Enter picks an option", async () => {
       const user = userEvent.setup();
-      const onSubmit = jest.fn((e: React.FormEvent) => e.preventDefault());
+      const onSubmit = vi.fn((e: React.FormEvent) => e.preventDefault());
       render(
         <form onSubmit={onSubmit}>
           <CountrySelect />
@@ -1785,7 +1786,7 @@ describe('Combobox', () => {
   describe('Escape inside other layers', () => {
     it('closes the list, not a Popover around it, then the Popover', async () => {
       const user = userEvent.setup();
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(
         <Popover
           defaultOpen
@@ -1809,7 +1810,7 @@ describe('Combobox', () => {
 
     it('lets an inline list hand Escape to the Popover around it', async () => {
       const user = userEvent.setup();
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(
         <Popover
           defaultOpen
@@ -1828,7 +1829,7 @@ describe('Combobox', () => {
     });
 
     it('closes the list, not a Modal around it, then the Modal', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Modal active onClose={onClose}>
           <CountrySelect />
@@ -1845,7 +1846,7 @@ describe('Combobox', () => {
 
   describe('Inside a Control or a Field', () => {
     it('renders no Field in a bare Control, and keeps the field there', () => {
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const { container } = render(
         <Control>
           <Combobox size="small">
@@ -1962,16 +1963,16 @@ describe('Combobox', () => {
 
 describe('Combobox announces its empty message (#1066)', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   const advance = (ms: number) =>
     act(() => {
-      jest.advanceTimersByTime(ms);
+      vi.advanceTimersByTime(ms);
     });
 
   // What the status region says, one entry per announcement.
@@ -2206,7 +2207,7 @@ describe('Combobox on the server', () => {
     const container = document.createElement('div');
     container.innerHTML = renderToString(ui);
     document.body.appendChild(container);
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     let root: ReturnType<typeof hydrateRoot> | undefined;
     try {
       await act(async () => {
@@ -2284,7 +2285,7 @@ describe('Combobox on the server', () => {
     const container = document.createElement('div');
     container.innerHTML = renderToString(ui);
     document.body.appendChild(container);
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     let root: ReturnType<typeof hydrateRoot> | undefined;
     try {
       await act(async () => {

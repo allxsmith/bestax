@@ -234,10 +234,10 @@ describe('calendar variables', () => {
 describe('day text on the calendar backgrounds', () => {
   // Today is October 17th 2026 throughout, and every render reads it again.
   beforeEach(() => {
-    jest.useFakeTimers({ now: new Date(2026, 9, 17, 12) });
+    vi.useFakeTimers({ now: new Date(2026, 9, 17, 12) });
   });
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   // October on show, with a range from the 12th to November 2nd, whose last
@@ -284,7 +284,7 @@ describe('day text on the calendar backgrounds', () => {
   it('reads a day that is both today and a nearby month as the nearby month, in a band too', () => {
     // November 3rd is today, and October's grid ends on November's first
     // days, inside a range from October 20th to November 10th.
-    jest.setSystemTime(new Date(2026, 10, 3, 12));
+    vi.setSystemTime(new Date(2026, 10, 3, 12));
     const { container } = render(
       <DateRangeInput
         inline

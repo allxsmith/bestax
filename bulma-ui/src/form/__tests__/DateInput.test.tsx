@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -88,7 +89,7 @@ describe('DateInput', () => {
     });
 
     it('onChange fires when a date is selected', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole, container } = render(
         <DateInput defaultValue={new Date(2024, 5, 15)} onChange={handler} />
       );
@@ -140,7 +141,7 @@ describe('DateInput', () => {
     });
 
     it('opens on Alt+ArrowDown from the focused field, where ArrowDown steps the year', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole, queryByRole } = render(
         <DateInput
           openOnFocus={false}
@@ -344,7 +345,7 @@ describe('DateInput', () => {
     });
 
     it('parses typed text on blur into a Date', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole } = render(
         <DateInput openOnFocus={false} onChange={handler} format="DD/MM/YYYY" />
       );
@@ -483,8 +484,8 @@ describe('DateInput', () => {
 
   describe('Predicates and callbacks', () => {
     it('parse callback is invoked on blur', () => {
-      const parse = jest.fn(() => new Date(2030, 0, 15));
-      const handler = jest.fn();
+      const parse = vi.fn(() => new Date(2030, 0, 15));
+      const handler = vi.fn();
       const { getByRole } = render(
         <DateInput openOnFocus={false} parse={parse} onChange={handler} />
       );
@@ -498,7 +499,7 @@ describe('DateInput', () => {
     });
 
     it('shouldDisableDate prevents click selection', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole, container } = render(
         <DateInput
           defaultValue={new Date(2024, 5, 15)}
@@ -598,7 +599,7 @@ describe('DateInput segmented input entry', () => {
   });
 
   it('ArrowUp increments the year, ArrowDown decrements it', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput defaultValue={new Date(2024, 5, 7)} onChange={handler} />
     );
@@ -635,7 +636,7 @@ describe('DateInput segmented input entry', () => {
   });
 
   it('ArrowUp on the month segment increments the month in place', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput defaultValue={new Date(2024, 5, 7)} onChange={handler} />
     );
@@ -682,7 +683,7 @@ describe('DateInput segmented input entry', () => {
   });
 
   it('day digit >= 4 auto-advances (stays on last segment)', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput defaultValue={new Date(2024, 5, 7)} onChange={handler} />
     );
@@ -754,7 +755,7 @@ describe('DateInput segmented input entry', () => {
   });
 
   it('falls back to free-form text entry for Intl-options formats', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput
         defaultValue={new Date(2024, 5, 7)}
@@ -772,7 +773,7 @@ describe('DateInput segmented input entry', () => {
   });
 
   it('rejects ArrowUp on the day segment when shouldDisableDate blocks the result', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput
         defaultValue={new Date(2024, 5, 15)}
@@ -792,7 +793,7 @@ describe('DateInput segmented input entry', () => {
   });
 
   it('rejects ArrowUp on the day segment when unselectableDates blocks the result', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput
         defaultValue={new Date(2024, 5, 15)}
@@ -812,7 +813,7 @@ describe('DateInput segmented input entry', () => {
   });
 
   it('rejects typed digits that complete to a blocked day', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput
         defaultValue={new Date(2024, 5, 15)}
@@ -837,7 +838,7 @@ describe('DateInput segmented input entry', () => {
   });
 
   it('still commits unblocked values when a predicate is present', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput
         defaultValue={new Date(2024, 5, 14)}
@@ -857,7 +858,7 @@ describe('DateInput segmented input entry', () => {
   });
 
   it('min still rejects segmented edits when a blocking predicate is also present', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput
         defaultValue={new Date(2024, 5, 10)}
@@ -891,7 +892,7 @@ describe('DateInput editable / popover modes', () => {
   });
 
   it('editable={false}: typing / arrows do not change the value', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput
         defaultValue={new Date(2024, 5, 7)}
@@ -911,7 +912,7 @@ describe('DateInput editable / popover modes', () => {
   });
 
   it('editable={false}: the popover still opens and selection works', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, container } = render(
       <DateInput
         defaultValue={new Date(2024, 5, 15)}
@@ -943,7 +944,7 @@ describe('DateInput editable / popover modes', () => {
   });
 
   it('popover={false}: still supports segmented typing (input-only)', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, queryByRole } = render(
       <DateInput
         defaultValue={new Date(2024, 5, 7)}
@@ -1113,7 +1114,7 @@ describe('DateInput launcher icon', () => {
 
 describe('DateInput native input value handling', () => {
   it('renders the value as an ISO string and round-trips changes', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { container } = render(
       <DateInput
         mobileNative={true}
@@ -1133,7 +1134,7 @@ describe('DateInput native input value handling', () => {
   });
 
   it('keeps a year below 100 as given', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { container } = render(
       <DateInput
         mobileNative={true}
@@ -1156,7 +1157,7 @@ describe('DateInput native input value handling', () => {
   });
 
   it('round-trips a year past 9999', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { container } = render(
       <DateInput
         mobileNative={true}
@@ -1178,7 +1179,7 @@ describe('DateInput native input value handling', () => {
   });
 
   it('clearing the native input commits null', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { container } = render(
       <DateInput
         mobileNative={true}
@@ -1196,7 +1197,7 @@ describe('DateInput native input value handling', () => {
   it('a malformed native value commits null (invalid-format guard)', () => {
     // jsdom sanitizes bad values to '' before React sees them, so force the
     // value getter to surface a malformed string to the change handler.
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { container } = render(
       <DateInput mobileNative={true} onChange={handler} />
     );
@@ -1215,10 +1216,10 @@ describe('DateInput native input value handling', () => {
 
 describe('DateInputBase remaining branches', () => {
   it('Enter on the focused day of an empty field picks it at midnight, not at the clock', () => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date(2026, 9, 7, 14, 23, 10, 507));
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 9, 7, 14, 23, 10, 507));
     try {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole } = render(<DateInput onChange={handler} />);
       act(() => {
         getByRole('combobox').focus();
@@ -1230,12 +1231,12 @@ describe('DateInputBase remaining branches', () => {
       });
       expect(handler).toHaveBeenLastCalledWith(new Date(2026, 9, 7));
     } finally {
-      jest.useRealTimers();
+      vi.useRealTimers();
     }
   });
 
   it('Enter picks a day at midnight, as a click does, whatever time the value has', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput
         defaultValue={new Date(2026, 9, 7, 14, 30, 45, 250)}
@@ -1264,7 +1265,7 @@ describe('DateInputBase remaining branches', () => {
   });
 
   it('Enter picks at midnight after typing has moved a value with a time of day', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getByLabelText } = render(
       <DateInput
         defaultValue={new Date(2026, 9, 7, 14, 30, 45, 250)}
@@ -1290,10 +1291,10 @@ describe('DateInputBase remaining branches', () => {
   });
 
   it('Enter picks at midnight on an empty field clamped to a max with a time of day', () => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date(2026, 9, 7, 14, 23, 10, 507));
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 9, 7, 14, 23, 10, 507));
     try {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole } = render(
         <DateInput max={new Date(2026, 8, 30, 15, 0)} onChange={handler} />
       );
@@ -1307,17 +1308,17 @@ describe('DateInputBase remaining branches', () => {
       });
       expect(handler).toHaveBeenLastCalledWith(new Date(2026, 8, 30));
     } finally {
-      jest.useRealTimers();
+      vi.useRealTimers();
     }
   });
 
   it('opens an empty field under a min with a time of day on a day it can pick', () => {
     // Midnight on the min's own day is before the min, so that day can't be
     // picked; the focus lands on the next one, and Enter picks it at midnight.
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date(2026, 9, 7, 14, 23, 10, 507));
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 9, 7, 14, 23, 10, 507));
     try {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole } = render(
         <DateInput
           min={new Date(2027, 0, 1, 9, 30, 15, 123)}
@@ -1334,7 +1335,7 @@ describe('DateInputBase remaining branches', () => {
       });
       expect(handler).toHaveBeenLastCalledWith(new Date(2027, 0, 2));
     } finally {
-      jest.useRealTimers();
+      vi.useRealTimers();
     }
   });
 
@@ -1344,7 +1345,7 @@ describe('DateInputBase remaining branches', () => {
   });
 
   it('controlled: selecting a date reports through onChange without internal state', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, container } = render(
       <DateInputBase value={new Date(2024, 5, 15)} onChange={handler} />
     );
@@ -1394,8 +1395,8 @@ describe('DateInputBase remaining branches', () => {
   });
 
   it('fires onOpen once even when an open request repeats, and onClose on close', () => {
-    const onOpen = jest.fn();
-    const onClose = jest.fn();
+    const onOpen = vi.fn();
+    const onClose = vi.fn();
     const { getByRole } = render(
       <DateInputBase onOpen={onOpen} onClose={onClose} />
     );
@@ -1412,13 +1413,13 @@ describe('DateInputBase remaining branches', () => {
   });
 
   it('supports a callback ref', () => {
-    const refFn = jest.fn();
+    const refFn = vi.fn();
     render(<DateInputBase ref={refFn} />);
     expect(refFn).toHaveBeenCalledWith(expect.any(HTMLInputElement));
   });
 
   it('whitespace-only text reverts on blur without committing', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInputBase
         defaultValue={new Date(2024, 5, 7)}
@@ -1434,7 +1435,7 @@ describe('DateInputBase remaining branches', () => {
   });
 
   it('free-form blur with a blocked date reverts without committing', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInputBase
         openOnFocus={false}
@@ -1450,7 +1451,7 @@ describe('DateInputBase remaining branches', () => {
   });
 
   it('focusing an empty input does not commit a blocked today seed on blur', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInputBase
         popover={false}
@@ -1526,7 +1527,7 @@ describe('DateInput label association (#368)', () => {
 // period's first day; min/max and the predicates judge whole periods.
 // -------------------------------------------------------------------------
 
-const lastCall = (handler: jest.Mock): Date | null =>
+const lastCall = (handler: Mock): Date | null =>
   handler.mock.calls[handler.mock.calls.length - 1][0];
 
 const focusInput = (input: HTMLElement) =>
@@ -1543,7 +1544,7 @@ describe('DateInput month granularity', () => {
   });
 
   it('shows a controlled mid-month value as its month without rewriting it', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput
         granularity="month"
@@ -1566,7 +1567,7 @@ describe('DateInput month granularity', () => {
     'leaves a controlled mid-%s value alone when focus passes through',
     (granularity, text) => {
       // Leaving without typing re-parses nothing, so the value keeps its day.
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole } = render(
         <DateInput
           granularity={granularity}
@@ -1584,7 +1585,7 @@ describe('DateInput month granularity', () => {
   );
 
   it('leaves a mid-month value alone when typing lands on its month', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput
         granularity="month"
@@ -1607,7 +1608,7 @@ describe('DateInput month granularity', () => {
   it('keeps the time of day on a day value when focus passes through', () => {
     // Leaving without typing re-parses nothing, so the time the display
     // leaves out survives rather than becoming midnight.
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput
         value={new Date(2024, 5, 20, 14, 30)}
@@ -1623,7 +1624,7 @@ describe('DateInput month granularity', () => {
   });
 
   it('opens on the month grid and commits the first of the picked month', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getByLabelText, queryByRole } = render(
       <DateInput
         granularity="month"
@@ -1652,7 +1653,7 @@ describe('DateInput month granularity', () => {
   });
 
   it('types the year and month only, committing the first of the month', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput
         granularity="month"
@@ -1675,7 +1676,7 @@ describe('DateInput month granularity', () => {
   });
 
   it('normalises a controlled mid-month value when typing moves it', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput
         granularity="month"
@@ -1691,7 +1692,7 @@ describe('DateInput month granularity', () => {
   });
 
   it('skips the day segment of a custom format with day tokens', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput
         granularity="month"
@@ -1713,7 +1714,7 @@ describe('DateInput month granularity', () => {
   });
 
   it('parses free-form text against a month format', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput
         granularity="month"
@@ -1729,7 +1730,7 @@ describe('DateInput month granularity', () => {
   });
 
   it('parses against YYYY-MM when the format is Intl options with no parse', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput
         granularity="month"
@@ -1746,7 +1747,7 @@ describe('DateInput month granularity', () => {
   });
 
   it('lets a partly bounded month through, committed as its first day', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput
         granularity="month"
@@ -1768,7 +1769,7 @@ describe('DateInput month granularity', () => {
   });
 
   it('rejects a month whose every day is blocked, and allows one partly blocked', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput
         granularity="month"
@@ -1793,7 +1794,7 @@ describe('DateInput month granularity', () => {
   });
 
   it('judges a blocked first-of-month by its month, not its day', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput
         granularity="month"
@@ -1809,7 +1810,7 @@ describe('DateInput month granularity', () => {
   });
 
   it('seeds an empty field with the start of this month', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput granularity="month" popover={false} onChange={handler} />
     );
@@ -1865,7 +1866,7 @@ describe('DateInput month granularity', () => {
   });
 
   it('commits from the inline month grid', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByLabelText, container } = render(
       <DateInput
         granularity="month"
@@ -1903,7 +1904,7 @@ describe('DateInput month granularity', () => {
     });
 
     it('round-trips a change to the first of the month, and a clear to null', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { container } = render(
         <DateInput granularity="month" mobileNative onChange={handler} />
       );
@@ -1914,7 +1915,7 @@ describe('DateInput month granularity', () => {
     });
 
     it('commits null for a malformed value', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { container } = render(
         <DateInput granularity="month" mobileNative onChange={handler} />
       );
@@ -1929,7 +1930,7 @@ describe('DateInput month granularity', () => {
     });
 
     it('keeps a year below 100 as given', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { container } = render(
         <DateInput granularity="month" mobileNative onChange={handler} />
       );
@@ -1939,7 +1940,7 @@ describe('DateInput month granularity', () => {
     });
 
     it('reads a year past 9999 back', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { container } = render(
         <DateInput granularity="month" mobileNative onChange={handler} />
       );
@@ -1951,12 +1952,12 @@ describe('DateInput month granularity', () => {
     });
 
     describe('where the browser has no month input', () => {
-      afterEach(() => jest.restoreAllMocks());
+      afterEach(() => vi.restoreAllMocks());
 
       it('renders the calendar instead', () => {
         // A browser without the type reads it back as text, so typing into
         // it would parse every partial keystroke to null.
-        const supports = jest
+        const supports = vi
           .spyOn(nativeInputSupport, 'supportsInputType')
           .mockReturnValue(false);
         const { container, getByRole } = render(
@@ -1974,7 +1975,7 @@ describe('DateInput month granularity', () => {
       });
 
       it('keeps the day picker on its native date input', () => {
-        const supports = jest.spyOn(nativeInputSupport, 'supportsInputType');
+        const supports = vi.spyOn(nativeInputSupport, 'supportsInputType');
         const { container } = render(<DateInput mobileNative />);
         expect(container.querySelector('input[type="date"]')).not.toBeNull();
         expect(supports).not.toHaveBeenCalled();
@@ -1982,7 +1983,7 @@ describe('DateInput month granularity', () => {
     });
 
     it('renders the calendar on the server, before it can ask', () => {
-      const supports = jest.spyOn(nativeInputSupport, 'supportsInputType');
+      const supports = vi.spyOn(nativeInputSupport, 'supportsInputType');
       const html = renderToStaticMarkup(
         <DateInput granularity="month" mobileNative />
       );
@@ -1996,7 +1997,7 @@ describe('DateInput month granularity', () => {
 
 describe('DateInput year granularity', () => {
   beforeAll(() => {
-    HTMLElement.prototype.scrollIntoView = jest.fn();
+    HTMLElement.prototype.scrollIntoView = vi.fn();
   });
 
   it('formats the value as YYYY by default', () => {
@@ -2007,7 +2008,7 @@ describe('DateInput year granularity', () => {
   });
 
   it('opens on the year list and commits the first day of the picked year', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getByText, queryByRole } = render(
       <DateInput
         granularity="year"
@@ -2038,7 +2039,7 @@ describe('DateInput year granularity', () => {
   });
 
   it('types four digits as the year and commits its first day', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput granularity="year" onChange={handler} openOnFocus={false} />
     );
@@ -2050,7 +2051,7 @@ describe('DateInput year granularity', () => {
   });
 
   it('keeps typing inside the min and max years', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateInput
         granularity="year"
@@ -2200,7 +2201,7 @@ describe('DateInput focus handed back on close', () => {
   it.each(['day', 'month', 'year'] as const)(
     'Escape closes the %s picker and leaves focus on the input',
     granularity => {
-      const onOpen = jest.fn();
+      const onOpen = vi.fn();
       const { getByRole, queryByRole } = render(
         <DateInput
           granularity={granularity}
@@ -2228,8 +2229,8 @@ describe('DateInput focus handed back on close', () => {
   ] as const)(
     'Escape in the %s picker leaves the year list, then closes',
     (granularity, cell, text) => {
-      HTMLElement.prototype.scrollIntoView = jest.fn();
-      const onClose = jest.fn();
+      HTMLElement.prototype.scrollIntoView = vi.fn();
+      const onClose = vi.fn();
       const { getByRole, queryByRole } = render(
         <DateInput
           granularity={granularity}
@@ -2265,7 +2266,7 @@ describe('DateInput focus handed back on close', () => {
   );
 
   it('picking a day with the pointer closes it the same way', () => {
-    const onOpen = jest.fn();
+    const onOpen = vi.fn();
     const { getByRole, getByText, queryByRole } = render(
       <DateInput defaultValue={new Date(2024, 5, 15)} onOpen={onOpen} />
     );
@@ -2281,7 +2282,7 @@ describe('DateInput focus handed back on close', () => {
   });
 
   it('picking a day with Enter closes it the same way', () => {
-    const onOpen = jest.fn();
+    const onOpen = vi.fn();
     const { getByRole, queryByRole } = render(
       <DateInput defaultValue={new Date(2024, 5, 15)} onOpen={onOpen} />
     );
@@ -2302,7 +2303,7 @@ describe('DateInput focus handed back on close', () => {
   });
 
   it('hands focus to the input when the launcher opened it', () => {
-    const onOpen = jest.fn();
+    const onOpen = vi.fn();
     const { getByRole, getByLabelText, queryByRole } = render(
       <DateInput defaultValue={new Date(2024, 5, 15)} onOpen={onOpen} />
     );
@@ -2321,7 +2322,7 @@ describe('DateInput focus handed back on close', () => {
   });
 
   it('a click outside closes it for good', () => {
-    const onOpen = jest.fn();
+    const onOpen = vi.fn();
     const { getByRole, queryByRole } = render(
       <>
         <DateInput defaultValue={new Date(2024, 5, 15)} onOpen={onOpen} />
@@ -2375,7 +2376,7 @@ describe('DateInput focus handed back on close', () => {
 
   describe('commits nothing the user did not type or pick', () => {
     const renderWith = (props: React.ComponentProps<typeof DateInput>) => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const utils = render(
         <>
           <DateInput {...props} onChange={onChange} />
@@ -2491,7 +2492,7 @@ describe('DateInput left without typing', () => {
   // Leaving commits nothing nobody typed: re-parsing the display would drop
   // what the format leaves out, and an empty field's seed is not the user's.
   const renderWith = (props: React.ComponentProps<typeof DateInput>) => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     const utils = render(
       <>
         <DateInput {...props} onChange={onChange} />
@@ -2546,7 +2547,7 @@ describe('DateInput left without typing', () => {
     });
 
     it('does not call parse on the text it showed', () => {
-      const parse = jest.fn(() => new Date(2030, 0, 15));
+      const parse = vi.fn(() => new Date(2030, 0, 15));
       const { onChange, visit } = renderWith({
         ...mode,
         parse,
@@ -2595,7 +2596,7 @@ describe('DateInput left without typing', () => {
   );
 
   it('commits nothing on Enter over the text it showed, and still closes', () => {
-    const parse = jest.fn(() => new Date(2030, 0, 15));
+    const parse = vi.fn(() => new Date(2030, 0, 15));
     const { input, onChange, getByRole, queryByRole } = renderWith({
       // No segments, so Enter parses the text.
       format: { year: 'numeric', month: '2-digit', day: '2-digit' },
@@ -2618,7 +2619,7 @@ describe('DateInput left without typing', () => {
   });
 
   it('counts text typed back to what it showed as untouched', () => {
-    const parse = jest.fn(() => new Date(2030, 0, 15));
+    const parse = vi.fn(() => new Date(2030, 0, 15));
     const { input, onChange, leave } = renderWith({
       // No segments, so the text is typed freely.
       format: { year: 'numeric', month: '2-digit', day: '2-digit' },
@@ -2647,8 +2648,8 @@ describe('DateInput onOpen and onClose', () => {
     });
 
   it('fire once per open and close under StrictMode', () => {
-    const onOpen = jest.fn();
-    const onClose = jest.fn();
+    const onOpen = vi.fn();
+    const onClose = vi.fn();
     const { getByRole, queryByRole } = render(
       <React.StrictMode>
         <DateInput defaultValue={june15} onOpen={onOpen} onClose={onClose} />
@@ -2696,7 +2697,7 @@ describe('DateInput onOpen and onClose', () => {
   });
 
   it('fires onClose once when the input and the popover both take Escape', () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     const { getByRole, queryByRole } = render(
       <DateInput defaultValue={june15} onClose={onClose} openOnFocus={false} />
     );
@@ -2717,7 +2718,7 @@ describe('DateInput onOpen and onClose', () => {
 // HTML's date and month inputs hold no year below 1, so the picker stops there
 // on every path a value can arrive by.
 describe('DateInput before year 1', () => {
-  const lastYear = (handler: jest.Mock) =>
+  const lastYear = (handler: Mock) =>
     (
       handler.mock.calls[handler.mock.calls.length - 1][0] as Date
     ).getFullYear();
@@ -2727,7 +2728,7 @@ describe('DateInput before year 1', () => {
     });
 
   it('picks a day in year 1 from the calendar and disables the days before', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { container, getByLabelText } = render(
       <DateInput inline defaultValue={makeDate(1, 0, 15)} onChange={handler} />
     );
@@ -2792,7 +2793,7 @@ describe('DateInput before year 1', () => {
 
   describe('segmented typing', () => {
     it('steps into year 1 and no further', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole } = render(
         <DateInput defaultValue={makeDate(2, 5, 15)} onChange={handler} />
       );
@@ -2807,7 +2808,7 @@ describe('DateInput before year 1', () => {
     });
 
     it('commits nothing for a typed year 0 until it reaches year 1', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole } = render(
         <DateInput defaultValue={new Date(2024, 5, 15)} onChange={handler} />
       );
@@ -2824,7 +2825,7 @@ describe('DateInput before year 1', () => {
     });
 
     it('leaves a value in year 0 only towards year 1', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole } = render(
         <DateInput value={makeDate(0, 5, 15)} onChange={handler} />
       );
@@ -2845,7 +2846,7 @@ describe('DateInput before year 1', () => {
     };
 
     it('reads year 1 and rejects year 0 with the default parse', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole } = render(
         <DateInputBase openOnFocus={false} onChange={handler} />
       );
@@ -2858,7 +2859,7 @@ describe('DateInput before year 1', () => {
     });
 
     it('rejects a negative year from a custom parse', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole } = render(
         <DateInputBase
           openOnFocus={false}
@@ -2897,7 +2898,7 @@ describe('DateInput before year 1', () => {
     );
 
     it('reads year 1 back, while the input itself drops year 0 and below', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { container } = render(
         <DateInput mobileNative onChange={handler} />
       );

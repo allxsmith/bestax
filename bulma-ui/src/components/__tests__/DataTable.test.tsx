@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import React, { createRef } from 'react';
 import {
   act,
@@ -67,14 +68,14 @@ const header = (name: string) =>
 
 const sortButton = (name: string) => screen.getByRole('button', { name });
 
-let warn: jest.SpyInstance;
+let warn: MockInstance;
 beforeEach(() => {
   resetDevWarnings();
-  warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 });
 afterEach(() => {
   warn.mockRestore();
-  jest.useRealTimers();
+  vi.useRealTimers();
 });
 
 describe('DataTable', () => {
@@ -227,7 +228,7 @@ describe('DataTable', () => {
     });
 
     it('passes rowProps to each row, with its own props winning', () => {
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       renderTable({
         selectionMode: 'multiple',
         defaultSelected: ['p1'],
@@ -279,7 +280,7 @@ describe('DataTable', () => {
 
   describe('sorting', () => {
     it('cycles a header through ascending, descending and unsorted', () => {
-      const onSortChange = jest.fn();
+      const onSortChange = vi.fn();
       renderTable({ onSortChange });
       expect(header('Name')).not.toHaveAttribute('aria-sort');
       fireEvent.click(sortButton('Name'));
@@ -479,7 +480,7 @@ describe('DataTable', () => {
     });
 
     it('waits for the parent with a controlled sort', () => {
-      const onSortChange = jest.fn();
+      const onSortChange = vi.fn();
       renderTable({ sort: [], onSortChange });
       fireEvent.click(sortButton('Role'));
       expect(onSortChange).toHaveBeenCalledWith([
@@ -500,7 +501,7 @@ describe('DataTable', () => {
     });
 
     it('ignores a sort toggled for a column it does not have', () => {
-      const onSortChange = jest.fn();
+      const onSortChange = vi.fn();
       const { result } = renderHook(() =>
         useDataTable({ columns, data: people, onSortChange })
       );
@@ -545,7 +546,7 @@ describe('DataTable', () => {
     });
 
     it('selects rows, marks them selected and reports the ids', () => {
-      const onSelectedChange = jest.fn();
+      const onSelectedChange = vi.fn();
       renderTable({ selectionMode: 'multiple', onSelectedChange });
       const all = screen.getByRole('checkbox', {
         name: 'Select all rows',
@@ -596,7 +597,7 @@ describe('DataTable', () => {
     });
 
     it('keeps a selected row selected while the search hides it', () => {
-      const onSelectedChange = jest.fn();
+      const onSelectedChange = vi.fn();
       renderTable({
         selectionMode: 'multiple',
         defaultSelected: ['p1'],
@@ -613,7 +614,7 @@ describe('DataTable', () => {
     });
 
     it('waits for the parent with a controlled selection', () => {
-      const onSelectedChange = jest.fn();
+      const onSelectedChange = vi.fn();
       renderTable({
         selectionMode: 'multiple',
         selected: ['p3'],
@@ -649,7 +650,7 @@ describe('DataTable', () => {
     });
 
     it('changes nothing when a toggle asks for what is already so', () => {
-      const onSelectedChange = jest.fn();
+      const onSelectedChange = vi.fn();
       const { result } = renderHook(() =>
         useDataTable({
           columns,
@@ -673,7 +674,7 @@ describe('DataTable', () => {
 
   describe('paging', () => {
     it('pages through Pagination, named after the table', () => {
-      const onPageChange = jest.fn();
+      const onPageChange = vi.fn();
       renderTable({ pageSize: 2, onPageChange });
       const pager = screen.getByRole('navigation', { name: 'People pages' });
       expect(
@@ -780,7 +781,7 @@ describe('DataTable', () => {
     });
 
     it('starts on defaultPage, and does not report the page it is on', () => {
-      const onPageChange = jest.fn();
+      const onPageChange = vi.fn();
       const { result } = renderHook(() =>
         useDataTable({
           columns,
@@ -803,8 +804,8 @@ describe('DataTable', () => {
 
   describe('filtering', () => {
     it('searches every filterable column, and goes back to page 1', () => {
-      const onSearchChange = jest.fn();
-      const onPageChange = jest.fn();
+      const onSearchChange = vi.fn();
+      const onPageChange = vi.fn();
       renderTable({
         hasSearch: true,
         pageSize: 2,
@@ -842,7 +843,7 @@ describe('DataTable', () => {
     });
 
     it('filters by column value, with filterFn or by text', () => {
-      const onFiltersChange = jest.fn();
+      const onFiltersChange = vi.fn();
       const { result } = renderHook(() =>
         useDataTable<Person>({
           columns: [
@@ -880,7 +881,7 @@ describe('DataTable', () => {
     });
 
     it('passes a row whose text matches any entry of an array', () => {
-      const filterFn = jest.fn(() => true);
+      const filterFn = vi.fn(() => true);
       const { result } = renderHook(() =>
         useDataTable<Person>({
           columns: [...columns, { id: 'id', header: 'Id', filterFn }],
@@ -922,8 +923,8 @@ describe('DataTable', () => {
     });
 
     it('builds a second change in one handler on the first', () => {
-      const onFiltersChange = jest.fn();
-      const onSelectedChange = jest.fn();
+      const onFiltersChange = vi.fn();
+      const onSelectedChange = vi.fn();
       const { result } = renderHook(() =>
         useDataTable<Person>({
           columns,
@@ -970,8 +971,8 @@ describe('DataTable', () => {
     });
 
     it('builds each change on the state as rendered while the parent holds it', () => {
-      const onFiltersChange = jest.fn();
-      const onSelectedChange = jest.fn();
+      const onFiltersChange = vi.fn();
+      const onSelectedChange = vi.fn();
       const { result } = renderHook(() =>
         useDataTable<Person>({
           columns,
@@ -1022,7 +1023,7 @@ describe('DataTable', () => {
     });
 
     it('tells the parent to go to page 1 when the page it holds is past the end', () => {
-      const onPageChange = jest.fn();
+      const onPageChange = vi.fn();
       const { result, rerender } = renderHook(
         ({ data, page }: { data: Person[]; page: number }) =>
           useDataTable<Person>({
@@ -1046,7 +1047,7 @@ describe('DataTable', () => {
     });
 
     it('waits for the parent with controlled search and filters', () => {
-      const onSearchChange = jest.fn();
+      const onSearchChange = vi.fn();
       renderTable({
         hasSearch: true,
         search: 'ada',
@@ -1177,37 +1178,37 @@ describe('DataTable', () => {
     const status = () => screen.getByRole('status');
 
     it('says nothing on mount, then the count a moment after the search changes', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       renderTable({ hasSearch: true });
-      act(() => jest.advanceTimersByTime(1000));
+      act(() => vi.advanceTimersByTime(1000));
       expect(status()).toBeEmptyDOMElement();
       const search = screen.getByRole('searchbox');
       fireEvent.change(search, { target: { value: 'a' } });
-      act(() => jest.advanceTimersByTime(200));
+      act(() => vi.advanceTimersByTime(200));
       fireEvent.change(search, { target: { value: 'ad' } });
-      act(() => jest.advanceTimersByTime(200));
+      act(() => vi.advanceTimersByTime(200));
       expect(status()).toBeEmptyDOMElement();
-      act(() => jest.advanceTimersByTime(400));
+      act(() => vi.advanceTimersByTime(400));
       expect(status()).toHaveTextContent('2 rows match');
       fireEvent.change(search, { target: { value: 'alan' } });
-      act(() => jest.advanceTimersByTime(600));
+      act(() => vi.advanceTimersByTime(600));
       expect(status()).toHaveTextContent('1 row matches');
       fireEvent.change(search, { target: { value: 'kraken' } });
-      act(() => jest.advanceTimersByTime(600));
+      act(() => vi.advanceTimersByTime(600));
       expect(status()).toHaveTextContent('No rows match');
       expect(status()).toHaveAttribute('aria-live', 'polite');
     });
 
     it('says the range after a page change', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       renderTable({ pageSize: 2 });
       fireEvent.click(screen.getByRole('button', { name: 'Page 3' }));
-      act(() => jest.advanceTimersByTime(600));
+      act(() => vi.advanceTimersByTime(600));
       expect(status()).toHaveTextContent('Showing 5 to 5 of 5');
     });
 
     it('says Loading while loading after a change, and the count in the locale', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const ui = (props: Partial<DataTableProps<Person>>) => (
         <LocaleProvider locale="de">
           <DataTable
@@ -1223,18 +1224,18 @@ describe('DataTable', () => {
       );
       const { rerender } = render(ui({ search: '' }));
       rerender(ui({ search: 'a', loading: true }));
-      act(() => jest.advanceTimersByTime(600));
+      act(() => vi.advanceTimersByTime(600));
       expect(status()).toHaveTextContent('Loading');
       rerender(ui({ search: 'a' }));
-      act(() => jest.advanceTimersByTime(600));
+      act(() => vi.advanceTimersByTime(600));
       expect(status()).toHaveTextContent('12.345 rows match');
       rerender(ui({ search: 'a', page: 3 }));
-      act(() => jest.advanceTimersByTime(600));
+      act(() => vi.advanceTimersByTime(600));
       expect(status()).toHaveTextContent('Showing 5 to 6 of 12.345');
     });
 
     it('takes its words from labels', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const { rerender } = render(
         <DataTable
           caption="People"
@@ -1249,7 +1250,7 @@ describe('DataTable', () => {
         />
       );
       fireEvent.click(screen.getByRole('button', { name: 'Page 2' }));
-      act(() => jest.advanceTimersByTime(600));
+      act(() => vi.advanceTimersByTime(600));
       expect(status()).toHaveTextContent('3–4 von 5');
       rerender(
         <DataTable
@@ -1261,27 +1262,27 @@ describe('DataTable', () => {
           labels={{ results: count => `${count} Treffer` }}
         />
       );
-      act(() => jest.advanceTimersByTime(600));
+      act(() => vi.advanceTimersByTime(600));
       expect(status()).toHaveTextContent('1 Treffer');
     });
 
     it('says the count when the rows run out under the page', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const { rerender } = renderTable({ pageSize: 2 });
       fireEvent.click(screen.getByRole('button', { name: 'Page 2' }));
       rerender(
         <DataTable caption="People" columns={columns} data={[]} pageSize={2} />
       );
-      act(() => jest.advanceTimersByTime(600));
+      act(() => vi.advanceTimersByTime(600));
       expect(status()).toHaveTextContent('No rows match');
     });
 
     it('says the whole range when the page size is taken away', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const { rerender } = renderTable({ pageSize: 2 });
       fireEvent.click(screen.getByRole('button', { name: 'Page 2' }));
       rerender(<DataTable caption="People" columns={columns} data={people} />);
-      act(() => jest.advanceTimersByTime(600));
+      act(() => vi.advanceTimersByTime(600));
       expect(status()).toHaveTextContent('Showing 1 to 5 of 5');
     });
 
@@ -1519,7 +1520,7 @@ describe('DataTable', () => {
     });
 
     it('takes ids from getRowId, a string from it falling back too', () => {
-      const getRowId = jest.fn((row: Person, index: number) =>
+      const getRowId = vi.fn((row: Person, index: number) =>
         index === 1 ? '' : `row-${row.name}`
       );
       const { result } = renderHook(() =>
@@ -1681,7 +1682,7 @@ describe('DataTable', () => {
     });
 
     it('with manual, shows the data as given and only reports', () => {
-      const onSortChange = jest.fn();
+      const onSortChange = vi.fn();
       const result = model({
         manual: true,
         rowCount: 42.7,
@@ -1843,7 +1844,7 @@ describe('DataTable', () => {
       const host = document.createElement('div');
       host.innerHTML = html;
       document.body.appendChild(host);
-      const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
       act(() => {
         hydrateRoot(host, ui);
       });

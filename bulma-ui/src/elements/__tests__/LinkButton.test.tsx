@@ -59,14 +59,14 @@ describe('LinkButton Component', () => {
   });
 
   it('fires onClick when clicked', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(<LinkButton onClick={handleClick}>Clickable</LinkButton>);
     fireEvent.click(screen.getByRole('button'));
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
 
   it('does not fire onClick when disabled', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(
       <LinkButton onClick={handleClick} isDisabled disabled>
         Disabled

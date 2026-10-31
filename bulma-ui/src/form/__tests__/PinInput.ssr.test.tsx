@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * A server render of a PinInput, where `document` is genuinely undefined. The
  * markup carries the whole field, the input with the code and a box for each
@@ -11,7 +11,7 @@ import { PinInput } from '../PinInput';
 
 describe('PinInput on the server (node environment)', () => {
   it('renders the input and its boxes as plain markup, without a warning', () => {
-    const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
       const html = renderToStaticMarkup(
         <PinInput label="Code" name="otp" length={4} defaultValue="12" />

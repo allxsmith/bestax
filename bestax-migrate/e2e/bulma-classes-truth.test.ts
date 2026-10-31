@@ -378,9 +378,9 @@ function noteMismatch(
 
 /**
  * One assertion over every pair noted, where there used to be one per pair:
- * each `expect` builds Jest's whole matcher set, which cost this suite more
- * than the comparing did. A mismatch shows as the per-pair assertion showed
- * it, `{ ...label, html }` against the raw side's.
+ * an `expect` call costs far more than the comparison it makes, and the calls
+ * cost this suite more than the comparing did. A mismatch shows as the
+ * per-pair assertion showed it, `{ ...label, html }` against the raw side's.
  */
 function expectNoMismatch(mismatches: Mismatches): void {
   expect(mismatches.map(m => ({ ...m.label, html: m.converted }))).toEqual(

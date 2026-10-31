@@ -15,9 +15,9 @@
     "prepack": "node ../scripts/require-pnpm-publish.mjs && node scripts/sync-skills.mjs",
     "prepublishOnly": "node ../scripts/require-pnpm-publish.mjs",
     "dev": "tsc --watch",
-    "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest",
-    "test:watch": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --watch",
-    "test:coverage": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --coverage",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test --config=e2e/playwright.config.ts",
     "test:e2e:ui": "playwright test --config=e2e/playwright.config.ts --ui",
     "test:e2e:headed": "playwright test --config=e2e/playwright.config.ts --headed",
@@ -64,17 +64,15 @@
     "react-dom": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
-    "@jest/globals": "^30.0.0",
     "@playwright/test": "^1.64.1",
     "@types/fs-extra": "^11.0.4",
-    "@types/jest": "^30.0.0",
     "@types/node": "^26.6.5",
     "@types/prompts": "^2.4.9",
     "@types/wait-on": "^5.3.4",
-    "jest": "^30.2.0",
+    "@vitest/coverage-istanbul": "^5.0.5",
     "semver": "^7.8.5",
-    "ts-jest": "^29.4.15",
     "typescript": "^6.0.3",
+    "vitest": "^5.0.5",
     "wait-on": "^9.5.1"
   },
   "publishConfig": {

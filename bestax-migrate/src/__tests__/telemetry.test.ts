@@ -2,11 +2,12 @@ import {
   describe,
   it,
   expect,
-  jest,
+  vi,
   beforeEach,
   afterEach,
   afterAll,
-} from '@jest/globals';
+  type Mock,
+} from 'vitest';
 import { mkdtemp, readFile, writeFile, mkdir, rm } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -30,7 +31,7 @@ const savedEnv: Record<string, string | undefined> = {};
 const originalFetch = globalThis.fetch;
 
 let configHome: string;
-let fetchMock: jest.Mock;
+let fetchMock: Mock;
 
 type FetchArgs = [
   string,
@@ -64,7 +65,7 @@ beforeEach(async () => {
   }
   configHome = await mkdtemp(join(tmpdir(), 'bestax-telemetry-'));
   process.env.XDG_CONFIG_HOME = configHome;
-  fetchMock = jest.fn(async () => new Response(null, { status: 204 }));
+  fetchMock = vi.fn(async () => new Response(null, { status: 204 }));
   globalThis.fetch = fetchMock as unknown as typeof fetch;
 });
 
@@ -203,7 +204,7 @@ describe('reportMigrateRun', () => {
   };
 
   it('flag=true persists and sends without prompting', async () => {
-    const promptConsent = jest.fn<() => Promise<boolean | null>>();
+    const promptConsent = vi.fn<() => Promise<boolean | null>>();
     await reportMigrateRun(stats, true, { interactive: true, promptConsent });
     expect(promptConsent).not.toHaveBeenCalled();
     const config = await readConfigFile();
@@ -218,7 +219,7 @@ describe('reportMigrateRun', () => {
   });
 
   it('flag=false persists off and sends nothing', async () => {
-    const promptConsent = jest.fn<() => Promise<boolean | null>>();
+    const promptConsent = vi.fn<() => Promise<boolean | null>>();
     await reportMigrateRun(stats, false, { interactive: true, promptConsent });
     expect(promptConsent).not.toHaveBeenCalled();
     expect((await readConfigFile()).enabled).toBe(false);
@@ -226,7 +227,7 @@ describe('reportMigrateRun', () => {
   });
 
   it('prompts when undecided and interactive; yes persists and sends', async () => {
-    const promptConsent = jest
+    const promptConsent = vi
       .fn<() => Promise<boolean | null>>()
       .mockResolvedValue(true);
     await reportMigrateRun(stats, undefined, {
@@ -239,7 +240,7 @@ describe('reportMigrateRun', () => {
   });
 
   it('a "no" answer persists off and sends nothing', async () => {
-    const promptConsent = jest
+    const promptConsent = vi
       .fn<() => Promise<boolean | null>>()
       .mockResolvedValue(false);
     await reportMigrateRun(stats, undefined, {
@@ -251,7 +252,7 @@ describe('reportMigrateRun', () => {
   });
 
   it('a cancel persists nothing so the user may be asked again', async () => {
-    const promptConsent = jest
+    const promptConsent = vi
       .fn<() => Promise<boolean | null>>()
       .mockResolvedValue(null);
     await reportMigrateRun(stats, undefined, {
@@ -263,7 +264,7 @@ describe('reportMigrateRun', () => {
   });
 
   it('never prompts when not interactive', async () => {
-    const promptConsent = jest.fn<() => Promise<boolean | null>>();
+    const promptConsent = vi.fn<() => Promise<boolean | null>>();
     await reportMigrateRun(stats, undefined, {
       interactive: false,
       promptConsent,
@@ -274,7 +275,7 @@ describe('reportMigrateRun', () => {
 
   it('never prompts under DO_NOT_TRACK', async () => {
     process.env.DO_NOT_TRACK = '1';
-    const promptConsent = jest.fn<() => Promise<boolean | null>>();
+    const promptConsent = vi.fn<() => Promise<boolean | null>>();
     await reportMigrateRun(stats, undefined, {
       interactive: true,
       promptConsent,
@@ -285,7 +286,7 @@ describe('reportMigrateRun', () => {
 
   it('sends without prompting when the config already says on', async () => {
     await writeConfig({ version: 1, enabled: true });
-    const promptConsent = jest.fn<() => Promise<boolean | null>>();
+    const promptConsent = vi.fn<() => Promise<boolean | null>>();
     await reportMigrateRun(stats, undefined, {
       interactive: true,
       promptConsent,

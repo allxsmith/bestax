@@ -7,8 +7,8 @@
  * rendered by the other copy's renderer fails on its first hook. So React,
  * `react/jsx-runtime`, `react-dom/server` and the library's CommonJS build
  * are all required from bulma-ui's directory, with Node's own require rather
- * than jest's module registry, and every module rendered here gets exactly
- * those instances.
+ * than the test runner's module loader, and every module rendered here gets
+ * exactly those instances.
  *
  * A module is transpiled to CommonJS and evaluated with a fixed require map:
  * the four modules above, sibling files of the same module set, and

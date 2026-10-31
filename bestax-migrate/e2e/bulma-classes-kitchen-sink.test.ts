@@ -39,7 +39,7 @@ const fixtureDir = path.join(
 );
 
 // Scratch directories PER PROCESS, never a shared path: `pnpm all` runs two
-// jest processes over this file at once (see kitchen-sink.test.ts).
+// Vitest processes over this file at once (see kitchen-sink.test.ts).
 const tmpRoot = path.join(packageRoot, '.e2e-tmp');
 fs.mkdirSync(tmpRoot, { recursive: true });
 const tmpDir = fs.mkdtempSync(

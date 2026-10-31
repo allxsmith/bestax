@@ -65,7 +65,7 @@ describe('Rate', () => {
 
   describe('Value Changes', () => {
     it('calls onChange when star is clicked', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={0} onChange={handleChange} />);
 
       const stars = screen.getAllByRole('radio');
@@ -75,7 +75,7 @@ describe('Rate', () => {
     });
 
     it('allows deselecting by clicking same value', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={3} onChange={handleChange} />);
 
       const stars = screen.getAllByRole('radio');
@@ -203,7 +203,7 @@ describe('Rate', () => {
     });
 
     it('does not call onChange when disabled', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate disabled onChange={handleChange} />);
 
       const stars = screen.getAllByRole('radio');
@@ -244,7 +244,7 @@ describe('Rate', () => {
 
   describe('Keyboard Navigation', () => {
     it('increases value on ArrowRight', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={3} onChange={handleChange} />);
 
       const container = screen.getByRole('radiogroup');
@@ -254,7 +254,7 @@ describe('Rate', () => {
     });
 
     it('increases value on ArrowUp', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={3} onChange={handleChange} />);
 
       const container = screen.getByRole('radiogroup');
@@ -264,7 +264,7 @@ describe('Rate', () => {
     });
 
     it('decreases value on ArrowLeft', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={3} onChange={handleChange} />);
 
       const container = screen.getByRole('radiogroup');
@@ -274,7 +274,7 @@ describe('Rate', () => {
     });
 
     it('decreases value on ArrowDown', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={3} onChange={handleChange} />);
 
       const container = screen.getByRole('radiogroup');
@@ -284,7 +284,7 @@ describe('Rate', () => {
     });
 
     it('sets value to 0 on Home', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={3} onChange={handleChange} />);
 
       const container = screen.getByRole('radiogroup');
@@ -294,7 +294,7 @@ describe('Rate', () => {
     });
 
     it('sets value to max on End', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={3} max={5} onChange={handleChange} />);
 
       const container = screen.getByRole('radiogroup');
@@ -304,7 +304,7 @@ describe('Rate', () => {
     });
 
     it('respects max boundary on ArrowRight', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={5} max={5} onChange={handleChange} />);
 
       const container = screen.getByRole('radiogroup');
@@ -314,7 +314,7 @@ describe('Rate', () => {
     });
 
     it('respects min boundary on ArrowLeft', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={0} onChange={handleChange} />);
 
       const container = screen.getByRole('radiogroup');
@@ -324,7 +324,7 @@ describe('Rate', () => {
     });
 
     it('does not respond to keyboard when disabled', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={3} onChange={handleChange} disabled />);
 
       const container = screen.getByRole('radiogroup');
@@ -334,7 +334,7 @@ describe('Rate', () => {
     });
 
     it('non-arrow/Home/End keys are no-op (covers else-if false branch)', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={3} onChange={handleChange} />);
       const container = screen.getByRole('radiogroup');
       fireEvent.keyDown(container, { key: 'PageDown' });
@@ -480,7 +480,7 @@ describe('Rate', () => {
     });
 
     it('passes correct props to custom icon', () => {
-      const customIcon = jest.fn(() => <span>icon</span>);
+      const customIcon = vi.fn(() => <span>icon</span>);
       render(<Rate defaultValue={2} customIcon={customIcon} />);
 
       // Check that customIcon was called with correct props
@@ -496,9 +496,7 @@ describe('Rate', () => {
     });
 
     it('customIcon takes priority over iconName', () => {
-      const customIcon = jest.fn(() => (
-        <span data-testid="custom">custom</span>
-      ));
+      const customIcon = vi.fn(() => <span data-testid="custom">custom</span>);
       render(
         <Rate
           defaultValue={2}
@@ -587,7 +585,7 @@ describe('Rate', () => {
 
   describe('Precision', () => {
     it('keyboard arrows step by precision', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={3} onChange={handleChange} precision={0.5} />);
 
       const container = screen.getByRole('radiogroup');
@@ -660,7 +658,7 @@ describe('Rate', () => {
     });
 
     it('Home key works with precision', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={3.5} onChange={handleChange} precision={0.5} />);
 
       const container = screen.getByRole('radiogroup');
@@ -670,7 +668,7 @@ describe('Rate', () => {
     });
 
     it('End key works with precision', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Rate value={3.5} onChange={handleChange} precision={0.5} max={5} />
       );
@@ -761,7 +759,7 @@ describe('Rate', () => {
 
   describe('Precision Click & Hover (fractional)', () => {
     it('clicks at left half of an icon and snaps to half value (precision=0.5)', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       const { container } = render(
         <Rate value={0} precision={0.5} onChange={handleChange} />
       );
@@ -776,7 +774,7 @@ describe('Rate', () => {
     });
 
     it('clicks at right portion of an icon and snaps to whole value (precision=0.5)', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       const { container } = render(
         <Rate value={0} precision={0.5} onChange={handleChange} />
       );
@@ -791,7 +789,7 @@ describe('Rate', () => {
     });
 
     it('precision click in RTL inverts relativeX', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       const { container } = render(
         <Rate value={0} precision={0.5} rtl onChange={handleChange} />
       );
@@ -808,7 +806,7 @@ describe('Rate', () => {
     });
 
     it('precision click clamps to minimum precision step', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       const { container } = render(
         <Rate value={0} precision={0.5} onChange={handleChange} />
       );
@@ -823,7 +821,7 @@ describe('Rate', () => {
     });
 
     it('precision click does nothing when disabled', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       const { container } = render(
         <Rate value={0} precision={0.5} disabled onChange={handleChange} />
       );
@@ -932,7 +930,7 @@ describe('Rate', () => {
 
   describe('Custom Icon partial fill', () => {
     it('passes fillPercent to customIcon when value is fractional', () => {
-      const customIcon = jest.fn((_props: RateIconProps) => (
+      const customIcon = vi.fn((_props: RateIconProps) => (
         <span data-testid="ci">x</span>
       ));
       render(
@@ -957,7 +955,7 @@ describe('Rate', () => {
     });
 
     it('marks customIcon as hovered when hoverValue passes its index (partial path)', () => {
-      const customIcon = jest.fn((_props: RateIconProps) => (
+      const customIcon = vi.fn((_props: RateIconProps) => (
         <span data-testid="ci">x</span>
       ));
       const { container } = render(

@@ -169,7 +169,7 @@ describe('Sidebar', () => {
 
   describe('Closing Behavior', () => {
     it('calls onClose when overlay is clicked', async () => {
-      const handleClose = jest.fn();
+      const handleClose = vi.fn();
       render(
         <Sidebar isOpen onClose={handleClose}>
           <div>Content</div>
@@ -183,7 +183,7 @@ describe('Sidebar', () => {
     });
 
     it('does not call onClose when overlay clicked and overlayClose is false', async () => {
-      const handleClose = jest.fn();
+      const handleClose = vi.fn();
       render(
         <Sidebar isOpen onClose={handleClose} overlayClose={false}>
           <div>Content</div>
@@ -197,7 +197,7 @@ describe('Sidebar', () => {
     });
 
     it('calls onClose when Escape key is pressed', () => {
-      const handleClose = jest.fn();
+      const handleClose = vi.fn();
       render(
         <Sidebar isOpen onClose={handleClose}>
           <div>Content</div>
@@ -210,7 +210,7 @@ describe('Sidebar', () => {
     });
 
     it('leaves an Escape that content inside already used', () => {
-      const handleClose = jest.fn();
+      const handleClose = vi.fn();
       render(
         <Sidebar isOpen onClose={handleClose}>
           <input
@@ -230,7 +230,7 @@ describe('Sidebar', () => {
     });
 
     it('hears Escape after a document listener added once it was open', () => {
-      const handleClose = jest.fn();
+      const handleClose = vi.fn();
       render(
         <Sidebar isOpen onClose={handleClose}>
           <div>Content</div>
@@ -247,7 +247,7 @@ describe('Sidebar', () => {
     });
 
     it('does not call onClose on Escape when escapeClose is false', () => {
-      const handleClose = jest.fn();
+      const handleClose = vi.fn();
       render(
         <Sidebar isOpen onClose={handleClose} escapeClose={false}>
           <div>Content</div>
@@ -260,7 +260,7 @@ describe('Sidebar', () => {
     });
 
     it('does not call onClose when canCancel is false', async () => {
-      const handleClose = jest.fn();
+      const handleClose = vi.fn();
       render(
         <Sidebar isOpen onClose={handleClose} canCancel={false}>
           <div>Content</div>
@@ -274,7 +274,7 @@ describe('Sidebar', () => {
     });
 
     it('does not call onClose on Escape when canCancel is false', () => {
-      const handleClose = jest.fn();
+      const handleClose = vi.fn();
       render(
         <Sidebar isOpen onClose={handleClose} canCancel={false}>
           <div>Content</div>
@@ -638,7 +638,7 @@ describe('Sidebar', () => {
     it('passes over an <object> that refuses focus, on open and when Tab comes in from outside', () => {
       // Browsers won't focus an <object> with nothing to show (#1211), and
       // jsdom can't tell, so focus() on one does nothing here.
-      const objectFocus = jest
+      const objectFocus = vi
         .spyOn(HTMLObjectElement.prototype, 'focus')
         .mockImplementation(() => {});
       const outside = document.createElement('button');
@@ -787,7 +787,7 @@ describe('Sidebar', () => {
     it('stops being inert before focus moves in on open', () => {
       const focus = HTMLElement.prototype.focus;
       const inertWhenFocused: boolean[] = [];
-      const spy = jest
+      const spy = vi
         .spyOn(HTMLElement.prototype, 'focus')
         .mockImplementation(function (this: HTMLElement, options) {
           inertWhenFocused.push(this.closest('[inert]') !== null);
@@ -995,7 +995,7 @@ describe('Sidebar', () => {
     });
 
     it('cleans up event listeners on unmount', () => {
-      const handleClose = jest.fn();
+      const handleClose = vi.fn();
       const { unmount } = render(
         <Sidebar isOpen onClose={handleClose}>
           <div>Content</div>
@@ -1010,7 +1010,7 @@ describe('Sidebar', () => {
     });
 
     it('removes keydown listener on unmount (no leak)', () => {
-      const removeSpy = jest.spyOn(window, 'removeEventListener');
+      const removeSpy = vi.spyOn(window, 'removeEventListener');
       const { unmount } = render(
         <Sidebar isOpen onClose={() => {}}>
           <div>Content</div>
@@ -1047,7 +1047,7 @@ describe('Sidebar', () => {
     });
 
     it('does not trigger onClose for non-Escape keys', () => {
-      const handleClose = jest.fn();
+      const handleClose = vi.fn();
       render(
         <Sidebar isOpen onClose={handleClose}>
           <div>Content</div>
@@ -1080,7 +1080,7 @@ describe('Sidebar', () => {
 
   describe('Ref Forwarding (function ref)', () => {
     it('invokes function refs with the sidebar element', () => {
-      const fnRef = jest.fn();
+      const fnRef = vi.fn();
       render(
         <Sidebar isOpen onClose={() => {}} ref={fnRef}>
           <div>Content</div>
@@ -1127,7 +1127,7 @@ describe('Sidebar', () => {
     });
 
     it('renders Sidebar.Close as a button with sidebar-close class', () => {
-      const handleClick = jest.fn();
+      const handleClick = vi.fn();
       render(
         <Sidebar isOpen onClose={() => {}}>
           <Sidebar.Close data-testid="close" onClick={handleClick}>
@@ -1252,7 +1252,7 @@ describe('Sidebar', () => {
   // ref, so neither this nor its siblings branch on React.version.
   it('runs a forwarded callback ref cleanup on unmount instead of calling it with null', () => {
     const calls: (HTMLElement | null)[] = [];
-    const cleanup = jest.fn();
+    const cleanup = vi.fn();
     const callbackRef = (node: HTMLElement | null) => {
       calls.push(node);
       if (!node) return undefined;

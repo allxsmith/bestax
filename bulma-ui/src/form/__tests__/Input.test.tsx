@@ -91,7 +91,7 @@ describe('Input', () => {
     });
 
     it('calls onChange', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Input onChange={handleChange} data-testid="input" />);
       fireEvent.change(screen.getByTestId('input'), {
         target: { value: 'test' },

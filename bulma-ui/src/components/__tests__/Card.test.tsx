@@ -1053,9 +1053,7 @@ describe('Card - Advanced Integration Tests', () => {
 
   // Test 56: Error boundary compatibility
   test('handles errors gracefully in compound components', () => {
-    const consoleSpy = jest
-      .spyOn(console, 'error')
-      .mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     const ThrowError = () => {
       throw new Error('Test error');
@@ -1260,10 +1258,10 @@ describe('Card - Advanced Integration Tests', () => {
 
   // Test 63: Event handling propagation
   test('handles click events properly in compound structure', () => {
-    const cardClick = jest.fn();
-    const headerClick = jest.fn();
-    const iconClick = jest.fn();
-    const footerClick = jest.fn();
+    const cardClick = vi.fn();
+    const headerClick = vi.fn();
+    const iconClick = vi.fn();
+    const footerClick = vi.fn();
 
     render(
       <Card data-testid="card" onClick={cardClick}>
@@ -1287,7 +1285,7 @@ describe('Card - Advanced Integration Tests', () => {
     expect(cardClick).toHaveBeenCalledTimes(1);
 
     // Reset mocks
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Click on footer should trigger footer and bubble up
     fireEvent.click(screen.getByTestId('footer'));

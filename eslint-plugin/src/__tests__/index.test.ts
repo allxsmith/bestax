@@ -7,7 +7,7 @@
  * nobody adds to `recommended` ships switched off for everyone using the
  * preset. Both are caught here by comparing the two lists against each other.
  */
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 import { Linter } from 'eslint';
 import plugin, { configs, rules } from '../index.js';
 import { OPT_IN_RULES, RECOMMENDED_RULES } from '../configs/recommended.js';

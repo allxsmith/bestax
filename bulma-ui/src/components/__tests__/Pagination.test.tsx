@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Pagination, {
   PaginationLink,
@@ -9,11 +10,11 @@ import Pagination, {
 import { ConfigProvider } from '../../helpers/Config';
 import { resetColorDeprecationWarnings } from '../../helpers/colorDeprecations';
 
-let warnSpy: jest.SpyInstance;
+let warnSpy: MockInstance;
 
 beforeEach(() => {
   resetColorDeprecationWarnings();
-  warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 });
 
 afterEach(() => {
@@ -180,7 +181,7 @@ describe('Pagination.Link', () => {
   });
 
   it('calls onClick when not disabled', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(
       <Pagination.List>
         <Pagination.Link data-testid="link" onClick={handleClick}>
@@ -193,7 +194,7 @@ describe('Pagination.Link', () => {
   });
 
   it('does not call onClick when disabled', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(
       <Pagination.List>
         <Pagination.Link disabled data-testid="link" onClick={handleClick}>
@@ -253,7 +254,7 @@ describe('Pagination.Previous', () => {
   });
 
   it('calls onClick when not disabled', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(
       <Pagination.Previous data-testid="prev" onClick={handleClick}>
         Previous
@@ -264,7 +265,7 @@ describe('Pagination.Previous', () => {
   });
 
   it('does not call onClick when disabled', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(
       <Pagination.Previous data-testid="prev" disabled onClick={handleClick}>
         Previous
@@ -296,7 +297,7 @@ describe('Pagination.Next', () => {
   });
 
   it('calls onClick when not disabled', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(
       <Pagination.Next data-testid="next" onClick={handleClick}>
         Next
@@ -307,7 +308,7 @@ describe('Pagination.Next', () => {
   });
 
   it('does not call onClick when disabled', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(
       <Pagination.Next data-testid="next" disabled onClick={handleClick}>
         Next
@@ -472,7 +473,7 @@ describe('Pagination from total', () => {
   });
 
   it('calls onPageChange, and leaves the page to its owner when controlled', () => {
-    const onPageChange = jest.fn();
+    const onPageChange = vi.fn();
     const { container } = render(
       <Pagination total={5} current={2} onPageChange={onPageChange} />
     );
@@ -489,7 +490,7 @@ describe('Pagination from total', () => {
   });
 
   it('keeps the page itself when no current is given', () => {
-    const onPageChange = jest.fn();
+    const onPageChange = vi.fn();
     const { container } = render(
       <Pagination total={5} onPageChange={onPageChange} />
     );
@@ -506,7 +507,7 @@ describe('Pagination from total', () => {
   });
 
   it('disables Previous on the first page and Next on the last', () => {
-    const onPageChange = jest.fn();
+    const onPageChange = vi.fn();
     const first = render(
       <Pagination total={3} current={1} onPageChange={onPageChange} />
     ).container;
@@ -524,7 +525,7 @@ describe('Pagination from total', () => {
   });
 
   it('disables every link with disabled', () => {
-    const onPageChange = jest.fn();
+    const onPageChange = vi.fn();
     const { container } = render(
       <Pagination total={5} current={3} disabled onPageChange={onPageChange} />
     );
@@ -539,7 +540,7 @@ describe('Pagination from total', () => {
   });
 
   it('lets Enter or Space choose a page, as the buttons its links are', () => {
-    const onPageChange = jest.fn();
+    const onPageChange = vi.fn();
     const { container } = render(
       <Pagination total={5} current={1} onPageChange={onPageChange} />
     );
@@ -553,7 +554,7 @@ describe('Pagination from total', () => {
   });
 
   it('makes each a real link with getPageHref', () => {
-    const onPageChange = jest.fn();
+    const onPageChange = vi.fn();
     const { container } = render(
       <Pagination
         total={5}
@@ -593,7 +594,7 @@ describe('Pagination from total', () => {
   });
 
   it('reads a current page that is no number as the first', () => {
-    const onPageChange = jest.fn();
+    const onPageChange = vi.fn();
     const { container } = render(
       <Pagination total={3} current={Number.NaN} onPageChange={onPageChange} />
     );

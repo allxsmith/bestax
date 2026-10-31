@@ -188,7 +188,7 @@ describe.each(groups)('$name as="fieldset"', ({ role, box, render: group }) => {
 
   it('keeps its Field inside a bare Control for a label, and warns', () => {
     resetDevWarnings();
-    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const { container } = render(
       <Control>{group({ as: 'fieldset', label: 'In a Control' })}</Control>
     );

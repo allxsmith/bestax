@@ -47,7 +47,7 @@ const renderInShadowRoot = (ui: React.ReactElement) => {
 
 describe('Dropdown in a shadow root', () => {
   test('pressing an item keeps the menu open, so the click that follows runs it', () => {
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     const { getByRole, getByTestId } = renderInShadowRoot(
       <Dropdown label="Menu">
         <Dropdown.Item onClick={onClick}>Archive</Dropdown.Item>
@@ -106,7 +106,7 @@ describe('Dropdown in a shadow root', () => {
   });
 
   test('Enter on an item runs it and hands focus back to the trigger', () => {
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     const { getByRole, getByText } = renderInShadowRoot(
       <Dropdown label="Menu" active>
         <Dropdown.Item onClick={onClick}>Archive</Dropdown.Item>
@@ -151,7 +151,7 @@ describe('PinInput in a shadow root', () => {
 
 describe('Taginput in a shadow root', () => {
   test('pressing a suggestion keeps the list open, so the click that follows adds it', () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     const { getByRole, queryByRole } = renderInShadowRoot(
       <Taginput data={['React', 'Vue']} onChange={onChange} />
     );
@@ -182,21 +182,21 @@ describe('Taginput in a shadow root', () => {
 
 describe('Toast in a shadow root', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   // The click-outside listener attaches a frame after the toast shows.
   const attachListener = () =>
     act(() => {
-      jest.runOnlyPendingTimers();
+      vi.runOnlyPendingTimers();
     });
 
   test('a click inside the toast is not a click outside it', () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     // A caller's own `onClick` takes the place of the toast's dismiss on
     // click, so only the click-outside check decides whether this closes it.
     const { getByText } = renderInShadowRoot(
@@ -215,7 +215,7 @@ describe('Toast in a shadow root', () => {
   });
 
   test('a click outside the toast still closes it', () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     const { getByRole } = renderInShadowRoot(
       <>
         <Toast inline message="Saved" duration={0} onClose={onClose} />
@@ -237,7 +237,7 @@ describe('Carousel in a shadow root', () => {
   ];
 
   test('arrow keys turn the slides while focus is inside it', () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     const { getByLabelText } = renderInShadowRoot(
       <Carousel value={0} onChange={onChange}>
         {slides}
@@ -251,7 +251,7 @@ describe('Carousel in a shadow root', () => {
   });
 
   test('arrow keys leave it alone while focus is elsewhere in the shadow root', () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     const { getByRole } = renderInShadowRoot(
       <>
         <Carousel value={0} onChange={onChange}>

@@ -143,7 +143,7 @@ describe('RadioCard', () => {
     });
 
     it('is disabled, and a click changes nothing', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<RadioCard disabled onChange={onChange} title="Off" />);
       expect(radio('Off')).toBeDisabled();
       fireEvent.click(screen.getByText('Off'));
@@ -245,7 +245,7 @@ describe('RadioCard', () => {
     });
 
     it('starts from the group defaultValue and reports changes, uncontrolled', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Radios name="ship" defaultValue="std" onChange={onChange}>
           <RadioCard value="std" title="Standard" />
@@ -302,8 +302,8 @@ describe('RadioCard', () => {
     });
 
     it('tells the group nothing without a value, but still calls its own onChange', () => {
-      const group = jest.fn();
-      const own = jest.fn();
+      const group = vi.fn();
+      const own = vi.fn();
       render(
         <Radios onChange={group}>
           <RadioCard onChange={own} title="No value" />
@@ -337,7 +337,7 @@ describe('RadioCard', () => {
       const container = document.createElement('div');
       container.innerHTML = renderToString(ui);
       document.body.appendChild(container);
-      const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
       let root: ReturnType<typeof hydrateRoot> | undefined;
       try {
         await act(async () => {

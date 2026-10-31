@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * SSR coverage for Theme. Root Themes share a `<style>` element through a
  * module-level registry (#736), and the element and the scheme attribute are
@@ -31,8 +31,8 @@ describe('Theme SSR (node environment)', () => {
     // The root rules and the scheme go in from a layout effect in the
     // browser (#1184). React warns about a layout effect in a server render,
     // so the server must be handed a plain one.
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     try {
       const html = renderToStaticMarkup(
         <Theme

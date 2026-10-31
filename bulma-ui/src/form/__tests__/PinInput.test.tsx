@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import React, { useState } from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -127,7 +128,7 @@ describe('PinInput', () => {
   describe('Typing', () => {
     it('fills the boxes and calls onChange with the code', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { container } = renderPin({ onChange });
       await user.type(screen.getByLabelText('Code'), '123');
       expect(onChange.mock.calls).toEqual([['1'], ['12'], ['123']]);
@@ -136,7 +137,7 @@ describe('PinInput', () => {
 
     it('drops what is not a digit, and keeps the caret where it was', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       renderPin({ defaultValue: '1234', onChange });
       const input = screen.getByLabelText('Code') as HTMLInputElement;
       await user.click(input);
@@ -151,7 +152,7 @@ describe('PinInput', () => {
     });
 
     it('drops what is not a digit from a change with a digit in it', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       renderPin({ onChange });
       const input = screen.getByLabelText('Code') as HTMLInputElement;
       fireEvent.change(input, { target: { value: '1-2' } });
@@ -168,7 +169,7 @@ describe('PinInput', () => {
     });
 
     it('cuts a change that comes in longer than length', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       renderPin({ length: 4, onChange });
       fireEvent.change(screen.getByLabelText('Code'), {
         target: { value: '123456' },
@@ -178,7 +179,7 @@ describe('PinInput', () => {
 
     it('takes letters and digits with type="alphanumeric"', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { container } = renderPin({ type: 'alphanumeric', onChange });
       const input = screen.getByLabelText('Code');
       expect(input).toHaveAttribute('inputmode', 'text');
@@ -189,7 +190,7 @@ describe('PinInput', () => {
 
     it('removes the character before the caret on Backspace', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { container } = renderPin({ defaultValue: '1234', onChange });
       await user.type(screen.getByLabelText('Code'), '{Backspace}');
       expect(onChange).toHaveBeenLastCalledWith('123');
@@ -200,7 +201,7 @@ describe('PinInput', () => {
   describe('Digits from other scripts', () => {
     it('takes Arabic-Indic digits as ASCII digits', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { container } = renderPin({ onChange });
       const input = screen.getByLabelText('Code');
       await user.type(input, '\u0661\u0662\u0663');
@@ -211,7 +212,7 @@ describe('PinInput', () => {
 
     it('completes a pasted Persian code as ASCII digits', async () => {
       const user = userEvent.setup();
-      const onComplete = jest.fn();
+      const onComplete = vi.fn();
       renderPin({ onComplete });
       await user.click(screen.getByLabelText('Code'));
       await user.paste('\u06F1\u06F2\u06F3 \u06F4\u06F5\u06F0');
@@ -221,7 +222,7 @@ describe('PinInput', () => {
     it('reads a digit by its place in its run of ten, where runs sit side by side', () => {
       // Unicode's mathematical digits are five runs of ten in a row: bold
       // nine, then double-struck zero and one.
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       renderPin({ onChange });
       fireEvent.change(screen.getByLabelText('Code'), {
         target: { value: '\u{1D7D7}\u{1D7D8}\u{1D7D9}' },
@@ -231,7 +232,7 @@ describe('PinInput', () => {
 
     it('keeps letters and turns digits to ASCII with type="alphanumeric"', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       renderPin({ type: 'alphanumeric', onChange });
       await user.type(screen.getByLabelText('Code'), 'a\u0663B\u06F9');
       expect(onChange).toHaveBeenLastCalledWith('a3B9');
@@ -241,8 +242,8 @@ describe('PinInput', () => {
   describe('Paste', () => {
     it('fills the boxes from a pasted code and completes it once', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
-      const onComplete = jest.fn();
+      const onChange = vi.fn();
+      const onComplete = vi.fn();
       const { container } = renderPin({ onChange, onComplete });
       await user.click(screen.getByLabelText('Code'));
       await user.paste('123456');
@@ -253,7 +254,7 @@ describe('PinInput', () => {
 
     it('keeps the digits of a code pasted with spaces or dashes', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       renderPin({ onChange });
       await user.click(screen.getByLabelText('Code'));
       await user.paste(' 123-456 ');
@@ -262,7 +263,7 @@ describe('PinInput', () => {
 
     it('cuts an over-long paste to length', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       renderPin({ onChange });
       await user.click(screen.getByLabelText('Code'));
       await user.paste('1234567890');
@@ -280,7 +281,7 @@ describe('PinInput', () => {
 
     it('changes nothing for a paste with nothing the code takes', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       renderPin({ defaultValue: '12', onChange });
       await user.click(screen.getByLabelText('Code'));
       await user.paste('abc');
@@ -290,8 +291,8 @@ describe('PinInput', () => {
 
     it('leaves the paste alone when your onPaste prevents it', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
-      const onPaste = jest.fn((e: React.ClipboardEvent) => e.preventDefault());
+      const onChange = vi.fn();
+      const onPaste = vi.fn((e: React.ClipboardEvent) => e.preventDefault());
       renderPin({ onChange, onPaste });
       await user.click(screen.getByLabelText('Code'));
       await user.paste('123456');
@@ -301,7 +302,7 @@ describe('PinInput', () => {
 
     it('takes no paste while read-only', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       renderPin({ readOnly: true, onChange });
       await user.click(screen.getByLabelText('Code'));
       await user.paste('123456');
@@ -312,7 +313,7 @@ describe('PinInput', () => {
   describe('onComplete', () => {
     it('fires once when the last box fills, and not on a later render', async () => {
       const user = userEvent.setup();
-      const onComplete = jest.fn();
+      const onComplete = vi.fn();
       const { rerender } = render(
         <PinInput label="Code" length={4} onComplete={onComplete} />
       );
@@ -324,7 +325,7 @@ describe('PinInput', () => {
 
     it('fires again for a new code typed after a correction', async () => {
       const user = userEvent.setup();
-      const onComplete = jest.fn();
+      const onComplete = vi.fn();
       renderPin({ length: 4, onComplete });
       const input = screen.getByLabelText('Code');
       await user.type(input, '1234{Backspace}5');
@@ -332,7 +333,7 @@ describe('PinInput', () => {
     });
 
     it('does not fire for a value set from outside', () => {
-      const onComplete = jest.fn();
+      const onComplete = vi.fn();
       const { rerender } = render(
         <PinInput label="Code" length={4} value="12" onComplete={onComplete} />
       );
@@ -351,7 +352,7 @@ describe('PinInput', () => {
   describe('Controlled and uncontrolled', () => {
     it('shows a controlled value and asks before changing it', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { container } = renderPin({ value: '12', onChange });
       await user.type(screen.getByLabelText('Code'), '3');
       expect(onChange).toHaveBeenCalledWith('123');
@@ -494,11 +495,11 @@ describe('PinInput', () => {
     it('stops listening once unmounted', () => {
       const { unmount } = renderPin();
       const input = screen.getByLabelText('Code');
-      const fromInput = jest.spyOn(input, 'removeEventListener');
-      const fromDocument = jest.spyOn(document, 'removeEventListener');
+      const fromInput = vi.spyOn(input, 'removeEventListener');
+      const fromDocument = vi.spyOn(document, 'removeEventListener');
       try {
         unmount();
-        const removed = (spy: jest.SpyInstance) =>
+        const removed = (spy: MockInstance) =>
           spy.mock.calls.filter(([type]) => type === 'selectionchange');
         expect(removed(fromInput)).toHaveLength(1);
         expect(removed(fromDocument)).toHaveLength(1);
@@ -510,9 +511,9 @@ describe('PinInput', () => {
 
     it('still calls your onFocus, onBlur and onSelect', async () => {
       const user = userEvent.setup();
-      const onFocus = jest.fn();
-      const onBlur = jest.fn();
-      const onSelect = jest.fn();
+      const onFocus = vi.fn();
+      const onBlur = vi.fn();
+      const onSelect = vi.fn();
       render(
         <>
           <PinInput
@@ -654,7 +655,7 @@ describe('PinInput', () => {
 
     it('submits the code under its name', async () => {
       const user = userEvent.setup();
-      const onSubmit = jest.fn((e: React.FormEvent<HTMLFormElement>) => {
+      const onSubmit = vi.fn((e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         return new FormData(e.currentTarget).get('otp');
       });
@@ -678,7 +679,7 @@ describe('PinInput', () => {
     });
 
     it('forwards a callback ref to the input', () => {
-      const ref = jest.fn();
+      const ref = vi.fn();
       render(<PinInput label="Code" ref={ref} />);
       expect(ref).toHaveBeenCalledWith(screen.getByLabelText('Code'));
     });

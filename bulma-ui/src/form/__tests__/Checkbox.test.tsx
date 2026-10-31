@@ -165,7 +165,7 @@ describe('Checkbox', () => {
     });
 
     it('toggles a value out of the group array when unchecking inside group-managed mode', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Checkboxes
           name="tags"
@@ -185,7 +185,7 @@ describe('Checkbox', () => {
 
     it('adds a value to the group array when checking from unchecked', () => {
       // Hits the e.target.checked=true && !includes branch (append path).
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Checkboxes name="tags" value={['vue']} onChange={handleChange}>
           <Checkbox value="react">React</Checkbox>
@@ -203,7 +203,7 @@ describe('Checkbox', () => {
       // the input is rendered as unchecked (allowing fireEvent.click to fire a
       // change with target.checked=true) while the group's array still contains
       // the value (so includes(valStr) is true → no-op append).
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Checkboxes name="tags" value={['react']} onChange={handleChange}>
           <Checkbox value="react" checked={false} onChange={() => {}}>
@@ -219,7 +219,7 @@ describe('Checkbox', () => {
     });
 
     it('local onChange still fires when no group is present', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Checkbox onChange={handleChange} value="solo">
           Solo
@@ -231,7 +231,7 @@ describe('Checkbox', () => {
     });
 
     it('does not dispatch to the group when the Checkbox has no value', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Checkboxes name="tags" value={[]} onChange={handleChange}>
           <Checkbox>No Value</Checkbox>
@@ -260,7 +260,7 @@ describe('Checkbox', () => {
     it('handles a Checkboxes group with only onChange (group.value undefined → [] fallback)', () => {
       // groupActive=true via onChange alone. group.value remains undefined, so
       // the `group.value ?? []` fallback kicks in when handleChange dispatches.
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Checkboxes name="tags" onChange={handleChange}>
           <Checkbox value="x">X</Checkbox>
@@ -286,24 +286,7 @@ describe('Checkbox', () => {
       expect(input.checked).toBe(false);
     });
 
-    it('logs no React warning', async () => {
-      // React warns about an unknown attribute once per name, so a render
-      // earlier in this file could have used the warning up. A fresh copy of
-      // React and the component still has it.
-      const error = jest.spyOn(console, 'error').mockImplementation(() => {});
-      try {
-        await jest.isolateModulesAsync(async () => {
-          const rtl = await import('@testing-library/react/pure');
-          const { Checkbox: Fresh } = await import('../Checkbox');
-          const { rerender } = rtl.render(<Fresh indeterminate>Mixed</Fresh>);
-          rerender(<Fresh indeterminate={false}>Mixed</Fresh>);
-          rtl.cleanup();
-        });
-        expect(error).not.toHaveBeenCalled();
-      } finally {
-        error.mockRestore();
-      }
-    });
+    // Whether it logs a React warning is in Checkbox.warnings.test.tsx.
 
     it('follows the prop across re-renders', () => {
       const { rerender } = render(<Checkbox indeterminate>Mixed</Checkbox>);
@@ -325,7 +308,7 @@ describe('Checkbox', () => {
     });
 
     it('keeps the mixed state after a click that renders nothing', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Checkbox indeterminate onChange={onChange}>
           Mixed
@@ -442,7 +425,7 @@ describe('Checkbox', () => {
     });
 
     it('still forwards a callback ref to the input', () => {
-      const ref = jest.fn();
+      const ref = vi.fn();
       const { unmount } = render(
         <Checkbox ref={ref} indeterminate>
           Ref

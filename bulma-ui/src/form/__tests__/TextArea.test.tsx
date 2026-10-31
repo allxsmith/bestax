@@ -96,7 +96,7 @@ describe('TextArea', () => {
     });
 
     it('calls onChange', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<TextArea onChange={handleChange} data-testid="textarea" />);
       fireEvent.change(screen.getByTestId('textarea'), {
         target: { value: 'test' },

@@ -26,7 +26,7 @@ const packageRoot = path.join(
 const fixtureDir = path.join(packageRoot, 'fixtures', 'kitchen-sink');
 
 // One scratch directory PER PROCESS, not one shared path. `pnpm all` runs
-// `test` and `test:coverage` inside a single turbo invocation, so two jest
+// `test` and `test:coverage` inside a single turbo invocation, so two Vitest
 // processes execute this file at the same time; against a fixed
 // `.e2e-tmp/kitchen-sink` they interleave each other's rmSync/cpSync and the
 // suite fails claiming the codemod did nothing ("Expected substring: not

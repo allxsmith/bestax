@@ -145,7 +145,7 @@ describe('Switch', () => {
 
   describe('events', () => {
     it('calls onChange when clicked', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Switch data-testid="switch" onChange={handleChange} />);
 
       fireEvent.click(screen.getByTestId('switch'));

@@ -12,9 +12,9 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest",
-    "test:watch": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --watch",
-    "test:coverage": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --coverage",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "lint": "eslint src e2e",
     "typecheck": "tsc --noEmit",
     "validate:corpus": "pnpm run build && node scripts/validate-corpus.mjs",
@@ -63,19 +63,17 @@
     "property-information": "^7.2.0"
   },
   "devDependencies": {
-    "@jest/globals": "^30.0.0",
-    "@types/jest": "^30.0.0",
     "@types/jscodeshift": "^17.3.0",
     "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@vitest/coverage-istanbul": "^5.0.5",
     "classnames": "^2.5.1",
     "clsx": "^2.1.1",
-    "jest": "^30.2.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "ts-jest": "^29.4.15",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.5"
   },
   "publishConfig": {
     "access": "public"

@@ -109,7 +109,7 @@ describe('Calendar range mode', () => {
   });
 
   it('marks the start with the first pick and commits nothing', () => {
-    const onRangeSelect = jest.fn();
+    const onRangeSelect = vi.fn();
     const { container } = render(
       <RangeHarness onRangeSelect={onRangeSelect} />
     );
@@ -120,7 +120,7 @@ describe('Calendar range mode', () => {
   });
 
   it('commits start and end with the second pick', () => {
-    const onRangeSelect = jest.fn();
+    const onRangeSelect = vi.fn();
     const { container } = render(
       <RangeHarness onRangeSelect={onRangeSelect} />
     );
@@ -154,7 +154,7 @@ describe('Calendar range mode', () => {
   });
 
   it('makes a one-day range when the start is picked again', () => {
-    const onRangeSelect = jest.fn();
+    const onRangeSelect = vi.fn();
     const { container } = render(
       <RangeHarness onRangeSelect={onRangeSelect} />
     );
@@ -165,7 +165,7 @@ describe('Calendar range mode', () => {
   });
 
   it('starts over from a pick before the start', () => {
-    const onRangeSelect = jest.fn();
+    const onRangeSelect = vi.fn();
     const { container } = render(
       <RangeHarness onRangeSelect={onRangeSelect} />
     );
@@ -223,7 +223,7 @@ describe('Calendar range mode', () => {
   });
 
   it('picks start and end from the keyboard, previewing as focus moves', () => {
-    const onRangeSelect = jest.fn();
+    const onRangeSelect = vi.fn();
     const { container } = render(
       <RangeHarness initialFocused={june(10)} onRangeSelect={onRangeSelect} />
     );
@@ -246,7 +246,7 @@ describe('Calendar range mode', () => {
   });
 
   it('ignores Enter on a disabled focused day', () => {
-    const onRangeSelect = jest.fn();
+    const onRangeSelect = vi.fn();
     const { container } = render(
       <RangeHarness
         initialFocused={june(15)}
@@ -261,7 +261,7 @@ describe('Calendar range mode', () => {
   describe('disabled days inside a range', () => {
     // Friday 14 June to Monday 17 June crosses a weekend.
     it('starts over from a pick past a disabled day', () => {
-      const onRangeSelect = jest.fn();
+      const onRangeSelect = vi.fn();
       const { container } = render(
         <RangeHarness
           shouldDisableDate={weekends}
@@ -309,7 +309,7 @@ describe('Calendar range mode', () => {
     });
 
     it('counts unselectableDates as disabled days', () => {
-      const onRangeSelect = jest.fn();
+      const onRangeSelect = vi.fn();
       const { container } = render(
         <RangeHarness
           unselectableDates={[june(12)]}
@@ -324,7 +324,7 @@ describe('Calendar range mode', () => {
     });
 
     it('spans a disabled day with allowDisabledInRange', () => {
-      const onRangeSelect = jest.fn();
+      const onRangeSelect = vi.fn();
       const { container } = render(
         <RangeHarness
           shouldDisableDate={weekends}
@@ -340,7 +340,7 @@ describe('Calendar range mode', () => {
     });
 
     it('needs no walk when nothing disables a day', () => {
-      const onRangeSelect = jest.fn();
+      const onRangeSelect = vi.fn();
       const { container } = render(
         <RangeHarness
           min={june(1)}
@@ -358,7 +358,7 @@ describe('Calendar range mode', () => {
     // A popover listens for Escape on the document, so a key that reaches it
     // closes the popover.
     const documentEscape = () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       document.addEventListener('keydown', listener);
       return {
         listener,
@@ -400,7 +400,7 @@ describe('Calendar range mode', () => {
     });
 
     it("goes back to the value's own start after a new one", () => {
-      const onRangeSelect = jest.fn();
+      const onRangeSelect = vi.fn();
       const { container } = render(
         <RangeHarness
           initialRange={[june(10), null]}
@@ -418,7 +418,7 @@ describe('Calendar range mode', () => {
 
   describe('a start the constraints rule out', () => {
     it('never closes a range when the bounds rule it out', () => {
-      const onRangeSelect = jest.fn();
+      const onRangeSelect = vi.fn();
       const { container } = render(
         <RangeHarness
           initialRange={[june(1), null]}
@@ -435,7 +435,7 @@ describe('Calendar range mode', () => {
 
     it('never closes a range when it is a disabled day', () => {
       // Nothing between 12 and 14 is disabled, so only the start rules it out.
-      const onRangeSelect = jest.fn();
+      const onRangeSelect = vi.fn();
       const { container } = render(
         <RangeHarness
           initialRange={[june(12), null]}
@@ -449,7 +449,7 @@ describe('Calendar range mode', () => {
     });
 
     it('never closes a range once a new bound rules it out', () => {
-      const onRangeSelect = jest.fn();
+      const onRangeSelect = vi.fn();
       const { container, rerender } = render(
         <RangeHarness onRangeSelect={onRangeSelect} />
       );
@@ -463,7 +463,7 @@ describe('Calendar range mode', () => {
 
   describe("the value's own start", () => {
     it('is pending, so the next pick sets the end', () => {
-      const onRangeSelect = jest.fn();
+      const onRangeSelect = vi.fn();
       const { container } = render(
         <RangeHarness
           initialRange={[june(10), null]}
@@ -476,7 +476,7 @@ describe('Calendar range mode', () => {
     });
 
     it('is pending from the start of its day', () => {
-      const onRangeSelect = jest.fn();
+      const onRangeSelect = vi.fn();
       const { container } = render(
         <RangeHarness
           initialRange={[new Date(2024, 5, 10, 15, 30), null]}
@@ -536,7 +536,7 @@ describe('Calendar range mode', () => {
   });
 
   it('keeps the pending start across months', () => {
-    const onRangeSelect = jest.fn();
+    const onRangeSelect = vi.fn();
     const { container, getByLabelText } = render(
       <RangeHarness onRangeSelect={onRangeSelect} />
     );
@@ -685,7 +685,7 @@ describe('Calendar range mode', () => {
 
     it('stays in the page while the year list is open', () => {
       // jsdom has no scrollIntoView, which the year list calls as it opens.
-      HTMLElement.prototype.scrollIntoView = jest.fn();
+      HTMLElement.prototype.scrollIntoView = vi.fn();
       const { container } = render(
         <RangeHarness initialRange={[june(10), june(13)]} />
       );

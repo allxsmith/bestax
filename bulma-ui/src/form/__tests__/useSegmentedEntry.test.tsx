@@ -256,7 +256,7 @@ describe('useSegmentedEntry', () => {
   });
 
   it('commits parseable free-form text on Enter', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByTestId } = render(
       <Harness format="H:mm" onChange={handler} />
     );
@@ -298,10 +298,10 @@ describe('useSegmentedEntry', () => {
   });
 
   it('forwards focus / click / keydown / blur to host callbacks', () => {
-    const onFocus = jest.fn();
-    const onClick = jest.fn();
-    const onKeyDown = jest.fn();
-    const onBlur = jest.fn();
+    const onFocus = vi.fn();
+    const onClick = vi.fn();
+    const onKeyDown = vi.fn();
+    const onBlur = vi.fn();
     const { getByTestId } = render(
       <Harness
         initial={at(13, 45)}
@@ -335,7 +335,7 @@ describe('useSegmentedEntry', () => {
   });
 
   it('closeOnSelect: free-form Enter commits then closes', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByTestId } = render(
       <Harness format="H:mm" closeOnSelect onChange={handler} />
     );
@@ -361,7 +361,7 @@ describe('useSegmentedEntry', () => {
   });
 
   it('forwards onBlur when focus stays inside the picker', () => {
-    const onBlur = jest.fn();
+    const onBlur = vi.fn();
     const { getByTestId } = render(
       <Harness initial={at(13, 45)} withSibling onBlur={onBlur} />
     );
@@ -374,7 +374,7 @@ describe('useSegmentedEntry', () => {
   });
 
   it('ArrowUp on an empty picker commits from the makeBaseDate seed', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByTestId } = render(<Harness onChange={handler} />);
     const input = getByTestId('seg') as HTMLInputElement;
     focusSeg(input); // seeds 12:00 (noon) without committing
@@ -385,7 +385,7 @@ describe('useSegmentedEntry', () => {
   });
 
   it('rejects segment edits that land outside min/max', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByTestId } = render(
       <Harness initial={at(13, 45)} min={at(13, 0)} onChange={handler} />
     );
@@ -398,7 +398,7 @@ describe('useSegmentedEntry', () => {
   });
 
   it('rejects segment edits that land on a value blocked by isBlocked', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByTestId } = render(
       <Harness
         initial={at(13, 45)}
@@ -416,7 +416,7 @@ describe('useSegmentedEntry', () => {
 
   it('reverts free-form text on blur when the parsed value is blocked', () => {
     // 'H:mm' has a variable-width token → no segment map → free-form path.
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByTestId } = render(
       <Harness
         format="H:mm"
@@ -433,7 +433,7 @@ describe('useSegmentedEntry', () => {
   });
 
   it('holds a digit isUnfinishedBlocked rejects until the segment is finished', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByTestId } = render(
       <Harness
         initial={at(13, 45)}
@@ -454,7 +454,7 @@ describe('useSegmentedEntry', () => {
   });
 
   it('still commits unblocked values when an isBlocked predicate is present', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByTestId } = render(
       <Harness
         initial={at(13, 45)}
@@ -575,7 +575,7 @@ describe('useSegmentedEntry', () => {
   });
 
   it('free-form Enter with unparseable text does not commit', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByTestId } = render(
       <Harness format="H:mm" onChange={handler} />
     );
@@ -653,7 +653,7 @@ describe('useSegmentedEntry', () => {
 
   describe('Alt+ArrowDown and Alt+ArrowUp', () => {
     it('open and close the popover in segment mode without stepping the segment', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { getByTestId } = render(
         <Harness initial={at(13, 45)} openOnFocus={false} onChange={onChange} />
       );
@@ -676,7 +676,7 @@ describe('useSegmentedEntry', () => {
     });
 
     it('step nothing when there is no popover', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { getByTestId } = render(
         <Harness initial={at(13, 45)} popover={false} onChange={onChange} />
       );
@@ -806,7 +806,7 @@ describe('useSegmentedEntry', () => {
     };
 
     it('does not reopen on the focus a closing popover hands back', () => {
-      const onOpen = jest.fn();
+      const onOpen = vi.fn();
       const { getByTestId, getByRole, queryByRole } = render(
         <Picker onOpen={onOpen} />
       );
@@ -823,7 +823,7 @@ describe('useSegmentedEntry', () => {
     });
 
     it('opens on the next focus, click or ArrowDown', () => {
-      const onOpen = jest.fn();
+      const onOpen = vi.fn();
       const { getByTestId, getByRole } = render(<Picker onOpen={onOpen} />);
       const input = getByTestId('seg') as HTMLInputElement;
       const closePanel = () =>
@@ -850,7 +850,7 @@ describe('useSegmentedEntry', () => {
     });
 
     it('commits nothing on leaving after it, keeping what the text leaves out', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const withSeconds = at(9, 30);
       withSeconds.setSeconds(45);
       const { getByTestId, getByRole } = render(
@@ -869,7 +869,7 @@ describe('useSegmentedEntry', () => {
     });
 
     it('drops the seed the closed popover never used, and seeds no other', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { getByTestId, getByRole } = render(
         <Picker initial={null} onChange={onChange} />
       );

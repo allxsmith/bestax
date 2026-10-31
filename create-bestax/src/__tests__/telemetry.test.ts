@@ -2,11 +2,12 @@ import {
   describe,
   it,
   expect,
-  jest,
+  vi,
   beforeEach,
   afterEach,
   afterAll,
-} from '@jest/globals';
+  type Mock,
+} from 'vitest';
 import { mkdtemp, readFile, writeFile, mkdir, rm } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -31,7 +32,7 @@ const savedEnv: Record<string, string | undefined> = {};
 const originalFetch = globalThis.fetch;
 
 let configHome: string;
-let fetchMock: jest.Mock;
+let fetchMock: Mock;
 
 type FetchArgs = [
   string,
@@ -65,7 +66,7 @@ beforeEach(async () => {
   }
   configHome = await mkdtemp(join(tmpdir(), 'bestax-telemetry-'));
   process.env.XDG_CONFIG_HOME = configHome;
-  fetchMock = jest.fn(async () => new Response(null, { status: 204 }));
+  fetchMock = vi.fn(async () => new Response(null, { status: 204 }));
   globalThis.fetch = fetchMock as unknown as typeof fetch;
 });
 
@@ -302,7 +303,7 @@ describe('reportScaffold', () => {
     // A copied command containing --telemetry must not enable telemetry
     // beyond the run it was typed for when the user has opted out globally.
     process.env.DO_NOT_TRACK = '1';
-    const promptConsent = jest.fn<() => Promise<boolean | null>>();
+    const promptConsent = vi.fn<() => Promise<boolean | null>>();
     await reportScaffold(choices, true, { interactive: true, promptConsent });
     expect(promptConsent).not.toHaveBeenCalled();
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -315,8 +316,8 @@ describe('reportScaffold', () => {
   });
 
   it('tells onDecided whether the prompted decision was saved', async () => {
-    const onDecided = jest.fn<(enabled: boolean, persisted: boolean) => void>();
-    const promptYes = jest
+    const onDecided = vi.fn<(enabled: boolean, persisted: boolean) => void>();
+    const promptYes = vi
       .fn<() => Promise<boolean | null>>()
       .mockResolvedValue(true);
     await reportScaffold(choices, undefined, {
@@ -330,7 +331,7 @@ describe('reportScaffold', () => {
     const blocker = join(configHome, 'blocker');
     await writeFile(blocker, 'file, not a dir', 'utf-8');
     process.env.XDG_CONFIG_HOME = blocker;
-    const promptNo = jest
+    const promptNo = vi
       .fn<() => Promise<boolean | null>>()
       .mockResolvedValue(false);
     await reportScaffold(choices, undefined, {
@@ -348,8 +349,8 @@ describe('reportScaffold', () => {
     const blocker = join(configHome, 'blocker');
     await writeFile(blocker, 'file, not a dir', 'utf-8');
     process.env.XDG_CONFIG_HOME = blocker;
-    const onDecided = jest.fn<(enabled: boolean, persisted: boolean) => void>();
-    const promptConsent = jest.fn<() => Promise<boolean | null>>();
+    const onDecided = vi.fn<(enabled: boolean, persisted: boolean) => void>();
+    const promptConsent = vi.fn<() => Promise<boolean | null>>();
     await reportScaffold(choices, false, {
       interactive: false,
       promptConsent,
@@ -360,8 +361,8 @@ describe('reportScaffold', () => {
   });
 
   it('does not call onDecided when a flag persists cleanly', async () => {
-    const onDecided = jest.fn<(enabled: boolean, persisted: boolean) => void>();
-    const promptConsent = jest.fn<() => Promise<boolean | null>>();
+    const onDecided = vi.fn<(enabled: boolean, persisted: boolean) => void>();
+    const promptConsent = vi.fn<() => Promise<boolean | null>>();
     await reportScaffold(choices, true, {
       interactive: false,
       promptConsent,
@@ -372,8 +373,8 @@ describe('reportScaffold', () => {
   });
 
   it('does not call onDecided on a cancel', async () => {
-    const onDecided = jest.fn<(enabled: boolean, persisted: boolean) => void>();
-    const promptConsent = jest
+    const onDecided = vi.fn<(enabled: boolean, persisted: boolean) => void>();
+    const promptConsent = vi
       .fn<() => Promise<boolean | null>>()
       .mockResolvedValue(null);
     await reportScaffold(choices, undefined, {
@@ -385,7 +386,7 @@ describe('reportScaffold', () => {
   });
 
   it('flag=true persists and sends without prompting', async () => {
-    const promptConsent = jest.fn<() => Promise<boolean | null>>();
+    const promptConsent = vi.fn<() => Promise<boolean | null>>();
     await reportScaffold(choices, true, { interactive: true, promptConsent });
     expect(promptConsent).not.toHaveBeenCalled();
     expect((await readConfigFile()).enabled).toBe(true);
@@ -397,7 +398,7 @@ describe('reportScaffold', () => {
   });
 
   it('flag=false persists off and sends nothing', async () => {
-    const promptConsent = jest.fn<() => Promise<boolean | null>>();
+    const promptConsent = vi.fn<() => Promise<boolean | null>>();
     await reportScaffold(choices, false, { interactive: true, promptConsent });
     expect(promptConsent).not.toHaveBeenCalled();
     expect((await readConfigFile()).enabled).toBe(false);
@@ -405,7 +406,7 @@ describe('reportScaffold', () => {
   });
 
   it('prompts when undecided and interactive; yes persists and sends', async () => {
-    const promptConsent = jest
+    const promptConsent = vi
       .fn<() => Promise<boolean | null>>()
       .mockResolvedValue(true);
     await reportScaffold(choices, undefined, {
@@ -418,7 +419,7 @@ describe('reportScaffold', () => {
   });
 
   it('a "no" answer persists off and sends nothing', async () => {
-    const promptConsent = jest
+    const promptConsent = vi
       .fn<() => Promise<boolean | null>>()
       .mockResolvedValue(false);
     await reportScaffold(choices, undefined, {
@@ -430,7 +431,7 @@ describe('reportScaffold', () => {
   });
 
   it('a cancel persists nothing so the user may be asked again', async () => {
-    const promptConsent = jest
+    const promptConsent = vi
       .fn<() => Promise<boolean | null>>()
       .mockResolvedValue(null);
     await reportScaffold(choices, undefined, {
@@ -442,7 +443,7 @@ describe('reportScaffold', () => {
   });
 
   it('never prompts when not interactive', async () => {
-    const promptConsent = jest.fn<() => Promise<boolean | null>>();
+    const promptConsent = vi.fn<() => Promise<boolean | null>>();
     await reportScaffold(choices, undefined, {
       interactive: false,
       promptConsent,
@@ -453,7 +454,7 @@ describe('reportScaffold', () => {
 
   it('never prompts under DO_NOT_TRACK', async () => {
     process.env.DO_NOT_TRACK = '1';
-    const promptConsent = jest.fn<() => Promise<boolean | null>>();
+    const promptConsent = vi.fn<() => Promise<boolean | null>>();
     await reportScaffold(choices, undefined, {
       interactive: true,
       promptConsent,
@@ -464,7 +465,7 @@ describe('reportScaffold', () => {
 
   it('sends without prompting when the config already says on', async () => {
     await writeConfig({ version: 1, enabled: true });
-    const promptConsent = jest.fn<() => Promise<boolean | null>>();
+    const promptConsent = vi.fn<() => Promise<boolean | null>>();
     await reportScaffold(choices, undefined, {
       interactive: true,
       promptConsent,

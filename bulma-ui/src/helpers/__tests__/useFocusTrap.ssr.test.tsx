@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * SSR coverage for useFocusTrap, where `document` is genuinely undefined: a
  * regression that read focus or the DOM during a server render fails here

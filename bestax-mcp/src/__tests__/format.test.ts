@@ -8,7 +8,7 @@
  * links surface: server.test.ts for the component link line and the links in
  * index answers, version.test.ts for the drift note.
  */
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import { loadComponent } from '../data.js';
 import {
