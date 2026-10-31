@@ -30,6 +30,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          # Full history and tags: the version-regression conformance check
+          # compares each publishable manifest with its release tags.
           fetch-depth: 0
           # This job runs PR code; don't leave the token in .git/config.
           persist-credentials: false
@@ -113,7 +115,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          fetch-depth: 0
           # This job runs PR code; don't leave the token in .git/config.
           persist-credentials: false
 
@@ -230,7 +231,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          fetch-depth: 0
           # This job runs PR code; don't leave the token in .git/config.
           persist-credentials: false
 
@@ -280,7 +280,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          fetch-depth: 0
           # This job runs PR code; don't leave the token in .git/config.
           persist-credentials: false
 
@@ -333,14 +332,13 @@ jobs:
     timeout-minutes: 5
 
     steps:
+      # Names each part beside its result, so a red check says which one.
       - name: Every part passed
         env:
-          RESULTS: ${{ join(needs.*.result, ' ') }}
+          NEEDS: ${{ toJSON(needs) }}
         run: |
-          echo "Parts: $RESULTS"
-          for result in $RESULTS; do
-            [ "$result" = success ] || exit 1
-          done
+          jq -r 'to_entries[] | "\(.key): \(.value.result)"' <<<"$NEEDS"
+          jq -e 'all(.[]; .result == "success")' <<<"$NEEDS" > /dev/null
 
   react-compat:
     # bestax-bulma supports React 18 and 19 (see peerDependencies). Build,
