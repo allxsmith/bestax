@@ -1,7 +1,7 @@
 name: Claude Repro
 
 # Author-only issue reproduction (design: docs AI-development guide). A triage+
-# maintainer labels an issue `claude-repro`; Claude DRAFTS a minimal Jest
+# maintainer labels an issue `claude-repro`; Claude DRAFTS a minimal Vitest
 # reproduction test and github-actions[bot] posts it for a human to run. Modeled
 # on oven-sh/bun's robobun repro, adapted to run safely on GitHub-hosted runners.
 #
@@ -339,10 +339,10 @@ jobs:
                `bulma-ui/src/` (Read/Glob/Grep) to understand the reported problem
                and the REAL component API. Follow existing test conventions — look
                at a sibling `*.test.tsx` under `bulma-ui/src/`.
-            2. Write ONE minimal, self-contained Jest + React Testing Library test
+            2. Write ONE minimal, self-contained Vitest + React Testing Library test
                to `.repro/draft.test.tsx` that FAILS if the bug is real and PASSES
                once fixed. Import only from `@allxsmith/bestax-bulma` (plus
-               jest/@testing-library/react/react). Keep it short and focused on the
+               vitest/@testing-library/react/react). Keep it short and focused on the
                single reported behavior.
             3. If the issue lacks enough concrete detail to write a meaningful
                test, do NOT invent one — write nothing.
