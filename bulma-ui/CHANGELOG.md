@@ -1,3 +1,10 @@
+# [5.57.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.56.0...@allxsmith/bestax-bulma@5.57.0) (2026-10-31)
+
+
+### Features
+
+* **bulma-ui:** mark the client modules 'use client', so Next.js Server Components can import bestax ([96521b2](https://github.com/allxsmith/bestax/commit/96521b22f3aaa5bc43cfdff6586771d171dd8059))
+
 # [5.56.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.55.0...@allxsmith/bestax-bulma@5.56.0) (2026-10-30)
 
 
