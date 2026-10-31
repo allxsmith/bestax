@@ -12,14 +12,13 @@
 // Bulma put it in the cascade.
 import fs from 'fs';
 import path from 'path';
-import * as sass from 'sass-embedded';
 import type { ReactElement } from 'react';
 import { cleanup, render } from '@testing-library/react';
+import { SCSS, compileSheet } from '../../__tests__/compile-scss';
 import { ConfigProvider } from '../Config';
 import { Theme } from '../Theme';
 
 const PKG = path.resolve(__dirname, '../../..');
-const SCSS = path.join(PKG, 'src', 'scss');
 
 /** Each sheet compiled once, for every block below that loads it. */
 const compiled = new Map<string, string>();
@@ -27,11 +26,7 @@ const compiled = new Map<string, string>();
 const compile = (file: string) => {
   let css = compiled.get(file);
   if (css === undefined) {
-    css = sass.compile(path.join(SCSS, file), {
-      loadPaths: [path.resolve(PKG, '../node_modules')],
-      quietDeps: true,
-      logger: sass.Logger.silent,
-    }).css;
+    css = compileSheet(file);
     compiled.set(file, css);
   }
   return css;
@@ -129,7 +124,6 @@ const schemeMainL = () =>
     .trim();
 
 describe.each(SHEETS)('$file', ({ file, prefix }) => {
-  let css: string;
   let rules: string;
   let light: string;
   let dark: string;
@@ -143,7 +137,7 @@ describe.each(SHEETS)('$file', ({ file, prefix }) => {
   };
 
   beforeAll(() => {
-    css = compile(file);
+    const css = compile(file);
     rules = declaring(css, '--bulma-scheme-main-l');
     // The scheme each of Bulma's own theme blocks sets, read off the sheet,
     // so the expectations follow Bulma rather than restating its values.
@@ -239,13 +233,12 @@ describe.each(SHEETS)(
   'an on-scheme value per scheme, $file',
   ({ file, prefix }) => {
     const KEY = '--bulma-primary-on-scheme-l';
-    let css: string;
     let rules: string;
     let bulmaDark: string;
     let sheet: HTMLStyleElement | undefined;
 
     beforeAll(() => {
-      css = compile(file);
+      const css = compile(file);
       rules = declaring(css, KEY);
       const rule = new RegExp(
         `\\[data-${prefix}theme=dark\\][^{]*\\{[^}]*${KEY}:\\s*([^;]+);`

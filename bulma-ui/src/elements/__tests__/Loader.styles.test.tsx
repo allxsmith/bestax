@@ -29,8 +29,8 @@
 import fs from 'fs';
 import path from 'path';
 import React from 'react';
-import * as sass from 'sass-embedded';
 import { render } from '@testing-library/react';
+import { SCSS, compileSheet } from '../../__tests__/compile-scss';
 import { ConfigProvider } from '../../helpers/Config';
 import {
   Autocomplete,
@@ -58,14 +58,6 @@ import {
 } from '../../index';
 
 const PKG = path.resolve(__dirname, '../../..');
-const SCSS = path.join(PKG, 'src', 'scss');
-
-const compile = (file: string) =>
-  sass.compile(path.join(SCSS, file), {
-    loadPaths: [path.resolve(PKG, '../node_modules')],
-    quietDeps: true,
-    logger: sass.Logger.silent,
-  }).css;
 
 // Resolved through package.json: jest maps any `.css` specifier to a stub.
 const bulmaCss = () =>
@@ -780,16 +772,16 @@ const SHEETS: Sheet[] = publishedStylesheets().flatMap((file): Sheet[] => {
       {
         label: `${file} linked before Bulma's CSS`,
         prefix,
-        css: () => compile(file) + bulmaCss(),
+        css: () => compileSheet(file) + bulmaCss(),
       },
       {
         label: `${file} linked after Bulma's CSS`,
         prefix,
-        css: () => bulmaCss() + compile(file),
+        css: () => bulmaCss() + compileSheet(file),
       },
     ];
   }
-  return [{ label: file, prefix, css: () => compile(file) }];
+  return [{ label: file, prefix, css: () => compileSheet(file) }];
 });
 
 // The sheet-wide check is only as wide as what the rule walk collects, so
