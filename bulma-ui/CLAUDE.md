@@ -131,7 +131,9 @@ These keep it working, and each of them failed once:
 - Tests: jest + ts-jest + Testing Library, in each folder's `__tests__/`. Run one file with
   `pnpm --filter @allxsmith/bestax-bulma exec jest src/elements/__tests__/Button.test.tsx`.
   The 99% bar is reachable with the techniques in `src/components/__tests__/Reveal.test.tsx`
-  (IntersectionObserver/matchMedia mocks, SSR via `renderToStaticMarkup`).
+  (IntersectionObserver/matchMedia mocks, SSR via `renderToStaticMarkup`). A suite that
+  compiles a whole published stylesheet imports `sass-embedded`, and
+  `src/__tests__/sass-compilers.test.ts` says why.
 - Stories: types from `@storybook/react-vite`; `tags: ['autodocs']`; every argType gets a
   `description` (meta-test enforced). No inline `style={{}}` in stories/docs examples — helper
   props; legacy inline styles exist, don't copy them.

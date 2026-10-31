@@ -10,7 +10,7 @@
 // sees them with or without bestax. The controls at the end prove the logger
 // is wired, so a clean run means clean sources rather than a filter that
 // stopped matching.
-import * as sass from 'sass';
+import * as sass from 'sass-embedded';
 import { readdirSync } from 'fs';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';

@@ -6,7 +6,7 @@
 // changes either side fails here rather than leaving the docs wrong.
 import fs from 'fs';
 import path from 'path';
-import * as sass from 'sass';
+import * as sass from 'sass-embedded';
 import { validPositions } from '../bulmaClassHelpers';
 
 const PKG = path.resolve(__dirname, '../../..');

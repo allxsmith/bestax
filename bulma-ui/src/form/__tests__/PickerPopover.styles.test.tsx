@@ -3,7 +3,7 @@
 // compile the real partial, plain and under a class prefix, and assert
 // computed style instead (pattern: Popover.styles.test.tsx). jsdom leaves
 // `var()` unresolved and does no layout, so values are compared as written.
-import * as sass from 'sass';
+import * as sass from 'sass-embedded';
 import { readdirSync } from 'fs';
 import path from 'path';
 import type { ReactElement } from 'react';

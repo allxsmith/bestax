@@ -2,7 +2,7 @@
 // whether anything reads it, which is how `color` sat dead on the wheels until
 // #701 and the mobile overrides wrote names no rule used. These compile the
 // real SCSS and check what it actually does.
-import * as sass from 'sass';
+import * as sass from 'sass-embedded';
 import path from 'path';
 import { render } from '@testing-library/react';
 import { TimeInput } from '../TimeInput';

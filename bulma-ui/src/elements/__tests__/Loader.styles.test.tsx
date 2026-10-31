@@ -29,7 +29,7 @@
 import fs from 'fs';
 import path from 'path';
 import React from 'react';
-import * as sass from 'sass';
+import * as sass from 'sass-embedded';
 import { render } from '@testing-library/react';
 import { ConfigProvider } from '../../helpers/Config';
 import {

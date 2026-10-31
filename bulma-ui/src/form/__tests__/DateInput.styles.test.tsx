@@ -2,7 +2,7 @@
 // DateTimeInput passed `color` in, and no rule read it. A class reaching the
 // DOM proves nothing about the stylesheet, so these compile the real SCSS and
 // check what it does, the way TimeInput.styles.test.tsx does for the wheels.
-import * as sass from 'sass';
+import * as sass from 'sass-embedded';
 import path from 'path';
 import type { ReactElement } from 'react';
 import { fireEvent, render } from '@testing-library/react';
