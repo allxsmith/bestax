@@ -346,6 +346,24 @@ describe('constants', () => {
       ).not.toContain('Server Component');
     });
 
+    it("puts a Next.js app's named classes in the stylesheet every page loads", () => {
+      for (const bulmaFlavor of ['complete', 'no-helpers'] as const) {
+        const next = CLAUDE_MD('my-app', {
+          bulmaFlavor,
+          iconLibrary: 'none',
+          framework: 'next',
+        });
+        const vite = CLAUDE_MD('my-app', { bulmaFlavor, iconLibrary: 'none' });
+        const rule =
+          bulmaFlavor === 'complete'
+            ? (file: string) => `Add a named class to\n  ${file} and pass it`
+            : (file: string) => `Write a named class in ${file}, which loads`;
+        expect(next).toContain(rule('`src/index.css`'));
+        expect(next).not.toContain(rule('`src/App.css`'));
+        expect(vite).toContain(rule('`src/App.css`'));
+      }
+    });
+
     it('tells agents to customize the scaffolded title and README', () => {
       const content = CLAUDE_MD('my-app', {
         bulmaFlavor: 'complete',
