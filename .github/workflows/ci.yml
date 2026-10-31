@@ -13,13 +13,6 @@ on:
 permissions:
   contents: read
 
-# A push to a PR branch cancels that PR's run on the commit before it, which
-# nobody is waiting on any more. Runs on main are grouped by commit, so they
-# never cancel each other: one of them may be publishing.
-concurrency:
-  group: ci-${{ github.event.pull_request.number || github.sha }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-
 # Build and Test runs as parallel parts, each named "Build and Test (…)" and
 # on a runner of its own. The build-and-test job at the end is the check the
 # main ruleset requires, and it passes only when every part did.
@@ -255,10 +248,10 @@ jobs:
         timeout-minutes: 10
         run: pnpm install --frozen-lockfile
 
-      # test:coverage runs every test that `test` does, with the coverage
-      # thresholds on top, so it is these packages' only jest run. turbo
-      # builds what turbo.json says a suite depends on and nothing else, so a
-      # suite reading a build output turbo.json does not name fails here.
+      # test:coverage is each package's test run here, with the coverage
+      # thresholds where the package has them. turbo builds what turbo.json
+      # says a suite depends on and nothing else, so a suite reading a build
+      # output turbo.json does not name fails here.
       - name: Test Coverage
         env:
           FILTER: ${{ matrix.filter }}
