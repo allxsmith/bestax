@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import React from 'react';
 import { render, fireEvent, act, screen } from '@testing-library/react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -50,7 +51,7 @@ const type = (input: HTMLInputElement, keys: string) => {
 };
 
 /** The last range `onChange` reported. */
-const lastRange = (handler: jest.Mock): DateRangeValue =>
+const lastRange = (handler: Mock): DateRangeValue =>
   handler.mock.calls[handler.mock.calls.length - 1][0];
 
 describe('DateRangeInput', () => {
@@ -168,7 +169,7 @@ describe('DateRangeInput', () => {
     });
 
     it('calls a ref callback with the start input', () => {
-      const ref = jest.fn();
+      const ref = vi.fn();
       render(<DateRangeInputBase ref={ref} />);
       expect(ref).toHaveBeenCalledWith(startInput());
     });
@@ -356,7 +357,7 @@ describe('DateRangeInput', () => {
     });
 
     it('reports a pick under control and waits for the range back', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { rerender } = render(
         <DateRangeInput value={[june(1), june(2)]} onChange={onChange} />
       );
@@ -385,7 +386,7 @@ describe('DateRangeInput', () => {
 
   describe('picking in the popover', () => {
     it('commits the range once, with both ends, and closes', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput defaultValue={[june(1), june(2)]} onChange={onChange} />
       );
@@ -416,7 +417,7 @@ describe('DateRangeInput', () => {
     });
 
     it('sets the end of a range that has only a start', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput defaultValue={[june(10), null]} onChange={onChange} />
       );
@@ -440,7 +441,7 @@ describe('DateRangeInput', () => {
     });
 
     it('lets the range span a disabled day with allowDisabledInRange', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           defaultValue={[june(14), null]}
@@ -490,8 +491,8 @@ describe('DateRangeInput', () => {
 
   describe('opening and closing', () => {
     it('opens as focus arrives, and fires onOpen and onClose', () => {
-      const onOpen = jest.fn();
-      const onClose = jest.fn();
+      const onOpen = vi.fn();
+      const onClose = vi.fn();
       render(<DateRangeInput onOpen={onOpen} onClose={onClose} />);
       fireEvent.focus(startInput());
       expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -505,7 +506,7 @@ describe('DateRangeInput', () => {
     });
 
     it('opens nothing as focus moves from one input to the other', () => {
-      const onFocus = jest.fn();
+      const onFocus = vi.fn();
       render(<DateRangeInput onFocus={onFocus} />);
       fireEvent.focus(endInput(), { relatedTarget: startInput() });
       expect(screen.queryByRole('dialog')).toBeNull();
@@ -516,7 +517,7 @@ describe('DateRangeInput', () => {
     });
 
     it('opens as focus arrives from outside the field', () => {
-      const onFocusCapture = jest.fn();
+      const onFocusCapture = vi.fn();
       render(
         <>
           <button type="button">Before</button>
@@ -531,7 +532,7 @@ describe('DateRangeInput', () => {
     });
 
     it('stays closed on focus with openOnFocus off, and opens on Alt+ArrowDown', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -655,19 +656,19 @@ describe('DateRangeInput', () => {
     const layOut = () => {
       const box = (left: number, right: number) =>
         ({ left, right, top: 0, bottom: 30 }) as DOMRect;
-      jest
-        .spyOn(startInput(), 'getBoundingClientRect')
-        .mockReturnValue(box(10, 100));
-      jest
-        .spyOn(endInput(), 'getBoundingClientRect')
-        .mockReturnValue(box(120, 210));
+      vi.spyOn(startInput(), 'getBoundingClientRect').mockReturnValue(
+        box(10, 100)
+      );
+      vi.spyOn(endInput(), 'getBoundingClientRect').mockReturnValue(
+        box(120, 210)
+      );
     };
     const field = () =>
       document.querySelector<HTMLElement>('.daterangeinput-field')!;
     const separator = () =>
       document.querySelector<HTMLElement>('.daterangeinput-separator')!;
     afterEach(() => {
-      jest.restoreAllMocks();
+      vi.restoreAllMocks();
     });
 
     it('go to the nearer input, as a press on it would', () => {
@@ -734,7 +735,7 @@ describe('DateRangeInput', () => {
     };
 
     it('commits a typed start on its own', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<DateRangeInput openOnFocus={false} onChange={onChange} />);
       typeInto(startInput(), '20240610');
       expect(lastRange(onChange)).toEqual([june(10), null]);
@@ -752,7 +753,7 @@ describe('DateRangeInput', () => {
     });
 
     it('takes an end on or after the start', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -765,7 +766,7 @@ describe('DateRangeInput', () => {
     });
 
     it('refuses an end before the start', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -785,7 +786,7 @@ describe('DateRangeInput', () => {
     });
 
     it('refuses an end that reaches over a disabled day', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -801,7 +802,7 @@ describe('DateRangeInput', () => {
     });
 
     it('takes an end over a disabled day with allowDisabledInRange', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -816,7 +817,7 @@ describe('DateRangeInput', () => {
     });
 
     it('refuses a disabled start', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -829,7 +830,7 @@ describe('DateRangeInput', () => {
     });
 
     it('clears the end when the start moves past it', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -848,7 +849,7 @@ describe('DateRangeInput', () => {
     });
 
     it('clears the end when the start moves over a disabled day', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -868,7 +869,7 @@ describe('DateRangeInput', () => {
     });
 
     it('keeps the end when the start still comes before it', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -889,7 +890,7 @@ describe('DateRangeInput', () => {
       // The first digit makes year 0002, too far from the end to walk for
       // the disabled day, so that start can't keep the end. The year isn't
       // finished, so the digit waits rather than clearing the end.
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -910,7 +911,7 @@ describe('DateRangeInput', () => {
     it('keeps the end while a start month is half typed past a disabled day', () => {
       // Typing 10 for October passes through January, which has a disabled
       // day between it and the end. October doesn't.
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const oct = (day: number) => new Date(2024, 9, day);
       render(
         <DateRangeInput
@@ -932,7 +933,7 @@ describe('DateRangeInput', () => {
     });
 
     it('still clears the end for a finished start that cannot keep it', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -947,7 +948,7 @@ describe('DateRangeInput', () => {
     });
 
     it('reads free-form text as focus moves to the other input', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -962,7 +963,7 @@ describe('DateRangeInput', () => {
     });
 
     it('reads typed ISO text under an Intl format with no parser', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -978,7 +979,7 @@ describe('DateRangeInput', () => {
     });
 
     it('parses free-form text with the default parser on Enter', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -1076,7 +1077,7 @@ describe('DateRangeInput', () => {
     });
 
     it('commits picks', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { container } = render(
         <DateRangeInput
           inline
@@ -1151,7 +1152,7 @@ describe('DateRangeInput', () => {
     });
 
     it('commits changes by the typing rules', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           mobileNative
@@ -1176,7 +1177,7 @@ describe('DateRangeInput', () => {
     });
 
     it('clears an end', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           mobileNative

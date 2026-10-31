@@ -150,7 +150,7 @@ describe('File', () => {
   });
 
   it('calls onChange when a file is selected', () => {
-    const handleChange = jest.fn();
+    const handleChange = vi.fn();
     render(<File onChange={handleChange} />);
     const input = screen.getByLabelText(/choose a file/i);
     // Simulate file selection, using window.File to avoid naming collision
@@ -225,7 +225,7 @@ describe('File hasName shows the picked file (#941)', () => {
 
   describe('pickedFilesLabel words the count', () => {
     it('builds the text for several files from their count', () => {
-      const label = jest.fn((count: number) => `${count} fichiers`);
+      const label = vi.fn((count: number) => `${count} fichiers`);
       const { container } = render(
         <File hasName multiple pickedFilesLabel={label} />
       );
@@ -235,7 +235,7 @@ describe('File hasName shows the picked file (#941)', () => {
     });
 
     it('leaves a single pick to its file name', () => {
-      const label = jest.fn((count: number) => `${count} fichiers`);
+      const label = vi.fn((count: number) => `${count} fichiers`);
       const { container } = render(
         <File hasName multiple pickedFilesLabel={label} />
       );
@@ -321,7 +321,7 @@ describe('File hasName shows the picked file (#941)', () => {
   });
 
   it('keeps firing the caller’s onChange', () => {
-    const handleChange = jest.fn();
+    const handleChange = vi.fn();
     const { container } = render(<File hasName onChange={handleChange} />);
     pick(fileInput(container), aFile('resume.pdf'));
     expect(handleChange).toHaveBeenCalledTimes(1);
@@ -388,8 +388,8 @@ describe('File hasName shows the picked file (#941)', () => {
   });
 
   describe('a reset of the form', () => {
-    beforeEach(() => jest.useFakeTimers());
-    afterEach(() => jest.useRealTimers());
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
 
     const renderInForm = () =>
       render(
@@ -403,7 +403,7 @@ describe('File hasName shows the picked file (#941)', () => {
       pick(fileInput(container), aFile('resume.pdf'));
       act(() => {
         screen.getByTestId<HTMLFormElement>('form').reset();
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
       expect(shownName(container)).toBeNull();
     });
@@ -415,7 +415,7 @@ describe('File hasName shows the picked file (#941)', () => {
       pick(fileInput(container), aFile('resume.pdf'));
       act(() => {
         form.reset();
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
       expect(shownName(container)).toHaveTextContent('resume.pdf');
     });
@@ -423,7 +423,7 @@ describe('File hasName shows the picked file (#941)', () => {
     it('stops listening once the name is gone', () => {
       const { container } = renderInForm();
       const form = screen.getByTestId<HTMLFormElement>('form');
-      const remove = jest.spyOn(form, 'removeEventListener');
+      const remove = vi.spyOn(form, 'removeEventListener');
       pick(fileInput(container), aFile('resume.pdf'));
       pick(fileInput(container));
       expect(remove).toHaveBeenCalledWith('reset', expect.any(Function));
@@ -434,7 +434,7 @@ describe('File hasName shows the picked file (#941)', () => {
       pick(fileInput(container), aFile('resume.pdf'));
       act(() => screen.getByTestId<HTMLFormElement>('form').reset());
       unmount();
-      expect(jest.getTimerCount()).toBe(0);
+      expect(vi.getTimerCount()).toBe(0);
     });
   });
 });

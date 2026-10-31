@@ -6,7 +6,7 @@ import { ConfigProvider } from '../../helpers/Config';
 import { resetDevWarnings } from '../../helpers/devWarnings';
 
 beforeEach(() => resetDevWarnings());
-afterEach(() => jest.restoreAllMocks());
+afterEach(() => vi.restoreAllMocks());
 
 const arcsOf = (container: HTMLElement) =>
   Array.from(
@@ -97,7 +97,7 @@ describe('RingProgress', () => {
     });
 
     it('falls back to aria-label when label is empty, as the warning does', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const { rerender } = render(
         <RingProgress value={10} label="" aria-label="Upload" />
       );
@@ -154,7 +154,7 @@ describe('RingProgress', () => {
           name: 'Disk: Documents 40%, Photos 15%, Video 15%',
         })
       ).toBeInTheDocument();
-      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
       rerender(<RingProgress sections={storage} />);
       expect(
         screen.getByRole('img', {
@@ -200,7 +200,7 @@ describe('RingProgress', () => {
     });
 
     it('ignores isMeter and value with sections, and warns about value', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(
         <RingProgress isMeter value={90} label="Storage" sections={storage} />
       );
@@ -309,7 +309,7 @@ describe('RingProgress', () => {
 
   describe('Names', () => {
     it('warns in development with no name', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(<RingProgress value={10} />);
       expect(warn).toHaveBeenCalledWith(
         expect.stringContaining('<RingProgress> has no accessible name')
@@ -321,7 +321,7 @@ describe('RingProgress', () => {
       [{ 'aria-label': 'Upload' }],
       [{ 'aria-labelledby': 'heading' }],
     ])("doesn't warn when it's named with %j", name => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(<RingProgress value={10} {...name} />);
       expect(warn).not.toHaveBeenCalled();
     });

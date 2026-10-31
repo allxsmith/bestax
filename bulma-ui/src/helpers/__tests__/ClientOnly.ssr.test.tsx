@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * SSR coverage for ClientOnly, where `window` and `document` are genuinely
  * undefined: a regression that ran the children (or anything browser-only)

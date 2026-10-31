@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import { StrictMode, Suspense, useState } from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
@@ -282,11 +283,11 @@ describe('Theme', () => {
   });
 
   describe('radius (#694)', () => {
-    let warnSpy: jest.SpyInstance;
+    let warnSpy: MockInstance;
 
     beforeEach(() => {
       resetDevWarnings();
-      warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -580,11 +581,11 @@ describe('Theme', () => {
   // Theme too; a string that is not a gap step keeps the old variable route,
   // as `radius` kept its own.
   describe('columnGap', () => {
-    let warnSpy: jest.SpyInstance;
+    let warnSpy: MockInstance;
 
     beforeEach(() => {
       resetDevWarnings();
-      warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -821,11 +822,11 @@ describe('Theme', () => {
   // Theme setting one changes nothing on the page. The keys stay accepted (a
   // breaking change otherwise), and say so in development instead.
   describe('variables Bulma declares on the component (#1021)', () => {
-    let warnSpy: jest.SpyInstance;
+    let warnSpy: MockInstance;
 
     beforeEach(() => {
       resetDevWarnings();
-      warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -953,11 +954,11 @@ describe('Theme', () => {
   // A root Theme renders no wrapper, so className and the helper props have
   // nowhere to go. Silence would read as the props working, so it warns.
   describe('isRoot with props meant for the wrapper', () => {
-    let warnSpy: jest.SpyInstance;
+    let warnSpy: MockInstance;
 
     beforeEach(() => {
       resetDevWarnings();
-      warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -1359,7 +1360,7 @@ describe('Theme', () => {
     it('still writes data-theme when the prefix makes no valid attribute name', () => {
       // A slash is fine in a class name and refused in an attribute name.
       resetDevWarnings();
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const { unmount } = render(
         <ConfigProvider classPrefix="md/">
           <Theme colorMode="dark">
@@ -1771,11 +1772,11 @@ describe('Theme', () => {
   // lightnesses Bulma's build picked for the color it was built with, so a
   // new trio needs them too (#1184). The text one is set per scheme in Bulma.
   describe('label and text lightnesses (#1184)', () => {
-    let warnSpy: jest.SpyInstance;
+    let warnSpy: MockInstance;
 
     beforeEach(() => {
       resetDevWarnings();
-      warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     });
 
     afterEach(() => {

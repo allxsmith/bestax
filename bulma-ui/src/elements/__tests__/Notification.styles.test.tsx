@@ -18,9 +18,9 @@ import { ConfigProvider } from '../../helpers/Config';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 
-// The Bulma bulma-ui depends on, resolved once, through package.json since
-// jest maps any `.css` specifier to a stub. The partial compiles against its
-// Sass and is checked against its CSS, so an upgrade moves the two together.
+// The Bulma bulma-ui depends on, found once, through its package.json. The
+// partial compiles against its Sass and is checked against its CSS, so an
+// upgrade moves the two together.
 const BULMA = path.dirname(require.resolve('bulma/package.json'));
 
 const compile = (prefix = '') =>

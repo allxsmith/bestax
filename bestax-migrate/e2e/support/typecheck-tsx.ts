@@ -5,7 +5,7 @@
  *
  * The scratch directory is per process and per caller, never a fixed path:
  * `pnpm all` runs `test` and `test:coverage` in one turbo invocation, so two
- * jest processes reach this file at the same time and a shared path lets them
+ * Vitest processes reach this file at the same time and a shared path lets them
  * delete each other's work mid-run.
  */
 

@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 // A consumer who builds from our SCSS (`@use '@allxsmith/bestax-bulma/scss'`)
 // compiles it with their own Sass and sees every deprecation warning it raises.

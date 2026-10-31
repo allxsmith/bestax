@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * A server render of a mixed Checkbox, where `document` is genuinely
  * undefined. `indeterminate` has no attribute, so the markup can't carry it,
@@ -11,7 +11,7 @@ import { Checkbox } from '../Checkbox';
 
 describe('Checkbox on the server (node environment)', () => {
   it('renders a mixed box as plain markup, without a warning', () => {
-    const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
       const html = renderToStaticMarkup(
         <Checkbox indeterminate>Select all</Checkbox>

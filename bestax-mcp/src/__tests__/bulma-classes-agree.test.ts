@@ -17,7 +17,7 @@
 
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 import { aTag as migrateTag } from '../../../bestax-migrate/src/sources/_shared/articles.js';
 import {
   PLACED,

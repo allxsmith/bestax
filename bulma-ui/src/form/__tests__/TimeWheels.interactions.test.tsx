@@ -1,3 +1,4 @@
+import type { Mock, MockInstance } from 'vitest';
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
 import { TimeInput } from '../TimeInput';
@@ -14,7 +15,7 @@ import { __resetAudioTickForTest } from '../_pickerInternals/audioTick';
 //     drain manually with a controllable timestamp,
 //   - performance.now → a settable `nowMs` variable,
 //   - HTMLElement.prototype.setPointerCapture / releasePointerCapture →
-//     jest.fn() stubs (jsdom's own implementations reject synthetic pointers).
+//     vi.fn() stubs (jsdom's own implementations reject synthetic pointers).
 // -------------------------------------------------------------------------
 
 beforeAll(() => {
@@ -47,8 +48,8 @@ let originalReleasePointerCapture:
 beforeAll(() => {
   originalSetPointerCapture = HTMLElement.prototype.setPointerCapture;
   originalReleasePointerCapture = HTMLElement.prototype.releasePointerCapture;
-  HTMLElement.prototype.setPointerCapture = jest.fn();
-  HTMLElement.prototype.releasePointerCapture = jest.fn();
+  HTMLElement.prototype.setPointerCapture = vi.fn();
+  HTMLElement.prototype.releasePointerCapture = vi.fn();
 });
 
 afterAll(() => {
@@ -71,21 +72,21 @@ afterAll(() => {
 let pendingFrames: Map<number, FrameRequestCallback>;
 let nextRafId: number;
 let nowMs: number;
-let cancelRafSpy: jest.SpyInstance;
+let cancelRafSpy: MockInstance;
 
 beforeEach(() => {
   pendingFrames = new Map();
   nextRafId = 0;
   nowMs = 1000;
-  jest.spyOn(performance, 'now').mockImplementation(() => nowMs);
-  jest
-    .spyOn(window, 'requestAnimationFrame')
-    .mockImplementation((cb: FrameRequestCallback) => {
+  vi.spyOn(performance, 'now').mockImplementation(() => nowMs);
+  vi.spyOn(window, 'requestAnimationFrame').mockImplementation(
+    (cb: FrameRequestCallback) => {
       const id = ++nextRafId;
       pendingFrames.set(id, cb);
       return id;
-    });
-  cancelRafSpy = jest
+    }
+  );
+  cancelRafSpy = vi
     .spyOn(window, 'cancelAnimationFrame')
     .mockImplementation((id: number) => {
       pendingFrames.delete(id);
@@ -93,7 +94,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
 });
 
 /** Drain pending rAF callbacks, advancing the mocked clock per frame. */
@@ -138,7 +139,7 @@ const at = (h: number, m: number, s = 0) => {
   return d;
 };
 
-const lastDate = (handler: jest.Mock): Date =>
+const lastDate = (handler: Mock): Date =>
   handler.mock.calls[handler.mock.calls.length - 1][0] as Date;
 
 const openPicker = (ui: React.ReactElement) => {
@@ -162,7 +163,7 @@ const rect = (left: number, right: number): DOMRect =>
 
 describe('TimeWheels pointer drag', () => {
   it('ignores movement below the 4px drag threshold', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels } = openPicker(
       <TimeInput
         defaultValue={at(10, 0)}
@@ -182,7 +183,7 @@ describe('TimeWheels pointer drag', () => {
   });
 
   it('tracks the finger 1 item per 32px, trims old velocity samples, and snaps on release', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels } = openPicker(
       <TimeInput
         defaultValue={at(10, 0)}
@@ -217,7 +218,7 @@ describe('TimeWheels pointer drag', () => {
   });
 
   it('snaps (no momentum) when the velocity samples have zero time spread', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels } = openPicker(
       <TimeInput
         defaultValue={at(10, 0)}
@@ -238,7 +239,7 @@ describe('TimeWheels pointer drag', () => {
   });
 
   it('ignores pointermove / pointerup from a different pointerId', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels } = openPicker(
       <TimeInput
         defaultValue={at(10, 0)}
@@ -257,7 +258,7 @@ describe('TimeWheels pointer drag', () => {
   });
 
   it('a fast upward fling starts momentum, caps the velocity, and settles on an item', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels } = openPicker(
       <TimeInput
         defaultValue={at(10, 0)}
@@ -292,7 +293,7 @@ describe('TimeWheels pointer drag', () => {
   });
 
   it('a fast downward fling coasts toward earlier values (negative cap branch)', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels } = openPicker(
       <TimeInput
         defaultValue={at(10, 30)}
@@ -318,7 +319,7 @@ describe('TimeWheels pointer drag', () => {
   });
 
   it('momentum clamps at the top boundary of the non-wrapping AM/PM wheel', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels } = openPicker(
       <TimeInput
         defaultValue={at(9, 0)}
@@ -346,7 +347,7 @@ describe('TimeWheels pointer drag', () => {
   });
 
   it('momentum clamps at the bottom boundary of the AM/PM wheel', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels } = openPicker(
       <TimeInput
         defaultValue={at(21, 0)}
@@ -372,7 +373,7 @@ describe('TimeWheels pointer drag', () => {
   });
 
   it('a gentle fling on the AM/PM wheel coasts through the interior before clamping', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels } = openPicker(
       <TimeInput
         defaultValue={at(9, 0)}
@@ -398,7 +399,7 @@ describe('TimeWheels pointer drag', () => {
   });
 
   it('cancels the in-flight animation frame on unmount', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels, unmount } = openPicker(
       <TimeInput
         defaultValue={at(10, 0)}
@@ -422,7 +423,7 @@ describe('TimeWheels pointer drag', () => {
 
 describe('TimeWheels empty-space drag forwarder', () => {
   it('forwards a pointerdown on the separator to the nearest wheel by X distance', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels } = openPicker(
       <TimeInput
         defaultValue={at(10, 0)}
@@ -430,10 +431,8 @@ describe('TimeWheels empty-space drag forwarder', () => {
         onChange={handler}
       />
     );
-    jest.spyOn(wheels[0], 'getBoundingClientRect').mockReturnValue(rect(0, 50));
-    jest
-      .spyOn(wheels[1], 'getBoundingClientRect')
-      .mockReturnValue(rect(60, 110));
+    vi.spyOn(wheels[0], 'getBoundingClientRect').mockReturnValue(rect(0, 50));
+    vi.spyOn(wheels[1], 'getBoundingClientRect').mockReturnValue(rect(60, 110));
     const sep = document.querySelector('.timeinput-separator')!;
     // clientX 84 is nearest the minutes wheel (centre 85) vs hours (centre 25).
     firePointer(sep, 'pointerdown', {
@@ -453,7 +452,7 @@ describe('TimeWheels empty-space drag forwarder', () => {
   });
 
   it('forwards to the hours wheel when the pointer is nearest it, and a no-move release just snaps', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels } = openPicker(
       <TimeInput
         defaultValue={at(10, 0)}
@@ -461,10 +460,8 @@ describe('TimeWheels empty-space drag forwarder', () => {
         onChange={handler}
       />
     );
-    jest.spyOn(wheels[0], 'getBoundingClientRect').mockReturnValue(rect(0, 50));
-    jest
-      .spyOn(wheels[1], 'getBoundingClientRect')
-      .mockReturnValue(rect(60, 110));
+    vi.spyOn(wheels[0], 'getBoundingClientRect').mockReturnValue(rect(0, 50));
+    vi.spyOn(wheels[1], 'getBoundingClientRect').mockReturnValue(rect(60, 110));
     const sep = document.querySelector('.timeinput-separator')!;
     firePointer(sep, 'pointerdown', {
       pointerId: 5,
@@ -483,13 +480,13 @@ describe('TimeWheels empty-space drag forwarder', () => {
   });
 
   it('keeps the forwarded drag working when setPointerCapture throws', () => {
-    const throwing = jest.fn(() => {
+    const throwing = vi.fn(() => {
       throw new Error('pointer is not active');
     });
     const previous = HTMLElement.prototype.setPointerCapture;
     HTMLElement.prototype.setPointerCapture = throwing;
     try {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { wheels } = openPicker(
         <TimeInput
           defaultValue={at(10, 0)}
@@ -497,12 +494,10 @@ describe('TimeWheels empty-space drag forwarder', () => {
           onChange={handler}
         />
       );
-      jest
-        .spyOn(wheels[0], 'getBoundingClientRect')
-        .mockReturnValue(rect(0, 50));
-      jest
-        .spyOn(wheels[1], 'getBoundingClientRect')
-        .mockReturnValue(rect(60, 110));
+      vi.spyOn(wheels[0], 'getBoundingClientRect').mockReturnValue(rect(0, 50));
+      vi.spyOn(wheels[1], 'getBoundingClientRect').mockReturnValue(
+        rect(60, 110)
+      );
       const sep = document.querySelector('.timeinput-separator')!;
       firePointer(sep, 'pointerdown', {
         pointerId: 9,
@@ -523,7 +518,7 @@ describe('TimeWheels empty-space drag forwarder', () => {
   it('safely ignores a foreign element carrying the wheel class', () => {
     // Defensive path: if the nearest "wheel" by X has no matching column ref
     // (here: an injected stray element), the forwarder must no-op, not crash.
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels } = openPicker(
       <TimeInput
         defaultValue={at(10, 0)}
@@ -535,11 +530,9 @@ describe('TimeWheels empty-space drag forwarder', () => {
     const stray = document.createElement('div');
     stray.className = 'timeinput-wheel';
     row.appendChild(stray);
-    jest.spyOn(wheels[0], 'getBoundingClientRect').mockReturnValue(rect(0, 50));
-    jest
-      .spyOn(wheels[1], 'getBoundingClientRect')
-      .mockReturnValue(rect(60, 110));
-    jest.spyOn(stray, 'getBoundingClientRect').mockReturnValue(rect(120, 170));
+    vi.spyOn(wheels[0], 'getBoundingClientRect').mockReturnValue(rect(0, 50));
+    vi.spyOn(wheels[1], 'getBoundingClientRect').mockReturnValue(rect(60, 110));
+    vi.spyOn(stray, 'getBoundingClientRect').mockReturnValue(rect(120, 170));
     const sep = document.querySelector('.timeinput-separator')!;
     expect(() =>
       firePointer(sep, 'pointerdown', {
@@ -555,7 +548,7 @@ describe('TimeWheels empty-space drag forwarder', () => {
   it('safely no-ops when no wheel elements are found', () => {
     // Defensive path: strip the wheel class so the container query comes back
     // empty — the forwarder must bail without touching anything.
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels } = openPicker(
       <TimeInput
         defaultValue={at(10, 0)}
@@ -577,7 +570,7 @@ describe('TimeWheels empty-space drag forwarder', () => {
   });
 
   it('does nothing when disabled (forwarder, pointer, keyboard, and wheel all inert)', () => {
-    const fn = jest.fn();
+    const fn = vi.fn();
     const { container, getAllByRole } = render(
       <TimeWheels value={{ hours: 10, minutes: 0 }} onChange={fn} disabled />
     );
@@ -598,7 +591,7 @@ describe('TimeWheels empty-space drag forwarder', () => {
 
 describe('TimeWheels trackpad wheel accumulation', () => {
   it('steps once per 60px of accumulated deltaY, including multiple steps per event', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels } = openPicker(
       <TimeInput
         defaultValue={at(10, 0)}
@@ -617,7 +610,7 @@ describe('TimeWheels trackpad wheel accumulation', () => {
   });
 
   it('scrolls to earlier values on negative deltaY', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels } = openPicker(
       <TimeInput
         defaultValue={at(10, 0)}
@@ -630,7 +623,7 @@ describe('TimeWheels trackpad wheel accumulation', () => {
   });
 
   it('resets the accumulator when the scroll direction flips mid-gesture', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels } = openPicker(
       <TimeInput
         defaultValue={at(10, 0)}
@@ -648,15 +641,15 @@ describe('TimeWheels trackpad wheel accumulation', () => {
   });
 
   it('resets the accumulator after a 250ms quiet window', () => {
-    jest.useFakeTimers({
-      doNotFake: [
+    vi.useFakeTimers({
+      toNotFake: [
         'performance',
         'requestAnimationFrame',
         'cancelAnimationFrame',
       ],
     });
     try {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { wheels } = openPicker(
         <TimeInput
           defaultValue={at(10, 0)}
@@ -667,7 +660,7 @@ describe('TimeWheels trackpad wheel accumulation', () => {
       const hours = wheels[0];
       fireEvent.wheel(hours, { deltaY: 40 });
       act(() => {
-        jest.advanceTimersByTime(251);
+        vi.advanceTimersByTime(251);
       });
       // Without the reset this second 40 would cross 60 and step.
       fireEvent.wheel(hours, { deltaY: 40 });
@@ -675,14 +668,14 @@ describe('TimeWheels trackpad wheel accumulation', () => {
       fireEvent.wheel(hours, { deltaY: 30 }); // 70 ≥ 60 → now it steps
       expect(lastDate(handler).getHours()).toBe(11);
     } finally {
-      jest.useRealTimers();
+      vi.useRealTimers();
     }
   });
 });
 
 describe('TimeWheels keyboard and value mapping', () => {
   it('steps like a spinbutton: ArrowUp and PageUp raise the value, ArrowDown and PageDown lower it', () => {
-    const fn = jest.fn();
+    const fn = vi.fn();
     const { getAllByRole } = render(
       <TimeWheels value={{ hours: 10, minutes: 0 }} onChange={fn} />
     );
@@ -703,7 +696,7 @@ describe('TimeWheels keyboard and value mapping', () => {
   });
 
   it('PageDown moves the hours wheel back by 5', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels } = openPicker(
       <TimeInput
         defaultValue={at(10, 0)}
@@ -716,7 +709,7 @@ describe('TimeWheels keyboard and value mapping', () => {
   });
 
   it('maps 12 PM ± 1 on the 12h hours wheel back into 24h (PM branch)', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels } = openPicker(
       <TimeInput
         defaultValue={at(12, 0)}
@@ -730,7 +723,7 @@ describe('TimeWheels keyboard and value mapping', () => {
   });
 
   it('maps 12 AM ± 1 on the 12h hours wheel back into 24h (AM branch)', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels } = openPicker(
       <TimeInput
         defaultValue={at(0, 30)}
@@ -745,7 +738,7 @@ describe('TimeWheels keyboard and value mapping', () => {
   });
 
   it('ArrowUp on the seconds wheel advances the seconds', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels } = openPicker(
       <TimeInput
         defaultValue={at(10, 0, 30)}
@@ -759,7 +752,7 @@ describe('TimeWheels keyboard and value mapping', () => {
   });
 
   it('AM/PM wheel ignores a change back to the current meridiem (identity early-return)', () => {
-    const fn = jest.fn();
+    const fn = vi.fn();
     const { getAllByRole } = render(
       <TimeWheels
         value={{ hours: 9, minutes: 0 }}
@@ -778,7 +771,7 @@ describe('TimeWheels keyboard and value mapping', () => {
   });
 
   it('does not commit when every candidate value is unselectable (nextValid exhaustion)', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels } = openPicker(
       <TimeInput
         defaultValue={at(10, 0)}
@@ -843,7 +836,7 @@ describe('TimeWheels keyboard and value mapping', () => {
   });
 
   it('Enter on the seconds wheel commits and closes the popover, as on the others', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels, queryByRole, getByRole } = openPicker(
       <TimeInput
         defaultValue={at(10, 0, 30)}
@@ -862,7 +855,7 @@ describe('TimeWheels keyboard and value mapping', () => {
   });
 
   it('hour and minute changes preserve the seconds part; ArrowDown steps seconds back', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { wheels } = openPicker(
       <TimeInput
         defaultValue={at(10, 30, 30)}
@@ -882,17 +875,17 @@ describe('TimeWheels keyboard and value mapping', () => {
   });
 
   it('asks unselectableTimes about whole seconds, without the milliseconds of the clock', () => {
-    jest.useFakeTimers({
-      doNotFake: [
+    vi.useFakeTimers({
+      toNotFake: [
         'performance',
         'requestAnimationFrame',
         'cancelAnimationFrame',
       ],
     });
-    jest.setSystemTime(new Date(2026, 9, 7, 14, 23, 10, 507));
+    vi.setSystemTime(new Date(2026, 9, 7, 14, 23, 10, 507));
     try {
-      const predicate = jest.fn((d: Date) => d.getMilliseconds() !== 0);
-      const fn = jest.fn();
+      const predicate = vi.fn((d: Date) => d.getMilliseconds() !== 0);
+      const fn = vi.fn();
       const { getAllByRole } = render(
         <TimeWheels
           value={{ hours: 10, minutes: 0 }}
@@ -904,12 +897,12 @@ describe('TimeWheels keyboard and value mapping', () => {
       fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
       expect(fn).toHaveBeenLastCalledWith({ hours: 11, minutes: 0 });
     } finally {
-      jest.useRealTimers();
+      vi.useRealTimers();
     }
   });
 
   it('defaults a missing seconds part to 0 when enableSeconds is on', () => {
-    const fn = jest.fn();
+    const fn = vi.fn();
     const { getAllByRole } = render(
       <TimeWheels
         value={{ hours: 10, minutes: 0 }}
@@ -952,18 +945,18 @@ describe('TimeWheels environment fallbacks', () => {
   it('still pulses the band when matchMedia is unavailable', () => {
     const originalMatchMedia = window.matchMedia;
     const originalAnimate = HTMLElement.prototype.animate;
-    const animateSpy = jest.fn(
-      () => ({ cancel: jest.fn() }) as unknown as Animation
+    const animateSpy = vi.fn(
+      () => ({ cancel: vi.fn() }) as unknown as Animation
     );
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
       writable: true,
       value: undefined,
     });
-    (HTMLElement.prototype as unknown as { animate: jest.Mock }).animate =
+    (HTMLElement.prototype as unknown as { animate: Mock }).animate =
       animateSpy;
     try {
-      const fn = jest.fn();
+      const fn = vi.fn();
       const { getAllByRole } = render(
         <TimeWheels value={{ hours: 10, minutes: 0 }} onChange={fn} />
       );
@@ -993,9 +986,9 @@ describe('TimeWheels environment fallbacks', () => {
       writable: true,
       value: undefined,
     });
-    jest.spyOn(Date, 'now').mockImplementation(() => nowMs);
+    vi.spyOn(Date, 'now').mockImplementation(() => nowMs);
     try {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { wheels } = openPicker(
         <TimeInput
           defaultValue={at(10, 0)}
@@ -1029,10 +1022,8 @@ describe('TimeWheels environment fallbacks', () => {
       const settledMinute = lastDate(handler).getMinutes();
       expect(minutes.getAttribute('aria-valuenow')).toBe(String(settledMinute));
       // Forwarded empty-space drag (Date.now stamps the first sample).
-      jest.spyOn(hours, 'getBoundingClientRect').mockReturnValue(rect(0, 50));
-      jest
-        .spyOn(minutes, 'getBoundingClientRect')
-        .mockReturnValue(rect(60, 110));
+      vi.spyOn(hours, 'getBoundingClientRect').mockReturnValue(rect(0, 50));
+      vi.spyOn(minutes, 'getBoundingClientRect').mockReturnValue(rect(60, 110));
       const sep = document.querySelector('.timeinput-separator')!;
       nowMs = 7000;
       firePointer(sep, 'pointerdown', {
@@ -1059,23 +1050,25 @@ describe('TimeWheels environment fallbacks', () => {
 
 describe('TimeWheels audio unlock on drag', () => {
   let originalAudioContext: typeof window.AudioContext | undefined;
-  let audioCtorSpy: jest.Mock;
-  let resumeSpy: jest.Mock;
+  let audioCtorSpy: Mock;
+  let resumeSpy: Mock;
 
   beforeEach(() => {
     __resetAudioTickForTest();
     originalAudioContext = window.AudioContext;
-    resumeSpy = jest.fn().mockResolvedValue(undefined);
+    resumeSpy = vi.fn().mockResolvedValue(undefined);
     const mockCtx = {
       state: 'suspended' as AudioContextState,
       currentTime: 0,
       resume: resumeSpy,
-      close: jest.fn().mockResolvedValue(undefined),
+      close: vi.fn().mockResolvedValue(undefined),
       destination: {},
     };
-    audioCtorSpy = jest.fn(() => mockCtx);
-    (window as unknown as { AudioContext: jest.Mock }).AudioContext =
-      audioCtorSpy;
+    // A `function`, not an arrow: the code under test calls it with `new`.
+    audioCtorSpy = vi.fn(function () {
+      return mockCtx;
+    });
+    (window as unknown as { AudioContext: Mock }).AudioContext = audioCtorSpy;
   });
 
   afterEach(() => {
@@ -1101,10 +1094,8 @@ describe('TimeWheels audio unlock on drag', () => {
     const { wheels } = openPicker(
       <TimeInput defaultValue={at(10, 0)} mobileNative={false} audioTick />
     );
-    jest.spyOn(wheels[0], 'getBoundingClientRect').mockReturnValue(rect(0, 50));
-    jest
-      .spyOn(wheels[1], 'getBoundingClientRect')
-      .mockReturnValue(rect(60, 110));
+    vi.spyOn(wheels[0], 'getBoundingClientRect').mockReturnValue(rect(0, 50));
+    vi.spyOn(wheels[1], 'getBoundingClientRect').mockReturnValue(rect(60, 110));
     const sep = document.querySelector('.timeinput-separator')!;
     firePointer(sep, 'pointerdown', {
       pointerId: 3,

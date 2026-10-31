@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import { createRef, useState } from 'react';
 import {
   act,
@@ -85,14 +86,14 @@ afterAll(() => {
   delete globals.DataTransfer;
 });
 
-let warnSpy: jest.SpyInstance;
+let warnSpy: MockInstance;
 beforeEach(() => {
   resetDevWarnings();
-  warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 });
 afterEach(() => {
   warnSpy.mockRestore();
-  jest.useRealTimers();
+  vi.useRealTimers();
 });
 
 // ---- Files and the ways they arrive ------------------------------------------
@@ -180,7 +181,7 @@ const drop = (
 /** What the status region has said, once its delay has passed. */
 const spoken = (container: HTMLElement) => {
   act(() => {
-    jest.advanceTimersByTime(announceDelay);
+    vi.advanceTimersByTime(announceDelay);
   });
   return Array.from(
     container.querySelectorAll('[role="status"] > div'),
@@ -265,7 +266,7 @@ describe('Dropzone', () => {
     });
 
     it('describes the input by the hint, the refusals and the message', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const { container } = render(
         <Dropzone
           accept=".pdf"
@@ -327,8 +328,8 @@ describe('Dropzone', () => {
 
   describe('picking', () => {
     it('lists a picked file with its size and a remove button', () => {
-      const onFilesChange = jest.fn();
-      const onChange = jest.fn();
+      const onFilesChange = vi.fn();
+      const onChange = vi.fn();
       const { container } = render(
         <Dropzone onFilesChange={onFilesChange} onChange={onChange} />
       );
@@ -361,7 +362,7 @@ describe('Dropzone', () => {
     });
 
     it('keeps the list when a pick comes back empty', () => {
-      const onFilesChange = jest.fn();
+      const onFilesChange = vi.fn();
       const { container } = render(
         <Dropzone multiple onFilesChange={onFilesChange} />
       );
@@ -387,7 +388,7 @@ describe('Dropzone', () => {
     });
 
     it('refuses a picked file accept does not take, and keeps the list', () => {
-      const onReject = jest.fn();
+      const onReject = vi.fn();
       const { container } = render(
         <Dropzone accept=".pdf" onReject={onReject} />
       );
@@ -441,7 +442,7 @@ describe('Dropzone', () => {
     });
 
     it('reads a drop with neither items nor files as empty', () => {
-      const onFilesChange = jest.fn();
+      const onFilesChange = vi.fn();
       const { container } = render(<Dropzone onFilesChange={onFilesChange} />);
       fireEvent.drop(inputOf(container), {
         dataTransfer: { types: ['Files'], items: undefined, files: undefined },
@@ -450,7 +451,7 @@ describe('Dropzone', () => {
     });
 
     it('leaves a drag of something other than files alone', () => {
-      const onDrop = jest.fn();
+      const onDrop = vi.fn();
       const { container } = render(<Dropzone onDrop={onDrop} />);
       const input = inputOf(container);
       expect(
@@ -498,7 +499,7 @@ describe('Dropzone', () => {
     });
 
     it('refuses a file over maxSize', () => {
-      const onReject = jest.fn();
+      const onReject = vi.fn();
       const { container } = render(
         <Dropzone multiple maxSize={5_000_000} onReject={onReject} />
       );
@@ -522,7 +523,7 @@ describe('Dropzone', () => {
     });
 
     it('adds up to maxFiles and refuses the surplus', () => {
-      const onReject = jest.fn();
+      const onReject = vi.fn();
       const { container } = render(
         <Dropzone multiple maxFiles={3} onReject={onReject} />
       );
@@ -544,8 +545,8 @@ describe('Dropzone', () => {
     });
 
     it('skips a file already in the list', () => {
-      jest.useFakeTimers();
-      const onFilesChange = jest.fn();
+      vi.useFakeTimers();
+      const onFilesChange = vi.fn();
       const { container } = render(
         <Dropzone multiple onFilesChange={onFilesChange} />
       );
@@ -579,7 +580,7 @@ describe('Dropzone', () => {
     });
 
     it('takes nothing while disabled, and refuses the drag', () => {
-      const onFilesChange = jest.fn();
+      const onFilesChange = vi.fn();
       const { container } = render(
         <Dropzone disabled onFilesChange={onFilesChange} />
       );
@@ -598,11 +599,11 @@ describe('Dropzone', () => {
 
     it('hands the drag events to your handlers too', () => {
       const handlers = {
-        onDragEnter: jest.fn(),
-        onDragOver: jest.fn(),
-        onDragLeave: jest.fn(),
-        onDrop: jest.fn(),
-        onPaste: jest.fn(),
+        onDragEnter: vi.fn(),
+        onDragOver: vi.fn(),
+        onDragLeave: vi.fn(),
+        onDrop: vi.fn(),
+        onPaste: vi.fn(),
       };
       const { container } = render(<Dropzone {...handlers} />);
       const input = inputOf(container);
@@ -738,7 +739,7 @@ describe('Dropzone', () => {
 
   describe('removing', () => {
     it('removes a file, rewriting the input, and moves focus to the next button', () => {
-      const onFilesChange = jest.fn();
+      const onFilesChange = vi.fn();
       const { container } = render(
         <Dropzone multiple onFilesChange={onFilesChange} />
       );
@@ -789,7 +790,7 @@ describe('Dropzone', () => {
 
   describe('announcing', () => {
     it('announces additions, refusals and removals', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const { container } = render(<Dropzone multiple accept=".pdf" />);
       const input = inputOf(container);
       drop(input, [pdf('a.pdf')]);
@@ -805,8 +806,8 @@ describe('Dropzone', () => {
     });
 
     it('announces in your words', () => {
-      jest.useFakeTimers();
-      const rejectionMessage = jest.fn(
+      vi.useFakeTimers();
+      const rejectionMessage = vi.fn(
         (r: Parameters<NonNullable<DropzoneProps['rejectionMessage']>>[0]) =>
           `${r.file.name} abgelehnt (${r.code})`
       );
@@ -832,7 +833,7 @@ describe('Dropzone', () => {
         file: expect.objectContaining({ name: 'photo.png' }),
         code: 'file-invalid-type',
       });
-      jest.advanceTimersByTime(2000);
+      vi.advanceTimersByTime(2000);
       fireEvent.click(screen.getByRole('button', { name: 'Remove a.pdf' }));
       expect(spoken(container)).toEqual(['a.pdf entfernt']);
     });
@@ -854,7 +855,7 @@ describe('Dropzone', () => {
     });
 
     it("writes sizes and counts in a LocaleProvider's locale", () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const { container } = render(
         <LocaleProvider locale="de">
           <Dropzone multiple maxFiles={1500} maxSize={1_500_000} />
@@ -881,7 +882,7 @@ describe('Dropzone', () => {
       drop(input, many);
       expect(refusals(container)).toContain('f1498.pdf: only 1.500 files');
       act(() => {
-        jest.advanceTimersByTime(2000);
+        vi.advanceTimersByTime(2000);
       });
       drop(input, [pdf('x.pdf'), pdf('y.pdf')]);
       expect(spoken(container)).toContain('x.pdf: only 1.500 files');
@@ -927,7 +928,7 @@ describe('Dropzone', () => {
 
     it('undoes a change the app does not take', () => {
       const a = pdf('a.pdf');
-      const onFilesChange = jest.fn();
+      const onFilesChange = vi.fn();
       const { container } = render(
         <Dropzone multiple files={[a]} onFilesChange={onFilesChange} />
       );
@@ -943,7 +944,7 @@ describe('Dropzone', () => {
 
     it('keys rows apart when the files repeat', () => {
       const a = pdf('a.pdf');
-      const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
       const { container } = render(<Dropzone multiple files={[a, a]} />);
       expect(rows(container)).toHaveLength(2);
       expect(error).not.toHaveBeenCalled();
@@ -953,8 +954,8 @@ describe('Dropzone', () => {
 
   describe('form reset', () => {
     it('clears the list and the refusals a task after the reset', () => {
-      jest.useFakeTimers();
-      const onFilesChange = jest.fn();
+      vi.useFakeTimers();
+      const onFilesChange = vi.fn();
       const { container } = render(
         <form>
           <Dropzone multiple accept=".pdf" onFilesChange={onFilesChange} />
@@ -965,7 +966,7 @@ describe('Dropzone', () => {
       fireEvent.reset(container.querySelector('form') as HTMLFormElement);
       expect(rows(container)).toHaveLength(1);
       act(() => {
-        jest.runOnlyPendingTimers();
+        vi.runOnlyPendingTimers();
       });
       expect(rows(container)).toEqual([]);
       expect(refusals(container)).toEqual([]);
@@ -973,8 +974,8 @@ describe('Dropzone', () => {
     });
 
     it('asks a controlled Dropzone to clear, and clears only refusals when empty', () => {
-      jest.useFakeTimers();
-      const onFilesChange = jest.fn();
+      vi.useFakeTimers();
+      const onFilesChange = vi.fn();
       const { container, rerender } = render(
         <form>
           <Dropzone
@@ -987,7 +988,7 @@ describe('Dropzone', () => {
       const form = container.querySelector('form') as HTMLFormElement;
       fireEvent.reset(form);
       act(() => {
-        jest.runOnlyPendingTimers();
+        vi.runOnlyPendingTimers();
       });
       expect(onFilesChange).toHaveBeenCalledWith([]);
       rerender(
@@ -999,14 +1000,14 @@ describe('Dropzone', () => {
       onFilesChange.mockClear();
       fireEvent.reset(form);
       act(() => {
-        jest.runOnlyPendingTimers();
+        vi.runOnlyPendingTimers();
       });
       expect(refusals(container)).toEqual([]);
       expect(onFilesChange).not.toHaveBeenCalled();
     });
 
     it('clears the list with no onFilesChange to tell', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const { container } = render(
         <form>
           <Dropzone />
@@ -1015,13 +1016,13 @@ describe('Dropzone', () => {
       drop(inputOf(container), [pdf()]);
       fireEvent.reset(container.querySelector('form') as HTMLFormElement);
       act(() => {
-        jest.runOnlyPendingTimers();
+        vi.runOnlyPendingTimers();
       });
       expect(rows(container)).toEqual([]);
     });
 
     it('keeps the list when the reset is cancelled', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const { container } = render(
         <form onReset={e => e.preventDefault()}>
           <Dropzone />
@@ -1030,14 +1031,14 @@ describe('Dropzone', () => {
       drop(inputOf(container), [pdf()]);
       fireEvent.reset(container.querySelector('form') as HTMLFormElement);
       act(() => {
-        jest.runOnlyPendingTimers();
+        vi.runOnlyPendingTimers();
       });
       expect(rows(container)).toHaveLength(1);
     });
 
     it('stops listening once unmounted', () => {
-      jest.useFakeTimers();
-      const onFilesChange = jest.fn();
+      vi.useFakeTimers();
+      const onFilesChange = vi.fn();
       const form = document.createElement('form');
       document.body.appendChild(form);
       const { container, unmount } = render(
@@ -1049,11 +1050,11 @@ describe('Dropzone', () => {
       fireEvent.reset(form);
       unmount();
       act(() => {
-        jest.runOnlyPendingTimers();
+        vi.runOnlyPendingTimers();
       });
       fireEvent.reset(form);
       act(() => {
-        jest.runOnlyPendingTimers();
+        vi.runOnlyPendingTimers();
       });
       expect(onFilesChange).not.toHaveBeenCalled();
       form.remove();
@@ -1153,7 +1154,7 @@ describe('Dropzone', () => {
   describe('a script writing the input through the ref', () => {
     const setup = (props: DropzoneProps = {}) => {
       const ref = createRef<HTMLInputElement>();
-      const onFilesChange = jest.fn();
+      const onFilesChange = vi.fn();
       const utils = render(
         <Dropzone ref={ref} multiple onFilesChange={onFilesChange} {...props} />
       );
@@ -1244,7 +1245,7 @@ describe('Dropzone', () => {
     });
 
     it('hands a click to your handler too', () => {
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       const { container } = render(<Dropzone onClick={onClick} />);
       fireEvent.click(inputOf(container));
       expect(onClick).toHaveBeenCalledTimes(1);
@@ -1376,7 +1377,7 @@ describe('Dropzone', () => {
       const host = document.createElement('div');
       host.innerHTML = html;
       document.body.appendChild(host);
-      const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
       try {
         act(() => {
           hydrateRoot(host, element);

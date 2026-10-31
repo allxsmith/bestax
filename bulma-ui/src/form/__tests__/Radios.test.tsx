@@ -177,7 +177,7 @@ describe('Radios', () => {
     });
 
     it('controlled value with onChange dispatches without mutating internal state', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       const { getByLabelText } = render(
         <Radios name="c" value="red" onChange={handleChange}>
           <Radio value="red">Red</Radio>

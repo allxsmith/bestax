@@ -26,7 +26,7 @@ describe('ClientOnly', () => {
   });
 
   it('renders the fallback on the server, never calling a function child', () => {
-    const child = jest.fn(() => <p>Client content</p>);
+    const child = vi.fn(() => <p>Client content</p>);
     expect(
       renderToString(<ClientOnly fallback={<p>Loading</p>}>{child}</ClientOnly>)
     ).toBe('<p>Loading</p>');
@@ -48,7 +48,7 @@ describe('ClientOnly', () => {
     document.body.appendChild(container);
     expect(container.innerHTML).toBe('<main><p>Loading</p></main>');
 
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     let unmountRoot = () => {};
     try {
       await act(async () => {

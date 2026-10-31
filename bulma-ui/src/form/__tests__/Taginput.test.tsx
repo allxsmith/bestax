@@ -32,7 +32,7 @@ describe('Taginput', () => {
 
   describe('Adding Tags', () => {
     it('adds tag on Enter', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput onChange={onChange} />);
       const input = screen.getByRole('textbox');
 
@@ -43,7 +43,7 @@ describe('Taginput', () => {
     });
 
     it('adds tag on comma', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput onChange={onChange} />);
       const input = screen.getByRole('textbox');
 
@@ -53,7 +53,7 @@ describe('Taginput', () => {
     });
 
     it('calls onAdd when tag is added', () => {
-      const onAdd = jest.fn();
+      const onAdd = vi.fn();
       render(<Taginput onAdd={onAdd} />);
       const input = screen.getByRole('textbox');
 
@@ -74,7 +74,7 @@ describe('Taginput', () => {
     });
 
     it('does not add empty tags', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput onChange={onChange} />);
       const input = screen.getByRole('textbox');
 
@@ -85,7 +85,7 @@ describe('Taginput', () => {
     });
 
     it('trims whitespace from tags', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput onChange={onChange} />);
       const input = screen.getByRole('textbox');
 
@@ -96,7 +96,7 @@ describe('Taginput', () => {
     });
 
     it('does not add an empty suggestion selected from the dropdown', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput data={['', 'Vue']} openOnFocus onChange={onChange} />);
       const input = screen.getByRole('combobox');
       fireEvent.focus(input);
@@ -111,7 +111,7 @@ describe('Taginput', () => {
 
   describe('Removing Tags', () => {
     it('removes tag when delete button is clicked', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput defaultValue={['Tag1', 'Tag2']} onChange={onChange} />);
 
       fireEvent.click(screen.getByLabelText('Remove Tag1'));
@@ -120,7 +120,7 @@ describe('Taginput', () => {
     });
 
     it('calls onRemove when tag is removed', () => {
-      const onRemove = jest.fn();
+      const onRemove = vi.fn();
       render(<Taginput defaultValue={['Tag1', 'Tag2']} onRemove={onRemove} />);
 
       fireEvent.click(screen.getByLabelText('Remove Tag1'));
@@ -129,7 +129,7 @@ describe('Taginput', () => {
     });
 
     it('removes last tag on Backspace when input is empty', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput defaultValue={['Tag1', 'Tag2']} onChange={onChange} />);
       const input = screen.getByRole('textbox');
 
@@ -139,7 +139,7 @@ describe('Taginput', () => {
     });
 
     it('does not remove tag on Backspace when input has value', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput defaultValue={['Tag1']} onChange={onChange} />);
       const input = screen.getByRole('textbox');
 
@@ -157,7 +157,7 @@ describe('Taginput', () => {
 
   describe('Duplicates', () => {
     it('does not add duplicate tags by default', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput defaultValue={['Tag1']} onChange={onChange} />);
       const input = screen.getByRole('textbox');
 
@@ -168,7 +168,7 @@ describe('Taginput', () => {
     });
 
     it('allows duplicates when allowDuplicates is true', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Taginput defaultValue={['Tag1']} allowDuplicates onChange={onChange} />
       );
@@ -181,7 +181,7 @@ describe('Taginput', () => {
     });
 
     it('checks duplicates case-insensitively', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput defaultValue={['Tag1']} onChange={onChange} />);
       const input = screen.getByRole('textbox');
 
@@ -194,7 +194,7 @@ describe('Taginput', () => {
 
   describe('Max Tags', () => {
     it('does not add tags when maxTags is reached', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       // Start with 1 tag when max is 2
       render(
         <Taginput defaultValue={['Tag1']} maxTags={2} onChange={onChange} />
@@ -218,7 +218,7 @@ describe('Taginput', () => {
     // the limit it stays on screen. At the limit the list closes, and the
     // combobox stays, collapsed (#1087).
     it('closes the suggestion list when a click adds the last allowed tag', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Taginput
           defaultValue={['React']}
@@ -315,7 +315,7 @@ describe('Taginput', () => {
 
   describe('Allow New', () => {
     it('allows new tags by default', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput data={frameworks} onChange={onChange} />);
       const input = screen.getByRole('combobox');
 
@@ -326,7 +326,7 @@ describe('Taginput', () => {
     });
 
     it('does not allow new tags when allowNew is false', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Taginput data={frameworks} allowNew={false} onChange={onChange} />
       );
@@ -339,7 +339,7 @@ describe('Taginput', () => {
     });
 
     it('allows tags from data when allowNew is false', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Taginput data={frameworks} allowNew={false} onChange={onChange} />
       );
@@ -352,7 +352,7 @@ describe('Taginput', () => {
     });
 
     it('accepts an existing data item typed in a different case when allowNew is false', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Taginput data={frameworks} allowNew={false} onChange={onChange} />
       );
@@ -390,7 +390,7 @@ describe('Taginput', () => {
     });
 
     it('adds tag when suggestion is clicked', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput data={frameworks} onChange={onChange} />);
       const input = screen.getByRole('combobox');
 
@@ -449,7 +449,7 @@ describe('Taginput', () => {
     });
 
     it('selects highlighted item on Enter', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput data={frameworks} onChange={onChange} />);
       const input = screen.getByRole('combobox');
 
@@ -490,7 +490,7 @@ describe('Taginput', () => {
     });
 
     it('does not add tags when disabled', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput disabled onChange={onChange} />);
       const input = screen.getByRole('textbox');
 
@@ -551,7 +551,7 @@ describe('Taginput', () => {
 
   describe('Custom Confirm Keys', () => {
     it('uses custom confirm keys', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput confirmKeys={['Enter', ';']} onChange={onChange} />);
       const input = screen.getByRole('textbox');
 
@@ -563,7 +563,7 @@ describe('Taginput', () => {
 
   describe('Remove On Keys', () => {
     it('does not remove on backspace when removeOnKeys is false', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Taginput
           defaultValue={['Tag1']}
@@ -610,7 +610,7 @@ describe('Taginput', () => {
 
   describe('Callbacks', () => {
     it('calls onTyping when typing', () => {
-      const onTyping = jest.fn();
+      const onTyping = vi.fn();
       render(<Taginput onTyping={onTyping} />);
       const input = screen.getByRole('textbox');
 
@@ -646,7 +646,7 @@ describe('Taginput', () => {
     });
 
     it('updates on onChange', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput value={['Tag1']} onChange={onChange} />);
       const input = screen.getByRole('textbox');
 
@@ -769,7 +769,7 @@ describe('Taginput', () => {
       Array.from(document.querySelectorAll('.tag')).map(tag => tag.textContent);
 
     it('splits pasted text by comma separator', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput onPasteSeparators={[',']} onChange={onChange} />);
 
       paste('React, Vue, Angular');
@@ -779,7 +779,7 @@ describe('Taginput', () => {
     });
 
     it('splits pasted text by multiple separators', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput onPasteSeparators={[',', ';']} onChange={onChange} />);
 
       paste('React, Vue; Angular');
@@ -791,7 +791,7 @@ describe('Taginput', () => {
     // Between two other separators an unescaped `-` made a range, so `,-;`
     // also split on `.`, `/`, the digits and `:`.
     it('splits on a hyphen separator as itself, not as a range', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Taginput onPasteSeparators={[',', '-', ';']} onChange={onChange} />
       );
@@ -805,8 +805,8 @@ describe('Taginput', () => {
     // the last write won and every check missed the paste's own parts
     // (#1101).
     it('adds every part of a paste, in one change', () => {
-      const onChange = jest.fn();
-      const onAdd = jest.fn();
+      const onChange = vi.fn();
+      const onAdd = vi.fn();
       render(
         <Taginput defaultValue={['x']} onChange={onChange} onAdd={onAdd} />
       );
@@ -819,7 +819,7 @@ describe('Taginput', () => {
     });
 
     it('checks a pasted part against the parts before it for duplicates', () => {
-      const onAdd = jest.fn();
+      const onAdd = vi.fn();
       render(<Taginput onAdd={onAdd} />);
 
       paste('a,A,b,a');
@@ -829,7 +829,7 @@ describe('Taginput', () => {
     });
 
     it('keeps duplicates within a paste under allowDuplicates', () => {
-      const onAdd = jest.fn();
+      const onAdd = vi.fn();
       render(<Taginput allowDuplicates onAdd={onAdd} />);
 
       paste('a,a');
@@ -839,8 +839,8 @@ describe('Taginput', () => {
     });
 
     it('stops adding at maxTags partway through a paste', () => {
-      const onChange = jest.fn();
-      const onAdd = jest.fn();
+      const onChange = vi.fn();
+      const onAdd = vi.fn();
       render(
         <Taginput
           defaultValue={['x']}
@@ -876,7 +876,7 @@ describe('Taginput', () => {
     });
 
     it('skips the parts that fail a check and adds the rest', () => {
-      const onAdd = jest.fn();
+      const onAdd = vi.fn();
       render(
         <Taginput
           data={['React', 'Vue', 'Svelte']}
@@ -893,8 +893,8 @@ describe('Taginput', () => {
     });
 
     it('changes nothing when no part of a paste can be added', () => {
-      const onChange = jest.fn();
-      const onAdd = jest.fn();
+      const onChange = vi.fn();
+      const onAdd = vi.fn();
       render(
         <Taginput defaultValue={['a']} onChange={onChange} onAdd={onAdd} />
       );
@@ -920,7 +920,7 @@ describe('Taginput', () => {
     });
 
     it('does not split pasted text without matching separator', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput onPasteSeparators={[',']} onChange={onChange} />);
       const input = screen.getByRole('textbox');
 
@@ -935,7 +935,7 @@ describe('Taginput', () => {
 
   describe('Before Adding', () => {
     it('prevents invalid tags from being added', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Taginput beforeAdding={tag => tag.length >= 3} onChange={onChange} />
       );
@@ -948,7 +948,7 @@ describe('Taginput', () => {
     });
 
     it('allows valid tags when beforeAdding returns true', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Taginput beforeAdding={tag => tag.length >= 3} onChange={onChange} />
       );
@@ -1063,7 +1063,7 @@ describe('Taginput', () => {
 
   describe('Function Ref Forwarding', () => {
     it('invokes function ref with the input element', () => {
-      const refFn = jest.fn();
+      const refFn = vi.fn();
       render(<Taginput ref={refFn} />);
 
       expect(refFn).toHaveBeenCalled();
@@ -1137,7 +1137,7 @@ describe('Taginput', () => {
 
   describe('Branch coverage edge cases', () => {
     it('uses createTag transformation when provided', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Taginput
           createTag={input => ({ value: input.toLowerCase(), label: input })}
@@ -1163,7 +1163,7 @@ describe('Taginput', () => {
     });
 
     it('does not remove tag on backspace when disabled', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput defaultValue={['Tag1']} disabled onChange={onChange} />);
       const input = screen.getByRole('textbox');
 
@@ -1173,7 +1173,7 @@ describe('Taginput', () => {
     });
 
     it('does not remove tag via delete button when readonly', () => {
-      const onRemove = jest.fn();
+      const onRemove = vi.fn();
       render(<Taginput defaultValue={['Tag1']} readonly onRemove={onRemove} />);
       // The delete button is not rendered for readonly tags
       expect(screen.queryByLabelText('Remove Tag1')).not.toBeInTheDocument();
@@ -1199,7 +1199,7 @@ describe('Taginput', () => {
     });
 
     it('does nothing on paste when no separators are configured', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput onPasteSeparators={[]} onChange={onChange} />);
       const input = screen.getByRole('textbox');
 
@@ -1236,7 +1236,7 @@ describe('Taginput', () => {
     });
 
     it('does not handle keys when disabled', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput data={frameworks} disabled onChange={onChange} />);
       const input = screen.getByRole('combobox');
 
@@ -1272,7 +1272,7 @@ describe('Taginput', () => {
     it('intercepts confirm-key character typed at end of input value', () => {
       // Branch in handleInputChange: lastChar in confirmKeys && lastChar !== 'Enter'
       // (Enter never appears as a typed character; comma does.)
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput onChange={onChange} />);
       const input = screen.getByRole('textbox');
 
@@ -1283,7 +1283,7 @@ describe('Taginput', () => {
     });
 
     it('ignores trailing confirm-key when value is empty before it', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Taginput onChange={onChange} />);
       const input = screen.getByRole('textbox');
 
@@ -1294,7 +1294,7 @@ describe('Taginput', () => {
     });
 
     it('addTag returns early when disabled (via paste, which has no disabled gate)', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Taginput disabled onPasteSeparators={[',']} onChange={onChange} />
       );
@@ -1306,7 +1306,7 @@ describe('Taginput', () => {
     });
 
     it('addTag returns early when readonly (via paste)', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Taginput readonly onPasteSeparators={[',']} onChange={onChange} />
       );
@@ -1620,7 +1620,7 @@ describe('Taginput suggestions as a combobox (#1082)', () => {
     ['empty', ''],
     ['whitespace-only', '  '],
   ])('points at no %s suggestion, which Enter cannot add', (_kind, blank) => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     render(<Taginput data={[blank, 'Vue']} openOnFocus onChange={onChange} />);
     const input = screen.getByRole('combobox');
     fireEvent.focus(input);
@@ -1792,8 +1792,8 @@ describe('Taginput at its tag limit (#1103)', () => {
 
   it('takes no typing, opens no list and adds no highlighted suggestion', async () => {
     const user = userEvent.setup();
-    const onTyping = jest.fn();
-    const onChange = jest.fn();
+    const onTyping = vi.fn();
+    const onChange = vi.fn();
     render(
       <Taginput
         data={frameworks}
@@ -1821,7 +1821,7 @@ describe('Taginput at its tag limit (#1103)', () => {
 
   it('adds nothing from a paste', async () => {
     const user = userEvent.setup();
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     render(
       <Taginput defaultValue={['React']} maxTags={1} onChange={onChange} />
     );
@@ -1836,7 +1836,7 @@ describe('Taginput at its tag limit (#1103)', () => {
 
   it('lets Backspace remove the last tag, which makes room again', async () => {
     const user = userEvent.setup();
-    const onRemove = jest.fn();
+    const onRemove = vi.fn();
     render(
       <Taginput
         defaultValue={['React', 'Vue']}
@@ -1891,7 +1891,7 @@ describe.each([
   ['keyCode 229', { keyCode: 229 }],
 ])('Taginput while an IME is composing (%s) (#1102)', (_, composing) => {
   it('leaves Enter and the other confirm keys to it', () => {
-    const onAdd = jest.fn();
+    const onAdd = vi.fn();
     render(<Taginput onAdd={onAdd} />);
     const input = screen.getByRole('textbox');
     fireEvent.change(input, { target: { value: 'nihon' } });
@@ -1904,7 +1904,7 @@ describe.each([
   });
 
   it('adds no highlighted suggestion on the Enter that ends it', () => {
-    const onAdd = jest.fn();
+    const onAdd = vi.fn();
     render(<Taginput data={frameworks} keepFirst onAdd={onAdd} />);
     const input = screen.getByRole('combobox');
     fireEvent.change(input, { target: { value: 'e' } });
@@ -1929,7 +1929,7 @@ describe.each([
   });
 
   it('leaves Backspace to it, removing no tag', () => {
-    const onRemove = jest.fn();
+    const onRemove = vi.fn();
     render(<Taginput defaultValue={['React']} onRemove={onRemove} />);
 
     expect(
@@ -1943,7 +1943,7 @@ describe.each([
   });
 
   it('takes the keys back once the composition ends', () => {
-    const onAdd = jest.fn();
+    const onAdd = vi.fn();
     render(<Taginput onAdd={onAdd} />);
     const input = screen.getByRole('textbox');
     fireEvent.change(input, { target: { value: '日本' } });

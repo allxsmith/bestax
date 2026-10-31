@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * A server render runs no layout effects, and React 18 logs a warning in
  * development for each `useLayoutEffect` it meets there. The library's layout
@@ -11,6 +11,8 @@
  * helper's callers to it, so a component that starts calling the helper, or a
  * hook built on it, belongs in the cases too.
  */
+import type { MockInstance } from 'vitest';
+
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Tooltip } from '../components/Tooltip';
@@ -124,10 +126,10 @@ const cases: Array<[string, React.ReactElement]> = [
 ];
 
 describe('server rendering (node environment)', () => {
-  let errorSpy: jest.SpyInstance;
+  let errorSpy: MockInstance;
 
   beforeEach(() => {
-    errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {

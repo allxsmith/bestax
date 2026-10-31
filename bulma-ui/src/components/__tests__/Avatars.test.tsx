@@ -326,7 +326,7 @@ describe('Avatars', () => {
   });
 
   it('renders mixed direct and fragment children without duplicate-key warnings', () => {
-    const consoleError = jest
+    const consoleError = vi
       .spyOn(console, 'error')
       .mockImplementation(() => {});
     try {

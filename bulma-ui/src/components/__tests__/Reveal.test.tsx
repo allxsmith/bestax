@@ -11,10 +11,10 @@ class MockIntersectionObserver {
   static instances: MockIntersectionObserver[] = [];
   callback: IntersectionObserverCallback;
   options?: IntersectionObserverInit;
-  observe = jest.fn();
-  unobserve = jest.fn();
-  disconnect = jest.fn();
-  takeRecords = jest.fn(() => []);
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+  takeRecords = vi.fn(() => []);
   root = null;
   rootMargin = '';
   thresholds: ReadonlyArray<number> = [];
@@ -44,9 +44,9 @@ function mockMatchMedia(matches: boolean) {
     matches,
     media: '(prefers-reduced-motion: reduce)',
     addEventListener: (_event: string, cb: Listener) => listeners.push(cb),
-    removeEventListener: jest.fn(),
+    removeEventListener: vi.fn(),
   };
-  window.matchMedia = jest.fn().mockReturnValue(mql);
+  window.matchMedia = vi.fn().mockReturnValue(mql);
   return { mql, listeners };
 }
 

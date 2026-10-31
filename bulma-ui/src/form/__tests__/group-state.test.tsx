@@ -21,7 +21,7 @@ describe('Radios group state', () => {
   });
 
   it('uncontrolled: clicking updates internal state and fires onChange', () => {
-    const handleChange = jest.fn();
+    const handleChange = vi.fn();
     render(
       <Radios name="color" defaultValue="red" onChange={handleChange}>
         <Radio value="red">Red</Radio>
@@ -102,8 +102,8 @@ describe('Radios group state', () => {
   });
 
   it('local onChange still fires alongside group onChange', () => {
-    const groupHandler = jest.fn();
-    const localHandler = jest.fn();
+    const groupHandler = vi.fn();
+    const localHandler = vi.fn();
     render(
       <Radios name="color" defaultValue="red" onChange={groupHandler}>
         <Radio value="red">Red</Radio>
@@ -135,7 +135,7 @@ describe('Checkboxes group state', () => {
   });
 
   it('uncontrolled: toggling adds/removes from internal array', () => {
-    const handleChange = jest.fn();
+    const handleChange = vi.fn();
     render(
       <Checkboxes name="tags" defaultValue={['react']} onChange={handleChange}>
         <Checkbox value="react">React</Checkbox>

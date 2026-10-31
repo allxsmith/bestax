@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import { createRef, useState, type KeyboardEvent } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
@@ -10,18 +11,18 @@ import { Fieldset } from '../Fieldset';
 import { ConfigProvider } from '../../helpers/Config';
 import { resetDevWarnings } from '../../helpers/devWarnings';
 
-let warnSpy: jest.SpyInstance;
+let warnSpy: MockInstance;
 
 beforeEach(() => {
   resetDevWarnings();
-  warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-  window.matchMedia = jest.fn().mockImplementation((query: string) => ({
+  warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
     matches: false,
     media: query,
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
   }));
 });
 
@@ -41,10 +42,10 @@ const areaX = (container: HTMLElement) =>
 
 /** A field whose callbacks the test reads back. */
 function setup(props: Partial<ColorInputProps> = {}) {
-  const onChange = jest.fn();
-  const onChangeEnd = jest.fn();
-  const onOpen = jest.fn();
-  const onClose = jest.fn();
+  const onChange = vi.fn();
+  const onChangeEnd = vi.fn();
+  const onOpen = vi.fn();
+  const onClose = vi.fn();
   const utils = render(
     <ColorInput
       label="Brand color"
@@ -308,9 +309,8 @@ describe('ColorInput', () => {
     });
 
     it('fills a never-filled field from a press on the square at black', () => {
-      jest
-        .spyOn(Element.prototype, 'getBoundingClientRect')
-        .mockImplementation(function (this: Element) {
+      vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(
+        function (this: Element) {
           const size = this.classList.contains('color-area') ? 100 : 0;
           return {
             width: size,
@@ -323,7 +323,8 @@ describe('ColorInput', () => {
             y: 0,
             toJSON() {},
           } as DOMRect;
-        });
+        }
+      );
       try {
         const { container, onChange, onChangeEnd } = setup({ format: 'hex' });
         open();
@@ -347,7 +348,7 @@ describe('ColorInput', () => {
         expect(onChange).toHaveBeenCalledWith('#000000');
         expect(onChangeEnd).toHaveBeenLastCalledWith('#000000');
       } finally {
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
       }
     });
 
@@ -360,7 +361,7 @@ describe('ColorInput', () => {
     });
 
     it('holds the square and the hue, with alpha, swatches and the eye dropper when asked', () => {
-      (window as { EyeDropper?: unknown }).EyeDropper = jest.fn();
+      (window as { EyeDropper?: unknown }).EyeDropper = vi.fn();
       const { container, rerender } = render(<ColorInput />);
       open();
       expect(container.querySelector('.color-area')).not.toBeNull();
@@ -462,7 +463,7 @@ describe('ColorInput', () => {
       expect(field()).toHaveClass('is-danger');
       fireEvent.keyDown(field(), { key: 'Enter' });
       expect(field()).toHaveValue('nope');
-      const outer = jest.fn();
+      const outer = vi.fn();
       document.addEventListener('keydown', outer);
       expect(fireEvent.keyDown(field(), { key: 'Escape' })).toBe(false);
       document.removeEventListener('keydown', outer);
@@ -549,11 +550,11 @@ describe('ColorInput', () => {
     });
 
     it('calls its own key, focus and blur handlers, and a prevented key does nothing more', () => {
-      const onKeyDown = jest.fn((event: KeyboardEvent) => {
+      const onKeyDown = vi.fn((event: KeyboardEvent) => {
         if (event.key === 'ArrowDown') event.preventDefault();
       });
-      const onFocus = jest.fn();
-      const onBlur = jest.fn();
+      const onFocus = vi.fn();
+      const onBlur = vi.fn();
       setup({ onKeyDown, onFocus, onBlur });
       act(() => field().focus());
       open();
@@ -649,9 +650,7 @@ describe('ColorInput', () => {
       const container = document.createElement('div');
       container.innerHTML = renderToString(<Input />);
       document.body.appendChild(container);
-      const errorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       let unmountRoot = () => {};
       try {
         await act(async () => {

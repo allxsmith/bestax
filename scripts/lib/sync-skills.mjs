@@ -107,7 +107,7 @@ export async function syncSkills({
 
     // The freshness check is load-bearing, not an optimisation. Without it a
     // second and third caller would re-run the destructive copy below while
-    // the FIRST caller's jest is already reading the copy, and `rm` would
+    // the FIRST caller's test run is already reading the copy, and `rm` would
     // delete the tree out from under it. Skipping the work when it is already
     // done is what actually makes concurrent callers safe. The lock alone
     // would not.

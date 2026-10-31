@@ -193,7 +193,7 @@ describe('Command given actions', () => {
   });
 
   it('takes a filter of its own, handed the search as typed', () => {
-    const filter = jest.fn((query: string, actions: CommandAction[]) =>
+    const filter = vi.fn((query: string, actions: CommandAction[]) =>
       actions.filter(a => a.id.startsWith(query)).reverse()
     );
     render(<Command actions={ACTIONS} filter={filter} />);
@@ -263,7 +263,7 @@ describe('Command given actions', () => {
   });
 
   it('runs an action on a click, and keeps focus in the field', () => {
-    const onSelect = jest.fn();
+    const onSelect = vi.fn();
     render(<Command actions={ACTIONS} onSelect={onSelect} />);
     field().focus();
     fireEvent.mouseDown(options()[2]);
@@ -273,8 +273,8 @@ describe('Command given actions', () => {
   });
 
   it('never runs a disabled action, which the arrows still reach', () => {
-    const onSelect = jest.fn();
-    const run = jest.fn();
+    const onSelect = vi.fn();
+    const run = vi.fn();
     render(
       <Command
         actions={[
@@ -299,7 +299,7 @@ describe('Command given actions', () => {
   });
 
   it('ignores children, with a warning in development', () => {
-    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     render(
       // @ts-expect-error -- children aren't taken with actions
       <Command actions={ACTIONS}>
@@ -316,7 +316,7 @@ describe('Command given actions', () => {
 
 describe('the search', () => {
   it('is the Command’s own when uncontrolled, from defaultQuery', () => {
-    const onQueryChange = jest.fn();
+    const onQueryChange = vi.fn();
     render(
       <Command
         actions={ACTIONS}
@@ -391,7 +391,7 @@ describe('the keys', () => {
   });
 
   it('runs nothing on Enter with nothing highlighted', () => {
-    const onSelect = jest.fn();
+    const onSelect = vi.fn();
     render(<Command actions={ACTIONS} onSelect={onSelect} />);
     key('End');
     const enter = new KeyboardEvent('keydown', {
@@ -406,7 +406,7 @@ describe('the keys', () => {
   });
 
   it('leaves the keys to an IME that is composing', () => {
-    const onSelect = jest.fn();
+    const onSelect = vi.fn();
     render(<Command actions={ACTIONS} onSelect={onSelect} />);
     key('ArrowDown', { isComposing: true });
     expect(highlighted()).toBe('Go to dashboard');
@@ -427,15 +427,13 @@ describe('the keys', () => {
   });
 
   it('runs a caller’s handlers first, and a key they used is theirs', () => {
-    const onSelect = jest.fn();
-    const onKeyDown = jest.fn((event: React.KeyboardEvent) => {
+    const onSelect = vi.fn();
+    const onKeyDown = vi.fn((event: React.KeyboardEvent) => {
       if (event.key === 'Enter') event.preventDefault();
     });
-    const onClick = jest.fn((event: React.MouseEvent) =>
-      event.preventDefault()
-    );
-    const onBlur = jest.fn();
-    const onChange = jest.fn();
+    const onClick = vi.fn((event: React.MouseEvent) => event.preventDefault());
+    const onBlur = vi.fn();
+    const onChange = vi.fn();
     render(
       <Command onSelect={onSelect}>
         <Command.Input
@@ -509,7 +507,7 @@ describe('Command built from parts', () => {
   });
 
   it('reports the search for the app to filter on, and runs a pick', () => {
-    const onSelect = jest.fn();
+    const onSelect = vi.fn();
     render(<People onSelect={onSelect} />);
     type('grace');
     expect(labels()).toEqual(['Grace Hopper']);
@@ -558,8 +556,8 @@ describe('Command built from parts', () => {
   });
 
   it('keeps the onSelect of an item that shares a value with one that left', () => {
-    const first = jest.fn();
-    const second = jest.fn();
+    const first = vi.fn();
+    const second = vi.fn();
     function Twins({ both }: { both: boolean }) {
       return (
         <Command>
@@ -585,8 +583,8 @@ describe('Command built from parts', () => {
   });
 
   it('forgets an item’s onSelect once it has gone', () => {
-    const run = jest.fn();
-    const onSelect = jest.fn();
+    const run = vi.fn();
+    const onSelect = vi.fn();
     function Going({ shown }: { shown: boolean }) {
       return (
         <Command onSelect={onSelect}>
@@ -728,7 +726,7 @@ describe('Command built from parts', () => {
   });
 
   it('keeps a press in the list, a group or the empty message from taking focus', () => {
-    const onMouseDown = jest.fn();
+    const onMouseDown = vi.fn();
     render(
       <Command>
         <Command.Input />
@@ -744,11 +742,9 @@ describe('Command built from parts', () => {
   });
 
   it('runs a caller’s click and pointer handlers on an item, and a used click is theirs', () => {
-    const onSelect = jest.fn();
-    const onClick = jest.fn((event: React.MouseEvent) =>
-      event.preventDefault()
-    );
-    const onPointerMove = jest.fn();
+    const onSelect = vi.fn();
+    const onClick = vi.fn((event: React.MouseEvent) => event.preventDefault());
+    const onPointerMove = vi.fn();
     render(
       <Command onSelect={onSelect}>
         <Command.Input />
@@ -781,39 +777,39 @@ describe('Command built from parts', () => {
   });
 
   it('holds back the empty message’s announcement while the field is loading', () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     try {
       const { rerender } = render(<People loading />);
       const said = () =>
         Array.from(screen.getByRole('status').children, el => el.textContent);
       type('zzz');
       act(() => {
-        jest.advanceTimersByTime(announceDelay);
+        vi.advanceTimersByTime(announceDelay);
       });
       expect(said()).toEqual([]);
       rerender(<People />);
       act(() => {
-        jest.advanceTimersByTime(announceDelay);
+        vi.advanceTimersByTime(announceDelay);
       });
       expect(said()).toEqual(['No one matches']);
     } finally {
-      jest.useRealTimers();
+      vi.useRealTimers();
     }
   });
 });
 
 describe('Command announces its empty message', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   const advance = (ms: number) =>
     act(() => {
-      jest.advanceTimersByTime(ms);
+      vi.advanceTimersByTime(ms);
     });
   const said = () =>
     Array.from(screen.getByRole('status').children, el => el.textContent);
@@ -922,7 +918,7 @@ describe('Command.Dialog', () => {
   });
 
   it('opens with focus in the field and hands it back on Escape', () => {
-    const onOpenChange = jest.fn();
+    const onOpenChange = vi.fn();
     render(<Palette onOpenChange={onOpenChange} />);
     const opener = screen.getByText('Open');
     opener.focus();
@@ -934,7 +930,7 @@ describe('Command.Dialog', () => {
   });
 
   it('closes on Escape and a click on the background, uncontrolled', () => {
-    const onOpenChange = jest.fn();
+    const onOpenChange = vi.fn();
     const { rerender } = render(
       <Command.Dialog
         defaultOpen
@@ -1048,7 +1044,7 @@ describe('Command.Dialog', () => {
   });
 
   it('reports a change it asks for only when it is one', () => {
-    const onOpenChange = jest.fn();
+    const onOpenChange = vi.fn();
     render(
       <Command.Dialog open actions={ACTIONS} onOpenChange={onOpenChange} />
     );
@@ -1079,7 +1075,7 @@ describe('Command.Dialog', () => {
   });
 
   it('takes parts as well as actions', () => {
-    const onSelect = jest.fn();
+    const onSelect = vi.fn();
     render(
       <Command.Dialog defaultOpen onSelect={onSelect}>
         <Command.Input />
@@ -1094,7 +1090,7 @@ describe('Command.Dialog', () => {
   });
 
   it('warns in development when nothing can open it', () => {
-    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     render(<Command.Dialog actions={ACTIONS} />);
     expect(warn).toHaveBeenCalledWith(
       expect.stringContaining('<Command.Dialog> has no way to open')
@@ -1144,7 +1140,7 @@ describe('Command.Dialog', () => {
     });
 
     it('reports the open through onOpenChange, controlled', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(
         <Command.Dialog
           actions={ACTIONS}
@@ -1385,7 +1381,7 @@ describe('Command.Dialog', () => {
     });
 
     it('only opens: while open, its keypress does nothing', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(
         <Command.Dialog
           actions={ACTIONS}
@@ -1410,7 +1406,7 @@ describe('Command.Dialog', () => {
     });
 
     it('warns in development about a shortcut it can’t read, and ignores it', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       for (const shortcut of ['mod+', '+', 'super+k', '']) {
         const { unmount } = render(
           <Command.Dialog actions={ACTIONS} shortcut={shortcut} open={false} />
@@ -1460,7 +1456,7 @@ describe('Compound components', () => {
       <>
         <CommandInput />
         <CommandList>
-          <CommandItem value="a" onSelect={jest.fn()}>
+          <CommandItem value="a" onSelect={vi.fn()}>
             Alpha
           </CommandItem>
         </CommandList>
@@ -1598,7 +1594,7 @@ describe('server rendering', () => {
     const container = document.createElement('div');
     container.innerHTML = renderToString(ui);
     document.body.appendChild(container);
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     let root: ReturnType<typeof hydrateRoot> | undefined;
     try {
       await act(async () => {

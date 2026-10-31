@@ -13,7 +13,7 @@ Every custom component has five files. Mirror the existing names exactly (Pascal
 ```
 bulma-ui/src/components/MyComponent.tsx              # React + TS component
 bulma-ui/src/components/MyComponent.stories.tsx      # Storybook stories
-bulma-ui/src/components/__tests__/MyComponent.test.tsx  # Jest + RTL tests
+bulma-ui/src/components/__tests__/MyComponent.test.tsx  # Vitest + RTL tests
 bulma-ui/src/scss/components/_mycomponent.scss       # SCSS partial
 docs/docs/api/components/mycomponent.md              # Docusaurus docs page
 ```
@@ -265,7 +265,7 @@ The canonical reference file is `bulma-ui/src/scss/components/_dialog.scss`.
 
 `MyComponent.stories.tsx` beside the component. Use `tags: ['autodocs']` so the JSDoc becomes
 the docs page, declare `argTypes`, and write one named `function`-style render per variant.
-Give every argType a `description` — enforced by a jest meta-test.
+Give every argType a `description` — enforced by a meta-test.
 
 ```tsx
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -310,7 +310,7 @@ export const Colors: Story = {
 
 ## Tests
 
-`__tests__/MyComponent.test.tsx`, Jest + `@testing-library/react`. Cover render, each prop →
+`__tests__/MyComponent.test.tsx`, Vitest + `@testing-library/react`. Cover render, each prop →
 class mapping, the helper-prop passthrough, ref forwarding, the ConfigProvider prefix, and any
 interaction/a11y.
 

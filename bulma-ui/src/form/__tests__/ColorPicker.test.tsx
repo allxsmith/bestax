@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import { createRef, useState } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
@@ -28,17 +29,16 @@ const RECTS: Record<string, { width: number; height: number }> = {
 let rtl = false;
 let coarse = false;
 let customProperty = '';
-let warnSpy: jest.SpyInstance;
+let warnSpy: MockInstance;
 
 beforeEach(() => {
   rtl = false;
   coarse = false;
   customProperty = '';
   resetDevWarnings();
-  warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-  jest
-    .spyOn(Element.prototype, 'getBoundingClientRect')
-    .mockImplementation(function (this: Element) {
+  warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(
+    function (this: Element) {
       const key = Object.keys(RECTS).find(name =>
         this.classList.contains(name)
       );
@@ -54,9 +54,10 @@ beforeEach(() => {
         y: 0,
         toJSON() {},
       } as DOMRect;
-    });
+    }
+  );
   const real = window.getComputedStyle;
-  jest.spyOn(window, 'getComputedStyle').mockImplementation((el, pseudo) => {
+  vi.spyOn(window, 'getComputedStyle').mockImplementation((el, pseudo) => {
     const style = real(el, pseudo);
     return {
       ...style,
@@ -67,18 +68,18 @@ beforeEach(() => {
           : style.getPropertyValue(name),
     } as CSSStyleDeclaration;
   });
-  window.matchMedia = jest.fn().mockImplementation((query: string) => ({
+  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
     matches: query.includes('coarse') ? coarse : false,
     media: query,
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
   }));
 });
 
 afterEach(() => {
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
   warnSpy.mockRestore();
   delete (window as { EyeDropper?: unknown }).EyeDropper;
 });
@@ -125,8 +126,8 @@ const sliderOf = (input: HTMLElement) =>
 
 /** A picker whose value the test reads back, with every callback recorded. */
 function setup(props: Partial<ColorPickerProps> = {}) {
-  const onChange = jest.fn();
-  const onChangeEnd = jest.fn();
+  const onChange = vi.fn();
+  const onChangeEnd = vi.fn();
   const utils = render(
     <ColorPicker
       aria-label="Brand"
@@ -708,7 +709,7 @@ describe('ColorPicker', () => {
       expect(field()).toHaveClass('input', 'is-small', 'is-danger');
       fireEvent.keyDown(field(), { key: 'Enter' });
       expect(field()).toHaveValue('not a color');
-      const outer = jest.fn();
+      const outer = vi.fn();
       document.addEventListener('keydown', outer);
       const escape = fireEvent.keyDown(field(), { key: 'Escape' });
       document.removeEventListener('keydown', outer);
@@ -779,10 +780,11 @@ describe('ColorPicker', () => {
 
   describe('The eye dropper', () => {
     const eyeDropper = (result: Promise<{ sRGBHex: string }>) => {
-      const open = jest.fn(() => result);
-      (window as { EyeDropper?: unknown }).EyeDropper = jest.fn(() => ({
-        open,
-      }));
+      const open = vi.fn(() => result);
+      // A `function`, not an arrow: the code under test calls it with `new`.
+      (window as { EyeDropper?: unknown }).EyeDropper = vi.fn(function () {
+        return { open };
+      });
       return open;
     };
 
@@ -895,7 +897,7 @@ describe('ColorPicker', () => {
     });
 
     it('stays put when the parent turns a change down', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { container } = render(
         <ColorPicker value="#ff0000" format="hex" onChange={onChange} />
       );
@@ -907,7 +909,7 @@ describe('ColorPicker', () => {
 
     it('moves the thumb for a step that writes the same text', () => {
       // At this brightness, a step of saturation changes no 8-bit channel.
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { container } = render(
         <ColorPicker defaultValue="#000000" format="hex" onChange={onChange} />
       );
@@ -1100,13 +1102,11 @@ describe('ColorPicker', () => {
     });
 
     it('hydrates without a mismatch, then shows the eye dropper', async () => {
-      (window as { EyeDropper?: unknown }).EyeDropper = jest.fn();
+      (window as { EyeDropper?: unknown }).EyeDropper = vi.fn();
       const container = document.createElement('div');
       container.innerHTML = renderToString(<Picker />);
       document.body.appendChild(container);
-      const errorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       let unmountRoot = () => {};
       try {
         await act(async () => {

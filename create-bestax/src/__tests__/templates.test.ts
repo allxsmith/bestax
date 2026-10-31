@@ -2,14 +2,7 @@
 // a hand-written stand-in proves the pattern and not that it still matches the
 // file it ships with. Everything here runs against the real templates, copied
 // to a temp directory, with the real filesystem.
-import {
-  describe,
-  it,
-  expect,
-  jest,
-  beforeEach,
-  afterEach,
-} from '@jest/globals';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
@@ -154,11 +147,11 @@ let projectCreator: InstanceType<typeof ProjectCreator>;
 beforeEach(async () => {
   workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'create-bestax-tpl-'));
   projectCreator = new ProjectCreator(templatesDir);
-  jest.spyOn(console, 'log').mockImplementation(() => {});
+  vi.spyOn(console, 'log').mockImplementation(() => {});
 });
 
 afterEach(async () => {
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
   await fs.remove(workDir);
 });
 

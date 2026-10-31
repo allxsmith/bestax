@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import rule from '../rules/no-bulma-component-class.js';
 import { BULMA_COMPONENT_CLASSES } from '../generated/metadata.js';
 import { ruleTester } from './helpers.js';

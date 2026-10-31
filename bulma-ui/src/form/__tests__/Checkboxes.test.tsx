@@ -164,7 +164,7 @@ describe('Checkboxes', () => {
 
   describe('controlled mode', () => {
     it('does not call setInternalValue when value is controlled (suppresses setInternal branch)', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       const { getByLabelText } = render(
         <Checkboxes name="tags" value={['a']} onChange={handleChange}>
           <Checkbox value="a">A</Checkbox>

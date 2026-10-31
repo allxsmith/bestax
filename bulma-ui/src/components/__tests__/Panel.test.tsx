@@ -202,7 +202,7 @@ describe('Panel.Block', () => {
   });
 
   it('calls onClick', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(
       <Panel.Block data-testid="block" onClick={handleClick}>
         Clickable
@@ -395,7 +395,7 @@ describe('Panel.InputBlock', () => {
   });
 
   it('calls onChange when input changes', () => {
-    const handleChange = jest.fn();
+    const handleChange = vi.fn();
     render(
       <Panel.InputBlock onChange={handleChange} data-testid="input-block" />
     );
@@ -421,7 +421,7 @@ describe('Panel.CheckboxBlock', () => {
   });
 
   it('calls onChange when checkbox changes', () => {
-    const handleChange = jest.fn();
+    const handleChange = vi.fn();
     render(
       <Panel.CheckboxBlock onChange={handleChange} data-testid="checkbox">
         remember me
@@ -454,7 +454,7 @@ describe('Panel.ButtonBlock', () => {
   });
 
   it('calls onClick when button clicked', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(
       <Panel.ButtonBlock onClick={handleClick} data-testid="button">
         Click me

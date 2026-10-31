@@ -92,7 +92,7 @@ describe('Select', () => {
     });
 
     it('handles onChange', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Select onChange={handleChange} data-testid="select">
           {renderOptions()}

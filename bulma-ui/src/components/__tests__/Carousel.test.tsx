@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -5,7 +6,7 @@ import { Carousel, CarouselItem } from '../Carousel';
 import { ConfigProvider } from '../../helpers/Config';
 
 // Mock timers for auto-play testing
-jest.useFakeTimers();
+vi.useFakeTimers();
 
 // forwardRef so `ref` is forwarded to Carousel on React 18 too — a plain
 // function component only forwards ref via props on React 19 (ref-as-prop).
@@ -22,7 +23,7 @@ const TestCarousel = React.forwardRef<
 
 describe('Carousel', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
   });
 
   describe('Rendering', () => {
@@ -130,7 +131,7 @@ describe('Carousel', () => {
     });
 
     it('goes to next slide on next arrow click', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<TestCarousel onChange={onChange} />);
 
       fireEvent.click(screen.getByLabelText('Next slide'));
@@ -139,7 +140,7 @@ describe('Carousel', () => {
     });
 
     it('goes to previous slide on prev arrow click', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<TestCarousel value={1} onChange={onChange} />);
 
       fireEvent.click(screen.getByLabelText('Previous slide'));
@@ -148,7 +149,7 @@ describe('Carousel', () => {
     });
 
     it('loops to last slide when on first and clicking prev', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<TestCarousel value={0} onChange={onChange} />);
 
       fireEvent.click(screen.getByLabelText('Previous slide'));
@@ -161,7 +162,7 @@ describe('Carousel', () => {
     });
 
     it('loops to first slide when on last and clicking next', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<TestCarousel value={2} onChange={onChange} />);
 
       fireEvent.click(screen.getByLabelText('Next slide'));
@@ -220,7 +221,7 @@ describe('Carousel', () => {
     });
 
     it('goes to slide on indicator click', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<TestCarousel onChange={onChange} />);
 
       const indicators = screen.getAllByRole('tab');
@@ -253,8 +254,8 @@ describe('Carousel', () => {
     it('moves between slides without submitting the form', () => {
       // An image or plan picker inside a form is ordinary, and nothing on
       // Carousel's props reaches these buttons, so the caller can't type them.
-      const onSubmit = jest.fn((e: React.FormEvent) => e.preventDefault());
-      const onChange = jest.fn();
+      const onSubmit = vi.fn((e: React.FormEvent) => e.preventDefault());
+      const onChange = vi.fn();
       render(
         <form onSubmit={onSubmit}>
           <TestCarousel onChange={onChange} />
@@ -352,29 +353,29 @@ describe('Carousel', () => {
 
   describe('Auto-play', () => {
     it('advances to next slide automatically', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<TestCarousel autoplay interval={5000} onChange={onChange} />);
 
       act(() => {
-        jest.advanceTimersByTime(5000);
+        vi.advanceTimersByTime(5000);
       });
 
       expect(onChange).toHaveBeenCalledWith(1);
     });
 
     it('continues advancing slides', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<TestCarousel autoplay interval={1000} onChange={onChange} />);
 
       act(() => {
-        jest.advanceTimersByTime(3000);
+        vi.advanceTimersByTime(3000);
       });
 
       expect(onChange).toHaveBeenCalledTimes(3);
     });
 
     it('does not auto-play with single slide', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Carousel autoplay interval={1000} onChange={onChange}>
           <CarouselItem>Only Slide</CarouselItem>
@@ -382,7 +383,7 @@ describe('Carousel', () => {
       );
 
       act(() => {
-        jest.advanceTimersByTime(5000);
+        vi.advanceTimersByTime(5000);
       });
 
       expect(onChange).not.toHaveBeenCalled();
@@ -391,39 +392,39 @@ describe('Carousel', () => {
 
   describe('Pause on Hover', () => {
     it('pauses auto-play on mouse enter', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<TestCarousel autoplay interval={1000} onChange={onChange} />);
 
       fireEvent.mouseEnter(screen.getByRole('region'));
 
       act(() => {
-        jest.advanceTimersByTime(3000);
+        vi.advanceTimersByTime(3000);
       });
 
       expect(onChange).not.toHaveBeenCalled();
     });
 
     it('resumes auto-play on mouse leave', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<TestCarousel autoplay interval={1000} onChange={onChange} />);
 
       fireEvent.mouseEnter(screen.getByRole('region'));
 
       act(() => {
-        jest.advanceTimersByTime(2000);
+        vi.advanceTimersByTime(2000);
       });
 
       fireEvent.mouseLeave(screen.getByRole('region'));
 
       act(() => {
-        jest.advanceTimersByTime(1000);
+        vi.advanceTimersByTime(1000);
       });
 
       expect(onChange).toHaveBeenCalled();
     });
 
     it('does not pause when pauseOnHover is false', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <TestCarousel
           autoplay
@@ -436,7 +437,7 @@ describe('Carousel', () => {
       fireEvent.mouseEnter(screen.getByRole('region'));
 
       act(() => {
-        jest.advanceTimersByTime(1000);
+        vi.advanceTimersByTime(1000);
       });
 
       expect(onChange).toHaveBeenCalled();
@@ -482,7 +483,7 @@ describe('Carousel', () => {
     });
 
     it('calls onChange when value changes', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<TestCarousel value={0} onChange={onChange} />);
 
       fireEvent.click(screen.getByLabelText('Next slide'));
@@ -493,7 +494,7 @@ describe('Carousel', () => {
 
   describe('Keyboard Navigation', () => {
     it('goes to previous slide on ArrowLeft', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<TestCarousel value={1} onChange={onChange} />);
 
       // Focus a button inside the carousel
@@ -506,7 +507,7 @@ describe('Carousel', () => {
     });
 
     it('goes to next slide on ArrowRight', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<TestCarousel value={0} onChange={onChange} />);
 
       // Focus a button inside the carousel
@@ -521,7 +522,7 @@ describe('Carousel', () => {
 
   describe('Drag Navigation', () => {
     it('navigates on drag', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { container } = render(<TestCarousel onChange={onChange} />);
       const carouselContainer = container.querySelector('.carousel-container')!;
 
@@ -534,7 +535,7 @@ describe('Carousel', () => {
     });
 
     it('navigates back on drag right', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { container } = render(
         <TestCarousel value={1} onChange={onChange} />
       );
@@ -549,7 +550,7 @@ describe('Carousel', () => {
     });
 
     it('does not navigate on small drag', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { container } = render(<TestCarousel onChange={onChange} />);
       const carouselContainer = container.querySelector('.carousel-container')!;
 
@@ -562,7 +563,7 @@ describe('Carousel', () => {
     });
 
     it('ignores mouseMove and mouseUp without prior mouseDown', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { container } = render(<TestCarousel onChange={onChange} />);
       const carouselContainer = container.querySelector('.carousel-container')!;
 
@@ -576,7 +577,7 @@ describe('Carousel', () => {
     });
 
     it('does not drag when hasDrag is false', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { container } = render(
         <TestCarousel hasDrag={false} onChange={onChange} />
       );
@@ -592,7 +593,7 @@ describe('Carousel', () => {
 
   describe('Touch Navigation', () => {
     it('navigates on touch swipe', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { container } = render(<TestCarousel onChange={onChange} />);
       const carouselContainer = container.querySelector('.carousel-container')!;
 
@@ -611,7 +612,7 @@ describe('Carousel', () => {
       // Unlike onMouseMove, the onTouchMove handler is always wired when
       // hasDrag=true (no isDragging guard at the JSX level), so a stray
       // touchMove exercises the `if (!isDragging) return` early-return.
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { container } = render(<TestCarousel onChange={onChange} />);
       const carouselContainer = container.querySelector('.carousel-container')!;
 
@@ -630,7 +631,7 @@ describe('Carousel', () => {
     });
 
     it('supports function refs', () => {
-      const refFn = jest.fn();
+      const refFn = vi.fn();
       render(<TestCarousel ref={refFn} />);
       expect(refFn).toHaveBeenCalled();
       // The first call should be with an HTMLDivElement node
@@ -641,7 +642,7 @@ describe('Carousel', () => {
 
   describe('Wrap-around transition cleanup', () => {
     it('clears skipTransition after wrap-around forward (next from last)', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<TestCarousel value={2} onChange={onChange} />);
 
       // Click next while at last slide - triggers isWrapping=true and animates
@@ -657,12 +658,12 @@ describe('Carousel', () => {
       // Flush both nested requestAnimationFrame callbacks so setSkipTransition(false)
       // executes (covers the inner rAF body).
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
     });
 
     it('clears skipTransition after wrap-around backward (prev from first)', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<TestCarousel value={0} onChange={onChange} />);
 
       fireEvent.click(screen.getByLabelText('Previous slide'));
@@ -672,12 +673,12 @@ describe('Carousel', () => {
       expect(onChange).toHaveBeenCalledWith(2);
 
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
     });
 
     it('ignores transitionEnd when not wrapping', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { container } = render(
         <TestCarousel value={0} onChange={onChange} />
       );
@@ -689,7 +690,7 @@ describe('Carousel', () => {
     });
 
     it('does not snap when navigation moves off the clone before the wrap transition ends', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<TestCarousel value={2} onChange={onChange} />);
 
       // Start a wrap-around: animating toward the clone of the first slide.
@@ -706,7 +707,7 @@ describe('Carousel', () => {
       expect(onChange).toHaveBeenCalledTimes(1);
 
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
     });
   });
@@ -718,7 +719,7 @@ describe('Carousel', () => {
     it.each(['ArrowLeft', 'ArrowRight'])(
       'leaves %s to the content of a single slide with repeat',
       key => {
-        const onChange = jest.fn();
+        const onChange = vi.fn();
         render(
           <Carousel onChange={onChange}>
             <CarouselItem>
@@ -739,7 +740,7 @@ describe('Carousel', () => {
     it('stays put on an arrow key at either end when repeat is false', () => {
       // The previous arrow is enabled at the last slide, so it can hold
       // focus there while ArrowRight asks for a step past the end.
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { rerender } = render(
         <TestCarousel value={2} repeat={false} onChange={onChange} />
       );
@@ -758,7 +759,7 @@ describe('Carousel', () => {
     });
 
     it('clamps to range when repeat is false (indicator click path)', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<TestCarousel repeat={false} onChange={onChange} />);
 
       // Indicator click goes through goToSlide -> setActiveIndex with an
@@ -780,7 +781,7 @@ describe('Carousel', () => {
 
     it('does not toggle pause state when pauseOnHover is false on leave', () => {
       // Covers the `if (pauseOnHover)` false branch in handleMouseLeave.
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <TestCarousel
           autoplay
@@ -795,7 +796,7 @@ describe('Carousel', () => {
       fireEvent.mouseLeave(screen.getByRole('region'));
 
       act(() => {
-        jest.advanceTimersByTime(1000);
+        vi.advanceTimersByTime(1000);
       });
 
       expect(onChange).toHaveBeenCalled();
@@ -803,7 +804,7 @@ describe('Carousel', () => {
 
     it('ignores keyboard events when carousel is not focused', () => {
       // Covers the early-return branch in the keydown handler.
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <>
           <button data-testid="outside">Outside</button>
@@ -892,7 +893,7 @@ describe('Carousel', () => {
     });
 
     it('navigation works with custom icons', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <TestCarousel
           iconPrev="chevron-left"
@@ -926,7 +927,7 @@ describe('Carousel', () => {
   // ref, so neither this nor its siblings branch on React.version.
   it('runs a forwarded callback ref cleanup on unmount instead of calling it with null', () => {
     const calls: (HTMLDivElement | null)[] = [];
-    const cleanup = jest.fn();
+    const cleanup = vi.fn();
     const callbackRef = (node: HTMLDivElement | null) => {
       calls.push(node);
       if (!node) return undefined;
@@ -967,14 +968,14 @@ describe('Carousel', () => {
       />
     );
 
-    const keydownCalls = (spy: jest.SpyInstance) =>
+    const keydownCalls = (spy: MockInstance) =>
       spy.mock.calls.filter(([type]) => type === 'keydown');
 
     it('keeps its key listener when the parent renders again', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { rerender } = render(<Page onChange={onChange} />);
-      const addSpy = jest.spyOn(document, 'addEventListener');
-      const removeSpy = jest.spyOn(document, 'removeEventListener');
+      const addSpy = vi.spyOn(document, 'addEventListener');
+      const removeSpy = vi.spyOn(document, 'removeEventListener');
       try {
         rerender(<Page onChange={onChange} />);
         expect(keydownCalls(addSpy)).toHaveLength(0);
@@ -986,8 +987,8 @@ describe('Carousel', () => {
     });
 
     it('moves through the onChange of the latest render on an arrow key', () => {
-      const first = jest.fn();
-      const latest = jest.fn();
+      const first = vi.fn();
+      const latest = vi.fn();
       const { rerender } = render(<Page onChange={first} />);
       rerender(<Page onChange={latest} />);
       screen.getByLabelText('Next slide').focus();
@@ -999,15 +1000,15 @@ describe('Carousel', () => {
     });
 
     it('keeps its autoplay timer running when the parent renders again', () => {
-      const first = jest.fn();
-      const latest = jest.fn();
+      const first = vi.fn();
+      const latest = vi.fn();
       const { rerender } = render(<Page autoplay onChange={first} />);
       act(() => {
-        jest.advanceTimersByTime(600);
+        vi.advanceTimersByTime(600);
       });
       rerender(<Page autoplay onChange={latest} />);
       act(() => {
-        jest.advanceTimersByTime(400);
+        vi.advanceTimersByTime(400);
       });
 
       expect(latest).toHaveBeenCalledTimes(1);
@@ -1016,21 +1017,21 @@ describe('Carousel', () => {
     });
 
     it('still gives a slide the whole interval after the user moves to it', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Page autoplay onChange={onChange} />);
       act(() => {
-        jest.advanceTimersByTime(600);
+        vi.advanceTimersByTime(600);
       });
       fireEvent.click(screen.getByLabelText('Next slide'));
       expect(onChange).toHaveBeenLastCalledWith(1);
 
       act(() => {
-        jest.advanceTimersByTime(400);
+        vi.advanceTimersByTime(400);
       });
       expect(onChange).toHaveBeenCalledTimes(1);
 
       act(() => {
-        jest.advanceTimersByTime(600);
+        vi.advanceTimersByTime(600);
       });
       expect(onChange).toHaveBeenCalledTimes(2);
       expect(onChange).toHaveBeenLastCalledWith(2);
@@ -1082,7 +1083,7 @@ const mockViewport = (initialWidth: number) => {
         (!max || width <= Number(max[1]))
       );
     });
-  const matchMedia = jest.fn((query: string) => ({
+  const matchMedia = vi.fn((query: string) => ({
     media: query,
     get matches() {
       return matches(query);
@@ -1110,7 +1111,7 @@ const mockViewport = (initialWidth: number) => {
 
 describe('Carousel with several items in view', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
     delete (window as { matchMedia?: unknown }).matchMedia;
   });
 
@@ -1233,7 +1234,7 @@ describe('Carousel with several items in view', () => {
     });
 
     it('steps by itemsToScroll and stops at the last full view without repeat', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Carousel
           itemsToShow={3}
@@ -1266,7 +1267,7 @@ describe('Carousel with several items in view', () => {
     });
 
     it('caps itemsToScroll at the count in view, so a step skips nothing', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Carousel itemsToShow={2} itemsToScroll={5} onChange={onChange}>
           {itemsOf(6)}
@@ -1277,7 +1278,7 @@ describe('Carousel with several items in view', () => {
     });
 
     it('swipes one step, however far the swipe travels', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { container } = render(
         <Carousel itemsToShow={3} itemsToScroll={2} onChange={onChange}>
           {itemsOf(9)}
@@ -1292,7 +1293,7 @@ describe('Carousel with several items in view', () => {
     });
 
     it('with this many children or fewer, shows them all and moves nowhere', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Carousel itemsToShow={3} autoplay interval={1000} onChange={onChange}>
           {itemsOf(2)}
@@ -1304,7 +1305,7 @@ describe('Carousel with several items in view', () => {
       // Nothing to loop over, so no clones either.
       expect(track().children).toHaveLength(2);
       act(() => {
-        jest.advanceTimersByTime(3000);
+        vi.advanceTimersByTime(3000);
       });
       expect(onChange).not.toHaveBeenCalled();
     });
@@ -1312,7 +1313,7 @@ describe('Carousel with several items in view', () => {
 
   describe('a controlled value', () => {
     it('shows a value between two positions as given, and steps on from it', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Carousel
           itemsToShow={3}
@@ -1338,7 +1339,7 @@ describe('Carousel with several items in view', () => {
     });
 
     it('shows the last full view for a value past it without repeat, calling nothing', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Carousel itemsToShow={3} repeat={false} value={6} onChange={onChange}>
           {itemsOf(7)}
@@ -1417,7 +1418,7 @@ describe('Carousel with several items in view', () => {
     });
 
     it('goes on from the last position to the first through the clones', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Carousel
           itemsToShow={2}
@@ -1440,12 +1441,12 @@ describe('Carousel with several items in view', () => {
       fireEvent.transitionEnd(track());
       expect(onChange).toHaveBeenCalledWith(0);
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
     });
 
     it('goes back from the first position to the last through the clones', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Carousel
           itemsToShow={2}
@@ -1462,7 +1463,7 @@ describe('Carousel with several items in view', () => {
       fireEvent.transitionEnd(track());
       expect(onChange).toHaveBeenCalledWith(4);
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
     });
   });
@@ -1771,7 +1772,7 @@ describe('Carousel with several items in view', () => {
       // A browser moving focus off an element that went inert need not fire
       // blur, so autoplay reads where focus is when its timer fires rather
       // than trusting the last focus event.
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Carousel itemsToShow={2} autoplay interval={1000} onChange={onChange}>
           {itemsOf(4)}
@@ -1779,7 +1780,7 @@ describe('Carousel with several items in view', () => {
       );
       focusButtonIn(4, 1);
       act(() => {
-        jest.advanceTimersByTime(1000);
+        vi.advanceTimersByTime(1000);
       });
       expect(onChange).not.toHaveBeenCalled();
       expect(track()).toHaveAttribute('aria-live', 'polite');
@@ -1790,7 +1791,7 @@ describe('Carousel with several items in view', () => {
       });
       try {
         act(() => {
-          jest.advanceTimersByTime(1000);
+          vi.advanceTimersByTime(1000);
         });
         expect(onChange).toHaveBeenCalledWith(1);
         // And the live region goes back to quiet while autoplay turns it.
@@ -1856,7 +1857,7 @@ describe('Carousel with several items in view', () => {
     });
 
     it('stops autoplay at the last position without repeat', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Carousel
           autoplay
@@ -1870,13 +1871,13 @@ describe('Carousel with several items in view', () => {
       );
       expect(track()).toHaveAttribute('aria-live', 'polite');
       act(() => {
-        jest.advanceTimersByTime(3000);
+        vi.advanceTimersByTime(3000);
       });
       expect(onChange).not.toHaveBeenCalled();
     });
 
     it('holds autoplay while focus is inside an item, and resumes once it leaves', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <>
           <Carousel
@@ -1894,7 +1895,7 @@ describe('Carousel with several items in view', () => {
         realItems(4)[0].querySelector('button')!.focus();
       });
       act(() => {
-        jest.advanceTimersByTime(3000);
+        vi.advanceTimersByTime(3000);
       });
       expect(onChange).not.toHaveBeenCalled();
 
@@ -1903,7 +1904,7 @@ describe('Carousel with several items in view', () => {
         realItems(4)[1].querySelector('button')!.focus();
       });
       act(() => {
-        jest.advanceTimersByTime(1000);
+        vi.advanceTimersByTime(1000);
       });
       expect(onChange).not.toHaveBeenCalled();
 
@@ -1911,13 +1912,13 @@ describe('Carousel with several items in view', () => {
         screen.getByRole('button', { name: 'Outside' }).focus();
       });
       act(() => {
-        jest.advanceTimersByTime(1000);
+        vi.advanceTimersByTime(1000);
       });
       expect(onChange).toHaveBeenCalledWith(1);
     });
 
     it("leaves arrow keys to an item's content, but not to the carousel's controls", () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Carousel itemsToShow={2} onChange={onChange}>
           {itemsOf(4)}
