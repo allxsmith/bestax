@@ -489,9 +489,11 @@ export const CLAUDE_MD = (
       `- Framework: the Next.js App Router. A page or component is a Server Component unless its ` +
         `file starts with \`'use client'\`, and bestax components render from either. In a Server ` +
         `Component, reach a component's parts by their own export (\`NavbarItem\`, \`NavbarBrand\`), ` +
-        `since \`Navbar.Item\` comes out \`undefined\` there; inside a client component the dotted ` +
-        `names work as usual. The starter page (\`src/App\`) and the navbar (\`src/Navigation\`) keep ` +
-        `state, so they're client components, and the About page is a Server Component. Link with ` +
+        `since \`Navbar.Item\` comes out \`undefined\` there. \`Card\`, \`Modal\`, \`Sidebar\`, ` +
+        `\`Message\`, \`Figure\` and the list components' items have no such exports yet, so use ` +
+        `them in a client component, where the dotted names work as usual. The starter page ` +
+        `(\`src/App\`) and the navbar (\`src/Navigation\`) keep state, so they're client components, ` +
+        `and the About page is a Server Component. Link with ` +
         `\`<Navbar.Item as={NextLink} href="...">\`, with \`active\` and \`aria-current\` from ` +
         `\`usePathname\` (https://bestax.io/docs/guides/features/routing).`
     );
