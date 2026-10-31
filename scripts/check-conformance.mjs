@@ -69,8 +69,8 @@
  *   turbo-tasks          every task the root `all` chain runs through turbo is
  *                        implemented by at least one package, so a renamed
  *                        script cannot leave the gate green and empty (#663),
- *                        and every package with tests reaches the gate's one
- *                        test run
+ *                        and every package with tests declares test:coverage,
+ *                        which pnpm all and CI run package tests through
  *   peer-ranges          every copy of a bestax-bulma peer that bulma-ui or
  *                        the docs site installs sits in the newest arm of
  *                        that peer range, so a release Dependabot brings in
@@ -4180,16 +4180,14 @@ export function turboTasksIn(scripts, entry) {
 }
 
 /**
- * The packages whose tests `all` never runs. When it runs tests only through
- * `test:coverage`, a package that declares `test` and no `test:coverage` is
- * skipped by pnpm all and by CI, with both green. Jest packages run their
- * whole suite under test:coverage, and a package with no coverage tool
- * aliases test:coverage to its test.
+ * The packages that declare `test` and no `test:coverage`. pnpm all and CI
+ * run package tests through test:coverage, so such a package's tests run in
+ * neither, with both green. A package with no coverage tool aliases
+ * test:coverage to its test.
  *
  * Exported for `scripts/turbo-tasks.test.mjs`.
  */
-export function testsOutsideTheGate(tasks, manifests) {
-  if (!tasks.has('test:coverage') || tasks.has('test')) return [];
+export function testsOutsideTheGate(manifests) {
   return manifests.filter(
     ({ scripts }) => scripts?.test && !scripts?.['test:coverage']
   );
@@ -4224,12 +4222,12 @@ async function checkTurboTasks() {
     }
   }
 
-  for (const { dir } of testsOutsideTheGate(tasks, manifests)) {
+  for (const { dir } of testsOutsideTheGate(manifests)) {
     violations.push(
-      `${dir}/package.json declares "test" and no "test:coverage", and ` +
-        `package.json \`all\` runs tests only through test:coverage, so its ` +
-        `tests run in neither pnpm all nor CI. Add "test:coverage": ` +
-        `"pnpm run test" when the package has no coverage tool.`
+      `${dir}/package.json declares "test" and no "test:coverage". pnpm all ` +
+        `and CI run package tests through test:coverage, so its tests run in ` +
+        `neither. Add "test:coverage": "pnpm run test" when the package has ` +
+        `no coverage tool.`
     );
   }
 

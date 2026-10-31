@@ -44,7 +44,7 @@ Node 22 locally (`.nvmrc`; CI runs Node 24) and `pnpm@11.9.0` (pinned via `packa
 pnpm all            # the pre-PR gate: build, typecheck, tests (once, with coverage), bundle:stats, conformance, the three staleness checks, lint, format:check, storybook build
 pnpm test           # jest (bulma-ui + create-bestax + bestax-migrate + bestax-mcp + eslint-plugin), then test:scripts
 pnpm test:scripts   # the root scripts/ node:test suite, with coverage held to per-file floors (see below)
-pnpm test:coverage  # coverage — thresholds live in each package's jest config (see below); the gate's only test run, so a package with no coverage tool aliases it to its `test`
+pnpm test:coverage  # coverage — thresholds live in each package's jest config (see below); pnpm all and CI run package tests through it, so a package with no coverage tool aliases it to its `test`
 pnpm lint           # eslint
 pnpm typecheck      # tsc --noEmit (each package's build program)
 pnpm typecheck:tests # tsc over bulma-ui's tests and stories, which `typecheck` excludes

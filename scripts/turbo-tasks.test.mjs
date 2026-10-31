@@ -173,8 +173,7 @@ test('a task with no filter anywhere has a null scope', () => {
 
 // --- testsOutsideTheGate -----------------------------------------------------
 
-const outside = (all, manifests) =>
-  testsOutsideTheGate(turboTasksIn({ all }, 'all'), manifests).map(m => m.dir);
+const outside = manifests => testsOutsideTheGate(manifests).map(m => m.dir);
 
 const MANIFESTS = [
   {
@@ -186,10 +185,8 @@ const MANIFESTS = [
   { dir: 'no-scripts' },
 ];
 
-test('a package with tests and no test:coverage is outside a coverage-only gate', () => {
-  assert.deepEqual(outside('turbo run build test:coverage', MANIFESTS), [
-    'node-pkg',
-  ]);
+test('a package with tests and no test:coverage is outside the gate', () => {
+  assert.deepEqual(outside(MANIFESTS), ['node-pkg']);
 });
 
 test('an alias brings a package inside the gate', () => {
@@ -198,10 +195,5 @@ test('an alias brings a package inside the gate', () => {
       ? { ...m, scripts: { ...m.scripts, 'test:coverage': 'pnpm run test' } }
       : m
   );
-  assert.deepEqual(outside('turbo run test:coverage', aliased), []);
-});
-
-test('a gate that runs `test` itself leaves no package outside', () => {
-  assert.deepEqual(outside('turbo run test test:coverage', MANIFESTS), []);
-  assert.deepEqual(outside('turbo run test', MANIFESTS), []);
+  assert.deepEqual(outside(aliased), []);
 });
