@@ -207,17 +207,13 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # The root suite reads the built packages (coverage-floors.mjs says how
-      # it fails without them).
-      - name: Build
-        run: pnpm run build
+      # it fails without them) and never the docs site, which the build part
+      # builds.
+      - name: Build the packages
+        run: pnpm exec turbo run build --filter=!@allxsmith/bestax-docs
 
       - name: Root scripts tests
         run: pnpm run test:scripts
-
-      # The packages whose `test` has no coverage variant. The test job runs
-      # every other package's tests through test:coverage.
-      - name: Tests without a coverage task
-        run: pnpm run test:without-coverage
 
   test:
     name: Build and Test (${{ matrix.part }})
@@ -359,7 +355,7 @@ jobs:
     # depends on a React-19-only API (or breaks React 18) fails CI.
     name: React ${{ matrix.react }} compatibility
     runs-on: ubuntu-latest
-    # Same reason as build-and-test's cap.
+    # Same reason as the checks job's cap.
     timeout-minutes: 25
     strategy:
       fail-fast: false
@@ -388,7 +384,7 @@ jobs:
         run: node .github/scripts/pin-react.mjs ${{ matrix.react }}
 
       - name: Install dependencies
-        # Same reason as build-and-test's install cap.
+        # Same reason as the checks job's install cap.
         timeout-minutes: 10
         run: pnpm install --no-frozen-lockfile
 
@@ -412,7 +408,7 @@ jobs:
       - name: Build bulma-ui
         run: pnpm --filter @allxsmith/bestax-bulma run build
 
-      # Both projects, for the reason the build-and-test job states: the second
+      # Both projects, for the reason the build job states: the second
       # is a strict superset of the first in FILES, but only the first checks
       # the published program without `types/assets.d.ts` in scope.
       - name: Typecheck bulma-ui
@@ -593,11 +589,12 @@ jobs:
       # A failure here stops the job before bestax-mcp and eslint-plugin
       # release, and skips the restamp push at the end of the job. In a run
       # that released bulma-ui, main is then stale as described above, so
-      # build-and-test fails gen:mcp:check on the pushes to main that follow
-      # and publish, which needs it, is skipped. Neither package releases
-      # until someone runs `pnpm gen:mcp` on main and merges the result.
-      # build-and-test has already run this generator over this commit in
-      # gen:mcp:check, so the released version is the only new input here.
+      # Build and Test fails gen:mcp:check (in its checks part) on the pushes
+      # to main that follow, and publish, which needs it, is skipped. Neither
+      # package releases until someone runs `pnpm gen:mcp` on main and merges
+      # the result. The checks part has already run this generator over this
+      # commit in gen:mcp:check, so the released version is the only new input
+      # here.
       #
       # No-ops when nothing released: with no version change the generator's
       # output is byte-identical and the guard exits early.
