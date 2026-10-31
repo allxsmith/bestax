@@ -186,17 +186,21 @@ jobs:
           # ---- CI state: whitelist the checks that matter. A cancelled
           #      check is NOT green (an operator cancelling a run must never
           #      read as success), and an unreadable checks API fails safe
-          #      to skip — the next event re-evaluates. ----
+          #      to skip — the next event re-evaluates. The prefix takes in
+          #      the "Build and Test (…)" parts beside the job that sums them
+          #      (ci.yml), so a part still running reads as pending, and so
+          #      does the summing job until it has reported at all. ----
           if ! CHECKS=$(gh pr checks "$PR" --repo "$REPO" --json name,bucket \
             --jq '[.[] | select(
-                    .name == "Build and Test"
+                    (.name | startswith("Build and Test"))
                     or (.name | startswith("React ") and endswith("compatibility"))
                     or .name == "Dependency Review"
                     or (.name | test("coderabbit"; "i")))]'); then
             skip "cannot read checks (none reported yet or API error)"
           fi
           FAILING=$(jq '[.[] | select(.bucket == "fail" or .bucket == "cancel")] | length' <<<"$CHECKS")
-          PENDING=$(jq '[.[] | select(.bucket == "pending")] | length' <<<"$CHECKS")
+          PENDING=$(jq '([.[] | select(.bucket == "pending")] | length)
+            + (if any(.[]; .name == "Build and Test") then 0 else 1 end)' <<<"$CHECKS")
 
           # ---- AI review threads: actionable vs pending-verify ----
           THREADS=$(gh api graphql \

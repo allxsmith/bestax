@@ -41,10 +41,10 @@ Node 22 locally (`.nvmrc`; CI runs Node 24) and `pnpm@11.9.0` (pinned via `packa
 ## Commands
 
 ```bash
-pnpm all            # the pre-PR gate: build, typecheck, test+coverage, bundle:stats, conformance, the three staleness checks, lint, format:check, storybook build
+pnpm all            # the pre-PR gate: build, typecheck, tests (once, with coverage), bundle:stats, conformance, the three staleness checks, lint, format:check, storybook build
 pnpm test           # jest (bulma-ui + create-bestax + bestax-migrate + bestax-mcp + eslint-plugin), then test:scripts
 pnpm test:scripts   # the root scripts/ node:test suite, with coverage held to per-file floors (see below)
-pnpm test:coverage  # coverage — thresholds live in each package's jest config (see below)
+pnpm test:coverage  # coverage — thresholds live in each package's jest config (see below); pnpm all and CI run package tests through it, so a package with no coverage tool aliases it to its `test`
 pnpm lint           # eslint
 pnpm typecheck      # tsc --noEmit (each package's build program)
 pnpm typecheck:tests # tsc over bulma-ui's tests and stories, which `typecheck` excludes
@@ -100,7 +100,7 @@ Enforced by CI (`.github/workflows/ci.yml`):
   narrower `typecheck` checks the shipped program without `types/assets.d.ts` — and its
   `declare module '*.svg'` — in scope.
 - House conventions fail via `pnpm check:conformance` (error messages name the file and fix);
-  a **React 18/19 matrix** builds and tests bulma-ui on both majors.
+  a **React 18/19 matrix** runs bulma-ui's tests on the newest release of both majors.
 
 Enforced in review (a green CI does **not** check these):
 

@@ -30,7 +30,7 @@ This guide explains what changes when you upgrade `@allxsmith/bestax-bulma` from
 "react-dom": "^18.0.0 || ^19.0.0"
 ```
 
-React 16.8 and 17 are no longer supported. The library is built and tested against **React 18 and 19** on every commit (see [Compatibility](#compatibility-react-18--19) below).
+React 16.8 and 17 are no longer supported. The library is tested against **React 18 and 19** on every commit (see [Compatibility](#compatibility-react-18--19) below).
 
 **Who is affected:**
 
@@ -49,7 +49,7 @@ React 16.8 and 17 are no longer supported. The library is built and tested again
 
 ## Compatibility: React 18 + 19
 
-Every change to bestax-bulma is now built, type-checked, and tested against **both React 18 and React 19** in CI. A change that breaks either major fails the build, so 4.x (and every release after it) is verified against both lines — pick whichever your app uses.
+Every change to bestax-bulma is now tested against **both React 18 and React 19** in CI. A change that breaks either major fails CI, so 4.x (and every release after it) is verified against both lines — pick whichever your app uses.
 
 ## No other changes
 

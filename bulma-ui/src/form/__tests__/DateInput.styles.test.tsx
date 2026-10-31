@@ -2,25 +2,13 @@
 // DateTimeInput passed `color` in, and no rule read it. A class reaching the
 // DOM proves nothing about the stylesheet, so these compile the real SCSS and
 // check what it does, the way TimeInput.styles.test.tsx does for the wheels.
-import * as sass from 'sass';
-import path from 'path';
 import type { ReactElement } from 'react';
 import { fireEvent, render } from '@testing-library/react';
+import { compileScss, compileSheet } from '../../__tests__/compile-scss';
 import { DateInput } from '../DateInput';
 import { DateTimeInput } from '../DateTimeInput';
 import { DateRangeInput } from '../DateRangeInput';
 import { ConfigProvider } from '../../helpers/Config';
-
-const SCSS = path.resolve(__dirname, '../../scss');
-const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
-const OPTIONS = {
-  loadPaths: [SCSS, NODE_MODULES],
-  quietDeps: true,
-  logger: sass.Logger.silent,
-};
-
-const compile = (file: string) =>
-  sass.compile(path.resolve(SCSS, file), OPTIONS).css;
 
 const colors = [
   'primary',
@@ -82,7 +70,7 @@ const inject = (css: string) => {
 let sheet: CSSStyleSheet;
 
 beforeAll(() => {
-  sheet = inject(compile('form/_dateinput.scss')).sheet as CSSStyleSheet;
+  sheet = inject(compileSheet('form/_dateinput.scss')).sheet as CSSStyleSheet;
 });
 
 afterAll(() => {
@@ -121,11 +109,10 @@ describe.each(pickers)('%s calendar colour styles', (_name, picker) => {
 describe('calendar colour styles under a class prefix', () => {
   it('matches the prefixed modifier the calendar emits', () => {
     inject(
-      sass.compileString(
+      compileScss(
         `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: 'bestax-');
-         @use 'form/dateinput';`,
-        OPTIONS
-      ).css
+         @use 'form/dateinput';`
+      )
     );
     const { container } = render(
       <ConfigProvider classPrefix="bestax-">
@@ -218,7 +205,7 @@ describe('calendar variables', () => {
     const set = setProperties(sheet.cssRules);
     expect(set).toContain('--bulma-dateinput-focus-ring-color');
 
-    const shipped = compile('bestax.scss');
+    const shipped = compileSheet('bestax.scss');
     const unread = set.filter(
       name => !new RegExp(`var\\(\\s*${name}\\s*[,)]`).test(shipped)
     );
@@ -230,7 +217,7 @@ describe('calendar variables', () => {
     // `color` says, which is how the focus rings stayed primary. Custom
     // properties are where the colours are meant to be named.
     const direct = new RegExp(`var\\(--bulma-(?:${colors.join('|')})\\b`);
-    const offenders = compile('form/_dateinput.scss')
+    const offenders = compileSheet('form/_dateinput.scss')
       .split('\n')
       .map(line => line.trim())
       .filter(line => !line.startsWith('--') && direct.test(line));
