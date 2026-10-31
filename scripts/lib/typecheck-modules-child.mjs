@@ -8,8 +8,8 @@
  * A child rather than a call because the root suite runs under node's test
  * coverage, which instruments every function its process runs, and the
  * TypeScript checker runs about three times slower instrumented. The test
- * starts this with NODE_V8_COVERAGE empty, so the checker runs at full speed
- * and nothing here is measured against the scripts/ coverage floors.
+ * starts this with coverage off (without-coverage.mjs), so the checker runs
+ * at full speed and nothing here is measured against the coverage floors.
  */
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';

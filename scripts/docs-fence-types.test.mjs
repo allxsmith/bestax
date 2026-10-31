@@ -53,6 +53,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
 import { fenceSpans, splitLines } from './lib/api-page.mjs';
 import { appCompilerOptions } from './lib/template-tsconfig.mjs';
+import { withoutCoverage } from './lib/without-coverage.mjs';
 import { toExampleModule } from '../docs/src/theme/CodeBlock/sandbox/example.mjs';
 import {
   DOCS_ONLY_NAMES,
@@ -178,18 +179,15 @@ const CHILD = join(REPO, 'scripts', 'lib', 'typecheck-modules-child.mjs');
  *
  * The checker runs in a child with coverage off: under this suite's coverage
  * it runs about three times slower, and it is TypeScript's code, not this
- * repo's. typecheck-modules-child.mjs says more. The variable is set empty
- * rather than deleted because node copies NODE_V8_COVERAGE into a child's
- * environment whenever the one passed lacks the key.
+ * repo's. typecheck-modules-child.mjs says more.
  */
 function typecheck(options, modules) {
-  const env = { ...process.env, NODE_V8_COVERAGE: '' };
   const run = spawnSync(process.execPath, [CHILD], {
     input: JSON.stringify({
       options,
       modules: [...modules].map(([name, { source }]) => [name, source]),
     }),
-    env,
+    env: withoutCoverage(),
     encoding: 'utf8',
     maxBuffer: 256 * 1024 * 1024,
   });

@@ -45,6 +45,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { describe, it } from 'node:test';
+import { withoutCoverage } from './lib/without-coverage.mjs';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const PKG_DIR = join(REPO, 'bulma-ui');
@@ -53,13 +54,11 @@ const manifest = JSON.parse(
 );
 
 /**
- * The environment every `tsc` child runs in, with coverage off. The root suite
- * runs under node's test coverage, which node hands to every child it spawns
- * (it copies NODE_V8_COVERAGE whenever the environment passed lacks the key),
- * and the compiler runs about three times slower instrumented, none of its
- * code being this repo's.
+ * The environment every `tsc` child runs in, with coverage off: the compiler
+ * runs about three times slower instrumented, none of its code being this
+ * repo's.
  */
-const TSC_ENV = { ...process.env, NODE_V8_COVERAGE: '' };
+const TSC_ENV = withoutCoverage();
 
 /** Absolute path for an export-map target such as `./dist/constants.cjs`. */
 const target = spec => resolve(PKG_DIR, spec);
