@@ -258,7 +258,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # The root suite reads the built packages (coverage-floors.mjs says how
-      # it fails without them) and never the docs site, which the build part
+      # it fails without them) and never the docs site, which the docs part
       # builds.
       - name: Build the packages
         run: pnpm exec turbo run build --filter=!@allxsmith/bestax-docs
@@ -375,7 +375,7 @@ jobs:
       - name: Storybook smoke test (${{ matrix.theme }})
         env:
           THEME: ${{ matrix.theme }}
-        run: pnpm --filter @allxsmith/bestax-bulma exec node scripts/test-storybook-ci.mjs --theme="$THEME"
+        run: pnpm --filter @allxsmith/bestax-bulma run test-storybook:ci --theme="$THEME"
 
       # Both legs build the same static Storybook, so one keeps it.
       - name: Archive Storybook
@@ -406,10 +406,11 @@ jobs:
           jq -e 'all(.[]; .result == "success")' <<<"$NEEDS" > /dev/null
 
   react-compat:
-    # bestax-bulma supports React 18 and 19 (see peerDependencies), and a
-    # change that depends on a React-19-only API, or breaks React 18, fails
-    # here. React 19 is the major the lockfile resolves, so Build and Test
-    # runs bulma-ui's tests on it every time, and only 18 needs a leg.
+    # bestax-bulma supports React 18 and 19 (see peerDependencies). Each leg
+    # re-resolves its major to the newest release the cooldown admits and
+    # runs bulma-ui's tests on it, so a change that depends on a React-19-only
+    # API, breaks React 18, or meets a new minor that breaks the library fails
+    # here, before Dependabot brings that minor into the lockfile.
     name: React ${{ matrix.react }} compatibility
     runs-on: ubuntu-latest
     # Same reason as the checks job's cap.
@@ -417,7 +418,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        react: ['18']
+        react: ['18', '19']
 
     steps:
       - name: Checkout code

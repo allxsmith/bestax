@@ -100,8 +100,7 @@ Enforced by CI (`.github/workflows/ci.yml`):
   narrower `typecheck` checks the shipped program without `types/assets.d.ts` — and its
   `declare module '*.svg'` — in scope.
 - House conventions fail via `pnpm check:conformance` (error messages name the file and fix);
-  bulma-ui's tests run on **both React majors**: on 19, which the lockfile resolves, in Build
-  and Test, and on 18 in the React 18 compatibility leg.
+  a **React 18/19 matrix** runs bulma-ui's tests on the newest release of both majors.
 
 Enforced in review (a green CI does **not** check these):
 

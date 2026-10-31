@@ -42,9 +42,9 @@ Measures active in this repository and its release pipeline:
   (undeclared) dependencies from being imported.
 - **Frozen lockfile in CI** — builds and releases install with
   `pnpm install --frozen-lockfile`, so what ships is exactly what the
-  reviewed lockfile resolves. (The React 18 compatibility leg is the one
-  deliberate exception: it re-resolves to pin React 18 for testing, and never
-  publishes.)
+  reviewed lockfile resolves. (The React 18/19 compatibility matrix is the
+  one deliberate exception: it re-resolves to pin the requested React major
+  for testing, and never publishes.)
 - **npm provenance** — every release now carries a signed attestation linking
   the tarball to the exact commit and CI run that built it (versions older than
   the currently supported lines predate it). Releases come from CI
@@ -138,8 +138,8 @@ Measures active in this repository and its release pipeline:
   with known advisories.
 - **Dependabot** — weekly, grouped dependency update PRs.
 - **Protected `main`** — unsigned commits, force pushes, and branch deletion
-  are rejected. Merges require green CI (`Build and Test`,
-  `React 18 compatibility` and `Dependency Review`) plus an approving review.
+  are rejected. Merges require green CI (`Build and Test`, the React 18/19
+  compatibility matrix, and `Dependency Review`) plus an approving review.
   These rules live in a repository ruleset. It has exactly one automation
   bypass: a GitHub App that carries out the release. Its token pushes
   semantic-release's signed `chore(release)` commit and tag — the only writes

@@ -228,7 +228,7 @@ Nothing in the rules reaches past an ESLint 8.40-era API — `context.sourceCode
 review said so. It stays at `^10` anyway, because:
 
 - Nothing here is tested against 9.x. There is no ESLint 9 in the lockfile and
-  no ESLint 9 leg analogous to bulma-ui's React 18 one, and this package has
+  no 9/10 matrix analogous to bulma-ui's React 18/19 one, and this package has
   now been through several rounds of "the claim was true of the code I ran and
   false of the code I shipped".
 - `engines.node` is `>=22`, matching the repo. ESLint 9's own floor is Node 18,

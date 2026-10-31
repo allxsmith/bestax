@@ -15,12 +15,19 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(fileURLToPath(new URL('.', import.meta.url)), '..');
 const staticDir = join(root, 'storybook-static');
 
-const themeArg = process.argv
+// Any other spelling (`--theme dark`, a bare `--theme`, two of them) fails
+// rather than falling back to both passes, which would undo the CI split.
+const themeArgs = process.argv
   .slice(2)
-  .find(arg => arg.startsWith('--theme='))
-  ?.slice('--theme='.length);
-if (themeArg !== undefined && themeArg !== 'light' && themeArg !== 'dark') {
-  console.error(`--theme takes light or dark, not "${themeArg}".`);
+  .filter(arg => arg === '--theme' || arg.startsWith('--theme='));
+const themeArg = themeArgs[0]?.slice('--theme='.length);
+if (
+  themeArgs.length > 1 ||
+  (themeArgs.length === 1 && themeArg !== 'light' && themeArg !== 'dark')
+) {
+  console.error(
+    `Pass the theme once, as --theme=light or --theme=dark (got ${themeArgs.join(' ')}).`
+  );
   process.exit(1);
 }
 const themes = themeArg ? [themeArg] : ['light', 'dark'];

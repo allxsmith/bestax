@@ -381,8 +381,8 @@ jobs:
                for bulma-ui changes also `pnpm run build` and
                `pnpm --filter @allxsmith/bestax-bulma run build-storybook`.
                Fix failures; full CI is the backstop. CI additionally runs
-               bundle:stats, a high-severity audit, and bulma-ui's tests on
-               React 18 as well as 19 — write code that works on both React
+               bundle:stats, a high-severity audit, and a React 18/19
+               compatibility matrix — write code that works on both React
                majors.
             5. COMMIT + PUSH with the git CLI — create the branch and push it
                yourself with plain git:

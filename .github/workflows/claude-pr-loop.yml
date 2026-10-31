@@ -679,8 +679,8 @@ jobs:
                bulma-ui changes also pnpm run build and
                pnpm --filter @allxsmith/bestax-bulma run build-storybook —
                and push to BRANCH. CI additionally runs bundle:stats, a
-               high-severity audit, and bulma-ui's tests on React 18 as
-               well as 19 — write code that works on both React majors.
+               high-severity audit, and a React 18/19 compatibility
+               matrix — write code that works on both React majors.
             5. Finally, post ONE `gh pr comment` that RECAPS the pass in plain
                English: a short table of fixed findings, refuted findings (with
                thread links), and the gates you ran. This recaps the per-thread

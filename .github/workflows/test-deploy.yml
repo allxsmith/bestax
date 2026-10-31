@@ -115,8 +115,8 @@ jobs:
     # that breaks the Docusaurus or Storybook build is still caught.
     #
     # This reports as *skipped*, not success. Fine while the check is not
-    # required (the main ruleset requires Build and Test, React 18
-    # compatibility and Dependency Review). If it is ever promoted to required, move
+    # required (the main ruleset requires Build and Test, the React 18/19
+    # matrix, and Dependency Review). If it is ever promoted to required, move
     # this condition down to the steps so the job itself still concludes green.
     #
     # Adding the Cloudflare credentials to the Dependabot secrets store would
