@@ -103,7 +103,7 @@ secrets); issues have no such restriction. Repository variables control it:
 
 ### Reproduction (author-only)
 
-A triage+ user can apply `claude-repro` to an issue to have Claude **draft** a minimal Jest
+A triage+ user can apply `claude-repro` to an issue to have Claude **draft** a minimal Vitest
 reproduction test. `github-actions[bot]` posts the draft as a comment for a human to review and
 run — **CI does not execute it**. This is deliberately author-only; the token that pays for the
 model never shares a job with code execution, and the drafted (untrusted-influenced) test is

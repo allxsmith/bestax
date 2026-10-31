@@ -160,7 +160,7 @@ react (#1012), so restore them on its PR; when the peer range itself moves, chan
 
 ## Testing
 
-- Unit: `pnpm --filter create-bestax test` (jest, ESM via `--experimental-vm-modules`).
+- Unit: `pnpm --filter create-bestax test` (Vitest).
 - E2E: `pnpm --filter create-bestax test:e2e` (Playwright, `e2e/` — scaffolds real apps and
   boots them; see `e2e/README.md`).
 - Manual smoke: build, then scaffold **outside the repo**

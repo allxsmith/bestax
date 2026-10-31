@@ -60,9 +60,9 @@ pnpm run all
 ```bash
 pnpm run build          # turbo build all packages
 pnpm run typecheck
-pnpm run test           # jest in every package + the docs and scripts/ node:test suites
+pnpm run test           # Vitest in the packages + the docs and scripts/ node:test suites
 pnpm run test:scripts   # the scripts/ suite alone, held to its per-file coverage floors
-pnpm run test:coverage  # coverage (bulma-ui 99%; every other jest package 95%, 78% branches)
+pnpm run test:coverage  # coverage (bulma-ui 99%; every other published package 95%, 78% branches)
 pnpm run lint
 pnpm run format:check   # prettier check (use `pnpm run format` to auto-fix)
 pnpm run bundle:stats   # writes bulma-ui/dist/stats.html
@@ -160,7 +160,7 @@ and `scripts/require-pnpm-publish.mjs`.
 ## Workflow & conventions
 
 1. Branch off `main`, make your change in the right workspace (`bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`, `bestax-mcp`, or `eslint-plugin`).
-2. Add/update tests (bulma-ui holds 99% coverage; every other jest package 95%, 78% branches) and Storybook stories for UI changes.
+2. Add/update tests (bulma-ui holds 99% coverage; every other published package 95%, 78% branches) and Storybook stories for UI changes.
 3. Run `pnpm all`, then open a PR targeting `main`.
 
 Commits follow [Conventional Commits](https://www.conventionalcommits.org/), and the type and scope
