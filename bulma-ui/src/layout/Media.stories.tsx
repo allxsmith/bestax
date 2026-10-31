@@ -207,14 +207,14 @@ export const WithButtonBelow: StoryObj<typeof Media> = {
       </Media.Left>
       <Media.Content>
         <Field>
-          <p className="control">
-            <TextArea className="textarea" placeholder="Add a comment..." />
-          </p>
+          <Control as="p">
+            <TextArea placeholder="Add a comment..." />
+          </Control>
         </Field>
         <Field>
-          <p className="control">
+          <Control as="p">
             <Button>Post comment</Button>
-          </p>
+          </Control>
         </Field>
       </Media.Content>
     </Media>
