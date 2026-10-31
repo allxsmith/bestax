@@ -55,7 +55,6 @@
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "semantic-release": "^25.0.9",
-    "ts-jest": "^29.4.15",
     "turbo": "^2.11.9",
     "typescript": "^6.0.3",
     "wrangler": "^4.151.1"
