@@ -60,7 +60,7 @@ pnpm run all
 ```bash
 pnpm run build          # turbo build all packages
 pnpm run typecheck
-pnpm run test           # Vitest in the packages + the docs and scripts/ node:test suites
+pnpm run test           # every package's suite, then the scripts/ suite
 pnpm run test:scripts   # the scripts/ suite alone, held to its per-file coverage floors
 pnpm run test:coverage  # coverage (bulma-ui 99%; every other published package 95%, 78% branches)
 pnpm run lint

@@ -15,9 +15,9 @@
  * artifact is byte-identical to what a reader sees on the default tab, without
  * anything having to keep the two in sync.
  *
- * `.mjs`, not `.js`: `docs/package.json` has no `"type": "module"`, so node
- * would load a `.js` file as CommonJS and `node --test` could not import it.
- * Webpack resolves the explicit extension natively.
+ * `.mjs`, not `.js`: `docs/package.json` has no `"type": "module"`, so Node
+ * would load a `.js` file as CommonJS. Webpack resolves the explicit extension
+ * natively.
  *
  * A `command` may hold several lines separated by `;`. A segment whose first
  * token is a known verb gets translated; anything else (`cd my-app`, a `#`
@@ -217,8 +217,7 @@ export function renderCommand(command, manager) {
  * without the prefix are passthrough (`cd my-app`) and survive as themselves.
  *
  * Exported so it is unit-testable and so the component and its tests share one
- * definition — the round trip is the design's central invariant, and an inverse
- * that only existed inside a JSX file could not be exercised by `node --test`.
+ * definition — the round trip is the design's central invariant.
  */
 export function unrenderPnpm(pnpmForm) {
   return pnpmForm
