@@ -247,12 +247,24 @@ describe('bulma-ui tree shaking', () => {
         `${relative(REPO, file)}: ${statement.getText().split('\n')[0]}`;
       const isLocal = node => ts.isIdentifier(node) && !imported.has(node.text);
 
-      for (const statement of source.statements) {
+      for (const [index, statement] of source.statements.entries()) {
         if (
           ts.isImportDeclaration(statement) ||
           ts.isExportDeclaration(statement) ||
           ts.isFunctionDeclaration(statement) ||
           ts.isClassDeclaration(statement)
+        ) {
+          continue;
+        }
+        // The build's `'use client'` (rollup.config.js, `runsOnClient`) tells
+        // React Server Components where a module runs, and does nothing when
+        // the module loads. Only as the first statement, where it's a
+        // directive: anywhere else it's a stray string.
+        if (
+          index === 0 &&
+          ts.isExpressionStatement(statement) &&
+          ts.isStringLiteral(statement.expression) &&
+          statement.expression.text === 'use client'
         ) {
           continue;
         }

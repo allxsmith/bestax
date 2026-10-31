@@ -182,30 +182,17 @@ Set a `locale` when an `inline` picker renders on the server. With none, `Intl` 
 
 For an app that's in one language throughout, also set `lang` and `dir` on `<html>` in your page shell. That reaches what sits outside any provider, and the provider still carries them onto portaled content.
 
-In the Next.js App Router, `LocaleProvider` is a client component, since it holds React context, so render it from a file marked `'use client'` and use that in the root layout, which stays a Server Component:
-
-```tsx title="app/providers.tsx"
-'use client';
-
-import { LocaleProvider } from '@allxsmith/bestax-bulma';
-
-export function Providers({ children }: { children: React.ReactNode }) {
-  return <LocaleProvider locale="ar-EG">{children}</LocaleProvider>;
-}
-```
+In the Next.js App Router, render it straight from the root layout, which stays a Server Component. `LocaleProvider` holds React context, so it's a client component, and bestax-bulma marks it one, so the layout can render it without a `'use client'` wrapper of its own. Its props are plain values a Server Component can pass:
 
 ```tsx title="app/layout.tsx"
-import { Providers } from './providers';
+import type { ReactNode } from 'react';
+import { LocaleProvider } from '@allxsmith/bestax-bulma';
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ar-EG" dir="rtl">
       <body>
-        <Providers>{children}</Providers>
+        <LocaleProvider locale="ar-EG">{children}</LocaleProvider>
       </body>
     </html>
   );
