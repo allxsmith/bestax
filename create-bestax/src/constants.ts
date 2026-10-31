@@ -405,8 +405,11 @@ export interface ClaudeMdOptions {
 }
 
 // The house style opens with the inline-style table for a flavor that has the
-// helper classes, and with the named-class rule for one that does not.
-const HELPER_HOUSE_STYLE = `**Never inline \`style={{}}\`** — the components accept helper props that cover the common
+// helper classes, and with the named-class rule for one that does not. Each
+// names the stylesheet a named class goes in, which differs by framework.
+const helperHouseStyle = (
+  stylesheet: string
+): string => `**Never inline \`style={{}}\`** — the components accept helper props that cover the common
 cases. Before writing \`style\`, translate each declaration with this table:
 
 | Inline style you're about to write         | Helper props instead                                                                                                                       |
@@ -429,11 +432,13 @@ cases. Before writing \`style\`, translate each declaration with this table:
   \`Notification\` is the mixed case: it takes \`textColor\`, but its background comes from
   the semantic \`color\` prop, not \`bgColor\`.
 - No helper matches (e.g. \`maxWidth\`, a one-off gradient)? Add a named class to
-  \`src/App.css\` and pass it via \`className\` — still never inline \`style\`.`;
+  ${stylesheet} and pass it via \`className\` — still never inline \`style\`.`;
 
-const NO_HELPERS_HOUSE_STYLE = `**Never inline \`style={{}}\`**, and don't reach for helper props in its place either:
+const noHelpersHouseStyle = (
+  stylesheet: string
+): string => `**Never inline \`style={{}}\`**, and don't reach for helper props in its place either:
 this app's flavor leaves out Bulma's helper classes, so \`mt="4"\`, \`textAlign="centered"\` and \`flexGrow="1"\`
-render nothing. Write a named class in \`src/App.css\`, which loads after Bulma's CSS, and pass it via \`className\`.
+render nothing. Write a named class in ${stylesheet}, which loads after Bulma's CSS, and pass it via \`className\`.
 `;
 
 export const CLAUDE_MD = (
@@ -443,6 +448,11 @@ export const CLAUDE_MD = (
   const next = framework === 'next';
   // Where the app's <html> and <body> are, and its title.
   const documentFile = next ? '`src/app/layout`' : '`index.html`';
+  // Where a named class reaches every page. A Vite app is one bundle, so the
+  // starter page's src/App.css does. The App Router splits CSS by route, and
+  // only the home page loads src/App.css, so a Next.js app's go in
+  // src/index.css, which the root layout loads on every page.
+  const stylesheet = next ? '`src/index.css`' : '`src/App.css`';
   const flavor = BULMA_FLAVORS.find(f => f.name === bulmaFlavor);
   const icon = ICON_LIBRARIES.find(lib => lib.name === iconLibrary);
   const setupLines = [
@@ -499,8 +509,8 @@ export const CLAUDE_MD = (
     );
   }
   const houseStyleOpening = flavor?.noHelpers
-    ? NO_HELPERS_HOUSE_STYLE
-    : HELPER_HOUSE_STYLE;
+    ? noHelpersHouseStyle(stylesheet)
+    : helperHouseStyle(stylesheet);
   // The wrapper elements are only a way out where their helper props render.
   const utilityClassRule = flavor?.noHelpers
     ? `- Don't hand-write Bulma utility classes either: this flavor doesn't ship them, so a
