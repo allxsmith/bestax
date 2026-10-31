@@ -11,6 +11,7 @@
 
 import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -82,9 +83,14 @@ const resultOf = (
   diagnostics: `${stdout}\n${stderr}`.trim(),
 });
 
-/** How both paths below start tsc over one project. */
+/**
+ * How both paths below start tsc over one project: its own script, run with
+ * this Node, as `corpus-templates.test.ts` runs it. `pnpm exec` would cost
+ * every snippet a pnpm start of its own.
+ */
+const tscBin = createRequire(import.meta.url).resolve('typescript/bin/tsc');
 const tscCommand = (dir: string) =>
-  ['pnpm', ['exec', 'tsc', '-p', dir], { cwd: packageRoot }] as const;
+  [process.execPath, [tscBin, '-p', dir], { cwd: packageRoot }] as const;
 
 /** tsc over one project, without blocking, so runs can go side by side. */
 function tsc(dir: string): Promise<TypecheckResult> {
@@ -162,6 +168,8 @@ export function typecheckTsx(source: string, label: string): TypecheckResult {
     writeProject(dir, { check: source });
     const [command, args, options] = tscCommand(dir);
     const result = spawnSync(command, args, { ...options, encoding: 'utf8' });
+    // A tsc that never ran, or whose output overflowed, as the batch throws.
+    if (result.error) throw result.error;
     return resultOf(result.status, result.stdout ?? '', result.stderr ?? '');
   } finally {
     removeDir(dir);
