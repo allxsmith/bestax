@@ -11,9 +11,9 @@
  * that script. An `@ts-expect-error` that stops being an error fails the build
  * as TS2578.
  *
- * The React 18/19 matrix is NOT a second opinion on any of it: `pin-react.mjs`
- * pins `react` and `react-dom` only, never `@types/react`, so both legs read
- * one identical set of types.
+ * The React 18/19 matrix does not typecheck this file: its legs run the tests,
+ * and `pin-react.mjs` pins `react` and `react-dom` only, never `@types/react`,
+ * so a leg would read the same types anyway.
  *
  * Nothing renders these; jest's testMatch does not reach this directory and
  * `collectCoverageFrom` excludes it.

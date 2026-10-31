@@ -100,7 +100,7 @@ Enforced by CI (`.github/workflows/ci.yml`):
   narrower `typecheck` checks the shipped program without `types/assets.d.ts` — and its
   `declare module '*.svg'` — in scope.
 - House conventions fail via `pnpm check:conformance` (error messages name the file and fix);
-  a **React 18/19 matrix** builds and tests bulma-ui on both majors.
+  a **React 18/19 matrix** runs bulma-ui's tests on the newest release of both majors.
 
 Enforced in review (a green CI does **not** check these):
 

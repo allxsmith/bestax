@@ -135,7 +135,7 @@ These keep it working, and each of them failed once:
 - Stories: types from `@storybook/react-vite`; `tags: ['autodocs']`; every argType gets a
   `description` (meta-test enforced). No inline `style={{}}` in stories/docs examples — helper
   props; legacy inline styles exist, don't copy them.
-- Must build and pass tests on **React 18 and 19** (CI matrix) — avoid single-major APIs.
+- Must pass tests on **React 18 and 19** (CI matrix) — avoid single-major APIs.
 - Bundle size is part of the pitch (the READMEs sell the library as tree-shakeable), so check
   `pnpm bundle:stats` (writes `dist/stats.html`) when adding anything with real runtime weight.
 - A peer range names what somebody checked: one caret arm per major, or per minor for a 0.x

@@ -77,15 +77,6 @@ jobs:
       - name: Conformance checks
         run: pnpm run check:conformance
 
-      # The templates are linted with the bestax rules, which
-      # templates/eslint.config.js loads from eslint-plugin/dist. The
-      # packages' own lint needs no build.
-      - name: Build the ESLint plugin
-        run: pnpm exec turbo run build --filter=@allxsmith/eslint-plugin-bestax
-
-      - name: Lint
-        run: pnpm run lint
-
       - name: Format Check
         run: pnpm run format:check
 
@@ -104,6 +95,42 @@ jobs:
 
       - name: Audit (high severity)
         run: pnpm audit --audit-level=high
+
+  lint:
+    name: Build and Test (lint)
+    runs-on: ubuntu-latest
+    # Same reason as the checks job's cap.
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # This job runs PR code; don't leave the token in .git/config.
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        # Same reason as the checks job's install cap.
+        timeout-minutes: 10
+        run: pnpm install --frozen-lockfile
+
+      # The templates are linted with the bestax rules, which
+      # templates/eslint.config.js loads from eslint-plugin/dist. The
+      # packages' own lint needs no build.
+      - name: Build the ESLint plugin
+        run: pnpm exec turbo run build --filter=@allxsmith/eslint-plugin-bestax
+
+      - name: Lint
+        run: pnpm run lint
 
   build:
     name: Build and Test (build)
@@ -132,8 +159,9 @@ jobs:
         timeout-minutes: 10
         run: pnpm install --frozen-lockfile
 
-      - name: Build
-        run: pnpm run build
+      # The docs site builds in the docs part.
+      - name: Build the packages
+        run: pnpm exec turbo run build --filter=!@allxsmith/bestax-docs
 
       # Do not fold this into the step below on the grounds that it checks a
       # subset. It does — `tsconfig.test.json` extends the build config and
@@ -165,10 +193,39 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: bundle-stats
-          path: |
-            bulma-ui/dist/stats.html
-            docs/build/stats.html
+          path: bulma-ui/dist/stats.html
           retention-days: 7
+
+  docs:
+    name: Build and Test (docs)
+    runs-on: ubuntu-latest
+    # Same reason as the checks job's cap.
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # This job runs PR code; don't leave the token in .git/config.
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        # Same reason as the checks job's install cap.
+        timeout-minutes: 10
+        run: pnpm install --frozen-lockfile
+
+      # turbo builds the library first, which the site depends on.
+      - name: Build the docs site
+        run: pnpm exec turbo run build --filter=@allxsmith/bestax-docs
 
   scripts:
     name: Build and Test (scripts)
@@ -201,7 +258,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # The root suite reads the built packages (coverage-floors.mjs says how
-      # it fails without them) and never the docs site, which the build part
+      # it fails without them) and never the docs site, which the docs part
       # builds.
       - name: Build the packages
         run: pnpm exec turbo run build --filter=!@allxsmith/bestax-docs
@@ -271,10 +328,14 @@ jobs:
           retention-days: 7
 
   storybook:
-    name: Build and Test (storybook)
+    name: Build and Test (storybook ${{ matrix.theme }})
     runs-on: ubuntu-latest
     # Same reason as the checks job's cap.
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        theme: [light, dark]
 
     steps:
       - name: Checkout code
@@ -307,14 +368,18 @@ jobs:
         run: pnpm --filter @allxsmith/bestax-bulma exec playwright install --with-deps chromium
 
       # Smoke gate (#283): every story renders without errors and without
-      # console errors, once in light and once with data-theme="dark" —
-      # dark-mode-only CSS bugs are invisible to jsdom, so this is the only
-      # automated coverage for that defect class. Not visual regression
+      # console errors, in light and with data-theme="dark", one theme per
+      # leg — dark-mode-only CSS bugs are invisible to jsdom, so this is the
+      # only automated coverage for that defect class. Not visual regression
       # (no screenshot baselines); see visual-regression.yml for that.
-      - name: Storybook smoke test (light + dark)
-        run: pnpm --filter @allxsmith/bestax-bulma run test-storybook:ci
+      - name: Storybook smoke test (${{ matrix.theme }})
+        env:
+          THEME: ${{ matrix.theme }}
+        run: pnpm --filter @allxsmith/bestax-bulma run test-storybook:ci --theme="$THEME"
 
+      # Both legs build the same static Storybook, so one keeps it.
       - name: Archive Storybook
+        if: matrix.theme == 'light'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: storybook
@@ -327,7 +392,7 @@ jobs:
     # check that was skipped does not block a merge.
     name: Build and Test
     runs-on: ubuntu-latest
-    needs: [checks, build, scripts, test, storybook]
+    needs: [checks, lint, build, docs, scripts, test, storybook]
     if: always()
     timeout-minutes: 5
 
@@ -341,9 +406,11 @@ jobs:
           jq -e 'all(.[]; .result == "success")' <<<"$NEEDS" > /dev/null
 
   react-compat:
-    # bestax-bulma supports React 18 and 19 (see peerDependencies). Build,
-    # typecheck and test the library against both majors so a change that
-    # depends on a React-19-only API (or breaks React 18) fails CI.
+    # bestax-bulma supports React 18 and 19 (see peerDependencies). Each leg
+    # re-resolves its major to the newest release the cooldown admits and
+    # runs bulma-ui's tests on it, so a change that depends on a React-19-only
+    # API, breaks React 18, or meets a new minor that breaks the library fails
+    # here, before Dependabot brings that minor into the lockfile.
     name: React ${{ matrix.react }} compatibility
     runs-on: ubuntu-latest
     # Same reason as the checks job's cap.
@@ -396,24 +463,11 @@ jobs:
             }
           " ${{ matrix.react }}
 
-      - name: Build bulma-ui
-        run: pnpm --filter @allxsmith/bestax-bulma run build
-
-      # Both projects, for the reason the build job states: the second
-      # is a strict superset of the first in FILES, but only the first checks
-      # the published program without `types/assets.d.ts` in scope.
-      - name: Typecheck bulma-ui
-        run: pnpm --filter @allxsmith/bestax-bulma run typecheck
-
-      # `pin-react.mjs` pins react/react-dom and never @types/react, so today
-      # both legs read one set of types and this adds no signal the
-      # single-version job lacks — but that is equally true of the step above,
-      # and running one without the other reads as an oversight. If the types
-      # are ever pinned too, this is the leg that would catch a React-18-only
-      # break in a story or a test.
-      - name: Typecheck bulma-ui tests and stories
-        run: pnpm --filter @allxsmith/bestax-bulma run typecheck:tests
-
+      # Only the tests run React itself. The build marks React external, so
+      # its output does not depend on the major, and `pin-react.mjs` pins
+      # react/react-dom and never @types/react, so a typecheck here would read
+      # the types the build part already checks. If the types are ever pinned
+      # per major, the two typechecks belong back in this leg.
       - name: Test bulma-ui
         run: pnpm --filter @allxsmith/bestax-bulma run test
 

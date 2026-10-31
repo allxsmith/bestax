@@ -45,6 +45,7 @@
  * so is a `notypecheck` fence.
  */
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, relative, sep } from 'node:path';
@@ -52,6 +53,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
 import { fenceSpans, splitLines } from './lib/api-page.mjs';
 import { appCompilerOptions } from './lib/template-tsconfig.mjs';
+import { withoutCoverage } from './lib/without-coverage.mjs';
 import { toExampleModule } from '../docs/src/theme/CodeBlock/sandbox/example.mjs';
 import {
   DOCS_ONLY_NAMES,
@@ -155,7 +157,6 @@ function loadTools() {
     'bulma-ui/dist is absent, so the docs examples cannot be type-checked ' +
       'against the library. Build first, or run `pnpm all`.'
   );
-  const ts = createRequire(join(REPO, 'package.json'))('typescript');
   const library = createRequire(join(LIBRARY_DIR, 'package.json'))(
     join(LIBRARY_DIR, 'dist', 'index.cjs')
   );
@@ -163,38 +164,43 @@ function loadTools() {
     /^[A-Za-z_$][\w$]*$/.test(name)
   );
   return {
-    ts,
     options: fenceCompilerOptions(),
     libraryNames,
     docsOnlyModule: DOCS_ONLY_MODULE,
   };
 }
 
-/**
- * One program over in-memory modules, keyed by file name. Each module's
- * `source` is served as that file.
- */
-function compileModules(ts, options, modules) {
-  const host = ts.createCompilerHost(options);
-  const { getSourceFile, fileExists, readFile } = host;
-  host.fileExists = name => modules.has(name) || fileExists.call(host, name);
-  host.readFile = name =>
-    modules.get(name)?.source ?? readFile.call(host, name);
-  host.getSourceFile = (name, version, ...rest) =>
-    modules.has(name)
-      ? ts.createSourceFile(name, modules.get(name).source, version, true)
-      : getSourceFile.call(host, name, version, ...rest);
-  return ts.createProgram([...modules.keys()], options, host);
-}
+const CHILD = join(REPO, 'scripts', 'lib', 'typecheck-modules-child.mjs');
 
-/** Problems with the program as a whole rather than one module. */
-function compilerProblems(ts, program) {
-  return [
-    ...program.getOptionsDiagnostics(),
-    ...program.getGlobalDiagnostics(),
-  ].map(
-    d => `compiler: ${ts.flattenDiagnosticMessageText(d.messageText, ' ')}`
+/**
+ * One program over in-memory modules, keyed by file name, each module's
+ * `source` served as that file. Returns the problems with the program as a
+ * whole, and each module's diagnostics as `{ line, code, text }`, line from 0.
+ *
+ * The checker runs in a child with coverage off: under this suite's coverage
+ * it runs about three times slower, and it is TypeScript's code, not this
+ * repo's. typecheck-modules-child.mjs says more.
+ */
+function typecheck(options, modules) {
+  const run = spawnSync(process.execPath, [CHILD], {
+    input: JSON.stringify({
+      options,
+      modules: [...modules].map(([name, { source }]) => [name, source]),
+    }),
+    env: withoutCoverage(),
+    encoding: 'utf8',
+    maxBuffer: 256 * 1024 * 1024,
+  });
+  assert.equal(
+    run.status,
+    0,
+    `the type-check child failed:\n${run.stderr || run.error}`
   );
+  const { compiler, files } = JSON.parse(run.stdout);
+  return {
+    problems: compiler.map(text => `compiler: ${text}`),
+    files: new Map(Object.entries(files)),
+  };
 }
 
 /** A module path for one fence, in the library's directory. */
@@ -213,7 +219,7 @@ function modulePath(prefix, file, fence) {
  * for an app that installed it.
  */
 export function checkPages(pages, tools) {
-  const { ts, options } = tools;
+  const { options } = tools;
   const modules = new Map();
   for (const { file, src } of pages) {
     for (const fence of liveFences(src)) {
@@ -225,8 +231,7 @@ export function checkPages(pages, tools) {
     }
   }
 
-  const program = compileModules(ts, options, modules);
-  const problems = compilerProblems(ts, program);
+  const { problems, files } = typecheck(options, modules);
   // The header imports the whole scope, and most of it goes unused, so an
   // unused-import report there is expected. Anything else on the header means
   // a name did not bind, such as a docs-only component after a move, and
@@ -234,15 +239,8 @@ export function checkPages(pages, tools) {
   // module, so each such report is kept once.
   const scope = new Set();
   for (const [name, { file, fence, headerLines }] of modules) {
-    const sourceFile = program.getSourceFile(name);
     const found = [];
-    for (const d of [
-      ...program.getSyntacticDiagnostics(sourceFile),
-      ...program.getSemanticDiagnostics(sourceFile),
-    ]) {
-      const line = sourceFile.getLineAndCharacterOfPosition(d.start ?? 0).line;
-      const code = d.code;
-      const text = ts.flattenDiagnosticMessageText(d.messageText, ' ');
+    for (const { line, code, text } of files.get(name)) {
       if (line >= headerLines) found.push({ line, code, text });
       else if (!UNUSED.has(code)) scope.add(`scope: TS${code} ${text}`);
     }
@@ -272,7 +270,7 @@ export function checkPages(pages, tools) {
  * import, so an unused one is its mistake too.
  */
 export function checkSandboxes(pages, tools) {
-  const { ts, options } = tools;
+  const { options } = tools;
   const modules = new Map();
   for (const { file, src } of pages) {
     for (const fence of liveFences(src)) {
@@ -291,18 +289,11 @@ export function checkSandboxes(pages, tools) {
     }
   }
 
-  const program = compileModules(ts, options, modules);
-  const problems = compilerProblems(ts, program);
+  const { problems, files } = typecheck(options, modules);
   for (const [name, { file, fence }] of modules) {
-    const sourceFile = program.getSourceFile(name);
-    for (const d of [
-      ...program.getSyntacticDiagnostics(sourceFile),
-      ...program.getSemanticDiagnostics(sourceFile),
-    ]) {
-      const line = sourceFile.getLineAndCharacterOfPosition(d.start ?? 0).line;
-      const text = ts.flattenDiagnosticMessageText(d.messageText, ' ');
+    for (const { line, code, text } of files.get(name)) {
       problems.push(
-        `${file}:${fence.open + 1}: App.tsx line ${line + 1}: TS${d.code} ${text}`
+        `${file}:${fence.open + 1}: App.tsx line ${line + 1}: TS${code} ${text}`
       );
     }
   }
