@@ -186,10 +186,12 @@ jobs:
           # ---- CI state: whitelist the checks that matter. A cancelled
           #      check is NOT green (an operator cancelling a run must never
           #      read as success), and an unreadable checks API fails safe
-          #      to skip — the next event re-evaluates. ----
+          #      to skip — the next event re-evaluates. The prefix takes in
+          #      the "Build and Test (…)" parts beside the job that sums them
+          #      (ci.yml), so a part still running reads as pending. ----
           if ! CHECKS=$(gh pr checks "$PR" --repo "$REPO" --json name,bucket \
             --jq '[.[] | select(
-                    .name == "Build and Test"
+                    (.name | startswith("Build and Test"))
                     or (.name | startswith("React ") and endswith("compatibility"))
                     or .name == "Dependency Review"
                     or (.name | test("coderabbit"; "i")))]'); then
