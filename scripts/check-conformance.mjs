@@ -4146,6 +4146,7 @@ export function turboTasksIn(scripts, entry) {
     // check, so a renamed `build-storybook` in bulma-ui would pass on the
     // strength of an unrelated one elsewhere — the fail-open this closes.
     const scope = [];
+    const excluded = [];
     const names = [];
     for (let i = 0; i < words.length; i += 1) {
       const word = words[i];
@@ -4158,8 +4159,16 @@ export function turboTasksIn(scripts, entry) {
       const flag = eq === -1 ? word : word.slice(0, eq);
       let value = eq === -1 ? null : word.slice(eq + 1);
       if (value === null && TURBO_VALUE_FLAGS.has(flag)) value = words[++i];
-      if (flag === '--filter' && value) scope.push(value);
+      if (flag === '--filter' && value) {
+        (value.startsWith('!') ? excluded : scope).push(value);
+      }
     }
+    // Filters that only exclude start from every package and drop the ones
+    // named, so the task needs an owner outside them. That demand is kept as
+    // one `!a !b` entry, which checkTurboTasks reads that way. Beside an
+    // inclusion an exclusion only narrows it, and the named packages stay the
+    // ones that must declare the task.
+    if (!scope.length && excluded.length) scope.push(excluded.sort().join(' '));
     for (const name of names) {
       // An unfiltered run of the same task is the weaker requirement and wins:
       // it only needs somebody to own the task, and a later filtered run must
@@ -4216,8 +4225,20 @@ async function checkTurboTasks() {
       }
       continue;
     }
-    // Filtered: the named packages are the ones that must declare it.
+    // Filtered: the named packages are the ones that must declare it, and an
+    // exclusion entry wants one package outside the ones it names.
     for (const wanted of [...scope].sort()) {
+      if (wanted.startsWith('!')) {
+        const out = wanted.split(' ').map(filter => filter.slice(1));
+        if (found.some(pkg => !out.includes(pkg))) continue;
+        violations.push(
+          `package.json \`all\` reaches \`turbo run ${wanted.replace(/(^| )/g, '$1--filter=')} ${task}\`, ` +
+            `but no package outside ${out.join(', ')} declares a "${task}" ` +
+            `script — turbo exits 0 having run nothing, so that gate passes ` +
+            `without checking anything.`
+        );
+        continue;
+      }
       if (!found.includes(wanted)) {
         violations.push(
           `package.json \`all\` reaches \`turbo run --filter=${wanted} ${task}\`, ` +

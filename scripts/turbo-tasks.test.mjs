@@ -167,6 +167,22 @@ test('unions the packages of two filtered runs', () => {
   );
 });
 
+test('filters that only exclude are one entry wanting an owner outside them', () => {
+  // turbo starts from every package and drops the excluded ones, so reading
+  // `!a` as a package named `!a` failed a run that covers everything else.
+  assert.deepEqual(
+    scopeOf({ all: 'turbo run test --filter=!b --filter !a' }, 'test'),
+    ['!a !b']
+  );
+});
+
+test('an exclusion beside an inclusion leaves the included package to own it', () => {
+  assert.deepEqual(
+    scopeOf({ all: 'turbo run --filter=a --filter=!b lint' }, 'lint'),
+    ['a']
+  );
+});
+
 test('a task with no filter anywhere has a null scope', () => {
   assert.equal(scopeOf({ all: 'turbo run test' }, 'test'), null);
 });

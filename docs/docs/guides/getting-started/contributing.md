@@ -52,7 +52,7 @@ pnpm install --frozen-lockfile     # exact CI-parity install (fails if the lockf
 
 ```bash
 pnpm run all
-# = turbo: build, typecheck, test, test:coverage, bundle:stats, lint,
+# = turbo: build, typecheck, test:coverage, bundle:stats, lint,
 #   format:check  &&  build-storybook (bulma-ui)
 ```
 
