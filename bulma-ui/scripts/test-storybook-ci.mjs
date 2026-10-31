@@ -3,6 +3,9 @@
 // test-runner smoke pass against it twice: default (light) and dark theme
 // (STORYBOOK_THEME=dark, see .storybook/test-runner.ts). Uses node's http
 // module rather than adding http-server/wait-on/concurrently dependencies.
+//
+// `--theme=light` or `--theme=dark` runs that one pass, which is how CI gives
+// each theme a runner of its own. With neither, both run, light first.
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
@@ -11,6 +14,16 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(fileURLToPath(new URL('.', import.meta.url)), '..');
 const staticDir = join(root, 'storybook-static');
+
+const themeArg = process.argv
+  .slice(2)
+  .find(arg => arg.startsWith('--theme='))
+  ?.slice('--theme='.length);
+if (themeArg !== undefined && themeArg !== 'light' && themeArg !== 'dark') {
+  console.error(`--theme takes light or dark, not "${themeArg}".`);
+  process.exit(1);
+}
+const themes = themeArg ? [themeArg] : ['light', 'dark'];
 
 try {
   await stat(join(staticDir, 'index.html'));
@@ -85,7 +98,11 @@ function runPass(theme) {
   });
 }
 
-const lightCode = await runPass('light');
-const darkCode = await runPass('dark');
+// Every pass runs even after one fails, so a run reports both themes.
+let failed = 0;
+for (const theme of themes) {
+  const code = await runPass(theme);
+  failed ||= code;
+}
 server.close();
-process.exit(lightCode || darkCode);
+process.exit(failed);
