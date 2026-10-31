@@ -12,7 +12,7 @@
 // Bulma put it in the cascade.
 import fs from 'fs';
 import path from 'path';
-import * as sass from 'sass';
+import * as sass from 'sass-embedded';
 import type { ReactElement } from 'react';
 import { cleanup, render } from '@testing-library/react';
 import { ConfigProvider } from '../Config';
@@ -94,6 +94,34 @@ const forOs = (css: string, os: Os) => {
   return css.split(block).join('@media screen');
 };
 
+/**
+ * The rules in `css` that declare `property`, in source order, inside the
+ * `@media` blocks they sit in. A custom property takes its value only from the
+ * rules that declare it, so the root resolves it as it does with the whole
+ * sheet loaded, and each test loads a few rules rather than all of Bulma.
+ */
+const declaring = (css: string, property: string) => {
+  const el = document.createElement('style');
+  el.textContent = css;
+  document.head.appendChild(el);
+  const rules = Array.from((el.sheet as CSSStyleSheet).cssRules);
+  el.remove();
+  const declares = (rule: CSSRule) =>
+    rule instanceof CSSStyleRule &&
+    rule.style.getPropertyValue(property) !== '';
+  return rules
+    .map(rule => {
+      if (declares(rule)) return rule.cssText;
+      if (!(rule instanceof CSSMediaRule)) return '';
+      const inner = Array.from(rule.cssRules).filter(declares);
+      return inner.length
+        ? `@media ${rule.media.mediaText} { ${inner.map(r => r.cssText).join(' ')} }`
+        : '';
+    })
+    .filter(Boolean)
+    .join('\n');
+};
+
 /** What the root resolves `--bulma-scheme-main-l` to. */
 const schemeMainL = () =>
   getComputedStyle(document.documentElement)
@@ -102,6 +130,7 @@ const schemeMainL = () =>
 
 describe.each(SHEETS)('$file', ({ file, prefix }) => {
   let css: string;
+  let rules: string;
   let light: string;
   let dark: string;
   let sheet: HTMLStyleElement | undefined;
@@ -109,12 +138,13 @@ describe.each(SHEETS)('$file', ({ file, prefix }) => {
   const loadAs = (os: Os) => {
     sheet?.remove();
     sheet = document.createElement('style');
-    sheet.textContent = forOs(css, os);
+    sheet.textContent = forOs(rules, os);
     document.head.appendChild(sheet);
   };
 
   beforeAll(() => {
     css = compile(file);
+    rules = declaring(css, '--bulma-scheme-main-l');
     // The scheme each of Bulma's own theme blocks sets, read off the sheet,
     // so the expectations follow Bulma rather than restating its values.
     const value = (scheme: Os) => {
@@ -210,11 +240,13 @@ describe.each(SHEETS)(
   ({ file, prefix }) => {
     const KEY = '--bulma-primary-on-scheme-l';
     let css: string;
+    let rules: string;
     let bulmaDark: string;
     let sheet: HTMLStyleElement | undefined;
 
     beforeAll(() => {
       css = compile(file);
+      rules = declaring(css, KEY);
       const rule = new RegExp(
         `\\[data-${prefix}theme=dark\\][^{]*\\{[^}]*${KEY}:\\s*([^;]+);`
       ).exec(css);
@@ -235,7 +267,7 @@ describe.each(SHEETS)(
      */
     const renderFor = (os: Os, ui: ReactElement) => {
       sheet = document.createElement('style');
-      sheet.textContent = forOs(css, os);
+      sheet.textContent = forOs(rules, os);
       document.head.appendChild(sheet);
       const result = render(
         <ConfigProvider classPrefix={prefix}>{ui}</ConfigProvider>
