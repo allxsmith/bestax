@@ -107,6 +107,10 @@ export async function typecheckTsxFiles(
   files: Record<string, string>,
   label: string
 ): Promise<TypecheckResult> {
+  // A batch with nothing in it would check nothing and pass.
+  if (Object.keys(files).length === 0) {
+    throw new Error(`typecheckTsxFiles(${label}): no files to check`);
+  }
   // Largest first, each to the share with the least source so far.
   const shares = Array.from({ length: RUNS }, () => ({
     size: 0,
