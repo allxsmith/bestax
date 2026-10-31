@@ -475,7 +475,11 @@ export const CLAUDE_MD = (
             ? ` The app is already wrapped in \`<ConfigProvider iconLibrary="${providerIconValue}">\` ` +
               `— extend that provider rather than adding a second one.`
             : '') +
-          (icon?.setupInstructions ? ` ${icon.setupInstructions}` : '')
+          (icon?.setupInstructions
+            ? // A Next.js app loads its stylesheets from its root layout,
+              // which is where the icon step wrote this library's import.
+              ` ${next ? icon.setupInstructions.replaceAll('`src/main.*`', '`src/app/layout.*`') : icon.setupInstructions}`
+            : '')
   );
   if (router) {
     setupLines.push(ROUTER_SETUPS[router].claudeMd);
