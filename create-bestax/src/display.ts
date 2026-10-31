@@ -59,7 +59,7 @@ export function displaySuccess(targetDir: string, startingNow = false): void {
   console.log(
     chalk.gray('  Your app includes a beautiful logo-centric homepage')
   );
-  console.log(chalk.gray('  showcasing Bestax, Vite, and React branding.'));
+  console.log(chalk.gray('  showcasing Bestax and React branding.'));
   console.log();
   console.log(chalk.dim(MESSAGES.HAPPY_CODING));
   console.log();

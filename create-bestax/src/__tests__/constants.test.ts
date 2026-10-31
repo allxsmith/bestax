@@ -36,12 +36,22 @@ describe('constants', () => {
     it('should have the correct templates defined', () => {
       expect(
         TEMPLATES.map(
-          ({ name, display, directory, reactCompiler, router }) => ({
+          ({
             name,
             display,
             directory,
             reactCompiler,
             router,
+            framework,
+            starter,
+          }) => ({
+            name,
+            display,
+            directory,
+            reactCompiler,
+            router,
+            framework,
+            starter,
           })
         )
       ).toEqual([
@@ -77,6 +87,20 @@ describe('constants', () => {
           directory: 'vite-ts',
           router: 'tanstack-router',
         },
+        {
+          name: 'next',
+          display: 'Next.js',
+          directory: 'next',
+          framework: 'next',
+          starter: 'vite',
+        },
+        {
+          name: 'next-ts',
+          display: 'Next.js + TypeScript',
+          directory: 'next-ts',
+          framework: 'next',
+          starter: 'vite-ts',
+        },
       ]);
     });
 
@@ -93,12 +117,6 @@ describe('constants', () => {
         expect(template.color).toBeDefined();
         expect(typeof template.color).toBe('function');
       });
-    });
-
-    it('should not include Next.js templates', () => {
-      const templateNames = TEMPLATES.map(t => t.name);
-      expect(templateNames).not.toContain('nextjs');
-      expect(templateNames).not.toContain('nextjs-ts');
     });
 
     it('should have correct display names', () => {
@@ -302,6 +320,30 @@ describe('constants', () => {
       expect(
         CLAUDE_MD('my-app', { bulmaFlavor: 'complete', iconLibrary: 'none' })
       ).not.toContain('Routing:');
+    });
+
+    it("names the parts a Next.js app's Server Components can't reach yet", () => {
+      const next = CLAUDE_MD('my-app', {
+        bulmaFlavor: 'complete',
+        iconLibrary: 'none',
+        framework: 'next',
+      });
+      expect(next).toContain('their own export (`NavbarItem`, `NavbarBrand`)');
+      for (const component of [
+        'Card',
+        'Modal',
+        'Sidebar',
+        'Message',
+        'Figure',
+      ]) {
+        expect(next).toContain(`\`${component}\``);
+      }
+      expect(next).toContain(
+        "the list components' items have no such exports yet"
+      );
+      expect(
+        CLAUDE_MD('my-app', { bulmaFlavor: 'complete', iconLibrary: 'none' })
+      ).not.toContain('Server Component');
     });
 
     it('tells agents to customize the scaffolded title and README', () => {

@@ -78,7 +78,7 @@ const fileSystem = await import('../file-system.js');
 const telemetry = await import('../telemetry.js');
 const { runCommand } = await import('../run-command.js');
 const { libraryRange } = await import('../library-range.js');
-const { ProjectCreator } = await import('../project-creator.js');
+const { ProjectCreator, entryFile } = await import('../project-creator.js');
 const listDirectoryEntries =
   fileSystem.listDirectoryEntries as jest.MockedFunction<
     typeof fileSystem.listDirectoryEntries
@@ -560,6 +560,69 @@ describe('ProjectCreator', () => {
         fs.default.writeFile as unknown as jest.Mock
       ).mock.calls.find(([p]) => String(p).includes('CLAUDE.md'))?.[1];
       expect(claudeMd).toContain('.claude/launch.json');
+    });
+
+    it('writes the Next.js launch.json and CLAUDE.md for a Next.js scaffold', async () => {
+      (
+        fileSystem.checkDirectoryExists as jest.MockedFunction<
+          typeof fileSystem.checkDirectoryExists
+        >
+      ).mockResolvedValue(true);
+
+      await projectCreator.setupSkills('/target/path', 'my-app', {
+        bulmaFlavor: 'complete',
+        iconLibrary: 'material-symbols',
+        framework: 'next',
+      });
+
+      const writes = (fs.default.writeFile as unknown as jest.Mock).mock.calls;
+      const launch = JSON.parse(
+        String(writes.find(([p]) => String(p).includes('launch.json'))?.[1])
+      );
+      expect(launch.configurations).toEqual([
+        {
+          name: 'dev',
+          runtimeExecutable: 'npm',
+          runtimeArgs: ['run', 'dev', '--', '--port', '3000'],
+          port: 3000,
+        },
+      ]);
+
+      const claudeMd = String(
+        writes.find(([p]) => String(p).includes('CLAUDE.md'))?.[1]
+      );
+      expect(claudeMd).toContain('- Framework: the Next.js App Router.');
+      expect(claudeMd).toContain("`src/app/layout`'s `metadata`");
+      expect(claudeMd).toContain('`npm run dev -- --port 3000`');
+      expect(claudeMd).toContain('hand-added in `src/app/layout`');
+      // Its stylesheets load from the layout, where the icon step wrote them.
+      expect(claudeMd).toContain('in `src/app/layout.*`');
+      expect(claudeMd).not.toContain('src/main');
+      expect(claudeMd).not.toContain('5173');
+      expect(claudeMd).not.toContain('index.html');
+    });
+
+    it("keeps a Vite scaffold's CLAUDE.md on src/main, index.html and port 5173", async () => {
+      (
+        fileSystem.checkDirectoryExists as jest.MockedFunction<
+          typeof fileSystem.checkDirectoryExists
+        >
+      ).mockResolvedValue(true);
+
+      await projectCreator.setupSkills('/target/path', 'my-app', {
+        bulmaFlavor: 'complete',
+        iconLibrary: 'material-symbols',
+      });
+
+      const claudeMd = String(
+        (fs.default.writeFile as unknown as jest.Mock).mock.calls.find(([p]) =>
+          String(p).includes('CLAUDE.md')
+        )?.[1]
+      );
+      expect(claudeMd).toContain('in `src/main.*`');
+      expect(claudeMd).toContain("`index.html`'s `<title>`");
+      expect(claudeMd).toContain('port 5173');
+      expect(claudeMd).not.toContain('Next.js');
     });
 
     it('documents the prefix caveat and icon library for a prefixed scaffold', async () => {
@@ -1131,15 +1194,16 @@ describe('ProjectCreator', () => {
         const library = _ICON_LIBRARIES.find(l => l.name === libraryName)!;
 
         for (const { name: template, directory } of TEMPLATES) {
-          // The same entry-file rule setupIconLibrary applies.
-          const mainFile = template.includes('-ts') ? 'main.tsx' : 'main.jsx';
+          // The same entry-file rule setupIconLibrary applies: src/main, or
+          // a Next.js app's root layout.
+          const mainFile = entryFile(template);
           const root = `/app-${template}`;
-          const mainPath = `${root}/src/${mainFile}`;
+          const mainPath = `${root}/${mainFile}`;
           files.set(
             mainPath,
             readFileSync(
               new URL(
-                `../../templates/${directory}/src/${mainFile}`,
+                `../../templates/${directory}/${mainFile}`,
                 import.meta.url
               ),
               'utf8'
