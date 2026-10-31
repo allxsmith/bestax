@@ -68,7 +68,9 @@
  *                        (templates, flavors, icons, sources, css modes, PMs)
  *   turbo-tasks          every task the root `all` chain runs through turbo is
  *                        implemented by at least one package, so a renamed
- *                        script cannot leave the gate green and empty (#663)
+ *                        script cannot leave the gate green and empty (#663),
+ *                        and every package with tests reaches the gate's one
+ *                        test run
  *   peer-ranges          every copy of a bestax-bulma peer that bulma-ui or
  *                        the docs site installs sits in the newest arm of
  *                        that peer range, so a release Dependabot brings in
@@ -4146,7 +4148,6 @@ export function turboTasksIn(scripts, entry) {
     // check, so a renamed `build-storybook` in bulma-ui would pass on the
     // strength of an unrelated one elsewhere — the fail-open this closes.
     const scope = [];
-    const excluded = [];
     const names = [];
     for (let i = 0; i < words.length; i += 1) {
       const word = words[i];
@@ -4159,16 +4160,8 @@ export function turboTasksIn(scripts, entry) {
       const flag = eq === -1 ? word : word.slice(0, eq);
       let value = eq === -1 ? null : word.slice(eq + 1);
       if (value === null && TURBO_VALUE_FLAGS.has(flag)) value = words[++i];
-      if (flag === '--filter' && value) {
-        (value.startsWith('!') ? excluded : scope).push(value);
-      }
+      if (flag === '--filter' && value) scope.push(value);
     }
-    // Filters that only exclude start from every package and drop the ones
-    // named, so the task needs an owner outside them. That demand is kept as
-    // one `!a !b` entry, which checkTurboTasks reads that way. Beside an
-    // inclusion an exclusion only narrows it, and the named packages stay the
-    // ones that must declare the task.
-    if (!scope.length && excluded.length) scope.push(excluded.sort().join(' '));
     for (const name of names) {
       // An unfiltered run of the same task is the weaker requirement and wins:
       // it only needs somebody to own the task, and a later filtered run must
@@ -4186,6 +4179,22 @@ export function turboTasksIn(scripts, entry) {
   return tasks;
 }
 
+/**
+ * The packages whose tests `all` never runs. When it runs tests only through
+ * `test:coverage`, a package that declares `test` and no `test:coverage` is
+ * skipped by pnpm all and by CI, with both green. Jest packages run their
+ * whole suite under test:coverage, and a package with no coverage tool
+ * aliases test:coverage to its test.
+ *
+ * Exported for `scripts/turbo-tasks.test.mjs`.
+ */
+export function testsOutsideTheGate(tasks, manifests) {
+  if (!tasks.has('test:coverage') || tasks.has('test')) return [];
+  return manifests.filter(
+    ({ scripts }) => scripts?.test && !scripts?.['test:coverage']
+  );
+}
+
 async function checkTurboTasks() {
   const violations = [];
   const root = JSON.parse(await readFile(join(REPO, 'package.json'), 'utf8'));
@@ -4200,6 +4209,7 @@ async function checkTurboTasks() {
     await readFile(join(REPO, 'pnpm-workspace.yaml'), 'utf8')
   );
   const owners = new Map([...tasks.keys()].map(t => [t, []]));
+  const manifests = [];
   for (const dir of dirs) {
     let pkg;
     try {
@@ -4208,9 +4218,19 @@ async function checkTurboTasks() {
       continue; // `publishable-manifests` reports an unreadable manifest
     }
     if (!pkg || typeof pkg !== 'object' || Array.isArray(pkg)) continue;
+    manifests.push({ dir, scripts: pkg.scripts });
     for (const task of tasks.keys()) {
       if (pkg.scripts?.[task]) owners.get(task).push(pkg.name ?? dir);
     }
+  }
+
+  for (const { dir } of testsOutsideTheGate(tasks, manifests)) {
+    violations.push(
+      `${dir}/package.json declares "test" and no "test:coverage", and ` +
+        `package.json \`all\` runs tests only through test:coverage, so its ` +
+        `tests run in neither pnpm all nor CI. Add "test:coverage": ` +
+        `"pnpm run test" when the package has no coverage tool.`
+    );
   }
 
   for (const [task, found] of [...owners].sort()) {
@@ -4225,20 +4245,8 @@ async function checkTurboTasks() {
       }
       continue;
     }
-    // Filtered: the named packages are the ones that must declare it, and an
-    // exclusion entry wants one package outside the ones it names.
+    // Filtered: the named packages are the ones that must declare it.
     for (const wanted of [...scope].sort()) {
-      if (wanted.startsWith('!')) {
-        const out = wanted.split(' ').map(filter => filter.slice(1));
-        if (found.some(pkg => !out.includes(pkg))) continue;
-        violations.push(
-          `package.json \`all\` reaches \`turbo run ${wanted.replace(/(^| )/g, '$1--filter=')} ${task}\`, ` +
-            `but no package outside ${out.join(', ')} declares a "${task}" ` +
-            `script — turbo exits 0 having run nothing, so that gate passes ` +
-            `without checking anything.`
-        );
-        continue;
-      }
       if (!found.includes(wanted)) {
         violations.push(
           `package.json \`all\` reaches \`turbo run --filter=${wanted} ${task}\`, ` +

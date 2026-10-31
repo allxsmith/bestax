@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test 'src/__tests__/*.test.ts'",
+    "test:coverage": "pnpm run test",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",

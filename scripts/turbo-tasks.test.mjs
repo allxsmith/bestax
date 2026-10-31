@@ -12,7 +12,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { turboTasksIn } from './check-conformance.mjs';
+import { testsOutsideTheGate, turboTasksIn } from './check-conformance.mjs';
 
 const tasksOf = (scripts, entry = 'all') =>
   [...turboTasksIn(scripts, entry).keys()].sort();
@@ -167,22 +167,41 @@ test('unions the packages of two filtered runs', () => {
   );
 });
 
-test('filters that only exclude are one entry wanting an owner outside them', () => {
-  // turbo starts from every package and drops the excluded ones, so reading
-  // `!a` as a package named `!a` failed a run that covers everything else.
-  assert.deepEqual(
-    scopeOf({ all: 'turbo run test --filter=!b --filter !a' }, 'test'),
-    ['!a !b']
-  );
-});
-
-test('an exclusion beside an inclusion leaves the included package to own it', () => {
-  assert.deepEqual(
-    scopeOf({ all: 'turbo run --filter=a --filter=!b lint' }, 'lint'),
-    ['a']
-  );
-});
-
 test('a task with no filter anywhere has a null scope', () => {
   assert.equal(scopeOf({ all: 'turbo run test' }, 'test'), null);
+});
+
+// --- testsOutsideTheGate -----------------------------------------------------
+
+const outside = (all, manifests) =>
+  testsOutsideTheGate(turboTasksIn({ all }, 'all'), manifests).map(m => m.dir);
+
+const MANIFESTS = [
+  {
+    dir: 'jest-pkg',
+    scripts: { test: 'jest', 'test:coverage': 'jest --coverage' },
+  },
+  { dir: 'node-pkg', scripts: { test: 'node --test' } },
+  { dir: 'no-tests', scripts: { build: 'tsc' } },
+  { dir: 'no-scripts' },
+];
+
+test('a package with tests and no test:coverage is outside a coverage-only gate', () => {
+  assert.deepEqual(outside('turbo run build test:coverage', MANIFESTS), [
+    'node-pkg',
+  ]);
+});
+
+test('an alias brings a package inside the gate', () => {
+  const aliased = MANIFESTS.map(m =>
+    m.dir === 'node-pkg'
+      ? { ...m, scripts: { ...m.scripts, 'test:coverage': 'pnpm run test' } }
+      : m
+  );
+  assert.deepEqual(outside('turbo run test:coverage', aliased), []);
+});
+
+test('a gate that runs `test` itself leaves no package outside', () => {
+  assert.deepEqual(outside('turbo run test test:coverage', MANIFESTS), []);
+  assert.deepEqual(outside('turbo run test', MANIFESTS), []);
 });
