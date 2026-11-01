@@ -18,6 +18,7 @@ import type { ASTPath } from 'jscodeshift';
 import {
   BADGE_PROPS,
   RESPONSIVE_BREAKPOINTS,
+  resolveMapping,
   TOOLTIP_PROPS,
   UNIVERSAL_PROPS,
 } from './mapping.js';
@@ -38,6 +39,7 @@ import {
 import {
   alignTarget,
   applyIconProps,
+  FIELD_SCOPED,
   flagDroppedHeading,
   keepTitleLevel,
   makeStripModifierProps,
@@ -120,6 +122,48 @@ const { replaceWithPlain, collapseOntoChild } = makeStructuralHelpers(
       where
     )
 );
+
+/**
+ * Whether the element sits inside a Field or a Control, rbx's or bestax's,
+ * which tells the bestax inputs within whether to render a Field and a
+ * Control of their own. Each ancestor is read by binding, so a local that
+ * shadows one of them is neither.
+ */
+function insideFormScope(ctx: TransformContext, path: ASTPath<any>): boolean {
+  for (let up = path.parent; up; up = up.parent) {
+    if (up.node?.type !== 'JSXElement') continue;
+    const root = ctx.resolveElement?.(up)?.parts[0];
+    if (root === 'Field' || root === 'Control') return true;
+  }
+  return false;
+}
+
+/**
+ * The bestax components among the element's own children that render one
+ * way inside a `Field` and another outside one, by the names they migrate
+ * to. A child already in a Field or a Control of its own isn't one.
+ */
+function fieldScopedChildren(
+  ctx: TransformContext,
+  path: ASTPath<any>
+): string[] {
+  const names = new Set<string>();
+  (path.node.children ?? []).forEach((child: any, i: number) => {
+    if (child.type !== 'JSXElement') return;
+    const hit = ctx.resolveElement?.(path.get('children', i));
+    if (!hit) return;
+    // rbx's Select.Container folds onto the Select it holds.
+    const dotted = hit.parts.join('.');
+    const name =
+      hit.library === 'bestax'
+        ? dotted
+        : dotted === 'Select.Container'
+          ? 'Select'
+          : resolveMapping(hit.parts)?.target;
+    if (name && FIELD_SCOPED.has(name)) names.add(name);
+  });
+  return [...names];
+}
 
 const SPECIALS: Record<string, SpecialHandler> = {
   /**
@@ -308,6 +352,61 @@ const SPECIALS: Record<string, SpecialHandler> = {
    */
   loader(ctx, path, element) {
     return replaceWithPlain(ctx, path, element, 'div', 'loader', 'Loader');
+  },
+
+  /**
+   * rbx's Fieldset is a bare <fieldset>, which Bulma's base styles strip of
+   * its border, margin and padding, while bestax's Fieldset draws a bordered
+   * box unless told otherwise. `variant="unstyled"` is the one that draws no
+   * box. `disabled` carries over as it is, and bestax's also passes it to
+   * the bestax inputs inside, which a plain <fieldset> can't reach.
+   *
+   * bestax's Fieldset also starts its own Field scope, which rbx's never
+   * did. Inside a Field or a Control that changes what an input placed
+   * straight in it renders: `<Field><Fieldset><Input /></Fieldset></Field>`
+   * would gain a `.field` and a `.control` of its own. There it stays the
+   * plain <fieldset> rbx rendered, which keeps the markup and, since every
+   * input rbx had is a native one, the `disabled` behavior too.
+   *
+   * Only a Field or a Control in the same file shows, though: one in another
+   * component that renders this one is out of sight. So where an input sits
+   * straight in a Fieldset that converts, an advisory TODO says what to do
+   * if one does.
+   */
+  fieldset(ctx, path, element) {
+    if (insideFormScope(ctx, path)) {
+      return replaceWithPlain(
+        ctx,
+        path,
+        element,
+        'fieldset',
+        undefined,
+        'Fieldset'
+      );
+    }
+    if (!findAttr(element, 'variant')) {
+      // Before any spread, so a `variant` the spread carries still wins.
+      const attrs = (element.openingElement.attributes ??= []);
+      const spread = attrs.findIndex(
+        (attr: any) => attr.type === 'JSXSpreadAttribute'
+      );
+      attrs.splice(
+        spread === -1 ? attrs.length : spread,
+        0,
+        makeAttr(ctx.j, 'variant', 'unstyled')
+      );
+      ctx.dirty = true;
+    }
+    const scoped = fieldScopedChildren(ctx, path);
+    if (scoped.length > 0) {
+      addTodo(
+        ctx,
+        path,
+        'component:Fieldset',
+        `bestax's \`Fieldset\` starts its own Field scope, so ${scoped.map(name => `\`${name}\``).join(', ')} placed straight in it renders as it does outside any \`Field\`, with a \`.field\` of its own where it has one. That's right unless another component renders this \`Fieldset\` inside a \`Field\` or a \`Control\`, which the codemod can't see from here: there, render a plain \`<fieldset>\` instead, which leaves their scope alone, as the codemod does when it can see the \`Field\``
+      );
+    }
+    return {};
   },
 
   /** rbx's full-screen PageLoader is bestax's Loading with isFullPage. */

@@ -52,7 +52,12 @@ in place:
   pointer to bestax's `Theme` and `ConfigProvider`.
 - **Components** — every rbx export and its dot-notation compounds are mapped, e.g.
   `Card.Footer.Item` → `Card.FooterItem`, `Tag.Group` → `Tags`, `Column.Group` → `Columns`,
-  `Table.Cell` → `Table.Td`, `PageLoader` → `Loading` (with `isFullPage`), `Navbar.Dropdown` → `Navbar.DropdownMenu` (bestax's `Navbar.Dropdown` is the outer container,
+  `Table.Cell` → `Table.Td`, `PageLoader` → `Loading` (with `isFullPage`), `Fieldset` → `Fieldset`
+  (with `variant="unstyled"`, since rbx's drew no box; inside a `Field` or a `Control` in the same
+  component it stays the plain `<fieldset>` rbx rendered, where bestax's would start a Field scope
+  of its own, and an input placed straight in one it converts gets a TODO, since a `Field` in
+  another component can't be seen),
+  `Navbar.Dropdown` → `Navbar.DropdownMenu` (bestax's `Navbar.Dropdown` is the outer container,
   which `<Navbar.Item dropdown>` becomes), `Level.Item align="right"` →
   `Level.Right`, `Navbar.Segment align="end"` → `Navbar.End`, and `Title subtitle` → `SubTitle`.
   A `Title` `size` becomes `textSize` wherever bestax's `size`, which picks the heading level,
@@ -99,7 +104,7 @@ rbx's own documentation examples:
 | `prop:as`          | rbx's `forwardRefAs` puts `as` on every component; bestax declares it on a smaller set, several narrowed to specific tags   | Restructure, or render the tag directly                                                 |
 | `prop:href`        | bestax gives an element the attributes of the tag `as` names, so `href` lives on an `<a>` or a custom `as`, not another tag | Set `as="a"` where the link was the point — an `href` on a `<span>` navigated nowhere   |
 
-`Generic`, `Tile`, `List`, `Fieldset`, `Numeric` and `Highlight` have no bestax counterpart, so
+`Generic`, `Tile`, `List`, `Numeric` and `Highlight` have no bestax counterpart, so
 their imports are kept (trimmed and TODO-annotated) — your app still runs while you migrate
 them by hand.
 
