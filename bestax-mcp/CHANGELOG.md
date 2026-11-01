@@ -1,3 +1,16 @@
+## [1.18.25](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.24...bestax-mcp@1.18.25) (2026-11-01)
+
+
+### Bug Fixes
+
+* **bulma-ui:** draw a disabled close button in GrayText in forced colors ([cf6a587](https://github.com/allxsmith/bestax/commit/cf6a5878fe70d260f59cf2ad7f76702fdc915a19))
+* **bulma-ui:** keep every close button drawn in forced colors ([c7ea603](https://github.com/allxsmith/bestax/commit/c7ea603d9f9b17badb482cc608d3d858496edf4d))
+
+
+### Features
+
+* **bestax-migrate:** convert rbx's Fieldset to bestax's Fieldset ([#1405](https://github.com/allxsmith/bestax/issues/1405)) ([7b2da19](https://github.com/allxsmith/bestax/commit/7b2da194a8d603197ea18e474c8ede3c01acf23b))
+
 ## [1.18.24](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.23...bestax-mcp@1.18.24) (2026-11-01)
 
 
