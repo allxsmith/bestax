@@ -9,7 +9,7 @@
  * such holes, both found by review rather than by a test, which is what
  * `.github/CLAUDE.md` asks a sibling like this to prevent.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 
 import { testsOutsideTheGate, turboTasksIn } from './check-conformance.mjs';

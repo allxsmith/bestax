@@ -20,7 +20,7 @@
  * commit gets diagnosed. Whether to give that up there is a separate decision,
  * so this test leaves them alone.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';

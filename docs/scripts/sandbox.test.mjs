@@ -11,7 +11,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import { fileURLToPath } from 'node:url';
 import {
   blankNonCode,

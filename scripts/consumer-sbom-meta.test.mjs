@@ -20,11 +20,8 @@
  *     nothing else connects the constant to the globs that depend on it. If
  *     this assertion is ever "fixed" by updating the expected string, update
  *     the globs in supply-chain.yml in the same commit.
- *
- * `.mjs` and `node --test` rather than jest: root-level scripts with no
- * package of their own, matching check-security-txt-expiry.test.mjs.
  */
-import { test } from 'node:test';
+import { test, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -64,11 +61,11 @@ function tree(pkg, version) {
  * (#723), so a test that drives one captures the lines and asserts on them
  * instead.
  */
-function captureConsole(t) {
+function captureConsole() {
   const lines = [];
   const push = (...args) => lines.push(args.join(' '));
-  t.mock.method(console, 'log', push);
-  t.mock.method(console, 'error', push);
+  vi.spyOn(console, 'log').mockImplementation(push);
+  vi.spyOn(console, 'error').mockImplementation(push);
   return lines;
 }
 
@@ -305,7 +302,7 @@ test('parseArgs requires a known mode', () => {
   );
 });
 
-test('spec requires --event, because its absence disables the pin silently', t => {
+test('spec requires --event, because its absence disables the pin silently', () => {
   // installSpec treats an absent event as "not a release", so without this a
   // malformed invocation exits 0 and resolves `latest` — turning item 1 OFF
   // with nothing anywhere reporting it. A workflow edit dropping the flag is
@@ -314,7 +311,7 @@ test('spec requires --event, because its absence disables the pin silently', t =
     () => parseArgs(['spec', '--package', 'x']),
     /spec requires --event/
   );
-  const lines = captureConsole(t);
+  const lines = captureConsole();
   assert.equal(main(['spec', '--package', 'x'], {}), 2);
   assert.deepEqual(lines, ['::error::spec requires --event']);
 
@@ -355,10 +352,10 @@ test('main stamps version and basename into GITHUB_OUTPUT', () => {
   );
 });
 
-test('main fails when the tree disagrees with the pinned version', t => {
+test('main fails when the tree disagrees with the pinned version', () => {
   // The assertion the pin buys: without it, pinning is a request rather than a
   // guarantee, and a registry serving something else goes unnoticed.
-  const lines = captureConsole(t);
+  const lines = captureConsole();
   const dir = tree(SCOPED, '5.11.1');
   const code = main(
     [
@@ -385,11 +382,11 @@ test('main fails when the tree disagrees with the pinned version', t => {
   );
 });
 
-test('main separates usage errors from assertion failures', t => {
+test('main separates usage errors from assertion failures', () => {
   // Exit 2 must not be readable as a supply-chain failure, and the converse:
   // a mistyped invocation must not be reported as one. A missing --slug is a
   // usage error, so parseArgs owns it and the code is 2, not 1.
-  const lines = captureConsole(t);
+  const lines = captureConsole();
   assert.equal(main(['nonsense'], {}), 2);
   assert.equal(main(['stamp', '--package', SCOPED], {}), 2);
   assert.equal(main(['stamp', '--package', SCOPED, '--slug', 'x'], {}), 2);
@@ -524,7 +521,7 @@ test('the tarball read-back cannot forge one either', () => {
   );
 });
 
-test('an unknown flag is rejected, not ignored', t => {
+test('an unknown flag is rejected, not ignored', () => {
   // Every optional flag here disables a safeguard by being absent, so a typo
   // that is silently ignored turns the safeguard off and exits 0. `--tagg`
   // makes a release leg resolve `latest` — no pin at all — and `--exepct`
@@ -571,7 +568,7 @@ test('an unknown flag is rejected, not ignored', t => {
       ]),
     /spec does not take --dir/
   );
-  const lines = captureConsole(t);
+  const lines = captureConsole();
   assert.equal(
     main(['spec', '--package', 'p', '--event', 'release', '--tagg', 'x'], {}),
     2

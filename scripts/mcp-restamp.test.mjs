@@ -9,7 +9,7 @@
  * read the step out of ci.yml and run it in bash against scratch remotes, the
  * way gen-skills-repo.test.mjs runs skills-publish's steps.
  */
-import { after, test } from 'node:test';
+import { afterAll, test } from 'vitest';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -127,7 +127,7 @@ function tempDir() {
   temps.push(dir);
   return dir;
 }
-after(() => {
+afterAll(() => {
   for (const dir of temps) fs.rmSync(dir, { recursive: true, force: true });
 });
 

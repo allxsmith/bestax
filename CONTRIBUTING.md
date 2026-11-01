@@ -29,8 +29,8 @@ Before contributing, your PR **must** satisfy the following:
 - **All tests pass** (`pnpm test` & `pnpm test:coverage`)
   - Coverage thresholds are enforced per package by Vitest: **bulma-ui 99%** on all metrics
     ([`bulma-ui/vitest.config.ts`](./bulma-ui/vitest.config.ts)); **every other published
-    package** 95% (78% branches), each in its own config. `docs` runs
-    `node --test` and has no coverage threshold
+    package** 95% (78% branches), each in its own config. `docs` has no
+    coverage threshold
   - The root `scripts/` suite holds each file to its own floor in
     [`scripts/coverage-floors.json`](./scripts/coverage-floors.json), checked by
     `pnpm test`. A floor is where the file stood, less a small allowance on
@@ -190,7 +190,7 @@ pnpm run all
 ```bash
 pnpm run build          # turbo build all packages
 pnpm run typecheck
-pnpm run test           # Vitest in the packages + the docs and scripts/ node:test suites
+pnpm run test           # every package's suite, then the scripts/ suite
 pnpm run test:scripts   # the scripts/ suite alone, held to its per-file coverage floors
 pnpm run test:coverage  # coverage (bulma-ui 99%; every other published package 95%, 78% branches)
 pnpm run lint

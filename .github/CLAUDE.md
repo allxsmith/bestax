@@ -341,8 +341,8 @@ writing the trigger string at all.
 ### 9. Logic worth testing does not belong in YAML
 
 Shell embedded in a workflow step cannot be unit-tested without extracting it first. Put
-non-trivial parsing in `scripts/*.mjs` with a `node --test` sibling — root `pnpm test` runs
-`node --test "scripts/*.test.mjs"` (the glob is quoted so Node expands it, not the shell).
+non-trivial parsing in `scripts/*.mjs` with a test sibling — root `pnpm test` runs every
+`scripts/*.test.mjs`.
 Three extractions exist. The two from #454: the scan-verdict parser
 (`scripts/parse-scan-verdict.mjs`, called by `ai-scan.yml`) and the publish sanitizer
 (`scripts/sanitize-repro-draft.mjs`, called by `claude-repro.yml`) — their test siblings pin

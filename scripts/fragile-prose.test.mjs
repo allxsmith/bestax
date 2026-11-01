@@ -9,7 +9,7 @@
 import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 
 import { scanFragileProse, describeHit } from './lib/fragile-prose.mjs';
@@ -79,6 +79,10 @@ test('a number with no counted noun nearby is not a count', () => {
     md('Node 22 locally, React 19 in the matrix, port 3000.'),
     []
   );
+});
+
+test('a named version is not a count, even before a counted noun', () => {
+  assert.deepEqual(md('Vitest 5 runs the tests, as Jest 30 runs did.'), []);
 });
 
 // --- things that look like numbers but are not counts ----------------------------

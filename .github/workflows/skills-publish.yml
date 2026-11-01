@@ -6,7 +6,7 @@ name: Skills publish
 # server.json, package.json and generated skill index. Each run replaces its tree with fresh
 # output and commits only when something changed. Nobody edits bestax-skills
 # by hand: a fix lands here and this workflow carries it over. The script has
-# a node --test sibling (rule 9) and its header says why the plugin lives in
+# a test sibling (rule 9) and its header says why the plugin lives in
 # a repository of its own. This file holds the trust decisions.
 #
 # Triggers.

@@ -4125,7 +4125,7 @@ const TURBO_VALUE_FLAGS = new Set([
  * script expanded at most once, so a script naming itself cannot loop.
  *
  * Exported for `scripts/turbo-tasks.test.mjs`. `.github/CLAUDE.md` asks for
- * non-trivial parsing to carry a `node --test` sibling, and this parser had
+ * non-trivial parsing to carry a test sibling, and this parser had
  * two option-handling holes found by review before it had one.
  */
 export function turboTasksIn(scripts, entry) {

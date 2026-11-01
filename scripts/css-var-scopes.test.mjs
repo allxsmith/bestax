@@ -38,7 +38,7 @@
 import { readFile } from 'node:fs/promises';
 import { relative, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { before, describe, it } from 'node:test';
+import { beforeAll, describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 
 import {
@@ -178,7 +178,7 @@ async function pageRows() {
 
 describe('API pages say where each Bulma variable can be set', () => {
   let pages;
-  before(async () => {
+  beforeAll(async () => {
     pages = await pageRows();
   });
 

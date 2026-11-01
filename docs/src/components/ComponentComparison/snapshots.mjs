@@ -8,8 +8,8 @@
 // snapshot's cells through that list rather than the live `idx`. A published
 // edition then keeps showing the table it was written against.
 //
-// Pure functions of their arguments, so they run under `node --test` without
-// the React side of the component.
+// Pure functions of their arguments, so a unit test runs them without the
+// React side of the component.
 
 // Mirrors parseCell's status rule in src/data/componentComparison.js, which
 // this module does not import so it stays free of the site's module setup.

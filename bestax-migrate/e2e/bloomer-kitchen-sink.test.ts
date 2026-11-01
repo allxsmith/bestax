@@ -26,8 +26,8 @@ const packageRoot = path.join(
 const fixtureDir = path.join(packageRoot, 'fixtures', 'bloomer-kitchen-sink');
 
 // One scratch directory PER PROCESS, not one shared path — see the comment in
-// kitchen-sink.test.ts for why (`pnpm all` runs two Vitest processes over this
-// file concurrently). BESTAX_E2E_KEEP=1 leaves it behind for inspection.
+// kitchen-sink.test.ts for why (two Vitest processes can run this file at
+// once). BESTAX_E2E_KEEP=1 leaves it behind for inspection.
 const tmpRoot = path.join(packageRoot, '.e2e-tmp');
 fs.mkdirSync(tmpRoot, { recursive: true });
 const tmpDir = fs.mkdtempSync(path.join(tmpRoot, 'bloomer-kitchen-sink-'));

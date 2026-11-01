@@ -44,7 +44,7 @@ import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import { withoutCoverage } from './lib/without-coverage.mjs';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -66,8 +66,8 @@ const target = spec => resolve(PKG_DIR, spec);
 /**
  * These cases load built artifacts, so they need the build. They ASSERT that
  * rather than skipping: a guard against an entry point that silently exports
- * nothing must not itself be silenceable, and `node --test` exits 0 on a
- * skip. `pnpm all` and ci.yml both build before testing, and turbo's
+ * nothing must not itself be silenceable, and Vitest exits 0 on a skip.
+ * `pnpm all` and ci.yml both build before testing, and turbo's
  * `@allxsmith/eslint-plugin-bestax#test` edge builds `bulma-ui` for the
  * package suite too.
  */

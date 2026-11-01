@@ -122,7 +122,7 @@ const NOT_A_COUNT = [
   /\b\d+(?:\.\d+)?\s?%/g, // percentages
   /\b\d+(?:\.\d+)?[\s-]?(?:ms|s|sec|secs|seconds?|min|mins|minutes?|h|hrs?|hours?|hourly|days?|weeks?|months?|years?)\b/gi, // durations, including "30-day"
   /\b\d+(?:\.\d+)?\s?(?:B|KB|MB|GB|KiB|MiB)\b/g, // sizes
-  /\b(?:port|node|react|bulma|docusaurus|typescript|es|next\.?js|vite|jest|storybook)\s?\d+\+?/gi, // named versions and ports
+  /\b(?:port|node|react|bulma|docusaurus|typescript|es|next\.?js|vite|vitest|jest|storybook)\s?\d+\+?/gi, // named versions and ports
   /\b(?:step|rule|phase|stage|point|item|no\.|number)\s?\d+\b/gi, // identifiers, not tallies
   /\bHTTP\s?\d{3}\b|\b[1-5]\d{2}s?\s+(?:status(?:es)?|codes?|responses?)\b/gi, // HTTP statuses, not tallies
   /\b\d+\s?[-–—]\s?\d+\b/g, // a range is guidance ("a 1-3 sentence hook"), not a tally

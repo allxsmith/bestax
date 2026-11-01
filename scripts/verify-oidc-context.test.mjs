@@ -8,7 +8,7 @@
  * decoration, and one that fires locally would block `--dry-run` on a
  * maintainer's laptop for no reason.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 
 import { checkOidcContext, main } from './verify-oidc-context.mjs';

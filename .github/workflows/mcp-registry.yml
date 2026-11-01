@@ -51,7 +51,7 @@ name: MCP Registry
 #
 # Idempotent: a version the registry already has ends the run with exit 0 and
 # a notice. The logic, including the retry while npm catches up with a fresh
-# release, is in scripts/mcp-registry-publish.mjs with a node --test sibling
+# release, is in scripts/mcp-registry-publish.mjs with a test sibling
 # (rule 9); this file holds the trust decisions.
 
 on:

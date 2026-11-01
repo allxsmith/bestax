@@ -41,7 +41,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { gzipSync } from 'node:zlib';
-import { after, before, describe, it } from 'node:test';
+import { afterAll, beforeAll, describe, it } from 'vitest';
 import ts from 'typescript';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -50,7 +50,7 @@ const PKG_NAME = '@allxsmith/bestax-bulma';
 
 /**
  * Asserted rather than skipped, like the other suites that read the build:
- * `node --test` exits 0 on a skip, and a size guard that can be silenced by
+ * Vitest exits 0 on a skip, and a size guard that can be silenced by
  * not building is no guard.
  */
 const requireBuilt = () =>
@@ -136,7 +136,7 @@ describe('bulma-ui tree shaking', () => {
   let consumer;
   let build;
 
-  before(async () => {
+  beforeAll(async () => {
     requireBuilt();
     // A consumer directory whose node_modules links the package, so the
     // bundler resolves it by name and reads its manifest.
@@ -150,7 +150,7 @@ describe('bulma-ui tree shaking', () => {
     ({ build } = await import(pathToFileURL(vite).href));
   });
 
-  after(() => {
+  afterAll(() => {
     if (consumer) rmSync(consumer, { recursive: true, force: true });
   });
 

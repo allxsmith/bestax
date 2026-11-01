@@ -133,7 +133,9 @@ These keep it working, and each of them failed once:
   `vi.spyOn` on a module's export does not reach that module's own calls to it, so stub
   what the code reads instead (a global, a prop). Not `document` or `window`, though: the
   suites run in jsdom's own context (`vmForks`), where those cannot be redefined, and React
-  18's development build reads `document` as it handles an event.
+  18's development build reads `document` as it handles an event. The fake timers catch
+  jsdom's own timers too: moving focus queues a zero-delay one for `selectionchange`, so run
+  it (`vi.advanceTimersByTime(0)`) before counting with `vi.getTimerCount()`.
   The 99% bar is reachable with the techniques in `src/components/__tests__/Reveal.test.tsx`
   (IntersectionObserver/matchMedia mocks, SSR via `renderToStaticMarkup`). A suite that
   compiles a whole published stylesheet compiles it with `src/__tests__/compile-scss.ts`,

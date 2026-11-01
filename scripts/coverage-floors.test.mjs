@@ -3,54 +3,50 @@
  *
  * The unit cases hold the comparison to its three failure modes, the rule
  * that a red run is not judged, and how a new row is worked out: the branch
- * allowance for run-to-run noise, and no floor of 0 for a covered metric. The end-to-end cases run a real `node --test` with the
- * reporter loaded, because the one thing a unit case cannot show is that a
- * failed floor fails the process: a gate whose verdict never reaches the exit
- * code prints its complaint and goes green.
+ * allowance for run-to-run noise, and no floor of 0 for a covered metric. The
+ * end-to-end cases run a real Vitest with the reporter loaded, because the one
+ * thing a unit case cannot show is that a failed floor fails the process: a
+ * gate whose verdict never reaches the exit code prints its complaint and goes
+ * green.
  */
-import { test } from 'node:test';
+import { test, vi } from 'vitest';
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
-import {
-  mkdtempSync,
-  readFileSync,
-  realpathSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
+import { readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
 
 import {
   checkFloors,
+  FloorsReporter,
+  filesOf,
   floorFor,
-  floorsReporter,
   measuredRow,
 } from './coverage-floors.mjs';
+import { fixture, here, runVitest } from './lib/nested-vitest.mjs';
 import { tokenize } from './lib/shell-words.mjs';
 
 const ROOT = join(tmpdir(), 'repo');
 const REPO = join(import.meta.dirname, '..');
+const TABLE = 'scripts/coverage-floors.json';
 
-/** Node's percentage for `covered` of `total`, which calls an empty metric 100. */
+/** Istanbul's percentage for `covered` of `total`, which calls an empty metric 100. */
 const percent = (covered, total) => (total ? (100 * covered) / total : 100);
 
+const metric = ([covered, total]) => ({
+  covered,
+  total,
+  pct: percent(covered, total),
+});
+
 /**
- * A coverage summary entry the way Node reports one, from a
- * `[covered, total]` pair per metric.
+ * A file's summary the way `filesOf` hands one on, from a `[covered, total]`
+ * pair per metric.
  */
-const file = (key, [lc, lt], [bc, bt], [fc, ft]) => ({
+const file = (key, lines, branches, functions) => ({
   path: join(ROOT, ...key.split('/')),
-  coveredLineCount: lc,
-  totalLineCount: lt,
-  coveredLinePercent: percent(lc, lt),
-  coveredBranchCount: bc,
-  totalBranchCount: bt,
-  coveredBranchPercent: percent(bc, bt),
-  coveredFunctionCount: fc,
-  totalFunctionCount: ft,
-  coveredFunctionPercent: percent(fc, ft),
+  lines: metric(lines),
+  branches: metric(branches),
+  functions: metric(functions),
 });
 
 /** A file at `p` percent on every metric, out of a hundred of each. */
@@ -73,11 +69,11 @@ test('only branches get an allowance; lines and functions round down', () => {
 });
 
 test('a fully covered metric keeps a floor of 100', () => {
-  // The allowance is for a never-run branch that V8 counts in some runs and
-  // not others. Fully covered code has none, and one function nothing calls
-  // is what the floor exists to catch, so it is not traded away here.
+  // The allowance is for a branch one run covers and another does not. Fully
+  // covered code has none, and one function nothing calls is what the floor
+  // exists to catch, so it is not traded away here.
   assert.equal(floorFor(10, 10, 2), 100);
-  assert.equal(floorFor(0, 0), 100, 'Node calls an empty metric 100%');
+  assert.equal(floorFor(0, 0), 100, 'Istanbul calls an empty metric 100%');
   assert.equal(floorFor(9, 10, 2), 70);
 });
 
@@ -99,9 +95,9 @@ test('a metric that covers something never gets a floor of 0', () => {
 
 test('a branch floor survives two units of noise in either direction', () => {
   // The guarantee the branch allowance exists for, written with its own
-  // number rather than SLACK so that shrinking SLACK fails here. Branch
-  // counts drift in both shapes, branches counted and branches covered, so
-  // both are checked, over every count a script here plausibly has.
+  // number rather than SLACK so that shrinking SLACK fails here. Both shapes
+  // of noise are checked, branches counted and branches covered, over every
+  // count a script here plausibly has.
   const noise = 2;
   for (let total = 1; total <= 600; total++) {
     for (let covered = 0; covered < total; covered++) {
@@ -184,19 +180,20 @@ test('a row missing a metric is reported instead of passing', () => {
 });
 
 test('a figure the run did not report fails instead of passing', () => {
-  // The same hazard on the measured side: a field Node renamed compares
+  // The same hazard on the measured side: a field Istanbul renamed compares
   // false against every floor, so it would pass every file at once.
   const renamed = flat('scripts/a.mjs', 95);
-  delete renamed.coveredBranchPercent;
-  const nan = { ...flat('scripts/b.mjs', 95), coveredLinePercent: NaN };
+  delete renamed.branches.pct;
+  const nan = flat('scripts/b.mjs', 95);
+  nan.lines.pct = NaN;
   const problems = checkFloors(
     [renamed, nan],
     { 'scripts/a.mjs': row(90, 90, 90), 'scripts/b.mjs': row(90, 90, 90) },
     ROOT
   );
   assert.equal(problems.length, 2);
-  assert.match(problems[0], /^scripts\/a\.mjs: .*"coveredBranchPercent"/);
-  assert.match(problems[1], /^scripts\/b\.mjs: .*"coveredLinePercent"/);
+  assert.match(problems[0], /^scripts\/a\.mjs: .*"branches\.pct"/);
+  assert.match(problems[1], /^scripts\/b\.mjs: .*"lines\.pct"/);
   assert.match(problems[0], /was not checked/);
 });
 
@@ -204,11 +201,17 @@ test('a new file with a missing count gets no made-up row', () => {
   // Without the check, a missing count works out to a floor of 0 in the row
   // offered to paste in: a bar that reads as one and is not.
   const measured = flat('scripts/new.mjs', 95);
-  delete measured.totalFunctionCount;
+  delete measured.functions.total;
   const problems = checkFloors([measured], {}, ROOT);
   assert.equal(problems.length, 1);
-  assert.match(problems[0], /"totalFunctionCount"/);
+  assert.match(problems[0], /"functions\.total"/);
   assert.doesNotMatch(problems[0], /add this row/);
+});
+
+test('a file summary is read off the coverage map', () => {
+  const summary = flat('scripts/a.mjs', 90);
+  const map = coverageMap(summary);
+  assert.deepEqual(filesOf(map), [summary]);
 });
 
 test('the root scripts wire the gate in, and both entry points run it', () => {
@@ -221,12 +224,12 @@ test('the root scripts wire the gate in, and both entry points run it', () => {
   );
   const words = tokenize(scripts['test:scripts'] ?? '');
   assert.ok(
-    words.includes('--experimental-test-coverage'),
+    words.includes('--coverage'),
     'test:scripts no longer turns coverage on'
   );
   const reporters = words.flatMap((word, i) => {
-    if (word === '--test-reporter') return [words[i + 1]];
-    if (word.startsWith('--test-reporter=')) return [word.split('=')[1]];
+    if (word === '--reporter') return [words[i + 1]];
+    if (word.startsWith('--reporter=')) return [word.split('=')[1]];
     return [];
   });
   assert.ok(
@@ -245,115 +248,143 @@ test('the root scripts wire the gate in, and both entry points run it', () => {
   }
 });
 
-/** Drives a reporter over `events`, collecting its text and any failure. */
-async function report(floors, events) {
+/** A stand-in for Istanbul's coverage map, holding `summaries`. */
+function coverageMap(...summaries) {
+  const byPath = new Map(summaries.map(({ path, ...data }) => [path, data]));
+  return {
+    files: () => [...byPath.keys()],
+    fileCoverageFor: path => ({
+      toSummary: () => ({ data: byPath.get(path) }),
+    }),
+  };
+}
+
+/**
+ * Drives a reporter to the end of a run, collecting its text and any
+ * failure. `coverage` is what the run handed `onCoverage`, if anything.
+ */
+function report(floors, { coverage, reason = 'passed' }) {
   let failed = 0;
-  const reporter = floorsReporter({ floors, root: ROOT, fail: () => failed++ });
   let text = '';
-  for await (const chunk of reporter(events)) text += chunk;
+  const reporter = new FloorsReporter({
+    floors,
+    root: ROOT,
+    fail: () => failed++,
+    write: chunk => (text += chunk),
+  });
+  if (coverage) reporter.onCoverage(coverage);
+  reporter.onTestRunEnd([], [], reason);
   return { text, failed };
 }
 
-const coverage = (...files) => ({
-  type: 'test:coverage',
-  data: { summary: { files } },
-});
-const summary = success => ({ type: 'test:summary', data: { success } });
-
-test('a green run inside its floors passes and says it checked', async () => {
-  const { text, failed } = await report({ 'scripts/a.mjs': row(90, 90, 90) }, [
-    summary(true),
-    coverage(flat('scripts/a.mjs', 95)),
-    summary(true),
-  ]);
+test('a green run inside its floors passes and says it checked', () => {
+  const { text, failed } = report(
+    { 'scripts/a.mjs': row(90, 90, 90) },
+    { coverage: coverageMap(flat('scripts/a.mjs', 95)) }
+  );
   assert.equal(failed, 0);
   assert.match(text, /Every measured file \(1\) is at or above its floor/);
 });
 
-test('a green run below a floor fails once and names the file', async () => {
-  const { text, failed } = await report({ 'scripts/a.mjs': row(90, 90, 90) }, [
-    coverage(file('scripts/a.mjs', [95, 100], [95, 100], [60, 100])),
-    summary(true),
-  ]);
+test('a green run below a floor fails once and names the file', () => {
+  const { text, failed } = report(
+    { 'scripts/a.mjs': row(90, 90, 90) },
+    {
+      coverage: coverageMap(
+        file('scripts/a.mjs', [95, 100], [95, 100], [60, 100])
+      ),
+    }
+  );
   assert.equal(failed, 1);
   assert.match(text, /scripts\/a\.mjs: functions 60\.00% is below/);
 });
 
-test('a red run is not judged, whatever its coverage', async () => {
-  // The first summary is one file's; the run's is last. Reading the first
-  // would judge floors on a run whose tests failed.
-  const { text, failed } = await report({ 'scripts/a.mjs': row(90, 90, 90) }, [
-    summary(true),
-    coverage(flat('scripts/a.mjs', 0)),
-    summary(false),
-  ]);
+test('a red run is not judged, whatever its coverage', () => {
+  // Vitest reports no coverage for a failing run unless asked to
+  // (`coverage.reportOnFailure`), and the floors hold the same line either way.
+  const { text, failed } = report(
+    { 'scripts/a.mjs': row(90, 90, 90) },
+    { coverage: coverageMap(flat('scripts/a.mjs', 0)), reason: 'failed' }
+  );
   assert.equal(failed, 0);
   assert.match(text, /Not checked: tests failed/);
 });
 
-test('a green run with no coverage at all fails', async () => {
-  const { text, failed } = await report({}, [summary(true)]);
+test('a green run with no coverage at all fails', () => {
+  const { text, failed } = report({}, {});
   assert.equal(failed, 1);
-  assert.match(text, /--experimental-test-coverage/);
+  assert.match(text, /--coverage/);
+});
+
+test('by default it reads the table, writes to stdout and sets the exit code', () => {
+  const reporter = new FloorsReporter();
+  assert.deepEqual(
+    reporter.floors,
+    JSON.parse(readFileSync(join(REPO, TABLE), 'utf8'))
+  );
+  assert.equal(reporter.root, REPO);
+
+  const written = [];
+  vi.spyOn(process.stdout, 'write').mockImplementation(text => {
+    written.push(text);
+    return true;
+  });
+  reporter.write('checked\n');
+  assert.deepEqual(written, ['checked\n']);
+
+  // The run's own code is put back before Vitest reads it.
+  const before = process.exitCode;
+  try {
+    reporter.fail();
+    assert.equal(process.exitCode, 1);
+  } finally {
+    process.exitCode = before;
+  }
 });
 
 /**
- * Runs a real `node --test` over a two-function fixture, one function called,
- * with the reporter loaded through a wrapper that sets `floors`.
+ * Runs a real Vitest over a two-function fixture, one function called, with
+ * the reporter loaded through a subclass that sets `floors`. Vitest takes a
+ * reporter by path only, so the subclass is a file of the fixture, and it
+ * reads its root from the run's working directory, the fixture's.
  */
 function runFixture(floors, { failTest = false } = {}) {
-  // Real path, because coverage reports modules by theirs: macOS's temp
-  // directory sits behind a symlink, and every key would come out `../…`.
-  const dir = realpathSync(mkdtempSync(join(tmpdir(), 'coverage-floors-')));
+  const dir = fixture({
+    'lib.mjs': 'export const used = () => 1;\nexport const unused = () => 2;\n',
+    'lib.test.mjs': [
+      "import { used } from './lib.mjs';",
+      "test('calls one of the two', () => {",
+      '  if (used() !== 1) throw new Error("used() changed");',
+      failTest ? '  throw new Error("asked to fail");' : '',
+      '});',
+      '',
+    ].join('\n'),
+    'floors.mjs':
+      `import { FloorsReporter } from ${JSON.stringify(here('../coverage-floors.mjs'))};\n` +
+      'export default class extends FloorsReporter {\n' +
+      '  constructor() {\n' +
+      `    super({ floors: ${JSON.stringify(floors)}, root: process.cwd() });\n` +
+      '  }\n' +
+      '}\n',
+    'vitest.config.mjs': `export default ${JSON.stringify({
+      test: {
+        globals: true,
+        include: ['lib.test.mjs'],
+        coverage: {
+          provider: 'custom',
+          customProviderModule: here('./vitest-v8-coverage.mjs'),
+          exclude: ['lib.test.mjs', 'floors.mjs', 'vitest.config.mjs'],
+          reporter: [],
+        },
+      },
+    })};\n`,
+  });
   try {
-    writeFileSync(
-      join(dir, 'lib.mjs'),
-      'export const used = () => 1;\nexport const unused = () => 2;\n'
-    );
-    writeFileSync(
-      join(dir, 'lib.test.mjs'),
-      [
-        "import { test } from 'node:test';",
-        "import { used } from './lib.mjs';",
-        "test('calls one of the two', () => {",
-        '  if (used() !== 1) throw new Error("used() changed");',
-        failTest ? '  throw new Error("asked to fail");' : '',
-        '});',
-        '',
-      ].join('\n')
-    );
-    const module = pathToFileURL(
-      join(import.meta.dirname, 'coverage-floors.mjs')
-    );
-    writeFileSync(
-      join(dir, 'floors.mjs'),
-      `import { floorsReporter } from ${JSON.stringify(module.href)};\n` +
-        `export default floorsReporter(${JSON.stringify({ floors, root: dir })});\n`
-    );
-
-    // A nested `node --test` that inherits NODE_TEST_CONTEXT takes itself for
-    // a file of the outer run and skips running anything; the coverage
-    // directory is the outer run's and has no business receiving this one's.
-    // That is why the default `fail` reads as uncovered in the table even
-    // though these cases run it: it only ever runs in this unmeasured process.
-    const env = Object.fromEntries(
-      Object.entries(process.env).filter(
-        ([name]) => !['NODE_TEST_CONTEXT', 'NODE_V8_COVERAGE'].includes(name)
-      )
-    );
-    const run = spawnSync(
-      process.execPath,
-      [
-        '--test',
-        '--experimental-test-coverage',
-        '--test-coverage-include=lib.mjs',
-        '--test-reporter=./floors.mjs',
-        '--test-reporter-destination=stdout',
-        'lib.test.mjs',
-      ],
-      { cwd: dir, env, encoding: 'utf8', timeout: 60_000 }
-    );
-    return { status: run.status, output: `${run.stdout}${run.stderr}` };
+    return runVitest(dir, [
+      '--coverage',
+      '--reporter=default',
+      '--reporter=./floors.mjs',
+    ]);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

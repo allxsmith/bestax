@@ -11,7 +11,7 @@
  * on good and tampered archives, the way gen-skills-repo.test.mjs holds
  * skills-publish.yml, and its push step's staging on a generated tree.
  */
-import { after, test } from 'node:test';
+import { afterAll, test } from 'vitest';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -49,7 +49,7 @@ function tempDir() {
   temps.push(dir);
   return dir;
 }
-after(() => {
+afterAll(() => {
   for (const dir of temps) fs.rmSync(dir, { recursive: true, force: true });
 });
 
@@ -669,7 +669,7 @@ test("publish's checks refuse a link, a .git or a missing root file", async () =
   }
 });
 
-test("publish's unpack step refuses a link, a .git or an escape before writing", async t => {
+test("publish's unpack step refuses a link, a .git or an escape before writing", () => {
   // Built member by member, so an archive can hold names tar would not write
   // from a real tree. Each case expects the refusal of the guard covering it.
   const dir = name => ({ name, type: '5', mode: 0o755 });
@@ -703,18 +703,16 @@ test("publish's unpack step refuses a link, a .git or an escape before writing",
     ['a bare ../ path', { name: '../escaped', body: 'x\n' }, named],
     ['an absolute path', { name: '/escaped', body: 'x\n' }, named],
   ]) {
-    await t.test(why, () => {
-      const run = runUnpack(tarball([...good, extra]));
-      assert.notEqual(run.status, 0, `${why} is refused`);
-      assert.match(run.stdout, /::error::The tree from generate is refused/);
-      assert.match(run.stdout, said, why);
-      assert.ok(!fs.existsSync(run.tree), `${why}: nothing is unpacked`);
-      assert.ok(!fs.existsSync(path.join(run.work, 'escaped')), why);
-    });
+    const run = runUnpack(tarball([...good, extra]));
+    assert.notEqual(run.status, 0, `${why} is refused`);
+    assert.match(run.stdout, /::error::The tree from generate is refused/);
+    assert.match(run.stdout, said, why);
+    assert.ok(!fs.existsSync(run.tree), `${why}: nothing is unpacked`);
+    assert.ok(!fs.existsSync(path.join(run.work, 'escaped')), why);
   }
 });
 
-test("publish's check step refuses a link, a .git or a fifo already on disk", async t => {
+test("publish's check step refuses a link, a .git or a fifo already on disk", () => {
   // The listing check keeps these out of an unpacked tree, so this runs the
   // check step on its own, on trees made by hand.
   const check = publishScript('Check the unpacked tree');
@@ -735,17 +733,15 @@ test("publish's check step refuses a link, a .git or a fifo already on disk", as
     ['a .GIT file', at => write(at, '.GIT', 'x\n')],
     ['a fifo', at => execFileSync('mkfifo', [path.join(at, 'login/pipe')])],
   ]) {
-    await t.test(why, () => {
-      const { work, tree } = unpacked();
-      tamper(tree);
-      const run = runStep(check, work);
-      assert.notEqual(run.status, 0, `${why} is refused`);
-      assert.match(
-        run.stdout,
-        /refused: the unpacked tree holds a \.git, or an entry that is neither/,
-        why
-      );
-    });
+    const { work, tree } = unpacked();
+    tamper(tree);
+    const run = runStep(check, work);
+    assert.notEqual(run.status, 0, `${why} is refused`);
+    assert.match(
+      run.stdout,
+      /refused: the unpacked tree holds a \.git, or an entry that is neither/,
+      why
+    );
   }
 });
 

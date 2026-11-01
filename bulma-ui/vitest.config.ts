@@ -19,7 +19,9 @@ export default defineConfig({
     pool: 'vmForks',
     // Jest never timed out a synchronous test; Vitest fails one that ran past
     // its timeout once it returns. The stylesheet suites compile Sass for a
-    // second at a time, and several times that on a loaded runner.
+    // second at a time, and several times that on a loaded runner, and
+    // TreeView's screen reader suite rebuilds an accessibility tree on every
+    // key press.
     testTimeout: 30_000,
     setupFiles: ['@testing-library/jest-dom/vitest'],
     include: ['src/**/*.test.{ts,tsx}'],

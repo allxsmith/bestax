@@ -65,7 +65,7 @@ describe.each(ENTRIES)('%s', entry => {
       logger: ownDeprecations(found),
     });
     expect(found).toEqual([]);
-  }, 30_000);
+  });
 });
 
 describe('the deprecation logger', () => {
