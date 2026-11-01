@@ -76,7 +76,8 @@ $toast-action-hover-opacity: 0.1 !default;
     align-items: center;
   }
 
-  // Bottom positions — column-reverse so newer toasts appear nearest the edge
+  // Bottom positions: column-reverse, so a stack grows up from the bottom
+  // edge as a top one grows down from the top, the first toast nearest it
   &.#{iv.$class-prefix}is-bottom-right {
     bottom: 0;
     right: 0;

@@ -8,7 +8,12 @@ import React, {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { isEventInside } from '../helpers/shadowDom';
-import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import {
+  classNames,
+  prefixedClassNames,
+  usePrefixedClassNames,
+} from '../helpers/classNames';
+import { useClassPrefix } from '../helpers/Config';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { usePortalContainer } from '../helpers/portal';
 import { LocalePortalScope } from '../helpers/LocaleProvider';
@@ -78,9 +83,17 @@ export interface ToastProps
   onAction?: () => void;
   /** Callback when toast closes. */
   onClose?: () => void;
-  /** CSS selector or DOM node to mount the toast into. */
+  /**
+   * CSS selector or DOM node to mount the toast into. Through `toast.show()`,
+   * a toast with one portals there in a box of its own, rather than joining
+   * `ToastContainer`'s stack for its position.
+   */
   container?: string | HTMLElement;
-  /** Renders inline instead of using a portal. */
+  /**
+   * Renders inline instead of using a portal. Through `toast.show()`, a toast
+   * already renders inline in `ToastContainer`'s stack for its position, and
+   * `inline` keeps one with a `container` in that stack too.
+   */
   inline?: boolean;
 }
 
@@ -533,7 +546,10 @@ const toastStackOrder: readonly ToastPosition[] = [
  * Container component for rendering programmatic toasts.
  * Place once at your app root to enable the toast API. A toast shown with a
  * `position` appears there, and one shown without goes to the container's
- * `position`.
+ * `position`. The toasts at one position stack in one `.toast-container`,
+ * with a gap between them, in the order they were shown, growing away from
+ * the edge of the screen. A toast shown with a `container` of its own, and
+ * not `inline`, portals there instead, in a box of its own.
  *
  * @function
  * @param {{ position?: ToastPosition }} props - Container props.
@@ -556,13 +572,38 @@ export const ToastContainer: React.FC<{
     getServerToasts
   );
   const resolveContainer = usePortalContainer();
+  const classPrefix = useClassPrefix();
 
   if (typeof document === 'undefined' || toastList.length === 0) {
     return null;
   }
 
+  // A toast shown with a `container` of its own, and not `inline`, portals
+  // there in a box of its own. Every other toast renders inline in the stack
+  // for its position, so the toasts at one position stack instead of each
+  // sitting in a box of its own on top of the others. An empty `container`
+  // falls back to the page, as it does on a Toast, so it means none here.
+  const ownsContainer = (t: ToastInstance) =>
+    !!t.props.container && !t.props.inline;
+  const renderToast = (
+    t: ToastInstance,
+    at: ToastPosition,
+    inline: boolean
+  ) => {
+    const { queue: _queue, ...toastProps } = t.props;
+    return (
+      <Toast
+        key={t.id}
+        {...toastProps}
+        position={at}
+        inline={inline}
+        onClose={() => toast.close(t.id)}
+      />
+    );
+  };
+
   const stacks = groupIntoPositionStacks(
-    toastList,
+    toastList.filter(t => !ownsContainer(t)),
     t => t.props.position,
     position,
     toastStackOrder
@@ -572,20 +613,20 @@ export const ToastContainer: React.FC<{
   return createPortal(
     <LocalePortalScope target={target}>
       {stacks.map(stack => (
-        <div key={stack.key} className={`toast-container is-${stack.position}`}>
-          {stack.items.map(t => {
-            const { queue: _queue, ...toastProps } = t.props;
-            return (
-              <Toast
-                key={t.id}
-                {...toastProps}
-                position={stack.position}
-                onClose={() => toast.close(t.id)}
-              />
-            );
-          })}
+        <div
+          key={stack.key}
+          className={prefixedClassNames(
+            classPrefix,
+            'toast-container',
+            `is-${stack.position}`
+          )}
+        >
+          {stack.items.map(t => renderToast(t, stack.position, true))}
         </div>
       ))}
+      {toastList
+        .filter(ownsContainer)
+        .map(t => renderToast(t, t.props.position ?? position, false))}
     </LocalePortalScope>,
     target
   );
