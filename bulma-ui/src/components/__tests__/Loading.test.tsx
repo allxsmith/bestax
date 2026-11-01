@@ -1,5 +1,4 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Loading, LoadingProps } from '../Loading';
 import { inertProps } from '../../helpers/inertProps';

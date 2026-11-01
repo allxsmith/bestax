@@ -74,8 +74,9 @@ test('a function only a child process runs is counted', () => {
 });
 
 test("Vitest's own provider still loses it, so the fix is still needed", () => {
-  // When this fails, an upgrade has fixed the merge: point the root config
-  // at `v8` and delete scripts/lib/vitest-v8-coverage.mjs and this file.
+  // When this fails, an upgrade has fixed the merge (vitest-dev/vitest#11812):
+  // point the root config at `v8` and delete scripts/lib/vitest-v8-coverage.mjs
+  // and this file.
   const stock = require.resolve('@vitest/coverage-v8');
   assert.equal(functionsCounted(stock), '1/2');
 });

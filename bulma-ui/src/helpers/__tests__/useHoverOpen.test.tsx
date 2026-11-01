@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { useHoverOpen, HoverOpenHandlers } from '../useHoverOpen';
 
 /**

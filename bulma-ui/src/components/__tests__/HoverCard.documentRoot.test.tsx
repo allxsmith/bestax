@@ -13,7 +13,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { act, fireEvent, within } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { HoverCard } from '../HoverCard';
 import { Button } from '../../elements/Button';
 

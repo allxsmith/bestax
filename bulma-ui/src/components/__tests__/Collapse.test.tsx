@@ -2,7 +2,6 @@ import type { MockInstance } from 'vitest';
 import { useState, type SyntheticEvent } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { Collapse } from '../Collapse';
 
 describe('Collapse', () => {

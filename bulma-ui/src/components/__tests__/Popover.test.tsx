@@ -4,7 +4,6 @@ import { createPortal } from 'react-dom';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { render, screen, fireEvent, act, within } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import {
   Popover,
   PopoverBody,

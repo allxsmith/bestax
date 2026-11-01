@@ -1,5 +1,4 @@
 import { render } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { Grid } from '../Grid';
 import { Cell } from '../Cell';
 import { ConfigProvider } from '../../helpers/Config';

@@ -2,7 +2,6 @@ import type { MockInstance } from 'vitest';
 import { useState } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { Collapses } from '../Collapses';
 import { Collapse } from '../Collapse';
 import { ConfigProvider } from '../../helpers/Config';

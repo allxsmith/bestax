@@ -5,7 +5,6 @@ import { createPortal } from 'react-dom';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { Tooltip } from '../Tooltip';
 import { Popover } from '../Popover';
 import { Modal } from '../Modal';

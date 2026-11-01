@@ -1,6 +1,5 @@
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import '@testing-library/jest-dom';
 import { Steps, Step } from '../Steps';
 
 /** The button a clickable step puts its marker and label in. */
