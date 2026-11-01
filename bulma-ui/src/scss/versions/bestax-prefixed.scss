@@ -5,7 +5,12 @@
 //
 // All CSS classes will be prefixed with "bestax-", e.g. "bestax-button", "bestax-is-primary"
 
-@use 'bulma/sass' with ($class-prefix: "bestax-", $primary: #1e6b99);
+// Table header cells align to the start of the line, as in bestax.scss.
+@use 'bulma/sass' with (
+  $class-prefix: "bestax-",
+  $primary: #1e6b99,
+  $table-cell-text-align: start
+);
 
 @use '../variables';
 @use '../mixins';

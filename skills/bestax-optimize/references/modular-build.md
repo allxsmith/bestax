@@ -197,6 +197,17 @@ Notes:
   (`bulma/sass/components/modal`) and `Tag isDelete` (`bulma/sass/elements/tag`) with them, so
   include it (`as bestax-delete`) in any build that shows a close button. Its rules win over
   Bulma's either way, so the order of the `@use` lines does not matter.
+- `Table` is stock Bulma (`bulma/sass/elements/table`), and `DataTable` renders one. The prebuilt
+  stylesheets build it with `$table-cell-text-align: start`, so header cells line up with the
+  body cells under them on a right-to-left page, where Bulma's default, `left`, keeps them on the
+  left. A build with a table gets the same by configuring the module where it loads it:
+
+  ```scss
+  @use 'bulma/sass/elements/table' with (
+    $table-cell-text-align: start
+  );
+  ```
+
 - Stock-Bulma form controls still need their Bulma module (`bulma/sass/form/…`); the extras
   form partials above style only the bestax-specific behavior.
 - Bulma component modules pull their own internal sub-elements — e.g.

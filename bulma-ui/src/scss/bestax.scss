@@ -6,8 +6,10 @@
 // Usage (SCSS source):
 //   @use '@allxsmith/bestax-bulma/scss/bestax';
 
-// Include all of Bulma (primary overridden to bestax blue)
-@use 'bulma/sass' with ($primary: #1e6b99);
+// Include all of Bulma, with bestax blue as primary, and table header cells
+// aligned to the start of the line, as body cells are, rather than Bulma's
+// `left`, so they follow a right-to-left page
+@use 'bulma/sass' with ($primary: #1e6b99, $table-cell-text-align: start);
 
 // Include bestax extras
 @use 'variables';
