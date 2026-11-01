@@ -35,6 +35,11 @@ export type LayoutElement =
 /**
  * What Stack, Group, Center and Flex take in common. The helper props, the
  * other attributes and the `ref` land on the root.
+ *
+ * @flexContainer The root is a flex container by its own stylesheet, so the
+ * flex container helper props apply with no `display` prop. The API docs
+ * extractor reads this tag off a component's props type or its bases, and
+ * the ESLint plugin's `no-inert-flex-props` takes its flex containers from it.
  */
 export interface LayoutOwnProps extends Omit<
   BulmaClassesProps,
@@ -53,7 +58,11 @@ export interface LayoutOwnProps extends Omit<
   backgroundColor?: never;
   /** Additional CSS classes. */
   className?: string;
-  /** What it lays out, with `gap` between and their own Bulma block margins zeroed. */
+  /**
+   * What it lays out. The margins Bulma gives them are zeroed, the bottom one
+   * in a Stack and the top and bottom in the others, so `gap` is the only
+   * space between them. A `Columns` child keeps its own.
+   */
   children?: React.ReactNode;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';

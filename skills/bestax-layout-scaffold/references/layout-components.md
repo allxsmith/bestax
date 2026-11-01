@@ -106,10 +106,12 @@ Every component also accepts the shared Bulma helper props (`m`/`p` spacing, `te
 
 ## Stack / Group / Center / Flex
 
-Flex containers for laying out any components, with no `display` prop to add. Each zeroes its
-direct children's Bulma block margins (Box, Notification, Card, Title, Field), so `gap` is the
-only space between them: no `mb="0"` on the children. None draws a surface; put a `Box` or a
-`Card` inside or around.
+Flex containers for laying out any components, with no `display` prop to add. Each zeroes the
+margins Bulma gives its direct children (Box, Notification, Card, Title, Field), the bottom one
+in a Stack and the top and bottom in the others, so `gap` is the only space between them: no
+`mb="0"` on the children. A `Columns` child keeps its own, so its columns line up. None draws a
+surface; put a `Box` or a `Card` inside or around. A `display` prop that isn't flex turns one
+off, as on any component.
 
 - `<Stack>`: a column, children stretched across it, `gap` Bulma's block spacing (1.5rem).
 - `<Group>`: a row that wraps, children centered on each other, `gap` half that (0.75rem). A

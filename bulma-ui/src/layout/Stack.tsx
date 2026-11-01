@@ -50,7 +50,7 @@ export type StackProps<T extends LayoutElement = LayoutElement> =
     };
 
 /**
- * The `Stack` component lays its children out in a column, with Bulma's block spacing between them and their own block margins zeroed.
+ * The `Stack` component lays its children out in a column, with Bulma's block spacing between them and the bottom margins Bulma gives them zeroed.
  *
  * A Stack of Boxes, Cards or Notifications looks like Bulma's own stacked
  * blocks, spaced by the gap alone, so there are no margins to undo. A `gap`

@@ -170,7 +170,7 @@ free. `references/api.md` documents the helpers.
 
 **Rung 1 — helper props only (default).** House rules: never `style={{}}`. Lay children out
 with `Stack` (a column), `Group` (a row that wraps), `Center` or `Flex`, which are flex
-containers already and zero their children's Bulma block margins, so `gap` is the only space;
+containers already and zero the margins Bulma gives their children, so `gap` is the only space;
 `alignItems`, `justifyContent` and the rest go straight on them. Don't reach for `Box` as a
 plain flex container: it's a padded, shadowed surface. Before writing `style={{ … }}` anywhere,
 translate each declaration:

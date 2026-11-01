@@ -42,7 +42,7 @@ const meta: Meta<typeof Stack> = {
     docs: {
       description: {
         component:
-          'A column with Bulma’s block spacing between its children, and their own block margins zeroed, so the gap is the only space. A `gap` step, `alignItems` and `justifyContent` replace the defaults through Bulma’s helper classes.',
+          'A column with Bulma’s block spacing between its children, and the bottom margins Bulma gives them zeroed, so the gap is the only space. A `gap` step, `alignItems` and `justifyContent` replace the defaults through Bulma’s helper classes.',
       },
     },
   },

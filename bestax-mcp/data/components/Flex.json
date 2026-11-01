@@ -129,7 +129,7 @@
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
-          "description": "What it lays out, with `gap` between and their own Bulma block margins zeroed.",
+          "description": "What it lays out. The margins Bulma gives them are zeroed, the bottom one in a Stack and the top and bottom in the others, so `gap` is the only space between them. A `Columns` child keeps its own.",
           "required": false,
           "inherited": true,
           "deprecated": false

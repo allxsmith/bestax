@@ -10,12 +10,12 @@
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
-          "bytes": 24289
+          "bytes": 24301
         },
         {
           "id": "library-contributor",
           "file": "references/library-contributor.md",
-          "bytes": 22089
+          "bytes": 22459
         },
         { "id": "patterns", "file": "references/patterns.md", "bytes": 4601 }
       ],
@@ -64,7 +64,7 @@
         {
           "id": "layout-components",
           "file": "references/layout-components.md",
-          "bytes": 21652
+          "bytes": 21844
         }
       ],
       "examples": [

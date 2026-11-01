@@ -106,12 +106,24 @@ describe.each([
     expect(merged(rules, stack)).toEqual({
       '--bulma-stack-gap': 'var(--bulma-block-spacing)',
       '--bulma-stack-horizontal-gap': 'calc(var(--bulma-block-spacing) * 0.5)',
-      display: 'flex',
     });
   });
 
+  // `[hidden]` is the browser's own `display: none`, which any `display` an
+  // author sheet sets outranks.
+  it('makes it a flex container, unless it’s hidden', () => {
+    expect(find(rules, `${stack}:not([hidden])`)).toEqual({ display: 'flex' });
+    expect(
+      rules.filter(
+        r => r.declarations.display && !r.selector.includes(':not([hidden])')
+      )
+    ).toEqual([]);
+  });
+
   it('leaves Flex at CSS’s own defaults: a row, no wrap, stretched, no gap', () => {
-    const own = rules.filter(r => r.selector === stack);
+    const own = rules.filter(
+      r => r.selector === stack || r.selector === `${stack}:not([hidden])`
+    );
     for (const { declarations } of own) {
       for (const property of [
         'flex-direction',
@@ -151,18 +163,41 @@ describe.each([
   // `:not(#\#)` matches any element with an id's weight, so the reset wins
   // whichever sheet loads first, and a helper's `!important` still beats it.
   it('zeroes the children’s block-end margin in a Stack, and both in the others', () => {
-    expect(find(rules, `${stack}${c('is-vertical')} > :not(#\\#)`)).toEqual({
+    expect(
+      find(
+        rules,
+        `${stack}${c('is-vertical')} > :not(#\\#):not(${c('columns')})`
+      )
+    ).toEqual({
       'margin-block-end': '0',
     });
     expect(
-      find(rules, `${stack}:not(${c('is-vertical')}) > :not(#\\#)`)
+      find(
+        rules,
+        `${stack}:not(${c('is-vertical')}) > :not(#\\#):not(${c('columns')})`
+      )
     ).toEqual({ 'margin-block': '0' });
     // Nothing deeper than the children.
     for (const rule of rules) {
       if (/margin/.test(Object.keys(rule.declarations).join(' '))) {
-        expect(rule.selector).toMatch(/ > (hr)?:not\(#\\#\)$/);
+        expect(rule.selector).toMatch(
+          /> (hr|\.(bestax-)?columns(\.(bestax-)?is-gapless)?)?:not\(#\\#\)(:not\(\.(bestax-)?columns\))?$/
+        );
       }
     }
+  });
+
+  // Bulma's Columns pull out by the column gap with negative margins, so
+  // their columns' padding lines up with the blocks around them. A Columns
+  // child keeps its top and side margins, and takes the bottom one Bulma
+  // gives the last Columns in a container.
+  it('leaves a Columns child its negative margins, the bottom one as the last Columns’', () => {
+    expect(find(rules, `${stack} > ${c('columns')}:not(#\\#)`)).toEqual({
+      'margin-block-end': 'calc(-1 * var(--bulma-column-gap))',
+    });
+    expect(
+      find(rules, `${stack} > ${c('columns')}${c('is-gapless')}:not(#\\#)`)
+    ).toEqual({ 'margin-block-end': '0' });
   });
 
   // Bulma's `hr` margin collapses into the block above it in normal flow.
@@ -209,8 +244,10 @@ describe.each([
 
   it('uses only the prefix it was built with', () => {
     if (prefix) {
-      expect(css).not.toMatch(/(^|[\s,>(])\.stack\b/m);
-      expect(css).not.toMatch(/\.is-(vertical|horizontal|centered)\b/);
+      expect(css).not.toMatch(/(^|[\s,>(])\.(stack|columns)\b/m);
+      expect(css).not.toMatch(
+        /(^|[^-])\.is-(vertical|horizontal|centered|gapless)\b/
+      );
     }
     expect(css).toContain(`${stack}${c('is-vertical')}`);
   });
@@ -221,7 +258,7 @@ describe('the published sheets', () => {
   // containers with their gaps, and the props have no class to add.
   it('keeps the layout in bestax-no-helpers.css, which has no helper classes', () => {
     const rules = rulesOf(compileSheet('versions/bestax-no-helpers.scss'));
-    expect(merged(rules, '.stack')).toMatchObject({ display: 'flex' });
+    expect(find(rules, '.stack:not([hidden])')).toEqual({ display: 'flex' });
     expect(find(rules, '.stack.is-vertical')).toMatchObject({
       gap: 'var(--bulma-stack-gap)',
     });

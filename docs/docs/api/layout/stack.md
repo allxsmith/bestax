@@ -1,7 +1,7 @@
 ---
 title: Stack
 sidebar_label: Stack
-description: The `Stack` component lays its children out in a column, with Bulma's block spacing between them and their own block margins zeroed.
+description: The `Stack` component lays its children out in a column, with Bulma's block spacing between them and the bottom margins Bulma gives them zeroed.
 ---
 
 # Stack
@@ -10,7 +10,7 @@ description: The `Stack` component lays its children out in a column, with Bulma
 
 <!-- bestax:generated overview -->
 
-The `Stack` component lays its children out in a column, with Bulma's block spacing between them and their own block margins zeroed.
+The `Stack` component lays its children out in a column, with Bulma's block spacing between them and the bottom margins Bulma gives them zeroed.
 
 <!-- /bestax:generated overview -->
 
@@ -124,6 +124,26 @@ middle of the space.
 </Stack>
 ```
 
+### With Columns
+
+A `Columns` child keeps the negative margins Bulma gives it, so its columns line up with the blocks
+around it and sit the gap away from them, as they would between Bulma's own blocks.
+
+```tsx live
+<Stack>
+  <Box>Above</Box>
+  <Columns>
+    <Column>
+      <Box>One</Box>
+    </Column>
+    <Column>
+      <Box>Two</Box>
+    </Column>
+  </Columns>
+  <Box>Below</Box>
+</Stack>
+```
+
 ### A Title and Its SubTitle
 
 Bulma sets a `SubTitle` right under its `Title`. In a Stack, the gap would come between them, so put
@@ -166,6 +186,8 @@ from a list once Bulma's reset hides its markers.
 - **Landmarks:** with `as="nav"`, `"aside"`, `"section"` or `"main"`, the Stack is the landmark. A
   `section` is a region only once it has a name, from `aria-label` or `aria-labelledby`.
 - **Lists:** `as="ul"` or `as="ol"` with `li` children is announced as a list with its count.
+- **Hidden:** the `hidden` attribute hides a Stack, as it does any element, so one can be a
+  closed panel or an inactive tab's content.
 
 ---
 
@@ -192,18 +214,18 @@ from a list once Bulma's reset hides its markers.
 
 <!-- bestax:generated props -->
 
-| Prop             | Type                                                                    | Default     | Description                                                                                                                                |
-| ---------------- | ----------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `as`             | `LayoutElement`                                                         | `'div'`     | The element to render. With `ul` or `ol`, give it `li` children: it restates `role="list"`, which Bulma's list reset takes away in Safari. |
-| `gap`            | `BulmaGapStep`                                                          | —           | Space between children, a step of Bulma's gap scale (`'2'` is 1rem). Unset, it's `--bulma-stack-gap`, Bulma's block spacing.               |
-| `alignItems`     | `(typeof validAlignItems)[number]`                                      | `'stretch'` | How each child sits across the column. `'stretch'` makes each as wide as the Stack.                                                        |
-| `justifyContent` | `(typeof validJustifyContents)[number]`                                 | —           | Where the children sit down the column, when it's taller than they are.                                                                    |
-| `className`      | `string`                                                                | —           | Additional CSS classes.                                                                                                                    |
-| `children`       | `React.ReactNode`                                                       | —           | What it lays out, with `gap` between and their own Bulma block margins zeroed.                                                             |
-| `textColor`      | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —           | Text color helper.                                                                                                                         |
-| `bgColor`        | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —           | Background color helper.                                                                                                                   |
-| `ref`            | `PolymorphicRef<LayoutElement>`                                         | —           | Ref forwarded to the element `as` renders.                                                                                                 |
-| `...`            | Remaining props of the element selected by `as` and Bulma helper props  | —           | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                          |
+| Prop             | Type                                                                    | Default     | Description                                                                                                                                                                                          |
+| ---------------- | ----------------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `as`             | `LayoutElement`                                                         | `'div'`     | The element to render. With `ul` or `ol`, give it `li` children: it restates `role="list"`, which Bulma's list reset takes away in Safari.                                                           |
+| `gap`            | `BulmaGapStep`                                                          | —           | Space between children, a step of Bulma's gap scale (`'2'` is 1rem). Unset, it's `--bulma-stack-gap`, Bulma's block spacing.                                                                         |
+| `alignItems`     | `(typeof validAlignItems)[number]`                                      | `'stretch'` | How each child sits across the column. `'stretch'` makes each as wide as the Stack.                                                                                                                  |
+| `justifyContent` | `(typeof validJustifyContents)[number]`                                 | —           | Where the children sit down the column, when it's taller than they are.                                                                                                                              |
+| `className`      | `string`                                                                | —           | Additional CSS classes.                                                                                                                                                                              |
+| `children`       | `React.ReactNode`                                                       | —           | What it lays out. The margins Bulma gives them are zeroed, the bottom one in a Stack and the top and bottom in the others, so `gap` is the only space between them. A `Columns` child keeps its own. |
+| `textColor`      | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —           | Text color helper.                                                                                                                                                                                   |
+| `bgColor`        | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —           | Background color helper.                                                                                                                                                                             |
+| `ref`            | `PolymorphicRef<LayoutElement>`                                         | —           | Ref forwarded to the element `as` renders.                                                                                                                                                           |
+| `...`            | Remaining props of the element selected by `as` and Bulma helper props  | —           | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                    |
 
 **Types:**
 

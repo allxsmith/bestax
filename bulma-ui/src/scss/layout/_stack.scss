@@ -15,7 +15,9 @@
 // Bulma sets those margins with `:not(:last-child)`, two classes' weight, so
 // the reset carries an id's weight through `:not(#\#)`, which matches any
 // element. A helper margin on a child (`mb="2"`) is `!important` and still
-// wins. Only the direct children: what's inside them keeps its spacing.
+// wins. Only the direct children: what's inside them keeps its spacing. A
+// Columns child is the exception, since its margins are negative on purpose
+// (below).
 
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
@@ -38,11 +40,15 @@ $stack-horizontal-gap: calc(#{cv.getVar("block-spacing")} * 0.5) !default;
 
 // ---- Flex: a flex container with CSS's own defaults ------------------------------
 
-.#{iv.$class-prefix}stack {
+// Not on a `hidden` one: a `display` here outranks the browser's own
+// `[hidden] { display: none }`, so a hidden Stack, such as a closed panel,
+// would show.
+.#{iv.$class-prefix}stack:not([hidden]) {
   display: flex;
 }
 
-.#{iv.$class-prefix}stack:not(.#{iv.$class-prefix}is-vertical) > :not(#\#) {
+.#{iv.$class-prefix}stack:not(.#{iv.$class-prefix}is-vertical)
+  > :not(#\#):not(.#{iv.$class-prefix}columns) {
   margin-block: 0;
 }
 
@@ -52,7 +58,7 @@ $stack-horizontal-gap: calc(#{cv.getVar("block-spacing")} * 0.5) !default;
   flex-direction: column;
   gap: cv.getVar("stack-gap");
 
-  > :not(#\#) {
+  > :not(#\#):not(.#{iv.$class-prefix}columns) {
     margin-block-end: 0;
   }
 
@@ -63,6 +69,24 @@ $stack-horizontal-gap: calc(#{cv.getVar("block-spacing")} * 0.5) !default;
   > hr:not(#\#) {
     margin-block-start: 0;
   }
+}
+
+// ---- A Columns child, in any of the four -------------------------------------------
+
+// Bulma's Columns pull themselves out by the column gap on every side, so
+// their columns' padding lines the content up with the blocks around them.
+// Zeroing those margins would leave that padding showing, so a Columns child
+// keeps its own top and side margins, and at the bottom takes the one Bulma
+// gives the last Columns in a container: the gap pulled back in, or nothing
+// when gapless. Its content then sits the gap from its neighbours, and
+// centered in a row.
+.#{iv.$class-prefix}stack > .#{iv.$class-prefix}columns:not(#\#) {
+  margin-block-end: calc(-1 * #{cv.getVar("column-gap")});
+}
+
+.#{iv.$class-prefix}stack
+  > .#{iv.$class-prefix}columns.#{iv.$class-prefix}is-gapless:not(#\#) {
+  margin-block-end: 0;
 }
 
 // ---- Group: a row that wraps -------------------------------------------------------
