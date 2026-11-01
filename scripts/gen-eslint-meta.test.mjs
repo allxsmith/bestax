@@ -14,8 +14,10 @@ import {
   classTableViolations,
   unknownComponents,
   collect,
+  flexContainerViolations,
   guardViolations,
   render,
+  rendersFlexContainer,
   replacementFrom,
 } from './gen-eslint-meta.mjs';
 
@@ -342,6 +344,84 @@ describe('collect', () => {
       'isFullwidth'
     );
     assert.ok(textAlias.has('Box'));
+  });
+
+  it('reads the flex containers off each component module’s source', () => {
+    const sources = {
+      'Box.tsx': 'return <div className={classes} />;',
+      'Card.tsx': '// <StackLayout> would make it one\nreturn <div />;',
+      'Content.tsx': 'return <StackLayout ref={ref} {...props} />;',
+    };
+    const { flexContainers } = collect({
+      exportedModules: () =>
+        new Map(['Box', 'Card', 'Content'].map(n => [n, {}])),
+      // The happy path's tables, each with the module it was read from.
+      extractComponent: name => ({
+        sourceFile: `${name}.tsx`,
+        tables: [
+          {
+            path: name,
+            rows: [
+              ...(name === 'Box'
+                ? [
+                    {
+                      name: 'isFullWidth',
+                      deprecated: true,
+                      deprecationNote: 'Use `isFullwidth` instead.',
+                    },
+                    { name: 'isFullwidth', description: 'Full width.' },
+                  ]
+                : []),
+              ...aliasRows(name),
+            ],
+          },
+        ],
+      }),
+      readSource: file => sources[file],
+    });
+    // A comment naming the construct is not the construct.
+    assert.deepEqual([...flexContainers], ['Content']);
+  });
+});
+
+describe('the flex container set', () => {
+  it('reads the construct, not a comment about it', () => {
+    assert.equal(rendersFlexContainer('<StackLayout ref={ref} />'), true);
+    assert.equal(
+      rendersFlexContainer('useBulmaClasses(props, { flexContainer: true });'),
+      true
+    );
+    assert.equal(
+      rendersFlexContainer('/* { flexContainer: true } */\n<div />'),
+      false
+    );
+    assert.equal(rendersFlexContainer('{ flexContainer: false }'), false);
+  });
+
+  it('refuses a set that lost an anchor, naming it', () => {
+    assert.deepEqual(
+      flexContainerViolations(new Set(['Center', 'Flex', 'Group', 'Stack'])),
+      []
+    );
+    const one = flexContainerViolations(new Set(['Center', 'Flex', 'Group']));
+    assert.equal(one.length, 1);
+    assert.match(one[0], /^Stack no longer reads as a flex container/);
+    assert.match(one[0], /on it, which render/);
+    const two = flexContainerViolations(new Set(['Center', 'Flex']));
+    assert.match(two[0], /^Group, Stack no longer read as/);
+    assert.match(two[0], /on them, which render/);
+  });
+
+  it('renders the set sorted, and an empty one by default', () => {
+    const base = { deprecated: new Map(), textAlias: new Set(['Box']) };
+    assert.match(
+      render({ ...base, flexContainers: new Set(['Stack', 'Flex']) }),
+      /FLEX_CONTAINER_ELEMENTS: readonly string\[\] = \[\n {2}"Flex",\n {2}"Stack",\n\];/
+    );
+    assert.match(
+      render(base),
+      /FLEX_CONTAINER_ELEMENTS: readonly string\[\] = \[\n\n\];/
+    );
   });
 });
 

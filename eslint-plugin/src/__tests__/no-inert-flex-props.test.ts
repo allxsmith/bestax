@@ -27,6 +27,14 @@ ruleTester.run('no-inert-flex-props', rule, {
     imported('Box', '<Box {...rest} justifyContent="center" />'),
     // Not our element.
     "const Box = 'div';\nconst x = <Box justifyContent='center' />;\n",
+    // A flex container by its own CSS needs no display prop.
+    imported('Stack', '<Stack alignItems="center" justifyContent="end" />'),
+    imported('Group', '<Group justifyContent="space-between" />'),
+    imported('Center', '<Center alignItems="flex-start" />'),
+    imported(
+      'Flex',
+      '<Flex flexDirection="column" flexWrap="wrap" alignContent="center" />'
+    ),
   ],
   invalid: [
     {
