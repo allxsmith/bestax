@@ -66,8 +66,8 @@ export interface PasswordInputBaseProps extends Omit<InputBaseProps, 'type'> {
   defaultVisible?: boolean;
   /**
    * Called with the new visibility on each toggle, and with `false` when the
-   * form submits or resets, when the page is left, and when it comes back
-   * from the back-forward cache. React renders those hides at once, a state
+   * form submits or resets, or the page is left, which it also is on the way
+   * into the back-forward cache. React renders those hides at once, a state
    * update you make here included, so the form reads a password field. One
    * that fires while React is rendering or running layout effects, such as a
    * `requestSubmit()` from a layout effect, can't render there, and lands
@@ -224,19 +224,12 @@ export const PasswordInputBase = forwardRef<
   }, [formAttribute, hideRef]);
 
   // When the page is left, so the history the browser keeps of the form
-  // holds a password field rather than text, and when it comes back from the
-  // back-forward cache, as it was left.
+  // holds a password field rather than text. It fires on the way into the
+  // back-forward cache too, so a page coming back from there is hidden.
   useEffect(() => {
     const onPageHide = () => hideRef.current();
-    const onPageShow = (event: PageTransitionEvent) => {
-      if (event.persisted) hideRef.current();
-    };
     window.addEventListener('pagehide', onPageHide);
-    window.addEventListener('pageshow', onPageShow);
-    return () => {
-      window.removeEventListener('pagehide', onPageHide);
-      window.removeEventListener('pageshow', onPageShow);
-    };
+    return () => window.removeEventListener('pagehide', onPageHide);
   }, [hideRef]);
 
   const containerClass = usePrefixedClassNames('passwordinput-container', {

@@ -476,29 +476,15 @@ describe('PasswordInput', () => {
       expect(onVisibleChange).not.toHaveBeenCalled();
     });
 
-    it('hides when the page comes back from the back-forward cache', () => {
-      const { onVisibleChange, unmount } = setup({ defaultVisible: true });
+    it('leaves the page coming back from the back-forward cache as it was', () => {
+      const { onVisibleChange } = setup({ defaultVisible: true });
       act(() => {
         window.dispatchEvent(
-          new PageTransitionEvent('pageshow', { persisted: false })
+          new PageTransitionEvent('pageshow', { persisted: true })
         );
       });
+      // The pagehide on the way in already hid it.
       expect(input()).toHaveAttribute('type', 'text');
-      act(() => {
-        window.dispatchEvent(
-          new PageTransitionEvent('pageshow', { persisted: true })
-        );
-      });
-      expect(input()).toHaveAttribute('type', 'password');
-      expect(onVisibleChange).toHaveBeenCalledWith(false);
-
-      unmount();
-      onVisibleChange.mockClear();
-      act(() => {
-        window.dispatchEvent(
-          new PageTransitionEvent('pageshow', { persisted: true })
-        );
-      });
       expect(onVisibleChange).not.toHaveBeenCalled();
     });
 
