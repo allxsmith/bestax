@@ -108,20 +108,20 @@
         },
         {
           "name": "aria-label",
-          "type": "string",
+          "type": "undefined | string",
           "default": null,
-          "description": "The button's name: what a screen reader announces and what a voice control user says to press it. Required, or `aria-labelledby` in its place, since an icon has no text to name it by. Name the action (\"Delete\"), not the picture (\"Trash\"). An empty or blank one warns in development.",
+          "description": "Not with `aria-labelledby`, which already names the button.",
           "required": false,
-          "inherited": false,
+          "inherited": true,
           "deprecated": false
         },
         {
           "name": "aria-labelledby",
-          "type": "string",
+          "type": "string | undefined",
           "default": null,
           "description": "The id of the element whose text names the button, in place of `aria-label`.",
           "required": false,
-          "inherited": false,
+          "inherited": true,
           "deprecated": false
         },
         {

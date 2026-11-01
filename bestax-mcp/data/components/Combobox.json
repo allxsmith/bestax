@@ -89,7 +89,7 @@
           "default": null,
           "description": "The items, for a Combobox that renders the field, the menu, the list, the groups and the empty message itself. A string is an item whose label is its value, and an object is `{ value, label?, disabled?, group? }`. Typing filters the items by label, ignoring case, and inside a `LocaleProvider` with a `locale`, ignoring accents too where that language does, so \"cafe\" finds \"Café\". The Combobox keeps the value. Leave it out to build the Combobox from parts.",
           "required": false,
-          "inherited": false,
+          "inherited": true,
           "deprecated": false
         },
         {
@@ -98,7 +98,7 @@
           "default": "false",
           "description": "Several values can be picked. The list stays open after a pick, it's `aria-multiselectable`, and each item's `checked` is its `aria-selected`. With `data`, the value is an array, and the picks show as tags under the field, inside its Field, each with a button that takes it off. The field's description lists them, since its text is the search.",
           "required": false,
-          "inherited": false,
+          "inherited": true,
           "deprecated": false
         },
         {
@@ -107,7 +107,7 @@
           "default": null,
           "description": "The value, controlled, with `data`: the picked item's `value`, or `null` for none, and with `multiple` an array of them. With one value, the field shows the picked item's label while you aren't typing in it, and the list closing or the field being left puts it back over any typing. A field emptied and left like that clears the value.",
           "required": false,
-          "inherited": false,
+          "inherited": true,
           "deprecated": false
         },
         {
@@ -116,7 +116,7 @@
           "default": null,
           "description": "The value to start with when uncontrolled, with `data`.",
           "required": false,
-          "inherited": false,
+          "inherited": true,
           "deprecated": false
         },
         {
@@ -125,7 +125,7 @@
           "default": null,
           "description": "Called with the new value, with `data`, when a pick, a tag's button or a field left empty changes it: an item's `value` or `null`, or with `multiple` the array.",
           "required": false,
-          "inherited": false,
+          "inherited": true,
           "deprecated": false
         },
         {
@@ -134,7 +134,7 @@
           "default": null,
           "description": "Names each tag's button, in place of \"Remove\" and the item's label, as Taginput's does. The button is then described by its tag's label, so it still says which tag it takes off.",
           "required": false,
-          "inherited": false,
+          "inherited": true,
           "deprecated": false
         },
         {
@@ -143,7 +143,7 @@
           "default": null,
           "description": "The parts, in order: `Combobox.Input`, then `Combobox.Menu` with `Combobox.List` and `Combobox.Empty` in it. With `inline`, the `Combobox.List` and `Combobox.Empty` go straight in. Render `Combobox.List` while there are items and `Combobox.Empty` while there aren't: the empty message sits beside the list, not in it. With `data` there are none to give: children given with it are ignored, with a warning in development.",
           "required": false,
-          "inherited": false,
+          "inherited": true,
           "deprecated": false
         },
         {
