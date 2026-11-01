@@ -161,11 +161,17 @@ describe.each([
     );
   });
 
-  it('sets the label a gap from the circle', () => {
+  it('sets the label a gap from the circle, on its side in either direction', () => {
+    // The row mirrors on a right-to-left page, so a physical margin-left
+    // stayed on the text's far side and the text touched the circle.
     const label = renderRadio({ children: 'Monthly' }).querySelector(
       `.${prefix}control-label`
     ) as HTMLElement;
-    expect(resolve(label, 'margin-left')).toBe('var(--bulma-radio-label-gap)');
+    expect(resolve(label, 'margin-inline-start')).toBe(
+      'var(--bulma-radio-label-gap)'
+    );
+    expect(resolve(label, 'margin-left')).toBeUndefined();
+    expect(resolve(label, 'margin-right')).toBeUndefined();
   });
 
   it('dims the circle and its label when disabled', () => {

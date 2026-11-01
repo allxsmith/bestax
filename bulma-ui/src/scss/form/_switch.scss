@@ -131,19 +131,23 @@ $switch-thin-circle-size: 1.25em !default;
     }
   }
 
-  // Label text
+  // Label text. The gap is on the text's inline start, the side the track
+  // is on: the row mirrors on a right-to-left page, and a physical
+  // `margin-left` would stay on the far side and leave the text on the
+  // track.
   .#{iv.$class-prefix}control-label {
-    margin-left: cv.getVar("switch-label-gap");
+    margin-inline-start: cv.getVar("switch-label-gap");
     line-height: cv.getVar("switch-height");
   }
 
-  // RTL support
+  // Label first: the reversed row puts the track on the text's inline end,
+  // in either page direction, so the gap moves there.
   &.#{iv.$class-prefix}is-rtl {
     flex-direction: row-reverse;
 
     .#{iv.$class-prefix}control-label {
-      margin-left: 0;
-      margin-right: cv.getVar("switch-label-gap");
+      margin-inline-start: 0;
+      margin-inline-end: cv.getVar("switch-label-gap");
     }
   }
 }

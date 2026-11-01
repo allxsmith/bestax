@@ -125,9 +125,12 @@ $radio-transition-duration: cv.getVar("duration") !default;
     }
   }
 
-  // Label text
+  // Label text. The gap is on the text's inline start, the side the circle
+  // is on: the row mirrors on a right-to-left page, and a physical
+  // `margin-left` would stay on the far side and leave the text on the
+  // circle.
   .#{iv.$class-prefix}control-label {
-    margin-left: cv.getVar("radio-label-gap");
+    margin-inline-start: cv.getVar("radio-label-gap");
     line-height: 1.5;
   }
 }
