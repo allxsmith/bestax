@@ -120,6 +120,28 @@ const { replaceWithPlain, collapseOntoChild } = makeStructuralHelpers(
     )
 );
 
+/**
+ * Whether the element sits inside a Field or a Control, which tells the
+ * bestax inputs within whether to render a Field and a Control of their own.
+ * Ancestors are migrated before their children, so one may already carry
+ * its bestax name, under the local `ctx.needed` gives it; one that doesn't
+ * still resolves to its rbx path.
+ */
+function insideFormScope(ctx: TransformContext, path: ASTPath<any>): boolean {
+  const bestaxByLocal = new Map(
+    [...ctx.needed].map(([name, local]) => [local, name])
+  );
+  for (let up = path.parent; up; up = up.parent) {
+    const name = up.node?.type === 'JSXElement' && up.node.openingElement.name;
+    if (!name) continue;
+    const root =
+      ctx.resolve?.(name)?.[0] ??
+      bestaxByLocal.get(jsxNameParts(name)?.[0] ?? '');
+    if (root === 'Field' || root === 'Control') return true;
+  }
+  return false;
+}
+
 const SPECIALS: Record<string, SpecialHandler> = {
   /**
    * rbx's `Heading` is Bulma's `.heading` label (small caps), not a title —
@@ -313,8 +335,25 @@ const SPECIALS: Record<string, SpecialHandler> = {
    * box unless told otherwise. `variant="unstyled"` is the one that draws no
    * box. `disabled` carries over as it is, and bestax's also passes it to
    * the bestax inputs inside, which a plain <fieldset> can't reach.
+   *
+   * bestax's Fieldset also starts its own Field scope, which rbx's never
+   * did. Inside a Field or a Control that changes what an input placed
+   * straight in it renders: `<Field><Fieldset><Input /></Fieldset></Field>`
+   * would gain a `.field` and a `.control` of its own. There it stays the
+   * plain <fieldset> rbx rendered, which keeps the markup and, since every
+   * input rbx had is a native one, the `disabled` behavior too.
    */
-  fieldset(ctx, _path, element) {
+  fieldset(ctx, path, element) {
+    if (insideFormScope(ctx, path)) {
+      return replaceWithPlain(
+        ctx,
+        path,
+        element,
+        'fieldset',
+        undefined,
+        'Fieldset'
+      );
+    }
     if (!findAttr(element, 'variant')) {
       addAttr(element, makeAttr(ctx.j, 'variant', 'unstyled'));
       ctx.dirty = true;

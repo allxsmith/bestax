@@ -333,6 +333,58 @@ describe('rbx Title / Icon / PageLoader / Navbar / Field', () => {
     expect(output).toContain('<Fieldset variant="filled">x</Fieldset>');
   });
 
+  // bestax's Fieldset starts its own Field scope, which rbx's never did, so
+  // inside a Field or a Control it stays the plain <fieldset> rbx rendered.
+  describe('a Fieldset inside a Field or a Control', () => {
+    it('stays a plain fieldset under an aliased rbx Field', () => {
+      const { output, rules } = migrate(
+        "import { Field as RbxField, Fieldset, Input } from 'rbx';\n" +
+          'const Field = 1;\n' +
+          'export const A = () => <RbxField><Fieldset disabled><Input /></Fieldset></RbxField>;'
+      );
+      // The Field is already bestax's, under the alias the clash forced.
+      expect(output).toContain(
+        '<BulmaField><fieldset disabled><Input /></fieldset></BulmaField>'
+      );
+      expect(rules).toEqual([]);
+    });
+
+    it('stays a plain fieldset under a namespaced rbx Control', () => {
+      const { output } = migrate(
+        "import * as Rbx from 'rbx';\n" +
+          'export const A = () => <Rbx.Control><Rbx.Fieldset disabled>x</Rbx.Fieldset></Rbx.Control>;'
+      );
+      expect(output).toContain('<fieldset disabled>x</fieldset>');
+    });
+
+    it("stays a plain fieldset under bestax's own Field", () => {
+      const { output } = migrate(
+        "import { Field } from '@allxsmith/bestax-bulma';\n" +
+          imp('Fieldset') +
+          'export const A = () => <Field><div><Fieldset>x</Fieldset></div></Field>;'
+      );
+      expect(output).toContain('<fieldset>x</fieldset>');
+      expect(output).not.toContain('variant=');
+    });
+
+    it('flags the helper props a plain fieldset cannot carry', () => {
+      const { output, rules } = migrate(
+        imp('Field, Fieldset') +
+          'export const A = () => <Field><Fieldset textAlign="centered">x</Fieldset></Field>;'
+      );
+      expect(output).toContain('<fieldset>x</fieldset>');
+      expect(rules).toEqual(['plain-element']);
+    });
+
+    it('converts beside a Field rather than inside one', () => {
+      const { output } = migrate(
+        imp('Field, Fieldset') +
+          'export const A = () => <><Field>x</Field><Fieldset>y</Fieldset></>;'
+      );
+      expect(output).toContain('<Fieldset variant="unstyled">y</Fieldset>');
+    });
+  });
+
   it('turns a dropdown Navbar.Item into Navbar.Dropdown', () => {
     const { output } = migrate(
       imp('Navbar') +

@@ -159,6 +159,10 @@ test holds to rbx's own export surface in both directions.
 | `Panel.Tab.Group`                  | `Panel.Tabs`                                                                                                                                                                                                                        |
 | `Title subtitle`                   | `SubTitle`                                                                                                                                                                                                                          |
 
+Inside a `Field` or a `Control`, `Fieldset` stays the plain `<fieldset>` rbx rendered instead.
+bestax's `Fieldset` starts a Field scope of its own, so an input placed straight in it there would
+render its own `.field` and `.control`.
+
 ## Value-chosen targets
 
 These pick a bestax component from a literal prop value; a dynamic value gets a TODO instead.

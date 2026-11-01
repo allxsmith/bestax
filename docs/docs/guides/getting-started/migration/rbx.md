@@ -53,7 +53,9 @@ in place:
 - **Components** — every rbx export and its dot-notation compounds are mapped, e.g.
   `Card.Footer.Item` → `Card.FooterItem`, `Tag.Group` → `Tags`, `Column.Group` → `Columns`,
   `Table.Cell` → `Table.Td`, `PageLoader` → `Loading` (with `isFullPage`), `Fieldset` → `Fieldset`
-  (with `variant="unstyled"`, since rbx's drew no box), `Navbar.Dropdown` → `Navbar.DropdownMenu` (bestax's `Navbar.Dropdown` is the outer container,
+  (with `variant="unstyled"`, since rbx's drew no box; inside a `Field` or a `Control` it stays the
+  plain `<fieldset>` rbx rendered, where bestax's would start a Field scope of its own),
+  `Navbar.Dropdown` → `Navbar.DropdownMenu` (bestax's `Navbar.Dropdown` is the outer container,
   which `<Navbar.Item dropdown>` becomes), `Level.Item align="right"` →
   `Level.Right`, `Navbar.Segment align="end"` → `Navbar.End`, and `Title subtitle` → `SubTitle`.
   A `Title` `size` becomes `textSize` wherever bestax's `size`, which picks the heading level,

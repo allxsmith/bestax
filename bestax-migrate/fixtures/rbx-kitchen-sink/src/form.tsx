@@ -58,5 +58,10 @@ export const FormControls = () => (
         </Control>
       </Field>
     </Fieldset>
+    <Field>
+      <Fieldset disabled>
+        <Input type="text" placeholder="Inside a field" />
+      </Fieldset>
+    </Field>
   </>
 );

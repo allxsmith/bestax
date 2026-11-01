@@ -393,7 +393,8 @@ export const MAPPING: Record<string, ComponentMapping> = {
     },
   },
   // rbx's Fieldset is a bare <fieldset>, and bestax's `unstyled` variant is
-  // the one that draws no box, so the special adds it.
+  // the one that draws no box, so the special adds it. Inside a Field or a
+  // Control the special keeps the plain <fieldset> instead.
   Fieldset: { status: 'mapped', target: 'Fieldset', special: 'fieldset' },
   File: {
     status: 'mapped',

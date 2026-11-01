@@ -159,12 +159,15 @@ describe('rbx kitchen-sink e2e', () => {
     expect(migrated).not.toContain('innerRef');
   });
 
-  it("turns rbx's bare Fieldset into bestax's unstyled one", () => {
+  it("turns rbx's bare Fieldset into bestax's unstyled one, outside a Field", () => {
     const migrated = fs.readFileSync(
       path.join(tmpDir, 'src', 'form.tsx'),
       'utf8'
     );
     expect(migrated).toContain('<Fieldset disabled variant="unstyled">');
+    // Inside a Field it stays the plain fieldset rbx rendered, since bestax's
+    // would start a Field scope of its own there.
+    expect(migrated).toMatch(/<Field>\s*<fieldset disabled>/);
     expect(migrated).not.toMatch(/from ["']rbx["']/);
   });
 
