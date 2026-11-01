@@ -38,7 +38,7 @@
   "devDependencies": {
     "@commitlint/cli": "^21.2.4",
     "@commitlint/config-conventional": "^21.2.4",
-    "@eslint-react/eslint-plugin": "^5.28.2",
+    "@eslint-react/eslint-plugin": "^5.28.8",
     "@eslint/js": "^10.0.1",
     "@semantic-release/changelog": "^7.0.0",
     "@semantic-release/exec": "^7.1.0",
@@ -52,14 +52,14 @@
     "eslint-plugin-prettier": "^5.5.7",
     "globals": "^17.13.0",
     "husky": "^9.1.7",
-    "prettier": "^3.9.9",
+    "prettier": "^3.9.10",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "semantic-release": "^25.0.9",
-    "turbo": "^2.11.9",
+    "turbo": "^2.11.10",
     "typescript": "^6.0.3",
     "vitest": "^5.0.5",
-    "wrangler": "^4.151.1"
+    "wrangler": "^4.155.0"
   },
   "keywords": [
     "react",
