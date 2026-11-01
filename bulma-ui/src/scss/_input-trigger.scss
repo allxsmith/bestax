@@ -1,0 +1,66 @@
+// Bestax Extras - a button inside an input
+// The rule the date and time pickers' launcher and PasswordInput's toggle
+// share, so the two can't drift apart. It reads Bulma's class prefix and
+// variables, so it lives here rather than in `_mixins.scss`, which compiles
+// with no Bulma to load, and it emits nothing until it's included.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+// A button over the input's right edge, in Bulma's 2.5em icon slot. Bulma's
+// Control icons are decorative (`pointer-events: none`), so a button there
+// needs rules of its own. Include it on the element that holds the input and
+// the button, which it positions. A content block, when given, lands in that
+// element's own rule, after its `position`: the pickers register the
+// variables they pass in there.
+//
+// `$trigger` is the button's class, without the prefix. `$width` is the slot,
+// which the input keeps as padding so typed text never slides under the
+// button; `$color` and `$hover-color` are the button's. Each is usually a
+// `cv.getVar()`. The button takes the input's `is-small`, `is-medium` or
+// `is-large` font size, so its em-based width tracks the input's.
+@mixin extras-input-trigger($trigger, $width, $color, $hover-color) {
+  position: relative;
+  @content;
+
+  > .#{iv.$class-prefix}input {
+    padding-right: $width;
+  }
+
+  > .#{iv.$class-prefix}#{$trigger} {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 4;
+    height: 100%;
+    width: $width;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: $color;
+    cursor: pointer;
+    transition: color 0.15s ease;
+
+    .#{iv.$class-prefix}icon {
+      pointer-events: none;
+    }
+
+    &:hover:not(:disabled) {
+      color: $hover-color;
+    }
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  }
+
+  @each $size in 'small', 'medium', 'large' {
+    > .#{iv.$class-prefix}input.#{iv.$class-prefix}is-#{$size}
+      ~ .#{iv.$class-prefix}#{$trigger} {
+      font-size: cv.getVar('size-#{$size}');
+    }
+  }
+}

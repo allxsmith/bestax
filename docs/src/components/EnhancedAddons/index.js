@@ -127,6 +127,12 @@ const ADDONS = [
     desc: 'Spinner overlays for full pages or single containers.',
   },
   {
+    name: 'PasswordInput',
+    icon: 'passwordinput',
+    link: '/docs/api/form/passwordinput',
+    desc: 'A password field with a button inside it that shows what was typed, as an eye or as the words Show and Hide.',
+  },
+  {
     name: 'PinInput',
     icon: 'pininput',
     link: '/docs/api/form/pininput',

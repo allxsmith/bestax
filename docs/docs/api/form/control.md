@@ -95,7 +95,7 @@ This example demonstrates using the `Control` component with icons on both sides
 </Field>
 ```
 
-These icons are decoration, not controls: Bulma gives them `pointer-events: none`, so a click on one reaches the input underneath. A button beside the input, such as a show-password toggle, goes in its own addon `Control` instead, as in the [password reveal](./input.md#password-reveal) recipe.
+These icons are decoration, not controls: Bulma gives them `pointer-events: none`, so a click on one reaches the input underneath. A button beside the input goes in its own addon `Control` instead, as in the [copy button](./input.md#copy-button) recipe. For a show-password button inside the field, use [`PasswordInput`](./passwordinput.md), which brings the styles a button there needs.
 
 ---
 

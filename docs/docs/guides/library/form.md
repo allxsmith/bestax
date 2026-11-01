@@ -56,6 +56,22 @@ For complex layouts, use `TextAreaBase` with an explicit `Field` + `Control` wra
 
 ---
 
+### PasswordInput
+
+A password field with a button inside it that shows what was typed: an eye named "Show password", or with `variant="text"` the words "Show" and "Hide". It asks for `autocomplete="current-password"` and no spellcheck, and hides the password again when its form submits.
+
+```tsx live
+<PasswordInput
+  label="New password"
+  autoComplete="new-password"
+  message="At least 15 characters."
+/>
+```
+
+[View full documentation.](../../api/form/passwordinput)
+
+---
+
 ### Autocomplete
 
 Input with dropdown suggestions. Filters options based on user input with keyboard navigation.

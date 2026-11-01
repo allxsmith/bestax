@@ -112,6 +112,7 @@ const BESTAX = {
   File: 'form/file',
   Input: 'form/input',
   Numberinput: 'form/numberinput',
+  PasswordInput: 'form/passwordinput',
   PinInput: 'form/pininput',
   Radio: 'form/radio',
   Radios: 'form/radios',
@@ -158,7 +159,8 @@ const BESTAX = {
   'bestax.css': '/docs/guides/getting-started/installation',
   // Capabilities bestax documents as a recipe rather than a component.
   'Dropdown (split button recipe)': 'components/dropdown#split-button',
-  'Input (password reveal recipe)': 'form/input#password-reveal',
+  // The October edition credits the recipe, which PasswordInput replaced.
+  'Input (password reveal recipe)': 'form/passwordinput',
   'Input (copy button recipe)': 'form/input#copy-button',
 };
 const bestaxHref = name => {
@@ -752,7 +754,7 @@ export const categories = [
       ],
       [
         'Password input',
-        '~Input (password reveal recipe)',
+        'PasswordInput',
         'PasswordInput',
         0,
         '~TextField',

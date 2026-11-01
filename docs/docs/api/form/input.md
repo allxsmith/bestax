@@ -275,7 +275,7 @@ A field the design shows with no label still needs one for screen readers. Keep 
 
 For multi-control rows like input + button, drop down to manual `Field` + `Control` composition. Use `<Field hasAddons>` with multiple `<Control>` children. Use `<Control isExpanded>` on the input so it fills the available space.
 
-A `hasAddons` Field names none of the controls it holds, and a placeholder disappears once the reader starts typing, so give each input a name of its own: an `aria-label`, as these examples do, or a visible label on an outer `Field`, as [Password Reveal](#password-reveal) does.
+A `hasAddons` Field names none of the controls it holds, and a placeholder disappears once the reader starts typing, so give each input a name of its own: an `aria-label`, as these examples do, or a visible label on an outer `Field`, as [Copy Button](#copy-button) does.
 
 #### Input + Button
 
@@ -369,46 +369,17 @@ Pass `hasAddons="right"` to right-align the group.
 
 ### Password Reveal
 
-A show-password toggle is an addon: the `Input` in one `Control` and a `Button` in the next, switching the input's `type` between `password` and `text`. It can't be an icon inside the input the way `iconRight` draws one, because Bulma gives control icons `pointer-events: none` and a click on one lands on the input instead.
-
-The button keeps one accessible name, "Show password", and reports whether it's on through `aria-pressed`, so a screen reader announces a toggle that is pressed or not. `type="button"` stops it submitting the form it sits in. The label goes on an outer `Field`, since a `hasAddons` field lays its children out in a row, and `labelProps={{ htmlFor }}` with a matching `id` associates it with the input across the nested field.
+A password field with a button that shows what was typed is [`PasswordInput`](./passwordinput.md). Its button sits inside the field and leaves focus there, and the field asks for `autocomplete="current-password"`, turns spellcheck off and hides the password again when its form submits.
 
 ```tsx live
-function PasswordReveal() {
-  const id = React.useId();
-  const [visible, setVisible] = useState(false);
-
-  return (
-    <Field label="Password" labelProps={{ htmlFor: id }}>
-      <Field hasAddons>
-        <Control isExpanded>
-          <Input
-            id={id}
-            type={visible ? 'text' : 'password'}
-            autoComplete="current-password"
-          />
-        </Control>
-        <Control>
-          <Button
-            type="button"
-            aria-label="Show password"
-            aria-pressed={visible}
-            onClick={() => setVisible(shown => !shown)}
-          >
-            <Icon name={visible ? 'eye-slash' : 'eye'} aria-hidden="true" />
-          </Button>
-        </Control>
-      </Field>
-    </Field>
-  );
-}
+<PasswordInput label="Password" />
 ```
 
 ---
 
 ### Copy Button
 
-A copy button is an addon too: a read-only `Input` holding the text, and a `Button` that writes it with `navigator.clipboard.writeText`. The button's label reads "Copied" for a moment afterwards. Screen readers don't reliably announce a change to a button's label, so a `role="status"` line under the field says it too.
+A copy button is an addon: a read-only `Input` holding the text, and a `Button` that writes it with `navigator.clipboard.writeText`. The button's label reads "Copied" for a moment afterwards. Screen readers don't reliably announce a change to a button's label, so a `role="status"` line under the field says it too.
 
 The clipboard can be missing, since `navigator.clipboard` exists only in secure contexts (HTTPS or localhost), and the browser can refuse the write. Either way the example focuses and selects the text, so the reader can copy it themselves, and explains in a `role="alert"` line. That message is an alert rather than a status because focus moves to the input at the same moment, and a screen reader announcing the focused field can drop a polite message. Both lines are in the page from the start, since a live region that appears together with its text isn't reliably announced.
 

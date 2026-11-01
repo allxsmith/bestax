@@ -118,6 +118,7 @@ All import from `@allxsmith/bestax-bulma`. Convenience components auto-wrap Fiel
 | `Combobox`                                              | A value from a list: `data` for a select, tags or groups, or parts.        |
 | `Slider`                                                | Range slider; single/dual thumbs, steps, tooltips, vertical.               |
 | `Numberinput`                                           | Numeric input with increment/decrement, min/max, step, stepper.            |
+| `PasswordInput` (+ `PasswordInputBase`)                 | A password with a show button inside: an eye, or the words Show and Hide.  |
 | `PinInput`                                              | A one-time code or PIN as a row of boxes, all in one real input.           |
 | `Rate`                                                  | Star rating; `max`, `precision` (half/quarter), custom icons, `disabled`.  |
 | `Taginput`                                              | Tag/chip input; suggestions, confirm keys, closable tags.                  |
@@ -148,6 +149,17 @@ asks for the full length, so `required` rejects a partial code, not just an empt
 length in the `label` ("Enter the 6-digit code"): the boxes are hidden from a screen reader, and the
 `message` isn't tied to the input, so it isn't read on focus. Separate help text needs
 `aria-describedby` on the PinInput.
+
+**A password field is `PasswordInput`**, not an `Input type="password"` with a button you wire
+yourself. Its button sits inside the field at the right edge: an eye named "Show password" with
+`aria-pressed`, or with `variant="text"` the words "Show" and "Hide" and a name that follows them.
+It's in the tab order, a pointer press leaves focus in the field, and the password hides again
+when the form submits or resets or the page is left. The field defaults to `autoComplete="current-password"`; pass
+`"new-password"` on sign-up and change-password forms, and never `"off"`, which mostly withholds
+the hint password managers use. `visible`/`onVisibleChange` hold the state, so one button can
+show two fields. The right edge is the button's, so it takes no right icon. It doesn't score
+passwords: say the strength your app or server works out in words in `message`, as the docs'
+strength recipe does.
 
 ## Common props
 
@@ -295,7 +307,7 @@ multi-field form plus the advanced inputs.
 ## Reuse the shipped components
 
 bestax ships the whole form surface — Input, Select, TextArea, Checkbox(es), Radio(s), Switch, File,
-Dropzone, Autocomplete, Combobox, Slider, Numberinput, PinInput, Rate, Taginput, the date/time inputs, and
+Dropzone, Autocomplete, Combobox, Slider, Numberinput, PinInput, PasswordInput, Rate, Taginput, the date/time inputs, and
 Fieldset to group them (see the inventory above). **Compose these; don't hand-roll raw `<input class="input">` markup or
 reinvent a control.** If you think a control is missing, check `bulma-ui/src/index.ts` and
 `docs/docs/api/form/` first — it's probably already there under a different name.

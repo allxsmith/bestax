@@ -27,6 +27,7 @@ import { Slider } from '../form/Slider';
 import { PinInput } from '../form/PinInput';
 import { ColorPicker } from '../form/ColorPicker';
 import { ColorInput } from '../form/ColorInput';
+import { PasswordInput } from '../form/PasswordInput';
 import { DateInput } from '../form/DateInput';
 import { TimeInput } from '../form/TimeInput';
 import { DateTimeInput } from '../form/DateTimeInput';
@@ -119,6 +120,10 @@ const cases: Array<[string, React.ReactElement]> = [
     <ColorPicker key="color" label="Color" alpha swatches={['red']} />,
   ],
   ['ColorInput', <ColorInput key="color-input" label="Color" />],
+  [
+    'PasswordInput',
+    <PasswordInput key="password" label="Password" defaultValue="x" />,
+  ],
   ['DateInput', <DateInput key="date" label="Date" />],
   ['TimeInput', <TimeInput key="time" label="Time" />],
   ['DateTimeInput', <DateTimeInput key="datetime" label="When" />],

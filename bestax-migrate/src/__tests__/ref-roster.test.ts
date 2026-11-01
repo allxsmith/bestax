@@ -112,6 +112,8 @@ const SUMMARISED_AS_FORM_CONTROLS = [
   'Input',
   'InputBase',
   'NumberInput',
+  'PasswordInput',
+  'PasswordInputBase',
   'PinInput',
   'Radio',
   'RadioCard',

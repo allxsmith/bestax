@@ -243,6 +243,14 @@ export const SCSS_SOURCES = {
   Pagination: [{ pkg: 'bulma', path: 'sass/components/pagination.scss' }],
   Panel: [{ pkg: 'bulma', path: 'sass/components/panel.scss' }],
   Paragraph: [],
+  PasswordInput: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_passwordinput.scss' },
+    { pkg: 'bulma', path: 'sass/form/shared.scss' },
+  ],
+  PasswordInputBase: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_passwordinput.scss' },
+    { pkg: 'bulma', path: 'sass/form/shared.scss' },
+  ],
   PinInput: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_pininput.scss' }],
   Popover: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_popover.scss' },

@@ -1,5 +1,6 @@
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
+@use '../input-trigger' as *;
 
 $picker-popover-z-index: 30 !default;
 $picker-popover-background: cv.getVar('scheme-main') !default;
@@ -129,73 +130,30 @@ $picker-containers: (
 // Right-side launcher button. The picker bases render this real <button>
 // inside their *-container (Bulma's Control icons are decorative —
 // `pointer-events: none` — so they can't open the popover). It toggles the
-// popover and is keyboard-focusable. Sizing mirrors Bulma's 2.5em icon slot
-// and tracks the input's size modifier via the sibling selector.
+// popover and is keyboard-focusable. Its rules are the `extras-input-trigger`
+// mixin's, which PasswordInput's toggle shares: Bulma's 2.5em icon slot,
+// tracking the input's size modifier through the sibling selector.
 $picker-trigger-pairs: (
-  ('#{iv.$class-prefix}dateinput-container' '#{iv.$class-prefix}dateinput-trigger'),
-  ('#{iv.$class-prefix}timeinput-container' '#{iv.$class-prefix}timeinput-trigger'),
-  (
-    '#{iv.$class-prefix}datetimeinput-container'
-      '#{iv.$class-prefix}datetimeinput-trigger'
-  )
+  ('dateinput-container' 'dateinput-trigger'),
+  ('timeinput-container' 'timeinput-trigger'),
+  ('datetimeinput-container' 'datetimeinput-trigger')
 );
 
 @each $container, $trigger in $picker-trigger-pairs {
-  .#{$container} {
-    position: relative;
-    @include cv.register-vars(
-      (
-        'picker-trigger-width': #{$picker-trigger-width},
-        'picker-trigger-color': #{$picker-trigger-color},
-        'picker-trigger-hover-color': #{$picker-trigger-hover-color},
-      )
-    );
-
-    // Reserve room so typed text doesn't slide under the launcher.
-    > .#{iv.$class-prefix}input {
-      padding-right: cv.getVar('picker-trigger-width');
-    }
-
-    > .#{$trigger} {
-      position: absolute;
-      top: 0;
-      right: 0;
-      z-index: 4;
-      height: 100%;
-      width: cv.getVar('picker-trigger-width');
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      border: none;
-      background: transparent;
-      color: cv.getVar('picker-trigger-color');
-      cursor: pointer;
-      transition: color 0.15s ease;
-
-      .#{iv.$class-prefix}icon {
-        pointer-events: none;
-      }
-
-      &:hover:not(:disabled) {
-        color: cv.getVar('picker-trigger-hover-color');
-      }
-      &:disabled {
-        cursor: not-allowed;
-        opacity: 0.5;
-      }
-    }
-
-    // Match the launcher's font-size to the input's size modifier so its
-    // em-based width tracks the control.
-    > .#{iv.$class-prefix}input.#{iv.$class-prefix}is-small ~ .#{$trigger} {
-      font-size: cv.getVar('size-small');
-    }
-    > .#{iv.$class-prefix}input.#{iv.$class-prefix}is-medium ~ .#{$trigger} {
-      font-size: cv.getVar('size-medium');
-    }
-    > .#{iv.$class-prefix}input.#{iv.$class-prefix}is-large ~ .#{$trigger} {
-      font-size: cv.getVar('size-large');
+  .#{iv.$class-prefix}#{$container} {
+    @include extras-input-trigger(
+      $trigger: $trigger,
+      $width: cv.getVar('picker-trigger-width'),
+      $color: cv.getVar('picker-trigger-color'),
+      $hover-color: cv.getVar('picker-trigger-hover-color')
+    ) {
+      @include cv.register-vars(
+        (
+          'picker-trigger-width': #{$picker-trigger-width},
+          'picker-trigger-color': #{$picker-trigger-color},
+          'picker-trigger-hover-color': #{$picker-trigger-hover-color},
+        )
+      );
     }
   }
 }

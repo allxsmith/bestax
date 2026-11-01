@@ -176,6 +176,19 @@ const PROPS: Record<string, Record<string, unknown>> = {
     hasFade: true,
     children: 'Notes',
   },
+  // The text toggle, with a left icon, a message, a color and a size, so the
+  // Field, the Control and every class the container takes are swept.
+  PasswordInput: {
+    label: 'Password',
+    variant: 'text',
+    iconLeftName: 'lock',
+    message: 'At least 15 characters',
+    messageColor: 'info',
+    color: 'primary',
+    size: 'small',
+  },
+  // The same, without the Field and Control.
+  PasswordInputBase: { variant: 'text', size: 'small', isRounded: true },
   // Labeled, with a message, colored, sized, rounded and disabled, so the
   // Field, the Control and every class a box takes are swept.
   PinInput: {

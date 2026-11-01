@@ -708,6 +708,17 @@ sizes. Bulma's own `--bulma-notification-*` variables set the rest.
 `--bulma-numberinput-stepper-button-hover-bg`, `--bulma-numberinput-stepper-button-hover-color`,
 `--bulma-numberinput-stepper-width`
 
+### PasswordInput
+
+Declared on the container around the input, `.passwordinput-container`. The input is Bulma's
+`.input`, so Bulma's `--bulma-input-*` variables color it. The button inside it takes
+`--bulma-passwordinput-toggle-width`, or `--bulma-passwordinput-toggle-text-width` with
+`variant="text"`, in em so it grows with the input's size, and the input keeps that width clear
+of text. A translation longer than "Show" and "Hide" may want a wider text width.
+
+`--bulma-passwordinput-toggle-color`, `--bulma-passwordinput-toggle-hover-color`,
+`--bulma-passwordinput-toggle-text-width`, `--bulma-passwordinput-toggle-width`
+
 ### PinInput
 
 Declared on the row, `.pin-input`. Each box is a Bulma `.input`, so Bulma's `--bulma-input-*`
