@@ -27,7 +27,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "bundle:stats": "rollup -c --configPlugin visualizer",
-    "lint": "eslint src",
+    "lint": "eslint src .storybook vitest.config.ts vitest.storybook.config.ts",
     "typecheck": "tsc --noEmit",
     "typecheck:tests": "tsc -p tsconfig.test.json --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",

@@ -13,6 +13,17 @@
   "compilerOptions": {
     "rootDir": "."
   },
-  "include": ["src/**/*", "types/**/*"],
-  "exclude": ["node_modules", "dist", "coverage"]
+  //
+  // It reads Storybook's config and both Vitest configs as well, which hold
+  // the smoke pass's checks. All but `.storybook/preview.ts`: its stylesheet
+  // imports have no types, and declaring `*.css` here would declare it to the
+  // tests and stories too, for the reason `types/assets.d.ts` gives.
+  "include": [
+    "src/**/*",
+    "types/**/*",
+    ".storybook/**/*.ts",
+    "vitest.config.ts",
+    "vitest.storybook.config.ts"
+  ],
+  "exclude": ["node_modules", "dist", "coverage", ".storybook/preview.ts"]
 }
