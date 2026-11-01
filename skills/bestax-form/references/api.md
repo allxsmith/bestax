@@ -75,6 +75,31 @@ set them on that `Control` instead.
 
 `messageColor` accepts `'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'`.
 
+## PasswordInput / PasswordInputBase — `form/PasswordInput.tsx`, `form/PasswordInputBase.tsx`
+
+`PasswordInput` is `Input` with a button inside the field, at its right edge, that shows the
+password. It takes everything `Input` does except `type` and the right-icon props
+(`iconRight`, `iconRightName`, `iconRightSize`, `hasIconsRight`), which draw nothing and warn in
+development, since the button has that edge. `PasswordInputBase` is the input and its button
+without the `Field` and `Control`; helper props, `className` and `ref` go on the `<input>`.
+
+| Prop                                            | Type                                             | Notes                                                                                                                                                          |
+| ----------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `visible` / `defaultVisible`                    | `boolean`                                        | Whether the password shows, controlled / to start with.                                                                                                        |
+| `onVisibleChange`                               | `(visible: boolean) => void`                     | Each toggle, and `false` when the form submits or resets or the page comes back from the back-forward cache, all of which hide it.                             |
+| `variant`                                       | `'icon' \| 'text'`                               | `icon` (default): an eye named "Show password" with `aria-pressed`. `text`: the words "Show"/"Hide", named "Show password"/"Hide password", no `aria-pressed`. |
+| `labels`                                        | `{ showPassword?, hidePassword?, show?, hide? }` | Translations. With `text`, each name must contain its word (Label in Name); a development warning says when one doesn't.                                       |
+| `autoComplete`                                  | `string`                                         | `"current-password"` by default. Pass `"new-password"` on sign-up and change-password forms. Never `"off"`.                                                    |
+| `spellCheck` / `autoCorrect` / `autoCapitalize` | `false` / `"off"` / `"none"` by default          | A caller's value wins for each.                                                                                                                                |
+| `isLoading`                                     | `boolean`                                        | The `Control`'s spinner, which takes the button's place.                                                                                                       |
+| `disabled`                                      | `boolean`                                        | Disables the input and its button; a disabled `Fieldset` does too.                                                                                             |
+
+The button is a `<button type="button">` in the tab order; a pointer press leaves focus and the
+caret in the input. While the password is hidden, the input carries no `value` attribute, which
+React would otherwise write for a controlled field. There's no strength meter: put the strength
+your app or server works out in words in `message`, and use a native `<meter>`, not `Progress`,
+for any bar.
+
 ## Select / SelectBase, TextArea / TextAreaBase
 
 Same convenience/raw split as Input. `Select` supports `isLoading` (a spinner in place of the

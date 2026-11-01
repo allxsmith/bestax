@@ -574,6 +574,7 @@ export const FIELD_SCOPED: ReadonlySet<string> = new Set([
   'File',
   'Input',
   'Numberinput',
+  'PasswordInput',
   'PinInput',
   'Radios',
   'Rate',

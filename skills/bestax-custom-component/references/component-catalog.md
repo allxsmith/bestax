@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-118 documented components. Generated from the API docs — every exported
+119 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -134,6 +134,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [File](https://bestax.io/docs/api/form/file) — The `File` component provides a Bulma-styled file input, supporting color, size, boxed/fullwidth/align styles, icons, "has name", and filename display.
 - [Input](https://bestax.io/docs/api/form/input) — The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states…
 - [Numberinput](https://bestax.io/docs/api/form/numberinput) — The `Numberinput` component provides a number input with increment/decrement buttons.
+- [PasswordInput](https://bestax.io/docs/api/form/passwordinput) — The `PasswordInput` component is a password field with a button inside it that shows what was typed.
 - [PinInput](https://bestax.io/docs/api/form/pininput) — The `PinInput` component is a field for a short code, such as a one-time code or a PIN, drawn as a row of boxes with one character in each.
 - [Radio](https://bestax.io/docs/api/form/radio) — The `Radio` component provides a Bulma-styled radio button input with flexible labels and helper classes.
 - [RadioCard](https://bestax.io/docs/api/form/radiocard) — The `RadioCard` component is a radio button drawn as a card, with a title and a description, picked wherever you click it.

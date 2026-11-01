@@ -153,13 +153,12 @@ A `grouped` or `hasAddons` Field names none of the controls it holds, and a plac
 disappears once the user types, so each input above carries an `aria-label`. For a visible
 label instead, see the last item below.
 
+A show-password button is not an addon recipe: use `PasswordInput`, whose button sits inside
+the field. Never put it in `iconRight`, since Bulma gives control icons `pointer-events: none`
+and a click on one lands on the input.
+
 Recipes built on addons, each written out in full in the docs:
 
-- **Password reveal** ([docs](https://bestax.io/docs/api/form/input#password-reveal)): the
-  toggle is a `Button` in its own addon `Control`, never `iconRight`. Bulma gives control icons
-  `pointer-events: none`, so a click on one lands on the input. The button takes
-  `type="button"`, a fixed `aria-label` ("Show password") and `aria-pressed`, and switches the
-  input's `type` between `password` and `text`.
 - **Copy button** ([docs](https://bestax.io/docs/api/form/input#copy-button)): a read-only input
   and a `Button` calling `navigator.clipboard.writeText`. The clipboard is missing outside secure
   contexts and the write can be refused, so catch the failure, select the text, and say so in a

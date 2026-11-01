@@ -106,6 +106,12 @@ export { SelectBase } from './form/SelectBase';
 export type { SelectBaseProps } from './form/SelectBase';
 export { TextAreaBase } from './form/TextAreaBase';
 export type { TextAreaBaseProps } from './form/TextAreaBase';
+export { PasswordInputBase } from './form/PasswordInputBase';
+export type {
+  PasswordInputBaseProps,
+  PasswordInputLabels,
+  PasswordInputVariant,
+} from './form/PasswordInputBase';
 
 // Convenience wrappers become primary exports
 export { Input } from './form/Input';
@@ -114,6 +120,8 @@ export { Select } from './form/Select';
 export type { SelectProps } from './form/Select';
 export { TextArea } from './form/TextArea';
 export type { TextAreaProps } from './form/TextArea';
+export { PasswordInput } from './form/PasswordInput';
+export type { PasswordInputProps } from './form/PasswordInput';
 
 // Date / time pickers
 export { DateInputBase } from './form/DateInputBase';
