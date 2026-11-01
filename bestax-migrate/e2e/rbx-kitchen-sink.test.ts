@@ -238,6 +238,7 @@ describe('rbx kitchen-sink e2e', () => {
     expect(rules).toContain('component:Icon');
     expect(rules).toContain('component:File.Label');
     expect(rules).toContain('component:Dropdown');
+    expect(rules).toContain('component:Heading');
     // The two `as`/`href` leftovers, which the fixture adds for these and
     // which nothing here asserted — so deleting them cost no coverage.
     expect(rules).toContain('prop:as');

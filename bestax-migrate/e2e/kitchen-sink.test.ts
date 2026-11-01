@@ -228,6 +228,7 @@ describe('kitchen-sink e2e', () => {
     expect(rules).toContain('prop:remove');
     expect(rules).toContain('prop:subtitle');
     expect(rules).toContain('prop:heading');
+    expect(rules).toContain('component:Heading');
     // A Heading size it cannot read, which bestax would turn into a level.
     expect(
       todos.some(t => t.rule === 'prop:size' && t.message.includes('textSize'))
