@@ -77,7 +77,11 @@ export interface RateProps
   max?: number;
   /** Size variant. */
   size?: RateSize;
-  /** Whether the rating is disabled. */
+  /**
+   * Whether the rating is disabled. A disabled Rate ignores clicks and keys,
+   * leaves the tab order, and sets `aria-disabled` on the group and on every
+   * star, so a screen reader announces them as unavailable.
+   */
   disabled?: boolean;
   /**
    * Show the numeric score next to stars, written the way the `locale` of a
@@ -534,6 +538,9 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
                 ? `${shownValue} stars`
                 : `${iconIndex + 1} star${iconIndex === 0 ? '' : 's'}`
             }
+            // The group's aria-disabled covers its stars too, but a screen
+            // reader that doesn't carry it down still hears it here.
+            aria-disabled={disabled || undefined}
             tabIndex={-1}
           >
             {icon}
@@ -569,6 +576,9 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
         aria-activedescendant={
           checkedIndex >= 0 ? `${starBaseId}-${checkedIndex}` : undefined
         }
+        // Dimmed and out of the tab order isn't enough: a screen reader
+        // reaching the stars by its own navigation needs to hear it too.
+        aria-disabled={disabled || undefined}
         tabIndex={disabled ? -1 : 0}
         onKeyDown={handleKeyDown}
         {...rest}

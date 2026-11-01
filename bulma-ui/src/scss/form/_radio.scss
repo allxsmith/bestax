@@ -5,6 +5,7 @@
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
 @use "bulma/sass/utilities/mixins" as mx;
+@use "../selected-row" as *;
 
 // Bulma's horizontal field: `.field-label` takes one part of the row and
 // `.field-body` five, after the label's `margin-inline-end`. Private, since
@@ -124,9 +125,12 @@ $radio-transition-duration: cv.getVar("duration") !default;
     }
   }
 
-  // Label text
+  // Label text. The gap is on the text's inline start, the side the circle
+  // is on: the row mirrors on a right-to-left page, and a physical
+  // `margin-left` would stay on the far side and leave the text on the
+  // circle.
   .#{iv.$class-prefix}control-label {
-    margin-left: cv.getVar("radio-label-gap");
+    margin-inline-start: cv.getVar("radio-label-gap");
     line-height: 1.5;
   }
 }
@@ -137,6 +141,28 @@ $radio-transition-duration: cv.getVar("duration") !default;
     @include cv.register-vars(
       (
         "radio-active-color": #{cv.getVar($name)},
+      )
+    );
+  }
+}
+
+// On Bulma's selected table row (`Tr isSelected`, or a cell with
+// `is-selected`), the row's fill is the same color a checked radio draws its
+// ring and its dot in, so the radio would vanish into it. There the ring and
+// the dot take the row's text color, as Checkbox's box does, and so does an
+// unchecked ring. This outranks the color variants on purpose: the row's own
+// pair is the one Bulma made to read on that fill.
+//
+// Only a Radio placed straight in one of those cells sits on the row's fill,
+// and cells with a color of their own are left out, so a radio in a menu, a
+// nested table or a colored cell keeps its usual look. The mixin names the
+// cells, and Checkbox's rule reads the same list.
+@include extras-selected-table-cell {
+  > .#{iv.$class-prefix}styled-radio {
+    @include cv.register-vars(
+      (
+        "radio-border-color": #{cv.getVar("table-row-active-color")},
+        "radio-active-color": #{cv.getVar("table-row-active-color")},
       )
     );
   }

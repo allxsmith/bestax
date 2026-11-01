@@ -98,7 +98,7 @@
         {
           "id": "bloomer-unmappables",
           "file": "references/bloomer/unmappables.md",
-          "bytes": 17913
+          "bytes": 18303
         },
         {
           "id": "bulma-classes-component-map",
@@ -133,12 +133,12 @@
         {
           "id": "rbx-unmappables",
           "file": "references/rbx/unmappables.md",
-          "bytes": 15120
+          "bytes": 15829
         },
         {
           "id": "react-bulma-components-component-map",
           "file": "references/react-bulma-components/component-map.md",
-          "bytes": 14012
+          "bytes": 16562
         },
         {
           "id": "react-bulma-components-prop-map",
@@ -148,7 +148,7 @@
         {
           "id": "react-bulma-components-unmappables",
           "file": "references/react-bulma-components/unmappables.md",
-          "bytes": 13389
+          "bytes": 14098
         }
       ],
       "examples": []
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 14486
+          "bytes": 14912
         }
       ],
       "examples": []

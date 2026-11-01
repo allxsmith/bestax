@@ -101,7 +101,7 @@
           "name": "onChange",
           "type": "(values: string[]) => void",
           "default": null,
-          "description": "Fires when the selection changes; receives the new array.",
+          "description": "Fires when the selection changes; receives the new array. Passed without `value` or `defaultValue`, it still has the group manage the selection, starting from the checkboxes' own `defaultChecked`: a box that starts checked stays checked when another is clicked, and the first array holds it.",
           "required": false,
           "inherited": false,
           "deprecated": false

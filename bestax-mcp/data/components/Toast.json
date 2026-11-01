@@ -186,7 +186,7 @@
           "name": "container",
           "type": "string | HTMLElement",
           "default": null,
-          "description": "CSS selector or DOM node to mount the toast into.",
+          "description": "CSS selector or DOM node to mount the toast into. Through `toast.show()`, a toast with one portals there in a box of its own, rather than joining `ToastContainer`'s stack for its position.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -195,7 +195,7 @@
           "name": "inline",
           "type": "boolean",
           "default": "false",
-          "description": "Renders inline instead of using a portal.",
+          "description": "Renders inline instead of using a portal. Through `toast.show()`, a toast already renders inline in `ToastContainer`'s stack for its position, and `inline` keeps one with a `container` in that stack too.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -226,7 +226,7 @@
     },
     {
       "path": "ToastContainer",
-      "summary": "Container component for rendering programmatic toasts. Place once at your app root to enable the toast API. A toast shown with a `position` appears there, and one shown without goes to the container's `position`.",
+      "summary": "Container component for rendering programmatic toasts. Place once at your app root to enable the toast API. A toast shown with a `position` appears there, and one shown without goes to the container's `position`. The toasts at one position stack in one `.toast-container`, with a gap between them, in the order they were shown, growing away from the edge of the screen. A toast shown with a `container` of its own, and not `inline`, portals there instead, in a box of its own.",
       "component": null,
       "props": [
         {

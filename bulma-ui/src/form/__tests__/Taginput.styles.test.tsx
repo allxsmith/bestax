@@ -93,6 +93,65 @@ const wrappers: [string, (child: ReactElement) => ReactElement][] = [
   ],
 ];
 
+/** The values `property` takes in the rules of `css` that match `el`. */
+function declaredFor(css: string, el: Element, property: string): string[] {
+  const style = document.createElement('style');
+  style.textContent = css;
+  document.head.appendChild(style);
+  const out: string[] = [];
+  const walk = (rules: CSSRuleList) => {
+    for (const rule of Array.from(rules)) {
+      if (rule instanceof CSSStyleRule) {
+        const value = rule.style.getPropertyValue(property);
+        if (value && el.matches(rule.selectorText)) out.push(value);
+      } else if ('cssRules' in rule) {
+        walk((rule as CSSGroupingRule).cssRules);
+      }
+    }
+  };
+  try {
+    walk((style.sheet as CSSStyleSheet).cssRules);
+  } finally {
+    style.remove();
+  }
+  return out;
+}
+
+describe("a tag's remove button", () => {
+  // The button comes after the tag's text, so its gap from the text belongs
+  // on its inline start. A physical margin-left put the gap on the side away
+  // from the text on a right-to-left page, and the button landed on it.
+  it.each([
+    ['no prefix', ''],
+    ['a class prefix', 'bestax-'],
+  ])(
+    'keeps its gap on the text side in either direction with %s',
+    (_n, prefix) => {
+      const css = sass.compileString(
+        `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+       @use 'form/taginput';`,
+        OPTIONS
+      ).css;
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Taginput defaultValue={['alpha']} />
+        </ConfigProvider>
+      );
+      const button = container.querySelector(
+        `.${prefix}tag .${prefix}delete`
+      ) as HTMLElement;
+      expect(declaredFor(css, button, 'margin-inline-start')).toEqual([
+        '0.25rem',
+      ]);
+      expect(declaredFor(css, button, 'margin-inline-end')).toEqual([
+        '-0.25rem',
+      ]);
+      expect(declaredFor(css, button, 'margin-left')).toEqual([]);
+      expect(declaredFor(css, button, 'margin-right')).toEqual([]);
+    }
+  );
+});
+
 describe('a loading Control around a Taginput', () => {
   // Bulma's spinner keeps the default `auto`, with nothing for this rule to
   // outrank.

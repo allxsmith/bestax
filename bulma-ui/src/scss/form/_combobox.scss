@@ -284,9 +284,20 @@ $combobox-sizes: (
   }
 }
 
+// A line between a group and whatever comes before it, and between a group
+// and items with no group after it, which would otherwise read as the group's
+// last items. It's a border, which forced colors keeps.
 .#{iv.$class-prefix}combobox-group:not(:first-child) {
   border-top: 1px solid cv.getVar('combobox-divider-color');
   margin-top: cv.getVar('combobox-item-padding-y');
+}
+
+.#{iv.$class-prefix}combobox-group:has(
+    + :not(.#{iv.$class-prefix}combobox-group)
+  ) {
+  border-bottom: 1px solid cv.getVar('combobox-divider-color');
+  margin-bottom: cv.getVar('combobox-item-padding-y');
+  padding-bottom: cv.getVar('combobox-item-padding-y');
 }
 
 .#{iv.$class-prefix}combobox-group-label {
