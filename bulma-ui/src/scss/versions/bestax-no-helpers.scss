@@ -9,7 +9,8 @@
 @forward "bulma/sass/utilities";
 @forward "bulma/sass/themes";
 @forward "bulma/sass/base";
-@forward "bulma/sass/elements";
+// Table header cells align to the start of the line, as in bestax.scss.
+@forward "bulma/sass/elements" with ($table-cell-text-align: start !default);
 @forward "bulma/sass/form";
 @forward "bulma/sass/components";
 @forward "bulma/sass/grid";

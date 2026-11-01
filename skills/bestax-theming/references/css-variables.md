@@ -67,7 +67,9 @@ If compiling Bulma's Sass yourself, set the SCSS variables before the CSS variab
 );
 ```
 
-(The library itself ships `$primary: #1e6b99` — HSL `202 / 67% / 36%` — this way.)
+(The library itself ships `$primary: #1e6b99` — HSL `202 / 67% / 36%` — this way, and
+`$table-cell-text-align: start`, so table header cells line up with the body cells under them on
+a right-to-left page, where Bulma's default is `left`.)
 
 ## Colors — override the H/S/L trio to recolor
 

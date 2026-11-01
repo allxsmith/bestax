@@ -8,7 +8,8 @@
 @use "bulma/sass/utilities" with ($class-prefix: "bestax-", $primary: #1e6b99);
 @forward "bulma/sass/themes";
 @forward "bulma/sass/base";
-@forward "bulma/sass/elements";
+// Table header cells align to the start of the line, as in bestax.scss.
+@forward "bulma/sass/elements" with ($table-cell-text-align: start !default);
 @forward "bulma/sass/form";
 @forward "bulma/sass/components";
 @forward "bulma/sass/grid";

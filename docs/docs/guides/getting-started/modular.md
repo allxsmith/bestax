@@ -147,6 +147,14 @@ After the base, `@use` only the Bulma partials you need:
 
 Bulma groups some form controls into one module: `form/input-textarea` styles both Input and TextArea, `form/checkbox-radio` styles Checkbox and Radio, and `form/tools` styles Field and Control.
 
+bestax's prebuilt stylesheets build Bulma's table with `$table-cell-text-align: start`, so a table's header cells line up with the body cells under them on a right-to-left page too, where Bulma's default, `left`, keeps them on the left. A modular build with a `Table` or a `DataTable` gets the same by configuring the module where it loads it:
+
+```scss
+@use 'bulma/sass/elements/table' with (
+  $table-cell-text-align: start
+);
+```
+
 Pull in only the helper categories you use:
 
 ```scss

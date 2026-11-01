@@ -16,7 +16,12 @@ export interface ThProps
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   /** Additional CSS classes to apply. */
   className?: string;
-  /** Text alignment for the header cell ('left', 'right', 'centered'). */
+  /**
+   * Text alignment for the header cell ('left', 'right', 'centered').
+   * Without it, `bestax.css` and its variants align a header to the start of
+   * the line, as the body cells are, so it sits on the right on a
+   * right-to-left page.
+   */
   isAligned?: TableAlignment;
   /**
    * Shrinks the cell to its content and keeps that on one line (Bulma's
