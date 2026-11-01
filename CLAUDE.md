@@ -334,7 +334,7 @@ green and every AI review thread is resolved.
 - **State comment:** the `<!-- ai-loop-state … -->` PR comment is machine-managed — never
   reformat its first line.
 - **Refusals:** the loop refuses PRs that touch `.github/**` or the
-  vitest/jest/commitlint/release/pnpm-workspace configs — workflow changes are human-authored, and
+  vitest/commitlint/release/pnpm-workspace configs — workflow changes are human-authored, and
   `.github/CLAUDE.md` states the rules they must hold to (allowlists are a confinement
   boundary and never widen casually; action SHAs stay on the repo-wide pin; anything that
   spends model usage gates on `== 'on'`).

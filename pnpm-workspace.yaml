@@ -28,14 +28,7 @@ allowBuilds:
   # and only falls back to a locally compiled build/Release/watcher.node, which
   # nothing here produces. Grant dropped in #588.
   '@parcel/watcher': false
-  # jest-resolve → unrs-resolver: `node postinstall.js` is a three-line delegate
-  # to napi-postinstall's generic checkAndPreparePackage, whose only job is
-  # fetching a platform binding when none resolved. index.js tries a locally
-  # built ./resolver.<platform>.node first and then the prebuilt
-  # @unrs/resolver-binding-<platform> package (22 ship as optionalDependencies);
-  # we have never produced the former. Grant dropped in #588.
-  unrs-resolver: false
-  # vite/webpack/storybook/ts-jest → esbuild: `node install.js` does three
+  # vite/webpack/storybook → esbuild: `node install.js` does three
   # things, none of them required. It resolves a prebuilt @esbuild/<platform>
   # package (26 ship as optionalDependencies), renames that binary over the JS
   # shim at bin/esbuild — a process-startup optimisation, not correctness, since
@@ -50,10 +43,6 @@ allowBuilds:
   # `pages deploy` static upload doesn't need them, so keep them blocked.
   sharp: false
   workerd: false
-  # @storybook/test-runner → @swc/jest → @swc/core: its postinstall is only a
-  # fallback native build; the platform binary ships as an optional dependency
-  # (@swc/core-darwin-arm64 etc.), so no script needs to run.
-  '@swc/core': false
 
 # Every entry in this file's four bypass lists — allowBuilds above, plus
 # overrides, the cooldown exclusions, and auditConfig.ignoreGhsas — must carry
@@ -106,62 +95,6 @@ overrides:
   # bestax:permanent — a deliberate single-version pin for formatting
   # determinism, not an advisory patch waiting on the ecosystem.
   prettier: 3.9.9
-  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores
-  # once Storybook's test runner works with jest 30.5
-  # (storybookjs/storybook#36116). This date is those ignores' review too.
-  # Hold the jest family on 30.4. jest 30.5 makes module.register() throw
-  # inside the test sandbox, and Storybook's importModule calls it the first
-  # time it loads a file, so test-storybook:ci fails before it runs a story.
-  # The manifests' ^30 ranges admit 30.5, so a hold kept only in the lockfile
-  # lasts until the next Dependabot group re-locks it. Each entry caps one jest
-  # package that something in the tree asks for by range. A jest package that
-  # still resolves to 30.5 without the lockfile needs an entry of its own.
-  # Each value is the exact version the lockfile holds, not a range: jest's
-  # packages pin one another exactly, and an override rewrites those pins too,
-  # so a range here would let a fresh resolve mix patch releases. With exact
-  # values the pins stay exact, and the family members nothing asks for by
-  # range follow them. Each selector matches only the 30.x releases before
-  # 30.5, so a request for ^30.5.0, such as the Storybook release that fixes
-  # the issue above, is left alone, and so is a move to 31. A workspace
-  # manifest bumped to ^30.5 would be left alone too, and would mix 30.5 into
-  # a tree whose test runner stays on 30.4, so .github/dependabot.yml ignores
-  # 30.5 for the jest packages the manifests name, which keeps the Dependabot
-  # group from proposing it while this hold stands. The entries hold one
-  # version line between them, so drop them together.
-  'jest@>=30.0.0 <30.5': '30.4.2'
-  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores;
-  # jest 30.4 hold, bulma-ui's test environment
-  'jest-environment-jsdom@>=30.0.0 <30.5': '30.4.1'
-  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores;
-  # jest 30.4 hold, the packages' test globals
-  '@jest/globals@>=30.0.0 <30.5': '30.4.1'
-  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores;
-  # jest 30.4 hold, @storybook/test-runner's copy
-  'jest-circus@>=30.0.0 <30.5': '30.4.2'
-  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores;
-  # jest 30.4 hold, @storybook/test-runner's copy
-  'jest-runner@>=30.0.0 <30.5': '30.4.2'
-  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores;
-  # jest 30.4 hold, @storybook/test-runner's copy
-  'jest-environment-node@>=30.0.0 <30.5': '30.4.1'
-  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores;
-  # jest 30.4 hold, @storybook/test-runner's copy
-  '@jest/types@>=30.0.0 <30.5': '30.4.1'
-  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores;
-  # jest 30.4 hold, via jest-watch-typeahead
-  'jest-watcher@>=30.0.0 <30.5': '30.4.1'
-  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores;
-  # jest 30.4 hold, via jest-watch-typeahead
-  'jest-regex-util@>=30.0.0 <30.5': '30.4.0'
-  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores;
-  # jest 30.4 hold, via @swc/jest
-  '@jest/create-cache-key-function@>=30.0.0 <30.5': '30.4.1'
-  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores;
-  # jest 30.4 hold, via @types/jest
-  'expect@>=30.0.0 <30.5': '30.4.1'
-  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores;
-  # jest 30.4 hold, via @types/jest
-  'pretty-format@>=30.0.0 <30.5': '30.4.1'
   # The entries below force patched versions of transitive dependencies. Each
   # stops being load-bearing once its parents widen their own ranges, so prune
   # periodically: drop an entry, re-resolve, and leave it out if the resolved
@@ -190,10 +123,10 @@ overrides:
   # matched nothing and the entry had quietly stopped being load-bearing. A
   # version-bounded selector expires itself the moment the ecosystem passes it.
   'postcss@8': '>=8.5.23 <9'
-  # bestax:review 2026-12-01 — drop once the jest/babel chain resolves to
+  # bestax:review 2026-12-01 — drop once the babel chain resolves to
   # >=4.28.7 itself; re-resolve and leave it out if the version is unchanged.
-  # Force patched browserslist (transitive via ts-jest>jest>@babel/core and the
-  # Docusaurus/vite build chains — 100 paths, nothing declares it directly).
+  # Force patched browserslist (transitive via @babel/core and the
+  # Docusaurus/vite build chains, and nothing declares it directly).
   # Two high advisories, both fixed in the same release: GHSA-c83g-rgw3-j3cx
   # and GHSA-73wf-gq98-2v4g (uncaught crash / prototype write via an untrusted
   # browserslist-stats.json in normalizeStats). One patched floor covers the
@@ -220,10 +153,9 @@ overrides:
   # bestax:review 2026-11-13 — quarterly sweep; 5.x line, prunable on its own
   'brace-expansion@5': '>=5.0.12 <6'
   # bestax:review 2026-11-13 — quarterly sweep
-  # Force patched axios under wait-on (create-bestax's dev dependency, and the
-  # storybook test runner's jest-process-manager) for its high advisories. The
-  # floor is the newest fix on the 1.x line. Both wait-on ranges admit it and
-  # it is past the cooldown. Prune once wait-on resolves to >=1.20.0 without
+  # Force patched axios under wait-on (create-bestax's dev dependency) for its
+  # high advisories. The floor is the newest fix on the 1.x line. wait-on's
+  # range admits it and it is past the cooldown. Prune once wait-on resolves to >=1.20.0 without
   # the force.
   'axios@1': '>=1.20.0 <2'
   # bestax:review 2026-11-13 — quarterly sweep
@@ -264,8 +196,8 @@ overrides:
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched joi per major for high advisory GHSA-6h2x-m376-mqjq
   # (quadratic backtracking in `Joi.string().isoDate()`). The 17.x copy rides
-  # the Docusaurus types and the storybook test runner's wait-on; the 18.x copy
-  # is create-bestax's wait-on, a dev dependency. Floors raised to 17.13.9 and
+  # the Docusaurus types; the 18.x copy is create-bestax's wait-on, a dev
+  # dependency. Floors raised to 17.13.9 and
   # 18.3.1 for GHSA-4528-x5fx-h6hg (a quadratic-time split in
   # `string().email({ multiple: true })`). Both of those were still inside the
   # cooldown when this landed, so they have exact-version excludes above, and
@@ -289,9 +221,9 @@ overrides:
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched js-yaml per major — high advisory GHSA-5p4m-2wfm-xmqj
   # (CVE-2026-59870): quadratic CPU consumption resolving !!omap. The 3.x copy
-  # rides the jest coverage chain (babel-plugin-istanbul >
-  # @istanbuljs/load-nyc-config); the 4.x copies ride cosmiconfig (commitlint,
-  # semantic-release) and the Docusaurus frontmatter pipeline. Both patched
+  # rides gray-matter, the docs' frontmatter parser; the 4.x copies ride
+  # cosmiconfig (commitlint, semantic-release) and the Docusaurus frontmatter
+  # pipeline. Both patched
   # releases are already older than the cooldown, and every parent range admits
   # them — the lockfile just predates them. Floors raised for
   # GHSA-2883-xcg3-v3hh, a second high advisory whose ranges reach past the
