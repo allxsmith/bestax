@@ -1,0 +1,306 @@
+{
+  "name": "IconButton",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/iconbutton",
+  "docsUrl": "https://bestax.io/docs/api/elements/iconbutton",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<IconButton icon=\"trash\" aria-label=\"Delete\" />"
+    },
+    {
+      "title": "Naming It",
+      "code": "<>\n  <Paragraph id=\"archive-label\" textSize=\"7\">\n    Archive this conversation\n  </Paragraph>\n  <IconButton icon=\"box-archive\" aria-labelledby=\"archive-label\" />\n</>"
+    },
+    {
+      "title": "The Icon",
+      "code": "<Buttons>\n  <IconButton icon=\"heart\" aria-label=\"Favorite\" />\n  <IconButton\n    icon={<Icon name=\"heart\" variant=\"regular\" />}\n    aria-label=\"Add to favorites\"\n  />\n  <IconButton\n    icon={\n      <svg viewBox=\"0 0 24 24\" width=\"1em\" height=\"1em\" fill=\"currentColor\">\n        <path d=\"M18 16a3 3 0 0 0-2.4 1.2L8.9 13.7a3 3 0 0 0 0-3.4l6.7-3.5A3 3 0 1 0 15 5l-6.7 3.5a3 3 0 1 0 0 7L15 19a3 3 0 1 0 3-3Z\" />\n      </svg>\n    }\n    aria-label=\"Share\"\n  />\n  <IconButton aria-label=\"Settings\">\n    <Icon name=\"gear\" />\n  </IconButton>\n</Buttons>"
+    },
+    {
+      "title": "With a Badge",
+      "code": "<Buttons p=\"2\">\n  <Badge content={3} overlap=\"circle\">\n    <IconButton isRounded icon=\"bell\" aria-label=\"Notifications, 3 unread\" />\n  </Badge>\n  <Badge content={12} overlap=\"square\">\n    <IconButton icon=\"envelope\" aria-label=\"Inbox, 12 unread\" />\n  </Badge>\n  <Badge dot color=\"success\" overlap=\"circle\">\n    <IconButton isRounded icon=\"comment\" aria-label=\"Messages, new\" />\n  </Badge>\n</Buttons>"
+    },
+    {
+      "title": "Colors",
+      "code": "<>\n  <Buttons>\n    <IconButton color=\"primary\" icon=\"plus\" aria-label=\"Add\" />\n    <IconButton color=\"link\" icon=\"pen\" aria-label=\"Edit\" />\n    <IconButton color=\"info\" icon=\"circle-info\" aria-label=\"Details\" />\n    <IconButton color=\"success\" icon=\"check\" aria-label=\"Approve\" />\n    <IconButton color=\"warning\" icon=\"flag\" aria-label=\"Report\" />\n    <IconButton color=\"danger\" icon=\"trash\" aria-label=\"Delete\" />\n  </Buttons>\n  <Buttons>\n    <IconButton color=\"danger\" isLight icon=\"trash\" aria-label=\"Delete\" />\n    <IconButton color=\"link\" isOutlined icon=\"download\" aria-label=\"Download\" />\n    <IconButton color=\"text\" icon=\"ellipsis\" aria-label=\"More actions\" />\n    <IconButton color=\"ghost\" icon=\"xmark\" aria-label=\"Close\" />\n  </Buttons>\n</>"
+    },
+    {
+      "title": "Sizes and Circles",
+      "code": "<>\n  <Buttons>\n    <IconButton size=\"small\" icon=\"pen\" aria-label=\"Edit, small\" />\n    <IconButton icon=\"pen\" aria-label=\"Edit\" />\n    <IconButton size=\"medium\" icon=\"pen\" aria-label=\"Edit, medium\" />\n    <IconButton size=\"large\" icon=\"pen\" aria-label=\"Edit, large\" />\n  </Buttons>\n  <Buttons>\n    <IconButton\n      size=\"small\"\n      isRounded\n      color=\"primary\"\n      icon=\"plus\"\n      aria-label=\"Add, small\"\n    />\n    <IconButton isRounded color=\"primary\" icon=\"plus\" aria-label=\"Add\" />\n    <IconButton\n      size=\"medium\"\n      isRounded\n      color=\"primary\"\n      icon=\"plus\"\n      aria-label=\"Add, medium\"\n    />\n    <IconButton\n      size=\"large\"\n      isRounded\n      color=\"primary\"\n      icon=\"plus\"\n      aria-label=\"Add, large\"\n    />\n  </Buttons>\n</>"
+    },
+    {
+      "title": "With a Tooltip",
+      "code": "<Buttons p=\"6\">\n  <Tooltip label=\"Moves it to the trash\" position=\"bottom\">\n    <IconButton icon=\"trash\" aria-label=\"Delete\" />\n  </Tooltip>\n  <Tooltip label=\"Opens it for editing\" position=\"bottom\">\n    <IconButton icon=\"pen\" aria-label=\"Edit\" />\n  </Tooltip>\n  <Tooltip label=\"Saves a copy as a PDF\" position=\"bottom\">\n    <IconButton icon=\"download\" aria-label=\"Download\" />\n  </Tooltip>\n</Buttons>"
+    },
+    {
+      "title": "A Row of Actions",
+      "code": "<Buttons hasAddons role=\"group\" aria-label=\"Zoom\">\n  <IconButton icon=\"minus\" aria-label=\"Zoom out\" />\n  <IconButton icon=\"expand\" aria-label=\"Fit to window\" />\n  <IconButton icon=\"plus\" aria-label=\"Zoom in\" />\n</Buttons>"
+    },
+    {
+      "title": "Beside an Input",
+      "code": "function example() {\n  const [query, setQuery] = useState('');\n  const [searched, setSearched] = useState('');\n\n  return (\n    <form\n      onSubmit={event => {\n        event.preventDefault();\n        setSearched(query);\n      }}\n    >\n      <Field hasAddons>\n        <Control isExpanded>\n          <Input\n            type=\"search\"\n            aria-label=\"Search the docs\"\n            value={query}\n            onChange={event => setQuery(event.target.value)}\n          />\n        </Control>\n        <Control>\n          <IconButton\n            icon=\"xmark\"\n            aria-label=\"Clear\"\n            onClick={() => setQuery('')}\n          />\n        </Control>\n        <Control>\n          <IconButton\n            type=\"submit\"\n            color=\"primary\"\n            icon=\"magnifying-glass\"\n            aria-label=\"Search\"\n          />\n        </Control>\n      </Field>\n      <Paragraph>\n        {searched ? `Searched for ${searched}.` : 'No search yet.'}\n      </Paragraph>\n    </form>\n  );\n}"
+    },
+    {
+      "title": "Loading",
+      "code": "<Buttons>\n  <IconButton isLoading icon=\"floppy-disk\" aria-label=\"Save\" />\n  <IconButton\n    isLoading\n    isRounded\n    color=\"primary\"\n    icon=\"floppy-disk\"\n    aria-label=\"Save\"\n  />\n</Buttons>"
+    },
+    {
+      "title": "Disabled",
+      "code": "<IconButton isDisabled icon=\"trash\" aria-label=\"Delete\" />"
+    },
+    {
+      "title": "As a Link",
+      "code": "<IconButton\n  as=\"a\"\n  href=\"https://bulma.io/documentation/elements/button/\"\n  target=\"_blank\"\n  rel=\"noreferrer\"\n  icon=\"arrow-up-right-from-square\"\n  aria-label=\"Bulma's button docs, in a new tab\"\n/>"
+    }
+  ],
+  "accessibility": "- **A name every time:** an icon-only button's name is its text alternative\n  ([WCAG 1.1.1](https://www.w3.org/WAI/WCAG22/Understanding/non-text-content.html) and\n  [4.1.2](https://www.w3.org/WAI/WCAG22/Understanding/name-role-value.html)), so the types require\n  `aria-label` or `aria-labelledby`, and a development build warns about an empty or blank one. Name\n  the action, not the picture.\n- **The icon is decorative:** it renders `aria-hidden=\"true\"`, so it adds nothing to the name. Don't\n  name the `Icon` too, or the name is read twice.\n- **Tooltips describe:** a [`Tooltip`](https://bestax.io/docs/api/components/tooltip) around it points the button's\n  `aria-describedby` at itself, so the name and the description stay separate. Give the tooltip\n  something to add, not the name again.\n- **Keyboard and focus:** it's a native `<button>`, so <kbd>Enter</kbd> and <kbd>Space</kbd> press\n  it, with Bulma's focus style. `isLoading` leaves it focusable.\n- **Target size:** Bulma's smallest is 30 by 30 pixels, above the 24 by 24\n  [WCAG 2.5.8](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html) asks for.\n- **Toggles** are [`ToggleButton`](https://bestax.io/docs/api/elements/togglebutton), which reports `aria-pressed`. Give an\n  icon-only one an `aria-label` the same way.\n- **Forced colors:** a font icon, or an SVG drawn in `currentColor`, takes the system's text\n  color, as a button's text does.",
+  "related": [
+    "Button",
+    "Buttons",
+    "Delete",
+    "Icon",
+    "ToggleButton",
+    "Tooltip",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-iconbutton--default",
+  "summary": "The `IconButton` component renders a button that shows only an icon, and requires a name for it. It renders through `Button`, so it takes everything `Button` takes, and adds the icon and a name the types require: `aria-label`, or `aria-labelledby` in its place. Bulma keeps a button whose only child is an `.icon` square at every size, and `isRounded` makes it a circle. It has no tooltip of its own: wrap it in `Tooltip` for a description.",
+  "import": "import { IconButton } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/IconButton.tsx",
+  "rootClass": "icon-button",
+  "parts": [
+    {
+      "path": "IconButton",
+      "summary": "The `IconButton` component renders a button that shows only an icon, and requires a name for it. It renders through `Button`, so it takes everything `Button` takes, and adds the icon and a name the types require: `aria-label`, or `aria-labelledby` in its place. Bulma keeps a button whose only child is an `.icon` square at every size, and `isRounded` makes it a circle. It has no tooltip of its own: wrap it in `Tooltip` for a description.",
+      "component": null,
+      "props": [
+        {
+          "name": "as",
+          "type": "React.ElementType",
+          "default": "'button'",
+          "description": "Render as a `<button>`, an `<a>`, or a custom component such as a router `Link`, as on `Button`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The glyph. A string is an `Icon` name, drawn from the icon library `ConfigProvider` sets. An `<Icon>` renders as given, so it can carry its own `variant` or `library`. Any other node, such as an SVG or a component from an icon package, goes inside an `Icon`, which gives it the `.icon` wrapper Bulma keeps square. It's decorative: the button's name says what it does. Give the glyph here or as `children`, not both: with both, it draws `icon` and warns in development. With neither, such as an empty string from `cond ? 'trash' : ''`, the button is an empty square, and that warns in development too.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The glyph as children, the way Mantine, MUI and Chakra take it: an `<Icon>` renders as given, and any other node, such as an SVG, goes inside an `Icon`, as with `icon`. Left out when `icon` is given, which warns in development. Text warns too, since `aria-label` replaces it as the name: a button with text is a `Button`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "aria-labelledby",
+          "type": "string",
+          "default": null,
+          "description": "The id of the element whose text names the button, in place of `aria-label`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "default": null,
+          "description": "The button's name: what a screen reader announces and what a voice control user says to press it. Required, or `aria-labelledby` in its place, since an icon has no text to name it by. Name the action (\"Delete\"), not the picture (\"Trash\"). An empty or blank one warns in development.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'white' | 'light' | 'dark' | 'black' | 'text' | 'ghost'",
+          "default": null,
+          "description": "Bulma color variant for the button. `ghost` renders a link-like button; `text` renders a minimal text-only button.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the button.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isLight",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies a lighter color variant.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button rounded.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Displays a loading spinner, with everything inside the button hidden behind it, in forced colors (Windows' contrast themes) too. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn. Bulma alone hides only the label, so the rest needs bestax's CSS loaded.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isStatic",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button non-interactive.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFullwidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button full-width.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFullWidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button full-width.",
+          "required": false,
+          "inherited": true,
+          "deprecated": true,
+          "deprecationNote": "Use `isFullwidth` instead — `isFullwidth` wins if both are set."
+        },
+        {
+          "name": "isOutlined",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies outlined styling (requires color).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isInverted",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies inverted styling (requires color).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFocused",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies focused styling (visual only).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isActive",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies active styling (visual only), with no `aria-pressed`. For a button that stays pressed, use `ToggleButton`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isHovered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies hovered styling (visual only).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isDisabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies disabled styling.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Custom class name.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "type",
+          "type": "string",
+          "default": "'button'",
+          "description": "On a `<button>`, `'button'`, `'submit'` or `'reset'`, and `'button'` unless you pass one of the other two, so it never submits a form by accident. With another `as`, whatever that element or component takes, passed through as given, such as an `<a>`'s MIME type.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "PolymorphicRef<React.ElementType>",
+          "default": null,
+          "description": "Ref forwarded to the element `as` renders, typed from `as`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "Remaining props of the element or component selected by as (default <button>) and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [],
+  "cssVarsFrom": "Button"
+}

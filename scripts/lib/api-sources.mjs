@@ -208,6 +208,7 @@ export const SCSS_SOURCES = {
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_hovercard.scss' },
   ],
   Icon: [{ pkg: 'bulma', path: 'sass/elements/icon.scss' }],
+  IconButton: [],
   IconText: [{ pkg: 'bulma', path: 'sass/elements/icon.scss' }],
   Image: [],
   Input: [{ pkg: 'bulma', path: 'sass/form/shared.scss' }],
@@ -355,6 +356,7 @@ export const SCSS_SOURCES = {
 export const RENDERS_ELEMENT_OF = {
   CheckboxCard: 'Card', // its label is a `.card.checkbox-card`
   Dropzone: 'File', // its zone is a `.file.is-boxed.is-fullwidth`
+  IconButton: 'Button', // renders `.button.icon-button` through Button
   LinkButton: 'Button', // renders `.button.link-button` through Button
   PinInput: 'Input', // each of its boxes is an `.input.pin-input-box`
   RadioCard: 'Card', // its label is a `.card.radio-card`

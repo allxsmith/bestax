@@ -23,6 +23,7 @@
         "Emphasis",
         "Figure",
         "Icon",
+        "IconButton",
         "IconText",
         "Image",
         "Kbd",
@@ -729,6 +730,17 @@
       "compound": false,
       "propCount": 15,
       "exampleCount": 14
+    },
+    {
+      "name": "IconButton",
+      "kind": "component",
+      "category": "elements",
+      "purpose": "The `IconButton` component renders a button that shows only an icon, and requires a name for it.",
+      "slug": "elements/iconbutton",
+      "import": "import { IconButton } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 22,
+      "exampleCount": 12
     },
     {
       "name": "IconText",

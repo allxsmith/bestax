@@ -13117,6 +13117,7 @@
     "empty-state": "EmptyState",
     "fieldset": "Fieldset",
     "hover-card": "HoverCard",
+    "icon-button": "IconButton",
     "kbd": "Kbd",
     "link-button": "LinkButton",
     "loading": "Loading",

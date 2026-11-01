@@ -39,6 +39,7 @@ const BESTAX = {
   'Emphasis/Strong/Span': 'elements/emphasis',
   Figure: 'elements/figure',
   Icon: 'elements/icon',
+  IconButton: 'elements/iconbutton',
   IconText: 'elements/icontext',
   Image: 'elements/image',
   Kbd: 'elements/kbd',
@@ -625,7 +626,7 @@ export const categories = [
       ],
       [
         'Icon button',
-        '~Button',
+        'IconButton',
         'ActionIcon',
         0,
         'IconButton',
