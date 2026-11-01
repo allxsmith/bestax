@@ -203,8 +203,9 @@ describe.each([
       'var(--bulma-link-invert)'
     );
     expect(vars['--bulma-combobox-check-color']).toBe('currentColor');
+    // jsdom drops the space after a comma in a custom property's value.
     expect(vars['--bulma-combobox-item-hover-background']).toMatch(
-      /^hsl\(var\(--bulma-scheme-h\), var\(--bulma-scheme-s\), calc\(var\(--bulma-scheme-main-l\) \+ var\(--bulma-hover-background-l-delta\)\)\)$/
+      /^hsl\(var\(--bulma-scheme-h\),var\(--bulma-scheme-s\),calc\(var\(--bulma-scheme-main-l\) \+ var\(--bulma-hover-background-l-delta\)\)\)$/
     );
     for (const [name, value] of Object.entries(vars)) {
       if (!/color|background/.test(name)) continue;
@@ -288,10 +289,9 @@ describe.each([
     expect(apple.cursor).toBe('pointer');
     expect(apple.color).toBe('var(--bulma-combobox-item-color)');
     // Its size comes from the list, which takes the Combobox's.
-    expect(apple.fontSize).toBe('inherit');
-    expect(getComputedStyle(getByTestId('list')).fontSize).toBe(
-      'var(--bulma-combobox-item-size)'
-    );
+    const list = getComputedStyle(getByTestId('list'));
+    expect(list.fontSize).toBe('var(--bulma-combobox-item-size)');
+    expect(apple.fontSize).toBe(list.fontSize);
 
     // jsdom has no :hover, so the hover rule is read off the sheet.
     const hover = rulesOf(compile(prefix)).find(rule =>
@@ -385,7 +385,7 @@ describe.each([
     load(compile(prefix));
     const { getByTestId } = renderOpen({ inline: true });
     const list = getComputedStyle(getByTestId('list'));
-    expect(list.position).toBe('');
+    expect(list.position).toBe('static');
     expect(list.marginTop).toBe('var(--bulma-combobox-menu-offset)');
     expect(list.maxHeight).toBe('var(--bulma-combobox-list-max-height)');
     expect(list.overflowY).toBe('auto');
@@ -401,7 +401,8 @@ describe.each([
       'z-index': 'var(--bulma-combobox-portal-z-index)',
       right: 'auto',
       bottom: 'auto',
-      'min-width': '0',
+      // jsdom serializes a zero length as `0px`, as browsers do.
+      'min-width': '0px',
     });
     const vars = declarations(compile(prefix), ROOT(prefix));
     // Bulma's Modal is 40.
@@ -424,6 +425,8 @@ describe.each([
         ),
       }))
     ).toEqual([
+      // jsdom serializes a system color lowercase, as browsers do, except in
+      // `outline`, which it keeps as written.
       {
         within: ['@media (forced-colors: active)'],
         selector: `.${prefix}dropdown-item.${prefix}combobox-item.${prefix}is-active`,
@@ -432,7 +435,7 @@ describe.each([
       {
         within: ['@media (forced-colors: active)'],
         selector: `.${prefix}dropdown-item.${prefix}combobox-item.${prefix}is-disabled, .${prefix}dropdown-item.${prefix}combobox-item.${prefix}is-active.${prefix}is-disabled`,
-        declarations: ['color: GrayText'],
+        declarations: ['color: graytext'],
       },
     ]);
   });

@@ -77,7 +77,14 @@ describe('RadioCard', () => {
     });
 
     it("is named by the label's own text without a title, and not described again", () => {
-      render(<RadioCard description="Arrives tomorrow.">Express</RadioCard>);
+      render(
+        <>
+          {/* The card's own rule. A block description keeps its text apart
+              from what follows it in the name. */}
+          <style>{'.radio-card-description { display: block; }'}</style>
+          <RadioCard description="Arrives tomorrow.">Express</RadioCard>
+        </>
+      );
       const input = screen.getByRole('radio');
       expect(input).not.toHaveAttribute('aria-labelledby');
       expect(input).not.toHaveAttribute('aria-describedby');

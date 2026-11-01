@@ -110,9 +110,14 @@ describe('CheckboxCard', () => {
 
     it("is named by the label's own text without a title, and not described again", () => {
       render(
-        <CheckboxCard description="Kept for 30 days.">
-          Daily backups
-        </CheckboxCard>
+        <>
+          {/* The card's own rule. A block description keeps its text apart
+              from what follows it in the name. */}
+          <style>{'.checkbox-card-description { display: block; }'}</style>
+          <CheckboxCard description="Kept for 30 days.">
+            Daily backups
+          </CheckboxCard>
+        </>
       );
       const input = screen.getByRole('checkbox');
       expect(input).not.toHaveAttribute('aria-labelledby');

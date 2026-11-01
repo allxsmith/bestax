@@ -664,14 +664,19 @@ describe('Icon', () => {
 
     it('names a button around a named icon with the label, not the ligature', () => {
       render(
-        <Button>
-          <Icon
-            name="rocket_launch"
-            library="material-icons"
-            ariaLabel="Launch"
-          />
-          <span>Quick Start</span>
-        </Button>
+        <>
+          {/* Bulma's own rule. An icon that isn't inline keeps its name
+              apart from the label's. */}
+          <style>{'.icon { display: inline-flex; }'}</style>
+          <Button>
+            <Icon
+              name="rocket_launch"
+              library="material-icons"
+              ariaLabel="Launch"
+            />
+            <span>Quick Start</span>
+          </Button>
+        </>
       );
       expect(screen.getByRole('button')).toHaveAccessibleName(
         'Launch Quick Start'

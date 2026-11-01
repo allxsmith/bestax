@@ -138,7 +138,7 @@ type Side = 'top' | 'right' | 'bottom' | 'left';
 /**
  * The logical color longhand for each side, read the way a horizontal,
  * left-to-right page draws it, which is how the rest of this file reads a
- * page. jsdom keeps a logical longhand as a property of its own, so without
+ * page. A sheet sets a logical longhand as a property of its own, so without
  * this a ring opened on its inline end reads as closed.
  */
 const LOGICAL_COLOR: Record<Side, string> = {
@@ -207,20 +207,97 @@ function shorthand(value: string): { name: string; duration: string } {
   return { name: name ?? 'none', duration: duration ?? '0s' };
 }
 
-/** Every style rule in the sheet, in source order, with its media context. */
+/** `css` with its comments taken out and its strings kept whole. */
+const uncommented = (css: string) =>
+  css.replace(
+    /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\/\*[\s\S]*?\*\//g,
+    (_, kept?: string) => kept ?? ''
+  );
+
+/**
+ * The items at the top level of a list of rules or of declarations, in
+ * order: each one's prelude and the text of its `{…}` block, or null for
+ * one that ends in `;` instead. A `;` or a brace inside a string or a
+ * `url(…)` ends nothing.
+ */
+function itemsOf(text: string) {
+  const out: { prelude: string; block: string | null }[] = [];
+  let quote = '';
+  let parens = 0;
+  let braces = 0;
+  let start = 0;
+  let open = 0;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (quote) {
+      if (ch === '\\') i++;
+      else if (ch === quote) quote = '';
+    } else if (ch === '"' || ch === "'") quote = ch;
+    else if (ch === '(') parens++;
+    else if (ch === ')') parens--;
+    else if (parens > 0) continue;
+    else if (ch === '{') {
+      if (braces++ === 0) open = i;
+    } else if (ch === '}') {
+      if (--braces === 0) {
+        out.push({
+          prelude: text.slice(start, open).trim(),
+          block: text.slice(open + 1, i),
+        });
+        start = i + 1;
+      }
+    } else if (ch === ';' && braces === 0) {
+      const prelude = text.slice(start, i).trim();
+      if (prelude) out.push({ prelude, block: null });
+      start = i + 1;
+    }
+  }
+  const rest = text.slice(start).trim();
+  if (rest) out.push({ prelude: rest, block: null });
+  return out;
+}
+
+/**
+ * A style rule's declarations as the sheet writes them, by property. A later
+ * one replaces an earlier one, unless only the earlier is `!important`.
+ */
+function declarationsOf(block: string): Record<string, Setting> {
+  const out: Record<string, Setting> = {};
+  for (const { prelude, block: nested } of itemsOf(block)) {
+    const colon = prelude.indexOf(':');
+    if (nested !== null || colon < 0) continue;
+    const property = prelude.slice(0, colon).trim();
+    const written = prelude.slice(colon + 1).trim();
+    const important = /!\s*important$/i.test(written);
+    if (out[property]?.important && !important) continue;
+    out[property] = {
+      value: written.replace(/\s*!\s*important$/i, ''),
+      important,
+    };
+  }
+  return out;
+}
+
+/**
+ * Every style rule in the sheet, in source order, with its media context.
+ * It's read off the sheet's text rather than jsdom's CSSOM, which expands a
+ * shorthand into its longhands, lowercases keywords, and drops a shorthand
+ * with a `var()` in it when a longhand follows, as Bulma's ring does
+ * (`border: 2px solid var(--x); border-top-color: transparent` keeps only
+ * the top), where a browser keeps the other sides.
+ */
 function rulesOf(css: string): Rule[] {
-  const style = document.createElement('style');
-  style.textContent = css;
-  document.head.appendChild(style);
   const out: Rule[] = [];
   const walk = (
-    list: CSSRuleList,
+    text: string,
     reducedMotionOnly: boolean,
     forcedColorsOnly: boolean
   ) => {
-    for (const rule of Array.from(list)) {
-      if (rule instanceof CSSMediaRule) {
-        const media = rule.media.mediaText;
+    for (const { prelude, block } of itemsOf(text)) {
+      // A statement like `@charset` holds no rules.
+      if (block === null) continue;
+      if (/^@media\b/i.test(prelude)) {
+        const media = prelude.slice('@media'.length).trim();
         // Read below as a plain match, so a negated or listed query would
         // apply its rules to the wrong users.
         if (
@@ -242,24 +319,24 @@ function rulesOf(css: string): Rule[] {
         // `(forced-colors)` means `active`, as `(prefers-reduced-motion)`
         // means `reduce`.
         walk(
-          rule.cssRules,
+          block,
           reducedMotionOnly || /prefers-reduced-motion/.test(media),
           forcedColorsOnly || /forced-colors/.test(media)
         );
-      } else if (rule instanceof CSSStyleRule) {
-        const decl = rule.style;
-        const properties = Array.from(
-          { length: decl.length },
-          (_, i) => decl[i]
-        );
-        // jsdom keeps the shorthand whole rather than expanding it.
+      } else if (!prelude.startsWith('@')) {
+        const values = declarationsOf(block);
+        const properties = Object.keys(values);
+        // As the sheet writes it, a shorthand is whole.
         const longhand = (prop: 'name' | 'duration'): Setting | null => {
           for (const p of [`animation-${prop}`, 'animation']) {
-            const value = decl.getPropertyValue(p).trim();
-            if (!value) continue;
+            const setting = values[p];
+            if (!setting) continue;
             return {
-              value: p === 'animation' ? shorthand(value)[prop] : value,
-              important: decl.getPropertyPriority(p) === 'important',
+              value:
+                p === 'animation'
+                  ? shorthand(setting.value)[prop]
+                  : setting.value,
+              important: setting.important,
             };
           }
           return null;
@@ -275,26 +352,23 @@ function rulesOf(css: string): Rule[] {
             'border-color',
             'border',
           ]) {
-            const value = decl.getPropertyValue(p).trim();
-            if (!value) continue;
+            const setting = values[p];
+            if (!setting) continue;
             // One color per side would have to be picked out of it by
             // position, which `colorOf` doesn't do.
-            if (p === 'border-color' && tokensOf(value).length > 1) {
+            if (p === 'border-color' && tokensOf(setting.value).length > 1) {
               throw new Error(
-                `\`border-color: ${value}\` gives the sides different colors, ` +
-                  'which this test does not split. Extend `side` before ' +
-                  'trusting a result.'
+                `\`border-color: ${setting.value}\` gives the sides different ` +
+                  'colors, which this test does not split. Extend `side` ' +
+                  'before trusting a result.'
               );
             }
-            return {
-              value,
-              important: decl.getPropertyPriority(p) === 'important',
-            };
+            return setting;
           }
           return null;
         };
         out.push({
-          selectors: splitSelectors(rule.selectorText),
+          selectors: splitSelectors(prelude),
           properties,
           name: longhand('name'),
           duration: longhand('duration'),
@@ -302,23 +376,14 @@ function rulesOf(css: string): Rule[] {
           right: side('right'),
           bottom: side('bottom'),
           left: side('left'),
-          values: Object.fromEntries(
-            properties.map(p => [
-              p,
-              {
-                value: decl.getPropertyValue(p).trim(),
-                important: decl.getPropertyPriority(p) === 'important',
-              },
-            ])
-          ),
+          values,
           order: out.length,
           reducedMotionOnly,
           forcedColorsOnly,
         });
       } else if (
-        'cssRules' in rule &&
-        !/^@(-\w+-)?keyframes\b/.test(rule.cssText) &&
-        /[{;\s]animation(-[a-z-]+)?\s*:/.test(rule.cssText)
+        !/^@(-\w+-)?keyframes\b/.test(prelude) &&
+        /[{;\s]animation(-[a-z-]+)?\s*:/.test(block)
       ) {
         // `@supports`, `@layer`, `@container` and the like change when or in
         // what order their rules apply, which this test does not model.
@@ -326,18 +391,13 @@ function rulesOf(css: string): Rule[] {
         // here, but an animation set in one has to fail rather than go
         // unchecked. Keyframes hold no style rules.
         throw new Error(
-          `${rule.cssText.split('{')[0].trim()} sets an animation in rules ` +
-            'this test does not walk. Extend `rulesOf` before trusting a ' +
-            'result.'
+          `${prelude} sets an animation in rules this test does not walk. ` +
+            'Extend `rulesOf` before trusting a result.'
         );
       }
     }
   };
-  try {
-    walk(style.sheet!.cssRules, false, false);
-  } finally {
-    style.remove();
-  }
+  walk(uncommented(css), false, false);
   return out;
 }
 

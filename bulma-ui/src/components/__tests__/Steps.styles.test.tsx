@@ -60,14 +60,42 @@ function rulesOf(css: string): Found[] {
   return out;
 }
 
+/**
+ * The properties a style declares, in order. Iterating the style lists the
+ * longhands a shorthand sets as well, so the names are read off its
+ * `cssText`, split at each `;` outside a string or brackets.
+ */
+function propertiesOf(style: CSSStyleDeclaration) {
+  const text = `${style.cssText};`;
+  const names: string[] = [];
+  let start = 0;
+  let depth = 0;
+  let quote = '';
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (quote) {
+      if (c === '\\') i++;
+      else if (c === quote) quote = '';
+    } else if (c === '"' || c === "'") quote = c;
+    else if (c === '(') depth++;
+    else if (c === ')') depth--;
+    else if (c === ';' && depth === 0) {
+      const name = text.slice(start, i).split(':')[0].trim();
+      if (name) names.push(name);
+      start = i + 1;
+    }
+  }
+  return names;
+}
+
 /** Every declaration the rules for `selector` make, merged in order. */
 function declarations(found: Found[], selector: string, media = '') {
   const out: Record<string, string> = {};
   for (const { style } of found.filter(
     rule => rule.selector === selector && rule.media === media
   )) {
-    for (let i = 0; i < style.length; i++) {
-      out[style[i]] = style.getPropertyValue(style[i]).trim();
+    for (const name of propertiesOf(style)) {
+      out[name] = style.getPropertyValue(name).trim();
     }
   }
   return out;
@@ -207,8 +235,9 @@ describe.each([
     // a line or a label on the wrong side of its marker there.
     const PHYSICAL =
       /^(left|right|(margin|padding|border)-(left|right)(-[a-z]+)?)$/;
-    // jsdom keeps these whole rather than listing a longhand per side, so a
-    // side written in one is read off its value instead.
+    // The declarations are read as written, where these stay whole rather
+    // than a longhand per side, so a side written in one is read off its
+    // value instead.
     const SHORTHAND =
       /^(margin|padding|inset|border-width|border-style|border-color)$/;
 
@@ -237,7 +266,7 @@ describe.each([
 
     it('places nothing by a physical side', () => {
       const physical = rulesOf(compile(prefix)).flatMap(({ selector, style }) =>
-        Array.from({ length: style.length }, (_, i) => style[i])
+        propertiesOf(style)
           .filter(name => {
             const value = style.getPropertyValue(name).trim();
             return (
@@ -417,15 +446,16 @@ describe.each([
     );
 
     it('fills its step with a button that drops the browser’s button look', () => {
-      // Read off the sheet: jsdom's computed style leaves out `border`.
+      // Read off the sheet. jsdom writes `border: none` back as `medium`, the
+      // width it resets, and the style it resets with it is `none`.
       expect(
         declarations(rulesOf(compile(prefix)), `button${p('steps-link')}`)
       ).toEqual({
         appearance: 'none',
         background: 'none',
-        border: 'none',
-        padding: '0',
-        margin: '0',
+        border: 'medium',
+        padding: '0px',
+        margin: '0px',
         font: 'inherit',
         color: 'inherit',
         cursor: 'pointer',
@@ -468,7 +498,9 @@ describe.each([
 
   // Forced colors paints every background the page's own color and every
   // border one color, so a line or a fill drawn as a background vanishes and
-  // the markers all look alike. A system color is left as it is.
+  // the markers all look alike. A system color is left as it is. jsdom writes
+  // one in lowercase, as browsers do, except in a value that reads a
+  // variable, which it keeps as written.
   describe('in forced colors', () => {
     const layouts = COLORS.flatMap(color =>
       [false, true].map(vertical => ({ color, vertical }))
@@ -499,11 +531,11 @@ describe.each([
           const normal = candidates(found, li, line, 'background-color', false);
           // It is a line to begin with, and keeps its color normally.
           expect(normal.length).toBeGreaterThan(0);
-          expect(normal.map(({ value }) => value)).not.toContain('CanvasText');
+          expect(normal.map(({ value }) => value)).not.toContain('canvastext');
           expect(winners(normal)).toEqual([]);
           const forced = candidates(found, li, line, 'background-color', true);
           expect(winners(forced).length).toBeGreaterThan(0);
-          expect(new Set(winners(forced))).toEqual(new Set(['CanvasText']));
+          expect(new Set(winners(forced))).toEqual(new Set(['canvastext']));
         }
         unmount();
       }
@@ -524,9 +556,9 @@ describe.each([
             )
           ).toEqual(['none']);
           for (const [property, system] of [
-            ['background-color', 'CanvasText'],
-            ['border-color', 'CanvasText'],
-            ['color', 'Canvas'],
+            ['background-color', 'canvastext'],
+            ['border-color', 'canvastext'],
+            ['color', 'canvas'],
           ]) {
             const normal = candidates(found, marker, '', property, false);
             expect(winners(normal)).toEqual([]);
@@ -541,7 +573,7 @@ describe.each([
             candidates(found, marker, '', 'background-color', true).map(
               ({ value }) => value
             )
-          ).not.toContain('CanvasText');
+          ).not.toContain('canvastext');
         }
         unmount();
       }

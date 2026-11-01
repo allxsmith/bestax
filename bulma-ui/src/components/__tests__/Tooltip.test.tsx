@@ -51,10 +51,15 @@ const unhover = (el: Element, to: Element = document.body) =>
   pointer(el, 'pointerout', { relatedTarget: to });
 /**
  * Focus as a key brings it. Tooltip asks the browser, through
- * `:focus-visible`, and jsdom matches that on any focus, which is what a
- * browser does after a key, so plain `focus()` is keyboard focus here.
+ * `:focus-visible`, and jsdom, like a browser, matches that on focus a Tab
+ * brings, so Tab goes down where focus is before `el` takes it.
  */
-const keyboardFocus = (el: HTMLElement) => el.focus();
+const keyboardFocus = (el: HTMLElement) => {
+  fireEvent.keyDown(el.ownerDocument.activeElement ?? el.ownerDocument.body, {
+    key: 'Tab',
+  });
+  el.focus();
+};
 /**
  * A press and the focus it brings. A browser doesn't show that focus as
  * `:focus-visible` and jsdom does, so the element says it isn't until the
@@ -1069,6 +1074,9 @@ describe('Tooltip', () => {
 
     it('hides the tooltip and closes an open Modal around it on one Escape, with focus on its trigger', () => {
       const onClose = vi.fn();
+      // The Modal moves focus to the trigger as it opens, which is keyboard
+      // focus when a Tab came before it.
+      fireEvent.keyDown(document.body, { key: 'Tab' });
       render(
         <Modal active onClose={onClose}>
           <Tooltip label="Test tooltip">
@@ -1105,6 +1113,9 @@ describe('Tooltip', () => {
     });
 
     it('hides the tooltip and closes an open Popover around it on one Escape, with focus on its trigger', () => {
+      // The Popover moves focus to the trigger as it opens, which is keyboard
+      // focus when a Tab came before it.
+      fireEvent.keyDown(document.body, { key: 'Tab' });
       render(
         <Popover trigger={<button>Team</button>} ariaLabel="Team" defaultOpen>
           <Tooltip label="Test tooltip">
