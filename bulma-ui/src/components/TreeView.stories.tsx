@@ -85,7 +85,7 @@ const meta: Meta<typeof TreeView> = {
     docs: {
       description: {
         component:
-          'A tree of items you browse and pick from, the way a file explorer works: one tab stop, the arrow keys to move, and Right and Left to open and close. It looks like Bulma’s menu, but it isn’t for site navigation: items aren’t links, and a sidebar is `Menu`’s job. An item is picked one at a time with `selectionMode="single"`, or checked with boxes and mixed parents with `selectionMode="checkbox"`, or neither.',
+          'A tree of items you browse and pick from, the way a file explorer works: one tab stop, the arrow keys to move, and Right and Left to open and close. It looks like Bulma’s menu, but it isn’t for site navigation: items aren’t links, and a sidebar is `Menu`’s job. An item is picked one at a time with `selectionMode="single"`, or checked with boxes and mixed parents with `selectionMode="checkbox"`, or checked with boxes that each check their own item with `selectionMode="checkbox-independent"`, or none of these.',
       },
     },
   },
@@ -101,9 +101,9 @@ const meta: Meta<typeof TreeView> = {
     },
     selectionMode: {
       control: 'inline-radio',
-      options: ['none', 'single', 'checkbox'],
+      options: ['none', 'single', 'checkbox', 'checkbox-independent'],
       description:
-        'none picks nothing; single picks one item with Enter, Space or a click; checkbox checks any number, with mixed parents',
+        'none picks nothing; single picks one item with Enter, Space or a click; checkbox checks any number, with mixed parents; checkbox-independent checks any number, each box for its own item',
     },
     selected: {
       control: 'text',
@@ -123,17 +123,17 @@ const meta: Meta<typeof TreeView> = {
     checked: {
       control: 'object',
       description:
-        'The checked values when you hold the state; read with checkbox only, and a parent’s value stands for its whole branch',
+        'The checked values when you hold the state; read with the checkbox modes only, and in checkbox a parent’s value stands for its whole branch',
     },
     defaultChecked: {
       control: 'object',
       description:
-        'The values checked to begin with, when the tree holds its own state; read with checkbox only',
+        'The values checked to begin with, when the tree holds its own state; read with the checkbox modes only',
     },
     onCheckedChange: {
       action: 'checkedChange',
       description:
-        'Called after a check or an uncheck with every item that shows checked, parents included, plus values the tree doesn’t know',
+        'Called after a check or an uncheck: in checkbox with every item that shows checked, parents included, and in checkbox-independent with the one value added or taken out; values the tree doesn’t know stay',
     },
     expanded: {
       control: 'object',
@@ -273,6 +273,61 @@ export const Permissions: Story = {
     await expect(
       canvas.getByRole('treeitem', { name: 'Billing' })
     ).toHaveAttribute('aria-checked', 'true');
+  },
+};
+
+/**
+ * Categories checked one by one, where a parent's box means the parent alone:
+ * a product filed under Clothing isn't filed under every kind of clothing.
+ */
+export const Categories: Story = {
+  render: function CategoriesExample() {
+    const [checked, setChecked] = useState<string[]>([
+      'clothing',
+      'clothing/shoes/running',
+    ]);
+    return (
+      <Narrow>
+        <TreeView
+          aria-label="Categories"
+          selectionMode="checkbox-independent"
+          checked={checked}
+          onCheckedChange={setChecked}
+          defaultExpanded={['clothing', 'clothing/shoes']}
+        >
+          <TreeView.Item value="clothing" label="Clothing">
+            <TreeView.Item value="clothing/shoes" label="Shoes">
+              <TreeView.Item value="clothing/shoes/running" label="Running" />
+              <TreeView.Item value="clothing/shoes/hiking" label="Hiking" />
+            </TreeView.Item>
+            <TreeView.Item value="clothing/jackets" label="Jackets" />
+          </TreeView.Item>
+          <TreeView.Item value="outdoors" label="Outdoors">
+            <TreeView.Item value="outdoors/tents" label="Tents" />
+            <TreeView.Item value="outdoors/stoves" label="Stoves" />
+          </TreeView.Item>
+        </TreeView>
+        <Paragraph mt="3" textSize="7">
+          Filed under: {checked.length ? checked.join(', ') : 'nothing'}
+        </Paragraph>
+      </Narrow>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const shoes = canvas.getByRole('treeitem', { name: 'Shoes' });
+    // Running is checked under Shoes, and Shoes is still only itself.
+    await expect(shoes).toHaveAttribute('aria-checked', 'false');
+    await userEvent.click(canvas.getByRole('treeitem', { name: 'Hiking' }));
+    await expect(shoes).toHaveAttribute('aria-checked', 'false');
+    // Shoes checks alone, and leaves the items under it as they were.
+    await userEvent.click(shoes);
+    await expect(shoes).toHaveAttribute('aria-checked', 'true');
+    await userEvent.click(canvas.getByRole('treeitem', { name: 'Running' }));
+    await expect(
+      canvas.getByRole('treeitem', { name: 'Running' })
+    ).toHaveAttribute('aria-checked', 'false');
+    await expect(shoes).toHaveAttribute('aria-checked', 'true');
   },
 };
 

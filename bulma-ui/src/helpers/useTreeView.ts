@@ -40,7 +40,8 @@ export interface TreeViewPosition {
 
 /**
  * What an item shows of the selection: `selected` in a `single` tree,
- * `checked` in a `checkbox` tree, and neither with `none`.
+ * `checked` in a `checkbox` or `checkbox-independent` tree, and neither with
+ * `none`.
  */
 export interface TreeViewItemState {
   selected?: boolean;
@@ -61,6 +62,11 @@ const MODES: Record<
   none: { enter: ['open'], space: ['open'], click: ['open'] },
   single: { enter: ['select'], space: ['select'], click: ['select', 'open'] },
   checkbox: { enter: ['open'], space: ['check'], click: ['check'] },
+  'checkbox-independent': {
+    enter: ['open'],
+    space: ['check'],
+    click: ['check'],
+  },
 };
 
 /** Left and Right, swapped for a right-to-left page. */
@@ -161,15 +167,23 @@ function pathOf(element: Element, { values }: Registry): string[] {
  * - any other enabled item follows the items of that second kind in its
  *   branch: checked when they all are, unchecked when none is, mixed between.
  *
+ * Without `cascade` (`checkbox-independent`), the same rules read every item
+ * as if it sat at the top with nothing under it: each is checked when its own
+ * value is listed, none is mixed, and every enabled item is of the second kind.
+ *
  * Also returns the items of the second kind, which are what a toggle sets.
  */
 function readChecks(
   records: Map<string, TreeViewItemRecord>,
-  listed: Set<string>
+  listed: Set<string>,
+  cascade: boolean
 ): { states: Map<string, TreeViewCheckState>; ends: string[] } {
   const kids = new Map<string | null, string[]>();
   records.forEach(({ parent }, value) => {
-    kids.set(parent, [...(kids.get(parent) ?? []), value]);
+    const above = cascade ? parent : null;
+    const siblings = kids.get(above);
+    if (siblings) siblings.push(value);
+    else kids.set(above, [value]);
   });
   const states = new Map<string, TreeViewCheckState>();
   const ends: string[] = [];
@@ -203,20 +217,22 @@ function readChecks(
  * The list a toggle of `value` leaves: it and every enabled item under it
  * take the opposite of its state (a mixed one checks), and the rest is read
  * back by the rules. That's every item that shows checked, parents
- * included, plus any listed value no item has.
+ * included, plus any listed value no item has. Without `cascade`, nothing is
+ * under `value` but itself, so it alone changes.
  */
 function toggledList(
   records: Map<string, TreeViewItemRecord>,
   list: string[],
-  value: string
+  value: string,
+  cascade: boolean
 ): string[] {
-  const { states, ends } = readChecks(records, new Set(list));
+  const { states, ends } = readChecks(records, new Set(list), cascade);
   const to = states.get(value) !== true;
   // An end was reached from the top, so everything above it is known.
   const under = (end: string) => {
     for (let at: string | null = end; at !== null;) {
       if (at === value) return true;
-      at = records.get(at)!.parent;
+      at = cascade ? records.get(at)!.parent : null;
     }
     return false;
   };
@@ -226,7 +242,7 @@ function toggledList(
   records.forEach(({ disabled }, item) => {
     if (disabled && states.get(item) === true) seed.add(item);
   });
-  const after = readChecks(records, seed).states;
+  const after = readChecks(records, seed, cascade).states;
   return [
     ...Array.from(after)
       .filter(([, state]) => state === true)
@@ -265,9 +281,12 @@ export interface TreeViewEngine {
   treeRef: React.MutableRefObject<HTMLUListElement | null>;
   /**
    * Whether a closed item still renders its children, drawing nothing, so a
-   * check knows everything under it. Only a checkbox tree needs to.
+   * check knows everything under it. Only a `checkbox` tree needs to: a check
+   * in a `checkbox-independent` tree reaches nothing under it.
    */
   rendersClosed: boolean;
+  /** Whether any number of items can be checked, in either checkbox mode. */
+  multiselectable: boolean;
   /** The item that holds `tabIndex={0}`. */
   tabStop: string | null;
   isOpen: (value: string) => boolean;
@@ -319,10 +338,11 @@ export interface TreeViewEngine {
  * browser (#1171), read off the page once the tree has mounted.
  *
  * Every item registers its value, its parent and whether it's disabled from
- * a layout effect. In a checkbox tree a closed item's children still render
- * and register while drawing nothing, so the registry knows every item and a
- * check reaches all of them. The keys read the items on the page, in
- * document order, each time they need them.
+ * a layout effect. In a `checkbox` tree a closed item's children still
+ * render and register while drawing nothing, so the registry knows every item
+ * and a check reaches all of them. A `checkbox-independent` tree reads the
+ * same rules with no cascade, so a check reaches its own item alone. The keys
+ * read the items on the page, in document order, each time they need them.
  *
  * @function useTreeView
  * @param options - The TreeView's props.
@@ -348,9 +368,13 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
     options.checked,
     options.defaultChecked
   );
+  // A check reaches the items under it, and parents follow them, in a
+  // `checkbox` tree only.
+  const cascade = mode === 'checkbox';
+  const checkable = cascade || mode === 'checkbox-independent';
   // Each is read in its own mode only.
   const selected = mode === 'single' ? selection : null;
-  const listed = new Set(mode === 'checkbox' ? checkedList : []);
+  const listed = new Set(checkable ? checkedList : []);
 
   const treeRef = useRef<HTMLUListElement | null>(null);
   const registryRef = useRef<Registry>({
@@ -374,11 +398,10 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
   const [positions, setPositions] = useState(NO_POSITIONS);
 
   const { records } = registryRef.current;
-  const checks =
-    mode === 'checkbox'
-      ? // eslint-disable-next-line react-hooks/refs -- read in render on purpose: items write the registry from their layout effects and then ask for this render with `refresh`
-        readChecks(records, listed).states
-      : undefined;
+  const checks = checkable
+    ? // eslint-disable-next-line react-hooks/refs -- read in render on purpose: items write the registry from their layout effects and then ask for this render with `refresh`
+      readChecks(records, listed, cascade).states
+    : undefined;
   const tabStop = focused ?? (resting === undefined ? selected : resting);
 
   const isOpen = (value: string) => expanded.includes(value);
@@ -392,10 +415,11 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
       return disabled ? {} : { selected: value === selected };
     }
     if (checks) {
-      // Until the items register, a value stands for its branch, and a
-      // parent can't know it's mixed.
+      // Until the items register, a value stands for its branch where a
+      // check cascades, and a parent can't know it's mixed.
       const fromList =
-        listed.has(value) || (!disabled && path.some(v => listed.has(v)));
+        listed.has(value) ||
+        (cascade && !disabled && path.some(v => listed.has(v)));
       return { checked: checks.get(value) ?? fromList };
     }
     return {};
@@ -420,7 +444,7 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
       options.onSelectedChange?.(value);
     },
     check: ({ value }) => {
-      const next = toggledList(records, checkedList, value);
+      const next = toggledList(records, checkedList, value, cascade);
       setChecked(next);
       options.onCheckedChange?.(next);
     },
@@ -627,7 +651,8 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
 
   return {
     treeRef,
-    rendersClosed: mode === 'checkbox',
+    rendersClosed: cascade,
+    multiselectable: checkable,
     tabStop,
     isOpen,
     stateOf,
