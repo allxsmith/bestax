@@ -5,7 +5,11 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useFieldsetDisabled, useRadiosGroup } from './FormContext';
+import {
+  pickInRadiosGroup,
+  useFieldsetDisabled,
+  useRadiosGroup,
+} from './FormContext';
 
 // The colors `Radio` takes, as `radioColors` lists them. Declared here as
 // well, so the API page can read them off this module, and a type test holds
@@ -25,7 +29,7 @@ const radioCardColors = [
  * @helperProps Helper props go on the outer `<label>`, the `.card`, with
  * `className`. The other attributes go on the `<input>`.
  * @extraProp {string} [name] - The form field name, which the cards of one choice share, so the arrow keys move between them. Inside `Radios`, the group's `name` when this is unset.
- * @extraProp {string} [value] - What a form sends when this card is the one picked. Inside a `Radios` group that takes `value`, `defaultValue` or `onChange`, the card is checked while the group's value is this.
+ * @extraProp {string} [value] - What a form sends when this card is the one picked. Inside a `Radios` group that takes `value`, `defaultValue` or `onChange`, the card is checked while the group's value is this. A group given only `onChange` starts from the card with `defaultChecked`.
  */
 export interface RadioCardProps
   extends
@@ -130,26 +134,28 @@ export const RadioCard = forwardRef<HTMLInputElement, RadioCardProps>(
 
     // A surrounding <Radios> hands down its name and, when it manages the
     // selection, whether this card is the one picked. The card's own props
-    // win, as they do on Radio.
+    // win, as they do on Radio. A group given only `onChange` holds no value
+    // until its first change, and until then the card shows its own
+    // `defaultChecked`, controlled all the same, as Radio does.
     const group = useRadiosGroup();
     const effectiveName = name ?? group?.name;
-    const groupManaged = group?.value !== undefined && value !== undefined;
+    const groupManaged = group?.onChange !== undefined && value !== undefined;
     const effectiveChecked =
       checked !== undefined
         ? checked
         : groupManaged
-          ? group!.value === value
+          ? group!.value !== undefined
+            ? group!.value === value
+            : !!defaultChecked
           : undefined;
     const effectiveDefaultChecked = groupManaged ? undefined : defaultChecked;
 
     const handleChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
         onChange?.(e);
-        if (group?.onChange && value !== undefined) {
-          group.onChange(String(value));
-        }
+        pickInRadiosGroup(group, value, effectiveName);
       },
-      [onChange, group, value]
+      [onChange, group, value, effectiveName]
     );
 
     // The title names the input and the description describes it. A name

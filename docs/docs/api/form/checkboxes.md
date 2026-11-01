@@ -150,11 +150,12 @@ Inside a `Control` with no `Field` around it, `Checkboxes` renders no `Field` of
 
 ## Group State
 
-`Checkboxes` can manage the selected-values array for the entire group, matching the pattern used by React Aria's `CheckboxGroup`. Three usage modes:
+`Checkboxes` can manage the selected-values array for the entire group, matching the pattern used by React Aria's `CheckboxGroup`. It has these usage modes:
 
-1. **Name-only** — pass just `name`. Each child `Checkbox` manages its own checked state. Backwards compatible.
-2. **Controlled** — pass `value` (an array of selected values) and `onChange`. The parent owns selection; each `Checkbox` derives `checked` from `value.includes(my.value)`.
-3. **Uncontrolled** — pass `defaultValue` (an array) and optionally `onChange`. The group manages internal state; `onChange` fires with the new array.
+1. **Name-only**: pass just `name`. Each child `Checkbox` manages its own checked state. Backwards compatible.
+2. **Controlled**: pass `value` (an array of selected values) and `onChange`. The parent owns selection; each `Checkbox` derives `checked` from `value.includes(my.value)`.
+3. **Uncontrolled**: pass `defaultValue` (an array) and optionally `onChange`. The group manages internal state; `onChange` fires with the new array.
+4. **Only `onChange`**: the group manages the selection as in uncontrolled mode, starting from the checkboxes' own `defaultChecked`. A box that starts checked stays checked when another is clicked, and the first array `onChange` gets holds it.
 
 Local props (`checked`, `onChange`) on individual `Checkbox` children always win over the group context.
 
@@ -198,6 +199,31 @@ function UncontrolledCheckboxes() {
       {latest.length > 0 && (
         <p style={{ marginTop: '1rem' }}>
           Latest: <strong>{latest.join(', ')}</strong>
+        </p>
+      )}
+    </div>
+  );
+}
+```
+
+### Only onChange
+
+```tsx live
+function ListeningCheckboxes() {
+  const [latest, setLatest] = React.useState<string[] | null>(null);
+  return (
+    <div>
+      <Checkboxes name="toppings" onChange={setLatest}>
+        <Checkbox value="cheese" defaultChecked>
+          Cheese
+        </Checkbox>
+        <Checkbox value="mushrooms">Mushrooms</Checkbox>
+        <Checkbox value="olives">Olives</Checkbox>
+      </Checkboxes>
+      {latest && (
+        <p className="mt-4">
+          Latest:{' '}
+          <strong>{latest.length ? latest.join(', ') : '(none)'}</strong>
         </p>
       )}
     </div>
@@ -286,7 +312,7 @@ function CheckboxesFormDemo() {
 | `name`           | `string`                                                                        | —       | Form field name shared by every Checkbox in the group (via context).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `value`          | `string[]`                                                                      | —       | Currently-selected values (controlled mode).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `defaultValue`   | `string[]`                                                                      | —       | Initial selected values (uncontrolled mode).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `onChange`       | `(values: string[]) => void`                                                    | —       | Fires when the selection changes; receives the new array.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `onChange`       | `(values: string[]) => void`                                                    | —       | Fires when the selection changes; receives the new array. Passed without `value` or `defaultValue`, it still has the group manage the selection, starting from the checkboxes' own `defaultChecked`: a box that starts checked stays checked when another is clicked, and the first array holds it.                                                                                                                                                                                                                                                                                                                          |
 | `children`       | `React.ReactNode`                                                               | —       | Checkbox elements to render in the group.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `as`             | `'div'` \| `'fieldset'`                                                         | `'div'` | The element the group renders as. With `fieldset` it's a native `<fieldset>`. Where the group renders a `Field` of its own, that `Field` is the `<fieldset>` and the `label` is its `<legend>`, in the label column when `horizontal`, so the legend names the group with no ids to wire. Your other attributes then go on the `<fieldset>`, while `className` and the helper props stay on the box that lays out the checkboxes. Inside an outer `Field` there's no legend: the group element itself is the `<fieldset>`, named by that `Field`'s label as before. `div`, the default, renders the group as it always has.  |
 | `labelSize`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size for the label (used in horizontal layouts).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |

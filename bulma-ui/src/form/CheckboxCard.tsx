@@ -6,7 +6,11 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
-import { useCheckboxesGroup, useFieldsetDisabled } from './FormContext';
+import {
+  useCheckboxesGroup,
+  useFieldsetDisabled,
+  useRegisterChecked,
+} from './FormContext';
 
 // The colors `Checkbox` takes, as `checkboxColors` lists them. Declared here as
 // well, so the API page can read them off this module, and a type test holds
@@ -26,7 +30,7 @@ const checkboxCardColors = [
  * @helperProps Helper props go on the outer `<label>`, the `.card`, with
  * `className`. The other attributes go on the `<input>`.
  * @extraProp {string} [name] - The form field name. Inside `Checkboxes`, the group's `name` when this is unset.
- * @extraProp {string} [value] - What a form sends for the card when it's checked. Inside a `Checkboxes` group that takes `value`, `defaultValue` or `onChange`, the card is checked while the group's value holds it.
+ * @extraProp {string} [value] - What a form sends for the card when it's checked. Inside a `Checkboxes` group that takes `value`, `defaultValue` or `onChange`, the card is checked while the group's value holds it. A group given only `onChange` starts from the cards' own `defaultChecked`.
  */
 export interface CheckboxCardProps
   extends
@@ -171,35 +175,42 @@ export const CheckboxCard = forwardRef<HTMLInputElement, CheckboxCardProps>(
 
     // A surrounding <Checkboxes> hands down its name and, when it manages
     // the selection, whether this card's value is in it. The card's own
-    // props win, as they do on Checkbox.
+    // props win, as they do on Checkbox. A group given only `onChange` holds
+    // no value until its first change, and until then the card shows its own
+    // `defaultChecked`, controlled all the same, and registers it, so that
+    // change starts from what was checked, as Checkbox does.
     const group = useCheckboxesGroup();
     const effectiveName = name ?? group?.name;
-    const groupManaged = group?.value !== undefined && value !== undefined;
+    const valueKey = value === undefined ? undefined : String(value);
+    const groupManaged =
+      group?.onChange !== undefined && valueKey !== undefined;
     const effectiveChecked =
       checked !== undefined
         ? checked
         : groupManaged
-          ? group!.value!.includes(String(value))
+          ? group!.value
+            ? group!.value.includes(valueKey!)
+            : !!defaultChecked
           : undefined;
     const effectiveDefaultChecked = groupManaged ? undefined : defaultChecked;
+    useRegisterChecked(group, valueKey, !!(checked ?? defaultChecked));
 
     const handleChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
         if (indeterminate !== undefined) e.target.indeterminate = indeterminate;
         onChange?.(e);
-        if (group?.onChange && value !== undefined) {
-          const valStr = String(value);
-          const current = group.value ?? [];
+        if (group?.onChange && valueKey !== undefined) {
+          const current = group.value ?? group.startingValue!();
           group.onChange(
             e.target.checked
-              ? current.includes(valStr)
+              ? current.includes(valueKey)
                 ? current
-                : [...current, valStr]
-              : current.filter(v => v !== valStr)
+                : [...current, valueKey]
+              : current.filter(v => v !== valueKey)
           );
         }
       },
-      [onChange, group, value, indeterminate]
+      [onChange, group, valueKey, indeterminate]
     );
 
     // The title names the input and the description describes it. A name
