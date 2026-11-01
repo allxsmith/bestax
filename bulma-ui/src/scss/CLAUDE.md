@@ -7,7 +7,7 @@ of their own — Bulma provides it. A partial exists only for components that ex
 
 ## Structure
 
-- `bestax.scss` — main entrypoint: `@use 'bulma/sass' with ($primary: #1e6b99)` + all the extras
+- `bestax.scss` — main entrypoint: `@use 'bulma/sass' with (…)`, bestax's Bulma configuration, + all the extras
 - `extras.scss` — extras-only entrypoint (builds `dist/extras.css`, for apps bringing their own Bulma)
 - `components/`, `form/`, `elements/`, `layout/`, `helpers/` — one `_foo.scss` partial per extra,
   **registered in that folder's `_index.scss`** (an unregistered partial silently ships nothing)
@@ -16,6 +16,10 @@ of their own — Bulma provides it. A partial exists only for components that ex
 - `versions/` — the flavor builds: `bestax-prefixed`, `bestax-no-helpers`, `bestax-no-dark-mode`,
   `bestax-no-helpers-prefixed`. A new partial is included by all of them automatically (they reuse
   the same `_index` imports), but must **work** under each — especially the prefixed build.
+  Each one repeats `bestax.scss`'s Bulma configuration in its own `with (…)`, so a change to it
+  goes in every one. A default bestax changes in stock Bulma belongs there, configured, rather
+  than in a partial overriding it: `extras.css` then sets nothing, and an app's own Bulma build
+  keeps its value.
 
 ## The pattern (every partial follows it — `components/_collapse.scss` is the template)
 

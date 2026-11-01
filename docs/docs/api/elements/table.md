@@ -281,7 +281,7 @@ Every table sub-component is also available as a static on `Table` under its exa
 - **Semantics:** Uses `<table>`, `<thead>`, `<tbody>`, `<tfoot>`, `<tr>`, `<th>`, and `<td>`—all proper HTML table elements.
 - **Responsive:** When using `isResponsive`, the table is wrapped in a scrollable container.
 - **Screen Readers:** Always use `<Th>` for header cells, and provide descriptive column headings.
-- **Right to left:** a header cell aligns to the start of the line, as the body cells do, so on a right-to-left page both sit on the right. Bulma's own default is `left`; bestax's styles set `--bulma-table-cell-text-align` to `start`. `isAligned` or an `align` attribute still sets a cell's own alignment.
+- **Right to left:** with bestax's stylesheets, a header cell aligns to the start of the line, as the body cells do, so on a right-to-left page both sit on the right. They build Bulma with `$table-cell-text-align: start`, where Bulma's own default, in the table below, is `left`. With `extras.css` and a Bulma of your own, set `$table-cell-text-align: start` in your Bulma build, or `--bulma-table-cell-text-align: start` on the table, to get the same. `isAligned` or an `align` attribute still sets a cell's own alignment.
 
 :::tip
 For responsive tables, ensure your column headers are clear and concise for small screens.
@@ -372,16 +372,16 @@ For responsive tables, ensure your column headers are clear and concise for smal
 
 ### Table.Th
 
-| Prop          | Type                                                         | Default | Description                                                                                                                                                                                      |
-| ------------- | ------------------------------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `className`   | `string`                                                     | —       | Additional CSS classes to apply.                                                                                                                                                                 |
-| `isAligned`   | `'left'` \| `'right'` \| `'centered'`                        | —       | Text alignment for the header cell ('left', 'right', 'centered'). Without it, the header aligns to the start of the line, as the body cells do, so it sits on the right on a right-to-left page. |
-| `isNarrow`    | `boolean`                                                    | `false` | Shrinks the cell to its content and keeps that on one line (Bulma's `is-narrow`), as for a column of checkboxes or actions. Not the table's own `isNarrow`, which tightens every cell's padding. |
-| `isVcentered` | `boolean`                                                    | `false` | Centers the content vertically (Bulma's `is-vcentered`). Cells sit at the top otherwise.                                                                                                         |
-| `width`       | `string` \| `number`                                         | —       | Width of the header cell (e.g., '100px' or 100), written into its `style`. A `style` passed as well keeps it, and a `width` that `style` sets wins.                                              |
-| `color`       | `TableColor`                                                 | —       | Bulma color modifier for the header cell.                                                                                                                                                        |
-| `children`    | `React.ReactNode`                                            | —       | Table header cell content.                                                                                                                                                                       |
-| `...`         | All standard `<td>`/`<th>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                |
+| Prop          | Type                                                         | Default | Description                                                                                                                                                                                                         |
+| ------------- | ------------------------------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className`   | `string`                                                     | —       | Additional CSS classes to apply.                                                                                                                                                                                    |
+| `isAligned`   | `'left'` \| `'right'` \| `'centered'`                        | —       | Text alignment for the header cell ('left', 'right', 'centered'). Without it, bestax's stylesheets align a header to the start of the line, as the body cells are, so it sits on the right on a right-to-left page. |
+| `isNarrow`    | `boolean`                                                    | `false` | Shrinks the cell to its content and keeps that on one line (Bulma's `is-narrow`), as for a column of checkboxes or actions. Not the table's own `isNarrow`, which tightens every cell's padding.                    |
+| `isVcentered` | `boolean`                                                    | `false` | Centers the content vertically (Bulma's `is-vcentered`). Cells sit at the top otherwise.                                                                                                                            |
+| `width`       | `string` \| `number`                                         | —       | Width of the header cell (e.g., '100px' or 100), written into its `style`. A `style` passed as well keeps it, and a `width` that `style` sets wins.                                                                 |
+| `color`       | `TableColor`                                                 | —       | Bulma color modifier for the header cell.                                                                                                                                                                           |
+| `children`    | `React.ReactNode`                                            | —       | Table header cell content.                                                                                                                                                                                          |
+| `...`         | All standard `<td>`/`<th>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                   |
 
 **Types:**
 
@@ -413,7 +413,6 @@ For responsive tables, ensure your column headers are clear and concise for smal
 
 | CSS Variable                                            | Sass Variable                                    | Default                        |
 | ------------------------------------------------------- | ------------------------------------------------ | ------------------------------ |
-| `--bulma-table-cell-text-align`                         | `$table-cell-text-align`                         | `start`                        |
 | `--bulma-table-color`                                   | `$table-color`                                   | `var(--bulma-text-strong)`     |
 | `--bulma-table-background-color`                        | `$table-background-color`                        | `var(--bulma-scheme-main)`     |
 | `--bulma-table-cell-border-color`                       | `$table-cell-border-color`                       | `var(--bulma-border)`          |
@@ -421,6 +420,7 @@ For responsive tables, ensure your column headers are clear and concise for smal
 | `--bulma-table-cell-border-width`                       | `$table-cell-border-width`                       | `0 0 1px`                      |
 | `--bulma-table-cell-padding`                            | `$table-cell-padding`                            | `0.5em 0.75em`                 |
 | `--bulma-table-cell-heading-color`                      | `$table-cell-heading-color`                      | `var(--bulma-text-strong)`     |
+| `--bulma-table-cell-text-align`                         | `$table-cell-text-align`                         | `left`                         |
 | `--bulma-table-head-cell-border-width`                  | `$table-head-cell-border-width`                  | `0 0 2px`                      |
 | `--bulma-table-head-cell-color`                         | `$table-head-cell-color`                         | `var(--bulma-text-strong)`     |
 | `--bulma-table-foot-cell-border-width`                  | `$table-foot-cell-border-width`                  | `2px 0 0`                      |

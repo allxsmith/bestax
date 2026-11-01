@@ -282,10 +282,7 @@ export const SCSS_SOURCES = {
   Strong: [{ pkg: 'bulma', path: 'sass/base/generic.scss' }],
   SubTitle: [{ pkg: 'bulma', path: 'sass/elements/title.scss' }],
   Switch: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_switch.scss' }],
-  Table: [
-    { pkg: 'repo', path: 'bulma-ui/src/scss/elements/_table.scss' },
-    { pkg: 'bulma', path: 'sass/elements/table.scss' },
-  ],
+  Table: [{ pkg: 'bulma', path: 'sass/elements/table.scss' }],
   Tabs: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_tabs.scss' },
     { pkg: 'bulma', path: 'sass/components/tabs.scss' },

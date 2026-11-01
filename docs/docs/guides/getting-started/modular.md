@@ -147,6 +147,14 @@ After the base, `@use` only the Bulma partials you need:
 
 Bulma groups some form controls into one module: `form/input-textarea` styles both Input and TextArea, `form/checkbox-radio` styles Checkbox and Radio, and `form/tools` styles Field and Control.
 
+bestax's prebuilt stylesheets build Bulma's table with `$table-cell-text-align: start`, so a table's header cells line up with the body cells under them on a right-to-left page too, where Bulma's default, `left`, keeps them on the left. A modular build with a `Table` or a `DataTable` gets the same by configuring the module where it loads it:
+
+```scss
+@use 'bulma/sass/elements/table' with (
+  $table-cell-text-align: start
+);
+```
+
 Pull in only the helper categories you use:
 
 ```scss
@@ -210,12 +218,11 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/elements/progress' as bestax-progress;
 @use '@allxsmith/bestax-bulma/scss/elements/ringprogress';
 @use '@allxsmith/bestax-bulma/scss/elements/skeleton' as bestax-skeleton;
-@use '@allxsmith/bestax-bulma/scss/elements/table' as bestax-table;
 @use '@allxsmith/bestax-bulma/scss/helpers/cursor';
 @use '@allxsmith/bestax-bulma/scss/helpers/sizing';
 ```
 
-Some of these partials adjust a stock Bulma component rather than add one of bestax's. `elements/notification` is one: it keeps a `Notification`'s text clear of its close button, so a build that uses `bulma/sass/elements/notification` wants it too. `elements/table` is another: it aligns header cells to the start of the line, so they follow a right-to-left page as the body cells do, and it goes after `bulma/sass/elements/table`, since it sets a variable Bulma's table sets too. A partial like that can end in the same name as the Bulma module it adjusts, and Sass refuses two `@use` lines with the same name in one file, so the block above gives those lines a name of their own with `as`. The name changes nothing in the compiled CSS.
+Some of these partials adjust a stock Bulma component rather than add one of bestax's. `elements/notification` is one: it keeps a `Notification`'s text clear of its close button, so a build that uses `bulma/sass/elements/notification` wants it too. A partial like that can end in the same name as the Bulma module it adjusts, and Sass refuses two `@use` lines with the same name in one file, so the block above gives those lines a name of their own with `as`. The name changes nothing in the compiled CSS.
 
 Others draw on a stock Bulma component without adjusting it. `form/checkboxcard` and `form/radiocard` are Bulma cards, so a build that uses them wants `bulma/sass/components/card` too. `form/dropzone` is Bulma's file widget, so a build that uses it wants `bulma/sass/form/file` and bestax's `form/file`, for the zone's focus ring, too. `form/colorpicker` draws its swatches and its preview with `elements/colorswatch`, and its value field and eye dropper button are Bulma's, so it wants that partial, `bulma/sass/form/input-textarea` and `bulma/sass/elements/button` as well. `form/colorinput` opens a `form/colorpicker` in the date pickers' `form/picker-popover`, so it wants both of those and what they want.
 

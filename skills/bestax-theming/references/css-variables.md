@@ -67,7 +67,9 @@ If compiling Bulma's Sass yourself, set the SCSS variables before the CSS variab
 );
 ```
 
-(The library itself ships `$primary: #1e6b99` — HSL `202 / 67% / 36%` — this way.)
+(The library itself ships `$primary: #1e6b99` — HSL `202 / 67% / 36%` — this way, and
+`$table-cell-text-align: start`, so table header cells line up with the body cells under them on
+a right-to-left page, where Bulma's default is `left`.)
 
 ## Colors — override the H/S/L trio to recolor
 
@@ -879,13 +881,6 @@ more for WCAG 2.5.8.
 `--bulma-switch-height`, `--bulma-switch-label-gap`, `--bulma-switch-padding`,
 `--bulma-switch-radius`, `--bulma-switch-thin-circle-size`, `--bulma-switch-thin-height`,
 `--bulma-switch-transition-duration`, `--bulma-switch-width`
-
-### Table
-
-`--bulma-table-cell-text-align` is Bulma's own, the alignment of a header cell. Bulma sets it to
-`left`, and bestax sets it to `start`, so header cells line up with the body cells under them on
-a right-to-left page as well as left to right. Set it on the table, as Bulma's other
-`--bulma-table-*` variables are.
 
 ### Tabs
 

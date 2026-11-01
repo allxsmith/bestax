@@ -92,7 +92,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `colorswatch`,
 `descriptionlist`, `kbd`, `linkbutton`, `loader`, `notification`, `progress`, `ringprogress`,
-`skeleton`, `table`
+`skeleton`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`
 
@@ -169,12 +169,17 @@ Notes:
   so its text clears the button, so include it (`as bestax-notification`) next to the Bulma
   module in any build that shows a dismissible notification. It doesn't depend on the order of
   the two `@use` lines either.
-- `Table` is stock Bulma too (`bulma/sass/elements/table`), and `DataTable` renders one. The
-  `table` extras partial aligns header cells to the start of the line, so on a right-to-left page
-  they line up with the body cells under them, where Bulma's stay left. Include it
-  (`as bestax-table`) in any build that shows a table. Unlike the partials above it depends on
-  the order: it sets a variable Bulma sets on the same class, so its `@use` line goes after
-  `bulma/sass/elements/table`.
+- `Table` is stock Bulma (`bulma/sass/elements/table`), and `DataTable` renders one. The prebuilt
+  stylesheets build it with `$table-cell-text-align: start`, so header cells line up with the
+  body cells under them on a right-to-left page, where Bulma's default, `left`, keeps them on the
+  left. A build with a table gets the same by configuring the module where it loads it:
+
+  ```scss
+  @use 'bulma/sass/elements/table' with (
+    $table-cell-text-align: start
+  );
+  ```
+
 - Stock-Bulma form controls still need their Bulma module (`bulma/sass/form/…`); the extras
   form partials above style only the bestax-specific behavior.
 - Bulma component modules pull their own internal sub-elements — e.g.
