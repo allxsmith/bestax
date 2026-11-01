@@ -154,7 +154,7 @@ length in the `label` ("Enter the 6-digit code"): the boxes are hidden from a sc
 yourself. Its button sits inside the field at the right edge: an eye named "Show password" with
 `aria-pressed`, or with `variant="text"` the words "Show" and "Hide" and a name that follows them.
 It's in the tab order, a pointer press leaves focus in the field, and the password hides again
-when the form submits or resets. The field defaults to `autoComplete="current-password"`; pass
+when the form submits or resets or the page is left. The field defaults to `autoComplete="current-password"`; pass
 `"new-password"` on sign-up and change-password forms, and never `"off"`, which mostly withholds
 the hint password managers use. `visible`/`onVisibleChange` hold the state, so one button can
 show two fields. The right edge is the button's, so it takes no right icon. It doesn't score

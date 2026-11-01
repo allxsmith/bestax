@@ -73,8 +73,8 @@ export interface PasswordInputBaseProps extends Omit<InputBaseProps, 'type'> {
   defaultVisible?: boolean;
   /**
    * Called with the new visibility on each toggle, and with `false` when the
-   * form submits or resets, or the page comes back from the back-forward
-   * cache.
+   * form submits or resets, when the page is left, and when it comes back
+   * from the back-forward cache.
    */
   onVisibleChange?: (visible: boolean) => void;
   /**
@@ -242,13 +242,20 @@ export const PasswordInputBase = forwardRef<
     };
   }, [formAttribute, hideRef]);
 
-  // When the page comes back from the back-forward cache, as it was left.
+  // When the page is left, so the history the browser keeps of the form
+  // holds a password field rather than text, and when it comes back from the
+  // back-forward cache, as it was left.
   useEffect(() => {
+    const onPageHide = () => hideRef.current();
     const onPageShow = (event: PageTransitionEvent) => {
       if (event.persisted) hideRef.current();
     };
+    window.addEventListener('pagehide', onPageHide);
     window.addEventListener('pageshow', onPageShow);
-    return () => window.removeEventListener('pageshow', onPageShow);
+    return () => {
+      window.removeEventListener('pagehide', onPageHide);
+      window.removeEventListener('pageshow', onPageShow);
+    };
   }, [hideRef]);
 
   const containerClass = usePrefixedClassNames('passwordinput-container', {

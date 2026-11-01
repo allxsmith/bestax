@@ -476,6 +476,33 @@ describe('PasswordInput', () => {
       expect(onVisibleChange).not.toHaveBeenCalled();
     });
 
+    it.each([false, true])(
+      'hides when the page is left, kept for back-forward or not (persisted: %s)',
+      persisted => {
+        const { onVisibleChange, unmount } = setup({
+          defaultVisible: true,
+          variant: 'text',
+        });
+        act(() => {
+          window.dispatchEvent(
+            new PageTransitionEvent('pagehide', { persisted })
+          );
+        });
+        expect(input()).toHaveAttribute('type', 'password');
+        expect(toggle()).toHaveTextContent('Show');
+        expect(onVisibleChange).toHaveBeenCalledWith(false);
+
+        unmount();
+        onVisibleChange.mockClear();
+        act(() => {
+          window.dispatchEvent(
+            new PageTransitionEvent('pagehide', { persisted })
+          );
+        });
+        expect(onVisibleChange).not.toHaveBeenCalled();
+      }
+    );
+
     it('works outside a form', () => {
       setup({ defaultVisible: true });
       expect(input().form).toBeNull();

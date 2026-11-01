@@ -37,7 +37,7 @@ const meta: Meta<typeof PasswordInput> = {
     onVisibleChange: {
       action: 'visibleChange',
       description:
-        'Called with the new visibility on a toggle, and with false when the form submits or resets',
+        'Called with the new visibility on a toggle, and with false when the form submits or resets or the page is left',
     },
     variant: {
       control: 'inline-radio',
