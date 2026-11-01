@@ -1,3 +1,11 @@
+## [5.57.4](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.57.3...@allxsmith/bestax-bulma@5.57.4) (2026-11-01)
+
+
+### Bug Fixes
+
+* **bulma-ui:** align table headers to the start of the line ([e8efb3e](https://github.com/allxsmith/bestax/commit/e8efb3e1b94b9ff36ab1512047a760a379c16eec))
+* **bulma-ui:** configure Bulma's table alignment instead of overriding it ([572a289](https://github.com/allxsmith/bestax/commit/572a2898e0878004be083c080b7ad72f1c4d9cba))
+
 ## [5.57.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.57.2...@allxsmith/bestax-bulma@5.57.3) (2026-11-01)
 
 
