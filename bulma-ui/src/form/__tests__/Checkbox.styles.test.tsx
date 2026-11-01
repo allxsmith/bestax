@@ -78,7 +78,8 @@ const outranks = (a: number[], b: number[]) => {
  * The value `property` gets on `el`, or on its `pseudo` element, from the
  * rules: the most specific matching rule, the later one on a tie. Forced
  * colors adds the rules in its media block and leaves out every other media
- * block.
+ * block. jsdom serializes keywords, system colors among them, lowercase, as
+ * browsers do.
  */
 function resolveIn(
   rules: Rule[],
@@ -184,9 +185,9 @@ describe.each([
 
     it('outlines the box in system colors in forced colors', () => {
       const forced = { forcedColors: true };
-      expect(resolve(checkOf({}), 'border-color', forced)).toBe('ButtonText');
+      expect(resolve(checkOf({}), 'border-color', forced)).toBe('buttontext');
       expect(resolve(checkOf({ disabled: true }), 'border-color', forced)).toBe(
-        'GrayText'
+        'graytext'
       );
     });
   });
@@ -213,9 +214,9 @@ describe.each([
           pseudo: '::before',
           forcedColors: true,
         })
-      ).toBe('CanvasText');
+      ).toBe('canvastext');
       expect(resolve(check, 'background-color', { forcedColors: true })).toBe(
-        'Canvas'
+        'canvas'
       );
     });
   });
@@ -224,7 +225,7 @@ describe.each([
     it('keeps the Highlight fill', () => {
       const check = checkOf({ checked: true });
       expect(resolve(check, 'background-color', { forcedColors: true })).toBe(
-        'Highlight'
+        'highlight'
       );
       expect(
         resolve(check, 'background-color', {
@@ -439,12 +440,12 @@ describe.each([
           `.${prefix}check`
         ) as HTMLElement;
       const checked = checkOn({ checked: true });
-      expect(resolve(checked, 'background-color', forced)).toBe('Highlight');
-      expect(resolve(checked, 'border-color', forced)).toBe('Highlight');
+      expect(resolve(checked, 'background-color', forced)).toBe('highlight');
+      expect(resolve(checked, 'border-color', forced)).toBe('highlight');
       expect(
         resolve(checked, 'background-color', { ...forced, pseudo: '::after' })
-      ).toBe('HighlightText');
-      expect(resolve(checkOn({}), 'border-color', forced)).toBe('ButtonText');
+      ).toBe('highlighttext');
+      expect(resolve(checkOn({}), 'border-color', forced)).toBe('buttontext');
     });
   });
 
@@ -498,7 +499,7 @@ describe.each([
       // Forced colors replaces a color that isn't a system one, so the
       // check color would not reach the mark there.
       const forced = markOf(true);
-      expect(forced('background-color')).toBe('HighlightText');
+      expect(forced('background-color')).toBe('highlighttext');
       expect(forced('background-image')).toBeUndefined();
       expect(MASK.map(forced)).toEqual(MASK.map(markOf()));
     });

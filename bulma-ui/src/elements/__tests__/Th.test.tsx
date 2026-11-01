@@ -23,7 +23,7 @@ describe('Th Component', () => {
     expect(th).not.toHaveClass('has-text-left');
     expect(th).not.toHaveClass('has-text-right');
     expect(th).not.toHaveClass('has-text-centered');
-    expect(th).toHaveStyle({ width: undefined });
+    expect(th.style.width).toBe('');
     expect(th).not.toHaveClass('is-primary'); // Explicitly test no color class
   });
 
@@ -186,7 +186,7 @@ describe('Th Component', () => {
       </table>
     );
     const th = screen.getByRole('columnheader', { name: 'Test' });
-    expect(th).toHaveStyle({ width: '10rem' });
+    expect(th.style.width).toBe('10rem');
   });
 
   test('keeps the width when a style is passed too', () => {
@@ -293,7 +293,7 @@ describe('Th Component', () => {
       </table>
     );
     const th = screen.getByRole('columnheader', { name: 'Test' });
-    expect(th).toHaveStyle({ width: undefined });
+    expect(th.style.width).toBe('');
   });
 
   test('applies Bulma helper classes (e.g., margin)', () => {

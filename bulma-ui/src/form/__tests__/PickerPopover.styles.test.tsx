@@ -285,17 +285,19 @@ function mediaHolds(mediaText: string, width: number): boolean {
 }
 
 // What says where a box sits, and the value each has when nothing sets it.
-// The gap to the anchor can be a margin, so margins count too.
+// The gap to the anchor can be a margin, so margins count too. jsdom
+// serializes a zero length as `0px`, as browsers do, so a zero reads that way
+// whether a rule sets it or not.
 const INITIAL: Record<string, string> = {
   position: 'static',
   top: 'auto',
   right: 'auto',
   bottom: 'auto',
   left: 'auto',
-  'margin-top': '0',
-  'margin-right': '0',
-  'margin-bottom': '0',
-  'margin-left': '0',
+  'margin-top': '0px',
+  'margin-right': '0px',
+  'margin-bottom': '0px',
+  'margin-left': '0px',
 };
 const PLACEMENT = Object.keys(INITIAL);
 // Shorthands and logical properties move the box without naming these.
@@ -470,9 +472,9 @@ describe.each(published)('panel placement in %s', file => {
             'margin-top': position.startsWith('top')
               ? `calc(-1 * ${gap})`
               : gap,
-            'margin-right': '0',
-            'margin-bottom': '0',
-            'margin-left': '0',
+            'margin-right': '0px',
+            'margin-bottom': '0px',
+            'margin-left': '0px',
           });
         }
       );
@@ -488,16 +490,19 @@ describe.each(published)('panel placement in %s', file => {
       it.each<[Corner, Record<string, string>]>([
         [
           'bottom-left',
-          { top: offset, right: 'auto', bottom: 'auto', left: '0' },
+          { top: offset, right: 'auto', bottom: 'auto', left: '0px' },
         ],
         [
           'bottom-right',
-          { top: offset, right: '0', bottom: 'auto', left: 'auto' },
+          { top: offset, right: '0px', bottom: 'auto', left: 'auto' },
         ],
-        ['top-left', { top: 'auto', right: 'auto', bottom: offset, left: '0' }],
+        [
+          'top-left',
+          { top: 'auto', right: 'auto', bottom: offset, left: '0px' },
+        ],
         [
           'top-right',
-          { top: 'auto', right: '0', bottom: offset, left: 'auto' },
+          { top: 'auto', right: '0px', bottom: offset, left: 'auto' },
         ],
       ])(
         'keeps an in-place %s panel the offset off its corner',
@@ -533,10 +538,10 @@ describe.each(published)('panel placement in %s', file => {
         right: '1rem',
         bottom: '1rem',
         left: '1rem',
-        'margin-top': '0',
-        'margin-right': '0',
-        'margin-bottom': '0',
-        'margin-left': '0',
+        'margin-top': '0px',
+        'margin-right': '0px',
+        'margin-bottom': '0px',
+        'margin-left': '0px',
       });
     }
   );

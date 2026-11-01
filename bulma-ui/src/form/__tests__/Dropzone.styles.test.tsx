@@ -287,7 +287,8 @@ describe('a rendered Dropzone with Bulma', () => {
     expect(getComputedStyle(input).zIndex).toBe('1');
     expect(getComputedStyle(input).opacity).toBe('0');
     expect(getComputedStyle(cta).position).toBe('relative');
-    expect(getComputedStyle(cta).zIndex).toBe('');
+    // `auto`, the initial value: no z-index.
+    expect(getComputedStyle(cta).zIndex).toBe('auto');
     expect(getComputedStyle(label).isolation).toBe('isolate');
   });
 });

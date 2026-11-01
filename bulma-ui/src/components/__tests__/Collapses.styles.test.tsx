@@ -170,7 +170,7 @@ describe('Collapses styles', () => {
     // longhands the outer corners use, so this reads the reset every joined
     // item gets.
     expect(getComputedStyle(screen.getByTestId('first')).borderRadius).toBe(
-      '0'
+      '0px'
     );
 
     // A bordered Collapse inside an item's content is not one of the joins.

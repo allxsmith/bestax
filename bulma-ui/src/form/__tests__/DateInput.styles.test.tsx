@@ -195,7 +195,8 @@ describe('day grid layout', () => {
     expect(week.gridTemplateColumns).toBe('repeat(7, 1fr)');
     const grid = getComputedStyle(container.querySelector('.dateinput-grid')!);
     expect(grid.display).toBe('grid');
-    expect(grid.gridTemplateColumns).toBe('');
+    // `none`, the initial value: the grid sets no columns of its own.
+    expect(grid.gridTemplateColumns).toBe('none');
     expect(week.gap).toBe(grid.gap);
   });
 });
@@ -270,14 +271,14 @@ describe('day text on the calendar backgrounds', () => {
     const { container } = render(<DateInput inline />);
     const vars = getComputedStyle(calendarRoot(container));
     const read = (name: string) => vars.getPropertyValue(name).trim();
-    expect(read('--bulma-dateinput-cell-hover-bg')).toBe(
-      'hsla(0, 0%, 50%, 0.13)'
-    );
+    // jsdom drops the optional spaces in a custom property's value, the
+    // ones after each comma here.
+    expect(read('--bulma-dateinput-cell-hover-bg')).toBe('hsla(0,0%,50%,0.13)');
     expect(read('--bulma-dateinput-cell-range-bg')).toBe(
-      'color-mix(in srgb, var(--bulma-dateinput-cell-selected-bg) 18%, transparent)'
+      'color-mix(in srgb,var(--bulma-dateinput-cell-selected-bg) 18%,transparent)'
     );
     expect(read('--bulma-dateinput-cell-range-preview-bg')).toBe(
-      'color-mix(in srgb, var(--bulma-dateinput-cell-selected-bg) 9%, transparent)'
+      'color-mix(in srgb,var(--bulma-dateinput-cell-selected-bg) 9%,transparent)'
     );
   });
 
@@ -306,11 +307,12 @@ describe('day text on the calendar backgrounds', () => {
 
   it('reads a nearby month halfway between text-weak and text', () => {
     const { container } = render(<DateInput inline />);
+    // Without the spaces after the commas, as jsdom writes a custom property.
     expect(
       getComputedStyle(calendarRoot(container))
         .getPropertyValue('--bulma-dateinput-cell-other-month-color')
         .trim()
-    ).toBe('color-mix(in srgb, var(--bulma-text-weak), var(--bulma-text))');
+    ).toBe('color-mix(in srgb,var(--bulma-text-weak),var(--bulma-text))');
   });
 
   it("gives a selected day from a nearby month the selected value's colour", () => {

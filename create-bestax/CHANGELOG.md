@@ -1,3 +1,12 @@
+## [4.7.1](https://github.com/allxsmith/bestax/compare/create-bestax@4.7.0...create-bestax@4.7.1) (2026-11-01)
+
+
+### Bug Fixes
+
+* **bulma-ui:** accept material-symbols 0.48 in the peer range ([788607d](https://github.com/allxsmith/bestax/commit/788607de94d2ba2b4aaf0e97cb65c2e4e3d85ee5))
+* **bulma-ui:** stop Dropdown's outside-click guard reading a missing window ([2230c2b](https://github.com/allxsmith/bestax/commit/2230c2b584845a0434f7487d2762c4488609ca25))
+* **create-bestax:** pin material-symbols to the newest range bestax-bulma accepts ([16c7bf4](https://github.com/allxsmith/bestax/commit/16c7bf41bb9c6fabe3b788fa59639f941ea98e32))
+
 # [4.7.0](https://github.com/allxsmith/bestax/compare/create-bestax@4.6.0...create-bestax@4.7.0) (2026-10-31)
 
 

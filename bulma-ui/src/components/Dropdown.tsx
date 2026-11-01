@@ -178,8 +178,10 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
     useEffect(() => {
       if (!active) return;
 
+      // Reading `window` or `document` bare throws where neither exists, so
+      // the check is `typeof`, as `isBrowser`'s own note recommends.
       /* istanbul ignore next: React DOM runs effects only in a browser */
-      if (!isBrowser(window, document)) return;
+      if (typeof document === 'undefined') return;
 
       const handleClick = (e: MouseEvent) => {
         if (!isEventInside(e, dropdownRef.current)) {

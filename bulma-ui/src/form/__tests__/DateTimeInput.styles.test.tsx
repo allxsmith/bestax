@@ -64,8 +64,9 @@ describe('DateTimeInput footer time row colours', () => {
     expect(fills.map(rule => rule.selectorText)).toEqual([
       '.datetimeinput-footer-time:hover:not(:disabled), .datetimeinput-footer-time:focus-visible',
     ]);
+    // hsla(0, 0%, 50%, 0.08), which jsdom serializes as rgb, as browsers do.
     expect(fills[0].style.getPropertyValue('background-color')).toBe(
-      'hsla(0, 0%, 50%, 0.08)'
+      'rgba(128, 128, 128, 0.08)'
     );
   });
 

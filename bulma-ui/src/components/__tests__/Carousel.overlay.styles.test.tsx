@@ -121,7 +121,8 @@ describe('Carousel overlay stylesheet', () => {
     const indicator = indicatorOf(
       renderCarousel({ indicatorInside: true, indicatorPosition: 'top' })
     );
-    expect(resolve(indicator, rules, 'top')).toBe('0');
+    // jsdom serializes a zero length as `0px`, as browsers do
+    expect(resolve(indicator, rules, 'top')).toBe('0px');
     expect(resolve(indicator, rules, 'bottom')).toBe('auto');
     expect(resolve(indicator, rules, 'background')).toMatch(BAND_UP);
     expect(resolve(indicator, rules, 'padding-top', 'padding')).toBe('1.5rem');

@@ -69,7 +69,16 @@ describe('HoverCard styles under a class prefix', () => {
     renderPrefixed();
     const style = getComputedStyle(card());
     expect(style.pointerEvents).not.toBe('none');
-    expect(style.padding).toBe('var(--bulma-hover-card-padding)');
+    // jsdom computes no side of a shorthand that reads a variable, so the
+    // padding is read off the rules that match the card.
+    const padding = Array.from(styleEl.sheet!.cssRules)
+      .filter(
+        (rule): rule is CSSStyleRule =>
+          rule instanceof CSSStyleRule && card().matches(rule.selectorText)
+      )
+      .map(rule => rule.style.getPropertyValue('padding'))
+      .filter(Boolean);
+    expect(padding).toEqual(['var(--bulma-hover-card-padding)']);
     expect(style.zIndex).toBe('var(--bulma-hover-card-z-index)');
   });
 

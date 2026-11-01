@@ -162,7 +162,7 @@ describe.each([
     expect(resolve(toolbar, 'display')).toBe('flex');
     expect(resolve(toolbar, 'gap')).toBe('var(--bulma-data-table-gap)');
     expect(resolve(actions, 'margin-inline-start')).toBe('auto');
-    expect(resolve(toolbar.firstElementChild!, 'margin-block-end')).toBe('0');
+    expect(resolve(toolbar.firstElementChild!, 'margin-block-end')).toBe('0px');
   });
 
   it('puts the caption at the start of the line', () => {
@@ -176,8 +176,9 @@ describe.each([
     expect(resolve(button, 'display')).toBe('inline-flex');
     expect(resolve(button, 'font-weight')).toBe('inherit');
     expect(resolve(button, 'color')).toBe('inherit');
+    // jsdom writes a color keyword in lowercase, as browsers do.
     expect(resolve(button, 'background-color', { after: true })).toBe(
-      'currentColor'
+      'currentcolor'
     );
     expect(resolve(button, 'width', { after: true })).toBe(
       'var(--bulma-data-table-sort-indicator-size)'
@@ -210,7 +211,7 @@ describe.each([
     const button = screen.getByRole('button', { name: 'Name' });
     expect(
       resolve(button, 'background-color', { after: true, forcedColors: true })
-    ).toBe('ButtonText');
+    ).toBe('buttontext');
     // At full strength, sorted or not: the shapes tell the states apart.
     expect(
       resolve(button, 'opacity', { after: true, forcedColors: true })

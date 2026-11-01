@@ -48,10 +48,15 @@ const unhover = (el: Element, to: Element = document.body) =>
   pointer(el, 'pointerout', { relatedTarget: to });
 /**
  * Focus as a key brings it. HoverCard asks the browser, through
- * `:focus-visible`, and jsdom matches that on any focus, which is what a
- * browser does after a key, so plain `focus()` is keyboard focus here.
+ * `:focus-visible`, and jsdom, like a browser, matches that on focus a Tab
+ * brings, so Tab goes down where focus is before `el` takes it.
  */
-const keyboardFocus = (el: HTMLElement) => el.focus();
+const keyboardFocus = (el: HTMLElement) => {
+  fireEvent.keyDown(el.ownerDocument.activeElement ?? el.ownerDocument.body, {
+    key: 'Tab',
+  });
+  el.focus();
+};
 /**
  * A press and the focus it brings. A browser doesn't show that focus as
  * `:focus-visible` and jsdom does, so the element says it isn't until the

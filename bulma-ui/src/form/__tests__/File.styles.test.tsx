@@ -38,6 +38,9 @@ const withStylesheet = (prefix?: string) => {
 
 const FOCUS_COLOR =
   'hsl(var(--bulma-focus-h), var(--bulma-focus-s), var(--bulma-focus-l))';
+// The outline colour nothing sets: jsdom computes the initial `auto` as
+// transparent.
+const NO_RING = 'rgba(0, 0, 0, 0)';
 
 // Elements are found by selector, not by role: a role query reads each
 // element's computed style, and jsdom keeps that until the DOM next changes,
@@ -78,7 +81,7 @@ describe('File focus ring', () => {
 
   it('draws no ring without focus', () => {
     const { container } = render(<File />);
-    expect(getComputedStyle(parts(container).cta).outlineColor).toBe('');
+    expect(getComputedStyle(parts(container).cta).outlineColor).toBe(NO_RING);
   });
 
   it('rings the CTA, not the name, when hasName shows one', () => {
@@ -86,7 +89,7 @@ describe('File focus ring', () => {
     const { input, cta, name } = parts(container);
     act(() => input.focus());
     expect(getComputedStyle(cta).outlineColor).toBe(FOCUS_COLOR);
-    expect(getComputedStyle(name as HTMLElement).outlineColor).toBe('');
+    expect(getComputedStyle(name as HTMLElement).outlineColor).toBe(NO_RING);
   });
 
   it.each(COLORS)(
@@ -277,7 +280,8 @@ describe('the CTA of a hasName File with no name', () => {
       );
       const cta = container.querySelector('.file-cta') as HTMLElement;
       const corners = cornersOf(cta, bulmaCss() + compile());
-      for (const corner of square) expect(corners[corner]).toBe('0');
+      // jsdom serializes a zero length as `0px`, as browsers do.
+      for (const corner of square) expect(corners[corner]).toBe('0px');
     }
   );
 });
@@ -333,7 +337,8 @@ describe('the input of a File', () => {
       expect(getComputedStyle(input).zIndex).toBe('1');
       for (const over of [cta, name as HTMLElement]) {
         expect(getComputedStyle(over).position).toBe('relative');
-        expect(getComputedStyle(over).zIndex).toBe('');
+        // `auto`, the initial value: no z-index.
+        expect(getComputedStyle(over).zIndex).toBe('auto');
       }
       expect(getComputedStyle(label).isolation).toBe('isolate');
     }
