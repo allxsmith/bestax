@@ -81,7 +81,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 **Components** (`@allxsmith/bestax-bulma/scss/components/<name>`):
 `loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
 `toast`, `dialog`, `carousel`, `tabs`, `menu`, `reveal`, `avatar`, `avatars`, `badge`,
-`emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`
+`emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`, `pagination`
 
 **Layout** (`@allxsmith/bestax-bulma/scss/layout/<name>`): `splitter`
 
@@ -119,6 +119,15 @@ Notes:
   ```scss
   @use 'bulma/sass/components/menu';
   @use '@allxsmith/bestax-bulma/scss/components/menu' as bestax-menu;
+  ```
+
+- The `pagination` partial **extends** stock Bulma pagination (it keeps the current page marked
+  in forced colors, where Bulma's colors for it are replaced), so an app using `Pagination`, or a
+  `DataTable` with pages, whose pager is one, needs both, in either order:
+
+  ```scss
+  @use 'bulma/sass/components/pagination';
+  @use '@allxsmith/bestax-bulma/scss/components/pagination' as bestax-pagination;
   ```
 
 - The `file` partial **extends** stock Bulma file (File's keyboard focus ring, and the rounded

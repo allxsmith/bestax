@@ -912,7 +912,8 @@ commands move through the cells, since no cell takes focus and the reader stays 
   named region while it overflows, so it can be scrolled from the keyboard.
 - **Forced colors:** the sort indicator is painted in the system's button text color, and the sort
   button's focus ring is an outline. A selected row's fill is a color forced colors takes away, so
-  the checked checkbox carries the selection there.
+  the checked checkbox carries the selection there. The pager's current page is drawn in the
+  system's highlight colors, as [Pagination](./pagination.md)'s is.
 - **No motion:** nothing animates but the skeleton, which stops under reduced motion.
 
 ---
