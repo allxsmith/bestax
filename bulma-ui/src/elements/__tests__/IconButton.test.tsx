@@ -129,27 +129,83 @@ describe('IconButton', () => {
       expect(screen.getByRole('button').children).toHaveLength(0);
     });
 
-    it('renders children after the icon, as given', () => {
+    it('opens a Fragment, so an <Icon> in one renders as given', () => {
       render(
-        <IconButton icon="bell" aria-label="Notifications">
-          <span data-testid="badge" />
+        <IconButton
+          icon={
+            <>
+              <Icon name="cog" data-testid="given" />
+            </>
+          }
+          aria-label="Settings"
+        />
+      );
+      const button = screen.getByRole('button');
+      expect(button.children).toHaveLength(1);
+      expect(button.children[0]).toBe(screen.getByTestId('given'));
+    });
+
+    it('puts several nodes in one Icon, so the button holds one .icon', () => {
+      render(
+        <IconButton
+          icon={[<svg key="a" data-testid="a" />, <svg key="b" />]}
+          aria-label="Layers"
+        />
+      );
+      const button = screen.getByRole('button');
+      expect(button.children).toHaveLength(1);
+      expect(button.children[0]).toHaveClass('icon');
+      expect(button.children[0].children).toHaveLength(2);
+    });
+  });
+
+  describe('the icon as children', () => {
+    it('renders an <Icon> as given, the way Mantine, MUI and Chakra take it', () => {
+      render(
+        <IconButton aria-label="Settings">
+          <Icon name="cog" data-testid="given" />
         </IconButton>
       );
       const button = screen.getByRole('button');
-      expect(button.children).toHaveLength(2);
-      expect(button.children[0]).toHaveClass('icon');
-      expect(button.children[1]).toBe(screen.getByTestId('badge'));
+      expect(button.children).toHaveLength(1);
+      expect(button.children[0]).toBe(screen.getByTestId('given'));
+      expect(button.children[0].querySelector('i')).toHaveClass('fa-cog');
     });
 
-    it('takes the glyph as children, the way Mantine and MUI write it', () => {
+    it('wraps any other node in an Icon, as icon does', () => {
       render(
-        <IconButton aria-label="Settings">
-          <Icon name="cog" />
+        <IconButton aria-label="Share">
+          <svg data-testid="glyph" viewBox="0 0 24 24" />
         </IconButton>
       );
-      const icons = iconsOf(screen.getByRole('button'));
+      const button = screen.getByRole('button');
+      const icons = iconsOf(button);
+      expect(button.children).toHaveLength(1);
       expect(icons).toHaveLength(1);
-      expect(icons[0].querySelector('i')).toHaveClass('fa-cog');
+      expect(icons[0]).toHaveAttribute('aria-hidden', 'true');
+      expect(screen.getByTestId('glyph').parentElement).toBe(icons[0]);
+    });
+
+    it.each([
+      ['null', null],
+      ['false', false],
+      ['an empty Fragment', <React.Fragment key="empty" />],
+    ])('draws nothing for %s', (_, children) => {
+      render(<IconButton aria-label="Nothing">{children}</IconButton>);
+      expect(screen.getByRole('button').children).toHaveLength(0);
+    });
+
+    it('draws icon and leaves the children out when both are given', () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
+      render(
+        <IconButton icon="bell" aria-label="Notifications">
+          <span data-testid="extra" />
+        </IconButton>
+      );
+      const button = screen.getByRole('button');
+      expect(button.children).toHaveLength(1);
+      expect(button.children[0].querySelector('i')).toHaveClass('fa-bell');
+      expect(screen.queryByTestId('extra')).toBeNull();
     });
   });
 
@@ -427,18 +483,33 @@ describe('IconButton', () => {
       ],
     ])('warns once about text in children: %s', (_, children) => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      render(
-        <IconButton icon="trash" aria-label="Delete">
-          {children}
-        </IconButton>
-      );
-      render(
-        <IconButton icon="trash" aria-label="Delete">
-          {children}
-        </IconButton>
-      );
+      render(<IconButton aria-label="Delete">{children}</IconButton>);
+      render(<IconButton aria-label="Delete">{children}</IconButton>);
       expect(warn).toHaveBeenCalledTimes(1);
       expect(warn.mock.calls[0][0]).toMatch(text);
+    });
+
+    it('still draws text in children inside an Icon, hidden from the name', () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
+      render(<IconButton aria-label="Delete">Remove</IconButton>);
+      const button = screen.getByRole('button', { name: 'Delete' });
+      expect(button.children).toHaveLength(1);
+      expect(button.children[0]).toHaveClass('icon');
+      expect(button.children[0]).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it('warns once when given both icon and children', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const both = (
+        <IconButton icon="bell" aria-label="Notifications">
+          <Icon name="envelope" />
+        </IconButton>
+      );
+      const { rerender } = render(both);
+      rerender(both);
+      render(both);
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn.mock.calls[0][0]).toMatch(/both icon and children/);
     });
 
     it("doesn't warn about a glyph, or about spaces between elements", () => {

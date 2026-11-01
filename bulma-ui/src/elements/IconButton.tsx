@@ -5,6 +5,7 @@ import { buttonType } from '../helpers/buttonType';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { isDev, warnOnce } from '../helpers/devWarnings';
 import { flattenChildren } from '../helpers/flattenChildren';
+import { isGiven } from '../helpers/isGiven';
 import type { PolymorphicComponent } from '../helpers/polymorphic';
 
 /**
@@ -18,24 +19,27 @@ export interface IconButtonOwnProps extends ButtonOwnProps {
    * own `variant` or `library`. Any other node, such as an SVG or a component
    * from an icon package, goes inside an `Icon`, which gives it the `.icon`
    * wrapper Bulma keeps square. It's decorative: the button's name says what
-   * it does.
+   * it does. Give the glyph here or as `children`, not both: with both, it
+   * draws `icon` and warns in development.
    */
   icon?: React.ReactNode;
   /**
-   * The glyph as children, rendered as given after `icon`: an `<Icon>`, or a
-   * node inside one. A bare `<svg>` here isn't wrapped and loses Bulma's
-   * square, so pass it as `icon` instead. Text warns in development, since
-   * `aria-label` replaces it as the name: a button with text is a `Button`.
+   * The glyph as children, the way Mantine, MUI and Chakra take it: an
+   * `<Icon>` renders as given, and any other node, such as an SVG, goes
+   * inside an `Icon`, as with `icon`. Left out when `icon` is given, which
+   * warns in development. Text warns too, since `aria-label` replaces it as
+   * the name: a button with text is a `Button`.
    */
   children?: React.ReactNode;
 }
 
 /** Names an IconButton by the text of another element. */
 export interface IconButtonLabelledBy {
-  /** The id of the element whose text names the button, in place of `aria-label`. */
-  'aria-labelledby': string;
+  // `aria-label` is declared first so the Props table lists it first.
   /** Not with `aria-labelledby`, which already names the button. */
   'aria-label'?: undefined;
+  /** The id of the element whose text names the button, in place of `aria-label`. */
+  'aria-labelledby': string;
 }
 
 /** Names an IconButton with `aria-label`, the usual way. */
@@ -63,7 +67,7 @@ export type IconButtonName = IconButtonLabelledBy | IconButtonLabel;
  * Props for the IconButton component. The DOM attributes and the `ref` follow
  * `as`, exactly as they do on `Button`.
  *
- * @extraProp {'button' | 'submit' | 'reset'} [type=button] - On a `<button>`, `button` unless you pass `submit` or `reset`, so it never submits a form by accident. With another `as`, it passes through as given.
+ * @extraProp {string} [type='button'] - On a `<button>`, `'button'`, `'submit'` or `'reset'`, and `'button'` unless you pass one of the other two, so it never submits a form by accident. With another `as`, whatever that element or component takes, passed through as given, such as an `<a>`'s MIME type.
  * @extraProp {PolymorphicRef<React.ElementType>} [ref] - Ref forwarded to the element `as` renders, typed from `as`.
  */
 export type IconButtonProps<T extends React.ElementType = 'button'> =
@@ -97,14 +101,20 @@ type IconButtonImplProps = IconButtonOwnProps & {
 const hasText = (value: unknown) =>
   typeof value === 'string' && value.trim() !== '';
 
-/** Whether a node draws anything, the way EmptyState and Timeline ask it. */
-const isGiven = (
-  node: React.ReactNode
-): node is Exclude<React.ReactNode, null | undefined | boolean> =>
-  node !== undefined &&
-  node !== null &&
-  typeof node !== 'boolean' &&
-  node !== '';
+/**
+ * The glyph in one `.icon`, which is what Bulma keeps square: an `<Icon>` as
+ * given, Fragments opened up, and anything else inside an `Icon`. Null when
+ * there's nothing to draw.
+ */
+function iconOf(node: React.ReactNode) {
+  const items = flattenChildren(node);
+  if (items.length === 0) return null;
+  const [only] = items;
+  if (items.length === 1 && React.isValidElement(only) && only.type === Icon) {
+    return only;
+  }
+  return <Icon>{items}</Icon>;
+}
 
 /**
  * The `IconButton` component renders a button that shows only an icon, and requires a name for it.
@@ -139,6 +149,9 @@ export const IconButton = forwardRef(function IconButton(
 
   const unnamed =
     !hasText(rest['aria-label']) && !hasText(rest['aria-labelledby']);
+  const iconGiven = isGiven(icon);
+  const childrenGiven = isGiven(children);
+  const both = iconGiven && childrenGiven;
   // Only top-level text, Fragments opened up, and only in development, where
   // the warning below can say something about it.
   const textInside =
@@ -157,6 +170,13 @@ export const IconButton = forwardRef(function IconButton(
           'so a screen reader has something to announce.'
       );
     }
+    if (both) {
+      warnOnce(
+        'IconButton:icon-and-children',
+        '[bestax-bulma] <IconButton> was given both icon and children. It ' +
+          'draws icon and leaves the children out: give the glyph one way.'
+      );
+    }
     if (textInside) {
       warnOnce(
         'IconButton:text',
@@ -165,15 +185,16 @@ export const IconButton = forwardRef(function IconButton(
           'is a <Button>.'
       );
     }
-  }, [unnamed, textInside]);
+  }, [unnamed, both, textInside]);
 
-  const glyph = !isGiven(icon) ? null : typeof icon === 'string' ? (
-    <Icon name={icon} />
-  ) : React.isValidElement(icon) && icon.type === Icon ? (
-    icon
-  ) : (
-    <Icon>{icon}</Icon>
-  );
+  // One glyph, from `icon` or else from `children`, so the button's only
+  // child is one `.icon`, which Bulma keeps square, and round with
+  // `isRounded`.
+  const glyph = iconGiven
+    ? iconOf(typeof icon === 'string' ? <Icon name={icon} /> : icon)
+    : childrenGiven
+      ? iconOf(children)
+      : null;
 
   // `type` is a button's only on a `<button>`. On an `<a>` it's the MIME hint,
   // and a custom component owns what it means, so those get it as given.
@@ -192,7 +213,6 @@ export const IconButton = forwardRef(function IconButton(
       className={classNames(iconButtonClass, className)}
     >
       {glyph}
-      {children}
     </Button>
   );
 }) as PolymorphicComponent<IconButtonOwnProps & IconButtonName, 'button'>;

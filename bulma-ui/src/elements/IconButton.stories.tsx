@@ -3,6 +3,7 @@ import { IconButton } from './IconButton';
 import { Button } from './Button';
 import { Buttons } from './Buttons';
 import { Icon } from './Icon';
+import { Badge } from '../components/Badge';
 import { Tooltip } from '../components/Tooltip';
 import { Field } from '../form/Field';
 import { Control } from '../form/Control';
@@ -51,6 +52,11 @@ const meta: Meta<typeof IconButton> = {
       control: 'text',
       description:
         'The glyph: an Icon name from the library ConfigProvider sets, an <Icon>, or any other node, which goes inside an Icon',
+    },
+    children: {
+      control: false,
+      description:
+        'The glyph as children, taken the same way as icon; left out, with a warning in development, when icon is given',
     },
     'aria-label': {
       control: 'text',
@@ -180,28 +186,39 @@ export const RoundedIsACircle: Story = {
 };
 
 /**
- * The ways to give the glyph: a name, an `<Icon>` with its own variant, an
- * inline SVG, which goes inside an Icon, and children.
+ * The ways to give the glyph: as `icon`, a name, an `<Icon>` with its own
+ * variant, or an inline SVG, which goes inside an Icon; and the same `<Icon>`
+ * and SVG as children. Each is one square `.icon`.
  */
 export const IconForms: Story = {
   render: function IconFormsExample() {
     return (
-      <Buttons>
-        <IconButton icon="heart" aria-label="Favorite" />
-        <IconButton
-          icon={<Icon name="heart" variant="regular" />}
-          aria-label="Favorite, outlined"
-        />
-        <IconButton icon={<ShareGlyph />} aria-label="Share" />
-        <IconButton aria-label="Settings">
-          <Icon name="cog" />
-        </IconButton>
-      </Buttons>
+      <>
+        <Buttons>
+          <IconButton icon="heart" aria-label="Favorite" />
+          <IconButton
+            icon={<Icon name="heart" variant="regular" />}
+            aria-label="Favorite, outlined"
+          />
+          <IconButton icon={<ShareGlyph />} aria-label="Share" />
+        </Buttons>
+        <Buttons>
+          <IconButton aria-label="Settings">
+            <Icon name="cog" />
+          </IconButton>
+          <IconButton isRounded aria-label="Share, rounded">
+            <ShareGlyph />
+          </IconButton>
+        </Buttons>
+      </>
     );
   },
 };
 
-/** The light and outlined fills, as on Button. */
+/**
+ * The light and outlined fills, and the colorless `text` and `ghost` looks,
+ * which draw no underline under the glyph.
+ */
 export const Fills: Story = {
   render: function FillsExample() {
     return (
@@ -213,6 +230,31 @@ export const Fills: Story = {
           icon="download"
           aria-label="Download"
         />
+        <IconButton color="text" icon="ellipsis" aria-label="More actions" />
+        <IconButton color="ghost" icon="xmark" aria-label="Close" />
+      </Buttons>
+    );
+  },
+};
+
+/** A count or a dot from a Badge, with what it says in the button's name. */
+export const WithABadge: Story = {
+  render: function WithABadgeExample() {
+    return (
+      <Buttons p="2">
+        <Badge content={3} overlap="circle">
+          <IconButton
+            isRounded
+            icon="bell"
+            aria-label="Notifications, 3 unread"
+          />
+        </Badge>
+        <Badge content={12} overlap="square">
+          <IconButton icon="envelope" aria-label="Inbox, 12 unread" />
+        </Badge>
+        <Badge dot color="success" overlap="circle">
+          <IconButton isRounded icon="comment" aria-label="Messages, new" />
+        </Badge>
       </Buttons>
     );
   },
@@ -244,12 +286,12 @@ export const JoinedRow: Story = {
       <>
         <Buttons hasAddons role="group" aria-label="Zoom">
           <IconButton icon="minus" aria-label="Zoom out" />
-          <IconButton icon="magnifying-glass" aria-label="Fit to window" />
+          <IconButton icon="expand" aria-label="Fit to window" />
           <IconButton icon="plus" aria-label="Zoom in" />
         </Buttons>
         <Buttons hasAddons role="group" aria-label="Zoom, rounded">
           <IconButton isRounded icon="minus" aria-label="Zoom out" />
-          <IconButton isRounded icon="magnifying-glass" aria-label="Fit" />
+          <IconButton isRounded icon="expand" aria-label="Fit to window" />
           <IconButton isRounded icon="plus" aria-label="Zoom in" />
         </Buttons>
       </>

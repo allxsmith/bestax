@@ -1,7 +1,8 @@
 // `_iconbutton.scss` turns Bulma's rounded pill into a circle on an
-// IconButton, and only there. These compile it, with no prefix and under
-// one, and read its rules as text, the way RingProgress's are read, beside
-// Bulma's own rounded rule, which it has to outrank.
+// IconButton, and only there, and keeps Bulma's `text` and `ghost` looks from
+// underlining the glyph. These compile it, with no prefix and under one, and
+// read its rules as text, the way RingProgress's are read, beside Bulma's own
+// button rules, which it has to outrank.
 import * as sass from 'sass';
 import path from 'path';
 
@@ -68,37 +69,53 @@ function rulesOf(css: string): Rule[] {
 
 const PLAIN = rulesOf(compile(`@use 'elements/iconbutton';`));
 const PREFIXED = rulesOf(compile(`@use 'elements/iconbutton';`, 'bestax-'));
+const BULMA = rulesOf(compile(`@use 'bulma/sass/elements/button';`));
 
-/** How many classes a compound selector of classes names. */
-const classCount = (selector: string) => selector.split('.').length - 1;
+const CIRCLE = '.button.icon-button.is-rounded';
+const NO_UNDERLINE = [
+  '.button.icon-button.icon-button',
+  '.button.icon-button.icon-button:hover',
+  '.button.icon-button.icon-button.is-hovered',
+];
+
+/** The declarations of the top-level rule with exactly this selector. */
+function find(rules: Rule[], selector: string) {
+  const rule = rules.find(r => r.selector === selector && !r.context.length);
+  if (!rule) throw new Error(`no rule for ${selector}`);
+  return rule.declarations;
+}
+
+/** Bulma's declarations for a selector, its rules for it merged in order. */
+const bulma = (selector: string) =>
+  Object.assign(
+    {},
+    ...BULMA.filter(r => r.selector === selector && !r.context.length).map(
+      r => r.declarations
+    )
+  ) as Record<string, string>;
+
+/**
+ * A compound selector's weight in classes and pseudo-classes, which is all
+ * these selectors are made of.
+ */
+const weight = (selector: string) =>
+  (selector.match(/\.[\w-]+|:[\w-]+/g) ?? []).length;
+
+/** Whether a selector is for a hovered button, by pointer or by class. */
+const hovered = (selector: string) => /:hover|\.is-hovered/.test(selector);
 
 describe('IconButton styles', () => {
   it('takes back the padding Bulma adds to a rounded button', () => {
-    expect(PLAIN).toEqual([
-      {
-        context: [],
-        selector: '.button.icon-button.is-rounded',
-        declarations: {
-          'padding-inline':
-            'calc(var(--bulma-button-padding-horizontal) - var(--bulma-button-border-width))',
-        },
-      },
-    ]);
+    expect(find(PLAIN, CIRCLE)).toEqual({
+      'padding-inline':
+        'calc(var(--bulma-button-padding-horizontal) - var(--bulma-button-border-width))',
+    });
   });
 
   it("puts it back to a plain button's padding, so the width is the height", () => {
-    const bulma = rulesOf(compile(`@use 'bulma/sass/elements/button';`));
-    // Bulma writes `.button` in more than one rule, so merge them in order.
-    const merged = (selector: string) =>
-      Object.assign(
-        {},
-        ...bulma
-          .filter(r => r.selector === selector && r.context.length === 0)
-          .map(r => r.declarations)
-      ) as Record<string, string>;
-    const plain = merged('.button');
-    const rounded = merged('.button.is-rounded');
-    const circle = PLAIN[0].declarations['padding-inline'];
+    const plain = bulma('.button');
+    const rounded = bulma('.button.is-rounded');
+    const circle = find(PLAIN, CIRCLE)['padding-inline'];
     // Bulma's square comes from its plain padding; its pill adds to it.
     expect(plain['padding-left']).toBe(circle);
     expect(plain['padding-right']).toBe(circle);
@@ -107,9 +124,30 @@ describe('IconButton styles', () => {
   });
 
   it("outranks Bulma's rounded rule, wherever the two load", () => {
-    expect(classCount(PLAIN[0].selector)).toBeGreaterThan(
-      classCount('.button.is-rounded')
+    expect(weight(CIRCLE)).toBeGreaterThan(weight('.button.is-rounded'));
+  });
+
+  it('draws no underline under the glyph, at rest or hovered', () => {
+    expect(find(PLAIN, NO_UNDERLINE.join(', '))).toEqual({
+      'text-decoration': 'none',
+    });
+  });
+
+  it('outranks each Bulma rule that underlines a button, wherever the two load', () => {
+    // `is-text` underlines at rest, and `is-ghost` on hover.
+    const underlines = BULMA.filter(
+      r => !r.context.length && 'text-decoration' in r.declarations
+    ).flatMap(r => r.selector.split(', '));
+    expect(underlines).toEqual(
+      expect.arrayContaining(['.button.is-text', '.button.is-ghost:hover'])
     );
+    for (const theirs of underlines) {
+      for (const ours of NO_UNDERLINE.filter(
+        s => hovered(s) === hovered(theirs)
+      )) {
+        expect(weight(ours)).toBeGreaterThan(weight(theirs));
+      }
+    }
   });
 
   it('registers no variables of its own', () => {
@@ -121,9 +159,13 @@ describe('IconButton styles', () => {
   });
 
   it('prefixes every class under a class prefix', () => {
-    expect(PREFIXED.map(r => r.selector)).toEqual([
-      '.bestax-button.bestax-icon-button.bestax-is-rounded',
-    ]);
-    expect(PREFIXED[0].declarations).toEqual(PLAIN[0].declarations);
+    expect(PREFIXED.map(r => r.selector)).toEqual(
+      PLAIN.map(r =>
+        r.selector.replace(/\.(button|icon-button|is-)/g, '.bestax-$1')
+      )
+    );
+    expect(PREFIXED.map(r => r.declarations)).toEqual(
+      PLAIN.map(r => r.declarations)
+    );
   });
 });

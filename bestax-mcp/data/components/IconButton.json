@@ -22,8 +22,12 @@
       "code": "<Buttons>\n  <IconButton icon=\"heart\" aria-label=\"Favorite\" />\n  <IconButton\n    icon={<Icon name=\"heart\" variant=\"regular\" />}\n    aria-label=\"Add to favorites\"\n  />\n  <IconButton\n    icon={\n      <svg viewBox=\"0 0 24 24\" width=\"1em\" height=\"1em\" fill=\"currentColor\">\n        <path d=\"M18 16a3 3 0 0 0-2.4 1.2L8.9 13.7a3 3 0 0 0 0-3.4l6.7-3.5A3 3 0 1 0 15 5l-6.7 3.5a3 3 0 1 0 0 7L15 19a3 3 0 1 0 3-3Z\" />\n      </svg>\n    }\n    aria-label=\"Share\"\n  />\n  <IconButton aria-label=\"Settings\">\n    <Icon name=\"gear\" />\n  </IconButton>\n</Buttons>"
     },
     {
+      "title": "With a Badge",
+      "code": "<Buttons p=\"2\">\n  <Badge content={3} overlap=\"circle\">\n    <IconButton isRounded icon=\"bell\" aria-label=\"Notifications, 3 unread\" />\n  </Badge>\n  <Badge content={12} overlap=\"square\">\n    <IconButton icon=\"envelope\" aria-label=\"Inbox, 12 unread\" />\n  </Badge>\n  <Badge dot color=\"success\" overlap=\"circle\">\n    <IconButton isRounded icon=\"comment\" aria-label=\"Messages, new\" />\n  </Badge>\n</Buttons>"
+    },
+    {
       "title": "Colors",
-      "code": "<>\n  <Buttons>\n    <IconButton color=\"primary\" icon=\"plus\" aria-label=\"Add\" />\n    <IconButton color=\"link\" icon=\"pen\" aria-label=\"Edit\" />\n    <IconButton color=\"info\" icon=\"circle-info\" aria-label=\"Details\" />\n    <IconButton color=\"success\" icon=\"check\" aria-label=\"Approve\" />\n    <IconButton color=\"warning\" icon=\"flag\" aria-label=\"Report\" />\n    <IconButton color=\"danger\" icon=\"trash\" aria-label=\"Delete\" />\n  </Buttons>\n  <Buttons>\n    <IconButton color=\"danger\" isLight icon=\"trash\" aria-label=\"Delete\" />\n    <IconButton color=\"link\" isOutlined icon=\"download\" aria-label=\"Download\" />\n  </Buttons>\n</>"
+      "code": "<>\n  <Buttons>\n    <IconButton color=\"primary\" icon=\"plus\" aria-label=\"Add\" />\n    <IconButton color=\"link\" icon=\"pen\" aria-label=\"Edit\" />\n    <IconButton color=\"info\" icon=\"circle-info\" aria-label=\"Details\" />\n    <IconButton color=\"success\" icon=\"check\" aria-label=\"Approve\" />\n    <IconButton color=\"warning\" icon=\"flag\" aria-label=\"Report\" />\n    <IconButton color=\"danger\" icon=\"trash\" aria-label=\"Delete\" />\n  </Buttons>\n  <Buttons>\n    <IconButton color=\"danger\" isLight icon=\"trash\" aria-label=\"Delete\" />\n    <IconButton color=\"link\" isOutlined icon=\"download\" aria-label=\"Download\" />\n    <IconButton color=\"text\" icon=\"ellipsis\" aria-label=\"More actions\" />\n    <IconButton color=\"ghost\" icon=\"xmark\" aria-label=\"Close\" />\n  </Buttons>\n</>"
     },
     {
       "title": "Sizes and Circles",
@@ -88,7 +92,7 @@
           "name": "icon",
           "type": "React.ReactNode",
           "default": null,
-          "description": "The glyph. A string is an `Icon` name, drawn from the icon library `ConfigProvider` sets. An `<Icon>` renders as given, so it can carry its own `variant` or `library`. Any other node, such as an SVG or a component from an icon package, goes inside an `Icon`, which gives it the `.icon` wrapper Bulma keeps square. It's decorative: the button's name says what it does.",
+          "description": "The glyph. A string is an `Icon` name, drawn from the icon library `ConfigProvider` sets. An `<Icon>` renders as given, so it can carry its own `variant` or `library`. Any other node, such as an SVG or a component from an icon package, goes inside an `Icon`, which gives it the `.icon` wrapper Bulma keeps square. It's decorative: the button's name says what it does. Give the glyph here or as `children`, not both: with both, it draws `icon` and warns in development.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -97,18 +101,9 @@
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
-          "description": "The glyph as children, rendered as given after `icon`: an `<Icon>`, or a node inside one. A bare `<svg>` here isn't wrapped and loses Bulma's square, so pass it as `icon` instead. Text warns in development, since `aria-label` replaces it as the name: a button with text is a `Button`.",
+          "description": "The glyph as children, the way Mantine, MUI and Chakra take it: an `<Icon>` renders as given, and any other node, such as an SVG, goes inside an `Icon`, as with `icon`. Left out when `icon` is given, which warns in development. Text warns too, since `aria-label` replaces it as the name: a button with text is a `Button`.",
           "required": false,
           "inherited": false,
-          "deprecated": false
-        },
-        {
-          "name": "aria-labelledby",
-          "type": "string",
-          "default": null,
-          "description": "The id of the element whose text names the button, in place of `aria-label`.",
-          "required": false,
-          "inherited": true,
           "deprecated": false
         },
         {
@@ -116,6 +111,15 @@
           "type": "string",
           "default": null,
           "description": "The button's name: what a screen reader announces and what a voice control user says to press it. Required, or `aria-labelledby` in its place, since an icon has no text to name it by. Name the action (\"Delete\"), not the picture (\"Trash\"). An empty or blank one warns in development.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "aria-labelledby",
+          "type": "string",
+          "default": null,
+          "description": "The id of the element whose text names the button, in place of `aria-label`.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -280,9 +284,9 @@
       "extraProps": [
         {
           "name": "type",
-          "type": "'button' | 'submit' | 'reset'",
-          "default": "button",
-          "description": "On a `<button>`, `button` unless you pass `submit` or `reset`, so it never submits a form by accident. With another `as`, it passes through as given.",
+          "type": "string",
+          "default": "'button'",
+          "description": "On a `<button>`, `'button'`, `'submit'` or `'reset'`, and `'button'` unless you pass one of the other two, so it never submits a form by accident. With another `as`, whatever that element or component takes, passed through as given, such as an `<a>`'s MIME type.",
           "required": false,
           "inherited": false,
           "deprecated": false

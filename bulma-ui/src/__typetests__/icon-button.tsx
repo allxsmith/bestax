@@ -104,8 +104,8 @@ export const rejected = (
 );
 
 // --------------------------------------------------------------------------
-// The props type is for building on: CopyButton and FloatButton render
-// through IconButton, and a wrapper has to carry the requirement along.
+// The props types are for building on: a wrapper that renders through
+// IconButton keeps the name requirement.
 // --------------------------------------------------------------------------
 
 /** A wrapper that sets the icon and takes the rest, name included. */
