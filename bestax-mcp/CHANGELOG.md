@@ -1,3 +1,13 @@
+## [1.18.26](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.25...bestax-mcp@1.18.26) (2026-11-01)
+
+
+### Bug Fixes
+
+* **bulma-ui:** align table headers to the start of the line ([e8efb3e](https://github.com/allxsmith/bestax/commit/e8efb3e1b94b9ff36ab1512047a760a379c16eec))
+* **bulma-ui:** configure Bulma's table alignment instead of overriding it ([572a289](https://github.com/allxsmith/bestax/commit/572a2898e0878004be083c080b7ad72f1c4d9cba))
+* **bulma-ui:** gate the horizontal message's basis on the same :has() as its wrap ([e4c5e2a](https://github.com/allxsmith/bestax/commit/e4c5e2afe53a5a6ab7c9788f70c85f14c84a2ce7))
+* **bulma-ui:** put a horizontal field's message under its control ([d937974](https://github.com/allxsmith/bestax/commit/d937974280444689460b30fbc61ce3cbc89b8ab2))
+
 ## [1.18.25](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.24...bestax-mcp@1.18.25) (2026-11-01)
 
 
