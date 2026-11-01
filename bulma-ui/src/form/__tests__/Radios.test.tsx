@@ -188,6 +188,43 @@ describe('Radios', () => {
       green.click();
       expect(handleChange).toHaveBeenCalledWith('green');
     });
+
+    it('with only onChange, starts from the defaultChecked radio and moves the selection', () => {
+      // Whether it logs a React warning is in Radio.warnings.test.tsx.
+      const handleChange = vi.fn();
+      const { getByLabelText } = render(
+        <Radios onChange={handleChange}>
+          <Radio value="s">Small</Radio>
+          <Radio value="m" defaultChecked>
+            Medium
+          </Radio>
+          <Radio value="l">Large</Radio>
+        </Radios>
+      );
+      const small = getByLabelText('Small') as HTMLInputElement;
+      const medium = getByLabelText('Medium') as HTMLInputElement;
+      expect(medium.checked).toBe(true);
+      expect(small.checked).toBe(false);
+      small.click();
+      expect(handleChange).toHaveBeenLastCalledWith('s');
+      expect(small.checked).toBe(true);
+      expect(medium.checked).toBe(false);
+    });
+
+    it('with only onChange, keeps a radio without a value to itself', () => {
+      const handleChange = vi.fn();
+      const { getByLabelText } = render(
+        <Radios onChange={handleChange}>
+          <Radio name="own" defaultChecked>
+            Loose
+          </Radio>
+          <Radio value="s">Small</Radio>
+        </Radios>
+      );
+      getByLabelText('Small').click();
+      expect(handleChange).toHaveBeenLastCalledWith('s');
+      expect((getByLabelText('Loose') as HTMLInputElement).checked).toBe(true);
+    });
   });
 });
 

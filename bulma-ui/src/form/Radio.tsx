@@ -133,15 +133,20 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
     const group = useRadiosGroup();
     const effectiveName = name ?? group?.name;
 
-    // Group-managed checked state — only when the group is in
-    // controlled/uncontrolled mode (group.value is defined) AND this Radio
-    // has a value to compare against. Local `checked` always wins.
-    const groupManaged = group?.value !== undefined && value !== undefined;
+    // Group-managed checked state — only when the group manages the selection
+    // (it was given `value`, `defaultValue` or `onChange`) AND this Radio has
+    // a value to compare against. Local `checked` always wins. A group given
+    // only `onChange` holds no value until its first change, and until then
+    // the radio shows its own `defaultChecked`, controlled all the same, so
+    // that change doesn't flip it from uncontrolled to controlled.
+    const groupManaged = group?.onChange !== undefined && value !== undefined;
     const effectiveChecked =
       checked !== undefined
         ? checked
         : groupManaged
-          ? group!.value === value
+          ? group!.value !== undefined
+            ? group!.value === value
+            : !!defaultChecked
           : undefined;
     // When the group manages checked, suppress local defaultChecked to avoid
     // the controlled/uncontrolled React warning.

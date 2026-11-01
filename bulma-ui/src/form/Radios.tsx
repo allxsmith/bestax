@@ -43,7 +43,11 @@ export interface RadiosProps
   value?: string;
   /** Initial selected value (uncontrolled mode). */
   defaultValue?: string;
-  /** Fires when the selection changes. */
+  /**
+   * Fires when the selection changes; receives the value picked. Passed
+   * without `value` or `defaultValue`, it still has the group manage the
+   * selection, starting from the radio with `defaultChecked`.
+   */
   onChange?: (value: string) => void;
   /** Radio elements to render in the group. */
   children: React.ReactNode;
@@ -137,7 +141,9 @@ const RadiosComponent: React.FC<RadiosProps> = ({
 
   // The group is "active" (manages child selection) when the user opted in by
   // passing value, defaultValue, or onChange. Otherwise it's name-only and
-  // children manage their own checked state (Stage 1 behavior).
+  // children manage their own checked state (Stage 1 behavior). With only
+  // onChange it holds no value until the first change, and the radios show
+  // their own defaultChecked until then.
   const groupActive =
     value !== undefined || defaultValue !== undefined || onChange !== undefined;
 
