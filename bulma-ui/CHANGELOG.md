@@ -1,3 +1,25 @@
+## [5.57.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.57.0...@allxsmith/bestax-bulma@5.57.1) (2026-11-01)
+
+
+### Bug Fixes
+
+* **bulma-ui:** accept material-symbols 0.48 in the peer range ([788607d](https://github.com/allxsmith/bestax/commit/788607de94d2ba2b4aaf0e97cb65c2e4e3d85ee5))
+* **bulma-ui:** stop Dropdown's outside-click guard reading a missing window ([2230c2b](https://github.com/allxsmith/bestax/commit/2230c2b584845a0434f7487d2762c4488609ca25))
+* **create-bestax:** name the parts a Next.js Server Component can't reach yet ([f619f67](https://github.com/allxsmith/bestax/commit/f619f6778c34a1cb7b2a4aef2d87a115a1518acc)), closes [#1356](https://github.com/allxsmith/bestax/issues/1356)
+* **create-bestax:** pin material-symbols to the newest range bestax-bulma accepts ([16c7bf4](https://github.com/allxsmith/bestax/commit/16c7bf41bb9c6fabe3b788fa59639f941ea98e32))
+* **create-bestax:** point a Next.js app's CLAUDE.md icon imports at its layout, and test it ([7ef1aae](https://github.com/allxsmith/bestax/commit/7ef1aae1323d3ac760362ee5dd27b0da70a21a2c))
+* **create-bestax:** send a Next.js app's named classes to src/index.css ([896253a](https://github.com/allxsmith/bestax/commit/896253a5bc4b84e1922e1e6efd86654246bcc8db))
+
+
+### Features
+
+* **create-bestax:** add Next.js App Router templates, next and next-ts ([293e43a](https://github.com/allxsmith/bestax/commit/293e43a07a1cc24c8da162f7b1e742a070350765))
+
+
+### Performance Improvements
+
+* **bestax-migrate:** look up the root a modifier needs in one table ([843adca](https://github.com/allxsmith/bestax/commit/843adcaf4eb6567b88d4a52936763342b8b38359))
+
 # [5.57.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.56.0...@allxsmith/bestax-bulma@5.57.0) (2026-10-31)
 
 
