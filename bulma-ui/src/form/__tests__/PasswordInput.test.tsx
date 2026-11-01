@@ -1,5 +1,5 @@
 import type { MockInstance } from 'vitest';
-import { createRef, useState } from 'react';
+import { createRef, useRef, useState } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
@@ -10,6 +10,7 @@ import { Control } from '../Control';
 import { Fieldset } from '../Fieldset';
 import { ConfigProvider } from '../../helpers/Config';
 import { resetDevWarnings } from '../../helpers/devWarnings';
+import { useClientLayoutEffect } from '../../helpers/useClientLayoutEffect';
 
 let warnSpy: MockInstance;
 
@@ -354,10 +355,17 @@ describe('PasswordInput', () => {
     it.each(['icon', 'text'] as const)(
       'switches the field back when the caller holds the state, and the %s toggle follows',
       variant => {
+        const typeAtSubmit = vi.fn();
         function Held() {
           const [visible, setVisible] = useState(true);
           return (
-            <form data-testid="form" onSubmit={event => event.preventDefault()}>
+            <form
+              data-testid="form"
+              onSubmit={event => {
+                event.preventDefault();
+                typeAtSubmit(input().type);
+              }}
+            >
               <PasswordInput
                 label="Password"
                 variant={variant}
@@ -370,6 +378,8 @@ describe('PasswordInput', () => {
         render(<Held />);
         expect(input()).toHaveAttribute('type', 'text');
         fireEvent.submit(screen.getByTestId('form'));
+        // The caller's own update rendered before the form read the field.
+        expect(typeAtSubmit).toHaveBeenCalledWith('password');
         expect(input()).toHaveAttribute('type', 'password');
         if (variant === 'icon') {
           expect(toggle()).toHaveAttribute('aria-pressed', 'false');
@@ -385,42 +395,58 @@ describe('PasswordInput', () => {
       }
     );
 
-    it('puts the field back as visible says when the caller keeps it, once the event is over', async () => {
+    it('keeps the field shown when the caller keeps visible true, and tells it', () => {
       const { form, onVisibleChange, typeAtSubmit } = inForm({
         visible: true,
         variant: 'text',
       });
       fireEvent.submit(form);
-      // The form saw a password field, and the caller was told.
-      expect(typeAtSubmit).toHaveBeenCalledWith('password');
       expect(onVisibleChange).toHaveBeenCalledWith(false);
-      await act(() => new Promise(resolve => setTimeout(resolve)));
-      // The caller kept `visible`, so the field shows again, as the toggle says.
+      expect(typeAtSubmit).toHaveBeenCalledWith('text');
       expect(input()).toHaveAttribute('type', 'text');
       expect(toggle()).toHaveTextContent('Hide');
       expect(toggle()).toHaveAccessibleName('Hide password');
     });
 
-    it('drops a pending render when it unmounts first', () => {
-      vi.useFakeTimers();
-      try {
-        const { form, unmount } = inForm({ visible: true });
-        const before = vi.getTimerCount();
-        fireEvent.submit(form);
-        expect(vi.getTimerCount()).toBe(before + 1);
-        unmount();
-        expect(vi.getTimerCount()).toBe(before);
-      } finally {
-        vi.useRealTimers();
+    it('hides just after a form submitted from a layout effect, where React can’t render at once', () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const onVisibleChange = vi.fn();
+      const typeAtSubmit = vi.fn();
+      function SubmitsWhenAsked({ ask }: { ask: boolean }) {
+        const formRef = useRef<HTMLFormElement>(null);
+        useClientLayoutEffect(() => {
+          if (!ask) return;
+          formRef.current?.dispatchEvent(
+            new Event('submit', { bubbles: true, cancelable: true })
+          );
+        }, [ask]);
+        return (
+          <form
+            ref={formRef}
+            onSubmit={event => {
+              event.preventDefault();
+              typeAtSubmit(input().type);
+            }}
+          >
+            <PasswordInput
+              label="Password"
+              defaultVisible
+              onVisibleChange={onVisibleChange}
+            />
+          </form>
+        );
       }
-    });
-
-    it('puts the field back on the next render after anything else changed its type', () => {
-      const { rerender } = render(<PasswordInput label="Password" visible />);
-      input().type = 'password';
-      rerender(<PasswordInput label="Password" visible placeholder="Again" />);
-      expect(input()).toHaveAttribute('type', 'text');
-      expect(toggle()).toHaveAttribute('aria-pressed', 'true');
+      try {
+        const { rerender } = render(<SubmitsWhenAsked ask={false} />);
+        rerender(<SubmitsWhenAsked ask />);
+        // The form read a text field, and the hide landed just after.
+        expect(typeAtSubmit).toHaveBeenCalledWith('text');
+        expect(onVisibleChange).toHaveBeenCalledWith(false);
+        expect(input()).toHaveAttribute('type', 'password');
+        expect(String(errorSpy.mock.calls[0]?.[0])).toContain('flushSync');
+      } finally {
+        errorSpy.mockRestore();
+      }
     });
 
     it('listens to the form its form attribute names', () => {
@@ -487,8 +513,9 @@ describe('PasswordInput', () => {
           window.dispatchEvent(
             new PageTransitionEvent('pagehide', { persisted })
           );
+          // Rendered before the listener returned, inside the same act.
+          expect(input()).toHaveAttribute('type', 'password');
         });
-        expect(input()).toHaveAttribute('type', 'password');
         expect(toggle()).toHaveTextContent('Show');
         expect(onVisibleChange).toHaveBeenCalledWith(false);
 

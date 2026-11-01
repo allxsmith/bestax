@@ -1,14 +1,7 @@
-import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useReducer,
-  useRef,
-  useState,
-} from 'react';
+import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { usePrefixedClassNames } from '../helpers/classNames';
 import { warnOnce } from '../helpers/devWarnings';
-import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { InputBase, InputBaseProps } from './InputBase';
 import { useControlLoading } from './controlLoading';
@@ -60,10 +53,10 @@ export interface PasswordInputLabels {
 export interface PasswordInputBaseProps extends Omit<InputBaseProps, 'type'> {
   /**
    * Whether the password shows, when you hold the state. Setting it makes
-   * the visibility controlled: the toggle only calls `onVisibleChange`.
-   * When the field hides again on its own (see `onVisibleChange`), it turns
-   * into a password field at once, so the form reads one; kept `true`, it
-   * shows again on the next render, as `visible` says.
+   * the visibility controlled: the toggle only calls `onVisibleChange`, and
+   * so does hiding again on its own. Apply that `false` and the field is a
+   * password field by the time the form reads it; keep `visible` true and
+   * the field stays shown.
    */
   visible?: boolean;
   /**
@@ -74,7 +67,11 @@ export interface PasswordInputBaseProps extends Omit<InputBaseProps, 'type'> {
   /**
    * Called with the new visibility on each toggle, and with `false` when the
    * form submits or resets, when the page is left, and when it comes back
-   * from the back-forward cache.
+   * from the back-forward cache. React renders those hides at once, a state
+   * update you make here included, so the form reads a password field. One
+   * that fires while React is rendering or running layout effects, such as a
+   * `requestSubmit()` from a layout effect, can't render there, and lands
+   * just after.
    */
   onVisibleChange?: (visible: boolean) => void;
   /**
@@ -196,36 +193,20 @@ export const PasswordInputBase = forwardRef<
     [ref]
   );
 
-  // Each render leaves the field's type as `visible` says, so the field and
-  // the toggle agree. Hiding again below sets the type on the field itself,
-  // which a caller holding `visible` may not follow.
-  const [, rerender] = useReducer((count: number) => count + 1, 0);
-  useClientLayoutEffect(() => {
-    const input = inputRef.current as HTMLInputElement;
-    const type = visible ? 'text' : 'password';
-    /* istanbul ignore if: React 19 writes the type on every render itself, and React 18 only when it changes, so only React 18 gets here */
-    if (input.type !== type) input.type = type;
-  });
-  const rerenderTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined
-  );
-  useEffect(() => () => clearTimeout(rerenderTimerRef.current), []);
-
-  // Hides the password again. The type changes here, in the handler, so a
-  // form submitting now sends it from a password field, which the browser
-  // doesn't keep among its autofill suggestions; the state follows. Only the
-  // listeners below call it, and only while the input is mounted.
+  // Hides the password again: reports `false`, and sets its own state when it
+  // holds it. Inside `flushSync`, React renders that, a caller's own state
+  // update included, before the listener returns, so the browser reads the
+  // form, or saves the page's form state, from a password field. The
+  // component never sets the field's type itself, so a caller holding
+  // `visible` that keeps it `true` keeps the field shown. The one catch: an
+  // event fired while React is rendering or running layout effects (a
+  // `requestSubmit()` from a layout effect) can't flush there, so React warns
+  // in development and the hide lands after the form is read. Only the
+  // listeners below call it, while the input is mounted.
   const hideRef = useLatestRef(() => {
     if (!visible) return;
-    (inputRef.current as HTMLInputElement).type = 'password';
-    setVisible(false);
-    // Held state that stays `true` brings no render of its own, so one
-    // follows once the event is over, after the form has read a password
-    // field, and puts the field back as `visible` says.
-    if (isControlled) {
-      clearTimeout(rerenderTimerRef.current);
-      rerenderTimerRef.current = setTimeout(rerender);
-    }
+    // eslint-disable-next-line @eslint-react/dom-no-flush-sync -- the form is read, or the page saved, before React would render this on its own
+    flushSync(() => setVisible(false));
   });
 
   // When the form it belongs to submits or resets.
