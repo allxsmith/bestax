@@ -521,6 +521,60 @@ describe('PasswordInput', () => {
       expect(onVisibleChange).toHaveBeenCalledWith(false);
     });
 
+    it('hides for a form mounted after the field, and mounted again', () => {
+      const onVisibleChange = vi.fn();
+      const field = (
+        <PasswordInput
+          label="Password"
+          form="late"
+          defaultVisible
+          onVisibleChange={onVisibleChange}
+        />
+      );
+      const { rerender } = render(<>{field}</>);
+      expect(input().form).toBeNull();
+      rerender(
+        <>
+          {field}
+          <form id="late" key="first" data-testid="form" />
+        </>
+      );
+      fireEvent.submit(screen.getByTestId('form'));
+      expect(input()).toHaveAttribute('type', 'password');
+      expect(onVisibleChange).toHaveBeenCalledTimes(1);
+
+      fireEvent.click(toggle());
+      rerender(
+        <>
+          {field}
+          <form id="late" key="second" data-testid="form" />
+        </>
+      );
+      fireEvent.reset(screen.getByTestId('form'));
+      expect(input()).toHaveAttribute('type', 'password');
+      expect(onVisibleChange.mock.calls).toEqual([[false], [true], [false]]);
+    });
+
+    it('leaves another form alone', () => {
+      const onVisibleChange = vi.fn();
+      render(
+        <>
+          <form>
+            <PasswordInput
+              label="Password"
+              defaultVisible
+              onVisibleChange={onVisibleChange}
+            />
+          </form>
+          <form data-testid="other" />
+        </>
+      );
+      fireEvent.submit(screen.getByTestId('other'));
+      fireEvent.reset(screen.getByTestId('other'));
+      expect(input()).toHaveAttribute('type', 'text');
+      expect(onVisibleChange).not.toHaveBeenCalled();
+    });
+
     it('stops listening once it unmounts', () => {
       const { form, onVisibleChange, rerender } = inForm({
         defaultVisible: true,

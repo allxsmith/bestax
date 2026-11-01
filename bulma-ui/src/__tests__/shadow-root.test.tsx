@@ -22,6 +22,7 @@ import {
 import { Dropdown } from '../components/Dropdown';
 import { Taginput } from '../form/Taginput';
 import { PinInput } from '../form/PinInput';
+import { PasswordInput } from '../form/PasswordInput';
 import { Toast } from '../components/Toast';
 import { Carousel, CarouselItem } from '../components/Carousel';
 import { Modal } from '../components/Modal';
@@ -341,5 +342,31 @@ describe('Modal in a shadow root', () => {
 
     fireEvent.click(done);
     expect(shadowRoot.activeElement).toBe(opener);
+  });
+});
+
+describe('PasswordInput in a shadow root', () => {
+  test('hides again when its form submits or resets, though neither event leaves the root', () => {
+    const onVisibleChange = vi.fn();
+    const { getByLabelText, getByTestId } = renderInShadowRoot(
+      <form data-testid="form" onSubmit={event => event.preventDefault()}>
+        <PasswordInput
+          label="Password"
+          defaultVisible
+          onVisibleChange={onVisibleChange}
+        />
+      </form>
+    );
+    const field = getByLabelText('Password');
+    const toggle = field.nextElementSibling as HTMLButtonElement;
+    expect(field).toHaveAttribute('type', 'text');
+
+    fireEvent.submit(getByTestId('form'));
+    expect(field).toHaveAttribute('type', 'password');
+
+    fireEvent.click(toggle);
+    fireEvent.reset(getByTestId('form'));
+    expect(field).toHaveAttribute('type', 'password');
+    expect(onVisibleChange.mock.calls).toEqual([[false], [true], [false]]);
   });
 });

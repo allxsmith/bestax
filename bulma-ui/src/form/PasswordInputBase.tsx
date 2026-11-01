@@ -218,19 +218,24 @@ export const PasswordInputBase = forwardRef<
     flushSync(() => setVisible(false));
   });
 
-  // When the form it belongs to submits or resets.
-  const formAttribute = rest.form;
+  // When the form it belongs to submits or resets: whichever form that is
+  // when it happens, so a form mounted after the field, or mounted again,
+  // counts. Neither event leaves a shadow root, so it listens on the field's
+  // own root, the document or the shadow root it renders in, and in the
+  // capture phase, before any listener on the form.
   useEffect(() => {
-    const form = inputRef.current?.form;
-    if (!form) return;
-    const hideAgain = () => hideRef.current();
-    form.addEventListener('submit', hideAgain);
-    form.addEventListener('reset', hideAgain);
-    return () => {
-      form.removeEventListener('submit', hideAgain);
-      form.removeEventListener('reset', hideAgain);
+    const input = inputRef.current as HTMLInputElement;
+    const root = input.getRootNode();
+    const onFormEvent = (event: Event) => {
+      if (event.target === input.form) hideRef.current();
     };
-  }, [formAttribute, hideRef]);
+    root.addEventListener('submit', onFormEvent, true);
+    root.addEventListener('reset', onFormEvent, true);
+    return () => {
+      root.removeEventListener('submit', onFormEvent, true);
+      root.removeEventListener('reset', onFormEvent, true);
+    };
+  }, [hideRef]);
 
   // When the page is left, so the history the browser keeps of the form
   // holds a password field rather than text. It fires on the way into the
