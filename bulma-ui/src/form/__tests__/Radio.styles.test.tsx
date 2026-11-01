@@ -6,8 +6,15 @@
 // would.
 import * as sass from 'sass';
 import path from 'path';
+import React from 'react';
 import { render } from '@testing-library/react';
 import { Radio, type RadioProps } from '../Radio';
+import { Dropdown } from '../../components/Dropdown';
+import { Table } from '../../elements/Table';
+import { Tbody } from '../../elements/Tbody';
+import { Td } from '../../elements/Td';
+import { Th } from '../../elements/Th';
+import { Tr } from '../../elements/Tr';
 import { ConfigProvider } from '../../helpers/Config';
 
 const SCSS = path.resolve(__dirname, '../../scss');
@@ -182,5 +189,226 @@ describe.each([
     expect(resolve(checkOf({ disabled: true }), 'border-color', forced)).toBe(
       'graytext'
     );
+  });
+
+  describe('a Radio on a selected table row', () => {
+    // Bulma fills a selected row with `table-row-active-background-color`,
+    // primary by default, the color a checked radio draws its ring and its
+    // dot in too, so the radio vanished. It takes the row's text color
+    // instead.
+    const ROW_VARS = {
+      '--bulma-radio-border-color': 'var(--bulma-table-row-active-color)',
+      '--bulma-radio-active-color': 'var(--bulma-table-row-active-color)',
+    };
+
+    /**
+     * The first Radio's label in `content`, which sits in a cell of a row,
+     * or in a cell, marked selected (or neither).
+     */
+    const labelIn = (
+      selected: 'row' | 'cell' | 'none',
+      content: React.ReactNode,
+      cell: 'td' | 'th' = 'td'
+    ) => {
+      const Cell = cell;
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <table className={`${prefix}table`}>
+            <tbody>
+              <tr className={selected === 'row' ? `${prefix}is-selected` : ''}>
+                <Cell
+                  className={selected === 'cell' ? `${prefix}is-selected` : ''}
+                >
+                  {content}
+                </Cell>
+              </tr>
+            </tbody>
+          </table>
+        </ConfigProvider>
+      );
+      return container.querySelector(`.${prefix}styled-radio`) as HTMLElement;
+    };
+
+    const radio = (props: RadioProps = {}) => (
+      <Radio name="pick" aria-label="Pick Ada" onChange={() => {}} {...props} />
+    );
+
+    /** Whether a label takes the selected row's colors. */
+    const takesRowColors = (label: HTMLElement) =>
+      Object.entries(ROW_VARS).every(
+        ([name, value]) => resolve(label, name) === value
+      );
+
+    it.each([
+      ['row', 'row', 'td'],
+      ['row, in its row header', 'row', 'th'],
+      ['cell', 'cell', 'td'],
+    ] as const)(
+      'takes the colors of a selected %s',
+      (_name, selected, cell) => {
+        const label = labelIn(selected, radio({ checked: true }), cell);
+        for (const [name, value] of Object.entries(ROW_VARS)) {
+          expect(resolve(label, name)).toBe(value);
+        }
+      }
+    );
+
+    it('draws its ring and its dot in the row colors', () => {
+      // The ring and the dot both read `radio-active-color`, which is what
+      // the row hands the radio.
+      const check = labelIn('row', radio({ checked: true })).querySelector(
+        `.${prefix}check`
+      ) as HTMLElement;
+      expect(resolve(check, 'border-color')).toBe(
+        'var(--bulma-radio-active-color)'
+      );
+      expect(resolve(check, 'background-color', { pseudo: '::before' })).toBe(
+        'var(--bulma-radio-active-color)'
+      );
+    });
+
+    it('outranks a color variant there', () => {
+      const label = labelIn('row', radio({ checked: true, color: 'danger' }));
+      expect(resolve(label, '--bulma-radio-active-color')).toBe(
+        ROW_VARS['--bulma-radio-active-color']
+      );
+    });
+
+    it('keeps its own colors on a row that is not selected', () => {
+      const label = labelIn('none', radio({ checked: true }));
+      expect(resolve(label, '--bulma-radio-active-color')).toBe(
+        'var(--bulma-primary)'
+      );
+    });
+
+    // Anything that puts a surface of its own between the cell and the radio
+    // puts the radio on that surface's background, not the row's fill.
+    it('keeps its own colors in a Dropdown menu in the row', () => {
+      const label = labelIn(
+        'row',
+        <Dropdown label="Actions" active>
+          <Dropdown.Item as="div">{radio({ checked: true })}</Dropdown.Item>
+        </Dropdown>
+      );
+      expect(label.closest(`.${prefix}dropdown-content`)).not.toBeNull();
+      expect(takesRowColors(label)).toBe(false);
+      expect(resolve(label, '--bulma-radio-active-color')).toBe(
+        'var(--bulma-primary)'
+      );
+    });
+
+    // A cell with a color of its own paints its own background over the
+    // row's fill, so a radio there keeps its usual look on that color.
+    it.each(['white', 'dark', 'primary'] as const)(
+      'keeps its own colors in a %s cell of the row',
+      color => {
+        const { container } = render(
+          <ConfigProvider classPrefix={prefix}>
+            <Table>
+              <Tbody>
+                <Tr isSelected>
+                  <Th scope="row" color={color}>
+                    {radio({ checked: true })}
+                  </Th>
+                  <Td color={color}>{radio({ checked: true })}</Td>
+                  <Td>{radio({ checked: true })}</Td>
+                </Tr>
+              </Tbody>
+            </Table>
+          </ConfigProvider>
+        );
+        const [header, cell, plain] = Array.from(
+          container.querySelectorAll<HTMLElement>(`.${prefix}styled-radio`)
+        );
+        expect(header.parentElement).toHaveClass(`${prefix}is-${color}`);
+        for (const label of [header, cell]) {
+          expect(takesRowColors(label)).toBe(false);
+          expect(resolve(label, '--bulma-radio-active-color')).toBe(
+            'var(--bulma-primary)'
+          );
+        }
+        expect(takesRowColors(plain)).toBe(true);
+      }
+    );
+
+    // A row with a color of its own hands that color to every cell, which
+    // paints it over the selected fill, so the radios keep their usual look.
+    it.each(['white', 'light', 'primary'] as const)(
+      'keeps its own colors in a selected %s row',
+      color => {
+        const { container } = render(
+          <ConfigProvider classPrefix={prefix}>
+            <Table>
+              <Tbody>
+                <Tr color={color} isSelected>
+                  <Th scope="row">{radio({ checked: true })}</Th>
+                  <Td>{radio({ checked: true })}</Td>
+                </Tr>
+              </Tbody>
+            </Table>
+          </ConfigProvider>
+        );
+        const row = container.querySelector('tr') as HTMLElement;
+        expect(row).toHaveClass(`${prefix}is-${color}`, `${prefix}is-selected`);
+        for (const label of Array.from(
+          container.querySelectorAll<HTMLElement>(`.${prefix}styled-radio`)
+        )) {
+          expect(takesRowColors(label)).toBe(false);
+          expect(resolve(label, '--bulma-radio-active-color')).toBe(
+            'var(--bulma-primary)'
+          );
+        }
+      }
+    );
+
+    it('takes the row colors in a colored cell that is selected itself', () => {
+      // Bulma paints a selected cell in the row's fill whatever its color.
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Table>
+            <Tbody>
+              <Tr>
+                <Td color="white" className={`${prefix}is-selected`}>
+                  {radio({ checked: true })}
+                </Td>
+              </Tr>
+            </Tbody>
+          </Table>
+        </ConfigProvider>
+      );
+      const label = container.querySelector(
+        `.${prefix}styled-radio`
+      ) as HTMLElement;
+      expect(takesRowColors(label)).toBe(true);
+    });
+
+    it('keeps its own colors in a table nested in the row', () => {
+      const nested = (rowSelected: boolean) => (
+        <table className={`${prefix}table`}>
+          <tbody>
+            <tr className={rowSelected ? `${prefix}is-selected` : ''}>
+              <td>{radio({ checked: true })}</td>
+            </tr>
+          </tbody>
+        </table>
+      );
+      expect(takesRowColors(labelIn('row', nested(false)))).toBe(false);
+      // A selected row of the nested table is a fill of its own again.
+      expect(takesRowColors(labelIn('none', nested(true)))).toBe(true);
+    });
+
+    it('keeps its system colors in forced colors', () => {
+      const forced = { forcedColors: true };
+      const checkOn = (props: RadioProps) =>
+        labelIn('row', radio(props)).querySelector(
+          `.${prefix}check`
+        ) as HTMLElement;
+      const checked = checkOn({ checked: true });
+      expect(resolve(checked, 'border-color', forced)).toBe('highlight');
+      expect(
+        resolve(checked, 'background-color', { ...forced, pseudo: '::before' })
+      ).toBe('highlight');
+      expect(resolve(checkOn({}), 'border-color', forced)).toBe('buttontext');
+    });
   });
 });
