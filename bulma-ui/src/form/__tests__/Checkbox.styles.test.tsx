@@ -164,13 +164,17 @@ describe.each([
       expect(resolve(check, 'opacity', { pseudo: '::after' })).toBe('1');
     });
 
-    it('sets the label a gap from the box', () => {
+    it('sets the label a gap from the box, on the box side in either direction', () => {
+      // The row mirrors on a right-to-left page, so a physical margin-left
+      // stayed on the text's far side and the text touched the box.
       const label = renderCheckbox({ children: 'Remember me' }).querySelector(
         `.${prefix}control-label`
       ) as HTMLElement;
-      expect(resolve(label, 'margin-left')).toBe(
+      expect(resolve(label, 'margin-inline-start')).toBe(
         'var(--bulma-checkbox-label-gap)'
       );
+      expect(resolve(label, 'margin-left')).toBeUndefined();
+      expect(resolve(label, 'margin-right')).toBeUndefined();
     });
 
     it('dims the box and its label when disabled', () => {

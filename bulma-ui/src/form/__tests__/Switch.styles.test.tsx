@@ -164,13 +164,23 @@ describe.each([
     ).toBe('var(--bulma-danger)');
   });
 
-  it('sets the label a gap from the track, on the other side in RTL', () => {
-    expect(resolve(labelOf({}), 'margin-left')).toBe(
+  it('sets the label a gap from the track, on the other side with isRtl', () => {
+    // The row mirrors on a right-to-left page, so a physical margin stayed
+    // on the text's far side and the text touched the track. Logical ones
+    // follow the page's direction, and isRtl's reversed row.
+    const label = labelOf({});
+    expect(resolve(label, 'margin-inline-start')).toBe(
       'var(--bulma-switch-label-gap)'
     );
-    const rtl = labelOf({ isRtl: true });
-    expect(resolve(rtl, 'margin-left')).toBe('0px');
-    expect(resolve(rtl, 'margin-right')).toBe('var(--bulma-switch-label-gap)');
+    const reversed = labelOf({ isRtl: true });
+    expect(resolve(reversed, 'margin-inline-start')).toBe('0px');
+    expect(resolve(reversed, 'margin-inline-end')).toBe(
+      'var(--bulma-switch-label-gap)'
+    );
+    for (const el of [label, reversed]) {
+      expect(resolve(el, 'margin-left')).toBeUndefined();
+      expect(resolve(el, 'margin-right')).toBeUndefined();
+    }
   });
 
   it('dims the track and its label when disabled', () => {

@@ -128,9 +128,13 @@ $taginput-transition-duration: cv.getVar("duration") !default;
       align-items: center;
       gap: cv.getVar("taginput-tag-gap");
 
+      // The remove button comes after the text, so its gap is on its inline
+      // start and it reaches into the tag's padding on its inline end, as
+      // Bulma's own tag does it. Physical margins put the gap on the far
+      // side on a right-to-left page, and the button on the text.
       .#{iv.$class-prefix}delete {
-        margin-left: 0.25rem;
-        margin-right: -0.25rem;
+        margin-inline-start: 0.25rem;
+        margin-inline-end: -0.25rem;
       }
     }
   }
