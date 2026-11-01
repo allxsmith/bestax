@@ -5,6 +5,7 @@ import { hydrateRoot } from 'react-dom/client';
 import { NumberFormatter } from '../NumberFormatter';
 import { ConfigProvider } from '../../helpers/Config';
 import { LocaleProvider } from '../../helpers/LocaleProvider';
+import { resetDevWarnings } from '../../helpers/devWarnings';
 
 /** `Intl.NumberFormat` as it is before any test replaces it. */
 const RealNumberFormat = Intl.NumberFormat;
@@ -63,6 +64,25 @@ describe('NumberFormatter', () => {
     rerender(<NumberFormatter value={-Infinity} />);
     expect(dataOf(container)).toHaveAttribute('value', '-Infinity');
     expect(dataOf(container).textContent).toBe(write(undefined, -Infinity));
+  });
+
+  it('writes the value attribute as String() does, keeping the sign of -0', () => {
+    const { container, rerender } = render(<NumberFormatter value={1e21} />);
+    expect(dataOf(container)).toHaveAttribute('value', '1e+21');
+    rerender(<NumberFormatter value={1e-7} />);
+    expect(dataOf(container)).toHaveAttribute('value', '1e-7');
+    rerender(<NumberFormatter value={-0} locale="en-US" />);
+    expect(dataOf(container)).toHaveAttribute('value', '-0');
+    expect(dataOf(container).textContent).toBe('-0');
+    rerender(<NumberFormatter value={0} locale="en-US" />);
+    expect(dataOf(container)).toHaveAttribute('value', '0');
+    // Number() reads each one back.
+    for (const value of [1e21, 1e-7, -0, -1234.5]) {
+      rerender(<NumberFormatter value={value} />);
+      expect(
+        Object.is(Number(dataOf(container).getAttribute('value')), value)
+      ).toBe(true);
+    }
   });
 
   describe('Locale', () => {
@@ -141,6 +161,8 @@ describe('NumberFormatter', () => {
   });
 
   describe('What Intl refuses', () => {
+    beforeEach(() => resetDevWarnings());
+
     it('throws its error for options it refuses', () => {
       vi.spyOn(console, 'error').mockImplementation(() => {});
       expect(() =>
@@ -148,11 +170,26 @@ describe('NumberFormatter', () => {
       ).toThrow(TypeError);
     });
 
-    it('throws its error for a tag it refuses', () => {
-      vi.spyOn(console, 'error').mockImplementation(() => {});
-      expect(() =>
-        render(<NumberFormatter value={1} locale="en_US" />)
-      ).toThrow(RangeError);
+    it('ignores a tag it refuses, warning once, as LocaleProvider does', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const { container, rerender } = render(
+        <NumberFormatter value={1234.5} locale="en_US" />
+      );
+      expect(dataOf(container).textContent).toBe(write(undefined, 1234.5));
+      rerender(
+        <LocaleProvider locale="de">
+          <NumberFormatter value={1234.5} locale="en_US" />
+        </LocaleProvider>
+      );
+      expect(dataOf(container).textContent).toBe(write('de', 1234.5));
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn.mock.calls[0][0]).toMatch(
+        /given the locale "en_US", which is not a language tag Intl accepts/
+      );
+      // A tag it accepts is written in its canonical form, which Intl reads alike.
+      rerender(<NumberFormatter value={1234.5} locale="de-de" />);
+      expect(dataOf(container).textContent).toBe(write('de-DE', 1234.5));
+      expect(warn).toHaveBeenCalledTimes(1);
     });
   });
 

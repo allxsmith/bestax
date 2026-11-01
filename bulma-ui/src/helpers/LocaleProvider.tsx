@@ -60,17 +60,29 @@ export interface LocaleProviderProps
   children?: React.ReactNode;
 }
 
-/** A tag in canonical form, or `undefined`, warning about one `Intl` refuses. */
-function validLocale(tag: string | undefined): string | undefined {
+/** The provider's warning about a tag `Intl` refuses. */
+const warnProviderLocale = (tag: string) =>
+  warnOnce(
+    `locale-provider-invalid:${tag}`,
+    `[bestax-bulma] <LocaleProvider locale="${tag}">: not a language ` +
+      'tag Intl accepts, so it is ignored. Use a BCP 47 tag such as ' +
+      '"en-US", with a hyphen rather than an underscore.'
+  );
+
+/**
+ * INTERNAL, deliberately not exported from `src/index.ts`. A tag in
+ * canonical form, or `undefined` for an empty or missing one and for one
+ * `Intl` refuses, which `refused` reports: by default the provider's own
+ * development warning, once per tag.
+ */
+export function validLocale(
+  tag: string | undefined,
+  refused: (tag: string) => void = warnProviderLocale
+): string | undefined {
   try {
     return canonicalLocale(tag);
   } catch {
-    warnOnce(
-      `locale-provider-invalid:${tag}`,
-      `[bestax-bulma] <LocaleProvider locale="${tag}">: not a language ` +
-        'tag Intl accepts, so it is ignored. Use a BCP 47 tag such as ' +
-        '"en-US", with a hyphen rather than an underscore.'
-    );
+    refused(tag as string);
     return undefined;
   }
 }

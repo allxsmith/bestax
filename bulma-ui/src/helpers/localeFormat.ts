@@ -3,12 +3,15 @@
 // `useNumberFormat` and its `NumberFormatFunction` type are public, exported
 // from src/index.ts. The rest is INTERNAL, deliberately not exported: the
 // library's own callers format through `useScopedNumberFormat` and match
-// through `useLocaleMatcher`, which return `null` outside a provider that
-// gives a locale, so each keeps the formatting and the matching it has always
-// had there.
+// through `useLocaleMatcher`. Those return `null` outside a `LocaleProvider`,
+// even for a component with a locale of its own, and inside one when neither
+// the component nor the provider gives a locale, as a provider with only a
+// `dir` doesn't, so each caller keeps the formatting and the matching it has
+// always had there.
 
 import { useMemo } from 'react';
-import { useLocaleScope } from './LocaleProvider';
+import { useLocaleScope, validLocale } from './LocaleProvider';
+import { warnOnce } from './devWarnings';
 
 /** A combining mark: an accent, a vowel sign or a point written on a letter. */
 const MARK = /\p{M}/u;
@@ -22,22 +25,126 @@ export type NumberFormatFunction = (
 /** Whether `text` contains `query`, as the locale compares letters. */
 export type TextMatcher = (text: string, query: string) => boolean;
 
+/** The warning about a locale of a component's own that `Intl` refuses. */
+const warnOwnLocale = (tag: string) =>
+  warnOnce(
+    `number-format-invalid-locale:${tag}`,
+    `[bestax-bulma] NumberFormatter or useNumberFormat was given the locale ` +
+      `"${tag}", which is not a language tag Intl accepts, so it is ` +
+      "ignored and numbers are written in the LocaleProvider's locale, " +
+      'else the runtime\'s. Use a BCP 47 tag such as "en-US", with a ' +
+      'hyphen rather than an underscore.'
+  );
+
 /**
- * The locale a component formats and matches in: inside a `LocaleProvider`,
- * the component's own locale when it has one (a picker's `locale`), else the
- * provider's; outside a provider, none.
+ * The locale a component formats and matches in, and whether a
+ * `LocaleProvider` is around it: the component's own locale, else the
+ * provider's. A tag `Intl` refuses counts as none, with a development
+ * warning, as `LocaleProvider` treats one.
+ */
+function useResolvedLocale(own: string | undefined): {
+  locale: string | undefined;
+  inProvider: boolean;
+} {
+  const scope = useLocaleScope();
+  const valid = useMemo(() => validLocale(own, warnOwnLocale), [own]);
+  return { locale: valid || scope?.locale, inProvider: scope !== null };
+}
+
+/**
+ * The locale a component formats and matches in inside a `LocaleProvider`,
+ * as `useResolvedLocale` finds it; outside a provider, none.
  */
 function useScopedLocale(own: string | undefined): string | undefined {
-  const scope = useLocaleScope();
-  if (!scope) return undefined;
-  return own || scope.locale;
+  const { locale, inProvider } = useResolvedLocale(own);
+  return inProvider ? locale : undefined;
+}
+
+/**
+ * The options `Intl.NumberFormat` reads, as ECMA-402 lists them. A key reads
+ * each by name, so an inherited option counts as `Intl` counts it.
+ */
+const NUMBER_FORMAT_OPTIONS = [
+  'localeMatcher',
+  'numberingSystem',
+  'style',
+  'currency',
+  'currencyDisplay',
+  'currencySign',
+  'unit',
+  'unitDisplay',
+  'notation',
+  'minimumIntegerDigits',
+  'minimumFractionDigits',
+  'maximumFractionDigits',
+  'minimumSignificantDigits',
+  'maximumSignificantDigits',
+  'roundingIncrement',
+  'roundingMode',
+  'roundingPriority',
+  'trailingZeroDisplay',
+  'compactDisplay',
+  'useGrouping',
+  'signDisplay',
+];
+const KNOWN_OPTIONS = new Set(NUMBER_FORMAT_OPTIONS);
+
+/** One option's value with its type, or `null` for one a key can't hold. */
+function writeOption(value: unknown): string | null {
+  switch (typeof value) {
+    case 'string':
+      return JSON.stringify(value);
+    case 'number':
+      // `NaN` and `Infinity` as themselves, which `JSON.stringify` makes
+      // `null`, and `-0` with its sign.
+      return Object.is(value, -0) ? '-0' : String(value);
+    case 'boolean':
+      return String(value);
+    case 'bigint':
+      return `${value}n`;
+    default:
+      return value === null ? 'null' : null;
+  }
+}
+
+/**
+ * The options as `Intl` will read them, and a key that tells apart any two
+ * sets it would read differently; `null` when a value is an object, a
+ * function or a symbol, which `Intl` converts in ways a key can't follow.
+ * It reads each option `Intl` reads by name, inherited ones included, then
+ * every other enumerable key, own or inherited, so an option `Intl` gains
+ * later still keeps two sets apart. An option set to `undefined` is unset,
+ * as it is for `Intl`. The formatter is built from the copy, so `Intl` sees
+ * what the key says, even of a getter.
+ */
+function readOptions(
+  options: object
+): { key: string; read: Record<string, unknown> } | null {
+  const others: string[] = [];
+  for (const name in options) {
+    if (!KNOWN_OPTIONS.has(name)) others.push(name);
+  }
+  const names = NUMBER_FORMAT_OPTIONS.concat(others.sort());
+  const read: Record<string, unknown> = {};
+  const parts: string[] = [];
+  for (const name of names) {
+    const value = (options as Record<string, unknown>)[name];
+    if (value === undefined) continue;
+    const written = writeOption(value);
+    if (written === null) return null;
+    read[name] = value;
+    parts.push(`${JSON.stringify(name)}:${written}`);
+  }
+  return { key: parts.join(','), read };
 }
 
 /**
  * Every formatter's `Intl.NumberFormat`s, by locale and options, so a page of
  * numbers in one locale and format builds one. Building one is the expensive
- * part of formatting. The oldest goes once there are `MOST_NUMBER_FORMATS`,
- * so a server that writes numbers in many locales doesn't keep them all.
+ * part of formatting. Past `MOST_NUMBER_FORMATS`, the one used longest ago
+ * goes, so a server that writes numbers in many locales doesn't keep them
+ * all, and the ones in use stay. A `Map` keeps its keys in the order they
+ * were set, so a formatter is set again each time it's used.
  */
 const numberFormats = new Map<string, Intl.NumberFormat>();
 const MOST_NUMBER_FORMATS = 200;
@@ -47,19 +154,42 @@ function numberFormatFor(
   locale: string | undefined,
   options: Intl.NumberFormatOptions | undefined
 ): Intl.NumberFormat {
+  let read: Intl.NumberFormatOptions | undefined;
+  let key = '';
+  if (options !== undefined) {
+    const copy =
+      typeof options === 'object' && options !== null
+        ? readOptions(options)
+        : null;
+    // Options a key can't hold get a formatter of their own, which also
+    // throws what `Intl` throws for them.
+    if (!copy) return new Intl.NumberFormat(locale, options);
+    read = copy.read;
+    key = copy.key;
+  }
   // A locale tag has no spaces, so the key can't be read two ways.
-  const key = `${locale ?? ''} ${options ? JSON.stringify(options) : ''}`;
-  let format = numberFormats.get(key);
-  if (!format) {
+  const cacheKey = `${locale ?? ''} ${key}`;
+  let format = numberFormats.get(cacheKey);
+  if (format) {
+    numberFormats.delete(cacheKey);
+  } else {
     // Built before anything is stored, so options `Intl` refuses throw its
     // error and leave nothing behind.
-    format = new Intl.NumberFormat(locale, options);
+    format = new Intl.NumberFormat(locale, read);
     if (numberFormats.size >= MOST_NUMBER_FORMATS) {
       numberFormats.delete(numberFormats.keys().next().value as string);
     }
-    numberFormats.set(key, format);
   }
+  numberFormats.set(cacheKey, format);
   return format;
+}
+
+/** A function that writes numbers in `locale`, the same one for each locale. */
+function useFormatIn(locale: string | undefined): NumberFormatFunction {
+  return useMemo<NumberFormatFunction>(
+    () => (value, options) => numberFormatFor(locale, options).format(value),
+    [locale]
+  );
 }
 
 /**
@@ -72,8 +202,10 @@ function numberFormatFor(
  * such as an `aria-label`, a `placeholder` or a chart's axis; in JSX,
  * `NumberFormatter` also marks the number up. On a server render the
  * runtime's locale is the server's, so give it a locale, here or through a
- * `LocaleProvider`, where the server's and the browser's can differ. A tag or
- * options `Intl` refuses throw its error when the function is called.
+ * `LocaleProvider`, where the server's and the browser's can differ. A tag
+ * `Intl` refuses is ignored, with a warning in development, as
+ * `LocaleProvider` ignores one. Options `Intl` refuses throw its error when
+ * the function is called.
  *
  * @function
  * @param locale - A BCP 47 locale tag, which wins over the provider's.
@@ -84,20 +216,15 @@ function numberFormatFor(
  * const placeholder = format(1500, { style: 'currency', currency: 'EUR' });
  */
 export function useNumberFormat(locale?: string): NumberFormatFunction {
-  const scope = useLocaleScope();
-  const resolved = locale || scope?.locale;
-  return useMemo<NumberFormatFunction>(
-    () => (value, options) => numberFormatFor(resolved, options).format(value),
-    [resolved]
-  );
+  return useFormatIn(useResolvedLocale(locale).locale);
 }
 
 /**
  * INTERNAL, deliberately not exported from `src/index.ts`. The library's own
- * number formatting: `useNumberFormat`'s inside a `LocaleProvider` that gives
- * a locale, or with the component's own locale inside any provider, and
- * `null` outside one, so each caller keeps the formatting it has always had
- * there.
+ * number formatting, as `useNumberFormat` writes it, or `null` where the
+ * caller keeps the formatting it had before `LocaleProvider` existed: outside
+ * a provider, even with a locale of its own, and inside one when neither it
+ * nor the provider gives a locale, as a provider with only a `dir` doesn't.
  *
  * @param own - The component's own locale, such as a picker's `locale`,
  * which wins inside a provider.
@@ -105,8 +232,9 @@ export function useNumberFormat(locale?: string): NumberFormatFunction {
 export function useScopedNumberFormat(
   own?: string
 ): NumberFormatFunction | null {
-  const format = useNumberFormat(own);
-  return useScopedLocale(own) ? format : null;
+  const scoped = useScopedLocale(own);
+  const format = useFormatIn(scoped);
+  return scoped ? format : null;
 }
 
 /**

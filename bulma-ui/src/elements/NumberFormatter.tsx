@@ -23,9 +23,11 @@ export interface NumberFormatterProps
   /** Additional CSS classes to apply. */
   className?: string;
   /**
-   * The number. It goes in the `<data>` element's `value` attribute as
-   * digits, and the text is what `Intl.NumberFormat` writes for it, `NaN`
-   * and `Infinity` included.
+   * The number. The text is what `Intl.NumberFormat` writes for it, `NaN`
+   * and `Infinity` included. The `<data>` element's `value` attribute holds
+   * it as JavaScript writes a number with `String()`, which `Number()` reads
+   * back: `1234.5`, `1e+21` for a very large one and `1e-7` for a very small
+   * one, `NaN`, `Infinity`, and `-0` with its sign.
    */
   value: number;
   /**
@@ -38,8 +40,9 @@ export interface NumberFormatterProps
    * BCP 47 locale tag. Unset, it's the `locale` of a `LocaleProvider` around
    * it, and with neither, the runtime's own. On a server render that's the
    * server's, so give it a locale, here or through a `LocaleProvider`, where
-   * the server's and the browser's can differ. A tag `Intl` refuses throws
-   * its error.
+   * the server's and the browser's can differ. A tag `Intl` refuses, such as
+   * `"en_US"`, is ignored, with a warning in development, as
+   * `LocaleProvider` ignores one.
    */
   locale?: string;
   /** Text color helper. */
@@ -84,7 +87,7 @@ export const NumberFormatter = forwardRef<
       ref={ref}
       className={classNames(bulmaHelperClasses, className) || undefined}
       {...rest}
-      value={String(value)}
+      value={Object.is(value, -0) ? '-0' : String(value)}
     >
       {formatNumber(value, format)}
     </data>

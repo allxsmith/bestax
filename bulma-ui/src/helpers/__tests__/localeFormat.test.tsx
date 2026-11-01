@@ -1,6 +1,7 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { LocaleProvider } from '../LocaleProvider';
+import { resetDevWarnings } from '../devWarnings';
 import {
   useLocaleMatcher,
   useNumberFormat,
@@ -142,28 +143,129 @@ describe('useNumberFormat', () => {
     expect(built).toHaveBeenCalledTimes(2);
   });
 
-  it('lets the oldest go once it holds many', () => {
+  it('lets the one used longest ago go once it holds many', () => {
     render(<Probe locale="en-GB" />);
-    const built = countNumberFormats();
     // `Intl` ignores a key it doesn't know, which makes each set distinct.
-    const set = (n: number) => ({ n }) as Intl.NumberFormatOptions;
-    seen(1, set(0));
-    for (let n = 1; n <= 1000; n++) seen(1, set(n));
-    expect(built).toHaveBeenCalledTimes(1001);
-    seen(1, set(1000));
-    expect(built).toHaveBeenCalledTimes(1001);
-    seen(1, set(0));
-    expect(built).toHaveBeenCalledTimes(1002);
+    const set = (name: string) => ({ [name]: 1 }) as Intl.NumberFormatOptions;
+    // As many as it holds, which pushes out whatever earlier tests left.
+    for (let n = 0; n < 200; n++) seen(1, set(`fill${n}`));
+    const built = countNumberFormats();
+    // A hit makes fill0 the most recently used, so the next new set pushes
+    // out fill1, the one used longest ago, and fill0 stays.
+    seen(1, set('fill0'));
+    expect(built).not.toHaveBeenCalled();
+    seen(1, set('new'));
+    expect(built).toHaveBeenCalledTimes(1);
+    seen(1, set('fill0'));
+    expect(built).toHaveBeenCalledTimes(1);
+    seen(1, set('fill1'));
+    expect(built).toHaveBeenCalledTimes(2);
   });
 
-  it('throws what Intl throws for options or a tag it refuses, and keeps nothing', () => {
+  describe('the cache key', () => {
+    it("tells NaN and Infinity from null, so each gets Intl's own answer", () => {
+      render(<Probe locale="en-AU" />);
+      // `null` reads as 0 fraction digits; NaN and Infinity are refused.
+      expect(seen(1.234, { maximumFractionDigits: null as never })).toBe(
+        write('en-AU', 1.234, { maximumFractionDigits: 0 })
+      );
+      expect(() => seen(1.234, { maximumFractionDigits: NaN })).toThrow(
+        RangeError
+      );
+      expect(() => seen(1.234, { maximumFractionDigits: Infinity })).toThrow(
+        RangeError
+      );
+      // And the other way round: NaN first leaves nothing for null to find.
+      expect(() => seen(1.5, { minimumFractionDigits: NaN })).toThrow(
+        RangeError
+      );
+      expect(seen(1.5, { minimumFractionDigits: null as never })).toBe(
+        write('en-AU', 1.5, { minimumFractionDigits: 0 })
+      );
+    });
+
+    it('reads inherited options, as Intl does', () => {
+      render(<Probe locale="en-NZ" />);
+      const inherited = Object.create({
+        maximumFractionDigits: 0,
+      }) as Intl.NumberFormatOptions;
+      // A plain set first, so a key that missed the inherited option would
+      // hand it this formatter.
+      expect(seen(1.5, {})).toBe(write('en-NZ', 1.5));
+      expect(seen(1.5, inherited)).toBe(
+        write('en-NZ', 1.5, { maximumFractionDigits: 0 })
+      );
+      expect(seen(1.5, {})).toBe(write('en-NZ', 1.5));
+    });
+
+    it('treats an option set to undefined as unset, and -0 as Intl does', () => {
+      render(<Probe locale="en-IE" />);
+      const built = countNumberFormats();
+      seen(1, { style: 'decimal' });
+      seen(1, { style: 'decimal', currency: undefined });
+      expect(built).toHaveBeenCalledTimes(1);
+      expect(seen(1.5, { maximumFractionDigits: -0 })).toBe(
+        write('en-IE', 1.5, { maximumFractionDigits: 0 })
+      );
+      expect(seen(1, { useGrouping: false })).toBe(
+        write('en-IE', 1, { useGrouping: false })
+      );
+    });
+
+    it('reads a getter once, and builds from what it read', () => {
+      render(<Probe locale="en-ZA" />);
+      let reads = 0;
+      const options = {
+        get maximumFractionDigits() {
+          reads++;
+          return reads === 1 ? 0 : 3;
+        },
+      };
+      expect(seen(1.2345, options)).toBe(
+        write('en-ZA', 1.2345, { maximumFractionDigits: 0 })
+      );
+      expect(reads).toBe(1);
+    });
+
+    it("leaves values it can't key, and options that aren't an object, to Intl", () => {
+      render(<Probe locale="en-CA" />);
+      const built = countNumberFormats();
+      const digits = { valueOf: () => 2 } as unknown as number;
+      expect(seen(1.5, { minimumFractionDigits: digits })).toBe(
+        write('en-CA', 1.5, { minimumFractionDigits: 2 })
+      );
+      seen(1.5, { minimumFractionDigits: digits });
+      expect(built).toHaveBeenCalledTimes(2);
+      expect(() =>
+        seen(1, { maximumFractionDigits: 2n as unknown as number })
+      ).toThrow(TypeError);
+      expect(() => seen(1, null as unknown as undefined)).toThrow(TypeError);
+    });
+  });
+
+  it('throws what Intl throws for options it refuses, and keeps nothing', () => {
     render(<Probe locale="de" />);
     const built = countNumberFormats();
     expect(() => seen(1, { style: 'currency' })).toThrow(TypeError);
     expect(() => seen(1, { style: 'currency' })).toThrow(TypeError);
     expect(built).toHaveBeenCalledTimes(2);
-    render(<Probe locale="en_US" />);
-    expect(() => seen(1)).toThrow(RangeError);
+  });
+
+  it('ignores a tag Intl refuses, warning once, and falls back', () => {
+    resetDevWarnings();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { rerender } = render(<Probe locale="en_US" />);
+    expect(seen(1234.5)).toBe(write(undefined, 1234.5));
+    rerender(
+      <LocaleProvider locale="de">
+        <Probe locale="en_US" />
+      </LocaleProvider>
+    );
+    expect(seen(1234.5)).toBe(write('de', 1234.5));
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0][0]).toContain(
+      'NumberFormatter or useNumberFormat was given the locale "en_US"'
+    );
   });
 });
 
@@ -215,6 +317,31 @@ describe('useScopedNumberFormat', () => {
       </LocaleProvider>
     );
     expect(seen!(12)).toBe(write('ar-EG', 12));
+  });
+
+  it('formats in its own locale inside a provider that gives only a dir', () => {
+    render(
+      <LocaleProvider dir="rtl">
+        <Probe own="de" />
+      </LocaleProvider>
+    );
+    expect(seen!(1234.5)).toBe(write('de', 1234.5));
+  });
+
+  it('counts a tag Intl refuses as no locale of its own', () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { rerender } = render(
+      <LocaleProvider dir="rtl">
+        <Probe own="en_US" />
+      </LocaleProvider>
+    );
+    expect(seen).toBeNull();
+    rerender(
+      <LocaleProvider locale="de">
+        <Probe own="en_US" />
+      </LocaleProvider>
+    );
+    expect(seen!(1234.5)).toBe(write('de', 1234.5));
   });
 });
 

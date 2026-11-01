@@ -205,7 +205,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
 ### A Locale Intl Doesn't Accept
 
-A tag `Intl` refuses, such as `"en_US"` with an underscore, is ignored: the provider writes no `lang`, keeps an outer provider's locale, and warns once in development. A picker's own `locale` isn't checked this way, and `Intl` throws on such a tag when the picker formats with it, as it always has.
+A tag `Intl` refuses, such as `"en_US"` with an underscore, is ignored: the provider writes no `lang`, keeps an outer provider's locale, and warns once in development. A `NumberFormatter`'s or `useNumberFormat`'s own `locale` is checked the same way: a tag `Intl` refuses is ignored with a warning, and the number is written in the provider's locale. A picker's own `locale` isn't checked this way, and `Intl` throws on such a tag when the picker formats with it, as it always has.
 
 ---
 

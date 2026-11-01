@@ -182,9 +182,9 @@ Rules that keep components consistent:
   accessible name uses `NumberFormatter` or `useNumberFormat` (`helpers/localeFormat.ts`), not
   `toLocaleString()` or an `Intl.NumberFormat` of its own, so it follows a `LocaleProvider` and
   shares the formatter cache. The components that wrote numbers before `LocaleProvider` existed
-  call the internal `useScopedNumberFormat` instead, which returns `null` outside a provider so
-  their output there stays as it was. A new component has no output to keep, so it takes the
-  public hook.
+  call the internal `useScopedNumberFormat` instead. It returns `null` outside a provider, and
+  inside one when neither the component nor the provider gives a locale, so their output there
+  stays as it was. A new component has no output to keep, so it takes the public hook.
 
 - **Direction comes from the DOM.** A component that handles Left and Right, or places things by
   side, reads `getComputedStyle(el).direction` when the key or pointer arrives, as `Splitter` and
