@@ -1,0 +1,140 @@
+{
+  "name": "NumberFormatter",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/numberformatter",
+  "docsUrl": "https://bestax.io/docs/api/elements/numberformatter",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<NumberFormatter value={1234567.891} />"
+    },
+    {
+      "title": "Currencies",
+      "code": "<Paragraph>\n  Order total:{' '}\n  <NumberFormatter\n    value={8456.4}\n    locale=\"en-US\"\n    format={{ style: 'currency', currency: 'USD' }}\n  />\n</Paragraph>"
+    },
+    {
+      "title": "Percentages, Units and Signs",
+      "code": "<DescriptionList>\n  <DescriptionList.Item\n    label=\"Conversion rate\"\n    value={\n      <NumberFormatter\n        value={0.125}\n        locale=\"en-US\"\n        format={{ style: 'percent', maximumFractionDigits: 1 }}\n      />\n    }\n  />\n  <DescriptionList.Item\n    label=\"Average speed\"\n    value={\n      <NumberFormatter\n        value={12}\n        locale=\"en-US\"\n        format={{ style: 'unit', unit: 'kilometer-per-hour' }}\n      />\n    }\n  />\n  <DescriptionList.Item\n    label=\"Change\"\n    value={\n      <NumberFormatter\n        value={0.034}\n        locale=\"en-US\"\n        format={{\n          style: 'percent',\n          signDisplay: 'exceptZero',\n          maximumFractionDigits: 1,\n        }}\n      />\n    }\n  />\n</DescriptionList>"
+    },
+    {
+      "title": "Compact Notation",
+      "code": "<DescriptionList>\n  {['en-US', 'fr-FR', 'ja-JP', 'de-DE'].map(locale => (\n    <DescriptionList.Item\n      key={locale}\n      label={locale}\n      value={\n        <NumberFormatter\n          value={123456}\n          locale={locale}\n          format={{ notation: 'compact' }}\n        />\n      }\n    />\n  ))}\n</DescriptionList>"
+    },
+    {
+      "title": "Locales",
+      "code": "<DescriptionList>\n  {['en-US', 'de-DE', 'fr-FR', 'en-IN', 'ar-EG', 'ja-JP'].map(locale => (\n    <DescriptionList.Item\n      key={locale}\n      label={locale}\n      value={<NumberFormatter value={1234567.891} locale={locale} />}\n    />\n  ))}\n</DescriptionList>"
+    },
+    {
+      "title": "In a LocaleProvider",
+      "code": "<LocaleProvider locale=\"fr-FR\">\n  <Paragraph>\n    Vitesse moyenne :{' '}\n    <NumberFormatter\n      value={1234.5}\n      format={{ style: 'unit', unit: 'kilometer-per-hour' }}\n    />\n  </Paragraph>\n</LocaleProvider>"
+    },
+    {
+      "title": "Helper Props",
+      "code": "<Title as=\"p\" size=\"3\">\n  <NumberFormatter\n    value={0.986}\n    locale=\"en-US\"\n    format={{ style: 'percent', maximumFractionDigits: 1 }}\n    textColor=\"success\"\n    colorShade=\"on-scheme\"\n  />{' '}\n  uptime\n</Title>"
+    },
+    {
+      "title": "The useNumberFormat Hook",
+      "code": "function example() {\n  const format = useNumberFormat('de-DE');\n  return (\n    <Input\n      label=\"Monatliches Budget\"\n      placeholder={format(1500, { style: 'currency', currency: 'EUR' })}\n    />\n  );\n}"
+    },
+    {
+      "title": "A Number That Changes",
+      "code": "function example() {\n  const [items, setItems] = React.useState(1);\n  return (\n    <>\n      <Buttons>\n        <Button onClick={() => setItems(n => n + 1)}>Add one</Button>\n      </Buttons>\n      <Paragraph role=\"status\">\n        Total:{' '}\n        <NumberFormatter\n          value={(items * 1999) / 100}\n          locale=\"en-US\"\n          format={{ style: 'currency', currency: 'USD' }}\n        />\n      </Paragraph>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Server Rendering",
+      "code": "import type { ReactNode } from 'react';\nimport { LocaleProvider } from '@allxsmith/bestax-bulma';\n\nexport default function RootLayout({ children }: { children: ReactNode }) {\n  return (\n    <html lang=\"de-DE\">\n      <body>\n        <LocaleProvider locale=\"de-DE\">{children}</LocaleProvider>\n      </body>\n    </html>\n  );\n}"
+    }
+  ],
+  "accessibility": "- **No role:** `<data>` maps to no role, so a screen reader reads the formatted text, with the\n  locale's currency symbol, percent sign, units and sign, as it would read the same text anywhere\n  else.\n- **Compact notation** is read as written (\"123K\"). Show the exact figure too where it matters.\n- **Language:** a `locale` that differs from the page's language changes how the number is\n  written, not the voice that reads it. A passage in another language still needs `lang` on its\n  container, which `LocaleProvider` sets.\n- **Not live:** a changing value isn't announced. Wrap the one figure that should be in a\n  `role=\"status\"` element, as in [A Number That Changes](https://bestax.io/docs/api/elements/numberformatter#a-number-that-changes).\n- **Not color alone:** for a rise or a fall, write the sign with `signDisplay`, so the direction\n  doesn't depend on a `textColor`.",
+  "related": [
+    "DescriptionList",
+    "LocaleProvider",
+    "Numberinput",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-numberformatter--default",
+  "summary": "The `NumberFormatter` component writes a number the way a locale writes it, such as a price, a percentage or a count, in a `<data>` element that keeps the number itself in its `value`. It formats with `Intl.NumberFormat`, in its own `locale`, else the `LocaleProvider`'s around it, else the runtime's, with `format` as the options. The `<data>` has no role and no class of its own, so a screen reader reads the formatted text and it takes the look of the text around it. For text outside JSX, such as an `aria-label`, `useNumberFormat` gives the same formatting as a function.",
+  "import": "import { NumberFormatter, useNumberFormat } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/NumberFormatter.tsx",
+  "rootClass": null,
+  "parts": [
+    {
+      "path": "NumberFormatter",
+      "summary": "The `NumberFormatter` component writes a number the way a locale writes it, such as a price, a percentage or a count, in a `<data>` element that keeps the number itself in its `value`. It formats with `Intl.NumberFormat`, in its own `locale`, else the `LocaleProvider`'s around it, else the runtime's, with `format` as the options. The `<data>` has no role and no class of its own, so a screen reader reads the formatted text and it takes the look of the text around it. For text outside JSX, such as an `aria-label`, `useNumberFormat` gives the same formatting as a function.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "default": null,
+          "description": "The number. It goes in the `<data>` element's `value` attribute as digits, and the text is what `Intl.NumberFormat` writes for it, `NaN` and `Infinity` included.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "format",
+          "type": "Intl.NumberFormatOptions",
+          "default": null,
+          "description": "`Intl.NumberFormat` options: a currency, a percentage, a unit, compact notation, the fraction digits, the sign. Options `Intl` refuses, such as `style: 'currency'` with no `currency`, throw its error.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "default": null,
+          "description": "BCP 47 locale tag. Unset, it's the `locale` of a `LocaleProvider` around it, and with neither, the runtime's own. On a server render that's the server's, so give it a locale, here or through a `LocaleProvider`, where the server's and the browser's can differ. A tag `Intl` refuses throws its error.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDataElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<data>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <data> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": []
+}

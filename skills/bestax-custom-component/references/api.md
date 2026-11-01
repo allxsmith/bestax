@@ -176,12 +176,15 @@ or lays something out by side, reads `getComputedStyle(element).direction` when 
 pointer arrives, and uses logical properties (`margin-inline-start`, `inset-inline-end`) in its
 CSS, so `<html dir>` works with or without a provider.
 
+For numbers, use `useNumberFormat()` rather than an `Intl.NumberFormat` of your own. It returns a
+function that writes in the `locale` you pass it, else the provider's, else the runtime's. The
+function is the same from render to render, and it shares one formatter for each locale and set
+of options. In JSX, `<NumberFormatter value format locale>` writes the same text in a
+`<data value>` element.
+
 ```tsx
-const { locale } = useLocale();
-const total = new Intl.NumberFormat(locale, {
-  style: 'currency',
-  currency: 'EUR',
-}).format(amount);
+const format = useNumberFormat();
+const total = format(amount, { style: 'currency', currency: 'EUR' });
 ```
 
 ## Holding focus: `useFocusTrap`

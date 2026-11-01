@@ -1,7 +1,11 @@
-// INTERNAL: deliberately not exported from src/index.ts. Number formatting
-// and text matching in a LocaleProvider's locale. Both return `null` outside
-// a provider that gives a locale, so each caller keeps the formatting and the
-// matching it has always had there.
+// Number formatting and text matching in a locale.
+//
+// `useNumberFormat` and its `NumberFormatFunction` type are public, exported
+// from src/index.ts. The rest is INTERNAL, deliberately not exported: the
+// library's own callers format through `useScopedNumberFormat` and match
+// through `useLocaleMatcher`, which return `null` outside a provider that
+// gives a locale, so each keeps the formatting and the matching it has always
+// had there.
 
 import { useMemo } from 'react';
 import { useLocaleScope } from './LocaleProvider';
@@ -10,7 +14,7 @@ import { useLocaleScope } from './LocaleProvider';
 const MARK = /\p{M}/u;
 
 /** Formats a number for display, with `Intl.NumberFormat` options. */
-export type NumberFormatter = (
+export type NumberFormatFunction = (
   value: number,
   options?: Intl.NumberFormatOptions
 ) => string;
@@ -30,29 +34,79 @@ function useScopedLocale(own: string | undefined): string | undefined {
 }
 
 /**
- * A formatter for numbers shown on screen, in the locale of the
- * `LocaleProvider` around the component, or `null` outside one that gives a
- * locale. Formatters are kept per set of options, since building one is the
- * expensive part.
+ * Every formatter's `Intl.NumberFormat`s, by locale and options, so a page of
+ * numbers in one locale and format builds one. Building one is the expensive
+ * part of formatting. The oldest goes once there are `MOST_NUMBER_FORMATS`,
+ * so a server that writes numbers in many locales doesn't keep them all.
+ */
+const numberFormats = new Map<string, Intl.NumberFormat>();
+const MOST_NUMBER_FORMATS = 200;
+
+/** The `Intl.NumberFormat` for `locale` and `options`, built once. */
+function numberFormatFor(
+  locale: string | undefined,
+  options: Intl.NumberFormatOptions | undefined
+): Intl.NumberFormat {
+  // A locale tag has no spaces, so the key can't be read two ways.
+  const key = `${locale ?? ''} ${options ? JSON.stringify(options) : ''}`;
+  let format = numberFormats.get(key);
+  if (!format) {
+    // Built before anything is stored, so options `Intl` refuses throw its
+    // error and leave nothing behind.
+    format = new Intl.NumberFormat(locale, options);
+    if (numberFormats.size >= MOST_NUMBER_FORMATS) {
+      numberFormats.delete(numberFormats.keys().next().value as string);
+    }
+    numberFormats.set(key, format);
+  }
+  return format;
+}
+
+/**
+ * A function that writes numbers for display in a locale: `locale` when given, else the `LocaleProvider`'s around the component, else the runtime's.
+ *
+ * Formatters are kept per locale and set of options, since building one is
+ * the expensive part, and shared, so many numbers written the same way build
+ * one. The function is the same from one render to the next for the same
+ * locale, so it's safe in a dependency array. Use it for text outside JSX,
+ * such as an `aria-label`, a `placeholder` or a chart's axis; in JSX,
+ * `NumberFormatter` also marks the number up. On a server render the
+ * runtime's locale is the server's, so give it a locale, here or through a
+ * `LocaleProvider`, where the server's and the browser's can differ. A tag or
+ * options `Intl` refuses throw its error when the function is called.
+ *
+ * @function
+ * @param locale - A BCP 47 locale tag, which wins over the provider's.
+ * @returns {NumberFormatFunction} Writes `value` with `Intl.NumberFormat` options.
+ *
+ * @example
+ * const format = useNumberFormat();
+ * const placeholder = format(1500, { style: 'currency', currency: 'EUR' });
+ */
+export function useNumberFormat(locale?: string): NumberFormatFunction {
+  const scope = useLocaleScope();
+  const resolved = locale || scope?.locale;
+  return useMemo<NumberFormatFunction>(
+    () => (value, options) => numberFormatFor(resolved, options).format(value),
+    [resolved]
+  );
+}
+
+/**
+ * INTERNAL, deliberately not exported from `src/index.ts`. The library's own
+ * number formatting: `useNumberFormat`'s inside a `LocaleProvider` that gives
+ * a locale, or with the component's own locale inside any provider, and
+ * `null` outside one, so each caller keeps the formatting it has always had
+ * there.
  *
  * @param own - The component's own locale, such as a picker's `locale`,
  * which wins inside a provider.
  */
-export function useNumberFormat(own?: string): NumberFormatter | null {
-  const locale = useScopedLocale(own);
-  return useMemo(() => {
-    if (!locale) return null;
-    const formats = new Map<string, Intl.NumberFormat>();
-    return (value, options) => {
-      const key = options ? JSON.stringify(options) : '';
-      let format = formats.get(key);
-      if (!format) {
-        format = new Intl.NumberFormat(locale, options);
-        formats.set(key, format);
-      }
-      return format.format(value);
-    };
-  }, [locale]);
+export function useScopedNumberFormat(
+  own?: string
+): NumberFormatFunction | null {
+  const format = useNumberFormat(own);
+  return useScopedLocale(own) ? format : null;
 }
 
 /**

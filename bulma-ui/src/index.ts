@@ -57,6 +57,7 @@ export * from './elements/Link';
 export * from './elements/ListItem';
 export * from './elements/Loader';
 export * from './elements/Notification';
+export * from './elements/NumberFormatter';
 export * from './elements/OrderedList';
 export * from './elements/Paragraph';
 export * from './elements/Pre';
@@ -179,6 +180,10 @@ export type {
   LocaleProviderProps,
   TextDirection,
 } from './helpers/LocaleProvider';
+
+// Writing numbers in a locale, as a function for text outside JSX
+export { useNumberFormat } from './helpers/localeFormat';
+export type { NumberFormatFunction } from './helpers/localeFormat';
 
 // Keeping keyboard focus inside an overlay
 export { useFocusTrap } from './helpers/useFocusTrap';

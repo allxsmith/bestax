@@ -178,6 +178,14 @@ Rules that keep components consistent:
   `LocaleProvider` around it reach content that has left its wrapper. `Portal` already does.
   Outside a provider the scope renders its children alone, so the markup there doesn't change.
 
+- **Numbers go through the locale hooks.** A component that writes a number on screen or in an
+  accessible name uses `NumberFormatter` or `useNumberFormat` (`helpers/localeFormat.ts`), not
+  `toLocaleString()` or an `Intl.NumberFormat` of its own, so it follows a `LocaleProvider` and
+  shares the formatter cache. The components that wrote numbers before `LocaleProvider` existed
+  call the internal `useScopedNumberFormat` instead, which returns `null` outside a provider so
+  their output there stays as it was. A new component has no output to keep, so it takes the
+  public hook.
+
 - **Direction comes from the DOM.** A component that handles Left and Right, or places things by
   side, reads `getComputedStyle(el).direction` when the key or pointer arrives, as `Splitter` and
   `useTreeView` do, and uses logical properties or `:dir(rtl)` in its SCSS. It never reads

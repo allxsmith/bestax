@@ -126,6 +126,15 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `DescriptionList.Value` children. Several records with the same fields stay a `Table`, and so
   do facts a screen reader must announce with their labels, as a `Table` with `scope="row"`
   headers.
+- **A number shown to the reader (a price, a total, a count, a percentage, a dashboard figure) is
+  `NumberFormatter`**, not `toLocaleString()` or an `Intl.NumberFormat` built by hand:
+  `<NumberFormatter value={8456.4} format={{ style: 'currency', currency: 'USD' }} />`, with any
+  `Intl.NumberFormat` options in `format` (`style: 'percent'` takes a fraction, `0.125` for
+  12.5%). It writes in its own `locale`, else the `LocaleProvider`'s, else the runtime's, so a
+  server-rendered app sets a `locale` on a `LocaleProvider` at the root. Its text is the number
+  alone, so words go around it: `Total: <NumberFormatter … />`. Text that can't hold an element,
+  an `aria-label` or a `placeholder`, gets the same from `const format = useNumberFormat();` and
+  `format(1500, { style: 'currency', currency: 'EUR' })`.
 - **A file browser, a checkbox tree (permissions, filters) or an outline you browse is
   `TreeView`**, with `<TreeView.Item value="…" label="…" icon="folder">` items nested inside each
   other: `<TreeView aria-label="Files" selectionMode="single">` with `selected`/`onSelectedChange`

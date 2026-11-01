@@ -5,7 +5,7 @@ import {
   usePrefixedClassNames,
 } from '../helpers/classNames';
 import { useClassPrefix } from '../helpers/Config';
-import { useNumberFormat } from '../helpers/localeFormat';
+import { useScopedNumberFormat } from '../helpers/localeFormat';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -207,7 +207,7 @@ export const RingProgress = forwardRef<HTMLDivElement, RingProgressProps>(
     const labelClass = usePrefixedClassNames('ring-progress-label');
     // A section's color class, prefixed like the rest.
     const classPrefix = useClassPrefix();
-    const formatNumber = useNumberFormat();
+    const formatNumber = useScopedNumberFormat();
     const writeShare = (share: number) =>
       formatNumber
         ? formatNumber(share / 100, { style: 'percent' })
