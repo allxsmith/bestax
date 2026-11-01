@@ -2,8 +2,8 @@
 /**
  * Write the ESLint plugin's component metadata from the library's own TSDoc.
  *
- * Two of the plugin's rules need to know things only the library knows, and
- * both go stale the moment a prop is renamed:
+ * Several of the plugin's rules need to know things only the library knows,
+ * and each goes stale the moment a prop is renamed:
  *
  *   no-deprecated-props   which props carry `@deprecated`, and what replaces
  *                         them. The replacement is not a separate field — it

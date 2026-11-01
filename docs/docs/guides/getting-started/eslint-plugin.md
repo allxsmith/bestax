@@ -351,8 +351,10 @@ The flex _container_ props emit nothing unless a `display` prop is `flex` or
 ```
 
 `Stack`, `Group`, `Center` and `Flex` are flex containers by their own styles, so
-their container props apply with no `display` prop, unless `display` itself makes
-them something else.
+their container props apply with no `display` prop. The rule reports them only where
+a `display` of `block`, `grid` or another of the library's non-flex values turns that
+off at every width: with a `viewport` prop or a viewport `display*` prop beside it, the
+library may render no display class at all, so it says nothing.
 
 The flex _child_ props describe the element inside somebody else's container,
 so they always apply and are never reported:

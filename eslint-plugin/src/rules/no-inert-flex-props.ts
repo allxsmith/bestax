@@ -13,16 +13,24 @@
  *
  * An element that is a flex container by its own CSS (`Stack`, `Group`,
  * `Center`, `Flex`) emits the five with no `display` prop, so it needs none.
- * It stops being one only when `display` itself, the prop for every width,
- * is something else: `display="block"` adds Bulma's `is-block`, which is
- * `!important`. A viewport's `display*` alone leaves it a flex container at
- * the other widths, so that buys silence. The set is generated from the
+ * It is reported in one case only, the one that is certain: a literal
+ * `display` that is one of the library's own non-flex displays (`block`,
+ * `grid` and the rest of `validDisplays`), with no `viewport` prop and no
+ * viewport `display*` prop beside it. `useVisibilityClasses` then renders
+ * Bulma's `is-<display>`, which is `!important`, at every width. Everything
+ * else stays silent, because the library may render no display class at all:
+ * it ignores `display` once any viewport `display*` is set, `viewport` limits
+ * `display` to one width, and a value outside the tuple (`{true}`, `""`, and
+ * `none`, which hides the element instead) emits no display class. The miss
+ * that costs is an element whose every viewport `display*` is a block, which
+ * would take modelling that hook to see. The set is generated from the
  * library, `FLEX_CONTAINER_ELEMENTS`, rather than listed here.
  *
  * Silence beats a guess: an element carrying a spread, or a `display*` whose
  * value the rule cannot read, is left alone.
  */
 import type { Rule } from 'eslint';
+import { validDisplays } from '@allxsmith/bestax-bulma/constants';
 import { FLEX_CONTAINER_ELEMENTS } from '../generated/metadata.js';
 import {
   DISPLAY_PROPS,
@@ -41,6 +49,23 @@ import {
 const CONTAINER = new Set(FLEX_CONTAINER_PROPS);
 const DISPLAY = new Set(DISPLAY_PROPS);
 const FLEX_CONTAINERS = new Set(FLEX_CONTAINER_ELEMENTS);
+/** The displays the library renders a class for that aren't flex ones. */
+const NON_FLEX_DISPLAYS = new Set<string>(
+  validDisplays.filter(d => !FLEX_DISPLAYS.includes(d))
+);
+
+/**
+ * Whether a flex container by its own CSS is certainly not one: a literal
+ * `display` from `NON_FLEX_DISPLAYS`, with no `viewport` and no viewport
+ * `display*`, the only shape in which the library renders it at every width.
+ */
+function displayTurnsOff(attrs: { name: { name: string } }[]): boolean {
+  if (attrs.some(a => a.name.name === 'viewport')) return false;
+  const displays = attrs.filter(a => DISPLAY.has(a.name.name));
+  if (displays.some(a => a.name.name !== 'display')) return false;
+  const value = displays.length === 1 ? literalValue(displays[0]) : undefined;
+  return typeof value === 'string' && NON_FLEX_DISPLAYS.has(value);
+}
 
 const rule: Rule.RuleModule = {
   meta: {
@@ -74,6 +99,20 @@ const rule: Rule.RuleModule = {
         );
         if (!containerProps.length) return;
 
+        // A flex container by its own CSS: reported only where `display`
+        // certainly turns it off at every width.
+        if (FLEX_CONTAINERS.has(element)) {
+          if (!displayTurnsOff(attrs)) return;
+          for (const attr of containerProps) {
+            context.report({
+              node: attr,
+              messageId: 'notFlex',
+              data: { prop: attr.name.name, element },
+            });
+          }
+          return;
+        }
+
         const displays = attrs.filter((a: { name: { name: string } }) =>
           DISPLAY.has(a.name.name)
         );
@@ -90,23 +129,11 @@ const rule: Rule.RuleModule = {
           return;
         }
 
-        // A flex container by its own CSS is one unless `display`, the prop
-        // for every width, says otherwise.
-        const isFlexContainer = FLEX_CONTAINERS.has(element);
-        if (
-          isFlexContainer &&
-          !displays.some(
-            (a: { name: { name: string } }) => a.name.name === 'display'
-          )
-        ) {
-          return;
-        }
-
         for (const attr of containerProps) {
           context.report({
             node: attr,
-            messageId: isFlexContainer ? 'notFlex' : 'inert',
-            data: { prop: attr.name.name, element },
+            messageId: 'inert',
+            data: { prop: attr.name.name },
           });
         }
       },

@@ -52,6 +52,29 @@ ruleTester.run('no-inert-flex-props', rule, {
       'Stack',
       '<Stack display="block" displayTablet="flex" alignItems="center" />'
     ),
+    // The library ignores `display` once a viewport display is set, so this
+    // may render no display class at all.
+    imported(
+      'Group',
+      '<Group display="grid" displayMobile="block" justifyContent="center" />'
+    ),
+    // `viewport` limits `display` to one width.
+    imported(
+      'Stack',
+      '<Stack display="block" viewport="mobile" alignItems="center" />'
+    ),
+    // A value outside the library's displays emits no display class, and
+    // `none` hides the element rather than making it a block.
+    imported('Center', '<Center display={true} alignItems="center" />'),
+    imported('Center', '<Center display="" alignItems="center" />'),
+    imported('Flex', '<Flex display="table" flexDirection="column" />'),
+    imported('Flex', '<Flex display="none" flexDirection="column" />'),
+    // The miss accepted: every viewport says block, which would take
+    // modelling the visibility hook to see.
+    imported(
+      'Stack',
+      '<Stack displayMobile="block" displayTablet="block" displayDesktop="block" displayWidescreen="block" displayFullhd="block" alignItems="center" />'
+    ),
   ],
   invalid: [
     {
@@ -119,20 +142,18 @@ ruleTester.run('no-inert-flex-props', rule, {
       ],
     },
     {
-      // A viewport's display doesn't change that `display` itself isn't flex.
+      // Any of the library's non-flex displays, and every container prop.
       code: imported(
         'Group',
-        '<Group display="grid" displayMobile="block" justifyContent="center" flexWrap="nowrap" />'
+        '<Group display="grid" justifyContent="center" flexWrap="nowrap" />'
       ),
       errors: [{ messageId: 'notFlex' }, { messageId: 'notFlex' }],
     },
     {
-      // Readable and not a flex string, so knowably not flex, as on Box.
-      code: imported('Center', '<Center display={true} alignItems="center" />'),
-      errors: [{ messageId: 'notFlex' }],
-    },
-    {
-      code: imported('Flex', '<Flex display="none" flexDirection="column" />'),
+      code: imported(
+        'Flex',
+        "<Flex display={'inline'} flexDirection='column' />"
+      ),
       errors: [{ messageId: 'notFlex' }],
     },
   ],
