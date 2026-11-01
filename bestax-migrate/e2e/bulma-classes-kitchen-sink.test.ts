@@ -38,8 +38,8 @@ const fixtureDir = path.join(
   'bulma-classes-kitchen-sink'
 );
 
-// Scratch directories PER PROCESS, never a shared path: `pnpm all` runs two
-// Vitest processes over this file at once (see kitchen-sink.test.ts).
+// Scratch directories PER PROCESS, never a shared path: two Vitest processes
+// can run this file at once (see kitchen-sink.test.ts).
 const tmpRoot = path.join(packageRoot, '.e2e-tmp');
 fs.mkdirSync(tmpRoot, { recursive: true });
 const tmpDir = fs.mkdtempSync(

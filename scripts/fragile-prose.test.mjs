@@ -81,6 +81,10 @@ test('a number with no counted noun nearby is not a count', () => {
   );
 });
 
+test('a named version is not a count, even before a counted noun', () => {
+  assert.deepEqual(md('Vitest 5 runs the tests, as Jest 30 runs did.'), []);
+});
+
 // --- things that look like numbers but are not counts ----------------------------
 
 test('dates, versions, SHAs, issue refs, percentages, durations, sizes are skipped', () => {
