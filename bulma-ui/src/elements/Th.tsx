@@ -18,9 +18,9 @@ export interface ThProps
   className?: string;
   /**
    * Text alignment for the header cell ('left', 'right', 'centered').
-   * Without it, bestax's stylesheets align a header to the start of the
-   * line, as the body cells are, so it sits on the right on a right-to-left
-   * page.
+   * Without it, `bestax.css` and its variants align a header to the start of
+   * the line, as the body cells are, so it sits on the right on a
+   * right-to-left page.
    */
   isAligned?: TableAlignment;
   /**
