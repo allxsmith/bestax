@@ -15,7 +15,10 @@
 //
 // `forced-color-adjust: none` keeps these colors, and the focus ring's too,
 // which would then be Bulma's focus color rather than the user's, so the ring
-// takes the system's Highlight.
+// takes the system's Highlight. It would also keep a disabled one looking
+// like the rest, so that one's edge and cross take GrayText, the system's
+// color for a disabled control: a `Delete` with `disabled`, which writes
+// Bulma's `is-disabled` too, and any of them inside a disabled `<fieldset>`.
 //
 // Bulma's CSS can land on either side of this partial, as it can for
 // `_loader.scss`, which says why, so each selector names its last class twice
@@ -28,6 +31,11 @@
   .#{iv.$class-prefix}tag.#{iv.$class-prefix}is-delete.#{iv.$class-prefix}is-delete {
     background-color: ButtonFace;
     border: 1px solid ButtonText;
+
+    &:disabled,
+    &.#{iv.$class-prefix}is-disabled {
+      border-color: GrayText;
+    }
   }
 
   .#{iv.$class-prefix}delete.#{iv.$class-prefix}delete,
@@ -38,6 +46,14 @@
     &::before,
     &::after {
       background-color: ButtonText;
+    }
+
+    &:disabled,
+    &.#{iv.$class-prefix}is-disabled {
+      &::before,
+      &::after {
+        background-color: GrayText;
+      }
     }
 
     &:focus-visible {

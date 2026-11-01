@@ -159,13 +159,16 @@ function matches(
 const SETTERS: Record<string, string[]> = {
   'background-color': ['background-color', 'background'],
   border: ['border'],
+  'border-color': ['border-color', 'border'],
   'forced-color-adjust': ['forced-color-adjust'],
   'outline-color': ['outline-color', 'outline'],
 };
 
 /**
  * The value of `property` on `el`, or its `pseudo` element, as the rules of
- * `css` resolve it on a forced-colors page, or undefined if none sets it.
+ * `css` resolve it on a forced-colors page, or undefined if none sets it. A
+ * `border-color` set by the `border` shorthand is the shorthand's last word,
+ * which is its color in every rule here.
  */
 function resolve(
   css: string,
@@ -205,7 +208,11 @@ function resolve(
     declared.forEach(name => {
       const raw = rule.declarations[name];
       const important = /!important$/.test(raw) ? 1 : 0;
-      const value = raw.replace(/\s*!important$/, '');
+      const whole = raw.replace(/\s*!important$/, '');
+      const value =
+        property === 'border-color' && name === 'border'
+          ? (whole.split(' ').pop() as string)
+          : whole;
       const rank = [important, ...specific, order];
       if (!won || !outranks(won.rank, rank)) won = { value, rank };
     });
@@ -219,6 +226,7 @@ function look(css: string, el: Element) {
     adjust: resolve(css, el, 'forced-color-adjust'),
     background: resolve(css, el, 'background-color'),
     border: resolve(css, el, 'border'),
+    edge: resolve(css, el, 'border-color'),
     cross: [
       resolve(css, el, 'background-color', { pseudo: 'before' }),
       resolve(css, el, 'background-color', { pseudo: 'after' }),
@@ -232,8 +240,16 @@ const CIRCLE = {
   adjust: 'none',
   background: 'ButtonFace',
   border: '1px solid ButtonText',
+  edge: 'ButtonText',
   cross: ['ButtonText', 'ButtonText'],
   focus: 'Highlight',
+};
+
+/** A disabled one: the same circle, edged and crossed in GrayText. */
+const CIRCLE_DISABLED = {
+  ...CIRCLE,
+  edge: 'GrayText',
+  cross: ['GrayText', 'GrayText'],
 };
 
 /** The floating close keeps Bulma's no circle, and is crossed in ButtonText. */
@@ -241,9 +257,13 @@ const CROSS = {
   adjust: 'none',
   background: 'none',
   border: 'none',
+  edge: 'none',
   cross: ['ButtonText', 'ButtonText'],
   focus: 'Highlight',
 };
+
+/** A disabled floating close: still no circle, crossed in GrayText. */
+const CROSS_DISABLED = { ...CROSS, cross: ['GrayText', 'GrayText'] };
 
 /**
  * Every close button bestax renders: each case renders one, and names the
@@ -317,6 +337,51 @@ const CLOSES: [string, string, () => ReactElement, typeof CIRCLE][] = [
   ],
 ];
 
+/**
+ * Disabled ones, which forced colors draws in GrayText, as Windows' contrast
+ * themes draw every disabled control.
+ */
+const DISABLED: [string, string, () => ReactElement, typeof CIRCLE][] = [
+  ['a disabled Delete', 'delete', () => <Delete disabled />, CIRCLE_DISABLED],
+  [
+    // Tag takes no `disabled` of its own, so a fieldset is how one gets it.
+    'a Tag isDelete in a disabled fieldset',
+    'is-delete',
+    () => (
+      <fieldset disabled>
+        <Tag isDelete />
+      </fieldset>
+    ),
+    CIRCLE_DISABLED,
+  ],
+  [
+    'a disabled floating Modal.Close',
+    'modal-close',
+    () => <Modal.Close variant="floating" disabled />,
+    CROSS_DISABLED,
+  ],
+  [
+    'a Delete in a disabled fieldset',
+    'delete',
+    () => (
+      <fieldset disabled>
+        <Delete />
+      </fieldset>
+    ),
+    CIRCLE_DISABLED,
+  ],
+  [
+    'a Taginput tag in a disabled fieldset',
+    'delete',
+    () => (
+      <fieldset disabled>
+        <Taginput label="Tags" defaultValue={['alpha']} />
+      </fieldset>
+    ),
+    CIRCLE_DISABLED,
+  ],
+];
+
 /** The close button `ui` renders, with the class it should have. */
 function closeOf(ui: () => ReactElement, className: string, prefix = '') {
   const { baseElement } = render(
@@ -346,6 +411,28 @@ describe('every close button on a forced-colors page', () => {
   ])('with %s', (_order, prefix, css) => {
     it.each(CLOSES)('draws %s', (_name, className, ui, expected) => {
       expect(look(css(), closeOf(ui, className, prefix))).toEqual(expected);
+    });
+
+    it.each(DISABLED)(
+      'draws %s in GrayText',
+      (_name, className, ui, expected) => {
+        expect(look(css(), closeOf(ui, className, prefix))).toEqual(expected);
+      }
+    );
+
+    // Bulma's class for the state, which `Delete` writes with `disabled`,
+    // on a button that isn't otherwise disabled.
+    it('draws one with only the is-disabled class in GrayText', () => {
+      const { container } = render(
+        <button
+          type="button"
+          aria-label="Close"
+          className={`${prefix}delete ${prefix}is-disabled`}
+        />
+      );
+      const el = container.querySelector('button') as Element;
+      expect(el.matches(':disabled')).toBe(false);
+      expect(look(css(), el)).toEqual(CIRCLE_DISABLED);
     });
   });
 
