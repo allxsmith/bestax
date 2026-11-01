@@ -1,0 +1,47 @@
+// Bestax Extras - Delete Styles
+// Bulma draws a delete button's circle and its cross as background colors,
+// on the button and on its `::before` and `::after`, and draws the Modal's
+// floating close and a delete tag's cross the same way. Forced colors
+// (Windows' contrast themes) replaces background colors with the system's, so
+// the buttons vanish, or their cross does, while they still work and still
+// take focus. This keeps them drawn there, in the system's button colors: the
+// circle in ButtonFace with a ButtonText edge, and the cross in ButtonText.
+// The floating close has no circle, so it gets only the cross. Outside forced
+// colors it changes nothing.
+//
+// `.delete` is `Delete`, which every other close button bestax renders is
+// too, apart from the Modal's floating close (`.modal-close`) and `Tag
+// isDelete` (`.tag.is-delete`).
+//
+// `forced-color-adjust: none` keeps these colors, and the focus ring's too,
+// which would then be Bulma's focus color rather than the user's, so the ring
+// takes the system's Highlight.
+//
+// Bulma's CSS can land on either side of this partial, as it can for
+// `_loader.scss`, which says why, so each selector names its last class twice
+// to outrank Bulma's rule for the same element, wherever the two load.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}delete.#{iv.$class-prefix}delete,
+  .#{iv.$class-prefix}tag.#{iv.$class-prefix}is-delete.#{iv.$class-prefix}is-delete {
+    background-color: ButtonFace;
+    border: 1px solid ButtonText;
+  }
+
+  .#{iv.$class-prefix}delete.#{iv.$class-prefix}delete,
+  .#{iv.$class-prefix}modal-close.#{iv.$class-prefix}modal-close,
+  .#{iv.$class-prefix}tag.#{iv.$class-prefix}is-delete.#{iv.$class-prefix}is-delete {
+    forced-color-adjust: none;
+
+    &::before,
+    &::after {
+      background-color: ButtonText;
+    }
+
+    &:focus-visible {
+      outline-color: Highlight;
+    }
+  }
+}
