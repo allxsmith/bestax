@@ -1,7 +1,6 @@
 import type { MockInstance } from 'vitest';
 import { StrictMode, Suspense, useState } from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { Theme, ThemeProps } from '../Theme';
 import { ConfigProvider } from '../Config';
 import { resetDevWarnings } from '../devWarnings';

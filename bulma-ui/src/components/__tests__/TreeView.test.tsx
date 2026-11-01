@@ -3,7 +3,6 @@ import React, { createRef, useState } from 'react';
 import { renderToStaticMarkup, renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import {
   TreeView,
   TreeViewItem,

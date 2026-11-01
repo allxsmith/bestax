@@ -2,7 +2,6 @@ import type { MockInstance } from 'vitest';
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import {
   LONG_PRESS_DELAY,
   LONG_PRESS_TOLERANCE,

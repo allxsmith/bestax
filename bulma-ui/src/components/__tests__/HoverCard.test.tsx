@@ -3,7 +3,6 @@ import { renderToString } from 'react-dom/server';
 import { createPortal } from 'react-dom';
 import { hydrateRoot } from 'react-dom/client';
 import { render, screen, fireEvent, act, within } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { HoverCard, HoverCardProps } from '../HoverCard';
 import { Popover } from '../Popover';
 import { Modal } from '../Modal';

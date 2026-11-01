@@ -9,7 +9,6 @@
  */
 import { useState } from 'react';
 import { act, fireEvent, render, within } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { ContextMenu } from '../ContextMenu';
 import { ConfigProvider } from '../../helpers/Config';
 

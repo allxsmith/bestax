@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen, act } from '@testing-library/react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import '@testing-library/jest-dom';
 import { Reveal } from '../Reveal';
 import { ConfigProvider } from '../../helpers/Config';
 

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { render, screen, fireEvent, act, within } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { ContextMenu, ContextMenuProps } from '../ContextMenu';
 import { Dropdown, DropdownDivider, DropdownItem } from '../Dropdown';
 import { Popover } from '../Popover';

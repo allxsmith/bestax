@@ -1,6 +1,5 @@
 import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { TextArea } from '../TextArea';
 import { Field } from '../Field';
 import { Control } from '../Control';
