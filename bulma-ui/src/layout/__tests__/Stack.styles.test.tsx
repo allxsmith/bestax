@@ -159,29 +159,22 @@ describe.each([
     });
   });
 
-  // Bulma's block margin is `.box:not(:last-child)`, two classes' weight.
-  // `:not(#\#)` matches any element with an id's weight, so the reset wins
-  // whichever sheet loads first, and a helper's `!important` still beats it.
-  it('zeroes the children’s block-end margin in a Stack, and both in the others', () => {
-    expect(
-      find(
-        rules,
-        `${stack}${c('is-vertical')} > :not(#\\#):not(${c('columns')})`
-      )
-    ).toEqual({
-      'margin-block-end': '0',
+  // Bulma's block margins are `.box:not(:last-child)` and `.media + .media`,
+  // two classes' weight. `:not(#\#)` matches any element with an id's weight,
+  // so the reset wins whichever sheet loads first, and a helper's
+  // `!important` still beats it. Top and bottom in all four, since nothing
+  // collapses in a flex container.
+  it('zeroes the children’s top and bottom margins in all four, Columns aside', () => {
+    expect(find(rules, `${stack} > :not(#\\#):not(${c('columns')})`)).toEqual({
+      'margin-block': '0',
     });
-    expect(
-      find(
-        rules,
-        `${stack}:not(${c('is-vertical')}) > :not(#\\#):not(${c('columns')})`
-      )
-    ).toEqual({ 'margin-block': '0' });
-    // Nothing deeper than the children.
+    // Nothing deeper than the children, and nothing more for a Stack.
     for (const rule of rules) {
       if (/margin/.test(Object.keys(rule.declarations).join(' '))) {
         expect(rule.selector).toMatch(
-          /> (hr|\.(bestax-)?columns(\.(bestax-)?is-gapless)?)?:not\(#\\#\)(:not\(\.(bestax-)?columns\))?$/
+          new RegExp(
+            `^\\${stack} > (\\${c('columns')}(\\${c('is-gapless')})?)?:not\\(#\\\\#\\)(:not\\(\\${c('columns')}\\))?$`
+          )
         );
       }
     }
@@ -198,15 +191,6 @@ describe.each([
     expect(
       find(rules, `${stack} > ${c('columns')}${c('is-gapless')}:not(#\\#)`)
     ).toEqual({ 'margin-block-end': '0' });
-  });
-
-  // Bulma's `hr` margin collapses into the block above it in normal flow.
-  // Nothing collapses in a flex container, so a Divider in a Stack loses its
-  // top margin too, and sits in the middle of the space.
-  it('zeroes a Divider’s top margin in a Stack too', () => {
-    expect(find(rules, `${stack}${c('is-vertical')} > hr:not(#\\#)`)).toEqual({
-      'margin-block-start': '0',
-    });
   });
 
   it('shares the row equally in a full-width Group', () => {

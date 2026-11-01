@@ -1233,7 +1233,7 @@
       "name": "Stack",
       "kind": "component",
       "category": "layout",
-      "purpose": "The `Stack` component lays its children out in a column, with Bulma's block spacing between them and the bottom margins Bulma gives them zeroed.",
+      "purpose": "The `Stack` component lays its children out in a column, with Bulma's block spacing between them and the margins Bulma gives them zeroed.",
       "slug": "layout/stack",
       "import": "import { Stack } from '@allxsmith/bestax-bulma';",
       "compound": false,

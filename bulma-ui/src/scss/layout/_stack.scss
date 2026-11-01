@@ -8,16 +8,16 @@
 // since Bulma's helper classes are `!important`.
 //
 // Bulma gives its blocks (Box, Notification, Card, Title, Field and the
-// rest) a bottom margin when they aren't last, which in a flex container
-// adds to the gap. So the children's own block margins are zeroed, and the
-// gap is the only space: the block-end margin in a Stack, and both in the
-// others, where a margin above would push a child off the row's center.
-// Bulma sets those margins with `:not(:last-child)`, two classes' weight, so
-// the reset carries an id's weight through `:not(#\#)`, which matches any
-// element. A helper margin on a child (`mb="2"`) is `!important` and still
-// wins. Only the direct children: what's inside them keeps its spacing. A
-// Columns child is the exception, since its margins are negative on purpose
-// (below).
+// rest) a bottom margin when they aren't last, and some a top one beside a
+// sibling (Media after Media, a Divider's `<hr>`), which in a flex container
+// add to the gap, since nothing collapses there. So the children's top and
+// bottom margins are zeroed in all four, and the gap is the only space.
+// Bulma sets those margins with `:not(:last-child)` or `+`, two classes'
+// weight, so the reset carries an id's weight through `:not(#\#)`, which
+// matches any element. A helper margin on a child (`mt="2"`, `mb="2"`) is
+// `!important` and still wins. Only the direct children: what's inside them
+// keeps its spacing. A Columns child is the exception, since its margins are
+// negative on purpose (below).
 
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
@@ -47,8 +47,7 @@ $stack-horizontal-gap: calc(#{cv.getVar("block-spacing")} * 0.5) !default;
   display: flex;
 }
 
-.#{iv.$class-prefix}stack:not(.#{iv.$class-prefix}is-vertical)
-  > :not(#\#):not(.#{iv.$class-prefix}columns) {
+.#{iv.$class-prefix}stack > :not(#\#):not(.#{iv.$class-prefix}columns) {
   margin-block: 0;
 }
 
@@ -57,18 +56,6 @@ $stack-horizontal-gap: calc(#{cv.getVar("block-spacing")} * 0.5) !default;
 .#{iv.$class-prefix}stack.#{iv.$class-prefix}is-vertical {
   flex-direction: column;
   gap: cv.getVar("stack-gap");
-
-  > :not(#\#):not(.#{iv.$class-prefix}columns) {
-    margin-block-end: 0;
-  }
-
-  // A Divider's `<hr>` has Bulma's margin above it as well, which in normal
-  // flow collapses into the block before it. Here nothing collapses, so it
-  // goes too, and a Divider sits in the middle of the space between two
-  // children, as it does between two Bulma blocks.
-  > hr:not(#\#) {
-    margin-block-start: 0;
-  }
 }
 
 // ---- A Columns child, in any of the four -------------------------------------------

@@ -41,14 +41,14 @@
   "accessibility": "- **No role of its own:** a Stack adds nothing to the accessibility tree, apart from `role=\"list\"`\n  on a `ul` or `ol`, which Safari otherwise drops once Bulma's reset hides the markers.\n- **Order:** it's always a column in the children's own order, so what's seen, the reading order\n  and the Tab order agree.\n- **Landmarks:** with `as=\"nav\"`, `\"aside\"`, `\"section\"` or `\"main\"`, the Stack is the landmark. A\n  `section` is a region only once it has a name, from `aria-label` or `aria-labelledby`.\n- **Lists:** `as=\"ul\"` or `as=\"ol\"` with `li` children is announced as a list with its count.\n- **Hidden:** the `hidden` attribute hides a Stack, as it does any element, so one can be a\n  closed panel or an inactive tab's content.",
   "related": ["Center", "Divider", "Flex", "Grid", "Group", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/layout-stack--default",
-  "summary": "The `Stack` component lays its children out in a column, with Bulma's block spacing between them and the bottom margins Bulma gives them zeroed. A Stack of Boxes, Cards or Notifications looks like Bulma's own stacked blocks, spaced by the gap alone, so there are no margins to undo. A `gap` step replaces the default spacing. It's always a column, top to bottom.",
+  "summary": "The `Stack` component lays its children out in a column, with Bulma's block spacing between them and the margins Bulma gives them zeroed. A Stack of Boxes, Cards or Notifications looks like Bulma's own stacked blocks, spaced by the gap alone, so there are no margins to undo. A `gap` step replaces the default spacing. It's always a column, top to bottom.",
   "import": "import { Stack } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/layout/Stack.tsx",
   "rootClass": "stack",
   "parts": [
     {
       "path": "Stack",
-      "summary": "The `Stack` component lays its children out in a column, with Bulma's block spacing between them and the bottom margins Bulma gives them zeroed. A Stack of Boxes, Cards or Notifications looks like Bulma's own stacked blocks, spaced by the gap alone, so there are no margins to undo. A `gap` step replaces the default spacing. It's always a column, top to bottom.",
+      "summary": "The `Stack` component lays its children out in a column, with Bulma's block spacing between them and the margins Bulma gives them zeroed. A Stack of Boxes, Cards or Notifications looks like Bulma's own stacked blocks, spaced by the gap alone, so there are no margins to undo. A `gap` step replaces the default spacing. It's always a column, top to bottom.",
       "component": null,
       "props": [
         {
@@ -100,7 +100,7 @@
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
-          "description": "What it lays out. The margins Bulma gives them are zeroed, the bottom one in a Stack and the top and bottom in the others, so `gap` is the only space between them. A `Columns` child keeps its own top and side margins, and takes at the bottom the one Bulma gives the last Columns in a container, the column gap pulled back in (none when gapless), so its columns line up.",
+          "description": "What it lays out. The top and bottom margins Bulma gives them are zeroed, so `gap` is the only space between them, and a spacing helper such as `mt=\"2\"` still adds to it. A `Columns` child keeps its own top and side margins, and takes at the bottom the one Bulma gives the last Columns in a container, the column gap pulled back in (none when gapless), so its columns line up.",
           "required": false,
           "inherited": true,
           "deprecated": false

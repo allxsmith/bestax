@@ -153,7 +153,7 @@ Panes side by side or one above the other, like columns the reader resizes: a ha
 
 ## Stack
 
-A column with Bulma's block spacing between its children and their own bottom margins zeroed, so the gap is the only space and there are no margins to undo.
+A column with Bulma's block spacing between its children and the margins Bulma gives them zeroed, so the gap is the only space and there are no margins to undo.
 
 ```tsx live
 <Stack>

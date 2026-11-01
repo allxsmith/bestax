@@ -168,7 +168,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Media](https://bestax.io/docs/api/layout/media) — The `Media` component implements Bulma’s powerful media object layout for React.
 - [Section](https://bestax.io/docs/api/layout/section) — The `Section` component provides vertical spacing and visual separation for your Bulma React UI.
 - [Splitter](https://bestax.io/docs/api/layout/splitter) — The `Splitter` component lays out two or more panes side by side or one above the other, with a handle between each pair to drag or move by keyboard.
-- [Stack](https://bestax.io/docs/api/layout/stack) — The `Stack` component lays its children out in a column, with Bulma's block spacing between them and the bottom margins Bulma gives them zeroed.
+- [Stack](https://bestax.io/docs/api/layout/stack) — The `Stack` component lays its children out in a column, with Bulma's block spacing between them and the margins Bulma gives them zeroed.
 
 ## Helpers
 
