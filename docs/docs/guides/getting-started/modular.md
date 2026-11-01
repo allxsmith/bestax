@@ -184,6 +184,7 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/components/timeline';
 @use '@allxsmith/bestax-bulma/scss/components/treeview';
 @use '@allxsmith/bestax-bulma/scss/components/scrollarea';
+@use '@allxsmith/bestax-bulma/scss/components/tableofcontents';
 @use '@allxsmith/bestax-bulma/scss/components/command';
 @use '@allxsmith/bestax-bulma/scss/components/datatable';
 @use '@allxsmith/bestax-bulma/scss/components/pagination' as bestax-pagination;

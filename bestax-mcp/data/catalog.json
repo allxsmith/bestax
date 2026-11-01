@@ -80,6 +80,7 @@
         "SegmentedControl",
         "Sidebar",
         "Steps",
+        "TableOfContents",
         "Tabs",
         "Timeline",
         "Toast",
@@ -1246,6 +1247,17 @@
       "compound": true,
       "propCount": 32,
       "exampleCount": 8
+    },
+    {
+      "name": "TableOfContents",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `TableOfContents` component lists a long page's sections as links in Bulma's menu look, and marks the one being read.",
+      "slug": "components/tableofcontents",
+      "import": "import { TableOfContents, useScrollSpy } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 8,
+      "exampleCount": 5
     },
     {
       "name": "Tabs",
@@ -2857,6 +2869,7 @@
     "--bulma-table-head-background-color": ["Table"],
     "--bulma-table-head-cell-border-width": ["Table"],
     "--bulma-table-head-cell-color": ["Table"],
+    "--bulma-table-of-contents-sticky-top": ["TableOfContents"],
     "--bulma-table-row-active-background-color": ["Table"],
     "--bulma-table-row-active-color": ["Table"],
     "--bulma-table-row-hover-background-color": ["Table"],

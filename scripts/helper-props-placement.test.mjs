@@ -41,7 +41,10 @@ const PROBE = 'data-bestax-probe';
 /** A helper prop, and the class it renders. */
 const HELPER = { prop: 'mt', value: '3', className: 'mt-3' };
 
-/** What a part needs before it renders the element its helper props go on. */
+/**
+ * What a part needs before it renders the element its helper props go on,
+ * including a required prop it can't render without.
+ */
 const RENDER_WITH = {
   Badge: ({ createElement }) => ({ children: createElement('span') }),
   'Command.Dialog': () => ({ defaultOpen: true, actions: [] }),
@@ -50,6 +53,7 @@ const RENDER_WITH = {
   Loading: () => ({ active: true }),
   Popover: ({ createElement }) => ({ trigger: createElement('button') }),
   Sidebar: () => ({ inline: true }),
+  TableOfContents: () => ({ items: [] }),
   Toast: () => ({ inline: true }),
 };
 

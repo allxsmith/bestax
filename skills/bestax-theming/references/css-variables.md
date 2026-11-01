@@ -882,6 +882,15 @@ more for WCAG 2.5.8.
 `--bulma-switch-radius`, `--bulma-switch-thin-circle-size`, `--bulma-switch-thin-height`,
 `--bulma-switch-transition-duration`, `--bulma-switch-width`
 
+### TableOfContents
+
+Declared on the root, `.table-of-contents`, which is also a `.menu`, so Bulma's `--bulma-menu-*`
+variables theme its title, links and current link. With `isSticky`, the list sticks this far below
+the viewport's top; under a fixed or sticky header, make it the header's height plus a little room,
+set on the root itself, since its own declaration wins over one on an ancestor.
+
+`--bulma-table-of-contents-sticky-top`
+
 ### Tabs
 
 `--bulma-tabs-content-padding`, `--bulma-tabs-vertical-border-color`,

@@ -22,6 +22,7 @@ import { SegmentedControl } from '../components/SegmentedControl';
 import { ScrollArea } from '../components/ScrollArea';
 import { Command } from '../components/Command';
 import { DataTable } from '../components/DataTable';
+import { TableOfContents } from '../components/TableOfContents';
 import { Splitter } from '../layout/Splitter';
 import { Slider } from '../form/Slider';
 import { PinInput } from '../form/PinInput';
@@ -110,6 +111,15 @@ const cases: Array<[string, React.ReactElement]> = [
       data={[{ id: '1', name: 'Ada' }]}
       selectionMode="multiple"
       isResponsive
+    />,
+  ],
+  [
+    // Its scroll spy keeps its callback through useLatestRef.
+    'TableOfContents',
+    <TableOfContents
+      key="table-of-contents"
+      items={[{ id: 'intro', label: 'Intro' }]}
+      onActiveChange={() => {}}
     />,
   ],
   ['Slider', <Slider key="slider" label="Volume" />],

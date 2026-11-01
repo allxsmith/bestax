@@ -34,6 +34,7 @@ export * from './components/TreeView';
 export * from './components/ScrollArea';
 export * from './components/Command';
 export * from './components/DataTable';
+export * from './components/TableOfContents';
 
 export * from './elements/Block';
 export * from './elements/Box';

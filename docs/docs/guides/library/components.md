@@ -174,6 +174,27 @@ A box whose content scrolls inside it, on the browser's own scrollbars made thin
 
 ---
 
+### TableOfContents
+
+A long page's sections as links in Bulma's menu look, marking the one being read, here this page's navigation components as you scroll past them. [View full documentation.](../../api/components/tableofcontents.md)
+
+```tsx live
+<TableOfContents
+  offset={68}
+  labels={{ title: 'Navigation' }}
+  items={[
+    { id: 'breadcrumb', label: 'Breadcrumb' },
+    { id: 'navbar', label: 'Navbar' },
+    { id: 'tabs', label: 'Tabs' },
+    { id: 'steps', label: 'Steps' },
+    { id: 'tableofcontents', label: 'TableOfContents' },
+    { id: 'pagination', label: 'Pagination' },
+  ]}
+/>
+```
+
+---
+
 ### Pagination
 
 A flexible, composable pagination navigation for lists or multi-page content. [View full documentation.](../../api/components/pagination.md)

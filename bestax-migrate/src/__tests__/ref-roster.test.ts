@@ -71,6 +71,7 @@ const NAMED_INDIVIDUALLY = [
   'Sidebar',
   'Splitter',
   'Splitter.Pane',
+  'TableOfContents',
   'Timeline',
   'Timeline.Item',
   'Toast',

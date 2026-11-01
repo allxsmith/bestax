@@ -169,6 +169,12 @@ const ADDONS = [
     desc: 'Multi-step progress for wizards and checkouts.',
   },
   {
+    name: 'TableOfContents',
+    icon: 'tableofcontents',
+    link: '/docs/api/components/tableofcontents',
+    desc: 'A long page’s sections as real links in Bulma’s menu look, marking the one being read.',
+  },
+  {
     name: 'Timeline',
     icon: 'timeline',
     link: '/docs/api/components/timeline',

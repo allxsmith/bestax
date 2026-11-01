@@ -306,6 +306,16 @@ function ScrollAreaIcon() {
   );
 }
 
+// A list of lines, the second one marked with a bar at its start
+function TableOfContentsIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M8 5h12M8 12h12M11 16h9M8 19h12" />
+      <path d="M4 10v4" strokeWidth="3" />
+    </svg>
+  );
+}
+
 // Two panes in a box, the line between them with a grip on it
 function SplitterIcon() {
   return (
@@ -391,6 +401,7 @@ const ADDON_ICONS = {
   sidebar: SidebarIcon,
   splitter: SplitterIcon,
   steps: StepsIcon,
+  tableofcontents: TableOfContentsIcon,
   timeline: TimelineIcon,
   toast: ToastIcon,
   tooltip: TooltipIcon,

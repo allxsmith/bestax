@@ -283,6 +283,9 @@ export const SCSS_SOURCES = {
   SubTitle: [{ pkg: 'bulma', path: 'sass/elements/title.scss' }],
   Switch: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_switch.scss' }],
   Table: [{ pkg: 'bulma', path: 'sass/elements/table.scss' }],
+  TableOfContents: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_tableofcontents.scss' },
+  ],
   Tabs: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_tabs.scss' },
     { pkg: 'bulma', path: 'sass/components/tabs.scss' },
@@ -358,6 +361,7 @@ export const RENDERS_ELEMENT_OF = {
   LinkButton: 'Button', // renders `.button.link-button` through Button
   PinInput: 'Input', // each of its boxes is an `.input.pin-input-box`
   RadioCard: 'Card', // its label is a `.card.radio-card`
+  TableOfContents: 'Menu', // its nav is a `.menu.table-of-contents`
   ToggleButton: 'Button', // renders a `.button` through Button
 };
 
@@ -376,6 +380,7 @@ export const IMPORT_COMPANIONS = {
   DataTable: ['DataTable', 'useDataTable'],
   Dialog: ['Dialog', 'DialogContainer', 'dialog'],
   Dropdown: ['Dropdown', 'Button', 'Field', 'Control', 'Span'],
+  TableOfContents: ['TableOfContents', 'useScrollSpy'],
   Toast: ['Toast', 'ToastContainer', 'toast'],
   ListItem: ['ListItem', 'UnorderedList', 'OrderedList'],
   Notification: ['Notification', 'NotificationContainer', 'notification'],

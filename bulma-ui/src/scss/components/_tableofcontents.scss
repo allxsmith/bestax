@@ -1,0 +1,37 @@
+// Bestax Extras - TableOfContents Styles
+// A table of contents is Bulma's menu as it is: `.menu` on its `<nav>`, a
+// `.menu-label` title, `.menu-list` links and `is-active` on the current one,
+// so every `--bulma-menu-*` variable themes it. This adds only the opt-in
+// sticky position, for a column that doesn't stick by itself.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+// How far below the viewport's top a sticky list stops. Under a fixed
+// navbar, make it the navbar's height plus this.
+$table-of-contents-sticky-top: cv.getVar('block-spacing') !default;
+
+.#{iv.$class-prefix}table-of-contents {
+  @include cv.register-vars(
+    (
+      'table-of-contents-sticky-top': #{$table-of-contents-sticky-top},
+    )
+  );
+}
+
+// Bulma's focus ring, which sits this far outside a link.
+$-focus-ring: calc(#{cv.getVar('focus-width')} + #{cv.getVar('focus-offset')});
+
+// It stays in view as the page scrolls, and a list taller than the room left
+// below its top scrolls itself, so its end can still be reached. Scrolling
+// clips what's outside it, so it keeps room at its sides for a link's focus
+// ring, and gives that room back with a margin, so the links stay where they
+// are.
+.#{iv.$class-prefix}table-of-contents.#{iv.$class-prefix}is-sticky {
+  margin-inline: calc(-1 * #{$-focus-ring});
+  max-height: calc(100vh - #{cv.getVar('table-of-contents-sticky-top')});
+  overflow-y: auto;
+  padding-inline: $-focus-ring;
+  position: sticky;
+  top: cv.getVar('table-of-contents-sticky-top');
+}

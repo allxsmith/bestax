@@ -143,6 +143,15 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `defaultOpen` on the group holding the current page (or `open`/`onOpenChange` to hold the state).
   Its heading is a real button with `aria-expanded`, and its links stay links, each a tab stop.
   Not `TreeView`, and not a `Collapse` inside a hand-written `<li>`.
+- **A long page's "On this page" list of its sections is `TableOfContents`**, not a `Menu` with
+  a scroll listener of your own: give each section's heading an `id` and pass the sections in page
+  order, `<TableOfContents isSticky items={[{ id: 'install', label: 'Install' }, { id: 'usage', label: 'Usage', children: […] }]} />`,
+  in a side `Column`. Its links are plain `#id` links with no click handler, and it marks the
+  section being read with `aria-current="location"`. Offset a sticky header with
+  `scroll-padding-top` on `html` in the page's CSS (which the highlight reads too), not with
+  `scroll-margin-top` on the headings, and put any smooth scrolling in that CSS under
+  `prefers-reduced-motion: no-preference`. To mark the section in view in the app's own nav
+  `Menu`, `useScrollSpy({ ids })` returns its id.
 - **Panes the user resizes are `Splitter`** (a file tree beside an editor, a list beside its
   detail, a query above its results), not hand-written drag code or fixed `Columns`:
   `<Splitter height={480}>` with a `<Splitter.Pane label="Files" defaultSize={25} minSize="12rem">`
