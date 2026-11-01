@@ -105,6 +105,7 @@ export const SCSS_SOURCES = {
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_carousel.scss' },
   ],
   Cell: [],
+  Center: [],
   Checkbox: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_checkbox.scss' }],
   CheckboxCard: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_checkboxcard.scss' },
@@ -201,8 +202,10 @@ export const SCSS_SOURCES = {
   Fieldset: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_fieldset.scss' }],
   Figure: [],
   File: [{ pkg: 'bulma', path: 'sass/form/file.scss' }],
+  Flex: [],
   Footer: [{ pkg: 'bulma', path: 'sass/layout/footer.scss' }],
   Grid: [{ pkg: 'bulma', path: 'sass/grid/grid.scss' }],
+  Group: [{ pkg: 'repo', path: 'bulma-ui/src/scss/layout/_stack.scss' }],
   Hero: [{ pkg: 'bulma', path: 'sass/layout/hero.scss' }],
   HoverCard: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_hovercard.scss' },
@@ -278,6 +281,7 @@ export const SCSS_SOURCES = {
   Slider: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_slider.scss' }],
   Span: [],
   Splitter: [{ pkg: 'repo', path: 'bulma-ui/src/scss/layout/_splitter.scss' }],
+  Stack: [{ pkg: 'repo', path: 'bulma-ui/src/scss/layout/_stack.scss' }],
   Steps: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_steps.scss' }],
   Strong: [{ pkg: 'bulma', path: 'sass/base/generic.scss' }],
   SubTitle: [{ pkg: 'bulma', path: 'sass/elements/title.scss' }],

@@ -513,6 +513,11 @@ function jsdocText(ts, node) {
   return '';
 }
 
+/** Whether a node's TSDoc carries `@tagName`, with or without text. */
+function hasJsdocTag(ts, node, tagName) {
+  return ts.getJSDocTags(node).some(tag => tag.tagName.text === tagName);
+}
+
 function jsdocTag(ts, node, tagName) {
   for (const tag of ts.getJSDocTags(node)) {
     if (tag.tagName.text === tagName) {
@@ -1037,21 +1042,21 @@ function polymorphicBase(ts, node) {
  * component selected by `as`" tells a reader, and the MCP index an assistant
  * answers from, that a shape the compiler refuses is supported.
  *
- * Resolved syntactically, like the rest of this reader: an inline union of
- * string literals, or a type alias in the same file that is one
- * (`DropdownItemElement`).
+ * Resolved from source, like the rest of this reader: an inline union of
+ * string literals, or a type alias that is one, one hop away, in the same
+ * file (`DropdownItemElement`) or imported (`LayoutElement`, which Stack,
+ * Group, Center and Flex share).
  *
  * Returns 'tags', 'open' (an explicit `React.ElementType`) or 'unknown'. Both
  * recognized kinds are detected POSITIVELY, and a test holds every polymorphic
  * component to one of them — because 'unknown' has no safe answer. Falling back
  * to the open wording over-promises on a constrained component, which is the
  * defect this helper exists to fix; falling back to the closed wording
- * under-promises on the eight components that really do take any element. The
+ * under-promises on the components that really do take any element. The
  * fallback is 'open' to preserve the long-standing wording, so the test is what
- * actually protects the contract: move `DropdownItemElement` into
- * `helpers/polymorphic.ts` — a natural refactor, since its paired interface
- * lives there — and the same-file alias hop finds nothing, the kind goes
- * 'unknown', and the test says so rather than the docs quietly regressing.
+ * actually protects the contract: a constraint this reader can't follow makes
+ * the kind 'unknown', and the test says so rather than the docs quietly
+ * regressing.
  */
 function asConstraintKind(ts, arg) {
   if (!arg || !ts.isTypeReferenceNode(arg) || !ts.isIdentifier(arg.typeName)) {
@@ -1097,10 +1102,22 @@ function isTagUnion(ts, node, scope, hopped = false) {
   const name = node.typeName.text;
   let file = scope;
   while (file && !ts.isSourceFile(file)) file = file.parent;
-  const alias = file?.statements?.find(
-    st => ts.isTypeAliasDeclaration(st) && st.name.text === name
-  );
+  const alias =
+    file?.statements?.find(
+      st => ts.isTypeAliasDeclaration(st) && st.name.text === name
+    ) ?? importedAlias(ts, node);
   return isTagUnion(ts, alias?.type, scope, true);
+}
+
+/**
+ * The type alias an imported name refers to, through the program's checker.
+ * Stack, Group, Center and Flex share `LayoutElement` from
+ * `helpers/stackLayout.tsx`, so their constraint is an import, not an alias
+ * in their own file.
+ */
+function importedAlias(ts, node) {
+  const decl = resolveInterface(ts, createProgram().checker, node);
+  return decl && ts.isTypeAliasDeclaration(decl) ? decl : null;
 }
 
 /**
@@ -1511,6 +1528,14 @@ const ROOT_CLASS_OVERRIDES = {
   SegmentedControl: 'buttons',
   // Not ToggleButton, though it renders a `.button`: that class is Button's,
   // and SCSS_SOURCES in api-sources.mjs says why it stays without one.
+  //
+  // Stack, Group, Center and Flex all render `.stack` through the shared
+  // `StackLayout` (helpers/stackLayout.tsx), so none names it in its own
+  // module. Stack and Group claim it, for the gaps `_stack.scss` registers
+  // there, which are theirs. Center and Flex have no gap of their own, so
+  // they list no variables, the way Buttons doesn't.
+  Stack: 'stack',
+  Group: 'stack',
 };
 
 /**
@@ -1678,7 +1703,7 @@ export function unnameablePropsError(impl, ifaceName, fn) {
  *   structured consumer (the MCP index): plain type text, and `deprecated` /
  *   `deprecationNote` / `valuesRef` as their own row fields. Defaults to `true`
  *   so the docs generator's output is unaffected.
- * @returns {{name, tsdoc, rootClass, varPrefix, tables: [{path, rows, catchAll: {text, helpers, helperPropsNote?}|null, extraProps}]}}
+ * @returns {{name, tsdoc, rootClass, varPrefix, tables: [{path, rows, catchAll: {text, helpers, helperPropsNote?}|null, extraProps, flexContainer?}]}}
  */
 export function extractComponent(
   name,
@@ -2057,6 +2082,13 @@ export function extractComponent(
     }
 
     const catchAll = catchAllRow(external, markdown);
+    // `@flexContainer` on the props type or a base: the part's root is a flex
+    // container by its own stylesheet, so the flex container helper props
+    // apply with no `display` prop (Stack, Group, Center and Flex, through
+    // their shared `LayoutOwnProps`). The ESLint plugin's metadata reads it.
+    const flexContainer = [decl, ...expandedDecls].some(owner =>
+      hasJsdocTag(ts, owner, 'flexContainer')
+    );
     const helperPropsNote = helperPropsNoteOf(
       impl,
       [decl, ...expandedDecls].map(owner => jsdocTag(ts, owner, 'helperProps')),
@@ -2077,6 +2109,7 @@ export function extractComponent(
         jsdocText(ts, componentFunction(ts, implInit)),
       rows,
       extraProps,
+      ...(flexContainer ? { flexContainer: true } : {}),
       catchAll: catchAll && {
         ...catchAll,
         ...(helperPropsNote ? { helperPropsNote } : {}),

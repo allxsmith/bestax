@@ -1107,6 +1107,8 @@ test('the class table names what styles a class Bulma 1 lacks, and who renders a
   assert.ok(!Object.hasOwn(byHand, 'div'));
   // A root class of bestax's own, and none of Bulma's.
   assert.equal(ownClasses.carousel, 'Carousel');
+  // Group renders `stack` too and sorts first, but Stack is its namesake.
+  assert.equal(ownClasses.stack, 'Stack');
   const v1 = new Set(vocabulary);
   assert.deepEqual(
     Object.keys(ownClasses).filter(token => v1.has(token)),

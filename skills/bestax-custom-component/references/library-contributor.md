@@ -121,8 +121,13 @@ Rules that keep components consistent:
   `Dropdown.Item`'s `'a' | 'div' | 'button'` differ in `href`, `disabled`, `type` and their ref
   element, and pinning them to one interface reproduces exactly this defect (#663). When the
   members differ, constrain `T` to the union rather than dropping the generic —
-  `ConstrainedPolymorphicComponentWithoutRef` in `helpers/polymorphic.ts` is that
-  shape, and `Dropdown.Item` is the worked example. Two consequences to pin while
+  `ConstrainedPolymorphicComponent` in `helpers/polymorphic.ts` is that shape for
+  a component that forwards a ref, typed from `as` like its props (`Stack`,
+  `Group`, `Center` and `Flex`, over `LayoutElement`), and
+  `ConstrainedPolymorphicComponentWithoutRef` the one for a component that
+  forwards none (`Dropdown.Item`). Both are exported from the package root as
+  types. A closed union declared in another module still reads as closed in
+  the API docs: the extractor follows one imported alias. Two consequences to pin while
   you are there. **Default the alias's `T` to the whole union, not to the rendered
   element** — narrowing it would break `const p: SomeProps = { as: 'div' }`, which
   compiles for every consumer today; the cost is that the bare alias then carries

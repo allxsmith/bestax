@@ -131,13 +131,17 @@
       "id": "layout",
       "label": "Layout",
       "components": [
+        "Center",
         "Container",
+        "Flex",
         "Footer",
+        "Group",
         "Hero",
         "Level",
         "Media",
         "Section",
-        "Splitter"
+        "Splitter",
+        "Stack"
       ]
     },
     {
@@ -289,6 +293,17 @@
       "compound": false,
       "propCount": 11,
       "exampleCount": 6
+    },
+    {
+      "name": "Center",
+      "kind": "component",
+      "category": "layout",
+      "purpose": "The `Center` component centers its content on both axes.",
+      "slug": "layout/center",
+      "import": "import { Center } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 7,
+      "exampleCount": 4
     },
     {
       "name": "Checkbox",
@@ -676,6 +691,17 @@
       "exampleCount": 18
     },
     {
+      "name": "Flex",
+      "kind": "component",
+      "category": "layout",
+      "purpose": "The `Flex` component is a flex container with CSS's own defaults, taking the flex container's properties as props.",
+      "slug": "layout/flex",
+      "import": "import { Flex } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 13,
+      "exampleCount": 4
+    },
+    {
       "name": "Footer",
       "kind": "component",
       "category": "layout",
@@ -696,6 +722,17 @@
       "compound": true,
       "propCount": 27,
       "exampleCount": 10
+    },
+    {
+      "name": "Group",
+      "kind": "component",
+      "category": "layout",
+      "purpose": "The `Group` component lays its children out in a row that wraps, centered on each other, with half of Bulma's block spacing between them.",
+      "slug": "layout/group",
+      "import": "import { Group } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 11,
+      "exampleCount": 6
     },
     {
       "name": "Hero",
@@ -1191,6 +1228,17 @@
       "compound": true,
       "propCount": 21,
       "exampleCount": 9
+    },
+    {
+      "name": "Stack",
+      "kind": "component",
+      "category": "layout",
+      "purpose": "The `Stack` component lays its children out in a column, with Bulma's block spacing between them and the margins Bulma gives them zeroed.",
+      "slug": "layout/stack",
+      "import": "import { Stack } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 8,
+      "exampleCount": 8
     },
     {
       "name": "Steps",
@@ -2800,6 +2848,8 @@
     "--bulma-splitter-line-active-size": ["Splitter"],
     "--bulma-splitter-line-color": ["Splitter"],
     "--bulma-splitter-line-size": ["Splitter"],
+    "--bulma-stack-gap": ["Stack", "Group"],
+    "--bulma-stack-horizontal-gap": ["Stack", "Group"],
     "--bulma-steps-animation-duration": ["Steps"],
     "--bulma-steps-content-margin-top": ["Steps"],
     "--bulma-steps-default-color": ["Steps"],

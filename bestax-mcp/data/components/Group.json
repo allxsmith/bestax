@@ -1,0 +1,188 @@
+{
+  "name": "Group",
+  "kind": "component",
+  "category": "layout",
+  "slug": "layout/group",
+  "docsUrl": "https://bestax.io/docs/api/layout/group",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<Group>\n  <Button color=\"primary\">Save</Button>\n  <Button>Cancel</Button>\n  <Span textColor=\"grey\">Last saved a minute ago</Span>\n</Group>"
+    },
+    {
+      "title": "Toolbar",
+      "code": "<Group justifyContent=\"space-between\">\n  <Title as=\"h2\" size=\"4\">\n    Invoices\n  </Title>\n  <Group gap=\"1\">\n    <Button>Export</Button>\n    <Button color=\"primary\">New invoice</Button>\n  </Group>\n</Group>"
+    },
+    {
+      "title": "Wrapping",
+      "code": "<Group gap=\"1\">\n  {['React', 'TypeScript', 'Bulma', 'Sass', 'Vite', 'Storybook', 'Vitest'].map(\n    name => (\n      <Tag key={name} color=\"link\">\n        {name}\n      </Tag>\n    )\n  )}\n</Group>"
+    },
+    {
+      "title": "Full Width",
+      "code": "<Group isFullwidth>\n  <Button>Cancel</Button>\n  <Button color=\"primary\">Save</Button>\n</Group>"
+    },
+    {
+      "title": "Stacking on a Phone",
+      "code": "<Group breakpoint=\"tablet\" isFullwidth>\n  <Button>Cancel</Button>\n  <Button color=\"primary\">Save</Button>\n</Group>"
+    },
+    {
+      "title": "As a List",
+      "code": "<Group as=\"ul\" gap=\"1\" aria-label=\"Topics\">\n  <li>\n    <Tag>React</Tag>\n  </li>\n  <li>\n    <Tag>Bulma</Tag>\n  </li>\n</Group>"
+    }
+  ],
+  "accessibility": "- **No role of its own:** a Group adds nothing to the accessibility tree, apart from `role=\"list\"`\n  on a `ul` or `ol`, which Safari otherwise drops once Bulma's reset hides the markers.\n- **Order:** it's a row in the children's own order, or a column below its `breakpoint` in the same\n  order, so what's seen, the reading order and the Tab order agree at every width. Right to left,\n  the row runs right to left.\n- **Reflow:** it wraps by default, so a row of controls doesn't make the page scroll sideways at a\n  width of 320 CSS pixels (WCAG 1.4.10).\n- **Grouping controls:** a Group of buttons isn't announced as a group. When the buttons belong\n  together and need a name, give it `role=\"group\"` and an `aria-label`, or render it\n  `as=\"fieldset\"` with one.",
+  "related": ["Buttons", "Flex", "Level", "Stack", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/layout-group--default",
+  "summary": "The `Group` component lays its children out in a row that wraps, centered on each other, with half of Bulma's block spacing between them. Use it for a row of buttons, tags or avatars beside some text, or a toolbar with `justifyContent=\"space-between\"` pushing its ends apart. The children's own block margins are zeroed, so the gap is the only space. With `breakpoint`, it's a column on narrow screens and a row from that breakpoint up. For controls joined into one, with no gap and shared borders, use `hasAddons` on Field or Buttons instead.",
+  "import": "import { Group } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/layout/Group.tsx",
+  "rootClass": "stack",
+  "parts": [
+    {
+      "path": "Group",
+      "summary": "The `Group` component lays its children out in a row that wraps, centered on each other, with half of Bulma's block spacing between them. Use it for a row of buttons, tags or avatars beside some text, or a toolbar with `justifyContent=\"space-between\"` pushing its ends apart. The children's own block margins are zeroed, so the gap is the only space. With `breakpoint`, it's a column on narrow screens and a row from that breakpoint up. For controls joined into one, with no gap and shared borders, use `hasAddons` on Field or Buttons instead.",
+      "component": null,
+      "props": [
+        {
+          "name": "as",
+          "type": "LayoutElement",
+          "default": "'div'",
+          "description": "The element to render. With `ul` or `ol`, give it `li` children: it restates `role=\"list\"`, which Bulma's list reset takes away in Safari.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "gap",
+          "type": "BulmaGapStep",
+          "default": null,
+          "description": "Space between children, a step of Bulma's gap scale. Unset, it's `--bulma-stack-horizontal-gap`, half of Bulma's block spacing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "alignItems",
+          "type": "(typeof validAlignItems)[number]",
+          "default": "'center'",
+          "description": "How each child sits across the row. While `breakpoint` stacks them, it's where each sits across the column.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "justifyContent",
+          "type": "(typeof validJustifyContents)[number]",
+          "default": null,
+          "description": "Where the children sit along the row: `'space-between'` pushes the ends apart.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "flexWrap",
+          "type": "(typeof validFlexWraps)[number]",
+          "default": "'wrap'",
+          "description": "Whether children move to a new row when they don't fit.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isFullwidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "The children share the row equally, and fill the column while `breakpoint` stacks them (Bulma's `is-fullwidth`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "breakpoint",
+          "type": "'tablet' | 'desktop' | 'widescreen'",
+          "default": null,
+          "description": "Stacks the children below this Bulma breakpoint and sets them in a row from it up, the breakpoints Container's `breakpoint` takes. Unset, a row at every width.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "What it lays out. The top and bottom margins Bulma gives them are zeroed, so `gap` is the only space between them, and a spacing helper such as `mt=\"2\"` still adds to it. A `Columns` child keeps its own top and side margins, and takes at the bottom the one Bulma gives the last Columns in a container, the column gap pulled back in (none when gapless), so its columns line up.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "PolymorphicRef<LayoutElement>",
+          "default": null,
+          "description": "Ref forwarded to the element `as` renders.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "Remaining props of the element selected by as and Bulma helper props",
+      "types": [
+        {
+          "name": "BulmaGapStep",
+          "expansion": "'0' | '0.5' | '1' | '1.5' | '2' | '2.5' | '3' | '3.5' | '4' | '4.5' | '5' | '5.5' | '6' | '6.5' | '7' | '7.5' | '8' | 0 | 0.5 | 1 | 1.5 | 2 | 2.5 | 3 | 3.5 | 4 | 4.5 | 5 | 5.5 | 6 | 6.5 | 7 | 7.5 | 8",
+          "summary": "A gap step as `gap`, `columnGap` and `rowGap` take it: a value from `validGaps`, or the same step written as a number (`gap={2}`, `gap={1.5}`). `Grid` took its gaps as numbers before the gap helpers were shared, so every gap prop still does."
+        },
+        {
+          "name": "LayoutElement",
+          "expansion": "'div' | 'main' | 'section' | 'article' | 'aside' | 'header' | 'footer' | 'nav' | 'ul' | 'ol' | 'form' | 'fieldset'",
+          "summary": "The elements Stack, Group, Center and Flex can render as: Container's landmarks and sections, a list, a form or a fieldset."
+        }
+      ]
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-stack-gap",
+      "sass": "$stack-gap",
+      "default": "var(--bulma-block-spacing)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-stack-horizontal-gap",
+      "sass": "$stack-horizontal-gap",
+      "default": "calc(var(--bulma-block-spacing) * 0.5)",
+      "scope": "root"
+    }
+  ]
+}

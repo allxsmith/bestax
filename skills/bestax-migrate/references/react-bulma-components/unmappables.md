@@ -189,10 +189,10 @@ The same TODO marks a `Heading` that sets `size` and `textSize` both: drop `size
 ## `domRef`
 
 bestax components don't take `domRef`, but many forward a plain `ref` — the form controls, plus
-`Avatar`, `Button`, `Carousel`, `CarouselItem`, `ColorSwatch`, `Command`, `Command.Dialog`, `Command.Input`, `DataTable`, `DescriptionList`, `DescriptionList.Item`, `DescriptionList.Label`, `DescriptionList.Value`, `Dialog`, `Dropdown`, `EmptyState`, `Kbd`,
+`Avatar`, `Button`, `Carousel`, `CarouselItem`, `Center`, `ColorSwatch`, `Command`, `Command.Dialog`, `Command.Input`, `DataTable`, `DescriptionList`, `DescriptionList.Item`, `DescriptionList.Label`, `DescriptionList.Value`, `Dialog`, `Dropdown`, `EmptyState`, `Flex`, `Group`, `Kbd`,
 `Kbd.Group`, `Link`, `LinkButton`, `Loader`, `LocaleProvider`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`,
 `Navbar.Dropdown`, `Navbar.Item`, `Navbar.Link`, `RingProgress`, `ScrollArea`, `SegmentedControl`, `SegmentedControl.Segment`,
-`Sidebar`, `Splitter`, `Splitter.Pane`, `Timeline`, `Timeline.Item`, `Toast`, `ToggleButton`, `TreeView` and `TreeView.Item`. On
+`Sidebar`, `Splitter`, `Splitter.Pane`, `Stack`, `Timeline`, `Timeline.Item`, `Toast`, `ToggleButton`, `TreeView` and `TreeView.Item`. On
 those, rename `domRef` to `ref` and it works; do not restructure the markup. "The form controls"
 means the inputs themselves: the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios`
 wrappers around them forward nothing, and `Field` is a target this codemod emits.

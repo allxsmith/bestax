@@ -220,3 +220,31 @@ export interface ConstrainedPolymorphicComponentWithoutRef<
   (props: PolymorphicProps<Default, Own, Forwarded>): React.ReactElement | null;
   displayName?: string;
 }
+
+/**
+ * `ConstrainedPolymorphicComponentWithoutRef` with a forwarded ref: the props
+ * and the ref both follow `as`, and `as` is one of `Allowed`.
+ *
+ * For a component whose `as` is a closed set of tags that don't share one
+ * prop surface. `Stack` renders a `<div>`, a `<form>`, an `<ol>` or a
+ * `<fieldset>` among others, which take different attributes (`action`,
+ * `start`, `disabled`) and give the ref a different element, so pinning them
+ * all to `HTMLAttributes<HTMLElement>` would refuse attributes that work.
+ */
+export interface ConstrainedPolymorphicComponent<
+  Own,
+  Allowed extends React.ElementType,
+  Default extends Allowed,
+  Forwarded extends keyof Own = never,
+> {
+  <T extends Allowed = Default>(
+    props: PolymorphicProps<T, Own, Forwarded> & { ref?: PolymorphicRef<T> }
+  ): React.ReactElement | null;
+  // The derivation overload `PolymorphicComponent` documents.
+  (
+    props: PolymorphicProps<Default, Own, Forwarded> & {
+      ref?: PolymorphicRef<Default>;
+    }
+  ): React.ReactElement | null;
+  displayName?: string;
+}

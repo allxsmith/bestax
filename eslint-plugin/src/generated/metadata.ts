@@ -202,6 +202,19 @@ export const TEXT_ALIAS_COLOR_ELEMENTS: readonly string[] = [
   'Panel.Icon',
 ];
 
+/**
+ * Elements that are flex containers by their own CSS, so the flex container
+ * props (`alignItems`, `justifyContent` and the rest) render on them with
+ * no `display` prop, unless a `display` prop makes them something else.
+ * Read from the `@flexContainer` tag on each one's props type or its bases.
+ */
+export const FLEX_CONTAINER_ELEMENTS: readonly string[] = [
+  'Center',
+  'Flex',
+  'Group',
+  'Stack',
+];
+
 /** A Bulma class that names a bestax component. */
 export interface BulmaComponentClass {
   /** The bestax component, dotted for a part (`Hero.Body`). */
