@@ -449,6 +449,60 @@ describe('PasswordInput', () => {
       }
     });
 
+    it('reports one false for two hide events before React renders', () => {
+      // A caller that keeps `visible` true renders nothing, so a submit and
+      // then a reset in one handler find the field as the first left it.
+      const { form, onVisibleChange } = inForm({ visible: true });
+      act(() => {
+        form.dispatchEvent(
+          new Event('submit', { bubbles: true, cancelable: true })
+        );
+        form.dispatchEvent(new Event('reset', { bubbles: true }));
+      });
+      expect(onVisibleChange).toHaveBeenCalledTimes(1);
+      expect(onVisibleChange).toHaveBeenCalledWith(false);
+    });
+
+    it('reports one false for a submit and a reset from a layout effect', () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const onVisibleChange = vi.fn();
+      function SendsAndClears({ ask }: { ask: boolean }) {
+        const formRef = useRef<HTMLFormElement>(null);
+        useClientLayoutEffect(() => {
+          if (!ask) return;
+          formRef.current?.dispatchEvent(
+            new Event('submit', { bubbles: true, cancelable: true })
+          );
+          formRef.current?.dispatchEvent(new Event('reset', { bubbles: true }));
+        }, [ask]);
+        return (
+          <form ref={formRef} onSubmit={event => event.preventDefault()}>
+            <PasswordInput
+              label="Password"
+              defaultVisible
+              onVisibleChange={onVisibleChange}
+            />
+          </form>
+        );
+      }
+      try {
+        const { rerender } = render(<SendsAndClears ask={false} />);
+        rerender(<SendsAndClears ask />);
+        expect(onVisibleChange).toHaveBeenCalledTimes(1);
+        expect(input()).toHaveAttribute('type', 'password');
+      } finally {
+        errorSpy.mockRestore();
+      }
+    });
+
+    it('reports again once the field shows again', () => {
+      const { form, onVisibleChange } = inForm({ defaultVisible: true });
+      fireEvent.submit(form);
+      fireEvent.click(toggle());
+      fireEvent.submit(form);
+      expect(onVisibleChange.mock.calls).toEqual([[false], [true], [false]]);
+    });
+
     it('listens to the form its form attribute names', () => {
       const onVisibleChange = vi.fn();
       render(

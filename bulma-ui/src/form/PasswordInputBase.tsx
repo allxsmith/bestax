@@ -2,6 +2,7 @@ import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { usePrefixedClassNames } from '../helpers/classNames';
 import { warnOnce } from '../helpers/devWarnings';
+import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { InputBase, InputBaseProps } from './InputBase';
 import { useControlLoading } from './controlLoading';
@@ -178,7 +179,15 @@ export const PasswordInputBase = forwardRef<
   const isControlled = visibleProp !== undefined;
   const [internalVisible, setInternalVisible] = useState(defaultVisible);
   const visible = isControlled ? visibleProp : internalVisible;
+  // Whether the field shows now: as last reported, until `visible` changes.
+  // Two hide events before React renders, as from a layout effect, or a
+  // caller holding `visible` that keeps it `true`, report `false` once.
+  const shownRef = useRef(visible);
+  useClientLayoutEffect(() => {
+    shownRef.current = visible;
+  }, [visible]);
   const setVisible = (next: boolean) => {
+    shownRef.current = next;
     if (!isControlled) setInternalVisible(next);
     onVisibleChange?.(next);
   };
@@ -204,7 +213,7 @@ export const PasswordInputBase = forwardRef<
   // in development and the hide lands after the form is read. Only the
   // listeners below call it, while the input is mounted.
   const hideRef = useLatestRef(() => {
-    if (!visible) return;
+    if (!shownRef.current) return;
     // eslint-disable-next-line @eslint-react/dom-no-flush-sync -- the form is read, or the page saved, before React would render this on its own
     flushSync(() => setVisible(false));
   });
