@@ -159,9 +159,11 @@ test holds to rbx's own export surface in both directions.
 | `Panel.Tab.Group`                  | `Panel.Tabs`                                                                                                                                                                                                                        |
 | `Title subtitle`                   | `SubTitle`                                                                                                                                                                                                                          |
 
-Inside a `Field` or a `Control`, `Fieldset` stays the plain `<fieldset>` rbx rendered instead.
-bestax's `Fieldset` starts a Field scope of its own, so an input placed straight in it there would
-render its own `.field` and `.control`.
+Inside a `Field` or a `Control` in the same component, `Fieldset` stays the plain `<fieldset>` rbx
+rendered instead. bestax's `Fieldset` starts a Field scope of its own, so an input placed straight
+in it there would render its own `.field` and `.control`. A `Field` in another component that
+renders this one is out of the codemod's sight, so where an input sits straight in a `Fieldset` it
+converts, it leaves a `component:Fieldset` TODO (see [unmappables.md](unmappables.md)).
 
 ## Value-chosen targets
 

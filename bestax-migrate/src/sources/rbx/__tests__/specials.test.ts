@@ -346,6 +346,55 @@ describe('rbx Title / Icon / PageLoader / Navbar / Field', () => {
     );
   });
 
+  // A Field or a Control in another component can still render the Fieldset,
+  // out of the codemod's sight, so an input straight in one gets an advisory.
+  describe('an input placed straight in a Fieldset that converts', () => {
+    it('gets an advisory naming it', () => {
+      const { output, todos } = migrate(
+        imp('Fieldset, Input, Textarea') +
+          'export const A = () => <Fieldset disabled><Input /><Textarea /></Fieldset>;'
+      );
+      expect(output).toContain('<Fieldset disabled variant="unstyled">');
+      expect(todos.map(t => t.rule)).toEqual(['component:Fieldset']);
+      expect(todos[0].message).toContain('`Input`, `TextArea` placed straight');
+      expect(todos[0].message).toContain('render a plain `<fieldset>` instead');
+    });
+
+    it("counts rbx's Select.Container and a bestax input as well", () => {
+      const { todos } = migrate(
+        "import { Rate } from '@allxsmith/bestax-bulma';\n" +
+          imp('Fieldset, Select') +
+          'export const A = () => <Fieldset><Select.Container><Select /></Select.Container><Rate /></Fieldset>;'
+      );
+      expect(todos.map(t => t.rule)).toEqual(['component:Fieldset']);
+      expect(todos[0].message).toContain('`Select`, `Rate` placed straight');
+    });
+
+    it('stays quiet where a Field or a Control holds the input', () => {
+      const { rules } = migrate(
+        imp('Control, Field, Fieldset, Input') +
+          'export const A = () => <Fieldset><Field><Input /></Field><Control><Input /></Control></Fieldset>;'
+      );
+      expect(rules).toEqual([]);
+    });
+
+    it('stays quiet for children that render the same either way', () => {
+      const { rules } = migrate(
+        imp('Button, Checkbox, Fieldset') +
+          'export const A = () => <Fieldset><Button>Save</Button><Checkbox /></Fieldset>;'
+      );
+      expect(rules).toEqual([]);
+    });
+
+    it('stays quiet where the Fieldset stays plain', () => {
+      const { rules } = migrate(
+        imp('Field, Fieldset, Input') +
+          'export const A = () => <Field><Fieldset><Input /></Fieldset></Field>;'
+      );
+      expect(rules).toEqual([]);
+    });
+  });
+
   // bestax's Fieldset starts its own Field scope, which rbx's never did, so
   // inside a Field or a Control it stays the plain <fieldset> rbx rendered.
   describe('a Fieldset inside a Field or a Control', () => {

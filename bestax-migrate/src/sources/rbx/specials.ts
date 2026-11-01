@@ -18,6 +18,7 @@ import type { ASTPath } from 'jscodeshift';
 import {
   BADGE_PROPS,
   RESPONSIVE_BREAKPOINTS,
+  resolveMapping,
   TOOLTIP_PROPS,
   UNIVERSAL_PROPS,
 } from './mapping.js';
@@ -38,6 +39,7 @@ import {
 import {
   alignTarget,
   applyIconProps,
+  FIELD_SCOPED,
   flagDroppedHeading,
   keepTitleLevel,
   makeStripModifierProps,
@@ -134,6 +136,33 @@ function insideFormScope(ctx: TransformContext, path: ASTPath<any>): boolean {
     if (root === 'Field' || root === 'Control') return true;
   }
   return false;
+}
+
+/**
+ * The bestax components among the element's own children that render one
+ * way inside a `Field` and another outside one, by the names they migrate
+ * to. A child already in a Field or a Control of its own isn't one.
+ */
+function fieldScopedChildren(
+  ctx: TransformContext,
+  path: ASTPath<any>
+): string[] {
+  const names = new Set<string>();
+  (path.node.children ?? []).forEach((child: any, i: number) => {
+    if (child.type !== 'JSXElement') return;
+    const hit = ctx.resolveElement?.(path.get('children', i));
+    if (!hit) return;
+    // rbx's Select.Container folds onto the Select it holds.
+    const dotted = hit.parts.join('.');
+    const name =
+      hit.library === 'bestax'
+        ? dotted
+        : dotted === 'Select.Container'
+          ? 'Select'
+          : resolveMapping(hit.parts)?.target;
+    if (name && FIELD_SCOPED.has(name)) names.add(name);
+  });
+  return [...names];
 }
 
 const SPECIALS: Record<string, SpecialHandler> = {
@@ -338,6 +367,11 @@ const SPECIALS: Record<string, SpecialHandler> = {
    * would gain a `.field` and a `.control` of its own. There it stays the
    * plain <fieldset> rbx rendered, which keeps the markup and, since every
    * input rbx had is a native one, the `disabled` behavior too.
+   *
+   * Only a Field or a Control in the same file shows, though: one in another
+   * component that renders this one is out of sight. So where an input sits
+   * straight in a Fieldset that converts, an advisory TODO says what to do
+   * if one does.
    */
   fieldset(ctx, path, element) {
     if (insideFormScope(ctx, path)) {
@@ -362,6 +396,15 @@ const SPECIALS: Record<string, SpecialHandler> = {
         makeAttr(ctx.j, 'variant', 'unstyled')
       );
       ctx.dirty = true;
+    }
+    const scoped = fieldScopedChildren(ctx, path);
+    if (scoped.length > 0) {
+      addTodo(
+        ctx,
+        path,
+        'component:Fieldset',
+        `bestax's \`Fieldset\` starts its own Field scope, so ${scoped.map(name => `\`${name}\``).join(', ')} placed straight in it renders as it does outside any \`Field\`, with a \`.field\` of its own where it has one. That's right unless another component renders this \`Fieldset\` inside a \`Field\` or a \`Control\`, which the codemod can't see from here: there, render a plain \`<fieldset>\` instead, which leaves their scope alone, as the codemod does when it can see the \`Field\``
+      );
     }
     return {};
   },
