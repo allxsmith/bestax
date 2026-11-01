@@ -26,7 +26,6 @@ export function Elements() {
         <Heading subtitle size={4}>
           Every basic piece of the page
         </Heading>
-        <Heading heading>Stats</Heading>
         <Box>
           <Content size="small">
             <p>Rich text lives here.</p>

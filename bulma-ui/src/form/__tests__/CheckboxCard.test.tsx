@@ -416,20 +416,29 @@ describe('CheckboxCard', () => {
       expect(onChange).toHaveBeenLastCalledWith(['backups']);
     });
 
-    it('starts from an empty selection when the group has only onChange', () => {
-      // A group with only onChange holds no value until the first change, so
-      // React warns that the input went from uncontrolled to controlled. It
-      // does the same for Checkbox; the group decides it, not the card.
+    it('starts from its own defaultChecked when the group has only onChange', () => {
+      // A group with only onChange holds no value until the first change. The
+      // cards render controlled from the start all the same, so React has no
+      // input going from uncontrolled to controlled to warn about, and a card
+      // that started checked stays in the selection.
       const error = vi.spyOn(console, 'error').mockImplementation(() => {});
       try {
         const onChange = vi.fn();
         render(
           <Checkboxes onChange={onChange}>
-            <CheckboxCard value="backups" title="Backups" />
+            <CheckboxCard value="backups" defaultChecked title="Backups" />
+            <CheckboxCard value="domain" title="Domain" />
           </Checkboxes>
         );
+        expect(box('Backups').checked).toBe(true);
+        fireEvent.click(box('Domain'));
+        expect(onChange).toHaveBeenLastCalledWith(['backups', 'domain']);
+        expect(box('Backups').checked).toBe(true);
+        expect(box('Domain').checked).toBe(true);
+        expect(error).not.toHaveBeenCalled();
         fireEvent.click(box('Backups'));
-        expect(onChange).toHaveBeenLastCalledWith(['backups']);
+        expect(onChange).toHaveBeenLastCalledWith(['domain']);
+        expect(box('Backups').checked).toBe(false);
       } finally {
         error.mockRestore();
       }

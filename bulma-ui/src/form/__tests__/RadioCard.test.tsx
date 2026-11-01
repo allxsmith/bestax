@@ -266,6 +266,51 @@ describe('RadioCard', () => {
       expect(radio('Standard').checked).toBe(false);
     });
 
+    it('starts from its own defaultChecked when the group has only onChange', () => {
+      // A group with only onChange holds no value until the first change. The
+      // cards render controlled from the start all the same, so React has no
+      // input going from uncontrolled to controlled to warn about.
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        const onChange = vi.fn();
+        render(
+          <Radios name="ship" onChange={onChange}>
+            <RadioCard value="std" title="Standard" />
+            <RadioCard value="exp" defaultChecked title="Express" />
+          </Radios>
+        );
+        expect(radio('Express').checked).toBe(true);
+        expect(radio('Standard').checked).toBe(false);
+        fireEvent.click(screen.getByText('Standard'));
+        expect(onChange).toHaveBeenLastCalledWith('std');
+        expect(radio('Standard').checked).toBe(true);
+        expect(radio('Express').checked).toBe(false);
+        expect(error).not.toHaveBeenCalled();
+      } finally {
+        error.mockRestore();
+      }
+    });
+
+    it('lets a card without a value that shares the name be picked when the group has only onChange', () => {
+      // The browser unchecks Express when it's picked, and React would put
+      // the controlled card back unless the group knows the pick left it.
+      const onChange = vi.fn();
+      render(
+        <Radios name="ship" onChange={onChange}>
+          <RadioCard value="exp" defaultChecked title="Express" />
+          <RadioCard title="Pick up" />
+        </Radios>
+      );
+      fireEvent.click(screen.getByText('Pick up'));
+      expect(radio('Pick up').checked).toBe(true);
+      expect(radio('Express').checked).toBe(false);
+      expect(onChange).not.toHaveBeenCalled();
+      fireEvent.click(screen.getByText('Express'));
+      expect(onChange).toHaveBeenLastCalledWith('exp');
+      expect(radio('Express').checked).toBe(true);
+      expect(radio('Pick up').checked).toBe(false);
+    });
+
     it('follows the group value, controlled', () => {
       function Harness() {
         const [ship, setShip] = useState('std');

@@ -101,7 +101,7 @@
           "name": "onChange",
           "type": "(value: string) => void",
           "default": null,
-          "description": "Fires when the selection changes.",
+          "description": "Fires when the selection changes; receives the value picked. Passed without `value` or `defaultValue`, it still has the group manage the selection, starting from the radio with `defaultChecked`.",
           "required": false,
           "inherited": false,
           "deprecated": false

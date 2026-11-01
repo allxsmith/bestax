@@ -1,0 +1,43 @@
+// Bestax Extras - the cells of a selected table row
+// A mixin Checkbox and Radio share, so the cells their selected-row rules
+// name can't drift apart. It reads Bulma's `$colors`, so it lives here rather
+// than in `_mixins.scss`, which compiles with no Bulma to load.
+
+@use 'sass:list';
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/derived-variables' as dv;
+
+// The cells of a table that sit on Bulma's selected-row fill (`Tr
+// isSelected`, or a cell with `is-selected`), for a control drawn in the
+// primary color, which the fill is too. Name the step from the cell down to
+// the control in the content with a child combinator (`> .styled-checkbox`):
+// one inside a menu, a card or a table nested in the cell sits on that
+// surface's own background instead.
+//
+// A cell with a color of its own (`Td color="white"`) paints its own
+// background over the row's, and so does every cell of a row with a color
+// (`Tr color="white" isSelected`), which hands its color to its cells. Both
+// are left out. Bulma colors those cells with custom properties alone, which
+// a selector can't read, so the cells are named by class, one for each color
+// Bulma makes them from: its `$colors` map, which its table's `$table-colors`
+// is built from, custom colors included. A selected cell is the row's fill
+// whatever its color, as Bulma paints it.
+@mixin extras-selected-table-cell {
+  $colored: ();
+  @each $name, $color in dv.$colors {
+    $colored: list.append(
+      $colored,
+      '.#{iv.$class-prefix}is-#{$name}',
+      $separator: comma
+    );
+  }
+
+  .#{iv.$class-prefix}table {
+    tr.#{iv.$class-prefix}is-selected:not(#{$colored}) > td:not(#{$colored}),
+    tr.#{iv.$class-prefix}is-selected:not(#{$colored}) > th:not(#{$colored}),
+    td.#{iv.$class-prefix}is-selected,
+    th.#{iv.$class-prefix}is-selected {
+      @content;
+    }
+  }
+}

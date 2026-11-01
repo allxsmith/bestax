@@ -2,11 +2,10 @@
 // Custom-styled checkbox with colors, sizes, and visual states
 // Follows Bulma v1 CSS variable convention (see _dialog.scss)
 
-@use "sass:list";
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
-@use "bulma/sass/utilities/derived-variables" as dv;
 @use "bulma/sass/utilities/mixins" as mx;
+@use "../selected-row" as *;
 
 // Bulma's horizontal field: `.field-label` takes one part of the row and
 // `.field-body` five, after the label's `margin-inline-end`. Private, since
@@ -165,9 +164,11 @@ $-check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
     }
   }
 
-  // Label text
+  // Label text. The gap is on the text's inline start, the side the box is
+  // on: the row mirrors on a right-to-left page, and a physical
+  // `margin-left` would stay on the far side and leave the text on the box.
   .#{iv.$class-prefix}control-label {
-    margin-left: cv.getVar("checkbox-label-gap");
+    margin-inline-start: cv.getVar("checkbox-label-gap");
     line-height: 1.5;
   }
 }
@@ -194,44 +195,19 @@ $-check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
 // read.
 //
 // Only a Checkbox placed straight in one of those cells sits on the row's
-// fill, so the rule names each step down to it rather than any checkbox
-// below the row. One inside a menu, a card or a table nested in the cell sits
-// on that surface's own background, and keeps its own colors there.
-//
-// A cell with a color of its own (`Td color="white"`) paints its own
-// background over the row's, and so does every cell of a row with a color
-// (`Tr color="white" isSelected`), which hands its color to its cells. Both
-// are left out, and a box there keeps its usual look. Bulma colors those cells with custom properties alone, which a
-// selector can't read, so the cells are named by class, one for each color
-// Bulma makes them from: its `$colors` map, which its table's
-// `$table-colors` is built from, custom colors included. A selected cell is
-// the row's fill whatever its color, as Bulma paints it.
-$-colored-cells: ();
-@each $name, $color in dv.$colors {
-  $-colored-cells: list.append(
-    $-colored-cells,
-    ".#{iv.$class-prefix}is-#{$name}",
-    $separator: comma
-  );
-}
-
-.#{iv.$class-prefix}table {
-  tr.#{iv.$class-prefix}is-selected:not(#{$-colored-cells})
-    > td:not(#{$-colored-cells}),
-  tr.#{iv.$class-prefix}is-selected:not(#{$-colored-cells})
-    > th:not(#{$-colored-cells}),
-  td.#{iv.$class-prefix}is-selected,
-  th.#{iv.$class-prefix}is-selected {
-    > .#{iv.$class-prefix}styled-checkbox {
-      @include cv.register-vars(
-        (
-          "checkbox-border-color": #{cv.getVar("table-row-active-color")},
-          "checkbox-active-color": #{cv.getVar("table-row-active-color")},
-          "checkbox-indeterminate-color": #{cv.getVar("table-row-active-color")},
-          "checkbox-check-color": #{cv.getVar("table-row-active-background-color")},
-        )
-      );
-    }
+// fill, and cells with a color of their own are left out, so a box in a
+// menu, a nested table or a colored cell keeps its usual look. The mixin
+// names the cells, and Radio's rule reads the same list.
+@include extras-selected-table-cell {
+  > .#{iv.$class-prefix}styled-checkbox {
+    @include cv.register-vars(
+      (
+        "checkbox-border-color": #{cv.getVar("table-row-active-color")},
+        "checkbox-active-color": #{cv.getVar("table-row-active-color")},
+        "checkbox-indeterminate-color": #{cv.getVar("table-row-active-color")},
+        "checkbox-check-color": #{cv.getVar("table-row-active-background-color")},
+      )
+    );
   }
 }
 

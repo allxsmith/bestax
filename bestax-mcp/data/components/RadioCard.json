@@ -159,7 +159,7 @@
           "name": "value",
           "type": "string",
           "default": null,
-          "description": "What a form sends when this card is the one picked. Inside a `Radios` group that takes `value`, `defaultValue` or `onChange`, the card is checked while the group's value is this.",
+          "description": "What a form sends when this card is the one picked. Inside a `Radios` group that takes `value`, `defaultValue` or `onChange`, the card is checked while the group's value is this. A group given only `onChange` starts from the card with `defaultChecked`.",
           "required": false,
           "inherited": false,
           "deprecated": false

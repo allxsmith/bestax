@@ -373,22 +373,75 @@ export const useFieldLabelTarget = (
  * (i.e., the user passed `value`, `defaultValue`, or `onChange` to `<Radios>`).
  * When only `name` is provided, the group is in "name-only" mode and child
  * Radios manage their own checked state independently.
+ *
+ * A group given only `onChange` manages the selection but holds no value
+ * until its first change. Until then a Radio with a value shows its own
+ * `defaultChecked`, still controlled, so that change doesn't flip it from
+ * uncontrolled to controlled.
  */
 export interface RadiosGroupContextValue {
   name?: string;
-  value?: string;
+  /** `null` once a radio without a value was picked before the group held one, so no radio with a value shows checked. */
+  value?: string | null;
   onChange?: (value: string) => void;
+  /** Set with `onChange`. Tells the group a radio without a value, sharing its name, was picked. */
+  pickWithoutValue?: () => void;
 }
+
+/**
+ * Tells a surrounding `<Radios>` that one of its radios was picked. A radio
+ * with a value hands the group that value. One without a value tells the
+ * group nothing it reports, but when it shares the group's name the browser
+ * has just unchecked the radio that showed checked, so the group learns the
+ * pick left its radios and React doesn't check that one again, undoing the
+ * pick. `Radio` and `RadioCard` call it with their effective name.
+ */
+export const pickInRadiosGroup = (
+  group: RadiosGroupContextValue | undefined,
+  value: string | number | readonly string[] | undefined,
+  name: string | undefined
+) => {
+  if (!group?.onChange) return;
+  if (value !== undefined) group.onChange(String(value));
+  else if (name !== undefined && name === group.name) group.pickWithoutValue!();
+};
 
 /**
  * Shape of the Checkboxes group context. Like Radios but with array semantics
  * for multi-select.
+ *
+ * While the group manages the selection it also sets `registerChecked` and
+ * `startingValue`. A group given only `onChange` holds no value until its
+ * first change, so its choices register the values they start checked with,
+ * and that change starts from them rather than from an empty array.
  */
 export interface CheckboxesGroupContextValue {
   name?: string;
   value?: string[];
   onChange?: (values: string[]) => void;
+  /** Registers a value a choice starts checked with, and returns the function that takes it back. */
+  registerChecked?: (value: string) => () => void;
+  /** The values registered as starting checked, each once, in the order they came. */
+  startingValue?: () => string[];
 }
+
+/**
+ * Registers a choice with its surrounding `<Checkboxes>` while it starts
+ * checked, so a group with no value yet starts its first change from the
+ * choices that were checked. `Checkbox` and `CheckboxCard` call it. It does
+ * nothing outside a group that manages the selection, or without a value.
+ */
+export const useRegisterChecked = (
+  group: CheckboxesGroupContextValue | undefined,
+  value: string | undefined,
+  startsChecked: boolean
+) => {
+  const register = group?.registerChecked;
+  useClientLayoutEffect(() => {
+    if (!register || value === undefined || !startsChecked) return;
+    return register(value);
+  }, [register, value, startsChecked]);
+};
 
 const RadiosContext = createContext<RadiosGroupContextValue | undefined>(
   undefined
