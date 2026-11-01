@@ -1935,12 +1935,30 @@ export function extractComponent(
       }
     }
 
+    // The literals below are the RENDERED members, so they carry backticks in
+    // markdown mode and not in structured mode — compare against whichever
+    // this run produced or the normalisation silently stops matching.
+    const tick = s => (markdown ? `\`${s}\`` : s);
+    // A branch that types a prop as nothing at all forbids it there.
+    const forbids = row =>
+      row.type === tick('never') || row.type === tick('undefined');
+
     // Deduplicate by prop name, keeping the most-derived declaration.
     const byName = new Map();
     for (const row of rows) {
       const prev = byName.get(row.name);
       if (!prev) {
         byName.set(row.name, row);
+        continue;
+      }
+      // A union branch that forbids a prop another branch takes says nothing
+      // a reader can pass, so the branch that takes it describes the row,
+      // whichever comes first. Icon's `children` branch types `name` as
+      // `undefined`, which read `string | undefined`, and a forbidding branch
+      // that came first would lead the row with its "not with" description.
+      if (forbids(row)) continue;
+      if (forbids(prev)) {
+        Object.assign(prev, { ...row, inherited: prev.inherited });
         continue;
       }
       // The branches of a discriminated union each declare the prop with their
@@ -1950,16 +1968,13 @@ export function extractComponent(
         prev.type = `${prev.type} | ${row.type}`;
       }
     }
-    // The forbidding branch types the prop `never`, which merged into cells
-    // like ``never` | `number`` on slider.md — noise standing where the
-    // reader needs a type. Dropping it leaves exactly what may be passed, and
-    // the boolean literals a discriminant contributes read as `boolean`, with
-    // or without a branch that takes a plain `boolean` beside them (Combobox's
-    // `multiple` is `false`, `true` and `boolean` across its three branches).
-    // The literals below are the RENDERED members, so they carry backticks in
-    // markdown mode and not in structured mode — compare against whichever
-    // this run produced or the normalisation silently stops matching.
-    const tick = s => (markdown ? `\`${s}\`` : s);
+    // A `never` member left in a cell is noise standing where the reader needs
+    // a type (``never` | `number`` on slider.md, before the dedupe above set
+    // forbidding branches aside), so dropping one leaves exactly what may be
+    // passed. And the boolean literals a discriminant contributes read as
+    // `boolean`, with or without a branch that takes a plain `boolean` beside
+    // them (Combobox's `multiple` is `false`, `true` and `boolean` across its
+    // three branches).
     const booleans = [tick('false'), tick('true'), tick('boolean')];
     for (const row of byName.values()) {
       const seen = new Set();

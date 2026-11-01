@@ -627,6 +627,18 @@ test('a discriminant merged with a plain boolean reads as boolean', () => {
   }
 });
 
+test('a union branch that forbids a prop leaves the row to the branch that takes it', () => {
+  // Icon's `name` is a string on its `name` branch and `undefined` on its
+  // `children` branch, which forbids it there, so the cell read
+  // `string | undefined`: what may be passed is a string.
+  for (const markdown of [true, false]) {
+    const tick = s => (markdown ? `\`${s}\`` : s);
+    const name = row('Icon', 'name', { markdown });
+    assert.equal(name.type, tick('string'));
+    assert.match(name.description, /^The icon name/);
+  }
+});
+
 test('structured mode leaks no markdown into any documented component', () => {
   // The whole point of the mode. A single escaped cell anywhere reaches an
   // agent as literal backticks in a type it is about to write into source.
