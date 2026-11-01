@@ -113,7 +113,7 @@ jobs:
       # paths past the list open in a job holding bestaxbot's PAT and SSH
       # signing key ("What the agent allows beyond the list").
       - name: Harden runner
-        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -311,7 +311,7 @@ jobs:
           # that reddens a block job weeks after a flip. Denied, not allow-listed
           # (#578).
           TURBO_TELEMETRY_DISABLED: '1'
-        uses: anthropics/claude-code-action@e4a6faad497d33dbc7144135c75e41f82f0bf6c0 # v1.0.255
+        uses: anthropics/claude-code-action@d70510b174a1244958df0b03166a54912811f3e6 # v1.0.264
         with:
           # Respond as the bestaxbot machine account so replies/commits come
           # from a real user (CodeRabbit engages, commits are SSH-Verified).
