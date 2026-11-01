@@ -81,12 +81,6 @@ minimumReleaseAgeExclude:
   # rather than lag it behind the cooldown (which would cause recurring
   # reformat churn). Dev-only, never shipped to users.
   - prettier
-  # bestax:review 2026-11-03 — drop both once they're past the cooldown
-  # (published 2026-10-28). The joi overrides below need these patched
-  # releases for GHSA-4528-x5fx-h6hg before the cooldown would admit them.
-  - 'joi@17.13.9'
-  # bestax:review 2026-11-03 — same advisory, 18.x line
-  - 'joi@18.3.1'
 
 # Pin a single prettier version workspace-wide so eslint-plugin-prettier and
 # `prettier --check` never disagree (patch versions format union types
@@ -199,8 +193,7 @@ overrides:
   # the Docusaurus types; the 18.x copy is create-bestax's wait-on, a dev
   # dependency. Floors raised to 17.13.9 and
   # 18.3.1 for GHSA-4528-x5fx-h6hg (a quadratic-time split in
-  # `string().email({ multiple: true })`). Both of those were still inside the
-  # cooldown when this landed, so they have exact-version excludes above, and
+  # `string().email({ multiple: true })`). Both are past the cooldown, and
   # every parent range admits them. Prune each entry once its line resolves to
   # >=17.13.9 / >=18.3.1 without the force.
   'joi@17': '>=17.13.9 <18'
