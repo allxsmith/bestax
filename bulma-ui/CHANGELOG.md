@@ -1,3 +1,11 @@
+## [5.57.5](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.57.4...@allxsmith/bestax-bulma@5.57.5) (2026-11-01)
+
+
+### Bug Fixes
+
+* **bulma-ui:** gate the horizontal message's basis on the same :has() as its wrap ([e4c5e2a](https://github.com/allxsmith/bestax/commit/e4c5e2afe53a5a6ab7c9788f70c85f14c84a2ce7))
+* **bulma-ui:** put a horizontal field's message under its control ([d937974](https://github.com/allxsmith/bestax/commit/d937974280444689460b30fbc61ce3cbc89b8ab2))
+
 ## [5.57.4](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.57.3...@allxsmith/bestax-bulma@5.57.4) (2026-11-01)
 
 
