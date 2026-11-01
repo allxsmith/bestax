@@ -207,6 +207,40 @@ describe('IconButton', () => {
       expect(button.children[0].querySelector('i')).toHaveClass('fa-bell');
       expect(screen.queryByTestId('extra')).toBeNull();
     });
+
+    it('draws the children when icon draws nothing, and warns about neither', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      render(
+        <>
+          <IconButton icon={<></>} aria-label="Settings">
+            <Icon name="cog" data-testid="cog" />
+          </IconButton>
+          <IconButton icon="  " aria-label="Bell">
+            <Icon name="bell" data-testid="bell" />
+          </IconButton>
+        </>
+      );
+      expect(screen.getByRole('button', { name: 'Settings' }).children[0]).toBe(
+        screen.getByTestId('cog')
+      );
+      expect(screen.getByRole('button', { name: 'Bell' }).children[0]).toBe(
+        screen.getByTestId('bell')
+      );
+      expect(warn).not.toHaveBeenCalled();
+    });
+
+    it("doesn't count empty children as a second glyph", () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      render(
+        <IconButton icon="bell" aria-label="Notifications">
+          {[]}
+        </IconButton>
+      );
+      const button = screen.getByRole('button');
+      expect(button.children).toHaveLength(1);
+      expect(button.children[0].querySelector('i')).toHaveClass('fa-bell');
+      expect(warn).not.toHaveBeenCalled();
+    });
   });
 
   describe('type', () => {
@@ -512,14 +546,18 @@ describe('IconButton', () => {
       expect(warn.mock.calls[0][0]).toMatch(/both icon and children/);
     });
 
-    it("doesn't warn about a glyph, or about spaces between elements", () => {
+    it("doesn't warn about a glyph, or draw the spaces around it", () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(
         <IconButton aria-label="Settings">
-          <Icon name="cog" /> <span />
+          {' '}
+          <Icon name="cog" data-testid="cog" />{' '}
         </IconButton>
       );
       expect(warn).not.toHaveBeenCalled();
+      const button = screen.getByRole('button');
+      expect(button.querySelectorAll('.icon')).toHaveLength(1);
+      expect(button.children[0]).toBe(screen.getByTestId('cog'));
     });
 
     it('stays quiet in production', () => {

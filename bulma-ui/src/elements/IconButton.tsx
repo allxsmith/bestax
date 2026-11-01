@@ -5,7 +5,6 @@ import { buttonType } from '../helpers/buttonType';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { isDev, warnOnce } from '../helpers/devWarnings';
 import { flattenChildren } from '../helpers/flattenChildren';
-import { isGiven } from '../helpers/isGiven';
 import type { PolymorphicComponent } from '../helpers/polymorphic';
 
 /**
@@ -35,11 +34,13 @@ export interface IconButtonOwnProps extends ButtonOwnProps {
 
 /** Names an IconButton by the text of another element. */
 export interface IconButtonLabelledBy {
-  // `aria-label` is declared first so the Props table lists it first.
-  /** Not with `aria-labelledby`, which already names the button. */
-  'aria-label'?: undefined;
   /** The id of the element whose text names the button, in place of `aria-label`. */
   'aria-labelledby': string;
+  /**
+   * @internal Not with `aria-labelledby`, which already names the button.
+   * Declared so the two can't be passed together.
+   */
+  'aria-label'?: undefined;
 }
 
 /** Names an IconButton with `aria-label`, the usual way. */
@@ -52,14 +53,19 @@ export interface IconButtonLabel {
    * development.
    */
   'aria-label': string;
-  /** Not with `aria-label`. */
+  /**
+   * @internal Not with `aria-label`. Declared so the two can't be passed
+   * together.
+   */
   'aria-labelledby'?: undefined;
 }
 
 /**
  * How an IconButton gets its name: `aria-label`, or `aria-labelledby` in its
- * place. `IconButtonLabel` comes last, so a button with neither reports
- * "Property 'aria-label' is missing".
+ * place. `IconButtonLabel` comes last because TypeScript names the union's
+ * last member when neither is given: under "No overload matches this call",
+ * each overload's error ends "Property ''aria-label'' is missing … but
+ * required in type 'IconButtonLabel'".
  */
 export type IconButtonName = IconButtonLabelledBy | IconButtonLabel;
 
@@ -101,19 +107,30 @@ type IconButtonImplProps = IconButtonOwnProps & {
 const hasText = (value: unknown) =>
   typeof value === 'string' && value.trim() !== '';
 
+/** Whether a string is only spaces, which JSX leaves between elements. */
+const isBlank = (node: React.ReactNode) =>
+  typeof node === 'string' && node.trim() === '';
+
 /**
  * The glyph in one `.icon`, which is what Bulma keeps square: an `<Icon>` as
- * given, Fragments opened up, and anything else inside an `Icon`. Null when
- * there's nothing to draw.
+ * given, Fragments opened up and blank text left out, and anything else
+ * inside an `Icon`. Null when there's nothing to draw, so an empty Fragment
+ * or array counts as no glyph.
  */
 function iconOf(node: React.ReactNode) {
-  const items = flattenChildren(node);
+  const items = flattenChildren(node).filter(item => !isBlank(item));
   if (items.length === 0) return null;
   const [only] = items;
   if (items.length === 1 && React.isValidElement(only) && only.type === Icon) {
     return only;
   }
   return <Icon>{items}</Icon>;
+}
+
+/** The glyph `icon` draws: a string is an `Icon` name, the rest as `iconOf`. */
+function iconFromProp(icon: React.ReactNode) {
+  if (typeof icon !== 'string') return iconOf(icon);
+  return hasText(icon) ? <Icon name={icon} /> : null;
 }
 
 /**
@@ -149,17 +166,18 @@ export const IconButton = forwardRef(function IconButton(
 
   const unnamed =
     !hasText(rest['aria-label']) && !hasText(rest['aria-labelledby']);
-  const iconGiven = isGiven(icon);
-  const childrenGiven = isGiven(children);
-  const both = iconGiven && childrenGiven;
+  // Each way of giving the glyph counts only if it draws something, so an
+  // empty Fragment or array as `icon` doesn't hide real children, and an
+  // empty one as children doesn't warn.
+  const fromIcon = iconFromProp(icon);
+  const fromChildren = iconOf(children);
+  const both = fromIcon !== null && fromChildren !== null;
   // Only top-level text, Fragments opened up, and only in development, where
   // the warning below can say something about it.
   const textInside =
     isDev() &&
     flattenChildren(children).some(
-      child =>
-        typeof child === 'number' ||
-        (typeof child === 'string' && child.trim() !== '')
+      child => typeof child === 'number' || hasText(child)
     );
   useEffect(() => {
     if (unnamed) {
@@ -190,11 +208,7 @@ export const IconButton = forwardRef(function IconButton(
   // One glyph, from `icon` or else from `children`, so the button's only
   // child is one `.icon`, which Bulma keeps square, and round with
   // `isRounded`.
-  const glyph = iconGiven
-    ? iconOf(typeof icon === 'string' ? <Icon name={icon} /> : icon)
-    : childrenGiven
-      ? iconOf(children)
-      : null;
+  const glyph = fromIcon ?? fromChildren;
 
   // `type` is a button's only on a `<button>`. On an `<a>` it's the MIME hint,
   // and a custom component owns what it means, so those get it as given.

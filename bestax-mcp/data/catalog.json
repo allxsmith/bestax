@@ -740,7 +740,7 @@
       "import": "import { IconButton } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 22,
-      "exampleCount": 13
+      "exampleCount": 12
     },
     {
       "name": "IconText",

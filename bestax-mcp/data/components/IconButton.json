@@ -11,10 +11,6 @@
     },
     {
       "title": "Naming It",
-      "code": "<IconButton icon=\"trash\" />\n// Property 'aria-label' is missing in type '{ icon: string; }' ..."
-    },
-    {
-      "title": "Naming It",
       "code": "<>\n  <Paragraph id=\"archive-label\" textSize=\"7\">\n    Archive this conversation\n  </Paragraph>\n  <IconButton icon=\"box-archive\" aria-labelledby=\"archive-label\" />\n</>"
     },
     {
@@ -107,19 +103,19 @@
           "deprecated": false
         },
         {
-          "name": "aria-label",
-          "type": "undefined | string",
+          "name": "aria-labelledby",
+          "type": "string",
           "default": null,
-          "description": "Not with `aria-labelledby`, which already names the button.",
+          "description": "The id of the element whose text names the button, in place of `aria-label`.",
           "required": false,
           "inherited": true,
           "deprecated": false
         },
         {
-          "name": "aria-labelledby",
-          "type": "string | undefined",
+          "name": "aria-label",
+          "type": "string",
           "default": null,
-          "description": "The id of the element whose text names the button, in place of `aria-label`.",
+          "description": "The button's name: what a screen reader announces and what a voice control user says to press it. Required, or `aria-labelledby` in its place, since an icon has no text to name it by. Name the action (\"Delete\"), not the picture (\"Trash\"). An empty or blank one warns in development.",
           "required": false,
           "inherited": true,
           "deprecated": false

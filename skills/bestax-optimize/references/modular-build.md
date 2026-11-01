@@ -171,9 +171,10 @@ Notes:
 - `Popover.Close` renders a Bulma button, so an app using it needs `bulma/sass/elements/button`
   next to `scss/components/popover`.
 - `IconButton` is a Bulma button holding an icon, so an app using it needs
-  `bulma/sass/elements/button` and `bulma/sass/elements/icon`. The `iconbutton` partial only makes
-  a rounded one a circle, where Bulma's `is-rounded` gives a pill. Its rule wins over Bulma's
-  either way, so the order of the `@use` lines does not matter.
+  `bulma/sass/elements/button` and `bulma/sass/elements/icon`. The `iconbutton` partial makes a
+  rounded one a circle, where Bulma's `is-rounded` gives a pill, and keeps the `text` and `ghost`
+  looks from underlining the glyph. Its rules win over Bulma's either way, so the order of the
+  `@use` lines does not matter.
 - `ContextMenu`'s menu is Bulma's dropdown markup, so an app using it needs
   `bulma/sass/components/dropdown` next to `scss/components/contextmenu`.
 - `Loader` is stock Bulma styled by `bulma/sass/elements/loader`, and the `isLoading`
