@@ -121,22 +121,15 @@ const { replaceWithPlain, collapseOntoChild } = makeStructuralHelpers(
 );
 
 /**
- * Whether the element sits inside a Field or a Control, which tells the
- * bestax inputs within whether to render a Field and a Control of their own.
- * Ancestors are migrated before their children, so one may already carry
- * its bestax name, under the local `ctx.needed` gives it; one that doesn't
- * still resolves to its rbx path.
+ * Whether the element sits inside a Field or a Control, rbx's or bestax's,
+ * which tells the bestax inputs within whether to render a Field and a
+ * Control of their own. Each ancestor is read by binding, so a local that
+ * shadows one of them is neither.
  */
 function insideFormScope(ctx: TransformContext, path: ASTPath<any>): boolean {
-  const bestaxByLocal = new Map(
-    [...ctx.needed].map(([name, local]) => [local, name])
-  );
   for (let up = path.parent; up; up = up.parent) {
-    const name = up.node?.type === 'JSXElement' && up.node.openingElement.name;
-    if (!name) continue;
-    const root =
-      ctx.resolve?.(name)?.[0] ??
-      bestaxByLocal.get(jsxNameParts(name)?.[0] ?? '');
+    if (up.node?.type !== 'JSXElement') continue;
+    const root = ctx.resolveElement?.(up)?.parts[0];
     if (root === 'Field' || root === 'Control') return true;
   }
   return false;
@@ -355,7 +348,16 @@ const SPECIALS: Record<string, SpecialHandler> = {
       );
     }
     if (!findAttr(element, 'variant')) {
-      addAttr(element, makeAttr(ctx.j, 'variant', 'unstyled'));
+      // Before any spread, so a `variant` the spread carries still wins.
+      const attrs = (element.openingElement.attributes ??= []);
+      const spread = attrs.findIndex(
+        (attr: any) => attr.type === 'JSXSpreadAttribute'
+      );
+      attrs.splice(
+        spread === -1 ? attrs.length : spread,
+        0,
+        makeAttr(ctx.j, 'variant', 'unstyled')
+      );
       ctx.dirty = true;
     }
     return {};

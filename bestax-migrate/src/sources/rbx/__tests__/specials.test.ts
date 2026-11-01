@@ -333,6 +333,17 @@ describe('rbx Title / Icon / PageLoader / Navbar / Field', () => {
     expect(output).toContain('<Fieldset variant="filled">x</Fieldset>');
   });
 
+  // Before the spread, so a `variant` it carries wins over the default.
+  it('writes the default variant before a spread', () => {
+    const { output } = migrate(
+      imp('Fieldset') +
+        'export const A = (props: object) => <Fieldset disabled {...props}>x</Fieldset>;'
+    );
+    expect(output).toContain(
+      '<Fieldset disabled variant="unstyled" {...props}>x</Fieldset>'
+    );
+  });
+
   // bestax's Fieldset starts its own Field scope, which rbx's never did, so
   // inside a Field or a Control it stays the plain <fieldset> rbx rendered.
   describe('a Fieldset inside a Field or a Control', () => {
@@ -365,6 +376,48 @@ describe('rbx Title / Icon / PageLoader / Navbar / Field', () => {
       );
       expect(output).toContain('<fieldset>x</fieldset>');
       expect(output).not.toContain('variant=');
+    });
+
+    it("stays a plain fieldset under bestax's Field through a namespace import", () => {
+      const { output } = migrate(
+        "import * as Bestax from '@allxsmith/bestax-bulma';\n" +
+          imp('Fieldset') +
+          'export const A = () => <Bestax.Field><Fieldset>x</Fieldset></Bestax.Field>;'
+      );
+      expect(output).toContain('<fieldset>x</fieldset>');
+    });
+
+    it("stays a plain fieldset under bestax's Control imported under another name", () => {
+      const { output } = migrate(
+        "import { Control as Box } from '@allxsmith/bestax-bulma';\n" +
+          imp('Fieldset') +
+          'export const A = () => <Box><Fieldset>x</Fieldset></Box>;'
+      );
+      expect(output).toContain('<fieldset>x</fieldset>');
+    });
+
+    // A local that shadows an import is some other component, which nothing
+    // says starts a Field scope.
+    it('converts under a local that shadows the rbx Field', () => {
+      const { output } = migrate(
+        imp('Field, Fieldset') +
+          'export const A = ({ Field }: { Field: any }) => <Field><Fieldset>x</Fieldset></Field>;\n' +
+          'export const B = () => <Field>y</Field>;'
+      );
+      expect(output).toContain(
+        '<Field><Fieldset variant="unstyled">x</Fieldset></Field>'
+      );
+    });
+
+    it("converts under a local that shadows bestax's Field", () => {
+      const { output } = migrate(
+        "import { Field } from '@allxsmith/bestax-bulma';\n" +
+          imp('Fieldset') +
+          'export const A = ({ Field }: { Field: any }) => <Field><Fieldset>x</Fieldset></Field>;'
+      );
+      expect(output).toContain(
+        '<Field><Fieldset variant="unstyled">x</Fieldset></Field>'
+      );
     });
 
     it('flags the helper props a plain fieldset cannot carry', () => {
