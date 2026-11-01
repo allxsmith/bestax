@@ -1,5 +1,16 @@
 import { fileURLToPath } from 'node:url';
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
+
+/**
+ * Suites that work out the cascade by matching every rule's selector against
+ * what a component renders, through jsdom's `element.matches`. jsdom builds a
+ * function for each selector and runs it, and inside `vmForks`'s context both
+ * take far longer, so these run in plain `forks`.
+ */
+const SELECTOR_SUITES = [
+  'src/elements/__tests__/Loader.styles.test.tsx',
+  'src/form/__tests__/File.styles.test.tsx',
+];
 
 export default defineConfig({
   resolve: {
@@ -15,7 +26,8 @@ export default defineConfig({
     environment: 'jsdom',
     // Each file gets a fresh jsdom inside a long-lived worker, rather than a
     // fresh worker, which is what most of this suite's wall time would be
-    // otherwise: the default `forks` pool took nearly twice as long.
+    // otherwise: the default `forks` pool took nearly twice as long. The
+    // SELECTOR_SUITES are the exception.
     pool: 'vmForks',
     // Jest never timed out a synchronous test; Vitest fails one that ran past
     // its timeout once it returns. The stylesheet suites compile Sass for a
@@ -24,7 +36,20 @@ export default defineConfig({
     // key press.
     testTimeout: 30_000,
     setupFiles: ['@testing-library/jest-dom/vitest'],
-    include: ['src/**/*.test.{ts,tsx}'],
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'vmForks',
+          include: ['src/**/*.test.{ts,tsx}'],
+          exclude: [...configDefaults.exclude, ...SELECTOR_SUITES],
+        },
+      },
+      {
+        extends: true,
+        test: { name: 'forks', include: SELECTOR_SUITES, pool: 'forks' },
+      },
+    ],
     coverage: {
       // Istanbul instruments only the files `include` names. V8's coverage
       // slows every script a test runs, Sass's own JavaScript included, and
