@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { configDefaults, defineConfig } from 'vitest/config';
 
@@ -11,6 +12,14 @@ const SELECTOR_SUITES = [
   'src/elements/__tests__/Loader.styles.test.tsx',
   'src/form/__tests__/File.styles.test.tsx',
 ];
+
+// A suite renamed or moved would match nothing here and quietly run in
+// `vmForks` again, so a path that no longer exists stops the run.
+for (const suite of SELECTOR_SUITES) {
+  if (!existsSync(fileURLToPath(new URL(suite, import.meta.url)))) {
+    throw new Error(`SELECTOR_SUITES names ${suite}, which doesn't exist`);
+  }
+}
 
 export default defineConfig({
   resolve: {
