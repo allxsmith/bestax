@@ -1,5 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import React from 'react';
+import fs from 'fs';
+import path from 'path';
 import {
   useFlexboxClasses,
   BulmaFlexboxProps,
@@ -251,6 +253,27 @@ describe('useFlexboxClasses', () => {
       expect(result.current).toBe('');
       rerender(true);
       expect(result.current).toBe('is-align-items-center');
+    });
+
+    // With the test above, this is what holds every other component's output
+    // where it was: the gate only opens for the code that asks, and only
+    // the element behind Stack, Group, Center and Flex asks. A component
+    // that starts asking has to be named here.
+    it('is asked for by the stack layout alone', () => {
+      const SRC = path.resolve(__dirname, '../..');
+      const files = (fs.readdirSync(SRC, { recursive: true }) as string[])
+        .filter(file => /\.tsx?$/.test(file))
+        .filter(file => !/__tests__|__typetests__|\.stories\.tsx$/.test(file));
+      const askers = files.filter(file =>
+        /flexContainer:\s*true/.test(
+          fs
+            .readFileSync(path.join(SRC, file), 'utf8')
+            .replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '')
+        )
+      );
+      expect(askers.map(file => file.split(path.sep).join('/'))).toEqual([
+        'helpers/stackLayout.tsx',
+      ]);
     });
   });
 

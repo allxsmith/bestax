@@ -1,0 +1,114 @@
+// Bestax Extras - Stack Styles
+// Stack, Group, Center and Flex. Bulma has no stack or group, so each is a
+// `.stack`, which this makes a flex container, with a modifier for its own
+// layout: Stack `is-vertical`, Group `is-horizontal`, Center `is-centered`,
+// and Flex the bare `.stack`. The layout lives here rather than in helper
+// classes, so it holds in a build without Bulma's helpers, and the helper
+// props (`gap`, `alignItems` and the rest) still replace these defaults,
+// since Bulma's helper classes are `!important`.
+//
+// Bulma gives its blocks (Box, Notification, Card, Title, Field and the
+// rest) a bottom margin when they aren't last, which in a flex container
+// adds to the gap. So the children's own block margins are zeroed, and the
+// gap is the only space: the block-end margin in a Stack, and both in the
+// others, where a margin above would push a child off the row's center.
+// Bulma sets those margins with `:not(:last-child)`, two classes' weight, so
+// the reset carries an id's weight through `:not(#\#)`, which matches any
+// element. A helper margin on a child (`mb="2"`) is `!important` and still
+// wins. Only the direct children: what's inside them keeps its spacing.
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+@use "bulma/sass/utilities/mixins" as mx;
+
+// Stack's gap: Bulma's block spacing, so a Stack of Boxes looks like Bulma's
+// own stacked blocks.
+$stack-gap: cv.getVar("block-spacing") !default;
+// Group's gap: half of it, Level's spacing between its items.
+$stack-horizontal-gap: calc(#{cv.getVar("block-spacing")} * 0.5) !default;
+
+.#{iv.$class-prefix}stack {
+  @include cv.register-vars(
+    (
+      "stack-gap": #{$stack-gap},
+      "stack-horizontal-gap": #{$stack-horizontal-gap},
+    )
+  );
+}
+
+// ---- Flex: a flex container with CSS's own defaults ------------------------------
+
+.#{iv.$class-prefix}stack {
+  display: flex;
+}
+
+.#{iv.$class-prefix}stack:not(.#{iv.$class-prefix}is-vertical) > :not(#\#) {
+  margin-block: 0;
+}
+
+// ---- Stack: a column --------------------------------------------------------------
+
+.#{iv.$class-prefix}stack.#{iv.$class-prefix}is-vertical {
+  flex-direction: column;
+  gap: cv.getVar("stack-gap");
+
+  > :not(#\#) {
+    margin-block-end: 0;
+  }
+
+  // A Divider's `<hr>` has Bulma's margin above it as well, which in normal
+  // flow collapses into the block before it. Here nothing collapses, so it
+  // goes too, and a Divider sits in the middle of the space between two
+  // children, as it does between two Bulma blocks.
+  > hr:not(#\#) {
+    margin-block-start: 0;
+  }
+}
+
+// ---- Group: a row that wraps -------------------------------------------------------
+
+.#{iv.$class-prefix}stack.#{iv.$class-prefix}is-horizontal {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: cv.getVar("stack-horizontal-gap");
+
+  // Every child an equal share of the row.
+  &.#{iv.$class-prefix}is-fullwidth > * {
+    flex: 1 1 0;
+  }
+}
+
+// Below its breakpoint, a Group is a column, in the same order. Full width,
+// each child takes the column's width rather than a share of its height.
+@mixin -stacked($selector) {
+  .#{iv.$class-prefix}stack.#{iv.$class-prefix}is-horizontal#{$selector} {
+    flex-direction: column;
+
+    &.#{iv.$class-prefix}is-fullwidth {
+      align-items: stretch;
+
+      > * {
+        flex: none;
+      }
+    }
+  }
+}
+
+@include mx.mobile {
+  @include -stacked(".#{iv.$class-prefix}is-tablet");
+}
+
+@include mx.touch {
+  @include -stacked(".#{iv.$class-prefix}is-desktop");
+}
+
+@include mx.until-widescreen {
+  @include -stacked(".#{iv.$class-prefix}is-widescreen");
+}
+
+// ---- Center: both axes ---------------------------------------------------------------
+
+.#{iv.$class-prefix}stack.#{iv.$class-prefix}is-centered {
+  align-items: center;
+  justify-content: center;
+}

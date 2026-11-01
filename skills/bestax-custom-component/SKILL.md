@@ -168,9 +168,12 @@ free. `references/api.md` documents the helpers.
 
 ## Styling ladder — use the lowest rung that works
 
-**Rung 1 — helper props only (default).** House rules: never `style={{}}`. Layout with
-`Block`/`Box` and `display="flex"`, `flexDirection`, `alignItems`, `justifyContent`, and space
-the children with `gap`. Before writing `style={{ … }}` anywhere, translate each declaration:
+**Rung 1 — helper props only (default).** House rules: never `style={{}}`. Lay children out
+with `Stack` (a column), `Group` (a row that wraps), `Center` or `Flex`, which are flex
+containers already and zero their children's Bulma block margins, so `gap` is the only space;
+`alignItems`, `justifyContent` and the rest go straight on them. Don't reach for `Box` as a
+plain flex container: it's a padded, shadowed surface. Before writing `style={{ … }}` anywhere,
+translate each declaration:
 
 | Inline style you're about to write       | Helper props instead                                                                                                                                           |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |

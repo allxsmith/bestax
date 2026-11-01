@@ -10,6 +10,10 @@ import {
   Hero,
   Footer,
   Level,
+  Stack,
+  Group,
+  Center,
+  Flex,
   Columns,
   Column,
   Grid,
@@ -99,6 +103,33 @@ Every component also accepts the shared Bulma helper props (`m`/`p` spacing, `te
 | `Level.isMobile`             | `boolean` (keep horizontal on mobile) |
 | `Level.Item.as`              | `'div' \| 'p' \| 'a'`                 |
 | `Level.Item.hasTextCentered` | `boolean`                             |
+
+## Stack / Group / Center / Flex
+
+Flex containers for laying out any components, with no `display` prop to add. Each zeroes its
+direct children's Bulma block margins (Box, Notification, Card, Title, Field), so `gap` is the
+only space between them: no `mb="0"` on the children. None draws a surface; put a `Box` or a
+`Card` inside or around.
+
+- `<Stack>`: a column, children stretched across it, `gap` Bulma's block spacing (1.5rem).
+- `<Group>`: a row that wraps, children centered on each other, `gap` half that (0.75rem). A
+  toolbar is `<Group justifyContent="space-between">`.
+- `<Center>`: centers its content on both axes, no gap. Give it a height (`aspectRatio`, or a
+  parent with one) to center vertically.
+- `<Flex>`: CSS's own defaults (a row, no wrap, no gap) and every flex container prop.
+
+| Prop                                                       | Type                                                                                                                                      |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `gap`, and on Flex `rowGap` / `columnGap`                  | `'0'`–`'8'` in half steps, or the number; whole step = 0.5rem                                                                             |
+| `alignItems`, `justifyContent`, `flexWrap`, `alignContent` | the flex helper values (`'center'`, `'space-between'`, `'wrap'`, …)                                                                       |
+| `Flex.flexDirection`                                       | `'row' \| 'row-reverse' \| 'column' \| 'column-reverse'`                                                                                  |
+| `Group.isFullwidth`                                        | `boolean` (children share the row equally)                                                                                                |
+| `Group.breakpoint`                                         | `'tablet' \| 'desktop' \| 'widescreen'` (a column below it)                                                                               |
+| `as`                                                       | `'div'` (default), `'main'`, `'section'`, `'article'`, `'aside'`, `'header'`, `'footer'`, `'nav'`, `'ul'`, `'ol'`, `'form'`, `'fieldset'` |
+
+Stack, Group and Center take no `flexDirection`: they never reorder. A Title and its SubTitle go
+in one element of their own inside a Stack, or the gap comes between them. For a grid of
+same-shaped items, use `Grid` / `Cell`.
 
 ## Columns / Column
 

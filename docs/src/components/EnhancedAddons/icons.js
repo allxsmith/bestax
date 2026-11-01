@@ -306,6 +306,29 @@ function ScrollAreaIcon() {
   );
 }
 
+// Two blocks stacked in a column, over a row of three small ones
+function StackIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="3" width="18" height="5" rx="1.5" />
+      <rect x="3" y="10" width="18" height="5" rx="1.5" />
+      <rect x="3" y="17" width="5" height="4" rx="1" />
+      <rect x="9.5" y="17" width="5" height="4" rx="1" />
+      <rect x="16" y="17" width="5" height="4" rx="1" />
+    </svg>
+  );
+}
+
+// A box with a smaller one in its middle
+function FlexIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <rect x="9" y="9" width="6" height="6" rx="1" />
+    </svg>
+  );
+}
+
 // Two panes in a box, the line between them with a grip on it
 function SplitterIcon() {
   return (
@@ -381,6 +404,7 @@ const ADDON_ICONS = {
   dropzone: DropzoneIcon,
   emptystate: EmptyStateIcon,
   fieldset: FieldsetIcon,
+  flex: FlexIcon,
   hovercard: HoverCardIcon,
   loading: LoadingIcon,
   pininput: PinInputIcon,
@@ -390,6 +414,7 @@ const ADDON_ICONS = {
   scrollarea: ScrollAreaIcon,
   sidebar: SidebarIcon,
   splitter: SplitterIcon,
+  stack: StackIcon,
   steps: StepsIcon,
   timeline: TimelineIcon,
   toast: ToastIcon,

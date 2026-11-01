@@ -1,0 +1,185 @@
+{
+  "name": "Flex",
+  "kind": "component",
+  "category": "layout",
+  "slug": "layout/flex",
+  "docsUrl": "https://bestax.io/docs/api/layout/flex",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<Flex gap=\"2\">\n  <Box>One</Box>\n  <Box>Two, with more to say than the first</Box>\n</Flex>"
+    },
+    {
+      "title": "A Fixed Side and a Growing One",
+      "code": "<Flex gap=\"4\" alignItems=\"flex-start\">\n  <Box flexShrink=\"0\">\n    <Menu>\n      <Menu.Label>Account</Menu.Label>\n      <Menu.List>\n        <Menu.Item href=\"#profile\">Profile</Menu.Item>\n        <Menu.Item href=\"#billing\">Billing</Menu.Item>\n      </Menu.List>\n    </Menu>\n  </Box>\n  <Box flexGrow=\"1\">\n    <Content>\n      <p>The side keeps its width, and this part grows into the rest.</p>\n    </Content>\n  </Box>\n</Flex>"
+    },
+    {
+      "title": "Direction",
+      "code": "<Flex flexDirection=\"column\" alignItems=\"flex-start\" gap=\"2\">\n  <Button color=\"primary\">First</Button>\n  <Button>Second</Button>\n</Flex>"
+    },
+    {
+      "title": "Wrapping",
+      "code": "<Flex flexWrap=\"wrap\" columnGap=\"3\" rowGap=\"1\">\n  {Array.from({ length: 10 }, (_, i) => (\n    <Button key={i} size=\"small\">\n      Item {i + 1}\n    </Button>\n  ))}\n</Flex>"
+    }
+  ],
+  "accessibility": "- **No role of its own:** a Flex adds nothing to the accessibility tree, apart from `role=\"list\"`\n  on a `ul` or `ol`, which Safari otherwise drops once Bulma's reset hides the markers.\n- **Reversed directions:** `row-reverse` and `column-reverse` change what's seen and not the\n  reading or Tab order, so what's seen and what's read can disagree (WCAG 1.3.2 Meaningful Sequence\n  and 2.4.3 Focus Order). Use them only where the order doesn't carry meaning, or put the children\n  in the order you want them read.\n- **Landmarks:** with `as=\"nav\"`, `\"aside\"`, `\"section\"` or `\"main\"`, the Flex is the landmark. A\n  `section` is a region only once it has a name.",
+  "related": ["Center", "Columns", "Group", "Stack", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/layout-flex--default",
+  "summary": "The `Flex` component is a flex container with CSS's own defaults, taking the flex container's properties as props. It's a row that doesn't wrap, with its children stretched across it and no gap, until you set otherwise. Use it for a layout of your own, such as a fixed side beside a growing one, with `flexGrow` and `flexShrink` on the children. Its children's own block margins are zeroed, so the gap is the only space. For a column of blocks or a row of controls with Bulma's spacing already in place, `Stack` and `Group` start closer.",
+  "import": "import { Flex } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/layout/Flex.tsx",
+  "rootClass": null,
+  "parts": [
+    {
+      "path": "Flex",
+      "summary": "The `Flex` component is a flex container with CSS's own defaults, taking the flex container's properties as props. It's a row that doesn't wrap, with its children stretched across it and no gap, until you set otherwise. Use it for a layout of your own, such as a fixed side beside a growing one, with `flexGrow` and `flexShrink` on the children. Its children's own block margins are zeroed, so the gap is the only space. For a column of blocks or a row of controls with Bulma's spacing already in place, `Stack` and `Group` start closer.",
+      "component": null,
+      "props": [
+        {
+          "name": "as",
+          "type": "LayoutElement",
+          "default": "'div'",
+          "description": "The element to render. With `ul` or `ol`, give it `li` children: it restates `role=\"list\"`, which Bulma's list reset takes away in Safari.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "flexDirection",
+          "type": "(typeof validFlexDirections)[number]",
+          "default": null,
+          "description": "The main axis, a row unless set. `row-reverse` and `column-reverse` change only what's seen: reading and Tab order still follow the children's order (WCAG 1.3.2 and 2.4.3).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "flexWrap",
+          "type": "(typeof validFlexWraps)[number]",
+          "default": null,
+          "description": "Whether children move to a new line when they don't fit. Unset, CSS's own `nowrap`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "alignItems",
+          "type": "(typeof validAlignItems)[number]",
+          "default": null,
+          "description": "How each child sits across the main axis. Unset, CSS's own `stretch`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "justifyContent",
+          "type": "(typeof validJustifyContents)[number]",
+          "default": null,
+          "description": "Where the children sit along the main axis.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "alignContent",
+          "type": "(typeof validAlignContents)[number]",
+          "default": null,
+          "description": "How wrapped lines share the space across the main axis.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "gap",
+          "type": "BulmaGapStep",
+          "default": null,
+          "description": "Space between children, a step of Bulma's gap scale. None by default.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "rowGap",
+          "type": "BulmaGapStep",
+          "default": null,
+          "description": "Space between wrapped lines, when it differs from `gap`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "columnGap",
+          "type": "BulmaGapStep",
+          "default": null,
+          "description": "Space between children along a row, when it differs from `gap`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "What it lays out, with `gap` between and their own Bulma block margins zeroed.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "PolymorphicRef<LayoutElement>",
+          "default": null,
+          "description": "Ref forwarded to the element `as` renders.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "Remaining props of the element selected by as and Bulma helper props",
+      "types": [
+        {
+          "name": "BulmaGapStep",
+          "expansion": "'0' | '0.5' | '1' | '1.5' | '2' | '2.5' | '3' | '3.5' | '4' | '4.5' | '5' | '5.5' | '6' | '6.5' | '7' | '7.5' | '8' | 0 | 0.5 | 1 | 1.5 | 2 | 2.5 | 3 | 3.5 | 4 | 4.5 | 5 | 5.5 | 6 | 6.5 | 7 | 7.5 | 8",
+          "summary": "A gap step as `gap`, `columnGap` and `rowGap` take it: a value from `validGaps`, or the same step written as a number (`gap={2}`, `gap={1.5}`). `Grid` took its gaps as numbers before the gap helpers were shared, so every gap prop still does."
+        },
+        {
+          "name": "LayoutElement",
+          "expansion": "'div' | 'main' | 'section' | 'article' | 'aside' | 'header' | 'footer' | 'nav' | 'ul' | 'ol' | 'form' | 'fieldset'",
+          "summary": "The elements Stack, Group, Center and Flex can render as: Container's landmarks and sections, a list, a form or a fieldset."
+        }
+      ]
+    }
+  ],
+  "cssVars": []
+}

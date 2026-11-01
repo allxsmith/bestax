@@ -115,6 +115,12 @@ const ADDONS = [
     desc: 'A section of a form named by its legend, bordered, filled or plain, that one disabled switches off as a whole.',
   },
   {
+    name: 'Flex/Center',
+    icon: 'flex',
+    link: '/docs/api/layout/flex',
+    desc: 'A flex container with the flex properties as props, and one that centers its content on both axes.',
+  },
+  {
     name: 'HoverCard',
     icon: 'hovercard',
     link: '/docs/api/components/hovercard',
@@ -161,6 +167,12 @@ const ADDONS = [
     icon: 'splitter',
     link: '/docs/api/layout/splitter',
     desc: 'Panes with a handle between each pair to drag or move by keyboard, and panes that collapse.',
+  },
+  {
+    name: 'Stack/Group',
+    icon: 'stack',
+    link: '/docs/api/layout/stack',
+    desc: 'A column and a row of any components, spaced by Bulma’s block spacing alone, with no margins to undo.',
   },
   {
     name: 'Steps',

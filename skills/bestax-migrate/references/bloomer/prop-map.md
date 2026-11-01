@@ -190,9 +190,9 @@ value is flagged. The same conversion covers the modifiers bestax has no prop fo
 ## Refs
 
 bloomer forwarded no refs. bestax forwards a ref from the form controls, plus `Avatar`, `Button`,
-`Carousel`, `CarouselItem`, `ColorSwatch`, `Command`, `Command.Dialog`, `Command.Input`, `DataTable`, `DescriptionList`, `DescriptionList.Item`, `DescriptionList.Label`, `DescriptionList.Value`, `Dialog`, `Dropdown`, `EmptyState`, `Kbd`, `Kbd.Group`, `Link`,
+`Carousel`, `CarouselItem`, `Center`, `ColorSwatch`, `Command`, `Command.Dialog`, `Command.Input`, `DataTable`, `DescriptionList`, `DescriptionList.Item`, `DescriptionList.Label`, `DescriptionList.Value`, `Dialog`, `Dropdown`, `EmptyState`, `Flex`, `Group`, `Kbd`, `Kbd.Group`, `Link`,
 `LinkButton`, `Loader`, `LocaleProvider`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`,
-`Navbar.Item`, `Navbar.Link`, `RingProgress`, `ScrollArea`, `SegmentedControl`, `SegmentedControl.Segment`, `Sidebar`, `Splitter`, `Splitter.Pane`, `Timeline`,
+`Navbar.Item`, `Navbar.Link`, `RingProgress`, `ScrollArea`, `SegmentedControl`, `SegmentedControl.Segment`, `Sidebar`, `Splitter`, `Splitter.Pane`, `Stack`, `Timeline`,
 `Timeline.Item`, `Toast`, `ToggleButton`, `TreeView` and `TreeView.Item` — pass `ref` directly on
 those. "The form controls" means the inputs themselves: the `Field`, `Field.Label`, `Field.Body`,
 `Checkboxes` and `Radios` wrappers around them forward nothing.

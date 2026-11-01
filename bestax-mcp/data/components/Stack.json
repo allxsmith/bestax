@@ -1,0 +1,165 @@
+{
+  "name": "Stack",
+  "kind": "component",
+  "category": "layout",
+  "slug": "layout/stack",
+  "docsUrl": "https://bestax.io/docs/api/layout/stack",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<Stack>\n  <Notification color=\"info\">Your changes are saved.</Notification>\n  <Box>A Box, with no margin to undo.</Box>\n  <Card>\n    <Card.Content>A Card, last.</Card.Content>\n  </Card>\n</Stack>"
+    },
+    {
+      "title": "Gap",
+      "code": "<Group alignItems=\"flex-start\" gap=\"6\">\n  <Stack gap=\"1\">\n    <Box p=\"3\">gap=\"1\"</Box>\n    <Box p=\"3\">gap=\"1\"</Box>\n  </Stack>\n  <Stack gap=\"4\">\n    <Box p=\"3\">gap=\"4\"</Box>\n    <Box p=\"3\">gap=\"4\"</Box>\n  </Stack>\n</Group>"
+    },
+    {
+      "title": "Forms",
+      "code": "<Stack as=\"form\" gap=\"1.5\" aria-label=\"Profile\">\n  <Field label=\"Name\">\n    <Input placeholder=\"Ada Lovelace\" />\n  </Field>\n  <Field label=\"Email\">\n    <Input type=\"email\" placeholder=\"ada@example.com\" />\n  </Field>\n  <Group justifyContent=\"flex-end\" gap=\"1\">\n    <Button>Cancel</Button>\n    <Button color=\"primary\">Save</Button>\n  </Group>\n</Stack>"
+    },
+    {
+      "title": "Alignment",
+      "code": "<Stack alignItems=\"flex-start\" gap=\"2\">\n  <Button color=\"primary\">Sized to its text</Button>\n  <Button>So is this one</Button>\n</Stack>"
+    },
+    {
+      "title": "Dividers",
+      "code": "<Stack gap=\"3\">\n  <Box>Profile</Box>\n  <Divider />\n  <Box>Billing</Box>\n</Stack>"
+    },
+    {
+      "title": "A Title and Its SubTitle",
+      "code": "<Stack>\n  <div>\n    <Title>Account</Title>\n    <SubTitle>Your profile and how you pay.</SubTitle>\n  </div>\n  <Box>Profile</Box>\n</Stack>"
+    },
+    {
+      "title": "As a List",
+      "code": "<Stack as=\"ul\" gap=\"2\" aria-label=\"Recent invoices\">\n  <li>\n    <Box>Invoice 1042, paid</Box>\n  </li>\n  <li>\n    <Box>Invoice 1043, due Friday</Box>\n  </li>\n</Stack>"
+    }
+  ],
+  "accessibility": "- **No role of its own:** a Stack adds nothing to the accessibility tree, apart from `role=\"list\"`\n  on a `ul` or `ol`, which Safari otherwise drops once Bulma's reset hides the markers.\n- **Order:** it's always a column in the children's own order, so what's seen, the reading order\n  and the Tab order agree.\n- **Landmarks:** with `as=\"nav\"`, `\"aside\"`, `\"section\"` or `\"main\"`, the Stack is the landmark. A\n  `section` is a region only once it has a name, from `aria-label` or `aria-labelledby`.\n- **Lists:** `as=\"ul\"` or `as=\"ol\"` with `li` children is announced as a list with its count.",
+  "related": ["Center", "Divider", "Flex", "Grid", "Group", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/layout-stack--default",
+  "summary": "The `Stack` component lays its children out in a column, with Bulma's block spacing between them and their own block margins zeroed. A Stack of Boxes, Cards or Notifications looks like Bulma's own stacked blocks, spaced by the gap alone, so there are no margins to undo. A `gap` step replaces the default spacing. It's always a column, top to bottom.",
+  "import": "import { Stack } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/layout/Stack.tsx",
+  "rootClass": "stack",
+  "parts": [
+    {
+      "path": "Stack",
+      "summary": "The `Stack` component lays its children out in a column, with Bulma's block spacing between them and their own block margins zeroed. A Stack of Boxes, Cards or Notifications looks like Bulma's own stacked blocks, spaced by the gap alone, so there are no margins to undo. A `gap` step replaces the default spacing. It's always a column, top to bottom.",
+      "component": null,
+      "props": [
+        {
+          "name": "as",
+          "type": "LayoutElement",
+          "default": "'div'",
+          "description": "The element to render. With `ul` or `ol`, give it `li` children: it restates `role=\"list\"`, which Bulma's list reset takes away in Safari.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "gap",
+          "type": "BulmaGapStep",
+          "default": null,
+          "description": "Space between children, a step of Bulma's gap scale (`'2'` is 1rem). Unset, it's `--bulma-stack-gap`, Bulma's block spacing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "alignItems",
+          "type": "(typeof validAlignItems)[number]",
+          "default": "'stretch'",
+          "description": "How each child sits across the column. `'stretch'` makes each as wide as the Stack.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "justifyContent",
+          "type": "(typeof validJustifyContents)[number]",
+          "default": null,
+          "description": "Where the children sit down the column, when it's taller than they are.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "What it lays out, with `gap` between and their own Bulma block margins zeroed.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "PolymorphicRef<LayoutElement>",
+          "default": null,
+          "description": "Ref forwarded to the element `as` renders.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "Remaining props of the element selected by as and Bulma helper props",
+      "types": [
+        {
+          "name": "BulmaGapStep",
+          "expansion": "'0' | '0.5' | '1' | '1.5' | '2' | '2.5' | '3' | '3.5' | '4' | '4.5' | '5' | '5.5' | '6' | '6.5' | '7' | '7.5' | '8' | 0 | 0.5 | 1 | 1.5 | 2 | 2.5 | 3 | 3.5 | 4 | 4.5 | 5 | 5.5 | 6 | 6.5 | 7 | 7.5 | 8",
+          "summary": "A gap step as `gap`, `columnGap` and `rowGap` take it: a value from `validGaps`, or the same step written as a number (`gap={2}`, `gap={1.5}`). `Grid` took its gaps as numbers before the gap helpers were shared, so every gap prop still does."
+        },
+        {
+          "name": "LayoutElement",
+          "expansion": "'div' | 'main' | 'section' | 'article' | 'aside' | 'header' | 'footer' | 'nav' | 'ul' | 'ol' | 'form' | 'fieldset'",
+          "summary": "The elements Stack, Group, Center and Flex can render as: Container's landmarks and sections, a list, a form or a fieldset."
+        }
+      ]
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-stack-gap",
+      "sass": "$stack-gap",
+      "default": "var(--bulma-block-spacing)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-stack-horizontal-gap",
+      "sass": "$stack-horizontal-gap",
+      "default": "calc(var(--bulma-block-spacing) * 0.5)",
+      "scope": "root"
+    }
+  ]
+}

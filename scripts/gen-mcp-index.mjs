@@ -849,15 +849,25 @@ function byHandOf(map, records) {
  * root class that Bulma 1's stylesheet has no rule for. A lookup that calls
  * one a class nothing styles sends a page that keeps it, under bestax's CSS,
  * into rules it never asked for.
+ *
+ * Where several components render the same root class (Stack and Group both
+ * render `stack`), the one named after it owns it, and otherwise the first
+ * by name. The key keeps the place the first of them gives it.
  */
 function ownClassesOf(records, vocabulary) {
-  const own = {};
-  for (const record of [...records.values()].sort((a, b) =>
+  const sorted = [...records.values()].sort((a, b) =>
     byCodePoint(a.name, b.name)
-  )) {
+  );
+  const namesake = new Map();
+  for (const record of sorted) {
+    const root = record.rootClass;
+    if (root && record.name.toLowerCase() === root) namesake.set(root, record);
+  }
+  const own = {};
+  for (const record of sorted) {
     const root = record.rootClass;
     if (root && !vocabulary.has(root) && !Object.hasOwn(own, root)) {
-      own[root] = record.name;
+      own[root] = (namesake.get(root) ?? record).name;
     }
   }
   return own;

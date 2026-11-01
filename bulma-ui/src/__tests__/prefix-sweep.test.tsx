@@ -117,6 +117,18 @@ const PROPS: Record<string, Record<string, unknown>> = {
       </Library.Splitter.Pane>,
     ],
   },
+  // Full width with a breakpoint and the props that replace its defaults, so
+  // every class Group emits is swept. Stack, Center and Flex render the same
+  // `.stack` with one modifier each.
+  Group: {
+    isFullwidth: true,
+    breakpoint: 'tablet',
+    gap: '1',
+    alignItems: 'baseline',
+    flexWrap: 'nowrap',
+    children: 'Group',
+  },
+  Flex: { flexDirection: 'column', alignContent: 'center', rowGap: '2' },
   // Every orientation class and dividers, with an item from its props and
   // one from its parts, so each class the family emits is swept.
   DescriptionList: {

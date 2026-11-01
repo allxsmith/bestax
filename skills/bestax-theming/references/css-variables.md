@@ -862,6 +862,15 @@ more for WCAG 2.5.8.
 `--bulma-splitter-handle-size-coarse`, `--bulma-splitter-line-active-color`,
 `--bulma-splitter-line-active-size`, `--bulma-splitter-line-color`, `--bulma-splitter-line-size`
 
+### Stack and Group
+
+Declared on the `.stack` element that `Stack`, `Group`, `Center` and `Flex` all render, so set
+them there, through `className` or `style`. `--bulma-stack-gap` is a Stack's gap and follows
+`--bulma-block-spacing`; `--bulma-stack-horizontal-gap` is a Group's, half of it. A `gap` prop's
+helper class is `!important` and wins over either. `Center` and `Flex` read neither.
+
+`--bulma-stack-gap`, `--bulma-stack-horizontal-gap`
+
 ### Steps
 
 `--bulma-steps-animation-duration`, `--bulma-steps-content-margin-top`,
