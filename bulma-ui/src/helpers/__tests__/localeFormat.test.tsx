@@ -227,6 +227,29 @@ describe('useNumberFormat', () => {
       expect(reads).toBe(1);
     });
 
+    it("leaves out a key Intl doesn't read that holds an object or a function", () => {
+      render(<Probe locale="en-SG" />);
+      const built = countNumberFormats();
+      // A currency config with fields of its own beside Intl's options.
+      const config = (id: number) =>
+        ({
+          style: 'currency',
+          currency: 'SGD',
+          meta: { id },
+          toLabel: () => 'S$',
+        }) as Intl.NumberFormatOptions;
+      expect(seen(1234.5, config(1))).toBe(
+        write('en-SG', 1234.5, { style: 'currency', currency: 'SGD' })
+      );
+      seen(99, config(2));
+      expect(built).toHaveBeenCalledTimes(1);
+      // A key it doesn't read that holds a primitive still counts, in case
+      // Intl comes to read it.
+      seen(1, { style: 'currency', currency: 'SGD', tier: 1 } as never);
+      seen(1, { style: 'currency', currency: 'SGD', tier: 2 } as never);
+      expect(built).toHaveBeenCalledTimes(3);
+    });
+
     it("leaves values it can't key, and options that aren't an object, to Intl", () => {
       render(<Probe locale="en-CA" />);
       const built = countNumberFormats();
@@ -271,8 +294,8 @@ describe('useNumberFormat', () => {
 
 describe('useScopedNumberFormat', () => {
   let seen: NumberFormatFunction | null;
-  function Probe({ own }: { own?: string }) {
-    seen = useScopedNumberFormat(own);
+  function Probe() {
+    seen = useScopedNumberFormat();
     return null;
   }
 
@@ -280,12 +303,12 @@ describe('useScopedNumberFormat', () => {
     seen = undefined as unknown as null;
   });
 
-  it('is null outside a provider, even with a locale of its own', () => {
-    render(<Probe own="de" />);
+  it('is null outside a provider', () => {
+    render(<Probe />);
     expect(seen).toBeNull();
   });
 
-  it('is null inside a provider with no locale and none of its own', () => {
+  it('is null inside a provider that gives no locale', () => {
     render(
       <LocaleProvider dir="rtl">
         <Probe />
@@ -308,40 +331,6 @@ describe('useScopedNumberFormat', () => {
     expect(seen!(0.5, { style: 'percent' })).toBe(
       write('de', 0.5, { style: 'percent' })
     );
-  });
-
-  it('lets its own locale win inside a provider', () => {
-    render(
-      <LocaleProvider locale="de">
-        <Probe own="ar-EG" />
-      </LocaleProvider>
-    );
-    expect(seen!(12)).toBe(write('ar-EG', 12));
-  });
-
-  it('formats in its own locale inside a provider that gives only a dir', () => {
-    render(
-      <LocaleProvider dir="rtl">
-        <Probe own="de" />
-      </LocaleProvider>
-    );
-    expect(seen!(1234.5)).toBe(write('de', 1234.5));
-  });
-
-  it('counts a tag Intl refuses as no locale of its own', () => {
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const { rerender } = render(
-      <LocaleProvider dir="rtl">
-        <Probe own="en_US" />
-      </LocaleProvider>
-    );
-    expect(seen).toBeNull();
-    rerender(
-      <LocaleProvider locale="de">
-        <Probe own="en_US" />
-      </LocaleProvider>
-    );
-    expect(seen!(1234.5)).toBe(write('de', 1234.5));
   });
 });
 

@@ -25,9 +25,9 @@ export interface NumberFormatterProps
   /**
    * The number. The text is what `Intl.NumberFormat` writes for it, `NaN`
    * and `Infinity` included. The `<data>` element's `value` attribute holds
-   * it as JavaScript writes a number with `String()`, which `Number()` reads
-   * back: `1234.5`, `1e+21` for a very large one and `1e-7` for a very small
-   * one, `NaN`, `Infinity`, and `-0` with its sign.
+   * it as `String()` writes it, except that `-0` keeps its sign, so
+   * `Number()` reads it back: `1234.5`, `1e+21` for a very large one and
+   * `1e-7` for a very small one, `NaN`, `Infinity` and `-0`.
    */
   value: number;
   /**

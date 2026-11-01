@@ -1,13 +1,17 @@
 // Number formatting and text matching in a locale.
 //
 // `useNumberFormat` and its `NumberFormatFunction` type are public, exported
-// from src/index.ts. The rest is INTERNAL, deliberately not exported: the
-// library's own callers format through `useScopedNumberFormat` and match
-// through `useLocaleMatcher`. Those return `null` outside a `LocaleProvider`,
-// even for a component with a locale of its own, and inside one when neither
-// the component nor the provider gives a locale, as a provider with only a
-// `dir` doesn't, so each caller keeps the formatting and the matching it has
-// always had there.
+// from src/index.ts. The rest is INTERNAL, deliberately not exported.
+//
+// Which a component calls depends on its job. A component whose job is to
+// write a number, such as `NumberFormatter`, uses `useNumberFormat`, which
+// writes in the runtime's locale outside a `LocaleProvider`, as the pickers
+// do. Any other component that shows a number in passing, such as a badge
+// count, a page number or a step's number, uses `useScopedNumberFormat`,
+// and filters a list through `useLocaleMatcher`. Those two return `null`
+// outside a provider, and inside one that gives no locale, as a provider
+// with only a `dir` doesn't, so the component keeps the formatting and the
+// matching it has always had there, as `LocaleProvider` promises.
 
 import { useMemo } from 'react';
 import { useLocaleScope, validLocale } from './LocaleProvider';
@@ -25,7 +29,10 @@ export type NumberFormatFunction = (
 /** Whether `text` contains `query`, as the locale compares letters. */
 export type TextMatcher = (text: string, query: string) => boolean;
 
-/** The warning about a locale of a component's own that `Intl` refuses. */
+/**
+ * The warning about a locale `Intl` refuses, given to `useNumberFormat`,
+ * and so to `NumberFormatter`, the only callers that pass one.
+ */
 const warnOwnLocale = (tag: string) =>
   warnOnce(
     `number-format-invalid-locale:${tag}`,
@@ -37,27 +44,14 @@ const warnOwnLocale = (tag: string) =>
   );
 
 /**
- * The locale a component formats and matches in, and whether a
- * `LocaleProvider` is around it: the component's own locale, else the
- * provider's. A tag `Intl` refuses counts as none, with a development
- * warning, as `LocaleProvider` treats one.
+ * The locale a component formats and matches in: the locale given, else the
+ * `LocaleProvider`'s, else none. A tag `Intl` refuses counts as none, with a
+ * development warning, as `LocaleProvider` treats one.
  */
-function useResolvedLocale(own: string | undefined): {
-  locale: string | undefined;
-  inProvider: boolean;
-} {
+function useResolvedLocale(own: string | undefined): string | undefined {
   const scope = useLocaleScope();
   const valid = useMemo(() => validLocale(own, warnOwnLocale), [own]);
-  return { locale: valid || scope?.locale, inProvider: scope !== null };
-}
-
-/**
- * The locale a component formats and matches in inside a `LocaleProvider`,
- * as `useResolvedLocale` finds it; outside a provider, none.
- */
-function useScopedLocale(own: string | undefined): string | undefined {
-  const { locale, inProvider } = useResolvedLocale(own);
-  return inProvider ? locale : undefined;
+  return valid || scope?.locale;
 }
 
 /**
@@ -109,13 +103,15 @@ function writeOption(value: unknown): string | null {
 
 /**
  * The options as `Intl` will read them, and a key that tells apart any two
- * sets it would read differently; `null` when a value is an object, a
- * function or a symbol, which `Intl` converts in ways a key can't follow.
- * It reads each option `Intl` reads by name, inherited ones included, then
- * every other enumerable key, own or inherited, so an option `Intl` gains
- * later still keeps two sets apart. An option set to `undefined` is unset,
- * as it is for `Intl`. The formatter is built from the copy, so `Intl` sees
- * what the key says, even of a getter.
+ * sets it would read differently; `null` when an option `Intl` reads holds
+ * an object, a function or a symbol, which `Intl` converts in ways a key
+ * can't follow. It reads each option `Intl` reads by name, inherited ones
+ * included, then every other enumerable key, own or inherited, so an option
+ * `Intl` gains later still keeps two sets apart. Since `Intl`'s options are
+ * all primitives, one of those other keys holding anything else is left
+ * out. An option set to `undefined` is unset, as it is for `Intl`. The
+ * formatter is built from the copy, so `Intl` sees what the key says, even
+ * of a getter.
  */
 function readOptions(
   options: object
@@ -131,7 +127,12 @@ function readOptions(
     const value = (options as Record<string, unknown>)[name];
     if (value === undefined) continue;
     const written = writeOption(value);
-    if (written === null) return null;
+    if (written === null) {
+      // An option `Intl` reads converts an object; a key it doesn't read,
+      // such as a config's own `meta`, means nothing to it.
+      if (KNOWN_OPTIONS.has(name)) return null;
+      continue;
+    }
     read[name] = value;
     parts.push(`${JSON.stringify(name)}:${written}`);
   }
@@ -216,23 +217,18 @@ function useFormatIn(locale: string | undefined): NumberFormatFunction {
  * const placeholder = format(1500, { style: 'currency', currency: 'EUR' });
  */
 export function useNumberFormat(locale?: string): NumberFormatFunction {
-  return useFormatIn(useResolvedLocale(locale).locale);
+  return useFormatIn(useResolvedLocale(locale));
 }
 
 /**
- * INTERNAL, deliberately not exported from `src/index.ts`. The library's own
- * number formatting, as `useNumberFormat` writes it, or `null` where the
- * caller keeps the formatting it had before `LocaleProvider` existed: outside
- * a provider, even with a locale of its own, and inside one when neither it
- * nor the provider gives a locale, as a provider with only a `dir` doesn't.
- *
- * @param own - The component's own locale, such as a picker's `locale`,
- * which wins inside a provider.
+ * INTERNAL, deliberately not exported from `src/index.ts`. Number formatting
+ * for a component that shows a number in passing, as `useNumberFormat`
+ * writes it in the `LocaleProvider`'s locale, or `null` outside a provider
+ * and inside one that gives no locale, as a provider with only a `dir`
+ * doesn't, where the component keeps the formatting it has always had.
  */
-export function useScopedNumberFormat(
-  own?: string
-): NumberFormatFunction | null {
-  const scoped = useScopedLocale(own);
+export function useScopedNumberFormat(): NumberFormatFunction | null {
+  const scoped = useResolvedLocale(undefined);
   const format = useFormatIn(scoped);
   return scoped ? format : null;
 }
@@ -249,7 +245,7 @@ export function useScopedNumberFormat(
  * matches everything.
  */
 export function useLocaleMatcher(): TextMatcher | null {
-  const locale = useScopedLocale(undefined);
+  const locale = useResolvedLocale(undefined);
   return useMemo(() => {
     if (!locale) return null;
     const collator = new Intl.Collator(locale, {
