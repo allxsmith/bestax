@@ -10,13 +10,16 @@ describe('Radio in a Radios group with only onChange', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
       render(
-        <Radios onChange={() => {}}>
+        <Radios name="size" onChange={() => {}}>
           <Radio value="s">Small</Radio>
           <Radio value="m" defaultChecked>
             Medium
           </Radio>
+          <Radio>Other</Radio>
         </Radios>
       );
+      // A radio without a value first, then one with a value.
+      fireEvent.click(screen.getByLabelText('Other'));
       fireEvent.click(screen.getByLabelText('Small'));
       expect(error).not.toHaveBeenCalled();
     } finally {

@@ -381,9 +381,30 @@ export const useFieldLabelTarget = (
  */
 export interface RadiosGroupContextValue {
   name?: string;
-  value?: string;
+  /** `null` once a radio without a value was picked before the group held one, so no radio with a value shows checked. */
+  value?: string | null;
   onChange?: (value: string) => void;
+  /** Set with `onChange`. Tells the group a radio without a value, sharing its name, was picked. */
+  pickWithoutValue?: () => void;
 }
+
+/**
+ * Tells a surrounding `<Radios>` that one of its radios was picked. A radio
+ * with a value hands the group that value. One without a value tells the
+ * group nothing it reports, but when it shares the group's name the browser
+ * has just unchecked the radio that showed checked, so the group learns the
+ * pick left its radios and React doesn't check that one again, undoing the
+ * pick. `Radio` and `RadioCard` call it with their effective name.
+ */
+export const pickInRadiosGroup = (
+  group: RadiosGroupContextValue | undefined,
+  value: string | number | readonly string[] | undefined,
+  name: string | undefined
+) => {
+  if (!group?.onChange) return;
+  if (value !== undefined) group.onChange(String(value));
+  else if (name !== undefined && name === group.name) group.pickWithoutValue!();
+};
 
 /**
  * Shape of the Checkboxes group context. Like Radios but with array semantics

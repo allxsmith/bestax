@@ -147,7 +147,7 @@ const RadiosComponent: React.FC<RadiosProps> = ({
   const groupActive =
     value !== undefined || defaultValue !== undefined || onChange !== undefined;
 
-  const [internalValue, setInternalValue] = useState<string | undefined>(
+  const [internalValue, setInternalValue] = useState<string | null | undefined>(
     defaultValue
   );
   const isControlled = value !== undefined;
@@ -161,12 +161,23 @@ const RadiosComponent: React.FC<RadiosProps> = ({
     [isControlled, onChange]
   );
 
+  // A radio without a value, sharing the group's name, was picked, and the
+  // browser unchecked the radio showing checked. A group with no value yet
+  // holds `null`, which no radio's value matches, so React leaves that radio
+  // unchecked instead of undoing the pick. A group that holds a value keeps
+  // it, as it always has.
+  const pickWithoutValue = useCallback(() => {
+    setInternalValue(current => (current === undefined ? null : current));
+  }, []);
+
   const ctx = useMemo<RadiosGroupContextValue>(
     () => ({
       name,
-      ...(groupActive ? { value: currentValue, onChange: handleChange } : {}),
+      ...(groupActive
+        ? { value: currentValue, onChange: handleChange, pickWithoutValue }
+        : {}),
     }),
-    [name, groupActive, currentValue, handleChange]
+    [name, groupActive, currentValue, handleChange, pickWithoutValue]
   );
 
   const choices = <RadiosProvider value={ctx}>{children}</RadiosProvider>;

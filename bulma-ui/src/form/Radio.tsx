@@ -5,7 +5,11 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useFieldsetDisabled, useRadiosGroup } from './FormContext';
+import {
+  pickInRadiosGroup,
+  useFieldsetDisabled,
+  useRadiosGroup,
+} from './FormContext';
 
 /**
  * The values the Radio `color` prop accepts, as a readonly tuple.
@@ -157,11 +161,9 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
         // Local onChange always fires.
         onChange?.(e);
         // Dispatch to the group additionally — keeps group state in sync.
-        if (group?.onChange && value !== undefined) {
-          group.onChange(String(value));
-        }
+        pickInRadiosGroup(group, value, effectiveName);
       },
-      [onChange, group, value]
+      [onChange, group, value, effectiveName]
     );
 
     const mainClass = usePrefixedClassNames('styled-radio', 'radio', {

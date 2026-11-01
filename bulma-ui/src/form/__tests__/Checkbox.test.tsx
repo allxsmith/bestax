@@ -388,6 +388,30 @@ describe('Checkbox', () => {
       expect(box('Loose').checked).toBe(true);
     });
 
+    it('lets a box without a value toggle on its own, before and after the first change', () => {
+      // Unlike radios, checkboxes sharing a name don't uncheck each other, so
+      // there's nothing for React to put back.
+      const handleChange = vi.fn();
+      render(
+        <Checkboxes name="tags" onChange={handleChange}>
+          <Checkbox value="react" defaultChecked>
+            React
+          </Checkbox>
+          <Checkbox>Loose</Checkbox>
+        </Checkboxes>
+      );
+      fireEvent.click(box('Loose'));
+      expect(box('Loose').checked).toBe(true);
+      expect(box('React').checked).toBe(true);
+      expect(handleChange).not.toHaveBeenCalled();
+
+      fireEvent.click(box('React'));
+      expect(handleChange).toHaveBeenLastCalledWith([]);
+      fireEvent.click(box('Loose'));
+      expect(box('Loose').checked).toBe(false);
+      expect(box('React').checked).toBe(false);
+    });
+
     it('works under a class prefix', () => {
       const handleChange = vi.fn();
       render(

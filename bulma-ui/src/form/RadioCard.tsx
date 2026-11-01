@@ -5,7 +5,11 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useFieldsetDisabled, useRadiosGroup } from './FormContext';
+import {
+  pickInRadiosGroup,
+  useFieldsetDisabled,
+  useRadiosGroup,
+} from './FormContext';
 
 // The colors `Radio` takes, as `radioColors` lists them. Declared here as
 // well, so the API page can read them off this module, and a type test holds
@@ -149,11 +153,9 @@ export const RadioCard = forwardRef<HTMLInputElement, RadioCardProps>(
     const handleChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
         onChange?.(e);
-        if (group?.onChange && value !== undefined) {
-          group.onChange(String(value));
-        }
+        pickInRadiosGroup(group, value, effectiveName);
       },
-      [onChange, group, value]
+      [onChange, group, value, effectiveName]
     );
 
     // The title names the input and the description describes it. A name
