@@ -203,6 +203,7 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 
 // bestax elements and helpers
 @use '@allxsmith/bestax-bulma/scss/elements/colorswatch';
+@use '@allxsmith/bestax-bulma/scss/elements/delete' as bestax-delete;
 @use '@allxsmith/bestax-bulma/scss/elements/descriptionlist';
 @use '@allxsmith/bestax-bulma/scss/elements/kbd';
 @use '@allxsmith/bestax-bulma/scss/elements/linkbutton';
@@ -215,9 +216,9 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/helpers/sizing';
 ```
 
-Some of these partials adjust a stock Bulma component rather than add one of bestax's. `elements/notification` is one: it keeps a `Notification`'s text clear of its close button, so a build that uses `bulma/sass/elements/notification` wants it too. `components/pagination` is another: it keeps the current page marked in forced colors (Windows' contrast themes), so a build that uses `bulma/sass/components/pagination`, for a `Pagination` or a `DataTable`'s pager, wants it too. A partial like that can end in the same name as the Bulma module it adjusts, and Sass refuses two `@use` lines with the same name in one file, so the block above gives those lines a name of their own with `as`. The name changes nothing in the compiled CSS.
+Some of these partials adjust a stock Bulma component rather than add one of bestax's. `elements/notification` is one: it keeps a `Notification`'s text clear of its close button, so a build that uses `bulma/sass/elements/notification` wants it too. `components/pagination` is another: it keeps the current page marked in forced colors (Windows' contrast themes), so a build that uses `bulma/sass/components/pagination`, for a `Pagination` or a `DataTable`'s pager, wants it too. `elements/delete` is a third: it keeps close buttons drawn in forced colors, the delete button and the Modal's and delete tag's crosses, so a build that shows any close button wants it. A partial like that can end in the same name as the Bulma module it adjusts, and Sass refuses two `@use` lines with the same name in one file, so the block above gives those lines a name of their own with `as`. The name changes nothing in the compiled CSS.
 
-Others draw on a stock Bulma component without adjusting it. `form/checkboxcard` and `form/radiocard` are Bulma cards, so a build that uses them wants `bulma/sass/components/card` too. `form/dropzone` is Bulma's file widget, so a build that uses it wants `bulma/sass/form/file` and bestax's `form/file`, for the zone's focus ring, too. `form/colorpicker` draws its swatches and its preview with `elements/colorswatch`, and its value field and eye dropper button are Bulma's, so it wants that partial, `bulma/sass/form/input-textarea` and `bulma/sass/elements/button` as well. `form/colorinput` opens a `form/colorpicker` in the date pickers' `form/picker-popover`, so it wants both of those and what they want.
+Others draw on a stock Bulma component without adjusting it. `form/checkboxcard` and `form/radiocard` are Bulma cards, so a build that uses them wants `bulma/sass/components/card` too. `form/dropzone` is Bulma's file widget, so a build that uses it wants `bulma/sass/form/file` and bestax's `form/file`, for the zone's focus ring, too, and its remove buttons are delete buttons, so it wants `bulma/sass/elements/delete` and `elements/delete` as well. `form/colorpicker` draws its swatches and its preview with `elements/colorswatch`, and its value field and eye dropper button are Bulma's, so it wants that partial, `bulma/sass/form/input-textarea` and `bulma/sass/elements/button` as well. `form/colorinput` opens a `form/colorpicker` in the date pickers' `form/picker-popover`, so it wants both of those and what they want.
 
 :::info Shortcuts
 
