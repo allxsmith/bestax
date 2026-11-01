@@ -20,11 +20,13 @@ function migrate(source: string) {
 const imp = (names: string) => `import { ${names} } from 'rbx';\n`;
 
 describe('rbx plain-element handlers', () => {
-  it('turns Heading into a plain .heading paragraph', () => {
-    const { output } = migrate(
+  it('turns Heading into a plain .heading paragraph, flagging the class Bulma v1 dropped', () => {
+    const { output, rules, todos } = migrate(
       imp('Heading') + 'export const A = () => <Heading>x</Heading>;'
     );
     expect(output).toContain('<p className="heading">x</p>');
+    expect(rules).toEqual(['component:Heading']);
+    expect(todos[0].message).toContain('textTransform="uppercase"');
   });
 
   it('turns Help into a plain .help paragraph with its colour class', () => {

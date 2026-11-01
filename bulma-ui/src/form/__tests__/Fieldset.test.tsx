@@ -344,9 +344,12 @@ describe('Fieldset disabled', () => {
       c => {
         const rate = c.querySelector('.rate')!;
         expect(rate).toHaveClass('is-disabled');
-        expect(c.querySelector('[role="radiogroup"]')).toHaveAttribute(
-          'tabindex',
-          '-1'
+        const group = c.querySelector('[role="radiogroup"]');
+        expect(group).toHaveAttribute('tabindex', '-1');
+        expect(group).toHaveAttribute('aria-disabled', 'true');
+        expect(c.querySelector('[role="radio"]')).toHaveAttribute(
+          'aria-disabled',
+          'true'
         );
       },
     ],

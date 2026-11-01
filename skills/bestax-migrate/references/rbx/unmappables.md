@@ -29,6 +29,32 @@ become `<Cell>`, and `size={n}` becomes a column span.
 <Grid><Cell colSpan={4}>x</Cell></Grid>
 ```
 
+## `component:Heading` — Bulma v1 dropped `.heading`
+
+rbx's `Heading` is Bulma 0.9's small uppercase label, and bestax has no component for it. It becomes
+the plain `<p className="heading">` rbx rendered, but Bulma v1 has no rule for that class, so the
+label renders as body text. Restyle it with helper props, as a small, uppercase, semibold
+`Paragraph`:
+
+```jsx
+<Heading>Followers</Heading>
+<Paragraph textSize="7" textTransform="uppercase" textWeight="semibold" mb="1">
+  Followers
+</Paragraph>
+```
+
+Or keep the class and give it a rule of your own. Bulma 0.9's was:
+
+```css
+.heading {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+```
+
 ## `component:File.*` — the file-input parts
 
 bestax's `<File>` renders the whole Bulma structure itself, so `File.Label`, `File.Input`,

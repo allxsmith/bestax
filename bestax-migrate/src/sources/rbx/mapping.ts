@@ -248,7 +248,9 @@ export const MAPPING: Record<string, ComponentMapping> = {
       },
     },
   },
-  Heading: { status: 'mapped', special: 'heading' },
+  // rbx's Heading is Bulma's `.heading` label, whose styles Bulma v1 no
+  // longer ships — bestax has no component for it.
+  Heading: { status: 'partial', special: 'heading' },
   Highlight: {
     status: 'todo',
     todo: `\`Highlight\` (syntax-highlighted <pre>) has no bestax equivalent; use \`<Pre>\` plus your own highlighter (${DOCS}/api/elements/pre)`,

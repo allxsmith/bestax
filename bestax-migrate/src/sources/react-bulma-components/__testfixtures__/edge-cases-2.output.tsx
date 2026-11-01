@@ -36,6 +36,7 @@ export function MoreEdgeCases({
   // TODO(bestax-migrate): `state` has a dynamic value; map it to the matching bestax boolean prop by hand
   // TODO(bestax-migrate): `display="hidden"` — use visibility='hidden' (already a separate bestax prop)
   // TODO(bestax-migrate): `display="relative"` — use the boolean `relative` prop
+  // TODO(bestax-migrate): Bulma v1 dropped the `.heading` styles, so the `heading` class on this plain <p> styles nothing; restyle it with bestax helpers (e.g. `<Paragraph textSize="7" textTransform="uppercase" textWeight="semibold" mb="1">`) or a `.heading` rule of your own
   // TODO(bestax-migrate): dynamic Field kind/align; map to the bestax `grouped` / `hasAddons` props by hand
   // TODO(bestax-migrate): dynamic Form.Label size; add an is-* class by hand
   // TODO(bestax-migrate): dynamic Form.Help color; consider the bestax Field `message`/`messageColor` props instead

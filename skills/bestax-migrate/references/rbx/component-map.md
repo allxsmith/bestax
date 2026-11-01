@@ -54,7 +54,7 @@ test holds to rbx's own export surface in both directions.
 | `File.Name`                | — _(see unmappables)_ | todo    |
 | `Footer`                   | `Footer`              | mapped  |
 | `Generic`                  | — _(see unmappables)_ | todo    |
-| `Heading`                  | _structural_          | mapped  |
+| `Heading`                  | _structural_          | partial |
 | `Help`                     | _structural_          | mapped  |
 | `Hero`                     | `Hero`                | mapped  |
 | `Hero.Body`                | `Hero.Body`           | mapped  |
