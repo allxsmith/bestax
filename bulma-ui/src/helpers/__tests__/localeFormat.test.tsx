@@ -1,10 +1,12 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { LocaleProvider } from '../LocaleProvider';
+import { resetDevWarnings } from '../devWarnings';
 import {
   useLocaleMatcher,
   useNumberFormat,
-  type NumberFormatter,
+  useScopedNumberFormat,
+  type NumberFormatFunction,
   type TextMatcher,
 } from '../localeFormat';
 import { Pagination } from '../../components/Pagination';
@@ -20,22 +22,280 @@ import { Rate } from '../../form/Rate';
 import { Combobox } from '../../form/Combobox';
 import { Autocomplete } from '../../form/Autocomplete';
 import { Command, type CommandAction } from '../../components/Command';
+import { DataTable } from '../../components/DataTable';
+import { ColorPicker } from '../../form/ColorPicker';
 
-/** How `locale` writes `value`, as the tests expect to see it. */
+/** `Intl.NumberFormat` as it is before any test counts what it builds. */
+const RealNumberFormat = Intl.NumberFormat;
+
+/**
+ * How `locale` writes `value`, as the tests expect to see it, the runtime's
+ * locale for `undefined`.
+ */
 const write = (
-  locale: string,
+  locale: string | undefined,
   value: number,
   options?: Intl.NumberFormatOptions
-) => new Intl.NumberFormat(locale, options).format(value);
+) => new RealNumberFormat(locale, options).format(value);
 
 /** Renders `node` inside an Egyptian Arabic provider, whose digits differ. */
 const inArabic = (node: React.ReactElement) =>
   render(<LocaleProvider locale="ar-EG">{node}</LocaleProvider>);
 
+/** Counts the `Intl.NumberFormat`s built from here on, each a real one. */
+const countNumberFormats = () =>
+  vi
+    .spyOn(Intl, 'NumberFormat')
+    // A `function`, not an arrow: the code under test calls it with `new`.
+    .mockImplementation(function (
+      ...args: ConstructorParameters<typeof Intl.NumberFormat>
+    ) {
+      return new RealNumberFormat(...args);
+    });
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.useRealTimers();
+});
+
 describe('useNumberFormat', () => {
-  let seen: NumberFormatter | null;
-  function Probe({ own }: { own?: string }) {
-    seen = useNumberFormat(own);
+  let seen: NumberFormatFunction;
+  function Probe({ locale }: { locale?: string }) {
+    seen = useNumberFormat(locale);
+    return null;
+  }
+
+  it("writes in the runtime's locale outside a provider, with options", () => {
+    render(<Probe />);
+    expect(seen(1234.5)).toBe(write(undefined, 1234.5));
+    expect(seen(0.25, { style: 'percent' })).toBe(
+      write(undefined, 0.25, { style: 'percent' })
+    );
+  });
+
+  it('writes in its own locale outside a provider', () => {
+    render(<Probe locale="de" />);
+    expect(seen(1234.5)).toBe(write('de', 1234.5));
+  });
+
+  it("writes in the provider's locale, and lets its own win", () => {
+    const { rerender } = render(
+      <LocaleProvider locale="de">
+        <Probe />
+      </LocaleProvider>
+    );
+    expect(seen(1234.5)).toBe(write('de', 1234.5));
+    rerender(
+      <LocaleProvider locale="de">
+        <Probe locale="ar-EG" />
+      </LocaleProvider>
+    );
+    expect(seen(12)).toBe(write('ar-EG', 12));
+    // An empty tag is no locale, so the provider's stands.
+    rerender(
+      <LocaleProvider locale="de">
+        <Probe locale="" />
+      </LocaleProvider>
+    );
+    expect(seen(1234.5)).toBe(write('de', 1234.5));
+  });
+
+  it("writes in the runtime's locale in a provider that gives none", () => {
+    render(
+      <LocaleProvider dir="rtl">
+        <Probe />
+      </LocaleProvider>
+    );
+    expect(seen(1234.5)).toBe(write(undefined, 1234.5));
+  });
+
+  it('is the same function from render to render for one locale', () => {
+    const { rerender } = render(<Probe locale="de" />);
+    const first = seen;
+    rerender(<Probe locale="de" />);
+    expect(seen).toBe(first);
+    rerender(<Probe locale="fr" />);
+    expect(seen).not.toBe(first);
+    expect(seen(1234.5)).toBe(write('fr', 1234.5));
+  });
+
+  it('builds one Intl.NumberFormat for many numbers written alike', () => {
+    let other: NumberFormatFunction | undefined;
+    function Other() {
+      other = useNumberFormat('de-CH');
+      return null;
+    }
+    const built = countNumberFormats();
+    render(
+      <>
+        <Probe locale="de-CH" />
+        <Other />
+      </>
+    );
+    // Options no other test uses, so nothing is kept from before.
+    const options = { maximumSignificantDigits: 4 };
+    expect(seen(1234.5, options)).toBe(write('de-CH', 1234.5, options));
+    expect(seen(98765, options)).toBe(write('de-CH', 98765, options));
+    expect(other!(0.5, { ...options })).toBe(write('de-CH', 0.5, options));
+    expect(built).toHaveBeenCalledTimes(1);
+    // Another locale or other options build their own.
+    other!(1, { maximumSignificantDigits: 3 });
+    expect(built).toHaveBeenCalledTimes(2);
+  });
+
+  it('lets the one used longest ago go once it holds many', () => {
+    render(<Probe locale="en-GB" />);
+    // `Intl` ignores a key it doesn't know, which makes each set distinct.
+    const set = (name: string) => ({ [name]: 1 }) as Intl.NumberFormatOptions;
+    // As many as it holds, which pushes out whatever earlier tests left.
+    for (let n = 0; n < 200; n++) seen(1, set(`fill${n}`));
+    const built = countNumberFormats();
+    // A hit makes fill0 the most recently used, so the next new set pushes
+    // out fill1, the one used longest ago, and fill0 stays.
+    seen(1, set('fill0'));
+    expect(built).not.toHaveBeenCalled();
+    seen(1, set('new'));
+    expect(built).toHaveBeenCalledTimes(1);
+    seen(1, set('fill0'));
+    expect(built).toHaveBeenCalledTimes(1);
+    seen(1, set('fill1'));
+    expect(built).toHaveBeenCalledTimes(2);
+  });
+
+  describe('the cache key', () => {
+    it("tells NaN and Infinity from null, so each gets Intl's own answer", () => {
+      render(<Probe locale="en-AU" />);
+      // `null` reads as 0 fraction digits; NaN and Infinity are refused.
+      expect(seen(1.234, { maximumFractionDigits: null as never })).toBe(
+        write('en-AU', 1.234, { maximumFractionDigits: 0 })
+      );
+      expect(() => seen(1.234, { maximumFractionDigits: NaN })).toThrow(
+        RangeError
+      );
+      expect(() => seen(1.234, { maximumFractionDigits: Infinity })).toThrow(
+        RangeError
+      );
+      // And the other way round: NaN first leaves nothing for null to find.
+      expect(() => seen(1.5, { minimumFractionDigits: NaN })).toThrow(
+        RangeError
+      );
+      expect(seen(1.5, { minimumFractionDigits: null as never })).toBe(
+        write('en-AU', 1.5, { minimumFractionDigits: 0 })
+      );
+    });
+
+    it('reads inherited options, as Intl does', () => {
+      render(<Probe locale="en-NZ" />);
+      const inherited = Object.create({
+        maximumFractionDigits: 0,
+      }) as Intl.NumberFormatOptions;
+      // A plain set first, so a key that missed the inherited option would
+      // hand it this formatter.
+      expect(seen(1.5, {})).toBe(write('en-NZ', 1.5));
+      expect(seen(1.5, inherited)).toBe(
+        write('en-NZ', 1.5, { maximumFractionDigits: 0 })
+      );
+      expect(seen(1.5, {})).toBe(write('en-NZ', 1.5));
+    });
+
+    it('treats an option set to undefined as unset, and -0 as Intl does', () => {
+      render(<Probe locale="en-IE" />);
+      const built = countNumberFormats();
+      seen(1, { style: 'decimal' });
+      seen(1, { style: 'decimal', currency: undefined });
+      expect(built).toHaveBeenCalledTimes(1);
+      expect(seen(1.5, { maximumFractionDigits: -0 })).toBe(
+        write('en-IE', 1.5, { maximumFractionDigits: 0 })
+      );
+      expect(seen(1, { useGrouping: false })).toBe(
+        write('en-IE', 1, { useGrouping: false })
+      );
+    });
+
+    it('reads a getter once, and builds from what it read', () => {
+      render(<Probe locale="en-ZA" />);
+      let reads = 0;
+      const options = {
+        get maximumFractionDigits() {
+          reads++;
+          return reads === 1 ? 0 : 3;
+        },
+      };
+      expect(seen(1.2345, options)).toBe(
+        write('en-ZA', 1.2345, { maximumFractionDigits: 0 })
+      );
+      expect(reads).toBe(1);
+    });
+
+    it("leaves out a key Intl doesn't read that holds an object or a function", () => {
+      render(<Probe locale="en-SG" />);
+      const built = countNumberFormats();
+      // A currency config with fields of its own beside Intl's options.
+      const config = (id: number) =>
+        ({
+          style: 'currency',
+          currency: 'SGD',
+          meta: { id },
+          toLabel: () => 'S$',
+        }) as Intl.NumberFormatOptions;
+      expect(seen(1234.5, config(1))).toBe(
+        write('en-SG', 1234.5, { style: 'currency', currency: 'SGD' })
+      );
+      seen(99, config(2));
+      expect(built).toHaveBeenCalledTimes(1);
+      // A key it doesn't read that holds a primitive still counts, in case
+      // Intl comes to read it.
+      seen(1, { style: 'currency', currency: 'SGD', tier: 1 } as never);
+      seen(1, { style: 'currency', currency: 'SGD', tier: 2 } as never);
+      expect(built).toHaveBeenCalledTimes(3);
+    });
+
+    it("leaves values it can't key, and options that aren't an object, to Intl", () => {
+      render(<Probe locale="en-CA" />);
+      const built = countNumberFormats();
+      const digits = { valueOf: () => 2 } as unknown as number;
+      expect(seen(1.5, { minimumFractionDigits: digits })).toBe(
+        write('en-CA', 1.5, { minimumFractionDigits: 2 })
+      );
+      seen(1.5, { minimumFractionDigits: digits });
+      expect(built).toHaveBeenCalledTimes(2);
+      expect(() =>
+        seen(1, { maximumFractionDigits: 2n as unknown as number })
+      ).toThrow(TypeError);
+      expect(() => seen(1, null as unknown as undefined)).toThrow(TypeError);
+    });
+  });
+
+  it('throws what Intl throws for options it refuses, and keeps nothing', () => {
+    render(<Probe locale="de" />);
+    const built = countNumberFormats();
+    expect(() => seen(1, { style: 'currency' })).toThrow(TypeError);
+    expect(() => seen(1, { style: 'currency' })).toThrow(TypeError);
+    expect(built).toHaveBeenCalledTimes(2);
+  });
+
+  it('ignores a tag Intl refuses, warning once, and falls back', () => {
+    resetDevWarnings();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { rerender } = render(<Probe locale="en_US" />);
+    expect(seen(1234.5)).toBe(write(undefined, 1234.5));
+    rerender(
+      <LocaleProvider locale="de">
+        <Probe locale="en_US" />
+      </LocaleProvider>
+    );
+    expect(seen(1234.5)).toBe(write('de', 1234.5));
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0][0]).toContain(
+      'NumberFormatter or useNumberFormat was given the locale "en_US"'
+    );
+  });
+});
+
+describe('useScopedNumberFormat', () => {
+  let seen: NumberFormatFunction | null;
+  function Probe() {
+    seen = useScopedNumberFormat();
     return null;
   }
 
@@ -43,12 +303,12 @@ describe('useNumberFormat', () => {
     seen = undefined as unknown as null;
   });
 
-  it('is null outside a provider, even with a locale of its own', () => {
-    render(<Probe own="de" />);
+  it('is null outside a provider', () => {
+    render(<Probe />);
     expect(seen).toBeNull();
   });
 
-  it('is null inside a provider with no locale and none of its own', () => {
+  it('is null inside a provider that gives no locale', () => {
     render(
       <LocaleProvider dir="rtl">
         <Probe />
@@ -71,15 +331,6 @@ describe('useNumberFormat', () => {
     expect(seen!(0.5, { style: 'percent' })).toBe(
       write('de', 0.5, { style: 'percent' })
     );
-  });
-
-  it('lets its own locale win inside a provider', () => {
-    render(
-      <LocaleProvider locale="de">
-        <Probe own="ar-EG" />
-      </LocaleProvider>
-    );
-    expect(seen!(12)).toBe(write('ar-EG', 12));
   });
 });
 
@@ -366,6 +617,103 @@ describe('numbers inside a LocaleProvider', () => {
     ).toHaveAccessibleName('Page 2');
     expect(screen.getByRole('status')).toHaveTextContent('7');
     expect(container).toHaveTextContent('3.5');
+  });
+});
+
+/**
+ * The library's own numbers go through `useScopedNumberFormat`, not the
+ * public `useNumberFormat`, so outside a provider each is written as it was
+ * before either existed: no `Intl.NumberFormat` is built, and a number past a
+ * thousand has no grouping, where the runtime's locale would give it one.
+ */
+describe('numbers the library writes outside a provider', () => {
+  let built: ReturnType<typeof countNumberFormats>;
+  beforeEach(() => {
+    built = countNumberFormats();
+  });
+
+  it('writes Pagination page numbers, and the names with them', () => {
+    render(<Pagination total={1500} current={1234} />);
+    const link = screen.getByRole('button', { current: 'page' });
+    expect(link).toHaveTextContent('1234');
+    expect(link).toHaveAccessibleName('Page 1234');
+    expect(built).not.toHaveBeenCalled();
+  });
+
+  it('writes a Badge count and its cap', () => {
+    const { rerender } = render(<Badge content={12345} max={99999} />);
+    expect(screen.getByRole('status')).toHaveTextContent('12345');
+    rerender(<Badge content={15000} max={9999} />);
+    expect(screen.getByRole('status')).toHaveTextContent('9999+');
+    expect(built).not.toHaveBeenCalled();
+  });
+
+  it('writes the Taginput counter and the Slider output', () => {
+    const { container } = render(
+      <>
+        <Taginput maxlength={2000} hasCounter />
+        <Slider value={1500} max={2000} showOutput ariaLabel="Level" />
+      </>
+    );
+    expect(container.querySelector('.counter')).toHaveTextContent('0 / 2000');
+    expect(container.querySelector('.slider-output')).toHaveTextContent('1500');
+    expect(built).not.toHaveBeenCalled();
+  });
+
+  it('writes the DataTable counts', () => {
+    vi.useFakeTimers();
+    const ui = (search: string) => (
+      <DataTable
+        caption="People"
+        columns={[{ id: 'name', header: 'Name' }]}
+        data={[{ id: '1', name: 'Ada' }]}
+        manual
+        rowCount={12345}
+        pageSize={1}
+        search={search}
+      />
+    );
+    const { rerender } = render(ui(''));
+    rerender(ui('a'));
+    act(() => vi.advanceTimersByTime(600));
+    expect(screen.getByRole('status')).toHaveTextContent('12345 rows match');
+    expect(built).not.toHaveBeenCalled();
+  });
+
+  it('writes Steps, Avatars, RingProgress, Rate, File and ColorPicker numbers', () => {
+    const { container } = render(
+      <>
+        <Steps value={0} items={[{ label: 'A' }, { label: 'B' }]} />
+        <Avatars max={1}>
+          <Avatar name="Ada Lovelace" />
+          <Avatar name="Grace Hopper" />
+          <Avatar name="Alan Turing" />
+        </Avatars>
+        <RingProgress
+          label="Storage"
+          sections={[{ value: 40, label: 'Documents' }]}
+        />
+        <Rate value={3.5} precision={0.5} showScore />
+        <File hasName multiple />
+        <ColorPicker label="Brand" alpha />
+      </>
+    );
+    const files = ['a.txt', 'b.txt', 'c.txt'].map(
+      name => new window.File(['x'], name, { type: 'text/plain' })
+    );
+    fireEvent.change(container.querySelector('input[type="file"]')!, {
+      target: { files },
+    });
+    expect(container.querySelectorAll('.steps-marker')[1]).toHaveTextContent(
+      '2'
+    );
+    expect(screen.getByRole('img', { name: '2 more' })).toHaveTextContent('+2');
+    expect(
+      screen.getByRole('img', { name: 'Storage: Documents 40%' })
+    ).toBeInTheDocument();
+    expect(container).toHaveTextContent('3.5');
+    expect(container.querySelector('.file-name')).toHaveTextContent('3 files');
+    expect(built).not.toHaveBeenCalled();
   });
 });
 

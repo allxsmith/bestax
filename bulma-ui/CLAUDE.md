@@ -159,7 +159,8 @@ either one is fixed.
   `bestax-`-prefixed class output; never hardcode a `"button"`-style class string outside the
   classname helpers (`usePrefixedClassNames`).
 - Scope: components should map to the Bulma spec. Extras beyond Bulma (a new Carousel-like
-  widget) need an issue discussion first, and pair with SCSS in `src/scss/`.
+  widget) need an issue discussion first, and pair with an SCSS partial in `src/scss/` when they
+  need styles of their own.
 - Tests: Vitest + Testing Library on jsdom, in each folder's `__tests__/`. Run one file with
   `pnpm --filter @allxsmith/bestax-bulma exec vitest run src/elements/__tests__/Button.test.tsx`.
   `vi.spyOn` on a module's export does not reach that module's own calls to it, so stub

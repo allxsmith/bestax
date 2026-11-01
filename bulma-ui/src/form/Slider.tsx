@@ -13,7 +13,7 @@ import {
 } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useClassPrefix } from '../helpers/Config';
-import { useNumberFormat } from '../helpers/localeFormat';
+import { useScopedNumberFormat } from '../helpers/localeFormat';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import {
   useInsideField,
@@ -451,7 +451,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     );
 
     // Format helper: the caller's, else the locale's, else the number as is.
-    const formatNumber = useNumberFormat();
+    const formatNumber = useScopedNumberFormat();
     const writeNumber = useCallback(
       (v: number) => (formatNumber ? formatNumber(v) : v.toString()),
       [formatNumber]

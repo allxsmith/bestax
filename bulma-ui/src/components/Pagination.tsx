@@ -7,7 +7,7 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 import { warnDeprecatedColorProp } from '../helpers/colorDeprecations';
-import { useNumberFormat } from '../helpers/localeFormat';
+import { useScopedNumberFormat } from '../helpers/localeFormat';
 
 /**
  * Props for the Pagination component.
@@ -263,7 +263,7 @@ const PaginationComponent: React.FC<PaginationProps> = ({
     backgroundColor: bgColor,
     ...props,
   });
-  const formatNumber = useNumberFormat();
+  const formatNumber = useScopedNumberFormat();
 
   // Generate Bulma classes with prefix
   const bulmaClasses = usePrefixedClassNames('pagination', {

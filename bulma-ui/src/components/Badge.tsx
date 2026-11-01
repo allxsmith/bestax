@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useNumberFormat } from '../helpers/localeFormat';
+import { useScopedNumberFormat } from '../helpers/localeFormat';
 
 const badgeColors = [
   'primary',
@@ -111,7 +111,7 @@ export const Badge: React.FC<BadgeProps> = ({
   // A negative or non-integer max is nonsensical; fall back to the default
   // rather than render e.g. "-1+" (mirrors Avatars' max sanitization).
   const sanitizedMax = Number.isInteger(max) && max >= 0 ? max : 99;
-  const formatNumber = useNumberFormat();
+  const formatNumber = useScopedNumberFormat();
 
   const displayValue = useMemo<React.ReactNode>(() => {
     if (dot || !hasContent) return undefined;

@@ -50,6 +50,8 @@ function Price({ amount }: { amount: number }) {
 }
 ```
 
+For numbers, [`NumberFormatter`](../elements/numberformatter.md) and its `useNumberFormat` hook do this for you, and build one formatter for each set of options rather than one on every render.
+
 It isn't the direction of the page: with no provider, or one that sets no direction, `<html dir>` still decides. To act on the direction an element is laid out in, read `getComputedStyle(element).direction`.
 
 ---
@@ -120,6 +122,8 @@ With a `locale`, the numbers the library writes itself are written the way that 
   <Pagination total={12} current={5} />
 </LocaleProvider>
 ```
+
+Numbers of your own follow it through [`NumberFormatter`](../elements/numberformatter.md), and through its `useNumberFormat` hook for text outside JSX, such as an `aria-label`. Outside a provider, those write in the runtime's locale, while the library's own numbers stay as they always were.
 
 Typing in `Combobox`, `Autocomplete`, `Taginput` and `Command` filters the list the way the language compares letters: case and accents are ignored where it treats them as the same letter, so "cafe" finds "Café", while in Swedish "a" doesn't find "å", a letter of its own there. Vowel marks the language leaves out of comparisons, such as Arabic harakat and Hebrew niqqud, don't count on either side, so a name typed without them finds one written with them, and the other way round.
 
@@ -201,7 +205,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
 ### A Locale Intl Doesn't Accept
 
-A tag `Intl` refuses, such as `"en_US"` with an underscore, is ignored: the provider writes no `lang`, keeps an outer provider's locale, and warns once in development. A picker's own `locale` isn't checked this way, and `Intl` throws on such a tag when the picker formats with it, as it always has.
+A tag `Intl` refuses, such as `"en_US"` with an underscore, is ignored: the provider writes no `lang`, keeps an outer provider's locale, and warns once in development. A `NumberFormatter`'s or `useNumberFormat`'s own `locale` is checked the same way: a tag `Intl` refuses is ignored with a warning, and the number is written in the provider's locale. A picker's own `locale` isn't checked this way, and `Intl` throws on such a tag when the picker formats with it, as it always has.
 
 ---
 
@@ -218,6 +222,7 @@ A tag `Intl` refuses, such as `"en_US"` with an underscore, is ignored: the prov
 - [`ConfigProvider`](./config.md): The class prefix, icon library and portal container. A nested one replaces the outer one's settings, which is why the locale lives here instead.
 - [`Portal`](./portal.md): Inside a `LocaleProvider`, its children keep the provider's `dir` and `lang`.
 - [`DateInput`](../form/datetime/dateinput.md): Takes the provider's locale and first day of the week.
+- [`NumberFormatter`](../elements/numberformatter.md): Writes a number in the provider's locale, and `useNumberFormat` does the same for text outside JSX.
 - [`Theme`](./theme.md): Its scoped wrapper is the same idea for CSS variables.
 
 ---

@@ -105,6 +105,13 @@ const PROPS: Record<string, Record<string, unknown>> = {
     actionText: 'Undo',
   },
   Taginput: { value: ['tag-one'] },
+  // It has no class of its own, so its helper classes are what's swept.
+  NumberFormatter: {
+    value: 1234.5,
+    textColor: 'primary',
+    bgColor: 'light',
+    textWeight: 'semibold',
+  },
   // Vertical, with a collapsed pane, so every class it emits is swept.
   Splitter: {
     orientation: 'vertical',
