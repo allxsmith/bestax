@@ -19,7 +19,9 @@ export interface IconButtonOwnProps extends ButtonOwnProps {
    * from an icon package, goes inside an `Icon`, which gives it the `.icon`
    * wrapper Bulma keeps square. It's decorative: the button's name says what
    * it does. Give the glyph here or as `children`, not both: with both, it
-   * draws `icon` and warns in development.
+   * draws `icon` and warns in development. With neither, such as an empty
+   * string from `cond ? 'trash' : ''`, the button is an empty square, and that
+   * warns in development too.
    */
   icon?: React.ReactNode;
   /**
@@ -172,6 +174,11 @@ export const IconButton = forwardRef(function IconButton(
   const fromIcon = iconFromProp(icon);
   const fromChildren = iconOf(children);
   const both = fromIcon !== null && fromChildren !== null;
+  // One glyph, from `icon` or else from `children`, so the button's only
+  // child is one `.icon`, which Bulma keeps square, and round with
+  // `isRounded`.
+  const glyph = fromIcon ?? fromChildren;
+  const empty = glyph === null;
   // Only top-level text, Fragments opened up, and only in development, where
   // the warning below can say something about it.
   const textInside =
@@ -186,6 +193,14 @@ export const IconButton = forwardRef(function IconButton(
         '[bestax-bulma] <IconButton> has no accessible name. Pass ' +
           'aria-label naming what it does ("Delete"), or aria-labelledby, ' +
           'so a screen reader has something to announce.'
+      );
+    }
+    if (empty) {
+      warnOnce(
+        'IconButton:no-glyph',
+        '[bestax-bulma] <IconButton> has no glyph: neither icon nor ' +
+          'children draws one, so it renders an empty square. Pass an icon ' +
+          'name, an <Icon> or another node.'
       );
     }
     if (both) {
@@ -203,12 +218,7 @@ export const IconButton = forwardRef(function IconButton(
           'is a <Button>.'
       );
     }
-  }, [unnamed, both, textInside]);
-
-  // One glyph, from `icon` or else from `children`, so the button's only
-  // child is one `.icon`, which Bulma keeps square, and round with
-  // `isRounded`.
-  const glyph = fromIcon ?? fromChildren;
+  }, [unnamed, empty, both, textInside]);
 
   // `type` is a button's only on a `<button>`. On an `<a>` it's the MIME hint,
   // and a custom component owns what it means, so those get it as given.

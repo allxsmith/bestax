@@ -124,9 +124,13 @@ describe('IconButton', () => {
       ['null', null],
       ['false', false],
       ['an empty string', ''],
-    ])('draws nothing for %s', (_, icon) => {
+    ])('draws nothing for %s, and warns once', (_, icon) => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(<IconButton icon={icon} aria-label="Nothing" />);
-      expect(screen.getByRole('button').children).toHaveLength(0);
+      render(<IconButton icon={icon} aria-label="Nothing" />);
+      expect(screen.getAllByRole('button')[0].children).toHaveLength(0);
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn.mock.calls[0][0]).toMatch(/has no glyph/);
     });
 
     it('opens a Fragment, so an <Icon> in one renders as given', () => {
@@ -190,9 +194,13 @@ describe('IconButton', () => {
       ['null', null],
       ['false', false],
       ['an empty Fragment', <React.Fragment key="empty" />],
-    ])('draws nothing for %s', (_, children) => {
+    ])('draws nothing for %s, and warns once', (_, children) => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(<IconButton aria-label="Nothing">{children}</IconButton>);
-      expect(screen.getByRole('button').children).toHaveLength(0);
+      render(<IconButton aria-label="Nothing">{children}</IconButton>);
+      expect(screen.getAllByRole('button')[0].children).toHaveLength(0);
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn.mock.calls[0][0]).toMatch(/has no glyph/);
     });
 
     it('draws icon and leaves the children out when both are given', () => {

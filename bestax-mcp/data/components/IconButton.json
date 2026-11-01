@@ -88,7 +88,7 @@
           "name": "icon",
           "type": "React.ReactNode",
           "default": null,
-          "description": "The glyph. A string is an `Icon` name, drawn from the icon library `ConfigProvider` sets. An `<Icon>` renders as given, so it can carry its own `variant` or `library`. Any other node, such as an SVG or a component from an icon package, goes inside an `Icon`, which gives it the `.icon` wrapper Bulma keeps square. It's decorative: the button's name says what it does. Give the glyph here or as `children`, not both: with both, it draws `icon` and warns in development.",
+          "description": "The glyph. A string is an `Icon` name, drawn from the icon library `ConfigProvider` sets. An `<Icon>` renders as given, so it can carry its own `variant` or `library`. Any other node, such as an SVG or a component from an icon package, goes inside an `Icon`, which gives it the `.icon` wrapper Bulma keeps square. It's decorative: the button's name says what it does. Give the glyph here or as `children`, not both: with both, it draws `icon` and warns in development. With neither, such as an empty string from `cond ? 'trash' : ''`, the button is an empty square, and that warns in development too.",
           "required": false,
           "inherited": false,
           "deprecated": false
