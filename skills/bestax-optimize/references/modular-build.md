@@ -88,7 +88,8 @@ is **more complete** than the docs page's Option C example, which omits several)
 **Form** (`@allxsmith/bestax-bulma/scss/form/<name>`):
 `checkbox`, `checkboxcard`, `radio`, `radiocard`, `switch`, `slider`, `numberinput`, `pininput`,
 `rate`, `autocomplete`, `combobox`, `taginput`, `picker-popover`, `dateinput`, `timeinput`,
-`datetimeinput`, `daterangeinput`, `file`, `fieldset`, `dropzone`, `colorpicker`, `colorinput`
+`datetimeinput`, `daterangeinput`, `file`, `fieldset`, `field`, `dropzone`, `colorpicker`,
+`colorinput`
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `colorswatch`, `delete`,
 `descriptionlist`, `kbd`, `linkbutton`, `loader`, `notification`, `progress`, `ringprogress`,
@@ -137,6 +138,16 @@ Notes:
   ```scss
   @use 'bulma/sass/form/file';
   @use '@allxsmith/bestax-bulma/scss/form/file' as bestax-file;
+  ```
+
+- The `field` partial **extends** stock Bulma's field (`bulma/sass/form/tools`): it puts the
+  `message` of a horizontal form component (`Input horizontal`, `Checkboxes horizontal`,
+  `Rate horizontal` and the rest) under its control, where Bulma's row would set it beside. An
+  app with one needs it next to `bulma/sass/form/tools`, in either order:
+
+  ```scss
+  @use 'bulma/sass/form/tools';
+  @use '@allxsmith/bestax-bulma/scss/form/field';
   ```
 
 - `Dropzone`'s zone is Bulma's file widget, so an app using it needs `bulma/sass/form/file` and the

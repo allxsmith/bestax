@@ -1,0 +1,40 @@
+// Field styles
+// Extends Bulma's own field (`bulma/sass/form/tools`): a horizontal field's
+// message goes under its control.
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+
+// A horizontal `Field` wraps its children in `.field-body`, which Bulma makes
+// a flex row from tablet up. A form component that renders a Field of its own
+// (`Input`, `Checkboxes`, `Rate` and the rest, with `horizontal` and
+// `message`) hands that body its control and its message, a `.help`, side by
+// side, so the message sat beside the control. Bulma's own markup nests the
+// two in an inner `.field`, where the message is under the control already.
+//
+// Here the body wraps when it holds a message of its own, and the message
+// takes a whole line, so it sits under the control and the control keeps the
+// width it has without one. A body with no message straight in it is left
+// as Bulma lays it out. Below tablet the body is a block, the message is
+// under the control there anyway, and neither rule changes anything. Both
+// rules hang on the same `:has()`, so a browser without it leaves the body as
+// Bulma lays it out; a full-width message in a row that doesn't wrap would
+// squeeze the control instead.
+.#{iv.$class-prefix}field-body:has(> .#{iv.$class-prefix}help) {
+  flex-wrap: wrap;
+}
+
+.#{iv.$class-prefix}field-body:has(> .#{iv.$class-prefix}help)
+  > .#{iv.$class-prefix}help {
+  flex-basis: 100%;
+}
+
+// Bulma spaces a field in the body from the one beside it with an end
+// margin on every field but the last, and a message after it made the field
+// not the last. With the message on a line of its own there is nothing
+// beside it to keep apart, so the field (`Numberinput`'s, for one) keeps the
+// width it has without a message. It outranks Bulma's rule rather than
+// following it, so the order of the two stylesheets doesn't matter.
+.#{iv.$class-prefix}field-body:has(> .#{iv.$class-prefix}help)
+  > .#{iv.$class-prefix}field:has(+ .#{iv.$class-prefix}help) {
+  margin-inline-end: 0;
+}
