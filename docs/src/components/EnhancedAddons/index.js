@@ -13,6 +13,12 @@ const ADDONS = [
     desc: 'A button that dresses like a link — semantics of a button, look of an anchor.',
   },
   {
+    name: 'IconButton',
+    icon: 'iconbutton',
+    link: '/docs/api/elements/iconbutton',
+    desc: 'A button that shows only an icon, with a name its types require and a true circle when rounded.',
+  },
+  {
     name: 'Kbd',
     icon: 'kbd',
     link: '/docs/api/elements/kbd',

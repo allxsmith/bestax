@@ -630,12 +630,22 @@ test('a discriminant merged with a plain boolean reads as boolean', () => {
 test('a union branch that forbids a prop leaves the row to the branch that takes it', () => {
   // Icon's `name` is a string on its `name` branch and `undefined` on its
   // `children` branch, which forbids it there, so the cell read
-  // `string | undefined`: what may be passed is a string.
+  // `string | undefined`: what may be passed is a string. IconButton's name
+  // is `IconButtonLabelledBy | IconButtonLabel`, each taking one attribute
+  // and typing the other `undefined`, and the first branch came first for
+  // both rows, so `aria-label` read `undefined` with "Not with
+  // `aria-labelledby`".
   for (const markdown of [true, false]) {
     const tick = s => (markdown ? `\`${s}\`` : s);
     const name = row('Icon', 'name', { markdown });
     assert.equal(name.type, tick('string'));
     assert.match(name.description, /^The icon name/);
+    const label = row('IconButton', 'aria-label', { markdown });
+    assert.equal(label.type, tick('string'));
+    assert.match(label.description, /^The button's name/);
+    const labelledBy = row('IconButton', 'aria-labelledby', { markdown });
+    assert.equal(labelledBy.type, tick('string'));
+    assert.match(labelledBy.description, /^The id of the element/);
   }
 });
 

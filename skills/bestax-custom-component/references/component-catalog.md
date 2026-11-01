@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-118 documented components. Generated from the API docs — every exported
+119 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -55,6 +55,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Emphasis](https://bestax.io/docs/api/elements/emphasis) — The `Emphasis` component renders a styled `<em>` element with Bulma helper class integration.
 - [Figure](https://bestax.io/docs/api/elements/figure) — The `Figure` component renders a styled `<figure>` element with Bulma helper class integration.
 - [Icon](https://bestax.io/docs/api/elements/icon) — The `Icon` component is a Bulma-styled wrapper for displaying icons from various libraries (Font Awesome, Material Design Icons, Ionicons…
+- [IconButton](https://bestax.io/docs/api/elements/iconbutton) — The `IconButton` component renders a button that shows only an icon, and requires a name for it.
 - [IconText](https://bestax.io/docs/api/elements/icontext) — The `IconText` component provides a Bulma-styled horizontal arrangement of one or more `Icon` components and optional text.
 - [Image](https://bestax.io/docs/api/elements/image) — The `Image` component wraps images, iframes, or custom content in a Bulma-styled container, supporting fixed sizes, aspect ratios, rounded corners…
 - [Kbd](https://bestax.io/docs/api/elements/kbd) — The `Kbd` component renders a `<kbd>` drawn as a keycap, for a key the reader presses.

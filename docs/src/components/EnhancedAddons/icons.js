@@ -285,6 +285,16 @@ function DescriptionListIcon() {
   );
 }
 
+// A square button holding nothing but a trash can
+function IconButtonIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="4" y="4" width="16" height="16" rx="3" />
+      <path d="M9 9h6M11 9V8h2v1M10 9l.5 6.5h3L14 9" />
+    </svg>
+  );
+}
+
 // A ring with its arc filled most of the way round
 function RingProgressIcon() {
   return (
@@ -382,6 +392,7 @@ const ADDON_ICONS = {
   emptystate: EmptyStateIcon,
   fieldset: FieldsetIcon,
   hovercard: HoverCardIcon,
+  iconbutton: IconButtonIcon,
   loading: LoadingIcon,
   pininput: PinInputIcon,
   popover: PopoverIcon,

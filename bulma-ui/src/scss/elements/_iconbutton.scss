@@ -1,0 +1,21 @@
+// Bestax Extras - IconButton Styles
+// Bulma keeps a button whose only child is an `.icon` square at every size,
+// so IconButton needs no CSS for that. Bulma's `is-rounded` adds horizontal
+// padding to a rounded button, though, which around one icon makes a pill a
+// little wider than it is tall. This takes that padding back, so a rounded
+// IconButton is a circle the size of its square. A rounded `Button` keeps
+// Bulma's pill, since the rule needs IconButton's own class.
+//
+// It reads Bulma's button variables, so a theme that changes them changes
+// this too, and it registers none of its own. Its selector outranks Bulma's
+// `.button.is-rounded`, so it wins wherever Bulma's CSS lands.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+.#{iv.$class-prefix}button.#{iv.$class-prefix}icon-button.#{iv.$class-prefix}is-rounded {
+  padding-inline: calc(
+    #{cv.getVar('button-padding-horizontal')} -
+      #{cv.getVar('button-border-width')}
+  );
+}
