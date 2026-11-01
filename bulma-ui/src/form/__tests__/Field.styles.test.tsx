@@ -180,6 +180,16 @@ describe.each([
     expect(declared(help, 'flex-basis')).toEqual([]);
   });
 
+  it('changes nothing in a browser without :has()', () => {
+    // Such a browser drops every rule whose selector uses `:has()`. A
+    // full-width message left behind in a row that doesn't wrap would
+    // squeeze the control, so no rule may stand without it.
+    expect(RULES.length).toBeGreaterThan(0);
+    for (const { selector } of RULES) {
+      expect(selector).toContain(':has(');
+    }
+  });
+
   describe("beside Bulma's own field rules", () => {
     // Bulma spaces each field in a body from the next with an end margin on
     // every field but the last, from tablet up. The partial comes first

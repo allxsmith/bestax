@@ -15,12 +15,16 @@
 // takes a whole line, so it sits under the control and the control keeps the
 // width it has without one. A body with no message straight in it is left
 // as Bulma lays it out. Below tablet the body is a block, the message is
-// under the control there anyway, and neither rule changes anything.
+// under the control there anyway, and neither rule changes anything. Both
+// rules hang on the same `:has()`, so a browser without it leaves the body as
+// Bulma lays it out; a full-width message in a row that doesn't wrap would
+// squeeze the control instead.
 .#{iv.$class-prefix}field-body:has(> .#{iv.$class-prefix}help) {
   flex-wrap: wrap;
 }
 
-.#{iv.$class-prefix}field-body > .#{iv.$class-prefix}help {
+.#{iv.$class-prefix}field-body:has(> .#{iv.$class-prefix}help)
+  > .#{iv.$class-prefix}help {
   flex-basis: 100%;
 }
 
