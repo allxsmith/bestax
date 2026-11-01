@@ -1,3 +1,18 @@
+## [1.18.24](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.23...bestax-mcp@1.18.24) (2026-11-01)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** flag rbx and react-bulma-components' Heading label the way bloomer does ([3e8218d](https://github.com/allxsmith/bestax/commit/3e8218d13c178f362653c19bcdab6eff7677eb6c))
+* **bulma-ui:** draw a line under a Combobox group that ungrouped items follow ([7cd101f](https://github.com/allxsmith/bestax/commit/7cd101fd92d9704c4ec707323866a6d41f2d041e))
+* **bulma-ui:** keep a checked Radio visible on a selected table row ([33ca192](https://github.com/allxsmith/bestax/commit/33ca19214b460eaea0bb48e07102432045b73e25))
+* **bulma-ui:** keep the label gap on the control's side on right-to-left pages ([ab45586](https://github.com/allxsmith/bestax/commit/ab4558653bf35b50a75f78975e82728695214147))
+* **bulma-ui:** let a radio without a value be picked in a Radios group with only onChange ([73005b4](https://github.com/allxsmith/bestax/commit/73005b43d6950116fb0ca7e04ac910c92d344e3a))
+* **bulma-ui:** mark Pagination's current page in forced colors ([f9092e2](https://github.com/allxsmith/bestax/commit/f9092e2e04ebfdaa3f4be20dd8b69e38deddb977))
+* **bulma-ui:** stack the toasts ToastContainer shows at one position ([894ae10](https://github.com/allxsmith/bestax/commit/894ae10605a0920705448fde8b7200887815e390))
+* **bulma-ui:** start a Checkboxes or Radios group with only onChange from what was checked ([edef246](https://github.com/allxsmith/bestax/commit/edef246b1bc82b1fada2ae12ad817099454a63fc))
+* **bulma-ui:** tell assistive tech a disabled Rate is disabled ([a91c6fa](https://github.com/allxsmith/bestax/commit/a91c6fa99273a675c05087beefad328e86a5f0b9))
+
 ## [1.18.23](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.22...bestax-mcp@1.18.23) (2026-11-01)
 
 
