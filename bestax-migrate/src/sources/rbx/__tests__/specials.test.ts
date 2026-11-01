@@ -309,6 +309,30 @@ describe('rbx Title / Icon / PageLoader / Navbar / Field', () => {
     expect(output).toContain('<Loading active isFullPage />');
   });
 
+  // rbx's Fieldset is a bare <fieldset>, and bestax's draws a box unless its
+  // variant is `unstyled`.
+  it("turns Fieldset into bestax's unstyled Fieldset, keeping disabled", () => {
+    const { output, rules } = migrate(
+      imp('Fieldset') +
+        'export const A = () => <Fieldset disabled>x</Fieldset>;'
+    );
+    expect(output).toContain(
+      '<Fieldset disabled variant="unstyled">x</Fieldset>'
+    );
+    expect(output).toContain(
+      'import { Fieldset } from "@allxsmith/bestax-bulma";'
+    );
+    expect(rules).toEqual([]);
+  });
+
+  it('leaves a variant already on the Fieldset alone', () => {
+    const { output } = migrate(
+      imp('Fieldset') +
+        'export const A = () => <Fieldset variant="filled">x</Fieldset>;'
+    );
+    expect(output).toContain('<Fieldset variant="filled">x</Fieldset>');
+  });
+
   it('turns a dropdown Navbar.Item into Navbar.Dropdown', () => {
     const { output } = migrate(
       imp('Navbar') +

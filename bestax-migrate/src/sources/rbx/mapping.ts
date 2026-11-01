@@ -392,10 +392,9 @@ export const MAPPING: Record<string, ComponentMapping> = {
       Body: { status: 'mapped', target: 'Field.Body' },
     },
   },
-  Fieldset: {
-    status: 'todo',
-    todo: 'bestax has no `Fieldset` component; render a plain <fieldset> (its `disabled` attribute works natively)',
-  },
+  // rbx's Fieldset is a bare <fieldset>, and bestax's `unstyled` variant is
+  // the one that draws no box, so the special adds it.
+  Fieldset: { status: 'mapped', target: 'Fieldset', special: 'fieldset' },
   File: {
     status: 'mapped',
     target: 'File',

@@ -3,6 +3,7 @@ import {
   Checkbox,
   Control,
   Field,
+  Fieldset,
   Help,
   Input,
   Label,
@@ -50,5 +51,12 @@ export const FormControls = () => (
         <Radio />
       </Control>
     </Field>
+    <Fieldset disabled>
+      <Field>
+        <Control>
+          <Input type="text" placeholder="Saving" />
+        </Control>
+      </Field>
+    </Fieldset>
   </>
 );

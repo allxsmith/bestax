@@ -8,7 +8,6 @@ import {
   Button,
   Divider,
   Dropdown,
-  Fieldset,
   File,
   Generic,
   Highlight,
@@ -51,7 +50,6 @@ export const Leftovers = ({ where }: { where: "left" | "right" }) => (
     </Navbar.Link>
 
     {/* no bestax equivalents */}
-    <Fieldset disabled>fields</Fieldset>
     <Numeric>{1000}</Numeric>
     <Highlight>{"const a = 1;"}</Highlight>
 

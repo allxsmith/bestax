@@ -156,10 +156,10 @@ Nothing flags this — the markup is valid either way — so audit your navbars 
 Bulma v1 does not ship it. Use `<UnorderedList>`/`<UnorderedList.Item>` for a plain list, or
 `<Menu>`/`<Menu.Item>` when the items are navigation.
 
-## `component:Fieldset`, `component:Numeric`, `component:Highlight`
+## `component:Numeric`, `component:Highlight`
 
-No bestax equivalents, and none needed: render a plain `<fieldset>` (its `disabled` attribute
-works natively), use `Intl.NumberFormat` directly, and use `<Pre>` with your own highlighter.
+No bestax equivalents, and none needed: use `Intl.NumberFormat` directly, and use `<Pre>` with your
+own highlighter.
 
 ## `responsive` — `touch` and `{ only: true }`
 

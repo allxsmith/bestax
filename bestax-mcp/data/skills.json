@@ -123,7 +123,7 @@
         {
           "id": "rbx-component-map",
           "file": "references/rbx/component-map.md",
-          "bytes": 13557
+          "bytes": 14334
         },
         {
           "id": "rbx-prop-map",
@@ -133,7 +133,7 @@
         {
           "id": "rbx-unmappables",
           "file": "references/rbx/unmappables.md",
-          "bytes": 15120
+          "bytes": 15027
         },
         {
           "id": "react-bulma-components-component-map",

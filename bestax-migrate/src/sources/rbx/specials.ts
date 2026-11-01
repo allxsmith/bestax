@@ -307,6 +307,21 @@ const SPECIALS: Record<string, SpecialHandler> = {
     return replaceWithPlain(ctx, path, element, 'div', 'loader', 'Loader');
   },
 
+  /**
+   * rbx's Fieldset is a bare <fieldset>, which Bulma's base styles strip of
+   * its border, margin and padding, while bestax's Fieldset draws a bordered
+   * box unless told otherwise. `variant="unstyled"` is the one that draws no
+   * box. `disabled` carries over as it is, and bestax's also passes it to
+   * the bestax inputs inside, which a plain <fieldset> can't reach.
+   */
+  fieldset(ctx, _path, element) {
+    if (!findAttr(element, 'variant')) {
+      addAttr(element, makeAttr(ctx.j, 'variant', 'unstyled'));
+      ctx.dirty = true;
+    }
+    return {};
+  },
+
   /** rbx's full-screen PageLoader is bestax's Loading with isFullPage. */
   'page-loader'(ctx, _path, element) {
     if (!findAttr(element, 'isFullPage')) {
