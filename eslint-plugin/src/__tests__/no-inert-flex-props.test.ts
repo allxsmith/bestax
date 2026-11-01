@@ -35,6 +35,23 @@ ruleTester.run('no-inert-flex-props', rule, {
       'Flex',
       '<Flex flexDirection="column" flexWrap="wrap" alignContent="center" />'
     ),
+    // A flex display keeps it one, inline or not.
+    imported('Center', '<Center display="inline-flex" alignItems="end" />'),
+    imported('Stack', '<Stack display="flex" alignItems="center" />'),
+    // A viewport's display leaves it a flex container at the other widths.
+    imported('Group', '<Group displayMobile="block" alignItems="baseline" />'),
+    // A display it cannot read could be a flex one.
+    imported('Flex', '<Flex display={mode} flexDirection="column" />'),
+    // So could one a spread carries.
+    imported(
+      'Stack',
+      '<Stack {...rest} display="block" alignItems="center" />'
+    ),
+    // A flex display at some width, beside a `display` that isn't.
+    imported(
+      'Stack',
+      '<Stack display="block" displayTablet="flex" alignItems="center" />'
+    ),
   ],
   invalid: [
     {
@@ -89,6 +106,34 @@ ruleTester.run('no-inert-flex-props', rule, {
       // Child props are fine; only the container prop reports.
       code: imported('Box', '<Box flexGrow="1" justifyContent="center" />'),
       errors: [{ messageId: 'inert' }],
+    },
+    {
+      // A flex container by its own CSS stops being one when `display` makes
+      // it something else: Bulma's `is-block` is `!important`.
+      code: imported('Stack', '<Stack display="block" alignItems="center" />'),
+      errors: [
+        {
+          message:
+            '`alignItems` does nothing here: `Stack` is a flex container by its own styles, but its `display` prop makes it something else. Drop `display`, or drop `alignItems`.',
+        },
+      ],
+    },
+    {
+      // A viewport's display doesn't change that `display` itself isn't flex.
+      code: imported(
+        'Group',
+        '<Group display="grid" displayMobile="block" justifyContent="center" flexWrap="nowrap" />'
+      ),
+      errors: [{ messageId: 'notFlex' }, { messageId: 'notFlex' }],
+    },
+    {
+      // Readable and not a flex string, so knowably not flex, as on Box.
+      code: imported('Center', '<Center display={true} alignItems="center" />'),
+      errors: [{ messageId: 'notFlex' }],
+    },
+    {
+      code: imported('Flex', '<Flex display="none" flexDirection="column" />'),
+      errors: [{ messageId: 'notFlex' }],
     },
   ],
 });

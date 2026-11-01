@@ -232,6 +232,7 @@ is the one place that judges that.
 <Box display="flex" justifyContent="center" /> // ✓
 <Box flexGrow="1" />                           // ✓ child props always apply
 <Stack alignItems="center" />                  // ✓ Stack, Group, Center and Flex are flex containers
+<Stack display="block" alignItems="center" />  // ✗ unless display makes them something else
 ```
 
 ## Links

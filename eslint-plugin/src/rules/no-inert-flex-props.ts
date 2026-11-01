@@ -11,10 +11,13 @@
  * element as a flex CHILD, whose container is elsewhere — so they are not
  * reported.
  *
- * Nor is anything on an element that is a flex container by its own CSS
- * (`Stack`, `Group`, `Center`, `Flex`): the library tells the hook so, and the
- * five emit with no `display` prop. That set is generated from the library's
- * source, `FLEX_CONTAINER_ELEMENTS`, rather than listed here.
+ * An element that is a flex container by its own CSS (`Stack`, `Group`,
+ * `Center`, `Flex`) emits the five with no `display` prop, so it needs none.
+ * It stops being one only when `display` itself, the prop for every width,
+ * is something else: `display="block"` adds Bulma's `is-block`, which is
+ * `!important`. A viewport's `display*` alone leaves it a flex container at
+ * the other widths, so that buys silence. The set is generated from the
+ * library, `FLEX_CONTAINER_ELEMENTS`, rather than listed here.
  *
  * Silence beats a guess: an element carrying a spread, or a `display*` whose
  * value the rule cannot read, is left alone.
@@ -51,6 +54,8 @@ const rule: Rule.RuleModule = {
     messages: {
       inert:
         '`{{prop}}` emits no class here: it applies only when a `display` prop is `flex` or `inline-flex`. Add `display="flex"`, or drop `{{prop}}`.',
+      notFlex:
+        '`{{prop}}` does nothing here: `{{element}}` is a flex container by its own styles, but its `display` prop makes it something else. Drop `display`, or drop `{{prop}}`.',
     },
   },
   create(context) {
@@ -60,7 +65,7 @@ const rule: Rule.RuleModule = {
       JSXOpeningElement(node: unknown) {
         const opening = node as { name: unknown; attributes: unknown[] };
         const element = elementOf(context, opening, imports);
-        if (element === null || FLEX_CONTAINERS.has(element)) return;
+        if (element === null) return;
         if (hasSpread(opening)) return;
 
         const attrs = winningAttributes(opening);
@@ -85,11 +90,23 @@ const rule: Rule.RuleModule = {
           return;
         }
 
+        // A flex container by its own CSS is one unless `display`, the prop
+        // for every width, says otherwise.
+        const isFlexContainer = FLEX_CONTAINERS.has(element);
+        if (
+          isFlexContainer &&
+          !displays.some(
+            (a: { name: { name: string } }) => a.name.name === 'display'
+          )
+        ) {
+          return;
+        }
+
         for (const attr of containerProps) {
           context.report({
             node: attr,
-            messageId: 'inert',
-            data: { prop: attr.name.name },
+            messageId: isFlexContainer ? 'notFlex' : 'inert',
+            data: { prop: attr.name.name, element },
           });
         }
       },

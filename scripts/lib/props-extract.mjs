@@ -513,6 +513,11 @@ function jsdocText(ts, node) {
   return '';
 }
 
+/** Whether a node's TSDoc carries `@tagName`, with or without text. */
+function hasJsdocTag(ts, node, tagName) {
+  return ts.getJSDocTags(node).some(tag => tag.tagName.text === tagName);
+}
+
 function jsdocTag(ts, node, tagName) {
   for (const tag of ts.getJSDocTags(node)) {
     if (tag.tagName.text === tagName) {
@@ -1698,7 +1703,7 @@ export function unnameablePropsError(impl, ifaceName, fn) {
  *   structured consumer (the MCP index): plain type text, and `deprecated` /
  *   `deprecationNote` / `valuesRef` as their own row fields. Defaults to `true`
  *   so the docs generator's output is unaffected.
- * @returns {{name, tsdoc, rootClass, varPrefix, tables: [{path, rows, catchAll: {text, helpers, helperPropsNote?}|null, extraProps}]}}
+ * @returns {{name, tsdoc, rootClass, varPrefix, tables: [{path, rows, catchAll: {text, helpers, helperPropsNote?}|null, extraProps, flexContainer?}]}}
  */
 export function extractComponent(
   name,
@@ -2077,6 +2082,13 @@ export function extractComponent(
     }
 
     const catchAll = catchAllRow(external, markdown);
+    // `@flexContainer` on the props type or a base: the part's root is a flex
+    // container by its own stylesheet, so the flex container helper props
+    // apply with no `display` prop (Stack, Group, Center and Flex, through
+    // their shared `LayoutOwnProps`). The ESLint plugin's metadata reads it.
+    const flexContainer = [decl, ...expandedDecls].some(owner =>
+      hasJsdocTag(ts, owner, 'flexContainer')
+    );
     const helperPropsNote = helperPropsNoteOf(
       impl,
       [decl, ...expandedDecls].map(owner => jsdocTag(ts, owner, 'helperProps')),
@@ -2097,6 +2109,7 @@ export function extractComponent(
         jsdocText(ts, componentFunction(ts, implInit)),
       rows,
       extraProps,
+      ...(flexContainer ? { flexContainer: true } : {}),
       catchAll: catchAll && {
         ...catchAll,
         ...(helperPropsNote ? { helperPropsNote } : {}),

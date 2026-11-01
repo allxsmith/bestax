@@ -15,10 +15,11 @@
  *                         button. Getting that backwards is the whole point of
  *                         the rule, so the set is read from the TSDoc sentence
  *                         the library states it in, never hand-listed.
- *   no-inert-flex-props   which components are flex containers by their own
+ *   no-inert-flex-props   which elements are flex containers by their own
  *                         CSS, so the flex container props render on them with
- *                         no `display` prop. Read from each component module's
- *                         source (`FLEX_CONTAINER_MARKER`), not from prose.
+ *                         no `display` prop. Read from the `@flexContainer`
+ *                         tag on an element's props type or one of its bases,
+ *                         which the extractor reports as `flexContainer`.
  *   no-bulma-component-class
  *                         which Bulma classes name a bestax component. That is
  *                         not the library's knowledge but bestax-migrate's:
@@ -41,7 +42,6 @@
  * alias, `<Buttons.Button>` takes a real variant.
  */
 import { createRequire } from 'node:module';
-import { readFileSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -102,33 +102,13 @@ const TEXT_ALIAS_MARKER = /Text color alias/i;
 const TEXT_ALIAS_ANCHORS = ['Box', 'Card', 'Content'];
 
 /**
- * How a component's module shows it is a flex container by its own CSS, which
- * `no-inert-flex-props` must not report: it renders the shared `StackLayout`
- * (Stack, Group, Center and Flex), or passes `useBulmaClasses` the
- * `{ flexContainer: true }` that opens the flex container helpers with no
- * `display` prop. Keyed on that construct in the source, comments stripped,
- * rather than on prose, because the construct is what makes the classes
- * render.
- */
-const FLEX_CONTAINER_MARKER = /<StackLayout\b|\bflexContainer:\s*true\b/;
-
-/**
- * Components that must stay in the flex container set. Without one, the rule
- * would report every `alignItems` written on it, which renders.
+ * Elements that must stay in the flex container set, which the extractor
+ * reads off the `@flexContainer` tag (`flexContainer` on a table). Without
+ * one, `no-inert-flex-props` would report every `alignItems` written on it,
+ * which renders. Names rather than a count, so a new flex container needs no
+ * edit here.
  */
 const FLEX_CONTAINER_ANCHORS = ['Center', 'Flex', 'Group', 'Stack'];
-
-/**
- * Whether a component module's own source makes its component a flex
- * container, per `FLEX_CONTAINER_MARKER`.
- *
- * @param {string} source the module's text.
- */
-export function rendersFlexContainer(source) {
-  return FLEX_CONTAINER_MARKER.test(
-    source.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '')
-  );
-}
 
 /**
  * What would make the flex container set wrong to write: an anchor missing,
@@ -141,12 +121,13 @@ export function flexContainerViolations(flexContainers) {
   return missing.length
     ? [
         `${missing.join(', ')} no longer ${
-          missing.length === 1 ? 'reads' : 'read'
-        } as a flex container (${FLEX_CONTAINER_MARKER.source}), so ` +
-          'no-inert-flex-props would report the flex props written on ' +
-          (missing.length === 1 ? 'it' : 'them') +
-          ', which render. If the construct changed on purpose, update ' +
-          'FLEX_CONTAINER_MARKER here in the same change.',
+          missing.length === 1 ? 'carries' : 'carry'
+        } \`@flexContainer\` on ${
+          missing.length === 1 ? 'its' : 'their'
+        } props, so no-inert-flex-props would report the flex props written ` +
+          `on ${missing.length === 1 ? 'it' : 'them'}, which render. If the ` +
+          'tag moved on purpose, update FLEX_CONTAINER_ANCHORS here in the ' +
+          'same change.',
       ]
     : [];
 }
@@ -439,12 +420,11 @@ export function classTableViolations(classes, exported) {
  * `pnpm all` green, which is a bad property for the thing standing between a
  * corrupt table and a consumer's source.
  *
- * @param {{exportedModules?: Function, extractComponent?: Function, readSource?: Function}} [deps]
+ * @param {{exportedModules?: Function, extractComponent?: Function}} [deps]
  */
 export function collect(deps = {}) {
   const readModules = deps.exportedModules ?? exportedModules;
   const readComponent = deps.extractComponent ?? extractComponent;
-  const readSource = deps.readSource ?? (file => readFileSync(file, 'utf8'));
   const names = [...readModules().keys()].filter(n => /^[A-Z]/.test(n)).sort();
 
   /** element path → prop → { replacement, note } */
@@ -453,17 +433,13 @@ export function collect(deps = {}) {
   const knownProps = new Map();
   /** element paths whose `color` is a text alias */
   const textAlias = new Set();
-  /** components that are flex containers by their own CSS */
+  /** element paths that are flex containers by their own CSS */
   const flexContainers = new Set();
 
   for (const name of names) {
     const info = readComponent(name, { markdown: false });
-    // The component itself, not its parts: a module's source can't say which
-    // of the components it holds renders the construct.
-    if (info.sourceFile && rendersFlexContainer(readSource(info.sourceFile))) {
-      flexContainers.add(name);
-    }
     for (const table of info.tables ?? []) {
+      if (table.flexContainer) flexContainers.add(table.path);
       // Every element's own prop names, so a replacement or a rewrite target
       // can be checked against what the element actually declares.
       knownProps.set(table.path, new Set((table.rows ?? []).map(r => r.name)));
@@ -570,8 +546,8 @@ ${[...textAlias]
 /**
  * Elements that are flex containers by their own CSS, so the flex container
  * props (\`alignItems\`, \`justifyContent\` and the rest) render on them with
- * no \`display\` prop. Read from the library's source: each renders the shared
- * \`StackLayout\`, or passes \`useBulmaClasses\` \`{ flexContainer: true }\`.
+ * no \`display\` prop, unless a \`display\` prop makes them something else.
+ * Read from the \`@flexContainer\` tag on each one's props type or its bases.
  */
 export const FLEX_CONTAINER_ELEMENTS: readonly string[] = [
 ${[...flexContainers]

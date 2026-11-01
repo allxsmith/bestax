@@ -394,6 +394,22 @@ test('an imported tag union is a closed `as`, which takes no component', () => {
   }
 });
 
+test('`@flexContainer` on a base marks the part a flex container, and only then', () => {
+  // The ESLint plugin's metadata takes its flex containers from this, so a
+  // tag that stopped reaching through the shared `LayoutOwnProps` would have
+  // `no-inert-flex-props` report props that render.
+  for (const [component, path] of CONSTRAINED_LAYOUTS) {
+    assert.equal(table(component, path).flexContainer, true, path);
+  }
+  for (const [component, path] of [
+    ['Box', 'Box'],
+    ['Level', 'Level'],
+    ['Buttons', 'Buttons'],
+  ]) {
+    assert.equal(table(component, path).flexContainer, undefined, path);
+  }
+});
+
 test('a union element base names every element, not the first', () => {
   // `catchAllRow` read the base with `String.match` and no `/g`, so a component
   // whose props extend `HTMLAttributes<A | B | C>` was described by whichever

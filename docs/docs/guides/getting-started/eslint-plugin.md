@@ -347,10 +347,12 @@ The flex _container_ props emit nothing unless a `display` prop is `flex` or
 <Box display="flex" justifyContent="center" /> // ✓
 <Box displayTablet="flex" alignItems="center" />// ✓ a responsive band counts
 <Stack alignItems="center" />                  // ✓ a flex container already
+<Stack display="block" alignItems="center" />  // ✗ display makes it a block
 ```
 
 `Stack`, `Group`, `Center` and `Flex` are flex containers by their own styles, so
-their container props apply with no `display` prop.
+their container props apply with no `display` prop, unless `display` itself makes
+them something else.
 
 The flex _child_ props describe the element inside somebody else's container,
 so they always apply and are never reported:

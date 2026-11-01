@@ -205,8 +205,8 @@ export const TEXT_ALIAS_COLOR_ELEMENTS: readonly string[] = [
 /**
  * Elements that are flex containers by their own CSS, so the flex container
  * props (`alignItems`, `justifyContent` and the rest) render on them with
- * no `display` prop. Read from the library's source: each renders the shared
- * `StackLayout`, or passes `useBulmaClasses` `{ flexContainer: true }`.
+ * no `display` prop, unless a `display` prop makes them something else.
+ * Read from the `@flexContainer` tag on each one's props type or its bases.
  */
 export const FLEX_CONTAINER_ELEMENTS: readonly string[] = [
   'Center',
