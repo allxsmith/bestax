@@ -73,7 +73,7 @@
     "ionicons": "^8.1.0",
     "jsdom": "^26.1.0",
     "material-icons": "^1.13.14",
-    "material-symbols": "^0.47.6",
+    "material-symbols": "^0.48.2",
     "playwright": "^1.64.1",
     "prettier": "^3.9.9",
     "rimraf": "^6.0.1",
