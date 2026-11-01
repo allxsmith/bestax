@@ -85,31 +85,61 @@ This example shows the `Level` component with `Level.Left` and `Level.Right` sub
 
 ### Centered Level (Statistics)
 
-This example demonstrates using the `Level` component to create a centered statistics display. Each `Level.Item` in this example is centered and contains a heading and a value, making it suitable for displaying key metrics or statistics.
+This example demonstrates using the `Level` component to create a centered statistics display. Each `Level.Item` in this example is centered and contains a small label and a value, making it suitable for displaying key metrics or statistics.
+
+Bulma 0.9 drew that label with a `heading` class, which Bulma v1 dropped, so the label here is a `Paragraph` made small, uppercase, and semibold with helper props.
 
 ```tsx live
 <Level>
   <Level.Item hasTextCentered>
     <Block>
-      <Paragraph className="heading">Posts</Paragraph>
+      <Paragraph
+        textSize="7"
+        textTransform="uppercase"
+        textWeight="semibold"
+        mb="1"
+      >
+        Posts
+      </Paragraph>
       <Title as="p">1,234</Title>
     </Block>
   </Level.Item>
   <Level.Item hasTextCentered>
     <Block>
-      <Paragraph className="heading">Following</Paragraph>
+      <Paragraph
+        textSize="7"
+        textTransform="uppercase"
+        textWeight="semibold"
+        mb="1"
+      >
+        Following
+      </Paragraph>
       <Title as="p">6789</Title>
     </Block>
   </Level.Item>
   <Level.Item hasTextCentered>
     <Block>
-      <Paragraph className="heading">Followers</Paragraph>
+      <Paragraph
+        textSize="7"
+        textTransform="uppercase"
+        textWeight="semibold"
+        mb="1"
+      >
+        Followers
+      </Paragraph>
       <Title as="p">123K</Title>
     </Block>
   </Level.Item>
   <Level.Item hasTextCentered>
     <Block>
-      <Paragraph className="heading">Likes</Paragraph>
+      <Paragraph
+        textSize="7"
+        textTransform="uppercase"
+        textWeight="semibold"
+        mb="1"
+      >
+        Likes
+      </Paragraph>
       <Title as="p">9876</Title>
     </Block>
   </Level.Item>
@@ -152,25 +182,53 @@ This example demonstrates the `Level` component's mobile layout. A level stacks 
 <Level isMobile>
   <Level.Item hasTextCentered>
     <Block>
-      <Paragraph className="heading">Posts</Paragraph>
+      <Paragraph
+        textSize="7"
+        textTransform="uppercase"
+        textWeight="semibold"
+        mb="1"
+      >
+        Posts
+      </Paragraph>
       <Title as="p">1,234</Title>
     </Block>
   </Level.Item>
   <Level.Item hasTextCentered>
     <Block>
-      <Paragraph className="heading">Following</Paragraph>
+      <Paragraph
+        textSize="7"
+        textTransform="uppercase"
+        textWeight="semibold"
+        mb="1"
+      >
+        Following
+      </Paragraph>
       <Title as="p">4567</Title>
     </Block>
   </Level.Item>
   <Level.Item hasTextCentered>
     <Block>
-      <Paragraph className="heading">Followers</Paragraph>
+      <Paragraph
+        textSize="7"
+        textTransform="uppercase"
+        textWeight="semibold"
+        mb="1"
+      >
+        Followers
+      </Paragraph>
       <Title as="p">123K</Title>
     </Block>
   </Level.Item>
   <Level.Item hasTextCentered>
     <Block>
-      <Paragraph className="heading">Likes</Paragraph>
+      <Paragraph
+        textSize="7"
+        textTransform="uppercase"
+        textWeight="semibold"
+        mb="1"
+      >
+        Likes
+      </Paragraph>
       <Title as="p">9876</Title>
     </Block>
   </Level.Item>

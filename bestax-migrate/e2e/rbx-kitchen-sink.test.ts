@@ -159,6 +159,18 @@ describe('rbx kitchen-sink e2e', () => {
     expect(migrated).not.toContain('innerRef');
   });
 
+  it("turns rbx's bare Fieldset into bestax's unstyled one, outside a Field", () => {
+    const migrated = fs.readFileSync(
+      path.join(tmpDir, 'src', 'form.tsx'),
+      'utf8'
+    );
+    expect(migrated).toContain('<Fieldset disabled variant="unstyled">');
+    // Inside a Field it stays the plain fieldset rbx rendered, since bestax's
+    // would start a Field scope of its own there.
+    expect(migrated).toMatch(/<Field>\s*<fieldset disabled>/);
+    expect(migrated).not.toMatch(/from ["']rbx["']/);
+  });
+
   it('adopts the bestax combined CSS bundle in App.tsx', () => {
     const migrated = fs.readFileSync(
       path.join(tmpDir, 'src', 'App.tsx'),
@@ -232,7 +244,6 @@ describe('rbx kitchen-sink e2e', () => {
     expect(rules).toContain('component:Tile');
     expect(rules).toContain('component:List');
     expect(rules).toContain('component:Generic');
-    expect(rules).toContain('component:Fieldset');
     expect(rules).toContain('component:Numeric');
     expect(rules).toContain('component:Highlight');
     expect(rules).toContain('component:Icon');

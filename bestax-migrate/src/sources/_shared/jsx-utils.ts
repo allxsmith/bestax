@@ -41,7 +41,22 @@ export interface TransformContext {
    * source's transform).
    */
   resolve?: (name: any) => string[] | null;
+  /**
+   * What the JSX element at `path` renders, read by binding: a component of
+   * the source library or of bestax, or null for anything else, a local that
+   * shadows one of them included (set by the source's transform where a
+   * handler needs it).
+   */
+  resolveElement?: (path: any) => ResolvedElement | null;
   dirty: boolean;
+}
+
+/** A JSX element's component, as `TransformContext.resolveElement` reads it. */
+export interface ResolvedElement {
+  /** `source` for the library being migrated from, `bestax` for bestax. */
+  library: 'source' | 'bestax';
+  /** The component's path in that library, such as `['Field', 'Body']`. */
+  parts: string[];
 }
 
 /** Flatten a JSXIdentifier / JSXMemberExpression chain into name parts. */

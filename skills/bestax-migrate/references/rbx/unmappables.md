@@ -182,10 +182,30 @@ Nothing flags this — the markup is valid either way — so audit your navbars 
 Bulma v1 does not ship it. Use `<UnorderedList>`/`<UnorderedList.Item>` for a plain list, or
 `<Menu>`/`<Menu.Item>` when the items are navigation.
 
-## `component:Fieldset`, `component:Numeric`, `component:Highlight`
+## `component:Fieldset` — an input placed straight in it
 
-No bestax equivalents, and none needed: render a plain `<fieldset>` (its `disabled` attribute
-works natively), use `Intl.NumberFormat` directly, and use `<Pre>` with your own highlighter.
+bestax's `Fieldset` starts its own Field scope, and rbx's bare `<fieldset>` never did. So an input
+placed straight in it, such as an `Input`, renders as it does outside any `Field`, with a `.field`
+of its own where it has one. Where the `Fieldset` sits inside a `Field` or a `Control` in the same
+component, the codemod keeps the plain `<fieldset>` rbx rendered. It can't see one in another
+component, so it converts the `Fieldset` and leaves this TODO where an input sits straight in it.
+
+If nothing renders the `Fieldset` inside a `Field` or a `Control`, delete the comment. If something
+does, render a plain `<fieldset>` instead, which leaves their scope alone:
+
+```jsx
+<Fieldset disabled variant="unstyled">
+  <Input />
+</Fieldset>
+<fieldset disabled>
+  <Input />
+</fieldset>
+```
+
+## `component:Numeric`, `component:Highlight`
+
+No bestax equivalents, and none needed: use `Intl.NumberFormat` directly, and use `<Pre>` with your
+own highlighter.
 
 ## `responsive` — `touch` and `{ only: true }`
 

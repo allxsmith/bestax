@@ -197,37 +197,3 @@ $dropzone-size-font-size: cv.getVar('size-small') !default;
   flex: none;
   font-size: cv.getVar('dropzone-size-font-size');
 }
-
-// Bulma shows a delete button's focus only as a slightly darker circle, so a
-// row's remove button takes a ring from the keyboard, in Bulma's focus
-// colour, style and width.
-.#{iv.$class-prefix}dropzone-item .#{iv.$class-prefix}delete:focus-visible {
-  outline-color: hsl(
-    cv.getVar('focus-h'),
-    cv.getVar('focus-s'),
-    cv.getVar('focus-l')
-  );
-  outline-offset: cv.getVar('focus-offset');
-  outline-style: cv.getVar('focus-style');
-  outline-width: cv.getVar('focus-width');
-}
-
-// Bulma draws a delete button's circle and cross as backgrounds, which forced
-// colours paints over, so the remove buttons would vanish. They keep their
-// own colours there, in the system's button colours.
-@media (forced-colors: active) {
-  .#{iv.$class-prefix}dropzone-item .#{iv.$class-prefix}delete {
-    background-color: ButtonFace;
-    border: 1px solid ButtonText;
-    forced-color-adjust: none;
-
-    &::before,
-    &::after {
-      background-color: ButtonText;
-    }
-
-    &:focus-visible {
-      outline-color: Highlight;
-    }
-  }
-}
