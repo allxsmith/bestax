@@ -179,12 +179,17 @@ describe.each([
     expect(indicator.color).toBe('var(--bulma-empty-state-indicator-color)');
     expect(indicator.fontSize).toBe('var(--bulma-empty-state-icon-size)');
     expect(indicator.flexShrink).toBe('0');
-    // The Icon's box follows the glyph, which follows the font size.
+    // The Icon's box follows the glyph, which follows the font size. jsdom
+    // resolves `em` to px but leaves the size variable unresolved, so the
+    // indicator gets a font size it can compute.
+    (
+      container.querySelector(p('empty-state-indicator')) as HTMLElement
+    ).style.fontSize = '40px';
     const icon = getComputedStyle(
       container.querySelector(`${p('empty-state-indicator')} > ${p('icon')}`)!
     );
-    expect(icon.width).toBe('1em');
-    expect(icon.height).toBe('1em');
+    expect(icon.width).toBe('40px');
+    expect(icon.height).toBe('40px');
   });
 
   it('draws a bare SVG at the icon size, and hands Material glyphs the font size back', () => {
@@ -313,9 +318,20 @@ describe.each([
     // Still the start of the line, with no indent and no height kept.
     expect(root.alignItems).toBe('flex-start');
     expect(root.textAlign).toBe('start');
-    expect(root.paddingInlineStart).toBe('');
-    expect(root.minHeight).toBe('');
-    expect(root.boxSizing).toBe('');
+    // An unset property computes to its initial value, and box-sizing's is
+    // the content-box the room sets, so check no rule on the root sets them.
+    const onRoot = rulesOf(compile(prefix)).filter(rule =>
+      getByTestId('root').matches(rule.selectorText)
+    );
+    for (const property of [
+      'padding-inline-start',
+      'min-height',
+      'box-sizing',
+    ]) {
+      expect(
+        onRoot.filter(rule => rule.style.getPropertyValue(property))
+      ).toEqual([]);
+    }
     expect(getComputedStyle(getByTestId('actions')).justifyContent).toBe(
       'flex-start'
     );
@@ -366,11 +382,12 @@ describe.each([
     'pairs %s from the scheme’s soft lightness, or the color and its invert',
     color => {
       const css = compile(prefix);
+      // jsdom drops the space after a comma in a custom property's value.
       expect(
         declarations(css, `${p('empty-state')}${p(`is-${color}`)}`)
       ).toEqual({
-        '--bulma-empty-state-indicator-background': `hsl(var(--bulma-${color}-h), var(--bulma-${color}-s), var(--bulma-soft-l))`,
-        '--bulma-empty-state-indicator-color': `hsl(var(--bulma-${color}-h), var(--bulma-${color}-s), var(--bulma-soft-invert-l))`,
+        '--bulma-empty-state-indicator-background': `hsl(var(--bulma-${color}-h),var(--bulma-${color}-s),var(--bulma-soft-l))`,
+        '--bulma-empty-state-indicator-color': `hsl(var(--bulma-${color}-h),var(--bulma-${color}-s),var(--bulma-soft-invert-l))`,
       });
       expect(
         declarations(

@@ -70,7 +70,8 @@ const outranks = (a: number[], b: number[]) => {
 /**
  * The value `property` gets on `el`, or on its `::before`, from the rules:
  * the most specific matching rule, the later one on a tie. Forced colors adds
- * the rules in its media block and leaves out every other media block.
+ * the rules in its media block and leaves out every other media block. jsdom
+ * serializes a system color lowercase, as browsers do.
  */
 function resolveIn(
   rules: Rule[],
@@ -172,14 +173,14 @@ describe.each([
 
   it('draws the circle and the dot in system colors in forced colors', () => {
     const forced = { forcedColors: true };
-    expect(resolve(checkOf({}), 'border-color', forced)).toBe('ButtonText');
+    expect(resolve(checkOf({}), 'border-color', forced)).toBe('buttontext');
     const checked = checkOf({ checked: true });
-    expect(resolve(checked, 'border-color', forced)).toBe('Highlight');
+    expect(resolve(checked, 'border-color', forced)).toBe('highlight');
     expect(
       resolve(checked, 'background-color', { ...forced, pseudo: '::before' })
-    ).toBe('Highlight');
+    ).toBe('highlight');
     expect(resolve(checkOf({ disabled: true }), 'border-color', forced)).toBe(
-      'GrayText'
+      'graytext'
     );
   });
 });

@@ -71,7 +71,8 @@ const outranks = (a: number[], b: number[]) => {
  * The value `property` gets on `el`, or on its `::before` (the knob), from
  * the rules: the most specific matching rule, the later one on a tie. Forced
  * colors adds the rules in its media block and leaves out every other media
- * block.
+ * block. jsdom serializes a zero length as `0px` and a system color
+ * lowercase, as browsers do.
  */
 function resolveIn(
   rules: Rule[],
@@ -168,7 +169,7 @@ describe.each([
       'var(--bulma-switch-label-gap)'
     );
     const rtl = labelOf({ isRtl: true });
-    expect(resolve(rtl, 'margin-left')).toBe('0');
+    expect(resolve(rtl, 'margin-left')).toBe('0px');
     expect(resolve(rtl, 'margin-right')).toBe('var(--bulma-switch-label-gap)');
   });
 
@@ -179,12 +180,12 @@ describe.each([
 
   it('draws the track in system colors in forced colors', () => {
     const forced = { forcedColors: true };
-    expect(resolve(trackOf({}), 'border-color', forced)).toBe('ButtonText');
+    expect(resolve(trackOf({}), 'border-color', forced)).toBe('buttontext');
     expect(
       resolve(trackOf({ checked: true }), 'background-color', forced)
-    ).toBe('Highlight');
+    ).toBe('highlight');
     expect(resolve(trackOf({ disabled: true }), 'border-color', forced)).toBe(
-      'GrayText'
+      'graytext'
     );
   });
 

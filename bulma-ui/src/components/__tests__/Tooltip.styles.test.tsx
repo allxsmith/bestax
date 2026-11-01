@@ -69,6 +69,17 @@ const registered = (selector: string, name: string) =>
     .map(rule => rule.style.getPropertyValue(`--bulma-${name}`))
     .find(Boolean);
 
+/**
+ * `value` as a rule declaring it for `property` reads back. jsdom works a
+ * calc() of plain lengths out, as browsers do, so `calc(5px + 4px)` is
+ * `calc(9px)`.
+ */
+const declared = (property: string, value: string) => {
+  const style = document.createElement('div').style;
+  style.setProperty(property, value);
+  return style.getPropertyValue(property);
+};
+
 const bridge = (selector: string) => {
   const rules = rulesFor(`${selector}::after`);
   expect(rules.length).toBeGreaterThan(0);
@@ -150,8 +161,8 @@ describe('Tooltip styles under a class prefix', () => {
     (_, selector, edge) => {
       const at = bridge(selector);
       expect(at(edge)).toBe('100%');
-      expect(at('left')).toBe('0');
-      expect(at('right')).toBe('0');
+      expect(at('left')).toBe('0px');
+      expect(at('right')).toBe('0px');
       expect(at('width')).toBeUndefined();
     }
   );
@@ -164,8 +175,8 @@ describe('Tooltip styles under a class prefix', () => {
     (position, edge) => {
       const at = bridge(`.bestax-tooltip.bestax-is-open.bestax-is-${position}`);
       expect(at(edge)).toBe('100%');
-      expect(at('top')).toBe('0');
-      expect(at('bottom')).toBe('0');
+      expect(at('top')).toBe('0px');
+      expect(at('bottom')).toBe('0px');
       expect(at('height')).toBeUndefined();
     }
   );
@@ -195,7 +206,7 @@ describe('Tooltip styles under a class prefix', () => {
         '.bestax-tooltip-content',
         'tooltip-arrow-margin'
       );
-      const gap = `calc(${arrow} + ${margin})`;
+      const gap = declared('height', `calc(${arrow} + ${margin})`);
       const open = `.bestax-tooltip.bestax-is-open${size}`;
       expect(bridge(`${open}.bestax-is-top`)('height')).toBe(gap);
       expect(bridge(`${open}.bestax-is-bottom`)('height')).toBe(gap);

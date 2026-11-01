@@ -90,7 +90,9 @@ const MEDIA: Record<Media, string> = {
 /**
  * The value `property` gets on `el`, or on its `::after`, from the rules:
  * the most specific matching rule, the later one on a tie. A media query
- * adds the rules in its block and leaves out every other media block.
+ * adds the rules in its block and leaves out every other media block. jsdom
+ * serializes a zero length as `0px` and a system color lowercase, as
+ * browsers do.
  */
 function resolveIn(
   rules: Rule[],
@@ -185,9 +187,9 @@ describe.each([
     const { boxes } = renderPin();
     expect(resolve(boxes[0], 'width')).toBe('var(--bulma-pin-input-box-width)');
     expect(resolve(boxes[0], 'justify-content')).toBe('center');
-    expect(resolve(boxes[0], 'padding-left')).toBe('0');
-    expect(resolve(boxes[0], 'padding-right')).toBe('0');
-    expect(resolve(boxes[0], 'min-width')).toBe('0');
+    expect(resolve(boxes[0], 'padding-left')).toBe('0px');
+    expect(resolve(boxes[0], 'padding-right')).toBe('0px');
+    expect(resolve(boxes[0], 'min-width')).toBe('0px');
     expect(resolve(boxes[0], 'margin-inline-start')).toBeUndefined();
     expect(resolve(boxes[1], 'margin-inline-start')).toBe(
       'var(--bulma-pin-input-gap)'
@@ -201,15 +203,15 @@ describe.each([
     expect(resolveIn(BULMA_LAST, boxes[0], 'width')).toBe(
       'var(--bulma-pin-input-box-width)'
     );
-    expect(resolveIn(BULMA_LAST, boxes[0], 'padding-left')).toBe('0');
-    expect(resolveIn(BULMA_LAST, boxes[0], 'padding-right')).toBe('0');
+    expect(resolveIn(BULMA_LAST, boxes[0], 'padding-left')).toBe('0px');
+    expect(resolveIn(BULMA_LAST, boxes[0], 'padding-right')).toBe('0px');
   });
 
   it('lays the input over the whole row with its text, caret and selection transparent', () => {
     const { field } = renderPin();
     expect(resolve(field, 'position')).toBe('absolute');
-    expect(resolve(field, 'top')).toBe('0');
-    expect(resolve(field, 'left')).toBe('0');
+    expect(resolve(field, 'top')).toBe('0px');
+    expect(resolve(field, 'left')).toBe('0px');
     expect(resolve(field, 'width')).toBe('100%');
     expect(resolve(field, 'height')).toBe('100%');
     expect(resolve(field, 'z-index')).toBe('1');
@@ -285,26 +287,26 @@ describe.each([
       const { boxes, boxWith } = renderPin();
       const focused = boxWith('is-focused');
       expect(resolve(focused, 'outline', forced)).toBe('2px solid Highlight');
-      expect(resolve(focused, 'border-color', forced)).toBe('Highlight');
+      expect(resolve(focused, 'border-color', forced)).toBe('highlight');
       expect(resolve(boxes[1], 'outline', forced)).toBeUndefined();
       // Outranking Bulma's own focus border, whichever loads first.
       expect(resolveIn(BULMA_LAST, focused, 'border-color', forced)).toBe(
-        'Highlight'
+        'highlight'
       );
     });
 
     it('draws the caret in the text color, not the forced background', () => {
       const box = renderPin().boxWith('is-focused', 'has-caret');
       expect(caret(box, 'background-color', 'forced-colors')).toBe(
-        'CanvasText'
+        'canvastext'
       );
       expect(caret(box, 'forced-color-adjust', 'forced-colors')).toBe('none');
     });
 
     it('draws a disabled box in GrayText', () => {
       const { boxes } = renderPin({ disabled: true });
-      expect(resolve(boxes[0], 'color', forced)).toBe('GrayText');
-      expect(resolve(boxes[0], 'border-color', forced)).toBe('GrayText');
+      expect(resolve(boxes[0], 'color', forced)).toBe('graytext');
+      expect(resolve(boxes[0], 'border-color', forced)).toBe('graytext');
     });
   });
 

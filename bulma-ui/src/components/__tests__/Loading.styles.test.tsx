@@ -31,52 +31,120 @@ const compile = (prefix: string) =>
 
 const FORCED = '(forced-colors: active)';
 
+type Declaration = { property: string; value: string; important: boolean };
+
 type Found = {
   /** One selector of the rule's list. */
   selector: string;
   /** The media query the rule sits in, or '' for none. */
   media: string;
-  style: CSSStyleDeclaration;
+  /** The rule's declarations as the sheet writes them, in order. */
+  declarations: Declaration[];
   order: number;
 };
 
-/** Every style rule in `css`, one entry per selector, in source order. */
+/** `css` with its comments taken out and its strings kept whole. */
+const uncommented = (css: string) =>
+  css.replace(
+    /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\/\*[\s\S]*?\*\//g,
+    (_, kept?: string) => kept ?? ''
+  );
+
+/**
+ * The items at the top level of a list of rules or of declarations, in
+ * order: each one's prelude and the text of its `{…}` block, or null for
+ * one that ends in `;` instead. A `;` or a brace inside a string or a
+ * `url(…)` ends nothing.
+ */
+function itemsOf(text: string) {
+  const out: { prelude: string; block: string | null }[] = [];
+  let quote = '';
+  let parens = 0;
+  let braces = 0;
+  let start = 0;
+  let open = 0;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (quote) {
+      if (ch === '\\') i++;
+      else if (ch === quote) quote = '';
+    } else if (ch === '"' || ch === "'") quote = ch;
+    else if (ch === '(') parens++;
+    else if (ch === ')') parens--;
+    else if (parens > 0) continue;
+    else if (ch === '{') {
+      if (braces++ === 0) open = i;
+    } else if (ch === '}') {
+      if (--braces === 0) {
+        out.push({
+          prelude: text.slice(start, open).trim(),
+          block: text.slice(open + 1, i),
+        });
+        start = i + 1;
+      }
+    } else if (ch === ';' && braces === 0) {
+      const prelude = text.slice(start, i).trim();
+      if (prelude) out.push({ prelude, block: null });
+      start = i + 1;
+    }
+  }
+  const rest = text.slice(start).trim();
+  if (rest) out.push({ prelude: rest, block: null });
+  return out;
+}
+
+/** A style rule's declarations as the sheet writes them, in order. */
+const declarationsOf = (block: string): Declaration[] =>
+  itemsOf(block).flatMap(({ prelude, block: nested }) => {
+    const colon = prelude.indexOf(':');
+    if (nested !== null || colon < 0) return [];
+    const written = prelude.slice(colon + 1).trim();
+    return [
+      {
+        property: prelude.slice(0, colon).trim(),
+        value: written.replace(/\s*!\s*important$/i, ''),
+        important: /!\s*important$/i.test(written),
+      },
+    ];
+  });
+
+/**
+ * Every style rule in `css`, one entry per selector, in source order. It's
+ * read off the sheet's text rather than jsdom's CSSOM, which drops a
+ * shorthand with a `var()` in it when a longhand follows, as the icon's
+ * forced-colors border does, where a browser keeps the other sides.
+ */
 function rulesOf(css: string): Found[] {
-  const sheet = document.createElement('style');
-  sheet.textContent = css.replace(/@charset "UTF-8";/g, '');
-  document.head.appendChild(sheet);
   const out: Found[] = [];
   let order = 0;
-  const walk = (list: CSSRuleList, media: string) => {
-    for (const rule of Array.from(list)) {
-      if (rule instanceof CSSMediaRule) {
-        walk(rule.cssRules, rule.media.mediaText);
-      } else if (rule instanceof CSSStyleRule) {
+  const walk = (text: string, media: string) => {
+    for (const { prelude, block } of itemsOf(text)) {
+      // A statement like `@charset` holds no rules.
+      if (block === null) continue;
+      if (/^@media\b/i.test(prelude)) {
+        walk(block, prelude.slice('@media'.length).trim());
+      } else if (!prelude.startsWith('@')) {
         order++;
-        for (const selector of rule.selectorText.split(/\s*,\s*/)) {
-          out.push({ selector, media, style: rule.style, order });
+        const declarations = declarationsOf(block);
+        for (const selector of prelude.split(/\s*,\s*/)) {
+          out.push({ selector, media, declarations, order });
         }
       } else if (
-        'cssRules' in rule &&
-        !/^@(-\w+-)?keyframes\b/.test(rule.cssText) &&
-        /loading/.test(rule.cssText)
+        !/^@(-\w+-)?keyframes\b/.test(prelude) &&
+        /loading/.test(prelude + block)
       ) {
         // `@supports`, `@layer`, `@container` and the like change when or in
         // what order their rules apply, which this test does not model, so a
         // Loading rule inside one has to fail rather than go unread.
         // Keyframes hold no style rules.
         throw new Error(
-          `${rule.cssText.split('{')[0].trim()} styles Loading in rules this ` +
-            'test does not walk. Extend `rulesOf` before trusting a result.'
+          `${prelude} styles Loading in rules this test does not walk. ` +
+            'Extend `rulesOf` before trusting a result.'
         );
       }
     }
   };
-  try {
-    walk((sheet.sheet as CSSStyleSheet).cssRules, '');
-  } finally {
-    sheet.remove();
-  }
+  walk(uncommented(css), '');
   return out;
 }
 
@@ -137,22 +205,18 @@ function winning(
   for (const rule of found) {
     if (rule.media !== '' && !(forced && rule.media === FORCED)) continue;
     if (!el.matches(rule.selector)) continue;
-    const names = Array.from(rule.style).filter(name =>
-      SETS[longhand].includes(name)
+    const sets = rule.declarations.filter(({ property }) =>
+      SETS[longhand].includes(property)
     );
-    const property = names[names.length - 1];
-    if (!property) continue;
+    const last = sets[sets.length - 1];
+    if (!last) continue;
     const rank = [
-      rule.style.getPropertyPriority(property) === 'important' ? 1 : 0,
+      last.important ? 1 : 0,
       specificity(rule.selector),
       rule.order,
     ];
     if (!best || beats(rank, best.rank)) {
-      best = {
-        rank,
-        property,
-        value: rule.style.getPropertyValue(property).trim(),
-      };
+      best = { rank, property: last.property, value: last.value };
     }
   }
   return best && { property: best.property, value: best.value };
@@ -301,9 +365,9 @@ describe.each([
       /^border(-(top|right|bottom|left|block|inline)(-(start|end))?)?(-(color|style|width))?$/;
     const found = rulesOf(compile(prefix));
     const borders = found.filter(
-      ({ selector, style }) =>
+      ({ selector, declarations }) =>
         selector.includes(`${prefix}loading-icon`) &&
-        Array.from(style).some(name => draws.test(name))
+        declarations.some(({ property }) => draws.test(property))
     );
     expect(borders.length).toBeGreaterThan(0);
     expect(new Set(borders.map(({ media }) => media))).toEqual(

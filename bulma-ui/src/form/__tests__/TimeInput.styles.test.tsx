@@ -49,13 +49,14 @@ describe('TimeInput wheel colour styles', () => {
   );
 
   it('leaves an uncoloured wheel on the inherited default', () => {
+    // The `primary` default the root registers, which the wheel inherits.
     const { getAllByRole } = render(<TimeInput inline />);
     for (const wheel of getAllByRole('spinbutton')) {
       expect(
         getComputedStyle(wheel)
           .getPropertyValue('--bulma-timeinput-wheel-selected-bg')
           .trim()
-      ).toBe('');
+      ).toBe('var(--bulma-primary)');
     }
   });
 });
