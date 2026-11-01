@@ -358,12 +358,11 @@ jobs:
         timeout-minutes: 10
         run: pnpm install --frozen-lockfile
 
-      # Always build: a story that breaks the production build fails here, and
-      # the light leg archives it. The smoke pass below renders the stories
-      # through Vite rather than this build. The old changed-files condition
-      # never matched on PRs (changed_files is an integer count, not a path
-      # list).
+      # A story that breaks the production build fails here, and the archive
+      # step keeps the build. The smoke pass below renders the stories through
+      # Vite rather than this build, so one leg is enough.
       - name: Build Storybook (bulma-ui)
+        if: matrix.theme == 'light'
         run: pnpm --filter @allxsmith/bestax-bulma run build-storybook
 
       - name: Install Playwright Chromium
@@ -379,7 +378,6 @@ jobs:
           THEME: ${{ matrix.theme }}
         run: pnpm --filter @allxsmith/bestax-bulma run test-storybook:ci --theme="$THEME"
 
-      # Both legs build the same static Storybook, so one keeps it.
       - name: Archive Storybook
         if: matrix.theme == 'light'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
