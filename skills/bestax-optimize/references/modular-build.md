@@ -90,7 +90,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `rate`, `autocomplete`, `combobox`, `taginput`, `picker-popover`, `dateinput`, `timeinput`,
 `datetimeinput`, `daterangeinput`, `file`, `fieldset`, `dropzone`, `colorpicker`, `colorinput`
 
-**Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `colorswatch`,
+**Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `colorswatch`, `delete`,
 `descriptionlist`, `kbd`, `linkbutton`, `loader`, `notification`, `progress`, `ringprogress`,
 `skeleton`
 
@@ -141,8 +141,8 @@ Notes:
 
 - `Dropzone`'s zone is Bulma's file widget, so an app using it needs `bulma/sass/form/file` and the
   `file` partial (its keyboard focus ring) next to `scss/form/dropzone`, plus
-  `bulma/sass/elements/delete` for the remove buttons and `bulma/sass/form/tools` for its help
-  lines.
+  `bulma/sass/elements/delete` and the `delete` partial for the remove buttons and
+  `bulma/sass/form/tools` for its help lines.
 - `DateInput`/`TimeInput`/`DateTimeInput` also need `picker-popover`.
 - `DateRangeInput` needs `daterangeinput` for its field and `dateinput` for its calendar, and
   `picker-popover` too.
@@ -178,6 +178,14 @@ Notes:
   so its text clears the button, so include it (`as bestax-notification`) next to the Bulma
   module in any build that shows a dismissible notification. It doesn't depend on the order of
   the two `@use` lines either.
+- `Delete` is stock Bulma too (`bulma/sass/elements/delete`), and it's the close button of
+  `Notification`, `Message`, `Toast`, a `Modal` card and the tags of `Taginput`, `Combobox` and
+  `Dropzone`. Bulma draws its circle and cross as background colors, which forced colors
+  (Windows' contrast themes) replaces, so they vanish there. The `delete` extras partial keeps
+  them drawn in the system's button colors, and the `Modal`'s floating close
+  (`bulma/sass/components/modal`) and `Tag isDelete` (`bulma/sass/elements/tag`) with them, so
+  include it (`as bestax-delete`) in any build that shows a close button. Its rules win over
+  Bulma's either way, so the order of the `@use` lines does not matter.
 - `Table` is stock Bulma (`bulma/sass/elements/table`), and `DataTable` renders one. The prebuilt
   stylesheets build it with `$table-cell-text-align: start`, so header cells line up with the
   body cells under them on a right-to-left page, where Bulma's default, `left`, keeps them on the
@@ -238,7 +246,8 @@ not `flexbox` — `flexbox` holds only the alignment props. Verified failure mod
 
 The `npm create bestax` starter renders `Container`, `Section`, `Columns`/`Column`, `Image`,
 `Title`/`SubTitle`, `Box`, `Card`, `Buttons`/`Button`, and `Notification` with its close
-button: all stock Bulma, plus the `notification` extras partial for that close button. Its
+button: all stock Bulma, plus the `notification` and `delete` extras partials for that close
+button. Its
 helper props are `display` (visibility), `flexGrow` (flexbox), and `textAlign` (typography);
 it uses no spacing or color props. That inventory compiles to the following, verified
 pixel-equivalent to the prebuilt `complete` flavor in headless Chromium (light and dark, phone
@@ -270,6 +279,7 @@ Scaffolded with an icon library, the starter also needs `bulma/sass/elements/ico
 @use 'bulma/sass/helpers/flexbox'; // flexGrow
 @use 'bulma/sass/helpers/typography'; // textAlign
 
+@use '@allxsmith/bestax-bulma/scss/elements/delete' as bestax-delete; // the close button in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/notification' as bestax-notification; // text clears the close button
 ```
 

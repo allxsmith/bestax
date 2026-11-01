@@ -44,6 +44,7 @@ import {
 import { applyPropAction, applyUniversalProps } from '../_shared/props.js';
 import { enforcePolymorphicProps } from '../_shared/polymorphic.js';
 import {
+  BESTAX,
   bestaxValueLocals,
   buildBestaxImport,
   carryPrunedComments,
@@ -316,6 +317,49 @@ export default function transform(
   }
 
   ctx.resolve = resolveJsxPath;
+
+  // The locals of `import * as Bulma from '@allxsmith/bestax-bulma'`.
+  const bestaxNamespaces = new Set<string>();
+  root
+    .find(j.ImportDeclaration, { source: { value: BESTAX } })
+    .forEach(path => {
+      for (const spec of path.node.specifiers ?? []) {
+        if (spec.type === 'ImportNamespaceSpecifier' && spec.local) {
+          bestaxNamespaces.add(nameOf(spec.local));
+        }
+      }
+    });
+
+  /**
+   * What the element at `path` renders, by binding. An rbx name resolves as
+   * the JSX pass resolves it. Elements are migrated parents first, so an
+   * ancestor of the element being migrated may already carry its bestax
+   * name: a bestax local, the file's own import or one `ctx.reserve` chose.
+   * A name `ctx.reserve` chose is declared nowhere yet and the file's own
+   * import at the top, so any nearer binding of the name shadows it.
+   */
+  ctx.resolveElement = (path: any) => {
+    const name = path.node?.openingElement?.name;
+    const parts = jsxNameParts(name);
+    if (!parts) return null;
+    const [head, ...rest] = parts;
+    const rbxPath = resolveJsxPath(name, path);
+    if (
+      rbxPath &&
+      resolvesToBinding(path, head, anyAlias(head) ? undefined : programScope)
+    ) {
+      return { library: 'source', parts: rbxPath };
+    }
+    if (!resolvesToBinding(path, head, programScope)) return null;
+    if (bestaxNamespaces.has(head)) {
+      return rest.length > 0 ? { library: 'bestax', parts: rest } : null;
+    }
+    for (const [imported, local] of ctx.needed) {
+      if (local === head)
+        return { library: 'bestax', parts: [imported, ...rest] };
+    }
+    return null;
+  };
 
   // ---- 1c. Collect local bindings so new imports never collide -----------
   const bound = collectBoundNames(j, root, RBX);

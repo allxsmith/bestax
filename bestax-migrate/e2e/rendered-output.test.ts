@@ -94,6 +94,36 @@ describe.each(KITCHEN_SINKS)(
   }
 );
 
+// bestax's Fieldset starts its own Field scope, which rbx's bare fieldset
+// never did, so an input placed straight in one inside a Field would render a
+// `.field` and a `.control` of its own. There the codemod keeps the plain
+// <fieldset> rbx rendered, and the input renders what it does beside it.
+describe("rbx's Fieldset inside a Field or a Control", () => {
+  const migrate = (jsx: string): string =>
+    runTransform(
+      SOURCES.rbx.transform,
+      'a.tsx',
+      `import { Control, Field, Fieldset, Input } from 'rbx';\nexport const A = () => ${jsx};\n`
+    ).output!;
+  const render = (source: string): string =>
+    normalizeHtml(renderExports(loadModules({ a: source }).a).A);
+
+  it.each([
+    [
+      '<Field><Fieldset disabled><Input /></Fieldset></Field>',
+      '<Field><Input /></Field>',
+    ],
+    [
+      '<Control><Fieldset disabled><Input /></Fieldset></Control>',
+      '<Control><Input /></Control>',
+    ],
+  ])('adds the fieldset and nothing else to %s', (nested, bare) => {
+    const html = render(migrate(nested));
+    expect(html).toContain('<fieldset disabled="">');
+    expect(html.replace(/<\/?fieldset[^>]*>/g, '')).toBe(render(migrate(bare)));
+  });
+});
+
 describe('renderExports', () => {
   it('renders memo and forwardRef components as well as functions', () => {
     const modules = loadModules({

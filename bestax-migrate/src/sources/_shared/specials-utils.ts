@@ -554,6 +554,36 @@ export function flagDroppedHeading(
   );
 }
 
+/**
+ * The bestax components that render one way inside a `Field` and another
+ * outside one: each reads `useInsideField`, and most render a `Field` of
+ * their own outside one. A `Fieldset` starts a Field scope of its own, so
+ * one of these placed straight in it renders the outside way. The
+ * `field-scoped` test holds this to the library's form components.
+ */
+export const FIELD_SCOPED: ReadonlySet<string> = new Set([
+  'Autocomplete',
+  'Checkboxes',
+  'ColorInput',
+  'ColorPicker',
+  'Combobox',
+  'DateInput',
+  'DateRangeInput',
+  'DateTimeInput',
+  'Dropzone',
+  'File',
+  'Input',
+  'Numberinput',
+  'PinInput',
+  'Radios',
+  'Rate',
+  'Select',
+  'Slider',
+  'Taginput',
+  'TextArea',
+  'TimeInput',
+]);
+
 /** Attribute filter a source applies before an element becomes plain HTML. */
 export type AttrStrip = (
   ctx: TransformContext,

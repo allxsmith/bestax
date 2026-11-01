@@ -206,38 +206,20 @@ describe('Dropzone styles', () => {
     });
   });
 
-  it('rings a remove button with keyboard focus in Bulma focus colour', () => {
-    expect(find(PLAIN, '.dropzone-item .delete:focus-visible')).toEqual({
-      'outline-color':
-        'hsl(var(--bulma-focus-h), var(--bulma-focus-s), var(--bulma-focus-l))',
-      'outline-offset': 'var(--bulma-focus-offset)',
-      'outline-style': 'var(--bulma-focus-style)',
-      'outline-width': 'var(--bulma-focus-width)',
-    });
+  // The remove buttons are `Delete`s: Bulma's `button:focus-visible` rings
+  // them, and `_delete.scss` keeps them drawn in forced colours, as it does
+  // every delete button (Delete.styles.test.tsx).
+  it('leaves the remove buttons to the rules every delete button gets', () => {
+    expect(PLAIN.filter(r => r.selector.includes('.delete'))).toEqual([]);
   });
 
-  it('keeps the states and the remove buttons visible in forced colours', () => {
+  it('keeps the drag states visible in forced colours', () => {
     expect(find(PLAIN, '.dropzone.is-dragover .file-cta', FORCED)).toEqual({
       'border-color': 'Highlight',
     });
     expect(find(PLAIN, '.dropzone.is-drag-reject .file-cta', FORCED)).toEqual({
       'border-color': 'CanvasText',
     });
-    expect(find(PLAIN, '.dropzone-item .delete', FORCED)).toEqual({
-      'background-color': 'ButtonFace',
-      border: '1px solid ButtonText',
-      'forced-color-adjust': 'none',
-    });
-    expect(
-      find(
-        PLAIN,
-        '.dropzone-item .delete::before, .dropzone-item .delete::after',
-        FORCED
-      )
-    ).toEqual({ 'background-color': 'ButtonText' });
-    expect(find(PLAIN, '.dropzone-item .delete:focus-visible', FORCED)).toEqual(
-      { 'outline-color': 'Highlight' }
-    );
   });
 
   it('prefixes every class in a prefixed build', () => {
