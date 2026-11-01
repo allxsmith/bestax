@@ -20,9 +20,10 @@
  * `isExtendedContext` is set, which is how the provider itself tells them
  * apart.
  *
- * `coverage-floors.test.mjs` runs a fixture where one test imports a module
- * and another spawns it, and wants both halves counted. When a Vitest upgrade
- * fixes the merge, or renames what this reads, that test says so.
+ * `scripts/vitest-v8-coverage.test.mjs` runs a fixture whose test calls half
+ * of a module in its worker and spawns a child that calls the other half, with
+ * this provider and with Vitest's own. When an upgrade fixes the merge
+ * (vitest-dev/vitest#11812), or renames what this reads, that test says so.
  */
 import v8 from '@vitest/coverage-v8';
 import { V8CoverageProvider } from '@vitest/coverage-v8/dist/provider.js';
