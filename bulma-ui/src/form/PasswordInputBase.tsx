@@ -1,6 +1,14 @@
-import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
 import { usePrefixedClassNames } from '../helpers/classNames';
 import { warnOnce } from '../helpers/devWarnings';
+import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { InputBase, InputBaseProps } from './InputBase';
 import { useControlLoading } from './controlLoading';
@@ -53,6 +61,9 @@ export interface PasswordInputBaseProps extends Omit<InputBaseProps, 'type'> {
   /**
    * Whether the password shows, when you hold the state. Setting it makes
    * the visibility controlled: the toggle only calls `onVisibleChange`.
+   * When the field hides again on its own (see `onVisibleChange`), it turns
+   * into a password field at once, so the form reads one; kept `true`, it
+   * shows again on the next render, as `visible` says.
    */
   visible?: boolean;
   /**
@@ -185,6 +196,21 @@ export const PasswordInputBase = forwardRef<
     [ref]
   );
 
+  // Each render leaves the field's type as `visible` says, so the field and
+  // the toggle agree. Hiding again below sets the type on the field itself,
+  // which a caller holding `visible` may not follow.
+  const [, rerender] = useReducer((count: number) => count + 1, 0);
+  useClientLayoutEffect(() => {
+    const input = inputRef.current as HTMLInputElement;
+    const type = visible ? 'text' : 'password';
+    /* istanbul ignore if: React 19 writes the type on every render itself, and React 18 only when it changes, so only React 18 gets here */
+    if (input.type !== type) input.type = type;
+  });
+  const rerenderTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  );
+  useEffect(() => () => clearTimeout(rerenderTimerRef.current), []);
+
   // Hides the password again. The type changes here, in the handler, so a
   // form submitting now sends it from a password field, which the browser
   // doesn't keep among its autofill suggestions; the state follows. Only the
@@ -193,6 +219,13 @@ export const PasswordInputBase = forwardRef<
     if (!visible) return;
     (inputRef.current as HTMLInputElement).type = 'password';
     setVisible(false);
+    // Held state that stays `true` brings no render of its own, so one
+    // follows once the event is over, after the form has read a password
+    // field, and puts the field back as `visible` says.
+    if (isControlled) {
+      clearTimeout(rerenderTimerRef.current);
+      rerenderTimerRef.current = setTimeout(rerender);
+    }
   });
 
   // When the form it belongs to submits or resets.

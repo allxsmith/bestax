@@ -351,11 +351,76 @@ describe('PasswordInput', () => {
       expect(onVisibleChange).not.toHaveBeenCalled();
     });
 
-    it('switches the field back even when the caller holds the state', () => {
-      const { form, onVisibleChange } = inForm({ visible: true });
+    it.each(['icon', 'text'] as const)(
+      'switches the field back when the caller holds the state, and the %s toggle follows',
+      variant => {
+        function Held() {
+          const [visible, setVisible] = useState(true);
+          return (
+            <form data-testid="form" onSubmit={event => event.preventDefault()}>
+              <PasswordInput
+                label="Password"
+                variant={variant}
+                visible={visible}
+                onVisibleChange={setVisible}
+              />
+            </form>
+          );
+        }
+        render(<Held />);
+        expect(input()).toHaveAttribute('type', 'text');
+        fireEvent.submit(screen.getByTestId('form'));
+        expect(input()).toHaveAttribute('type', 'password');
+        if (variant === 'icon') {
+          expect(toggle()).toHaveAttribute('aria-pressed', 'false');
+          expect(toggle()).toHaveAccessibleName('Show password');
+        } else {
+          expect(toggle()).not.toHaveAttribute('aria-pressed');
+          expect(toggle()).toHaveTextContent('Show');
+          expect(toggle()).toHaveAccessibleName('Show password');
+        }
+        // And the next press shows it again.
+        fireEvent.click(toggle());
+        expect(input()).toHaveAttribute('type', 'text');
+      }
+    );
+
+    it('puts the field back as visible says when the caller keeps it, once the event is over', async () => {
+      const { form, onVisibleChange, typeAtSubmit } = inForm({
+        visible: true,
+        variant: 'text',
+      });
       fireEvent.submit(form);
-      expect(input()).toHaveAttribute('type', 'password');
+      // The form saw a password field, and the caller was told.
+      expect(typeAtSubmit).toHaveBeenCalledWith('password');
       expect(onVisibleChange).toHaveBeenCalledWith(false);
+      await act(() => new Promise(resolve => setTimeout(resolve)));
+      // The caller kept `visible`, so the field shows again, as the toggle says.
+      expect(input()).toHaveAttribute('type', 'text');
+      expect(toggle()).toHaveTextContent('Hide');
+      expect(toggle()).toHaveAccessibleName('Hide password');
+    });
+
+    it('drops a pending render when it unmounts first', () => {
+      vi.useFakeTimers();
+      try {
+        const { form, unmount } = inForm({ visible: true });
+        const before = vi.getTimerCount();
+        fireEvent.submit(form);
+        expect(vi.getTimerCount()).toBe(before + 1);
+        unmount();
+        expect(vi.getTimerCount()).toBe(before);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('puts the field back on the next render after anything else changed its type', () => {
+      const { rerender } = render(<PasswordInput label="Password" visible />);
+      input().type = 'password';
+      rerender(<PasswordInput label="Password" visible placeholder="Again" />);
+      expect(input()).toHaveAttribute('type', 'text');
+      expect(toggle()).toHaveAttribute('aria-pressed', 'true');
     });
 
     it('listens to the form its form attribute names', () => {
