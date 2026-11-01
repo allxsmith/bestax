@@ -186,8 +186,14 @@ jobs:
       # claude-implement.yml) so an automated/template label can never spend
       # Claude usage. Every other event shape is the unchanged ai-loop trust
       # model and passes through as allowed.
+      #
+      # The role lookup retries, and an API error fails this step rather than
+      # reading as no access. This step, the two after it and the checkout
+      # carry short timeouts. "When the agent drops a job's first
+      # connections" under rule 10 in .github/CLAUDE.md says why (#1258).
       - name: Check labeler permission
         id: perm
+        timeout-minutes: 3
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
@@ -201,8 +207,40 @@ jobs:
             echo "not a deep-review labeling event — no extra check needed"
             exit 0
           fi
-          ROLE=$(gh api "repos/$REPO/collaborators/$SENDER/permission" \
-            --jq '.role_name' || echo none)
+          # lookup_role is hand-copied into every live-role check. It runs before
+          # any checkout, and rule 1 keeps security steps inline, so no shared script
+          # can hold it. scripts/role-lookup.test.mjs holds the copies equal.
+          lookup_role() {
+            local delay err status
+            err=$(mktemp)
+            for delay in 5 10 20 30 30 0; do
+              if ROLE=$(timeout 10 gh api "repos/$REPO/collaborators/$1/permission" \
+                --jq '.role_name' 2>"$err"); then
+                return 0
+              fi
+              cat "$err" >&2
+              status=$(grep -oE '\(HTTP [0-9]{3}\)' "$err" | tail -n 1 || true)
+              case "$status" in
+                # No such user: the login was renamed or deleted, so it has no access.
+                "(HTTP 404)")
+                  ROLE=none
+                  return 0 ;;
+                # A rate limit passes, so it is retried like a dropped connection.
+                "(HTTP 403)" | "(HTTP 429)") ;;
+                # Any other 4xx is GitHub's final answer, but not a role.
+                "(HTTP 4"*)
+                  echo "::error::GitHub refused the role lookup for $1 $status. That is not a role, and a retry won't change it, so the run stops here."
+                  exit 1 ;;
+              esac
+              if [ "$delay" -eq 0 ]; then
+                echo "::error::Could not look up $1's role because every GitHub API call failed (errors above). That is a network, egress or GitHub failure, not a permissions answer, so the run stops here. Re-run or re-trigger it to retry."
+                exit 1
+              fi
+              echo "Role lookup for $1 failed. Retrying in ${delay}s."
+              sleep "$delay"
+            done
+          }
+          lookup_role "$SENDER"
           case "$ROLE" in
             admin|maintain|write|triage)
               echo "allowed=true" >> "$GITHUB_OUTPUT"
@@ -223,9 +261,14 @@ jobs:
       # perm step above) is a deliberate re-run. Its mode is MODE in the
       # prompt, set from `reviewed` below and the steer the focus step reads.
       # Usage stays human-metered.
+      #
+      # On an ai-loop `opened` event the perm step calls no API, so the
+      # reviews read here is the job's first connection, the one harden-runner
+      # can drop. It retries like the role lookup.
       - name: Skip if already reviewed
         id: dedupe
         if: steps.perm.outputs.allowed == 'true'
+        timeout-minutes: 6
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
@@ -234,6 +277,23 @@ jobs:
           LABEL: ${{ github.event.label.name }}
         run: |
           set -euo pipefail
+          # Every page of $1, read the way lookup_role reads a role: each call
+          # retries, and once every call has failed the step fails with an
+          # ::error:: rather than reading as an empty list (#1258).
+          api_pages() {
+            local delay
+            for delay in 5 10 20 30 30 0; do
+              if PAGES=$(timeout 30 gh api --paginate "$@"); then
+                return 0
+              fi
+              if [ "$delay" -eq 0 ]; then
+                echo "::error::Could not read $1 because every GitHub API call failed (errors above). That is a network, egress or GitHub failure, so the run stops here. Re-run or re-trigger it to retry."
+                exit 1
+              fi
+              echo "Reading $1 failed. Retrying in ${delay}s."
+              sleep "$delay"
+            done
+          }
           # Whether a deep review already exists on this PR. Deliberately a
           # yes/no and not the reviewed commit: a verify pass posts a marker
           # review too, so the newest marker's commit_id stops naming a
@@ -241,9 +301,9 @@ jobs:
           # boundary that drifts is worse than no boundary. A verify pass
           # settles threads and reads the code they point at, so it needs
           # only the yes.
-          REVIEWED=$(gh api --paginate "repos/$REPO/pulls/$PR/reviews?per_page=100" \
-            | jq -rs 'any(.[][]; (.user.login | test("^claude(\\[bot\\])?$"))
-                              and (.body | contains("<!-- claude-deep-review -->")))')
+          api_pages "repos/$REPO/pulls/$PR/reviews?per_page=100"
+          REVIEWED=$(jq -rs 'any(.[][]; (.user.login | test("^claude(\\[bot\\])?$"))
+                              and (.body | contains("<!-- claude-deep-review -->")))' <<<"$PAGES")
           echo "reviewed=$REVIEWED" >> "$GITHUB_OUTPUT"
           if [ "$ACTION" = "labeled" ] && [ "$LABEL" = "deep-review" ]; then
             echo "skip=false" >> "$GITHUB_OUTPUT"
@@ -282,19 +342,26 @@ jobs:
       # steer author.
       #
       # Emits a fully-formed FOCUS block, or an empty string, so the prompt
-      # needs no conditional. Best-effort by design, since the steer is an
-      # enhancement and not an authorization gate: unlike the perm step it
-      # degrades open, and an API failure never turns the run red. A failed
-      # comment fetch reads no steer, so the run is unfocused and, on a PR
-      # that already has a deep review, a verify pass even if a fresh steer
-      # was posted. A failed role lookup skips that author, so the next
-      # verified author's steer is read, if there is one, fresh or not. So
-      # an unexpected mode, verify or full, can mean a lookup failed. On
-      # ai-loop `opened` events no comments can exist yet, so this is a
-      # cheap no-op there.
+      # needs no conditional. The steer is an enhancement, not an
+      # authorization gate, but it sets the mode: on a PR that already has a
+      # deep review, a fresh steer makes the run a full review instead of a
+      # verify pass. So a failed API call must not read as "no steer" or as
+      # "this author isn't trusted", which would quietly pick the other mode.
+      # The comment read and each role lookup retry like the perm step's, and
+      # once every call has failed the step fails with an ::error:: instead of
+      # choosing a mode (#1258). A 404 for an author (a renamed or deleted
+      # account) reads as no access, so that author is skipped. On ai-loop
+      # `opened` events no comments can exist yet, so this is a cheap no-op
+      # there.
+      #
+      # The timeout covers the comment read and one role lookup at their
+      # worst. A run whose every lookup needs most of its retries can outlast
+      # it, which fails the step the same way a lookup that never answers
+      # does.
       - name: Extract focus steer
         id: focus
         if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
+        timeout-minutes: 10
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
@@ -303,22 +370,70 @@ jobs:
           set -euo pipefail
           echo "block=" >> "$GITHUB_OUTPUT" # default: no focus (last write wins)
           echo "fresh=false" >> "$GITHUB_OUTPUT" # default: no fresh steer
+          # Every page of $1, read the way lookup_role reads a role: each call
+          # retries, and once every call has failed the step fails with an
+          # ::error:: rather than reading as an empty list (#1258).
+          api_pages() {
+            local delay
+            for delay in 5 10 20 30 30 0; do
+              if PAGES=$(timeout 30 gh api --paginate "$@"); then
+                return 0
+              fi
+              if [ "$delay" -eq 0 ]; then
+                echo "::error::Could not read $1 because every GitHub API call failed (errors above). That is a network, egress or GitHub failure, so the run stops here. Re-run or re-trigger it to retry."
+                exit 1
+              fi
+              echo "Reading $1 failed. Retrying in ${delay}s."
+              sleep "$delay"
+            done
+          }
 
           # All "deep-review:"-prefixed comments -> newest first -> newest
           # per distinct author -> capped. --paginate because loop PRs
           # routinely exceed the default page size; gh applies --jq per page
           # (NDJSON out), the outer jq -s reassembles across pages. Note
           # unique_by would re-sort, hence the reduce for first-per-login.
-          # Fallback OUTSIDE the substitution: under pipefail a gh failure
-          # still lets jq -s print "[]" on empty input, so an inner
-          # "|| echo []" would concatenate both and corrupt COUNT below.
-          CANDIDATES=$(gh api --paginate "repos/$REPO/issues/$PR/comments?per_page=100" \
+          api_pages "repos/$REPO/issues/$PR/comments?per_page=100" \
             --jq '.[] | select(.body | startswith("deep-review:"))
-                  | {login: .user.login, body: .body}' \
-            | jq -s 'reverse
+                  | {login: .user.login, body: .body}'
+          CANDIDATES=$(jq -s 'reverse
                      | reduce .[] as $c ([];
                          if any(.[]; .login == $c.login) then . else . + [$c] end)
-                     | .[0:5]') || CANDIDATES='[]'
+                     | .[0:5]' <<<"$PAGES")
+
+          # lookup_role is hand-copied into every live-role check. It runs before
+          # any checkout, and rule 1 keeps security steps inline, so no shared script
+          # can hold it. scripts/role-lookup.test.mjs holds the copies equal.
+          lookup_role() {
+            local delay err status
+            err=$(mktemp)
+            for delay in 5 10 20 30 30 0; do
+              if ROLE=$(timeout 10 gh api "repos/$REPO/collaborators/$1/permission" \
+                --jq '.role_name' 2>"$err"); then
+                return 0
+              fi
+              cat "$err" >&2
+              status=$(grep -oE '\(HTTP [0-9]{3}\)' "$err" | tail -n 1 || true)
+              case "$status" in
+                # No such user: the login was renamed or deleted, so it has no access.
+                "(HTTP 404)")
+                  ROLE=none
+                  return 0 ;;
+                # A rate limit passes, so it is retried like a dropped connection.
+                "(HTTP 403)" | "(HTTP 429)") ;;
+                # Any other 4xx is GitHub's final answer, but not a role.
+                "(HTTP 4"*)
+                  echo "::error::GitHub refused the role lookup for $1 $status. That is not a role, and a retry won't change it, so the run stops here."
+                  exit 1 ;;
+              esac
+              if [ "$delay" -eq 0 ]; then
+                echo "::error::Could not look up $1's role because every GitHub API call failed (errors above). That is a network, egress or GitHub failure, not a permissions answer, so the run stops here. Re-run or re-trigger it to retry."
+                exit 1
+              fi
+              echo "Role lookup for $1 failed. Retrying in ${delay}s."
+              sleep "$delay"
+            done
+          }
 
           BODY=""
           COUNT=$(jq length <<<"$CANDIDATES")
@@ -328,10 +443,9 @@ jobs:
           while [ "$i" -lt "$COUNT" ]; do
             LOGIN=$(jq -r ".[$i].login" <<<"$CANDIDATES")
             # On a public repo this endpoint returns role_name "read" for
-            # ANY user (not 404), so non-collaborators fall to the * arm;
-            # the fallback still covers deleted users under set -e.
-            ROLE=$(gh api "repos/$REPO/collaborators/$LOGIN/permission" \
-              --jq '.role_name' || echo none)
+            # ANY user (not 404), so non-collaborators fall to the * arm, and
+            # lookup_role reads a deleted user's 404 as none.
+            lookup_role "$LOGIN"
             case "$ROLE" in
               admin|maintain|write|triage)
                 BODY=$(jq -r ".[$i].body" <<<"$CANDIDATES")
@@ -380,6 +494,7 @@ jobs:
       # than the commit the marker records.
       - name: Checkout PR head
         if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
+        timeout-minutes: 5
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}

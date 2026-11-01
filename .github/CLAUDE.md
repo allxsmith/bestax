@@ -814,19 +814,34 @@ step-security/harden-runner#708, and #1258 has this repo's runs.
 
 The cost here was a misread. The checks that re-verify the triggering user's live role read a failed
 call as role `none`, so a dropped run logged that the user lacked access and skipped its work as if
-they were untrusted. Each check now calls `lookup_role`, which retries for about a minute
-and a half and then fails the step with an `::error::` that says the API call failed. An answer from
-the API, `read` and `none` included, is handled as before. `scripts/role-lookup.test.mjs` runs each
-check against a stub `gh` and holds the copies of `lookup_role` equal.
+they were untrusted. Each check now calls `lookup_role`. Its waits add up to 95 seconds and each
+call is capped at 10 seconds, so at worst it takes 155 seconds before it fails the step with an
+`::error::` that says the API call failed. `scripts/role-lookup.test.mjs` computes that worst case
+from the function, and a step that calls it needs a timeout longer than that.
+
+- An answer from the API, `read` and `none` included, is handled as before.
+- A 404, which the endpoint returns for a renamed or deleted account, reads as `none`.
+- A rate limit (403 or 429) is retried like a dropped connection.
+- Any other 4xx fails the step at once, since a retry won't change it.
+
+`scripts/role-lookup.test.mjs` runs each check against a stub `gh`, holds the copies of
+`lookup_role` equal, and checks each step's timeout against the worst case. The copies stay inline:
+each one runs before any checkout, and rule 1 keeps security steps in the workflow.
+
+In the deep review the steps after the role check read the API the same way. The dedupe step's read
+of the reviews is the job's first call on an ai-loop `opened` event, since the role check calls
+nothing there. The focus step reads the comments and looks up each steer author's role. A failure
+there stops the run rather than picking a review mode. A missing steer, or an author misread as
+untrusted, can pick the wrong one, such as a verify pass where a full review was asked for.
 
 What it does not cover:
 
 - A later step's host can be dropped the same way: a checkout of `github.com`, the npm registry, the
-  model API. The retry gives the agent time before the first call only.
+  model API. The retries cover only the GitHub API reads above.
 - On those runners a job can also sit in the runner's post-job cleanup, every step finished, until
   its `timeout-minutes` ends it. No step timeout reaches that. Where the job's own timeout is long,
-  the role lookup and the checkout after it carry short step timeouts so that a step which hangs
-  fails on its own. The job timeouts are unchanged.
+  the role lookup, the deep review's dedupe and focus steps, and the checkout carry short step
+  timeouts, so that a step which hangs fails on its own. The job timeouts are unchanged.
 
 ## Review checklist for a workflow change
 
