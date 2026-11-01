@@ -880,6 +880,13 @@ more for WCAG 2.5.8.
 `--bulma-switch-radius`, `--bulma-switch-thin-circle-size`, `--bulma-switch-thin-height`,
 `--bulma-switch-transition-duration`, `--bulma-switch-width`
 
+### Table
+
+`--bulma-table-cell-text-align` is Bulma's own, the alignment of a header cell. Bulma sets it to
+`left`, and bestax sets it to `start`, so header cells line up with the body cells under them on
+a right-to-left page as well as left to right. Set it on the table, as Bulma's other
+`--bulma-table-*` variables are.
+
 ### Tabs
 
 `--bulma-tabs-content-padding`, `--bulma-tabs-vertical-border-color`,

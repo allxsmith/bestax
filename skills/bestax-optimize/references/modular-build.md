@@ -92,7 +92,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `colorswatch`,
 `descriptionlist`, `kbd`, `linkbutton`, `loader`, `notification`, `progress`, `ringprogress`,
-`skeleton`
+`skeleton`, `table`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`
 
@@ -169,6 +169,12 @@ Notes:
   so its text clears the button, so include it (`as bestax-notification`) next to the Bulma
   module in any build that shows a dismissible notification. It doesn't depend on the order of
   the two `@use` lines either.
+- `Table` is stock Bulma too (`bulma/sass/elements/table`), and `DataTable` renders one. The
+  `table` extras partial aligns header cells to the start of the line, so on a right-to-left page
+  they line up with the body cells under them, where Bulma's stay left. Include it
+  (`as bestax-table`) in any build that shows a table. Unlike the partials above it depends on
+  the order: it sets a variable Bulma sets on the same class, so its `@use` line goes after
+  `bulma/sass/elements/table`.
 - Stock-Bulma form controls still need their Bulma module (`bulma/sass/form/…`); the extras
   form partials above style only the bestax-specific behavior.
 - Bulma component modules pull their own internal sub-elements — e.g.

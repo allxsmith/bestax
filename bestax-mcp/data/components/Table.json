@@ -38,7 +38,7 @@
       "code": "<Table isStriped>\n  <Table.Thead>\n    <Table.Tr>\n      <Table.Th>Team</Table.Th>\n      <Table.Th>Points</Table.Th>\n    </Table.Tr>\n  </Table.Thead>\n  <Table.Tbody>\n    <Table.Tr>\n      <Table.Td>Maple Leafs</Table.Td>\n      <Table.Td>98</Table.Td>\n    </Table.Tr>\n  </Table.Tbody>\n</Table>"
     }
   ],
-  "accessibility": "- **Semantics:** Uses `<table>`, `<thead>`, `<tbody>`, `<tfoot>`, `<tr>`, `<th>`, and `<td>`—all proper HTML table elements.\n- **Responsive:** When using `isResponsive`, the table is wrapped in a scrollable container.\n- **Screen Readers:** Always use `<Th>` for header cells, and provide descriptive column headings.\n\n:::tip\nFor responsive tables, ensure your column headers are clear and concise for small screens.\n:::",
+  "accessibility": "- **Semantics:** Uses `<table>`, `<thead>`, `<tbody>`, `<tfoot>`, `<tr>`, `<th>`, and `<td>`—all proper HTML table elements.\n- **Responsive:** When using `isResponsive`, the table is wrapped in a scrollable container.\n- **Screen Readers:** Always use `<Th>` for header cells, and provide descriptive column headings.\n- **Right to left:** a header cell aligns to the start of the line, as the body cells do, so on a right-to-left page both sit on the right. Bulma's own default is `left`; bestax's styles set `--bulma-table-cell-text-align` to `start`. `isAligned` or an `align` attribute still sets a cell's own alignment.\n\n:::tip\nFor responsive tables, ensure your column headers are clear and concise for small screens.\n:::",
   "related": ["Block", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-table--default",
   "summary": "The `Table` component and its subcomponents provide a highly composable, Bulma-styled table system for React.",
@@ -292,7 +292,7 @@
           "name": "isAligned",
           "type": "'left' | 'right' | 'centered'",
           "default": null,
-          "description": "Text alignment for the header cell ('left', 'right', 'centered').",
+          "description": "Text alignment for the header cell ('left', 'right', 'centered'). Without it, the header aligns to the start of the line, as the body cells do, so it sits on the right on a right-to-left page.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -426,6 +426,12 @@
   ],
   "cssVars": [
     {
+      "css": "--bulma-table-cell-text-align",
+      "sass": "$table-cell-text-align",
+      "default": "start",
+      "scope": "root"
+    },
+    {
       "css": "--bulma-table-color",
       "sass": "$table-color",
       "default": "var(--bulma-text-strong)",
@@ -465,12 +471,6 @@
       "css": "--bulma-table-cell-heading-color",
       "sass": "$table-cell-heading-color",
       "default": "var(--bulma-text-strong)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-table-cell-text-align",
-      "sass": "$table-cell-text-align",
-      "default": "left",
       "scope": "root"
     },
     {
