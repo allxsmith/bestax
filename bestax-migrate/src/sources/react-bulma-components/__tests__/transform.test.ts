@@ -431,8 +431,9 @@ describe('react-bulma-components transform fixtures', () => {
       });
       // Both props are truthy literals, so the element collapses to the plain
       // `.heading` paragraph — but RBC applies the subtitle class independently,
-      // so it must ride along rather than being silently dropped.
-      expect(todos).toHaveLength(0);
+      // so it must ride along rather than being silently dropped. The one TODO
+      // is the one every `.heading` label gets: Bulma v1 no longer styles it.
+      expect(todos.map(t => t.rule)).toEqual(['component:Heading']);
       expect(output).toContain('className="heading subtitle"');
     });
 

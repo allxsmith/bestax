@@ -258,6 +258,7 @@ Every subcomponent is exported by name (`PaginationLink`, `PaginationList`, …)
 - Use `aria-label` on page links for better screen reader support.
 - Disabled and active states are handled with ARIA attributes and classes.
 - Rendered from `total`, each page's link is named for its page ("Page 3"; pass `getPageLabel` for your own words), and the current page's link carries `aria-current="page"`. Without `getPageHref` the links have no `href`, so they carry `role="button"` and choose a page with Enter or Space.
+- **Forced colors:** Bulma marks the current page with colors alone, which forced colors (Windows' contrast themes) replaces, so bestax's styles draw it in the system's highlight colors there instead. A link with Bulma's `is-current` or `is-selected` class gets them, so a [DataTable](./datatable.md)'s pager does too.
 
 :::note
 Pagination links are rendered as `<a>` elements for accessibility and keyboard navigation.

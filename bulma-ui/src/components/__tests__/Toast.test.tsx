@@ -3,6 +3,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { Toast, ToastContainer, toast } from '../Toast';
+import { ConfigProvider } from '../../helpers/Config';
 
 vi.useFakeTimers();
 
@@ -1158,10 +1159,9 @@ describe('ToastContainer with toasts shown at their own position', () => {
     });
   });
 
-  // Where each toast is on screen: every toast portals itself into a wrapper
-  // of its own, and that wrapper's position class is what places it. Sorted by
-  // message, since toasts that mount together land in the body in stack order
-  // rather than the order they were shown in.
+  // Where each toast is on screen: the stack it sits in, whose position class
+  // is what places it. Sorted by message, since toasts land in the body in
+  // stack order rather than the order they were shown in.
   const placements = () =>
     Array.from(document.body.querySelectorAll('.toast'))
       .map(el => [
@@ -1170,16 +1170,10 @@ describe('ToastContainer with toasts shown at their own position', () => {
       ])
       .sort(([a], [b]) => a.localeCompare(b));
 
-  // The stacks ToastContainer renders into the body. The toasts in them
-  // portal out to their own wrappers, so these are the wrappers left without
-  // a toast inside.
+  // The stacks ToastContainer renders into the body, one per position in use.
   const stacks = () =>
     Array.from(document.body.children)
-      .filter(
-        el =>
-          el.classList.contains('toast-container') &&
-          !el.querySelector('.toast')
-      )
+      .filter(el => el.classList.contains('toast-container'))
       .map(el => el.className);
 
   it('puts a toast shown with a position at that position', () => {
@@ -1232,23 +1226,12 @@ describe('ToastContainer with toasts shown at their own position', () => {
   });
 
   it('keeps the toasts of a stack together, in the order they were shown', () => {
-    // An inline toast skips its own wrapper and renders inside its stack.
     render(<ToastContainer position="top-right" />);
     act(() => {
-      toast.show({ message: 'A', inline: true, duration: 0 });
-      toast.show({
-        message: 'B',
-        position: 'top-left',
-        inline: true,
-        duration: 0,
-      });
-      toast.show({ message: 'C', inline: true, duration: 0 });
-      toast.show({
-        message: 'D',
-        position: 'top-left',
-        inline: true,
-        duration: 0,
-      });
+      toast.show({ message: 'A', duration: 0 });
+      toast.show({ message: 'B', position: 'top-left', duration: 0 });
+      toast.show({ message: 'C', duration: 0 });
+      toast.show({ message: 'D', position: 'top-left', duration: 0 });
     });
 
     const stackContents = Array.from(
@@ -1266,8 +1249,7 @@ describe('ToastContainer with toasts shown at their own position', () => {
   });
 
   it("gives a toast at the container's own position the container's stack", () => {
-    // What a container rendered before toasts could be placed on their own:
-    // a stack at its position, and each toast in a wrapper at the same one.
+    // Shown with that position or without one, both go in the one stack.
     const { container } = render(<ToastContainer position="bottom-left" />);
     act(() => {
       toast.show({ message: 'One', duration: 0 });
@@ -1279,9 +1261,7 @@ describe('ToastContainer with toasts shown at their own position', () => {
         .filter(el => el !== container)
         .map(el => el.outerHTML)
     ).toEqual([
-      '<div class="toast-container is-bottom-left"><div class="toast" role="alert" aria-live="polite"><span class="toast-message">One</span></div></div>',
-      '<div class="toast-container is-bottom-left"><div class="toast" role="alert" aria-live="polite"><span class="toast-message">Two</span></div></div>',
-      '<div class="toast-container is-bottom-left"></div>',
+      '<div class="toast-container is-bottom-left"><div class="toast" role="alert" aria-live="polite"><span class="toast-message">One</span></div><div class="toast" role="alert" aria-live="polite"><span class="toast-message">Two</span></div></div>',
     ]);
   });
 
@@ -1431,6 +1411,203 @@ describe('ToastContainer with toasts shown at their own position', () => {
       errorSpy.mockRestore();
       document.body.removeChild(container);
     }
+  });
+});
+
+describe('ToastContainer stacks', () => {
+  afterEach(() => {
+    vi.clearAllTimers();
+    act(() => {
+      toast.closeAll();
+    });
+  });
+
+  // Each stack in the body, as its class and the messages of the toasts
+  // that are its own children.
+  const stackContents = () =>
+    Array.from(document.body.children)
+      .filter(el => /(^|\s|-)toast-container(\s|$)/.test(el.className))
+      .map(stack => [
+        stack.className,
+        Array.from(stack.children).map(
+          el => el.querySelector('[class$="toast-message"]')?.textContent
+        ),
+      ]);
+
+  it('puts the toasts shown at one position in one stack, one after another', () => {
+    render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'First toast', indefinite: true });
+      toast.show({ message: 'Second toast', indefinite: true });
+      toast.show({
+        message: 'Third toast',
+        indefinite: true,
+        position: 'bottom-left',
+      });
+    });
+
+    expect(stackContents()).toEqual([
+      ['toast-container is-top-right', ['First toast', 'Second toast']],
+      ['toast-container is-bottom-left', ['Third toast']],
+    ]);
+    expect(document.querySelectorAll('.toast-container')).toHaveLength(2);
+  });
+
+  it('builds its stacks with the class prefix', () => {
+    render(
+      <ConfigProvider classPrefix="bestax-">
+        <ToastContainer position="bottom-center" />
+      </ConfigProvider>
+    );
+    act(() => {
+      toast.show({ message: 'One', duration: 0 });
+      toast.show({ message: 'Two', duration: 0 });
+    });
+
+    expect(stackContents()).toEqual([
+      ['bestax-toast-container bestax-is-bottom-center', ['One', 'Two']],
+    ]);
+    expect(document.querySelector('.toast-container')).toBeNull();
+    expect(screen.getByText('One').closest('[role="alert"]')).toHaveClass(
+      'bestax-toast'
+    );
+  });
+
+  it('portals a toast with a container of its own there, outside the stacks', () => {
+    const target = document.createElement('div');
+    document.body.appendChild(target);
+    try {
+      render(<ToastContainer position="top-right" />);
+      act(() => {
+        toast.show({ message: 'Own', container: target, duration: 0 });
+      });
+      // In a box of its own in the target, as before, and no empty stack.
+      expect(target.innerHTML).toBe(
+        '<div class="toast-container is-top-right"><div class="toast" role="alert" aria-live="polite"><span class="toast-message">Own</span></div></div>'
+      );
+      expect(stackContents()).toEqual([]);
+
+      act(() => {
+        toast.show({ message: 'Stacked', duration: 0 });
+        toast.show({
+          message: 'Own placed',
+          container: target,
+          position: 'bottom-center',
+          duration: 0,
+        });
+      });
+      expect(stackContents()).toEqual([
+        ['toast-container is-top-right', ['Stacked']],
+      ]);
+      expect(target.contains(screen.getByText('Own'))).toBe(true);
+      expect(
+        screen.getByText('Own placed').closest('.toast-container')
+      ).toHaveClass('is-bottom-center');
+      expect(
+        target.contains(screen.getByText('Own placed').closest('.toast'))
+      ).toBe(true);
+    } finally {
+      act(() => {
+        toast.closeAll();
+      });
+      document.body.removeChild(target);
+    }
+  });
+
+  it('keeps an inline toast with a container in its stack, as inline wins', () => {
+    const target = document.createElement('div');
+    document.body.appendChild(target);
+    try {
+      render(<ToastContainer position="top-left" />);
+      act(() => {
+        toast.show({
+          message: 'Inline',
+          container: target,
+          inline: true,
+          duration: 0,
+        });
+        toast.show({ message: 'Plain', duration: 0 });
+      });
+      expect(target).toBeEmptyDOMElement();
+      expect(stackContents()).toEqual([
+        ['toast-container is-top-left', ['Inline', 'Plain']],
+      ]);
+    } finally {
+      act(() => {
+        toast.closeAll();
+      });
+      document.body.removeChild(target);
+    }
+  });
+
+  it('stacks a toast with an empty container, which means none', () => {
+    render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'Empty', container: '', duration: 0 });
+      toast.show({ message: 'Plain', duration: 0 });
+    });
+
+    expect(stackContents()).toEqual([
+      ['toast-container is-top-right', ['Empty', 'Plain']],
+    ]);
+  });
+
+  it('stacks a queued toast with the others at its position', () => {
+    render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'Queued', queue: true, duration: 0 });
+      toast.show({ message: 'Stacked', duration: 0 });
+    });
+
+    // The queued one on screen comes after the stacked ones.
+    expect(stackContents()).toEqual([
+      ['toast-container is-top-right', ['Stacked', 'Queued']],
+    ]);
+  });
+
+  it('dismisses and times out one toast of a stack, leaving the rest in it', () => {
+    render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'Click me', duration: 0 });
+      // A click outside a dismissible toast closes it too, so these two
+      // aren't, to stay up through the click on the first.
+      toast.show({ message: 'Timed', duration: 1000, dismissible: false });
+      toast.show({ message: 'Stay', duration: 0, dismissible: false });
+    });
+    // The outside-click listeners go on a frame after the toasts show.
+    act(() => {
+      vi.advanceTimersByTime(20);
+    });
+
+    act(() => {
+      fireEvent.click(screen.getByText('Click me'));
+    });
+    expect(stackContents()).toEqual([
+      ['toast-container is-top-right', ['Timed', 'Stay']],
+    ]);
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(stackContents()).toEqual([
+      ['toast-container is-top-right', ['Stay']],
+    ]);
+  });
+
+  it('keeps a toast mounted as others join and leave its stack', () => {
+    render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'Kept', duration: 0 });
+    });
+    const kept = screen.getByText('Kept').closest('.toast');
+    let other = '';
+    act(() => {
+      other = toast.show({ message: 'Other', duration: 0 });
+    });
+    act(() => {
+      toast.close(other);
+    });
+    expect(screen.getByText('Kept').closest('.toast')).toBe(kept);
   });
 });
 

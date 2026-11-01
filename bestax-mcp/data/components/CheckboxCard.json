@@ -161,7 +161,7 @@
           "name": "value",
           "type": "string",
           "default": null,
-          "description": "What a form sends for the card when it's checked. Inside a `Checkboxes` group that takes `value`, `defaultValue` or `onChange`, the card is checked while the group's value holds it.",
+          "description": "What a form sends for the card when it's checked. Inside a `Checkboxes` group that takes `value`, `defaultValue` or `onChange`, the card is checked while the group's value holds it. A group given only `onChange` starts from the cards' own `defaultChecked`.",
           "required": false,
           "inherited": false,
           "deprecated": false

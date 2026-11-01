@@ -152,11 +152,12 @@ Inside a `Control` with no `Field` around it, `Radios` renders no `Field` of its
 
 ## Group State
 
-`Radios` can manage selection state for the entire group, matching the pattern used by MUI's `RadioGroup`, Radix's `RadioGroup`, and React Aria's `RadioGroup`. Three usage modes:
+`Radios` can manage selection state for the entire group, matching the pattern used by MUI's `RadioGroup`, Radix's `RadioGroup`, and React Aria's `RadioGroup`. It has these usage modes:
 
-1. **Name-only** — pass just `name`. Each child `Radio` manages its own checked state via `defaultChecked` or `checked`. Backwards compatible with existing usage.
-2. **Controlled** — pass `value` and `onChange`. The parent owns selection; each `Radio` derives `checked` from `group.value === my.value`.
-3. **Uncontrolled** — pass `defaultValue` (and optionally `onChange`). The group manages internal state; `onChange` fires on selection change.
+1. **Name-only**: pass just `name`. Each child `Radio` manages its own checked state via `defaultChecked` or `checked`. Backwards compatible with existing usage.
+2. **Controlled**: pass `value` and `onChange`. The parent owns selection; each `Radio` derives `checked` from `group.value === my.value`.
+3. **Uncontrolled**: pass `defaultValue` (and optionally `onChange`). The group manages internal state; `onChange` fires on selection change.
+4. **Only `onChange`**: the group manages the selection as in uncontrolled mode, starting from the radio with `defaultChecked`.
 
 Local props (`checked`, `onChange`) on individual `Radio` children always win over the group context — useful for opt-out scenarios.
 
@@ -194,6 +195,30 @@ function UncontrolledRadios() {
       </Radios>
       {last && (
         <p style={{ marginTop: '1rem' }}>
+          Last selected: <strong>{last}</strong>
+        </p>
+      )}
+    </div>
+  );
+}
+```
+
+### Only onChange
+
+```tsx live
+function ListeningRadios() {
+  const [last, setLast] = React.useState('');
+  return (
+    <div>
+      <Radios name="crust" onChange={setLast}>
+        <Radio value="thin">Thin</Radio>
+        <Radio value="classic" defaultChecked>
+          Classic
+        </Radio>
+        <Radio value="deep">Deep dish</Radio>
+      </Radios>
+      {last && (
+        <p className="mt-4">
           Last selected: <strong>{last}</strong>
         </p>
       )}
@@ -311,7 +336,7 @@ function RadiosWrappedFormDemo() {
 | `name`           | `string`                                                                        | —       | Form field name shared by every Radio in the group (via context).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | `value`          | `string`                                                                        | —       | Currently-selected value (controlled mode).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `defaultValue`   | `string`                                                                        | —       | Initial selected value (uncontrolled mode).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `onChange`       | `(value: string) => void`                                                       | —       | Fires when the selection changes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `onChange`       | `(value: string) => void`                                                       | —       | Fires when the selection changes; receives the value picked. Passed without `value` or `defaultValue`, it still has the group manage the selection, starting from the radio with `defaultChecked`.                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | `children`       | `React.ReactNode`                                                               | —       | Radio elements to render in the group.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `as`             | `'div'` \| `'fieldset'`                                                         | `'div'` | The element the group renders as. With `fieldset` it's a native `<fieldset>` that keeps `role="radiogroup"`. Where the group renders a `Field` of its own, that `Field` is the `<fieldset>` and the `label` is its `<legend>`, in the label column when `horizontal`, so the legend names the group with no ids to wire. Your other attributes then go on the `<fieldset>`, while `className` and the helper props stay on the box that lays out the radios. Inside an outer `Field` there's no legend: the group element itself is the `<fieldset>`, named by that `Field`'s label as before. `div`, the default, renders the group as it always has. |
 | `labelSize`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size for the label (used in horizontal layouts).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |

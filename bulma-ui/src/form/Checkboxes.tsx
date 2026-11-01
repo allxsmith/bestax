@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
@@ -43,7 +43,13 @@ export interface CheckboxesProps
   value?: string[];
   /** Initial selected values (uncontrolled mode). */
   defaultValue?: string[];
-  /** Fires when the selection changes; receives the new array. */
+  /**
+   * Fires when the selection changes; receives the new array. Passed without
+   * `value` or `defaultValue`, it still has the group manage the selection,
+   * starting from the checkboxes' own `defaultChecked`: a box that starts
+   * checked stays checked when another is clicked, and the first array holds
+   * it.
+   */
   onChange?: (values: string[]) => void;
   /** Checkbox elements to render in the group. */
   children?: React.ReactNode;
@@ -153,12 +159,43 @@ const CheckboxesComponent: React.FC<CheckboxesProps> = ({
     [isControlled, onChange]
   );
 
+  // A group given only `onChange` holds no value until its first change. The
+  // choices register the values they start checked with, so that change
+  // starts from what was checked rather than from an empty array. A ref, not
+  // state: nothing renders from it.
+  const startingRef = useRef(new Map<object, string>());
+  const registerChecked = useCallback((checkedValue: string) => {
+    const key = {};
+    startingRef.current.set(key, checkedValue);
+    return () => {
+      startingRef.current.delete(key);
+    };
+  }, []);
+  const startingValue = useCallback(
+    () => Array.from(new Set(startingRef.current.values())),
+    []
+  );
+
   const ctx = useMemo<CheckboxesGroupContextValue>(
     () => ({
       name,
-      ...(groupActive ? { value: currentValue, onChange: handleChange } : {}),
+      ...(groupActive
+        ? {
+            value: currentValue,
+            onChange: handleChange,
+            registerChecked,
+            startingValue,
+          }
+        : {}),
     }),
-    [name, groupActive, currentValue, handleChange]
+    [
+      name,
+      groupActive,
+      currentValue,
+      handleChange,
+      registerChecked,
+      startingValue,
+    ]
   );
 
   const choices = (

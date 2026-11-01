@@ -373,6 +373,79 @@ describe.each([
     });
   });
 
+  it('draws a line under a group that items with no group follow', () => {
+    expect(
+      declarations(
+        compile(prefix),
+        `.${prefix}combobox-group:has(+ :not(.${prefix}combobox-group))`
+      )
+    ).toEqual({
+      'border-bottom': '1px solid var(--bulma-combobox-divider-color)',
+      'margin-bottom': 'var(--bulma-combobox-item-padding-y)',
+      'padding-bottom': 'var(--bulma-combobox-item-padding-y)',
+    });
+  });
+
+  // jsdom computes no border whose shorthand reads a variable, so these
+  // read the room the same rules make around the line, which shows each
+  // rule matching where the Combobox puts its groups.
+  it.each([
+    [
+      'after the last group',
+      [
+        { value: 'Apple', group: 'Fruit' },
+        { value: 'Banana', group: 'Fruit' },
+        { value: 'Carrot', group: 'Vegetables' },
+        { value: 'Leek', group: 'Vegetables' },
+        { value: 'Salt' },
+        { value: 'Pepper' },
+      ],
+      { Fruit: [], Vegetables: ['above', 'below'] },
+    ],
+    [
+      'among a group’s items in `data`',
+      [
+        { value: 'Apple', group: 'Fruit' },
+        { value: 'Salt' },
+        { value: 'Banana', group: 'Fruit' },
+        { value: 'Pepper' },
+      ],
+      { Fruit: ['below'] },
+    ],
+    [
+      'before the first group',
+      [
+        { value: 'Salt' },
+        { value: 'Apple', group: 'Fruit' },
+        { value: 'Carrot', group: 'Vegetables' },
+      ],
+      { Fruit: ['above'], Vegetables: ['above'] },
+    ],
+  ])(
+    'sets items with no group off from a group, %s',
+    (_where, data, lines: Record<string, string[]>) => {
+      load(compile(prefix));
+      const { getByRole } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Combobox label="Produce" defaultOpen data={data} />
+        </ConfigProvider>
+      );
+      const room = 'var(--bulma-combobox-item-padding-y)';
+      for (const [group, edges] of Object.entries(lines)) {
+        const style = getComputedStyle(getByRole('group', { name: group }));
+        expect({
+          group,
+          above: style.marginTop,
+          below: [style.marginBottom, style.paddingBottom],
+        }).toEqual({
+          group,
+          above: edges.includes('above') ? room : '0',
+          below: edges.includes('below') ? [room, room] : ['0', '0'],
+        });
+      }
+    }
+  );
+
   it('pads the empty message like an option, in its own color', () => {
     load(compile(prefix));
     const { getByTestId } = renderOpen();
