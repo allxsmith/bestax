@@ -538,8 +538,8 @@ export function dropLinkAttrsForPlainTag(
  * label, and bestax has no component for it, so it stays plain markup with
  * the class. Bulma v1 has no rule for `.heading`, so the class styles nothing
  * there. One rule and one message keep the sources agreeing about that
- * (#1370), and the props it names are the ones bestax's Level page spells the
- * label with.
+ * (#1370). The message suggests the helper props for a small, uppercase,
+ * semibold label, or a `.heading` rule of the app's own.
  */
 export function flagDroppedHeading(
   ctx: TransformContext,

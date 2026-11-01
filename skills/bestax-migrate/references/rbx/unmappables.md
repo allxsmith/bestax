@@ -33,8 +33,8 @@ become `<Cell>`, and `size={n}` becomes a column span.
 
 rbx's `Heading` is Bulma 0.9's small uppercase label, and bestax has no component for it. It becomes
 the plain `<p className="heading">` rbx rendered, but Bulma v1 has no rule for that class, so the
-label renders as body text. Restyle it with helper props, the way bestax's Level page spells a
-statistic's label:
+label renders as body text. Restyle it with helper props, as a small, uppercase, semibold
+`Paragraph`:
 
 ```jsx
 <Heading>Followers</Heading>

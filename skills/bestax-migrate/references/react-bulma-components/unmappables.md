@@ -47,8 +47,8 @@ Match the old proportions with `Cell` span props; tiles' `vertical` becomes grid
 
 A `Heading` with a truthy `heading` is Bulma 0.9's small uppercase label, and bestax has no
 component for it. It becomes a plain `<p className="heading">`, but Bulma v1 has no rule for that
-class, so it styles nothing. Restyle the label with helper props, the way bestax's Level page spells
-a statistic's label:
+class, so it styles nothing. Restyle it with helper props, as a small, uppercase, semibold
+`Paragraph`:
 
 ```jsx
 <Heading heading>Followers</Heading>
