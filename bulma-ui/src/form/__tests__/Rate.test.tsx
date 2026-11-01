@@ -226,6 +226,28 @@ describe('Rate', () => {
       const container = screen.getByRole('radiogroup');
       expect(container).toHaveAttribute('tabindex', '-1');
     });
+
+    it('tells assistive tech the group and every star are disabled', () => {
+      render(<Rate disabled defaultValue={3} />);
+      const group = screen.getByRole('radiogroup', { name: 'Rating' });
+      expect(group).toHaveAttribute('aria-disabled', 'true');
+      const stars = screen.getAllByRole('radio');
+      expect(stars).toHaveLength(5);
+      for (const star of stars) {
+        expect(star).toHaveAttribute('aria-disabled', 'true');
+      }
+      expect(screen.getByRole('radio', { name: '3 stars' })).toBeChecked();
+    });
+
+    it('sets no aria-disabled on a Rate that works', () => {
+      render(<Rate defaultValue={3} />);
+      expect(screen.getByRole('radiogroup')).not.toHaveAttribute(
+        'aria-disabled'
+      );
+      for (const star of screen.getAllByRole('radio')) {
+        expect(star).not.toHaveAttribute('aria-disabled');
+      }
+    });
   });
 
   describe('Spaced Variant', () => {
