@@ -1,6 +1,10 @@
 import { renderHook } from '@testing-library/react';
 import React from 'react';
-import { useFlexboxClasses, BulmaFlexboxProps } from '../useFlexboxClasses';
+import {
+  useFlexboxClasses,
+  BulmaFlexboxProps,
+  type UseFlexboxClassesOptions,
+} from '../useFlexboxClasses';
 import { ConfigProvider } from '../Config';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -146,6 +150,108 @@ describe('useFlexboxClasses', () => {
     rerender({ flexGrow: '1' });
     expect(result.current).toBe(first);
     expect(result.current).toBe('is-flex-grow-1');
+  });
+
+  describe('flexContainer', () => {
+    const renderWithOptions = (
+      props: BulmaFlexboxProps,
+      options?: UseFlexboxClassesOptions,
+      classPrefix?: string
+    ) => {
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <ConfigProvider classPrefix={classPrefix}>{children}</ConfigProvider>
+      );
+      return renderHook(() => useFlexboxClasses(props, options), { wrapper })
+        .result.current;
+    };
+
+    const container: BulmaFlexboxProps = {
+      flexDirection: 'column',
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+      alignContent: 'space-between',
+      alignItems: 'flex-start',
+    };
+
+    it('emits the container classes with no display prop, and no is-flex', () => {
+      const result = renderWithOptions(container, { flexContainer: true });
+      expect(result).toBe(
+        'is-flex-direction-column is-flex-wrap-wrap is-justify-content-center ' +
+          'is-align-content-space-between is-align-items-flex-start'
+      );
+      expect(result.split(' ')).not.toContain('is-flex');
+    });
+
+    it('still emits the item classes beside them', () => {
+      expect(
+        renderWithOptions(
+          { alignItems: 'center', alignSelf: 'flex-end', flexGrow: '1' },
+          { flexContainer: true }
+        )
+      ).toBe('is-align-items-center is-align-self-flex-end is-flex-grow-1');
+    });
+
+    it('prefixes them', () => {
+      expect(
+        renderWithOptions(
+          { alignItems: 'center' },
+          { flexContainer: true },
+          'bestax-'
+        )
+      ).toBe('bestax-is-align-items-center');
+    });
+
+    it('ignores invalid values', () => {
+      expect(
+        renderWithOptions(
+          { flexDirection: 'diagonal' as any, alignItems: 'middle' as any },
+          { flexContainer: true }
+        )
+      ).toBe('');
+    });
+
+    // What every component that doesn't pass the option gets, which is every
+    // component that existed before it: the gate shuts without a flex display
+    // and opens with one, exactly as the tests above pin it.
+    it.each([
+      ['no options', undefined],
+      ['empty options', {}],
+      ['flexContainer false', { flexContainer: false }],
+    ] as const)('leaves the gate as it was with %s', (_label, options) => {
+      expect(renderWithOptions(container, options)).toBe('');
+      expect(
+        renderWithOptions({ ...container, display: 'block' }, options)
+      ).toBe('');
+      expect(
+        renderWithOptions({ ...container, alignSelf: 'center' }, options)
+      ).toBe('is-align-self-center');
+      expect(
+        renderWithOptions({ ...container, display: 'flex' }, options)
+      ).toBe(
+        'is-flex-direction-column is-flex-wrap-wrap is-justify-content-center ' +
+          'is-align-content-space-between is-align-items-flex-start'
+      );
+      expect(
+        renderWithOptions(
+          { alignItems: 'center', displayTablet: 'inline-flex' },
+          options
+        )
+      ).toBe('is-align-items-center');
+    });
+
+    it('returns a new string when the option changes', () => {
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <ConfigProvider>{children}</ConfigProvider>
+      );
+      const { result, rerender } = renderHook(
+        (flexContainer: boolean) =>
+          useFlexboxClasses({ alignItems: 'center' }, { flexContainer }),
+        { wrapper, initialProps: false }
+      );
+      expect(result.current).toBe('');
+      rerender(true);
+      expect(result.current).toBe('is-align-items-center');
+    });
   });
 
   it('returns a new string when a prop changes', () => {

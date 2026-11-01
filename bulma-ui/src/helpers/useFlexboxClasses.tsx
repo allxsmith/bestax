@@ -38,10 +38,25 @@ export interface BulmaFlexboxProps extends BulmaDisplayProps {
 }
 
 /**
+ * Options for `useFlexboxClasses`, which `useBulmaClasses` passes through.
+ */
+export interface UseFlexboxClassesOptions {
+  /**
+   * Whether the element is a flex container by its own CSS, as `Stack` and
+   * `Group` are, so the container helpers apply with no `display` prop. It
+   * adds no display class: the element's own stylesheet has to make it a flex
+   * container.
+   * @defaultValue false
+   */
+  flexContainer?: boolean;
+}
+
+/**
  * A hook that generates Bulma flexbox helper classes. Flex container helpers
  * (direction, wrap, justify/align content, align items) are only emitted when
- * one of the display props indicates a flex display; flex item helpers
- * (align self, grow, shrink) are always emitted.
+ * one of the display props indicates a flex display, or when `options` says
+ * the element is a flex container by its own CSS; flex item helpers (align
+ * self, grow, shrink) are always emitted.
  *
  * Note: this hook reads the display props purely as a gate and never emits
  * display classes — `is-flex` and friends come from useVisibilityClasses (or
@@ -49,6 +64,7 @@ export interface BulmaFlexboxProps extends BulmaDisplayProps {
  *
  * @function useFlexboxClasses
  * @param props - Flexbox-related Bulma helper props.
+ * @param options - Whether the element is a flex container without a display prop.
  * @returns A space-separated string of flexbox helper classes.
  * @example
  * const flexboxClasses = useFlexboxClasses({
@@ -57,9 +73,21 @@ export interface BulmaFlexboxProps extends BulmaDisplayProps {
  * });
  * // flexboxClasses: 'is-justify-content-center'
  * // ('is-flex' itself comes from useVisibilityClasses/useBulmaClasses)
+ *
+ * @example
+ * // An element whose own stylesheet makes it a flex container
+ * const flexboxClasses = useFlexboxClasses(
+ *   { alignItems: 'center' },
+ *   { flexContainer: true }
+ * );
+ * // flexboxClasses: 'is-align-items-center'
  */
-export const useFlexboxClasses = (props: BulmaFlexboxProps): string => {
+export const useFlexboxClasses = (
+  props: BulmaFlexboxProps,
+  options: UseFlexboxClassesOptions = {}
+): string => {
   const { classPrefix } = useConfig();
+  const { flexContainer = false } = options;
 
   const {
     flexDirection,
@@ -88,6 +116,7 @@ export const useFlexboxClasses = (props: BulmaFlexboxProps): string => {
 
     // Flexbox
     const hasFlexDisplay =
+      flexContainer ||
       display === 'flex' ||
       display === 'inline-flex' ||
       displayMobile === 'flex' ||
@@ -135,6 +164,7 @@ export const useFlexboxClasses = (props: BulmaFlexboxProps): string => {
     return classNames(classes);
   }, [
     classPrefix,
+    flexContainer,
     flexDirection,
     flexWrap,
     justifyContent,
