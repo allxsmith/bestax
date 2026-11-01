@@ -61,7 +61,10 @@ export interface LayoutOwnProps extends Omit<
   /**
    * What it lays out. The margins Bulma gives them are zeroed, the bottom one
    * in a Stack and the top and bottom in the others, so `gap` is the only
-   * space between them. A `Columns` child keeps its own.
+   * space between them. A `Columns` child keeps its own top and side
+   * margins, and takes at the bottom the one Bulma gives the last Columns in
+   * a container, the column gap pulled back in (none when gapless), so its
+   * columns line up.
    */
   children?: React.ReactNode;
   /** Text color helper. */
