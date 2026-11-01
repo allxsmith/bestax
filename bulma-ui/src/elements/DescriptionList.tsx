@@ -6,6 +6,7 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { isGiven } from '../helpers/isGiven';
 
 const validDescriptionListOrientations = ['vertical', 'horizontal'] as const;
 /** Whether each label sits above its value (`vertical`) or beside it (`horizontal`). */
@@ -17,13 +18,6 @@ const isOrientation = (
 ): orientation is DescriptionListOrientation =>
   !!orientation &&
   (validDescriptionListOrientations as readonly string[]).includes(orientation);
-
-/** Whether a prop was given something to render. */
-const isGiven = (node: React.ReactNode) =>
-  node !== undefined &&
-  node !== null &&
-  typeof node !== 'boolean' &&
-  node !== '';
 
 /**
  * Props for the DescriptionList component. The helper props, the other

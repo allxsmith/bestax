@@ -10,6 +10,7 @@ import { Buttons, ButtonsProps } from '../elements/Buttons';
 import { Icon } from '../elements/Icon';
 import { Paragraph, ParagraphProps } from '../elements/Paragraph';
 import { Title, TitleProps } from '../elements/Title';
+import { isGiven } from '../helpers/isGiven';
 
 const validEmptyStateColors = [
   'primary',
@@ -240,13 +241,6 @@ export const EmptyStateActions: React.FC<EmptyStateActionsProps> = ({
 };
 
 EmptyStateActions.displayName = 'EmptyState.Actions';
-
-/** Whether a shorthand prop was given something to render. */
-const isGiven = (node: React.ReactNode) =>
-  node !== undefined &&
-  node !== null &&
-  typeof node !== 'boolean' &&
-  node !== '';
 
 /**
  * The `EmptyState` component renders the block an app shows where content would be: an empty list, a search with no results, or a first-run screen.
