@@ -27,6 +27,7 @@ import { enforcePolymorphicProps } from '../_shared/polymorphic.js';
 import {
   alignTarget,
   dropLinkAttrsForPlainTag,
+  flagDroppedHeading,
   keepTitleLevel,
   makeStripModifierProps,
   mergeClassName,
@@ -209,6 +210,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
     // independently, so it rides along on the paragraph as `heading subtitle`
     // (dropping it would be the same silent loss the dynamic guard prevents).
     if (headingTruthy && !subtitleDynamic) {
+      flagDroppedHeading(ctx, path, 'p');
       removeAttr(element, headingAttr);
       const className = mergeClassName(
         ctx,

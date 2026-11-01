@@ -12,6 +12,7 @@ import {
   Title,
 } from "@allxsmith/bestax-bulma";
 
+// TODO(bestax-migrate): Bulma v1 dropped the `.heading` styles, so the `heading` class on this plain <p> styles nothing; restyle it with bestax helpers (e.g. `<Paragraph textSize="7" textTransform="uppercase" textWeight="semibold" mb="1">`) or a `.heading` rule of your own
 // TODO(bestax-migrate): `renderAs` — this bestax component has no `as` prop; restructure the element instead
 // TODO(bestax-migrate): bestax `Card.FooterItem` renders a <span> unless `as` says otherwise, and only its <a> form carries an `href` -- set `as="a"` to make this a link, or put an <a> inside -- it read `href="#follow"`
 export const Profile = () => (

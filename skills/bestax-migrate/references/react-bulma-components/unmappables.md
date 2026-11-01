@@ -43,6 +43,32 @@ https://bestax.io/docs/api/grid):
 
 Match the old proportions with `Cell` span props; tiles' `vertical` becomes grid flow.
 
+## `component:Heading` — Bulma v1 dropped `.heading`
+
+A `Heading` with a truthy `heading` is Bulma 0.9's small uppercase label, and bestax has no
+component for it. It becomes a plain `<p className="heading">`, but Bulma v1 has no rule for that
+class, so it styles nothing. Restyle the label with helper props, the way bestax's Level page spells
+a statistic's label:
+
+```jsx
+<Heading heading>Followers</Heading>
+<Paragraph textSize="7" textTransform="uppercase" textWeight="semibold" mb="1">
+  Followers
+</Paragraph>
+```
+
+Or keep the class and give it a rule of your own. Bulma 0.9's was:
+
+```css
+.heading {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+```
+
 ## Controlled `Dropdown` (`value` / `onChange`, `Dropdown.Item value`)
 
 bestax `Dropdown` is compositional — you own the selection state:

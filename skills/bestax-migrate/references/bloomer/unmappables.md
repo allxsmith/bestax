@@ -200,12 +200,28 @@ covers the common "render as a router link" case.
 
 ## `component:Heading` — Bulma v1 dropped `.heading`
 
-bloomer's `Heading` is Bulma's small-caps label. It becomes the plain `<p className="heading">`
-bloomer rendered, but Bulma v1 no longer ships styles for that class, so restyle it:
+bloomer's `Heading` is Bulma 0.9's small uppercase label, and bestax has no component for it. It
+becomes the plain `<p className="heading">` bloomer rendered (or the element its `tag` named), but
+Bulma v1 has no rule for that class, so the label renders as body text. Restyle it with helper
+props, the way bestax's Level page spells a statistic's label:
 
 ```jsx
-<Heading>Label</Heading>
-<Title as="p" size={6} textTransform="uppercase" textWeight="semibold">Label</Title>
+<Heading>Followers</Heading>
+<Paragraph textSize="7" textTransform="uppercase" textWeight="semibold" mb="1">
+  Followers
+</Paragraph>
+```
+
+Or keep the class and give it a rule of your own. Bulma 0.9's was:
+
+```css
+.heading {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
 ```
 
 ## `prop:isFullWidth` — not a universal helper in bestax

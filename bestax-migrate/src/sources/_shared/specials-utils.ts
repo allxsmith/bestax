@@ -531,6 +531,29 @@ export function dropLinkAttrsForPlainTag(
   }
 }
 
+/**
+ * Flag a `Heading` label that became a plain element carrying `heading`.
+ *
+ * Each library source has a `Heading` that rendered Bulma 0.9's `.heading`
+ * label, and bestax has no component for it, so it stays plain markup with
+ * the class. Bulma v1 has no rule for `.heading`, so the class styles nothing
+ * there. One rule and one message keep the sources agreeing about that
+ * (#1370), and the props it names are the ones bestax's Level page spells the
+ * label with.
+ */
+export function flagDroppedHeading(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  tag: string
+): void {
+  addTodo(
+    ctx,
+    path,
+    'component:Heading',
+    `Bulma v1 dropped the \`.heading\` styles, so the \`heading\` class on this plain <${tag}> styles nothing; restyle it with bestax helpers (e.g. \`<Paragraph textSize="7" textTransform="uppercase" textWeight="semibold" mb="1">\`) or a \`.heading\` rule of your own`
+  );
+}
+
 /** Attribute filter a source applies before an element becomes plain HTML. */
 export type AttrStrip = (
   ctx: TransformContext,
