@@ -70,9 +70,10 @@ export interface PasswordInputBaseProps extends Omit<InputBaseProps, 'type'> {
    * form submits or resets, or the page is left, which it also is on the way
    * into the back-forward cache. React renders those hides at once, a state
    * update you make here included, so the form reads a password field. One
-   * that fires while React is rendering or running layout effects, such as a
-   * `requestSubmit()` from a layout effect, can't render there, and lands
-   * just after.
+   * that fires while React is rendering or committing, which includes your
+   * `useEffect` and `useLayoutEffect` callbacks, such as a `requestSubmit()`
+   * from an effect, can't render there, and lands just after the form is
+   * read: hide the password first, or submit from an event handler.
    */
   onVisibleChange?: (visible: boolean) => void;
   /**
@@ -180,8 +181,8 @@ export const PasswordInputBase = forwardRef<
   const [internalVisible, setInternalVisible] = useState(defaultVisible);
   const visible = isControlled ? visibleProp : internalVisible;
   // Whether the field shows now: as last reported, until `visible` changes.
-  // Two hide events before React renders, as from a layout effect, or a
-  // caller holding `visible` that keeps it `true`, report `false` once.
+  // Two hide events before React renders, as from an effect, or a caller
+  // holding `visible` that keeps it `true`, report `false` once.
   const shownRef = useRef(visible);
   useClientLayoutEffect(() => {
     shownRef.current = visible;
@@ -208,10 +209,11 @@ export const PasswordInputBase = forwardRef<
   // form, or saves the page's form state, from a password field. The
   // component never sets the field's type itself, so a caller holding
   // `visible` that keeps it `true` keeps the field shown. The one catch: an
-  // event fired while React is rendering or running layout effects (a
-  // `requestSubmit()` from a layout effect) can't flush there, so React warns
-  // in development and the hide lands after the form is read. Only the
-  // listeners below call it, while the input is mounted.
+  // event fired while React is rendering or committing, which includes
+  // `useEffect` and `useLayoutEffect` callbacks (a `requestSubmit()` from
+  // an effect), can't flush there, so React warns in development and the
+  // hide lands after the form is read. Only the listeners below call it,
+  // while the input is mounted.
   const hideRef = useLatestRef(() => {
     if (!shownRef.current) return;
     // eslint-disable-next-line @eslint-react/dom-no-flush-sync -- the form is read, or the page saved, before React would render this on its own

@@ -1,5 +1,5 @@
 import type { MockInstance } from 'vitest';
-import { createRef, useRef, useState } from 'react';
+import { createRef, useEffect, useRef, useState } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
@@ -408,46 +408,51 @@ describe('PasswordInput', () => {
       expect(toggle()).toHaveAccessibleName('Hide password');
     });
 
-    it('hides just after a form submitted from a layout effect, where React can’t render at once', () => {
-      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const onVisibleChange = vi.fn();
-      const typeAtSubmit = vi.fn();
-      function SubmitsWhenAsked({ ask }: { ask: boolean }) {
-        const formRef = useRef<HTMLFormElement>(null);
-        useClientLayoutEffect(() => {
-          if (!ask) return;
-          formRef.current?.dispatchEvent(
-            new Event('submit', { bubbles: true, cancelable: true })
+    it.each([
+      ['useLayoutEffect', useClientLayoutEffect],
+      ['useEffect', useEffect],
+    ])(
+      'hides just after a form submitted from %s, where React can’t render at once',
+      (_name, useSubmitEffect) => {
+        const errorSpy = vi
+          .spyOn(console, 'error')
+          .mockImplementation(() => {});
+        const onVisibleChange = vi.fn();
+        const typeAtSubmit = vi.fn();
+        function SubmitsWhenAsked({ ask }: { ask: boolean }) {
+          const formRef = useRef<HTMLFormElement>(null);
+          useSubmitEffect(() => {
+            if (ask) formRef.current?.requestSubmit();
+          }, [ask]);
+          return (
+            <form
+              ref={formRef}
+              onSubmit={event => {
+                event.preventDefault();
+                typeAtSubmit(input().type);
+              }}
+            >
+              <PasswordInput
+                label="Password"
+                defaultVisible
+                onVisibleChange={onVisibleChange}
+              />
+            </form>
           );
-        }, [ask]);
-        return (
-          <form
-            ref={formRef}
-            onSubmit={event => {
-              event.preventDefault();
-              typeAtSubmit(input().type);
-            }}
-          >
-            <PasswordInput
-              label="Password"
-              defaultVisible
-              onVisibleChange={onVisibleChange}
-            />
-          </form>
-        );
+        }
+        try {
+          const { rerender } = render(<SubmitsWhenAsked ask={false} />);
+          rerender(<SubmitsWhenAsked ask />);
+          // The form read a text field, and the hide landed just after.
+          expect(typeAtSubmit).toHaveBeenCalledWith('text');
+          expect(onVisibleChange).toHaveBeenCalledWith(false);
+          expect(input()).toHaveAttribute('type', 'password');
+          expect(String(errorSpy.mock.calls[0]?.[0])).toContain('flushSync');
+        } finally {
+          errorSpy.mockRestore();
+        }
       }
-      try {
-        const { rerender } = render(<SubmitsWhenAsked ask={false} />);
-        rerender(<SubmitsWhenAsked ask />);
-        // The form read a text field, and the hide landed just after.
-        expect(typeAtSubmit).toHaveBeenCalledWith('text');
-        expect(onVisibleChange).toHaveBeenCalledWith(false);
-        expect(input()).toHaveAttribute('type', 'password');
-        expect(String(errorSpy.mock.calls[0]?.[0])).toContain('flushSync');
-      } finally {
-        errorSpy.mockRestore();
-      }
-    });
+    );
 
     it('reports one false for two hide events before React renders', () => {
       // A caller that keeps `visible` true renders nothing, so a submit and
