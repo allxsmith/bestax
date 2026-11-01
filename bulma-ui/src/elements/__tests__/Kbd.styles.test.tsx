@@ -2,9 +2,8 @@
 // jsdom never loads the partial on its own, so these compile it, with no
 // prefix and under one, and check its rules land on the elements Kbd and
 // Kbd.Group render, read through getComputedStyle. jsdom leaves `var()`
-// unresolved, so a value that reads a variable is compared as written. It
-// also resolves no inheritance and no `!important`, so where those decide
-// the outcome, the rules are read off the sheet instead.
+// unresolved, so a value that reads a variable is compared as written. Where
+// `!important` decides the outcome, the rules are read off the sheet instead.
 import * as sass from 'sass';
 import fs from 'fs';
 import path from 'path';
@@ -14,8 +13,7 @@ import { ConfigProvider } from '../../helpers/Config';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 
-// The Bulma bulma-ui depends on, resolved through package.json since jest
-// maps any `.css` specifier to a stub.
+// The Bulma bulma-ui depends on, found through its package.json.
 const BULMA = path.dirname(require.resolve('bulma/package.json'));
 
 const compile = (prefix: string) =>
@@ -167,14 +165,19 @@ describe.each([
   it('leaves the group plain text in the sentence’s font, on one line', () => {
     load(compile(prefix));
     const { getByTestId } = renderShortcut();
-    const group = getComputedStyle(getByTestId('group'));
-    expect(group.fontFamily).toBe('inherit');
+    // jsdom computes what the group inherits, so it's compared with the
+    // element it sits in. A `<kbd>` is monospace by default, so the font
+    // matching is the partial's `inherit`.
+    const groupEl = getByTestId('group');
+    const group = getComputedStyle(groupEl);
+    const sentence = getComputedStyle(groupEl.parentElement!);
+    expect(group.fontFamily).toBe(sentence.fontFamily);
     expect(group.whiteSpace).toBe('nowrap');
     // No font size, so the keys inside it are the size of a key on its own,
     // and no keycap of its own.
-    expect(group.fontSize).toBe('');
-    expect(group.borderStyle).toBe('');
-    expect(group.lineHeight).toBe('');
+    expect(group.fontSize).toBe(sentence.fontSize);
+    expect(group.borderStyle).toBe('none');
+    expect(group.lineHeight).toBe(sentence.lineHeight);
   });
 
   it('styles neither the separator nor the label, which read as the sentence', () => {
@@ -195,11 +198,12 @@ describe.each([
 
   it('mixes the edge and the fill from the text color', () => {
     const vars = declarations(compile(prefix), `.${prefix}kbd`);
+    // jsdom drops the space after a comma in a custom property's value.
     expect(vars['--bulma-kbd-border-color']).toMatch(
-      /^color-mix\(in srgb, currentColor \d+%, transparent\)$/
+      /^color-mix\(in srgb, ?currentColor \d+%, ?transparent\)$/
     );
     expect(vars['--bulma-kbd-background']).toMatch(
-      /^color-mix\(in srgb, currentColor \d+%, transparent\)$/
+      /^color-mix\(in srgb, ?currentColor \d+%, ?transparent\)$/
     );
     expect(vars['--bulma-kbd-color']).toBe('currentColor');
     expect(vars['--bulma-kbd-family']).toBe('var(--bulma-family-code)');
@@ -214,8 +218,9 @@ describe.each([
       'border-bottom-width',
     ]) {
       // A px length only as the floor of a max(), so an edge stays drawable.
+      // jsdom drops the space after its comma.
       const lengths = vars[`--bulma-kbd-${name}`]
-        .replace(/max\(\d+px, /g, '(')
+        .replace(/max\(\d+px, ?/g, '(')
         .match(/[\d.]+[a-z]+/g);
       expect(lengths).not.toBeNull();
       expect(lengths?.filter(length => !length.endsWith('em'))).toEqual([]);
@@ -226,8 +231,8 @@ describe.each([
 describe('textSize on a key', () => {
   // Bulma's size helpers carry !important and the partial's size doesn't, so
   // the helper wins wherever the two sheets land and however specific the
-  // selectors are. jsdom resolves no !important, so the two rules are read
-  // off the sheets and checked to match the key.
+  // selectors are. The two rules are read off the sheets and checked to match
+  // the key, so the check holds whatever jsdom's cascade does with !important.
   it('sets the size over the partial’s, in a prefixed build', () => {
     const { getByText } = render(
       <ConfigProvider classPrefix="bulma-">

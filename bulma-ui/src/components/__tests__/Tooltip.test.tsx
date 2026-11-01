@@ -1,10 +1,10 @@
+import type { MockInstance } from 'vitest';
 import { Suspense, useState } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { Tooltip } from '../Tooltip';
 import { Popover } from '../Popover';
 import { Modal } from '../Modal';
@@ -50,10 +50,15 @@ const unhover = (el: Element, to: Element = document.body) =>
   pointer(el, 'pointerout', { relatedTarget: to });
 /**
  * Focus as a key brings it. Tooltip asks the browser, through
- * `:focus-visible`, and jsdom matches that on any focus, which is what a
- * browser does after a key, so plain `focus()` is keyboard focus here.
+ * `:focus-visible`, and jsdom, like a browser, matches that on focus a Tab
+ * brings, so Tab goes down where focus is before `el` takes it.
  */
-const keyboardFocus = (el: HTMLElement) => el.focus();
+const keyboardFocus = (el: HTMLElement) => {
+  fireEvent.keyDown(el.ownerDocument.activeElement ?? el.ownerDocument.body, {
+    key: 'Tab',
+  });
+  el.focus();
+};
 /**
  * A press and the focus it brings. A browser doesn't show that focus as
  * `:focus-visible` and jsdom does, so the element says it isn't until the
@@ -62,7 +67,7 @@ const keyboardFocus = (el: HTMLElement) => el.focus();
 const pressFocus = (el: HTMLElement, pointerType: PointerType = 'mouse') => {
   pointer(el, 'pointerdown', { pointerType });
   const matches = el.matches.bind(el);
-  const spy = jest
+  const spy = vi
     .spyOn(el, 'matches')
     .mockImplementation(selector =>
       selector === ':focus-visible' ? false : matches(selector)
@@ -76,7 +81,7 @@ const pressFocus = (el: HTMLElement, pointerType: PointerType = 'mouse') => {
 
 const advance = (ms: number) =>
   act(() => {
-    jest.advanceTimersByTime(ms);
+    vi.advanceTimersByTime(ms);
   });
 
 const wrapper = (root: ParentNode = document) =>
@@ -86,15 +91,15 @@ const trigger = () => screen.getByRole('button', { name: 'Hover me' });
 
 describe('Tooltip', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
     // The tooltip is still mounted here, so what the timers set goes in act.
     act(() => {
-      jest.runOnlyPendingTimers();
+      vi.runOnlyPendingTimers();
     });
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   describe('rendering', () => {
@@ -159,7 +164,7 @@ describe('Tooltip', () => {
 
       hover(container.querySelector('.tooltip')!);
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       expect(container.querySelector('.tooltip')).toHaveClass('is-active');
@@ -175,13 +180,13 @@ describe('Tooltip', () => {
       const tooltip = container.querySelector('.tooltip')!;
       hover(tooltip);
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
       expect(tooltip).toHaveClass('is-active');
 
       unhover(tooltip);
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
       expect(tooltip).not.toHaveClass('is-active');
     });
@@ -195,7 +200,7 @@ describe('Tooltip', () => {
 
       keyboardFocus(trigger());
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       expect(container.querySelector('.tooltip')).toHaveClass('is-active');
@@ -211,13 +216,13 @@ describe('Tooltip', () => {
       const tooltip = container.querySelector('.tooltip')!;
       keyboardFocus(trigger());
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
       expect(tooltip).toHaveClass('is-active');
 
       trigger().blur();
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
       expect(tooltip).not.toHaveClass('is-active');
     });
@@ -244,14 +249,14 @@ describe('Tooltip', () => {
       hover(tooltip);
       unhover(tooltip);
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       expect(tooltip).toHaveClass('is-active');
     });
 
     it('stays shown on Escape, and lets the key through to a Modal around it', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Modal active onClose={onClose}>
           <Tooltip label="Test tooltip" active>
@@ -470,7 +475,7 @@ describe('Tooltip', () => {
 
       hover(container.querySelector('.tooltip')!);
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       expect(container.querySelector('.tooltip')).toHaveClass('is-active');
@@ -490,7 +495,7 @@ describe('Tooltip', () => {
 
       // After delay
       act(() => {
-        jest.advanceTimersByTime(500);
+        vi.advanceTimersByTime(500);
       });
 
       expect(container.querySelector('.tooltip')).toHaveClass('is-active');
@@ -511,12 +516,12 @@ describe('Tooltip', () => {
 
       // Leave before delay completes
       act(() => {
-        jest.advanceTimersByTime(250);
+        vi.advanceTimersByTime(250);
       });
       unhover(tooltip);
 
       act(() => {
-        jest.advanceTimersByTime(250);
+        vi.advanceTimersByTime(250);
       });
 
       // Should still not be visible
@@ -535,13 +540,13 @@ describe('Tooltip', () => {
       const tooltip = container.querySelector('.tooltip')!;
       hover(tooltip);
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
       expect(tooltip).toHaveClass('is-active');
 
       unhover(tooltip);
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
       expect(tooltip).not.toHaveClass('is-active');
     });
@@ -556,7 +561,7 @@ describe('Tooltip', () => {
       const tooltip = container.querySelector('.tooltip')!;
       hover(tooltip);
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
       expect(tooltip).toHaveClass('is-active');
 
@@ -567,13 +572,13 @@ describe('Tooltip', () => {
 
       // Still visible before closeDelay elapses
       act(() => {
-        jest.advanceTimersByTime(250);
+        vi.advanceTimersByTime(250);
       });
       expect(tooltip).toHaveClass('is-active');
 
       // Hidden after closeDelay elapses
       act(() => {
-        jest.advanceTimersByTime(250);
+        vi.advanceTimersByTime(250);
       });
       expect(tooltip).not.toHaveClass('is-active');
     });
@@ -588,18 +593,18 @@ describe('Tooltip', () => {
       const tooltip = container.querySelector('.tooltip')!;
       hover(tooltip);
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
       expect(tooltip).toHaveClass('is-active');
 
       // Leave, then re-enter before closeDelay elapses
       unhover(tooltip);
       act(() => {
-        jest.advanceTimersByTime(250);
+        vi.advanceTimersByTime(250);
       });
       hover(tooltip);
       act(() => {
-        jest.advanceTimersByTime(500);
+        vi.advanceTimersByTime(500);
       });
 
       // Should still be visible
@@ -851,7 +856,7 @@ describe('Tooltip', () => {
     });
 
     it('lets the trigger’s own tap action run', () => {
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(
         <Tooltip label="Test tooltip" openOnTap>
           <button onClick={onClick}>Hover me</button>
@@ -934,7 +939,7 @@ describe('Tooltip', () => {
     });
 
     it('hides it while the trigger is hovered and focus is in a field elsewhere, and the key goes on to that field', () => {
-      const onKeyDown = jest.fn();
+      const onKeyDown = vi.fn();
       render(
         <>
           <input aria-label="Search" onKeyDown={onKeyDown} />
@@ -983,7 +988,7 @@ describe('Tooltip', () => {
     });
 
     it('lets the key through whether a tooltip is showing or not', () => {
-      const outer = jest.fn();
+      const outer = vi.fn();
       document.addEventListener('keydown', outer);
       try {
         render(
@@ -1005,7 +1010,7 @@ describe('Tooltip', () => {
     });
 
     it('leaves a focused child its own Escape, and hides on the same key', () => {
-      const onKeyDown = jest.fn();
+      const onKeyDown = vi.fn();
       render(
         <Tooltip label="Test tooltip">
           <button onKeyDown={onKeyDown}>Hover me</button>
@@ -1022,8 +1027,8 @@ describe('Tooltip', () => {
     it('closes a Dropdown in the trigger and hides the tooltip on one Escape', () => {
       // The link lands on the Dropdown's wrapper rather than its button, which
       // a development build warns about. That's not what this test is for.
-      jest.spyOn(console, 'warn').mockImplementation(() => {});
-      const onActiveChange = jest.fn();
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const onActiveChange = vi.fn();
       render(
         <Tooltip label="Row actions">
           <Dropdown label="Actions" active onActiveChange={onActiveChange}>
@@ -1038,7 +1043,7 @@ describe('Tooltip', () => {
       fireEvent.keyDown(item, { key: 'Escape' });
       expect(onActiveChange).toHaveBeenCalledWith(false);
       expect(wrapper()).not.toHaveClass('is-active');
-      jest.restoreAllMocks();
+      vi.restoreAllMocks();
     });
 
     it('cancels a delayed show that has not happened yet, and lets the key through', () => {
@@ -1067,7 +1072,10 @@ describe('Tooltip', () => {
     });
 
     it('hides the tooltip and closes an open Modal around it on one Escape, with focus on its trigger', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
+      // The Modal moves focus to the trigger as it opens, which is keyboard
+      // focus when a Tab came before it.
+      fireEvent.keyDown(document.body, { key: 'Tab' });
       render(
         <Modal active onClose={onClose}>
           <Tooltip label="Test tooltip">
@@ -1084,7 +1092,7 @@ describe('Tooltip', () => {
     });
 
     it('hides a hovered tooltip in an open Modal and lets the Modal have the key when focus is elsewhere in it', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Modal active onClose={onClose}>
           <button>Save</button>
@@ -1104,6 +1112,9 @@ describe('Tooltip', () => {
     });
 
     it('hides the tooltip and closes an open Popover around it on one Escape, with focus on its trigger', () => {
+      // The Popover moves focus to the trigger as it opens, which is keyboard
+      // focus when a Tab came before it.
+      fireEvent.keyDown(document.body, { key: 'Tab' });
       render(
         <Popover trigger={<button>Team</button>} ariaLabel="Team" defaultOpen>
           <Tooltip label="Test tooltip">
@@ -1194,7 +1205,7 @@ describe('Tooltip', () => {
     });
 
     afterEach(() => {
-      jest.restoreAllMocks();
+      vi.restoreAllMocks();
       resetDevWarnings();
     });
 
@@ -1285,7 +1296,7 @@ describe('Tooltip', () => {
       ['a link', () => <a href="#details">Trigger</a>],
       ['a Span with tabIndex={0}', () => <Span tabIndex={0}>Trigger</Span>],
     ])('describes %s, without a warning', (_, child) => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(<Tooltip label="Deletes it for good">{child()}</Tooltip>);
       const triggerNode = screen.getByText('Trigger');
       expect(triggerNode).toHaveAttribute('aria-describedby', bubble().id);
@@ -1308,7 +1319,7 @@ describe('Tooltip', () => {
       expect(trigger()).toHaveAccessibleDescription('Bold and italic');
     });
 
-    const warnsUnlinked = (warn: jest.SpyInstance) => {
+    const warnsUnlinked = (warn: MockInstance) => {
       expect(warn).toHaveBeenCalledTimes(1);
       expect(warn).toHaveBeenCalledWith(
         expect.stringContaining("<Tooltip> can't describe its trigger")
@@ -1336,7 +1347,7 @@ describe('Tooltip', () => {
       ],
       ['nothing', () => null],
     ])('leaves %s unlinked, and warns once in development', (_, child) => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const { container } = render(
         <>
           <Tooltip label="Deletes it for good">{child()}</Tooltip>
@@ -1375,7 +1386,7 @@ describe('Tooltip', () => {
       ['an icon that cannot take focus', () => <Icon name="info-circle" />],
       ['a disabled button', () => <button disabled>Hover me</button>],
     ])('warns once in development for %s', (_, child) => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(
         <>
           <Tooltip label="Deletes it for good">{child()}</Tooltip>
@@ -1386,7 +1397,7 @@ describe('Tooltip', () => {
     });
 
     it('judges the trigger alone, not what comes after it', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(
         <>
           <Tooltip label="Deletes it for good">
@@ -1399,7 +1410,7 @@ describe('Tooltip', () => {
     });
 
     it('does not warn for a trigger that is hidden for now', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(
         <div style={{ visibility: 'hidden' }}>
           <Tooltip label="Deletes it for good">
@@ -1414,7 +1425,7 @@ describe('Tooltip', () => {
     });
 
     it('checks a trigger that changes', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const { rerender } = render(
         <Tooltip label="Deletes it for good">
           <button>Hover me</button>
@@ -1430,8 +1441,8 @@ describe('Tooltip', () => {
     });
 
     it('stays quiet in production, without reading the page for it', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
-      const queries = jest.spyOn(Element.prototype, 'querySelectorAll');
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const queries = vi.spyOn(Element.prototype, 'querySelectorAll');
       const previous = process.env.NODE_ENV;
       process.env.NODE_ENV = 'production';
       try {
@@ -1569,7 +1580,7 @@ describe('Tooltip', () => {
 
   describe('lifecycle', () => {
     it('shows nothing and holds no Escape after it unmounts', () => {
-      const outer = jest.fn();
+      const outer = vi.fn();
       document.addEventListener('keydown', outer);
       try {
         const { unmount } = render(
@@ -1594,9 +1605,7 @@ describe('Tooltip', () => {
       container.innerHTML = renderToString(ui);
       document.body.appendChild(container);
       const serverHtml = container.innerHTML;
-      const errorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       let root: ReturnType<typeof hydrateRoot> | undefined;
       await act(async () => {
         root = hydrateRoot(container, ui);
@@ -1752,7 +1761,7 @@ describe('Tooltip', () => {
       );
 
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       expect(container.querySelector('.tooltip')).toHaveClass('is-top');
@@ -1770,7 +1779,7 @@ describe('Tooltip', () => {
       );
 
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       expect(container.querySelector('.tooltip')).toHaveClass('is-bottom');
@@ -1789,7 +1798,7 @@ describe('Tooltip', () => {
       );
 
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       expect(container.querySelector('.tooltip')).toHaveClass('is-right');
@@ -1808,7 +1817,7 @@ describe('Tooltip', () => {
       );
 
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       expect(container.querySelector('.tooltip')).toHaveClass('is-left');
@@ -1825,7 +1834,7 @@ describe('Tooltip', () => {
       );
       hover(trigger());
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       expect(wrapper()).toHaveClass('is-active', 'is-bottom');
@@ -1913,7 +1922,7 @@ describe('Tooltip', () => {
       );
 
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       const content = screen.getByRole('tooltip', {
@@ -1941,7 +1950,7 @@ describe('Tooltip', () => {
       );
 
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       const content = screen.getByRole('tooltip', {
@@ -1968,7 +1977,7 @@ describe('Tooltip', () => {
       );
 
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       const content = screen.getByRole('tooltip', {
@@ -1995,7 +2004,7 @@ describe('Tooltip', () => {
       );
 
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       const content = screen.getByRole('tooltip', {
@@ -2020,7 +2029,7 @@ describe('Tooltip', () => {
       );
 
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       const content = screen.getByRole('tooltip', {
@@ -2045,7 +2054,7 @@ describe('Tooltip', () => {
       );
 
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       const content = screen.getByRole('tooltip', {
@@ -2071,7 +2080,7 @@ describe('Tooltip', () => {
       );
       hover(trigger());
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
       expect(bubble().style.left).toBe('calc(50% + 18px)');
 

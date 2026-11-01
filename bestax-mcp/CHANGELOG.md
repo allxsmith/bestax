@@ -1,3 +1,75 @@
+## [1.18.23](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.22...bestax-mcp@1.18.23) (2026-11-01)
+
+
+### Bug Fixes
+
+* **bulma-ui:** accept material-symbols 0.48 in the peer range ([788607d](https://github.com/allxsmith/bestax/commit/788607de94d2ba2b4aaf0e97cb65c2e4e3d85ee5))
+* **bulma-ui:** stop Dropdown's outside-click guard reading a missing window ([2230c2b](https://github.com/allxsmith/bestax/commit/2230c2b584845a0434f7487d2762c4488609ca25))
+* **create-bestax:** pin material-symbols to the newest range bestax-bulma accepts ([16c7bf4](https://github.com/allxsmith/bestax/commit/16c7bf41bb9c6fabe3b788fa59639f941ea98e32))
+
+## [1.18.22](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.21...bestax-mcp@1.18.22) (2026-10-31)
+
+
+### Bug Fixes
+
+* **create-bestax:** name the parts a Next.js Server Component can't reach yet ([f619f67](https://github.com/allxsmith/bestax/commit/f619f6778c34a1cb7b2a4aef2d87a115a1518acc)), closes [#1356](https://github.com/allxsmith/bestax/issues/1356)
+* **create-bestax:** point a Next.js app's CLAUDE.md icon imports at its layout, and test it ([7ef1aae](https://github.com/allxsmith/bestax/commit/7ef1aae1323d3ac760362ee5dd27b0da70a21a2c))
+* **create-bestax:** send a Next.js app's named classes to src/index.css ([896253a](https://github.com/allxsmith/bestax/commit/896253a5bc4b84e1922e1e6efd86654246bcc8db))
+
+
+### Features
+
+* **bulma-ui:** mark the client modules 'use client', so Next.js Server Components can import bestax ([96521b2](https://github.com/allxsmith/bestax/commit/96521b22f3aaa5bc43cfdff6586771d171dd8059))
+* **create-bestax:** add Next.js App Router templates, next and next-ts ([293e43a](https://github.com/allxsmith/bestax/commit/293e43a07a1cc24c8da162f7b1e742a070350765))
+
+
+### Performance Improvements
+
+* **bestax-migrate:** look up the root a modifier needs in one table ([843adca](https://github.com/allxsmith/bestax/commit/843adcaf4eb6567b88d4a52936763342b8b38359))
+
+## [1.18.21](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.20...bestax-mcp@1.18.21) (2026-10-30)
+
+
+### Features
+
+* **bulma-ui:** add ColorInput, a color field that opens the picker ([d7400f4](https://github.com/allxsmith/bestax/commit/d7400f4479d117683189aeba6c401a9c3be6622e))
+* **bulma-ui:** fill an empty ColorInput with the color its panel shows ([4d47c10](https://github.com/allxsmith/bestax/commit/4d47c10931c3704d104fa97d7ec7c71720df2c6d))
+* **bulma-ui:** write a DataTable's rows as CSV with table.toCSV ([ad63763](https://github.com/allxsmith/bestax/commit/ad6376351f98cc7936b9f148f4c0b3517a9fc9c7))
+
+## [1.18.20](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.19...bestax-mcp@1.18.20) (2026-10-30)
+
+
+### Bug Fixes
+
+* **bulma-ui:** give only a Checkbox straight in a selected row's cell the row's colors ([f773939](https://github.com/allxsmith/bestax/commit/f7739395a3e82c7d7a1ea15237f37cc81da7f63c))
+* **bulma-ui:** keep a checked Checkbox visible on a selected table row ([94aa916](https://github.com/allxsmith/bestax/commit/94aa91627e91db36d3f56e37ff1f4b1cd60472f4))
+* **bulma-ui:** keep a colored cell's Checkbox and a style without a width as they are ([f6009bf](https://github.com/allxsmith/bestax/commit/f6009bf9598fa5c2bc6a2f32dc9d543acc89ef23))
+* **bulma-ui:** keep Th's width when a style is passed too ([bd56058](https://github.com/allxsmith/bestax/commit/bd560582ce5e3c3506460ff51ca77d8ce53d9d28))
+* **bulma-ui:** leave a selected row with a color of its own out of the checkbox rule ([e69cfff](https://github.com/allxsmith/bestax/commit/e69cfff99faef27a1a632a7e2aae178016512a84))
+
+
+### Features
+
+* **bulma-ui:** add ColorPicker, ColorSwatch and the picker's parts ([7a873bc](https://github.com/allxsmith/bestax/commit/7a873bc203f9ebd35d0bada1219b322052ce4ab5))
+* **bulma-ui:** add DataTable and useDataTable, a table you can sort, search, page and select ([974bb7f](https://github.com/allxsmith/bestax/commit/974bb7f1eaf738d028794f4e3643adbbb02b3b22))
+* **bulma-ui:** add Dropzone, an area to drop files on that checks and lists them ([05e2131](https://github.com/allxsmith/bestax/commit/05e21311ee5a667f1177f67271709a05214084f9))
+* **bulma-ui:** add isNarrow and isVcentered to Th and Td ([bccb979](https://github.com/allxsmith/bestax/commit/bccb979d085c243af8dbc651d224c9d916015fd9))
+* **bulma-ui:** build a Dropzone's next files on its input, not its list ([3ff030c](https://github.com/allxsmith/bestax/commit/3ff030c3d399121352e0a16661e5f73b421cb9cf))
+* **bulma-ui:** keep a hue hsl() names, and draw ColorPicker's check on any swatch ([23463bb](https://github.com/allxsmith/bestax/commit/23463bb743fc1422d22b2be32cfc64d484317426))
+* **bulma-ui:** take arrays as DataTable filters and reset the page it holds ([c54ab56](https://github.com/allxsmith/bestax/commit/c54ab56f2e3e988a306f938e66da26effc18aa26))
+
+## [1.18.19](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.18...bestax-mcp@1.18.19) (2026-10-29)
+
+
+### Bug Fixes
+
+* **bulma-ui:** let a file dropped on File reach its input ([354d289](https://github.com/allxsmith/bestax/commit/354d2893749a5664ce3e1f6a496c6268dac73698))
+
+
+### Features
+
+* **create-bestax:** add a TanStack Router template, with a navbar that checks its links ([8a37944](https://github.com/allxsmith/bestax/commit/8a379446fddc129ad336f227848e30fadc7419f4))
+
 ## [1.18.18](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.17...bestax-mcp@1.18.18) (2026-10-29)
 
 

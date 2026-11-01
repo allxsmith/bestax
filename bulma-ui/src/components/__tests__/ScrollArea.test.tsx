@@ -93,7 +93,7 @@ beforeEach(() => {
 
 afterEach(() => {
   delete (globalThis as { ResizeObserver?: unknown }).ResizeObserver;
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
 });
 
 type AreaProps = Partial<React.ComponentProps<typeof ScrollArea>>;
@@ -167,7 +167,7 @@ describe('ScrollArea', () => {
     });
 
     it('calls a function ref with the viewport', () => {
-      const ref = jest.fn();
+      const ref = vi.fn();
       const { container, unmount } = renderArea({ ref });
       expect(ref).toHaveBeenCalledWith(viewportOf(container));
       unmount();
@@ -333,9 +333,9 @@ describe('ScrollArea', () => {
 
     it('still calls the onFocus, onBlur and onScroll it was given', () => {
       metrics.scrollHeight = 400;
-      const onFocus = jest.fn();
-      const onBlur = jest.fn();
-      const onScroll = jest.fn();
+      const onFocus = vi.fn();
+      const onBlur = vi.fn();
+      const onScroll = vi.fn();
       const { container } = renderArea({ onFocus, onBlur, onScroll });
       const viewport = viewportOf(container);
       act(() => viewport.focus());
@@ -419,15 +419,13 @@ describe('ScrollArea', () => {
     it('reads start and end from the direction, right to left from the right', () => {
       metrics.scrollWidth = 600;
       const real = window.getComputedStyle;
-      jest
-        .spyOn(window, 'getComputedStyle')
-        .mockImplementation((el, pseudo) => {
-          const style = real(el, pseudo);
-          return isViewport(el)
-            ? ({ ...style, direction: 'rtl' } as CSSStyleDeclaration)
-            : style;
-        });
-      const onEdgeReach = jest.fn();
+      vi.spyOn(window, 'getComputedStyle').mockImplementation((el, pseudo) => {
+        const style = real(el, pseudo);
+        return isViewport(el)
+          ? ({ ...style, direction: 'rtl' } as CSSStyleDeclaration)
+          : style;
+      });
+      const onEdgeReach = vi.fn();
       const { container } = renderArea({ onEdgeReach });
       const viewport = viewportOf(container);
       expect(overflowAttributes(viewport)).toEqual(['data-overflow-end']);
@@ -441,7 +439,7 @@ describe('ScrollArea', () => {
 
     it('calls onEdgeReach once on arriving at an edge, and again only after leaving it', () => {
       metrics.scrollHeight = 400;
-      const onEdgeReach = jest.fn();
+      const onEdgeReach = vi.fn();
       const { container } = renderArea({ onEdgeReach });
       const viewport = viewportOf(container);
       scrollTo(viewport, 100);
@@ -458,8 +456,8 @@ describe('ScrollArea', () => {
 
     it('reads the latest onEdgeReach, not the one it started with', () => {
       metrics.scrollHeight = 400;
-      const first = jest.fn();
-      const second = jest.fn();
+      const first = vi.fn();
+      const second = vi.fn();
       const { container, rerender } = renderArea({ onEdgeReach: first });
       rerender(
         <ScrollArea aria-label="Notes" onEdgeReach={second}>
@@ -473,7 +471,7 @@ describe('ScrollArea', () => {
 
     it("doesn't call onEdgeReach on mount, or when the content changes size", () => {
       metrics.scrollHeight = 400;
-      const onEdgeReach = jest.fn();
+      const onEdgeReach = vi.fn();
       const { container } = renderArea({ onEdgeReach });
       const viewport = viewportOf(container);
       viewport.scrollTop = 300;
@@ -599,7 +597,7 @@ describe('ScrollArea', () => {
 
     it('skips a measurement that finds nothing new', () => {
       metrics.scrollHeight = 400;
-      const renders = jest.fn();
+      const renders = vi.fn();
       const Probe = () => {
         renders();
         return <p>x</p>;
@@ -618,7 +616,7 @@ describe('ScrollArea', () => {
 
   describe('A name', () => {
     it('warns in development when it has neither aria-label nor aria-labelledby', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(<ScrollArea>x</ScrollArea>);
       expect(warn).toHaveBeenCalledWith(
         expect.stringContaining('<ScrollArea> has no accessible name')
@@ -629,7 +627,7 @@ describe('ScrollArea', () => {
       [{ 'aria-label': 'Notes' }],
       [{ 'aria-labelledby': 'notes-title' }],
     ])("doesn't warn when it's named with %j", name => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(<ScrollArea {...name}>x</ScrollArea>);
       expect(warn).not.toHaveBeenCalled();
     });
@@ -656,9 +654,7 @@ describe('ScrollArea', () => {
       const container = document.createElement('div');
       container.innerHTML = renderToString(<Area />);
       document.body.appendChild(container);
-      const errorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       let unmountRoot = () => {};
       try {
         await act(async () => {

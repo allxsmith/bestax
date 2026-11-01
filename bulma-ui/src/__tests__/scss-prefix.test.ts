@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 // Every class a partial selects has to carry `$class-prefix`, or the
 // prefixed builds ship a rule that matches nothing. That was #1100:
@@ -16,8 +16,7 @@ import path from 'path';
 
 const SCSS = path.resolve(__dirname, '../scss');
 
-// The Bulma bulma-ui depends on, resolved through package.json since jest
-// maps any `.css` specifier to a stub.
+// The Bulma bulma-ui depends on, found through its package.json.
 const BULMA = path.dirname(require.resolve('bulma/package.json'));
 
 const PREFIX = 'bestax-';

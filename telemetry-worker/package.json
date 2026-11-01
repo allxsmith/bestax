@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test 'src/__tests__/*.test.ts'",
+    "test": "vitest run",
+    "test:coverage": "pnpm run test",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
@@ -12,6 +13,7 @@
   },
   "devDependencies": {
     "typescript": "5.9.2",
-    "wrangler": "4.151.1"
+    "vitest": "^5.0.5",
+    "wrangler": "4.155.0"
   }
 }

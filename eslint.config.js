@@ -171,7 +171,7 @@ export default [
     },
   },
 
-  // Jest environment for test files
+  // Vitest globals for test files
   {
     files: [
       '**/__tests__/**/*.{ts,tsx}',
@@ -180,7 +180,7 @@ export default [
     ],
     languageOptions: {
       globals: {
-        ...cleanGlobals(globals.jest),
+        ...cleanGlobals(globals.vitest),
       },
     },
   },
@@ -206,7 +206,8 @@ export default [
   },
 
   // Storybook CSF hygiene for story files (story-exports, await-interactions,
-  // no-renderer-packages, no-redundant-story-name, etc.). Also scoped to
-  // .storybook/main.* — inert today since lint only covers src.
+  // no-renderer-packages, no-redundant-story-name, etc.). Its addon check
+  // matches `.storybook/main.*` from this file's directory, so it never
+  // reaches bulma-ui's.
   ...storybookPlugin.configs['flat/recommended'],
 ];

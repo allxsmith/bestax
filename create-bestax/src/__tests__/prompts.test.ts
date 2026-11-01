@@ -2,41 +2,43 @@ import {
   describe,
   it,
   expect,
-  jest,
+  vi,
   beforeEach,
   afterEach,
-} from '@jest/globals';
+  type Mock,
+  type MockedFunction,
+} from 'vitest';
 
 // Mock chalk to return strings as-is
-jest.unstable_mockModule('chalk', () => ({
+vi.doMock('chalk', () => ({
   default: {
-    yellow: jest.fn((str: string) => str),
-    blue: jest.fn((str: string) => str),
-    cyan: jest.fn((str: string) => str),
-    magenta: jest.fn((str: string) => str),
-    green: jest.fn((str: string) => str),
-    red: jest.fn((str: string) => str),
-    dim: jest.fn((str: string) => str),
-    bold: jest.fn((str: string) => str),
-    gray: jest.fn((str: string) => str),
+    yellow: vi.fn((str: string) => str),
+    blue: vi.fn((str: string) => str),
+    cyan: vi.fn((str: string) => str),
+    magenta: vi.fn((str: string) => str),
+    green: vi.fn((str: string) => str),
+    red: vi.fn((str: string) => str),
+    dim: vi.fn((str: string) => str),
+    bold: vi.fn((str: string) => str),
+    gray: vi.fn((str: string) => str),
   },
 }));
 
 // Mock prompts module
-jest.unstable_mockModule('prompts', () => ({
-  default: jest.fn(),
+vi.doMock('prompts', () => ({
+  default: vi.fn(),
 }));
 
 // Mock fs-extra
-jest.unstable_mockModule('fs-extra', () => ({
+vi.doMock('fs-extra', () => ({
   default: {
-    existsSync: jest.fn(),
-    readdirSync: jest.fn(),
-    emptyDir: jest.fn(),
+    existsSync: vi.fn(),
+    readdirSync: vi.fn(),
+    emptyDir: vi.fn(),
   },
-  existsSync: jest.fn(),
-  readdirSync: jest.fn(),
-  emptyDir: jest.fn(),
+  existsSync: vi.fn(),
+  readdirSync: vi.fn(),
+  emptyDir: vi.fn(),
 }));
 
 const prompts = (await import('prompts')).default;
@@ -91,12 +93,12 @@ function restoreStdinTTY(): void {
 }
 
 beforeEach(() => {
-  console.log = jest.fn();
-  console.error = jest.fn();
-  // Prompts are only reachable on an interactive terminal (#192); jest's
-  // stdin is not a TTY, so simulate one for the interactive tests.
+  console.log = vi.fn();
+  console.error = vi.fn();
+  // Prompts are only reachable on an interactive terminal (#192); the test
+  // runner's stdin is not a TTY, so simulate one for the interactive tests.
   setStdinTTY(true);
-  jest.clearAllMocks();
+  vi.clearAllMocks();
 });
 
 afterEach(() => {
@@ -126,7 +128,7 @@ describe('prompts', () => {
       async (_name, fn) => {
         setStdinTTY(undefined);
         const originalExit = process.exit;
-        const exitMock = jest.fn((code?: number | string | null) => {
+        const exitMock = vi.fn((code?: number | string | null) => {
           throw new Error(`process.exit(${code})`);
         });
         process.exit = exitMock as unknown as typeof process.exit;
@@ -151,7 +153,7 @@ describe('prompts', () => {
 
   describe('promptProjectName', () => {
     it('should prompt for project name', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         projectName: 'prompted-project',
       });
       const result = await promptProjectName();
@@ -165,7 +167,7 @@ describe('prompts', () => {
       });
       // It judges an answer as validateProjectDirectory does, and without
       // reading the answers prompts passes as a second argument.
-      const { validate } = (prompts as jest.Mock).mock.calls[0][0] as {
+      const { validate } = (prompts as Mock).mock.calls[0][0] as {
         validate: (value: string, answers: unknown) => unknown;
       };
       for (const value of ['my-app', '..', '.', 'apps/My App']) {
@@ -176,19 +178,19 @@ describe('prompts', () => {
     });
 
     it('takes a path, as the project-directory argument does (#1154)', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         projectName: 'scratch/login',
       });
       expect(await promptProjectName()).toBe('scratch/login');
 
-      const [question] = (prompts as jest.MockedFunction<typeof prompts>).mock
+      const [question] = (prompts as MockedFunction<typeof prompts>).mock
         .calls[0] as [{ validate: (value: string) => boolean | string }];
       expect(question.validate('scratch/login')).toBe(true);
       expect(question.validate('scratch/My App')).toContain('"My App"');
     });
 
     it('should return null when prompt is cancelled', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({});
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({});
       const result = await promptProjectName();
       expect(result).toBeNull();
     });
@@ -196,7 +198,7 @@ describe('prompts', () => {
 
   describe('promptOverwriteDirectory', () => {
     it('should prompt for overwrite', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         overwrite: true,
       });
 
@@ -217,7 +219,7 @@ describe('prompts', () => {
     });
 
     it('should return false when user declines overwrite', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         overwrite: false,
       });
 
@@ -227,7 +229,7 @@ describe('prompts', () => {
     });
 
     it('should return false when user cancels prompt', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({});
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({});
 
       const result = await promptOverwriteDirectory('project', ['notes.txt']);
 
@@ -237,7 +239,7 @@ describe('prompts', () => {
 
   describe('promptInstallSkills', () => {
     it('should prompt to install skills and default to true', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         skills: true,
       });
 
@@ -254,7 +256,7 @@ describe('prompts', () => {
     });
 
     it('should return false when user declines', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         skills: false,
       });
 
@@ -264,7 +266,7 @@ describe('prompts', () => {
     });
 
     it('should return null, not "no", when the user cancels (#950)', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({});
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({});
 
       const result = await promptInstallSkills();
 
@@ -274,7 +276,7 @@ describe('prompts', () => {
 
   describe('promptTemplate', () => {
     it('should return selected template', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         template: 'vite',
       });
       const result = await promptTemplate();
@@ -282,18 +284,18 @@ describe('prompts', () => {
     });
 
     it('should return null when cancelled', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({});
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({});
       const result = await promptTemplate();
       expect(result).toBeNull();
     });
 
     it('should provide correct choices', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         template: 'vite',
       });
       await promptTemplate();
 
-      const promptCall = (prompts as jest.MockedFunction<typeof prompts>).mock
+      const promptCall = (prompts as MockedFunction<typeof prompts>).mock
         .calls[0]?.[0] as unknown;
       expect(promptCall.type).toBe('select');
       expect(promptCall.message).toBe('Select a framework:');
@@ -306,17 +308,19 @@ describe('prompts', () => {
           'react-router',
           'react-router-ts',
           'tanstack-router-ts',
+          'next',
+          'next-ts',
         ]
       );
     });
 
     it('should format template choices correctly', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         template: 'vite-ts',
       });
       await promptTemplate();
 
-      const promptCall = (prompts as jest.MockedFunction<typeof prompts>).mock
+      const promptCall = (prompts as MockedFunction<typeof prompts>).mock
         .calls[0]?.[0] as unknown;
       const choices = promptCall.choices;
 
@@ -329,7 +333,7 @@ describe('prompts', () => {
 
   describe('promptBulmaFlavor', () => {
     it('should return selected Bulma flavor', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         bulmaFlavor: 'prefixed',
       });
       const result = await promptBulmaFlavor();
@@ -337,18 +341,18 @@ describe('prompts', () => {
     });
 
     it('should return null when cancelled', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({});
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({});
       const result = await promptBulmaFlavor();
       expect(result).toBeNull();
     });
 
     it('should provide correct Bulma flavor choices', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         bulmaFlavor: 'complete',
       });
       await promptBulmaFlavor();
 
-      const promptCall = (prompts as jest.MockedFunction<typeof prompts>).mock
+      const promptCall = (prompts as MockedFunction<typeof prompts>).mock
         .calls[0]?.[0] as unknown;
       expect(promptCall.type).toBe('select');
       expect(promptCall.message).toBe(
@@ -359,12 +363,12 @@ describe('prompts', () => {
     });
 
     it('should have complete as the default flavor', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         bulmaFlavor: 'complete',
       });
       await promptBulmaFlavor();
 
-      const promptCall = (prompts as jest.MockedFunction<typeof prompts>).mock
+      const promptCall = (prompts as MockedFunction<typeof prompts>).mock
         .calls[0]?.[0] as unknown;
       expect(promptCall.initial).toBe(0);
       expect(BULMA_FLAVORS[0].name).toBe('complete');
@@ -373,7 +377,7 @@ describe('prompts', () => {
 
   describe('promptImmediate', () => {
     it('asks a yes or no question naming the package manager, no by default', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         immediate: true,
       });
       expect(await promptImmediate('yarn')).toBe(true);
@@ -386,37 +390,35 @@ describe('prompts', () => {
     });
 
     it('returns a no as false and a cancel as null', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValueOnce({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValueOnce({
         immediate: false,
       });
       expect(await promptImmediate('npm')).toBe(false);
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValueOnce(
-        {}
-      );
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValueOnce({});
       expect(await promptImmediate('npm')).toBeNull();
     });
   });
 
   describe('promptLinter', () => {
     it('returns the selected linter', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         linter: 'eslint',
       });
       expect(await promptLinter()).toBe('eslint');
     });
 
     it('returns null when cancelled', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({});
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({});
       expect(await promptLinter()).toBeNull();
     });
 
     it('offers every linter, with Oxlint first and selected', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         linter: 'oxlint',
       });
       await promptLinter();
 
-      const promptCall = (prompts as jest.MockedFunction<typeof prompts>).mock
+      const promptCall = (prompts as MockedFunction<typeof prompts>).mock
         .calls[0]?.[0] as unknown;
       expect(promptCall.type).toBe('select');
       expect(promptCall.message).toBe('Which linter would you like to use?');
@@ -430,7 +432,7 @@ describe('prompts', () => {
 
   describe('promptIconLibrary', () => {
     it('should return selected icon library', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         iconLibrary: 'fontawesome',
       });
       const result = await promptIconLibrary();
@@ -438,18 +440,18 @@ describe('prompts', () => {
     });
 
     it('should return null when cancelled', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({});
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({});
       const result = await promptIconLibrary();
       expect(result).toBeNull();
     });
 
     it('should provide correct icon library choices', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         iconLibrary: 'none',
       });
       await promptIconLibrary();
 
-      const promptCall = (prompts as jest.MockedFunction<typeof prompts>).mock
+      const promptCall = (prompts as MockedFunction<typeof prompts>).mock
         .calls[0]?.[0] as unknown;
       expect(promptCall.type).toBe('select');
       expect(promptCall.message).toBe('Would you like to add an icon library?');
@@ -458,12 +460,12 @@ describe('prompts', () => {
     });
 
     it('should have none as the default option', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         iconLibrary: 'none',
       });
       await promptIconLibrary();
 
-      const promptCall = (prompts as jest.MockedFunction<typeof prompts>).mock
+      const promptCall = (prompts as MockedFunction<typeof prompts>).mock
         .calls[0]?.[0] as unknown;
       expect(promptCall.initial).toBe(0);
       expect(ICON_LIBRARIES[0].name).toBe('none');
@@ -471,7 +473,7 @@ describe('prompts', () => {
 
     it('should handle all icon library options', async () => {
       for (const library of ICON_LIBRARIES) {
-        (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+        (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
           iconLibrary: library.name,
         });
         const result = await promptIconLibrary();
@@ -482,14 +484,14 @@ describe('prompts', () => {
 
   describe('promptTelemetryConsent', () => {
     it('returns true when the user opts in', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         telemetry: true,
       });
       await expect(promptTelemetryConsent()).resolves.toBe(true);
     });
 
     it('returns false when the user declines', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         telemetry: false,
       });
       await expect(promptTelemetryConsent()).resolves.toBe(false);
@@ -497,7 +499,7 @@ describe('prompts', () => {
 
     it('returns null on cancel and honors the interrupt via exit code 130', async () => {
       const originalExitCode = process.exitCode;
-      (prompts as jest.MockedFunction<typeof prompts>).mockImplementationOnce(
+      (prompts as MockedFunction<typeof prompts>).mockImplementationOnce(
         (async (_questions: unknown, opts?: { onCancel?: () => void }) => {
           opts?.onCancel?.();
           return {};
@@ -510,18 +512,18 @@ describe('prompts', () => {
 
     it('a missing answer without a cancel leaves the exit code alone', async () => {
       const originalExitCode = process.exitCode;
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({});
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({});
       await expect(promptTelemetryConsent()).resolves.toBeNull();
       expect(process.exitCode).toBe(originalExitCode);
     });
 
     it('is an opt-in confirm defaulting to No, preceded by the notice', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         telemetry: false,
       });
       await promptTelemetryConsent();
 
-      const promptCall = (prompts as jest.MockedFunction<typeof prompts>).mock
+      const promptCall = (prompts as MockedFunction<typeof prompts>).mock
         .calls[0]?.[0] as { type: string; initial: boolean; message: string };
       expect(promptCall.type).toBe('confirm');
       expect(promptCall.initial).toBe(false);
@@ -533,10 +535,10 @@ describe('prompts', () => {
 
     it('does not require a TTY (the caller skips it instead)', async () => {
       setStdinTTY(false);
-      const mockExit = jest
+      const mockExit = vi
         .spyOn(process, 'exit')
         .mockImplementation((() => undefined) as never);
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         telemetry: true,
       });
 

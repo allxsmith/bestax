@@ -195,7 +195,13 @@ export const DisabledAndReadOnly: Story = {
 export const Static: Story = {
   render: () => (
     <>
-      <Input horizontal label="Username" isStatic value="Static value" />
+      <Input
+        horizontal
+        label="Username"
+        isStatic
+        readOnly
+        value="Static value"
+      />
       <Input horizontal label="Password" placeholder="Editable value" />
     </>
   ),

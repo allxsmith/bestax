@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * SSR coverage for Toast: when `typeof document === 'undefined'` and the
  * toast is not inline, the component should return null (no portal), and

@@ -1,4 +1,4 @@
-import { createRef, useState, type ReactElement } from 'react';
+import { createRef, StrictMode, useState, type ReactElement } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Checkbox from '../Checkbox';
 import Checkboxes from '../Checkboxes';
@@ -165,7 +165,7 @@ describe('Checkbox', () => {
     });
 
     it('toggles a value out of the group array when unchecking inside group-managed mode', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Checkboxes
           name="tags"
@@ -185,7 +185,7 @@ describe('Checkbox', () => {
 
     it('adds a value to the group array when checking from unchecked', () => {
       // Hits the e.target.checked=true && !includes branch (append path).
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Checkboxes name="tags" value={['vue']} onChange={handleChange}>
           <Checkbox value="react">React</Checkbox>
@@ -203,7 +203,7 @@ describe('Checkbox', () => {
       // the input is rendered as unchecked (allowing fireEvent.click to fire a
       // change with target.checked=true) while the group's array still contains
       // the value (so includes(valStr) is true → no-op append).
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Checkboxes name="tags" value={['react']} onChange={handleChange}>
           <Checkbox value="react" checked={false} onChange={() => {}}>
@@ -219,7 +219,7 @@ describe('Checkbox', () => {
     });
 
     it('local onChange still fires when no group is present', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Checkbox onChange={handleChange} value="solo">
           Solo
@@ -231,7 +231,7 @@ describe('Checkbox', () => {
     });
 
     it('does not dispatch to the group when the Checkbox has no value', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Checkboxes name="tags" value={[]} onChange={handleChange}>
           <Checkbox>No Value</Checkbox>
@@ -257,18 +257,196 @@ describe('Checkbox', () => {
       expect(input.checked).toBe(true);
     });
 
-    it('handles a Checkboxes group with only onChange (group.value undefined → [] fallback)', () => {
-      // groupActive=true via onChange alone. group.value remains undefined, so
-      // the `group.value ?? []` fallback kicks in when handleChange dispatches.
-      const handleChange = jest.fn();
+    it('handles a Checkboxes group with only onChange, starting from nothing checked', () => {
+      // onChange alone makes the group manage the selection, though it holds
+      // no value until this first change.
+      const handleChange = vi.fn();
       render(
         <Checkboxes name="tags" onChange={handleChange}>
           <Checkbox value="x">X</Checkbox>
         </Checkboxes>
       );
       const input = screen.getByLabelText('X') as HTMLInputElement;
+      expect(input.checked).toBe(false);
       fireEvent.click(input);
       expect(handleChange).toHaveBeenCalledWith(['x']);
+      expect(input.checked).toBe(true);
+    });
+  });
+
+  describe('in a Checkboxes group with only onChange', () => {
+    const box = (name: string) =>
+      screen.getByLabelText(name) as HTMLInputElement;
+
+    it('keeps a defaultChecked box checked when another box is clicked', () => {
+      const handleChange = vi.fn();
+      render(
+        <Checkboxes name="tags" onChange={handleChange}>
+          <Checkbox value="react" defaultChecked>
+            React
+          </Checkbox>
+          <Checkbox value="vue">Vue</Checkbox>
+          <Checkbox value="svelte" defaultChecked>
+            Svelte
+          </Checkbox>
+        </Checkboxes>
+      );
+      expect(box('React').checked).toBe(true);
+      expect(box('Svelte').checked).toBe(true);
+      fireEvent.click(box('Vue'));
+      // The first change starts from what was checked, in document order.
+      expect(handleChange).toHaveBeenLastCalledWith(['react', 'svelte', 'vue']);
+      expect(box('React').checked).toBe(true);
+      expect(box('Vue').checked).toBe(true);
+      expect(box('Svelte').checked).toBe(true);
+      fireEvent.click(box('React'));
+      expect(handleChange).toHaveBeenLastCalledWith(['svelte', 'vue']);
+      expect(box('React').checked).toBe(false);
+    });
+
+    it('unchecks a defaultChecked box as the first change', () => {
+      const handleChange = vi.fn();
+      render(
+        <Checkboxes onChange={handleChange}>
+          <Checkbox value="react" defaultChecked>
+            React
+          </Checkbox>
+          <Checkbox value="vue" defaultChecked>
+            Vue
+          </Checkbox>
+        </Checkboxes>
+      );
+      fireEvent.click(box('React'));
+      expect(handleChange).toHaveBeenLastCalledWith(['vue']);
+      expect(box('React').checked).toBe(false);
+      expect(box('Vue').checked).toBe(true);
+    });
+
+    it('starts from a box shown checked by its own checked prop', () => {
+      const handleChange = vi.fn();
+      render(
+        <Checkboxes onChange={handleChange}>
+          <Checkbox value="terms" checked onChange={() => {}}>
+            Terms
+          </Checkbox>
+          <Checkbox value="news">News</Checkbox>
+        </Checkboxes>
+      );
+      fireEvent.click(box('News'));
+      expect(handleChange).toHaveBeenLastCalledWith(['terms', 'news']);
+    });
+
+    it('leaves out a box that unmounted or stopped being checked before the first change', () => {
+      const handleChange = vi.fn();
+      const ui = (showReact: boolean, vueChecked: boolean) => (
+        <Checkboxes onChange={handleChange}>
+          {showReact && (
+            <Checkbox value="react" defaultChecked>
+              React
+            </Checkbox>
+          )}
+          <Checkbox value="vue" defaultChecked={vueChecked}>
+            Vue
+          </Checkbox>
+          <Checkbox value="svelte">Svelte</Checkbox>
+        </Checkboxes>
+      );
+      const { rerender } = render(ui(true, true));
+      rerender(ui(false, false));
+      expect(box('Vue').checked).toBe(false);
+      fireEvent.click(box('Svelte'));
+      expect(handleChange).toHaveBeenLastCalledWith(['svelte']);
+    });
+
+    it('lists a value two checked boxes share once', () => {
+      const handleChange = vi.fn();
+      render(
+        <Checkboxes onChange={handleChange}>
+          <Checkbox value="react" defaultChecked>
+            React
+          </Checkbox>
+          <Checkbox value="react" defaultChecked>
+            React again
+          </Checkbox>
+          <Checkbox value="vue">Vue</Checkbox>
+        </Checkboxes>
+      );
+      fireEvent.click(box('Vue'));
+      expect(handleChange).toHaveBeenLastCalledWith(['react', 'vue']);
+    });
+
+    it('leaves a box without a value to itself', () => {
+      const handleChange = vi.fn();
+      render(
+        <Checkboxes onChange={handleChange}>
+          <Checkbox defaultChecked>Loose</Checkbox>
+          <Checkbox value="vue">Vue</Checkbox>
+        </Checkboxes>
+      );
+      fireEvent.click(box('Vue'));
+      expect(handleChange).toHaveBeenLastCalledWith(['vue']);
+      expect(box('Loose').checked).toBe(true);
+    });
+
+    it('lets a box without a value toggle on its own, before and after the first change', () => {
+      // Unlike radios, checkboxes sharing a name don't uncheck each other, so
+      // there's nothing for React to put back.
+      const handleChange = vi.fn();
+      render(
+        <Checkboxes name="tags" onChange={handleChange}>
+          <Checkbox value="react" defaultChecked>
+            React
+          </Checkbox>
+          <Checkbox>Loose</Checkbox>
+        </Checkboxes>
+      );
+      fireEvent.click(box('Loose'));
+      expect(box('Loose').checked).toBe(true);
+      expect(box('React').checked).toBe(true);
+      expect(handleChange).not.toHaveBeenCalled();
+
+      fireEvent.click(box('React'));
+      expect(handleChange).toHaveBeenLastCalledWith([]);
+      fireEvent.click(box('Loose'));
+      expect(box('Loose').checked).toBe(false);
+      expect(box('React').checked).toBe(false);
+    });
+
+    it('works under a class prefix', () => {
+      const handleChange = vi.fn();
+      render(
+        <ConfigProvider classPrefix="bestax-">
+          <Checkboxes onChange={handleChange}>
+            <Checkbox value="react" defaultChecked>
+              React
+            </Checkbox>
+            <Checkbox value="vue">Vue</Checkbox>
+          </Checkboxes>
+        </ConfigProvider>
+      );
+      expect(box('React').closest('label')).toHaveClass('bestax-checkbox');
+      fireEvent.click(box('Vue'));
+      expect(handleChange).toHaveBeenLastCalledWith(['react', 'vue']);
+    });
+
+    it('keeps each starting value once, in order, under StrictMode', () => {
+      // StrictMode runs every effect, cleanup and all, a second time.
+      const handleChange = vi.fn();
+      render(
+        <StrictMode>
+          <Checkboxes onChange={handleChange}>
+            <Checkbox value="react" defaultChecked>
+              React
+            </Checkbox>
+            <Checkbox value="vue">Vue</Checkbox>
+            <Checkbox value="svelte" defaultChecked>
+              Svelte
+            </Checkbox>
+          </Checkboxes>
+        </StrictMode>
+      );
+      fireEvent.click(box('Vue'));
+      expect(handleChange).toHaveBeenLastCalledWith(['react', 'svelte', 'vue']);
     });
   });
 
@@ -286,24 +464,7 @@ describe('Checkbox', () => {
       expect(input.checked).toBe(false);
     });
 
-    it('logs no React warning', async () => {
-      // React warns about an unknown attribute once per name, so a render
-      // earlier in this file could have used the warning up. A fresh copy of
-      // React and the component still has it.
-      const error = jest.spyOn(console, 'error').mockImplementation(() => {});
-      try {
-        await jest.isolateModulesAsync(async () => {
-          const rtl = await import('@testing-library/react/pure');
-          const { Checkbox: Fresh } = await import('../Checkbox');
-          const { rerender } = rtl.render(<Fresh indeterminate>Mixed</Fresh>);
-          rerender(<Fresh indeterminate={false}>Mixed</Fresh>);
-          rtl.cleanup();
-        });
-        expect(error).not.toHaveBeenCalled();
-      } finally {
-        error.mockRestore();
-      }
-    });
+    // Whether it logs a React warning is in Checkbox.warnings.test.tsx.
 
     it('follows the prop across re-renders', () => {
       const { rerender } = render(<Checkbox indeterminate>Mixed</Checkbox>);
@@ -325,7 +486,7 @@ describe('Checkbox', () => {
     });
 
     it('keeps the mixed state after a click that renders nothing', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Checkbox indeterminate onChange={onChange}>
           Mixed
@@ -442,7 +603,7 @@ describe('Checkbox', () => {
     });
 
     it('still forwards a callback ref to the input', () => {
-      const ref = jest.fn();
+      const ref = vi.fn();
       const { unmount } = render(
         <Checkbox ref={ref} indeterminate>
           Ref

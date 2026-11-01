@@ -3,7 +3,6 @@ import { renderToString } from 'react-dom/server';
 import { createPortal } from 'react-dom';
 import { hydrateRoot } from 'react-dom/client';
 import { render, screen, fireEvent, act, within } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { HoverCard, HoverCardProps } from '../HoverCard';
 import { Popover } from '../Popover';
 import { Modal } from '../Modal';
@@ -48,10 +47,15 @@ const unhover = (el: Element, to: Element = document.body) =>
   pointer(el, 'pointerout', { relatedTarget: to });
 /**
  * Focus as a key brings it. HoverCard asks the browser, through
- * `:focus-visible`, and jsdom matches that on any focus, which is what a
- * browser does after a key, so plain `focus()` is keyboard focus here.
+ * `:focus-visible`, and jsdom, like a browser, matches that on focus a Tab
+ * brings, so Tab goes down where focus is before `el` takes it.
  */
-const keyboardFocus = (el: HTMLElement) => el.focus();
+const keyboardFocus = (el: HTMLElement) => {
+  fireEvent.keyDown(el.ownerDocument.activeElement ?? el.ownerDocument.body, {
+    key: 'Tab',
+  });
+  el.focus();
+};
 /**
  * A press and the focus it brings. A browser doesn't show that focus as
  * `:focus-visible` and jsdom does, so the element says it isn't until the
@@ -60,7 +64,7 @@ const keyboardFocus = (el: HTMLElement) => el.focus();
 const pressFocus = (el: HTMLElement, pointerType: PointerType = 'mouse') => {
   pointer(el, 'pointerdown', { pointerType });
   const matches = el.matches.bind(el);
-  const spy = jest
+  const spy = vi
     .spyOn(el, 'matches')
     .mockImplementation(selector =>
       selector === ':focus-visible' ? false : matches(selector)
@@ -74,7 +78,7 @@ const pressFocus = (el: HTMLElement, pointerType: PointerType = 'mouse') => {
 
 const advance = (ms: number) =>
   act(() => {
-    jest.advanceTimersByTime(ms);
+    vi.advanceTimersByTime(ms);
   });
 
 const Profile: React.FC<Partial<HoverCardProps>> = ({
@@ -92,12 +96,12 @@ const triggerLink = () => screen.getByRole('link', { name: 'Ada Lovelace' });
 const profileLink = () => screen.getByRole('link', { name: 'View profile' });
 
 beforeEach(() => {
-  jest.useFakeTimers();
+  vi.useFakeTimers();
 });
 
 afterEach(() => {
-  jest.useRealTimers();
-  jest.restoreAllMocks();
+  vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 describe('HoverCard', () => {
@@ -136,8 +140,8 @@ describe('HoverCard', () => {
     });
 
     it('leaves a click to the trigger: the card does not toggle', () => {
-      const onClick = jest.fn();
-      const onOpenChange = jest.fn();
+      const onClick = vi.fn();
+      const onOpenChange = vi.fn();
       render(
         <Profile
           trigger={<Button onClick={onClick}>Ada Lovelace</Button>}
@@ -177,7 +181,7 @@ describe('HoverCard', () => {
 
   describe('hover', () => {
     it('opens after openDelay, reporting it through onOpenChange', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<Profile onOpenChange={onOpenChange} />);
       hover(triggerLink());
       advance(599);
@@ -189,7 +193,7 @@ describe('HoverCard', () => {
     });
 
     it('closes after closeDelay once the pointer leaves', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<Profile onOpenChange={onOpenChange} />);
       hover(triggerLink());
       advance(600);
@@ -226,7 +230,7 @@ describe('HoverCard', () => {
     });
 
     it('does not open when the pointer leaves before openDelay', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<Profile onOpenChange={onOpenChange} />);
       hover(triggerLink());
       advance(300);
@@ -237,7 +241,7 @@ describe('HoverCard', () => {
     });
 
     it('is not opened by a touch pointer, or by the focus a tap brings', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<Profile onOpenChange={onOpenChange} />);
       const trigger = triggerLink();
       hover(trigger, 'touch');
@@ -390,7 +394,7 @@ describe('HoverCard', () => {
 
   describe('Escape', () => {
     it('closes at once with focus on the trigger, and leaves focus there', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<Profile onOpenChange={onOpenChange} />);
       keyboardFocus(triggerLink());
       advance(600);
@@ -452,7 +456,7 @@ describe('HoverCard', () => {
 
     describe('who the key belongs to', () => {
       it('passes it on to a field elsewhere that has focus, after closing the card', () => {
-        const onKeyDown = jest.fn();
+        const onKeyDown = vi.fn();
         render(
           <>
             <input aria-label="Search" onKeyDown={onKeyDown} />
@@ -609,7 +613,7 @@ describe('HoverCard', () => {
     });
 
     it('cancels an opening that has not happened yet, and lets the key through', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<Profile onOpenChange={onOpenChange} />);
       hover(triggerLink());
       advance(300);
@@ -640,7 +644,7 @@ describe('HoverCard', () => {
     });
 
     it('closes only the card inside an open Modal', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Modal active onClose={onClose}>
           <Profile defaultOpen />
@@ -753,7 +757,7 @@ describe('HoverCard', () => {
 
   describe('open state', () => {
     it('follows `open` when controlled, reporting hover through onOpenChange after the delay', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       const { rerender } = render(
         <Profile open={false} onOpenChange={onOpenChange} />
       );
@@ -774,7 +778,7 @@ describe('HoverCard', () => {
     });
 
     it('reports Escape on a controlled card right away', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<Profile open onOpenChange={onOpenChange} />);
       fireEvent.keyDown(document.body, { key: 'Escape' });
       expect(onOpenChange).toHaveBeenCalledWith(false);
@@ -782,7 +786,7 @@ describe('HoverCard', () => {
     });
 
     it('does not report the state the card is already in when a delay runs out', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       const { rerender } = render(
         <Profile open={false} onOpenChange={onOpenChange} />
       );
@@ -870,8 +874,8 @@ describe('HoverCard', () => {
 
     /** Press listeners on `document` outside the capture phase that are still on. */
     const watchPresses = () => {
-      const add = jest.spyOn(document, 'addEventListener');
-      const remove = jest.spyOn(document, 'removeEventListener');
+      const add = vi.spyOn(document, 'addEventListener');
+      const remove = vi.spyOn(document, 'removeEventListener');
       return () =>
         add.mock.calls.filter(([t, , o]) => t === 'pointerdown' && !o).length -
         remove.mock.calls.filter(([t, , o]) => t === 'pointerdown' && !o)
@@ -879,7 +883,7 @@ describe('HoverCard', () => {
     };
 
     it('opens at once on a tap on the trigger, with no delay, and calls it expanded', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<Profile openOnTap onOpenChange={onOpenChange} />);
       tap(triggerLink());
       expect(card()).toBeInTheDocument();
@@ -919,7 +923,7 @@ describe('HoverCard', () => {
     });
 
     it('lets the trigger’s own tap action run', () => {
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(
         <Profile
           openOnTap
@@ -1032,7 +1036,7 @@ describe('HoverCard', () => {
       ['without rendering', false],
       ['by rendering it closed', true],
     ])('forgets a tap its caller turns down %s', (_, rendersRefusal) => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       const ui = (open: boolean) => (
         <>
           <Profile openOnTap open={open} onOpenChange={onOpenChange} />
@@ -1200,14 +1204,13 @@ describe('HoverCard', () => {
       anchor: DOMRect,
       size: { width: number; height: number }
     ) => {
-      jest
-        .spyOn(container.querySelector('.hover-card')!, 'getBoundingClientRect')
-        .mockReturnValue(anchor);
-      jest
-        .spyOn(card()!, 'getBoundingClientRect')
-        .mockReturnValue(
-          rect({ top: 0, left: 0, right: size.width, bottom: size.height })
-        );
+      vi.spyOn(
+        container.querySelector('.hover-card')!,
+        'getBoundingClientRect'
+      ).mockReturnValue(anchor);
+      vi.spyOn(card()!, 'getBoundingClientRect').mockReturnValue(
+        rect({ top: 0, left: 0, right: size.width, bottom: size.height })
+      );
       act(() => {
         fireEvent(window, new Event('resize'));
       });
@@ -1391,7 +1394,7 @@ describe('HoverCard', () => {
 
   describe('lifecycle', () => {
     it('fires nothing after it unmounts', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       const { unmount } = render(<Profile onOpenChange={onOpenChange} />);
       hover(triggerLink());
       unmount();
@@ -1401,7 +1404,7 @@ describe('HoverCard', () => {
     });
 
     it('fires no pending close after it unmounts', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       const { unmount } = render(
         <Profile defaultOpen onOpenChange={onOpenChange} />
       );
@@ -1413,7 +1416,7 @@ describe('HoverCard', () => {
     });
 
     it('works with a trigger that renders nothing, with nothing to hand focus back to', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const Nothing = () => null;
       render(
         <HoverCard trigger={<Nothing />} defaultOpen>
@@ -1435,7 +1438,7 @@ describe('HoverCard', () => {
     });
 
     it('warns once in development, and leaves the trigger as it is', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(
         <>
           <Profile trigger={<span>Ada Lovelace</span>} />
@@ -1463,7 +1466,7 @@ describe('HoverCard', () => {
         () => <span tabIndex={0}>Ada Lovelace</span>,
       ],
     ])('does not warn for %s', (_, trigger) => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(<Profile trigger={trigger()} />);
       expect(warn).not.toHaveBeenCalled();
     });
@@ -1491,20 +1494,20 @@ describe('HoverCard', () => {
         ),
       ],
     ])('warns for %s', (_, trigger) => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(<Profile trigger={trigger()} />);
       expect(warn).toHaveBeenCalledTimes(1);
     });
 
     it('judges the trigger alone, so the links in an open card do not stand in for it', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(<Profile defaultOpen trigger={<span>Ada Lovelace</span>} />);
       expect(card()).toBeInTheDocument();
       expect(warn).toHaveBeenCalledTimes(1);
     });
 
     it('does not warn for a link that is hidden for now', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(
         <div style={{ visibility: 'hidden' }}>
           <Profile />
@@ -1517,7 +1520,7 @@ describe('HoverCard', () => {
     });
 
     it('checks a trigger that changes', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const { rerender } = render(<Profile />);
       expect(warn).not.toHaveBeenCalled();
       rerender(<Profile trigger={<span>Ada Lovelace</span>} />);
@@ -1525,9 +1528,9 @@ describe('HoverCard', () => {
     });
 
     it('stays quiet in production, without reading the page for it', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       // The check finds the trigger as the wrapper's first element.
-      const firstChild = jest.spyOn(
+      const firstChild = vi.spyOn(
         Element.prototype,
         'firstElementChild',
         'get'
@@ -1703,9 +1706,7 @@ describe('HoverCard', () => {
       container.innerHTML = renderToString(ui);
       document.body.appendChild(container);
       const serverHtml = container.innerHTML;
-      const errorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       let root: ReturnType<typeof hydrateRoot> | undefined;
       await act(async () => {
         root = hydrateRoot(container, ui);

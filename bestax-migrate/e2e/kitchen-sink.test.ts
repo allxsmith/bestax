@@ -25,9 +25,9 @@ const packageRoot = path.join(
 );
 const fixtureDir = path.join(packageRoot, 'fixtures', 'kitchen-sink');
 
-// One scratch directory PER PROCESS, not one shared path. `pnpm all` runs
-// `test` and `test:coverage` inside a single turbo invocation, so two jest
-// processes execute this file at the same time; against a fixed
+// One scratch directory PER PROCESS, not one shared path. Two Vitest processes
+// can run this file at the same time (`pnpm test` beside `pnpm test:coverage`,
+// or a watch run beside `pnpm all`), and against a fixed
 // `.e2e-tmp/kitchen-sink` they interleave each other's rmSync/cpSync and the
 // suite fails claiming the codemod did nothing ("Expected substring: not
 // 'react-bulma-components'") on files that migrate correctly in isolation.
@@ -228,6 +228,7 @@ describe('kitchen-sink e2e', () => {
     expect(rules).toContain('prop:remove');
     expect(rules).toContain('prop:subtitle');
     expect(rules).toContain('prop:heading');
+    expect(rules).toContain('component:Heading');
     // A Heading size it cannot read, which bestax would turn into a level.
     expect(
       todos.some(t => t.rule === 'prop:size' && t.message.includes('textSize'))

@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import React, { createRef, useState } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -53,11 +54,11 @@ function Alignment({ disabled = [], ...props }: AlignmentProps) {
   );
 }
 
-let warnSpy: jest.SpyInstance;
+let warnSpy: MockInstance;
 
 beforeEach(() => {
   resetDevWarnings();
-  warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 });
 
 afterEach(() => {
@@ -315,7 +316,7 @@ describe('SegmentedControl', () => {
 
     it('takes Tab in at the first segment while none is checked, and checks nothing', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Alignment onChange={onChange} />);
       await user.tab();
       expect(radio('Left')).toHaveFocus();
@@ -414,7 +415,7 @@ describe('SegmentedControl', () => {
       ['ArrowDown', '{ArrowDown}'],
     ])('%s moves to the next segment and checks it', async (_key, keys) => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Alignment defaultValue="left" onChange={onChange} />);
       await user.tab();
       await user.keyboard(keys);
@@ -430,7 +431,7 @@ describe('SegmentedControl', () => {
       ['ArrowUp', '{ArrowUp}'],
     ])('%s moves to the previous segment and checks it', async (_key, keys) => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Alignment defaultValue="right" onChange={onChange} />);
       await user.tab();
       await user.keyboard(keys);
@@ -478,7 +479,7 @@ describe('SegmentedControl', () => {
 
     it('Home and End go to the first and last enabled segment and check them', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Alignment
           defaultValue="center"
@@ -498,7 +499,7 @@ describe('SegmentedControl', () => {
 
     it('stays put on an arrow when it is the only enabled segment', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Alignment
           defaultValue="center"
@@ -524,7 +525,7 @@ describe('SegmentedControl', () => {
 
     it('leaves the keys alone on a segment portaled out of its row, and still lets a click check it', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <SegmentedControl
           aria-label="View"
@@ -548,9 +549,7 @@ describe('SegmentedControl', () => {
         errors.push(event.error);
       };
       window.addEventListener('error', onError);
-      const errorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       try {
         act(() => radio('Grid').focus());
         for (const key of ['ArrowRight', 'ArrowLeft', 'Home', 'End']) {
@@ -576,7 +575,7 @@ describe('SegmentedControl', () => {
       '%s checks the focused segment when none is checked',
       async (_key, keys) => {
         const user = userEvent.setup();
-        const onChange = jest.fn();
+        const onChange = vi.fn();
         render(<Alignment onChange={onChange} />);
         await user.tab();
         await user.keyboard(keys);
@@ -589,7 +588,7 @@ describe('SegmentedControl', () => {
 
     it('leaves other keys and modified arrows alone', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Alignment defaultValue="left" onChange={onChange} />);
       await user.tab();
       await user.keyboard('a');
@@ -659,8 +658,8 @@ describe('SegmentedControl', () => {
 
     it('runs a segment’s onKeyDown first, and a preventDefault there claims the key', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
-      const onKeyDown = jest.fn((event: React.KeyboardEvent) => {
+      const onChange = vi.fn();
+      const onKeyDown = vi.fn((event: React.KeyboardEvent) => {
         if (event.key === 'ArrowRight') event.preventDefault();
       });
       render(
@@ -687,7 +686,7 @@ describe('SegmentedControl', () => {
 
     it('checks through a click on the segment, so its onClick sees the arrow keys', async () => {
       const user = userEvent.setup();
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(
         <SegmentedControl aria-label="View" defaultValue="list">
           <SegmentedControl.Segment value="list">List</SegmentedControl.Segment>
@@ -727,7 +726,7 @@ describe('SegmentedControl', () => {
   describe('holding its own state', () => {
     it('checks a clicked segment and reports it once', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Alignment defaultValue="left" onChange={onChange} />);
       await user.click(radio('Right'));
       expect(checkedStates()).toEqual(['false', 'false', 'true', 'false']);
@@ -737,7 +736,7 @@ describe('SegmentedControl', () => {
 
     it('can’t be cleared: pressing the checked segment keeps it checked and reports nothing', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Alignment defaultValue="left" onChange={onChange} />);
       await user.click(radio('Left'));
       await user.keyboard(' ');
@@ -748,7 +747,7 @@ describe('SegmentedControl', () => {
 
     it('reports once per change across clicks and keys', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Alignment onChange={onChange} />);
       await user.click(radio('Center'));
       await user.click(radio('Center'));
@@ -762,7 +761,7 @@ describe('SegmentedControl', () => {
   describe('when you hold the state', () => {
     it('asks for the change and changes nothing until value does', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { rerender } = render(
         <Alignment value="left" onChange={onChange} />
       );
@@ -813,7 +812,7 @@ describe('SegmentedControl', () => {
 
     it('checks nothing while value is null, and still reports a pick', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<Alignment value={null} onChange={onChange} />);
       expect(checkedStates()).toEqual(['false', 'false', 'false', 'false']);
       expect(tabIndexes()).toEqual([0, -1, -1, -1]);
@@ -857,7 +856,7 @@ describe('SegmentedControl', () => {
 
     it('stops the check when it calls preventDefault()', async () => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <SegmentedControl
           aria-label="View"
@@ -890,7 +889,7 @@ describe('SegmentedControl', () => {
       ['disabled', { disabled: true }],
     ])('with %s, a segment can’t be clicked or reached', async (_p, off) => {
       const user = userEvent.setup();
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <SegmentedControl
           aria-label="View"
@@ -949,7 +948,7 @@ describe('SegmentedControl', () => {
     });
 
     it('forwards a segment’s callback ref to its <button>', () => {
-      const ref = jest.fn();
+      const ref = vi.fn();
       const { unmount } = render(
         <SegmentedControl aria-label="View">
           <SegmentedControl.Segment ref={ref} value="list">
@@ -989,7 +988,7 @@ describe('SegmentedControl', () => {
   describe('a segment outside a group', () => {
     it('renders an unchecked radio button that nothing can check, and warns', async () => {
       const user = userEvent.setup();
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(
         <SegmentedControl.Segment value="list" onClick={onClick}>
           List
@@ -1010,7 +1009,7 @@ describe('SegmentedControl', () => {
   describe('inside a form', () => {
     it('never submits it and carries no value', async () => {
       const user = userEvent.setup();
-      const onSubmit = jest.fn((event: React.FormEvent) =>
+      const onSubmit = vi.fn((event: React.FormEvent) =>
         event.preventDefault()
       );
       render(
@@ -1172,9 +1171,7 @@ describe('SegmentedControl', () => {
       const container = document.createElement('div');
       container.innerHTML = html;
       document.body.appendChild(container);
-      const errorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       let root: ReturnType<typeof hydrateRoot> | undefined;
       try {
         await act(async () => {
@@ -1202,9 +1199,7 @@ describe('SegmentedControl', () => {
       const container = document.createElement('div');
       container.innerHTML = renderToString(ui);
       document.body.appendChild(container);
-      const errorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       let root: ReturnType<typeof hydrateRoot> | undefined;
       try {
         await act(async () => {

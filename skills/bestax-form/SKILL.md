@@ -100,28 +100,30 @@ only: a `Rate` inside one keeps taking input while its value is dropped from the
 All import from `@allxsmith/bestax-bulma`. Convenience components auto-wrap Field+Control;
 `*Base` components are the raw styled elements for explicit composition.
 
-| Component                                               | What it is                                                                |
-| ------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `Field`, `Field.Label`, `Field.Body`                    | Field container + horizontal label/body parts.                            |
-| `Control`                                               | Wraps one input; left/right icons, `isLoading`, `isExpanded`, `size`.     |
-| `Fieldset`                                              | A section named by its `legend`; `disabled` switches off all of it.       |
-| `Input` / `InputBase`                                   | Text input (convenience / raw).                                           |
-| `Select` / `SelectBase`                                 | Dropdown select.                                                          |
-| `TextArea` / `TextAreaBase`                             | Multiline text.                                                           |
-| `Checkbox` / `Checkboxes`                               | Single checkbox / managed group (array value).                            |
-| `Radio` / `Radios`                                      | Single radio / managed single-select group.                               |
-| `CheckboxCard` / `RadioCard`                            | A checkbox or radio as a card with a title and a description.             |
-| `Switch`                                                | Toggle switch (`isRounded`, `isThin`, `isOutlined`, RTL).                 |
-| `File`                                                  | File upload input with label/message.                                     |
-| `Autocomplete`                                          | Free text with suggestions it filters for you, + keyboard nav.            |
-| `Combobox`                                              | A value from a list: `data` for a select, tags or groups, or parts.       |
-| `Slider`                                                | Range slider; single/dual thumbs, steps, tooltips, vertical.              |
-| `Numberinput`                                           | Numeric input with increment/decrement, min/max, step, stepper.           |
-| `PinInput`                                              | A one-time code or PIN as a row of boxes, all in one real input.          |
-| `Rate`                                                  | Star rating; `max`, `precision` (half/quarter), custom icons, `disabled`. |
-| `Taginput`                                              | Tag/chip input; suggestions, confirm keys, closable tags.                 |
-| `DateInput` / `TimeInput` / `DateTimeInput` (+ `*Base`) | Date / time / datetime pickers; month or year via `granularity`.          |
-| `DateRangeInput` (+ `*Base`)                            | Start and end date: `[Date \| null, Date \| null]`, one calendar.         |
+| Component                                               | What it is                                                                 |
+| ------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `Field`, `Field.Label`, `Field.Body`                    | Field container + horizontal label/body parts.                             |
+| `Control`                                               | Wraps one input; left/right icons, `isLoading`, `isExpanded`, `size`.      |
+| `Fieldset`                                              | A section named by its `legend`; `disabled` switches off all of it.        |
+| `Input` / `InputBase`                                   | Text input (convenience / raw).                                            |
+| `Select` / `SelectBase`                                 | Dropdown select.                                                           |
+| `TextArea` / `TextAreaBase`                             | Multiline text.                                                            |
+| `Checkbox` / `Checkboxes`                               | Single checkbox / managed group (array value).                             |
+| `Radio` / `Radios`                                      | Single radio / managed single-select group.                                |
+| `CheckboxCard` / `RadioCard`                            | A checkbox or radio as a card with a title and a description.              |
+| `Switch`                                                | Toggle switch (`isRounded`, `isThin`, `isOutlined`, RTL).                  |
+| `File`                                                  | File upload input with label/message.                                      |
+| `Dropzone`                                              | Drop or pick files; checks `accept`/size/count, lists them, form-ready.    |
+| `Autocomplete`                                          | Free text with suggestions it filters for you, + keyboard nav.             |
+| `Combobox`                                              | A value from a list: `data` for a select, tags or groups, or parts.        |
+| `Slider`                                                | Range slider; single/dual thumbs, steps, tooltips, vertical.               |
+| `Numberinput`                                           | Numeric input with increment/decrement, min/max, step, stepper.            |
+| `PinInput`                                              | A one-time code or PIN as a row of boxes, all in one real input.           |
+| `Rate`                                                  | Star rating; `max`, `precision` (half/quarter), custom icons, `disabled`.  |
+| `Taginput`                                              | Tag/chip input; suggestions, confirm keys, closable tags.                  |
+| `ColorInput` (+ `ColorInputBase`) / `ColorPicker`       | A color as a CSS string, HSL by default: a field with a popover / a panel. |
+| `DateInput` / `TimeInput` / `DateTimeInput` (+ `*Base`) | Date / time / datetime pickers; month or year via `granularity`.           |
+| `DateRangeInput` (+ `*Base`)                            | Start and end date: `[Date \| null, Date \| null]`, one calendar.          |
 
 (`NumberInput` and `TagInput` also exist as deprecated aliases of `Numberinput`/`Taginput` —
 same components; prefer the lowercase-second-word spellings.)
@@ -293,7 +295,7 @@ multi-field form plus the advanced inputs.
 ## Reuse the shipped components
 
 bestax ships the whole form surface — Input, Select, TextArea, Checkbox(es), Radio(s), Switch, File,
-Autocomplete, Combobox, Slider, Numberinput, PinInput, Rate, Taginput, the date/time inputs, and
+Dropzone, Autocomplete, Combobox, Slider, Numberinput, PinInput, Rate, Taginput, the date/time inputs, and
 Fieldset to group them (see the inventory above). **Compose these; don't hand-roll raw `<input class="input">` markup or
 reinvent a control.** If you think a control is missing, check `bulma-ui/src/index.ts` and
 `docs/docs/api/form/` first — it's probably already there under a different name.

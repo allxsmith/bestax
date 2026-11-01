@@ -30,6 +30,7 @@ import { aTag } from '../_shared/articles.js';
 import { AS_UNIONS } from '../_shared/polymorphic.js';
 import {
   applyIconProps,
+  flagDroppedHeading,
   keepTitleLevel,
   makeStripModifierProps,
   makeStructuralHelpers,
@@ -476,13 +477,8 @@ const SPECIALS: Record<string, SpecialHandler> = {
    * plain element bloomer rendered, and the TODO says the styling is gone.
    */
   heading(ctx, path, element) {
-    addTodo(
-      ctx,
-      path,
-      'component:Heading',
-      'Bulma v1 dropped the `.heading` styles, so this plain <p className="heading"> renders unstyled; restyle it with bestax helpers (e.g. `textSize="7" textTransform="uppercase" textWeight="semibold"`) or your own class'
-    );
     const tag = plainTag(ctx, path, element, 'p', 'Heading');
+    flagDroppedHeading(ctx, path, tag);
     return replaceWithPlain(ctx, path, element, tag, 'heading', 'Heading');
   },
 

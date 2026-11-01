@@ -12,8 +12,7 @@ import { ConfigProvider } from '../../helpers/Config';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 
-// The Bulma bulma-ui depends on, resolved through package.json since jest
-// maps any `.css` specifier to a stub.
+// The Bulma bulma-ui depends on, found through its package.json.
 const BULMA = path.dirname(require.resolve('bulma/package.json'));
 
 const compile = (prefix: string) =>
@@ -72,7 +71,8 @@ const outranks = (a: number[], b: number[]) => {
  * The value `property` gets on `el`, or on its `::before` (the knob), from
  * the rules: the most specific matching rule, the later one on a tie. Forced
  * colors adds the rules in its media block and leaves out every other media
- * block.
+ * block. jsdom serializes a zero length as `0px` and a system color
+ * lowercase, as browsers do.
  */
 function resolveIn(
   rules: Rule[],
@@ -164,13 +164,23 @@ describe.each([
     ).toBe('var(--bulma-danger)');
   });
 
-  it('sets the label a gap from the track, on the other side in RTL', () => {
-    expect(resolve(labelOf({}), 'margin-left')).toBe(
+  it('sets the label a gap from the track, on the other side with isRtl', () => {
+    // The row mirrors on a right-to-left page, so a physical margin stayed
+    // on the text's far side and the text touched the track. Logical ones
+    // follow the page's direction, and isRtl's reversed row.
+    const label = labelOf({});
+    expect(resolve(label, 'margin-inline-start')).toBe(
       'var(--bulma-switch-label-gap)'
     );
-    const rtl = labelOf({ isRtl: true });
-    expect(resolve(rtl, 'margin-left')).toBe('0');
-    expect(resolve(rtl, 'margin-right')).toBe('var(--bulma-switch-label-gap)');
+    const reversed = labelOf({ isRtl: true });
+    expect(resolve(reversed, 'margin-inline-start')).toBe('0px');
+    expect(resolve(reversed, 'margin-inline-end')).toBe(
+      'var(--bulma-switch-label-gap)'
+    );
+    for (const el of [label, reversed]) {
+      expect(resolve(el, 'margin-left')).toBeUndefined();
+      expect(resolve(el, 'margin-right')).toBeUndefined();
+    }
   });
 
   it('dims the track and its label when disabled', () => {
@@ -180,12 +190,12 @@ describe.each([
 
   it('draws the track in system colors in forced colors', () => {
     const forced = { forcedColors: true };
-    expect(resolve(trackOf({}), 'border-color', forced)).toBe('ButtonText');
+    expect(resolve(trackOf({}), 'border-color', forced)).toBe('buttontext');
     expect(
       resolve(trackOf({ checked: true }), 'background-color', forced)
-    ).toBe('Highlight');
+    ).toBe('highlight');
     expect(resolve(trackOf({ disabled: true }), 'border-color', forced)).toBe(
-      'GrayText'
+      'graytext'
     );
   });
 

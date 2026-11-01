@@ -10,12 +10,12 @@
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
-          "bytes": 22635
+          "bytes": 23626
         },
         {
           "id": "library-contributor",
           "file": "references/library-contributor.md",
-          "bytes": 22090
+          "bytes": 22089
         },
         { "id": "patterns", "file": "references/patterns.md", "bytes": 4601 }
       ],
@@ -29,7 +29,7 @@
       "promptName": "form",
       "dir": "bestax-form",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 23664 },
+        { "id": "api", "file": "references/api.md", "bytes": 27028 },
         { "id": "patterns", "file": "references/patterns.md", "bytes": 9835 }
       ],
       "examples": []
@@ -93,12 +93,12 @@
         {
           "id": "bloomer-prop-map",
           "file": "references/bloomer/prop-map.md",
-          "bytes": 26878
+          "bytes": 26906
         },
         {
           "id": "bloomer-unmappables",
           "file": "references/bloomer/unmappables.md",
-          "bytes": 17913
+          "bytes": 18303
         },
         {
           "id": "bulma-classes-component-map",
@@ -113,7 +113,7 @@
         {
           "id": "bulma-classes-unmappables",
           "file": "references/bulma-classes/unmappables.md",
-          "bytes": 66868
+          "bytes": 66953
         },
         {
           "id": "css-migration",
@@ -128,17 +128,17 @@
         {
           "id": "rbx-prop-map",
           "file": "references/rbx/prop-map.md",
-          "bytes": 15719
+          "bytes": 15747
         },
         {
           "id": "rbx-unmappables",
           "file": "references/rbx/unmappables.md",
-          "bytes": 15120
+          "bytes": 15829
         },
         {
           "id": "react-bulma-components-component-map",
           "file": "references/react-bulma-components/component-map.md",
-          "bytes": 14012
+          "bytes": 16562
         },
         {
           "id": "react-bulma-components-prop-map",
@@ -148,7 +148,7 @@
         {
           "id": "react-bulma-components-unmappables",
           "file": "references/react-bulma-components/unmappables.md",
-          "bytes": 13361
+          "bytes": 14098
         }
       ],
       "examples": []
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 12763
+          "bytes": 14048
         }
       ],
       "examples": []
@@ -176,12 +176,12 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 59249
+          "bytes": 64350
         },
         {
           "id": "themeable-components",
           "file": "references/themeable-components.md",
-          "bytes": 28491
+          "bytes": 30602
         }
       ],
       "examples": [

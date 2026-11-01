@@ -2,14 +2,7 @@
 // a hand-written stand-in proves the pattern and not that it still matches the
 // file it ships with. Everything here runs against the real templates, copied
 // to a temp directory, with the real filesystem.
-import {
-  describe,
-  it,
-  expect,
-  jest,
-  beforeEach,
-  afterEach,
-} from '@jest/globals';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
@@ -17,7 +10,7 @@ import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import ts from 'typescript';
 
-const { ProjectCreator } = await import('../project-creator.js');
+const { ProjectCreator, entryFile } = await import('../project-creator.js');
 const { updatePackageJson } = await import('../file-system.js');
 const { LIBRARY, libraryRange } = await import('../library-range.js');
 const {
@@ -32,15 +25,18 @@ const {
   REACT_COMPILER_TYPESCRIPT_DEV_DEPENDENCIES,
   REACT_COMPILER_README,
   ROUTER_SETUPS,
+  NEXT_ESLINT_CONFIG,
+  NEXT_ESLINT_DEV_DEPENDENCIES,
+  NEXT_STARTER_EDITS,
+  MESSAGES,
 } = await import('../constants.js');
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
 const templatesDir = path.resolve(testDir, '../../templates');
-const TEMPLATES = ['vite', 'vite-ts'] as const;
+const TEMPLATES = ['vite', 'vite-ts', 'next', 'next-ts'] as const;
 const appFile = (template: string) =>
-  template === 'vite-ts' ? 'App.tsx' : 'App.jsx';
-const mainFile = (template: string) =>
-  template === 'vite-ts' ? 'main.tsx' : 'main.jsx';
+  template.includes('-ts') ? 'App.tsx' : 'App.jsx';
+const isNextTemplate = (template: string) => template.startsWith('next');
 
 // The helper props are the ones useBulmaClasses takes out of a component's
 // props and turns into classes, viewport variants such as `displayTablet`
@@ -151,11 +147,11 @@ let projectCreator: InstanceType<typeof ProjectCreator>;
 beforeEach(async () => {
   workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'create-bestax-tpl-'));
   projectCreator = new ProjectCreator(templatesDir);
-  jest.spyOn(console, 'log').mockImplementation(() => {});
+  vi.spyOn(console, 'log').mockImplementation(() => {});
 });
 
 afterEach(async () => {
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
   await fs.remove(workDir);
 });
 
@@ -320,7 +316,7 @@ describe.each(TEMPLATES)('%s template icon setup', template => {
       await projectCreator.setupIconLibrary(target, 'fontawesome', template);
 
       const main = await fs.readFile(
-        path.join(target, 'src', mainFile(template)),
+        path.join(target, entryFile(template)),
         'utf8'
       );
       const flavorImport = BULMA_FLAVORS.find(
@@ -343,7 +339,7 @@ describe.each(TEMPLATES)('%s template icon setup', template => {
 describe.each(TEMPLATES)('%s template entry file', template => {
   it('explains the stylesheet order where the scaffolder will look for it', async () => {
     const main = await fs.readFile(
-      path.join(templatesDir, template, 'src', mainFile(template)),
+      path.join(templatesDir, template, entryFile(template)),
       'utf8'
     );
     expect(main).toContain(
@@ -359,7 +355,7 @@ describe.each(TEMPLATES)('%s template entry file', template => {
       await projectCreator.setupIconLibrary(target, 'fontawesome', template);
 
       const main = await fs.readFile(
-        path.join(target, 'src', mainFile(template)),
+        path.join(target, entryFile(template)),
         'utf8'
       );
       const flavorImport = BULMA_FLAVORS.find(
@@ -367,12 +363,21 @@ describe.each(TEMPLATES)('%s template entry file', template => {
       )!.importStatement;
       expect(main).toContain(`${CSS_ORDER_COMMENT}\n${flavorImport}`);
       expect(main.split(CSS_ORDER_COMMENT)).toHaveLength(2);
-      expect(main.indexOf("import './index.css';")).toBeGreaterThan(
-        main.indexOf(flavorImport)
-      );
-      expect(main.indexOf('import App from')).toBeGreaterThan(
-        main.indexOf("import './index.css';")
-      );
+      if (isNextTemplate(template)) {
+        // A Next.js layout imports its global CSS from src/, and App only
+        // through the page, which loads after the layout's stylesheets.
+        expect(main.indexOf("import '../index.css';")).toBeGreaterThan(
+          main.indexOf(flavorImport)
+        );
+        expect(main).not.toMatch(/import App\b/);
+      } else {
+        expect(main.indexOf("import './index.css';")).toBeGreaterThan(
+          main.indexOf(flavorImport)
+        );
+        expect(main.indexOf('import App from')).toBeGreaterThan(
+          main.indexOf("import './index.css';")
+        );
+      }
     }
   );
 });
@@ -393,7 +398,10 @@ describe.each(TEMPLATES)('%s template README', template => {
 
       const readme = await fs.readFile(path.join(target, 'README.md'), 'utf8');
       expect(readme).toContain(`${pm} install\n${pm} run dev`);
-      for (const script of ['dev', 'build', 'preview', 'lint']) {
+      const scripts = isNextTemplate(template)
+        ? ['dev', 'build', 'start', 'lint']
+        : ['dev', 'build', 'preview', 'lint'];
+      for (const script of scripts) {
         expect(readme).toContain(`\`${pm} run ${script}\``);
       }
       if (pm !== 'pnpm') expect(readme).not.toMatch(/\bpnpm\b/);
@@ -417,7 +425,8 @@ describe.each(TEMPLATES)('%s template README', template => {
 // The templates ship create-vite's default lint setup, Oxlint, and --lint
 // eslint swaps in what create-vite's --eslint writes.
 describe.each(TEMPLATES)('%s template linter', template => {
-  const typescript = template === 'vite-ts';
+  const typescript = template.includes('-ts');
+  const next = isNextTemplate(template);
   const readPkg = (target: string) =>
     fs.readJson(path.join(target, 'package.json')) as Promise<{
       scripts: Record<string, string>;
@@ -448,21 +457,39 @@ describe.each(TEMPLATES)('%s template linter', template => {
     await projectCreator.setupLinter(target, 'eslint', template);
 
     expect(fs.existsSync(path.join(target, '.oxlintrc.json'))).toBe(false);
-    expect(
-      await fs.readFile(path.join(target, 'eslint.config.js'), 'utf8')
-    ).toBe(ESLINT_CONFIG(typescript));
 
     const pkg = await readPkg(target);
-    expect(pkg.scripts.lint).toBe('eslint .');
     expect(pkg.devDependencies).not.toHaveProperty('oxlint');
-    expect(pkg.devDependencies).toMatchObject(ESLINT_DEV_DEPENDENCIES);
-    if (typescript) {
-      expect(pkg.devDependencies).toMatchObject(
-        ESLINT_TYPESCRIPT_DEV_DEPENDENCIES
-      );
-    } else {
-      expect(pkg.devDependencies).not.toHaveProperty('typescript');
+    if (next) {
+      // create-next-app's setup: eslint-config-next, which brings
+      // typescript-eslint itself, so a TypeScript app stays on TypeScript 6.
+      expect(
+        await fs.readFile(path.join(target, 'eslint.config.mjs'), 'utf8')
+      ).toBe(NEXT_ESLINT_CONFIG(typescript));
+      expect(pkg.scripts.lint).toBe('eslint');
+      expect(pkg.devDependencies).toMatchObject(NEXT_ESLINT_DEV_DEPENDENCIES);
       expect(pkg.devDependencies).not.toHaveProperty('typescript-eslint');
+      if (typescript) {
+        expect(pkg.devDependencies.typescript).toBe(
+          ESLINT_TYPESCRIPT_DEV_DEPENDENCIES.typescript
+        );
+      } else {
+        expect(pkg.devDependencies).not.toHaveProperty('typescript');
+      }
+    } else {
+      expect(
+        await fs.readFile(path.join(target, 'eslint.config.js'), 'utf8')
+      ).toBe(ESLINT_CONFIG(typescript));
+      expect(pkg.scripts.lint).toBe('eslint .');
+      expect(pkg.devDependencies).toMatchObject(ESLINT_DEV_DEPENDENCIES);
+      if (typescript) {
+        expect(pkg.devDependencies).toMatchObject(
+          ESLINT_TYPESCRIPT_DEV_DEPENDENCIES
+        );
+      } else {
+        expect(pkg.devDependencies).not.toHaveProperty('typescript');
+        expect(pkg.devDependencies).not.toHaveProperty('typescript-eslint');
+      }
     }
     const names = Object.keys(pkg.devDependencies);
     expect(names).toEqual([...names].sort());
@@ -656,6 +683,119 @@ describe.each([
     });
   }
 );
+
+// A Next.js template is a Next.js App Router skeleton with the Vite starter
+// page copied in and adapted, so every template shows the same page. Its
+// stylesheets, title and provider live in the root layout.
+describe.each([
+  ['next', 'vite', 'jsx'],
+  ['next-ts', 'vite-ts', 'tsx'],
+] as const)('%s template', (template, starter, ext) => {
+  const read = (target: string, file: string) =>
+    fs.readFile(path.join(target, file), 'utf8');
+
+  it('takes the Vite starter page, as a client component that names Next.js', async () => {
+    const target = await scaffold(template);
+    const app = await read(target, `src/App.${ext}`);
+    const vite = await fs.readFile(
+      path.join(templatesDir, starter, 'src', `App.${ext}`),
+      'utf8'
+    );
+
+    expect(app.startsWith("'use client';\n\n")).toBe(true);
+    expect(app).not.toMatch(/vite/i);
+    expect(app).toContain('Bestax + Next.js + React');
+    expect(app).toContain('Your Next.js + Bestax setup');
+    expect(app).toContain('<Image src="/react.svg" alt="React"');
+    for (const file of ['App.css', 'index.css']) {
+      expect(await read(target, `src/${file}`)).toBe(
+        await fs.readFile(path.join(templatesDir, starter, 'src', file), 'utf8')
+      );
+    }
+    // Everything else the Vite page says, it still says.
+    let expected = vite;
+    for (const [pattern, replacement] of NEXT_STARTER_EDITS) {
+      expected = expected.replace(pattern, replacement);
+    }
+    expect(app).toBe(expected);
+  });
+
+  it('stops, naming the edit, when the Vite starter no longer matches one', async () => {
+    const copy = await fs.mkdtemp(path.join(os.tmpdir(), 'bestax-templates-'));
+    await fs.copy(templatesDir, copy);
+    const appPath = path.join(copy, starter, 'src', `App.${ext}`);
+    const vite = await fs.readFile(appPath, 'utf8');
+    await fs.writeFile(appPath, vite.replace('Bestax + Vite + React', 'Hello'));
+
+    await expect(
+      new ProjectCreator(copy).copyTemplate(template, path.join(copy, 'out'))
+    ).rejects.toThrow(
+      MESSAGES.STARTER_NOT_ADAPTED(starter, String(/Bestax \+ Vite \+ React/))
+    );
+    await fs.remove(copy);
+  });
+
+  it('names the app in the layout metadata, not an index.html', async () => {
+    const target = await scaffold(template);
+    await projectCreator.updateIndexHtmlTitle(target, 'my-app');
+
+    const layout = await read(target, `src/app/layout.${ext}`);
+    expect(layout).toContain("  title: 'my-app',");
+    expect(layout).not.toContain('Bestax + Next.js + React');
+    expect(fs.existsSync(path.join(target, 'index.html'))).toBe(false);
+  });
+
+  it('wraps everything in <body> in the provider, the navbar included', async () => {
+    const target = await scaffold(template);
+    await projectCreator.setupBulmaFlavor(target, 'prefixed', template);
+    await projectCreator.setupIconLibrary(target, 'mdi', template);
+    await projectCreator.setupConfigProvider(
+      target,
+      'prefixed',
+      'mdi',
+      template
+    );
+
+    const layout = await read(target, `src/app/layout.${ext}`);
+    expect(layout).toContain(
+      "import Navigation from '../Navigation';\n" +
+        "import { ConfigProvider } from '@allxsmith/bestax-bulma';"
+    );
+    expect(layout).toContain(
+      [
+        '      <body>',
+        '        <ConfigProvider classPrefix="bestax-" iconLibrary="mdi">',
+        '          <Navigation />',
+        '          {children}',
+        '        </ConfigProvider>',
+        '      </body>',
+      ].join('\n')
+    );
+  });
+
+  it('loads Ionicons through next/script in the layout', async () => {
+    const target = await scaffold(template);
+    await projectCreator.setupIconLibrary(target, 'ionicons', template);
+
+    const layout = await read(target, `src/app/layout.${ext}`);
+    expect(layout).toContain(
+      "import Navigation from '../Navigation';\nimport Script from 'next/script';"
+    );
+    expect(layout).toMatch(
+      /<body>\n\s*<Script type="module" src="https:\/\/unpkg\.com\/ionicons@8\.0\.13\/dist\/ionicons\/ionicons\.esm\.js" \/>/
+    );
+  });
+
+  it('keeps the About page a Server Component, using no dotted part', async () => {
+    const target = await scaffold(template);
+    const about = await read(target, `src/app/about/page.${ext}`);
+    expect(about).not.toContain("'use client'");
+    expect(about).not.toMatch(/<[A-Z]\w*\.[A-Z]/);
+    expect(await read(target, `src/Navigation.${ext}`)).toMatch(
+      /^'use client';/
+    );
+  });
+});
 
 // A template asks for the library the way this CLI's own manifest does, and
 // the scaffold writes the range that manifest resolves to in its place, so an

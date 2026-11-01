@@ -17,9 +17,9 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest",
-    "test:watch": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --watch",
-    "test:coverage": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --coverage",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.ts\"",
@@ -62,14 +62,12 @@
     "eslint": "^10.0.0"
   },
   "devDependencies": {
-    "@jest/globals": "^30.0.0",
-    "@types/jest": "^30.0.0",
-    "@types/node": "^26.6.5",
-    "@typescript-eslint/parser": "^8.71.2",
+    "@types/node": "^26.6.6",
+    "@typescript-eslint/parser": "^8.72.1",
+    "@vitest/coverage-istanbul": "^5.0.5",
     "eslint": "^10.13.0",
-    "jest": "^30.2.0",
-    "ts-jest": "^29.4.15",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.5"
   },
   "publishConfig": {
     "access": "public"

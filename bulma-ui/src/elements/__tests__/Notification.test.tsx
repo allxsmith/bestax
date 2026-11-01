@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import { Profiler, StrictMode } from 'react';
 import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
@@ -80,7 +81,7 @@ describe('Notification Component', () => {
   });
 
   test('calls onDelete when delete button is clicked', () => {
-    const onDelete = jest.fn();
+    const onDelete = vi.fn();
     render(<Notification {...defaultProps} hasDelete onDelete={onDelete} />);
     const deleteButton = screen.getByLabelText('Close notification');
     fireEvent.click(deleteButton);
@@ -182,11 +183,11 @@ describe('Notification Component', () => {
 });
 
 // Programmatic Notification API tests
-jest.useFakeTimers();
+vi.useFakeTimers();
 
 describe('Notification Programmatic API', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
     notification.closeAll();
   });
 
@@ -209,7 +210,7 @@ describe('Notification Programmatic API', () => {
     // Lets the container write what it announces.
     const waitForAnnouncements = () =>
       act(() => {
-        jest.advanceTimersByTime(announceDelay);
+        vi.advanceTimersByTime(announceDelay);
       });
 
     it('keeps a status region in the page from mount, with nothing visible', () => {
@@ -401,7 +402,7 @@ describe('Notification Programmatic API', () => {
       expect(screen.getByRole('status')).toHaveTextContent('Stays up');
 
       act(() => {
-        jest.advanceTimersByTime(announcementLifetime);
+        vi.advanceTimersByTime(announcementLifetime);
       });
 
       expect(screen.getByRole('status')).toBeEmptyDOMElement();
@@ -444,7 +445,7 @@ describe('Notification Programmatic API', () => {
       });
       waitForAnnouncements();
       act(() => {
-        jest.advanceTimersByTime(50);
+        vi.advanceTimersByTime(50);
       });
 
       act(() => {
@@ -460,7 +461,7 @@ describe('Notification Programmatic API', () => {
 
       // Each leaves when its own lifetime is up.
       act(() => {
-        jest.advanceTimersByTime(announcementLifetime - announceDelay - 50);
+        vi.advanceTimersByTime(announcementLifetime - announceDelay - 50);
       });
       expect(screen.getByRole('status')).toHaveTextContent(/^Saved!$/);
     });
@@ -670,7 +671,7 @@ describe('Notification Programmatic API', () => {
       expect(screen.getByText('Auto')).toBeInTheDocument();
 
       act(() => {
-        jest.advanceTimersByTime(3000);
+        vi.advanceTimersByTime(3000);
       });
       expect(screen.queryByText('Auto')).not.toBeInTheDocument();
     });
@@ -686,7 +687,7 @@ describe('Notification Programmatic API', () => {
       });
 
       act(() => {
-        jest.advanceTimersByTime(5000);
+        vi.advanceTimersByTime(5000);
       });
       expect(screen.getByText('Stay')).toBeInTheDocument();
     });
@@ -750,7 +751,7 @@ describe('Notification Programmatic API', () => {
 
   describe('subscribe', () => {
     it('notifies subscribers', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       const unsubscribe = notification.subscribe(listener);
 
       act(() => {
@@ -762,7 +763,7 @@ describe('Notification Programmatic API', () => {
     });
 
     it('returns unsubscribe function', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       const unsubscribe = notification.subscribe(listener);
       unsubscribe();
 
@@ -837,7 +838,7 @@ describe('Notification Programmatic API', () => {
 
       // Advance well past the duration; should still be present (paused)
       act(() => {
-        jest.advanceTimersByTime(5000);
+        vi.advanceTimersByTime(5000);
       });
       expect(screen.getByText('Hoverable')).toBeInTheDocument();
 
@@ -847,7 +848,7 @@ describe('Notification Programmatic API', () => {
       });
 
       act(() => {
-        jest.advanceTimersByTime(3000);
+        vi.advanceTimersByTime(3000);
       });
       expect(screen.queryByText('Hoverable')).not.toBeInTheDocument();
     });
@@ -896,7 +897,7 @@ describe('Notification Programmatic API', () => {
       });
 
       act(() => {
-        jest.advanceTimersByTime(3000);
+        vi.advanceTimersByTime(3000);
       });
       expect(screen.queryByText('NoPause')).not.toBeInTheDocument();
     });
@@ -905,7 +906,7 @@ describe('Notification Programmatic API', () => {
 
 describe('NotificationContainer mounted after notifications are raised', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
     // The container is still mounted here, so closing re-renders it.
     act(() => {
       notification.closeAll();
@@ -966,7 +967,7 @@ describe('NotificationContainer mounted after notifications are raised', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(/^Early warning$/);
 
     act(() => {
-      jest.advanceTimersByTime(announceDelay);
+      vi.advanceTimersByTime(announceDelay);
     });
 
     expect(status).toHaveTextContent(/^Early$/);
@@ -980,7 +981,7 @@ describe('NotificationContainer mounted after notifications are raised', () => {
       </StrictMode>
     );
     act(() => {
-      jest.advanceTimersByTime(announceDelay);
+      vi.advanceTimersByTime(announceDelay);
     });
 
     expect(screen.getAllByRole('status')).toHaveLength(1);
@@ -996,24 +997,24 @@ describe('NotificationContainer mounted after notifications are raised', () => {
 
     unmount();
 
-    expect(jest.getTimerCount()).toBe(0);
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   it('times each from when it appears, and drops it from the store after', () => {
     notification.show({ message: 'Timed', duration: 3000 });
     // Time spent waiting for a container does not count against it.
     act(() => {
-      jest.advanceTimersByTime(5000);
+      vi.advanceTimersByTime(5000);
     });
 
     render(<NotificationContainer />);
     act(() => {
-      jest.advanceTimersByTime(2999);
+      vi.advanceTimersByTime(2999);
     });
     expect(screen.getByText('Timed')).toBeInTheDocument();
 
     act(() => {
-      jest.advanceTimersByTime(1);
+      vi.advanceTimersByTime(1);
     });
     expect(screen.queryByText('Timed')).not.toBeInTheDocument();
 
@@ -1066,7 +1067,7 @@ describe('NotificationContainer mounted after notifications are raised', () => {
     // raised, so the hydrating render has to produce none either.
     expect(container.innerHTML).toBe('<main></main>');
 
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     let unmountRoot = () => {};
     try {
       await act(async () => {
@@ -1080,7 +1081,7 @@ describe('NotificationContainer mounted after notifications are raised', () => {
       // The status region arrives with it, and announces it once it's in.
       expect(screen.getByRole('status')).toBeEmptyDOMElement();
       act(() => {
-        jest.advanceTimersByTime(announceDelay);
+        vi.advanceTimersByTime(announceDelay);
       });
       expect(screen.getByRole('status')).toHaveTextContent(
         /^Before hydration$/
@@ -1099,7 +1100,7 @@ describe('NotificationContainer mounted after notifications are raised', () => {
     const id = notification.show({ message: 'Gone', duration: 0 });
     notification.close(id);
 
-    const onRender = jest.fn();
+    const onRender = vi.fn();
     const app = (
       <main>
         <Profiler id="notifications" onRender={onRender}>
@@ -1111,7 +1112,7 @@ describe('NotificationContainer mounted after notifications are raised', () => {
     container.innerHTML = renderToString(app);
     document.body.appendChild(container);
 
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     let unmountRoot = () => {};
     try {
       await act(async () => {
@@ -1140,7 +1141,7 @@ describe('NotificationContainer mounted after notifications are raised', () => {
 
 describe('NotificationContainer with notifications shown at their own position', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
     act(() => {
       notification.closeAll();
     });
@@ -1260,7 +1261,7 @@ describe('NotificationContainer with notifications shown at their own position',
     });
 
     act(() => {
-      jest.advanceTimersByTime(999);
+      vi.advanceTimersByTime(999);
     });
     expect(stacks()).toEqual([
       ['top-right', ['Stay']],
@@ -1268,7 +1269,7 @@ describe('NotificationContainer with notifications shown at their own position',
     ]);
 
     act(() => {
-      jest.advanceTimersByTime(1);
+      vi.advanceTimersByTime(1);
     });
     expect(stacks()).toEqual([['top-right', ['Stay']]]);
   });
@@ -1366,7 +1367,7 @@ describe('NotificationContainer with notifications shown at their own position',
     document.body.appendChild(container);
     expect(container.innerHTML).toBe('<main></main>');
 
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     let unmountRoot = () => {};
     try {
       await act(async () => {
@@ -1388,11 +1389,11 @@ describe('NotificationContainer with notifications shown at their own position',
 });
 
 describe('Notification deprecated color values', () => {
-  let warnSpy: jest.SpyInstance;
+  let warnSpy: MockInstance;
 
   beforeEach(() => {
     resetColorDeprecationWarnings();
-    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {

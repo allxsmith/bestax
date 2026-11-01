@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import { render } from '@testing-library/react';
 import Hero, { HeroHead, HeroBody, HeroFoot } from '../Hero';
 import { ConfigProvider } from '../../helpers/Config';
@@ -327,11 +328,11 @@ describe('Compound components', () => {
 });
 
 describe('Hero deprecated color values', () => {
-  let warnSpy: jest.SpyInstance;
+  let warnSpy: MockInstance;
 
   beforeEach(() => {
     resetColorDeprecationWarnings();
-    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {

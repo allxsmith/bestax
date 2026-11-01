@@ -12,8 +12,7 @@ import { ConfigProvider } from '../../helpers/Config';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 
-// The Bulma bulma-ui depends on, resolved through package.json since jest
-// maps any `.css` specifier to a stub.
+// The Bulma bulma-ui depends on, found through its package.json.
 const BULMA = path.dirname(require.resolve('bulma/package.json'));
 
 const compile = (prefix: string) =>
@@ -52,12 +51,40 @@ function parse(css: string) {
 const selectorOf = (rule: CSSStyleRule) =>
   rule.selectorText.split(/\s*,\s*/).join(', ');
 
+/**
+ * The properties a style declares, in order. Iterating the style lists the
+ * longhands a shorthand sets as well, so the names are read off its
+ * `cssText`, split at each `;` outside a string or brackets.
+ */
+function propertiesOf(style: CSSStyleDeclaration) {
+  const text = `${style.cssText};`;
+  const names: string[] = [];
+  let start = 0;
+  let depth = 0;
+  let quote = '';
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (quote) {
+      if (c === '\\') i++;
+      else if (c === quote) quote = '';
+    } else if (c === '"' || c === "'") quote = c;
+    else if (c === '(') depth++;
+    else if (c === ')') depth--;
+    else if (c === ';' && depth === 0) {
+      const name = text.slice(start, i).split(':')[0].trim();
+      if (name) names.push(name);
+      start = i + 1;
+    }
+  }
+  return names;
+}
+
 /** Every declaration the rules for `selector` make, merged in order. */
 function declarations(rules: CSSStyleRule[], selector: string) {
   const out: Record<string, string> = {};
   for (const { style } of rules.filter(rule => selectorOf(rule) === selector)) {
-    for (let i = 0; i < style.length; i++) {
-      out[style[i]] = style.getPropertyValue(style[i]).trim();
+    for (const name of propertiesOf(style)) {
+      out[name] = style.getPropertyValue(name).trim();
     }
   }
   return out;
@@ -265,9 +292,9 @@ describe.each([
     expect(declarations(rules, p('tree-view-group'))).toEqual({
       'border-inline-start': 'var(--bulma-tree-view-group-border)',
       'list-style': 'none',
-      'margin-block': '0',
+      'margin-block': '0px',
       'margin-inline': 'var(--bulma-tree-view-group-margin)',
-      padding: '0',
+      padding: '0px',
       'padding-inline-start': 'var(--bulma-tree-view-group-padding)',
     });
   });
@@ -290,7 +317,7 @@ describe.each([
     expect(declarations(rules, chevron('[aria-expanded]'))).toEqual({
       'border-color': 'var(--bulma-tree-view-toggle-color)',
       'border-style': 'solid',
-      'border-width': '0 0 0.125em 0.125em',
+      'border-width': '0px 0px 0.125em 0.125em',
       content: '""',
       height: '0.5em',
       transform: 'translateX(-15%) rotate(-135deg)',
@@ -309,11 +336,12 @@ describe.each([
     expect(declarations(rules, chevron('[aria-expanded=true]'))).toEqual({
       transform: 'translateY(-15%) rotate(-45deg)',
     });
-    // The chevron's box is on every row, so labels line up.
+    // The chevron's box is on every row, so labels line up. jsdom writes
+    // `flex: none` back as the values it stands for.
     expect(declarations(rules, p('tree-view-toggle'))).toMatchObject({
       height: 'var(--bulma-tree-view-toggle-size)',
       width: 'var(--bulma-tree-view-toggle-size)',
-      flex: 'none',
+      flex: '0 0 auto',
     });
   });
 
@@ -325,22 +353,23 @@ describe.each([
 
   it('keeps the selected row, a disabled one and the ring in forced colors', () => {
     const forced = mediaRules(css, /forced-colors:\s*active/);
+    // jsdom writes a system color in lowercase, as browsers do.
     expect(
       declarations(forced, `${p('tree-view-row')}${p('is-selected')}`)
     ).toEqual({
-      'background-color': 'Highlight',
-      color: 'HighlightText',
+      'background-color': 'highlight',
+      color: 'highlighttext',
       'forced-color-adjust': 'none',
     });
     expect(
       declarations(forced, `${p('tree-view-row')}${p('is-disabled')}`)
-    ).toEqual({ color: 'GrayText' });
+    ).toEqual({ color: 'graytext' });
     expect(
       declarations(
         forced,
         `${p('tree-view-item')}:focus-visible > ${p('tree-view-row')}`
       )
-    ).toEqual({ 'outline-color': 'CanvasText' });
+    ).toEqual({ 'outline-color': 'canvastext' });
   });
 
   it('stops the chevron turning when motion is reduced', () => {

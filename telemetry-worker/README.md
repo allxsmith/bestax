@@ -31,7 +31,7 @@ anyway so a deploy is reproducible from the manifest alone. Wrangler's native
 deploy` never needs — for local `wrangler dev`, use `--remote` or flip the
 `workerd` entry. Wrangler bundles `src/index.ts` directly (no build step).
 Tests and typecheck still run from the repo root:
-`pnpm test` includes `node --test telemetry-worker/src/__tests__/*.test.ts`,
+`pnpm test` includes this package's Vitest suite (`src/__tests__/`),
 and `pnpm typecheck` includes `tsc -p telemetry-worker`. The worker is bound
 to the zone route `bestax.io/api/t`. If that route ever conflicts with
 whatever serves the rest of `bestax.io`, the fallback is a custom domain:

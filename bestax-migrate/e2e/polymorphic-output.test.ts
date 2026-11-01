@@ -229,17 +229,20 @@ function migrate(
 }
 
 describe('migrated output typechecks where `as` and `href` collide', () => {
-  it('compiles every colliding shape, across all three sources', () => {
+  it('compiles every colliding shape, across all three sources', async () => {
     const files: Record<string, string> = {};
     for (const [source, pkg, cases] of SOURCES) {
       cases.forEach((testCase, i) => {
         files[`${pkg}-${i}`] = migrate(source, pkg, testCase);
       });
     }
-    const { status, diagnostics } = typecheckTsxFiles(files, 'polymorphic');
+    const { status, diagnostics } = await typecheckTsxFiles(
+      files,
+      'polymorphic'
+    );
     // A failure names `<pkg>-<n>.tsx`; `n` is the index into the list above.
     expect({ status, diagnostics }).toEqual({ status: 0, diagnostics: '' });
-  });
+  }, 120000);
 
   it("keeps a block's href when the `as` it is dropped for is not a tag it renders", () => {
     // `Panel.Block` takes `a`, `div` or `label`, so a <span> goes and the

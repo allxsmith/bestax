@@ -177,7 +177,7 @@ describe('Radios', () => {
     });
 
     it('controlled value with onChange dispatches without mutating internal state', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       const { getByLabelText } = render(
         <Radios name="c" value="red" onChange={handleChange}>
           <Radio value="red">Red</Radio>
@@ -187,6 +187,111 @@ describe('Radios', () => {
       const green = getByLabelText('Green') as HTMLInputElement;
       green.click();
       expect(handleChange).toHaveBeenCalledWith('green');
+    });
+
+    it('with only onChange, starts from the defaultChecked radio and moves the selection', () => {
+      // Whether it logs a React warning is in Radio.warnings.test.tsx.
+      const handleChange = vi.fn();
+      const { getByLabelText } = render(
+        <Radios onChange={handleChange}>
+          <Radio value="s">Small</Radio>
+          <Radio value="m" defaultChecked>
+            Medium
+          </Radio>
+          <Radio value="l">Large</Radio>
+        </Radios>
+      );
+      const small = getByLabelText('Small') as HTMLInputElement;
+      const medium = getByLabelText('Medium') as HTMLInputElement;
+      expect(medium.checked).toBe(true);
+      expect(small.checked).toBe(false);
+      small.click();
+      expect(handleChange).toHaveBeenLastCalledWith('s');
+      expect(small.checked).toBe(true);
+      expect(medium.checked).toBe(false);
+    });
+
+    it('with only onChange, keeps a radio without a value to itself', () => {
+      const handleChange = vi.fn();
+      const { getByLabelText } = render(
+        <Radios onChange={handleChange}>
+          <Radio name="own" defaultChecked>
+            Loose
+          </Radio>
+          <Radio value="s">Small</Radio>
+        </Radios>
+      );
+      getByLabelText('Small').click();
+      expect(handleChange).toHaveBeenLastCalledWith('s');
+      expect((getByLabelText('Loose') as HTMLInputElement).checked).toBe(true);
+      // Its own name puts it in a native group of its own, so picking it
+      // leaves the group's radios alone.
+      getByLabelText('Loose').click();
+      expect((getByLabelText('Small') as HTMLInputElement).checked).toBe(true);
+    });
+
+    it('with only onChange, lets a radio without a value that shares the name be picked', () => {
+      // It shares the group's name, so the browser unchecks Medium when it's
+      // picked. Medium is controlled, so React would put it back and undo the
+      // click unless the group knows the pick left its radios.
+      const handleChange = vi.fn();
+      const { getByLabelText } = render(
+        <Radios name="size" onChange={handleChange}>
+          <Radio value="s">Small</Radio>
+          <Radio value="m" defaultChecked>
+            Medium
+          </Radio>
+          <Radio>Other</Radio>
+        </Radios>
+      );
+      const radio = (label: string) =>
+        getByLabelText(label) as HTMLInputElement;
+      radio('Other').click();
+      expect(radio('Other').checked).toBe(true);
+      expect(radio('Medium').checked).toBe(false);
+      expect(radio('Small').checked).toBe(false);
+      // A radio without a value tells the group's onChange nothing, as before.
+      expect(handleChange).not.toHaveBeenCalled();
+
+      radio('Small').click();
+      expect(handleChange).toHaveBeenLastCalledWith('s');
+      expect(radio('Small').checked).toBe(true);
+      expect(radio('Other').checked).toBe(false);
+      expect(radio('Medium').checked).toBe(false);
+    });
+
+    it('keeps the value a group holds when a radio without a value is picked, as it always has', () => {
+      // A group with a value reports and shows that value: a pick it never
+      // hears of doesn't change it, so React puts its radio back. This is
+      // how a group with defaultValue or value has always behaved, and how
+      // one with only onChange behaves after its first change.
+      const handleChange = vi.fn();
+      const { getByLabelText } = render(
+        <Radios name="size" onChange={handleChange}>
+          <Radio value="s">Small</Radio>
+          <Radio>Other</Radio>
+        </Radios>
+      );
+      getByLabelText('Small').click();
+      getByLabelText('Other').click();
+      expect((getByLabelText('Small') as HTMLInputElement).checked).toBe(true);
+      expect(handleChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('with only onChange and no name, leaves the radios with a value alone when one without is picked', () => {
+      // Radios without a name aren't a native group, so the pick unchecks
+      // nothing.
+      const { getByLabelText } = render(
+        <Radios onChange={() => {}}>
+          <Radio value="m" defaultChecked>
+            Medium
+          </Radio>
+          <Radio>Other</Radio>
+        </Radios>
+      );
+      getByLabelText('Other').click();
+      expect((getByLabelText('Other') as HTMLInputElement).checked).toBe(true);
+      expect((getByLabelText('Medium') as HTMLInputElement).checked).toBe(true);
     });
   });
 });

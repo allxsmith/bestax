@@ -20,7 +20,7 @@ npm package so consumers can build the styles themselves.
 A new or changed component is **five artifacts, not one**. Touch all of: <!-- bestax:count-ok: the list immediately below is the definition -->
 
 1. `src/<folder>/Foo.tsx` — the component
-2. `src/<folder>/__tests__/Foo.test.tsx` — tests (coverage threshold: **99%**, `jest.config.js`)
+2. `src/<folder>/__tests__/Foo.test.tsx` — tests (coverage threshold: **99%**, `vitest.config.ts`)
 3. `src/<folder>/Foo.stories.tsx` — Storybook story
 4. `docs/docs/api/<folder>/foo.md` — the API docs page
 5. `src/index.ts` — the export
@@ -128,14 +128,22 @@ These keep it working, and each of them failed once:
   classname helpers (`usePrefixedClassNames`).
 - Scope: components should map to the Bulma spec. Extras beyond Bulma (a new Carousel-like
   widget) need an issue discussion first, and pair with SCSS in `src/scss/`.
-- Tests: jest + ts-jest + Testing Library, in each folder's `__tests__/`. Run one file with
-  `pnpm --filter @allxsmith/bestax-bulma exec jest src/elements/__tests__/Button.test.tsx`.
+- Tests: Vitest + Testing Library on jsdom, in each folder's `__tests__/`. Run one file with
+  `pnpm --filter @allxsmith/bestax-bulma exec vitest run src/elements/__tests__/Button.test.tsx`.
+  `vi.spyOn` on a module's export does not reach that module's own calls to it, so stub
+  what the code reads instead (a global, a prop). Not `document` or `window`, though: the
+  suites run in jsdom's own context (`vmForks`), where those cannot be redefined, and React
+  18's development build reads `document` as it handles an event. The fake timers catch
+  jsdom's own timers too: moving focus queues a zero-delay one for `selectionchange`, so run
+  it (`vi.advanceTimersByTime(0)`) before counting with `vi.getTimerCount()`.
   The 99% bar is reachable with the techniques in `src/components/__tests__/Reveal.test.tsx`
-  (IntersectionObserver/matchMedia mocks, SSR via `renderToStaticMarkup`).
+  (IntersectionObserver/matchMedia mocks, SSR via `renderToStaticMarkup`). A suite that
+  compiles a whole published stylesheet compiles it with `src/__tests__/compile-scss.ts`,
+  which says why.
 - Stories: types from `@storybook/react-vite`; `tags: ['autodocs']`; every argType gets a
   `description` (meta-test enforced). No inline `style={{}}` in stories/docs examples — helper
   props; legacy inline styles exist, don't copy them.
-- Must build and pass tests on **React 18 and 19** (CI matrix) — avoid single-major APIs.
+- Must pass tests on **React 18 and 19** (CI matrix) — avoid single-major APIs.
 - Bundle size is part of the pitch (the READMEs sell the library as tree-shakeable), so check
   `pnpm bundle:stats` (writes `dist/stats.html`) when adding anything with real runtime weight.
 - A peer range names what somebody checked: one caret arm per major, or per minor for a 0.x

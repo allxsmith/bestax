@@ -51,7 +51,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import { extractComponent } from './lib/props-extract.mjs';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));

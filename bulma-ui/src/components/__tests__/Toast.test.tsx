@@ -3,12 +3,13 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { Toast, ToastContainer, toast } from '../Toast';
+import { ConfigProvider } from '../../helpers/Config';
 
-jest.useFakeTimers();
+vi.useFakeTimers();
 
 describe('Toast', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
     toast.closeAll();
   });
 
@@ -227,14 +228,14 @@ describe('Toast', () => {
     });
 
     it('close button triggers onClose', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={0} closable onClose={onClose} />);
       fireEvent.click(screen.getByRole('button', { name: /close/i }));
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
     it('close button click does not double-fire close', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={0} closable onClose={onClose} />);
       fireEvent.click(screen.getByRole('button', { name: /close/i }));
       expect(onClose).toHaveBeenCalledTimes(1);
@@ -253,7 +254,7 @@ describe('Toast', () => {
     });
 
     it('calls onAction when action button is clicked', () => {
-      const onAction = jest.fn();
+      const onAction = vi.fn();
       render(
         <Toast
           message="Test"
@@ -267,7 +268,7 @@ describe('Toast', () => {
     });
 
     it('closes toast after action click', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast
           message="Test"
@@ -282,7 +283,7 @@ describe('Toast', () => {
     });
 
     it('handles action click without throwing when onAction is omitted', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast
           message="Test"
@@ -298,8 +299,8 @@ describe('Toast', () => {
     });
 
     it('action button click does not double-fire close', () => {
-      const onClose = jest.fn();
-      const onAction = jest.fn();
+      const onClose = vi.fn();
+      const onAction = vi.fn();
       render(
         <Toast
           message="Test"
@@ -324,7 +325,7 @@ describe('Toast', () => {
     });
 
     it('closes toast when cancel button is clicked', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast
           message="Test"
@@ -338,7 +339,7 @@ describe('Toast', () => {
     });
 
     it('cancel button click does not double-fire close', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast
           message="Test"
@@ -406,24 +407,24 @@ describe('Toast', () => {
 
   describe('Auto Close', () => {
     it('closes automatically after duration (default 2000)', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" onClose={onClose} />);
 
       expect(screen.getByRole('alert')).toBeInTheDocument();
 
       act(() => {
-        jest.advanceTimersByTime(2000);
+        vi.advanceTimersByTime(2000);
       });
 
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
     it('does not auto-close when duration is 0', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={0} onClose={onClose} />);
 
       act(() => {
-        jest.advanceTimersByTime(10000);
+        vi.advanceTimersByTime(10000);
       });
 
       expect(onClose).not.toHaveBeenCalled();
@@ -431,13 +432,13 @@ describe('Toast', () => {
     });
 
     it('stays open when indefinite is true', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast message="Test" indefinite duration={2000} onClose={onClose} />
       );
 
       act(() => {
-        jest.advanceTimersByTime(10000);
+        vi.advanceTimersByTime(10000);
       });
 
       expect(onClose).not.toHaveBeenCalled();
@@ -447,7 +448,7 @@ describe('Toast', () => {
 
   describe('Pause on Hover', () => {
     it('pauses timer on mouse enter', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast message="Test" duration={3000} pauseOnHover onClose={onClose} />
       );
@@ -456,14 +457,14 @@ describe('Toast', () => {
       fireEvent.mouseEnter(toastEl);
 
       act(() => {
-        jest.advanceTimersByTime(5000);
+        vi.advanceTimersByTime(5000);
       });
 
       expect(onClose).not.toHaveBeenCalled();
     });
 
     it('resumes timer on mouse leave', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast message="Test" duration={3000} pauseOnHover onClose={onClose} />
       );
@@ -472,27 +473,27 @@ describe('Toast', () => {
       fireEvent.mouseEnter(toastEl);
 
       act(() => {
-        jest.advanceTimersByTime(2000);
+        vi.advanceTimersByTime(2000);
       });
 
       fireEvent.mouseLeave(toastEl);
 
       act(() => {
-        jest.advanceTimersByTime(3000);
+        vi.advanceTimersByTime(3000);
       });
 
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
     it('does not pause when pauseOnHover is false (default)', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={3000} onClose={onClose} />);
 
       const toastEl = screen.getByRole('alert');
       fireEvent.mouseEnter(toastEl);
 
       act(() => {
-        jest.advanceTimersByTime(3000);
+        vi.advanceTimersByTime(3000);
       });
 
       expect(onClose).toHaveBeenCalledTimes(1);
@@ -507,7 +508,7 @@ describe('Toast', () => {
 
   describe('Click to Dismiss', () => {
     it('closes when clicked (dismissible=true by default)', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={0} onClose={onClose} />);
 
       fireEvent.click(screen.getByRole('alert'));
@@ -516,7 +517,7 @@ describe('Toast', () => {
     });
 
     it('does not close when clicked if dismissible is false', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast
           message="Test"
@@ -532,12 +533,12 @@ describe('Toast', () => {
     });
 
     it('closes when clicking outside the toast (dismissible=true)', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={0} onClose={onClose} />);
 
       // Flush the deferred requestAnimationFrame that attaches the listener
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       fireEvent.click(document.body);
@@ -546,7 +547,7 @@ describe('Toast', () => {
     });
 
     it('does not close when clicking outside if dismissible is false', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast
           message="Test"
@@ -557,7 +558,7 @@ describe('Toast', () => {
       );
 
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       fireEvent.click(document.body);
@@ -568,7 +569,7 @@ describe('Toast', () => {
 
   describe('Escape Key', () => {
     it('closes on Escape when cancelable (default)', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={0} onClose={onClose} />);
 
       fireEvent.keyDown(document, { key: 'Escape' });
@@ -577,7 +578,7 @@ describe('Toast', () => {
     });
 
     it('stays up on an Escape that something on the page already used', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <>
           <Toast message="Test" duration={0} onClose={onClose} />
@@ -596,7 +597,7 @@ describe('Toast', () => {
     it('hears Escape after a document listener added once it showed', () => {
       // A popup opened while the toast is up adds its listener after this
       // one, and still gets the key first.
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={0} onClose={onClose} />);
       const claim = (e: KeyboardEvent) => e.preventDefault();
       document.addEventListener('keydown', claim);
@@ -609,7 +610,7 @@ describe('Toast', () => {
     });
 
     it('stops listening for Escape once it has closed', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={0} onClose={onClose} />);
 
       fireEvent.keyDown(document, { key: 'Escape' });
@@ -619,7 +620,7 @@ describe('Toast', () => {
     });
 
     it('does not close on Escape when cancelable is false', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast
           message="Test"
@@ -635,7 +636,7 @@ describe('Toast', () => {
     });
 
     it('non-Escape key with cancelable does not close (covers if-false branch)', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast message="Test" duration={0} cancelable onClose={onClose} />
       );
@@ -651,11 +652,11 @@ describe('Toast', () => {
     });
 
     it('does not close when click is inside the toast (covers contains-true branch)', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Hello" duration={0} onClose={onClose} />);
 
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       fireEvent.click(screen.getByRole('alert'));
@@ -766,7 +767,7 @@ describe('Toast', () => {
     });
 
     it('invokes a function ref', () => {
-      const fnRef = jest.fn();
+      const fnRef = vi.fn();
       render(<Toast message="Fn ref test" duration={0} ref={fnRef} />);
 
       expect(fnRef).toHaveBeenCalled();
@@ -778,7 +779,7 @@ describe('Toast', () => {
 
 describe('Toast Programmatic API', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
     toast.closeAll();
   });
 
@@ -872,7 +873,7 @@ describe('Toast Programmatic API', () => {
 
   describe('toast.subscribe', () => {
     it('notifies subscribers of changes', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       const unsubscribe = toast.subscribe(listener);
 
       act(() => {
@@ -884,7 +885,7 @@ describe('Toast Programmatic API', () => {
     });
 
     it('returns unsubscribe function', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       const unsubscribe = toast.subscribe(listener);
 
       unsubscribe();
@@ -912,13 +913,13 @@ describe('ToastContainer', () => {
       toast.show({ message: 'First', duration: 2000 });
     });
     act(() => {
-      jest.advanceTimersByTime(1500);
+      vi.advanceTimersByTime(1500);
     });
     act(() => {
       toast.show({ message: 'Second', duration: 10000 });
     });
     act(() => {
-      jest.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(1000);
     });
 
     expect(screen.queryByText('First')).toBeNull();
@@ -932,7 +933,7 @@ describe('ToastContainer', () => {
     });
     // Its outside-click listener goes on a frame after it shows.
     act(() => {
-      jest.advanceTimersByTime(20);
+      vi.advanceTimersByTime(20);
     });
     act(() => {
       toast.show({ message: 'Second', duration: 0 });
@@ -984,7 +985,7 @@ describe('ToastContainer', () => {
 
 describe('ToastContainer mounted after toasts are raised', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
     // The container is still mounted here, so closing re-renders it.
     act(() => {
       toast.closeAll();
@@ -1037,17 +1038,17 @@ describe('ToastContainer mounted after toasts are raised', () => {
     toast.show({ message: 'Timed', duration: 2000 });
     // Time spent waiting for a container does not count against the toast.
     act(() => {
-      jest.advanceTimersByTime(5000);
+      vi.advanceTimersByTime(5000);
     });
 
     render(<ToastContainer />);
     act(() => {
-      jest.advanceTimersByTime(1999);
+      vi.advanceTimersByTime(1999);
     });
     expect(screen.getByText('Timed')).toBeInTheDocument();
 
     act(() => {
-      jest.advanceTimersByTime(1);
+      vi.advanceTimersByTime(1);
     });
     expect(screen.queryByText('Timed')).not.toBeInTheDocument();
 
@@ -1098,7 +1099,7 @@ describe('ToastContainer mounted after toasts are raised', () => {
     // the hydrating render has to produce none either.
     expect(container.innerHTML).toBe('<main></main>');
 
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     let unmountRoot = () => {};
     try {
       await act(async () => {
@@ -1121,7 +1122,7 @@ describe('ToastContainer mounted after toasts are raised', () => {
     const id = toast.show({ message: 'Gone', duration: 0 });
     toast.close(id);
 
-    const onRender = jest.fn();
+    const onRender = vi.fn();
     const app = (
       <main>
         <React.Profiler id="toasts" onRender={onRender}>
@@ -1152,16 +1153,15 @@ describe('ToastContainer mounted after toasts are raised', () => {
 
 describe('ToastContainer with toasts shown at their own position', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
     act(() => {
       toast.closeAll();
     });
   });
 
-  // Where each toast is on screen: every toast portals itself into a wrapper
-  // of its own, and that wrapper's position class is what places it. Sorted by
-  // message, since toasts that mount together land in the body in stack order
-  // rather than the order they were shown in.
+  // Where each toast is on screen: the stack it sits in, whose position class
+  // is what places it. Sorted by message, since toasts land in the body in
+  // stack order rather than the order they were shown in.
   const placements = () =>
     Array.from(document.body.querySelectorAll('.toast'))
       .map(el => [
@@ -1170,16 +1170,10 @@ describe('ToastContainer with toasts shown at their own position', () => {
       ])
       .sort(([a], [b]) => a.localeCompare(b));
 
-  // The stacks ToastContainer renders into the body. The toasts in them
-  // portal out to their own wrappers, so these are the wrappers left without
-  // a toast inside.
+  // The stacks ToastContainer renders into the body, one per position in use.
   const stacks = () =>
     Array.from(document.body.children)
-      .filter(
-        el =>
-          el.classList.contains('toast-container') &&
-          !el.querySelector('.toast')
-      )
+      .filter(el => el.classList.contains('toast-container'))
       .map(el => el.className);
 
   it('puts a toast shown with a position at that position', () => {
@@ -1232,23 +1226,12 @@ describe('ToastContainer with toasts shown at their own position', () => {
   });
 
   it('keeps the toasts of a stack together, in the order they were shown', () => {
-    // An inline toast skips its own wrapper and renders inside its stack.
     render(<ToastContainer position="top-right" />);
     act(() => {
-      toast.show({ message: 'A', inline: true, duration: 0 });
-      toast.show({
-        message: 'B',
-        position: 'top-left',
-        inline: true,
-        duration: 0,
-      });
-      toast.show({ message: 'C', inline: true, duration: 0 });
-      toast.show({
-        message: 'D',
-        position: 'top-left',
-        inline: true,
-        duration: 0,
-      });
+      toast.show({ message: 'A', duration: 0 });
+      toast.show({ message: 'B', position: 'top-left', duration: 0 });
+      toast.show({ message: 'C', duration: 0 });
+      toast.show({ message: 'D', position: 'top-left', duration: 0 });
     });
 
     const stackContents = Array.from(
@@ -1266,8 +1249,7 @@ describe('ToastContainer with toasts shown at their own position', () => {
   });
 
   it("gives a toast at the container's own position the container's stack", () => {
-    // What a container rendered before toasts could be placed on their own:
-    // a stack at its position, and each toast in a wrapper at the same one.
+    // Shown with that position or without one, both go in the one stack.
     const { container } = render(<ToastContainer position="bottom-left" />);
     act(() => {
       toast.show({ message: 'One', duration: 0 });
@@ -1279,9 +1261,7 @@ describe('ToastContainer with toasts shown at their own position', () => {
         .filter(el => el !== container)
         .map(el => el.outerHTML)
     ).toEqual([
-      '<div class="toast-container is-bottom-left"><div class="toast" role="alert" aria-live="polite"><span class="toast-message">One</span></div></div>',
-      '<div class="toast-container is-bottom-left"><div class="toast" role="alert" aria-live="polite"><span class="toast-message">Two</span></div></div>',
-      '<div class="toast-container is-bottom-left"></div>',
+      '<div class="toast-container is-bottom-left"><div class="toast" role="alert" aria-live="polite"><span class="toast-message">One</span></div><div class="toast" role="alert" aria-live="polite"><span class="toast-message">Two</span></div></div>',
     ]);
   });
 
@@ -1309,7 +1289,7 @@ describe('ToastContainer with toasts shown at their own position', () => {
     });
 
     act(() => {
-      jest.advanceTimersByTime(999);
+      vi.advanceTimersByTime(999);
     });
     expect(placements()).toEqual([
       ['Stay', 'toast-container is-top-right'],
@@ -1317,7 +1297,7 @@ describe('ToastContainer with toasts shown at their own position', () => {
     ]);
 
     act(() => {
-      jest.advanceTimersByTime(1);
+      vi.advanceTimersByTime(1);
     });
     expect(placements()).toEqual([['Stay', 'toast-container is-top-right']]);
     expect(stacks()).toEqual(['toast-container is-top-right']);
@@ -1413,7 +1393,7 @@ describe('ToastContainer with toasts shown at their own position', () => {
     document.body.appendChild(container);
     expect(container.innerHTML).toBe('<main></main>');
 
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     let unmountRoot = () => {};
     try {
       await act(async () => {
@@ -1434,9 +1414,206 @@ describe('ToastContainer with toasts shown at their own position', () => {
   });
 });
 
+describe('ToastContainer stacks', () => {
+  afterEach(() => {
+    vi.clearAllTimers();
+    act(() => {
+      toast.closeAll();
+    });
+  });
+
+  // Each stack in the body, as its class and the messages of the toasts
+  // that are its own children.
+  const stackContents = () =>
+    Array.from(document.body.children)
+      .filter(el => /(^|\s|-)toast-container(\s|$)/.test(el.className))
+      .map(stack => [
+        stack.className,
+        Array.from(stack.children).map(
+          el => el.querySelector('[class$="toast-message"]')?.textContent
+        ),
+      ]);
+
+  it('puts the toasts shown at one position in one stack, one after another', () => {
+    render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'First toast', indefinite: true });
+      toast.show({ message: 'Second toast', indefinite: true });
+      toast.show({
+        message: 'Third toast',
+        indefinite: true,
+        position: 'bottom-left',
+      });
+    });
+
+    expect(stackContents()).toEqual([
+      ['toast-container is-top-right', ['First toast', 'Second toast']],
+      ['toast-container is-bottom-left', ['Third toast']],
+    ]);
+    expect(document.querySelectorAll('.toast-container')).toHaveLength(2);
+  });
+
+  it('builds its stacks with the class prefix', () => {
+    render(
+      <ConfigProvider classPrefix="bestax-">
+        <ToastContainer position="bottom-center" />
+      </ConfigProvider>
+    );
+    act(() => {
+      toast.show({ message: 'One', duration: 0 });
+      toast.show({ message: 'Two', duration: 0 });
+    });
+
+    expect(stackContents()).toEqual([
+      ['bestax-toast-container bestax-is-bottom-center', ['One', 'Two']],
+    ]);
+    expect(document.querySelector('.toast-container')).toBeNull();
+    expect(screen.getByText('One').closest('[role="alert"]')).toHaveClass(
+      'bestax-toast'
+    );
+  });
+
+  it('portals a toast with a container of its own there, outside the stacks', () => {
+    const target = document.createElement('div');
+    document.body.appendChild(target);
+    try {
+      render(<ToastContainer position="top-right" />);
+      act(() => {
+        toast.show({ message: 'Own', container: target, duration: 0 });
+      });
+      // In a box of its own in the target, as before, and no empty stack.
+      expect(target.innerHTML).toBe(
+        '<div class="toast-container is-top-right"><div class="toast" role="alert" aria-live="polite"><span class="toast-message">Own</span></div></div>'
+      );
+      expect(stackContents()).toEqual([]);
+
+      act(() => {
+        toast.show({ message: 'Stacked', duration: 0 });
+        toast.show({
+          message: 'Own placed',
+          container: target,
+          position: 'bottom-center',
+          duration: 0,
+        });
+      });
+      expect(stackContents()).toEqual([
+        ['toast-container is-top-right', ['Stacked']],
+      ]);
+      expect(target.contains(screen.getByText('Own'))).toBe(true);
+      expect(
+        screen.getByText('Own placed').closest('.toast-container')
+      ).toHaveClass('is-bottom-center');
+      expect(
+        target.contains(screen.getByText('Own placed').closest('.toast'))
+      ).toBe(true);
+    } finally {
+      act(() => {
+        toast.closeAll();
+      });
+      document.body.removeChild(target);
+    }
+  });
+
+  it('keeps an inline toast with a container in its stack, as inline wins', () => {
+    const target = document.createElement('div');
+    document.body.appendChild(target);
+    try {
+      render(<ToastContainer position="top-left" />);
+      act(() => {
+        toast.show({
+          message: 'Inline',
+          container: target,
+          inline: true,
+          duration: 0,
+        });
+        toast.show({ message: 'Plain', duration: 0 });
+      });
+      expect(target).toBeEmptyDOMElement();
+      expect(stackContents()).toEqual([
+        ['toast-container is-top-left', ['Inline', 'Plain']],
+      ]);
+    } finally {
+      act(() => {
+        toast.closeAll();
+      });
+      document.body.removeChild(target);
+    }
+  });
+
+  it('stacks a toast with an empty container, which means none', () => {
+    render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'Empty', container: '', duration: 0 });
+      toast.show({ message: 'Plain', duration: 0 });
+    });
+
+    expect(stackContents()).toEqual([
+      ['toast-container is-top-right', ['Empty', 'Plain']],
+    ]);
+  });
+
+  it('stacks a queued toast with the others at its position', () => {
+    render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'Queued', queue: true, duration: 0 });
+      toast.show({ message: 'Stacked', duration: 0 });
+    });
+
+    // The queued one on screen comes after the stacked ones.
+    expect(stackContents()).toEqual([
+      ['toast-container is-top-right', ['Stacked', 'Queued']],
+    ]);
+  });
+
+  it('dismisses and times out one toast of a stack, leaving the rest in it', () => {
+    render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'Click me', duration: 0 });
+      // A click outside a dismissible toast closes it too, so these two
+      // aren't, to stay up through the click on the first.
+      toast.show({ message: 'Timed', duration: 1000, dismissible: false });
+      toast.show({ message: 'Stay', duration: 0, dismissible: false });
+    });
+    // The outside-click listeners go on a frame after the toasts show.
+    act(() => {
+      vi.advanceTimersByTime(20);
+    });
+
+    act(() => {
+      fireEvent.click(screen.getByText('Click me'));
+    });
+    expect(stackContents()).toEqual([
+      ['toast-container is-top-right', ['Timed', 'Stay']],
+    ]);
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(stackContents()).toEqual([
+      ['toast-container is-top-right', ['Stay']],
+    ]);
+  });
+
+  it('keeps a toast mounted as others join and leave its stack', () => {
+    render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'Kept', duration: 0 });
+    });
+    const kept = screen.getByText('Kept').closest('.toast');
+    let other = '';
+    act(() => {
+      other = toast.show({ message: 'Other', duration: 0 });
+    });
+    act(() => {
+      toast.close(other);
+    });
+    expect(screen.getByText('Kept').closest('.toast')).toBe(kept);
+  });
+});
+
 describe('Toast Queue', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
     toast.closeAll();
   });
 
@@ -1530,7 +1707,7 @@ describe('Toast Queue', () => {
     // setRef must stay referentially stable: an unstable ref identity makes
     // React detach and re-attach on every render, which would fire the
     // consumer's cleanup each time.
-    const cleanup = jest.fn();
+    const cleanup = vi.fn();
     const callbackRef = (node: HTMLDivElement | null) => {
       if (!node) return undefined;
       return () => {
@@ -1554,7 +1731,7 @@ describe('Toast Queue', () => {
   // ref, so neither this nor its siblings branch on React.version.
   it('runs a forwarded callback ref cleanup on unmount instead of calling it with null', () => {
     const calls: (HTMLDivElement | null)[] = [];
-    const cleanup = jest.fn();
+    const cleanup = vi.fn();
     const callbackRef = (node: HTMLDivElement | null) => {
       calls.push(node);
       if (!node) return undefined;

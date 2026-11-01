@@ -3,11 +3,28 @@
  * (#1085), and "the topmost modal one holds Tab" (#1191). Overlays join only
  * through the hook, so each case here opens them with it.
  */
-import React, { StrictMode } from 'react';
+import { StrictMode } from 'react';
 import { act, renderHook } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { isModalOverlayOpen, useOverlayStack } from '../overlayStack';
+
+// Hands each effect cleanup the hook registers to `onCleanup` while a test
+// sets it. A spy on `React.useEffect` cannot do this: the hook's module holds
+// its own binding to the named import, which a spy does not replace.
+const effects = vi.hoisted(() => ({
+  onCleanup: undefined as ((cleanup: () => void) => void) | undefined,
+}));
+vi.mock('react', async importOriginal => {
+  const actual = await importOriginal<typeof import('react')>();
+  const useEffect: typeof actual.useEffect = (effect, deps) =>
+    actual.useEffect(() => {
+      const cleanup = effect();
+      if (cleanup) effects.onCleanup?.(cleanup);
+      return cleanup;
+    }, deps);
+  return { ...actual, useEffect };
+});
 
 /** An overlay that's open or not, returning its check. */
 const overlay = (open: boolean, options?: { strict?: boolean }) =>
@@ -75,16 +92,7 @@ describe('useOverlayStack', () => {
     // second time, the way a future mode that tears an effect down twice
     // might, and the topmost overlay has to keep its place.
     const cleanups: Array<() => void> = [];
-    const realUseEffect = React.useEffect;
-    const spy = jest
-      .spyOn(React, 'useEffect')
-      .mockImplementation((effect, deps) =>
-        realUseEffect(() => {
-          const cleanup = effect();
-          if (cleanup) cleanups.push(cleanup);
-          return cleanup;
-        }, deps)
-      );
+    effects.onCleanup = cleanup => cleanups.push(cleanup);
     try {
       const bottom = overlay(true);
       const bottomCleanup = cleanups[cleanups.length - 1];
@@ -97,7 +105,7 @@ describe('useOverlayStack', () => {
       expect(top.result.current()).toBe(true);
       expect(nothingOpen()).toBe(false);
     } finally {
-      spy.mockRestore();
+      effects.onCleanup = undefined;
     }
   });
 

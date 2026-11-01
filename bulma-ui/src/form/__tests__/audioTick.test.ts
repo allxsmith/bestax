@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import {
   playAudioTick,
   unlockAudioTick,
@@ -9,62 +10,65 @@ describe('audioTick', () => {
   let mockCtx: {
     state: AudioContextState;
     currentTime: number;
-    resume: jest.Mock;
-    close: jest.Mock;
-    createOscillator: jest.Mock;
-    createGain: jest.Mock;
+    resume: Mock;
+    close: Mock;
+    createOscillator: Mock;
+    createGain: Mock;
     destination: object;
   };
   let lastOsc: {
-    connect: jest.Mock;
-    start: jest.Mock;
-    stop: jest.Mock;
+    connect: Mock;
+    start: Mock;
+    stop: Mock;
     type: OscillatorType;
     frequency: {
-      setValueAtTime: jest.Mock;
-      exponentialRampToValueAtTime: jest.Mock;
+      setValueAtTime: Mock;
+      exponentialRampToValueAtTime: Mock;
     };
   };
   let lastGain: {
     gain: {
-      setValueAtTime: jest.Mock;
-      linearRampToValueAtTime: jest.Mock;
-      exponentialRampToValueAtTime: jest.Mock;
+      setValueAtTime: Mock;
+      linearRampToValueAtTime: Mock;
+      exponentialRampToValueAtTime: Mock;
     };
-    connect: jest.Mock;
+    connect: Mock;
   };
 
   beforeEach(() => {
     originalAudioContext = window.AudioContext;
     lastOsc = {
-      connect: jest.fn().mockReturnThis(),
-      start: jest.fn(),
-      stop: jest.fn(),
+      connect: vi.fn().mockReturnThis(),
+      start: vi.fn(),
+      stop: vi.fn(),
       type: 'sine',
       frequency: {
-        setValueAtTime: jest.fn(),
-        exponentialRampToValueAtTime: jest.fn(),
+        setValueAtTime: vi.fn(),
+        exponentialRampToValueAtTime: vi.fn(),
       },
     };
     lastGain = {
       gain: {
-        setValueAtTime: jest.fn(),
-        linearRampToValueAtTime: jest.fn(),
-        exponentialRampToValueAtTime: jest.fn(),
+        setValueAtTime: vi.fn(),
+        linearRampToValueAtTime: vi.fn(),
+        exponentialRampToValueAtTime: vi.fn(),
       },
-      connect: jest.fn().mockReturnThis(),
+      connect: vi.fn().mockReturnThis(),
     };
     mockCtx = {
       state: 'running',
       currentTime: 0,
-      resume: jest.fn().mockResolvedValue(undefined),
-      close: jest.fn().mockResolvedValue(undefined),
-      createOscillator: jest.fn(() => lastOsc),
-      createGain: jest.fn(() => lastGain),
+      resume: vi.fn().mockResolvedValue(undefined),
+      close: vi.fn().mockResolvedValue(undefined),
+      createOscillator: vi.fn(() => lastOsc),
+      createGain: vi.fn(() => lastGain),
       destination: {},
     };
-    (window as unknown as { AudioContext: jest.Mock }).AudioContext = jest.fn(
-      () => mockCtx
+    // A `function`, not an arrow: the code under test calls it with `new`.
+    (window as unknown as { AudioContext: Mock }).AudioContext = vi.fn(
+      function () {
+        return mockCtx;
+      }
     );
   });
 
@@ -135,7 +139,7 @@ describe('audioTick', () => {
   });
 
   it('swallows errors from oscillator setup', () => {
-    mockCtx.createOscillator = jest.fn(() => {
+    mockCtx.createOscillator = vi.fn(() => {
       throw new Error('aborted');
     });
     expect(() => playAudioTick()).not.toThrow();
@@ -149,7 +153,7 @@ describe('audioTick', () => {
 
   it('swallows a rejected resume promise (no user gesture in progress)', async () => {
     mockCtx.state = 'suspended';
-    mockCtx.resume = jest.fn().mockRejectedValue(new Error('NotAllowedError'));
+    mockCtx.resume = vi.fn().mockRejectedValue(new Error('NotAllowedError'));
     expect(() => unlockAudioTick()).not.toThrow();
     expect(mockCtx.resume).toHaveBeenCalledTimes(1);
     // Flush the microtask queue so the .catch handler runs; an unhandled
@@ -160,11 +164,9 @@ describe('audioTick', () => {
 
   it('no-ops when the AudioContext constructor throws', () => {
     __resetAudioTickForTest();
-    (window as unknown as { AudioContext: jest.Mock }).AudioContext = jest.fn(
-      () => {
-        throw new Error('hardware unavailable');
-      }
-    );
+    (window as unknown as { AudioContext: Mock }).AudioContext = vi.fn(() => {
+      throw new Error('hardware unavailable');
+    });
     expect(() => playAudioTick()).not.toThrow();
     expect(() => unlockAudioTick()).not.toThrow();
     expect(mockCtx.createOscillator).not.toHaveBeenCalled();
@@ -175,7 +177,7 @@ describe('audioTick', () => {
     playAudioTick();
     playAudioTick();
     expect(
-      (window as unknown as { AudioContext: jest.Mock }).AudioContext
+      (window as unknown as { AudioContext: Mock }).AudioContext
     ).toHaveBeenCalledTimes(1);
   });
 });

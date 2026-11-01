@@ -7,7 +7,7 @@ name: Test deployment
 # build-time hook the repo owns (docs/docusaurus.config.js,
 # bulma-ui/.storybook/main.ts, any package.json script). Those files are NOT
 # covered by the AI agents' `--disallowedTools` deny lists (which protect
-# .github/**, pnpm-workspace.yaml, the jest/commitlint/release configs), so a
+# .github/**, pnpm-workspace.yaml, the vitest/commitlint/release configs), so a
 # claude/* PR can legitimately change code that runs here before any human
 # reviews it. Keeping CLOUDFLARE_API_TOKEN out of that job means build-time
 # code has no credential to reach for.

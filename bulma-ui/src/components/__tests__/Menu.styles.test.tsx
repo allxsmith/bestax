@@ -15,8 +15,7 @@ import { ConfigProvider } from '../../helpers/Config';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 
-// The Bulma bulma-ui depends on, resolved through package.json since jest
-// maps any `.css` specifier to a stub.
+// The Bulma bulma-ui depends on, found through its package.json.
 const BULMA = path.dirname(require.resolve('bulma/package.json'));
 
 const compile = (prefix: string, partial = 'menu') =>
@@ -61,11 +60,38 @@ function allRulesOf(css: string) {
   return out;
 }
 
+/**
+ * The properties a rule declares, in order. Iterating its style lists the
+ * longhands a shorthand sets as well, so the names are read off its
+ * `cssText`, split at each `;` outside a string or brackets.
+ */
+function propertiesOf(rule: CSSStyleRule) {
+  const text = `${rule.style.cssText};`;
+  const names: string[] = [];
+  let start = 0;
+  let depth = 0;
+  let quote = '';
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (quote) {
+      if (c === '\\') i++;
+      else if (c === quote) quote = '';
+    } else if (c === '"' || c === "'") quote = c;
+    else if (c === '(') depth++;
+    else if (c === ')') depth--;
+    else if (c === ';' && depth === 0) {
+      const name = text.slice(start, i).split(':')[0].trim();
+      if (name) names.push(name);
+      start = i + 1;
+    }
+  }
+  return names;
+}
+
 /** A rule's declarations as `name: value`, in order. */
 const declarationsOf = (rule: CSSStyleRule) =>
-  Array.from(
-    { length: rule.style.length },
-    (_, i) => `${rule.style[i]}: ${rule.style.getPropertyValue(rule.style[i])}`
+  propertiesOf(rule).map(
+    name => `${name}: ${rule.style.getPropertyValue(name)}`
   );
 
 /** A rule's selector list on one line, `, ` between. */
@@ -76,8 +102,8 @@ const selectorOf = (rule: CSSStyleRule) =>
 function declarations(found: Found[], selector: string) {
   const out: Record<string, string> = {};
   for (const { rule } of found.filter(f => selectorOf(f.rule) === selector)) {
-    for (let i = 0; i < rule.style.length; i++) {
-      out[rule.style[i]] = rule.style.getPropertyValue(rule.style[i]).trim();
+    for (const name of propertiesOf(rule)) {
+      out[name] = rule.style.getPropertyValue(name).trim();
     }
   }
   return out;
@@ -123,8 +149,10 @@ describe.each([
           ['is-active', 'is-selected'].map(state => `${item}.${prefix}${state}`)
         )
       );
+      // jsdom writes a system color in lowercase, as browsers do, though it
+      // keeps the `border-inline-start` shorthand above as written.
       expect(declarationsOf(current)).toEqual([
-        'border-inline-start-color: Highlight',
+        'border-inline-start-color: highlight',
       ]);
     });
 
@@ -287,11 +315,13 @@ describe.each([
 
     it('takes the button’s own look off the heading, and lays it out as a line', () => {
       // The label's look, from the test above, and nothing of a button's.
+      // jsdom writes `border: none` back as `medium`, the width it resets,
+      // and the style it resets with it is `none`.
       expect(declarations(section, p('menu-section-toggle'))).toEqual({
         'align-items': 'center',
         appearance: 'none',
         background: 'none',
-        border: 'none',
+        border: 'medium',
         color: 'var(--bulma-menu-label-color)',
         cursor: 'pointer',
         display: 'flex',
@@ -301,8 +331,8 @@ describe.each([
         gap: 'var(--bulma-menu-section-gap)',
         'letter-spacing': 'var(--bulma-menu-label-letter-spacing)',
         'line-height': 'inherit',
-        margin: '0',
-        padding: '0',
+        margin: '0px',
+        padding: '0px',
         'text-align': 'start',
         'text-transform': 'uppercase',
         width: '100%',
@@ -310,7 +340,7 @@ describe.each([
       // The words take the room the chevron leaves, as TreeView's label does.
       expect(declarations(section, p('menu-section-label'))).toEqual({
         flex: '1 1 auto',
-        'min-width': '0',
+        'min-width': '0px',
       });
       expect(declarations(section, p('menu-section-label'))).toEqual(
         declarations(tree, p('tree-view-label'))
@@ -365,7 +395,7 @@ describe.each([
       expect(heading).toHaveAttribute('aria-expanded', 'false');
       // A rule of the partial's spaces the closed heading below.
       const below = section.filter(({ rule }) =>
-        rule.style.getPropertyValue('margin-bottom')
+        propertiesOf(rule).includes('margin-bottom')
       );
       expect(
         below.filter(({ rule }) => heading.matches(rule.selectorText))
@@ -390,14 +420,14 @@ describe.each([
           section.filter(f => f.within.join() === FORCED),
           `${p('menu-section-toggle')}:focus-visible`
         )
-      ).toEqual({ 'outline-color': 'CanvasText' });
+      ).toEqual({ 'outline-color': 'canvastext' });
       // TreeView's ring is the same color there.
       expect(
         declarations(
           tree.filter(f => f.within.join() === FORCED),
           `${p('tree-view-item')}:focus-visible > ${p('tree-view-row')}`
         )
-      ).toEqual({ 'outline-color': 'CanvasText' });
+      ).toEqual({ 'outline-color': 'canvastext' });
     });
 
     // The chevron is TreeView's, so these hold the two together: the same
@@ -425,7 +455,7 @@ describe.each([
       expect(
         declarations(section, `${p('menu-section-chevron')}::after`)
       ).toMatchObject({
-        'border-width': '0 0 0.125em 0.125em',
+        'border-width': '0px 0px 0.125em 0.125em',
         transform: 'translateX(-15%) rotate(-135deg)',
       });
     });

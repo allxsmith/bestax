@@ -4,7 +4,7 @@
 [![npm downloads](https://img.shields.io/npm/dm/@allxsmith/bestax-bulma.svg)](https://www.npmjs.com/package/@allxsmith/bestax-bulma)
 [![create-bestax](https://img.shields.io/npm/v/create-bestax.svg?label=create-bestax)](https://www.npmjs.com/package/create-bestax)
 [![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue.svg)](https://www.typescriptlang.org/)
-[![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)](https://github.com/allxsmith/bestax/blob/main/bulma-ui/jest.config.js)
+[![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)](https://github.com/allxsmith/bestax/blob/main/bulma-ui/vitest.config.ts)
 [![Bulma](https://img.shields.io/badge/Bulma-v1.0+-00d1b2.svg)](https://bulma.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Socket Badge](https://badge.socket.dev/npm/package/@allxsmith/bestax-bulma/latest)](https://socket.dev/npm/package/@allxsmith/bestax-bulma/overview)
@@ -192,7 +192,7 @@ Building with an AI agent (Claude Code, Cursor, Copilot)? bestax-bulma ships LLM
 - **100% TypeScript** — every component and prop fully typed
 - **One runtime dependency: Bulma** — it ships with the library; clean install, fewer security concerns
 - **Lightweight** — tree-shakeable ESM, so your app ships only the components it imports, plus a CJS build for `require`
-- **99% test coverage** — enforced in CI by the [jest config](bulma-ui/jest.config.js), not just claimed
+- **99% test coverage** — enforced in CI by the [Vitest config](bulma-ui/vitest.config.ts), not just claimed
 - **Active developer support** — issues, questions, and PRs get fast responses
 
 ---

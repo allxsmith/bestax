@@ -280,7 +280,7 @@ describe('useInertSiblings', () => {
       const { loading, before } = page(
         '<div id="before"></div><div id="loading"></div>'
       );
-      const spy = jest
+      const spy = vi
         .spyOn(document, 'activeElement', 'get')
         .mockReturnValue(null);
       const { unmount } = renderHook(() =>

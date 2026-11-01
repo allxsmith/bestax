@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { vi, type Mock } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -37,7 +37,7 @@ const originalStdinTTY = Object.getOwnPropertyDescriptor(
   'isTTY'
 );
 
-let fetchMock: jest.Mock;
+let fetchMock: Mock;
 
 type FetchArgs = [
   string,
@@ -65,7 +65,7 @@ beforeEach(() => {
   const configHome = fs.mkdtempSync(path.join(os.tmpdir(), 'bestax-cli-cfg-'));
   tempDirs.push(configHome);
   process.env.XDG_CONFIG_HOME = configHome;
-  fetchMock = jest.fn(async () => new Response(null, { status: 204 }));
+  fetchMock = vi.fn(async () => new Response(null, { status: 204 }));
   globalThis.fetch = fetchMock as unknown as typeof fetch;
   setTTY(process.stdout, false);
   setTTY(process.stdin, false);

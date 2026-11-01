@@ -30,6 +30,10 @@
       "code": "<Table>\n  <Thead>\n    <Tr>\n      <Th isAligned=\"left\" width={200}>\n        Name\n      </Th>\n      <Th isAligned=\"right\">Score</Th>\n    </Tr>\n  </Thead>\n  <Tbody>\n    <Tr>\n      <Td isAligned=\"left\">Jane Doe</Td>\n      <Td isAligned=\"right\">98</Td>\n    </Tr>\n  </Tbody>\n</Table>"
     },
     {
+      "title": "A Column of Checkboxes",
+      "code": "function example() {\n  const teams = ['Ice Wolves', 'Frost Giants', 'Snow Owls'];\n  const [picked, setPicked] = useState(['Ice Wolves']);\n  const toggle = (team: string) =>\n    setPicked(current =>\n      current.includes(team)\n        ? current.filter(name => name !== team)\n        : [...current, team]\n    );\n\n  return (\n    <Table isFullwidth>\n      <Thead>\n        <Tr>\n          <Th isNarrow>\n            <Span visibility=\"sr-only\">Picked</Span>\n          </Th>\n          <Th>Team</Th>\n        </Tr>\n      </Thead>\n      <Tbody>\n        {teams.map(team => (\n          <Tr key={team} isSelected={picked.includes(team)}>\n            <Td isNarrow isVcentered>\n              <Checkbox\n                aria-label={`Pick ${team}`}\n                checked={picked.includes(team)}\n                onChange={() => toggle(team)}\n              />\n            </Td>\n            <Td isVcentered>{team}</Td>\n          </Tr>\n        ))}\n      </Tbody>\n    </Table>\n  );\n}"
+    },
+    {
       "title": "Compound (dot-notation) usage",
       "code": "<Table isStriped>\n  <Table.Thead>\n    <Table.Tr>\n      <Table.Th>Team</Table.Th>\n      <Table.Th>Points</Table.Th>\n    </Table.Tr>\n  </Table.Thead>\n  <Table.Tbody>\n    <Table.Tr>\n      <Table.Td>Maple Leafs</Table.Td>\n      <Table.Td>98</Table.Td>\n    </Table.Tr>\n  </Table.Tbody>\n</Table>"
     }
@@ -236,7 +240,7 @@
           "name": "isSelected",
           "type": "boolean",
           "default": "false",
-          "description": "Whether the row is selected (adds Bulma's is-selected class).",
+          "description": "Whether the row is selected (adds Bulma's is-selected class). It's a look only: it says nothing to assistive tech, so pair it with a checkbox named for the row when the selection matters. A bestax `Checkbox` or `Radio` placed straight in one of the row's cells takes the row's text color, so a checked one shows on the row's fill. One in a menu or a table nested in a cell, or in a cell with a `color` of its own, keeps its own colors, since it sits on that surface instead, and so does every one in a row with a `color`, whose cells paint that color over the fill.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -272,7 +276,7 @@
     },
     {
       "path": "Table.Th",
-      "summary": "Th component for rendering a styled Bulma table header cell. Supports alignment, width, and color modifiers.",
+      "summary": "Th component for rendering a styled Bulma table header cell. Supports alignment, width, narrow and vertically centered cells, and color modifiers.",
       "component": "Th",
       "props": [
         {
@@ -294,10 +298,28 @@
           "deprecated": false
         },
         {
+          "name": "isNarrow",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shrinks the cell to its content and keeps that on one line (Bulma's `is-narrow`), as for a column of checkboxes or actions. Not the table's own `isNarrow`, which tightens every cell's padding.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isVcentered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Centers the content vertically (Bulma's `is-vcentered`). Cells sit at the top otherwise.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "width",
           "type": "string | number",
           "default": null,
-          "description": "Width of the header cell (e.g., '100px' or 100).",
+          "description": "Width of the header cell (e.g., '100px' or 100), written into its `style`. A `style` passed as well keeps it, and a `width` that `style` sets wins.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -333,7 +355,7 @@
     },
     {
       "path": "Table.Td",
-      "summary": "Td component for rendering a styled Bulma table cell. Supports alignment, Bulma color modifiers, and helper classes for additional styling.",
+      "summary": "Td component for rendering a styled Bulma table cell. Supports alignment, narrow and vertically centered cells, Bulma color modifiers, and helper classes for additional styling.",
       "component": "Td",
       "props": [
         {
@@ -350,6 +372,24 @@
           "type": "'left' | 'right' | 'centered'",
           "default": null,
           "description": "Text alignment for the table cell ('left', 'right', 'centered').",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isNarrow",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shrinks the cell to its content and keeps that on one line (Bulma's `is-narrow`), as for a column of checkboxes or actions. Not the table's own `isNarrow`, which tightens every cell's padding.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isVcentered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Centers the content vertically (Bulma's `is-vcentered`). Cells sit at the top otherwise.",
           "required": false,
           "inherited": false,
           "deprecated": false

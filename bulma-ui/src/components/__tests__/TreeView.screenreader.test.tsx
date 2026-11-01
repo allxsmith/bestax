@@ -14,11 +14,6 @@ import { Virtual } from '@guidepup/virtual-screen-reader';
 import { TreeView, type TreeViewProps } from '../TreeView';
 import meta, { DeepTree, FileBrowser, Permissions } from '../TreeView.stories';
 
-// Each key press rebuilds the reader's accessibility tree, which is quick on
-// its own but can pass the default 5 seconds a test when the machine is busy
-// with other suites and builds, as `pnpm all` keeps it.
-jest.setTimeout(30_000);
-
 type Story = () => React.ReactElement;
 // The default story is a tree with no selectionMode, rendered from the meta.
 const DefaultStory = meta.render as unknown as (

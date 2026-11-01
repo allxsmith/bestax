@@ -8,7 +8,7 @@
  * compare a release comment against by eye — which is why the field names and
  * the URL format stay pinned against that plugin's get-release-info.js here.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 
 import { fileURLToPath } from 'node:url';

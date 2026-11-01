@@ -43,7 +43,11 @@ export interface RadiosProps
   value?: string;
   /** Initial selected value (uncontrolled mode). */
   defaultValue?: string;
-  /** Fires when the selection changes. */
+  /**
+   * Fires when the selection changes; receives the value picked. Passed
+   * without `value` or `defaultValue`, it still has the group manage the
+   * selection, starting from the radio with `defaultChecked`.
+   */
   onChange?: (value: string) => void;
   /** Radio elements to render in the group. */
   children: React.ReactNode;
@@ -137,11 +141,13 @@ const RadiosComponent: React.FC<RadiosProps> = ({
 
   // The group is "active" (manages child selection) when the user opted in by
   // passing value, defaultValue, or onChange. Otherwise it's name-only and
-  // children manage their own checked state (Stage 1 behavior).
+  // children manage their own checked state (Stage 1 behavior). With only
+  // onChange it holds no value until the first change, and the radios show
+  // their own defaultChecked until then.
   const groupActive =
     value !== undefined || defaultValue !== undefined || onChange !== undefined;
 
-  const [internalValue, setInternalValue] = useState<string | undefined>(
+  const [internalValue, setInternalValue] = useState<string | null | undefined>(
     defaultValue
   );
   const isControlled = value !== undefined;
@@ -155,12 +161,23 @@ const RadiosComponent: React.FC<RadiosProps> = ({
     [isControlled, onChange]
   );
 
+  // A radio without a value, sharing the group's name, was picked, and the
+  // browser unchecked the radio showing checked. A group with no value yet
+  // holds `null`, which no radio's value matches, so React leaves that radio
+  // unchecked instead of undoing the pick. A group that holds a value keeps
+  // it, as it always has.
+  const pickWithoutValue = useCallback(() => {
+    setInternalValue(current => (current === undefined ? null : current));
+  }, []);
+
   const ctx = useMemo<RadiosGroupContextValue>(
     () => ({
       name,
-      ...(groupActive ? { value: currentValue, onChange: handleChange } : {}),
+      ...(groupActive
+        ? { value: currentValue, onChange: handleChange, pickWithoutValue }
+        : {}),
     }),
-    [name, groupActive, currentValue, handleChange]
+    [name, groupActive, currentValue, handleChange, pickWithoutValue]
   );
 
   const choices = <RadiosProvider value={ctx}>{children}</RadiosProvider>;

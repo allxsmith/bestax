@@ -7,7 +7,8 @@
     "docs": "docusaurus start",
     "start": "docusaurus start",
     "build": "docusaurus build && node scripts/check-generated-markers.mjs",
-    "test": "node --test \"scripts/*.test.mjs\"",
+    "test": "vitest run",
+    "test:coverage": "pnpm run test",
     "rasterize:cover": "node scripts/rasterize-cover.mjs",
     "screenshot:template": "node scripts/screenshot-template.mjs",
     "draw:template-art": "node scripts/template-art/draw.mjs",
@@ -34,7 +35,7 @@
     "clsx": "^2.0.0",
     "ionicons": "^8.1.0",
     "material-icons": "^1.13.14",
-    "material-symbols": "^0.47.6",
+    "material-symbols": "^0.48.2",
     "prism-react-renderer": "^2.3.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
@@ -49,7 +50,8 @@
     "docusaurus-plugin-llms": "^0.6.1",
     "gray-matter": "^4.0.3",
     "playwright": "^1.64.1",
-    "raw-loader": "^4.0.2"
+    "raw-loader": "^4.0.2",
+    "vitest": "^5.0.5"
   },
   "browserslist": {
     "production": [

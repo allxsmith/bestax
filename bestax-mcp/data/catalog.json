@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.54.0"
+    "version": "5.57.1"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -15,6 +15,7 @@
         "Button",
         "Buttons",
         "Code",
+        "ColorSwatch",
         "Content",
         "Delete",
         "DescriptionList",
@@ -61,6 +62,7 @@
         "Collapses",
         "Command",
         "ContextMenu",
+        "DataTable",
         "Dialog",
         "Dropdown",
         "EmptyState",
@@ -93,11 +95,14 @@
         "Checkbox",
         "CheckboxCard",
         "Checkboxes",
+        "ColorInput",
+        "ColorPicker",
         "Combobox",
         "Control",
         "DateInput",
         "DateRangeInput",
         "DateTimeInput",
+        "Dropzone",
         "Field",
         "Fieldset",
         "File",
@@ -363,6 +368,39 @@
       "exampleCount": 8
     },
     {
+      "name": "ColorInput",
+      "kind": "component",
+      "category": "form",
+      "purpose": "The `ColorInput` component is a form field for a color: type it, or open a color picker from its launcher or its swatch.",
+      "slug": "form/colorinput",
+      "import": "import { ColorInput } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 35,
+      "exampleCount": 11
+    },
+    {
+      "name": "ColorPicker",
+      "kind": "component",
+      "category": "form",
+      "purpose": "The `ColorPicker` component is a panel for choosing a color: a saturation and brightness square, a hue slider, and the value as text, with alpha and swatches…",
+      "slug": "form/colorpicker",
+      "import": "import { ColorPicker } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 27,
+      "exampleCount": 11
+    },
+    {
+      "name": "ColorSwatch",
+      "kind": "component",
+      "category": "elements",
+      "purpose": "The `ColorSwatch` component shows a color as a small chip, named by its label or by the color itself.",
+      "slug": "elements/colorswatch",
+      "import": "import { ColorSwatch } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 7,
+      "exampleCount": 5
+    },
+    {
       "name": "Column",
       "kind": "component",
       "category": "columns",
@@ -462,6 +500,17 @@
       "exampleCount": 12
     },
     {
+      "name": "DataTable",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `DataTable` component is a table of records that people can sort, search, page through and select rows from, rendered with bestax's own `Table` parts…",
+      "slug": "components/datatable",
+      "import": "import { DataTable, useDataTable } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 38,
+      "exampleCount": 15
+    },
+    {
       "name": "DateInput",
       "kind": "component",
       "category": "form",
@@ -550,6 +599,17 @@
       "exampleCount": 9
     },
     {
+      "name": "Dropzone",
+      "kind": "component",
+      "category": "form",
+      "purpose": "The `Dropzone` component is an area to drop files on or click to pick them, which checks each file and lists the chosen ones with a way to remove each.",
+      "slug": "form/dropzone",
+      "import": "import { Dropzone } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 25,
+      "exampleCount": 12
+    },
+    {
       "name": "Emphasis",
       "kind": "component",
       "category": "elements",
@@ -613,7 +673,7 @@
       "import": "import { File, Icon } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 23,
-      "exampleCount": 17
+      "exampleCount": 18
     },
     {
       "name": "Footer",
@@ -701,7 +761,7 @@
       "import": "import { Input, Field, Control, Button, Select, Icon } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 29,
-      "exampleCount": 31
+      "exampleCount": 32
     },
     {
       "name": "Kbd",
@@ -789,7 +849,7 @@
       "import": "import { LocaleProvider, useLocale } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 5,
-      "exampleCount": 10
+      "exampleCount": 9
     },
     {
       "name": "Media",
@@ -1184,8 +1244,8 @@
       "slug": "elements/table",
       "import": "import { Table, Thead, Tbody, Tfoot, Tr, Th, Td } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 28,
-      "exampleCount": 7
+      "propCount": 32,
+      "exampleCount": 8
     },
     {
       "name": "Tabs",
@@ -1605,6 +1665,38 @@
     "--bulma-collapse-radius": ["Collapse"],
     "--bulma-collapse-trigger-icon-margin": ["Collapse"],
     "--bulma-collapse-trigger-icon-size": ["Collapse"],
+    "--bulma-color-picker-area-height": ["ColorPicker"],
+    "--bulma-color-picker-area-radius": ["ColorPicker"],
+    "--bulma-color-picker-checker-background": ["ColorPicker"],
+    "--bulma-color-picker-checker-color": ["ColorPicker"],
+    "--bulma-color-picker-checker-size": ["ColorPicker"],
+    "--bulma-color-picker-disabled-opacity": ["ColorPicker"],
+    "--bulma-color-picker-edge-color": ["ColorPicker"],
+    "--bulma-color-picker-gap": ["ColorPicker"],
+    "--bulma-color-picker-preview-size": ["ColorPicker"],
+    "--bulma-color-picker-slider-height": ["ColorPicker"],
+    "--bulma-color-picker-swatch-gap": ["ColorPicker"],
+    "--bulma-color-picker-swatch-radius": ["ColorPicker"],
+    "--bulma-color-picker-swatch-ring-color": ["ColorPicker"],
+    "--bulma-color-picker-swatch-size": ["ColorPicker"],
+    "--bulma-color-picker-thumb-border-width": ["ColorPicker"],
+    "--bulma-color-picker-thumb-color": ["ColorPicker"],
+    "--bulma-color-picker-thumb-shadow": ["ColorPicker"],
+    "--bulma-color-picker-thumb-size": ["ColorPicker"],
+    "--bulma-color-picker-track-height": ["ColorPicker"],
+    "--bulma-color-picker-track-radius": ["ColorPicker"],
+    "--bulma-color-picker-width": ["ColorPicker"],
+    "--bulma-color-swatch-checker-background": ["ColorSwatch"],
+    "--bulma-color-swatch-checker-color": ["ColorSwatch"],
+    "--bulma-color-swatch-checker-size": ["ColorSwatch"],
+    "--bulma-color-swatch-edge-color": ["ColorSwatch"],
+    "--bulma-color-swatch-radius": ["ColorSwatch"],
+    "--bulma-color-swatch-size": ["ColorSwatch"],
+    "--bulma-colorinput-disabled-opacity": ["ColorInput"],
+    "--bulma-colorinput-side-width": ["ColorInput"],
+    "--bulma-colorinput-swatch-size": ["ColorInput"],
+    "--bulma-colorinput-trigger-color": ["ColorInput"],
+    "--bulma-colorinput-trigger-hover-color": ["ColorInput"],
     "--bulma-column-gap": ["Column"],
     "--bulma-combobox-check-color": ["Combobox"],
     "--bulma-combobox-check-gap": ["Combobox"],
@@ -1688,6 +1780,10 @@
     "--bulma-control-radius": ["Control"],
     "--bulma-control-radius-small": ["Control"],
     "--bulma-control-size": ["Control"],
+    "--bulma-data-table-gap": ["DataTable"],
+    "--bulma-data-table-sort-gap": ["DataTable"],
+    "--bulma-data-table-sort-indicator-size": ["DataTable"],
+    "--bulma-data-table-sort-unsorted-opacity": ["DataTable"],
     "--bulma-dateinput-cell-color": [
       "DateInput",
       "DateRangeInput",
@@ -1836,6 +1932,23 @@
     "--bulma-dropdown-item-selected-l": ["Dropdown"],
     "--bulma-dropdown-item-selected-s": ["Dropdown"],
     "--bulma-dropdown-menu-min-width": ["Dropdown"],
+    "--bulma-dropzone-border-style": ["Dropzone"],
+    "--bulma-dropzone-border-width": ["Dropzone"],
+    "--bulma-dropzone-disabled-opacity": ["Dropzone"],
+    "--bulma-dropzone-dragover-border-color": ["Dropzone"],
+    "--bulma-dropzone-item-background": ["Dropzone"],
+    "--bulma-dropzone-item-border-color": ["Dropzone"],
+    "--bulma-dropzone-item-border-width": ["Dropzone"],
+    "--bulma-dropzone-item-gap": ["Dropzone"],
+    "--bulma-dropzone-item-padding": ["Dropzone"],
+    "--bulma-dropzone-item-radius": ["Dropzone"],
+    "--bulma-dropzone-item-spacing": ["Dropzone"],
+    "--bulma-dropzone-min-height": ["Dropzone"],
+    "--bulma-dropzone-name-color": ["Dropzone"],
+    "--bulma-dropzone-reject-border-color": ["Dropzone"],
+    "--bulma-dropzone-size-color": ["Dropzone"],
+    "--bulma-dropzone-size-font-size": ["Dropzone"],
+    "--bulma-dropzone-spacing": ["Dropzone"],
     "--bulma-empty-state-description-color": ["EmptyState"],
     "--bulma-empty-state-description-max-width": ["EmptyState"],
     "--bulma-empty-state-description-size": ["EmptyState"],
@@ -2463,48 +2576,56 @@
     "--bulma-panel-tab-border-bottom-width": ["Panel"],
     "--bulma-panel-tabs-font-size": ["Panel"],
     "--bulma-picker-popover-animation-duration": [
+      "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
       "TimeInput"
     ],
     "--bulma-picker-popover-background": [
+      "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
       "TimeInput"
     ],
     "--bulma-picker-popover-border-color": [
+      "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
       "TimeInput"
     ],
     "--bulma-picker-popover-offset": [
+      "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
       "TimeInput"
     ],
     "--bulma-picker-popover-padding": [
+      "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
       "TimeInput"
     ],
     "--bulma-picker-popover-radius": [
+      "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
       "TimeInput"
     ],
     "--bulma-picker-popover-shadow": [
+      "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
       "TimeInput"
     ],
     "--bulma-picker-popover-z-index": [
+      "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
@@ -2890,6 +3011,37 @@
       "path": "CarouselItem",
       "purpose": "Individual carousel item/slide.",
       "standalone": "companion"
+    },
+    "ColorInputBase": {
+      "component": "ColorInput",
+      "path": "ColorInputBase",
+      "purpose": "The raw ColorInput: a text field with a swatch and a launcher that opens a color picker in a popover, without Field/Control wrapping.",
+      "standalone": "base"
+    },
+    "ColorPickerAlphaSlider": {
+      "component": "ColorPicker",
+      "path": "ColorPicker.AlphaSlider",
+      "purpose": "The alpha slider, from see-through to solid."
+    },
+    "ColorPickerArea": {
+      "component": "ColorPicker",
+      "path": "ColorPicker.Area",
+      "purpose": "The saturation and brightness square, operated by pointer or by keyboard as one 2D slider."
+    },
+    "ColorPickerHueSlider": {
+      "component": "ColorPicker",
+      "path": "ColorPicker.HueSlider",
+      "purpose": "The hue slider, from red round the spectrum and back to red."
+    },
+    "ColorPickerInput": {
+      "component": "ColorPicker",
+      "path": "ColorPicker.Input",
+      "purpose": "The value as text you can type in, beside a preview swatch, with the eye dropper when the picker has `eyeDropper`."
+    },
+    "ColorPickerSwatches": {
+      "component": "ColorPicker",
+      "path": "ColorPicker.Swatches",
+      "purpose": "The swatches, a radio group of preset colors that sets the picker's color."
     },
     "ComboboxEmpty": {
       "component": "Combobox",

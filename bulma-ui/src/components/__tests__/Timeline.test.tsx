@@ -46,6 +46,17 @@ const markup = (root: HTMLElement) => {
   return copy.innerHTML.replace(/<!-- -->/g, '');
 };
 
+/**
+ * The inline style `style` gives an element, the way the DOM writes it.
+ * `toHaveStyle` reads the computed style, where jsdom, as browsers do, writes
+ * `border: 0` out in full, so the words' style is compared with this instead.
+ */
+const inlineStyle = (style: React.CSSProperties) => {
+  const el = document.createElement('span');
+  Object.assign(el.style, style);
+  return el.style.cssText;
+};
+
 const Order: React.FC<Partial<TimelineProps>> = props => (
   <Timeline titleAs="h3" {...props}>
     <Timeline.Item
@@ -433,11 +444,14 @@ describe('Timeline', () => {
       const words = title?.lastElementChild as HTMLElement;
       expect(words.tagName).toBe('SPAN');
       expect(words.textContent).toBe(' completed');
-      expect(words).toHaveStyle(visuallyHidden as Record<string, unknown>);
+      expect(words.style.cssText).toBe(inlineStyle(visuallyHidden));
       expect(words.className).toBe('');
-      // The heading's name is the title and the words.
+      // The heading's name is the title and the words. jsdom computes the
+      // words' display as `inline`, where a browser makes an absolutely
+      // positioned box a block, so the name it computes drops the space the
+      // words start with, which is checked above.
       expect(
-        screen.getByRole('heading', { name: 'Packed completed' })
+        screen.getByRole('heading', { name: /^Packed ?completed$/ })
       ).toBeInTheDocument();
       // The current item gets none.
       expect(itemsOf(container)[1].querySelector('[style]')).toBeNull();
@@ -452,8 +466,8 @@ describe('Timeline', () => {
       );
       const content = container.querySelector('.timeline-content');
       expect(content?.firstElementChild?.textContent).toBe(' completed');
-      expect(content?.firstElementChild).toHaveStyle(
-        visuallyHidden as Record<string, unknown>
+      expect((content?.firstElementChild as HTMLElement).style.cssText).toBe(
+        inlineStyle(visuallyHidden)
       );
       expect(content?.lastElementChild).toHaveClass('timeline-time');
     });
@@ -879,7 +893,7 @@ describe('server rendering', () => {
     document.body.appendChild(container);
     const before = container.innerHTML;
 
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     let unmountRoot = () => {};
     try {
       await act(async () => {

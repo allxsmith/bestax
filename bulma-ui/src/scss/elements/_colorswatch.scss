@@ -1,0 +1,100 @@
+// Bestax Extras - ColorSwatch Styles
+// A color shown as a small chip. Bulma has no swatch.
+//
+// The component sets the color as `--color-swatch-color`, which is painted
+// as a gradient over a checkerboard, so a see-through color shows the
+// checks through it. Forced colors would turn both into the page's
+// background, so the swatch opts out of it and takes an edge in the
+// system's text color instead.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+$color-swatch-size: 1.5rem !default;
+$color-swatch-size-small: 1rem !default;
+$color-swatch-size-medium: 2rem !default;
+$color-swatch-size-large: 3rem !default;
+$color-swatch-radius: cv.getVar('radius') !default;
+// A faint edge in the text color, so a white swatch shows on a white page
+// and a black one on a dark page.
+$color-swatch-edge-color: hsla(
+  cv.getVar('text-h'),
+  cv.getVar('text-s'),
+  cv.getVar('text-l'),
+  0.2
+) !default;
+// The checkerboard behind a see-through color, from scheme colors so it
+// follows dark mode.
+$color-swatch-checker-color: cv.getVar('border') !default;
+$color-swatch-checker-background: cv.getVar('scheme-main') !default;
+$color-swatch-checker-size: 0.5rem !default;
+
+.#{iv.$class-prefix}color-swatch {
+  @include cv.register-vars(
+    (
+      'color-swatch-size': #{$color-swatch-size},
+      'color-swatch-radius': #{$color-swatch-radius},
+      'color-swatch-edge-color': #{$color-swatch-edge-color},
+      'color-swatch-checker-color': #{$color-swatch-checker-color},
+      'color-swatch-checker-background': #{$color-swatch-checker-background},
+      'color-swatch-checker-size': #{$color-swatch-checker-size},
+    )
+  );
+}
+
+@each $size,
+  $value
+    in (
+      'small': $color-swatch-size-small,
+      'medium': $color-swatch-size-medium,
+      'large': $color-swatch-size-large
+    )
+{
+  .#{iv.$class-prefix}color-swatch.#{iv.$class-prefix}is-#{$size} {
+    @include cv.register-vars(
+      (
+        'color-swatch-size': #{$value},
+      )
+    );
+  }
+}
+
+.#{iv.$class-prefix}color-swatch {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  inline-size: cv.getVar('color-swatch-size');
+  block-size: cv.getVar('color-swatch-size');
+  border-radius: cv.getVar('color-swatch-radius');
+  vertical-align: middle;
+  // The color over the checkerboard: a tile of four squares, two of each.
+  background:
+    linear-gradient(var(--color-swatch-color), var(--color-swatch-color)),
+    repeating-conic-gradient(
+        cv.getVar('color-swatch-checker-color') 0% 25%,
+        cv.getVar('color-swatch-checker-background') 0% 50%
+      )
+      0 0 / calc(#{cv.getVar('color-swatch-checker-size')} * 2)
+      calc(#{cv.getVar('color-swatch-checker-size')} * 2);
+  box-shadow: inset 0 0 0 1px cv.getVar('color-swatch-edge-color');
+  // A swatch is its color, so forced colors leaves it alone.
+  forced-color-adjust: none;
+}
+
+.#{iv.$class-prefix}color-swatch.#{iv.$class-prefix}is-rounded {
+  border-radius: cv.getVar('radius-rounded');
+}
+
+// What's drawn on the swatch, such as an icon, sits in its middle.
+.#{iv.$class-prefix}color-swatch > span {
+  display: inline-flex;
+  line-height: 1;
+}
+
+@media (forced-colors: active) {
+  // Kept apart from the page by the system's text color.
+  .#{iv.$class-prefix}color-swatch {
+    box-shadow: inset 0 0 0 1px CanvasText;
+  }
+}

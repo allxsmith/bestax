@@ -15,7 +15,16 @@ export interface TrProps
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   /** Additional CSS classes to apply. */
   className?: string;
-  /** Whether the row is selected (adds Bulma's is-selected class). */
+  /**
+   * Whether the row is selected (adds Bulma's is-selected class). It's a look
+   * only: it says nothing to assistive tech, so pair it with a checkbox named
+   * for the row when the selection matters. A bestax `Checkbox` or `Radio`
+   * placed straight in one of the row's cells takes the row's text color, so
+   * a checked one shows on the row's fill. One in a menu or a table nested in a
+   * cell, or in a cell with a `color` of its own, keeps its own colors, since
+   * it sits on that surface instead, and so does every one in a row with a
+   * `color`, whose cells paint that color over the fill.
+   */
   isSelected?: boolean;
   /** Bulma color modifier for the table row. */
   color?: TableColor;

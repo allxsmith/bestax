@@ -77,7 +77,14 @@ describe('RadioCard', () => {
     });
 
     it("is named by the label's own text without a title, and not described again", () => {
-      render(<RadioCard description="Arrives tomorrow.">Express</RadioCard>);
+      render(
+        <>
+          {/* The card's own rule. A block description keeps its text apart
+              from what follows it in the name. */}
+          <style>{'.radio-card-description { display: block; }'}</style>
+          <RadioCard description="Arrives tomorrow.">Express</RadioCard>
+        </>
+      );
       const input = screen.getByRole('radio');
       expect(input).not.toHaveAttribute('aria-labelledby');
       expect(input).not.toHaveAttribute('aria-describedby');
@@ -143,7 +150,7 @@ describe('RadioCard', () => {
     });
 
     it('is disabled, and a click changes nothing', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<RadioCard disabled onChange={onChange} title="Off" />);
       expect(radio('Off')).toBeDisabled();
       fireEvent.click(screen.getByText('Off'));
@@ -245,7 +252,7 @@ describe('RadioCard', () => {
     });
 
     it('starts from the group defaultValue and reports changes, uncontrolled', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Radios name="ship" defaultValue="std" onChange={onChange}>
           <RadioCard value="std" title="Standard" />
@@ -257,6 +264,51 @@ describe('RadioCard', () => {
       expect(onChange).toHaveBeenLastCalledWith('exp');
       expect(radio('Express').checked).toBe(true);
       expect(radio('Standard').checked).toBe(false);
+    });
+
+    it('starts from its own defaultChecked when the group has only onChange', () => {
+      // A group with only onChange holds no value until the first change. The
+      // cards render controlled from the start all the same, so React has no
+      // input going from uncontrolled to controlled to warn about.
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        const onChange = vi.fn();
+        render(
+          <Radios name="ship" onChange={onChange}>
+            <RadioCard value="std" title="Standard" />
+            <RadioCard value="exp" defaultChecked title="Express" />
+          </Radios>
+        );
+        expect(radio('Express').checked).toBe(true);
+        expect(radio('Standard').checked).toBe(false);
+        fireEvent.click(screen.getByText('Standard'));
+        expect(onChange).toHaveBeenLastCalledWith('std');
+        expect(radio('Standard').checked).toBe(true);
+        expect(radio('Express').checked).toBe(false);
+        expect(error).not.toHaveBeenCalled();
+      } finally {
+        error.mockRestore();
+      }
+    });
+
+    it('lets a card without a value that shares the name be picked when the group has only onChange', () => {
+      // The browser unchecks Express when it's picked, and React would put
+      // the controlled card back unless the group knows the pick left it.
+      const onChange = vi.fn();
+      render(
+        <Radios name="ship" onChange={onChange}>
+          <RadioCard value="exp" defaultChecked title="Express" />
+          <RadioCard title="Pick up" />
+        </Radios>
+      );
+      fireEvent.click(screen.getByText('Pick up'));
+      expect(radio('Pick up').checked).toBe(true);
+      expect(radio('Express').checked).toBe(false);
+      expect(onChange).not.toHaveBeenCalled();
+      fireEvent.click(screen.getByText('Express'));
+      expect(onChange).toHaveBeenLastCalledWith('exp');
+      expect(radio('Express').checked).toBe(true);
+      expect(radio('Pick up').checked).toBe(false);
     });
 
     it('follows the group value, controlled', () => {
@@ -302,8 +354,8 @@ describe('RadioCard', () => {
     });
 
     it('tells the group nothing without a value, but still calls its own onChange', () => {
-      const group = jest.fn();
-      const own = jest.fn();
+      const group = vi.fn();
+      const own = vi.fn();
       render(
         <Radios onChange={group}>
           <RadioCard onChange={own} title="No value" />
@@ -337,7 +389,7 @@ describe('RadioCard', () => {
       const container = document.createElement('div');
       container.innerHTML = renderToString(ui);
       document.body.appendChild(container);
-      const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
       let root: ReturnType<typeof hydrateRoot> | undefined;
       try {
         await act(async () => {

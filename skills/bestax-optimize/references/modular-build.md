@@ -81,17 +81,18 @@ is **more complete** than the docs page's Option C example, which omits several)
 **Components** (`@allxsmith/bestax-bulma/scss/components/<name>`):
 `loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
 `toast`, `dialog`, `carousel`, `tabs`, `menu`, `reveal`, `avatar`, `avatars`, `badge`,
-`emptystate`, `timeline`, `treeview`, `scrollarea`, `command`
+`emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`, `pagination`
 
 **Layout** (`@allxsmith/bestax-bulma/scss/layout/<name>`): `splitter`
 
 **Form** (`@allxsmith/bestax-bulma/scss/form/<name>`):
 `checkbox`, `checkboxcard`, `radio`, `radiocard`, `switch`, `slider`, `numberinput`, `pininput`,
 `rate`, `autocomplete`, `combobox`, `taginput`, `picker-popover`, `dateinput`, `timeinput`,
-`datetimeinput`, `daterangeinput`, `file`, `fieldset`
+`datetimeinput`, `daterangeinput`, `file`, `fieldset`, `dropzone`, `colorpicker`, `colorinput`
 
-**Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `descriptionlist`, `kbd`,
-`linkbutton`, `loader`, `notification`, `progress`, `ringprogress`, `skeleton`
+**Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `colorswatch`,
+`descriptionlist`, `kbd`, `linkbutton`, `loader`, `notification`, `progress`, `ringprogress`,
+`skeleton`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`
 
@@ -120,6 +121,15 @@ Notes:
   @use '@allxsmith/bestax-bulma/scss/components/menu' as bestax-menu;
   ```
 
+- The `pagination` partial **extends** stock Bulma pagination (it keeps the current page marked
+  in forced colors, where Bulma's colors for it are replaced), so an app using `Pagination`, or a
+  `DataTable` with pages, whose pager is one, needs both, in either order:
+
+  ```scss
+  @use 'bulma/sass/components/pagination';
+  @use '@allxsmith/bestax-bulma/scss/components/pagination' as bestax-pagination;
+  ```
+
 - The `file` partial **extends** stock Bulma file (File's keyboard focus ring, and the rounded
   corners of a boxed `hasName` File with no name to show), so an app using `File` needs both, in
   either order:
@@ -129,12 +139,22 @@ Notes:
   @use '@allxsmith/bestax-bulma/scss/form/file' as bestax-file;
   ```
 
+- `Dropzone`'s zone is Bulma's file widget, so an app using it needs `bulma/sass/form/file` and the
+  `file` partial (its keyboard focus ring) next to `scss/form/dropzone`, plus
+  `bulma/sass/elements/delete` for the remove buttons and `bulma/sass/form/tools` for its help
+  lines.
 - `DateInput`/`TimeInput`/`DateTimeInput` also need `picker-popover`.
 - `DateRangeInput` needs `daterangeinput` for its field and `dateinput` for its calendar, and
   `picker-popover` too.
 - `CheckboxCard` and `RadioCard` are Bulma cards, so an app using them needs
   `bulma/sass/components/card` next to `scss/form/checkboxcard` or `scss/form/radiocard`, and
   `bulma/sass/form/checkbox-radio` for the `Checkboxes` and `Radios` groups around them.
+- `ColorPicker` draws its swatches and its preview with `ColorSwatch`, and its value field and eye
+  dropper button are Bulma's, so an app using it needs `scss/elements/colorswatch`,
+  `bulma/sass/form/input-textarea` and `bulma/sass/elements/button` next to
+  `scss/form/colorpicker`, and `bulma/sass/form/tools` for the label and help text around it.
+- `ColorInput` opens a `ColorPicker` in the pickers' popover, so it needs `colorpicker` (and what
+  that needs) and `picker-popover` next to `colorinput`.
 - `PinInput`'s boxes are Bulma inputs, so an app using it needs `bulma/sass/form/input-textarea`
   next to `scss/form/pininput`, and `bulma/sass/form/tools` for the label and help text around it.
 - `Popover.Close` renders a Bulma button, so an app using it needs `bulma/sass/elements/button`

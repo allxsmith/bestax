@@ -29,7 +29,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import { fenceSpans, splitLines } from './lib/api-page.mjs';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));

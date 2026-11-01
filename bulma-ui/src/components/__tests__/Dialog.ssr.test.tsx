@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * SSR coverage for DialogContainer: the server renders no dialog, whatever
  * `dialog` holds, because the server's copy of that store is shared by every

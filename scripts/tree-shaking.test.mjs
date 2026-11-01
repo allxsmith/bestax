@@ -41,7 +41,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { gzipSync } from 'node:zlib';
-import { after, before, describe, it } from 'node:test';
+import { afterAll, beforeAll, describe, it } from 'vitest';
 import ts from 'typescript';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -50,7 +50,7 @@ const PKG_NAME = '@allxsmith/bestax-bulma';
 
 /**
  * Asserted rather than skipped, like the other suites that read the build:
- * `node --test` exits 0 on a skip, and a size guard that can be silenced by
+ * Vitest exits 0 on a skip, and a size guard that can be silenced by
  * not building is no guard.
  */
 const requireBuilt = () =>
@@ -136,7 +136,7 @@ describe('bulma-ui tree shaking', () => {
   let consumer;
   let build;
 
-  before(async () => {
+  beforeAll(async () => {
     requireBuilt();
     // A consumer directory whose node_modules links the package, so the
     // bundler resolves it by name and reads its manifest.
@@ -150,7 +150,7 @@ describe('bulma-ui tree shaking', () => {
     ({ build } = await import(pathToFileURL(vite).href));
   });
 
-  after(() => {
+  afterAll(() => {
     if (consumer) rmSync(consumer, { recursive: true, force: true });
   });
 
@@ -247,12 +247,24 @@ describe('bulma-ui tree shaking', () => {
         `${relative(REPO, file)}: ${statement.getText().split('\n')[0]}`;
       const isLocal = node => ts.isIdentifier(node) && !imported.has(node.text);
 
-      for (const statement of source.statements) {
+      for (const [index, statement] of source.statements.entries()) {
         if (
           ts.isImportDeclaration(statement) ||
           ts.isExportDeclaration(statement) ||
           ts.isFunctionDeclaration(statement) ||
           ts.isClassDeclaration(statement)
+        ) {
+          continue;
+        }
+        // The build's `'use client'` (rollup.config.js, `runsOnClient`) tells
+        // React Server Components where a module runs, and does nothing when
+        // the module loads. Only as the first statement, where it's a
+        // directive: anywhere else it's a stray string.
+        if (
+          index === 0 &&
+          ts.isExpressionStatement(statement) &&
+          ts.isStringLiteral(statement.expression) &&
+          statement.expression.text === 'use client'
         ) {
           continue;
         }

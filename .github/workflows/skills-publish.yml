@@ -6,7 +6,7 @@ name: Skills publish
 # server.json, package.json and generated skill index. Each run replaces its tree with fresh
 # output and commits only when something changed. Nobody edits bestax-skills
 # by hand: a fix lands here and this workflow carries it over. The script has
-# a node --test sibling (rule 9) and its header says why the plugin lives in
+# a test sibling (rule 9) and its header says why the plugin lives in
 # a repository of its own. This file holds the trust decisions.
 #
 # Triggers.
@@ -141,7 +141,7 @@ jobs:
       # allows beyond the list" in .github/CLAUDE.md.
       - name: Harden runner
         timeout-minutes: 2
-        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: block
           disable-sudo-and-containers: true
@@ -244,7 +244,7 @@ jobs:
       # log at block with neither listed.
       - name: Harden runner
         timeout-minutes: 2
-        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: block
           disable-sudo-and-containers: true
@@ -390,7 +390,7 @@ jobs:
       # (.github/CLAUDE.md, "Measuring an allowlist").
       - name: Harden runner
         timeout-minutes: 2
-        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: block
           disable-sudo-and-containers: true

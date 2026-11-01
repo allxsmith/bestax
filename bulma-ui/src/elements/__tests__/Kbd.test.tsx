@@ -102,7 +102,11 @@ describe('Kbd', () => {
       render(<Kbd label="Command">⌘</Kbd>);
       const name = screen.getByText('Command');
       expect(name).not.toHaveAttribute('class');
-      expect(name).toHaveStyle(visuallyHidden as Record<string, unknown>);
+      // Compared as declared, since jsdom computes `border: 0` to
+      // `0px none rgb(0, 0, 0)`, as a browser does.
+      const declared = document.createElement('span');
+      Object.assign(declared.style, visuallyHidden);
+      expect(name.style.cssText).toBe(declared.style.cssText);
     });
 
     it('names the key in text, never with aria-label', () => {
@@ -448,7 +452,7 @@ describe('server rendering', () => {
     document.body.appendChild(container);
     const before = container.innerHTML;
 
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     let unmountRoot = () => {};
     try {
       await act(async () => {

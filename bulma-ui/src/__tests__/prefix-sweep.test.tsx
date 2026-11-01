@@ -51,6 +51,25 @@ const PROPS: Record<string, Record<string, unknown>> = {
   },
   Rate: { value: 2.5, showScore: true, text: 'Good' },
   Checkbox: { children: 'Accept' },
+  // Every part, alpha, a chosen swatch with its check and the disabled
+  // state, so each class it emits is swept.
+  ColorPicker: {
+    label: 'Brand',
+    alpha: true,
+    disabled: true,
+    swatches: ['#ffdd57'],
+    defaultValue: '#ffdd57',
+  },
+  // Sized, rounded and colored, so every class the field takes is swept.
+  ColorInput: {
+    label: 'Brand',
+    size: 'small',
+    isRounded: true,
+    color: 'info',
+    defaultValue: 'red',
+  },
+  // Sized and round, so every class it takes is swept.
+  ColorSwatch: { color: 'red', size: 'small', isRounded: true },
   // Colored, with the indicator, a title, a description and more, so every
   // class a card takes is swept.
   CheckboxCard: {
@@ -125,6 +144,19 @@ const PROPS: Record<string, Record<string, unknown>> = {
     isRounded: true,
     sections: [{ value: 40, color: 'warning', label: 'Photos' }],
     children: '40%',
+  },
+  // Coloured and sized, with an icon, a hint, a message and a file in its
+  // list, so the zone's, the list's and the help lines' classes are swept.
+  Dropzone: {
+    label: 'Attachments',
+    multiple: true,
+    color: 'primary',
+    size: 'small',
+    icon: <span />,
+    hint: 'Any files',
+    message: 'Required',
+    messageColor: 'danger',
+    files: [new File(['%PDF'], 'report.pdf', { type: 'application/pdf' })],
   },
   // Filled, with a legend and a colored message, so the legend's and the
   // help's classes are swept with the variant's.
@@ -219,6 +251,27 @@ const PROPS: Record<string, Record<string, unknown>> = {
     children: 'Open',
   },
   CommandGroup: { label: 'Files' },
+  // Sorted, selectable, searched and paged, with a toolbar and a scroll
+  // area, so each class DataTable adds, and the parts it renders, are swept.
+  DataTable: {
+    caption: 'People',
+    columns: [
+      { id: 'name', header: 'Name', sortable: true, isRowHeader: true },
+      { id: 'role', header: 'Role', align: 'right' },
+    ],
+    data: [
+      { id: '1', name: 'Ada', role: 'Admin' },
+      { id: '2', name: 'Alan', role: 'Editor' },
+      { id: '3', name: 'Grace', role: 'Viewer' },
+    ],
+    selectionMode: 'multiple',
+    defaultSelected: ['1'],
+    defaultSort: [{ id: 'name', direction: 'ascending' }],
+    pageSize: 2,
+    hasSearch: true,
+    isResponsive: true,
+    toolbar: () => <Library.Button>Export</Library.Button>,
+  },
   TagInput: { value: ['tag-one'] },
   Modal: { active: true, children: 'Modal content' },
   Dialog: { isOpen: true, message: 'Are you sure?' },

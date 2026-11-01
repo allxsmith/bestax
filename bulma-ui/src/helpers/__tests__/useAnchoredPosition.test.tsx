@@ -65,26 +65,27 @@ describe('useAnchoredPosition', () => {
         configurable: true,
         value: 1000,
       });
-      jest
-        .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
-        .mockImplementation(function (this: HTMLElement) {
-          const button = this.tagName === 'BUTTON';
-          return {
-            top: button ? 674 : 0,
-            bottom: button ? 694 : 300,
-            left: 0,
-            right: 100,
-            width: 100,
-            height: button ? 20 : 300,
-            x: 0,
-            y: 0,
-            toJSON: () => ({}),
-          } as DOMRect;
-        });
+      vi.spyOn(
+        HTMLElement.prototype,
+        'getBoundingClientRect'
+      ).mockImplementation(function (this: HTMLElement) {
+        const button = this.tagName === 'BUTTON';
+        return {
+          top: button ? 674 : 0,
+          bottom: button ? 694 : 300,
+          left: 0,
+          right: 100,
+          width: 100,
+          height: button ? 20 : 300,
+          x: 0,
+          y: 0,
+          toJSON: () => ({}),
+        } as DOMRect;
+      });
     });
 
     afterEach(() => {
-      jest.restoreAllMocks();
+      vi.restoreAllMocks();
       Object.defineProperty(window, 'innerHeight', {
         configurable: true,
         value: innerHeight,
@@ -135,9 +136,8 @@ const Matched = ({
 
 describe('useAnchoredPosition with matchWidth', () => {
   beforeEach(() => {
-    jest
-      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
-      .mockImplementation(function (this: HTMLElement) {
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+      function (this: HTMLElement) {
         const button = this.tagName === 'BUTTON';
         const width = Number(this.dataset.width);
         return {
@@ -151,11 +151,12 @@ describe('useAnchoredPosition with matchWidth', () => {
           y: 0,
           toJSON: () => ({}),
         } as DOMRect;
-      });
+      }
+    );
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('carries the anchor width, and lines a right corner up at that width', () => {
@@ -207,9 +208,8 @@ describe('followContent', () => {
   };
 
   beforeEach(() => {
-    jest
-      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
-      .mockImplementation(function (this: HTMLElement) {
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+      function (this: HTMLElement) {
         const button = this.tagName === 'BUTTON';
         const height = button ? 20 : Number(this.dataset.height);
         return {
@@ -223,11 +223,12 @@ describe('followContent', () => {
           y: 0,
           toJSON: () => ({}),
         } as DOMRect;
-      });
+      }
+    );
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('places a panel above again when its height changes after it opened', () => {

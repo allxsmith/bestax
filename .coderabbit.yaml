@@ -35,7 +35,7 @@ reviews:
         React 19 + TypeScript Bulma component library (@allxsmith/bestax-bulma).
         Enforce strict TypeScript types (no `any`), consistent prop naming, and
         accessibility (aria-* attributes, semantic elements). Every new or
-        changed component should have a matching Storybook story and Jest tests;
+        changed component should have a matching Storybook story and Vitest tests;
         overall coverage must remain >= 99% for all metrics (the bulma-ui CI
         gate). Flag any change that would drop coverage below that, and flag
         missing tests/stories.

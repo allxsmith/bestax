@@ -1,9 +1,9 @@
+import type { MockInstance } from 'vitest';
 import React, { Profiler, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { render, screen, fireEvent, act, within } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import {
   Popover,
   PopoverBody,
@@ -33,7 +33,7 @@ const openWith = (name = 'Filters') =>
 
 afterEach(() => {
   resetDevWarnings();
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
 });
 
 describe('Popover', () => {
@@ -48,7 +48,7 @@ describe('Popover', () => {
     });
 
     it('opens and closes the panel on click, naming it in aria-controls while open', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<FilterPopover onOpenChange={onOpenChange} />);
       const trigger = screen.getByRole('button', { name: 'Filters' });
 
@@ -154,7 +154,7 @@ describe('Popover', () => {
     });
 
     it("runs the trigger's own onKeyDown first, and stands aside when it prevents the default", () => {
-      const own = jest.fn((e: React.KeyboardEvent) => e.preventDefault());
+      const own = vi.fn((e: React.KeyboardEvent) => e.preventDefault());
       render(<FilterPopover trigger={<span onKeyDown={own}>Filters</span>} />);
       fireEvent.keyDown(screen.getByRole('button', { name: 'Filters' }), {
         key: 'Enter',
@@ -196,7 +196,7 @@ describe('Popover', () => {
     });
 
     it('follows `open` when controlled, reporting the trigger through onOpenChange', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       const { rerender } = render(
         <FilterPopover open onOpenChange={onOpenChange} />
       );
@@ -459,7 +459,7 @@ describe('Popover', () => {
     });
 
     it('closes on Escape from the trigger while open, and does nothing while closed', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<FilterPopover onOpenChange={onOpenChange} trapFocus={false} />);
       const trigger = screen.getByRole('button', { name: 'Filters' });
       fireEvent.keyDown(trigger, { key: 'Escape' });
@@ -521,7 +521,7 @@ describe('Popover', () => {
     });
 
     it('closes from Popover.Close, after its own onClick, and hands focus back', () => {
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(
         <Popover trigger={<button>Open</button>} ariaLabel="Share">
           <Popover.Footer>
@@ -565,23 +565,23 @@ describe('Popover', () => {
       </>
     );
 
-    const pointerdownCalls = (spy: jest.SpyInstance) =>
+    const pointerdownCalls = (spy: MockInstance) =>
       spy.mock.calls.filter(([type]) => type === 'pointerdown');
 
     it('keeps its outside-press listener when the parent renders again', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       const { rerender } = render(<Page onOpenChange={onOpenChange} />);
       expect(panel()).toBeInTheDocument();
-      const addSpy = jest.spyOn(document, 'addEventListener');
-      const removeSpy = jest.spyOn(document, 'removeEventListener');
+      const addSpy = vi.spyOn(document, 'addEventListener');
+      const removeSpy = vi.spyOn(document, 'removeEventListener');
       rerender(<Page onOpenChange={onOpenChange} />);
       expect(pointerdownCalls(addSpy)).toHaveLength(0);
       expect(pointerdownCalls(removeSpy)).toHaveLength(0);
     });
 
     it('calls the onOpenChange of the latest render on a press outside', () => {
-      const first = jest.fn();
-      const latest = jest.fn();
+      const first = vi.fn();
+      const latest = vi.fn();
       const { rerender } = render(<Page onOpenChange={first} />);
       rerender(<Page onOpenChange={latest} />);
 
@@ -622,7 +622,7 @@ describe('Popover', () => {
     });
 
     it('points aria-labelledby only at a header that is there', () => {
-      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
       const Panel = ({ header }: { header: boolean }) => (
         <Popover trigger={<button>Open</button>} defaultOpen>
           {header && <Popover.Header>Title</Popover.Header>}
@@ -662,7 +662,7 @@ describe('Popover', () => {
     });
 
     it('warns in development when the panel has no name', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(
         <Popover trigger={<button>Open</button>} defaultOpen>
           Nameless
@@ -674,7 +674,7 @@ describe('Popover', () => {
     });
 
     it('does not warn when the panel is named', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(<FilterPopover defaultOpen />);
       render(
         <Popover trigger={<button>Open</button>} ariaLabel="Named" defaultOpen>
@@ -725,14 +725,16 @@ describe('Popover', () => {
       anchor: DOMRect,
       size: { width: number; height: number }
     ) => {
-      jest
-        .spyOn(container.querySelector('.popover')!, 'getBoundingClientRect')
-        .mockReturnValue(anchor);
-      jest
-        .spyOn(screen.getByRole('dialog'), 'getBoundingClientRect')
-        .mockReturnValue(
-          rect({ top: 0, left: 0, right: size.width, bottom: size.height })
-        );
+      vi.spyOn(
+        container.querySelector('.popover')!,
+        'getBoundingClientRect'
+      ).mockReturnValue(anchor);
+      vi.spyOn(
+        screen.getByRole('dialog'),
+        'getBoundingClientRect'
+      ).mockReturnValue(
+        rect({ top: 0, left: 0, right: size.width, bottom: size.height })
+      );
       act(() => {
         fireEvent(window, new Event('resize'));
       });
@@ -825,7 +827,7 @@ describe('Popover', () => {
 
     it('renders nothing again when a scroll or resize changes nothing', () => {
       setViewport(1000, 1000);
-      const onRender = jest.fn();
+      const onRender = vi.fn();
       const { container } = render(
         <Profiler id="popover" onRender={onRender}>
           <FilterPopover defaultOpen appendToBody />
@@ -1045,12 +1047,13 @@ describe('Popover', () => {
       });
       renderInFrame(<FilterPopover defaultOpen position="auto" />);
       const dialog = within(frameDoc.body).getByRole('dialog');
-      jest
-        .spyOn(mount.querySelector('.popover')!, 'getBoundingClientRect')
-        .mockReturnValue(box({ top: 300, left: 20, w: 80, h: 30 }));
-      jest
-        .spyOn(dialog, 'getBoundingClientRect')
-        .mockReturnValue(box({ top: 0, left: 0, w: 200, h: 150 }));
+      vi.spyOn(
+        mount.querySelector('.popover')!,
+        'getBoundingClientRect'
+      ).mockReturnValue(box({ top: 300, left: 20, w: 80, h: 30 }));
+      vi.spyOn(dialog, 'getBoundingClientRect').mockReturnValue(
+        box({ top: 0, left: 0, w: 200, h: 150 })
+      );
       act(() => {
         fireEvent(frameWin, new Event('resize'));
       });
@@ -1091,9 +1094,7 @@ describe('Popover', () => {
       container.innerHTML = renderToString(ui);
       document.body.appendChild(container);
       const serverHtml = container.innerHTML;
-      const errorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       let root: ReturnType<typeof hydrateRoot> | undefined;
       await act(async () => {
         root = hydrateRoot(container, ui);

@@ -169,7 +169,7 @@ describe('Portal', () => {
   });
 
   it('passes context through and bubbles React events up the React tree', () => {
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     render(
       <ConfigProvider classPrefix="bestax-">
         <div onClick={onClick}>
@@ -206,9 +206,7 @@ describe('Portal', () => {
       container.innerHTML = renderToString(<App />);
       document.body.appendChild(container);
 
-      const errorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       let unmountRoot = () => {};
       try {
         await act(async () => {
@@ -371,9 +369,7 @@ describe("Portal under a ConfigProvider's portalContainer", () => {
       container.innerHTML = renderToString(<App />);
       document.body.appendChild(container);
 
-      const errorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       let unmountRoot = () => {};
       try {
         await act(async () => {

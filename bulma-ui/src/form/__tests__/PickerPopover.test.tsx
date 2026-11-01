@@ -1,3 +1,4 @@
+import type { Mock, MockInstance } from 'vitest';
 import React, { useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import {
@@ -75,7 +76,7 @@ describe('PickerPopover', () => {
     // A Modal or Sidebar around it reads `defaultPrevented` and stays open.
     // The key still reaches listeners further out.
     const { getByTestId } = render(<Harness />);
-    const further = jest.fn();
+    const further = vi.fn();
     window.addEventListener('keydown', further);
     try {
       const escape = createEvent.keyDown(getByTestId('inside'), {
@@ -357,7 +358,7 @@ describe('PickerPopover', () => {
 
 describe('PickerPopover while its onClose changes', () => {
   /** The popover's own listeners among a spy's calls on `document`. */
-  const popoverListeners = (spy: jest.SpyInstance) =>
+  const popoverListeners = (spy: MockInstance) =>
     spy.mock.calls.filter(
       ([type]) => type === 'keydown' || type === 'pointerdown'
     );
@@ -414,10 +415,10 @@ describe('PickerPopover while its onClose changes', () => {
   };
 
   it('keeps its document listeners when the field renders again', () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     const { rerender } = render(<InlineField onClose={onClose} />);
-    const addSpy = jest.spyOn(document, 'addEventListener');
-    const removeSpy = jest.spyOn(document, 'removeEventListener');
+    const addSpy = vi.spyOn(document, 'addEventListener');
+    const removeSpy = vi.spyOn(document, 'removeEventListener');
     try {
       rerender(<InlineField onClose={onClose} />);
       expect(popoverListeners(addSpy)).toHaveLength(0);
@@ -439,8 +440,8 @@ describe('PickerPopover while its onClose changes', () => {
       () => fireEvent.pointerDown(screen.getByTestId('outside')),
     ],
   ])('calls the onClose of its latest render on %s', (_, press) => {
-    const first = jest.fn();
-    const latest = jest.fn();
+    const first = vi.fn();
+    const latest = vi.fn();
     const { rerender } = render(<InlineField onClose={first} />);
     rerender(<InlineField onClose={latest} />);
     act(() => {
@@ -467,7 +468,7 @@ describe('PickerPopover while its onClose changes', () => {
   ] as const)(
     'hears %s when a listener ahead of its own renders the field',
     (_, type, press) => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       const { stop } = renderWithListenerAhead(type, () => (
         <InlineField onClose={onClose} />
       ));
@@ -546,7 +547,7 @@ describe('PickerPopover position resolution', () => {
 
   afterEach(() => {
     setViewport(originalInnerWidth, originalInnerHeight);
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   const makeRect = (r: {
@@ -601,8 +602,8 @@ describe('PickerPopover position resolution', () => {
     const result = render(ui);
     const anchor = result.getByTestId('anchor');
     const dialog = result.getByRole('dialog');
-    jest.spyOn(anchor, 'getBoundingClientRect').mockReturnValue(anchorRect);
-    jest.spyOn(dialog, 'getBoundingClientRect').mockReturnValue(
+    vi.spyOn(anchor, 'getBoundingClientRect').mockReturnValue(anchorRect);
+    vi.spyOn(dialog, 'getBoundingClientRect').mockReturnValue(
       makeRect({
         top: 0,
         left: 0,
@@ -678,14 +679,15 @@ describe('PickerPopover position resolution', () => {
     const dialog = result.getByRole('dialog');
     // The margin `--bulma-picker-popover-offset: 20px` would give it.
     dialog.style.marginTop = '20px';
-    jest
-      .spyOn(result.getByTestId('anchor'), 'getBoundingClientRect')
-      .mockReturnValue(
-        makeRect({ top: 670, bottom: 690, left: 50, right: 110 })
-      );
-    jest
-      .spyOn(dialog, 'getBoundingClientRect')
-      .mockReturnValue(makeRect({ top: 0, left: 0, right: 200, bottom: 300 }));
+    vi.spyOn(
+      result.getByTestId('anchor'),
+      'getBoundingClientRect'
+    ).mockReturnValue(
+      makeRect({ top: 670, bottom: 690, left: 50, right: 110 })
+    );
+    vi.spyOn(dialog, 'getBoundingClientRect').mockReturnValue(
+      makeRect({ top: 0, left: 0, right: 200, bottom: 300 })
+    );
     act(() => {
       fireEvent(window, new Event('resize'));
     });
@@ -699,14 +701,15 @@ describe('PickerPopover position resolution', () => {
     const dialog = result.getByRole('dialog');
     // The margin `--bulma-picker-popover-offset: 20px` would give it.
     dialog.style.marginTop = '20px';
-    jest
-      .spyOn(result.getByTestId('anchor'), 'getBoundingClientRect')
-      .mockReturnValue(
-        makeRect({ top: 660, bottom: 680, left: 50, right: 110 })
-      );
-    jest
-      .spyOn(dialog, 'getBoundingClientRect')
-      .mockReturnValue(makeRect({ top: 0, left: 0, right: 200, bottom: 300 }));
+    vi.spyOn(
+      result.getByTestId('anchor'),
+      'getBoundingClientRect'
+    ).mockReturnValue(
+      makeRect({ top: 660, bottom: 680, left: 50, right: 110 })
+    );
+    vi.spyOn(dialog, 'getBoundingClientRect').mockReturnValue(
+      makeRect({ top: 0, left: 0, right: 200, bottom: 300 })
+    );
     act(() => {
       fireEvent(window, new Event('resize'));
     });
@@ -738,7 +741,7 @@ describe('PickerPopover position resolution', () => {
     const dialog = getByRole('dialog');
     expect(dialog.className).toMatch(/is-bottom-left/);
     // The anchor moves (e.g. the page scrolled); a scroll event re-measures.
-    (getByTestId('anchor').getBoundingClientRect as jest.Mock).mockReturnValue(
+    (getByTestId('anchor').getBoundingClientRect as Mock).mockReturnValue(
       makeRect({ top: 880, bottom: 900, left: 900, right: 960 })
     );
     act(() => {

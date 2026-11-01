@@ -13,7 +13,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 
 import { frontmatter } from './lib/api-page.mjs';
@@ -280,7 +280,7 @@ test('a symlinked skill directory is reported, as every bundler refuses it', asy
   const { join } = await import('node:path');
 
   const root = mkdtempSync(join(tmpdir(), 'bestax-roster-link-'));
-  t.after(() => rmSync(root, { recursive: true, force: true }));
+  t.onTestFinished(() => rmSync(root, { recursive: true, force: true }));
   const skillsDir = join(root, 'skills');
   mkdirSync(join(skillsDir, 'bestax-form'), { recursive: true });
   writeFileSync(join(skillsDir, 'bestax-form', 'SKILL.md'), '# form\n');
@@ -566,7 +566,7 @@ test('the vetting gate flags untracked files only in its OWN repository', async 
   const path = await import('node:path');
 
   const root = mkdtempSync(path.join(os.tmpdir(), 'bestax-gate-'));
-  t.after(() => rmSync(root, { recursive: true, force: true }));
+  t.onTestFinished(() => rmSync(root, { recursive: true, force: true }));
   const git = (cwd, ...args) =>
     execFileSync('git', ['-C', cwd, ...args], { stdio: 'ignore' });
 
@@ -620,7 +620,7 @@ test('trackedRepoPaths shares the gate and its repository rule', async t => {
   const path = await import('node:path');
 
   const root = mkdtempSync(path.join(os.tmpdir(), 'bestax-tracked-'));
-  t.after(() => rmSync(root, { recursive: true, force: true }));
+  t.onTestFinished(() => rmSync(root, { recursive: true, force: true }));
   const git = (cwd, ...args) =>
     execFileSync('git', ['-C', cwd, ...args], { stdio: 'ignore' });
 
@@ -671,7 +671,7 @@ test('with requireCheckout, a gate git cannot run is a refusal naming why', asyn
   const path = await import('node:path');
 
   const root = mkdtempSync(path.join(os.tmpdir(), 'bestax-require-'));
-  t.after(() => rmSync(root, { recursive: true, force: true }));
+  t.onTestFinished(() => rmSync(root, { recursive: true, force: true }));
   const git = (cwd, ...args) =>
     execFileSync('git', ['-C', cwd, ...args], { stdio: 'ignore' });
   const require = { requireCheckout: true };
@@ -739,7 +739,7 @@ test('rootGit names a failed command and a root it cannot resolve', async t => {
   const path = await import('node:path');
 
   const root = mkdtempSync(path.join(os.tmpdir(), 'bestax-rootgit-'));
-  t.after(() => rmSync(root, { recursive: true, force: true }));
+  t.onTestFinished(() => rmSync(root, { recursive: true, force: true }));
   execFileSync('git', ['-C', root, 'init', '-q'], { stdio: 'ignore' });
   assert.match(
     rootGit(root, root, ['rev-parse', '--is-inside-work-tree']),

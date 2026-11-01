@@ -26,8 +26,8 @@ const packageRoot = path.join(
 const fixtureDir = path.join(packageRoot, 'fixtures', 'rbx-kitchen-sink');
 
 // One scratch directory PER PROCESS, not one shared path — see the comment in
-// kitchen-sink.test.ts for why (`pnpm all` runs two jest processes over this
-// file concurrently). BESTAX_E2E_KEEP=1 leaves it behind for inspection.
+// kitchen-sink.test.ts for why (two Vitest processes can run this file at
+// once). BESTAX_E2E_KEEP=1 leaves it behind for inspection.
 const tmpRoot = path.join(packageRoot, '.e2e-tmp');
 fs.mkdirSync(tmpRoot, { recursive: true });
 const tmpDir = fs.mkdtempSync(path.join(tmpRoot, 'rbx-kitchen-sink-'));
@@ -238,6 +238,7 @@ describe('rbx kitchen-sink e2e', () => {
     expect(rules).toContain('component:Icon');
     expect(rules).toContain('component:File.Label');
     expect(rules).toContain('component:Dropdown');
+    expect(rules).toContain('component:Heading');
     // The two `as`/`href` leftovers, which the fixture adds for these and
     // which nothing here asserted — so deleting them cost no coverage.
     expect(rules).toContain('prop:as');

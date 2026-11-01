@@ -3,24 +3,16 @@
 // compile the real partial, plain and under a class prefix, and assert
 // computed style instead (pattern: Popover.styles.test.tsx). jsdom leaves
 // `var()` unresolved and does no layout, so values are compared as written.
-import * as sass from 'sass';
 import { readdirSync } from 'fs';
 import path from 'path';
 import type { ReactElement } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import { SCSS, compileScss, compileSheet } from '../../__tests__/compile-scss';
 import { DateInput } from '../DateInput';
 import { TimeInput } from '../TimeInput';
 import { DateTimeInput } from '../DateTimeInput';
 import { ConfigProvider } from '../../helpers/Config';
 import type { PickerPosition } from '../_pickerInternals/pickerTypes';
-
-const SCSS = path.resolve(__dirname, '../../scss');
-const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
-const OPTIONS = {
-  loadPaths: [SCSS, NODE_MODULES],
-  quietDeps: true,
-  logger: sass.Logger.silent,
-};
 
 /** The partial, compiled under each class prefix, by prefix. */
 const sheets: Record<string, HTMLStyleElement> = {};
@@ -32,7 +24,7 @@ beforeAll(() => {
      @use 'form/picker-popover';`,
   })) {
     const el = document.createElement('style');
-    el.textContent = sass.compileString(source, OPTIONS).css;
+    el.textContent = compileScss(source);
     document.head.appendChild(el);
     sheets[prefix] = el;
   }
@@ -161,14 +153,15 @@ describe.each(pickers)('%s auto placement in place', (_name, picker) => {
           fireEvent.click(screen.getByRole('combobox'));
           const panel = screen.getByRole('dialog');
           const height = 300;
-          jest
-            .spyOn(panel.parentElement!, 'getBoundingClientRect')
-            .mockReturnValue(
-              box(window.innerHeight - room - height - 40, 20, 40, 200)
-            );
-          jest
-            .spyOn(panel, 'getBoundingClientRect')
-            .mockReturnValue(box(0, 0, height, 280));
+          vi.spyOn(
+            panel.parentElement!,
+            'getBoundingClientRect'
+          ).mockReturnValue(
+            box(window.innerHeight - room - height - 40, 20, 40, 200)
+          );
+          vi.spyOn(panel, 'getBoundingClientRect').mockReturnValue(
+            box(0, 0, height, 280)
+          );
           act(() => {
             fireEvent(window, new Event('resize'));
           });
@@ -292,17 +285,19 @@ function mediaHolds(mediaText: string, width: number): boolean {
 }
 
 // What says where a box sits, and the value each has when nothing sets it.
-// The gap to the anchor can be a margin, so margins count too.
+// The gap to the anchor can be a margin, so margins count too. jsdom
+// serializes a zero length as `0px`, as browsers do, so a zero reads that way
+// whether a rule sets it or not.
 const INITIAL: Record<string, string> = {
   position: 'static',
   top: 'auto',
   right: 'auto',
   bottom: 'auto',
   left: 'auto',
-  'margin-top': '0',
-  'margin-right': '0',
-  'margin-bottom': '0',
-  'margin-left': '0',
+  'margin-top': '0px',
+  'margin-right': '0px',
+  'margin-bottom': '0px',
+  'margin-left': '0px',
 };
 const PLACEMENT = Object.keys(INITIAL);
 // Shorthands and logical properties move the box without naming these.
@@ -443,7 +438,7 @@ describe.each(published)('panel placement in %s', file => {
   let sheet: CSSStyleSheet;
 
   beforeAll(() => {
-    sheet = parseSheet(sass.compile(path.join(SCSS, file), OPTIONS).css);
+    sheet = parseSheet(compileSheet(file));
   }, 30_000);
 
   describe.each([PHONE, DESKTOP])('at %ipx wide', width => {
@@ -477,9 +472,9 @@ describe.each(published)('panel placement in %s', file => {
             'margin-top': position.startsWith('top')
               ? `calc(-1 * ${gap})`
               : gap,
-            'margin-right': '0',
-            'margin-bottom': '0',
-            'margin-left': '0',
+            'margin-right': '0px',
+            'margin-bottom': '0px',
+            'margin-left': '0px',
           });
         }
       );
@@ -495,16 +490,19 @@ describe.each(published)('panel placement in %s', file => {
       it.each<[Corner, Record<string, string>]>([
         [
           'bottom-left',
-          { top: offset, right: 'auto', bottom: 'auto', left: '0' },
+          { top: offset, right: 'auto', bottom: 'auto', left: '0px' },
         ],
         [
           'bottom-right',
-          { top: offset, right: '0', bottom: 'auto', left: 'auto' },
+          { top: offset, right: '0px', bottom: 'auto', left: 'auto' },
         ],
-        ['top-left', { top: 'auto', right: 'auto', bottom: offset, left: '0' }],
+        [
+          'top-left',
+          { top: 'auto', right: 'auto', bottom: offset, left: '0px' },
+        ],
         [
           'top-right',
-          { top: 'auto', right: '0', bottom: offset, left: 'auto' },
+          { top: 'auto', right: '0px', bottom: offset, left: 'auto' },
         ],
       ])(
         'keeps an in-place %s panel the offset off its corner',
@@ -540,10 +538,10 @@ describe.each(published)('panel placement in %s', file => {
         right: '1rem',
         bottom: '1rem',
         left: '1rem',
-        'margin-top': '0',
-        'margin-right': '0',
-        'margin-bottom': '0',
-        'margin-left': '0',
+        'margin-top': '0px',
+        'margin-right': '0px',
+        'margin-bottom': '0px',
+        'margin-left': '0px',
       });
     }
   );

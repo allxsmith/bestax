@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { Switch } from '../Switch';
 
 describe('Switch', () => {
@@ -145,7 +144,7 @@ describe('Switch', () => {
 
   describe('events', () => {
     it('calls onChange when clicked', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Switch data-testid="switch" onChange={handleChange} />);
 
       fireEvent.click(screen.getByTestId('switch'));

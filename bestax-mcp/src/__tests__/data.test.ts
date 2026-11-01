@@ -1,7 +1,7 @@
 /**
  * Index loading, name resolution and the guards around skill file reads.
  */
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import {
   assertSchema,

@@ -59,7 +59,7 @@ import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { after, describe, it } from 'node:test';
+import { afterAll, describe, it } from 'vitest';
 import {
   fenceSpans,
   sectionBody,
@@ -186,7 +186,7 @@ async function appWith(links) {
 }
 
 const app = await appWith({ [LIBRARY]: BULMA_UI, bulma: BULMA });
-after(() => rmSync(app.dir, { recursive: true, force: true }));
+afterAll(() => rmSync(app.dir, { recursive: true, force: true }));
 const { compile } = app;
 
 /** Every condition an `exports` target names, at any depth. */
@@ -293,7 +293,9 @@ describe('the scss fences in the modular build pages', () => {
     // Node's rule. A target can name the match more than once, which a
     // hand-written copy of the rule in this file once missed.
     const fixture = await appWith({});
-    t.after(() => rmSync(fixture.dir, { recursive: true, force: true }));
+    t.onTestFinished(() =>
+      rmSync(fixture.dir, { recursive: true, force: true })
+    );
     const pkg = join(fixture.dir, 'node_modules', '@fixture', 'stars');
     mkdirSync(join(pkg, 'src', 'dark'), { recursive: true });
     writeFileSync(

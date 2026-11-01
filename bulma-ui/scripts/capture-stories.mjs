@@ -4,8 +4,8 @@
 // handoff so the human reviewer gets pictures, not just text. Maps changed
 // files to story IDs via storybook-static/index.json (importPath for a
 // changed *.stories.tsx, componentPath for a changed component, basename
-// heuristic for scss), serves the built storybook the same way
-// test-storybook-ci.mjs does, and drives Playwright Chromium directly.
+// heuristic for scss), serves the built storybook with node's http module,
+// and drives Playwright Chromium directly.
 //
 // Usage:
 //   node scripts/capture-stories.mjs --changed-files <list.txt> --out <dir> [--max N]
@@ -135,7 +135,7 @@ if (selected.length === 0) {
   process.exit(0);
 }
 
-// ---- Serve storybook-static (same server as test-storybook-ci.mjs) ----
+// ---- Serve storybook-static ----
 const MIME = {
   '.html': 'text/html',
   '.js': 'text/javascript',

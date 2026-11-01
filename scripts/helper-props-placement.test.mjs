@@ -23,14 +23,14 @@
  * cannot be opened that way is in UNRENDERED, with why. A part this cannot
  * measure and that neither names fails, so a new component is measured rather
  * than skipped. It needs the build, and asserts it rather than skipping, since
- * `node --test` exits 0 on a skip.
+ * Vitest exits 0 on a skip.
  */
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const PKG_DIR = join(REPO, 'bulma-ui');
@@ -59,6 +59,13 @@ const UNRENDERED = new Map([
     'ContextMenu',
     'its menu, which takes the helper props, opens on a right-click',
   ],
+  // The picker's parts read its color from the ColorPicker around them and
+  // render nothing alone. Each puts both on its root <div>, as the
+  // ColorPicker tests show.
+  ...['Area', 'HueSlider', 'AlphaSlider', 'Swatches', 'Input'].map(part => [
+    `ColorPicker.${part}`,
+    'it renders only inside a ColorPicker, which holds its color',
+  ]),
 ]);
 
 /** Every opening tag in some markup, with its attributes and classes. */

@@ -14,8 +14,7 @@ import { ConfigProvider } from '../../helpers/Config';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 
-// The Bulma bulma-ui depends on, resolved through package.json since jest
-// maps any `.css` specifier to a stub.
+// The Bulma bulma-ui depends on, found through its package.json.
 const BULMA = path.dirname(require.resolve('bulma/package.json'));
 
 const compile = (prefix: string) =>
@@ -58,11 +57,38 @@ function allRulesOf(css: string) {
   return out;
 }
 
+/**
+ * The properties a rule declares, in order. Iterating its style lists the
+ * longhands a shorthand sets as well, so the names are read off its
+ * `cssText`, split at each `;` outside a string or brackets.
+ */
+function propertiesOf(rule: CSSStyleRule) {
+  const text = `${rule.style.cssText};`;
+  const names: string[] = [];
+  let start = 0;
+  let depth = 0;
+  let quote = '';
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (quote) {
+      if (c === '\\') i++;
+      else if (c === quote) quote = '';
+    } else if (c === '"' || c === "'") quote = c;
+    else if (c === '(') depth++;
+    else if (c === ')') depth--;
+    else if (c === ';' && depth === 0) {
+      const name = text.slice(start, i).split(':')[0].trim();
+      if (name) names.push(name);
+      start = i + 1;
+    }
+  }
+  return names;
+}
+
 /** A rule's declarations as `property: value` lines. */
 const declarationsOf = (rule: CSSStyleRule) =>
-  Array.from(
-    { length: rule.style.length },
-    (_, i) => `${rule.style[i]}: ${rule.style.getPropertyValue(rule.style[i])}`
+  propertiesOf(rule).map(
+    name => `${name}: ${rule.style.getPropertyValue(name)}`
   );
 
 /** A rule's selector list on one line, `, ` between, the way it's written here. */
@@ -75,8 +101,8 @@ function declarations(css: string, selector: string) {
   for (const { rule } of allRulesOf(css).filter(
     ({ rule, within }) => within.length === 0 && selectorOf(rule) === selector
   )) {
-    for (let i = 0; i < rule.style.length; i++) {
-      out[rule.style[i]] = rule.style.getPropertyValue(rule.style[i]).trim();
+    for (const name of propertiesOf(rule)) {
+      out[name] = rule.style.getPropertyValue(name).trim();
     }
   }
   return out;
@@ -201,7 +227,9 @@ describe.each([
       container.querySelector(p('timeline-title')) as Element
     );
     expect(title.color).toBe('var(--bulma-timeline-title-color)');
-    expect(title.fontSize).toBe('1em');
+    // jsdom resolves the `em`: 1em of the 16px the title inherits, where an
+    // h2 left to the browser is 24px.
+    expect(title.fontSize).toBe('16px');
     const time = getComputedStyle(
       container.querySelector(p('timeline-time')) as Element
     );
@@ -359,12 +387,13 @@ describe.each([
         selector: pending,
         declarations: ['animation: none'],
       },
+      // jsdom writes a system color in lowercase, as browsers do.
       {
         within: ['@media (forced-colors: active)'],
         selector: pending,
         declarations: [
-          'border-inline-end-color: Canvas',
-          'border-top-color: Canvas',
+          'border-inline-end-color: canvas',
+          'border-top-color: canvas',
         ],
       },
     ]);
@@ -416,7 +445,7 @@ describe.each([
         compile(prefix),
         `${p('notification')} ${p('timeline-title')}, ${p('notification')} ${p('timeline-time')}`
       )
-    ).toEqual({ color: 'currentColor' });
+    ).toEqual({ color: 'currentcolor' });
   });
 
   it('widens the rail for every item when one has an icon marker', () => {
@@ -445,8 +474,9 @@ describe.each([
       'time-size',
     ]) {
       // A px length only as the floor of a max(), so a line stays drawable.
+      // jsdom drops the space after the comma in a custom property.
       const lengths = vars[`--bulma-timeline-${name}`]
-        .replace(/max\(\d+px, /g, '(')
+        .replace(/max\(\d+px,\s*/g, '(')
         .match(/[\d.]+[a-z]+/g);
       expect(lengths).not.toBeNull();
       expect(lengths?.filter(length => !length.endsWith('em'))).toEqual([]);

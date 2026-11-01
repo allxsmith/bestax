@@ -43,6 +43,32 @@ https://bestax.io/docs/api/grid):
 
 Match the old proportions with `Cell` span props; tiles' `vertical` becomes grid flow.
 
+## `component:Heading` — Bulma v1 dropped `.heading`
+
+A `Heading` with a truthy `heading` is Bulma 0.9's small uppercase label, and bestax has no
+component for it. It becomes a plain `<p className="heading">`, but Bulma v1 has no rule for that
+class, so it styles nothing. Restyle it with helper props, as a small, uppercase, semibold
+`Paragraph`:
+
+```jsx
+<Heading heading>Followers</Heading>
+<Paragraph textSize="7" textTransform="uppercase" textWeight="semibold" mb="1">
+  Followers
+</Paragraph>
+```
+
+Or keep the class and give it a rule of your own. Bulma 0.9's was:
+
+```css
+.heading {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+```
+
 ## Controlled `Dropdown` (`value` / `onChange`, `Dropdown.Item value`)
 
 bestax `Dropdown` is compositional — you own the selection state:
@@ -163,7 +189,7 @@ The same TODO marks a `Heading` that sets `size` and `textSize` both: drop `size
 ## `domRef`
 
 bestax components don't take `domRef`, but many forward a plain `ref` — the form controls, plus
-`Avatar`, `Button`, `Carousel`, `CarouselItem`, `Command`, `Command.Dialog`, `Command.Input`, `DescriptionList`, `DescriptionList.Item`, `DescriptionList.Label`, `DescriptionList.Value`, `Dialog`, `Dropdown`, `EmptyState`, `Kbd`,
+`Avatar`, `Button`, `Carousel`, `CarouselItem`, `ColorSwatch`, `Command`, `Command.Dialog`, `Command.Input`, `DataTable`, `DescriptionList`, `DescriptionList.Item`, `DescriptionList.Label`, `DescriptionList.Value`, `Dialog`, `Dropdown`, `EmptyState`, `Kbd`,
 `Kbd.Group`, `Link`, `LinkButton`, `Loader`, `LocaleProvider`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`,
 `Navbar.Dropdown`, `Navbar.Item`, `Navbar.Link`, `RingProgress`, `ScrollArea`, `SegmentedControl`, `SegmentedControl.Segment`,
 `Sidebar`, `Splitter`, `Splitter.Pane`, `Timeline`, `Timeline.Item`, `Toast`, `ToggleButton`, `TreeView` and `TreeView.Item`. On

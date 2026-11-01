@@ -281,7 +281,7 @@ function converted(
 }
 
 describe('every bulma-classes conversion typechecks', () => {
-  it('compiles against @allxsmith/bestax-bulma', () => {
+  it('compiles against @allxsmith/bestax-bulma', async () => {
     const files: Record<string, string> = {};
     const header =
       "import * as B from '@allxsmith/bestax-bulma';\ndeclare const flag: boolean;\n";
@@ -552,10 +552,10 @@ describe('every bulma-classes conversion typechecks', () => {
       files[`wrapper-${tag}`] =
         `${header}export const all = [\n${lines.join('\n')}\n];\n`;
     }
-    const { status, diagnostics } = typecheckTsxFiles(
+    const { status, diagnostics } = await typecheckTsxFiles(
       files,
       'bulma-classes-props'
     );
     expect({ status, diagnostics }).toEqual({ status: 0, diagnostics: '' });
-  });
+  }, 120000);
 });

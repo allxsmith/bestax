@@ -1,0 +1,178 @@
+{
+  "name": "ColorSwatch",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/colorswatch",
+  "docsUrl": "https://bestax.io/docs/api/elements/colorswatch",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<ColorSwatch color=\"#1e6b99\" label=\"Brand blue\" />"
+    },
+    {
+      "title": "Sizes and Shapes",
+      "code": "<div>\n  <ColorSwatch color=\"#00d1b2\" label=\"Turquoise\" size=\"small\" mr=\"2\" />\n  <ColorSwatch color=\"#00d1b2\" label=\"Turquoise\" mr=\"2\" />\n  <ColorSwatch color=\"#00d1b2\" label=\"Turquoise\" size=\"medium\" mr=\"2\" />\n  <ColorSwatch color=\"#00d1b2\" label=\"Turquoise\" size=\"large\" isRounded />\n</div>"
+    },
+    {
+      "title": "See-Through Colors",
+      "code": "<div>\n  <ColorSwatch\n    color=\"rgba(255, 102, 133, 1)\"\n    label=\"Pink\"\n    size=\"large\"\n    mr=\"2\"\n  />\n  <ColorSwatch\n    color=\"rgba(255, 102, 133, 0.5)\"\n    label=\"Pink at 50%\"\n    size=\"large\"\n    mr=\"2\"\n  />\n  <ColorSwatch color=\"transparent\" label=\"Transparent\" size=\"large\" />\n</div>"
+    },
+    {
+      "title": "Theme Colors",
+      "code": "<div>\n  {['primary', 'link', 'info', 'success', 'warning', 'danger'].map(name => (\n    <ColorSwatch\n      key={name}\n      color={`var(--bulma-${name})`}\n      label={name}\n      isRounded\n      mr=\"2\"\n    />\n  ))}\n</div>"
+    },
+    {
+      "title": "Beside Its Value",
+      "code": "<Paragraph>\n  <ColorSwatch color=\"#ff6685\" size=\"small\" aria-hidden mr=\"2\" />\n  <Code>#ff6685</Code>\n</Paragraph>"
+    }
+  ],
+  "accessibility": "- **An image with a name:** it's `role=\"img\"`, named by `label`, by `aria-label`, or by the color\n  as written, such as \"#1e6b99\", so the color is never shown by color alone (WCAG 1.1.1 and\n  1.4.1). A role passed in never wins.\n- **Hidden where the value is written beside it:** `aria-hidden` keeps it out of the\n  accessibility tree, and a development build stays quiet about a `var()` then.\n- **What's drawn on it** (its children, such as an icon) is hidden from assistive tech.\n- **An edge:** a faint ring in the text color keeps a white swatch visible on a white page and a\n  black one on a dark page. Check WCAG 1.4.11's 3:1 yourself where the swatch is the only sign of\n  something.\n- **Forced colors:** it keeps its color (`forced-color-adjust: none`), since the color is the\n  point, and takes an edge in the system's text color so it still stands apart from the page.",
+  "related": ["ColorPicker", "Tag", "Theme", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-colorswatch--default",
+  "summary": "The `ColorSwatch` component shows a color as a small chip, named by its label or by the color itself. It's an image to assistive tech, so the color is always there in words. In forced colors it keeps its color, edged in the system's text color.",
+  "import": "import { ColorSwatch } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/ColorSwatch.tsx",
+  "rootClass": "color-swatch",
+  "parts": [
+    {
+      "path": "ColorSwatch",
+      "summary": "The `ColorSwatch` component shows a color as a small chip, named by its label or by the color itself. It's an image to assistive tech, so the color is always there in words. In forced colors it keeps its color, edged in the system's text color.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "string",
+          "default": null,
+          "description": "The color it shows: any CSS color, such as `#1e6b99`, `hsl(202, 67%, 36%)` or `var(--bulma-primary)`. A see-through color shows a checkerboard behind it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "default": null,
+          "description": "What the color is called, such as \"Brand blue\", read as the swatch's name in place of `color` as written. A `var()` reads as nothing useful, so a development build warns when one has no name.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "The swatch's size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Draws a circle in place of a rounded square.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Drawn on the swatch, such as an icon. It's hidden from assistive tech, since the swatch is an image named by its label.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper, the color of anything drawn on the swatch.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLSpanElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<span>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "default": null,
+          "description": "Names the swatch in place of `label`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "aria-hidden",
+          "type": "boolean",
+          "default": null,
+          "description": "Hides the swatch from assistive tech, for one beside text that already names the color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <span> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-color-swatch-size",
+      "sass": "$color-swatch-size",
+      "default": "1.5rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-swatch-radius",
+      "sass": "$color-swatch-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-swatch-edge-color",
+      "sass": "$color-swatch-edge-color",
+      "default": "hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-l), 0.2)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-swatch-checker-color",
+      "sass": "$color-swatch-checker-color",
+      "default": "var(--bulma-border)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-swatch-checker-background",
+      "sass": "$color-swatch-checker-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-color-swatch-checker-size",
+      "sass": "$color-swatch-checker-size",
+      "default": "0.5rem",
+      "scope": "root"
+    }
+  ]
+}

@@ -2,10 +2,10 @@
  * Ambient module declarations for the non-code assets stories import.
  *
  * Storybook's Vite builder resolves `import logo from '../../images/logo.svg'`
- * to a URL string, but nothing tells `tsc` that, and this package does not
- * reference `vite/client` — pulling in Vite's whole client surface (`*.css`
- * modules, `import.meta.env`) would also apply it to the jest suite, which runs
- * nowhere near Vite.
+ * to a URL string, but nothing tells `tsc` that. This package does not
+ * reference `vite/client` for it: that would declare Vite's whole client
+ * surface (`*.css` modules, `import.meta.env`) to the tests and stories, for
+ * one asset type.
  *
  * This lives outside `src/` on purpose. `bulma-ui/tsconfig.json` is the build's
  * program too, via `@rollup/plugin-typescript` with `declaration: true`, and an

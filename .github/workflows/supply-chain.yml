@@ -44,7 +44,7 @@ jobs:
           cache: 'pnpm'
 
       # NOTE ON SCOPE: this produces a *repository* SBOM — the full monorepo
-      # dev toolchain (storybook, playwright, docusaurus, jest, turbo…) as
+      # dev toolchain (storybook, playwright, docusaurus, vitest, turbo…) as
       # resolved by the lockfile CI builds from. It is deliberately NOT the
       # published-package dependency closure, which for bestax-bulma is just
       # Bulma. Useful for auditing what builds our releases; do not read it as
@@ -165,7 +165,7 @@ jobs:
       # runner infrastructure, which needs no listing (.github/CLAUDE.md,
       # "Measuring an allowlist").
       - name: Harden runner
-        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: block
           disable-sudo-and-containers: true
@@ -412,7 +412,7 @@ jobs:
           # released leg is the one the release actually cares about.
           #
           # The policy itself is in scripts/npm-install-retry.mjs with a
-          # node --test sibling, per rule 9: no PR event reaches this job and
+          # test sibling, per rule 9: no PR event reaches this job and
           # the pinned path fires only on a real release, so those tests are
           # the only thing that can fail when the policy is wrong. The shell
           # loop they replace was wrong in two ways at once — retrying without
@@ -623,7 +623,7 @@ jobs:
       # version and its subject agrees, a floor, and that the two documents
       # list the same closure. None knows a count, so growth never reds this.
       # Rule 9: the logic and its reasoning live in
-      # scripts/check-consumer-sbom.mjs with a node --test sibling that
+      # scripts/check-consumer-sbom.mjs with a test sibling that
       # replays every regression this job has actually had.
       #
       # The registry claim is carried very unequally by the two formats, and
@@ -763,7 +763,7 @@ jobs:
       # enforces, same as this job — do not read the grandfather clause as
       # covering it.
       - name: Harden runner
-        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: block
           disable-sudo-and-containers: true
@@ -1103,7 +1103,7 @@ jobs:
       # So this step asserts the contents (#526) — that each installed tarball's
       # digest is the one the attestation signs, and that the build it describes
       # is this repository, this workflow, this ref, on a GitHub-hosted runner.
-      # The logic lives in scripts/ with a node --test sibling, per rule 9,
+      # The logic lives in scripts/ with a test sibling, per rule 9,
       # because it decodes a base64 DSSE payload and compares the required
       # provenance fields; that
       # is not something a shell loop can be tested for.

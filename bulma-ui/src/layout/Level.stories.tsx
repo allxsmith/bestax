@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import Level from './Level';
+import { Paragraph } from '../elements/Paragraph';
 import { Title } from '../elements/Title';
 import { SubTitle } from '../elements/SubTitle';
 import { Button } from '../elements/Button';
@@ -64,25 +65,53 @@ export const CenteredLevel: StoryObj<typeof Level> = {
     <Level>
       <Level.Item hasTextCentered>
         <div>
-          <p className="heading">Posts</p>
+          <Paragraph
+            textSize="7"
+            textTransform="uppercase"
+            textWeight="semibold"
+            mb="1"
+          >
+            Posts
+          </Paragraph>
           <Title as="p">1,234</Title>
         </div>
       </Level.Item>
       <Level.Item hasTextCentered>
         <div>
-          <p className="heading">Following</p>
+          <Paragraph
+            textSize="7"
+            textTransform="uppercase"
+            textWeight="semibold"
+            mb="1"
+          >
+            Following
+          </Paragraph>
           <Title as="p">6789</Title>
         </div>
       </Level.Item>
       <Level.Item hasTextCentered>
         <div>
-          <p className="heading">Followers</p>
+          <Paragraph
+            textSize="7"
+            textTransform="uppercase"
+            textWeight="semibold"
+            mb="1"
+          >
+            Followers
+          </Paragraph>
           <Title as="p">123K</Title>
         </div>
       </Level.Item>
       <Level.Item hasTextCentered>
         <div>
-          <p className="heading">Likes</p>
+          <Paragraph
+            textSize="7"
+            textTransform="uppercase"
+            textWeight="semibold"
+            mb="1"
+          >
+            Likes
+          </Paragraph>
           <Title as="p">9876</Title>
         </div>
       </Level.Item>
@@ -119,25 +148,53 @@ export const MobileLevel: StoryObj<typeof Level> = {
     <Level isMobile>
       <Level.Item hasTextCentered>
         <div>
-          <p className="heading">Posts</p>
+          <Paragraph
+            textSize="7"
+            textTransform="uppercase"
+            textWeight="semibold"
+            mb="1"
+          >
+            Posts
+          </Paragraph>
           <Title as="p">1,234</Title>
         </div>
       </Level.Item>
       <Level.Item hasTextCentered>
         <div>
-          <p className="heading">Following</p>
+          <Paragraph
+            textSize="7"
+            textTransform="uppercase"
+            textWeight="semibold"
+            mb="1"
+          >
+            Following
+          </Paragraph>
           <Title as="p">4567</Title>
         </div>
       </Level.Item>
       <Level.Item hasTextCentered>
         <div>
-          <p className="heading">Followers</p>
+          <Paragraph
+            textSize="7"
+            textTransform="uppercase"
+            textWeight="semibold"
+            mb="1"
+          >
+            Followers
+          </Paragraph>
           <Title as="p">123K</Title>
         </div>
       </Level.Item>
       <Level.Item hasTextCentered>
         <div>
-          <p className="heading">Likes</p>
+          <Paragraph
+            textSize="7"
+            textTransform="uppercase"
+            textWeight="semibold"
+            mb="1"
+          >
+            Likes
+          </Paragraph>
           <Title as="p">9876</Title>
         </div>
       </Level.Item>

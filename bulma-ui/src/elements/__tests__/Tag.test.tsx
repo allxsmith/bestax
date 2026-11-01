@@ -94,7 +94,7 @@ describe('Tag Component', () => {
   });
 
   test('calls onDelete when delete button is clicked', () => {
-    const onDelete = jest.fn();
+    const onDelete = vi.fn();
     render(<Tag {...defaultProps} isDelete onDelete={onDelete} />);
     const button = screen.getByRole('button', { name: 'Delete tag' });
     fireEvent.click(button);

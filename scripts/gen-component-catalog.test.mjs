@@ -8,7 +8,7 @@
  * tested with fixtures in api-catalog.test.mjs. This file holds the
  * rendering and the real output.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';

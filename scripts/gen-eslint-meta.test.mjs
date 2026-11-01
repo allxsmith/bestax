@@ -3,11 +3,11 @@
  *
  * `replacementFrom` turns the library's own deprecation note into the ESLint
  * autofix, so a note it reads wrongly becomes a wrong edit to someone's
- * source. It sits outside jest's `roots` and its output file is excluded from
- * coverage, which is exactly why it needs a sibling test here.
+ * source. It sits outside the ESLint plugin's own suite and its output file is
+ * excluded from coverage, which is exactly why it needs a sibling test here.
  */
 import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import {
   build,
   bulmaComponentClasses,

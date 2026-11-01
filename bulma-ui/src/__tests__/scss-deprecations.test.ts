@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 // A consumer who builds from our SCSS (`@use '@allxsmith/bestax-bulma/scss'`)
 // compiles it with their own Sass and sees every deprecation warning it raises.
@@ -10,13 +10,10 @@
 // sees them with or without bestax. The controls at the end prove the logger
 // is wired, so a clean run means clean sources rather than a filter that
 // stopped matching.
-import * as sass from 'sass';
 import { readdirSync } from 'fs';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-
-const SCSS = path.resolve(__dirname, '../scss');
-const NODE_MODULES = path.resolve(__dirname, '../../../node_modules');
+import { LOAD_PATHS, NODE_MODULES, SCSS, sass } from './compile-scss';
 
 /** The entry points: every non-partial `.scss` at the top and in `versions/`. */
 const ENTRIES = ['', 'versions'].flatMap(dir =>
@@ -45,7 +42,7 @@ function ownDeprecations(found: string[]): sass.Logger {
 }
 
 const OPTIONS = {
-  loadPaths: [SCSS, NODE_MODULES],
+  loadPaths: LOAD_PATHS,
   // Report every occurrence, not the first few of each kind.
   verbose: true,
 };
@@ -68,7 +65,7 @@ describe.each(ENTRIES)('%s', entry => {
       logger: ownDeprecations(found),
     });
     expect(found).toEqual([]);
-  }, 30_000);
+  });
 });
 
 describe('the deprecation logger', () => {

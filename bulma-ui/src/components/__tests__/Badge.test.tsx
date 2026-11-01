@@ -213,7 +213,7 @@ describe('Badge', () => {
   });
 
   it('keeps the wrapper (and its rest props) when the badge is hidden', () => {
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     render(
       <Badge content={0} data-testid="badge" id="root" onClick={onClick}>
         <span data-testid="child">child</span>

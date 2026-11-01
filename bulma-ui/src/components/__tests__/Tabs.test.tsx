@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import { act, render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -12,11 +13,11 @@ import Tabs, {
 import { ConfigProvider } from '../../helpers/Config';
 import { resetColorDeprecationWarnings } from '../../helpers/colorDeprecations';
 
-let warnSpy: jest.SpyInstance;
+let warnSpy: MockInstance;
 
 beforeEach(() => {
   resetColorDeprecationWarnings();
-  warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 });
 
 afterEach(() => {
@@ -253,7 +254,7 @@ describe('Tabs', () => {
     });
 
     it('calls onChange on tab click', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Tabs value={0} onChange={handleChange}>
           <Tabs.List>
@@ -268,7 +269,7 @@ describe('Tabs', () => {
     });
 
     it('does not change internal state when controlled', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Tabs value={0} onChange={handleChange}>
           <Tabs.List>
@@ -416,7 +417,7 @@ describe('Tabs', () => {
     });
 
     it('does not activate when disabled', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Tabs defaultValue={0} onChange={handleChange}>
           <Tabs.List>
@@ -516,7 +517,7 @@ describe('Tabs', () => {
     });
 
     it('calls onClick', () => {
-      const handleClick = jest.fn();
+      const handleClick = vi.fn();
       render(
         <Tabs>
           <Tabs.List>
@@ -1150,7 +1151,7 @@ describe('Tabs keyboard support (WAI-ARIA tabs pattern)', () => {
 
   describe('arrow keys, Home and End', () => {
     it('ArrowRight and ArrowLeft move focus without selecting (manual activation)', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       renderTabs({ onChange });
       focus(tab('One'));
       expect(key(tab('One'), 'ArrowRight')).toBe(false);
@@ -1297,7 +1298,7 @@ describe('Tabs keyboard support (WAI-ARIA tabs pattern)', () => {
 
   describe('Enter and Space', () => {
     it.each(['Enter', ' '])('%j activates the focused tab', k => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       renderTabs({ onChange });
       focus(tab('One'));
       key(tab('One'), 'ArrowRight');
@@ -1310,7 +1311,7 @@ describe('Tabs keyboard support (WAI-ARIA tabs pattern)', () => {
     });
 
     it('does nothing on a disabled tab', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       renderTabs({ onChange }, [1]);
       focus(tab('Two'));
       key(tab('Two'), 'Enter');
@@ -1320,7 +1321,7 @@ describe('Tabs keyboard support (WAI-ARIA tabs pattern)', () => {
     });
 
     it('activates through a click, so click listeners see keyboard activation', () => {
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(
         <div onClick={onClick}>
           <Tabs>
@@ -1337,7 +1338,7 @@ describe('Tabs keyboard support (WAI-ARIA tabs pattern)', () => {
     });
 
     it('still activates on a mouse click', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       renderTabs({ onChange });
       fireEvent.click(screen.getByText('Three'));
       expect(onChange).toHaveBeenCalledWith(2);
@@ -1347,9 +1348,9 @@ describe('Tabs keyboard support (WAI-ARIA tabs pattern)', () => {
 
   describe('handlers passed to Tabs.Tab', () => {
     it('calls onKeyDown, onFocus and onBlur alongside its own', () => {
-      const onKeyDown = jest.fn();
-      const onFocus = jest.fn();
-      const onBlur = jest.fn();
+      const onKeyDown = vi.fn();
+      const onFocus = vi.fn();
+      const onBlur = vi.fn();
       render(
         <Tabs>
           <Tabs.List>
@@ -1374,7 +1375,7 @@ describe('Tabs keyboard support (WAI-ARIA tabs pattern)', () => {
     });
 
     it('leaves keys on a control inside a tab to that control', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <Tabs onChange={onChange}>
           <Tabs.List>

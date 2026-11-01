@@ -9,7 +9,6 @@
  */
 import { useState } from 'react';
 import { act, fireEvent, render, within } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { ContextMenu } from '../ContextMenu';
 import { ConfigProvider } from '../../helpers/Config';
 
@@ -151,7 +150,7 @@ describe('ContextMenu in an iframe', () => {
   });
 
   it('cancels a long press for a second finger in the iframe, not on the page around it', () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     try {
       render(
         <>
@@ -164,24 +163,29 @@ describe('ContextMenu in an iframe', () => {
       press(region, { pointerType: 'touch' });
       press(document.body, { pointerType: 'touch', pointerId: 2 });
       act(() => {
-        jest.advanceTimersByTime(500);
+        vi.advanceTimersByTime(500);
       });
       expect(frameMenu()).toBeInTheDocument();
       fireEvent.keyDown(frameDoc.activeElement!, { key: 'Escape' });
       press(region, { pointerType: 'touch', type: 'pointerup' });
 
       press(region, { pointerType: 'touch', pointerId: 3 });
-      expect(jest.getTimerCount()).toBe(1);
+      // Handing focus back queued a zero-delay timer of jsdom's own, for
+      // `selectionchange`, which the fake timers count too. Run it first.
+      act(() => {
+        vi.advanceTimersByTime(0);
+      });
+      expect(vi.getTimerCount()).toBe(1);
       press(within(frameDoc.body).getByText('Elsewhere'), {
         pointerType: 'touch',
         pointerId: 4,
       });
       act(() => {
-        jest.advanceTimersByTime(500);
+        vi.advanceTimersByTime(500);
       });
       expect(frameMenu()).toBeNull();
     } finally {
-      jest.useRealTimers();
+      vi.useRealTimers();
     }
   });
 

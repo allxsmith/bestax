@@ -1,6 +1,6 @@
 {
   "name": "bestax-mcp",
-  "version": "1.18.18",
+  "version": "1.18.23",
   "mcpName": "io.github.allxsmith/bestax-mcp",
   "description": "MCP server for @allxsmith/bestax-bulma — component props, examples, CSS variables and agent skills, served offline from a version-pinned index",
   "type": "module",
@@ -15,9 +15,9 @@
   "scripts": {
     "build": "node scripts/sync-skills.mjs && tsc",
     "dev": "tsc --watch",
-    "test": "node scripts/sync-skills.mjs && NODE_OPTIONS=\"--experimental-vm-modules\" jest",
-    "test:watch": "node scripts/sync-skills.mjs && NODE_OPTIONS=\"--experimental-vm-modules\" jest --watch",
-    "test:coverage": "node scripts/sync-skills.mjs && NODE_OPTIONS=\"--experimental-vm-modules\" jest --coverage",
+    "test": "node scripts/sync-skills.mjs && vitest run",
+    "test:watch": "node scripts/sync-skills.mjs && vitest",
+    "test:coverage": "node scripts/sync-skills.mjs && vitest run --coverage",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.ts\"",
@@ -56,16 +56,14 @@
   },
   "dependencies": {
     "@allxsmith/bestax-bulma": "workspace:^",
-    "@modelcontextprotocol/sdk": "^1.32.1",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@jest/globals": "^30.0.0",
-    "@types/jest": "^30.0.0",
-    "@types/node": "^26.6.5",
-    "jest": "^30.2.0",
-    "ts-jest": "^29.4.15",
-    "typescript": "^6.0.3"
+    "@types/node": "^26.6.6",
+    "@vitest/coverage-istanbul": "^5.0.5",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.5"
   },
   "publishConfig": {
     "access": "public"

@@ -1,0 +1,25 @@
+// Bestax Extras - Pagination Styles
+// Bulma marks the current page link with a fill, a border color and a text
+// color, and nothing else, and forced colors (Windows' contrast themes)
+// replaces all three with the system's, so the current page looks like every
+// other page there. This draws it in Highlight and HighlightText, the pair the
+// system keeps for a selection, the way the themed Checkbox marks a checked
+// box. `forced-color-adjust: none` keeps them. Outside forced colors it
+// changes nothing.
+//
+// It reads the classes Bulma highlights, `is-current` and its other name
+// `is-selected`, so a hand-written current link gets it too, and so does
+// `DataTable`'s pager, which is a `Pagination`. Two classes outrank Bulma's
+// colors for a link, wherever the two stylesheets load.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}pagination-link.#{iv.$class-prefix}is-current,
+  .#{iv.$class-prefix}pagination-link.#{iv.$class-prefix}is-selected {
+    forced-color-adjust: none;
+    background-color: Highlight;
+    border-color: Highlight;
+    color: HighlightText;
+  }
+}

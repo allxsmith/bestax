@@ -9,10 +9,8 @@
  * fixture, including small git repositories for the input gate. The shared
  * tracked-file helpers themselves are tested in skills-roster.test.mjs, next
  * to the rest of scripts/lib/skills.mjs.
- *
- * `.mjs` and `node --test` rather than jest, matching the other root scripts.
  */
-import { after, test } from 'node:test';
+import { afterAll, test } from 'vitest';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -99,7 +97,7 @@ function tempDir() {
   temps.push(dir);
   return dir;
 }
-after(() => {
+afterAll(() => {
   for (const dir of temps) fs.rmSync(dir, { recursive: true, force: true });
 });
 

@@ -61,6 +61,12 @@ const ADDONS = [
     desc: 'Smoothly expanding panels for accordions and FAQs.',
   },
   {
+    name: 'ColorPicker/ColorSwatch',
+    icon: 'colorpicker',
+    link: '/docs/api/form/colorpicker',
+    desc: 'A field and a panel for choosing a color by keyboard or pointer, in HSL, hex or RGB, with alpha and the page’s theme colors as swatches, and a chip to show one.',
+  },
+  {
     name: 'Combobox',
     icon: 'combobox',
     link: '/docs/api/form/combobox',
@@ -79,10 +85,22 @@ const ADDONS = [
     desc: 'Menus of actions that open where you right-click, or long press on a touch screen.',
   },
   {
+    name: 'DataTable',
+    icon: 'datatable',
+    link: '/docs/api/components/datatable',
+    desc: 'A table people can sort, search, page through and pick rows from, on Bulma’s own table, and download as CSV.',
+  },
+  {
     name: 'Dialog',
     icon: 'dialog',
     link: '/docs/api/components/dialog',
     desc: 'Confirmation and alert dialogs with customizable actions.',
+  },
+  {
+    name: 'Dropzone',
+    icon: 'dropzone',
+    link: '/docs/api/form/dropzone',
+    desc: 'An area to drop files on or click to pick them, which checks each one, lists the chosen files and puts them in your form.',
   },
   {
     name: 'EmptyState',

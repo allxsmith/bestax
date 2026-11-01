@@ -1,6 +1,5 @@
 import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { Select } from '../Select';
 import { Field } from '../Field';
 import { Control } from '../Control';
@@ -92,7 +91,7 @@ describe('Select', () => {
     });
 
     it('handles onChange', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Select onChange={handleChange} data-testid="select">
           {renderOptions()}

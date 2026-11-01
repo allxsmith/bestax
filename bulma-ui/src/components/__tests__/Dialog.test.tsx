@@ -127,7 +127,7 @@ describe('Dialog', () => {
 
   describe('Actions', () => {
     it('calls onConfirm when confirm button is clicked', () => {
-      const onConfirm = jest.fn();
+      const onConfirm = vi.fn();
       render(<Dialog isOpen message="Test" onConfirm={onConfirm} />);
 
       fireEvent.click(screen.getByRole('button', { name: 'OK' }));
@@ -136,7 +136,7 @@ describe('Dialog', () => {
     });
 
     it('calls onCancel when cancel button is clicked', () => {
-      const onCancel = jest.fn();
+      const onCancel = vi.fn();
       render(<Dialog isOpen message="Test" onCancel={onCancel} />);
 
       fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
@@ -145,7 +145,7 @@ describe('Dialog', () => {
     });
 
     it('calls onCancel when overlay is clicked', () => {
-      const onCancel = jest.fn();
+      const onCancel = vi.fn();
       render(<Dialog isOpen message="Test" onCancel={onCancel} />);
 
       const overlay = document.querySelector('.modal-background');
@@ -155,7 +155,7 @@ describe('Dialog', () => {
     });
 
     it('does not call onCancel when canCancel is false and overlay clicked', () => {
-      const onCancel = jest.fn();
+      const onCancel = vi.fn();
       render(
         <Dialog isOpen message="Test" onCancel={onCancel} canCancel={false} />
       );
@@ -167,7 +167,7 @@ describe('Dialog', () => {
     });
 
     it('does not call onCancel when clicking inside dialog', () => {
-      const onCancel = jest.fn();
+      const onCancel = vi.fn();
       render(<Dialog isOpen message="Test" onCancel={onCancel} />);
 
       const dialog = screen.getByRole('alertdialog');
@@ -179,7 +179,7 @@ describe('Dialog', () => {
 
   describe('Escape Key', () => {
     it('calls onCancel on Escape when canCancel is true', () => {
-      const onCancel = jest.fn();
+      const onCancel = vi.fn();
       render(<Dialog isOpen message="Test" onCancel={onCancel} canCancel />);
 
       fireEvent.keyDown(document, { key: 'Escape' });
@@ -188,7 +188,7 @@ describe('Dialog', () => {
     });
 
     it('does not call onCancel on Escape when canCancel is false', () => {
-      const onCancel = jest.fn();
+      const onCancel = vi.fn();
       render(
         <Dialog isOpen message="Test" onCancel={onCancel} canCancel={false} />
       );
@@ -376,7 +376,7 @@ describe('Dialog', () => {
 
   describe('Branch coverage gaps', () => {
     it('handleCancel is a no-op when canCancel is false (cancel button click)', () => {
-      const onCancel = jest.fn();
+      const onCancel = vi.fn();
       render(
         <Dialog
           isOpen
@@ -409,7 +409,7 @@ describe('Dialog', () => {
     });
 
     it('does not call onCancel for non-Escape keys', () => {
-      const onCancel = jest.fn();
+      const onCancel = vi.fn();
       render(<Dialog isOpen message="Test" canCancel onCancel={onCancel} />);
       fireEvent.keyDown(document, { key: 'Enter' });
       expect(onCancel).not.toHaveBeenCalled();
@@ -494,7 +494,7 @@ describe('Dialog Programmatic API', () => {
 
   describe('dialog.subscribe', () => {
     it('notifies subscribers of changes', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       const unsubscribe = dialog.subscribe(listener);
 
       act(() => {
@@ -507,7 +507,7 @@ describe('Dialog Programmatic API', () => {
     });
 
     it('returns unsubscribe function', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       const unsubscribe = dialog.subscribe(listener);
 
       unsubscribe();
@@ -619,7 +619,7 @@ describe('DialogContainer', () => {
   // ref, so neither this nor its siblings branch on React.version.
   it('runs a forwarded callback ref cleanup on unmount instead of calling it with null', () => {
     const calls: (HTMLDivElement | null)[] = [];
-    const cleanup = jest.fn();
+    const cleanup = vi.fn();
     const callbackRef = (node: HTMLDivElement | null) => {
       calls.push(node);
       if (!node) return undefined;
@@ -714,7 +714,7 @@ describe('DialogContainer mounted after a dialog is raised', () => {
     // the hydrating render has to produce none either.
     expect(container.innerHTML).toBe('<main></main>');
 
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     let unmountRoot = () => {};
     try {
       await act(async () => {

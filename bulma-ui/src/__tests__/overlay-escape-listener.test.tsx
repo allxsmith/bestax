@@ -6,6 +6,8 @@
  * listeners for one keypress, and the browser runs neither a listener taken
  * off mid-event nor one added mid-event, so the overlay missed that Escape.
  */
+import type { MockInstance } from 'vitest';
+
 import React, { useState } from 'react';
 import { flushSync } from 'react-dom';
 import { render, screen, fireEvent, act } from '@testing-library/react';
@@ -69,7 +71,7 @@ describe('An overlay whose parent renders during an Escape', () => {
   it.each(overlays)(
     '%s still hears the Escape when a listener before it renders the parent',
     (_, overlay) => {
-      const onEscape = jest.fn();
+      const onEscape = vi.fn();
       let renderPage = () => {};
       const Page = () => {
         const [, setRenders] = useState(0);
@@ -96,7 +98,7 @@ describe('An overlay whose parent renders during an Escape', () => {
   it.each(overlays)(
     '%s keeps its Escape listener when the parent renders',
     (_, overlay) => {
-      const onEscape = jest.fn();
+      const onEscape = vi.fn();
       const Page = ({ step }: { step: number }) => (
         <>
           <p>Step {step}</p>
@@ -104,11 +106,11 @@ describe('An overlay whose parent renders during an Escape', () => {
         </>
       );
       const { rerender } = render(<Page step={1} />);
-      const addSpy = jest.spyOn(window, 'addEventListener');
-      const removeSpy = jest.spyOn(window, 'removeEventListener');
+      const addSpy = vi.spyOn(window, 'addEventListener');
+      const removeSpy = vi.spyOn(window, 'removeEventListener');
       try {
         rerender(<Page step={2} />);
-        const keydown = (spy: jest.SpyInstance) =>
+        const keydown = (spy: MockInstance) =>
           spy.mock.calls.filter(([type]) => type === 'keydown');
         expect(keydown(addSpy)).toHaveLength(0);
         expect(keydown(removeSpy)).toHaveLength(0);
@@ -125,7 +127,7 @@ describe('An overlay whose parent renders during an Escape', () => {
 
 describe('A Toast whose onClose renders the page a Modal is on', () => {
   it("leaves the Modal's Escape listener alone, and the next Escape closes the Modal", () => {
-    const onModalClose = jest.fn();
+    const onModalClose = vi.fn();
     const Page = () => {
       const [saved, setSaved] = useState(false);
       return (
@@ -146,7 +148,7 @@ describe('A Toast whose onClose renders the page a Modal is on', () => {
       );
     };
     render(<Page />);
-    const addSpy = jest.spyOn(window, 'addEventListener');
+    const addSpy = vi.spyOn(window, 'addEventListener');
     try {
       fireEvent.click(screen.getByRole('button', { name: 'Close' }));
       expect(screen.queryByText('Saved')).toBeNull();

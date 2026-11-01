@@ -98,7 +98,10 @@ describe('ContextMenu styles under a class prefix', () => {
   });
 
   it('turns off the iOS callout on the trigger', () => {
-    const rule = ruleFor('.bestax-context-menu');
-    expect(rule?.cssText).toContain('-webkit-touch-callout: none');
+    // jsdom's CSSOM drops `-webkit-touch-callout`, a property it doesn't
+    // know, so read the compiled sheet.
+    expect(styleEl.textContent).toMatch(
+      /^\.bestax-context-menu \{[^}]*-webkit-touch-callout: none;/m
+    );
   });
 });

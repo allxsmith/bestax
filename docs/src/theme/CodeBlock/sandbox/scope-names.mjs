@@ -1,7 +1,7 @@
 /**
  * The names the live scope provides bare. Kept apart from scope.js, which
- * imports React and the library, so the corpus gate can read them under
- * node:test. scope.js builds its objects from these lists, so the scope and
+ * imports React and the library, so the corpus gate can read them without
+ * loading either. scope.js builds its objects from these lists, so the scope and
  * the lists cannot disagree.
  */
 

@@ -1,6 +1,5 @@
 import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { TextArea } from '../TextArea';
 import { Field } from '../Field';
 import { Control } from '../Control';
@@ -96,7 +95,7 @@ describe('TextArea', () => {
     });
 
     it('calls onChange', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<TextArea onChange={handleChange} data-testid="textarea" />);
       fireEvent.change(screen.getByTestId('textarea'), {
         target: { value: 'test' },

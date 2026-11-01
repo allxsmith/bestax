@@ -7,8 +7,6 @@ const lightTheme = create({
   brandUrl: 'https://bestax.io',
   brandImage: '/img/logo.svg',
   brandTarget: '_self',
-  // Control logo size
-  layoutMargin: 10,
 });
 
 const darkTheme = create({
@@ -17,8 +15,6 @@ const darkTheme = create({
   brandUrl: 'https://bestax.io',
   brandImage: '/img/logo.svg',
   brandTarget: '_self',
-  // Control logo size
-  layoutMargin: 10,
 });
 
 // Detect system preference and set initial theme

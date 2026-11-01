@@ -33,6 +33,7 @@ export * from './components/Reveal';
 export * from './components/TreeView';
 export * from './components/ScrollArea';
 export * from './components/Command';
+export * from './components/DataTable';
 
 export * from './elements/Block';
 export * from './elements/Box';
@@ -41,6 +42,7 @@ export * from './elements/Buttons';
 export * from './elements/LinkButton';
 export * from './elements/ToggleButton';
 export * from './elements/Code';
+export * from './elements/ColorSwatch';
 export * from './elements/Content';
 export * from './elements/Delete';
 export * from './elements/DescriptionList';
@@ -80,6 +82,7 @@ export * from './form/Checkbox';
 export * from './form/CheckboxCard';
 export * from './form/Checkboxes';
 export * from './form/Control';
+export * from './form/Dropzone';
 export * from './form/Field';
 export * from './form/Fieldset';
 export * from './form/File';
@@ -94,6 +97,7 @@ export * from './form/Rate';
 export * from './form/Autocomplete';
 export * from './form/Combobox';
 export * from './form/Taginput';
+export * from './form/ColorPicker';
 
 // Raw form components — exported with "Base" suffix as escape hatch
 export { InputBase } from './form/InputBase';
@@ -131,6 +135,10 @@ export type {
 } from './form/DateRangeInputBase';
 export { DateRangeInput } from './form/DateRangeInput';
 export type { DateRangeInputProps } from './form/DateRangeInput';
+export { ColorInputBase } from './form/ColorInputBase';
+export type { ColorInputBaseProps } from './form/ColorInputBase';
+export { ColorInput } from './form/ColorInput';
+export type { ColorInputProps } from './form/ColorInput';
 
 // Form contexts and shared types
 export { useInsideField, useInsideControl } from './form/FormContext';

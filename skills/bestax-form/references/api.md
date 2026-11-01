@@ -112,6 +112,30 @@ Field/Control/message props. `TextArea` adds `rows` and `hasFixedSize`.
 
 File input with `label`, `message`, color/size, and icon support.
 
+## Dropzone — `form/Dropzone.tsx`
+
+An area to drop files on or click to pick them. The real `<input type="file">` lies over Bulma's
+boxed `.file`, so `name`, `accept`, `multiple`, `required`, `disabled` and `ref` are the input's,
+and the input holds the chosen files: a plain form submit, `FormData` and React 19 actions carry
+them with no wiring.
+
+- Checks every pick, drop and paste against `accept` (the attribute's syntax: `.pdf`, `image/*`,
+  `application/pdf`), `maxSize` (bytes) and, with `multiple`, `maxFiles`. Without `multiple` a
+  new file replaces the one chosen; with it, files are added and a repeat is skipped.
+- `onFilesChange(files)` gets the whole list on each change; `files` controls it. `onReject`
+  gets `{ file, code }` with `code` one of `file-invalid-type`, `file-too-large`,
+  `too-many-files`.
+- Shows a row per file (name, size, a remove button) and a `help is-danger` line per refusal,
+  and announces both. `showFileList={false}` leaves the list to you.
+- `buttonLabel` is the zone's text and the input's name: keep it short and put details in
+  `hint`, which describes the input. `icon`, `color` and `size` as on `File`.
+- Words: `removeLabel`, `rejectionMessage`, `addedMessage`, `removedMessage`. It doesn't upload:
+  send the files yourself from the form's submit or from `onFilesChange`.
+- To clear it, reset its form, or control it with `files` and set `[]`. A write to the input
+  through the `ref` (`value = ''`, or a form library setting `files`) fires no event, so the
+  list shows it only from the next change; control it with `files` when the app clears or sets
+  files itself.
+
 ## Advanced inputs
 
 | Component      | Key props                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
@@ -208,6 +232,28 @@ const [stay, setStay] = useState<DateRangeValue>([null, null]);
   message={stay[0] && !stay[1] ? 'Pick a check-out date.' : undefined}
 />;
 ```
+
+## Color — `form/ColorPicker.tsx`, `form/ColorInput.tsx`
+
+`ColorPicker` is a panel: a saturation and brightness square, a hue slider, and the value as text
+you can type in. `value`/`defaultValue` take any color it reads (hex, `rgb()`, `hsl()`, a CSS
+name); `onChange(value)` fires on every drag step and `onChangeEnd(value)` once a change is done
+(the place to save). `format` writes `'hsl'` (default, `hsl(171, 100%, 41%)`, the channels
+`Theme`'s `primaryH`/`primaryS`/`primaryL` take), `'hex'` or `'rgb'`; `alpha` adds a slider and
+writes `hsla()`, `#rrggbbaa` or `rgba()`. `swatches` takes colors (strings or `{ color, label }`)
+or `"bulma"` for the page's six theme colors, read from its CSS variables. `eyeDropper` adds a
+screen picker where the browser has one. `name` adds a hidden input; it takes the Field props and
+a disabled `Fieldset`. Parts for a layout of your own: `ColorPicker.Area`, `.HueSlider`,
+`.AlphaSlider`, `.Swatches`, `.Input`, inside a `ColorPicker`. Don't hand-build a picker from
+`Slider`s, and don't reach for `<Input type="color">` unless the browser's own well (hex only,
+never empty) is enough. `ColorSwatch` (`color`, `label`) shows a color without choosing one.
+
+`ColorInput` is the field: the value as text you can type (committed on Enter or blur, `''`
+for none, so `required` works), a swatch, and a launcher that opens the same square, hue,
+`alpha`, `swatches` and `eyeDropper` in the pickers' popover. It opens on the launcher, the
+swatch or Alt+ArrowDown; `openOnFocus` and `closeOnSwatchClick` are opt-in. It takes the same
+`value`/`onChange`/`onChangeEnd`/`format`, the Field props, `isLoading`, and `Input`'s
+`color`/`size`/`isRounded`. `ColorInputBase` is the field without Field and Control.
 
 ## Validation-related props (no library)
 

@@ -7,7 +7,7 @@
  * rules go quiet on real code, and a false match means linting somebody
  * else's `<Box>` against Bulma's rules.
  */
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 import { parse } from '@typescript-eslint/parser';
 import {
   classJoinerAt,

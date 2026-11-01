@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Progress, ProgressProps } from '../Progress';
 import { ConfigProvider } from '../../helpers/Config';
@@ -128,11 +129,11 @@ describe('Progress Component', () => {
 });
 
 describe('Progress deprecated color values', () => {
-  let warnSpy: jest.SpyInstance;
+  let warnSpy: MockInstance;
 
   beforeEach(() => {
     resetColorDeprecationWarnings();
-    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {

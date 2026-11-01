@@ -17,11 +17,5 @@
     "allowSyntheticDefaultImports": true
   },
   "include": ["src/**/*"],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.test.ts",
-    "**/__mocks__/**",
-    "templates/**"
-  ]
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "templates/**"]
 }

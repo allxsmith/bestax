@@ -3,20 +3,20 @@
  *
  * These assert types, not behaviour, so they deliberately live OUTSIDE
  * `__tests__/`: `bulma-ui/tsconfig.json` excludes that directory and every
- * `*.test.tsx`, and ts-jest runs transpile-only (the repo sets
- * `isolatedModules`), so jest checks no type an `@ts-expect-error` there
- * claims. `tsconfig.test.json` now does (#663), which makes a directive in a
- * test file mean something again — but this file stays here, because `tsc
+ * `*.test.tsx`, and the test runner strips types without checking them, so
+ * running the tests checks no type an `@ts-expect-error` there claims.
+ * `tsconfig.test.json` now does (#663), which makes a directive in a test file
+ * mean something again — but this file stays here, because `tsc
  * --noEmit` reads it under `pnpm typecheck` and so does every consumer running
  * that script. An `@ts-expect-error` that stops being an error fails the build
  * as TS2578.
  *
- * The React 18/19 matrix is NOT a second opinion on any of it: `pin-react.mjs`
- * pins `react` and `react-dom` only, never `@types/react`, so both legs read
- * one identical set of types.
+ * The React 18/19 matrix does not typecheck this file: its legs run the tests,
+ * and `pin-react.mjs` pins `react` and `react-dom` only, never `@types/react`,
+ * so a leg would read the same types anyway.
  *
- * Nothing renders these; jest's testMatch does not reach this directory and
- * `collectCoverageFrom` excludes it.
+ * Nothing renders these: no test file pattern reaches this directory, and the
+ * coverage config excludes it.
  */
 import React from 'react';
 import { Avatar } from '../components/Avatar';

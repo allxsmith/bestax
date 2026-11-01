@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { Field } from '../Field';
@@ -16,7 +17,10 @@ import { Radio } from '../Radio';
 import { Slider } from '../Slider';
 import { PinInput } from '../PinInput';
 import { Rate } from '../Rate';
+import { ColorPicker } from '../ColorPicker';
+import { ColorInput } from '../ColorInput';
 import { File as FileInput } from '../File';
+import { Dropzone } from '../Dropzone';
 import { Taginput } from '../Taginput';
 import { Combobox } from '../Combobox';
 import { resetDevWarnings } from '../../helpers/devWarnings';
@@ -33,9 +37,10 @@ import type { ControlLevelProps } from '../FormContext';
 // Control-level tests below hit it, since a wrapper there hands the DOM the
 // Control-level props it does not take, and React warns about those.
 const mockFieldProps: object[] = [];
-jest.mock('../Field', () => {
-  const actual = jest.requireActual<typeof import('../Field')>('../Field');
-  const { createElement } = jest.requireActual<typeof import('react')>('react');
+vi.mock('../Field', async importOriginal => {
+  const actual = await importOriginal<typeof import('../Field')>();
+  const { createElement } =
+    await vi.importActual<typeof import('react')>('react');
   const Recording = (props?: React.ComponentProps<typeof actual.Field>) => {
     if (props) mockFieldProps.push(props);
     return createElement(actual.Field, props);
@@ -47,9 +52,10 @@ jest.mock('../Field', () => {
 // Every Control rendered, recorded the same way, so the tests below can read
 // which props each wrapper hands its own Control.
 const mockControlProps: object[] = [];
-jest.mock('../Control', () => {
-  const actual = jest.requireActual<typeof import('../Control')>('../Control');
-  const { createElement } = jest.requireActual<typeof import('react')>('react');
+vi.mock('../Control', async importOriginal => {
+  const actual = await importOriginal<typeof import('../Control')>();
+  const { createElement } =
+    await vi.importActual<typeof import('react')>('react');
   const Control = (props?: React.ComponentProps<typeof actual.Control>) => {
     if (props) mockControlProps.push(props);
     return createElement(actual.Control, props);
@@ -131,11 +137,27 @@ const wrappers: Wrapper[] = [
   { name: 'PinInput', render: p => <PinInput {...p} />, root: '.pin-input' },
   { name: 'Rate', render: p => <Rate {...p} />, root: '.rate' },
   {
+    name: 'ColorInput',
+    render: p => <ColorInput {...p} />,
+    root: '.colorinput',
+  },
+  {
+    name: 'ColorPicker',
+    render: p => <ColorPicker {...p} />,
+    root: '.color-picker',
+  },
+  {
     name: 'File',
     // Its own `iconLeft` is narrower than the Control's, and the tests that
     // pass Control-level props skip it, since it renders no Control.
     render: p => <FileInput {...(p as FormFieldProps)} />,
     root: '.file',
+    ownControl: false,
+  },
+  {
+    name: 'Dropzone',
+    render: p => <Dropzone {...p} />,
+    root: '.dropzone',
     ownControl: false,
   },
   {
@@ -158,11 +180,11 @@ const wrappers: Wrapper[] = [
   },
 ];
 
-let warnSpy: jest.SpyInstance;
+let warnSpy: MockInstance;
 
 beforeEach(() => {
   resetDevWarnings();
-  warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 });
 
 afterEach(() => {
@@ -548,13 +570,13 @@ const ownsControl = wrappers.filter(({ ownControl = true }) => ownControl);
 describe.each(ownsControl)(
   '$name Control-level props',
   ({ name, render: el }) => {
-    let errorSpy: jest.SpyInstance;
+    let errorSpy: MockInstance;
 
     beforeEach(() => {
       // Every wrapper is given every Control-level prop here, and one that
       // does not take a prop passes it on to the DOM, where React logs it as
       // an unknown attribute. That noise is expected.
-      errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     });
 
     afterEach(() => {

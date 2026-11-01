@@ -5,7 +5,7 @@ name: Codemod Registry
 # works. The registry has no jscodeshift engine, so that package is a wrapper:
 # its workflows run `npx --yes bestax-migrate@<version>`, the release ci.yml
 # already put on npm. scripts/codemod-registry.mjs holds the checks and the
-# publish logic, with a node --test sibling (rule 9). This file holds the
+# publish logic, with a test sibling (rule 9). This file holds the
 # trust decisions.
 #
 # A workflow of its own, and NOT a step in ci.yml, on purpose. npm's trusted
@@ -111,7 +111,7 @@ jobs:
       # Not listed: api.github.com, as nothing calls the API; see "What the
       # agent allows beyond the list" in .github/CLAUDE.md.
       - name: Harden runner
-        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: block
           disable-sudo-and-containers: true
@@ -264,7 +264,7 @@ jobs:
       #
       # Not listed: api.github.com, as in `validate`.
       - name: Harden runner
-        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: block
           disable-sudo-and-containers: true

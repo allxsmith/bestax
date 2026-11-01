@@ -1,0 +1,492 @@
+{
+  "name": "DataTable",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/datatable",
+  "docsUrl": "https://bestax.io/docs/api/components/datatable",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "function example() {\n  const users = [\n    { id: 'u1', name: 'Ada Lovelace', role: 'Admin', score: 98 },\n    { id: 'u2', name: 'Alan Turing', role: 'Editor', score: 95 },\n    { id: 'u3', name: 'Grace Hopper', role: 'Viewer', score: 91 },\n    { id: 'u4', name: 'Katherine Johnson', role: 'Admin', score: 90 },\n  ];\n\n  return (\n    <DataTable\n      caption=\"Users\"\n      columns={[\n        { id: 'name', header: 'Name', sortable: true, isRowHeader: true },\n        { id: 'role', header: 'Role', sortable: true },\n        { id: 'score', header: 'Score', sortable: true, align: 'right' },\n      ]}\n      data={users}\n      isStriped\n      isHoverable\n      isFullwidth\n    />\n  );\n}"
+    },
+    {
+      "title": "Values, Text and Content",
+      "code": "import type { DataTableColumn } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  type Order = { id: string; customer: string; total: number; placed: string };\n  const orders: Order[] = [\n    {\n      id: 'A-1041',\n      customer: 'Ada Lovelace',\n      total: 1249.5,\n      placed: '2026-10-02',\n    },\n    { id: 'A-1042', customer: 'Alan Turing', total: 89, placed: '2026-10-14' },\n    {\n      id: 'A-1043',\n      customer: 'Grace Hopper',\n      total: 405.25,\n      placed: '2026-09-28',\n    },\n  ];\n  const columns: DataTableColumn<Order>[] = [\n    {\n      id: 'id',\n      header: 'Order',\n      isRowHeader: true,\n      cell: row => <a href={`#order-${row.id}`}>{row.id}</a>,\n    },\n    { id: 'customer', header: 'Customer', sortable: true },\n    {\n      id: 'total',\n      header: 'Total',\n      sortable: true,\n      align: 'right',\n      format: value =>\n        (value as number).toLocaleString('en-US', {\n          style: 'currency',\n          currency: 'USD',\n        }),\n    },\n    {\n      id: 'placed',\n      header: 'Placed',\n      sortable: true,\n      sortDescFirst: true,\n      cell: (_row, { text }) => <Tag>{text}</Tag>,\n    },\n  ];\n\n  return (\n    <DataTable caption=\"Orders\" columns={columns} data={orders} isFullwidth />\n  );\n}"
+    },
+    {
+      "title": "Sorting",
+      "code": "function example() {\n  const priorities = ['Low', 'Medium', 'High', 'Urgent'];\n  const tickets = [\n    { id: 't1', title: 'Item 10: Login loops', priority: 'High' },\n    { id: 't2', title: 'Item 9: Export is empty', priority: 'Urgent' },\n    { id: 't3', title: 'Item 2: Typo on Pricing', priority: 'Low' },\n    { id: 't4', title: 'Item 1: Slow search', priority: 'Medium' },\n  ];\n\n  return (\n    <DataTable\n      caption=\"Tickets\"\n      columns={[\n        { id: 'title', header: 'Title', sortable: true, isRowHeader: true },\n        {\n          id: 'priority',\n          header: 'Priority',\n          sortable: true,\n          sortDescFirst: true,\n          sortFn: (a, b) =>\n            priorities.indexOf(a.priority) - priorities.indexOf(b.priority),\n        },\n      ]}\n      data={tickets}\n      defaultSort={[{ id: 'priority', direction: 'descending' }]}\n      isFullwidth\n    />\n  );\n}"
+    },
+    {
+      "title": "Selecting Rows",
+      "code": "function example() {\n  const [people, setPeople] = useState([\n    { id: 'u1', name: 'Ada Lovelace', email: 'ada@example.com' },\n    { id: 'u2', name: 'Alan Turing', email: 'alan@example.com' },\n    { id: 'u3', name: 'Grace Hopper', email: 'grace@example.com' },\n    { id: 'u4', name: 'Katherine Johnson', email: 'katherine@example.com' },\n  ]);\n\n  return (\n    <DataTable\n      caption=\"Members\"\n      columns={[\n        { id: 'name', header: 'Name', isRowHeader: true },\n        { id: 'email', header: 'Email' },\n      ]}\n      data={people}\n      selectionMode=\"multiple\"\n      isFullwidth\n      toolbar={table => (\n        <Button\n          color=\"danger\"\n          isOutlined\n          size=\"small\"\n          disabled={table.state.selected.length === 0}\n          onClick={() => {\n            const gone = table.state.selected;\n            setPeople(rows => rows.filter(row => !gone.includes(row.id)));\n            table.setSelected([]);\n          }}\n        >\n          Remove {table.state.selected.length || ''} selected\n        </Button>\n      )}\n    />\n  );\n}"
+    },
+    {
+      "title": "Paging",
+      "code": "function example() {\n  const countries = [\n    'Argentina',\n    'Brazil',\n    'Canada',\n    'Denmark',\n    'Egypt',\n    'France',\n    'Ghana',\n    'Hungary',\n    'India',\n    'Japan',\n    'Kenya',\n    'Lebanon',\n    'Mexico',\n    'Norway',\n  ].map((name, i) => ({ id: name, name, code: String(100 + i * 7) }));\n\n  return (\n    <DataTable\n      caption=\"Countries\"\n      columns={[\n        { id: 'name', header: 'Country', sortable: true, isRowHeader: true },\n        { id: 'code', header: 'Code', align: 'right' },\n      ]}\n      data={countries}\n      pageSize={5}\n      isFullwidth\n    />\n  );\n}"
+    },
+    {
+      "title": "Searching and Filtering",
+      "code": "function example() {\n  const books = [\n    { id: 'b1', title: 'Le Petit Prince', author: 'Saint-Exupéry', year: 1943 },\n    { id: 'b2', title: 'Les Misérables', author: 'Hugo', year: 1862 },\n    { id: 'b3', title: 'L’Étranger', author: 'Camus', year: 1942 },\n    { id: 'b4', title: 'Madame Bovary', author: 'Flaubert', year: 1857 },\n    { id: 'b5', title: 'La Peste', author: 'Camus', year: 1947 },\n  ];\n\n  return (\n    <LocaleProvider locale=\"fr\">\n      <DataTable\n        caption=\"Livres\"\n        columns={[\n          { id: 'title', header: 'Titre', sortable: true, isRowHeader: true },\n          { id: 'author', header: 'Auteur', sortable: true },\n          {\n            id: 'year',\n            header: 'Année',\n            align: 'right',\n            filterFn: (row, value) => row.year < Number(value),\n          },\n        ]}\n        data={books}\n        hasSearch\n        isFullwidth\n        labels={{ search: 'Rechercher' }}\n        toolbar={table => (\n          <Select\n            aria-label=\"Parution\"\n            value={String(table.state.filters.year ?? '')}\n            onChange={event => table.setFilter('year', event.target.value)}\n          >\n            <option value=\"\">Toutes les années</option>\n            <option value=\"1900\">Avant 1900</option>\n          </Select>\n        )}\n      />\n    </LocaleProvider>\n  );\n}"
+    },
+    {
+      "title": "Filtering by Several Values",
+      "code": "function example() {\n  const roles = ['Admin', 'Editor', 'Viewer'];\n  const people = [\n    { id: 'u1', name: 'Ada Lovelace', role: 'Admin' },\n    { id: 'u2', name: 'Alan Turing', role: 'Editor' },\n    { id: 'u3', name: 'Grace Hopper', role: 'Viewer' },\n    { id: 'u4', name: 'Katherine Johnson', role: 'Admin' },\n    { id: 'u5', name: 'Edsger Dijkstra', role: 'Editor' },\n  ];\n\n  return (\n    <DataTable\n      caption=\"People\"\n      columns={[\n        { id: 'name', header: 'Name', sortable: true, isRowHeader: true },\n        { id: 'role', header: 'Role', sortable: true },\n      ]}\n      data={people}\n      defaultFilters={{ role: ['Admin', 'Viewer'] }}\n      isFullwidth\n      toolbar={table => (\n        <Checkboxes\n          label=\"Roles\"\n          value={(table.state.filters.role as string[] | undefined) ?? []}\n          onChange={picked => table.setFilter('role', picked)}\n        >\n          {roles.map(role => (\n            <Checkbox key={role} value={role}>\n              {role}\n            </Checkbox>\n          ))}\n        </Checkboxes>\n      )}\n    />\n  );\n}"
+    },
+    {
+      "title": "Empty and No Results",
+      "code": "function example() {\n  const [search, setSearch] = useState('kraken');\n  const searchRef = React.useRef<HTMLInputElement>(null);\n  const projects = [\n    { id: 'p1', name: 'Apollo' },\n    { id: 'p2', name: 'Gemini' },\n    { id: 'p3', name: 'Mercury' },\n  ];\n\n  return (\n    <DataTable\n      caption=\"Projects\"\n      columns={[{ id: 'name', header: 'Project', isRowHeader: true }]}\n      data={projects}\n      search={search}\n      onSearchChange={setSearch}\n      isFullwidth\n      toolbar={table => (\n        <Input\n          ref={searchRef}\n          label=\"Search projects\"\n          {...table.getSearchProps()}\n        />\n      )}\n      noResults={\n        <EmptyState\n          size=\"small\"\n          title={`No projects match “${search}”`}\n          titleAs=\"h3\"\n          description=\"Check the spelling, or clear the search.\"\n        >\n          <Button\n            size=\"small\"\n            onClick={() => {\n              setSearch('');\n              searchRef.current?.focus();\n            }}\n          >\n            Clear search\n          </Button>\n        </EmptyState>\n      }\n    />\n  );\n}"
+    },
+    {
+      "title": "Loading",
+      "code": "<DataTable\n  caption=\"Invoices\"\n  columns={[\n    { id: 'number', header: 'Invoice' },\n    { id: 'customer', header: 'Customer' },\n    { id: 'total', header: 'Total', align: 'right' },\n  ]}\n  data={[]}\n  loading\n  pageSize={3}\n  isFullwidth\n/>"
+    },
+    {
+      "title": "Data From a Server",
+      "code": "import type { DataTableSort } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const everyone = Array.from({ length: 23 }, (_, i) => ({\n    id: `u${i + 1}`,\n    name: `User ${i + 1}`,\n    visits: (i * 37) % 100,\n  }));\n  const pageSize = 5;\n  const [page, setPage] = useState(1);\n  const [sort, setSort] = useState<DataTableSort[]>([]);\n  const [search, setSearch] = useState('');\n  const [result, setResult] = useState({\n    rows: everyone.slice(0, 0),\n    total: 0,\n  });\n  const [loading, setLoading] = useState(true);\n  // Each change starts a fetch, so the table shows it's loading.\n  const fetching =\n    <T,>(set: (value: T) => void) =>\n    (value: T) => {\n      setLoading(true);\n      set(value);\n    };\n\n  useEffect(() => {\n    const timer = setTimeout(() => {\n      // What the server does with the query.\n      const matched = everyone.filter(row =>\n        row.name.toLowerCase().includes(search.trim().toLowerCase())\n      );\n      const [by] = sort;\n      if (by?.id === 'visits') {\n        matched.sort((a, b) =>\n          by.direction === 'ascending'\n            ? a.visits - b.visits\n            : b.visits - a.visits\n        );\n      }\n      setResult({\n        rows: matched.slice((page - 1) * pageSize, page * pageSize),\n        total: matched.length,\n      });\n      setLoading(false);\n    }, 500);\n    return () => clearTimeout(timer);\n  }, [page, sort, search]);\n\n  return (\n    <DataTable\n      caption=\"Visitors\"\n      columns={[\n        { id: 'name', header: 'Name', isRowHeader: true },\n        { id: 'visits', header: 'Visits', sortable: true, align: 'right' },\n      ]}\n      data={result.rows}\n      manual\n      rowCount={result.total}\n      loading={loading}\n      pageSize={pageSize}\n      page={page}\n      onPageChange={fetching(setPage)}\n      sort={sort}\n      onSortChange={fetching(setSort)}\n      hasSearch\n      search={search}\n      onSearchChange={fetching(setSearch)}\n      isFullwidth\n    />\n  );\n}"
+    },
+    {
+      "title": "The useDataTable Hook",
+      "code": "function example() {\n  const table = useDataTable({\n    columns: [\n      { id: 'name', header: 'Name', sortable: true, isRowHeader: true },\n      { id: 'team', header: 'Team', sortable: true },\n    ],\n    data: [\n      { id: 'e1', name: 'Ada Lovelace', team: 'Engines' },\n      { id: 'e2', name: 'Alan Turing', team: 'Codes' },\n      { id: 'e3', name: 'Grace Hopper', team: 'Compilers' },\n      { id: 'e4', name: 'Hedy Lamarr', team: 'Radio' },\n    ],\n    selectionMode: 'multiple',\n  });\n\n  return (\n    <>\n      <Title as=\"h3\" size=\"5\" id=\"people-heading\">\n        People ({table.rowCount})\n      </Title>\n      <Paragraph>{table.state.selected.length} selected</Paragraph>\n      <DataTable\n        table={table}\n        aria-labelledby=\"people-heading\"\n        hasSearch\n        isFullwidth\n      />\n    </>\n  );\n}"
+    },
+    {
+      "title": "Downloading CSV",
+      "code": "function example() {\n  const orders = [\n    {\n      id: 'A-1041',\n      customer: 'Zoë Ørsted',\n      total: 1249.5,\n      note: 'Gift, wrapped',\n    },\n    { id: 'A-1042', customer: 'Alan Turing', total: -89, note: 'Refund' },\n    {\n      id: 'A-1043',\n      customer: 'Grace Hopper',\n      total: 405.25,\n      note: '=HYPERLINK(\"x\")',\n    },\n  ];\n  const download = (csv: string, name: string) => {\n    // The byte order mark tells Excel the file is UTF-8.\n    const blob = new Blob(['\\uFEFF', csv], { type: 'text/csv;charset=utf-8' });\n    const url = URL.createObjectURL(blob);\n    const link = document.createElement('a');\n    link.href = url;\n    link.download = name;\n    document.body.append(link);\n    link.click();\n    link.remove();\n    setTimeout(() => URL.revokeObjectURL(url));\n  };\n\n  return (\n    <DataTable\n      caption=\"Orders\"\n      columns={[\n        { id: 'id', header: 'Order', isRowHeader: true },\n        { id: 'customer', header: 'Customer', sortable: true },\n        {\n          id: 'total',\n          header: 'Total',\n          sortable: true,\n          align: 'right',\n          format: value => (value as number).toFixed(2),\n        },\n        { id: 'note', header: 'Note' },\n      ]}\n      data={orders}\n      selectionMode=\"multiple\"\n      isFullwidth\n      toolbar={table => (\n        <Buttons>\n          <Button\n            size=\"small\"\n            onClick={() => download(table.toCSV(), 'orders.csv')}\n          >\n            Download CSV\n          </Button>\n          <Button\n            size=\"small\"\n            disabled={table.state.selected.length === 0}\n            onClick={() =>\n              download(table.toCSV({ rows: 'selected' }), 'selected-orders.csv')\n            }\n          >\n            Download selected\n          </Button>\n        </Buttons>\n      )}\n    />\n  );\n}"
+    },
+    {
+      "title": "Custom Markup",
+      "code": "function example() {\n  const table = useDataTable({\n    columns: [\n      { id: 'name', header: 'Plan', sortable: true },\n      { id: 'price', header: 'Price', sortable: true, format: v => `$${v}/mo` },\n    ],\n    data: [\n      { id: 'free', name: 'Free', price: 0 },\n      { id: 'team', name: 'Team', price: 12 },\n      { id: 'pro', name: 'Pro', price: 29 },\n    ],\n    selectionMode: 'multiple',\n  });\n\n  return (\n    <>\n      <Table isFullwidth aria-label=\"Plans\">\n        <Table.Thead>\n          <Table.Tr>\n            <Table.Th scope=\"col\" isNarrow>\n              <Checkbox {...table.getSelectAllProps()} />\n            </Table.Th>\n            {table.columns.map(column => (\n              <Table.Th key={column.id} {...table.getHeaderCellProps(column)}>\n                <button {...table.getSortButtonProps(column)}>\n                  {column.header}\n                </button>\n              </Table.Th>\n            ))}\n          </Table.Tr>\n        </Table.Thead>\n        <Table.Tbody>\n          {table.getRows('page').map(row => (\n            <Table.Tr key={row.id} {...table.getRowProps(row)}>\n              <Table.Td isNarrow>\n                <Checkbox {...table.getSelectRowProps(row)} />\n              </Table.Td>\n              {table.columns.map(column => (\n                <Table.Td key={column.id} {...table.getCellProps(row, column)}>\n                  {table.getText(row, column.id)}\n                </Table.Td>\n              ))}\n            </Table.Tr>\n          ))}\n        </Table.Tbody>\n      </Table>\n      <Paragraph>\n        Picked:{' '}\n        {table\n          .getRows('selected')\n          .map(row => row.name)\n          .join(', ') || 'none'}\n      </Paragraph>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Wide Tables",
+      "code": "<Columns>\n  <Column size=\"half\">\n    <DataTable\n      caption=\"Quarterly results\"\n      columns={[\n        { id: 'region', header: 'Region', isRowHeader: true },\n        { id: 'q1', header: 'Q1 2026', align: 'right' },\n        { id: 'q2', header: 'Q2 2026', align: 'right' },\n        { id: 'q3', header: 'Q3 2026', align: 'right' },\n        { id: 'q4', header: 'Q4 2026', align: 'right' },\n        { id: 'total', header: 'Full year', align: 'right' },\n      ]}\n      data={['North', 'South', 'East', 'West'].map((region, i) => ({\n        id: region,\n        region,\n        q1: 1200 + i * 97,\n        q2: 1310 + i * 89,\n        q3: 1405 + i * 71,\n        q4: 1550 + i * 64,\n        total: 5465 + i * 321,\n      }))}\n      isResponsive\n      isNarrow\n    />\n  </Column>\n</Columns>"
+    },
+    {
+      "title": "Translations",
+      "code": "<DataTable\n  caption=\"Mitglieder\"\n  columns={[{ id: 'name', header: 'Name', sortable: true, isRowHeader: true }]}\n  data={[\n    { id: 'm1', name: 'Emmy Noether' },\n    { id: 'm2', name: 'Lise Meitner' },\n    { id: 'm3', name: 'Konrad Zuse' },\n  ]}\n  selectionMode=\"multiple\"\n  hasSearch\n  pageSize={2}\n  isFullwidth\n  labels={{\n    selectAll: 'Alle Zeilen dieser Seite auswählen',\n    selectRow: label => `${label} auswählen`,\n    sortHint: 'Spaltenköpfe mit Schaltflächen sind sortierbar',\n    search: 'Suchen',\n    results: count => (count === 1 ? '1 Treffer' : `${count} Treffer`),\n    pageRange: (first, last, total) => `${first} bis ${last} von ${total}`,\n    loading: 'Wird geladen',\n    pagination: 'Mitglieder, Seiten',\n    empty: 'Noch keine Mitglieder.',\n    noResults: 'Keine Treffer.',\n  }}\n/>"
+    }
+  ],
+  "accessibility": "- **A native table,** as in the ARIA Authoring Practices' Sortable Table example: `th scope=\"col\"`\n  headers, `th scope=\"row\"` for the row header, and a `caption` or your `aria-label` or\n  `aria-labelledby` as its name. A development build warns when it has none.\n- **Sorting:** a sortable header holds a `<button>` with the header's text, and only the sorted\n  header has `aria-sort`, `ascending` or `descending`, which screen readers read out as they reach\n  it. That headers with buttons sort is said once, hidden at the end of the caption, or as a hidden\n  caption of its own when `aria-label` names the table. The indicator is drawn in CSS, so it's not\n  read.\n- **Selection** rides on the checkboxes: each is named \"Select\" and the row's label, and the one in\n  the header is mixed (`aria-checked=\"mixed\"`) when some of the page is selected. Rows get Bulma's\n  selected look and no `aria-selected`, which ARIA gives the rows of a grid rather than a table.\n- **A status message** in a polite live region says how many rows match a short while after the\n  search or a filter changes, the range shown after a page change, and \"Loading\" while `loading` is\n  on after one of those. Nothing is said as the page loads, or for a sort, which `aria-sort` covers.\n- **The pager** is a `navigation` named after the table, so two tables on a page have two named\n  pagers.\n- **Busy:** `aria-busy` is on the table while `loading`, and the skeleton rows are hidden from\n  assistive tech.\n- **Wide tables:** with `isResponsive`, the `ScrollArea` around the table is a tab stop and a\n  named region while it overflows, so it can be scrolled from the keyboard.\n- **Forced colors:** the sort indicator is painted in the system's button text color, and the sort\n  button's focus ring is an outline. A selected row's fill is a color forced colors takes away, so\n  the checked checkbox carries the selection there. The pager's current page is drawn in the\n  system's highlight colors, as [Pagination](https://bestax.io/docs/api/components/pagination)'s is.\n- **No motion:** nothing animates but the skeleton, which stops under reduced motion.",
+  "related": [
+    "Checkbox",
+    "EmptyState",
+    "LocaleProvider",
+    "Pagination",
+    "ScrollArea",
+    "Table",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-datatable--default",
+  "summary": "The `DataTable` component is a table of records that people can sort, search, page through and select rows from, rendered with bestax's own `Table` parts, `Checkbox` and `Pagination`. It's a native table, as in the WAI-ARIA Authoring Practices' sortable table: a sortable header holds a button, the sorted one carries `aria-sort`, and each row's checkbox is named for the row. It runs on `useDataTable`, which custom markup can use too.",
+  "import": "import { DataTable, useDataTable } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/DataTable.tsx",
+  "rootClass": "data-table",
+  "parts": [
+    {
+      "path": "DataTable",
+      "summary": "The `DataTable` component is a table of records that people can sort, search, page through and select rows from, rendered with bestax's own `Table` parts, `Checkbox` and `Pagination`. It's a native table, as in the WAI-ARIA Authoring Practices' sortable table: a sortable header holds a button, the sorted one carries `aria-sort`, and each row's checkbox is named for the row. It runs on `useDataTable`, which custom markup can use too.",
+      "component": null,
+      "props": [
+        {
+          "name": "columns",
+          "type": "DataTableColumn<TRow>[]",
+          "default": null,
+          "description": "The columns, in the order they're shown. Required unless `table` is given. Keep the array the same from one render to the next, defined outside the component or in `useMemo`: a new one has every cell's text worked out again.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "data",
+          "type": "TRow[]",
+          "default": null,
+          "description": "The rows, as records of your own. Required unless `table` is given.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "table",
+          "type": "DataTableModel<TRow>",
+          "default": null,
+          "description": "A table made by `useDataTable`, rendered in place of one made from `columns`, `data` and the state props, which are then left unread. Use it to put a toolbar, a count or an export button elsewhere on the page.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "caption",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Names the table, as a visible `<caption>`. A table needs a name: this, `aria-label` or `aria-labelledby`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isBordered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Adds borders to all cells.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isStriped",
+          "type": "boolean",
+          "default": "false",
+          "description": "Adds zebra-striping to rows.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isNarrow",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the table more compact by cutting cell padding in half.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isHoverable",
+          "type": "boolean",
+          "default": "false",
+          "description": "Adds a hover effect on rows.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isFullwidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the table span the full width of its wrapper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isResponsive",
+          "type": "boolean",
+          "default": "false",
+          "description": "Scrolls a table wider than its wrapper sideways, in a `ScrollArea` named after the table, which can be scrolled from the keyboard while it overflows.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasSearch",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows a search field in the toolbar, labelled by `labels.search`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "toolbar",
+          "type": "(table: DataTableModel<TRow>) => React.ReactNode",
+          "default": null,
+          "description": "More of the toolbar, after the search field: buttons for the selected rows, a filter, a download. Given the table.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows a page of skeleton rows under the header in place of the rows, and marks the table busy. For data on its way, as from a server with `manual`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "empty",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "What the table shows when it has no rows at all, in one cell across every column. A small `EmptyState` saying `labels.empty` by default. A title of your own sits under the heading the table does, so give it the next level down with `titleAs`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "noResults",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "What the table shows when the search and filters let no row through, in one cell across every column. A small `EmptyState` saying `labels.noResults` by default. A button that clears the search goes away with it, so send focus back to the search field when it's pressed.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "rowProps",
+          "type": "(row: TRow) => DataTableRowProps",
+          "default": null,
+          "description": "Props of your own for a row's `Tr`, such as a handler or a class. The table's own (`isSelected`) win. To wrap a row in a `ContextMenu`, build the table from `useDataTable`'s props instead.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes, on the wrapper `<div>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "getRowId",
+          "type": "(row: TRow, index: number) => string",
+          "default": null,
+          "description": "A row's id, unique and stable, which the selection is a list of. Left out, it's the row's `id` property as a string. A development build warns about a missing or repeated id, and a row with none falls back to its index, which doesn't survive the data changing.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "sort",
+          "type": "{ id: string; direction: DataTableSortDirection }[]",
+          "default": null,
+          "description": "The sort when you hold it: an array of `{ id, direction }`, the first deciding and each next one breaking ties. The headers set one at a time.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "defaultSort",
+          "type": "{ id: string; direction: DataTableSortDirection }[]",
+          "default": null,
+          "description": "The sort to start with when the table holds it. Text sorts in the `LocaleProvider`'s locale, or the runtime's own outside one, which can differ between a server and the browser, so put a table rendered on the server sorted inside a `LocaleProvider`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onSortChange",
+          "type": "(sort: DataTableSort[]) => void",
+          "default": null,
+          "description": "Called with the new sort when a header is pressed.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "selectionMode",
+          "type": "'none' | 'multiple'",
+          "default": "'none'",
+          "description": "`multiple` adds a checkbox to each row and a \"select all\" checkbox to the header.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "selected",
+          "type": "string[]",
+          "default": null,
+          "description": "The selected rows' ids when you hold them. They stay selected while the search, a filter or the page hides them.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "defaultSelected",
+          "type": "string[]",
+          "default": null,
+          "description": "The rows selected to begin with, by id, when the table holds them.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onSelectedChange",
+          "type": "(selected: string[]) => void",
+          "default": null,
+          "description": "Called with every selected id after a checkbox changes.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "pageSize",
+          "type": "number",
+          "default": null,
+          "description": "Rows per page. Set, the table pages through `Pagination`; left out, it shows every row.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "page",
+          "type": "number",
+          "default": null,
+          "description": "The page shown when you hold it, counting from 1. A page past the end shows the last.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "defaultPage",
+          "type": "number",
+          "default": "1",
+          "description": "The page to start on when the table holds it.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onPageChange",
+          "type": "(page: number) => void",
+          "default": null,
+          "description": "Called with the page chosen in the pager, and with 1 when the search or a filter changes through the table while the page held isn't 1, even when a page past the end shows as the last.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "search",
+          "type": "string",
+          "default": null,
+          "description": "The search when you hold it, matched against every filterable column's text: in the `LocaleProvider`'s locale, ignoring case and the accents the language ignores, or a case-insensitive substring outside one.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "defaultSearch",
+          "type": "string",
+          "default": null,
+          "description": "The search to start with when the table holds it.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onSearchChange",
+          "type": "(search: string) => void",
+          "default": null,
+          "description": "Called with the search as it changes through the table.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "filters",
+          "type": "DataTableFilters",
+          "default": null,
+          "description": "A value per column, by `id`, when you hold them. A row passes when every column with a value passes it: the column's `filterFn` if it has one, given the value as it is, or else the column's text has to contain the value's text, compared as the search compares. An array is a choice of values, as a multiple-choice filter gives, and passes a row whose text contains any of them. A value of `undefined`, `null`, `''` or an empty array is no filter.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "defaultFilters",
+          "type": "DataTableFilters",
+          "default": null,
+          "description": "The filters to start with when the table holds them.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onFiltersChange",
+          "type": "(filters: DataTableFilters) => void",
+          "default": null,
+          "description": "Called with every filter value after one changes through the table.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "manual",
+          "type": "boolean",
+          "default": "false",
+          "description": "Hands sorting, filtering and paging to a server: the table shows `data` as given, as the current page, and only reports the state as it changes.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "rowCount",
+          "type": "number",
+          "default": null,
+          "description": "With `manual`, how many rows match in all, which sets the page count and the announced count. Without it, the table counts the rows in `data`, which with a `pageSize` is one page and no pager, and a development build warns.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "DataTableLabels",
+          "default": null,
+          "description": "The words the table writes, in your app's language.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "aria-label",
+          "type": "string",
+          "default": null,
+          "description": "Names the table, in place of a `caption`. A table needs a name, so pass a `caption`, this or `aria-labelledby`, and a development build warns when it has none.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "aria-labelledby",
+          "type": "string",
+          "default": null,
+          "description": "The id of a visible heading that names the table, in place of a `caption`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the wrapper `<div>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-data-table-gap",
+      "sass": "$data-table-gap",
+      "default": "0.75rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-data-table-sort-gap",
+      "sass": "$data-table-sort-gap",
+      "default": "0.375em",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-data-table-sort-indicator-size",
+      "sass": "$data-table-sort-indicator-size",
+      "default": "0.75em",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-data-table-sort-unsorted-opacity",
+      "sass": "$data-table-sort-unsorted-opacity",
+      "default": "0.35",
+      "scope": "element"
+    }
+  ]
+}

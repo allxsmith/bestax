@@ -1,12 +1,12 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 
-jest.unstable_mockModule('node:child_process', () => ({
-  spawnSync: jest.fn(),
+vi.doMock('node:child_process', () => ({
+  spawnSync: vi.fn(),
 }));
 
 const { spawnSync } = await import('node:child_process');
 const { runCommand } = await import('../run-command.js');
-const spawn = spawnSync as unknown as jest.Mock;
+const spawn = spawnSync as unknown as Mock;
 
 describe('runCommand', () => {
   beforeEach(() => {

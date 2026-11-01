@@ -11,7 +11,7 @@
     "skipLibCheck": true
   },
   "include": ["src/**/*.ts"],
-  // Tests run under `node --test` (type stripping) and import node:test, whose
-  // types aren't resolvable here (no @types/node with types: []) — src only.
+  // Tests run under Vitest and use Node's own modules, whose types aren't
+  // loaded here (no @types/node with types: []) — src only.
   "exclude": ["src/__tests__"]
 }

@@ -2,74 +2,76 @@ import {
   describe,
   it,
   expect,
-  jest,
+  vi,
   beforeEach,
   afterEach,
-} from '@jest/globals';
+  type Mock,
+  type MockedFunction,
+} from 'vitest';
 import { readFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { TEMPLATES } from '../constants.js';
 
 // Mock fs-extra
-jest.unstable_mockModule('fs-extra', () => ({
+vi.doMock('fs-extra', () => ({
   default: {
-    existsSync: jest.fn(),
-    readFile: jest.fn(),
-    writeFile: jest.fn(),
-    readJson: jest.fn(),
-    writeJson: jest.fn(),
-    readdirSync: jest.fn(),
-    emptyDir: jest.fn(),
-    ensureDir: jest.fn(),
-    copy: jest.fn(),
+    existsSync: vi.fn(),
+    readFile: vi.fn(),
+    writeFile: vi.fn(),
+    readJson: vi.fn(),
+    writeJson: vi.fn(),
+    readdirSync: vi.fn(),
+    emptyDir: vi.fn(),
+    ensureDir: vi.fn(),
+    copy: vi.fn(),
   },
-  existsSync: jest.fn(),
-  readFile: jest.fn(),
-  writeFile: jest.fn(),
-  readJson: jest.fn(),
-  writeJson: jest.fn(),
-  readdirSync: jest.fn(),
-  emptyDir: jest.fn(),
-  ensureDir: jest.fn(),
-  copy: jest.fn(),
+  existsSync: vi.fn(),
+  readFile: vi.fn(),
+  writeFile: vi.fn(),
+  readJson: vi.fn(),
+  writeJson: vi.fn(),
+  readdirSync: vi.fn(),
+  emptyDir: vi.fn(),
+  ensureDir: vi.fn(),
+  copy: vi.fn(),
 }));
 
 // Mock prompts
-jest.unstable_mockModule('prompts', () => ({
-  default: jest.fn(),
+vi.doMock('prompts', () => ({
+  default: vi.fn(),
 }));
 
 // Mock file-system module
-jest.unstable_mockModule('../file-system.js', () => ({
-  checkDirectoryExists: jest.fn(),
-  isDirectoryEmpty: jest.fn(),
-  listDirectoryEntries: jest.fn(async () => []),
-  findNonDirectoryInPath: jest.fn(async () => null),
-  realPath: jest.fn(async (p: string) => p),
-  emptyDirectory: jest.fn(),
-  ensureDirectory: jest.fn(),
-  copyDirectory: jest.fn(),
-  updatePackageJson: jest.fn(),
+vi.doMock('../file-system.js', () => ({
+  checkDirectoryExists: vi.fn(),
+  isDirectoryEmpty: vi.fn(),
+  listDirectoryEntries: vi.fn(async () => []),
+  findNonDirectoryInPath: vi.fn(async () => null),
+  realPath: vi.fn(async (p: string) => p),
+  emptyDirectory: vi.fn(),
+  ensureDirectory: vi.fn(),
+  copyDirectory: vi.fn(),
+  updatePackageJson: vi.fn(),
 }));
 
 // Mock the command runner so --immediate never installs or starts anything
-jest.unstable_mockModule('../run-command.js', () => ({
-  runCommand: jest.fn(() => 0),
+vi.doMock('../run-command.js', () => ({
+  runCommand: vi.fn(() => 0),
 }));
 
 // Mock telemetry so create() never reads the real config or hits the network
-jest.unstable_mockModule('../telemetry.js', () => ({
-  reportScaffold: jest.fn(async () => undefined),
+vi.doMock('../telemetry.js', () => ({
+  reportScaffold: vi.fn(async () => undefined),
 }));
 
 // The range this CLI's manifest gives the library, as a published build
 // reads it. library-range.test.ts covers the read itself.
 const LIBRARY_RANGE = '^5.43.0';
 const LIBRARY_DEPENDENCY = { '@allxsmith/bestax-bulma': LIBRARY_RANGE };
-jest.unstable_mockModule('../library-range.js', () => ({
+vi.doMock('../library-range.js', () => ({
   LIBRARY: '@allxsmith/bestax-bulma',
-  libraryRange: jest.fn(() => LIBRARY_RANGE),
+  libraryRange: vi.fn(() => LIBRARY_RANGE),
 }));
 
 const fs = await import('fs-extra');
@@ -78,16 +80,15 @@ const fileSystem = await import('../file-system.js');
 const telemetry = await import('../telemetry.js');
 const { runCommand } = await import('../run-command.js');
 const { libraryRange } = await import('../library-range.js');
-const { ProjectCreator } = await import('../project-creator.js');
-const listDirectoryEntries =
-  fileSystem.listDirectoryEntries as jest.MockedFunction<
-    typeof fileSystem.listDirectoryEntries
-  >;
+const { ProjectCreator, entryFile } = await import('../project-creator.js');
+const listDirectoryEntries = fileSystem.listDirectoryEntries as MockedFunction<
+  typeof fileSystem.listDirectoryEntries
+>;
 const findNonDirectoryInPath =
-  fileSystem.findNonDirectoryInPath as jest.MockedFunction<
+  fileSystem.findNonDirectoryInPath as MockedFunction<
     typeof fileSystem.findNonDirectoryInPath
   >;
-const realPath = fileSystem.realPath as jest.MockedFunction<
+const realPath = fileSystem.realPath as MockedFunction<
   typeof fileSystem.realPath
 >;
 const { ICON_LIBRARIES: _ICON_LIBRARIES, BULMA_FLAVORS: _BULMA_FLAVORS } =
@@ -138,12 +139,13 @@ function restoreStdoutTTY(): void {
 }
 
 beforeEach(() => {
-  console.log = jest.fn();
-  console.error = jest.fn();
+  console.log = vi.fn();
+  console.error = vi.fn();
   // ProjectCreator falls through to interactive prompts, which are guarded
-  // against non-TTY stdin (#192); jest's stdin is not a TTY, so simulate one.
+  // against non-TTY stdin (#192); the test runner's stdin is not a TTY, so
+  // simulate one.
   setStdinTTY(true);
-  jest.clearAllMocks();
+  vi.clearAllMocks();
   // A target directory is missing or empty unless a test says otherwise; reset
   // here because clearAllMocks keeps a previous test's implementation.
   listDirectoryEntries.mockResolvedValue([]);
@@ -208,7 +210,7 @@ describe('ProjectCreator', () => {
     });
 
     it('should prompt for project name when not provided', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         projectName: 'prompted-project',
       });
       const result = await projectCreator.getProjectName();
@@ -216,17 +218,17 @@ describe('ProjectCreator', () => {
     });
 
     it('should return null when prompt is cancelled', async () => {
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({});
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({});
       const result = await projectCreator.getProjectName();
       expect(result).toBeNull();
     });
   });
 
   describe('checkExistingDirectory', () => {
-    const confirm = prompts as jest.MockedFunction<typeof prompts>;
+    const confirm = prompts as MockedFunction<typeof prompts>;
 
     function errorOutput(): string {
-      return (console.error as jest.Mock).mock.calls.flat().join('\n');
+      return (console.error as Mock).mock.calls.flat().join('\n');
     }
 
     it('has nothing to remove when the directory is missing or empty', async () => {
@@ -505,7 +507,7 @@ describe('ProjectCreator', () => {
   describe('setupSkills', () => {
     it('copies the bundled skills and writes CLAUDE.md when the bundle exists', async () => {
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockResolvedValue(true);
@@ -523,9 +525,9 @@ describe('ProjectCreator', () => {
         expect.stringContaining('CLAUDE.md'),
         expect.stringContaining('my-app')
       );
-      const written = (
-        fs.default.writeFile as unknown as jest.Mock
-      ).mock.calls.find(([p]) => String(p).includes('CLAUDE.md'))?.[1];
+      const written = (fs.default.writeFile as unknown as Mock).mock.calls.find(
+        ([p]) => String(p).includes('CLAUDE.md')
+      )?.[1];
       expect(written).toContain('Bulma flavor: **complete**');
       expect(written).toContain('No icon library is installed');
       expect(written).not.toContain('classPrefix');
@@ -533,7 +535,7 @@ describe('ProjectCreator', () => {
 
     it('writes .claude/launch.json for the browser preview alongside the skills', async () => {
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockResolvedValue(true);
@@ -543,9 +545,9 @@ describe('ProjectCreator', () => {
         iconLibrary: 'none',
       });
 
-      const written = (
-        fs.default.writeFile as unknown as jest.Mock
-      ).mock.calls.find(([p]) => String(p).includes('launch.json'))?.[1];
+      const written = (fs.default.writeFile as unknown as Mock).mock.calls.find(
+        ([p]) => String(p).includes('launch.json')
+      )?.[1];
       expect(written).toBeDefined();
       const launch = JSON.parse(String(written));
       expect(launch.configurations).toHaveLength(1);
@@ -557,14 +559,77 @@ describe('ProjectCreator', () => {
       });
       // the scaffolded CLAUDE.md points agents at the launch config
       const claudeMd = (
-        fs.default.writeFile as unknown as jest.Mock
+        fs.default.writeFile as unknown as Mock
       ).mock.calls.find(([p]) => String(p).includes('CLAUDE.md'))?.[1];
       expect(claudeMd).toContain('.claude/launch.json');
     });
 
+    it('writes the Next.js launch.json and CLAUDE.md for a Next.js scaffold', async () => {
+      (
+        fileSystem.checkDirectoryExists as MockedFunction<
+          typeof fileSystem.checkDirectoryExists
+        >
+      ).mockResolvedValue(true);
+
+      await projectCreator.setupSkills('/target/path', 'my-app', {
+        bulmaFlavor: 'complete',
+        iconLibrary: 'material-symbols',
+        framework: 'next',
+      });
+
+      const writes = (fs.default.writeFile as unknown as Mock).mock.calls;
+      const launch = JSON.parse(
+        String(writes.find(([p]) => String(p).includes('launch.json'))?.[1])
+      );
+      expect(launch.configurations).toEqual([
+        {
+          name: 'dev',
+          runtimeExecutable: 'npm',
+          runtimeArgs: ['run', 'dev', '--', '--port', '3000'],
+          port: 3000,
+        },
+      ]);
+
+      const claudeMd = String(
+        writes.find(([p]) => String(p).includes('CLAUDE.md'))?.[1]
+      );
+      expect(claudeMd).toContain('- Framework: the Next.js App Router.');
+      expect(claudeMd).toContain("`src/app/layout`'s `metadata`");
+      expect(claudeMd).toContain('`npm run dev -- --port 3000`');
+      expect(claudeMd).toContain('hand-added in `src/app/layout`');
+      // Its stylesheets load from the layout, where the icon step wrote them.
+      expect(claudeMd).toContain('in `src/app/layout.*`');
+      expect(claudeMd).not.toContain('src/main');
+      expect(claudeMd).not.toContain('5173');
+      expect(claudeMd).not.toContain('index.html');
+    });
+
+    it("keeps a Vite scaffold's CLAUDE.md on src/main, index.html and port 5173", async () => {
+      (
+        fileSystem.checkDirectoryExists as MockedFunction<
+          typeof fileSystem.checkDirectoryExists
+        >
+      ).mockResolvedValue(true);
+
+      await projectCreator.setupSkills('/target/path', 'my-app', {
+        bulmaFlavor: 'complete',
+        iconLibrary: 'material-symbols',
+      });
+
+      const claudeMd = String(
+        (fs.default.writeFile as unknown as Mock).mock.calls.find(([p]) =>
+          String(p).includes('CLAUDE.md')
+        )?.[1]
+      );
+      expect(claudeMd).toContain('in `src/main.*`');
+      expect(claudeMd).toContain("`index.html`'s `<title>`");
+      expect(claudeMd).toContain('port 5173');
+      expect(claudeMd).not.toContain('Next.js');
+    });
+
     it('documents the prefix caveat and icon library for a prefixed scaffold', async () => {
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockResolvedValue(true);
@@ -574,9 +639,9 @@ describe('ProjectCreator', () => {
         iconLibrary: 'fontawesome',
       });
 
-      const written = (
-        fs.default.writeFile as unknown as jest.Mock
-      ).mock.calls.find(([p]) => String(p).includes('CLAUDE.md'))?.[1];
+      const written = (fs.default.writeFile as unknown as Mock).mock.calls.find(
+        ([p]) => String(p).includes('CLAUDE.md')
+      )?.[1];
       expect(written).toContain('classPrefix="bestax-"');
       expect(written).toContain('bestax-prefixed.css');
       expect(written).toContain('Icon library: **Font Awesome**');
@@ -586,7 +651,7 @@ describe('ProjectCreator', () => {
 
     it('documents the ConfigProvider iconLibrary caveat for a non-default icon library', async () => {
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockResolvedValue(true);
@@ -596,16 +661,16 @@ describe('ProjectCreator', () => {
         iconLibrary: 'mdi',
       });
 
-      const written = (
-        fs.default.writeFile as unknown as jest.Mock
-      ).mock.calls.find(([p]) => String(p).includes('CLAUDE.md'))?.[1];
+      const written = (fs.default.writeFile as unknown as Mock).mock.calls.find(
+        ([p]) => String(p).includes('CLAUDE.md')
+      )?.[1];
       expect(written).toContain('iconLibrary="mdi"');
       expect(written).toContain('extend that provider');
     });
 
     it('names the mapped provider value for ionicons in the caveat', async () => {
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockResolvedValue(true);
@@ -615,16 +680,16 @@ describe('ProjectCreator', () => {
         iconLibrary: 'ionicons',
       });
 
-      const written = (
-        fs.default.writeFile as unknown as jest.Mock
-      ).mock.calls.find(([p]) => String(p).includes('CLAUDE.md'))?.[1];
+      const written = (fs.default.writeFile as unknown as Mock).mock.calls.find(
+        ([p]) => String(p).includes('CLAUDE.md')
+      )?.[1];
       // the scaffolder writes iconLibrary="ion" (not "ionicons") into main.tsx
       expect(written).toContain('iconLibrary="ion"');
     });
 
     it('skips when the skills bundle is missing', async () => {
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockResolvedValue(false);
@@ -645,10 +710,10 @@ describe('ProjectCreator', () => {
       const _mainFilePath = '/test/project/src/main.jsx';
 
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(
         `import React from 'react';\n// Import Bestax CSS (Bulma + extras)\nimport '@allxsmith/bestax-bulma/bestax.css';` as unknown
       );
@@ -666,10 +731,10 @@ describe('ProjectCreator', () => {
       const _mainFilePath = '/test/project/src/main.tsx';
 
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(
         `import React from 'react';\n// Import Bestax CSS (Bulma + extras)\nimport '@allxsmith/bestax-bulma/bestax.css';` as unknown
       );
@@ -687,10 +752,10 @@ describe('ProjectCreator', () => {
     it('swaps the starter helper props for named classes under a no-helpers flavor', async () => {
       const targetPath = '/test/project';
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockImplementation((async (file: string) =>
         file.endsWith('App.tsx')
           ? '<Title size="1" textAlign="centered">x</Title>'
@@ -718,7 +783,7 @@ describe('ProjectCreator', () => {
 
     it('leaves the starter alone when a no-helpers scaffold has no App files', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
 
       await projectCreator.replaceStarterHelperProps('/test/project', 'vite');
@@ -745,17 +810,17 @@ describe('ProjectCreator', () => {
       const packageJsonPath = '/test/project/package.json';
 
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockImplementation(
         path => path === appFilePath || path === packageJsonPath
       );
       (
-        fs.default.readJson as jest.MockedFunction<typeof fs.readJson>
+        fs.default.readJson as MockedFunction<typeof fs.readJson>
       ).mockResolvedValue({
         dependencies: {},
       });
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(
         `import { Button, Card } from '@allxsmith/bestax-bulma';
         const App = () => (
@@ -768,7 +833,7 @@ describe('ProjectCreator', () => {
       await projectCreator.setupIconLibrary(targetPath, 'fontawesome', 'vite');
 
       const writeCall = (
-        fs.default.writeFile as jest.MockedFunction<typeof fs.writeFile>
+        fs.default.writeFile as MockedFunction<typeof fs.writeFile>
       ).mock.calls[0];
       expect(writeCall[0]).toBe(appFilePath);
       const writtenContent = writeCall[1] as string;
@@ -792,17 +857,17 @@ describe('ProjectCreator', () => {
       const packageJsonPath = '/test/project/package.json';
 
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockImplementation(
         path => path === appFilePath || path === packageJsonPath
       );
       (
-        fs.default.readJson as jest.MockedFunction<typeof fs.readJson>
+        fs.default.readJson as MockedFunction<typeof fs.readJson>
       ).mockResolvedValue({
         dependencies: {},
       });
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(
         `import { Button, Card, Icon } from '@allxsmith/bestax-bulma';
         const App = () => (
@@ -813,7 +878,7 @@ describe('ProjectCreator', () => {
       await projectCreator.setupIconLibrary(targetPath, 'mdi', 'vite');
 
       const writeCall = (
-        fs.default.writeFile as jest.MockedFunction<typeof fs.writeFile>
+        fs.default.writeFile as MockedFunction<typeof fs.writeFile>
       ).mock.calls[0];
       const writtenContent = writeCall[1] as string;
 
@@ -828,10 +893,10 @@ describe('ProjectCreator', () => {
       const appFilePath = '/test/project/src/App.tsx';
 
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(
         `import { Button, Card } from '@allxsmith/bestax-bulma';
         const App: React.FC = () => (
@@ -844,7 +909,7 @@ describe('ProjectCreator', () => {
       await projectCreator.setupIconLibrary(targetPath, 'ionicons', 'vite-ts');
 
       const writeCall = (
-        fs.default.writeFile as jest.MockedFunction<typeof fs.writeFile>
+        fs.default.writeFile as MockedFunction<typeof fs.writeFile>
       ).mock.calls[0];
       expect(writeCall[0]).toBe(appFilePath);
       const writtenContent = writeCall[1] as string;
@@ -859,7 +924,7 @@ describe('ProjectCreator', () => {
   describe('updateReadme', () => {
     it('does nothing when the template has no README', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
 
       await projectCreator.updateReadme('/test/project', 'fontawesome');
@@ -875,10 +940,10 @@ describe('ProjectCreator', () => {
       const indexHtmlPath = '/test/project/index.html';
 
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockImplementation(path => path === indexHtmlPath);
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(
         '<head><title>Bestax + Vite + React</title></head>' as unknown
       );
@@ -893,7 +958,7 @@ describe('ProjectCreator', () => {
 
     it('does nothing when index.html is missing', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
 
       await projectCreator.updateIndexHtmlTitle('/test/project', 'my-app');
@@ -904,10 +969,10 @@ describe('ProjectCreator', () => {
 
     it('leaves index.html untouched when it has no <title> tag', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockResolvedValue('<head></head>' as unknown);
 
       await projectCreator.updateIndexHtmlTitle('/test/project', 'my-app');
@@ -940,12 +1005,12 @@ describe('ProjectCreator', () => {
       const indexHtmlPath = '/test/project/index.html';
 
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockImplementation(
         path => path === indexHtmlPath || path === '/test/project/src/App.jsx'
       );
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(`<html><head></head><body></body></html>` as unknown);
 
       await projectCreator.setupIconLibrary(targetPath, 'ionicons', 'vite');
@@ -962,7 +1027,7 @@ describe('ProjectCreator', () => {
       const _mainFilePath = '/test/project/src/main.jsx';
 
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockImplementation(
         path =>
           path === packageJsonPath ||
@@ -970,12 +1035,12 @@ describe('ProjectCreator', () => {
           path === '/test/project/src/App.jsx'
       );
       (
-        fs.default.readJson as jest.MockedFunction<typeof fs.readJson>
+        fs.default.readJson as MockedFunction<typeof fs.readJson>
       ).mockResolvedValue({
         dependencies: {},
       });
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(
         `import '@allxsmith/bestax-bulma/bestax.css';` as unknown
       );
@@ -999,7 +1064,7 @@ describe('ProjectCreator', () => {
       const _mainFilePath = '/test/project/src/main.tsx';
 
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockImplementation(
         path =>
           path === packageJsonPath ||
@@ -1007,12 +1072,12 @@ describe('ProjectCreator', () => {
           path === '/test/project/src/App.tsx'
       );
       (
-        fs.default.readJson as jest.MockedFunction<typeof fs.readJson>
+        fs.default.readJson as MockedFunction<typeof fs.readJson>
       ).mockResolvedValue({
         dependencies: {},
       });
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(
         `import '@allxsmith/bestax-bulma/bestax.css';` as unknown
       );
@@ -1040,10 +1105,10 @@ describe('ProjectCreator', () => {
       const appFilePath = '/test/project/src/App.jsx';
 
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockImplementation(path => path === appFilePath);
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(`<html><head></head><body></body></html>` as unknown);
 
       await projectCreator.setupIconLibrary(
@@ -1060,10 +1125,10 @@ describe('ProjectCreator', () => {
       const appFilePath = '/test/project/src/App.tsx';
 
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockImplementation(path => path === appFilePath);
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(`<html><head></head><body></body></html>` as unknown);
 
       await projectCreator.setupIconLibrary(
@@ -1086,7 +1151,7 @@ describe('ProjectCreator', () => {
       fs.default.writeFile,
       fs.default.readJson,
       fs.default.writeJson,
-    ] as unknown as jest.Mock[];
+    ] as unknown as Mock[];
 
     // clearAllMocks keeps implementations, so drop this block's in-memory fs
     // rather than leave it behind for every later test in the file.
@@ -1097,23 +1162,23 @@ describe('ProjectCreator', () => {
     beforeEach(() => {
       files = new Map();
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockImplementation(p => files.has(String(p)));
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockImplementation((async (p: unknown) =>
         files.get(String(p))) as unknown as typeof fs.readFile);
       (
-        fs.default.writeFile as jest.MockedFunction<typeof fs.writeFile>
+        fs.default.writeFile as MockedFunction<typeof fs.writeFile>
       ).mockImplementation((async (p: unknown, content: unknown) => {
         files.set(String(p), String(content));
       }) as unknown as typeof fs.writeFile);
       (
-        fs.default.readJson as jest.MockedFunction<typeof fs.readJson>
+        fs.default.readJson as MockedFunction<typeof fs.readJson>
       ).mockImplementation((async (p: unknown) =>
         JSON.parse(files.get(String(p)) ?? '{}')) as typeof fs.readJson);
       (
-        fs.default.writeJson as jest.MockedFunction<typeof fs.writeJson>
+        fs.default.writeJson as MockedFunction<typeof fs.writeJson>
       ).mockImplementation((async (p: unknown, data: unknown) => {
         files.set(String(p), JSON.stringify(data));
       }) as typeof fs.writeJson);
@@ -1131,15 +1196,16 @@ describe('ProjectCreator', () => {
         const library = _ICON_LIBRARIES.find(l => l.name === libraryName)!;
 
         for (const { name: template, directory } of TEMPLATES) {
-          // The same entry-file rule setupIconLibrary applies.
-          const mainFile = template.includes('-ts') ? 'main.tsx' : 'main.jsx';
+          // The same entry-file rule setupIconLibrary applies: src/main, or
+          // a Next.js app's root layout.
+          const mainFile = entryFile(template);
           const root = `/app-${template}`;
-          const mainPath = `${root}/src/${mainFile}`;
+          const mainPath = `${root}/${mainFile}`;
           files.set(
             mainPath,
             readFileSync(
               new URL(
-                `../../templates/${directory}/src/${mainFile}`,
+                `../../templates/${directory}/${mainFile}`,
                 import.meta.url
               ),
               'utf8'
@@ -1192,10 +1258,10 @@ describe('ProjectCreator', () => {
       const _mainFilePath = '/test/project/src/main.jsx';
 
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(
         `import App from './App.jsx';\nroot.render(<App />);` as unknown
       );
@@ -1222,10 +1288,10 @@ describe('ProjectCreator', () => {
       const _mainFilePath = '/test/project/src/main.tsx';
 
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(
         `import App from './App.tsx';\nroot.render(<App />);` as unknown
       );
@@ -1316,11 +1382,11 @@ describe('ProjectCreator', () => {
 
   describe('create', () => {
     it('should exit if no project name provided', async () => {
-      const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });
 
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({});
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({});
 
       try {
         await projectCreator.create();
@@ -1333,7 +1399,7 @@ describe('ProjectCreator', () => {
     });
 
     it('should exit with invalid template option', async () => {
-      const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });
 
@@ -1355,7 +1421,7 @@ describe('ProjectCreator', () => {
     });
 
     it('should exit with invalid bulma option', async () => {
-      const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });
 
@@ -1377,7 +1443,7 @@ describe('ProjectCreator', () => {
     });
 
     it('should exit with invalid icon option', async () => {
-      const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });
 
@@ -1399,7 +1465,7 @@ describe('ProjectCreator', () => {
     });
 
     it('exits naming the linters for an invalid --lint', async () => {
-      const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });
 
@@ -1408,21 +1474,21 @@ describe('ProjectCreator', () => {
       ).rejects.toThrow('process.exit called');
 
       expect(mockExit).toHaveBeenCalledWith(1);
-      expect(
-        (console.error as jest.Mock).mock.calls.flat().join('\n')
-      ).toContain('Invalid linter: biome. Valid options are: oxlint, eslint');
+      expect((console.error as Mock).mock.calls.flat().join('\n')).toContain(
+        'Invalid linter: biome. Valid options are: oxlint, eslint'
+      );
       expect(fileSystem.copyDirectory).not.toHaveBeenCalled();
       mockExit.mockRestore();
     });
 
     describe('the linter', () => {
-      let setupLinter: ReturnType<typeof jest.spyOn>;
+      let setupLinter: ReturnType<typeof vi.spyOn>;
 
       beforeEach(() => {
         (
-          fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+          fs.default.existsSync as MockedFunction<typeof fs.existsSync>
         ).mockReturnValue(false);
-        setupLinter = jest
+        setupLinter = vi
           .spyOn(projectCreator, 'setupLinter')
           .mockResolvedValue(undefined);
       });
@@ -1484,7 +1550,7 @@ describe('ProjectCreator', () => {
       });
 
       it('is asked for when no flag names it', async () => {
-        (prompts as jest.MockedFunction<typeof prompts>).mockImplementation(
+        (prompts as MockedFunction<typeof prompts>).mockImplementation(
           questions => {
             const question = Array.isArray(questions)
               ? questions[0]
@@ -1515,18 +1581,18 @@ describe('ProjectCreator', () => {
     });
 
     describe('installing and starting (--immediate)', () => {
-      const run = runCommand as jest.MockedFunction<typeof runCommand>;
+      const run = runCommand as MockedFunction<typeof runCommand>;
       const originalAgent = process.env.npm_config_user_agent;
-      let mockExit: ReturnType<typeof jest.spyOn>;
+      let mockExit: ReturnType<typeof vi.spyOn>;
 
       beforeEach(() => {
         process.env.npm_config_user_agent = 'pnpm/11.9.0 node/v22 darwin arm64';
         process.exitCode = undefined;
         run.mockReturnValue(0);
         (
-          fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+          fs.default.existsSync as MockedFunction<typeof fs.existsSync>
         ).mockReturnValue(false);
-        mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+        mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
           throw new Error('process.exit called');
         });
       });
@@ -1555,7 +1621,7 @@ describe('ProjectCreator', () => {
           ['pnpm run dev', target],
         ]);
         expect(run.mock.invocationCallOrder[0]).toBeGreaterThan(
-          (telemetry.reportScaffold as jest.Mock).mock.invocationCallOrder[0]
+          (telemetry.reportScaffold as Mock).mock.invocationCallOrder[0]
         );
         // The server's exit code is the run's.
         expect(process.exitCode).toBe(3);
@@ -1574,9 +1640,7 @@ describe('ProjectCreator', () => {
 
         expect(run).toHaveBeenCalledTimes(1);
         expect(mockExit).toHaveBeenCalledWith(2);
-        expect(
-          (console.error as jest.Mock).mock.calls.flat().join('\n')
-        ).toContain(
+        expect((console.error as Mock).mock.calls.flat().join('\n')).toContain(
           'pnpm install failed, so the dev server was not started. Fix what it reported, then cd test-project, then run pnpm install and pnpm run dev.'
         );
       });
@@ -1592,9 +1656,7 @@ describe('ProjectCreator', () => {
           })
         ).rejects.toThrow('process.exit called');
 
-        const output = (console.error as jest.Mock).mock.calls
-          .flat()
-          .join('\n');
+        const output = (console.error as Mock).mock.calls.flat().join('\n');
         expect(output).toContain(
           'Fix what it reported, then run pnpm install and pnpm run dev.'
         );
@@ -1616,9 +1678,9 @@ describe('ProjectCreator', () => {
 
         expect(run).toHaveBeenCalledTimes(1);
         expect(mockExit).toHaveBeenCalledWith(1);
-        expect(
-          (console.error as jest.Mock).mock.calls.flat().join('\n')
-        ).toContain('spawn pnpm ENOENT');
+        expect((console.error as Mock).mock.calls.flat().join('\n')).toContain(
+          'spawn pnpm ENOENT'
+        );
       });
 
       it('only writes the project under -y, without a terminal, or with --no-immediate', async () => {
@@ -1648,7 +1710,7 @@ describe('ProjectCreator', () => {
       });
 
       it('asks, naming the package manager, when nothing answers it', async () => {
-        (prompts as jest.MockedFunction<typeof prompts>).mockImplementation(
+        (prompts as MockedFunction<typeof prompts>).mockImplementation(
           questions => {
             const question = Array.isArray(questions)
               ? questions[0]
@@ -1686,17 +1748,17 @@ describe('ProjectCreator', () => {
       };
 
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockResolvedValue(false);
       (
-        fileSystem.isDirectoryEmpty as jest.MockedFunction<
+        fileSystem.isDirectoryEmpty as MockedFunction<
           typeof fileSystem.isDirectoryEmpty
         >
       ).mockResolvedValue(true);
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
 
       await projectCreator.create('test-project', options);
@@ -1707,20 +1769,20 @@ describe('ProjectCreator', () => {
 
     it('sets the index.html title to the project name', async () => {
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockResolvedValue(false);
       (
-        fileSystem.isDirectoryEmpty as jest.MockedFunction<
+        fileSystem.isDirectoryEmpty as MockedFunction<
           typeof fileSystem.isDirectoryEmpty
         >
       ).mockResolvedValue(true);
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockImplementation(path => String(path).endsWith('index.html'));
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(
         '<head><title>Bestax + Vite + React</title></head>' as unknown
       );
@@ -1728,7 +1790,7 @@ describe('ProjectCreator', () => {
       await projectCreator.create('test-project', { yes: true, skills: false });
 
       expect(
-        (fs.default.writeFile as unknown as jest.Mock).mock.calls.some(
+        (fs.default.writeFile as unknown as Mock).mock.calls.some(
           ([p, content]) =>
             String(p).endsWith('index.html') &&
             String(content).includes('<title>test-project</title>')
@@ -1739,23 +1801,23 @@ describe('ProjectCreator', () => {
     it('writes launch.json when the skills opt-in is accepted', async () => {
       // target dir does not exist; the bundled skills dir does
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockImplementation(async p => String(p).includes('skills'));
       (
-        fileSystem.isDirectoryEmpty as jest.MockedFunction<
+        fileSystem.isDirectoryEmpty as MockedFunction<
           typeof fileSystem.isDirectoryEmpty
         >
       ).mockResolvedValue(true);
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
 
       await projectCreator.create('test-project', { yes: true, skills: true });
 
       expect(
-        (fs.default.writeFile as unknown as jest.Mock).mock.calls.some(([p]) =>
+        (fs.default.writeFile as unknown as Mock).mock.calls.some(([p]) =>
           String(p).includes('launch.json')
         )
       ).toBe(true);
@@ -1763,23 +1825,23 @@ describe('ProjectCreator', () => {
 
     it('does not write launch.json when the skills opt-in is declined', async () => {
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockImplementation(async p => String(p).includes('skills'));
       (
-        fileSystem.isDirectoryEmpty as jest.MockedFunction<
+        fileSystem.isDirectoryEmpty as MockedFunction<
           typeof fileSystem.isDirectoryEmpty
         >
       ).mockResolvedValue(true);
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
 
       await projectCreator.create('test-project', { yes: true, skills: false });
 
       expect(
-        (fs.default.writeFile as unknown as jest.Mock).mock.calls.some(([p]) =>
+        (fs.default.writeFile as unknown as Mock).mock.calls.some(([p]) =>
           String(p).includes('launch.json')
         )
       ).toBe(false);
@@ -1794,7 +1856,7 @@ describe('ProjectCreator', () => {
         skills: false,
       };
 
-      (prompts as jest.MockedFunction<typeof prompts>).mockImplementation(
+      (prompts as MockedFunction<typeof prompts>).mockImplementation(
         questions => {
           const question = Array.isArray(questions) ? questions[0] : questions;
           if (question.name === 'projectName')
@@ -1806,17 +1868,17 @@ describe('ProjectCreator', () => {
       );
 
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockResolvedValue(false);
       (
-        fileSystem.isDirectoryEmpty as jest.MockedFunction<
+        fileSystem.isDirectoryEmpty as MockedFunction<
           typeof fileSystem.isDirectoryEmpty
         >
       ).mockResolvedValue(true);
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
 
       await projectCreator.create('test-project', options);
@@ -1837,7 +1899,7 @@ describe('ProjectCreator', () => {
         skills: false,
       };
 
-      (prompts as jest.MockedFunction<typeof prompts>).mockImplementation(
+      (prompts as MockedFunction<typeof prompts>).mockImplementation(
         questions => {
           const question = Array.isArray(questions) ? questions[0] : questions;
           if (question.name === 'projectName')
@@ -1849,17 +1911,17 @@ describe('ProjectCreator', () => {
       );
 
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockResolvedValue(false);
       (
-        fileSystem.isDirectoryEmpty as jest.MockedFunction<
+        fileSystem.isDirectoryEmpty as MockedFunction<
           typeof fileSystem.isDirectoryEmpty
         >
       ).mockResolvedValue(true);
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
 
       await projectCreator.create('test-project', options);
@@ -1872,7 +1934,7 @@ describe('ProjectCreator', () => {
     });
 
     it('should exit when user cancels template prompt', async () => {
-      const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });
 
@@ -1881,7 +1943,7 @@ describe('ProjectCreator', () => {
         icon: 'none',
       };
 
-      (prompts as jest.MockedFunction<typeof prompts>).mockImplementation(
+      (prompts as MockedFunction<typeof prompts>).mockImplementation(
         questions => {
           const question = Array.isArray(questions) ? questions[0] : questions;
           if (question.name === 'projectName')
@@ -1892,7 +1954,7 @@ describe('ProjectCreator', () => {
       );
 
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockResolvedValue(false);
@@ -1908,7 +1970,7 @@ describe('ProjectCreator', () => {
     });
 
     it('should exit when user cancels bulma prompt', async () => {
-      const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });
 
@@ -1919,7 +1981,7 @@ describe('ProjectCreator', () => {
         icon: 'none',
       };
 
-      (prompts as jest.MockedFunction<typeof prompts>).mockImplementation(
+      (prompts as MockedFunction<typeof prompts>).mockImplementation(
         questions => {
           const question = Array.isArray(questions) ? questions[0] : questions;
           if (question.name === 'projectName')
@@ -1930,7 +1992,7 @@ describe('ProjectCreator', () => {
       );
 
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockResolvedValue(false);
@@ -1946,7 +2008,7 @@ describe('ProjectCreator', () => {
     });
 
     it('should exit when user cancels icon prompt', async () => {
-      const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });
 
@@ -1957,7 +2019,7 @@ describe('ProjectCreator', () => {
         bulma: 'complete',
       };
 
-      (prompts as jest.MockedFunction<typeof prompts>).mockImplementation(
+      (prompts as MockedFunction<typeof prompts>).mockImplementation(
         questions => {
           const question = Array.isArray(questions) ? questions[0] : questions;
           if (question.name === 'projectName')
@@ -1968,7 +2030,7 @@ describe('ProjectCreator', () => {
       );
 
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockResolvedValue(false);
@@ -1992,7 +2054,7 @@ describe('ProjectCreator', () => {
         skills: false,
       };
 
-      (prompts as jest.MockedFunction<typeof prompts>).mockImplementation(
+      (prompts as MockedFunction<typeof prompts>).mockImplementation(
         questions => {
           const question = Array.isArray(questions) ? questions[0] : questions;
           if (question.name === 'projectName')
@@ -2004,17 +2066,17 @@ describe('ProjectCreator', () => {
       );
 
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockResolvedValue(false);
       (
-        fileSystem.isDirectoryEmpty as jest.MockedFunction<
+        fileSystem.isDirectoryEmpty as MockedFunction<
           typeof fileSystem.isDirectoryEmpty
         >
       ).mockResolvedValue(true);
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
 
       await projectCreator.create('test-project', options);
@@ -2027,17 +2089,17 @@ describe('ProjectCreator', () => {
     });
 
     it('should handle project creation failure', async () => {
-      const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });
 
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockResolvedValue(false);
       (
-        fileSystem.copyDirectory as jest.MockedFunction<
+        fileSystem.copyDirectory as MockedFunction<
           typeof fileSystem.copyDirectory
         >
       ).mockRejectedValue(new Error('Copy failed'));
@@ -2051,11 +2113,11 @@ describe('ProjectCreator', () => {
     });
 
     it('should handle user cancellation at project name prompt', async () => {
-      const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });
 
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({});
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({});
 
       await expect(projectCreator.create()).rejects.toThrow(
         'process.exit called'
@@ -2068,11 +2130,11 @@ describe('ProjectCreator', () => {
     });
 
     it('should handle user cancellation at template prompt', async () => {
-      const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });
 
-      (prompts as jest.MockedFunction<typeof prompts>).mockImplementation(
+      (prompts as MockedFunction<typeof prompts>).mockImplementation(
         questions => {
           const question = Array.isArray(questions) ? questions[0] : questions;
           if (question.name === 'projectName')
@@ -2093,22 +2155,22 @@ describe('ProjectCreator', () => {
     });
 
     it('should handle directory not empty and user declines overwrite', async () => {
-      const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });
 
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockResolvedValue(true);
       (
-        fileSystem.isDirectoryEmpty as jest.MockedFunction<
+        fileSystem.isDirectoryEmpty as MockedFunction<
           typeof fileSystem.isDirectoryEmpty
         >
       ).mockResolvedValue(false);
       listDirectoryEntries.mockResolvedValue(['notes.txt']);
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         overwrite: false,
       });
 
@@ -2123,7 +2185,7 @@ describe('ProjectCreator', () => {
     });
 
     it('should handle copyDirectory error', async () => {
-      const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });
 
@@ -2135,17 +2197,17 @@ describe('ProjectCreator', () => {
       };
 
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockResolvedValue(false);
       (
-        fileSystem.isDirectoryEmpty as jest.MockedFunction<
+        fileSystem.isDirectoryEmpty as MockedFunction<
           typeof fileSystem.isDirectoryEmpty
         >
       ).mockResolvedValue(true);
       (
-        fileSystem.copyDirectory as jest.MockedFunction<
+        fileSystem.copyDirectory as MockedFunction<
           typeof fileSystem.copyDirectory
         >
       ).mockRejectedValue(new Error('Permission denied'));
@@ -2159,7 +2221,7 @@ describe('ProjectCreator', () => {
     });
 
     it('should handle updatePackageJson error gracefully', async () => {
-      const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });
 
@@ -2171,20 +2233,20 @@ describe('ProjectCreator', () => {
       };
 
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockResolvedValue(false);
       (
-        fileSystem.isDirectoryEmpty as jest.MockedFunction<
+        fileSystem.isDirectoryEmpty as MockedFunction<
           typeof fileSystem.isDirectoryEmpty
         >
       ).mockResolvedValue(true);
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
       (
-        fileSystem.updatePackageJson as jest.MockedFunction<
+        fileSystem.updatePackageJson as MockedFunction<
           typeof fileSystem.updatePackageJson
         >
       ).mockRejectedValue(new Error('Update failed'));
@@ -2207,10 +2269,10 @@ describe('ProjectCreator', () => {
       const _mainFilePath = '/test/project/src/main.jsx';
 
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(
         `import React from 'react';\nimport './App.css';` as unknown
       );
@@ -2228,10 +2290,10 @@ describe('ProjectCreator', () => {
       const _mainFilePath = '/test/project/src/main.jsx';
 
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(
         `import './App.css';\nconst app = document.getElementById('app');` as unknown
       );
@@ -2245,7 +2307,7 @@ describe('ProjectCreator', () => {
       const targetPath = '/test/project';
 
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
 
       await projectCreator.setupBulmaFlavor(targetPath, 'complete', 'vite');
@@ -2259,7 +2321,7 @@ describe('ProjectCreator', () => {
       const targetPath = '/test/project';
 
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
 
       await projectCreator.setupConfigProvider(
@@ -2277,10 +2339,10 @@ describe('ProjectCreator', () => {
       const _mainFilePath = '/test/project/src/main.tsx';
 
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(true);
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(
         `import App from './App.tsx';\nroot.render(<App />);` as unknown
       );
@@ -2293,7 +2355,7 @@ describe('ProjectCreator', () => {
       );
 
       const writeCall = (
-        fs.default.writeFile as jest.MockedFunction<typeof fs.writeFile>
+        fs.default.writeFile as MockedFunction<typeof fs.writeFile>
       ).mock.calls[0];
       const writtenContent = writeCall[1] as string;
 
@@ -2312,34 +2374,34 @@ describe('ProjectCreator', () => {
       };
 
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockResolvedValue(false);
       (
-        fileSystem.isDirectoryEmpty as jest.MockedFunction<
+        fileSystem.isDirectoryEmpty as MockedFunction<
           typeof fileSystem.isDirectoryEmpty
         >
       ).mockResolvedValue(true);
       (
-        fileSystem.copyDirectory as jest.MockedFunction<
+        fileSystem.copyDirectory as MockedFunction<
           typeof fileSystem.copyDirectory
         >
       ).mockResolvedValue(undefined);
       (
-        fileSystem.updatePackageJson as jest.MockedFunction<
+        fileSystem.updatePackageJson as MockedFunction<
           typeof fileSystem.updatePackageJson
         >
       ).mockResolvedValue(undefined);
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
 
       await projectCreator.create('test-project', options);
 
       // Should use defaults: vite template (line 446), complete bulma (line 468), none icon (line 490)
       const copyCall = (
-        fileSystem.copyDirectory as jest.MockedFunction<
+        fileSystem.copyDirectory as MockedFunction<
           typeof fileSystem.copyDirectory
         >
       ).mock.calls[0];
@@ -2352,10 +2414,10 @@ describe('ProjectCreator', () => {
   describe('setupRouter', () => {
     it('warns, and leaves the entry file alone, when it no longer renders App', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockImplementation(p => String(p).endsWith('main.tsx'));
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(
         "import Root from './Root.tsx';\n<Root />\n" as unknown
       );
@@ -2377,11 +2439,11 @@ describe('ProjectCreator', () => {
     });
 
     it('tells the skills step the app routes, so CLAUDE.md says how', async () => {
-      const setupSkills = jest
+      const setupSkills = vi
         .spyOn(projectCreator, 'setupSkills')
         .mockResolvedValue(undefined);
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
 
       await projectCreator.create('test-project', {
@@ -2402,10 +2464,10 @@ describe('ProjectCreator', () => {
   describe('setupReactCompiler', () => {
     it('warns, and leaves vite.config alone, when it is not shaped as the template ships it', async () => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockImplementation(p => String(p).endsWith('vite.config.ts'));
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(
         "import react from '@vitejs/plugin-react';\nexport default { plugins: [react({})] };\n" as unknown
       );
@@ -2428,7 +2490,7 @@ describe('ProjectCreator', () => {
       const _mainFilePath = '/test/project/src/main.jsx';
 
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockImplementation(
         path =>
           path === packageJsonPath ||
@@ -2437,13 +2499,13 @@ describe('ProjectCreator', () => {
       );
       // Return package.json WITHOUT dependencies object
       (
-        fs.default.readJson as jest.MockedFunction<typeof fs.readJson>
+        fs.default.readJson as MockedFunction<typeof fs.readJson>
       ).mockResolvedValue({
         name: 'test-project',
         version: '1.0.0',
       });
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(
         `import '@allxsmith/bestax-bulma/bestax.css';` as unknown
       );
@@ -2464,7 +2526,7 @@ describe('ProjectCreator', () => {
   });
 
   describe('create — telemetry', () => {
-    const reportScaffold = telemetry.reportScaffold as jest.MockedFunction<
+    const reportScaffold = telemetry.reportScaffold as MockedFunction<
       typeof telemetry.reportScaffold
     >;
     const fullFlags = {
@@ -2478,17 +2540,17 @@ describe('ProjectCreator', () => {
 
     function mockSuccessfulScaffold(): void {
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockResolvedValue(false);
       (
-        fileSystem.isDirectoryEmpty as jest.MockedFunction<
+        fileSystem.isDirectoryEmpty as MockedFunction<
           typeof fileSystem.isDirectoryEmpty
         >
       ).mockResolvedValue(true);
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
     }
 
@@ -2554,7 +2616,7 @@ describe('ProjectCreator', () => {
         await expect(opts.promptConsent()).resolves.toBe(true);
         opts.onDecided?.(true, true);
       });
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         telemetry: true,
       });
 
@@ -2571,7 +2633,7 @@ describe('ProjectCreator', () => {
         await expect(opts.promptConsent()).resolves.toBe(false);
         opts.onDecided?.(false, true);
       });
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         telemetry: false,
       });
 
@@ -2590,13 +2652,13 @@ describe('ProjectCreator', () => {
         await expect(opts.promptConsent()).resolves.toBe(false);
         opts.onDecided?.(false, false);
       });
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({
         telemetry: false,
       });
 
       await projectCreator.create('test-project', fullFlags);
 
-      const logged = (console.log as jest.Mock).mock.calls.flat().join('\n');
+      const logged = (console.log as Mock).mock.calls.flat().join('\n');
       expect(logged).toContain("Couldn't save your choice");
       expect(logged).not.toContain("we won't ask again");
     });
@@ -2606,11 +2668,11 @@ describe('ProjectCreator', () => {
       reportScaffold.mockImplementationOnce(async (_choices, _flag, opts) => {
         await expect(opts.promptConsent()).resolves.toBeNull();
       });
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({});
+      (prompts as MockedFunction<typeof prompts>).mockResolvedValue({});
 
       await projectCreator.create('test-project', fullFlags);
 
-      const logged = (console.log as jest.Mock).mock.calls.flat().join('\n');
+      const logged = (console.log as Mock).mock.calls.flat().join('\n');
       expect(logged).not.toContain('Opt out anytime');
       expect(logged).not.toContain("we won't ask again");
     });
@@ -2626,7 +2688,7 @@ describe('ProjectCreator', () => {
   });
 
   describe('create, into an existing directory (#945)', () => {
-    const ask = prompts as jest.MockedFunction<typeof prompts>;
+    const ask = prompts as MockedFunction<typeof prompts>;
     const answers: Record<string, Record<string, unknown>> = {
       overwrite: { overwrite: true },
       template: { template: 'vite' },
@@ -2636,22 +2698,22 @@ describe('ProjectCreator', () => {
       skills: { skills: true },
       immediate: { immediate: false },
     };
-    let mockExit: ReturnType<typeof jest.spyOn>;
+    let mockExit: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
-      mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+      mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
       (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
+        fileSystem.checkDirectoryExists as MockedFunction<
           typeof fileSystem.checkDirectoryExists
         >
       ).mockResolvedValue(true);
       (
-        fileSystem.isDirectoryEmpty as jest.MockedFunction<
+        fileSystem.isDirectoryEmpty as MockedFunction<
           typeof fileSystem.isDirectoryEmpty
         >
       ).mockResolvedValue(false);
@@ -2663,7 +2725,7 @@ describe('ProjectCreator', () => {
     });
 
     function errorOutput(): string {
-      return (console.error as jest.Mock).mock.calls.flat().join('\n');
+      return (console.error as Mock).mock.calls.flat().join('\n');
     }
 
     /** Answers every prompt, except the one named, which is cancelled. */
@@ -2722,8 +2784,8 @@ describe('ProjectCreator', () => {
     it('--overwrite empties the directory, then writes the scaffold', async () => {
       await projectCreator.create('demo', { yes: true, overwrite: true });
 
-      const emptied = fileSystem.emptyDirectory as jest.Mock;
-      const copied = fileSystem.copyDirectory as jest.Mock;
+      const emptied = fileSystem.emptyDirectory as Mock;
+      const copied = fileSystem.copyDirectory as Mock;
       expect(emptied).toHaveBeenCalledWith(expect.stringMatching(/demo$/));
       expect(emptied.mock.invocationCallOrder[0]).toBeLessThan(
         copied.mock.invocationCallOrder[0]
@@ -2779,7 +2841,7 @@ describe('ProjectCreator', () => {
     );
 
     it('reads the library range before emptying, so a failed read leaves the files (#1240)', async () => {
-      (libraryRange as jest.Mock).mockImplementationOnce(() => {
+      (libraryRange as Mock).mockImplementationOnce(() => {
         throw new Error('package.json declares no @allxsmith/bestax-bulma.');
       });
 
@@ -2798,7 +2860,7 @@ describe('ProjectCreator', () => {
 
       await projectCreator.create('demo', {});
 
-      const emptied = fileSystem.emptyDirectory as jest.Mock;
+      const emptied = fileSystem.emptyDirectory as Mock;
       expect(emptied).toHaveBeenCalledTimes(1);
       expect(emptied.mock.invocationCallOrder[0]).toBeGreaterThan(
         Math.max(...ask.mock.invocationCallOrder)
@@ -2809,7 +2871,7 @@ describe('ProjectCreator', () => {
   describe('create, naming the package (#950)', () => {
     beforeEach(() => {
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockReturnValue(false);
     });
 
@@ -2848,17 +2910,17 @@ describe('ProjectCreator', () => {
 
   describe('create, from a path (#1154)', () => {
     const scratch = path.join(os.tmpdir(), 'bestax-1154');
-    let mockExit: ReturnType<typeof jest.spyOn>;
+    let mockExit: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
-      mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+      mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });
       (
-        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
       ).mockImplementation(p => String(p).endsWith('index.html'));
       (
-        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+        fs.default.readFile as MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(
         '<head><title>Bestax + Vite + React</title></head>' as unknown
       );
@@ -2869,9 +2931,9 @@ describe('ProjectCreator', () => {
     });
 
     function writtenTitle(): string | undefined {
-      const call = (
-        fs.default.writeFile as unknown as jest.Mock
-      ).mock.calls.find(([p]) => String(p).endsWith('index.html'));
+      const call = (fs.default.writeFile as unknown as Mock).mock.calls.find(
+        ([p]) => String(p).endsWith('index.html')
+      );
       return String(call?.[1]).match(/<title>([^<]*)<\/title>/)?.[1];
     }
 
@@ -2947,9 +3009,9 @@ describe('ProjectCreator', () => {
       expect(mockExit).toHaveBeenCalledWith(1);
       expect(fileSystem.emptyDirectory).not.toHaveBeenCalled();
       expect(fileSystem.copyDirectory).not.toHaveBeenCalled();
-      expect(
-        (console.error as jest.Mock).mock.calls.flat().join('\n')
-      ).toContain('The current directory is not empty (notes.txt)');
+      expect((console.error as Mock).mock.calls.flat().join('\n')).toContain(
+        'The current directory is not empty (notes.txt)'
+      );
     });
 
     it.each(['..', `${scratch}/..`, `${scratch}/My App`])(

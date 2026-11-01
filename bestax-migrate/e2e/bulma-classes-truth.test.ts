@@ -189,18 +189,21 @@ function builtProps(
       };
 }
 
+type Conversion = NonNullable<ReturnType<typeof plan>['conversion']>;
+
 /**
- * Render the raw element and, when the planner converts it, the bestax one.
- * Returns null when the planner leaves the element alone. An element whose
- * only child the target renders itself is rendered around that child, and
- * the target is given the child's attributes as the codemod writes them.
+ * Render the raw element and, when the planner converts it, the bestax one,
+ * with the conversion it rendered. Returns null when the planner leaves the
+ * element alone. An element whose only child the target renders itself is
+ * rendered around that child, and the target is given the child's attributes
+ * as the codemod writes them.
  */
 function renderBoth(
   facts: ElementFacts,
   extra: Record<string, string | true> = {},
   child?: Child,
   when: Record<string, unknown> = {}
-): { raw: string; converted: string } | null {
+): { raw: string; converted: string; conversion: Conversion } | null {
   const result = plan(facts);
   if (!result.conversion) return null;
   // A joiner adds each conditional class when its condition (`when`) is
@@ -351,7 +354,38 @@ function renderBoth(
   return {
     raw: compared(restyles ? withShortStyles(restated, html) : restated),
     converted: compared(html),
+    conversion: result.conversion,
   };
+}
+
+/** Pairs whose two sides render differently, labelled for the report. */
+type Mismatches = Array<{
+  label: Record<string, unknown>;
+  converted: string;
+  raw: string;
+}>;
+
+/** Notes `both` in `into` when its two sides differ. */
+function noteMismatch(
+  into: Mismatches,
+  label: Record<string, unknown>,
+  both: { raw: string; converted: string }
+): void {
+  if (both.converted !== both.raw) {
+    into.push({ label, converted: both.converted, raw: both.raw });
+  }
+}
+
+/**
+ * One assertion over every pair noted, where there used to be one per pair:
+ * an `expect` call costs far more than the comparison it makes, and the calls
+ * cost this suite more than the comparing did. A mismatch shows as the
+ * per-pair assertion showed it, `{ ...label, html }` against the raw side's.
+ */
+function expectNoMismatch(mismatches: Mismatches): void {
+  expect(mismatches.map(m => ({ ...m.label, html: m.converted }))).toEqual(
+    mismatches.map(m => ({ ...m.label, html: m.raw }))
+  );
 }
 
 /**
@@ -495,22 +529,20 @@ describe.each(mapped)('`.%s`', (root, entry) => {
     ];
     const onTag = defaultsFor(entry, tag);
     const omitted = new Set<string>();
+    const mismatches: Mismatches = [];
     for (const tokens of candidates) {
       const given = { ...onTag, ...neededFor(entry, tokens) };
       const facts = factsFor(tag, tokens, given, child);
       const both = renderBoth(facts, given, child);
       if (!both) continue;
       if (Object.hasOwn(entry.omits ?? {}, tokens[1])) omitted.add(tokens[1]);
-      expect({ tokens, tag, html: both.converted }).toEqual({
-        tokens,
-        tag,
-        html: both.raw,
-      });
+      noteMismatch(mismatches, { tokens, tag }, both);
       // Only a token that left `className` counts as converted.
-      const kept = plan(facts).conversion!.className?.split(' ') ?? [];
+      const kept = both.conversion.className?.split(' ') ?? [];
       for (const token of tokens)
         if (!kept.includes(token)) converts.add(token);
     }
+    expectNoMismatch(mismatches);
     // No row is dead: the root itself converts on its own tag, and so does
     // it beside each class it omits, which stays in `className`.
     if (tag === entry.tag) {

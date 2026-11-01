@@ -1,7 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import {
   enabledMenuItems,
   isEnabledMenuItem,
@@ -12,7 +11,7 @@ import {
 
 const advance = (ms: number) =>
   act(() => {
-    jest.advanceTimersByTime(ms);
+    vi.advanceTimersByTime(ms);
   });
 
 /** A `role="menu"` element with the hook's handler on it. */
@@ -46,12 +45,22 @@ const item = (name: string) => screen.getByRole('menuitem', { name });
 const press = (key: string, init: Partial<KeyboardEventInit> = {}) =>
   fireEvent.keyDown(document.activeElement!, { key, ...init });
 
+/**
+ * The timers the hook has pending. jsdom queues a zero-delay timer of its own
+ * whenever focus moves, to fire `selectionchange`, and the fake timers count
+ * it, so this runs the zero-delay ones first.
+ */
+const pendingTimers = () => {
+  advance(0);
+  return vi.getTimerCount();
+};
+
 beforeEach(() => {
-  jest.useFakeTimers();
+  vi.useFakeTimers();
 });
 
 afterEach(() => {
-  jest.useRealTimers();
+  vi.useRealTimers();
 });
 
 describe('useMenuKeys', () => {
@@ -161,7 +170,7 @@ describe('useMenuKeys', () => {
 
   describe('activating', () => {
     it('clicks an item the browser does not, on Enter and on Space', () => {
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(
         <Menu>
           <div role="menuitem" tabIndex={0} onClick={onClick}>
@@ -181,7 +190,7 @@ describe('useMenuKeys', () => {
     });
 
     it('leaves a button’s keys and a link’s Enter to the browser, and clicks a link on Space', () => {
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(
         <Menu>
           <button role="menuitem" onClick={onClick}>
@@ -203,7 +212,7 @@ describe('useMenuKeys', () => {
     });
 
     it('activates once for a held key, without the page scrolling on the repeats', () => {
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(
         <Menu>
           <div role="menuitemcheckbox" tabIndex={0} onClick={onClick}>
@@ -232,7 +241,7 @@ describe('useMenuKeys', () => {
     });
 
     it('leaves a key an item’s own handler claimed', () => {
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(
         <Menu>
           <div
@@ -252,7 +261,7 @@ describe('useMenuKeys', () => {
     });
 
     it('activates nothing with focus on the menu itself', () => {
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(
         <Menu>
           <div role="menuitem" tabIndex={0} onClick={onClick}>
@@ -383,7 +392,7 @@ describe('useMenuKeys', () => {
       item('Rename').focus();
       press('s');
       unmount();
-      expect(jest.getTimerCount()).toBe(0);
+      expect(pendingTimers()).toBe(0);
     });
 
     it('starts a new search after reset, and clears its timer', () => {
@@ -396,9 +405,9 @@ describe('useMenuKeys', () => {
       );
       item('Rename').focus();
       press('r');
-      expect(jest.getTimerCount()).toBe(1);
+      expect(pendingTimers()).toBe(1);
       act(() => menuKeys!.reset());
-      expect(jest.getTimerCount()).toBe(0);
+      expect(pendingTimers()).toBe(0);
       // Without the reset, this would search for "rd", which matches nothing.
       press('d');
       expect(item('Duplicate')).toHaveFocus();
@@ -420,7 +429,7 @@ describe('useMenuKeys', () => {
 
   describe('what has focus', () => {
     /** A menu with a field among its items, as a free-form menu can have. */
-    const WithField = ({ onClick = jest.fn() }) => (
+    const WithField = ({ onClick = vi.fn() }) => (
       <Menu>
         <button role="menuitem" onClick={onClick}>
           Rename
@@ -437,7 +446,7 @@ describe('useMenuKeys', () => {
     const field = () => screen.getByRole('textbox', { name: 'Filter' });
 
     it('leaves the keys of a field inside the menu to it', () => {
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(<WithField onClick={onClick} />);
       field().focus();
       for (const key of [
@@ -454,7 +463,7 @@ describe('useMenuKeys', () => {
         expect(field()).toHaveFocus();
       }
       expect(onClick).not.toHaveBeenCalled();
-      expect(jest.getTimerCount()).toBe(0);
+      expect(pendingTimers()).toBe(0);
     });
 
     it('still moves from the menu itself, and from a disabled item that has focus', () => {

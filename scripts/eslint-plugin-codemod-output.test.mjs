@@ -22,7 +22,7 @@ import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const PLUGIN = join(REPO, 'eslint-plugin');

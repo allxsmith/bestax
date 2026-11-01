@@ -72,6 +72,25 @@ Pass `fileName` to set the text yourself, for a file chosen earlier or your own 
 
 ---
 
+### Dropping Files
+
+A file dragged from the desktop and dropped on a `File` lands on its input the way a picked one does. It replaces what was picked, and the input fires `input` and `change`, so `hasName` shows it and `onChange` gets it. Several files land at once only with `multiple`. Browsers apply `accept` in the picker only, so a dropped file arrives whatever its type: check `event.target.files` in `onChange` when the type matters. Drop a file on the example below.
+
+```tsx live
+<File
+  isBoxed
+  hasName
+  multiple
+  accept=".pdf,application/pdf"
+  buttonLabel="Choose or drop PDFs…"
+  iconLeft={<Icon name="upload" aria-hidden="true" />}
+/>
+```
+
+The drop comes from the bestax extras (`extras.css`, or `bestax.css`, which includes them), which lift the transparent input above the CTA. With Bulma's CSS alone the CTA covers the input, and a drop on it does nothing.
+
+---
+
 ### CTA on Right
 
 Combine `isRight` with `hasName` to put the CTA button on the right and the filename on the left.
@@ -438,6 +457,7 @@ Inside a `Control` with no `Field` around it, `File` renders no `Field` of its o
 
 - The root is a `<div class="file">` with a nested `<label>` and `<input type="file">`.
 - The label is always clickable.
+- Dropping a file is never the only way to choose one: the same input opens the picker on a click, and on Enter or Space once it has focus.
 - The focus ring shows for keyboard focus only, drawn inside the CTA in Bulma's focus color, width and style (`--bulma-focus-h`, `--bulma-focus-s`, `--bulma-focus-l`, `--bulma-focus-width`, `--bulma-focus-style`). On a colored `File` it takes the CTA's text color instead, so it shows against the fill. It comes from the bestax extras (`extras.css`, or `bestax.css`, which includes them); with Bulma's CSS alone the input shows no focus ring.
 - When `File` renders its own `Field` (that is, outside an existing one), the Field-level `label` prop is automatically associated with the file input via `htmlFor`, so the input then has two labels (the Field label plus the wrapping CTA label); assistive technology reads both. An explicit `labelProps.htmlFor` overrides the association and no id is generated. Inside a labeled `Field`, that `Field`'s label is associated with the file input the same way, so the input again has two labels.
 - The name area sits inside the CTA's label, so with `hasName` its text joins the input's accessible name ("Choose a file… resume.pdf"). Browsers can also expose a picked file on the input itself, so a screen reader may read the name twice. It stays in the label because text you pass in `fileName`, such as a file uploaded earlier, reaches assistive technology only from there.
@@ -489,6 +509,8 @@ Inside a `Control` with no `Field` around it, `File` renders no `Field` of its o
 | `messageColor`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                    | —       | Bulma color for the message.                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `fieldClassName`   | `string`                                                                                                                           | —       | Additional CSS classes for the Field wrapper.                                                                                                                                                                                                                                                                                                                                                                                              |
 | `ref`              | `React.Ref<HTMLInputElement>`                                                                                                      | —       | Forwarded to the underlying element.                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `accept`           | `string`                                                                                                                           | —       | File types the picker offers, as the native attribute takes them (`.pdf`, `image/*`, `application/pdf`). Browsers apply it in the picker only: a file dropped on the input lands whatever its type, so check `files` in `onChange` when the type matters.                                                                                                                                                                                  |
+| `onChange`         | `(event: React.ChangeEvent<HTMLInputElement>) => void`                                                                             | —       | Called when the user picks files, or drops them on the input. With the extras stylesheet loaded, a drop does what a pick does: it replaces what was picked and fires `input` and `change`. A drop of several files lands only with `multiple`.                                                                                                                                                                                             |
 | `...`              | All standard `<input>` attributes and Bulma helper props                                                                           | —       | Helper props go on the `.file` wrapper `<div>`, with `className`. The other attributes go on the `<input>`. See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                              |
 
 <!-- /bestax:generated props -->

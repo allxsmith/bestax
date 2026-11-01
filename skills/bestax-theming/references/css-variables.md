@@ -420,6 +420,53 @@ items of a `Collapses` group, which reads it with a 0.5rem fallback and declares
 so set it on the group or on any ancestor, `:root` included. (`Theme`'s `bulmaVars` does not
 list it, so set it in your CSS or through a `style` prop.)
 
+### ColorInput
+
+Declared on the field's container, `.colorinput`. The swatch at the field's start and
+the launcher at its end each take `--bulma-colorinput-side-width`, in em so they grow with the
+input's size, and they swap sides right to left. The panel is a `.color-picker` in a
+`.picker-popover`, so the ColorPicker and picker popover variables style it.
+
+`--bulma-colorinput-disabled-opacity`, `--bulma-colorinput-side-width`,
+`--bulma-colorinput-swatch-size`, `--bulma-colorinput-trigger-color`,
+`--bulma-colorinput-trigger-hover-color`
+
+### ColorPicker
+
+Declared on the root, `.color-picker`, and inherited by its parts, so a value set there, or on a
+class passed through `className`, reaches the square, the sliders, the swatches and the value row.
+The square's black, white and hue gradients and the hue track are the color model itself, so they
+take no variable. The thumbs are a white ring between two dark ones
+(`--bulma-color-picker-thumb-color` and `--bulma-color-picker-thumb-shadow`), which shows on any
+color. `--bulma-color-picker-slider-height` is what a press lands on, at least 24px for WCAG 2.5.8,
+and `--bulma-color-picker-track-height` the drawn track inside it. The swatches inside are
+`ColorSwatch`es sized by `--bulma-color-picker-swatch-size`. In forced colors the square and the
+tracks keep their colors with a `CanvasText` edge, and the chosen swatch's ring is `Highlight`,
+whatever these say.
+
+`--bulma-color-picker-area-height`, `--bulma-color-picker-area-radius`,
+`--bulma-color-picker-checker-background`, `--bulma-color-picker-checker-color`,
+`--bulma-color-picker-checker-size`, `--bulma-color-picker-disabled-opacity`,
+`--bulma-color-picker-edge-color`, `--bulma-color-picker-gap`, `--bulma-color-picker-preview-size`,
+`--bulma-color-picker-slider-height`, `--bulma-color-picker-swatch-gap`,
+`--bulma-color-picker-swatch-radius`, `--bulma-color-picker-swatch-ring-color`,
+`--bulma-color-picker-swatch-size`, `--bulma-color-picker-thumb-border-width`,
+`--bulma-color-picker-thumb-color`, `--bulma-color-picker-thumb-shadow`,
+`--bulma-color-picker-thumb-size`, `--bulma-color-picker-track-height`,
+`--bulma-color-picker-track-radius`, `--bulma-color-picker-width`
+
+### ColorSwatch
+
+Declared on the swatch, `.color-swatch`; the size classes set `--bulma-color-swatch-size`. The color
+itself is the component's `color` prop, painted over a checkerboard of
+`--bulma-color-swatch-checker-color` and `--bulma-color-swatch-checker-background`, from scheme
+colors so it follows dark mode. In forced colors it keeps its color and takes a `CanvasText` edge
+in place of `--bulma-color-swatch-edge-color`.
+
+`--bulma-color-swatch-checker-background`, `--bulma-color-swatch-checker-color`,
+`--bulma-color-swatch-checker-size`, `--bulma-color-swatch-edge-color`,
+`--bulma-color-swatch-radius`, `--bulma-color-swatch-size`
+
 ### Combobox
 
 Declared on the root, `.combobox`, and again on a menu rendered with `appendToBody`,
@@ -476,6 +523,18 @@ The menu inside that box is Bulma's dropdown markup, and the box is a `.dropdown
 takes a value set on the box: `.dropdown.context-menu-content { --bulma-dropdown-content-radius: … }`
 changes context menus and leaves `Dropdown` alone.
 
+### DataTable
+
+`--bulma-data-table-gap` is declared on the root, `.data-table`, and spaces the toolbar's items
+and the toolbar from the table. The sort button declares its own on `.data-table-sort`, so markup
+built from `useDataTable`'s props looks the same with no `.data-table` around it: set those on
+`.data-table-sort` too. The table, its checkboxes and its pager are Bulma's, themed with
+`--bulma-table-*`, `--bulma-checkbox-*` and `--bulma-pagination-*`, and a selected row is
+`--bulma-table-row-active-background-color` and `--bulma-table-row-active-color`.
+
+`--bulma-data-table-gap`, `--bulma-data-table-sort-gap`, `--bulma-data-table-sort-indicator-size`,
+`--bulma-data-table-sort-unsorted-opacity`
+
 ### DateInput
 
 `--bulma-dateinput-cell-color`, `--bulma-dateinput-cell-disabled-color`,
@@ -529,6 +588,25 @@ column takes when the labels sit beside their values; it's a percentage of the l
 `--bulma-dialog-icon-margin`, `--bulma-dialog-icon-size`, `--bulma-dialog-max-width`,
 `--bulma-dialog-radius`, `--bulma-dialog-shadow`, `--bulma-dialog-title-color`,
 `--bulma-dialog-title-size`, `--bulma-dialog-title-weight`, `--bulma-dialog-width`
+
+### Dropzone
+
+Declared on the root, `.dropzone`. The zone is Bulma's `.file`, so its fill, text and resting
+border color, its hover look and its color modifiers come from the `--bulma-file-*` tokens on
+that `.file`. These add the dashed border, the drag states and the file list, whose surfaces come
+from Bulma's scheme tokens, so the list follows dark mode with no override. While files are
+dragged over the zone it gives File's `--bulma-file-background-l-delta`,
+`--bulma-file-border-l-delta` and `--bulma-file-color-l-delta` their hover values on the zone's
+label, and a disabled zone sets them to `0%`. In forced colors the drop target's border takes the
+system highlight color whatever these say.
+
+`--bulma-dropzone-border-style`, `--bulma-dropzone-border-width`,
+`--bulma-dropzone-disabled-opacity`, `--bulma-dropzone-dragover-border-color`,
+`--bulma-dropzone-item-background`, `--bulma-dropzone-item-border-color`,
+`--bulma-dropzone-item-border-width`, `--bulma-dropzone-item-gap`, `--bulma-dropzone-item-padding`,
+`--bulma-dropzone-item-radius`, `--bulma-dropzone-item-spacing`, `--bulma-dropzone-min-height`,
+`--bulma-dropzone-name-color`, `--bulma-dropzone-reject-border-color`,
+`--bulma-dropzone-size-color`, `--bulma-dropzone-size-font-size`, `--bulma-dropzone-spacing`
 
 ### EmptyState
 
@@ -638,7 +716,11 @@ in `em`, so they follow the size of the boxes, and the caret is `currentColor`, 
 `--bulma-pin-input-caret-color`, `--bulma-pin-input-caret-height`, `--bulma-pin-input-caret-width`,
 `--bulma-pin-input-gap`
 
-### Picker popover (DateInput / TimeInput / DateTimeInput / DateRangeInput)
+### Picker popover (DateInput / TimeInput / DateTimeInput / DateRangeInput / ColorInput)
+
+ColorInput's panel takes the `--bulma-picker-popover-*` variables here. The `--bulma-picker-trigger-*`
+ones are the date and time pickers' launcher; ColorInput's swatch and launcher take the
+`--bulma-colorinput-*` variables in its own section, above.
 
 `--bulma-picker-popover-animation-duration`, `--bulma-picker-popover-background`,
 `--bulma-picker-popover-border-color`, `--bulma-picker-popover-offset`,

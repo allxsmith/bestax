@@ -38,6 +38,9 @@ const withStylesheet = (prefix?: string) => {
 
 const FOCUS_COLOR =
   'hsl(var(--bulma-focus-h), var(--bulma-focus-s), var(--bulma-focus-l))';
+// The outline colour nothing sets: jsdom computes the initial `auto` as
+// transparent.
+const NO_RING = 'rgba(0, 0, 0, 0)';
 
 // Elements are found by selector, not by role: a role query reads each
 // element's computed style, and jsdom keeps that until the DOM next changes,
@@ -78,7 +81,7 @@ describe('File focus ring', () => {
 
   it('draws no ring without focus', () => {
     const { container } = render(<File />);
-    expect(getComputedStyle(parts(container).cta).outlineColor).toBe('');
+    expect(getComputedStyle(parts(container).cta).outlineColor).toBe(NO_RING);
   });
 
   it('rings the CTA, not the name, when hasName shows one', () => {
@@ -86,7 +89,7 @@ describe('File focus ring', () => {
     const { input, cta, name } = parts(container);
     act(() => input.focus());
     expect(getComputedStyle(cta).outlineColor).toBe(FOCUS_COLOR);
-    expect(getComputedStyle(name as HTMLElement).outlineColor).toBe('');
+    expect(getComputedStyle(name as HTMLElement).outlineColor).toBe(NO_RING);
   });
 
   it.each(COLORS)(
@@ -277,7 +280,8 @@ describe('the CTA of a hasName File with no name', () => {
       );
       const cta = container.querySelector('.file-cta') as HTMLElement;
       const corners = cornersOf(cta, bulmaCss() + compile());
-      for (const corner of square) expect(corners[corner]).toBe('0');
+      // jsdom serializes a zero length as `0px`, as browsers do.
+      for (const corner of square) expect(corners[corner]).toBe('0px');
     }
   );
 });
@@ -296,5 +300,80 @@ describe('File focus ring in a prefixed build', () => {
     const style = getComputedStyle(cta);
     expect(style.outlineColor).toBe(style.color);
     expect(style.outlineOffset).toBe('calc(-2 * var(--bulma-focus-width))');
+  });
+});
+
+// ---- The input over the CTA and name ---------------------------------------
+// A browser hands a dropped file only to a file input under the pointer.
+// Bulma lays the transparent input over the widget but positions the CTA and
+// name after it, so they paint over it and a drop on them did nothing. The
+// partial lifts the input above them. jsdom paints nothing, so these check
+// what the browser paints from: the input is positioned with a z-index, the
+// CTA and name are positioned with none, and the label isolates the three.
+
+describe('the input of a File', () => {
+  let sheet: HTMLStyleElement;
+  beforeAll(() => {
+    sheet = document.createElement('style');
+    sheet.textContent = (bulmaCss() + compile()).replace(
+      /@charset "UTF-8";/g,
+      ''
+    );
+    document.head.appendChild(sheet);
+  });
+  afterAll(() => {
+    sheet.remove();
+  });
+
+  it.each(LAYOUTS)(
+    'lies over the CTA and name in the %s layout',
+    (_l, props) => {
+      const { container } = render(
+        <File hasName fileName="resume.pdf" {...props} />
+      );
+      const { input, cta, name } = parts(container);
+      const label = container.querySelector('label.file-label') as Element;
+      expect(getComputedStyle(input).position).toBe('absolute');
+      expect(getComputedStyle(input).zIndex).toBe('1');
+      for (const over of [cta, name as HTMLElement]) {
+        expect(getComputedStyle(over).position).toBe('relative');
+        // `auto`, the initial value: no z-index.
+        expect(getComputedStyle(over).zIndex).toBe('auto');
+      }
+      expect(getComputedStyle(label).isolation).toBe('isolate');
+    }
+  );
+
+  // In a shadow root, Chromium hands a file input a drop only over its
+  // button, so the button covers the whole input.
+  it('keeps the pointer cursor Bulma gives the label, on a button over the whole input', () => {
+    const { container } = render(<File />);
+    expect(getComputedStyle(parts(container).input).cursor).toBe('pointer');
+    // jsdom computes no pseudo-element, so this finds the rule instead.
+    const rules = Array.from((sheet.sheet as CSSStyleSheet).cssRules).filter(
+      (rule): rule is CSSStyleRule =>
+        rule instanceof CSSStyleRule &&
+        rule.selectorText === '.file-input::file-selector-button'
+    );
+    expect(
+      rules.map(({ style }) => [style.cursor, style.width, style.height])
+    ).toEqual([['pointer', '100%', '100%']]);
+  });
+});
+
+describe('the input of a File in a prefixed build', () => {
+  withStylesheet('bestax-');
+
+  it('lies over the CTA with the prefixed classes', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bestax-">
+        <File />
+      </ConfigProvider>
+    );
+    const { input } = parts(container, 'bestax-');
+    const label = container.querySelector('label.bestax-file-label');
+    expect(getComputedStyle(input).zIndex).toBe('1');
+    expect(getComputedStyle(input).cursor).toBe('pointer');
+    expect(getComputedStyle(label as Element).isolation).toBe('isolate');
   });
 });

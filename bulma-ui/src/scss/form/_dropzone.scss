@@ -1,0 +1,233 @@
+// Dropzone Component Styles
+// Bulma's boxed, full-width File widget as a drop zone, its drag states, and
+// the list of chosen files under it
+// Follows Bulma v1 CSS variable convention (see _dialog.scss)
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+// Dropzone-specific SCSS variables. The zone keeps Bulma's File tokens for
+// its colours and sizes, and the list takes Bulma's scheme tokens, so dark
+// mode follows them.
+$dropzone-border-style: dashed !default;
+$dropzone-border-width: 2px !default;
+$dropzone-min-height: 8rem !default;
+// The zone's border while files are dragged over it, and while every file
+// dragged would be refused.
+$dropzone-dragover-border-color: cv.getVar('primary') !default;
+$dropzone-reject-border-color: cv.getVar('danger') !default;
+$dropzone-disabled-opacity: 0.5 !default;
+// Between the zone and the list or the refusals under it.
+$dropzone-spacing: 0.5rem !default;
+$dropzone-item-background: cv.getVar('scheme-main') !default;
+$dropzone-item-border-color: cv.getVar('border') !default;
+$dropzone-item-border-width: cv.getVar('control-border-width') !default;
+$dropzone-item-radius: cv.getVar('radius') !default;
+$dropzone-item-padding: 0.5em 0.75em !default;
+$dropzone-item-gap: 0.75em !default;
+// Between one row and the next.
+$dropzone-item-spacing: 0.25rem !default;
+$dropzone-name-color: cv.getVar('text-strong') !default;
+$dropzone-size-color: cv.getVar('text-weak') !default;
+$dropzone-size-font-size: cv.getVar('size-small') !default;
+
+// Register CSS custom properties
+.#{iv.$class-prefix}dropzone {
+  @include cv.register-vars(
+    (
+      'dropzone-border-style': #{$dropzone-border-style},
+      'dropzone-border-width': #{$dropzone-border-width},
+      'dropzone-min-height': #{$dropzone-min-height},
+      'dropzone-dragover-border-color': #{$dropzone-dragover-border-color},
+      'dropzone-reject-border-color': #{$dropzone-reject-border-color},
+      'dropzone-disabled-opacity': #{$dropzone-disabled-opacity},
+      'dropzone-spacing': #{$dropzone-spacing},
+      'dropzone-item-background': #{$dropzone-item-background},
+      'dropzone-item-border-color': #{$dropzone-item-border-color},
+      'dropzone-item-border-width': #{$dropzone-item-border-width},
+      'dropzone-item-radius': #{$dropzone-item-radius},
+      'dropzone-item-padding': #{$dropzone-item-padding},
+      'dropzone-item-gap': #{$dropzone-item-gap},
+      'dropzone-item-spacing': #{$dropzone-item-spacing},
+      'dropzone-name-color': #{$dropzone-name-color},
+      'dropzone-size-color': #{$dropzone-size-color},
+      'dropzone-size-font-size': #{$dropzone-size-font-size},
+    )
+  );
+}
+
+.#{iv.$class-prefix}dropzone {
+  // The zone is the widget's first part, so Bulma's block spacing under a
+  // File gives way to the spacing of the parts below it.
+  .#{iv.$class-prefix}file.#{iv.$class-prefix}is-boxed {
+    margin-block-end: 0;
+  }
+
+  // Bulma lays the transparent input over the widget but paints the CTA over
+  // it, and a browser hands a dropped file only to a file input under the
+  // pointer. Lifting the input puts it on top, where it takes the drop, the
+  // click and the pointer cursor Bulma gives the label. The label isolates
+  // the lift, so the input never rises above anything else on the page.
+  .#{iv.$class-prefix}file-label {
+    isolation: isolate;
+  }
+
+  .#{iv.$class-prefix}file-input {
+    cursor: pointer;
+    z-index: 1;
+
+    &::file-selector-button {
+      cursor: pointer;
+    }
+
+    &:disabled,
+    &:disabled::file-selector-button {
+      cursor: not-allowed;
+    }
+  }
+
+  // A dashed box, tall enough to aim a drop at, with its text centred and
+  // free to wrap.
+  .#{iv.$class-prefix}file-cta {
+    border-style: cv.getVar('dropzone-border-style');
+    border-width: cv.getVar('dropzone-border-width');
+    justify-content: center;
+    min-height: cv.getVar('dropzone-min-height');
+    text-align: center;
+    white-space: normal;
+  }
+
+  // While files are dragged over it the zone takes File's hover look, which
+  // a drag doesn't trigger, and a solid border, which shows the state in
+  // forced colours too.
+  &.#{iv.$class-prefix}is-dragover,
+  &.#{iv.$class-prefix}is-drag-reject {
+    .#{iv.$class-prefix}file-label {
+      @include cv.register-vars(
+        (
+          'file-background-l-delta': #{cv.getVar(
+              'file-hover-background-l-delta'
+            )},
+          'file-border-l-delta': #{cv.getVar('file-hover-border-l-delta')},
+          'file-color-l-delta': #{cv.getVar('file-hover-color-l-delta')},
+        )
+      );
+    }
+
+    .#{iv.$class-prefix}file-cta {
+      border-style: solid;
+    }
+  }
+
+  &.#{iv.$class-prefix}is-dragover .#{iv.$class-prefix}file-cta {
+    border-color: cv.getVar('dropzone-dragover-border-color');
+  }
+
+  &.#{iv.$class-prefix}is-drag-reject .#{iv.$class-prefix}file-cta {
+    border-color: cv.getVar('dropzone-reject-border-color');
+  }
+
+  // Disabled: dimmed, as Bulma dims a disabled button, with no hover look.
+  &.#{iv.$class-prefix}is-disabled {
+    .#{iv.$class-prefix}file {
+      opacity: cv.getVar('dropzone-disabled-opacity');
+    }
+
+    .#{iv.$class-prefix}file-label {
+      @include cv.register-vars(
+        (
+          'file-background-l-delta': 0%,
+          'file-border-l-delta': 0%,
+          'file-color-l-delta': 0%,
+        )
+      );
+    }
+  }
+}
+
+// Forced colours replaces the border colours, so the drop target takes the
+// system's highlight colour, and a zone that would refuse the files the
+// text colour.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}dropzone.#{iv.$class-prefix}is-dragover
+    .#{iv.$class-prefix}file-cta {
+    border-color: Highlight;
+  }
+
+  .#{iv.$class-prefix}dropzone.#{iv.$class-prefix}is-drag-reject
+    .#{iv.$class-prefix}file-cta {
+    border-color: CanvasText;
+  }
+}
+
+// The chosen files, a bordered row each, and the refusals.
+.#{iv.$class-prefix}dropzone-list,
+.#{iv.$class-prefix}dropzone-rejections {
+  margin-block-start: cv.getVar('dropzone-spacing');
+}
+
+.#{iv.$class-prefix}dropzone-item {
+  align-items: center;
+  background-color: cv.getVar('dropzone-item-background');
+  border: cv.getVar('dropzone-item-border-width') solid
+    cv.getVar('dropzone-item-border-color');
+  border-radius: cv.getVar('dropzone-item-radius');
+  display: flex;
+  gap: cv.getVar('dropzone-item-gap');
+  padding: cv.getVar('dropzone-item-padding');
+
+  & + & {
+    margin-block-start: cv.getVar('dropzone-item-spacing');
+  }
+}
+
+// A long name is cut short with an ellipsis, so the size and the remove
+// button stay on the row.
+.#{iv.$class-prefix}dropzone-name {
+  color: cv.getVar('dropzone-name-color');
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.#{iv.$class-prefix}dropzone-size {
+  color: cv.getVar('dropzone-size-color');
+  flex: none;
+  font-size: cv.getVar('dropzone-size-font-size');
+}
+
+// Bulma shows a delete button's focus only as a slightly darker circle, so a
+// row's remove button takes a ring from the keyboard, in Bulma's focus
+// colour, style and width.
+.#{iv.$class-prefix}dropzone-item .#{iv.$class-prefix}delete:focus-visible {
+  outline-color: hsl(
+    cv.getVar('focus-h'),
+    cv.getVar('focus-s'),
+    cv.getVar('focus-l')
+  );
+  outline-offset: cv.getVar('focus-offset');
+  outline-style: cv.getVar('focus-style');
+  outline-width: cv.getVar('focus-width');
+}
+
+// Bulma draws a delete button's circle and cross as backgrounds, which forced
+// colours paints over, so the remove buttons would vanish. They keep their
+// own colours there, in the system's button colours.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}dropzone-item .#{iv.$class-prefix}delete {
+    background-color: ButtonFace;
+    border: 1px solid ButtonText;
+    forced-color-adjust: none;
+
+    &::before,
+    &::after {
+      background-color: ButtonText;
+    }
+
+    &:focus-visible {
+      outline-color: Highlight;
+    }
+  }
+}

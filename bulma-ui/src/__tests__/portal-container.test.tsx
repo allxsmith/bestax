@@ -289,15 +289,15 @@ describe('Dialog', () => {
 
 describe('Toast', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
     act(() => {
       toast.closeAll();
     });
-    jest.clearAllTimers();
-    jest.useRealTimers();
+    vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   it('portals into the portalContainer without a container', () => {
@@ -391,15 +391,15 @@ describe('Sidebar', () => {
 
 describe('NotificationContainer', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
     act(() => {
       notification.closeAll();
     });
-    jest.clearAllTimers();
-    jest.useRealTimers();
+    vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   it('puts its notifications and its status region in the portalContainer', () => {

@@ -21,15 +21,15 @@
  *
  * The exports are read from the built package, which is what a consumer
  * imports, rather than by following the source's re-exports. So this needs the
- * build, and asserts that rather than skipping: `node --test` exits 0 on a
- * skip, and a guard that can be skipped silently guards nothing.
+ * build, and asserts that rather than skipping: Vitest exits 0 on a skip,
+ * and a guard that can be skipped silently guards nothing.
  */
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const PKG_DIR = join(REPO, 'bulma-ui');

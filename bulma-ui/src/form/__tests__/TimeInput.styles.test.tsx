@@ -2,23 +2,15 @@
 // whether anything reads it, which is how `color` sat dead on the wheels until
 // #701 and the mobile overrides wrote names no rule used. These compile the
 // real SCSS and check what it actually does.
-import * as sass from 'sass';
-import path from 'path';
 import { render } from '@testing-library/react';
+import { compileSheet } from '../../__tests__/compile-scss';
 import { TimeInput } from '../TimeInput';
-
-const compile = (file: string) =>
-  sass.compile(path.resolve(__dirname, '../../scss', file), {
-    loadPaths: [path.resolve(__dirname, '../../../../node_modules')],
-    quietDeps: true,
-    logger: sass.Logger.silent,
-  }).css;
 
 let styleEl: HTMLStyleElement;
 
 beforeAll(() => {
   styleEl = document.createElement('style');
-  styleEl.textContent = compile('form/_timeinput.scss');
+  styleEl.textContent = compileSheet('form/_timeinput.scss');
   document.head.appendChild(styleEl);
 });
 
@@ -57,13 +49,14 @@ describe('TimeInput wheel colour styles', () => {
   );
 
   it('leaves an uncoloured wheel on the inherited default', () => {
+    // The `primary` default the root registers, which the wheel inherits.
     const { getAllByRole } = render(<TimeInput inline />);
     for (const wheel of getAllByRole('spinbutton')) {
       expect(
         getComputedStyle(wheel)
           .getPropertyValue('--bulma-timeinput-wheel-selected-bg')
           .trim()
-      ).toBe('');
+      ).toBe('var(--bulma-primary)');
     }
   });
 });
@@ -134,7 +127,7 @@ function mobileCustomProperties(sheet: CSSStyleSheet): string[] {
 /** The names no `var()` in the shipped stylesheet reads. */
 let shipped: string | undefined;
 function unread(names: string[]): string[] {
-  shipped ??= compile('bestax.scss');
+  shipped ??= compileSheet('bestax.scss');
   const css = shipped;
   return names.filter(
     name => !new RegExp(`var\\(\\s*${name}\\s*[,)]`).test(css)

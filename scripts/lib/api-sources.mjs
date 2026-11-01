@@ -116,6 +116,20 @@ export const SCSS_SOURCES = {
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_collapse.scss' },
   ],
   Collapses: [],
+  ColorInput: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_colorinput.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
+  ],
+  ColorInputBase: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_colorinput.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
+  ],
+  ColorPicker: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_colorpicker.scss' },
+  ],
+  ColorSwatch: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/elements/_colorswatch.scss' },
+  ],
   Column: [{ pkg: 'bulma', path: 'sass/grid/columns.scss' }],
   Columns: [],
   Combobox: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_combobox.scss' }],
@@ -131,6 +145,9 @@ export const SCSS_SOURCES = {
   Control: [
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
     { pkg: 'bulma', path: 'sass/utilities/controls.scss' },
+  ],
+  DataTable: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_datatable.scss' },
   ],
   DateInput: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_dateinput.scss' },
@@ -175,6 +192,7 @@ export const SCSS_SOURCES = {
   Dialog: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_dialog.scss' }],
   Divider: [],
   Dropdown: [{ pkg: 'bulma', path: 'sass/components/dropdown.scss' }],
+  Dropzone: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_dropzone.scss' }],
   Emphasis: [],
   EmptyState: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_emptystate.scss' },
@@ -205,6 +223,7 @@ export const SCSS_SOURCES = {
   Loading: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_loading.scss' },
   ],
+  LocaleProvider: [],
   Media: [{ pkg: 'bulma', path: 'sass/layout/media.scss' }],
   Menu: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_menu.scss' },
@@ -335,6 +354,7 @@ export const SCSS_SOURCES = {
  */
 export const RENDERS_ELEMENT_OF = {
   CheckboxCard: 'Card', // its label is a `.card.checkbox-card`
+  Dropzone: 'File', // its zone is a `.file.is-boxed.is-fullwidth`
   LinkButton: 'Button', // renders `.button.link-button` through Button
   PinInput: 'Input', // each of its boxes is an `.input.pin-input-box`
   RadioCard: 'Card', // its label is a `.card.radio-card`
@@ -353,6 +373,7 @@ export const IMPORT_COMPANIONS = {
   Breadcrumb: ['Breadcrumb', 'Icon'],
   Carousel: ['Carousel', 'CarouselItem'],
   Collapses: ['Collapses', 'Collapse'],
+  DataTable: ['DataTable', 'useDataTable'],
   Dialog: ['Dialog', 'DialogContainer', 'dialog'],
   Dropdown: ['Dropdown', 'Button', 'Field', 'Control', 'Span'],
   Toast: ['Toast', 'ToastContainer', 'toast'],

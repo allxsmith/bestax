@@ -17,8 +17,7 @@ import { ConfigProvider } from '../../helpers/Config';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 
-// The Bulma bulma-ui depends on, resolved through package.json since jest
-// maps any `.css` specifier to a stub.
+// The Bulma bulma-ui depends on, found through its package.json.
 const BULMA = path.dirname(require.resolve('bulma/package.json'));
 
 const BULMA_PARTIALS = ['bulma/sass/base/generic', 'bulma/sass/elements/image'];
@@ -167,14 +166,15 @@ describe.each([
     it.each(RATIOS)('fills a %s frame', size => {
       const img = imgOf(<Image size={size} src={PHOTO} alt="" />, true);
       expect(img.closest(`.${prefix}carousel-item`)).not.toBeNull();
+      // jsdom serializes a zero length as `0px`, as browsers do.
       expect(boxOf(img)).toEqual({
         height: '100%',
         width: '100%',
         position: 'absolute',
-        top: '0',
-        right: '0',
-        bottom: '0',
-        left: '0',
+        top: '0px',
+        right: '0px',
+        bottom: '0px',
+        left: '0px',
       });
     });
 

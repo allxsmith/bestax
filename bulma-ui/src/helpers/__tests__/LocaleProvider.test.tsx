@@ -1,3 +1,4 @@
+import type { Mock, MockInstance } from 'vitest';
 import React, { createRef } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import {
@@ -41,11 +42,11 @@ const dayNames = (root: ParentNode = document) =>
   );
 
 describe('LocaleProvider', () => {
-  let warnSpy: jest.SpyInstance;
+  let warnSpy: MockInstance;
 
   beforeEach(() => {
     resetDevWarnings();
-    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -134,7 +135,7 @@ describe('LocaleProvider', () => {
     });
 
     it('calls a callback ref with the wrapper, and with null on unmount', () => {
-      const ref = jest.fn();
+      const ref = vi.fn();
       const { unmount } = render(<LocaleProvider ref={ref}>x</LocaleProvider>);
       expect(ref).toHaveBeenCalledWith(expect.any(HTMLDivElement));
       unmount();
@@ -142,8 +143,8 @@ describe('LocaleProvider', () => {
     });
 
     it("runs a callback ref's cleanup on unmount in place of null", () => {
-      const cleanup = jest.fn();
-      const ref = jest.fn(() => cleanup);
+      const cleanup = vi.fn();
+      const ref = vi.fn(() => cleanup);
       const { unmount } = render(<LocaleProvider ref={ref}>x</LocaleProvider>);
       unmount();
       expect(cleanup).toHaveBeenCalledTimes(1);
@@ -871,7 +872,7 @@ describe('LocaleProvider', () => {
     });
 
     it('start on Sunday for a locale Intl refuses', () => {
-      jest.spyOn(console, 'error').mockImplementation(() => {});
+      vi.spyOn(console, 'error').mockImplementation(() => {});
       // The picker's own formatting throws on the tag, as it always has;
       // what matters here is that the first day doesn't throw first.
       expect(() =>
@@ -881,7 +882,7 @@ describe('LocaleProvider', () => {
           </LocaleProvider>
         )
       ).toThrow(RangeError);
-      (console.error as jest.Mock).mockRestore();
+      (console.error as Mock).mockRestore();
     });
 
     it('reach the range and date-time pickers', () => {

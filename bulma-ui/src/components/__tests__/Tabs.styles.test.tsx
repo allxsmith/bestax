@@ -31,6 +31,10 @@ afterAll(() => {
 const FOCUS_COLOR =
   'hsl(var(--bulma-focus-h), var(--bulma-focus-s), var(--bulma-focus-l))';
 
+// What jsdom computes for an outline no rule sets: the initial values.
+const NO_OUTLINE_COLOR = 'rgba(0, 0, 0, 0)';
+const NO_OUTLINE_OFFSET = '0';
+
 const renderTabs = (props: Partial<TabsProps> = {}) =>
   render(
     <Tabs {...props}>
@@ -68,7 +72,9 @@ describe('Tabs focus ring', () => {
   it('draws no ring on a tab without focus', () => {
     renderTabs();
     act(() => tab('Two').focus());
-    expect(getComputedStyle(link(tab('One'))).outlineColor).toBe('');
+    expect(getComputedStyle(link(tab('One'))).outlineColor).toBe(
+      NO_OUTLINE_COLOR
+    );
   });
 
   it('sets the ring off the fill of a selected toggle tab', () => {
@@ -124,7 +130,7 @@ describe('Tabs focus ring', () => {
     );
     const home = screen.getByRole('link', { name: 'Home' });
     act(() => home.focus());
-    expect(getComputedStyle(home).outlineOffset).toBe('');
-    expect(getComputedStyle(home).outlineColor).toBe('');
+    expect(getComputedStyle(home).outlineOffset).toBe(NO_OUTLINE_OFFSET);
+    expect(getComputedStyle(home).outlineColor).toBe(NO_OUTLINE_COLOR);
   });
 });

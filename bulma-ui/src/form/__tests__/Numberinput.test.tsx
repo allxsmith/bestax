@@ -49,7 +49,7 @@ describe('Numberinput', () => {
 
   describe('Value Changes', () => {
     it('increments value when + button clicked', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={5} onChange={handleChange} />);
 
       const incrementBtn = screen.getByRole('button', { name: /increase/i });
@@ -59,7 +59,7 @@ describe('Numberinput', () => {
     });
 
     it('decrements value when - button clicked', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={5} onChange={handleChange} />);
 
       const decrementBtn = screen.getByRole('button', { name: /decrease/i });
@@ -69,7 +69,7 @@ describe('Numberinput', () => {
     });
 
     it('respects step value when incrementing', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={10} step={5} onChange={handleChange} />);
 
       const incrementBtn = screen.getByRole('button', { name: /increase/i });
@@ -79,7 +79,7 @@ describe('Numberinput', () => {
     });
 
     it('respects step value when decrementing', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={10} step={5} onChange={handleChange} />);
 
       const decrementBtn = screen.getByRole('button', { name: /decrease/i });
@@ -89,7 +89,7 @@ describe('Numberinput', () => {
     });
 
     it('calls onChange when input value changes', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={5} onChange={handleChange} />);
 
       const input = screen.getByRole('spinbutton');
@@ -111,7 +111,7 @@ describe('Numberinput', () => {
 
   describe('Min/Max Constraints', () => {
     it('clamps value to min', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={1} min={0} onChange={handleChange} />);
 
       const decrementBtn = screen.getByRole('button', { name: /decrease/i });
@@ -121,7 +121,7 @@ describe('Numberinput', () => {
     });
 
     it('clamps value to max', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={9} max={10} onChange={handleChange} />);
 
       const incrementBtn = screen.getByRole('button', { name: /increase/i });
@@ -156,7 +156,7 @@ describe('Numberinput', () => {
     });
 
     it('clamps below-min value during decrement (covers if-true min branch)', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       // step=2, value=1, min=0 -> decrement gives -1 -> clamp to 0.
       render(
         <Numberinput value={1} min={0} step={2} onChange={handleChange} />
@@ -167,7 +167,7 @@ describe('Numberinput', () => {
     });
 
     it('clamps above-max value during increment (covers if-true max branch)', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       // step=2, value=9, max=10 -> increment gives 11 -> clamp to 10.
       render(
         <Numberinput value={9} max={10} step={2} onChange={handleChange} />
@@ -178,7 +178,7 @@ describe('Numberinput', () => {
     });
 
     it('decrement falls back to 0 when value is undefined (covers ?? falsy branch)', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       // No defaultValue, no value -> internal currentValue is undefined.
       // Decrement should treat it as 0 - 1 = -1.
       render(<Numberinput onChange={handleChange} />);
@@ -386,7 +386,7 @@ describe('Numberinput', () => {
     });
 
     it('increments via stepper up button', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Numberinput value={5} variant="stepper" onChange={handleChange} />
       );
@@ -398,7 +398,7 @@ describe('Numberinput', () => {
     });
 
     it('decrements via stepper down button', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Numberinput value={5} variant="stepper" onChange={handleChange} />
       );
@@ -496,7 +496,7 @@ describe('Numberinput', () => {
 
   describe('Keyboard Support', () => {
     it('increments on ArrowUp', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={5} onChange={handleChange} />);
 
       const input = screen.getByRole('spinbutton');
@@ -506,7 +506,7 @@ describe('Numberinput', () => {
     });
 
     it('decrements on ArrowDown', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={5} onChange={handleChange} />);
 
       const input = screen.getByRole('spinbutton');
@@ -516,7 +516,7 @@ describe('Numberinput', () => {
     });
 
     it('respects step on keyboard navigation', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={10} step={5} onChange={handleChange} />);
 
       const input = screen.getByRole('spinbutton');
@@ -526,7 +526,7 @@ describe('Numberinput', () => {
     });
 
     it('supports keyboard in stepper variant', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Numberinput value={5} variant="stepper" onChange={handleChange} />
       );
@@ -601,7 +601,7 @@ describe('Numberinput', () => {
 
   describe('Decimal Values', () => {
     it('handles decimal step values', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={1} step={0.5} onChange={handleChange} />);
 
       const incrementBtn = screen.getByRole('button', { name: /increase/i });
@@ -611,7 +611,7 @@ describe('Numberinput', () => {
     });
 
     it('handles decimal input values', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={1} onChange={handleChange} />);
 
       const input = screen.getByRole('spinbutton');
@@ -658,7 +658,7 @@ describe('Numberinput', () => {
 
   describe('Exponential Step', () => {
     it('uses normal step when exponential is false', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={10} step={1} onChange={handleChange} />);
 
       const incrementBtn = screen.getByRole('button', { name: /increase/i });
@@ -668,7 +668,7 @@ describe('Numberinput', () => {
     });
 
     it('scales step with value magnitude when exponential is true', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Numberinput value={10} step={1} exponential onChange={handleChange} />
       );
@@ -681,7 +681,7 @@ describe('Numberinput', () => {
     });
 
     it('uses minimum step of 1 at value 0 when exponential', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Numberinput value={0} step={1} exponential onChange={handleChange} />
       );
@@ -694,7 +694,7 @@ describe('Numberinput', () => {
     });
 
     it('scales step with negative value magnitude when exponential', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Numberinput value={-5} step={1} exponential onChange={handleChange} />
       );
@@ -740,7 +740,7 @@ describe('Numberinput', () => {
     });
 
     it('still functions in bare mode (increment/decrement)', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={5} bare onChange={handleChange} />);
 
       const incrementBtn = screen.getByRole('button', { name: /increase/i });
@@ -944,7 +944,7 @@ describe('Numberinput', () => {
 
   describe('Combined Ref Callback', () => {
     it('invokes function refs with the input node', () => {
-      const refFn = jest.fn();
+      const refFn = vi.fn();
       render(<Numberinput defaultValue={5} ref={refFn} />);
       expect(refFn).toHaveBeenCalled();
       const lastCallArg = refFn.mock.calls[refFn.mock.calls.length - 1][0];
@@ -963,7 +963,7 @@ describe('Numberinput', () => {
     });
 
     it('uses exponential step when currentValue is undefined', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput step={1} exponential onChange={handleChange} />);
       const incrementBtn = screen.getByRole('button', { name: /increase/i });
       await userEvent.click(incrementBtn);
@@ -972,7 +972,7 @@ describe('Numberinput', () => {
     });
 
     it('does not clamp value when no min/max is set', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={5} onChange={handleChange} />);
       const decrementBtn = screen.getByRole('button', { name: /decrease/i });
       await userEvent.click(decrementBtn);
@@ -981,7 +981,7 @@ describe('Numberinput', () => {
     });
 
     it('does not clamp when min is set but value is above min', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={10} min={0} onChange={handleChange} />);
       const decrementBtn = screen.getByRole('button', { name: /decrease/i });
       await userEvent.click(decrementBtn);
@@ -989,7 +989,7 @@ describe('Numberinput', () => {
     });
 
     it('does not clamp when max is set but value is below max', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={1} max={10} onChange={handleChange} />);
       const incrementBtn = screen.getByRole('button', { name: /increase/i });
       await userEvent.click(incrementBtn);
@@ -997,7 +997,7 @@ describe('Numberinput', () => {
     });
 
     it('ignores keys other than ArrowUp/ArrowDown', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={5} onChange={handleChange} />);
       const input = screen.getByRole('spinbutton');
       fireEvent.keyDown(input, { key: 'Enter' });
@@ -1008,7 +1008,7 @@ describe('Numberinput', () => {
 
   describe('Integration', () => {
     it('handles negative values', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={-5} onChange={handleChange} />);
 
       const incrementBtn = screen.getByRole('button', { name: /increase/i });
@@ -1024,7 +1024,7 @@ describe('Numberinput', () => {
     });
 
     it('ignores NaN input', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={5} onChange={handleChange} />);
 
       const input = screen.getByRole('spinbutton');

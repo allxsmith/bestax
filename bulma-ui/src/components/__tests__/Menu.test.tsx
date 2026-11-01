@@ -862,7 +862,7 @@ describe('Menu.Section', () => {
 
   it('reports each toggle through onOpenChange while holding its own state', async () => {
     const user = userEvent.setup();
-    const onOpenChange = jest.fn();
+    const onOpenChange = vi.fn();
     sidebar({ onOpenChange });
     await user.click(heading());
     expect(heading()).toHaveAttribute('aria-expanded', 'true');
@@ -873,7 +873,7 @@ describe('Menu.Section', () => {
 
   it('only reports while open is set, until the caller passes the new state', async () => {
     const user = userEvent.setup();
-    const onOpenChange = jest.fn();
+    const onOpenChange = vi.fn();
     const ui = (open: boolean) => (
       <Menu>
         <Menu.Section
@@ -969,7 +969,7 @@ describe('Menu.Section', () => {
 
   it('does not submit a form it sits in', async () => {
     const user = userEvent.setup();
-    const onSubmit = jest.fn((e: React.FormEvent) => e.preventDefault());
+    const onSubmit = vi.fn((e: React.FormEvent) => e.preventDefault());
     render(
       <form onSubmit={onSubmit}>
         <Menu>

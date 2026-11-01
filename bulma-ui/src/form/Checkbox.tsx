@@ -6,7 +6,11 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
-import { useCheckboxesGroup, useFieldsetDisabled } from './FormContext';
+import {
+  useCheckboxesGroup,
+  useFieldsetDisabled,
+  useRegisterChecked,
+} from './FormContext';
 
 /**
  * The values the Checkbox `color` prop accepts, as a readonly tuple.
@@ -175,16 +179,25 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
     const group = useCheckboxesGroup();
     const effectiveName = name ?? group?.name;
 
-    // Group-managed checked state — only when the group is in
-    // controlled/uncontrolled mode (group.value is defined) AND this Checkbox
-    // has a value to compare against. Local `checked` always wins.
-    const groupManaged = group?.value !== undefined && value !== undefined;
-    const groupHas = groupManaged && group!.value!.includes(String(value));
+    // Group-managed checked state — only when the group manages the selection
+    // (it was given `value`, `defaultValue` or `onChange`) AND this Checkbox
+    // has a value to compare against. Local `checked` always wins. A group
+    // given only `onChange` holds no value until its first change, and until
+    // then the box shows its own `defaultChecked`, controlled all the same,
+    // so that change doesn't flip it from uncontrolled to controlled.
+    const valueKey = value === undefined ? undefined : String(value);
+    const groupManaged =
+      group?.onChange !== undefined && valueKey !== undefined;
+    const groupHas =
+      groupManaged &&
+      (group!.value ? group!.value.includes(valueKey!) : !!defaultChecked);
     const effectiveChecked =
       checked !== undefined ? checked : groupManaged ? groupHas : undefined;
     // When the group manages checked, suppress local defaultChecked to avoid
     // the controlled/uncontrolled React warning.
     const effectiveDefaultChecked = groupManaged ? undefined : defaultChecked;
+    // What the box starts as, so the group's first change starts from it.
+    useRegisterChecked(group, valueKey, !!(checked ?? defaultChecked));
 
     const handleChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -194,19 +207,19 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
         // Local onChange always fires.
         onChange?.(e);
         // Dispatch to the group additionally — toggle this value's
-        // membership in the group's array.
-        if (group?.onChange && value !== undefined) {
-          const valStr = String(value);
-          const currentArr = group.value ?? [];
+        // membership in the group's array, or in what was checked when the
+        // group holds no value yet.
+        if (group?.onChange && valueKey !== undefined) {
+          const currentArr = group.value ?? group.startingValue!();
           const next = e.target.checked
-            ? currentArr.includes(valStr)
+            ? currentArr.includes(valueKey)
               ? currentArr
-              : [...currentArr, valStr]
-            : currentArr.filter(v => v !== valStr);
+              : [...currentArr, valueKey]
+            : currentArr.filter(v => v !== valueKey);
           group.onChange(next);
         }
       },
-      [onChange, group, value, indeterminate]
+      [onChange, group, valueKey, indeterminate]
     );
 
     const mainClass = usePrefixedClassNames('styled-checkbox', 'checkbox', {

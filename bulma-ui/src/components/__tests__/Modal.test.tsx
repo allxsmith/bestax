@@ -54,7 +54,7 @@ describe('Modal', () => {
   });
 
   it('calls onClose when background is clicked', () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     render(
       <Modal active onClose={onClose}>
         {latin}
@@ -65,7 +65,7 @@ describe('Modal', () => {
   });
 
   it('calls onClose when close button in header is clicked', () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     render(
       <Modal active modalCardTitle="T" onClose={onClose}>
         {latin}
@@ -76,7 +76,7 @@ describe('Modal', () => {
   });
 
   it('calls onClose when floating close button is clicked', () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     render(
       <Modal active onClose={onClose}>
         {latin}
@@ -217,7 +217,7 @@ describe('Modal', () => {
     });
 
     it('renders Modal with compound Background component', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Modal isActive>
           <Modal.Background
@@ -235,7 +235,7 @@ describe('Modal', () => {
     });
 
     it('renders Modal.Card with compound components', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Modal isActive>
           <Modal.Background onClick={onClose} />
@@ -365,7 +365,7 @@ describe('Modal', () => {
 
     describe('closing from the parts', () => {
       it('Modal.Close calls the modal onClose when it has no onClick', () => {
-        const onClose = jest.fn();
+        const onClose = vi.fn();
         render(
           <Modal isActive onClose={onClose}>
             <Modal.Background />
@@ -387,8 +387,8 @@ describe('Modal', () => {
       });
 
       it('Modal.Close runs only its own onClick when given one', () => {
-        const onClose = jest.fn();
-        const onClick = jest.fn();
+        const onClose = vi.fn();
+        const onClick = vi.fn();
         render(
           <Modal isActive onClose={onClose}>
             <Modal.Content>{latin}</Modal.Content>
@@ -401,7 +401,7 @@ describe('Modal', () => {
       });
 
       it('Modal.Close wired with onClick={onClose} calls it once', () => {
-        const onClose = jest.fn();
+        const onClose = vi.fn();
         render(
           <Modal isActive onClose={onClose}>
             <Modal.Content>{latin}</Modal.Content>
@@ -428,8 +428,8 @@ describe('Modal', () => {
       });
 
       it('Modal.Close inside a nested modal closes only that modal', () => {
-        const outerClose = jest.fn();
-        const innerClose = jest.fn();
+        const outerClose = vi.fn();
+        const innerClose = vi.fn();
         render(
           <Modal isActive onClose={outerClose}>
             <Modal.Content>
@@ -452,7 +452,7 @@ describe('Modal', () => {
       it('Modal.Close inside the props form calls its onClose', () => {
         // Wrapped, so the modal stays in the props form: a part as a direct
         // child would select the compound form.
-        const onClose = jest.fn();
+        const onClose = vi.fn();
         render(
           <Modal active onClose={onClose} modalCardTitle="Title">
             <div>
@@ -468,7 +468,7 @@ describe('Modal', () => {
       });
 
       it('Modal.Close calls onClose from a portaled modal', () => {
-        const onClose = jest.fn();
+        const onClose = vi.fn();
         render(
           <Modal isActive onClose={onClose} portal>
             <Modal.Content>{latin}</Modal.Content>
@@ -480,8 +480,8 @@ describe('Modal', () => {
       });
 
       it('Modal.Close calls the onClose of the latest render', () => {
-        const first = jest.fn();
-        const second = jest.fn();
+        const first = vi.fn();
+        const second = vi.fn();
         const { rerender } = render(
           <Modal isActive onClose={first}>
             <Modal.Close data-testid="close-btn" />
@@ -500,7 +500,7 @@ describe('Modal', () => {
       it('Modal.Background leaves the modal open without an onClick', () => {
         // A bare background is a static one, as rbx's was by default, and
         // the rbx codemod writes it bare: it closes only once you wire it.
-        const onClose = jest.fn();
+        const onClose = vi.fn();
         render(
           <Modal isActive onClose={onClose}>
             <Modal.Background data-testid="bg" />
@@ -512,7 +512,7 @@ describe('Modal', () => {
       });
 
       it('Modal.Background wired with onClick={onClose} calls it once', () => {
-        const onClose = jest.fn();
+        const onClose = vi.fn();
         render(
           <Modal isActive onClose={onClose}>
             <Modal.Background onClick={onClose} data-testid="bg" />
@@ -524,7 +524,7 @@ describe('Modal', () => {
       });
 
       it('Escape still calls onClose once in the compound form', () => {
-        const onClose = jest.fn();
+        const onClose = vi.fn();
         render(
           <Modal isActive onClose={onClose}>
             <Modal.Background />
@@ -602,7 +602,7 @@ describe('Modal', () => {
     // matrix), so this does not branch on React.version.
     it('runs a forwarded callback ref cleanup on unmount instead of calling it with null', () => {
       const calls: (HTMLDivElement | null)[] = [];
-      const cleanup = jest.fn();
+      const cleanup = vi.fn();
       const callbackRef = (node: HTMLDivElement | null) => {
         calls.push(node);
         if (!node) return undefined;
@@ -628,7 +628,7 @@ describe('Modal', () => {
 
   describe('Escape key', () => {
     it('calls onClose on Escape by default when active', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Modal active onClose={onClose}>
           {latin}
@@ -639,14 +639,14 @@ describe('Modal', () => {
     });
 
     it('does not call onClose on Escape when inactive', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Modal onClose={onClose}>{latin}</Modal>);
       fireEvent.keyDown(document, { key: 'Escape' });
       expect(onClose).not.toHaveBeenCalled();
     });
 
     it('does not call onClose on Escape when closeOnEscape is false', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Modal active onClose={onClose} closeOnEscape={false}>
           {latin}
@@ -657,7 +657,7 @@ describe('Modal', () => {
     });
 
     it('does not call onClose for non-Escape keys', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Modal active onClose={onClose}>
           {latin}
@@ -668,7 +668,7 @@ describe('Modal', () => {
     });
 
     it('leaves an Escape that content inside already used', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Modal active onClose={onClose}>
           <input
@@ -690,7 +690,7 @@ describe('Modal', () => {
     it('hears Escape after a document listener added once it was open', () => {
       // A popup that opens inside the modal adds its listener after the
       // modal's, and still gets the key first.
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Modal active onClose={onClose}>
           {latin}
@@ -714,8 +714,8 @@ describe('Modal', () => {
     });
 
     it('closes only the topmost modal when several are open', () => {
-      const onCloseBackground = jest.fn();
-      const onCloseTop = jest.fn();
+      const onCloseBackground = vi.fn();
+      const onCloseTop = vi.fn();
       render(
         <>
           <Modal active onClose={onCloseBackground}>
@@ -733,8 +733,8 @@ describe('Modal', () => {
     });
 
     it('closes the next modal down once the topmost one has closed', () => {
-      const onCloseBackground = jest.fn();
-      const onCloseTop = jest.fn();
+      const onCloseBackground = vi.fn();
+      const onCloseTop = vi.fn();
       const { rerender } = render(
         <>
           <Modal active onClose={onCloseBackground}>
@@ -992,7 +992,7 @@ describe('Modal', () => {
       it('passes over an <object> that refuses focus, on open and when Tab comes in from outside', () => {
         // Browsers won't focus an <object> with nothing to show (#1211), and
         // jsdom can't tell, so focus() on one does nothing here.
-        const objectFocus = jest
+        const objectFocus = vi
           .spyOn(HTMLObjectElement.prototype, 'focus')
           .mockImplementation(() => {});
         const outside = document.createElement('button');
@@ -1398,9 +1398,7 @@ describe('Modal', () => {
       // The server renders inline, so the markup must be there to hydrate.
       expect(container.querySelector('[data-testid="modal"]')).not.toBeNull();
 
-      const errorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       let unmountRoot = () => {};
       await act(async () => {
         const root = hydrateRoot(container, modal);
@@ -1438,9 +1436,7 @@ describe('Modal', () => {
       container.innerHTML = renderToString(modal);
       document.body.appendChild(container);
 
-      const errorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       let unmountRoot = () => {};
       await act(async () => {
         const root = hydrateRoot(container, modal);

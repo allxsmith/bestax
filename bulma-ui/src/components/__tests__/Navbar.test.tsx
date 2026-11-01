@@ -466,7 +466,7 @@ describe('Navbar.Burger', () => {
   });
 
   it('calls onClick when clicked', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(<Navbar.Burger onClick={handleClick} data-testid="burger" />);
     fireEvent.click(screen.getByTestId('burger'));
     expect(handleClick).toHaveBeenCalled();
@@ -788,7 +788,7 @@ describe('Navbar.Dropdown', () => {
   });
 
   it('toggles active state via its Navbar.Link trigger and calls onActiveChange', () => {
-    const onActiveChange = jest.fn();
+    const onActiveChange = vi.fn();
     render(
       <Navbar.Dropdown onActiveChange={onActiveChange} data-testid="dropdown">
         <Navbar.Link>More</Navbar.Link>
@@ -810,7 +810,7 @@ describe('Navbar.Dropdown', () => {
   });
 
   it('Escape closes the dropdown and keeps focus on the link', () => {
-    const onActiveChange = jest.fn();
+    const onActiveChange = vi.fn();
     render(
       <Navbar.Dropdown
         active
@@ -831,7 +831,7 @@ describe('Navbar.Dropdown', () => {
   });
 
   it('Escape does nothing when already closed', () => {
-    const onActiveChange = jest.fn();
+    const onActiveChange = vi.fn();
     render(
       <Navbar.Dropdown onActiveChange={onActiveChange} data-testid="dropdown">
         <Navbar.Link>More</Navbar.Link>
@@ -1010,8 +1010,8 @@ describe('Navbar.Link', () => {
   });
 
   it('calls a caller-supplied onKeyDown alongside the dropdown toggle behavior', () => {
-    const onKeyDown = jest.fn();
-    const onActiveChange = jest.fn();
+    const onKeyDown = vi.fn();
+    const onActiveChange = vi.fn();
     render(
       <Navbar.Dropdown onActiveChange={onActiveChange}>
         <Navbar.Link onKeyDown={onKeyDown} data-testid="navlink">
@@ -1028,7 +1028,7 @@ describe('Navbar.Link', () => {
   });
 
   it('respects a caller-supplied onKeyDown that calls preventDefault', () => {
-    const onActiveChange = jest.fn();
+    const onActiveChange = vi.fn();
     render(
       <Navbar.Dropdown onActiveChange={onActiveChange}>
         <Navbar.Link onKeyDown={e => e.preventDefault()} data-testid="navlink">
@@ -1044,7 +1044,7 @@ describe('Navbar.Link', () => {
   });
 
   it('opens the dropdown on click when it has no href (touch/mouse users)', () => {
-    const onActiveChange = jest.fn();
+    const onActiveChange = vi.fn();
     render(
       <Navbar.Dropdown onActiveChange={onActiveChange}>
         <Navbar.Link data-testid="navlink">More</Navbar.Link>
@@ -1062,8 +1062,8 @@ describe('Navbar.Link', () => {
   });
 
   it('calls a caller-supplied onClick alongside the dropdown toggle', () => {
-    const onClick = jest.fn();
-    const onActiveChange = jest.fn();
+    const onClick = vi.fn();
+    const onActiveChange = vi.fn();
     render(
       <Navbar.Dropdown onActiveChange={onActiveChange}>
         <Navbar.Link onClick={onClick} data-testid="navlink">
@@ -1080,7 +1080,7 @@ describe('Navbar.Link', () => {
   });
 
   it('respects a caller-supplied onClick that calls preventDefault', () => {
-    const onActiveChange = jest.fn();
+    const onActiveChange = vi.fn();
     render(
       <Navbar.Dropdown onActiveChange={onActiveChange}>
         <Navbar.Link onClick={e => e.preventDefault()} data-testid="navlink">
@@ -1129,7 +1129,7 @@ describe('Navbar.Link', () => {
     });
 
     it('leaves the custom target its own click, rather than toggling over it', () => {
-      const onActiveChange = jest.fn();
+      const onActiveChange = vi.fn();
       render(
         <Navbar.Dropdown onActiveChange={onActiveChange}>
           <Navbar.Link as={RouterLink} to="/x" data-testid="navlink">
@@ -1145,7 +1145,7 @@ describe('Navbar.Link', () => {
     });
 
     it('still toggles from the keyboard', () => {
-      const onActiveChange = jest.fn();
+      const onActiveChange = vi.fn();
       render(
         <Navbar.Dropdown onActiveChange={onActiveChange}>
           <Navbar.Link as={RouterLink} to="/x" data-testid="navlink">
@@ -1161,7 +1161,7 @@ describe('Navbar.Link', () => {
     });
 
     it('keeps the fallback for a non-interactive intrinsic (as="span")', () => {
-      const onActiveChange = jest.fn();
+      const onActiveChange = vi.fn();
       render(
         <Navbar.Dropdown onActiveChange={onActiveChange}>
           <Navbar.Link as="span" data-testid="navlink">
@@ -1202,7 +1202,7 @@ describe('Navbar.Link', () => {
       const DivTrigger = (props: ComponentProps<'div'>) => <div {...props} />;
 
       it('takes the fallback click, so a mouse can open the dropdown', () => {
-        const onActiveChange = jest.fn();
+        const onActiveChange = vi.fn();
         render(
           <Navbar.Dropdown onActiveChange={onActiveChange}>
             <Navbar.Link
@@ -1226,7 +1226,7 @@ describe('Navbar.Link', () => {
       });
 
       it('still loses to an href — somewhere to navigate makes it a link', () => {
-        const onActiveChange = jest.fn();
+        const onActiveChange = vi.fn();
         render(
           <Navbar.Dropdown onActiveChange={onActiveChange}>
             <Navbar.Link
@@ -1250,7 +1250,7 @@ describe('Navbar.Link', () => {
   });
 
   it('does not hijack click when natively interactive (href)', () => {
-    const onActiveChange = jest.fn();
+    const onActiveChange = vi.fn();
     render(
       <Navbar.Dropdown onActiveChange={onActiveChange}>
         <Navbar.Link href="/more" data-testid="navlink">

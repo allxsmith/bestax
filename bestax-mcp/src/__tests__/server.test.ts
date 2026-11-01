@@ -9,7 +9,7 @@
  * These run against the committed index, not fixtures. The index is the
  * product; a test that stubs it proves nothing about what ships.
  */
-import { describe, expect, it, afterAll, beforeAll } from '@jest/globals';
+import { describe, expect, it, afterAll, beforeAll } from 'vitest';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
@@ -2221,7 +2221,7 @@ describe('lookup_bulma_classes where the skill and the codemod have an answer', 
     );
     // Its own props come from its record, so a prop the library adds reaches here.
     expect(th).toContain(
-      'props of its own, `isAligned`, `width` and `color`, and helper props.'
+      'props of its own, `isAligned`, `isNarrow`, `isVcentered`, `width` and `color`, and helper props.'
     );
     expect(th).toContain(
       '| `has-text-centered` | stays in `className` | the codemod converts no plain <th>, so its classes stay; on `Table.Th`, `textAlign="centered"` renders it |'
@@ -2229,7 +2229,9 @@ describe('lookup_bulma_classes where the skill and the codemod have an answer', 
     expect(th).toContain('get_props({ component: "Table.Th" })');
     const td = await lookup('has-text-right has-text-primary', 'td');
     expect(td).toContain('bestax `Table.Td` renders one as it is');
-    expect(td).toContain('props of its own, `isAligned` and `color`');
+    expect(td).toContain(
+      'props of its own, `isAligned`, `isNarrow`, `isVcentered` and `color`'
+    );
     expect(td).toContain('`textAlign="right"` renders it');
     // A table part's color props are its own, so the lookup claims none.
     expect(td).toContain(

@@ -41,10 +41,10 @@ Node 22 locally (`.nvmrc`; CI runs Node 24) and `pnpm@11.9.0` (pinned via `packa
 ## Commands
 
 ```bash
-pnpm all            # the pre-PR gate: build, typecheck, test+coverage, bundle:stats, conformance, the three staleness checks, lint, format:check, storybook build
-pnpm test           # jest (bulma-ui + create-bestax + bestax-migrate + bestax-mcp + eslint-plugin), then test:scripts
-pnpm test:scripts   # the root scripts/ node:test suite, with coverage held to per-file floors (see below)
-pnpm test:coverage  # coverage — thresholds live in each package's jest config (see below)
+pnpm all            # the pre-PR gate: build, typecheck, tests (once, with coverage), bundle:stats, conformance, the three staleness checks, lint, format:check, storybook build
+pnpm test           # every package's suite (turbo), then test:scripts
+pnpm test:scripts   # the root scripts/ suite, with coverage held to per-file floors (see below)
+pnpm test:coverage  # coverage — thresholds live in each package's `vitest.config.ts` (see below); pnpm all and CI run package tests through it, so a package with no coverage tool aliases it to its `test`
 pnpm lint           # eslint
 pnpm typecheck      # tsc --noEmit (each package's build program)
 pnpm typecheck:tests # tsc over bulma-ui's tests and stories, which `typecheck` excludes
@@ -70,8 +70,8 @@ pnpm exec turbo run test --filter=@allxsmith/bestax-bulma   # scope any task to 
 
 Enforced by CI (`.github/workflows/ci.yml`):
 
-- Coverage thresholds from the jest configs: **bulma-ui 99%** (all metrics);
-  every other jest package 95% (78% branches). `docs` has no jest suite.
+- Coverage thresholds from each package's `vitest.config.ts`: **bulma-ui 99%** (all
+  metrics); every other published package 95% (78% branches). `docs` has none.
 - The root `scripts/` suite has a coverage floor per file in `scripts/coverage-floors.json`,
   checked by `pnpm test:scripts` (which `pnpm test` and `pnpm all` run). Per file because a
   total hides a small script losing most of its coverage. A floor is where the file stood,
@@ -86,8 +86,8 @@ Enforced by CI (`.github/workflows/ci.yml`):
   format, audit.
 - **Tests and stories are type-checked too**, by a second project
   (`bulma-ui/tsconfig.test.json`, script `typecheck:tests`) — `tsconfig.json` excludes
-  them because it is also the build's program. ts-jest transpiles rather than checks
-  (the repo sets `isolatedModules`), so jest never stands in for this. Two consequences
+  them because it is also the build's program. Vitest strips types rather than checking
+  them, so the test run never stands in for this. Two consequences
   worth knowing: an `@ts-expect-error` in a test or story is live and fails as TS2578
   once it stops being needed, and in JSX the directive must sit in its OWN single-line
   `{/* … */}` — TypeScript anchors it to the line a comment STARTS on, so a multi-line
@@ -100,7 +100,7 @@ Enforced by CI (`.github/workflows/ci.yml`):
   narrower `typecheck` checks the shipped program without `types/assets.d.ts` — and its
   `declare module '*.svg'` — in scope.
 - House conventions fail via `pnpm check:conformance` (error messages name the file and fix);
-  a **React 18/19 matrix** builds and tests bulma-ui on both majors.
+  a **React 18/19 matrix** runs bulma-ui's tests on the newest release of both majors.
 
 Enforced in review (a green CI does **not** check these):
 
@@ -334,7 +334,7 @@ green and every AI review thread is resolved.
 - **State comment:** the `<!-- ai-loop-state … -->` PR comment is machine-managed — never
   reformat its first line.
 - **Refusals:** the loop refuses PRs that touch `.github/**` or the
-  jest/commitlint/release/pnpm-workspace configs — workflow changes are human-authored, and
+  vitest/commitlint/release/pnpm-workspace configs — workflow changes are human-authored, and
   `.github/CLAUDE.md` states the rules they must hold to (allowlists are a confinement
   boundary and never widen casually; action SHAs stay on the repo-wide pin; anything that
   spends model usage gates on `== 'on'`).

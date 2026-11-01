@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-113 documented components. Generated from the API docs — every exported
+118 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -47,6 +47,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Button](https://bestax.io/docs/api/elements/button) — The `Button` component provides a flexible and highly customizable button for your Bulma React UI.
 - [Buttons](https://bestax.io/docs/api/elements/buttons) — The `Buttons` component lets you group multiple `Button` elements together with Bulma's spacing, alignment, and add-on features.
 - [Code](https://bestax.io/docs/api/elements/code) — The `Code` component renders a styled `<code>` element with Bulma helper class integration.
+- [ColorSwatch](https://bestax.io/docs/api/elements/colorswatch) — The `ColorSwatch` component shows a color as a small chip, named by its label or by the color itself.
 - [Content](https://bestax.io/docs/api/elements/content) — The `Content` component applies Bulma’s typographic styles to its children, enhancing the appearance of HTML elements like paragraphs, headings, lists…
 - [Delete](https://bestax.io/docs/api/elements/delete) — The `Delete` component provides a Bulma-styled close/delete button for dismissing modals, notifications, tags, messages, and more.
 - [DescriptionList](https://bestax.io/docs/api/elements/descriptionlist) — The `DescriptionList` component lists facts about one thing, each a label and its value, such as an order's details or a profile.
@@ -90,6 +91,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Collapses](https://bestax.io/docs/api/components/collapses) — The `Collapses` component groups `Collapse` items into an accordion that keeps one item open at a time, or any number with `multiple`.
 - [Command](https://bestax.io/docs/api/components/command) — The `Command` component is a search field over a list of things to do, which narrows as you type and runs the top match on Enter: inline by default…
 - [ContextMenu](https://bestax.io/docs/api/components/contextmenu) — The `ContextMenu` component opens a menu of actions where you right-click an element, such as a table row or a card, or long press it on a touch screen.
+- [DataTable](https://bestax.io/docs/api/components/datatable) — The `DataTable` component is a table of records that people can sort, search, page through and select rows from, rendered with bestax's own `Table` parts…
 - [Dialog](https://bestax.io/docs/api/components/dialog) — The `Dialog` component provides ready-made confirm and alert dialogs, so a destructive action stays one `await dialog.confirm()` call away.
 - [Dropdown](https://bestax.io/docs/api/components/dropdown) — The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.
 - [EmptyState](https://bestax.io/docs/api/components/emptystate) — The `EmptyState` component renders the block an app shows where content would be: an empty list, a search with no results, or a first-run screen.
@@ -119,11 +121,14 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Checkbox](https://bestax.io/docs/api/form/checkbox) — The `Checkbox` component provides a Bulma-styled checkbox input.
 - [CheckboxCard](https://bestax.io/docs/api/form/checkboxcard) — The `CheckboxCard` component is a checkbox drawn as a card, with a title and a description, that toggles wherever you click it.
 - [Checkboxes](https://bestax.io/docs/api/form/checkboxes) — The `Checkboxes` component wraps multiple `Checkbox` components in a Bulma-styled group.
+- [ColorInput](https://bestax.io/docs/api/form/colorinput) — The `ColorInput` component is a form field for a color: type it, or open a color picker from its launcher or its swatch.
+- [ColorPicker](https://bestax.io/docs/api/form/colorpicker) — The `ColorPicker` component is a panel for choosing a color: a saturation and brightness square, a hue slider, and the value as text…
 - [Combobox](https://bestax.io/docs/api/form/combobox) — The `Combobox` component is a text field with a list to pick from under it, for a searchable select, a multi-select with tags, grouped items or a server search…
 - [Control](https://bestax.io/docs/api/form/control) — The `Control` component is a Bulma-styled wrapper for form controls (`Input`, `Select`, `TextArea`, etc.), supporting icons (left/right), loading state…
 - [DateInput](https://bestax.io/docs/api/form/datetime/dateinput) — The `DateInput` component is a form input that opens a popover calendar for date selection.
 - [DateRangeInput](https://bestax.io/docs/api/form/datetime/daterangeinput) — The `DateRangeInput` component is a form input for a start and end date, picked from one popover calendar or typed into two segmented inputs.
 - [DateTimeInput](https://bestax.io/docs/api/form/datetime/datetimeinput) — The `DateTimeInput` combines a calendar and a time **wheel spinner** in a single popover — an iOS-style layout.
+- [Dropzone](https://bestax.io/docs/api/form/dropzone) — The `Dropzone` component is an area to drop files on or click to pick them, which checks each file and lists the chosen ones with a way to remove each.
 - [Field](https://bestax.io/docs/api/form/field) — The `Field` component is a Bulma-styled form field container.
 - [Fieldset](https://bestax.io/docs/api/form/fieldset) — The `Fieldset` component groups a section of a form in a native `<fieldset>`, named by its `legend`, which a `disabled` switches off as a whole.
 - [File](https://bestax.io/docs/api/form/file) — The `File` component provides a Bulma-styled file input, supporting color, size, boxed/fullwidth/align styles, icons, "has name", and filename display.

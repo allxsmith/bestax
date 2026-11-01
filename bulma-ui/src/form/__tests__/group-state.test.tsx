@@ -21,7 +21,7 @@ describe('Radios group state', () => {
   });
 
   it('uncontrolled: clicking updates internal state and fires onChange', () => {
-    const handleChange = jest.fn();
+    const handleChange = vi.fn();
     render(
       <Radios name="color" defaultValue="red" onChange={handleChange}>
         <Radio value="red">Red</Radio>
@@ -71,15 +71,18 @@ describe('Radios group state', () => {
   it('local checked prop wins over group value', () => {
     render(
       <Radios name="color" value="red" onChange={() => {}}>
-        <Radio value="red">Red</Radio>
+        <Radio value="red" checked={false} onChange={() => {}}>
+          Red
+        </Radio>
         <Radio value="green" checked={true} onChange={() => {}}>
           Green
         </Radio>
       </Radios>
     );
     const radios = screen.getAllByRole('radio') as HTMLInputElement[];
-    // Group says red is selected, but green has its own checked={true}
-    expect(radios[0].checked).toBe(true);
+    // Group says red is selected, but each radio has its own checked. A group
+    // holds one checked radio, so red's own says it isn't.
+    expect(radios[0].checked).toBe(false);
     expect(radios[1].checked).toBe(true);
   });
 
@@ -102,8 +105,8 @@ describe('Radios group state', () => {
   });
 
   it('local onChange still fires alongside group onChange', () => {
-    const groupHandler = jest.fn();
-    const localHandler = jest.fn();
+    const groupHandler = vi.fn();
+    const localHandler = vi.fn();
     render(
       <Radios name="color" defaultValue="red" onChange={groupHandler}>
         <Radio value="red">Red</Radio>
@@ -135,7 +138,7 @@ describe('Checkboxes group state', () => {
   });
 
   it('uncontrolled: toggling adds/removes from internal array', () => {
-    const handleChange = jest.fn();
+    const handleChange = vi.fn();
     render(
       <Checkboxes name="tags" defaultValue={['react']} onChange={handleChange}>
         <Checkbox value="react">React</Checkbox>

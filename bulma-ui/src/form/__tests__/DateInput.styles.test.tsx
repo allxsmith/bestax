@@ -2,25 +2,13 @@
 // DateTimeInput passed `color` in, and no rule read it. A class reaching the
 // DOM proves nothing about the stylesheet, so these compile the real SCSS and
 // check what it does, the way TimeInput.styles.test.tsx does for the wheels.
-import * as sass from 'sass';
-import path from 'path';
 import type { ReactElement } from 'react';
 import { fireEvent, render } from '@testing-library/react';
+import { compileScss, compileSheet } from '../../__tests__/compile-scss';
 import { DateInput } from '../DateInput';
 import { DateTimeInput } from '../DateTimeInput';
 import { DateRangeInput } from '../DateRangeInput';
 import { ConfigProvider } from '../../helpers/Config';
-
-const SCSS = path.resolve(__dirname, '../../scss');
-const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
-const OPTIONS = {
-  loadPaths: [SCSS, NODE_MODULES],
-  quietDeps: true,
-  logger: sass.Logger.silent,
-};
-
-const compile = (file: string) =>
-  sass.compile(path.resolve(SCSS, file), OPTIONS).css;
 
 const colors = [
   'primary',
@@ -82,7 +70,7 @@ const inject = (css: string) => {
 let sheet: CSSStyleSheet;
 
 beforeAll(() => {
-  sheet = inject(compile('form/_dateinput.scss')).sheet as CSSStyleSheet;
+  sheet = inject(compileSheet('form/_dateinput.scss')).sheet as CSSStyleSheet;
 });
 
 afterAll(() => {
@@ -121,11 +109,10 @@ describe.each(pickers)('%s calendar colour styles', (_name, picker) => {
 describe('calendar colour styles under a class prefix', () => {
   it('matches the prefixed modifier the calendar emits', () => {
     inject(
-      sass.compileString(
+      compileScss(
         `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: 'bestax-');
-         @use 'form/dateinput';`,
-        OPTIONS
-      ).css
+         @use 'form/dateinput';`
+      )
     );
     const { container } = render(
       <ConfigProvider classPrefix="bestax-">
@@ -208,7 +195,8 @@ describe('day grid layout', () => {
     expect(week.gridTemplateColumns).toBe('repeat(7, 1fr)');
     const grid = getComputedStyle(container.querySelector('.dateinput-grid')!);
     expect(grid.display).toBe('grid');
-    expect(grid.gridTemplateColumns).toBe('');
+    // `none`, the initial value: the grid sets no columns of its own.
+    expect(grid.gridTemplateColumns).toBe('none');
     expect(week.gap).toBe(grid.gap);
   });
 });
@@ -218,7 +206,7 @@ describe('calendar variables', () => {
     const set = setProperties(sheet.cssRules);
     expect(set).toContain('--bulma-dateinput-focus-ring-color');
 
-    const shipped = compile('bestax.scss');
+    const shipped = compileSheet('bestax.scss');
     const unread = set.filter(
       name => !new RegExp(`var\\(\\s*${name}\\s*[,)]`).test(shipped)
     );
@@ -230,7 +218,7 @@ describe('calendar variables', () => {
     // `color` says, which is how the focus rings stayed primary. Custom
     // properties are where the colours are meant to be named.
     const direct = new RegExp(`var\\(--bulma-(?:${colors.join('|')})\\b`);
-    const offenders = compile('form/_dateinput.scss')
+    const offenders = compileSheet('form/_dateinput.scss')
       .split('\n')
       .map(line => line.trim())
       .filter(line => !line.startsWith('--') && direct.test(line));
@@ -247,10 +235,10 @@ describe('calendar variables', () => {
 describe('day text on the calendar backgrounds', () => {
   // Today is October 17th 2026 throughout, and every render reads it again.
   beforeEach(() => {
-    jest.useFakeTimers({ now: new Date(2026, 9, 17, 12) });
+    vi.useFakeTimers({ now: new Date(2026, 9, 17, 12) });
   });
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   // October on show, with a range from the 12th to November 2nd, whose last
@@ -283,21 +271,21 @@ describe('day text on the calendar backgrounds', () => {
     const { container } = render(<DateInput inline />);
     const vars = getComputedStyle(calendarRoot(container));
     const read = (name: string) => vars.getPropertyValue(name).trim();
-    expect(read('--bulma-dateinput-cell-hover-bg')).toBe(
-      'hsla(0, 0%, 50%, 0.13)'
-    );
+    // jsdom drops the optional spaces in a custom property's value, the
+    // ones after each comma here.
+    expect(read('--bulma-dateinput-cell-hover-bg')).toBe('hsla(0,0%,50%,0.13)');
     expect(read('--bulma-dateinput-cell-range-bg')).toBe(
-      'color-mix(in srgb, var(--bulma-dateinput-cell-selected-bg) 18%, transparent)'
+      'color-mix(in srgb,var(--bulma-dateinput-cell-selected-bg) 18%,transparent)'
     );
     expect(read('--bulma-dateinput-cell-range-preview-bg')).toBe(
-      'color-mix(in srgb, var(--bulma-dateinput-cell-selected-bg) 9%, transparent)'
+      'color-mix(in srgb,var(--bulma-dateinput-cell-selected-bg) 9%,transparent)'
     );
   });
 
   it('reads a day that is both today and a nearby month as the nearby month, in a band too', () => {
     // November 3rd is today, and October's grid ends on November's first
     // days, inside a range from October 20th to November 10th.
-    jest.setSystemTime(new Date(2026, 10, 3, 12));
+    vi.setSystemTime(new Date(2026, 10, 3, 12));
     const { container } = render(
       <DateRangeInput
         inline
@@ -319,11 +307,12 @@ describe('day text on the calendar backgrounds', () => {
 
   it('reads a nearby month halfway between text-weak and text', () => {
     const { container } = render(<DateInput inline />);
+    // Without the spaces after the commas, as jsdom writes a custom property.
     expect(
       getComputedStyle(calendarRoot(container))
         .getPropertyValue('--bulma-dateinput-cell-other-month-color')
         .trim()
-    ).toBe('color-mix(in srgb, var(--bulma-text-weak), var(--bulma-text))');
+    ).toBe('color-mix(in srgb,var(--bulma-text-weak),var(--bulma-text))');
   });
 
   it("gives a selected day from a nearby month the selected value's colour", () => {

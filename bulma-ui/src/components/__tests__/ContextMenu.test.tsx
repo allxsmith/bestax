@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { render, screen, fireEvent, act, within } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { ContextMenu, ContextMenuProps } from '../ContextMenu';
 import { Dropdown, DropdownDivider, DropdownItem } from '../Dropdown';
 import { Popover } from '../Popover';
@@ -64,7 +63,7 @@ const rightClick = (el: Element, x = 100, y = 50) => {
 
 const advance = (ms: number) =>
   act(() => {
-    jest.advanceTimersByTime(ms);
+    vi.advanceTimersByTime(ms);
   });
 
 const rect = (r: {
@@ -93,7 +92,7 @@ const layout = ({
   menu?: { width: number; height: number };
   trigger?: { left: number; top: number; width: number; height: number };
 } = {}) =>
-  jest
+  vi
     .spyOn(Element.prototype, 'getBoundingClientRect')
     .mockImplementation(function (this: Element) {
       if (this.getAttribute('role') === 'menu') {
@@ -159,14 +158,14 @@ const item = (name: string) =>
   within(document.body).getByRole('menuitem', { name });
 
 beforeEach(() => {
-  jest.useFakeTimers();
+  vi.useFakeTimers();
   layout();
   setViewport(1024, 768);
 });
 
 afterEach(() => {
-  jest.useRealTimers();
-  jest.restoreAllMocks();
+  vi.useRealTimers();
+  vi.restoreAllMocks();
   resetViewport();
 });
 
@@ -216,8 +215,8 @@ describe('ContextMenu', () => {
     });
 
     it('renders nothing but the trigger while closed, and listens to nothing on the document', () => {
-      const listen = jest.spyOn(document, 'addEventListener');
-      const listenOnWindow = jest.spyOn(window, 'addEventListener');
+      const listen = vi.spyOn(document, 'addEventListener');
+      const listenOnWindow = vi.spyOn(window, 'addEventListener');
       render(
         <>
           <FileMenu />
@@ -231,7 +230,7 @@ describe('ContextMenu', () => {
 
     it('runs the trigger’s own handlers first', () => {
       const calls: string[] = [];
-      const onOpenChange = jest.fn(() => calls.push('open'));
+      const onOpenChange = vi.fn(() => calls.push('open'));
       render(
         <FileMenu
           onOpenChange={onOpenChange}
@@ -268,7 +267,7 @@ describe('ContextMenu', () => {
     });
 
     it('stays closed when the trigger’s own handler prevents the contextmenu', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(
         <FileMenu
           onOpenChange={onOpenChange}
@@ -287,7 +286,7 @@ describe('ContextMenu', () => {
 
   describe('opening with contextmenu', () => {
     it('opens at the pointer on a right-click, and prevents the browser’s menu', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<FileMenu onOpenChange={onOpenChange} />);
       expect(rightClick(region(), 120, 80)).toBe(false);
       expect(menu()).toBeInTheDocument();
@@ -298,7 +297,7 @@ describe('ContextMenu', () => {
     });
 
     it('opens again at the new point on a right-click elsewhere on the trigger', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<FileMenu onOpenChange={onOpenChange} />);
       rightClick(region(), 120, 80);
       rightClick(region(), 400, 200);
@@ -309,7 +308,7 @@ describe('ContextMenu', () => {
     });
 
     it('moves an open menu to a contextmenu that comes without a press', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<FileMenu onOpenChange={onOpenChange} />);
       contextMenu(region(), 120, 80);
       const first = menu();
@@ -322,9 +321,9 @@ describe('ContextMenu', () => {
     it('opens from the keyboard at the event’s point when it is on the focused element, and at its bottom-left corner when it is not', () => {
       render(<FileMenu />);
       const details = screen.getByRole('button', { name: 'Details' });
-      jest
-        .spyOn(details, 'getBoundingClientRect')
-        .mockReturnValue(rect({ left: 300, top: 20, width: 80, height: 30 }));
+      vi.spyOn(details, 'getBoundingClientRect').mockReturnValue(
+        rect({ left: 300, top: 20, width: 80, height: 30 })
+      );
       details.focus();
 
       contextMenu(details, 310, 30);
@@ -339,8 +338,8 @@ describe('ContextMenu', () => {
     });
 
     it('opens only the innermost of nested regions', () => {
-      const outer = jest.fn();
-      const inner = jest.fn();
+      const outer = vi.fn();
+      const inner = vi.fn();
       render(
         <ContextMenu
           aria-label="Board"
@@ -373,8 +372,8 @@ describe('ContextMenu', () => {
     });
 
     it('shows no browser menu and opens no other on a right-click on the open menu', () => {
-      const outer = jest.fn();
-      const onContextMenu = jest.fn();
+      const outer = vi.fn();
+      const onContextMenu = vi.fn();
       render(
         <div onContextMenu={onContextMenu}>
           <ContextMenu
@@ -430,7 +429,7 @@ describe('ContextMenu', () => {
 
   describe('disabled', () => {
     it('leaves the browser’s menu alone and gives the trigger no class', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<FileMenu disabled onOpenChange={onOpenChange} />);
       expect(region()).not.toHaveClass('context-menu');
       expect(rightClick(region())).toBe(true);
@@ -446,7 +445,7 @@ describe('ContextMenu', () => {
     });
 
     it('closes an open menu when it turns on, and hands focus back', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       const { rerender } = render(<FileMenu onOpenChange={onOpenChange} />);
       const details = screen.getByRole('button', { name: 'Details' });
       details.focus();
@@ -465,7 +464,7 @@ describe('ContextMenu', () => {
 
   describe('long press', () => {
     it('opens after a touch held still, at the touch point', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<FileMenu onOpenChange={onOpenChange} />);
       pointer(region(), 'pointerdown', { x: 150, y: 90 });
       advance(LONG_PRESS_DELAY - 1);
@@ -538,7 +537,7 @@ describe('ContextMenu', () => {
     });
 
     it('opens once when the browser fires its own contextmenu during the hold', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<FileMenu onOpenChange={onOpenChange} />);
       pointer(region(), 'pointerdown', { x: 150, y: 90 });
       advance(LONG_PRESS_DELAY - 100);
@@ -549,7 +548,7 @@ describe('ContextMenu', () => {
     });
 
     it('opens once when the browser’s contextmenu comes after the hold opened it', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<FileMenu onOpenChange={onOpenChange} />);
       pointer(region(), 'pointerdown', { x: 150, y: 90 });
       advance(LONG_PRESS_DELAY);
@@ -560,7 +559,7 @@ describe('ContextMenu', () => {
     });
 
     it('keeps lifting the finger after it opened from clicking what is under it', () => {
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(
         <FileMenu
           trigger={
@@ -604,7 +603,7 @@ describe('ContextMenu', () => {
     });
 
     it('opens neither of two sibling regions held at once', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(
         <>
           <FileMenu
@@ -663,7 +662,7 @@ describe('ContextMenu', () => {
     });
 
     it('fires nothing after it unmounts', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       const { unmount } = render(<FileMenu onOpenChange={onOpenChange} />);
       pointer(region(), 'pointerdown');
       const node = region();
@@ -753,7 +752,7 @@ describe('ContextMenu', () => {
       setViewport(1000, 800);
       const focus = HTMLElement.prototype.focus;
       const calls: { options?: FocusOptions; placed: boolean }[] = [];
-      jest.spyOn(HTMLElement.prototype, 'focus').mockImplementation(function (
+      vi.spyOn(HTMLElement.prototype, 'focus').mockImplementation(function (
         this: HTMLElement,
         options?: FocusOptions
       ) {
@@ -777,14 +776,14 @@ describe('ContextMenu', () => {
       setViewport(1000, 800);
       const listen = document.addEventListener.bind(document);
       const placedWhenArmed: boolean[] = [];
-      jest
-        .spyOn(document, 'addEventListener')
-        .mockImplementation((type, listener, options) => {
+      vi.spyOn(document, 'addEventListener').mockImplementation(
+        (type, listener, options) => {
           if (type === 'scroll') {
             placedWhenArmed.push(box().classList.contains('is-up'));
           }
           listen(type, listener, options);
-        });
+        }
+      );
       render(<FileMenu />);
       contextMenu(region(), 900, 750);
       expect(placedWhenArmed).toEqual([true]);
@@ -819,7 +818,7 @@ describe('ContextMenu', () => {
     it.each(['Escape', 'Tab'])(
       'closes on %s, handing focus back to what had it',
       key => {
-        const onOpenChange = jest.fn();
+        const onOpenChange = vi.fn();
         render(<FileMenu onOpenChange={onOpenChange} />);
         const details = screen.getByRole('button', { name: 'Details' });
         details.focus();
@@ -840,7 +839,7 @@ describe('ContextMenu', () => {
     });
 
     it('hands focus back after an item runs', () => {
-      const onRename = jest.fn();
+      const onRename = vi.fn();
       render(<FileMenu onRename={onRename} />);
       const details = screen.getByRole('button', { name: 'Details' });
       details.focus();
@@ -925,7 +924,7 @@ describe('ContextMenu', () => {
   });
 
   describe('keys in the menu', () => {
-    const Menu = ({ onDiv = jest.fn(), onLink = jest.fn() }) => (
+    const Menu = ({ onDiv = vi.fn(), onLink = vi.fn() }) => (
       <ContextMenu aria-label="Actions" trigger={<div data-region>Row</div>}>
         <ContextMenu.Item as="button">Rename</ContextMenu.Item>
         <ContextMenu.Item as="button" disabled>
@@ -973,7 +972,7 @@ describe('ContextMenu', () => {
     });
 
     it('activates a div item on Enter and Space once each, and closes', () => {
-      const onDiv = jest.fn();
+      const onDiv = vi.fn();
       render(<Menu onDiv={onDiv} />);
       contextMenu(region());
       fireEvent.keyDown(item('Rename'), { key: 'End' });
@@ -989,7 +988,7 @@ describe('ContextMenu', () => {
     });
 
     it('activates a link on Space and leaves its Enter to the browser', () => {
-      const onLink = jest.fn();
+      const onLink = vi.fn();
       render(<Menu onLink={onLink} />);
       contextMenu(region());
       fireEvent.keyDown(item('Rename'), { key: 'ArrowDown' });
@@ -1009,7 +1008,7 @@ describe('ContextMenu', () => {
     });
 
     it('activates once for a held key', () => {
-      const onDiv = jest.fn();
+      const onDiv = vi.fn();
       render(
         <ContextMenu
           aria-label="Actions"
@@ -1072,7 +1071,7 @@ describe('ContextMenu', () => {
     });
 
     it('keeps its keys from the tree around it', () => {
-      const onKeyDown = jest.fn();
+      const onKeyDown = vi.fn();
       render(
         <div onKeyDown={onKeyDown}>
           <Menu />
@@ -1116,7 +1115,7 @@ describe('ContextMenu', () => {
     });
 
     it('closes on a press outside, which goes on to do what it does', () => {
-      const onPointerDown = jest.fn();
+      const onPointerDown = vi.fn();
       render(
         <>
           <FileMenu />
@@ -1168,7 +1167,7 @@ describe('ContextMenu', () => {
       ['resizing the window', () => fireEvent(window, new Event('resize'))],
       ['the window losing focus', () => fireEvent(window, new Event('blur'))],
     ])('closes on %s', (_, happen) => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<FileMenu onOpenChange={onOpenChange} />);
       contextMenu(region());
       happen();
@@ -1177,8 +1176,8 @@ describe('ContextMenu', () => {
     });
 
     it('stops listening once it closes', () => {
-      const unlisten = jest.spyOn(document, 'removeEventListener');
-      const unlistenOnWindow = jest.spyOn(window, 'removeEventListener');
+      const unlisten = vi.spyOn(document, 'removeEventListener');
+      const unlistenOnWindow = vi.spyOn(window, 'removeEventListener');
       render(<FileMenu />);
       contextMenu(region());
       fireEvent.keyDown(item('Rename'), { key: 'Escape' });
@@ -1211,7 +1210,7 @@ describe('ContextMenu', () => {
     });
 
     it('closes only the menu on Escape inside an open Modal', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Modal active onClose={onClose}>
           <FileMenu />
@@ -1227,7 +1226,7 @@ describe('ContextMenu', () => {
     });
 
     it('fires nothing after it unmounts, open or not', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       const { unmount } = render(<FileMenu onOpenChange={onOpenChange} />);
       contextMenu(region());
       onOpenChange.mockClear();
@@ -1255,7 +1254,7 @@ describe('ContextMenu', () => {
     });
 
     it('warns once in development when it opens without a name', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(
         <ContextMenu trigger={<div data-region>Row</div>}>
           <ContextMenu.Item>Rename</ContextMenu.Item>
@@ -1272,7 +1271,7 @@ describe('ContextMenu', () => {
     });
 
     it('does not warn for a menu named by aria-labelledby', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(
         <>
           <h2 id="file-title">report.pdf</h2>
@@ -1294,9 +1293,9 @@ describe('ContextMenu', () => {
 
   describe('props and classes', () => {
     it('puts className, id, helper props and attributes on the menu, and runs its handlers too', () => {
-      const onKeyDown = jest.fn();
-      const onClick = jest.fn();
-      const onContextMenu = jest.fn();
+      const onKeyDown = vi.fn();
+      const onClick = vi.fn();
+      const onContextMenu = vi.fn();
       render(
         <FileMenu
           className="file-actions"
@@ -1425,9 +1424,7 @@ describe('ContextMenu', () => {
       container.innerHTML = renderToString(ui);
       document.body.appendChild(container);
       const serverHtml = container.innerHTML;
-      const errorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       let root: ReturnType<typeof hydrateRoot> | undefined;
       await act(async () => {
         root = hydrateRoot(container, ui);

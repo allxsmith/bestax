@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 // The stylesheet sizes the items from the count it picks for the viewport,
 // and the script steps, clamps and hides items by the count it picks from

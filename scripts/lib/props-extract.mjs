@@ -1544,6 +1544,9 @@ const ROOT_CLASS_OVERRIDES = {
  * (#543).
  */
 export const EXTRA_VAR_ROOTS = {
+  // The sort button declares its own variables, so it looks the same in
+  // markup built from `useDataTable`'s props with no `.data-table` around it.
+  DataTable: ['data-table-sort'],
   DateInput: ['dateinput', 'picker-popover'],
   DateInputBase: ['dateinput', 'picker-popover'],
   // The range picker's own `daterangeinput` root is found by name. Its
@@ -1558,6 +1561,10 @@ export const EXTRA_VAR_ROOTS = {
   // `datetimeinput` panel class — the latter would resolve on its own via
   // name-matching if ROOT_CLASS_OVERRIDES did not already claim `input` for
   // props purposes first.
+  // ColorInput's panel is a ColorPicker, whose page lists its variables, in
+  // the shared popover.
+  ColorInput: ['picker-popover'],
+  ColorInputBase: ['picker-popover'],
   DateTimeInput: ['datetimeinput', 'dateinput', 'timeinput', 'picker-popover'],
   DateTimeInputBase: [
     'datetimeinput',

@@ -73,6 +73,21 @@ function ChoiceCardIcon() {
   );
 }
 
+// A square with its thumb, a hue slider under it, and a row of swatches
+function ColorPickerIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="2.5" width="18" height="11" rx="1.5" />
+      <circle cx="14.5" cy="6.5" r="1.6" />
+      <path d="M3 17h18" />
+      <circle cx="8" cy="17" r="1.6" />
+      <rect x="3" y="20" width="3" height="2" rx="0.5" />
+      <rect x="8" y="20" width="3" height="2" rx="0.5" />
+      <rect x="13" y="20" width="3" height="2" rx="0.5" />
+    </svg>
+  );
+}
+
 // Panel with expanding chevron — collapse
 function CollapseIcon() {
   return (
@@ -109,6 +124,18 @@ function CommandIcon() {
   );
 }
 
+// A table with a sorted header and a checked first row
+function DataTableIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M3 9h18M3 14.5h18M9 9v11" />
+      <path d="M14 5.5l1.5 1.8 1.5-1.8" />
+      <path d="M4.8 11.6l1 1 1.7-1.9" />
+    </svg>
+  );
+}
+
 // Modal bubble with action buttons — dialog
 function DialogIcon() {
   return (
@@ -127,6 +154,19 @@ function EmptyStateIcon() {
       <circle cx="12" cy="7.5" r="4.5" />
       <path d="M10 7.5h4" />
       <path d="M6.5 16h11M9 20h6" />
+    </svg>
+  );
+}
+
+// A dashed box with an arrow dropping into it
+function DropzoneIcon() {
+  return (
+    <svg {...iconProps}>
+      <path
+        d="M4 9v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"
+        strokeDasharray="3 2.5"
+      />
+      <path d="M12 3v10M8.5 9.5 12 13l3.5-3.5" />
     </svg>
   );
 }
@@ -331,11 +371,14 @@ const ADDON_ICONS = {
   carousel: CarouselIcon,
   choicecard: ChoiceCardIcon,
   collapse: CollapseIcon,
+  colorpicker: ColorPickerIcon,
   combobox: ComboboxIcon,
   command: CommandIcon,
   contextmenu: ContextMenuIcon,
+  datatable: DataTableIcon,
   descriptionlist: DescriptionListIcon,
   dialog: DialogIcon,
+  dropzone: DropzoneIcon,
   emptystate: EmptyStateIcon,
   fieldset: FieldsetIcon,
   hovercard: HoverCardIcon,
