@@ -113,6 +113,10 @@ either one is fixed.
 - **A boolean that sets a Bulma modifier class is named after the class:** `isRounded` for
   `is-rounded`, `hasAddons` for `has-addons`. A behaviour switch takes the native attribute's name or
   the one a sibling already uses (`disabled`, `closeOnEscape`, Sidebar's `overlay`).
+- **A container that lays out several standalone components takes their name in the plural:**
+  Buttons, Tags, Avatars, Collapses, Checkboxes, Radios. A `.Group` part is for one unit made of
+  pieces (Kbd.Group, a key combination) or a section inside a component (Command.Group,
+  Combobox.Group).
 - `color` takes Bulma's color names and `size` the `'small' | 'medium' | 'large'` union. Text a
   caller may want to translate goes in the same kind of prop the nearest sibling uses (the pickers'
   `labels`), and anything locale-aware reads `LocaleProvider`.
