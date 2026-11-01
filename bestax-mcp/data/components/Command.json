@@ -76,7 +76,7 @@
           "default": null,
           "description": "The actions, for a Command that renders the field, the list, the groups and the empty message itself. Typing filters them by label, keywords and description, ignoring case, with label matches first. Inside a `LocaleProvider` with a `locale`, it ignores accents too where that language does, so \"cafe\" finds \"Café\". Leave it out to build the Command from parts.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         },
         {
@@ -85,7 +85,7 @@
           "default": null,
           "description": "Takes over the filtering, with `actions`: it's handed the search as typed and every action, and returns the ones to show, in the order to show them, which is how to plug in fuzzy matching or cut the list short. It's called with an empty search too.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         },
         {
@@ -94,7 +94,7 @@
           "default": null,
           "description": "The field's placeholder, with `actions`.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         },
         {
@@ -103,7 +103,7 @@
           "default": "'No results'",
           "description": "What shows in place of the list, with `actions`, when nothing matches. It's announced the way `Command.Empty` is. `null` shows nothing.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         },
         {
@@ -112,7 +112,7 @@
           "default": null,
           "description": "The parts, in order: `Command.Input`, then `Command.List` while there are items and `Command.Empty` while there aren't. Nothing filters them, so render the items that match the search `onQueryChange` reports. With `actions` there are none to give: children given with it are ignored, with a warning in development.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         },
         {

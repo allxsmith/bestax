@@ -1139,24 +1139,38 @@ function literalKeys(ts, node) {
  * types and BulmaClassesProps stay in the catch-all deliberately; they are the
  * ~250 DOM props the hand-written tables never enumerated either.
  */
-function classifyTypeNode(ts, checker, node, out, _seen) {
+function classifyTypeNode(ts, checker, node, out, _seen, branch = null) {
   if (!node) return;
   if (ts.isParenthesizedTypeNode(node)) {
-    classifyTypeNode(ts, checker, node.type, out, _seen);
+    classifyTypeNode(ts, checker, node.type, out, _seen, branch);
     return;
   }
   // `A | B` and `A & B` both contribute every prop they mention. A docs table
   // is a catalogue, not a type — `SliderProps = SliderSingleProps |
   // SliderRangeProps` documents the props of both modes, which is exactly what
   // slider.md wrote by hand.
-  if (ts.isUnionTypeNode(node) || ts.isIntersectionTypeNode(node)) {
-    for (const t of node.types) classifyTypeNode(ts, checker, t, out, _seen);
+  //
+  // What a union's members contribute is tagged with the union, so the rows
+  // they give can be told apart from a declaration and the bases it extends:
+  // two branches of one union are alternatives, where a declaration overrides
+  // what it extends (`mergeRows`).
+  if (ts.isUnionTypeNode(node)) {
+    const union = { union: node };
+    for (const t of node.types) {
+      classifyTypeNode(ts, checker, t, out, _seen, union);
+    }
+    return;
+  }
+  if (ts.isIntersectionTypeNode(node)) {
+    for (const t of node.types) {
+      classifyTypeNode(ts, checker, t, out, _seen, branch);
+    }
     return;
   }
   // An inline `{ as?: 'div' }` in an intersection — real props with nowhere
   // else to live. ControlProps declares `as` and `ref` this way.
   if (ts.isTypeLiteralNode(node)) {
-    out.literals.push(node);
+    out.literals.push({ node, branch });
     return;
   }
 
@@ -1196,7 +1210,7 @@ function classifyTypeNode(ts, checker, node, out, _seen) {
       // removes are DOM attributes the catch-all row covers anyway.
       const filter =
         name === 'Omit' ? n => !keys.includes(n) : n => keys.includes(n);
-      pushExpand(ts, checker, inner, filter, out, _seen);
+      pushExpand(ts, checker, inner, filter, out, _seen, branch);
       return;
     }
     // Not a repo type (Omit of a DOM type) — summarise it instead.
@@ -1207,7 +1221,7 @@ function classifyTypeNode(ts, checker, node, out, _seen) {
   }
 
   const target = resolveInterface(ts, checker, node);
-  if (target) pushExpand(ts, checker, target, () => true, out, _seen);
+  if (target) pushExpand(ts, checker, target, () => true, out, _seen, branch);
   else out.external.push(polymorphicBase(ts, node) ?? { kind: 'dom', text });
 }
 
@@ -1215,22 +1229,26 @@ function classifyTypeNode(ts, checker, node, out, _seen) {
  * Queue an interface for expansion. A type ALIAS has no members of its own, so
  * it is dissolved into whatever it aliases, carrying the caller's filter down.
  */
-function pushExpand(ts, checker, decl, filter, out, _seen) {
+function pushExpand(ts, checker, decl, filter, out, _seen, branch = null) {
   if (ts.isTypeAliasDeclaration(decl)) {
     if (_seen.has(decl)) return;
     _seen.add(decl);
     const inner = { expand: [], external: [], literals: [] };
-    classifyTypeNode(ts, checker, decl.type, inner, _seen);
+    classifyTypeNode(ts, checker, decl.type, inner, _seen, branch);
     out.external.push(...inner.external);
     out.literals.push(...inner.literals);
     for (const e of inner.expand) {
-      out.expand.push({ decl: e.decl, filter: n => filter(n) && e.filter(n) });
+      out.expand.push({
+        decl: e.decl,
+        filter: n => filter(n) && e.filter(n),
+        branch: e.branch,
+      });
     }
     return;
   }
   if (_seen.has(decl)) return;
   _seen.add(decl);
-  out.expand.push({ decl, filter });
+  out.expand.push({ decl, filter, branch });
 }
 
 /**
@@ -1357,6 +1375,78 @@ function defaultsForInterface(ts, decl) {
   }
   interfaceDefaultsCache.set(decl, found);
   return found;
+}
+
+/** `rows`, each marked with the union branch it came from, if any. */
+function inBranch(rows, branch) {
+  if (branch) for (const row of rows) row.branch = branch;
+  return rows;
+}
+
+/**
+ * One row per prop name, in the order the walk first met each name.
+ *
+ * The walk reads a declaration before the bases it extends, so the first row
+ * for a name is the most-derived one, and it wins whole: a prop declared on
+ * the interface itself beats the inherited one, a `foo?: never` that forbids
+ * what a base offers included.
+ *
+ * The branches of a union are the exception, since neither derives from the
+ * other. They each declare the prop with their own type — `ControlProps` says
+ * `as?: 'div'` in one and `as: 'p'` in the other — and the table documents
+ * what a user may pass, which is both. A branch that types the prop as
+ * nothing at all (`undefined` or `never`) forbids it there, which adds nothing
+ * to what may be passed, so the branch that takes it describes the row,
+ * whichever came first. Icon's `children` branch types `name` as `undefined`,
+ * and that row read `string | undefined`.
+ *
+ * Exported for its tests, which build the rows the walk would.
+ *
+ * @param rows rows as `memberRows` returns them, with `branch` set on those
+ *   from a union's members (the same value for every member of one union)
+ * @param opts `markdown`, as the rows were rendered
+ */
+export function mergeRows(rows, { markdown = true } = {}) {
+  // The literals below are the RENDERED members, so they carry backticks in
+  // markdown mode and not in structured mode — compare against whichever
+  // this run produced or the normalisation silently stops matching.
+  const tick = s => (markdown ? `\`${s}\`` : s);
+  const forbids = row =>
+    row.type === tick('never') || row.type === tick('undefined');
+
+  const byName = new Map();
+  for (const row of rows) {
+    const prev = byName.get(row.name);
+    if (!prev) {
+      byName.set(row.name, row);
+      continue;
+    }
+    if (!prev.branch || prev.branch !== row.branch) continue;
+    if (forbids(row)) continue;
+    if (forbids(prev)) {
+      // Takes the forbidding row's place, so the row keeps its position.
+      byName.set(row.name, row);
+      continue;
+    }
+    if (prev.type !== row.type && !prev.type.includes(row.type)) {
+      prev.type = `${prev.type} | ${row.type}`;
+    }
+  }
+  // The boolean literals a discriminant contributes read as `boolean`, with or
+  // without a branch that takes a plain `boolean` beside them (Combobox's
+  // `multiple` is `false`, `true` and `boolean` across its three branches).
+  const booleans = [tick('false'), tick('true'), tick('boolean')];
+  const out = [...byName.values()];
+  for (const row of out) {
+    const seen = new Set();
+    let ms = row.type.split(' | ').filter(m => !seen.has(m) && seen.add(m));
+    if (ms.length > 1 && ms.every(m => booleans.includes(m))) {
+      ms = [tick('boolean')];
+    }
+    row.type = ms.join(' | ');
+    delete row.branch;
+  }
+  return out;
 }
 
 function memberRows(
@@ -1862,15 +1952,18 @@ export function extractComponent(
     );
     for (const lit of literals) {
       rows.push(
-        ...memberRows(
-          ts,
-          lit,
-          aliases,
-          defaults,
-          linkBase,
-          false,
-          used,
-          rowOpts
+        ...inBranch(
+          memberRows(
+            ts,
+            lit.node,
+            aliases,
+            defaults,
+            linkBase,
+            false,
+            used,
+            rowOpts
+          ),
+          lit.branch
         )
       );
     }
@@ -1878,11 +1971,11 @@ export function extractComponent(
     // Bases nest (DateInputProps -> DateInputBaseProps -> …), so walk the chain
     // rather than one level. `seen` is shared, so a diamond is expanded once and
     // a cycle terminates. A prop declared on the interface itself always wins
-    // over the inherited one — first row for a name is kept.
-    const queue = [...expand];
+    // over the inherited one — first row for a name is kept (`mergeRows`).
+    const queue = expand.map(e => ({ ...e, top: true }));
     const expandedDecls = [];
     while (queue.length) {
-      const { decl: base, filter } = queue.shift();
+      const { decl: base, filter, branch, top } = queue.shift();
       expandedDecls.push(base);
       const baseAliases = localStringUnionAliases(ts, base.getSourceFile());
       const merged = new Map([...aliases, ...baseAliases]);
@@ -1898,31 +1991,41 @@ export function extractComponent(
       // queue (its `*Props` is an alias, so it has no members of its own), but
       // they are not INHERITED — flagging them so would flip every row of the
       // eight polymorphic components to `inherited: true` in the MCP index.
-      const ownBase = base.name.text === ownPropsName(ifaceName);
-      for (const row of memberRows(
-        ts,
-        base,
-        merged,
-        baseDefaults,
-        linkBase,
-        !ownBase,
-        used,
-        rowOpts
+      // The branches of a union the props type names itself are its own
+      // props too: Icon's `name` and `children`, and IconButton's
+      // `aria-label` and `aria-labelledby`, which come from `IconButtonName`.
+      const ownBase =
+        base.name.text === ownPropsName(ifaceName) || (top && !!branch);
+      for (const row of inBranch(
+        memberRows(
+          ts,
+          base,
+          merged,
+          baseDefaults,
+          linkBase,
+          !ownBase,
+          used,
+          rowOpts
+        ),
+        branch
       )) {
         if (filter(row.name)) rows.push(row);
       }
       const nested = classifyHeritage(ts, checker, base, seen);
       external.push(...nested.external);
       for (const lit of nested.literals) {
-        for (const row of memberRows(
-          ts,
-          lit,
-          merged,
-          baseDefaults,
-          linkBase,
-          true,
-          used,
-          rowOpts
+        for (const row of inBranch(
+          memberRows(
+            ts,
+            lit.node,
+            merged,
+            baseDefaults,
+            linkBase,
+            true,
+            used,
+            rowOpts
+          ),
+          lit.branch
         ))
           if (filter(row.name)) rows.push(row);
       }
@@ -1931,62 +2034,17 @@ export function extractComponent(
         queue.push({
           decl: next.decl,
           filter: n => filter(n) && next.filter(n),
+          branch: next.branch,
         });
       }
     }
 
-    // The literals below are the RENDERED members, so they carry backticks in
-    // markdown mode and not in structured mode — compare against whichever
-    // this run produced or the normalisation silently stops matching.
-    const tick = s => (markdown ? `\`${s}\`` : s);
-    // A branch that types a prop as nothing at all forbids it there.
-    const forbids = row =>
-      row.type === tick('never') || row.type === tick('undefined');
-
-    // Deduplicate by prop name, keeping the most-derived declaration.
-    const byName = new Map();
-    for (const row of rows) {
-      const prev = byName.get(row.name);
-      if (!prev) {
-        byName.set(row.name, row);
-        continue;
-      }
-      // A union branch that forbids a prop another branch takes says nothing
-      // a reader can pass, so the branch that takes it describes the row,
-      // whichever comes first. Icon's `children` branch types `name` as
-      // `undefined`, which read `string | undefined`, and a forbidding branch
-      // that came first would lead the row with its "not with" description.
-      if (forbids(row)) continue;
-      if (forbids(prev)) {
-        Object.assign(prev, { ...row, inherited: prev.inherited });
-        continue;
-      }
-      // The branches of a discriminated union each declare the prop with their
-      // own type — `ControlProps` says `as?: 'div'` in one and `as: 'p'` in the
-      // other. The table documents what a user may pass, which is both.
-      if (prev.type !== row.type && !prev.type.includes(row.type)) {
-        prev.type = `${prev.type} | ${row.type}`;
-      }
-    }
-    // A `never` member left in a cell is noise standing where the reader needs
-    // a type (``never` | `number`` on slider.md, before the dedupe above set
-    // forbidding branches aside), so dropping one leaves exactly what may be
-    // passed. And the boolean literals a discriminant contributes read as
-    // `boolean`, with or without a branch that takes a plain `boolean` beside
-    // them (Combobox's `multiple` is `false`, `true` and `boolean` across its
-    // three branches).
-    const booleans = [tick('false'), tick('true'), tick('boolean')];
-    for (const row of byName.values()) {
-      const seen = new Set();
-      let ms = row.type.split(' | ').filter(m => !seen.has(m) && seen.add(m));
-      if (ms.length > 1) ms = ms.filter(m => m !== tick('never'));
-      if (ms.length > 1 && ms.every(m => booleans.includes(m))) {
-        ms = [tick('boolean')];
-      }
-      row.type = ms.join(' | ');
-    }
+    const deduped = mergeRows(rows, { markdown });
     rows.length = 0;
-    rows.push(...byName.values());
+    rows.push(...deduped);
+    const declared = new Set(rows.map(r => r.name));
+    // Rendered the way the rows were: backticks in markdown mode only.
+    const tick = s => (markdown ? `\`${s}\`` : s);
 
     // The React props every component inherits and that the hand-written tables
     // named again and again — className on 18 pages, ref on 13, children on 5.
@@ -2011,7 +2069,7 @@ export function extractComponent(
       // `children` — the catch-all still covers the pass-through cases.
       const rendersChildren = namesChildren(ts, implInit);
       for (const [name, type, description] of DOM_COMMON_PROPS) {
-        if (byName.has(name)) continue;
+        if (declared.has(name)) continue;
         if (name === 'ref' && !isForwardRef) continue;
         if (name === 'children' && !rendersChildren) continue;
         const shown =

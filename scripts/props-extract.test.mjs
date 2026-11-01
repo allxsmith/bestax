@@ -21,6 +21,7 @@ import {
   extractComponent,
   extractHelperProps,
   helperPropsNoteOf,
+  mergeRows,
   topLevelInitializers,
   transparentPropWrapper,
   unsupportedPropWrapper,
@@ -647,6 +648,62 @@ test('a union branch that forbids a prop leaves the row to the branch that takes
     assert.equal(labelledBy.type, tick('string'));
     assert.match(labelledBy.description, /^The id of the element/);
   }
+});
+
+test("a union the props type names is the component's own, in the order it declares", () => {
+  // `IconButtonName` is two interfaces, not IconButton's `*OwnProps`, but its
+  // props are IconButton's own, and `IconButtonLabelledBy` declares
+  // `aria-label` first so the table leads with it.
+  const names = extractComponent('IconButton').tables[0].rows.map(r => r.name);
+  assert.ok(
+    names.indexOf('aria-label') < names.indexOf('aria-labelledby'),
+    names.join(', ')
+  );
+  for (const prop of ['aria-label', 'aria-labelledby']) {
+    assert.equal(row('IconButton', prop, { markdown: false }).inherited, false);
+  }
+  assert.equal(row('Icon', 'name', { markdown: false }).inherited, false);
+  // What IconButton takes from Button is still inherited.
+  assert.equal(row('IconButton', 'color', { markdown: false }).inherited, true);
+});
+
+test('mergeRows keeps a prop the interface itself declares over the one it extends', () => {
+  // `foo?: never` on the component's own interface forbids what a base
+  // offers. It isn't a union branch, so it wins whole, type and description,
+  // rather than giving way to the base's `string`.
+  const union = { union: 'Props' };
+  const merged = mergeRows([
+    { name: 'foo', type: '`never`', description: 'Not here.' },
+    { name: 'foo', type: '`string`', description: 'A foo.', inherited: true },
+    { name: 'bar', type: '`never`', description: 'Not in A.', branch: union },
+    { name: 'bar', type: '`number`', description: 'A bar.', branch: union },
+    { name: 'baz', type: '`false`', description: 'Off.', branch: union },
+    { name: 'baz', type: '`true`', description: 'On.', branch: union },
+  ]);
+  assert.deepEqual(
+    merged.map(r => [r.name, r.type, r.description]),
+    [
+      ['foo', '`never`', 'Not here.'],
+      ['bar', '`number`', 'A bar.'],
+      ['baz', '`boolean`', 'Off.'],
+    ]
+  );
+  assert.ok(
+    merged.every(r => !('branch' in r)),
+    'no walk marks left on rows'
+  );
+  // Rows from two different unions aren't branches of one another.
+  const apart = mergeRows(
+    [
+      { name: 'qux', type: 'never', description: 'Not in A.', branch: union },
+      { name: 'qux', type: 'string', description: 'A qux.', branch: {} },
+    ],
+    { markdown: false }
+  );
+  assert.deepEqual(
+    apart.map(r => r.type),
+    ['never']
+  );
 });
 
 test('structured mode leaks no markdown into any documented component', () => {

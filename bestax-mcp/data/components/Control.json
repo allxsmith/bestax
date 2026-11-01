@@ -99,7 +99,7 @@
           "default": "false",
           "description": "Adds left icon container.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         },
         {
@@ -108,7 +108,7 @@
           "default": "false",
           "description": "Adds right icon container.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         },
         {
@@ -117,7 +117,7 @@
           "default": "false",
           "description": "Shows a loading spinner inside the control. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). The spinner sits at the right edge, where a right icon also sits, and the two overlap; leave the right icon out while loading.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         },
         {
@@ -126,7 +126,7 @@
           "default": "false",
           "description": "Makes the control expand to fill available space.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         },
         {
@@ -135,7 +135,7 @@
           "default": null,
           "description": "Sets the control size.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         },
         {
@@ -144,7 +144,7 @@
           "default": null,
           "description": "Sets text color.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false,
           "valuesRef": "helpers/valid-values"
         },
@@ -154,7 +154,7 @@
           "default": null,
           "description": "Bulma color for the control.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         },
         {
@@ -163,7 +163,7 @@
           "default": null,
           "description": "Background color.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false,
           "valuesRef": "helpers/valid-values"
         },
@@ -173,7 +173,7 @@
           "default": null,
           "description": "Icon props for left icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph. Bulma gives control icons `pointer-events: none`, so a click lands on the input and a clickable node placed here never receives one. Put a button beside the input in its own addon `Control` instead.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         },
         {
@@ -182,7 +182,7 @@
           "default": null,
           "description": "Icon props for right icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph. Bulma gives control icons `pointer-events: none`, so a click lands on the input and a clickable node placed here never receives one. Put a button beside the input in its own addon `Control` instead.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         },
         {
@@ -191,7 +191,7 @@
           "default": null,
           "description": "Shortcut for left icon name.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         },
         {
@@ -200,7 +200,7 @@
           "default": null,
           "description": "Shortcut for left icon size.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         },
         {
@@ -209,7 +209,7 @@
           "default": null,
           "description": "Shortcut for right icon name.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         },
         {
@@ -218,7 +218,7 @@
           "default": null,
           "description": "Shortcut for right icon size.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         },
         {
@@ -227,7 +227,7 @@
           "default": null,
           "description": "Additional CSS classes to apply.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         },
         {
@@ -236,7 +236,7 @@
           "default": null,
           "description": "Content inside the control.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         }
       ],

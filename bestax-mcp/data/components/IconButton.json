@@ -112,7 +112,7 @@
           "default": null,
           "description": "The button's name: what a screen reader announces and what a voice control user says to press it. Required, or `aria-labelledby` in its place, since an icon has no text to name it by. Name the action (\"Delete\"), not the picture (\"Trash\"). An empty or blank one warns in development.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         },
         {
@@ -121,7 +121,7 @@
           "default": null,
           "description": "The id of the element whose text names the button, in place of `aria-label`.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         },
         {

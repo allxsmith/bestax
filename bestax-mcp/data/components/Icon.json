@@ -81,7 +81,7 @@
           "default": null,
           "description": "The icon name, with or without its library prefix (e.g. `'star'` or `'fa-star'`). Mutually exclusive with `children`.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         },
         {
@@ -90,7 +90,7 @@
           "default": null,
           "description": "A custom node (an inline SVG, a `react-icons` component, …) rendered inside the icon container in place of a class-based glyph. Mutually exclusive with `name`.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": false
         },
         {
@@ -99,7 +99,7 @@
           "default": null,
           "description": "Legacy icon class string (e.g. `'fas fa-star'`). Only its last segment is read, as the glyph name; the library still comes from `library` or `ConfigProvider`, so `'mdi mdi-rocket'` renders an `fa` class unless the effective library is already `mdi` — set it here or on the provider.",
           "required": false,
-          "inherited": true,
+          "inherited": false,
           "deprecated": true,
           "deprecationNote": "Use `name` instead."
         },
