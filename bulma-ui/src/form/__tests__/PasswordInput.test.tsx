@@ -25,8 +25,6 @@ afterEach(() => {
 const input = () => screen.getByLabelText('Password') as HTMLInputElement;
 const toggle = () =>
   document.querySelector('.passwordinput-toggle') as HTMLButtonElement;
-/** Lets a MutationObserver's callback, a microtask, run. */
-const flushObservers = () => act(async () => {});
 
 /** A field whose visibility callback the test reads back. */
 function setup(props: Partial<PasswordInputProps> = {}) {
@@ -420,7 +418,7 @@ describe('PasswordInput', () => {
     });
   });
 
-  describe('The value attribute', () => {
+  describe('The value', () => {
     function Controlled(props: Partial<PasswordInputProps>) {
       const [value, setValue] = useState('');
       return (
@@ -433,39 +431,44 @@ describe('PasswordInput', () => {
       );
     }
 
-    it('stays off a controlled field typed into, which keeps its value', async () => {
+    it('is left in a controlled field’s attribute, where React writes it', () => {
       render(<Controlled />);
       fireEvent.change(input(), { target: { value: 'hunter2' } });
-      await flushObservers();
-      expect(input()).not.toHaveAttribute('value');
       expect(input()).toHaveValue('hunter2');
-      expect(document.querySelector('input[value^="hun"]')).toBeNull();
-    });
-
-    it('may show while the password does, and goes when it hides', async () => {
-      render(<Controlled defaultVisible />);
-      fireEvent.change(input(), { target: { value: 'hunter2' } });
-      await flushObservers();
       expect(input()).toHaveAttribute('value', 'hunter2');
-      fireEvent.click(toggle());
-      expect(input()).not.toHaveAttribute('value');
+    });
+
+    it('stays out of an uncontrolled field’s attribute as it’s typed', () => {
+      render(<PasswordInput label="Password" />);
+      fireEvent.change(input(), { target: { value: 'hunter2' } });
       expect(input()).toHaveValue('hunter2');
-    });
-
-    it('comes off a starting value, which the field keeps', () => {
-      render(<PasswordInput label="Password" defaultValue="swordfish" />);
       expect(input()).not.toHaveAttribute('value');
-      expect(input()).toHaveValue('swordfish');
     });
 
-    it('stops watching once it unmounts', async () => {
-      const { unmount } = render(<Controlled />);
-      const field = input();
-      unmount();
-      field.setAttribute('value', 'left');
-      await flushObservers();
-      expect(field).toHaveAttribute('value', 'left');
-    });
+    it.each([
+      ['hidden', false],
+      ['shown', true],
+    ])(
+      'goes back to defaultValue when the form resets, %s',
+      (_state, defaultVisible) => {
+        render(
+          <form data-testid="form">
+            <PasswordInput
+              label="Password"
+              defaultValue="swordfish"
+              defaultVisible={defaultVisible}
+            />
+          </form>
+        );
+        fireEvent.change(input(), { target: { value: 'hunter2' } });
+        expect(input()).toHaveValue('hunter2');
+        act(() => {
+          (screen.getByTestId('form') as HTMLFormElement).reset();
+        });
+        expect(input()).toHaveValue('swordfish');
+        expect(input()).toHaveAttribute('type', 'password');
+      }
+    );
   });
 
   describe('Disabled and loading', () => {
@@ -656,7 +659,7 @@ describe('PasswordInput', () => {
       expect(html).toContain('type="text"');
     });
 
-    it('hydrates without a mismatch, keeping the values and dropping the hidden one’s attribute', async () => {
+    it('hydrates without a mismatch, keeping the values', async () => {
       const container = document.createElement('div');
       container.innerHTML = renderToString(<Fields />);
       document.body.appendChild(container);
@@ -669,7 +672,6 @@ describe('PasswordInput', () => {
         });
         expect(errorSpy).not.toHaveBeenCalled();
         expect(input()).toHaveValue('hunter2');
-        expect(input()).not.toHaveAttribute('value');
         expect(screen.getByLabelText('Shown')).toHaveValue('open');
       } finally {
         errorSpy.mockRestore();

@@ -95,8 +95,8 @@ without the `Field` and `Control`; helper props, `className` and `ref` go on the
 | `disabled`                                      | `boolean`                                        | Disables the input and its button; a disabled `Fieldset` does too.                                                                                             |
 
 The button is a `<button type="button">` in the tab order; a pointer press leaves focus and the
-caret in the input. While the password is hidden, the input carries no `value` attribute, which
-React would otherwise write for a controlled field. There's no strength meter: put the strength
+caret in the input. Prefer it uncontrolled, read with `FormData`: a controlled field carries its
+value in its `value` attribute, as React writes it for any controlled input. There's no strength meter: put the strength
 your app or server works out in words in `message`, and use a native `<meter>`, not `Progress`,
 for any bar.
 

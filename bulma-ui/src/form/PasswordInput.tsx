@@ -28,6 +28,7 @@ import { useAutoLabelId } from './useAutoLabelId';
  * @extraProp {boolean} [spellCheck=false] - Off, so a browser's spellcheck never sees the password once it shows.
  * @extraProp {string} [autoCorrect="off"] - Off, so a phone's keyboard doesn't change what's typed.
  * @extraProp {string} [autoCapitalize="none"] - Off, so a phone's keyboard doesn't capitalize the first letter.
+ * @extraProp {string} [value] - The password, controlled. React writes a controlled input's value into its `value` attribute, as it does on any input, so the password sits in the page's markup. Uncontrolled, read with `FormData`, the field never puts what's typed there.
  * @extraProp {React.Ref<HTMLInputElement>} [ref] - Ref forwarded to the `<input>`.
  */
 export interface PasswordInputProps extends PasswordInputBaseProps {

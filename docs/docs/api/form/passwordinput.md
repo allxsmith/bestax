@@ -48,7 +48,7 @@ Give it a `label`. Type, then press the eye: the password shows, and focus and t
 
 ### In a Form
 
-Uncontrolled, with a `name`, it's an ordinary form field, and `FormData` reads it. When the form submits, the field goes back to a password field before your submit handler runs, so the browser doesn't keep the password among the text it suggests for other fields.
+Leave it uncontrolled, with a `name`, and read it with `FormData` when the form submits. An uncontrolled field never writes what's typed into its `value` attribute; a controlled one carries its value there, as React writes it for any controlled input, where a stylesheet on the page could read it. When the form submits, the field goes back to a password field before your submit handler runs, so the browser doesn't keep the password among the text it suggests for other fields.
 
 ```tsx live
 function SignIn() {
@@ -174,7 +174,7 @@ Disabled, by its own `disabled` or a disabled [`Fieldset`](./fieldset.md), the b
 
 ### Strength Recipe
 
-`PasswordInput` doesn't score passwords. Scoring belongs to your app or your server, which can check a password against lists of breached and common ones, as NIST asks; character-class rules ("one number, one symbol") are what it asks you not to require. Once you have a score, say it in words in the `message`, so it doesn't rest on color, and point the input's `aria-describedby` at those words so a screen reader reads them with the field. A bar beside the words is a meter, a level in a range, so it's a native `<meter>`; [`Progress`](../elements/progress.md) is a `<progress>`, which reports how far along a task is.
+`PasswordInput` doesn't score passwords. Scoring belongs to your app or your server, which can check a password against lists of breached and common ones, as NIST asks; character-class rules ("one number, one symbol") are what it asks you not to require. The example reads the field in `onChange` and passes it no `value`, so it stays uncontrolled. Once you have a score, say it in words in the `message`, so it doesn't rest on color, and point the input's `aria-describedby` at those words so a screen reader reads them with the field. A bar beside the words is a meter, a level in a range, so it's a native `<meter>`; [`Progress`](../elements/progress.md) is a `<progress>`, which reports how far along a task is.
 
 ```tsx live
 function StrengthRecipe() {
@@ -189,7 +189,6 @@ function StrengthRecipe() {
     <PasswordInput
       label="New password"
       autoComplete="new-password"
-      value={password}
       onChange={event => setPassword(event.target.value)}
       aria-describedby={id}
       messageColor={password ? colors[score] : undefined}
@@ -245,7 +244,7 @@ The button stays at the right edge in a right-to-left page, as the date pickers'
 - **Pointer:** a press on the button leaves focus, and the caret, in the input.
 - **No announcement of its own:** the button's state or its name says whether the password shows, so there's no live region repeating it.
 - **Password managers and paste** work as on any password field, and `autocomplete` tells them what the field is for ([Identify Input Purpose](https://www.w3.org/WAI/WCAG22/Understanding/identify-input-purpose.html)). `spellcheck="false"` keeps a browser's spellcheck from reading the password once it shows.
-- **The `value` attribute:** React writes a controlled input's value into its `value` attribute, where a CSS attribute selector can read it. While the password is hidden, `PasswordInput` takes that attribute off; the field's value, and so the form's data, stay as they are.
+- **The `value` attribute:** a controlled field carries its value in its `value` attribute, as React writes it for any controlled input, where a CSS attribute selector can read it. An uncontrolled one, read with `FormData`, never puts what's typed there.
 - **Edge's own reveal button** is hidden on this input, so there's one eye, not two.
 - **Focus** shows as an outline around the button. **Forced colors:** the glyph and the words take the system's button text color, and a disabled button its gray.
 - **Strings** come from `labels`, with English defaults.
@@ -311,6 +310,7 @@ The button stays at the right edge in a right-to-left page, as the date pickers'
 | `spellCheck`       | `boolean`                                                                                                                          | `false`              | Off, so a browser's spellcheck never sees the password once it shows.                                                                                                                                                                                                                                                             |
 | `autoCorrect`      | `string`                                                                                                                           | `"off"`              | Off, so a phone's keyboard doesn't change what's typed.                                                                                                                                                                                                                                                                           |
 | `autoCapitalize`   | `string`                                                                                                                           | `"none"`             | Off, so a phone's keyboard doesn't capitalize the first letter.                                                                                                                                                                                                                                                                   |
+| `value`            | `string`                                                                                                                           | —                    | The password, controlled. React writes a controlled input's value into its `value` attribute, as it does on any input, so the password sits in the page's markup. Uncontrolled, read with `FormData`, the field never puts what's typed there.                                                                                    |
 | `ref`              | `React.Ref<HTMLInputElement>`                                                                                                      | —                    | Ref forwarded to the `<input>`.                                                                                                                                                                                                                                                                                                   |
 | `...`              | All standard `<input>` attributes and Bulma helper props                                                                           | —                    | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                 |
 

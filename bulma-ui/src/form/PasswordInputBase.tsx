@@ -1,7 +1,6 @@
 import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 import { usePrefixedClassNames } from '../helpers/classNames';
 import { warnOnce } from '../helpers/devWarnings';
-import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { InputBase, InputBaseProps } from './InputBase';
 import { useControlLoading } from './controlLoading';
@@ -47,6 +46,7 @@ export interface PasswordInputLabels {
  * @extraProp {boolean} [spellCheck=false] - Off, so a browser's spellcheck never sees the password once it shows.
  * @extraProp {string} [autoCorrect="off"] - Off, so a phone's keyboard doesn't change what's typed.
  * @extraProp {string} [autoCapitalize="none"] - Off, so a phone's keyboard doesn't capitalize the first letter.
+ * @extraProp {string} [value] - The password, controlled. React writes a controlled input's value into its `value` attribute, as it does on any input, so the password sits in the page's markup. Uncontrolled, read with `FormData`, the field never puts what's typed there.
  * @extraProp {React.Ref<HTMLInputElement>} [ref] - Ref forwarded to the `<input>`.
  */
 export interface PasswordInputBaseProps extends Omit<InputBaseProps, 'type'> {
@@ -217,28 +217,6 @@ export const PasswordInputBase = forwardRef<
     window.addEventListener('pageshow', onPageShow);
     return () => window.removeEventListener('pageshow', onPageShow);
   }, [hideRef]);
-
-  // React writes a controlled input's value into its `value` attribute,
-  // where a CSS attribute selector can read it. While the password is
-  // hidden this takes the attribute off after the commit, and again each
-  // time React writes it back, as it does after a keystroke once its own
-  // effects have run. The property, and so the form's data, keeps the value.
-  useClientLayoutEffect(() => {
-    const input = inputRef.current;
-    if (!input || visible) return;
-    const strip = () => {
-      if (!input.hasAttribute('value')) return;
-      const { value } = input;
-      input.removeAttribute('value');
-      // Until the value is edited the attribute is what it shows, so taking
-      // the attribute away empties the field; the property puts it back.
-      if (input.value !== value) input.value = value;
-    };
-    strip();
-    const observer = new MutationObserver(strip);
-    observer.observe(input, { attributes: true, attributeFilter: ['value'] });
-    return () => observer.disconnect();
-  }, [visible]);
 
   const containerClass = usePrefixedClassNames('passwordinput-container', {
     'is-text': isText,
