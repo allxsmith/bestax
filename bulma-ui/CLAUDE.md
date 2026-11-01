@@ -96,6 +96,34 @@ These keep it working, and each of them failed once:
   and the test typechecks a real node16 CommonJS consumer rather than
   asserting the map's shape.
 
+## Naming and reuse
+
+A new component or prop takes the names its siblings already use, and builds on the shared hooks
+rather than writing its own. Consistent names are what let a reader, or an agent reading the types,
+guess one component's API from another's, and a copied hook drifts from the original the first time
+either one is fixed.
+
+- **State props take the shape the newest components use.** Open state is `open`, `defaultOpen`
+  and `onOpenChange(open)` (Popover, Collapse, Command, Combobox, HoverCard). A selected index or
+  value is `value`, `defaultValue` and `onChange(value)` (Tabs, Combobox), not `index` or
+  `activeIndex`; Carousel and Steps name their position `value` too. Any other controlled state
+  is `x`, `defaultX` and `onXChange` (TreeView's `selected` and `expanded`). Modal's `active` and
+  Dialog's and Sidebar's `isOpen` came first; don't copy them, and renaming them waits for a
+  major.
+- **A boolean that sets a Bulma modifier class is named after the class:** `isRounded` for
+  `is-rounded`, `hasAddons` for `has-addons`. A behaviour switch takes the native attribute's name or
+  the one a sibling already uses (`disabled`, `closeOnEscape`, Sidebar's `overlay`).
+- `color` takes Bulma's color names and `size` the `'small' | 'medium' | 'large'` union. Text a
+  caller may want to translate goes in the same kind of prop the nearest sibling uses (the pickers'
+  `labels`), and anything locale-aware reads `LocaleProvider`.
+- Class names, Sass variables and CSS variables follow `src/scss/CLAUDE.md`.
+- **Reuse before writing.** Read `src/helpers/`, `src/form/FormContext.tsx` and the nearest
+  component first. Anchored positioning, focus trapping, overlay stacking, scroll locking, menu and
+  list keys, typeahead, combobox and tree state, Field wiring, announcements and locale formatting
+  each already have a shared hook or helper. When one almost fits, extend it where it lives, with
+  its tests, rather than copying it into the component, and put a new piece that two components
+  would share in `src/helpers/`. A new component's PR says what it reuses and what it adds.
+
 ## Conventions
 
 - Every component routes its Bulma helper props through `useBulmaClasses` and forwards
