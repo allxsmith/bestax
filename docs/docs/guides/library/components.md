@@ -176,7 +176,7 @@ A box whose content scrolls inside it, on the browser's own scrollbars made thin
 
 ### TableOfContents
 
-A long page's sections as links in Bulma's menu look, marking the one being read, here this page's navigation components as you scroll past them. [View full documentation.](../../api/components/tableofcontents.md)
+A long page's sections as links in Bulma's menu look, marking the one being read; this one lists every component under Navigation on this page. [View full documentation.](../../api/components/tableofcontents.md)
 
 ```tsx live
 <TableOfContents
@@ -186,7 +186,10 @@ A long page's sections as links in Bulma's menu look, marking the one being read
     { id: 'breadcrumb', label: 'Breadcrumb' },
     { id: 'navbar', label: 'Navbar' },
     { id: 'tabs', label: 'Tabs' },
+    { id: 'segmentedcontrol', label: 'SegmentedControl' },
     { id: 'steps', label: 'Steps' },
+    { id: 'timeline', label: 'Timeline' },
+    { id: 'scrollarea', label: 'ScrollArea' },
     { id: 'tableofcontents', label: 'TableOfContents' },
     { id: 'pagination', label: 'Pagination' },
   ]}
