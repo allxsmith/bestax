@@ -20,6 +20,7 @@ import { useLatestRef } from '../helpers/useLatestRef';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { inertProps } from '../helpers/inertProps';
 import { useSwipe } from '../helpers/useSwipe';
+import { ChevronNextIcon, ChevronPrevIcon } from '../helpers/chevronIcons';
 import { Icon } from '../elements/Icon';
 import { Button } from '../elements/Button';
 
@@ -67,42 +68,6 @@ export const CarouselItem = forwardRef<HTMLDivElement, CarouselItemProps>(
 CarouselItem.displayName = 'CarouselItem';
 
 type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
-
-/**
- * Default SVG icon for the previous arrow button.
- *
- * @function
- * @returns {JSX.Element} The rendered SVG chevron-left icon.
- */
-const DefaultPrevIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-  >
-    <polyline points="15 18 9 12 15 6" />
-  </svg>
-);
-
-/**
- * Default SVG icon for the next arrow button.
- *
- * @function
- * @returns {JSX.Element} The rendered SVG chevron-right icon.
- */
-const DefaultNextIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-  >
-    <polyline points="9 18 15 12 9 6" />
-  </svg>
-);
 
 /**
  * The media queries Bulma's `fullhd`, `widescreen`, `desktop` and `tablet`
@@ -880,7 +845,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
                     features={iconFeatures}
                   />
                 ) : (
-                  <DefaultPrevIcon />
+                  <ChevronPrevIcon />
                 )}
               </Button>
               <Button
@@ -899,7 +864,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
                     features={iconFeatures}
                   />
                 ) : (
-                  <DefaultNextIcon />
+                  <ChevronNextIcon />
                 )}
               </Button>
             </>

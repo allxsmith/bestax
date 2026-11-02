@@ -22,6 +22,7 @@ import { SegmentedControl } from '../components/SegmentedControl';
 import { ScrollArea } from '../components/ScrollArea';
 import { Command } from '../components/Command';
 import { DataTable } from '../components/DataTable';
+import { Lightbox } from '../components/Lightbox';
 import { Splitter } from '../layout/Splitter';
 import { Slider } from '../form/Slider';
 import { PinInput } from '../form/PinInput';
@@ -98,6 +99,15 @@ const cases: Array<[string, React.ReactElement]> = [
       key="command-dialog"
       defaultOpen
       actions={[{ id: 'open', label: 'Open' }]}
+    />,
+  ],
+  [
+    // Open, so the viewer and its image render on the server too.
+    'Lightbox',
+    <Lightbox
+      key="lightbox"
+      defaultOpen
+      items={[{ src: '/a.jpg', alt: 'Harbour at dusk' }]}
     />,
   ],
   [

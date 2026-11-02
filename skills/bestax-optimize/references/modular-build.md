@@ -80,8 +80,9 @@ is **more complete** than the docs page's Option C example, which omits several)
 
 **Components** (`@allxsmith/bestax-bulma/scss/components/<name>`):
 `loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
-`toast`, `dialog`, `carousel`, `tabs`, `menu`, `reveal`, `avatar`, `avatars`, `badge`,
-`emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`, `pagination`
+`toast`, `dialog`, `carousel`, `lightbox`, `tabs`, `menu`, `reveal`, `avatar`, `avatars`,
+`badge`, `emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`,
+`pagination`
 
 **Layout** (`@allxsmith/bestax-bulma/scss/layout/<name>`): `splitter`
 
@@ -172,6 +173,11 @@ Notes:
   next to `scss/components/popover`.
 - `ContextMenu`'s menu is Bulma's dropdown markup, so an app using it needs
   `bulma/sass/components/dropdown` next to `scss/components/contextmenu`.
+- `Lightbox`'s viewer is Bulma's modal, with Bulma buttons for its controls and a `Loader` for a
+  slow image, so an app using it needs `bulma/sass/components/modal`,
+  `bulma/sass/elements/button` and `bulma/sass/elements/loader` next to
+  `scss/components/lightbox`, and the `delete` partial below for its close button in forced
+  colors.
 - `Loader` is stock Bulma styled by `bulma/sass/elements/loader`, and the `isLoading`
   spinners on `Button`, `Control` and `Select` are Bulma's too. The `loader` extras partial
   stops all of them under `prefers-reduced-motion: reduce`, hides everything inside a loading

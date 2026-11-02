@@ -182,6 +182,18 @@ function FieldsetIcon() {
   );
 }
 
+// A photo, mountains and a sun in a frame, between previous and next chevrons
+function LightboxIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="5" y="5" width="14" height="14" rx="1.5" />
+      <path d="M5 16l4-4 3 3 2-2 5 5" />
+      <circle cx="14.5" cy="9.5" r="1.3" />
+      <path d="M2.5 10l-1.5 2 1.5 2M21.5 10l1.5 2-1.5 2" />
+    </svg>
+  );
+}
+
 // Spinner arc — loading
 function LoadingIcon() {
   return (
@@ -382,6 +394,7 @@ const ADDON_ICONS = {
   emptystate: EmptyStateIcon,
   fieldset: FieldsetIcon,
   hovercard: HoverCardIcon,
+  lightbox: LightboxIcon,
   loading: LoadingIcon,
   pininput: PinInputIcon,
   popover: PopoverIcon,

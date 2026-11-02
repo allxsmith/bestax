@@ -173,6 +173,7 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 // bestax components
 @use '@allxsmith/bestax-bulma/scss/components/dialog';
 @use '@allxsmith/bestax-bulma/scss/components/carousel';
+@use '@allxsmith/bestax-bulma/scss/components/lightbox';
 @use '@allxsmith/bestax-bulma/scss/components/tooltip';
 @use '@allxsmith/bestax-bulma/scss/components/loading';
 @use '@allxsmith/bestax-bulma/scss/components/collapse';

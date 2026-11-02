@@ -214,6 +214,9 @@ export const SCSS_SOURCES = {
   InputBase: [{ pkg: 'bulma', path: 'sass/form/shared.scss' }],
   Kbd: [{ pkg: 'repo', path: 'bulma-ui/src/scss/elements/_kbd.scss' }],
   Level: [{ pkg: 'bulma', path: 'sass/layout/level.scss' }],
+  Lightbox: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_lightbox.scss' },
+  ],
   Link: [],
   LinkButton: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/elements/_linkbutton.scss' },
@@ -355,6 +358,7 @@ export const SCSS_SOURCES = {
 export const RENDERS_ELEMENT_OF = {
   CheckboxCard: 'Card', // its label is a `.card.checkbox-card`
   Dropzone: 'File', // its zone is a `.file.is-boxed.is-fullwidth`
+  Lightbox: 'Modal', // its viewer is a `.modal.lightbox`
   LinkButton: 'Button', // renders `.button.link-button` through Button
   PinInput: 'Input', // each of its boxes is an `.input.pin-input-box`
   RadioCard: 'Card', // its label is a `.card.radio-card`

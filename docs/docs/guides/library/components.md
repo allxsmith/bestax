@@ -488,6 +488,45 @@ An overlapping (or `spaced`) group of `Avatar`s that clamps to `max` and renders
 
 ---
 
+### Lightbox
+
+Images shown one at a time in a modal viewer, opened from a `Lightbox.Trigger` button around each thumbnail, with previous and next, a counter, captions and zoom, and focus back on the thumbnail when it closes. [View full documentation.](../../api/components/lightbox.md)
+
+```tsx live
+function example() {
+  const photos = [
+    {
+      src: '/img/carousel/carousel-banner-1.jpg',
+      alt: 'Vibrant galaxy with purple and gold tones',
+    },
+    {
+      src: '/img/carousel/carousel-banner-2.jpg',
+      alt: 'Milky Way over silhouetted mountains',
+    },
+    {
+      src: '/img/carousel/carousel-banner-3.jpg',
+      alt: 'Starry night sky over mountain silhouettes',
+    },
+  ];
+
+  return (
+    <Lightbox items={photos}>
+      <Columns isMobile>
+        {photos.map((photo, i) => (
+          <Column key={photo.src} size="one-third">
+            <Lightbox.Trigger index={i}>
+              <Image as="div" src={photo.src} alt={photo.alt} size="4by3" />
+            </Lightbox.Trigger>
+          </Column>
+        ))}
+      </Columns>
+    </Lightbox>
+  );
+}
+```
+
+---
+
 ## Overlays
 
 ### Modal

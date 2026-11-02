@@ -1,0 +1,343 @@
+{
+  "name": "Lightbox",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/lightbox",
+  "docsUrl": "https://bestax.io/docs/api/components/lightbox",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "function example() {\n  const photos = [\n    {\n      src: '/img/carousel/carousel-banner-1.jpg',\n      alt: 'Vibrant galaxy with purple and gold tones',\n      caption: 'A galaxy in purple and gold',\n    },\n    {\n      src: '/img/carousel/carousel-banner-2.jpg',\n      alt: 'Milky Way over silhouetted mountains',\n    },\n    {\n      src: '/img/carousel/carousel-banner-3.jpg',\n      alt: 'Starry night sky over mountain silhouettes',\n    },\n  ];\n\n  return (\n    <Lightbox items={photos}>\n      <Columns isMobile>\n        {photos.map((photo, i) => (\n          <Column key={photo.src} size=\"one-third\">\n            <Lightbox.Trigger index={i}>\n              <Image as=\"div\" src={photo.src} alt={photo.alt} size=\"4by3\" />\n            </Lightbox.Trigger>\n          </Column>\n        ))}\n      </Columns>\n    </Lightbox>\n  );\n}"
+    },
+    {
+      "title": "A Button That Opens the Album",
+      "code": "function example() {\n  const photos = [\n    {\n      src: '/img/carousel/carousel-banner-3.jpg',\n      alt: 'Starry night sky over mountain silhouettes',\n    },\n    {\n      src: '/img/carousel/carousel-banner-2.jpg',\n      alt: 'Milky Way over silhouetted mountains',\n    },\n    {\n      src: '/img/carousel/carousel-banner-1.jpg',\n      alt: 'Vibrant galaxy with purple and gold tones',\n    },\n  ];\n\n  return (\n    <Lightbox items={photos} repeat>\n      <Lightbox.Trigger index={0}>\n        <Image as=\"div\" src={photos[0].src} alt=\"\" size=\"16by9\" />\n        <Span display=\"block\" mt=\"2\" textWeight=\"semibold\">\n          View all {photos.length} photos\n        </Span>\n      </Lightbox.Trigger>\n    </Lightbox>\n  );\n}"
+    },
+    {
+      "title": "A Button That Opens the Album",
+      "code": "<Lightbox\n  items={[\n    {\n      src: '/img/carousel/carousel-banner-2.jpg',\n      alt: 'Milky Way over silhouetted mountains',\n    },\n  ]}\n>\n  <Lightbox.Trigger index={0} className=\"button is-link\">\n    Open the photo\n  </Lightbox.Trigger>\n</Lightbox>"
+    },
+    {
+      "title": "Captions and Sizes",
+      "code": "function example() {\n  const photos = [\n    {\n      src: '/img/carousel/carousel-banner-2.jpg',\n      alt: 'Milky Way over silhouetted mountains',\n      caption: (\n        <>\n          <strong>The Milky Way</strong>, over a line of peaks\n        </>\n      ),\n    },\n    {\n      src: '/img/carousel/carousel-banner-3.jpg',\n      alt: 'Starry night sky over mountain silhouettes',\n      caption: 'Stars over the mountains',\n    },\n  ];\n\n  return (\n    <Lightbox items={photos}>\n      <Buttons>\n        {photos.map((photo, i) => (\n          <Lightbox.Trigger key={photo.src} index={i} className=\"button\">\n            Photo {i + 1}\n          </Lightbox.Trigger>\n        ))}\n      </Buttons>\n    </Lightbox>\n  );\n}"
+    },
+    {
+      "title": "Captions and Sizes",
+      "code": "const photos = [\n  {\n    src: '/photos/harbour-1600.jpg',\n    srcSet: '/photos/harbour-800.jpg 800w, /photos/harbour-1600.jpg 1600w',\n    sizes: '100vw',\n    alt: 'Harbour at dusk',\n  },\n];"
+    },
+    {
+      "title": "Keeping the Image in the URL",
+      "code": "function example() {\n  const [photo, setPhoto] = useState<number>();\n  const photos = [\n    {\n      src: '/img/carousel/carousel-banner-1.jpg',\n      alt: 'Vibrant galaxy with purple and gold tones',\n    },\n    {\n      src: '/img/carousel/carousel-banner-2.jpg',\n      alt: 'Milky Way over silhouetted mountains',\n    },\n    {\n      src: '/img/carousel/carousel-banner-3.jpg',\n      alt: 'Starry night sky over mountain silhouettes',\n    },\n  ];\n\n  return (\n    <>\n      <Paragraph mb=\"3\">\n        {photo === undefined ? 'No photo open.' : `?photo=${photo + 1}`}\n      </Paragraph>\n      <Button onClick={() => setPhoto(2)}>Open the third photo</Button>\n      <Lightbox\n        items={photos}\n        open={photo !== undefined}\n        onOpenChange={open => !open && setPhoto(undefined)}\n        value={photo ?? 0}\n        onChange={setPhoto}\n      />\n    </>\n  );\n}"
+    },
+    {
+      "title": "Zoom",
+      "code": "<Lightbox\n  maxZoom={6}\n  items={[\n    {\n      src: '/img/carousel/carousel-banner-2.jpg',\n      alt: 'Milky Way over silhouetted mountains',\n      caption: 'Zoom in on the stars',\n    },\n  ]}\n>\n  <Lightbox.Trigger index={0} className=\"button\">\n    Open the tall photo\n  </Lightbox.Trigger>\n</Lightbox>"
+    },
+    {
+      "title": "Other Languages and Right to Left",
+      "code": "function example() {\n  const arabic = new Intl.NumberFormat('ar-EG');\n  const photos = [\n    {\n      src: '/img/carousel/carousel-banner-2.jpg',\n      alt: 'درب التبانة فوق ظلال الجبال',\n    },\n    {\n      src: '/img/carousel/carousel-banner-3.jpg',\n      alt: 'سماء ليلية مرصعة بالنجوم فوق قمم الجبال',\n    },\n  ];\n\n  return (\n    <LocaleProvider dir=\"rtl\" locale=\"ar-EG\">\n      <Lightbox\n        items={photos}\n        ariaLabel=\"عارض الصور\"\n        labels={{\n          close: 'إغلاق',\n          previous: 'الصورة السابقة',\n          next: 'الصورة التالية',\n          zoomIn: 'تكبير',\n          zoomOut: 'تصغير',\n          resetZoom: 'إعادة الحجم',\n          loading: 'جارٍ تحميل الصورة',\n          loadError: 'تعذّر تحميل هذه الصورة.',\n          retry: 'إعادة المحاولة',\n          progress: (current, total) =>\n            `الصورة ${arabic.format(current)} من ${arabic.format(total)}`,\n        }}\n      >\n        <Lightbox.Trigger index={0} className=\"button\">\n          عرض الصور\n        </Lightbox.Trigger>\n      </Lightbox>\n    </LocaleProvider>\n  );\n}"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Lightbox\n  items={[\n    {\n      src: '/img/carousel/carousel-banner-1.jpg',\n      alt: 'Vibrant galaxy with purple and gold tones',\n    },\n    {\n      src: '/img/carousel/carousel-banner-3.jpg',\n      alt: 'Starry night sky over mountain silhouettes',\n    },\n  ]}\n>\n  <Buttons>\n    <LightboxTrigger index={0} className=\"button\">\n      LightboxTrigger\n    </LightboxTrigger>\n    <Lightbox.Trigger index={1} className=\"button\">\n      Lightbox.Trigger\n    </Lightbox.Trigger>\n  </Buttons>\n</Lightbox>"
+    }
+  ],
+  "accessibility": "- **A modal dialog:** the viewer is a `Modal` with `role=\"dialog\"` and `aria-modal`, named by\n  `ariaLabel` (\"Image viewer\" by default) rather than by the image's alt, which changes with every\n  image. Focus moves to the close button when it opens, Tab stays inside, Escape closes it when\n  it's the topmost overlay, and focus goes back to the trigger, or to whatever had it when `open`\n  was set.\n- **Real triggers:** each `Lightbox.Trigger` is a `<button type=\"button\" aria-haspopup=\"dialog\">`\n  named by its content, so the thumbnail's `alt` is the button's name, as long as it isn't inside\n  a `<figure>` (give a ratio `Image` `as=\"div\"`).\n- **Every image has an alt:** `alt` is required in the type, a development build warns once for an\n  item without one, and the caption is the `<figure>`'s `<figcaption>`, which names it.\n- **Moves are announced:** after the viewer opens and after each move, a polite status line says\n  \"Image 3 of 10: Harbour at dusk\", from `labels.progress` and the image's alt. The visible counter\n  is hidden from screen readers, so it isn't read twice. A failed image's message is announced the\n  same way.\n- **At the ends:** without `repeat`, the previous or next button is `aria-disabled` but stays in\n  the tab order, so focus isn't dropped when it stops working. The zoom buttons do the same at their\n  limits.\n- **Single-pointer alternatives:** pinch has the zoom buttons and a double click or tap. Panning a\n  zoomed image is a drag, so zoom-out and reset are always one press away, and the arrow keys pan.\n- **Right to left:** the arrows, the keys and swipes follow the reading direction, so the next\n  image is always the way the next arrow points.\n- **Contrast:** the counter, the caption and the buttons' icons are white on Bulma's near-black\n  modal background in both schemes, well over the 4.5:1 WCAG asks of text.\n- **Forced colors:** the buttons draw their borders in the system's colors and the focus ring\n  shows.\n- **Motion:** the open fade, the crossfade between images and the zoom transition stop under\n  `prefers-reduced-motion: reduce`.",
+  "related": ["Carousel", "Figure", "Image", "Modal", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-lightbox--default",
+  "summary": "The `Lightbox` component shows a set of images one at a time in a modal viewer, with previous and next, a counter, captions and zoom, opened from the `Lightbox.Trigger` buttons you place. It renders its children where it stands, with no wrapper, and the viewer only while it's open, into a portal by default. The viewer is a `Modal`: focus moves to its close button, Tab stays inside, Escape and a click on the background close it, and focus goes back to the trigger.",
+  "import": "import { Lightbox } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Lightbox.tsx",
+  "rootClass": "lightbox",
+  "parts": [
+    {
+      "path": "Lightbox",
+      "summary": "The `Lightbox` component shows a set of images one at a time in a modal viewer, with previous and next, a counter, captions and zoom, opened from the `Lightbox.Trigger` buttons you place. It renders its children where it stands, with no wrapper, and the viewer only while it's open, into a portal by default. The viewer is a `Modal`: focus moves to its close button, Tab stays inside, Escape and a click on the background close it, and focus goes back to the trigger.",
+      "component": null,
+      "props": [
+        {
+          "name": "items",
+          "type": "LightboxItem[]",
+          "default": null,
+          "description": "**Required.** The images, in order.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Rendered in place: usually `Lightbox.Trigger`s, in whatever layout you like.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": null,
+          "description": "Whether the viewer is open (controlled). With no `items` it shows nothing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the viewer starts open (uncontrolled).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "default": null,
+          "description": "Called when a trigger, the close button, Escape, a click on the background or a swipe down opens or closes the viewer.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "default": null,
+          "description": "The index of the image shown (controlled). A value past either end is shown as the last or the first image, or wrapped round with `repeat`, without calling `onChange`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "number",
+          "default": "0",
+          "description": "The image an uncontrolled viewer shows when something other than a trigger opens it. A trigger opens at its own `index`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(value: number) => void",
+          "default": null,
+          "description": "Called with the new index when a trigger, an arrow, a key or a swipe changes the image. A trigger calls it before `onOpenChange(true)`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "repeat",
+          "type": "boolean",
+          "default": "false",
+          "description": "Go from the last image to the first and back. Off, the previous and next buttons are `aria-disabled` at the ends.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "zoomable",
+          "type": "boolean",
+          "default": "true",
+          "description": "Zoom with the buttons, the wheel, a double click or tap, pinch and the `+`, `-` and `0` keys, and pan a zoomed image by dragging or with the arrow keys. `false` drops the zoom buttons and all of it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "maxZoom",
+          "type": "number",
+          "default": "3",
+          "description": "How far an image zooms, as a multiple of its fitted size. The smallest zoom is always the fitted size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnEscape",
+          "type": "boolean",
+          "default": "true",
+          "description": "Close on Escape. Only the topmost open overlay answers, as with Modal.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnClickOutside",
+          "type": "boolean",
+          "default": "true",
+          "description": "Close on a click on the dark background around the image. The space around the image, beside the toolbar's buttons and under the caption is all background.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "portal",
+          "type": "boolean | string | HTMLElement",
+          "default": "true",
+          "description": "Renders the viewer into a portal, as Modal's `portal` does: `true` for the `ConfigProvider`'s `portalContainer` (`document.body` by default), a selector string, or an element. `false` renders it in place, where a transformed ancestor can trap it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "default": "'Image viewer'",
+          "description": "The dialog's accessible name. It stays the same from image to image; the status line says which image is shown.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "LightboxLabels",
+          "default": null,
+          "description": "The words it writes, for another language.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the viewer's `.modal` element, `null` while it's closed.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Lightbox.Trigger",
+      "summary": "A button around a thumbnail, or a line of text, that opens the viewer at its `index`.",
+      "component": null,
+      "props": [
+        {
+          "name": "index",
+          "type": "number",
+          "default": null,
+          "description": "**Required.** The index in `items` the viewer opens at.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "What the button shows: a thumbnail, or text such as \"View all photos\". A ratio `Image` here takes `as=\"div\"`, since its `<figure>` would keep the image's alt from naming the button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLButtonElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<button>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <button> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-lightbox-arrow-background",
+      "sass": "$lightbox-arrow-background",
+      "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.3)",
+      "scope": "compound"
+    },
+    {
+      "css": "--bulma-lightbox-arrow-background-hover",
+      "sass": "$lightbox-arrow-background-hover",
+      "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.5)",
+      "scope": "compound"
+    },
+    {
+      "css": "--bulma-lightbox-arrow-color",
+      "sass": "$lightbox-arrow-color",
+      "default": "var(--bulma-white)",
+      "scope": "compound"
+    },
+    {
+      "css": "--bulma-lightbox-arrow-size",
+      "sass": "$lightbox-arrow-size",
+      "default": "3rem",
+      "scope": "compound"
+    },
+    {
+      "css": "--bulma-lightbox-arrow-offset",
+      "sass": "$lightbox-arrow-offset",
+      "default": "1rem",
+      "scope": "compound"
+    },
+    {
+      "css": "--bulma-lightbox-disabled-opacity",
+      "sass": "$lightbox-disabled-opacity",
+      "default": "0.4",
+      "scope": "compound"
+    },
+    {
+      "css": "--bulma-lightbox-toolbar-color",
+      "sass": "$lightbox-toolbar-color",
+      "default": "var(--bulma-white)",
+      "scope": "compound"
+    },
+    {
+      "css": "--bulma-lightbox-caption-color",
+      "sass": "$lightbox-caption-color",
+      "default": "var(--bulma-white)",
+      "scope": "compound"
+    },
+    {
+      "css": "--bulma-lightbox-spacing",
+      "sass": "$lightbox-spacing",
+      "default": "4.5rem",
+      "scope": "compound"
+    },
+    {
+      "css": "--bulma-lightbox-image-max-height",
+      "sass": "$lightbox-image-max-height",
+      "default": "calc(100% - 2 * var(--bulma-lightbox-spacing))",
+      "scope": "compound"
+    },
+    {
+      "css": "--bulma-lightbox-animation-duration",
+      "sass": "$lightbox-animation-duration",
+      "default": "0.2s",
+      "scope": "compound"
+    }
+  ],
+  "cssVarsFrom": "Modal"
+}

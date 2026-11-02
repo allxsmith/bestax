@@ -659,6 +659,22 @@ in a tooltip without an override of its own. The sizes are in `em`, so `textSize
 `--bulma-kbd-border-width`, `--bulma-kbd-color`, `--bulma-kbd-family`, `--bulma-kbd-padding`,
 `--bulma-kbd-radius`, `--bulma-kbd-size`, `--bulma-kbd-weight`
 
+### Lightbox
+
+Declared on the viewer's root, `.modal.lightbox`, which also sets Bulma's own
+`--bulma-modal-content-width`, so the image is as wide as the viewer less the room for the arrows.
+That's two classes, so a lone class through `className` loses to it: set them inline through
+`style`, which lands on the root, or with a rule at least as specific that loads after the
+library's. Its background is Bulma's modal background, `--bulma-modal-background-background-color`,
+near-black in both schemes, which is why the text and the icons default to white; keep them light
+if you change it. In forced colors the buttons' borders take the system's colors whatever these say.
+
+`--bulma-lightbox-animation-duration`, `--bulma-lightbox-arrow-background`,
+`--bulma-lightbox-arrow-background-hover`, `--bulma-lightbox-arrow-color`,
+`--bulma-lightbox-arrow-offset`, `--bulma-lightbox-arrow-size`, `--bulma-lightbox-caption-color`,
+`--bulma-lightbox-disabled-opacity`, `--bulma-lightbox-image-max-height`,
+`--bulma-lightbox-spacing`, `--bulma-lightbox-toolbar-color`
+
 ### LinkButton
 
 Declared on the compound `.button.link-button` — see the compound-selector exception above.

@@ -905,11 +905,12 @@ function CombinedHelpersExample() {
   </Card.Content>
 </Card>
 
-// Image gallery item with positioning
-<Box relative>
-  <Image src="..." radius="radiusless" />
-  <Box overlay={true} interaction="clickable" onClick={openLightbox} />
-</Box>
+// Image gallery item: a real button that opens a Lightbox at its photo
+<Lightbox items={photos}>
+  <Lightbox.Trigger index={0}>
+    <Image src={photos[0].src} alt={photos[0].alt} radius="radiusless" />
+  </Lightbox.Trigger>
+</Lightbox>
 
 // Floating action button
 <Button

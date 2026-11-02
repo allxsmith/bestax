@@ -105,6 +105,8 @@ const PUBLIC_EXPORTS = [
   'LevelItem',
   'LevelLeft',
   'LevelRight',
+  'Lightbox',
+  'LightboxTrigger',
   'Link',
   'LinkButton',
   'ListItem',

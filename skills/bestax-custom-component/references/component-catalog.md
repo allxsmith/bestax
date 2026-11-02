@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-118 documented components. Generated from the API docs — every exported
+119 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -96,6 +96,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Dropdown](https://bestax.io/docs/api/components/dropdown) — The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.
 - [EmptyState](https://bestax.io/docs/api/components/emptystate) — The `EmptyState` component renders the block an app shows where content would be: an empty list, a search with no results, or a first-run screen.
 - [HoverCard](https://bestax.io/docs/api/components/hovercard) — The `HoverCard` component shows a card previewing what's behind a link or a button while the pointer rests on it or keyboard focus is on it.
+- [Lightbox](https://bestax.io/docs/api/components/lightbox) — The `Lightbox` component shows a set of images one at a time in a modal viewer, with previous and next, a counter, captions and zoom, opened from the…
 - [Loading](https://bestax.io/docs/api/components/loading) — The `Loading` component provides a loading overlay with a spinner animation.
 - [Menu](https://bestax.io/docs/api/components/menu) — The `Menu` component provides Bulma's vertical navigation menu: a simple, accessible sidebar or section menu for your Bulma React UI.
 - [Message](https://bestax.io/docs/api/components/message) — The `Message` component provides Bulma's flexible notice/message box for your Bulma React UI.

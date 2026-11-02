@@ -67,6 +67,7 @@
         "Dropdown",
         "EmptyState",
         "HoverCard",
+        "Lightbox",
         "Loading",
         "Menu",
         "Message",
@@ -784,6 +785,17 @@
       "compound": true,
       "propCount": 23,
       "exampleCount": 5
+    },
+    {
+      "name": "Lightbox",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `Lightbox` component shows a set of images one at a time in a modal viewer, with previous and next, a counter, captions and zoom, opened from the…",
+      "slug": "components/lightbox",
+      "import": "import { Lightbox } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 20,
+      "exampleCount": 9
     },
     {
       "name": "Link",
@@ -2336,6 +2348,17 @@
     "--bulma-kbd-size": ["Kbd"],
     "--bulma-kbd-weight": ["Kbd"],
     "--bulma-level-item-spacing": ["Level"],
+    "--bulma-lightbox-animation-duration": ["Lightbox"],
+    "--bulma-lightbox-arrow-background": ["Lightbox"],
+    "--bulma-lightbox-arrow-background-hover": ["Lightbox"],
+    "--bulma-lightbox-arrow-color": ["Lightbox"],
+    "--bulma-lightbox-arrow-offset": ["Lightbox"],
+    "--bulma-lightbox-arrow-size": ["Lightbox"],
+    "--bulma-lightbox-caption-color": ["Lightbox"],
+    "--bulma-lightbox-disabled-opacity": ["Lightbox"],
+    "--bulma-lightbox-image-max-height": ["Lightbox"],
+    "--bulma-lightbox-spacing": ["Lightbox"],
+    "--bulma-lightbox-toolbar-color": ["Lightbox"],
     "--bulma-link-button-ghost-color": ["LinkButton"],
     "--bulma-link-button-ghost-hover-color": ["LinkButton"],
     "--bulma-link-button-transition-duration": ["LinkButton"],
@@ -3222,6 +3245,11 @@
       "component": "Level",
       "path": "Level.Right",
       "purpose": "Right-aligned content."
+    },
+    "LightboxTrigger": {
+      "component": "Lightbox",
+      "path": "Lightbox.Trigger",
+      "purpose": "A button around a thumbnail, or a line of text, that opens the viewer at its `index`."
     },
     "MediaContent": {
       "component": "Media",

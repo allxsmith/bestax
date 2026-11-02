@@ -121,6 +121,12 @@ const ADDONS = [
     desc: 'Previews on links and buttons that open on hover or keyboard focus, and that the pointer can reach.',
   },
   {
+    name: 'Lightbox',
+    icon: 'lightbox',
+    link: '/docs/api/components/lightbox',
+    desc: 'Photos shown one at a time over the page, opened from their thumbnails, with previous and next, captions and zoom.',
+  },
+  {
     name: 'Loading',
     icon: 'loading',
     link: '/docs/api/components/loading',

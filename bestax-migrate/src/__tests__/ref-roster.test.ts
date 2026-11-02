@@ -53,6 +53,8 @@ const NAMED_INDIVIDUALLY = [
   'EmptyState',
   'Kbd',
   'Kbd.Group',
+  'Lightbox',
+  'Lightbox.Trigger',
   'Link',
   'LinkButton',
   'Loader',
