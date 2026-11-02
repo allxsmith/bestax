@@ -140,8 +140,8 @@ export interface TreeViewProps
    * now shows checked, parents included, plus any earlier value that matches
    * no item the tree knows, left as it was, and the order means nothing. In
    * `checkbox-independent`, with the list as it was, the item's value added
-   * at the end or taken out, and everything else in the same order. Passed
-   * back as `checked`, the list shows the same boxes.
+   * at the end or every copy of it taken out, and everything else in the
+   * same order. Passed back as `checked`, the list shows the same boxes.
    */
   onCheckedChange?: (checked: string[]) => void;
   /**

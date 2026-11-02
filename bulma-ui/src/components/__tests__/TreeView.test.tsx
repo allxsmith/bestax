@@ -332,6 +332,25 @@ describe('TreeView', () => {
       );
       expect(treeFromCallback).toBe(screen.getByRole('tree'));
     });
+
+    it.each<[TreeViewSelectionMode, boolean]>([
+      ['none', false],
+      ['single', false],
+      ['checkbox', true],
+      ['checkbox-independent', true],
+    ])('marks a %s tree multiselectable: %s', (mode, multiselectable) => {
+      render(<Files selectionMode={mode} />);
+      if (multiselectable) {
+        expect(screen.getByRole('tree')).toHaveAttribute(
+          'aria-multiselectable',
+          'true'
+        );
+      } else {
+        expect(screen.getByRole('tree')).not.toHaveAttribute(
+          'aria-multiselectable'
+        );
+      }
+    });
   });
 
   describe('selectionMode="none"', () => {
@@ -890,25 +909,6 @@ describe('TreeView', () => {
       ]);
       expect(container.querySelector('[aria-selected]')).toBeNull();
       expect(container.querySelector('.is-selected')).toBeNull();
-    });
-
-    it.each<[TreeViewSelectionMode, boolean]>([
-      ['none', false],
-      ['single', false],
-      ['checkbox', true],
-      ['checkbox-independent', true],
-    ])('marks a %s tree multiselectable: %s', (mode, multiselectable) => {
-      render(<Files selectionMode={mode} />);
-      if (multiselectable) {
-        expect(screen.getByRole('tree')).toHaveAttribute(
-          'aria-multiselectable',
-          'true'
-        );
-      } else {
-        expect(screen.getByRole('tree')).not.toHaveAttribute(
-          'aria-multiselectable'
-        );
-      }
     });
 
     it('draws a Checkbox in a hidden box, in the item’s own state, never indeterminate', () => {

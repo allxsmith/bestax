@@ -66,8 +66,9 @@ const CHECKBOX_ACTIONS: ModeActions = {
 
 /**
  * What Enter, Space and a click on the row do in each mode, from the tables
- * in #1096. `open` opens or closes a parent and does nothing on a leaf. A
- * click on the chevron only ever opens or closes.
+ * in #1096, with `checkbox-independent` from #1430. `open` opens or closes a
+ * parent and does nothing on a leaf. A click on the chevron only ever opens
+ * or closes.
  */
 const MODES: Record<TreeViewSelectionMode, ModeActions> = {
   none: { enter: ['open'], space: ['open'], click: ['open'] },
@@ -258,6 +259,18 @@ function useControlled<T>(controlled: T | undefined, initial: T) {
   return [isControlled ? controlled : own, set] as const;
 }
 
+/**
+ * The list with `value` added at the end, or, when it's `present`, with
+ * every copy of it taken out. Everything else stays as it was, in its order.
+ */
+function addedOrRemoved(
+  list: string[],
+  value: string,
+  present: boolean
+): string[] {
+  return present ? list.filter(v => v !== value) : [...list, value];
+}
+
 /** Options for `useTreeView`: the TreeView's own props. */
 export interface TreeViewOptions {
   mode: TreeViewSelectionMode;
@@ -370,9 +383,11 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
   // a `checkbox-independent` one each box is its own item's, read off the list.
   const cascade = mode === 'checkbox';
   const independent = mode === 'checkbox-independent';
+  // A box on every item, in either checkbox tree.
+  const boxed = cascade || independent;
   // Each is read in its own mode only.
   const selected = mode === 'single' ? selection : null;
-  const listed = new Set(cascade || independent ? checkedList : []);
+  const listed = new Set(boxed ? checkedList : []);
 
   const treeRef = useRef<HTMLUListElement | null>(null);
   const registryRef = useRef<Registry>({
@@ -402,6 +417,13 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
     : undefined;
   const tabStop = focused ?? (resting === undefined ? selected : resting);
 
+  // An item's box, decided here alone, so the box drawn, the tab stop and a
+  // toggle agree: off the list in a `checkbox-independent` tree, and by the
+  // rules in a `checkbox` one, where it's `undefined` until the item
+  // registers. `undefined` in a tree with no boxes.
+  const checkOf = (value: string): TreeViewCheckState | undefined =>
+    independent ? listed.has(value) : checks?.get(value);
+
   const isOpen = (value: string) => expanded.includes(value);
 
   const stateOf = (
@@ -412,13 +434,14 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
     if (mode === 'single') {
       return disabled ? {} : { selected: value === selected };
     }
-    if (independent) return { checked: listed.has(value) };
-    if (checks) {
-      // Until the items register, a value stands for its branch, and a
-      // parent can't know it's mixed.
-      const fromList =
-        listed.has(value) || (!disabled && path.some(v => listed.has(v)));
-      return { checked: checks.get(value) ?? fromList };
+    if (boxed) {
+      // Until the items register in a `checkbox` tree, a value stands for
+      // its branch, and a parent can't know it's mixed.
+      return {
+        checked:
+          checkOf(value) ??
+          (listed.has(value) || (!disabled && path.some(v => listed.has(v)))),
+      };
     }
     return {};
   };
@@ -430,11 +453,7 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
 
   const run: Record<Action, (item: TreeViewItemInfo) => void> = {
     open: ({ value, isParent, open }) => {
-      if (isParent) {
-        changeOpen(
-          open ? expanded.filter(v => v !== value) : [...expanded, value]
-        );
-      }
+      if (isParent) changeOpen(addedOrRemoved(expanded, value, open));
     },
     select: ({ value }) => {
       if (value === selected) return;
@@ -445,9 +464,7 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
       // A `checkbox-independent` box is its own item's alone, so its value
       // comes or goes and the rest of the list stays as it was.
       const next = independent
-        ? listed.has(value)
-          ? checkedList.filter(v => v !== value)
-          : [...checkedList, value]
+        ? addedOrRemoved(checkedList, value, checkOf(value) === true)
         : toggledList(records, checkedList, value);
       setChecked(next);
       options.onCheckedChange?.(next);
@@ -499,9 +516,7 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
     if (focused !== null && !isShown(focused)) setFocused(null);
 
     const preferred = onPage.find(
-      value =>
-        value === selected ||
-        (independent ? listed.has(value) : checks?.get(value) === true)
+      value => value === selected || checkOf(value) === true
     );
     const next =
       preferred ?? (isShown(resting) ? resting : heir(restingPathRef.current));
@@ -658,7 +673,7 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
   return {
     treeRef,
     rendersClosed: cascade,
-    multiselectable: cascade || independent,
+    multiselectable: boxed,
     tabStop,
     isOpen,
     stateOf,
