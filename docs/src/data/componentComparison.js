@@ -155,6 +155,7 @@ const BESTAX = {
   overlay: '/docs/guides/helpers/other',
   aspectRatio: '/docs/guides/helpers/other',
   'pos="sticky"': '/docs/guides/helpers/other',
+  'Affix + Button': 'components/affix',
   gap: '/docs/guides/helpers/flex#gap',
   'bestax.css': '/docs/guides/getting-started/installation',
   // Capabilities bestax documents as a recipe rather than a component.
@@ -694,7 +695,16 @@ export const categories = [
         '~Button + Menu',
         '~ButtonGroup',
       ],
-      ['Floating action button', 0, '~Affix + ActionIcon', 0, 'Fab', 0, 0, 0],
+      [
+        'Floating action button',
+        '~Affix + Button',
+        '~Affix + ActionIcon',
+        0,
+        'Fab',
+        0,
+        0,
+        0,
+      ],
       ['Speed dial', 0, 0, 0, 'SpeedDial', 0, 0, 0],
       [
         'Action bar (bulk actions)',
@@ -2100,6 +2110,8 @@ export const corrections = [
     renamed: {
       'Affix (sticky)': 'Affix (fixed or sticky)',
     },
-    cells: {},
+    cells: {
+      'Floating action button': { bestax: 'partial' },
+    },
   },
 ];

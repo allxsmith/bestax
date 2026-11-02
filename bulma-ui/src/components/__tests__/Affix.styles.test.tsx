@@ -7,9 +7,9 @@ import path from 'path';
 const SCSS = path.resolve(__dirname, '../../scss');
 const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
 
-const compile = (prefix: string) =>
+const compile = (prefix: string, blockSpacing = '') =>
   sass.compileString(
-    `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+    `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}'${blockSpacing && `, $block-spacing: ${blockSpacing}`});
      @use 'components/affix';`,
     {
       loadPaths: [SCSS, NODE_MODULES],
@@ -46,12 +46,21 @@ const PREFIXED = rulesOf(compile('bestax-'));
 const corner = (name: string) => PLAIN.get(`.affix.is-${name}`);
 
 describe('Affix styles', () => {
-  it('registers its offsets from Bulma’s block spacing and its z-index at the sticky step', () => {
+  it('registers its offsets at Bulma’s block spacing and its z-index one under the dropdown layer', () => {
     expect(PLAIN.get('.affix')).toMatchObject({
-      '--bulma-affix-offset-vertical': 'var(--bulma-block-spacing)',
-      '--bulma-affix-offset-horizontal': 'var(--bulma-block-spacing)',
-      '--bulma-affix-z-index': '30',
+      '--bulma-affix-offset-vertical': '1.5rem',
+      '--bulma-affix-offset-horizontal': '1.5rem',
+      '--bulma-affix-z-index': '19',
     });
+  });
+
+  it('takes the block spacing a build configures, as a value rather than the variable a Field redefines', () => {
+    expect(rulesOf(compile('', '2rem')).get('.affix')).toMatchObject({
+      '--bulma-affix-offset-vertical': '2rem',
+      '--bulma-affix-offset-horizontal': '2rem',
+    });
+    const css = compile('');
+    expect(css).not.toContain('block-spacing');
   });
 
   it('fixes it at that z-index, never wider than the viewport less both offsets and safe areas', () => {
@@ -88,7 +97,7 @@ describe('Affix styles', () => {
 
   it('prefixes every selector under a class prefix', () => {
     expect(PREFIXED.get('.bestax-affix')).toMatchObject({
-      '--bulma-affix-z-index': '30',
+      '--bulma-affix-z-index': '19',
       position: 'fixed',
     });
     expect(PREFIXED.get('.bestax-affix.bestax-is-bottom-left')).toEqual({

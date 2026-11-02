@@ -114,6 +114,11 @@ function example() {
 The spacing helper props move a single Affix further from its corner, since a margin pushes a fixed
 box off its edge. `mb="6"` lifts a bottom corner above a bar along the bottom of the page.
 
+A margin on one side also takes that much from the width the content can have. The width cap
+subtracts the offsets, not the margins, so with `mr="6"` a wide notice on a phone runs to the far
+edge of the screen instead of stopping short of it. For a move of more than a step or two, set the
+offset variables instead, as below.
+
 ```tsx live
 function example() {
   const [shown, setShown] = useState(false);
@@ -137,18 +142,24 @@ function example() {
 ### Offsets and the Safe Area
 
 Every Affix sits `--bulma-affix-offset-vertical` from its top or bottom edge and
-`--bulma-affix-offset-horizontal` from its side, both Bulma's block spacing to start with, so a theme
-that changes the spacing moves them too. Set the variables on the `.affix` class (`.bestax-affix`
-under a class prefix) to move every Affix, since each one declares its own values:
+`--bulma-affix-offset-horizontal` from its side. Both start at Bulma's block spacing, 1.5rem unless
+your Sass build sets `$block-spacing`. They take its value rather than the `--bulma-block-spacing`
+variable, which Bulma narrows inside a Field, so an Affix sits in the same place wherever you write
+it.
+
+Each Affix declares its own values, so set the variables on the Affix itself, not on `:root`. A rule
+on `.affix` alone (`.bestax-affix` under a class prefix) has the same weight as the library's, so it
+wins only when your stylesheet loads after bestax's. `:root .affix` wins wherever it loads:
 
 ```css
-.affix {
+:root .affix {
   --bulma-affix-offset-vertical: 2rem;
   --bulma-affix-offset-horizontal: 2rem;
 }
 ```
 
-To move one Affix, set them in its `style`, or give it a class of your own:
+To move one Affix, set them in its `style`, or give it a class of your own and pair it with
+`.affix`, which wins wherever it loads too:
 
 ```tsx
 <Affix className="above-the-tab-bar">
@@ -235,6 +246,13 @@ function example() {
 Content that needs a landmark brings its own role and name, since the Affix is only a positioning
 wrapper. It's never wider than the viewport less its offsets, so a long notice wraps on a phone.
 
+The Affix doesn't scroll, so its edges cut nothing off: a badge, a tooltip, a menu or a focus ring
+inside it shows in full. Content that can be taller than the screen, at high zoom or on a phone held
+sideways, scrolls itself.
+Here the text is in a [`ScrollArea`](./scrollarea.md) whose `maxHeight` is the viewport less the
+Affix's offsets, its safe-area insets and `7rem` for the box's padding and the buttons, which stay
+outside it, so Accept and Decline are always on screen.
+
 ```tsx live
 function example() {
   const [shown, setShown] = useState(false);
@@ -244,10 +262,16 @@ function example() {
       {shown && (
         <Affix position="bottom-left">
           <Box role="region" aria-label="Cookie consent" mb="0">
-            <Paragraph mb="3">
-              We use one cookie to remember your theme. Nothing else is stored,
-              and nothing is shared.
-            </Paragraph>
+            <ScrollArea
+              maxHeight="calc(100dvh - 2 * var(--bulma-affix-offset-vertical) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 7rem)"
+              aria-label="What we store"
+              mb="3"
+            >
+              <Paragraph>
+                We use one cookie to remember your theme. Nothing else is
+                stored, and nothing is shared.
+              </Paragraph>
+            </ScrollArea>
             <Buttons>
               <Button color="primary" onClick={() => setShown(false)}>
                 Accept
@@ -288,10 +312,14 @@ function example() {
 
 ### Where It Stacks
 
-It stacks at `--bulma-affix-z-index`: over the page, level with Popover and Bulma's fixed navbar,
-and under the Sidebar and its overlay, Bulma's modal, a full-page Loading, Tooltip and Toast. A
-toast stack in the same corner sits over it, so put toasts in another corner (they start at the top
-right) or move the Affix with a larger offset.
+It stacks at `--bulma-affix-z-index`, one step under the layer Bulma's dropdown menus use. That puts
+it over the page's content, and under what opens over the page: Dropdown, Combobox and the other
+menus, Popover and the pickers' panels, a fixed navbar, the Sidebar and its overlay, Bulma's modal,
+a full-page Loading, Tooltip and Toast. A menu opened near its corner opens over it. A toast stack in
+the same corner sits over it too, so put toasts in another corner (they start at the top right) or
+move the Affix with a larger offset.
+
+A menu inside an Affix opens within the Affix's own stacking, so it shows over the page around it.
 
 ### Pinned on Scroll
 
@@ -308,8 +336,8 @@ give the element `pos="sticky"` and a `top`, as in the
   [A Consent Notice](#a-consent-notice).
 - **Reading and Tab order are DOM order:** the corner it shows in says nothing about when a screen
   reader or the Tab key reaches it. In place, that's where you write it, so put it where it belongs
-  in the reading order, usually after the page's main content. With `portal` it's at the end of its
-  container, so it's reached last.
+  in the reading order, usually after the page's main content. With `portal` it's appended to its
+  container when it mounts, so it comes after what's already there.
 - **Focus not obscured:** a fixed box can cover a focused link near its corner, which fails
   [WCAG 2.4.11](https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum) when it
   hides it entirely. On a page with a bottom-corner Affix, give `html` a `scroll-padding-bottom` at
@@ -332,8 +360,11 @@ give the element `pos="sticky"` and a `top`, as in the
   focused link that's already on screen, so the padding lowers the odds rather than ruling it out,
   and a small Affix leaves less of the page under it.
 
-- **Reflow:** it's never wider than the viewport less its offsets, at 320px too. At high zoom a
-  fixed box takes a bigger share of the screen, so keep what's in it small.
+- **Reflow:** it's never wider than the viewport less its offsets, at 320px too, so its text wraps
+  rather than running off the side. It doesn't scroll, so content that can be taller than the
+  screen at high zoom has to scroll itself, as in [A Consent Notice](#a-consent-notice), with the
+  controls that matter outside the scrolling part. A fixed box takes a bigger share of the screen
+  at high zoom, so keep what's in it small.
 - **Forced colors:** it draws nothing of its own, so what's inside keeps its own forced colors.
 - **Motion:** it has no motion of its own. What's inside keeps its own transitions.
 - **Right-to-left:** the corner stays where `position` puts it. See
@@ -346,6 +377,7 @@ give the element `pos="sticky"` and a `top`, as in the
 - [`Button`](../elements/button.md): The usual content, a floating button or a launcher.
 - [`Box`](../elements/box.md): A surface with a shadow for a notice pinned to a corner, so it stands
   out from the page under it.
+- [`ScrollArea`](./scrollarea.md): For content in an Affix that can be taller than the screen.
 - [`Toast`](./toast.md): Short-lived messages in a corner of their own, which stack over an Affix.
 - [`Badge`](./badge.md): A count on the button in the corner, with the same four corner values.
 - [`Modal`](./modal.md): The same `portal` prop, taking the same values.
@@ -369,14 +401,14 @@ give the element `pos="sticky"` and a `top`, as in the
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                                                                 | Default          | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| ----------- | -------------------------------------------------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `className` | `string`                                                             | —                | Additional CSS classes to apply.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `children`  | `React.ReactNode`                                                    | —                | What stays in the corner.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `position`  | `'top-right'` \| `'top-left'` \| `'bottom-right'` \| `'bottom-left'` | `'bottom-right'` | The corner of the viewport it's fixed to. Physical, as Badge's and Toast's are: `'bottom-right'` stays on the right in right-to-left text. Its distance from the edges is `--bulma-affix-offset-vertical` and `--bulma-affix-offset-horizontal` plus the device's safe-area inset; a margin from the spacing helpers (`mb`, `mr`, …) adds to it.                                                                                                                                                                              |
-| `portal`    | `boolean` \| `string` \| `HTMLElement`                               | `false`          | Renders it into another container, for a page where an ancestor's `transform`, `filter` or `contain` would capture `position: fixed`. `true` portals to the `portalContainer` a `ConfigProvider` sets, `document.body` by default; a string is used as a `document.querySelector` selector; an element is used directly. Renders in place on the server and while hydrating, moving into the portal once the client takes over, so hydration matches. Portaled, it comes last in the reading and Tab order of that container. |
-| `ref`       | `React.Ref<HTMLDivElement>`                                          | —                | Ref forwarded to the `<div>`, wherever it renders.                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `...`       | All standard `<div>` attributes and Bulma helper props               | —                | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Prop        | Type                                                                 | Default          | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ----------- | -------------------------------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `className` | `string`                                                             | —                | Additional CSS classes to apply.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `children`  | `React.ReactNode`                                                    | —                | What stays in the corner.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `position`  | `'top-right'` \| `'top-left'` \| `'bottom-right'` \| `'bottom-left'` | `'bottom-right'` | The corner of the viewport it's fixed to. Physical, as Badge's and Toast's are: `'bottom-right'` stays on the right in right-to-left text. Its distance from the edges is `--bulma-affix-offset-vertical` and `--bulma-affix-offset-horizontal` plus the device's safe-area inset; a margin from the spacing helpers (`mb`, `mr`, …) adds to it. A margin on one side also takes that much of the width its content can have, which the offset variables don't, so move it far with those.                                                                                           |
+| `portal`    | `boolean` \| `string` \| `HTMLElement`                               | `false`          | Renders it into another container, for a page where an ancestor's `transform`, `filter` or `contain` would capture `position: fixed`. `true` portals to the `portalContainer` a `ConfigProvider` sets, `document.body` by default; a string is used as a `document.querySelector` selector; an element is used directly. Renders in place on the server and while hydrating, moving into the portal once the client takes over, so hydration matches. Portaled, it's appended to that container when it mounts, so it comes after what's already there in the reading and Tab order. |
+| `ref`       | `React.Ref<HTMLDivElement>`                                          | —                | Ref forwarded to the `<div>`, wherever it renders.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `...`       | All standard `<div>` attributes and Bulma helper props               | —                | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 
 <!-- /bestax:generated props -->
 
@@ -388,10 +420,10 @@ give the element `pos="sticky"` and a `top`, as in the
 
 `Affix` registers these variables on its own `.affix` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
-| CSS Variable                      | Sass Variable              | Default                      |
-| --------------------------------- | -------------------------- | ---------------------------- |
-| `--bulma-affix-offset-vertical`   | `$affix-offset-vertical`   | `var(--bulma-block-spacing)` |
-| `--bulma-affix-offset-horizontal` | `$affix-offset-horizontal` | `var(--bulma-block-spacing)` |
-| `--bulma-affix-z-index`           | `$affix-z-index`           | `$extras-z-index-sticky`     |
+| CSS Variable                      | Sass Variable              | Default                        |
+| --------------------------------- | -------------------------- | ------------------------------ |
+| `--bulma-affix-offset-vertical`   | `$affix-offset-vertical`   | `iv.$block-spacing`            |
+| `--bulma-affix-offset-horizontal` | `$affix-offset-horizontal` | `iv.$block-spacing`            |
+| `--bulma-affix-z-index`           | `$affix-z-index`           | `$extras-z-index-dropdown - 1` |
 
 <!-- /bestax:generated cssvars -->

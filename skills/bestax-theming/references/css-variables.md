@@ -305,10 +305,13 @@ own-selector override rule applies.
 
 ### Affix
 
-The offsets start at Bulma's `block-spacing`, so a theme that changes the spacing moves every
-Affix. Each edge adds the device's safe-area inset on top in the stylesheet, which is 0 unless the
-page sets `viewport-fit=cover`; there's no variable for it. A spacing helper margin (`mb="6"`)
-moves one Affix further in without touching the variables.
+The offsets start at Bulma's `$block-spacing` as a value, so a Sass build that sets it moves every
+Affix, and a Field, where Bulma narrows `--bulma-block-spacing`, doesn't. Each edge adds the
+device's safe-area inset on top in the stylesheet, which is 0 unless the page sets
+`viewport-fit=cover`; there's no variable for it. The variables are declared on `.affix`, so a theme
+sets them there with a selector that outweighs the library's, such as `:root .affix`. A spacing
+helper margin (`mb="6"`) moves one Affix further in without touching the variables. The z-index
+starts one step under the dropdown layer, so menus open over it.
 
 `--bulma-affix-offset-horizontal`, `--bulma-affix-offset-vertical`, `--bulma-affix-z-index`
 

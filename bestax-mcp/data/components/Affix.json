@@ -31,32 +31,33 @@
     },
     {
       "title": "A Consent Notice",
-      "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <>\n      <Button onClick={() => setShown(true)}>Show the notice</Button>\n      {shown && (\n        <Affix position=\"bottom-left\">\n          <Box role=\"region\" aria-label=\"Cookie consent\" mb=\"0\">\n            <Paragraph mb=\"3\">\n              We use one cookie to remember your theme. Nothing else is stored,\n              and nothing is shared.\n            </Paragraph>\n            <Buttons>\n              <Button color=\"primary\" onClick={() => setShown(false)}>\n                Accept\n              </Button>\n              <Button onClick={() => setShown(false)}>Decline</Button>\n            </Buttons>\n          </Box>\n        </Affix>\n      )}\n    </>\n  );\n}"
+      "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <>\n      <Button onClick={() => setShown(true)}>Show the notice</Button>\n      {shown && (\n        <Affix position=\"bottom-left\">\n          <Box role=\"region\" aria-label=\"Cookie consent\" mb=\"0\">\n            <ScrollArea\n              maxHeight=\"calc(100dvh - 2 * var(--bulma-affix-offset-vertical) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 7rem)\"\n              aria-label=\"What we store\"\n              mb=\"3\"\n            >\n              <Paragraph>\n                We use one cookie to remember your theme. Nothing else is\n                stored, and nothing is shared.\n              </Paragraph>\n            </ScrollArea>\n            <Buttons>\n              <Button color=\"primary\" onClick={() => setShown(false)}>\n                Accept\n              </Button>\n              <Button onClick={() => setShown(false)}>Decline</Button>\n            </Buttons>\n          </Box>\n        </Affix>\n      )}\n    </>\n  );\n}"
     },
     {
       "title": "Right-to-Left",
       "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <div dir=\"rtl\" lang=\"ar\">\n      <Button onClick={() => setShown(!shown)}>\n        {shown ? 'إخفاء' : 'إظهار'}\n      </Button>\n      {shown && (\n        <Affix position=\"bottom-left\">\n          <Button color=\"primary\">ملاحظات</Button>\n        </Affix>\n      )}\n    </div>\n  );\n}"
     }
   ],
-  "accessibility": "- **No role:** it's a positioning wrapper, and what's inside keeps its own role. Content that needs\n  a landmark, such as a consent notice, brings its own `role=\"region\"` and name, as in\n  [A Consent Notice](https://bestax.io/docs/api/components/affix#a-consent-notice).\n- **Reading and Tab order are DOM order:** the corner it shows in says nothing about when a screen\n  reader or the Tab key reaches it. In place, that's where you write it, so put it where it belongs\n  in the reading order, usually after the page's main content. With `portal` it's at the end of its\n  container, so it's reached last.\n- **Focus not obscured:** a fixed box can cover a focused link near its corner, which fails\n  [WCAG 2.4.11](https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum) when it\n  hides it entirely. On a page with a bottom-corner Affix, give `html` a `scroll-padding-bottom` at\n  least its height plus its offset\n  ([technique C43](https://www.w3.org/WAI/WCAG22/Techniques/css/C43)), so a link that Tab scrolls\n  into view stops above it, and leave as much room at the end of the page, so the last link can\n  scroll clear too:\n\n  ```css\n  html {\n    scroll-padding-bottom: 5rem;\n  }\n\n  main {\n    padding-bottom: 5rem;\n  }\n  ```\n\n  A top-corner Affix takes `scroll-padding-top` the same way. Not every browser scrolls to a\n  focused link that's already on screen, so the padding lowers the odds rather than ruling it out,\n  and a small Affix leaves less of the page under it.\n\n- **Reflow:** it's never wider than the viewport less its offsets, at 320px too. At high zoom a\n  fixed box takes a bigger share of the screen, so keep what's in it small.\n- **Forced colors:** it draws nothing of its own, so what's inside keeps its own forced colors.\n- **Motion:** it has no motion of its own. What's inside keeps its own transitions.\n- **Right-to-left:** the corner stays where `position` puts it. See\n  [Right-to-Left](https://bestax.io/docs/api/components/affix#right-to-left).",
+  "accessibility": "- **No role:** it's a positioning wrapper, and what's inside keeps its own role. Content that needs\n  a landmark, such as a consent notice, brings its own `role=\"region\"` and name, as in\n  [A Consent Notice](https://bestax.io/docs/api/components/affix#a-consent-notice).\n- **Reading and Tab order are DOM order:** the corner it shows in says nothing about when a screen\n  reader or the Tab key reaches it. In place, that's where you write it, so put it where it belongs\n  in the reading order, usually after the page's main content. With `portal` it's appended to its\n  container when it mounts, so it comes after what's already there.\n- **Focus not obscured:** a fixed box can cover a focused link near its corner, which fails\n  [WCAG 2.4.11](https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum) when it\n  hides it entirely. On a page with a bottom-corner Affix, give `html` a `scroll-padding-bottom` at\n  least its height plus its offset\n  ([technique C43](https://www.w3.org/WAI/WCAG22/Techniques/css/C43)), so a link that Tab scrolls\n  into view stops above it, and leave as much room at the end of the page, so the last link can\n  scroll clear too:\n\n  ```css\n  html {\n    scroll-padding-bottom: 5rem;\n  }\n\n  main {\n    padding-bottom: 5rem;\n  }\n  ```\n\n  A top-corner Affix takes `scroll-padding-top` the same way. Not every browser scrolls to a\n  focused link that's already on screen, so the padding lowers the odds rather than ruling it out,\n  and a small Affix leaves less of the page under it.\n\n- **Reflow:** it's never wider than the viewport less its offsets, at 320px too, so its text wraps\n  rather than running off the side. It doesn't scroll, so content that can be taller than the\n  screen at high zoom has to scroll itself, as in [A Consent Notice](https://bestax.io/docs/api/components/affix#a-consent-notice), with the\n  controls that matter outside the scrolling part. A fixed box takes a bigger share of the screen\n  at high zoom, so keep what's in it small.\n- **Forced colors:** it draws nothing of its own, so what's inside keeps its own forced colors.\n- **Motion:** it has no motion of its own. What's inside keeps its own transitions.\n- **Right-to-left:** the corner stays where `position` puts it. See\n  [Right-to-Left](https://bestax.io/docs/api/components/affix#right-to-left).",
   "related": [
     "Badge",
     "Box",
     "Button",
     "Modal",
     "Portal",
+    "ScrollArea",
     "Toast",
     "useBulmaClasses"
   ],
   "storybook": "https://bestax.io/storybook/?path=/story/components-affix--default",
-  "summary": "The `Affix` component keeps its content fixed to a corner of the viewport while the page scrolls under it. It's a `<div>` with no role, so what's inside keeps its own. It sits `--bulma-affix-offset-vertical` and `--bulma-affix-offset-horizontal` from its corner's edges, plus the device's safe-area inset, and stacks at `--bulma-affix-z-index`, over the page and under Bulma's modal, the Sidebar, Tooltip and Toast. It's as wide as its content and never wider than the viewport less its offsets. Its place in the reading and Tab order is its place in the DOM, whatever corner it shows in.",
+  "summary": "The `Affix` component keeps its content fixed to a corner of the viewport while the page scrolls under it. It's a `<div>` with no role, so what's inside keeps its own. It sits `--bulma-affix-offset-vertical` and `--bulma-affix-offset-horizontal` from its corner's edges, plus the device's safe-area inset, and stacks at `--bulma-affix-z-index`, over the page's content and under its menus, popovers, the Sidebar, the modals, Tooltip and Toast. It's as wide as its content and never wider than the viewport less its offsets. It doesn't scroll, so nothing inside it is clipped, and content that can be taller than the screen scrolls itself. Its place in the reading and Tab order is its place in the DOM, whatever corner it shows in.",
   "import": "import { Affix } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/components/Affix.tsx",
   "rootClass": "affix",
   "parts": [
     {
       "path": "Affix",
-      "summary": "The `Affix` component keeps its content fixed to a corner of the viewport while the page scrolls under it. It's a `<div>` with no role, so what's inside keeps its own. It sits `--bulma-affix-offset-vertical` and `--bulma-affix-offset-horizontal` from its corner's edges, plus the device's safe-area inset, and stacks at `--bulma-affix-z-index`, over the page and under Bulma's modal, the Sidebar, Tooltip and Toast. It's as wide as its content and never wider than the viewport less its offsets. Its place in the reading and Tab order is its place in the DOM, whatever corner it shows in.",
+      "summary": "The `Affix` component keeps its content fixed to a corner of the viewport while the page scrolls under it. It's a `<div>` with no role, so what's inside keeps its own. It sits `--bulma-affix-offset-vertical` and `--bulma-affix-offset-horizontal` from its corner's edges, plus the device's safe-area inset, and stacks at `--bulma-affix-z-index`, over the page's content and under its menus, popovers, the Sidebar, the modals, Tooltip and Toast. It's as wide as its content and never wider than the viewport less its offsets. It doesn't scroll, so nothing inside it is clipped, and content that can be taller than the screen scrolls itself. Its place in the reading and Tab order is its place in the DOM, whatever corner it shows in.",
       "component": null,
       "props": [
         {
@@ -81,7 +82,7 @@
           "name": "position",
           "type": "'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'",
           "default": "'bottom-right'",
-          "description": "The corner of the viewport it's fixed to. Physical, as Badge's and Toast's are: `'bottom-right'` stays on the right in right-to-left text. Its distance from the edges is `--bulma-affix-offset-vertical` and `--bulma-affix-offset-horizontal` plus the device's safe-area inset; a margin from the spacing helpers (`mb`, `mr`, …) adds to it.",
+          "description": "The corner of the viewport it's fixed to. Physical, as Badge's and Toast's are: `'bottom-right'` stays on the right in right-to-left text. Its distance from the edges is `--bulma-affix-offset-vertical` and `--bulma-affix-offset-horizontal` plus the device's safe-area inset; a margin from the spacing helpers (`mb`, `mr`, …) adds to it. A margin on one side also takes that much of the width its content can have, which the offset variables don't, so move it far with those.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -90,7 +91,7 @@
           "name": "portal",
           "type": "boolean | string | HTMLElement",
           "default": "false",
-          "description": "Renders it into another container, for a page where an ancestor's `transform`, `filter` or `contain` would capture `position: fixed`. `true` portals to the `portalContainer` a `ConfigProvider` sets, `document.body` by default; a string is used as a `document.querySelector` selector; an element is used directly. Renders in place on the server and while hydrating, moving into the portal once the client takes over, so hydration matches. Portaled, it comes last in the reading and Tab order of that container.",
+          "description": "Renders it into another container, for a page where an ancestor's `transform`, `filter` or `contain` would capture `position: fixed`. `true` portals to the `portalContainer` a `ConfigProvider` sets, `document.body` by default; a string is used as a `document.querySelector` selector; an element is used directly. Renders in place on the server and while hydrating, moving into the portal once the client takes over, so hydration matches. Portaled, it's appended to that container when it mounts, so it comes after what's already there in the reading and Tab order.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -115,19 +116,19 @@
     {
       "css": "--bulma-affix-offset-vertical",
       "sass": "$affix-offset-vertical",
-      "default": "var(--bulma-block-spacing)",
+      "default": "iv.$block-spacing",
       "scope": "root"
     },
     {
       "css": "--bulma-affix-offset-horizontal",
       "sass": "$affix-offset-horizontal",
-      "default": "var(--bulma-block-spacing)",
+      "default": "iv.$block-spacing",
       "scope": "root"
     },
     {
       "css": "--bulma-affix-z-index",
       "sass": "$affix-z-index",
-      "default": "$extras-z-index-sticky",
+      "default": "$extras-z-index-dropdown - 1",
       "scope": "root"
     }
   ]

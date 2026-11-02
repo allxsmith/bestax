@@ -5,13 +5,16 @@
 @use 'bulma/sass/utilities/css-variables' as cv;
 @use '../variables' as *;
 
-// Affix-specific SCSS variables. The offsets start at Bulma's block spacing,
-// so a theme that changes it moves every Affix too.
-$affix-offset-vertical: cv.getVar('block-spacing') !default;
-$affix-offset-horizontal: cv.getVar('block-spacing') !default;
-// Over the page, level with Bulma's fixed navbar and Popover, and under the
-// Sidebar, every modal layer, Tooltip and Toast.
-$affix-z-index: $extras-z-index-sticky !default;
+// Affix-specific SCSS variables. The offsets start at Bulma's block spacing
+// as a value rather than its variable, which Bulma redefines inside a
+// `.field`, so an Affix written in a Field sits where every other one does.
+$affix-offset-vertical: iv.$block-spacing !default;
+$affix-offset-horizontal: iv.$block-spacing !default;
+// One step under the dropdown layer, so a menu or a popover opened near its
+// corner opens over it, as do the Sidebar, the modals, Tooltip and Toast
+// above that. The page's own stacking (Bulma's addons, Carousel's arrows)
+// sits under it.
+$affix-z-index: $extras-z-index-dropdown - 1 !default;
 
 .#{iv.$class-prefix}affix {
   @include cv.register-vars(

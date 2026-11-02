@@ -34,7 +34,7 @@ const ADDONS = [
     name: 'Affix',
     icon: 'affix',
     link: '/docs/api/components/affix',
-    desc: 'Content fixed to a corner of the screen, such as a floating button, clear of the home indicator and under every overlay.',
+    desc: 'Content fixed to a corner of the screen, such as a floating button, over the page and under its menus and modals.',
   },
   {
     name: 'Avatar',
