@@ -31,6 +31,12 @@ const ADDONS = [
     desc: 'Facts about one thing, each a label and its value, stacked on a phone and lined up in two columns from tablet up.',
   },
   {
+    name: 'Affix',
+    icon: 'affix',
+    link: '/docs/api/components/affix',
+    desc: 'Content fixed to a corner of the screen, such as a floating button, clear of the home indicator and under every overlay.',
+  },
+  {
     name: 'Avatar',
     icon: 'avatar',
     link: '/docs/api/components/avatar',

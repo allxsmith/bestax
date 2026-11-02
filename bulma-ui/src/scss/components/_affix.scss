@@ -1,0 +1,68 @@
+// Affix Component Styles
+// A wrapper fixed to a corner of the viewport
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+@use '../variables' as *;
+
+// Affix-specific SCSS variables. The offsets start at Bulma's block spacing,
+// so a theme that changes it moves every Affix too.
+$affix-offset-vertical: cv.getVar('block-spacing') !default;
+$affix-offset-horizontal: cv.getVar('block-spacing') !default;
+// Over the page, level with Bulma's fixed navbar and Popover, and under the
+// Sidebar, every modal layer, Tooltip and Toast.
+$affix-z-index: $extras-z-index-sticky !default;
+
+.#{iv.$class-prefix}affix {
+  @include cv.register-vars(
+    (
+      'affix-offset-vertical': #{$affix-offset-vertical},
+      'affix-offset-horizontal': #{$affix-offset-horizontal},
+      'affix-z-index': #{$affix-z-index},
+    )
+  );
+}
+
+// The corners are physical, as Badge's and Toast's are, so a right corner
+// stays on the right in right-to-left text. Each side adds the device's
+// safe-area inset for that edge, which is 0 unless the page sets
+// `viewport-fit=cover`. A margin from the spacing helpers adds to the
+// distance, since a fixed box's margin pushes it off its inset.
+.#{iv.$class-prefix}affix {
+  position: fixed;
+  z-index: cv.getVar('affix-z-index');
+  // As wide as its content, and never wider than the viewport less the
+  // offset and the safe area on both sides.
+  max-width: calc(
+    100% - 2 * #{cv.getVar('affix-offset-horizontal')} -
+      env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)
+  );
+
+  &.#{iv.$class-prefix}is-top-right,
+  &.#{iv.$class-prefix}is-top-left {
+    top: calc(
+      #{cv.getVar('affix-offset-vertical')} + env(safe-area-inset-top, 0px)
+    );
+  }
+
+  &.#{iv.$class-prefix}is-bottom-right,
+  &.#{iv.$class-prefix}is-bottom-left {
+    bottom: calc(
+      #{cv.getVar('affix-offset-vertical')} + env(safe-area-inset-bottom, 0px)
+    );
+  }
+
+  &.#{iv.$class-prefix}is-top-right,
+  &.#{iv.$class-prefix}is-bottom-right {
+    right: calc(
+      #{cv.getVar('affix-offset-horizontal')} + env(safe-area-inset-right, 0px)
+    );
+  }
+
+  &.#{iv.$class-prefix}is-top-left,
+  &.#{iv.$class-prefix}is-bottom-left {
+    left: calc(
+      #{cv.getVar('affix-offset-horizontal')} + env(safe-area-inset-left, 0px)
+    );
+  }
+}

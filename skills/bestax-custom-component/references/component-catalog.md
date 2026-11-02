@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-118 documented components. Generated from the API docs — every exported
+119 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -81,6 +81,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 
 ## Components
 
+- [Affix](https://bestax.io/docs/api/components/affix) — The `Affix` component keeps its content fixed to a corner of the viewport while the page scrolls under it.
 - [Avatar](https://bestax.io/docs/api/components/avatar) — The `Avatar` component represents a person or entity as a compact image.
 - [Avatars](https://bestax.io/docs/api/components/avatars) — The `Avatars` component renders an overlapping/stacked group of `Avatar`s, the "members" list pattern.
 - [Badge](https://bestax.io/docs/api/components/badge) — The `Badge` component is a small status/count indicator overlaid on the corner of another element, or rendered standalone.

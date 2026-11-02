@@ -35,6 +35,7 @@ const REFERENCES = path.join(ROOT, 'skills/bestax-migrate/references');
  * first test until it is placed in this bucket or the next one.
  */
 const NAMED_INDIVIDUALLY = [
+  'Affix',
   'Avatar',
   'Button',
   'Carousel',

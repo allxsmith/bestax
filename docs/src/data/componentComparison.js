@@ -63,6 +63,7 @@ const BESTAX = {
   ColorSwatch: 'elements/colorswatch',
   ToggleButton: 'elements/togglebutton',
   UnorderedList: 'elements/unorderedlist',
+  Affix: 'components/affix',
   Avatar: 'components/avatar',
   Avatars: 'components/avatars',
   Badge: 'components/badge',
@@ -1298,8 +1299,8 @@ export const categories = [
         'Resizable',
       ],
       [
-        'Affix (sticky)',
-        '~pos="sticky"',
+        'Affix (fixed or sticky)',
+        'Affix',
         'Affix',
         0,
         '~Fab (back-to-top demo)',
@@ -2092,5 +2093,13 @@ export const corrections = [
       'Heading / title': { mui: 'partial' },
       'Visually hidden (a11y)': { rbootstrap: 'partial' },
     },
+  },
+  {
+    edition: '2026-10-13',
+    pr: 1433,
+    renamed: {
+      'Affix (sticky)': 'Affix (fixed or sticky)',
+    },
+    cells: {},
   },
 ];

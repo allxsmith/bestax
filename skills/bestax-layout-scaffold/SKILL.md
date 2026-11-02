@@ -158,6 +158,15 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   helper props and `className` go on its frame and the `ref` on the element that scrolls.
   `hasFade` fades the edges that have more, `orientation="horizontal"` suits a wide table, and
   `onEdgeReach={edge => …}` loads more at an edge.
+- **Something that stays in a corner of the screen (a floating button, a chat or help launcher,
+  a feedback tab, a consent notice) is `Affix`**, not `pos="fixed"` with offsets in a style:
+  `<Affix position="bottom-left"><Button color="primary">Feedback</Button></Affix>`.
+  `position` is one of the four corners, `'bottom-right'` by default, and stays physical in
+  right-to-left text. The spacing helpers nudge one further in (`mb="6"` lifts it over a bottom
+  bar), and `portal` moves it out of an ancestor with a `transform`. Two in one corner overlap,
+  so put what shares a corner in one Affix. Tab reaches it where it is in the markup, whatever
+  corner it shows in, so write it after the main content. For an element pinned once the page
+  scrolls past it, use `pos="sticky"` with a `top` instead.
 - **A command palette (⌘K or Ctrl+K) is `Command.Dialog`**, not a `Modal` with an `Input` and a
   hand-written `keydown` listener: `<Command.Dialog shortcut="mod+k" placeholder="…" actions={[…]} />`,
   each action `{ id, label, onSelect }` with `group`, `keywords`, `description`, `icon` and `hint`

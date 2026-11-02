@@ -303,6 +303,15 @@ The remaining extras register the variables below — names only; each default l
 component's SCSS partial under `bulma-ui/src/scss/` as a `$<name> !default` variable. The same
 own-selector override rule applies.
 
+### Affix
+
+The offsets start at Bulma's `block-spacing`, so a theme that changes the spacing moves every
+Affix. Each edge adds the device's safe-area inset on top in the stylesheet, which is 0 unless the
+page sets `viewport-fit=cover`; there's no variable for it. A spacing helper margin (`mb="6"`)
+moves one Affix further in without touching the variables.
+
+`--bulma-affix-offset-horizontal`, `--bulma-affix-offset-vertical`, `--bulma-affix-z-index`
+
 ### Autocomplete
 
 `--bulma-autocomplete-border-color`, `--bulma-autocomplete-border-hover-color`,

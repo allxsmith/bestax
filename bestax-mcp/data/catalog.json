@@ -52,6 +52,7 @@
       "id": "components",
       "label": "Components",
       "components": [
+        "Affix",
         "Avatar",
         "Avatars",
         "Badge",
@@ -158,6 +159,17 @@
     }
   ],
   "components": [
+    {
+      "name": "Affix",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `Affix` component keeps its content fixed to a corner of the viewport while the page scrolls under it.",
+      "slug": "components/affix",
+      "import": "import { Affix } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 4,
+      "exampleCount": 8
+    },
     {
       "name": "Autocomplete",
       "kind": "component",
@@ -1458,6 +1470,9 @@
     }
   ],
   "cssVarIndex": {
+    "--bulma-affix-offset-horizontal": ["Affix"],
+    "--bulma-affix-offset-vertical": ["Affix"],
+    "--bulma-affix-z-index": ["Affix"],
     "--bulma-autocomplete-border-color": ["Autocomplete"],
     "--bulma-autocomplete-border-hover-color": ["Autocomplete"],
     "--bulma-autocomplete-dropdown-background": ["Autocomplete"],

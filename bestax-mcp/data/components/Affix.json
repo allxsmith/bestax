@@ -1,0 +1,134 @@
+{
+  "name": "Affix",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/affix",
+  "docsUrl": "https://bestax.io/docs/api/components/affix",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <>\n      <Button onClick={() => setShown(!shown)}>\n        {shown ? 'Hide the Help button' : 'Show the Help button'}\n      </Button>\n      {shown && (\n        <Affix>\n          <Button color=\"primary\">Help</Button>\n        </Affix>\n      )}\n    </>\n  );\n}"
+    },
+    {
+      "title": "Corners",
+      "code": "import type { AffixPosition } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const [position, setPosition] = useState<AffixPosition | null>(null);\n  const corners: AffixPosition[] = [\n    'top-left',\n    'top-right',\n    'bottom-left',\n    'bottom-right',\n  ];\n  return (\n    <>\n      <Buttons>\n        {corners.map(corner => (\n          <Button key={corner} onClick={() => setPosition(corner)}>\n            {corner}\n          </Button>\n        ))}\n        <Button disabled={!position} onClick={() => setPosition(null)}>\n          Hide\n        </Button>\n      </Buttons>\n      {position && (\n        <Affix\n          position={position}\n          mt={position.startsWith('top') ? '6' : undefined}\n        >\n          <Button color=\"primary\">Feedback</Button>\n        </Affix>\n      )}\n    </>\n  );\n}"
+    },
+    {
+      "title": "Nudging One Affix",
+      "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <>\n      <Button onClick={() => setShown(!shown)}>\n        {shown ? 'Hide the chat button' : 'Show the chat button'}\n      </Button>\n      {shown && (\n        <Affix mb=\"6\">\n          <Button color=\"link\" radius=\"rounded\" aria-label=\"Open chat\">\n            <Icon name=\"comments\" />\n          </Button>\n        </Affix>\n      )}\n    </>\n  );\n}"
+    },
+    {
+      "title": "Offsets and the Safe Area",
+      "code": "<Affix className=\"above-the-tab-bar\">\n  <Button color=\"primary\">Help</Button>\n</Affix>"
+    },
+    {
+      "title": "Out of a Transformed Ancestor",
+      "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <>\n      <Button onClick={() => setShown(!shown)}>\n        {shown ? 'Hide the portaled button' : 'Show the portaled button'}\n      </Button>\n      {shown && (\n        <Affix portal position=\"bottom-left\">\n          <Button color=\"primary\">Feedback</Button>\n        </Affix>\n      )}\n    </>\n  );\n}"
+    },
+    {
+      "title": "Several Things in One Corner",
+      "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <>\n      <Button onClick={() => setShown(!shown)}>\n        {shown ? 'Hide the buttons' : 'Show the buttons'}\n      </Button>\n      {shown && (\n        <Affix display=\"flex\" flexDirection=\"column\" gap=\"2\">\n          <Button color=\"link\" aria-label=\"Open chat\">\n            <Icon name=\"comments\" />\n          </Button>\n          <Button color=\"primary\" aria-label=\"Help\">\n            <Icon name=\"question\" />\n          </Button>\n        </Affix>\n      )}\n    </>\n  );\n}"
+    },
+    {
+      "title": "A Consent Notice",
+      "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <>\n      <Button onClick={() => setShown(true)}>Show the notice</Button>\n      {shown && (\n        <Affix position=\"bottom-left\">\n          <Box role=\"region\" aria-label=\"Cookie consent\" mb=\"0\">\n            <Paragraph mb=\"3\">\n              We use one cookie to remember your theme. Nothing else is stored,\n              and nothing is shared.\n            </Paragraph>\n            <Buttons>\n              <Button color=\"primary\" onClick={() => setShown(false)}>\n                Accept\n              </Button>\n              <Button onClick={() => setShown(false)}>Decline</Button>\n            </Buttons>\n          </Box>\n        </Affix>\n      )}\n    </>\n  );\n}"
+    },
+    {
+      "title": "Right-to-Left",
+      "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <div dir=\"rtl\" lang=\"ar\">\n      <Button onClick={() => setShown(!shown)}>\n        {shown ? 'إخفاء' : 'إظهار'}\n      </Button>\n      {shown && (\n        <Affix position=\"bottom-left\">\n          <Button color=\"primary\">ملاحظات</Button>\n        </Affix>\n      )}\n    </div>\n  );\n}"
+    }
+  ],
+  "accessibility": "- **No role:** it's a positioning wrapper, and what's inside keeps its own role. Content that needs\n  a landmark, such as a consent notice, brings its own `role=\"region\"` and name, as in\n  [A Consent Notice](https://bestax.io/docs/api/components/affix#a-consent-notice).\n- **Reading and Tab order are DOM order:** the corner it shows in says nothing about when a screen\n  reader or the Tab key reaches it. In place, that's where you write it, so put it where it belongs\n  in the reading order, usually after the page's main content. With `portal` it's at the end of its\n  container, so it's reached last.\n- **Focus not obscured:** a fixed box can cover a focused link near its corner, which fails\n  [WCAG 2.4.11](https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum) when it\n  hides it entirely. On a page with a bottom-corner Affix, give `html` a `scroll-padding-bottom` at\n  least its height plus its offset\n  ([technique C43](https://www.w3.org/WAI/WCAG22/Techniques/css/C43)), so a link that Tab scrolls\n  into view stops above it, and leave as much room at the end of the page, so the last link can\n  scroll clear too:\n\n  ```css\n  html {\n    scroll-padding-bottom: 5rem;\n  }\n\n  main {\n    padding-bottom: 5rem;\n  }\n  ```\n\n  A top-corner Affix takes `scroll-padding-top` the same way. Not every browser scrolls to a\n  focused link that's already on screen, so the padding lowers the odds rather than ruling it out,\n  and a small Affix leaves less of the page under it.\n\n- **Reflow:** it's never wider than the viewport less its offsets, at 320px too. At high zoom a\n  fixed box takes a bigger share of the screen, so keep what's in it small.\n- **Forced colors:** it draws nothing of its own, so what's inside keeps its own forced colors.\n- **Motion:** it has no motion of its own. What's inside keeps its own transitions.\n- **Right-to-left:** the corner stays where `position` puts it. See\n  [Right-to-Left](https://bestax.io/docs/api/components/affix#right-to-left).",
+  "related": [
+    "Badge",
+    "Box",
+    "Button",
+    "Modal",
+    "Portal",
+    "Toast",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-affix--default",
+  "summary": "The `Affix` component keeps its content fixed to a corner of the viewport while the page scrolls under it. It's a `<div>` with no role, so what's inside keeps its own. It sits `--bulma-affix-offset-vertical` and `--bulma-affix-offset-horizontal` from its corner's edges, plus the device's safe-area inset, and stacks at `--bulma-affix-z-index`, over the page and under Bulma's modal, the Sidebar, Tooltip and Toast. It's as wide as its content and never wider than the viewport less its offsets. Its place in the reading and Tab order is its place in the DOM, whatever corner it shows in.",
+  "import": "import { Affix } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Affix.tsx",
+  "rootClass": "affix",
+  "parts": [
+    {
+      "path": "Affix",
+      "summary": "The `Affix` component keeps its content fixed to a corner of the viewport while the page scrolls under it. It's a `<div>` with no role, so what's inside keeps its own. It sits `--bulma-affix-offset-vertical` and `--bulma-affix-offset-horizontal` from its corner's edges, plus the device's safe-area inset, and stacks at `--bulma-affix-z-index`, over the page and under Bulma's modal, the Sidebar, Tooltip and Toast. It's as wide as its content and never wider than the viewport less its offsets. Its place in the reading and Tab order is its place in the DOM, whatever corner it shows in.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "What stays in the corner.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'",
+          "default": "'bottom-right'",
+          "description": "The corner of the viewport it's fixed to. Physical, as Badge's and Toast's are: `'bottom-right'` stays on the right in right-to-left text. Its distance from the edges is `--bulma-affix-offset-vertical` and `--bulma-affix-offset-horizontal` plus the device's safe-area inset; a margin from the spacing helpers (`mb`, `mr`, …) adds to it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "portal",
+          "type": "boolean | string | HTMLElement",
+          "default": "false",
+          "description": "Renders it into another container, for a page where an ancestor's `transform`, `filter` or `contain` would capture `position: fixed`. `true` portals to the `portalContainer` a `ConfigProvider` sets, `document.body` by default; a string is used as a `document.querySelector` selector; an element is used directly. Renders in place on the server and while hydrating, moving into the portal once the client takes over, so hydration matches. Portaled, it comes last in the reading and Tab order of that container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<div>`, wherever it renders.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-affix-offset-vertical",
+      "sass": "$affix-offset-vertical",
+      "default": "var(--bulma-block-spacing)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-affix-offset-horizontal",
+      "sass": "$affix-offset-horizontal",
+      "default": "var(--bulma-block-spacing)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-affix-z-index",
+      "sass": "$affix-z-index",
+      "default": "$extras-z-index-sticky",
+      "scope": "root"
+    }
+  ]
+}

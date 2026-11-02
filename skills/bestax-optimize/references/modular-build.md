@@ -81,7 +81,8 @@ is **more complete** than the docs page's Option C example, which omits several)
 **Components** (`@allxsmith/bestax-bulma/scss/components/<name>`):
 `loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
 `toast`, `dialog`, `carousel`, `tabs`, `menu`, `reveal`, `avatar`, `avatars`, `badge`,
-`emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`, `pagination`
+`emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`, `pagination`,
+`affix`
 
 **Layout** (`@allxsmith/bestax-bulma/scss/layout/<name>`): `splitter`
 

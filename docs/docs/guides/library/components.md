@@ -683,6 +683,30 @@ function LoadingExample() {
 
 ---
 
+### Affix
+
+Content fixed to a corner of the screen while the page scrolls under it, such as a floating button, a chat launcher or a feedback tab, kept clear of a phone's home indicator and under every overlay. It's fixed to the browser window, so show it and look at the bottom-left corner. [View full documentation.](../../api/components/affix.md)
+
+```tsx live
+function example() {
+  const [shown, setShown] = useState(false);
+  return (
+    <>
+      <Button onClick={() => setShown(!shown)}>
+        {shown ? 'Hide the feedback tab' : 'Show the feedback tab'}
+      </Button>
+      {shown && (
+        <Affix position="bottom-left">
+          <Button color="primary">Feedback</Button>
+        </Affix>
+      )}
+    </>
+  );
+}
+```
+
+---
+
 ## Menus
 
 ### Menu
