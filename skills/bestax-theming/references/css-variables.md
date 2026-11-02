@@ -303,6 +303,22 @@ The remaining extras register the variables below — names only; each default l
 component's SCSS partial under `bulma-ui/src/scss/` as a `$<name> !default` variable. The same
 own-selector override rule applies.
 
+### AppFrame
+
+Declared on the root, `.app-frame`, except `--bulma-app-frame-header-height`, which is on `:root`
+beside `--bulma-navbar-height`, its default, so the document's `scroll-padding-top` can read it. A
+header taller than Bulma's navbar sets it there. `AppFrame.Nav width` writes
+`--bulma-app-frame-nav-width` on the nav, and `AppFrame.Aside width` writes
+`--bulma-app-frame-aside-width` on the aside.
+
+`--bulma-app-frame-aside-width`, `--bulma-app-frame-backdrop-background`,
+`--bulma-app-frame-border-color`, `--bulma-app-frame-border-width`,
+`--bulma-app-frame-drawer-shadow`, `--bulma-app-frame-header-background`,
+`--bulma-app-frame-header-height`, `--bulma-app-frame-nav-background`,
+`--bulma-app-frame-nav-padding`, `--bulma-app-frame-nav-width`,
+`--bulma-app-frame-skip-link-background`, `--bulma-app-frame-skip-link-color`,
+`--bulma-app-frame-transition-duration`
+
 ### Autocomplete
 
 `--bulma-autocomplete-border-color`, `--bulma-autocomplete-border-hover-color`,

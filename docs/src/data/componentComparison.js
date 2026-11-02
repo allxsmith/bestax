@@ -130,6 +130,7 @@ const BESTAX = {
   Columns: 'columns', // columns.md is the folder-index doc → /docs/api/columns
   Cell: 'grid/cell',
   Grid: 'grid', // grid.md is the folder-index doc → /docs/api/grid
+  AppFrame: 'layout/appframe',
   Container: 'layout/container',
   Footer: 'layout/footer',
   Hero: 'layout/hero',
@@ -1096,7 +1097,7 @@ export const categories = [
       ],
       [
         'App shell (layout frame)',
-        0,
+        'AppFrame',
         'AppShell',
         0,
         '~Drawer + AppBar',
@@ -1911,7 +1912,7 @@ export const categories = [
         'VisuallyHidden',
         0,
       ],
-      ['Skip link (a11y)', 0, 0, 0, 0, 0, 'SkipNavLink', 0],
+      ['Skip link (a11y)', '~AppFrame', 0, 0, 0, 0, 'SkipNavLink', 0],
       [
         'No-SSR guard',
         'ClientOnly',

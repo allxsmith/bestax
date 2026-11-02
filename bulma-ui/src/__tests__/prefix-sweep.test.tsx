@@ -38,6 +38,21 @@ function isComponentExport(value: unknown): value is AnyComponent {
 }
 
 const PROPS: Record<string, Record<string, unknown>> = {
+  // Every part, the drawer open and the column collapsed, so each class the
+  // frame emits is swept.
+  AppFrame: {
+    defaultNavOpen: true,
+    defaultNavCollapsed: true,
+    children: [
+      <Library.AppFrame.Header key="header">
+        <Library.AppFrame.Burger />
+      </Library.AppFrame.Header>,
+      <Library.AppFrame.Nav key="nav">Nav</Library.AppFrame.Nav>,
+      <Library.AppFrame.Main key="main">Main</Library.AppFrame.Main>,
+      <Library.AppFrame.Aside key="aside">Aside</Library.AppFrame.Aside>,
+      <Library.AppFrame.Footer key="footer">Footer</Library.AppFrame.Footer>,
+    ],
+  },
   Icon: { name: 'star' },
   IconText: { children: 'Text', iconProps: { name: 'star' } },
   Avatar: { name: 'Ada Lovelace' },

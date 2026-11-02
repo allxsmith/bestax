@@ -74,7 +74,7 @@ const stylesheetPick = (type: 'screen' | 'print', width: number) =>
     .pop()?.value;
 
 /**
- * The viewport the script picks, as `VIEWPORT_QUERIES` in Carousel.tsx
+ * The viewport the script picks, as `VIEWPORT_QUERIES` in useBulmaViewport.ts
  * reads it: the widest of Bulma's min-width breakpoints the window reaches,
  * and mobile below them all.
  */

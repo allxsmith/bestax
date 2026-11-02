@@ -306,6 +306,17 @@ function ScrollAreaIcon() {
   );
 }
 
+// A window with a bar across its top and a column down its side
+function AppFrameIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M3 8.5h18" />
+      <path d="M9 8.5V20" />
+    </svg>
+  );
+}
+
 // Two panes in a box, the line between them with a grip on it
 function SplitterIcon() {
   return (
@@ -364,6 +375,7 @@ function TreeViewIcon() {
 }
 
 const ADDON_ICONS = {
+  appframe: AppFrameIcon,
   linkbutton: LinkButtonIcon,
   kbd: KbdIcon,
   avatar: AvatarIcon,

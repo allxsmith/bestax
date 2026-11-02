@@ -131,6 +131,7 @@
       "id": "layout",
       "label": "Layout",
       "components": [
+        "AppFrame",
         "Container",
         "Footer",
         "Hero",
@@ -158,6 +159,17 @@
     }
   ],
   "components": [
+    {
+      "name": "AppFrame",
+      "kind": "component",
+      "category": "layout",
+      "purpose": "The `AppFrame` component lays out an app's pages: a header across the top, a navigation column down the side, the page, and an aside and a footer, with the nav…",
+      "slug": "layout/appframe",
+      "import": "import { AppFrame, useAppFrame } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 35,
+      "exampleCount": 8
+    },
     {
       "name": "Autocomplete",
       "kind": "component",
@@ -1458,6 +1470,19 @@
     }
   ],
   "cssVarIndex": {
+    "--bulma-app-frame-aside-width": ["AppFrame"],
+    "--bulma-app-frame-backdrop-background": ["AppFrame"],
+    "--bulma-app-frame-border-color": ["AppFrame"],
+    "--bulma-app-frame-border-width": ["AppFrame"],
+    "--bulma-app-frame-drawer-shadow": ["AppFrame"],
+    "--bulma-app-frame-header-background": ["AppFrame"],
+    "--bulma-app-frame-header-height": ["AppFrame"],
+    "--bulma-app-frame-nav-background": ["AppFrame"],
+    "--bulma-app-frame-nav-padding": ["AppFrame"],
+    "--bulma-app-frame-nav-width": ["AppFrame"],
+    "--bulma-app-frame-skip-link-background": ["AppFrame"],
+    "--bulma-app-frame-skip-link-color": ["AppFrame"],
+    "--bulma-app-frame-transition-duration": ["AppFrame"],
     "--bulma-autocomplete-border-color": ["Autocomplete"],
     "--bulma-autocomplete-border-hover-color": ["Autocomplete"],
     "--bulma-autocomplete-dropdown-background": ["Autocomplete"],
@@ -3006,6 +3031,36 @@
     "--bulma-tree-view-toggle-size": ["TreeView"]
   },
   "documentedWith": {
+    "AppFrameAside": {
+      "component": "AppFrame",
+      "path": "AppFrame.Aside",
+      "purpose": "Content beside the page in an AppFrame, which moves under it below the breakpoint."
+    },
+    "AppFrameBurger": {
+      "component": "AppFrame",
+      "path": "AppFrame.Burger",
+      "purpose": "The button that opens the drawer, or collapses the column from the breakpoint up: Navbar.Burger, wired to the frame."
+    },
+    "AppFrameFooter": {
+      "component": "AppFrame",
+      "path": "AppFrame.Footer",
+      "purpose": "The bottom of an AppFrame, under the page."
+    },
+    "AppFrameHeader": {
+      "component": "AppFrame",
+      "path": "AppFrame.Header",
+      "purpose": "The top bar of an AppFrame, which sticks while the page scrolls."
+    },
+    "AppFrameMain": {
+      "component": "AppFrame",
+      "path": "AppFrame.Main",
+      "purpose": "The page's main content in an AppFrame, which the skip link moves focus to."
+    },
+    "AppFrameNav": {
+      "component": "AppFrame",
+      "path": "AppFrame.Nav",
+      "purpose": "The navigation of an AppFrame: a column beside the page from the breakpoint up, and a drawer below it."
+    },
     "CarouselItem": {
       "component": "Carousel",
       "path": "CarouselItem",

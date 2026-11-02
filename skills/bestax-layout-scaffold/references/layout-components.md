@@ -5,6 +5,7 @@ source-verified. Import everything from the package root:
 
 ```tsx
 import {
+  AppFrame,
   Container,
   Section,
   Hero,
@@ -32,6 +33,32 @@ Every component also accepts the shared Bulma helper props (`m`/`p` spacing, `te
 > **There is no `Tile` component.** For uniform grids (cards, galleries) use `Grid` / `Cell` —
 > equal-height cells for free; for proportional or per-breakpoint layouts use
 > `Columns` / `Column`.
+
+## AppFrame
+
+`<AppFrame>` is the frame an app's pages sit in, the app shell: a header across the top, a
+navigation column down the side, the page, and an aside and a footer when there are any, with a
+skip link first. The header and the column stick while the page scrolls. Below its breakpoint the
+nav is a modal drawer behind `AppFrame.Burger`; from it up the burger collapses the column. The
+parts are direct children, in this order: `AppFrame.Header` (`<header>`), `AppFrame.Nav`
+(`<nav>`), `AppFrame.Main` (`<main>`), `AppFrame.Aside` (`<aside>`), `AppFrame.Footer`
+(`<footer>`). `AppFrame.Burger` goes in the header's `Navbar.Brand`.
+
+| Prop                                                              | Type                                                                               |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `breakpoint`                                                      | `'tablet' \| 'desktop' \| 'widescreen'` (default `desktop`: a drawer below it)     |
+| `navOpen` / `defaultNavOpen` / `onNavOpenChange(open)`            | the drawer, below the breakpoint                                                   |
+| `navCollapsed` / `defaultNavCollapsed` / `onNavCollapsedChange()` | the column, from the breakpoint up                                                 |
+| `skipLink`                                                        | `boolean` (default `true`)                                                         |
+| `labels`                                                          | `{ skipLink?, nav?, closeNav?, burger? }`, for another language                    |
+| `AppFrame.Nav`                                                    | `width?`, `overlay?`, `closeOnEscape?`, `closeOnClickOutside?`, `closeOnNavigate?` |
+| `AppFrame.Aside`                                                  | `width?`, and an `aria-label` when the page has another aside                      |
+
+Put it at the top of the app, never inside a `<main>` or a `Container as="main"`: it renders the
+page's `<main>`. Its `Navbar` is not `fixed` and needs no `has-navbar-fixed-top`. A control of
+your own reads and toggles the state with `useAppFrame()`: `toggleNav()` does what the burger does,
+and `navId` is for its `aria-controls`. A header taller than Bulma's navbar sets
+`--bulma-app-frame-header-height` on `:root`.
 
 ## Container
 

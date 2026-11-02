@@ -90,8 +90,7 @@ function example() {
 
 ### Generated code
 
-The shippable version adds `fixed="top"` and the required `has-navbar-fixed-top` class on `<html>`
-(see `examples/app-shell.tsx`).
+The shippable version adds `fixed="top"` and the required `has-navbar-fixed-top` class on `<html>`.
 
 ```tsx
 import { useEffect, useState } from 'react';
@@ -166,6 +165,13 @@ export default function AdminShell() {
 
 The navbar collapses to a burger on mobile; the sidebar and content columns sit side by side on
 tablet and up, and stack on mobile.
+
+:::note
+The skill now builds an app shell from [`AppFrame`](../api/layout/appframe.md), which keeps the
+header and the menu column in view as the page scrolls and turns the column into a drawer on a
+phone, with no `fixed` navbar or `has-navbar-fixed-top`. The skill's `examples/app-shell.tsx` is
+that version. The example above is the one recorded on the date it shows.
+:::
 
 ## Marketing / landing
 

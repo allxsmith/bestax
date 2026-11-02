@@ -184,6 +184,7 @@ export type {
 export { useFocusTrap } from './helpers/useFocusTrap';
 export type { UseFocusTrapOptions } from './helpers/useFocusTrap';
 
+export * from './layout/AppFrame';
 export * from './layout/Container';
 export * from './layout/Footer';
 export * from './layout/Hero';

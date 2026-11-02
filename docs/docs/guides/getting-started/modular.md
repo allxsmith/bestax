@@ -189,6 +189,7 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/components/pagination' as bestax-pagination;
 
 // bestax layout
+@use '@allxsmith/bestax-bulma/scss/layout/appframe';
 @use '@allxsmith/bestax-bulma/scss/layout/splitter';
 
 // bestax form components

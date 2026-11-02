@@ -336,11 +336,11 @@ function FormShowcase() {
 
 ---
 
-## Layout (7)
+## Layout (8)
 
 Page-level structural primitives.
 
-[Container](/docs/api/layout/container), [Footer](/docs/api/layout/footer), [Hero](/docs/api/layout/hero), [Level](/docs/api/layout/level), [Media](/docs/api/layout/media), [Section](/docs/api/layout/section), [Splitter](/docs/api/layout/splitter)
+[AppFrame](/docs/api/layout/appframe), [Container](/docs/api/layout/container), [Footer](/docs/api/layout/footer), [Hero](/docs/api/layout/hero), [Level](/docs/api/layout/level), [Media](/docs/api/layout/media), [Section](/docs/api/layout/section), [Splitter](/docs/api/layout/splitter)
 
 ```tsx live
 <Hero color="info" size="small">
@@ -381,6 +381,6 @@ Beyond the core Bulma wrappers, bestax-bulma ships additional components that fi
 | **Components** | Avatar, Avatars, Badge, Carousel, Collapse, Collapses, Command, ContextMenu, DataTable, Dialog, EmptyState, HoverCard, Loading, Popover, Reveal, ScrollArea, Sidebar, Steps, Timeline, Toast, Tooltip, TreeView |
 | **Form**       | Autocomplete, CheckboxCard, ColorInput, ColorPicker, Combobox, DateInput, DateRangeInput, DateTimeInput, Dropzone, Fieldset, Numberinput, PinInput, RadioCard, Rate, Slider, Switch, Taginput, TimeInput        |
 | **Elements**   | ColorSwatch, DescriptionList, Kbd, LinkButton, RingProgress                                                                                                                                                     |
-| **Layout**     | Splitter                                                                                                                                                                                                        |
+| **Layout**     | AppFrame, Splitter                                                                                                                                                                                              |
 
 These extras include purpose-built SCSS that follows Bulma v1's CSS-variable conventions, so they theme and customise exactly like native Bulma components. They're bundled into `bestax.css` — no separate import needed.
