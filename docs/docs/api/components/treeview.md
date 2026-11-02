@@ -291,9 +291,10 @@ rules:
 
 - **A value checks its own item, and nothing else.** A parent's value doesn't stand for its branch,
   so a Check all button lists every value, not just the top ones.
-- **`onCheckedChange` gets the list as it was, with the one value added or taken out.** A value the
-  tree doesn't know stays, such as one under a closed branch: a closed item's children don't render
-  in this mode, since a check never reaches them. The order means nothing.
+- **`onCheckedChange` gets the list as it was, with the item's value added at the end or taken
+  out.** Everything else stays as you passed it, in the same order, values the tree doesn't know
+  included, such as one under a closed branch: a closed item's children don't render in this mode,
+  since a check never reaches them.
 - **A disabled item** is checked only by its own value, as in a `checkbox` tree, and never toggled.
 - **The keys and clicks are a `checkbox` tree's:** Space or a click on the row checks or unchecks
   the item, and Enter opens and closes a parent.

@@ -981,16 +981,19 @@ describe('TreeView', () => {
       );
       fireEvent.click(row('Read'));
       fireEvent.click(row('Write'));
-      expect(lastList(onCheckedChange)).toEqual(
-        sorted(['projects', 'projects/read', 'projects/write'])
-      );
+      expect(onCheckedChange).toHaveBeenLastCalledWith([
+        'projects',
+        'projects/read',
+        'projects/write',
+      ]);
       fireEvent.click(row('Read'));
-      expect(lastList(onCheckedChange)).toEqual(
-        sorted(['projects', 'projects/write'])
-      );
+      expect(onCheckedChange).toHaveBeenLastCalledWith([
+        'projects',
+        'projects/write',
+      ]);
       expect(item('Projects')).toHaveAttribute('aria-checked', 'true');
       fireEvent.click(row('Projects'));
-      expect(lastList(onCheckedChange)).toEqual(['projects/write']);
+      expect(onCheckedChange).toHaveBeenLastCalledWith(['projects/write']);
       expect(item('Write')).toHaveAttribute('aria-checked', 'true');
     });
 
@@ -1026,32 +1029,57 @@ describe('TreeView', () => {
       fireEvent.click(box('Delete'));
       expect(onCheckedChange).not.toHaveBeenCalled();
       fireEvent.click(row('Read'));
-      expect(lastList(onCheckedChange)).toEqual(
-        sorted(['projects/delete', 'projects/read'])
-      );
+      expect(onCheckedChange).toHaveBeenLastCalledWith([
+        'projects/delete',
+        'projects/read',
+      ]);
     });
 
-    it('keeps the rest of the list as it was, values the tree doesn’t know included', () => {
+    it('keeps the rest of the list as it was, in its order, with any repeats and values the tree doesn’t know', () => {
       const onCheckedChange = vi.fn();
       render(
         <Independent
-          defaultChecked={['archive/old', 'billing/view', 'projects/read']}
+          defaultChecked={[
+            'projects/read',
+            'archive/old',
+            'billing/view',
+            'archive/old',
+          ]}
           onCheckedChange={onCheckedChange}
         />
       );
       // View invoices is in Billing, which is closed, so the tree doesn't
       // know it.
-      press(item('Read'), ' ');
-      expect(lastList(onCheckedChange)).toEqual(
-        sorted(['archive/old', 'billing/view'])
-      );
       press(item('Write'), ' ');
-      expect(lastList(onCheckedChange)).toEqual(
-        sorted(['archive/old', 'billing/view', 'projects/write'])
-      );
+      expect(onCheckedChange).toHaveBeenLastCalledWith([
+        'projects/read',
+        'archive/old',
+        'billing/view',
+        'archive/old',
+        'projects/write',
+      ]);
+      press(item('Read'), ' ');
+      expect(onCheckedChange).toHaveBeenLastCalledWith([
+        'archive/old',
+        'billing/view',
+        'archive/old',
+        'projects/write',
+      ]);
       press(item('Billing'), 'ArrowRight');
       expect(item('View invoices')).toHaveAttribute('aria-checked', 'true');
       expect(item('Billing')).toHaveAttribute('aria-checked', 'false');
+    });
+
+    it('takes out every copy of an item’s value when it unchecks', () => {
+      const onCheckedChange = vi.fn();
+      render(
+        <Independent
+          defaultChecked={['projects/read', 'billing', 'projects/read']}
+          onCheckedChange={onCheckedChange}
+        />
+      );
+      press(item('Read'), ' ');
+      expect(onCheckedChange).toHaveBeenLastCalledWith(['billing']);
     });
 
     it('round-trips: the list it reports shows the same boxes when passed back', () => {

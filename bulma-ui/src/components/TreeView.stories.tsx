@@ -133,7 +133,7 @@ const meta: Meta<typeof TreeView> = {
     onCheckedChange: {
       action: 'checkedChange',
       description:
-        'Called after a check or an uncheck: in checkbox with every item that shows checked, parents included, and in checkbox-independent with the one value added or taken out; values the tree doesn’t know stay',
+        'Called after a check or an uncheck: in checkbox with every item that shows checked, parents included, plus values the tree doesn’t know; in checkbox-independent with the list as it was, the item’s value added at the end or taken out',
     },
     expanded: {
       control: 'object',
