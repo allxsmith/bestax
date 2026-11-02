@@ -2110,8 +2110,6 @@ export const corrections = [
     renamed: {
       'Affix (sticky)': 'Affix (fixed or sticky)',
     },
-    cells: {
-      'Floating action button': { bestax: 'partial' },
-    },
+    cells: {},
   },
 ];

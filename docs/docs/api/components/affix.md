@@ -47,7 +47,8 @@ import { Affix } from '@allxsmith/bestax-bulma';
 ### Basic Usage
 
 Put what should stay in the corner inside it. It's fixed to the browser window, not to this
-example, so show it and look at the bottom-right corner of the page.
+example, so show it and look at the bottom-left corner of the page. Its own default is the bottom
+right; these examples use the left, since this site's back-to-top button sits in the bottom right.
 
 ```tsx live
 function example() {
@@ -58,7 +59,7 @@ function example() {
         {shown ? 'Hide the Help button' : 'Show the Help button'}
       </Button>
       {shown && (
-        <Affix>
+        <Affix position="bottom-left">
           <Button color="primary">Help</Button>
         </Affix>
       )}
@@ -70,8 +71,9 @@ function example() {
 ### Corners
 
 `position` picks the corner, with the same four values as Badge's: `'bottom-right'` (the default),
-`'bottom-left'`, `'top-right'` and `'top-left'`. The top corners here also take `mt="6"` to clear
-this site's header, as they would a fixed navbar of yours.
+`'bottom-left'`, `'top-right'` and `'top-left'`. Here the top corners also take `mt="6"` to clear
+this site's header, and the bottom right `mb="6"` to clear its back-to-top button, as they would a
+fixed navbar or a chat widget on your page.
 
 ```tsx live
 import type { AffixPosition } from '@allxsmith/bestax-bulma';
@@ -100,6 +102,7 @@ function example() {
         <Affix
           position={position}
           mt={position.startsWith('top') ? '6' : undefined}
+          mb={position === 'bottom-right' ? '6' : undefined}
         >
           <Button color="primary">Feedback</Button>
         </Affix>
@@ -128,7 +131,7 @@ function example() {
         {shown ? 'Hide the chat button' : 'Show the chat button'}
       </Button>
       {shown && (
-        <Affix mb="6">
+        <Affix position="bottom-left" mb="6">
           <Button color="link" radius="rounded" aria-label="Open chat">
             <Icon name="comments" />
           </Button>
@@ -227,7 +230,12 @@ function example() {
         {shown ? 'Hide the buttons' : 'Show the buttons'}
       </Button>
       {shown && (
-        <Affix display="flex" flexDirection="column" gap="2">
+        <Affix
+          position="bottom-left"
+          display="flex"
+          flexDirection="column"
+          gap="2"
+        >
           <Button color="link" aria-label="Open chat">
             <Icon name="comments" />
           </Button>
@@ -422,8 +430,8 @@ give the element `pos="sticky"` and a `top`, as in the
 
 | CSS Variable                      | Sass Variable              | Default                        |
 | --------------------------------- | -------------------------- | ------------------------------ |
-| `--bulma-affix-offset-vertical`   | `$affix-offset-vertical`   | `iv.$block-spacing`            |
-| `--bulma-affix-offset-horizontal` | `$affix-offset-horizontal` | `iv.$block-spacing`            |
+| `--bulma-affix-offset-vertical`   | `$affix-offset-vertical`   | `$block-spacing`               |
+| `--bulma-affix-offset-horizontal` | `$affix-offset-horizontal` | `$block-spacing`               |
 | `--bulma-affix-z-index`           | `$affix-z-index`           | `$extras-z-index-dropdown - 1` |
 
 <!-- /bestax:generated cssvars -->

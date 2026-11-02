@@ -7,15 +7,15 @@
   "examples": [
     {
       "title": "Basic Usage",
-      "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <>\n      <Button onClick={() => setShown(!shown)}>\n        {shown ? 'Hide the Help button' : 'Show the Help button'}\n      </Button>\n      {shown && (\n        <Affix>\n          <Button color=\"primary\">Help</Button>\n        </Affix>\n      )}\n    </>\n  );\n}"
+      "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <>\n      <Button onClick={() => setShown(!shown)}>\n        {shown ? 'Hide the Help button' : 'Show the Help button'}\n      </Button>\n      {shown && (\n        <Affix position=\"bottom-left\">\n          <Button color=\"primary\">Help</Button>\n        </Affix>\n      )}\n    </>\n  );\n}"
     },
     {
       "title": "Corners",
-      "code": "import type { AffixPosition } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const [position, setPosition] = useState<AffixPosition | null>(null);\n  const corners: AffixPosition[] = [\n    'top-left',\n    'top-right',\n    'bottom-left',\n    'bottom-right',\n  ];\n  return (\n    <>\n      <Buttons>\n        {corners.map(corner => (\n          <Button key={corner} onClick={() => setPosition(corner)}>\n            {corner}\n          </Button>\n        ))}\n        <Button disabled={!position} onClick={() => setPosition(null)}>\n          Hide\n        </Button>\n      </Buttons>\n      {position && (\n        <Affix\n          position={position}\n          mt={position.startsWith('top') ? '6' : undefined}\n        >\n          <Button color=\"primary\">Feedback</Button>\n        </Affix>\n      )}\n    </>\n  );\n}"
+      "code": "import type { AffixPosition } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const [position, setPosition] = useState<AffixPosition | null>(null);\n  const corners: AffixPosition[] = [\n    'top-left',\n    'top-right',\n    'bottom-left',\n    'bottom-right',\n  ];\n  return (\n    <>\n      <Buttons>\n        {corners.map(corner => (\n          <Button key={corner} onClick={() => setPosition(corner)}>\n            {corner}\n          </Button>\n        ))}\n        <Button disabled={!position} onClick={() => setPosition(null)}>\n          Hide\n        </Button>\n      </Buttons>\n      {position && (\n        <Affix\n          position={position}\n          mt={position.startsWith('top') ? '6' : undefined}\n          mb={position === 'bottom-right' ? '6' : undefined}\n        >\n          <Button color=\"primary\">Feedback</Button>\n        </Affix>\n      )}\n    </>\n  );\n}"
     },
     {
       "title": "Nudging One Affix",
-      "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <>\n      <Button onClick={() => setShown(!shown)}>\n        {shown ? 'Hide the chat button' : 'Show the chat button'}\n      </Button>\n      {shown && (\n        <Affix mb=\"6\">\n          <Button color=\"link\" radius=\"rounded\" aria-label=\"Open chat\">\n            <Icon name=\"comments\" />\n          </Button>\n        </Affix>\n      )}\n    </>\n  );\n}"
+      "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <>\n      <Button onClick={() => setShown(!shown)}>\n        {shown ? 'Hide the chat button' : 'Show the chat button'}\n      </Button>\n      {shown && (\n        <Affix position=\"bottom-left\" mb=\"6\">\n          <Button color=\"link\" radius=\"rounded\" aria-label=\"Open chat\">\n            <Icon name=\"comments\" />\n          </Button>\n        </Affix>\n      )}\n    </>\n  );\n}"
     },
     {
       "title": "Offsets and the Safe Area",
@@ -27,7 +27,7 @@
     },
     {
       "title": "Several Things in One Corner",
-      "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <>\n      <Button onClick={() => setShown(!shown)}>\n        {shown ? 'Hide the buttons' : 'Show the buttons'}\n      </Button>\n      {shown && (\n        <Affix display=\"flex\" flexDirection=\"column\" gap=\"2\">\n          <Button color=\"link\" aria-label=\"Open chat\">\n            <Icon name=\"comments\" />\n          </Button>\n          <Button color=\"primary\" aria-label=\"Help\">\n            <Icon name=\"question\" />\n          </Button>\n        </Affix>\n      )}\n    </>\n  );\n}"
+      "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <>\n      <Button onClick={() => setShown(!shown)}>\n        {shown ? 'Hide the buttons' : 'Show the buttons'}\n      </Button>\n      {shown && (\n        <Affix\n          position=\"bottom-left\"\n          display=\"flex\"\n          flexDirection=\"column\"\n          gap=\"2\"\n        >\n          <Button color=\"link\" aria-label=\"Open chat\">\n            <Icon name=\"comments\" />\n          </Button>\n          <Button color=\"primary\" aria-label=\"Help\">\n            <Icon name=\"question\" />\n          </Button>\n        </Affix>\n      )}\n    </>\n  );\n}"
     },
     {
       "title": "A Consent Notice",
@@ -116,13 +116,13 @@
     {
       "css": "--bulma-affix-offset-vertical",
       "sass": "$affix-offset-vertical",
-      "default": "iv.$block-spacing",
+      "default": "$block-spacing",
       "scope": "root"
     },
     {
       "css": "--bulma-affix-offset-horizontal",
       "sass": "$affix-offset-horizontal",
-      "default": "iv.$block-spacing",
+      "default": "$block-spacing",
       "scope": "root"
     },
     {

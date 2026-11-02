@@ -2,10 +2,10 @@ import React, { forwardRef } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { Portal, usePortalProp } from '../helpers/portal';
+import type { BadgePosition } from './Badge';
 
 /** A corner of the viewport: the same four values as `BadgePosition`. */
-export type AffixPosition =
-  'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
+export type AffixPosition = BadgePosition;
 
 /**
  * Props for the Affix component. The helper props, the other attributes and
