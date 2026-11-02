@@ -44,7 +44,8 @@ describe.each([
   ['no prefix', ''],
   ['a class prefix', 'bestax-'],
 ])('_tableofcontents.scss under %s', (_, prefix) => {
-  const rules = rulesOf(compile(prefix));
+  const css = compile(prefix);
+  const rules = rulesOf(css);
   const declares = (property: string) =>
     rules.filter(rule => rule.style.getPropertyValue(property) !== '');
 
@@ -81,10 +82,25 @@ describe.each([
     expect(rule.style.position).toBe('sticky');
     expect(rule.style.top).toBe('var(--bulma-table-of-contents-sticky-top)');
     expect(rule.style.overflowY).toBe('auto');
-    expect(rule.style.maxHeight).toBe(
-      'calc(100vh - var(--bulma-table-of-contents-sticky-top))'
-    );
     expect(renderNav(true).matches(rule.selectorText)).toBe(true);
     expect(renderNav(false).matches(rule.selectorText)).toBe(false);
+  });
+
+  it('caps the height at the room below its top, in dvh after a vh fallback', () => {
+    // jsdom keeps one value per property, so the declarations are read from
+    // the sheet's text, in the order a browser meets them.
+    const body = css.slice(css.indexOf(`${prefix}is-sticky {`));
+    const heights = [...body.matchAll(/max-height: ([^;]+);/g)].map(m => m[1]);
+    expect(heights).toEqual([
+      'calc(100vh - var(--bulma-table-of-contents-sticky-top))',
+      'calc(100dvh - var(--bulma-table-of-contents-sticky-top))',
+    ]);
+  });
+
+  it('keeps room at its sides for a focus ring, and gives it back', () => {
+    const [rule] = declares('position');
+    const ring = 'calc(var(--bulma-focus-width) + var(--bulma-focus-offset))';
+    expect(rule.style.paddingInline).toBe(ring);
+    expect(rule.style.marginInline).toBe(`calc(-1 * ${ring})`);
   });
 });
