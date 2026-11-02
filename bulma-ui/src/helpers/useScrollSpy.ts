@@ -139,6 +139,11 @@ function followedLink(event: MouseEvent): HTMLAnchorElement | undefined {
  * that moves while nothing scrolls is seen at the next scroll or resize. It
  * watches the document only: not a panel that scrolls inside it, and not
  * sections inside a shadow root, which an `#id` link can't reach either.
+ * Whether a page was opened afresh is read from how the document loaded, so
+ * in an app that changes routes on the client, a route change can briefly
+ * mark the address bar's section until the page settles, when the reading
+ * rule takes over, and after a reload a route change to an `#id` holds
+ * nothing.
  *
  * @function
  * @param {UseScrollSpyOptions} options - The ids to watch, the offset, and a change callback.

@@ -275,6 +275,11 @@ scrolls, as content loading above it can make it, is seen at the next scroll or 
 the document only: not a panel that scrolls inside it, and not sections inside a shadow root, which
 an `#id` link can't reach either.
 
+Whether a page was opened afresh is read from how the document loaded, not from the router. In an app
+that changes routes on the client, a route change can briefly mark the address bar's section until
+the page settles, and the reading rule takes over then; after a reload, a route change to an `#id`
+holds nothing.
+
 When the list is taller than the room it has, as a long sticky list can be, it scrolls itself to
 keep the current link in view. Only the list moves, never the page.
 
