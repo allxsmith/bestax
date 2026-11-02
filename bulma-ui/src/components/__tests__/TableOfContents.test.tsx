@@ -268,7 +268,7 @@ describe('TableOfContents', () => {
       expect(onActiveChange).toHaveBeenCalledWith('usage');
     });
 
-    it('puts no handler on a link, so following one is the browser’s own', () => {
+    it('leaves a click on a link alone, so following one is the browser’s own', () => {
       render(<Page />);
       expect(fireEvent.click(link('FAQ'))).toBe(true);
     });
@@ -296,16 +296,22 @@ describe('TableOfContents', () => {
     });
 
     it('scrolls itself up to a current link above what it shows', () => {
-      renderTall();
-      const nav = screen.getByRole('navigation');
-      nav.scrollTop = 200;
-      Object.assign(tops, { install: -500, usage: -10 });
-      linkBox = { top: 60, bottom: 90 };
-      // jsdom has no IntersectionObserver, so a scroll checks.
-      act(() => {
-        window.dispatchEvent(new Event('scroll'));
-      });
-      expect(nav.scrollTop).toBe(160);
+      vi.useFakeTimers();
+      try {
+        renderTall();
+        const nav = screen.getByRole('navigation');
+        nav.scrollTop = 200;
+        Object.assign(tops, { install: -500, usage: -10 });
+        linkBox = { top: 60, bottom: 90 };
+        // The page scrolls, and the check runs in the next frame.
+        act(() => {
+          window.dispatchEvent(new Event('scroll'));
+          vi.advanceTimersByTime(16);
+        });
+        expect(nav.scrollTop).toBe(160);
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it('leaves a current link it already shows where it is', () => {

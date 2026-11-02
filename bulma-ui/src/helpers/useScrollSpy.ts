@@ -6,9 +6,9 @@ import { useLatestRef } from './useLatestRef';
 export interface UseScrollSpyOptions {
   /**
    * **Required.** The ids of the sections to watch, without the `#`, in the
-   * order they come on the page. They're looked up when the hook mounts and
-   * again when the list changes, so a section rendered later than that isn't
-   * seen until the list changes too.
+   * order they come on the page. Each one is looked up each time the hook
+   * checks, so a section rendered late, or replaced under the same id, is
+   * seen at the next scroll.
    */
   ids: string[];
   /**
@@ -24,38 +24,40 @@ export interface UseScrollSpyOptions {
 }
 
 /**
- * How long the page has to stay still before a scroll counts as over: long
+ * How long the page has to stay still before a jump counts as over: long
  * enough to span the gap between two frames of a smooth scroll.
  */
 const SETTLE_MS = 100;
 
 /**
  * A pixel of slack at the line, for a jump that lands a fraction of a pixel
- * past it.
+ * away from it.
  */
 const SLACK = 1;
 
-/**
- * How far the observer's region reaches above the viewport and out to its
- * sides: farther than a page scrolls, so a section counts as above the line
- * however far above it is.
- */
-const BEYOND = 1_000_000;
+/** The height of the viewport the page scrolls in, less a classic scrollbar. */
+const viewportHeight = () => document.documentElement.clientHeight;
 
 /** The page's `scroll-padding-top` in pixels, or 0 for `auto`. */
 function scrollPaddingTop(): number {
   const value = getComputedStyle(document.documentElement).scrollPaddingTop;
   const number = parseFloat(value);
   if (!Number.isFinite(number)) return 0;
-  return value.endsWith('%') ? (number * window.innerHeight) / 100 : number;
+  return value.endsWith('%') ? (number * viewportHeight()) / 100 : number;
 }
 
 /** Whether the browser draws an element: `display: none` draws no box. */
 const isDrawn = (element: Element) => element.getClientRects().length > 0;
 
-/** The id the address bar's fragment names. */
-function hashTarget(): string {
-  const raw = window.location.hash.slice(1);
+/** Whether the page is scrolled as far down as it goes. */
+const atEnd = () =>
+  window.scrollY > 0 &&
+  window.scrollY + viewportHeight() >=
+    document.documentElement.scrollHeight - 1;
+
+/** The id a URL fragment names, such as `#caf%C3%A9`. */
+function fragmentId(hash: string): string {
+  const raw = hash.slice(1);
   try {
     return decodeURIComponent(raw);
   } catch {
@@ -66,19 +68,27 @@ function hashTarget(): string {
 /**
  * The `useScrollSpy` hook returns the id of the section being read: the last
  * of `ids` whose top is at or above the offset line, the last one once the
- * page is scrolled to its end, and the one a jump went to until that jump
- * settles and the reader scrolls on. `null` above the first section, on the
- * server and until the page hydrates.
+ * page is scrolled to its end, and the one a jump went to while the page
+ * stays where the jump put it. `null` above the first section, on the server
+ * and until the page hydrates.
  *
- * It watches the document with an `IntersectionObserver`, which runs the check
- * as a section's top crosses the line, and checks once more each time
- * scrolling stops. Where `IntersectionObserver` is missing, every scroll
- * checks. A jump is seen through the `hashchange` a link to `#id` causes, so a
- * link needs no click handler. A section that isn't on the page, or isn't
- * drawn (`display: none`), is never current, and a development build names
- * one that isn't on the page. It watches the document only: not a panel that
- * scrolls inside it, and not sections inside a shadow root, which an `#id`
- * link can't reach either.
+ * It checks once per frame while the page scrolls, and on resize. A jump is
+ * a link to one of the ids being followed, seen through the `hashchange` it
+ * causes and a click on a link to the address bar's own section, which
+ * causes none; a page that opens at `#id` counts as one too. A click is only
+ * noted, never stopped, so the jump stays the browser's own. A section stays
+ * current after a jump only while its top is at the line, or the page is
+ * scrolled to its end with the section on screen, which is where the browser
+ * puts it; so Back and Forward, which put the page back where it was, don't
+ * hold the address bar's section. During a smooth jump the mark stays where
+ * it was until the page arrives.
+ *
+ * A section that isn't on the page, or isn't drawn (`display: none`), is never
+ * current, and a development build names one that isn't on the page. A
+ * section that moves while nothing scrolls, as content loading above it can
+ * make it, is seen at the next scroll or resize. It watches the document
+ * only: not a panel that scrolls inside it, and not sections inside a shadow
+ * root, which an `#id` link can't reach either.
  *
  * @function
  * @param {UseScrollSpyOptions} options - The ids to watch, the offset, and a change callback.
@@ -104,28 +114,13 @@ export function useScrollSpy({
     typeof offset === 'number' && Number.isFinite(offset) ? offset : undefined;
 
   useEffect(() => {
-    const targets = new Map<string, HTMLElement>();
-    for (const id of JSON.parse(key) as string[]) {
-      const element = document.getElementById(id);
-      if (element) {
-        targets.set(id, element);
-      } else {
-        warnOnce(
-          `useScrollSpy:missing:${id}`,
-          `[bestax-bulma] No element has the id "${id}", so its section is ` +
-            'never marked current. Check the ids given to useScrollSpy, or ' +
-            'the items given to TableOfContents.'
-        );
-      }
-    }
-
-    let line = 0;
-    let observer: IntersectionObserver | undefined;
-    // The section a jump went to, held current until the jump's scrolling
-    // has settled and the reader scrolls again.
-    let pinned: string | null = null;
+    const watched = JSON.parse(key) as string[];
+    let line = fixedOffset ?? scrollPaddingTop();
+    // The section a jump went to, and whether the page has been still since.
+    let held: string | null = null;
     let settled = true;
     let settleTimer: ReturnType<typeof setTimeout> | undefined;
+    let frame = 0;
 
     const report = (id: string | null) => {
       if (id === reportedRef.current) return;
@@ -134,15 +129,52 @@ export function useScrollSpy({
       onActiveChangeRef.current?.(id);
     };
 
+    /** The sections on the page now, in order, looked up by id. */
+    const sections = () => {
+      const found: [string, HTMLElement][] = [];
+      for (const id of watched) {
+        const element = document.getElementById(id);
+        if (element) {
+          found.push([id, element]);
+        } else {
+          warnOnce(
+            `useScrollSpy:missing:${id}`,
+            `[bestax-bulma] No element has the id "${id}", so its section ` +
+              'is never marked current. Check the ids given to ' +
+              'useScrollSpy, or the items given to TableOfContents.'
+          );
+        }
+      }
+      return found;
+    };
+
+    /**
+     * Whether the page sits where a jump to `element` puts it: its top at the
+     * line, or as near as the page lets it come, scrolled to its end with the
+     * section on screen below the line.
+     */
+    const reached = (element: HTMLElement) => {
+      if (!isDrawn(element)) return false;
+      const { top } = element.getBoundingClientRect();
+      return (
+        Math.abs(top - line) <= SLACK ||
+        (top > line && top < viewportHeight() && atEnd())
+      );
+    };
+
     const check = () => {
-      if (pinned !== null) return report(pinned);
-      const drawn = [...targets].filter(([, element]) => isDrawn(element));
-      const { scrollY, innerHeight } = window;
-      const atEnd =
-        scrollY > 0 &&
-        scrollY + innerHeight >= document.documentElement.scrollHeight - 1;
+      const found = sections();
+      if (held !== null) {
+        const target = found.find(([id]) => id === held);
+        if (target && reached(target[1])) return report(held);
+        // The jump may still be on its way, so the mark stays where it is
+        // until the page has been still for a moment.
+        if (!settled) return;
+        held = null;
+      }
       let current: string | null = null;
-      if (atEnd) {
+      const drawn = found.filter(([, element]) => isDrawn(element));
+      if (atEnd()) {
         // A short last section can't reach the line, so the end of the page
         // stands in for it.
         if (drawn.length) current = drawn[drawn.length - 1][0];
@@ -154,26 +186,16 @@ export function useScrollSpy({
       report(current);
     };
 
-    // The region runs from far above the viewport down to the line, so a
-    // section enters it as its top passes the line on the way up and leaves
-    // as it comes back down, however fast the page moves. `root: document`
-    // keeps the margins in force inside a cross-origin frame too.
-    const observe = () => {
-      observer?.disconnect();
-      line = fixedOffset ?? scrollPaddingTop();
-      if (typeof IntersectionObserver === 'undefined') return;
-      observer = new IntersectionObserver(check, {
-        root: document,
-        rootMargin: `${BEYOND}px ${BEYOND}px ${
-          line + SLACK - window.innerHeight
-        }px ${BEYOND}px`,
+    /** Runs the check in the next frame, once however many events ask. */
+    const schedule = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        check();
       });
-      targets.forEach(element => observer!.observe(element));
     };
 
-    // Each scroll restarts the wait, and the check runs once the page has
-    // been still for a moment: that's what sees the end of the page, which no
-    // section crosses the line to show.
+    /** Starts, or starts again, the wait for the page to be still. */
     const waitToSettle = () => {
       settled = false;
       clearTimeout(settleTimer);
@@ -183,37 +205,65 @@ export function useScrollSpy({
       }, SETTLE_MS);
     };
 
-    const onScroll = () => {
-      const scrolledOn = pinned !== null && settled;
-      if (scrolledOn) pinned = null;
-      if (scrolledOn || !observer) check();
-      waitToSettle();
+    /** Holds the section a jump goes to, or lets go for a jump elsewhere. */
+    const hold = (id: string) => {
+      held = watched.includes(id) ? id : null;
+      if (held !== null) waitToSettle();
+      check();
     };
 
-    const onHashChange = () => {
-      const id = hashTarget();
-      const element = targets.get(id);
-      pinned = element && isDrawn(element) ? id : null;
-      check();
-      waitToSettle();
+    const onScroll = () => {
+      if (held !== null) {
+        // Once the jump is over, the reader's own scroll lets it go; until
+        // then, each scroll pushes the end of the jump back.
+        if (settled) held = null;
+        else waitToSettle();
+      }
+      schedule();
     };
 
     const onResize = () => {
-      observe();
-      check();
+      line = fixedOffset ?? scrollPaddingTop();
+      schedule();
     };
 
-    observe();
-    check();
+    const onHashChange = () => hold(fragmentId(window.location.hash));
+
+    // A link to the section already in the address bar jumps with no
+    // `hashchange`, so a click on one is noted here. Only noted: nothing
+    // stops the click, and the browser jumps as it always does. The path is
+    // read rather than the target, so a link inside a shadow root counts.
+    const onClick = (event: MouseEvent) => {
+      const link = event
+        .composedPath()
+        .find(
+          (node): node is HTMLAnchorElement => node instanceof HTMLAnchorElement
+        );
+      if (
+        link?.hash &&
+        link.href.split('#')[0] === window.location.href.split('#')[0]
+      ) {
+        hold(fragmentId(link.hash));
+      }
+    };
+
+    // A page that opens at `#id` was jumped there by the browser, unless it
+    // put the page back where it was on a reload, which `reached` tells.
+    hold(fragmentId(window.location.hash));
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onResize);
     window.addEventListener('hashchange', onHashChange);
+    document.addEventListener('click', onClick, {
+      capture: true,
+      passive: true,
+    });
     return () => {
-      observer?.disconnect();
+      cancelAnimationFrame(frame);
       clearTimeout(settleTimer);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onResize);
       window.removeEventListener('hashchange', onHashChange);
+      document.removeEventListener('click', onClick, { capture: true });
     };
   }, [key, fixedOffset, onActiveChangeRef]);
 

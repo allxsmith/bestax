@@ -19,7 +19,7 @@ that jumps between groups, or a report with its sections down the side on a wide
 
 It takes the sections as an `items` array and renders a `<nav>` of plain `#id` links, on the server
 too, so they work before the page hydrates and can be opened in a new tab or shared. Following one
-is the browser's own jump, with no click handler. As the page scrolls, one link at a time is
+is the browser's own jump: nothing stops or scripts it. As the page scrolls, one link at a time is
 current, marked with Bulma's `is-active` and `aria-current="location"`. The hook that picks it,
 `useScrollSpy`, is public, so an app's own nav `Menu` can mark the section in view too.
 
@@ -250,20 +250,26 @@ of the viewport.
   first section, none is.
 - **The end of the page:** once the page is scrolled to its end, the last section is current, so a
   short last section that can't reach the line still gets its turn.
-- **After a jump:** the section a link went to stays current until the jump's scrolling has settled
-  and the reader scrolls again, so a smooth scroll doesn't light up each section it passes. The jump
-  is seen through the `hashchange` it causes. A link to the section already in the address bar
-  causes none, and then the reading rule marks it where it lands.
+- **After a jump:** the section a link went to stays current while the page sits where the jump put
+  it: its top at the line, or, near the end, as close as the page can bring it. So a short section
+  near the end, which can't reach the line, is current after a jump to it, and the reader's next
+  scroll hands back to the reading rule. During a smooth jump the mark stays where it was until the
+  page arrives, rather than lighting up each section it passes.
+- **What counts as a jump:** a link followed to one of the sections, seen through the `hashchange`
+  it causes, or through the click on a link to the section already in the address bar, which causes
+  none; and a page that opens at `#id`. A click is only noted, never stopped, so the browser jumps
+  as it always does. Back and Forward put the page back where it was rather than at the section, so
+  they don't hold it, and the reading rule marks where the page is.
 - **Missing or hidden sections:** an entry whose `id` isn't on the page keeps its link, is never
   current, and a development build names it once. A section that isn't drawn (`display: none`) is
   never current either.
 
-It watches the page with an `IntersectionObserver`, which runs the check as a section's top crosses
-the line, however fast the page moves, and checks once more each time scrolling stops, which is how
-it sees the end of the page. Where `IntersectionObserver` is missing, every scroll checks. It looks
-the sections up when it mounts and again when `items` change, and reads the line again when the
-window is resized. It watches the document only: not a panel that scrolls inside it, and not
-sections inside a shadow root, which an `#id` link can't reach either.
+It checks once per frame while the page scrolls, and when the window is resized, which also reads
+the line again. It looks each section up by its `id` when it checks, so a section rendered late, or
+replaced under the same `id`, is seen at the next scroll. A section that moves while nothing
+scrolls, as content loading above it can make it, is seen at the next scroll or resize. It watches
+the document only: not a panel that scrolls inside it, and not sections inside a shadow root, which
+an `#id` link can't reach either.
 
 When the list is taller than the room it has, as a long sticky list can be, it scrolls itself to
 keep the current link in view. Only the list moves, never the page.

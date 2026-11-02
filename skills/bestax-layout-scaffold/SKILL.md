@@ -146,7 +146,7 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
 - **A long page's "On this page" list of its sections is `TableOfContents`**, not a `Menu` with
   a scroll listener of your own: give each section's heading an `id` and pass the sections in page
   order, `<TableOfContents isSticky items={[{ id: 'install', label: 'Install' }, { id: 'usage', label: 'Usage', children: […] }]} />`,
-  in a side `Column`. Its links are plain `#id` links with no click handler, and it marks the
+  in a side `Column`. Its links are plain `#id` links that the browser follows itself, and it marks the
   section being read with `aria-current="location"`. Offset a sticky header with
   `scroll-padding-top` on `html` in the page's CSS (which the highlight reads too), not with
   `scroll-margin-top` on the headings, and put any smooth scrolling in that CSS under
