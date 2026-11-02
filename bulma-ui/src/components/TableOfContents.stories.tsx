@@ -68,9 +68,13 @@ const TEXT: Record<string, string[]> = {
 
 /** The guide itself, with a heading for each section. */
 const Guide = ({ prefix }: { prefix: string }) => {
-  const section = (id: string, title: string, size: '4' | '5' = '4') => (
+  const section = (id: string, title: string, level: 'h2' | 'h3' = 'h2') => (
     <>
-      <Title as="h2" size={size} id={`${prefix}-${id}`}>
+      <Title
+        as={level}
+        textSize={level === 'h2' ? '4' : '5'}
+        id={`${prefix}-${id}`}
+      >
         {title}
       </Title>
       {TEXT[id].map((text, i) => (
@@ -82,8 +86,8 @@ const Guide = ({ prefix }: { prefix: string }) => {
     <Content>
       {section('spot', 'Choosing a spot')}
       {section('soil', 'Preparing the soil')}
-      {section('testing', 'Testing it', '5')}
-      {section('compost', 'Adding compost', '5')}
+      {section('testing', 'Testing it', 'h3')}
+      {section('compost', 'Adding compost', 'h3')}
       {section('planting', 'Planting')}
       {section('watering', 'Watering')}
       {section('harvest', 'Harvest')}
@@ -207,7 +211,7 @@ export const LongList: Story = {
           <Content>
             {chapters.map(chapter => (
               <Fragment key={chapter.id}>
-                <Title as="h2" size="4" id={chapter.id}>
+                <Title as="h2" textSize="4" id={chapter.id}>
                   {chapter.label}
                 </Title>
                 {TEXT.spot.map((text, i) => (
@@ -333,7 +337,7 @@ function SettingsPage() {
         <Content>
           {SETTINGS.map(section => (
             <Fragment key={section.id}>
-              <Title as="h2" size="4" id={`${pageId}-${section.id}`}>
+              <Title as="h2" textSize="4" id={`${pageId}-${section.id}`}>
                 {section.label}
               </Title>
               {[1, 2, 3].map(i => (
