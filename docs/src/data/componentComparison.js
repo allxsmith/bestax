@@ -2106,7 +2106,7 @@ export const corrections = [
   },
   {
     edition: '2026-10-13',
-    pr: 1433,
+    pr: 1455,
     renamed: {
       'Affix (sticky)': 'Affix (fixed or sticky)',
     },
