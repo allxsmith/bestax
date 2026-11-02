@@ -249,21 +249,24 @@ of the viewport.
 - **Reading:** the current section is the last one whose top is at or above the line. Above the
   first section, none is.
 - **The end of the page:** once the page is scrolled to its end, the last section is current, so a
-  short last section that can't reach the line still gets its turn.
-- **After a jump:** the section a link went to is current once the page arrives where the jump puts
-  it, its top at the line or, near the end, as close as the page can bring it, and stays current
-  until the reader scrolls on, through any shift of the layout, such as an image loading above it.
-  So a short section near the end, which can't reach the line, is current after a jump to it.
-  During a smooth jump the mark stays where it was until the page arrives, rather than lighting up
-  each section it passes.
-- **What counts as a jump:** a link followed to one of the sections, seen through the `hashchange`
-  it causes, or through the click on a link to the section already in the address bar, which causes
-  none; and a page that opens at `#id`. A click is only noted, never stopped, so the browser jumps
-  as it always does. Back and Forward put the page back where it was rather than at the section, so
-  the page never arrives there, and the reading rule marks where the page is.
-- **Missing or hidden sections:** an entry whose `id` isn't on the page keeps its link, is never
-  current, and a development build names it once. A section that isn't drawn (`display: none`) is
-  never current either.
+  short last section that can't reach the line still gets its turn. The end is the bottom of what
+  the reader sees, so a horizontal scrollbar or a phone's toolbar, shown or hidden, doesn't move it.
+- **After a jump:** the section a link went to is current from the click, through a smooth jump,
+  until the page has been still for a moment. Then it stays current if it's where a jump puts it:
+  its top at the line, give or take a shift of the layout smaller than its own height, or, near the
+  end, on screen below the line, as close as the page can bring it. So a short section near the end,
+  which can't reach the line, is current after a jump to it. If the reader flicked on right after
+  the click, the reading rule marks where the page came to rest instead. The next scroll lets the
+  section go, the browser's own included: when content loading above it makes the browser scroll to
+  keep the reader's place, the reading rule takes over there too.
+- **What counts as a jump:** a plain click on a link to one of the sections, with the main button,
+  no modifier key and no `target` that opens it elsewhere, and the `#id` a page opens at when it's
+  opened by a link or typed in. A click is only noted, never stopped, so the browser jumps as it
+  always does. Back, Forward and a reload aren't jumps: the browser puts the page back where it was,
+  and the reading rule marks it there.
+- **Missing or hidden sections:** an entry whose `id` isn't on the page keeps its link and is
+  skipped until an element with that `id` appears. A section that isn't drawn (`display: none`) is
+  never current.
 
 It checks once per frame while the page scrolls, and when the window is resized, which also reads
 the line again. It looks each section up by its `id` when it checks, so a section rendered late, or

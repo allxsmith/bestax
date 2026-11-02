@@ -1,14 +1,15 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { StrictMode } from 'react';
+import { act, render, screen } from '@testing-library/react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { useScrollSpy, type UseScrollSpyOptions } from '../useScrollSpy';
-import { resetDevWarnings } from '../devWarnings';
 
 // jsdom has no layout, so each section's top is set here, by id, along with
 // the ones that aren't drawn.
 const tops: Record<string, number> = {};
 const undrawn = new Set<string>();
 
-// Properties stubbed on window and the root element, put back after each test.
+// Properties stubbed on window, performance and the root element, put back
+// after each test.
 const stubbed: Array<[object, string, PropertyDescriptor | undefined]> = [];
 const stub = (target: object, key: string, value: unknown) => {
   stubbed.push([target, key, Object.getOwnPropertyDescriptor(target, key)]);
@@ -32,6 +33,12 @@ const setScrollPadding = (value: string) => {
   );
 };
 
+/** How the page was reached, as the navigation timing entry records it. */
+const setNavigation = (type: string) =>
+  stub(performance, 'getEntriesByType', (kind: string) =>
+    kind === 'navigation' ? [{ type }] : []
+  );
+
 /** Runs the next animation frame, where a scroll's check runs. */
 const nextFrame = () =>
   act(() => {
@@ -52,12 +59,34 @@ const settle = () =>
     vi.advanceTimersByTime(100);
   });
 
-/** Follows a link to `#hash`, as far as the page can see. */
-const jumpTo = (hash: string) =>
+/**
+ * Clicks a link to `href`, with `init` for the click and `attributes` for the
+ * link, and says whether the click went on. A link to another page is kept
+ * from navigating, which jsdom can't do.
+ */
+const clickLink = (
+  href: string,
+  init: MouseEventInit = {},
+  attributes: Record<string, string> = {}
+) => {
+  const link = document.createElement('a');
+  link.setAttribute('href', href);
+  for (const [name, value] of Object.entries(attributes)) {
+    link.setAttribute(name, value);
+  }
+  if (!href.startsWith('#')) {
+    link.addEventListener('click', event => event.preventDefault());
+  }
+  document.body.appendChild(link);
+  let followed = false;
   act(() => {
-    window.history.replaceState(null, '', `#${hash}`);
-    window.dispatchEvent(new HashChangeEvent('hashchange'));
+    followed = link.dispatchEvent(
+      new MouseEvent('click', { bubbles: true, cancelable: true, ...init })
+    );
   });
+  link.remove();
+  return followed;
+};
 
 const Spy = (props: UseScrollSpyOptions) => {
   const active = useScrollSpy(props);
@@ -99,7 +128,6 @@ describe('useScrollSpy', () => {
         ? []
         : [this.getBoundingClientRect()]) as unknown as DOMRectList;
     });
-    resetDevWarnings();
   });
 
   afterEach(() => {
@@ -151,6 +179,36 @@ describe('useScrollSpy', () => {
     it('counts the end a pixel early, for a scroll position with a fraction', () => {
       Object.assign(tops, { a: -900, b: -100, c: 500 });
       setScroll(2199.5, 3000);
+      render(<Page offset={0} />);
+      expect(active()).toBe('c');
+    });
+
+    it('reads the end from the visual viewport, which grows when a phone hides its toolbar', () => {
+      Object.assign(tops, { a: -900, b: -100, c: 500 });
+      setScroll(2200, 3000);
+      // The root keeps the height with the toolbar shown; the reader sees
+      // 100px more, down to the true bottom.
+      stub(document.documentElement, 'clientHeight', 700);
+      stub(window, 'visualViewport', { height: 800 });
+      render(<Page offset={0} />);
+      expect(active()).toBe('c');
+    });
+
+    it("doesn't count a horizontal scrollbar's height, which the window has and the reader doesn't see past", () => {
+      Object.assign(tops, { a: -900, b: -100, c: 500 });
+      // With 15px of scrollbar, the window reaches 3000 here; the page shows
+      // down to 2985.
+      setScroll(2200, 3000);
+      stub(document.documentElement, 'clientHeight', 785);
+      stub(window, 'visualViewport', { height: 785 });
+      render(<Page offset={0} />);
+      expect(active()).toBe('b');
+    });
+
+    it("reads the end from the root's height under a pinch zoom", () => {
+      Object.assign(tops, { a: -900, b: -100, c: 500 });
+      setScroll(2200, 3000);
+      stub(window, 'visualViewport', { height: 400 });
       render(<Page offset={0} />);
       expect(active()).toBe('c');
     });
@@ -263,14 +321,13 @@ describe('useScrollSpy', () => {
       fresh.remove();
     });
 
-    it('sees a section rendered after it mounted at the next scroll', () => {
+    it('skips an id with no element until one appears, and warns about nothing', () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       Object.assign(tops, { a: -300, b: 20, late: 30 });
       const { rerender } = render(
         <Page offset={50} sections={['a', 'b']} ids={['a', 'b', 'late']} />
       );
       expect(active()).toBe('b');
-      expect(warn).toHaveBeenCalledTimes(1);
       rerender(
         <Page
           offset={50}
@@ -280,6 +337,7 @@ describe('useScrollSpy', () => {
       );
       scroll();
       expect(active()).toBe('late');
+      expect(warn).not.toHaveBeenCalled();
     });
 
     it('starts over when the ids change, and not for a new array with the same ids', () => {
@@ -307,14 +365,13 @@ describe('useScrollSpy', () => {
       act(() => {
         window.dispatchEvent(new Event('scroll'));
       });
-      jumpTo('b');
+      clickLink('#a');
       unmount();
       onActiveChange.mockClear();
       Object.assign(tops, { b: -200, c: 30 });
       window.dispatchEvent(new Event('scroll'));
       window.dispatchEvent(new Event('resize'));
-      window.dispatchEvent(new HashChangeEvent('hashchange'));
-      document.body.click();
+      clickLink('#c');
       vi.advanceTimersByTime(1000);
       expect(onActiveChange).not.toHaveBeenCalled();
     });
@@ -328,198 +385,224 @@ describe('useScrollSpy', () => {
       setScroll(2200, 3000);
     };
 
-    it('holds a section the page was jumped to, at the line or as near as its end allows', () => {
-      Object.assign(tops, { a: -900, b: 0, c: 300 });
-      render(<Page offset={0} />);
-      expect(active()).toBe('b');
+    it('holds the section a plain click on its link goes to, and leaves the click alone', () => {
       atTheEnd();
-      scroll();
+      render(<Page offset={0} />);
       expect(active()).toBe('c');
-      jumpTo('b');
+      expect(clickLink('#b')).toBe(true);
       expect(active()).toBe('b');
     });
 
-    it('keeps holding it through a shift of the layout once the page has arrived', () => {
-      Object.assign(tops, { a: -900, b: 0, c: 300 });
+    it('keeps it once the page is still, where a jump puts it, until the next scroll', () => {
+      atTheEnd();
       render(<Page offset={0} />);
-      jumpTo('b');
+      clickLink('#b');
+      scroll();
       settle();
       expect(active()).toBe('b');
-      // Something loads above b and pushes it below the line, with no
-      // scroll; a resize asks for a check all the same.
+      scroll();
+      expect(active()).toBe('c');
+    });
+
+    it('keeps one a shift of the layout moved by less than its own height', () => {
+      Object.assign(tops, { a: -900, b: 0, c: 300 });
+      render(<Page offset={0} />);
+      clickLink('#b');
+      // Something loads above b and pushes it 4px down, with no scroll.
       Object.assign(tops, { b: 4, c: 304 });
-      act(() => {
-        window.dispatchEvent(new Event('resize'));
-      });
-      nextFrame();
+      settle();
       expect(active()).toBe('b');
     });
 
-    it('lets go once the jump is over and the reader scrolls on', () => {
+    it('lets go of one hidden before the page is still', () => {
       atTheEnd();
       render(<Page offset={0} />);
-      jumpTo('b');
-      // The jump's own scrolling, and the checks it causes, change nothing,
-      // and each scroll pushes its end back.
-      scroll();
-      act(() => {
-        vi.advanceTimersByTime(80);
-      });
-      scroll();
-      act(() => {
-        vi.advanceTimersByTime(80);
-      });
-      expect(active()).toBe('b');
+      clickLink('#b');
+      undrawn.add('b');
       settle();
-      expect(active()).toBe('b');
-      // The reader scrolls on, and the rule takes over.
-      scroll();
       expect(active()).toBe('c');
     });
 
-    it('keeps the mark where it was while a smooth jump is on its way, then marks where it lands', () => {
-      Object.assign(tops, { a: -900, b: -100, c: 600 });
+    it('lets go of one moved further than its own height', () => {
+      Object.assign(tops, { a: -900, b: 0, c: 300 });
       render(<Page offset={0} />);
-      expect(active()).toBe('b');
-      jumpTo('a');
-      // Passing b on the way up changes nothing.
-      Object.assign(tops, { a: -400, b: 400, c: 1100 });
-      scroll();
-      expect(active()).toBe('b');
-      Object.assign(tops, { a: 0, b: 800, c: 1500 });
-      scroll();
+      clickLink('#b');
+      Object.assign(tops, { b: 41, c: 341 });
+      settle();
       expect(active()).toBe('a');
     });
 
-    it("doesn't hold a section the page wasn't put at, as after Back or Forward", () => {
-      // Back restores where the page was, with b's top well above the line.
-      Object.assign(tops, { a: -900, b: -400, c: 300 });
-      const onActiveChange = vi.fn();
-      render(<Page offset={0} onActiveChange={onActiveChange} />);
-      jumpTo('a');
+    it('lets go once the page is still away from it, as after a flick right after the click', () => {
+      Object.assign(tops, { a: -900, b: 0, c: 300 });
+      render(<Page offset={0} />);
+      clickLink('#b');
+      Object.assign(tops, { a: -1500, b: -600, c: -300 });
       scroll();
       expect(active()).toBe('b');
       settle();
-      expect(active()).toBe('b');
-      expect(onActiveChange.mock.calls).toEqual([['b']]);
-    });
-
-    it('lets go of a jump at a jump elsewhere', () => {
-      atTheEnd();
-      render(<Page offset={0} />);
-      jumpTo('b');
-      expect(active()).toBe('b');
-      jumpTo('footnote-1');
       expect(active()).toBe('c');
     });
 
-    it('reads a fragment that is percent-encoded', () => {
-      Object.assign(tops, { a: -900, café: 300, z: 500 });
-      setScroll(2200, 3000);
-      render(<Page offset={0} sections={['a', 'café', 'z']} />);
-      expect(active()).toBe('z');
-      jumpTo(encodeURIComponent('café'));
-      expect(active()).toBe('café');
+    it('shows it the whole way through a smooth jump, each scroll pushing the end back', () => {
+      Object.assign(tops, { a: -900, b: -100, c: 600 });
+      render(<Page offset={0} />);
+      expect(active()).toBe('b');
+      clickLink('#a');
+      for (const a of [-600, -300, 0]) {
+        Object.assign(tops, { a, b: a + 800, c: a + 1500 });
+        scroll();
+        act(() => {
+          vi.advanceTimersByTime(70);
+        });
+        expect(active()).toBe('a');
+      }
+      settle();
+      expect(active()).toBe('a');
     });
 
-    it('reads a fragment that is not valid percent-encoding as written', () => {
-      Object.assign(tops, { a: -900, '100%': 300, z: 500 });
+    it.each([
+      ['Ctrl', { ctrlKey: true }],
+      ['Cmd', { metaKey: true }],
+      ['Shift', { shiftKey: true }],
+      ['Alt', { altKey: true }],
+      ['the middle button', { button: 1 }],
+    ])('ignores a click with %s', (_, init) => {
+      atTheEnd();
+      render(<Page offset={0} />);
+      clickLink('#b', init);
+      expect(active()).toBe('c');
+    });
+
+    it('ignores a link that opens elsewhere, and takes one that names this page', () => {
+      atTheEnd();
+      render(<Page offset={0} />);
+      clickLink('#b', {}, { target: '_blank' });
+      expect(active()).toBe('c');
+      clickLink('#b', {}, { target: '_self' });
+      expect(active()).toBe('b');
+    });
+
+    it('ignores a link to another page, one with no fragment, and a click on no link', () => {
+      atTheEnd();
+      render(<Page offset={0} />);
+      clickLink('/elsewhere#b');
+      clickLink('/plain');
+      act(() => {
+        screen.getByTestId('active').click();
+      });
+      expect(active()).toBe('c');
+    });
+
+    it("ignores a link to an id that isn't watched, isn't on the page or isn't drawn", () => {
+      atTheEnd();
+      undrawn.add('c');
+      render(<Page offset={0} ids={['a', 'b', 'c', 'gone']} />);
+      expect(active()).toBe('b');
+      for (const href of ['#footnote', '#gone', '#c']) clickLink(href);
+      settle();
+      expect(active()).toBe('b');
+    });
+
+    it('takes a link inside a shadow root', () => {
+      atTheEnd();
+      render(<Page offset={0} />);
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const link = document.createElement('a');
+      link.href = '#b';
+      host.attachShadow({ mode: 'open' }).appendChild(link);
+      act(() => {
+        link.dispatchEvent(
+          new MouseEvent('click', { bubbles: true, composed: true })
+        );
+      });
+      expect(active()).toBe('b');
+      host.remove();
+    });
+
+    it('reads a fragment that is percent-encoded, or not valid as that', () => {
+      Object.assign(tops, { a: -900, café: 300, '100%': 400, z: 500 });
       setScroll(2200, 3000);
-      render(<Page offset={0} sections={['a', '100%', 'z']} />);
+      render(<Page offset={0} sections={['a', 'café', '100%', 'z']} />);
       expect(active()).toBe('z');
-      jumpTo('100%');
+      clickLink('#café');
+      expect(active()).toBe('café');
+      clickLink('#100%');
       expect(active()).toBe('100%');
     });
 
-    it("doesn't hold a section that is not drawn", () => {
-      atTheEnd();
-      undrawn.add('b');
-      render(<Page offset={0} />);
-      jumpTo('b');
-      settle();
-      expect(active()).toBe('c');
-    });
-
-    it("doesn't hold a section that is not on the page", () => {
-      atTheEnd();
-      vi.spyOn(console, 'warn').mockImplementation(() => {});
-      render(<Page offset={0} ids={['a', 'b', 'c', 'gone']} />);
-      jumpTo('gone');
-      settle();
-      expect(active()).toBe('c');
-    });
-
-    it('holds the section a page opens at', () => {
-      atTheEnd();
-      window.history.replaceState(null, '', '#b');
-      render(<Page offset={0} />);
-      expect(active()).toBe('b');
-    });
-
-    it("waits for a page opened at a section the browser hasn't put it at yet, then follows the rule", () => {
-      Object.assign(tops, { a: -900, b: -400, c: 300 });
-      window.history.replaceState(null, '', '#a');
-      const onActiveChange = vi.fn();
-      render(<Page offset={0} onActiveChange={onActiveChange} />);
-      expect(active()).toBe('none');
-      settle();
-      expect(active()).toBe('b');
-      expect(onActiveChange.mock.calls).toEqual([['b']]);
-    });
-
-    describe('a click on a link to the section already in the address bar', () => {
-      const Links = ({ href }: { href: string }) => (
-        <>
-          <Page offset={0} />
-          <a href={href}>link</a>
-        </>
-      );
-
-      it('holds it, though no hashchange follows, and leaves the click alone', () => {
+    describe('a page opened at #id', () => {
+      it('holds the section, as a jump', () => {
         atTheEnd();
         window.history.replaceState(null, '', '#b');
-        render(<Links href="#b" />);
+        render(<Page offset={0} />);
+        expect(active()).toBe('b');
+        settle();
+        expect(active()).toBe('b');
         scroll();
+        expect(active()).toBe('c');
+      });
+
+      it("lets it go once the page is still away from it, where the browser hasn't jumped", () => {
+        Object.assign(tops, { a: -900, b: -400, c: 300 });
+        window.history.replaceState(null, '', '#a');
+        render(<Page offset={0} />);
+        settle();
+        expect(active()).toBe('b');
+      });
+
+      it.each(['reload', 'back_forward'])(
+        "doesn't hold it when the page was reached by %s",
+        type => {
+          setNavigation(type);
+          atTheEnd();
+          window.history.replaceState(null, '', '#b');
+          render(<Page offset={0} />);
+          expect(active()).toBe('c');
+        }
+      );
+
+      it('holds it when the page was opened by a link', () => {
+        setNavigation('navigate');
+        atTheEnd();
+        window.history.replaceState(null, '', '#b');
+        render(<Page offset={0} />);
+        expect(active()).toBe('b');
+      });
+
+      it("holds it through React's development double run of effects", () => {
+        atTheEnd();
+        window.history.replaceState(null, '', '#b');
+        render(
+          <StrictMode>
+            <Page offset={0} />
+          </StrictMode>
+        );
+        settle();
+        expect(active()).toBe('b');
+      });
+
+      it('keeps the hold when the ids change, and drops it when they leave its section out', () => {
+        atTheEnd();
+        window.history.replaceState(null, '', '#b');
+        const { rerender } = render(<Page offset={0} />);
+        rerender(<Page offset={0} ids={['a', 'b', 'c', 'd']} />);
+        settle();
+        expect(active()).toBe('b');
+        rerender(<Page offset={0} ids={['a', 'c']} />);
+        expect(active()).toBe('c');
+      });
+
+      it("doesn't read the hash again when the ids or the offset change", () => {
+        atTheEnd();
+        window.history.replaceState(null, '', '#b');
+        const { rerender } = render(<Page offset={0} />);
         settle();
         scroll();
         expect(active()).toBe('c');
-        let followed = false;
-        act(() => {
-          followed = fireEvent.click(screen.getByRole('link'));
-        });
-        expect(followed).toBe(true);
-        expect(active()).toBe('b');
-      });
-
-      it('holds one from a link inside a shadow root', () => {
-        atTheEnd();
-        render(<Page offset={0} />);
-        const host = document.createElement('div');
-        document.body.appendChild(host);
-        const link = document.createElement('a');
-        link.href = '#b';
-        host.attachShadow({ mode: 'open' }).appendChild(link);
-        act(() => {
-          link.dispatchEvent(
-            new MouseEvent('click', { bubbles: true, composed: true })
-          );
-        });
-        expect(active()).toBe('b');
-        host.remove();
-      });
-
-      it('ignores a link to another page, a link with no fragment and a click on no link', () => {
-        atTheEnd();
-        render(<Links href="/elsewhere#b" />);
-        act(() => {
-          fireEvent.click(screen.getByRole('link'));
-          fireEvent.click(screen.getByTestId('active'));
-        });
-        expect(active()).toBe('c');
-        render(<a href="/plain">plain</a>);
-        act(() => {
-          fireEvent.click(screen.getByText('plain'));
-        });
+        rerender(<Page offset={0} ids={['a', 'b', 'c', 'd']} />);
+        rerender(<Page offset={1} ids={['a', 'b', 'c', 'd']} />);
+        settle();
         expect(active()).toBe('c');
       });
     });
@@ -552,24 +635,6 @@ describe('useScrollSpy', () => {
       scroll();
       expect(first.mock.calls).toEqual([['b']]);
       expect(second.mock.calls).toEqual([['c']]);
-    });
-  });
-
-  describe('a section that is not on the page', () => {
-    it('is never current, and a development build names it once', () => {
-      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      Object.assign(tops, { a: -300, b: -100 });
-      const { unmount } = render(
-        <Page offset={50} sections={['a', 'b']} ids={['a', 'b', 'gone']} />
-      );
-      expect(active()).toBe('b');
-      scroll();
-      unmount();
-      render(
-        <Page offset={50} sections={['a', 'b']} ids={['a', 'b', 'gone']} />
-      );
-      expect(warn).toHaveBeenCalledTimes(1);
-      expect(warn.mock.calls[0][0]).toContain('"gone"');
     });
   });
 

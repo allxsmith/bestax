@@ -10,7 +10,6 @@ import {
 } from '../TableOfContents';
 import { useScrollSpy as helperUseScrollSpy } from '../../helpers/useScrollSpy';
 import { ConfigProvider } from '../../helpers/Config';
-import { resetDevWarnings } from '../../helpers/devWarnings';
 
 const items: TableOfContentsItem[] = [
   { id: 'install', label: 'Install' },
@@ -33,9 +32,6 @@ const tops: Record<string, number> = {};
 let navBox = { top: 0, bottom: 0 };
 let linkBox = { top: 0, bottom: 0 };
 let navScroll = { scrollHeight: 0, clientHeight: 0 };
-// A list that links to a section missing from the page warns, which several
-// tests do on purpose.
-let warn: ReturnType<typeof vi.spyOn>;
 
 /** The sections the list links to, and the list. */
 const Page = (props: Partial<TableOfContentsProps>) => (
@@ -83,12 +79,13 @@ describe('TableOfContents', () => {
         return this.tagName === 'NAV' ? navScroll.clientHeight : 0;
       }
     );
-    warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    resetDevWarnings();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    // A followed link leaves its fragment in the address bar, and a list
+    // mounted under one takes it for a jump.
+    window.history.replaceState(null, '', window.location.pathname);
   });
 
   describe('markup', () => {
@@ -273,11 +270,11 @@ describe('TableOfContents', () => {
       expect(fireEvent.click(link('FAQ'))).toBe(true);
     });
 
-    it('names a section that is not on the page once, in development', () => {
+    it('keeps the link to a section that is not on the page, and says nothing', () => {
+      const warn = vi.spyOn(console, 'warn');
       render(<Page items={[...items, { id: 'missing', label: 'Missing' }]} />);
-      expect(warn).toHaveBeenCalledTimes(1);
-      expect(warn).toHaveBeenCalledWith(expect.stringContaining('"missing"'));
       expect(link('Missing')).toHaveAttribute('href', '#missing');
+      expect(warn).not.toHaveBeenCalled();
     });
   });
 

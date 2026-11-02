@@ -61,14 +61,6 @@ describe.each([
     return container.querySelector('nav')!;
   };
 
-  beforeEach(() => {
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
   it('registers the sticky top on the root, from Bulma’s block spacing', () => {
     const [rule] = declares('--bulma-table-of-contents-sticky-top');
     expect(

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { warnOnce } from './devWarnings';
 import { useLatestRef } from './useLatestRef';
 
 /** Options for useScrollSpy. */
@@ -7,8 +6,8 @@ export interface UseScrollSpyOptions {
   /**
    * **Required.** The ids of the sections to watch, without the `#`, in the
    * order they come on the page. Each one is looked up each time the hook
-   * checks, so a section rendered late, or replaced under the same id, is
-   * seen at the next scroll.
+   * checks, so an id with no element on the page is skipped until one
+   * appears, and a section replaced under the same id keeps working.
    */
   ids: string[];
   /**
@@ -35,25 +34,41 @@ const SETTLE_MS = 100;
  */
 const SLACK = 1;
 
-/** The height of the viewport the page scrolls in, less a classic scrollbar. */
-const viewportHeight = () => document.documentElement.clientHeight;
-
 /** The page's `scroll-padding-top` in pixels, or 0 for `auto`. */
 function scrollPaddingTop(): number {
-  const value = getComputedStyle(document.documentElement).scrollPaddingTop;
+  const root = document.documentElement;
+  const value = getComputedStyle(root).scrollPaddingTop;
   const number = parseFloat(value);
   if (!Number.isFinite(number)) return 0;
-  return value.endsWith('%') ? (number * viewportHeight()) / 100 : number;
+  // A percentage is of the page's scrollport: the viewport less a classic
+  // scrollbar.
+  return value.endsWith('%') ? (number * root.clientHeight) / 100 : number;
 }
 
-/** Whether the browser draws an element: `display: none` draws no box. */
-const isDrawn = (element: Element) => element.getClientRects().length > 0;
+/**
+ * The height of the viewport the reader sees the page through, less a
+ * classic scrollbar: the larger of the root's `clientHeight` and the visual
+ * viewport's height. The visual viewport grows when a phone hides its
+ * toolbar, where the root keeps the height it had with the toolbar shown;
+ * under a pinch zoom it's the smaller, and the root's stands. Its `pageTop`
+ * isn't read, since Firefox can leave it behind `scrollY` for a frame after
+ * it puts back the scroll position on a reload.
+ */
+function viewportHeight(): number {
+  return Math.max(
+    document.documentElement.clientHeight,
+    window.visualViewport?.height ?? 0
+  );
+}
 
 /** Whether the page is scrolled as far down as it goes. */
 const atEnd = () =>
   window.scrollY > 0 &&
   window.scrollY + viewportHeight() >=
     document.documentElement.scrollHeight - 1;
+
+/** Whether the browser draws an element: `display: none` draws no box. */
+const isDrawn = (element: Element) => element.getClientRects().length > 0;
 
 /** The id a URL fragment names, such as `#caf%C3%A9`. */
 function fragmentId(hash: string): string {
@@ -66,30 +81,64 @@ function fragmentId(hash: string): string {
 }
 
 /**
+ * Whether the page was opened afresh, as by a link, rather than reloaded or
+ * reached by Back or Forward, where the browser puts it back where it was.
+ * Where the navigation isn't recorded (jsdom), it counts as opened afresh.
+ */
+function openedAfresh(): boolean {
+  const [entry] = performance.getEntriesByType?.('navigation') ?? [];
+  const type = (entry as PerformanceNavigationTiming | undefined)?.type;
+  return type !== 'reload' && type !== 'back_forward';
+}
+
+/**
+ * The link a click was on, if it's a plain click that follows it in this
+ * page: the main button, no modifier key, and no `target` sending it
+ * elsewhere. The path is read rather than the target, so a link inside a
+ * shadow root counts.
+ */
+function followedLink(event: MouseEvent): HTMLAnchorElement | undefined {
+  if (
+    event.button !== 0 ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey
+  ) {
+    return undefined;
+  }
+  const link = event
+    .composedPath()
+    .find(
+      (node): node is HTMLAnchorElement => node instanceof HTMLAnchorElement
+    );
+  return link && (!link.target || link.target === '_self') ? link : undefined;
+}
+
+/**
  * The `useScrollSpy` hook returns the id of the section being read: the last
- * of `ids` whose top is at or above the offset line, the last one once the
- * page is scrolled to its end, and the one a jump went to, until the reader
- * scrolls on. `null` above the first section, on the server and until the
- * page hydrates.
+ * of `ids` whose top is at or above the offset line, or the last one once the
+ * page is scrolled to its end. After a jump to one of them, it's that one
+ * until the reader scrolls on. `null` above the first section, on the server
+ * and until the page hydrates.
  *
  * It checks once per frame while the page scrolls, and on resize. A jump is
- * a link to one of the ids being followed, seen through the `hashchange` it
- * causes and a click on a link to the address bar's own section, which
- * causes none; a page that opens at `#id` counts as one too. A click is only
- * noted, never stopped, so the jump stays the browser's own. A section is
- * held only once the page has come to rest with it where a jump puts it: its
- * top at the line, or, at the end of the page, on screen below it. So Back
- * and Forward, which put the page back where it was, don't hold the address
- * bar's section, and during a smooth jump the mark stays where it was until
- * the page arrives. Once held, it stays current through a shift of the
- * layout, such as an image loading above it, until the reader scrolls.
+ * a plain click on a link to one of the ids (the main button, no modifier
+ * key, opening in this page), noted and never stopped, so the browser jumps
+ * as it always does; and the `#id` a page opened afresh opens at. Back,
+ * Forward and a reload aren't jumps. Once the page has been still for a
+ * moment, the section stays current only if it's where a jump puts it: its
+ * top at the line, give or take a shift of the layout smaller than its own
+ * height, or, at the end of the page, on screen below the line. Otherwise,
+ * as after a flick right after the click, the reading rule takes over. The
+ * next scroll after that lets it go, the browser's own included, so when
+ * content loading above it makes the browser scroll to keep the reader's
+ * place, the rule takes over too.
  *
- * A section that isn't on the page, or isn't drawn (`display: none`), is never
- * current, and a development build names one that isn't on the page. A
- * section that moves while nothing scrolls, as content loading above it can
- * make it, is seen at the next scroll or resize. It watches the document
- * only: not a panel that scrolls inside it, and not sections inside a shadow
- * root, which an `#id` link can't reach either.
+ * A section that isn't drawn (`display: none`) is never current. A section
+ * that moves while nothing scrolls is seen at the next scroll or resize. It
+ * watches the document only: not a panel that scrolls inside it, and not
+ * sections inside a shadow root, which an `#id` link can't reach either.
  *
  * @function
  * @param {UseScrollSpyOptions} options - The ids to watch, the offset, and a change callback.
@@ -107,6 +156,11 @@ export function useScrollSpy({
   // What was last reported, kept across a re-subscribe so the same id isn't
   // reported twice.
   const reportedRef = useRef<string | null>(null);
+  // The section a jump went to. It belongs to the hook rather than to one run
+  // of the effect, so new ids, a new offset or React's development double run
+  // don't lose it, and the `#id` the page opened at is read once.
+  const heldRef = useRef<string | null>(null);
+  const openedRef = useRef(false);
   const onActiveChangeRef = useLatestRef(onActiveChange);
   // The ids as a value, so a new array with the same ids each render doesn't
   // re-subscribe.
@@ -117,10 +171,6 @@ export function useScrollSpy({
   useEffect(() => {
     const watched = JSON.parse(key) as string[];
     let line = fixedOffset ?? scrollPaddingTop();
-    // The section a jump went to, whether the page has been seen where the
-    // jump puts it, and whether the page has been still since the jump.
-    let held: string | null = null;
-    let arrived = false;
     let settled = true;
     let settleTimer: ReturnType<typeof setTimeout> | undefined;
     let frame = 0;
@@ -132,53 +182,34 @@ export function useScrollSpy({
       onActiveChangeRef.current?.(id);
     };
 
-    /** The sections on the page now, in order, looked up by id. */
-    const sections = () => {
-      const found: [string, HTMLElement][] = [];
-      for (const id of watched) {
-        const element = document.getElementById(id);
-        if (element) {
-          found.push([id, element]);
-        } else {
-          warnOnce(
-            `useScrollSpy:missing:${id}`,
-            `[bestax-bulma] No element has the id "${id}", so its section ` +
-              'is never marked current. Check the ids given to ' +
-              'useScrollSpy, or the items given to TableOfContents.'
-          );
-        }
-      }
-      return found;
+    /** The element for one of the ids, if it's on the page and drawn. */
+    const sectionOf = (id: string) => {
+      const element = watched.includes(id) ? document.getElementById(id) : null;
+      return element && isDrawn(element) ? element : null;
     };
 
     /**
-     * Whether the page sits where a jump to `element` puts it: its top at the
-     * line, or as near as the page lets it come, scrolled to its end with the
-     * section on screen below the line. Back and Forward put the page back
-     * where it was instead.
+     * Whether a section is where a jump puts it: its top at the line, give or
+     * take a shift of the layout smaller than the section's own height, or,
+     * at the end of the page, as near as the page lets it come, on screen
+     * below the line.
      */
-    const reached = (element: HTMLElement) => {
-      if (!isDrawn(element)) return false;
-      const { top } = element.getBoundingClientRect();
-      return (
-        Math.abs(top - line) <= SLACK ||
-        (top > line && top < viewportHeight() && atEnd())
-      );
+    const atJump = (id: string) => {
+      const element = sectionOf(id);
+      if (!element) return false;
+      const { top, bottom, height } = element.getBoundingClientRect();
+      if (top <= line + height && bottom >= line) return true;
+      return top > line && top < viewportHeight() && atEnd();
     };
 
     const check = () => {
-      const found = sections();
-      if (held !== null) {
-        const target = found.find(([id]) => id === held);
-        arrived ||= target !== undefined && reached(target[1]);
-        if (arrived) return report(held);
-        // The jump may still be on its way, so the mark stays where it is
-        // until the page has been still for a moment.
-        if (!settled) return;
-        held = null;
+      if (heldRef.current !== null) return report(heldRef.current);
+      const drawn: [string, HTMLElement][] = [];
+      for (const id of watched) {
+        const element = document.getElementById(id);
+        if (element && isDrawn(element)) drawn.push([id, element]);
       }
       let current: string | null = null;
-      const drawn = found.filter(([, element]) => isDrawn(element));
       if (atEnd()) {
         // A short last section can't reach the line, so the end of the page
         // stands in for it.
@@ -200,29 +231,34 @@ export function useScrollSpy({
       });
     };
 
-    /** Starts, or starts again, the wait for the page to be still. */
+    /**
+     * Starts, or starts again, the wait for the page to be still, when a
+     * held section that isn't where a jump puts it is let go.
+     */
     const waitToSettle = () => {
       settled = false;
       clearTimeout(settleTimer);
       settleTimer = setTimeout(() => {
         settled = true;
+        if (heldRef.current !== null && !atJump(heldRef.current)) {
+          heldRef.current = null;
+        }
         check();
       }, SETTLE_MS);
     };
 
-    /** Holds the section a jump goes to, or lets go for a jump elsewhere. */
+    /** Holds the section a jump goes to, if it's one of these on the page. */
     const hold = (id: string) => {
-      held = watched.includes(id) ? id : null;
-      arrived = false;
-      if (held !== null) waitToSettle();
-      check();
+      if (!sectionOf(id)) return;
+      heldRef.current = id;
+      waitToSettle();
     };
 
     const onScroll = () => {
-      if (held !== null) {
-        // Once the jump is over, the reader's own scroll lets it go; until
-        // then, each scroll pushes the end of the jump back.
-        if (settled) held = null;
+      if (heldRef.current !== null) {
+        // Once the page has been still, the next scroll lets the jump go;
+        // until then, each scroll pushes the end of the jump back.
+        if (settled) heldRef.current = null;
         else waitToSettle();
       }
       schedule();
@@ -233,32 +269,28 @@ export function useScrollSpy({
       schedule();
     };
 
-    const onHashChange = () => hold(fragmentId(window.location.hash));
-
-    // A link to the section already in the address bar jumps with no
-    // `hashchange`, so a click on one is noted here. Only noted: nothing
-    // stops the click, and the browser jumps as it always does. The path is
-    // read rather than the target, so a link inside a shadow root counts.
     const onClick = (event: MouseEvent) => {
-      const link = event
-        .composedPath()
-        .find(
-          (node): node is HTMLAnchorElement => node instanceof HTMLAnchorElement
-        );
+      const link = followedLink(event);
       if (
         link?.hash &&
         link.href.split('#')[0] === window.location.href.split('#')[0]
       ) {
         hold(fragmentId(link.hash));
+        check();
       }
     };
 
-    // A page that opens at `#id` was jumped there by the browser, unless it
-    // put the page back where it was on a reload, which `reached` tells.
-    hold(fragmentId(window.location.hash));
+    if (!openedRef.current) {
+      openedRef.current = true;
+      if (openedAfresh()) hold(fragmentId(window.location.hash));
+    } else if (heldRef.current !== null) {
+      // A jump held across new ids carries on if its section still counts.
+      if (sectionOf(heldRef.current)) waitToSettle();
+      else heldRef.current = null;
+    }
+    check();
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onResize);
-    window.addEventListener('hashchange', onHashChange);
     document.addEventListener('click', onClick, {
       capture: true,
       passive: true,
@@ -268,7 +300,6 @@ export function useScrollSpy({
       clearTimeout(settleTimer);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onResize);
-      window.removeEventListener('hashchange', onHashChange);
       document.removeEventListener('click', onClick, { capture: true });
     };
   }, [key, fixedOffset, onActiveChangeRef]);
