@@ -339,6 +339,22 @@ describe('useScrollSpy', () => {
       expect(active()).toBe('b');
     });
 
+    it('keeps holding it through a shift of the layout once the page has arrived', () => {
+      Object.assign(tops, { a: -900, b: 0, c: 300 });
+      render(<Page offset={0} />);
+      jumpTo('b');
+      settle();
+      expect(active()).toBe('b');
+      // Something loads above b and pushes it below the line, with no
+      // scroll; a resize asks for a check all the same.
+      Object.assign(tops, { b: 4, c: 304 });
+      act(() => {
+        window.dispatchEvent(new Event('resize'));
+      });
+      nextFrame();
+      expect(active()).toBe('b');
+    });
+
     it('lets go once the jump is over and the reader scrolls on', () => {
       atTheEnd();
       render(<Page offset={0} />);

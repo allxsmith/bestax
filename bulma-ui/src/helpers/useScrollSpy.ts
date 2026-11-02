@@ -68,20 +68,21 @@ function fragmentId(hash: string): string {
 /**
  * The `useScrollSpy` hook returns the id of the section being read: the last
  * of `ids` whose top is at or above the offset line, the last one once the
- * page is scrolled to its end, and the one a jump went to while the page
- * stays where the jump put it. `null` above the first section, on the server
- * and until the page hydrates.
+ * page is scrolled to its end, and the one a jump went to, until the reader
+ * scrolls on. `null` above the first section, on the server and until the
+ * page hydrates.
  *
  * It checks once per frame while the page scrolls, and on resize. A jump is
  * a link to one of the ids being followed, seen through the `hashchange` it
  * causes and a click on a link to the address bar's own section, which
  * causes none; a page that opens at `#id` counts as one too. A click is only
- * noted, never stopped, so the jump stays the browser's own. A section stays
- * current after a jump only while its top is at the line, or the page is
- * scrolled to its end with the section on screen, which is where the browser
- * puts it; so Back and Forward, which put the page back where it was, don't
- * hold the address bar's section. During a smooth jump the mark stays where
- * it was until the page arrives.
+ * noted, never stopped, so the jump stays the browser's own. A section is
+ * held only once the page has come to rest with it where a jump puts it: its
+ * top at the line, or, at the end of the page, on screen below it. So Back
+ * and Forward, which put the page back where it was, don't hold the address
+ * bar's section, and during a smooth jump the mark stays where it was until
+ * the page arrives. Once held, it stays current through a shift of the
+ * layout, such as an image loading above it, until the reader scrolls.
  *
  * A section that isn't on the page, or isn't drawn (`display: none`), is never
  * current, and a development build names one that isn't on the page. A
@@ -116,8 +117,10 @@ export function useScrollSpy({
   useEffect(() => {
     const watched = JSON.parse(key) as string[];
     let line = fixedOffset ?? scrollPaddingTop();
-    // The section a jump went to, and whether the page has been still since.
+    // The section a jump went to, whether the page has been seen where the
+    // jump puts it, and whether the page has been still since the jump.
     let held: string | null = null;
+    let arrived = false;
     let settled = true;
     let settleTimer: ReturnType<typeof setTimeout> | undefined;
     let frame = 0;
@@ -151,7 +154,8 @@ export function useScrollSpy({
     /**
      * Whether the page sits where a jump to `element` puts it: its top at the
      * line, or as near as the page lets it come, scrolled to its end with the
-     * section on screen below the line.
+     * section on screen below the line. Back and Forward put the page back
+     * where it was instead.
      */
     const reached = (element: HTMLElement) => {
       if (!isDrawn(element)) return false;
@@ -166,7 +170,8 @@ export function useScrollSpy({
       const found = sections();
       if (held !== null) {
         const target = found.find(([id]) => id === held);
-        if (target && reached(target[1])) return report(held);
+        arrived ||= target !== undefined && reached(target[1]);
+        if (arrived) return report(held);
         // The jump may still be on its way, so the mark stays where it is
         // until the page has been still for a moment.
         if (!settled) return;
@@ -208,6 +213,7 @@ export function useScrollSpy({
     /** Holds the section a jump goes to, or lets go for a jump elsewhere. */
     const hold = (id: string) => {
       held = watched.includes(id) ? id : null;
+      arrived = false;
       if (held !== null) waitToSettle();
       check();
     };

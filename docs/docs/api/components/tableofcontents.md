@@ -250,16 +250,17 @@ of the viewport.
   first section, none is.
 - **The end of the page:** once the page is scrolled to its end, the last section is current, so a
   short last section that can't reach the line still gets its turn.
-- **After a jump:** the section a link went to stays current while the page sits where the jump put
-  it: its top at the line, or, near the end, as close as the page can bring it. So a short section
-  near the end, which can't reach the line, is current after a jump to it, and the reader's next
-  scroll hands back to the reading rule. During a smooth jump the mark stays where it was until the
-  page arrives, rather than lighting up each section it passes.
+- **After a jump:** the section a link went to is current once the page arrives where the jump puts
+  it, its top at the line or, near the end, as close as the page can bring it, and stays current
+  until the reader scrolls on, through any shift of the layout, such as an image loading above it.
+  So a short section near the end, which can't reach the line, is current after a jump to it.
+  During a smooth jump the mark stays where it was until the page arrives, rather than lighting up
+  each section it passes.
 - **What counts as a jump:** a link followed to one of the sections, seen through the `hashchange`
   it causes, or through the click on a link to the section already in the address bar, which causes
   none; and a page that opens at `#id`. A click is only noted, never stopped, so the browser jumps
   as it always does. Back and Forward put the page back where it was rather than at the section, so
-  they don't hold it, and the reading rule marks where the page is.
+  the page never arrives there, and the reading rule marks where the page is.
 - **Missing or hidden sections:** an entry whose `id` isn't on the page keeps its link, is never
   current, and a development build names it once. A section that isn't drawn (`display: none`) is
   never current either.
