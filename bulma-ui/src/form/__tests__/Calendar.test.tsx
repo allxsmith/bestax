@@ -37,12 +37,15 @@ describe('Calendar', () => {
 
   it('groups the days into rows of a week', () => {
     // A grid owns rows, and rows own cells, so assistive technology can walk
-    // the grid, and the days it marks selected, row by row.
+    // the grid, and the days it marks selected, row by row. The first row
+    // holds the weekday names.
     const { container } = render(<Harness />);
     const grid = container.querySelector('[role="grid"]')!;
-    const rows = Array.from(grid.children);
-    expect(rows.length).toBeGreaterThan(0);
-    for (const row of rows) {
+    const [header, ...weeks] = Array.from(grid.children);
+    expect(header).toHaveAttribute('role', 'row');
+    expect(header).toHaveClass('dateinput-day-names');
+    expect(weeks.length).toBeGreaterThan(0);
+    for (const row of weeks) {
       expect(row).toHaveAttribute('role', 'row');
       expect(row).toHaveClass('dateinput-week');
       expect(row.querySelectorAll(':scope > [role="gridcell"]')).toHaveLength(
@@ -50,8 +53,78 @@ describe('Calendar', () => {
       );
     }
     expect(grid.querySelectorAll('[role="gridcell"]')).toHaveLength(
-      rows.length * 7
+      weeks.length * 7
     );
+  });
+
+  describe('weekday column headers', () => {
+    const headers = (container: HTMLElement) =>
+      Array.from(
+        container.querySelectorAll(
+          '[role="grid"] > [role="row"] > [role="columnheader"]'
+        )
+      );
+
+    it('heads each column with its weekday, named in full', () => {
+      const { container } = render(<Harness locale="en-US" />);
+      const row = container.querySelector('[role="grid"] > [role="row"]')!;
+      expect(row).not.toHaveAttribute('aria-hidden');
+      expect(headers(container).map(h => h.textContent)).toEqual([
+        'Sun',
+        'Mon',
+        'Tue',
+        'Wed',
+        'Thu',
+        'Fri',
+        'Sat',
+      ]);
+      expect(headers(container).map(h => h.getAttribute('aria-label'))).toEqual(
+        [
+          'Sunday',
+          'Monday',
+          'Tuesday',
+          'Wednesday',
+          'Thursday',
+          'Friday',
+          'Saturday',
+        ]
+      );
+    });
+
+    it('starts the names on the first day of the week', () => {
+      const { container } = render(
+        <Harness locale="en-US" firstDayOfWeek={1} />
+      );
+      const names = headers(container).map(h => h.getAttribute('aria-label'));
+      expect(names[0]).toBe('Monday');
+      expect(names[6]).toBe('Sunday');
+    });
+
+    it("names the columns in the locale's words beside names of your own", () => {
+      const { container } = render(
+        <Harness
+          locale="de-DE"
+          firstDayOfWeek={1}
+          dayNames={['M', 'D', 'M', 'D', 'F', 'S', 'S']}
+        />
+      );
+      expect(
+        headers(container)
+          .map(h => h.textContent)
+          .join('')
+      ).toBe('MDMDFSS');
+      expect(headers(container)[0]).toHaveAttribute('aria-label', 'Montag');
+    });
+
+    it('leaves every day named by its number', () => {
+      const { getByRole } = render(<Harness locale="en-US" />);
+      expect(
+        getByRole('columnheader', { name: 'Tuesday' })
+      ).toBeInTheDocument();
+      const day = getByRole('gridcell', { name: '20' });
+      expect(day).not.toHaveAttribute('aria-label');
+      expect(day).toHaveTextContent(/^20$/);
+    });
   });
 
   it('renders 7 day name headers', () => {
