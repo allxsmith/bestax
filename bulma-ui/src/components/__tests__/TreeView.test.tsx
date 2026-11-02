@@ -939,12 +939,17 @@ describe('TreeView', () => {
       expect(onCheckedChange).toHaveBeenLastCalledWith([]);
       press(item('Projects'), 'Enter');
       expect(onExpandedChange).toHaveBeenLastCalledWith([]);
-      expect(onCheckedChange).toHaveBeenCalledTimes(2);
-      // Enter on a leaf does nothing.
+      // Enter on a closed parent opens it, and checks nothing.
       press(item('Billing'), 'Enter');
+      expect(onExpandedChange).toHaveBeenLastCalledWith(['billing']);
+      expect(item('Billing')).toHaveAttribute('aria-checked', 'false');
+      expect(onCheckedChange).toHaveBeenCalledTimes(2);
       onCheckedChange.mockClear();
+      onExpandedChange.mockClear();
+      // Enter on a leaf does nothing.
       press(item('View invoices'), 'Enter');
       expect(onCheckedChange).not.toHaveBeenCalled();
+      expect(onExpandedChange).not.toHaveBeenCalled();
     });
 
     it('toggles once for a click on the box’s input or its label, and leaves focus on the item', () => {
