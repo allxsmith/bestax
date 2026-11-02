@@ -19,6 +19,7 @@ import { getActiveElementInTree } from '../helpers/shadowDom';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { inertProps } from '../helpers/inertProps';
+import { useSwipe } from '../helpers/useSwipe';
 import { Icon } from '../elements/Icon';
 import { Button } from '../elements/Button';
 
@@ -431,9 +432,6 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     const [internalValue, setInternalValue] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
     const [isFocusInside, setIsFocusInside] = useState(false);
-    const [isDragging, setIsDragging] = useState(false);
-    const [dragStart, setDragStart] = useState(0);
-    const [dragOffset, setDragOffset] = useState(0);
     const [isWrapping, setIsWrapping] = useState(false);
     const [displayIndex, setDisplayIndex] = useState(0);
     const [skipTransition, setSkipTransition] = useState(false);
@@ -602,77 +600,14 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       }
     }, [pauseOnHover]);
 
-    // Drag handlers
-    const handleDragStart = useCallback(
-      (clientX: number) => {
-        if (!hasDrag) return;
-        setIsDragging(true);
-        setDragStart(clientX);
-        setDragOffset(0);
-      },
-      [hasDrag]
-    );
-
-    const handleDragMove = useCallback(
-      (clientX: number) => {
-        if (!isDragging) return;
-        setDragOffset(clientX - dragStart);
-      },
-      [isDragging, dragStart]
-    );
-
-    const handleDragEnd = useCallback(() => {
-      if (!isDragging) return;
-      setIsDragging(false);
-
-      const threshold = 50;
-      if (dragOffset < -threshold) {
-        goToNext();
-      } else if (dragOffset > threshold) {
-        goToPrev();
-      }
-
-      setDragOffset(0);
-    }, [isDragging, dragOffset, goToNext, goToPrev]);
-
-    // Mouse events
-    const handleMouseDown = useCallback(
-      (e: React.MouseEvent) => {
-        e.preventDefault();
-        handleDragStart(e.clientX);
-      },
-      [handleDragStart]
-    );
-
-    const handleMouseMove = useCallback(
-      (e: React.MouseEvent) => {
-        handleDragMove(e.clientX);
-      },
-      [handleDragMove]
-    );
-
-    const handleMouseUp = useCallback(() => {
-      handleDragEnd();
-    }, [handleDragEnd]);
-
-    // Touch events
-    const handleTouchStart = useCallback(
-      (e: React.TouchEvent) => {
-        handleDragStart(e.touches[0].clientX);
-      },
-      [handleDragStart]
-    );
-
-    const handleTouchMove = useCallback(
-      (e: React.TouchEvent) => {
-        handleDragMove(e.touches[0].clientX);
-      },
-      [handleDragMove]
-    );
-
-    const handleTouchEnd = useCallback(() => {
-      handleDragEnd();
-    }, [handleDragEnd]);
+    // Drag and swipe, through the shared hook: a drag left goes on and a
+    // drag right goes back, past its 50px threshold.
+    const swipe = useSwipe<HTMLDivElement>({
+      enabled: hasDrag,
+      onSwipe: direction => (direction === 'left' ? goToNext() : goToPrev()),
+    });
+    const isDragging = swipe.isSwiping;
+    const dragOffset = swipe.offsetX;
 
     // Keyboard navigation, from the carousel's own controls. Inside an item
     // the keys are its content's (a field's caret, a slider), and a step
@@ -883,13 +818,15 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
         <div
           ref={containerRef}
           className={carouselContainerClass}
-          onMouseDown={hasDrag ? handleMouseDown : undefined}
-          onMouseMove={hasDrag && isDragging ? handleMouseMove : undefined}
-          onMouseUp={hasDrag ? handleMouseUp : undefined}
-          onMouseLeave={hasDrag ? handleMouseUp : undefined}
-          onTouchStart={hasDrag ? handleTouchStart : undefined}
-          onTouchMove={hasDrag ? handleTouchMove : undefined}
-          onTouchEnd={hasDrag ? handleTouchEnd : undefined}
+          onMouseDown={hasDrag ? swipe.handlers.onMouseDown : undefined}
+          onMouseMove={
+            hasDrag && isDragging ? swipe.handlers.onMouseMove : undefined
+          }
+          onMouseUp={hasDrag ? swipe.handlers.onMouseUp : undefined}
+          onMouseLeave={hasDrag ? swipe.handlers.onMouseLeave : undefined}
+          onTouchStart={hasDrag ? swipe.handlers.onTouchStart : undefined}
+          onTouchMove={hasDrag ? swipe.handlers.onTouchMove : undefined}
+          onTouchEnd={hasDrag ? swipe.handlers.onTouchEnd : undefined}
           style={{
             transform: isDragging ? `translateX(${dragOffset}px)` : undefined,
             cursor: hasDrag ? (isDragging ? 'grabbing' : 'grab') : undefined,
