@@ -77,7 +77,10 @@ export interface StatProps
   change?: number;
   /**
    * `Intl.NumberFormat` options for `change`. Yours replace the default, and
-   * `signDisplay: 'exceptZero'` is added unless you set a `signDisplay`.
+   * `signDisplay: 'exceptZero'` is added unless you set a `signDisplay`. With
+   * `signDisplay: 'never'`, or `'negative'` on a rise, the text carries no
+   * direction: the arrow is hidden from assistive tech and the tone is color
+   * alone, so keep a sign, or say the direction in `description`.
    * @defaultValue { style: 'percent', signDisplay: 'exceptZero', maximumFractionDigits: 1 }
    */
   changeFormat?: Intl.NumberFormatOptions;

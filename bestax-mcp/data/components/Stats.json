@@ -188,7 +188,7 @@
           "name": "changeFormat",
           "type": "Intl.NumberFormatOptions",
           "default": "{ style: 'percent', signDisplay: 'exceptZero', maximumFractionDigits: 1 }",
-          "description": "`Intl.NumberFormat` options for `change`. Yours replace the default, and `signDisplay: 'exceptZero'` is added unless you set a `signDisplay`.",
+          "description": "`Intl.NumberFormat` options for `change`. Yours replace the default, and `signDisplay: 'exceptZero'` is added unless you set a `signDisplay`. With `signDisplay: 'never'`, or `'negative'` on a rise, the text carries no direction: the arrow is hidden from assistive tech and the tone is color alone, so keep a sign, or say the direction in `description`.",
           "required": false,
           "inherited": false,
           "deprecated": false
