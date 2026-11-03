@@ -91,6 +91,7 @@ const merged = (rules: Rule[], selector: string) =>
   );
 
 const MOBILE = '@media screen and (max-width: 768px)';
+const TABLET = '@media screen and (min-width: 769px), print';
 const TOUCH = '@media screen and (max-width: 1023px)';
 const UNTIL_WIDESCREEN = '@media screen and (max-width: 1215px)';
 
@@ -197,12 +198,15 @@ describe.each([
   });
 
   // Bulma's Pagination pulls out by its items' margin, so the items line up
-  // with the blocks around it. A Pagination child keeps that at the top and
-  // bottom too, over the block margin Bulma gives it when it isn't last.
-  it('leaves a Pagination child its negative margin at the top and bottom', () => {
-    expect(find(rules, `${stack} > ${c('pagination')}:not(#\\#)`)).toEqual({
+  // with the blocks around it, and from tablet up, where the items keep no
+  // top or bottom margin, takes none there. A Pagination child does the same,
+  // over the block margin Bulma gives it when it isn't last.
+  it('leaves a Pagination child Bulma’s own top and bottom margin: negative below tablet, none from it', () => {
+    const pagination = `${stack} > ${c('pagination')}:not(#\\#)`;
+    expect(find(rules, pagination)).toEqual({
       'margin-block': 'var(--bulma-pagination-margin)',
     });
+    expect(find(rules, pagination, [TABLET])).toEqual({ 'margin-block': '0' });
   });
 
   it('shares the row equally in a full-width Group', () => {

@@ -82,11 +82,18 @@ $stack-horizontal-gap: calc(#{cv.getVar("block-spacing")} * 0.5) !default;
 // ---- A Pagination child, in any of the four ----------------------------------------
 
 // Bulma's Pagination pulls itself out by the margin its items keep around
-// them, so the items line up with the blocks around it. It keeps that
-// negative margin at the top and bottom too, where the block margin Bulma
-// gives it when it isn't last would otherwise add to the gap.
+// them, so the items line up with the blocks around it, and from tablet up,
+// where the items keep none at the top and bottom, it takes none there
+// either. It does the same here, over the block margin Bulma gives it when
+// it isn't last, which would otherwise add to the gap.
 .#{iv.$class-prefix}stack > .#{iv.$class-prefix}pagination:not(#\#) {
   margin-block: cv.getVar("pagination-margin");
+}
+
+@include mx.tablet {
+  .#{iv.$class-prefix}stack > .#{iv.$class-prefix}pagination:not(#\#) {
+    margin-block: 0;
+  }
 }
 
 // ---- Group: a row that wraps -------------------------------------------------------
