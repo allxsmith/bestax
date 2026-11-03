@@ -593,6 +593,19 @@ describe('useScrollSpy', () => {
         expect(active()).toBe('c');
       });
 
+      it('holds it when the ids arrive after mount, as from fetched content', () => {
+        atTheEnd();
+        window.history.replaceState(null, '', '#b');
+        const { rerender } = render(<Page offset={0} sections={[]} />);
+        expect(active()).toBe('none');
+        rerender(<Page offset={0} />);
+        expect(active()).toBe('b');
+        settle();
+        expect(active()).toBe('b');
+        scroll();
+        expect(active()).toBe('c');
+      });
+
       it("doesn't read the hash again when the ids or the offset change", () => {
         atTheEnd();
         window.history.replaceState(null, '', '#b');

@@ -163,7 +163,8 @@ export function useScrollSpy({
   const reportedRef = useRef<string | null>(null);
   // The section a jump went to. It belongs to the hook rather than to one run
   // of the effect, so new ids, a new offset or React's development double run
-  // don't lose it, and the `#id` the page opened at is read once.
+  // don't lose it, and the `#id` the page opened at is read once, when the
+  // ids first include some.
   const heldRef = useRef<string | null>(null);
   const openedRef = useRef(false);
   const onActiveChangeRef = useLatestRef(onActiveChange);
@@ -286,8 +287,12 @@ export function useScrollSpy({
     };
 
     if (!openedRef.current) {
-      openedRef.current = true;
-      if (openedAfresh()) hold(fragmentId(window.location.hash));
+      // Ids built from content fetched after mount arrive later, so the read
+      // waits until there are some.
+      if (watched.length) {
+        openedRef.current = true;
+        if (openedAfresh()) hold(fragmentId(window.location.hash));
+      }
     } else if (heldRef.current !== null) {
       // A jump held across new ids carries on if its section still counts.
       if (sectionOf(heldRef.current)) waitToSettle();
