@@ -198,8 +198,11 @@ export interface AppFrameNavProps
    * Closes the drawer when a link inside it is followed with a plain click:
    * not with a modifier key held, and not on a link with a `target` other
    * than `_self` or a `download`. Only a link the nav holds in the page
-   * counts, not one in a Modal or a popup it portals elsewhere. Turn it off
-   * for a drawer of filters rather than links.
+   * counts, not one in a Modal or a popup it portals elsewhere. Focus goes
+   * back to the burger, and the navigation takes it from there: a router
+   * that moves focus on navigation moves it, and an in-page `#` link leaves
+   * it at its target, as it does anywhere on the page. Turn it off for a
+   * drawer of filters rather than links.
    */
   closeOnNavigate?: boolean;
 }

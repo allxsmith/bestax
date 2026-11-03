@@ -119,9 +119,10 @@ Below the breakpoint the nav is a drawer. The burger opens it over a backdrop, a
 focus moves to its close button, Tab stays inside, the page behind it doesn't scroll, and the rest
 of the frame is inert. What renders outside the frame, such as a `Modal` opened from the drawer or
 a toast, stays live. Escape, its close button, a click on the backdrop and a link followed from it
-close it. Focus goes back to the burger, except after a link, where the browser moves it as it
-follows the link. Closed, the drawer is hidden, so its links are out of the Tab order and out of
-the accessibility tree, on the server's markup too.
+close it, and focus goes back to the burger. After a link, the navigation takes it from there: a
+router that moves focus on navigation moves it, and an in-page `#` link leaves it at its target, as
+it does anywhere on the page. Closed, the drawer is hidden, so its links are out of the Tab order
+and out of the accessibility tree, on the server's markup too.
 
 `breakpoint` sets where the nav turns into a column: `tablet`, `desktop` (the default, where
 Bulma's navbar shows its menu) or `widescreen`. This one is a drawer until the window is
