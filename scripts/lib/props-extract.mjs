@@ -1506,9 +1506,9 @@ const ROOT_CLASS_OVERRIDES = {
   DateInputBase: 'input', // the trigger is an `.input`
   TimeInputBase: 'input',
   DateTimeInputBase: 'input',
-  // Its helper props and className go on its `.input`; the container and
-  // the toggle beside it carry its variables, through EXTRA_VAR_ROOTS.
-  PasswordInputBase: 'input',
+  // Its helper props, className and style go on the container around its
+  // `.input`, which registers the toggle's variables too.
+  PasswordInputBase: 'passwordinput-container',
   // The row is Bulma's `.buttons`, the class Buttons renders too. Its segments
   // are Button's `.button`, which SCSS_SOURCES says why it doesn't claim.
   SegmentedControl: 'buttons',
@@ -1568,9 +1568,9 @@ export const EXTRA_VAR_ROOTS = {
   // the shared popover.
   ColorInput: ['picker-popover'],
   ColorInputBase: ['picker-popover'],
-  // The toggle's variables register on the container around the `.input`.
-  PasswordInput: ['passwordinput-container'],
-  PasswordInputBase: ['passwordinput-container'],
+  // Bulma's input variables, which its `.input` declares inside the container.
+  PasswordInput: ['input'],
+  PasswordInputBase: ['input'],
   DateTimeInput: ['datetimeinput', 'dateinput', 'timeinput', 'picker-popover'],
   DateTimeInputBase: [
     'datetimeinput',

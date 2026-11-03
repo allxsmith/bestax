@@ -1,7 +1,8 @@
 import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import { usePrefixedClassNames } from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { warnOnce } from '../helpers/devWarnings';
+import { useBulmaClasses } from '../helpers/useBulmaClasses';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { InputBase, InputBaseProps } from './InputBase';
@@ -41,9 +42,11 @@ export interface PasswordInputLabels {
 
 /**
  * Props for PasswordInputBase, the input and its toggle without a Field or a
- * Control. The helper props, the other input attributes and the `ref` land on
- * the `<input>`.
+ * Control.
  *
+ * @helperProps Helper props go on the `.passwordinput-container` `<div>`, with
+ * `className` and `style`, so they move and size the field and its toggle
+ * together. The other attributes go on the `<input>`.
  * @extraProp {string} [autoComplete="current-password"] - Tells the browser and password managers this is an existing password. Pass `"new-password"` where the user makes one up, on a sign-up or change-password form.
  * @extraProp {boolean} [spellCheck=false] - Off, so a browser's spellcheck never sees the password once it shows.
  * @extraProp {string} [autoCorrect="off"] - Off, so a phone's keyboard doesn't change what's typed.
@@ -160,11 +163,19 @@ export const PasswordInputBase = forwardRef<
     autoCorrect = 'off',
     autoCapitalize = 'none',
     disabled: disabledProp,
-    ...rest
+    color,
+    className,
+    style,
+    ...others
   } = props;
+  // Helper props, `className` and `style` go on the container, so a margin,
+  // a width or a display moves the field and its toggle together. `color`
+  // stays with the input, whose border it colors.
+  const { bulmaHelperClasses, rest } = useBulmaClasses(others);
   const disabled = useFieldsetDisabled(disabledProp);
   // The toggle gives way to the loading spinner of a Control this sits in,
-  // which shares its edge.
+  // which takes its slot, and the field hides the password meanwhile, as
+  // there's no button to hide it with.
   const controlLoading = useControlLoading();
   const isText = variant === 'text';
 
@@ -202,6 +213,21 @@ export const PasswordInputBase = forwardRef<
     },
     [ref]
   );
+
+  // A toggle with focus that leaves while the input stays, as it does when a
+  // Control starts loading, hands focus to the input rather than dropping it
+  // to the page. React lets go of the toggle before it takes it out of the
+  // page, so the toggle still has focus here; when the whole field unmounts,
+  // React has let go of the input first.
+  const toggleRef = useRef<HTMLButtonElement | null>(null);
+  const setToggle = useCallback((node: HTMLButtonElement | null) => {
+    // React lets go only of a toggle it handed over, so there is one.
+    const leaving = toggleRef.current as HTMLButtonElement;
+    toggleRef.current = node;
+    if (node) return;
+    const root = leaving.getRootNode() as Document | ShadowRoot;
+    if (root.activeElement === leaving) inputRef.current?.focus();
+  }, []);
 
   // Hides the password again: reports `false`, and sets its own state when it
   // holds it. Inside `flushSync`, React renders that, a caller's own state
@@ -259,7 +285,10 @@ export const PasswordInputBase = forwardRef<
   const glyph = visible ? <EyeOffIcon /> : <EyeIcon />;
 
   return (
-    <div className={containerClass}>
+    <div
+      className={classNames(containerClass, bulmaHelperClasses, className)}
+      style={style}
+    >
       <InputBase
         ref={combinedRef}
         autoComplete={autoComplete}
@@ -267,11 +296,13 @@ export const PasswordInputBase = forwardRef<
         autoCorrect={autoCorrect}
         autoCapitalize={autoCapitalize}
         disabled={disabled}
+        color={color}
         {...rest}
-        type={visible ? 'text' : 'password'}
+        type={visible && !controlLoading ? 'text' : 'password'}
       />
       {!controlLoading && (
         <button
+          ref={setToggle}
           type="button"
           className={toggleClass}
           aria-label={toggleName}

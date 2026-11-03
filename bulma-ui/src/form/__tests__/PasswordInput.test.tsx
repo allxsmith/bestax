@@ -84,13 +84,11 @@ describe('PasswordInput', () => {
       expect(input()).toHaveAttribute('autocapitalize', 'sentences');
     });
 
-    it('puts helper props, classes and other attributes on the input', () => {
+    it('puts the input modifiers and other attributes on the input', () => {
       setup({
         color: 'danger',
         size: 'small',
         isRounded: true,
-        mt: '3',
-        className: 'custom',
         name: 'password',
         placeholder: 'Your password',
         required: true,
@@ -99,14 +97,49 @@ describe('PasswordInput', () => {
         'input',
         'is-danger',
         'is-small',
-        'is-rounded',
-        'mt-3',
-        'custom'
+        'is-rounded'
       );
       expect(input()).toHaveAttribute('name', 'password');
       expect(input()).toHaveAttribute('placeholder', 'Your password');
       expect(input()).toBeRequired();
       expect(input().parentElement?.className).toBe('passwordinput-container');
+    });
+
+    it('puts helper props, className and style on the container, so the toggle moves with the field', () => {
+      setup({
+        mt: '3',
+        display: 'inline-block',
+        className: 'custom',
+        style: { maxWidth: '20rem' },
+        color: 'danger',
+      });
+      const box = input().parentElement as HTMLElement;
+      expect(box).toHaveClass(
+        'passwordinput-container',
+        'mt-3',
+        'is-inline-block',
+        'custom'
+      );
+      expect(box.style.maxWidth).toBe('20rem');
+      expect(box).not.toHaveClass('is-danger', 'has-text-danger');
+      expect(input()).not.toHaveClass('mt-3', 'is-inline-block', 'custom');
+      expect(input()).not.toHaveAttribute('style');
+      expect(input()).toHaveClass('is-danger');
+    });
+
+    it('does the same without the Field and Control', () => {
+      render(
+        <PasswordInputBase
+          aria-label="Password"
+          mt="3"
+          className="custom"
+          data-probe="here"
+        />
+      );
+      const box = input().parentElement as HTMLElement;
+      expect(box).toHaveClass('passwordinput-container', 'mt-3', 'custom');
+      expect(input()).not.toHaveClass('mt-3', 'custom');
+      expect(input()).toHaveAttribute('data-probe', 'here');
     });
 
     it('keeps its own type whatever a caller passes', () => {
@@ -728,6 +761,64 @@ describe('PasswordInput', () => {
         </Field>
       );
       expect(toggle()).toBeNull();
+    });
+
+    it('hides a shown password while loading, and shows it again after, without reporting it', () => {
+      const { rerender, onVisibleChange } = setup({ defaultVisible: true });
+      expect(input()).toHaveAttribute('type', 'text');
+      rerender(
+        <PasswordInput
+          label="Password"
+          defaultVisible
+          onVisibleChange={onVisibleChange}
+          isLoading
+        />
+      );
+      expect(input()).toHaveAttribute('type', 'password');
+      rerender(
+        <PasswordInput
+          label="Password"
+          defaultVisible
+          onVisibleChange={onVisibleChange}
+        />
+      );
+      expect(input()).toHaveAttribute('type', 'text');
+      expect(toggle()).toHaveAttribute('aria-pressed', 'true');
+      expect(onVisibleChange).not.toHaveBeenCalled();
+    });
+
+    it('hands focus from the toggle to the input when loading takes the toggle away', () => {
+      const { rerender } = setup();
+      act(() => toggle().focus());
+      expect(toggle()).toHaveFocus();
+      rerender(<PasswordInput label="Password" isLoading />);
+      expect(input()).toHaveFocus();
+    });
+
+    it('leaves focus where it is when loading takes away a toggle without it', () => {
+      const { rerender } = render(
+        <>
+          <PasswordInput label="Password" />
+          <button type="button">Elsewhere</button>
+        </>
+      );
+      const elsewhere = screen.getByRole('button', { name: 'Elsewhere' });
+      act(() => elsewhere.focus());
+      rerender(
+        <>
+          <PasswordInput label="Password" isLoading />
+          <button type="button">Elsewhere</button>
+        </>
+      );
+      expect(elsewhere).toHaveFocus();
+    });
+
+    it('focuses nothing when the whole field unmounts with the toggle focused', () => {
+      const onFocus = vi.fn();
+      const { unmount } = setup({ onFocus });
+      act(() => toggle().focus());
+      unmount();
+      expect(onFocus).not.toHaveBeenCalled();
     });
   });
 

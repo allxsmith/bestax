@@ -81,7 +81,9 @@ set them on that `Control` instead.
 password. It takes everything `Input` does except `type` and the right-icon props
 (`iconRight`, `iconRightName`, `iconRightSize`, `hasIconsRight`), which draw nothing and warn in
 development, since the button has that edge. `PasswordInputBase` is the input and its button
-without the `Field` and `Control`; helper props, `className` and `ref` go on the `<input>`.
+without the `Field` and `Control`. On both, helper props, `className` and `style` go on the
+`.passwordinput-container` `<div>` that holds the input and its button; `ref` and the other
+attributes go on the `<input>`.
 
 | Prop                                            | Type                                             | Notes                                                                                                                                                                |
 | ----------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -91,7 +93,7 @@ without the `Field` and `Control`; helper props, `className` and `ref` go on the
 | `labels`                                        | `{ showPassword?, hidePassword?, show?, hide? }` | Translations. With `text`, each name must contain its word (Label in Name); a development warning says when one doesn't.                                             |
 | `autoComplete`                                  | `string`                                         | `"current-password"` by default. Pass `"new-password"` on sign-up and change-password forms. Never `"off"`.                                                          |
 | `spellCheck` / `autoCorrect` / `autoCapitalize` | `false` / `"off"` / `"none"` by default          | A caller's value wins for each.                                                                                                                                      |
-| `isLoading`                                     | `boolean`                                        | The `Control`'s spinner, which takes the button's place.                                                                                                             |
+| `isLoading`                                     | `boolean`                                        | The `Control`'s spinner, which takes the button's place; a shown password is hidden until the button is back.                                                        |
 | `disabled`                                      | `boolean`                                        | Disables the input and its button; a disabled `Fieldset` does too.                                                                                                   |
 
 The button is a `<button type="button">` in the tab order; a pointer press leaves focus and the

@@ -24,6 +24,9 @@ import { useAutoLabelId } from './useAutoLabelId';
  * in development. Wrap the `Control` in a `Field` instead, and set the
  * `label`, `horizontal` and class name on that `Field`.
  *
+ * @helperProps Helper props go on the `.passwordinput-container` `<div>`, with
+ * `className` and `style`, so they move and size the field and its toggle
+ * together. The other attributes go on the `<input>`.
  * @extraProp {string} [autoComplete="current-password"] - Tells the browser and password managers this is an existing password. Pass `"new-password"` where the user makes one up, on a sign-up or change-password form.
  * @extraProp {boolean} [spellCheck=false] - Off, so a browser's spellcheck never sees the password once it shows.
  * @extraProp {string} [autoCorrect="off"] - Off, so a phone's keyboard doesn't change what's typed.
@@ -54,7 +57,8 @@ export interface PasswordInputProps extends PasswordInputBaseProps {
   hasIconsLeft?: boolean;
   /**
    * Shows a loading spinner on the `Control` it renders, at the edge the
-   * toggle uses, so the toggle isn't drawn meanwhile. Inside your own
+   * toggle uses, so the toggle isn't drawn meanwhile, and a shown password is
+   * hidden until it's back. Inside your own
    * `Control` it renders none, so this draws nothing and warns in
    * development; set `isLoading` on that `Control`, which hides the toggle
    * too.
