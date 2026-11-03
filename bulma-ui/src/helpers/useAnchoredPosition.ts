@@ -15,16 +15,17 @@ export type AnchoredCorner = Exclude<PickerPosition, 'auto'>;
 export type AnchoredSide = 'top' | 'bottom' | 'left' | 'right';
 
 /**
- * Where the panel goes: the corner it opens from or the side it sits on and,
- * when it is fixed to the viewport, its coordinates there.
+ * Where the panel goes: the corner it opens from, the side it sits on, or
+ * the middle of the viewport and, when it is fixed to the viewport, its
+ * coordinates there.
  */
 export interface AnchoredPosition {
   /**
-   * The corner, or the side the panel ended up on. A side is the one on the
-   * screen, after the swap under right-to-left text and any flip, so a
-   * stylesheet can put the gap on the side facing the anchor.
+   * The corner, the side the panel ended up on, or `center`. A side is the
+   * one on the screen, after the swap under right-to-left text and any flip,
+   * so a stylesheet can put the gap on the side facing the anchor.
    */
-  position: AnchoredCorner | AnchoredSide;
+  position: AnchoredCorner | AnchoredSide | 'center';
   top?: number;
   left?: number;
   /**
@@ -45,9 +46,11 @@ export interface UseAnchoredPositionOptions {
    * viewport, or a side. A side centers the panel along that side of the
    * anchor, flips it to the opposite side when it doesn't fit there and does
    * on the other, and keeps a fixed panel inside the viewport. `left` and
-   * `right` are read against the anchor's writing direction.
+   * `right` are read against the anchor's writing direction. `center` puts
+   * a fixed panel in the middle of the viewport and needs no anchor, for a
+   * panel whose anchor is missing.
    */
-  position: PickerPosition | AnchoredSide;
+  position: PickerPosition | AnchoredSide | 'center';
   /**
    * Whether the panel is fixed to the viewport (it was portaled away from the
    * anchor), which needs coordinates. Otherwise the panel's CSS places it
@@ -194,6 +197,20 @@ function resolveAuto(
   return fitsRight ? 'top-left' : 'top-right';
 }
 
+/**
+ * A fixed panel in the middle of the viewport, the root element's client
+ * area, and kept inside it.
+ */
+function centerIn(panel: HTMLElement): AnchoredPosition {
+  const { width, height } = panel.getBoundingClientRect();
+  const { clientWidth, clientHeight } = panel.ownerDocument.documentElement;
+  return {
+    position: 'center',
+    top: Math.max(0, (clientHeight - height) / 2),
+    left: Math.max(0, (clientWidth - width) / 2),
+  };
+}
+
 const samePosition = (a: AnchoredPosition, b: AnchoredPosition): boolean =>
   a.position === b.position &&
   a.top === b.top &&
@@ -210,8 +227,9 @@ const samePosition = (a: AnchoredPosition, b: AnchoredPosition): boolean =>
  * changes nothing doesn't render again.
  *
  * Measuring happens in a layout effect, so the panel is placed before it
- * paints. It needs both elements on the page while `active` is on, and
- * keeps the last placement when either is missing.
+ * paints. It needs both elements on the page while `active` is on, or the
+ * panel alone for `center`, and keeps the last placement when one it needs
+ * is missing.
  *
  * @function useAnchoredPosition
  * @param anchorRef - The element the panel opens from.
@@ -247,7 +265,13 @@ export function useAnchoredPosition(
     const update = () => {
       const anchor = anchorRef.current;
       const panel = panelRef.current;
-      if (!anchor || !panel) return;
+      if (!panel) return;
+      if (position === 'center') {
+        const next = centerIn(panel);
+        setResolved(prev => (samePosition(prev, next) ? prev : next));
+        return;
+      }
+      if (!anchor) return;
       const rect = anchor.getBoundingClientRect();
       const measured = panel.getBoundingClientRect();
       // The width the panel has once it's at least as wide as the anchor.

@@ -1,0 +1,210 @@
+// Bestax Extras - Tour Styles
+// A walk through an interface, one element at a time: the page dimmed with a
+// spotlight cut around the element, and a step panel beside it in Popover's
+// look. Bulma has no tour, spotlight or anchored panel.
+//
+// The component places the step with `top` and `left` on a fixed panel, and
+// the stylesheet puts the gap between the spotlight's edge and the panel in a
+// margin on the side facing the target, which the component reads back.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+@use '../variables' as *;
+
+// The modal tier, so toasts stay above a tour.
+$tour-z-index: $extras-z-index-modal !default;
+// Bulma's modal backdrop color at half its strength, so the page being toured
+// stays readable around the spotlight.
+$tour-overlay-background: hsla(
+  #{cv.getVar('scheme-h')},
+  #{cv.getVar('scheme-s')},
+  #{cv.getVar('scheme-invert-l')},
+  0.5
+) !default;
+// How far the spotlight reaches past the target's edge, and its corners.
+$tour-spotlight-padding: 0.5rem !default;
+$tour-spotlight-radius: cv.getVar('radius') !default;
+// The step takes Popover's panel tokens, which Popover registers on its own
+// panel, where a step can't inherit them.
+$tour-step-background: cv.getVar('scheme-main') !default;
+$tour-step-color: cv.getVar('text') !default;
+$tour-step-border-color: cv.getVar('border-weak') !default;
+$tour-step-radius: cv.getVar('radius-large') !default;
+$tour-step-shadow: cv.getVar('shadow') !default;
+$tour-step-max-width: min(24rem, calc(100vw - 2rem)) !default;
+// Between the spotlight's edge and the panel.
+$tour-step-offset: 0.5rem !default;
+$tour-step-header-padding: 0.75rem 1rem !default;
+$tour-step-header-color: cv.getVar('text-strong') !default;
+$tour-step-header-weight: cv.getVar('weight-semibold') !default;
+$tour-step-body-padding: 1rem !default;
+$tour-step-footer-padding: 0.75rem 1rem !default;
+$tour-step-footer-gap: 0.5rem !default;
+$tour-progress-color: cv.getVar('text-weak') !default;
+// How long the spotlight and the step take to move from one target to the
+// next. Nothing moves under reduced motion.
+$tour-transition-duration: 0.2s !default;
+
+.#{iv.$class-prefix}tour {
+  @include cv.register-vars(
+    (
+      'tour-z-index': #{$tour-z-index},
+      'tour-overlay-background': #{$tour-overlay-background},
+      'tour-spotlight-padding': #{$tour-spotlight-padding},
+      'tour-spotlight-radius': #{$tour-spotlight-radius},
+      'tour-step-background': #{$tour-step-background},
+      'tour-step-color': #{$tour-step-color},
+      'tour-step-border-color': #{$tour-step-border-color},
+      'tour-step-radius': #{$tour-step-radius},
+      'tour-step-shadow': #{$tour-step-shadow},
+      'tour-step-max-width': #{$tour-step-max-width},
+      'tour-step-offset': #{$tour-step-offset},
+      'tour-step-header-padding': #{$tour-step-header-padding},
+      'tour-step-header-color': #{$tour-step-header-color},
+      'tour-step-header-weight': #{$tour-step-header-weight},
+      'tour-step-body-padding': #{$tour-step-body-padding},
+      'tour-step-footer-padding': #{$tour-step-footer-padding},
+      'tour-step-footer-gap': #{$tour-step-footer-gap},
+      'tour-progress-color': #{$tour-progress-color},
+      'tour-transition-duration': #{$tour-transition-duration},
+    )
+  );
+}
+
+// ---- The root -----------------------------------------------------------------
+
+// Holds the overlay and the step, which are fixed to the viewport, so it
+// takes no room of its own. Its layer lifts both over the page.
+.#{iv.$class-prefix}tour {
+  position: relative;
+  z-index: cv.getVar('tour-z-index');
+}
+
+// ---- The overlay and the spotlight --------------------------------------------
+
+// An SVG over the viewport, filled through a mask with a hole at the target.
+// SVG fills keep their color in forced colors, where a box-shadow cutout
+// computes to nothing, so the page stays dimmed there too.
+.#{iv.$class-prefix}tour-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: cv.getVar('tour-overlay-background');
+}
+
+// The hole in the mask, and a ring drawn at the same place. The component
+// sets where they are, grown by the padding.
+.#{iv.$class-prefix}tour-spotlight,
+.#{iv.$class-prefix}tour-spotlight-ring {
+  rx: cv.getVar('tour-spotlight-radius');
+  transition-property: x, y, width, height;
+  transition-duration: cv.getVar('tour-transition-duration');
+  transition-timing-function: ease;
+}
+
+// Nothing to see, until forced colors give the spotlight an edge.
+.#{iv.$class-prefix}tour-spotlight-ring {
+  fill: none;
+  stroke: none;
+}
+
+// ---- The step -----------------------------------------------------------------
+
+.#{iv.$class-prefix}tour-step {
+  position: fixed;
+  width: max-content;
+  max-width: cv.getVar('tour-step-max-width');
+  background-color: cv.getVar('tour-step-background');
+  color: cv.getVar('tour-step-color');
+  border: 1px solid cv.getVar('tour-step-border-color');
+  border-radius: cv.getVar('tour-step-radius');
+  box-shadow: cv.getVar('tour-step-shadow');
+  text-align: start;
+  // The panel takes focus itself only when it holds no control.
+  outline: none;
+  transition-property: top, left;
+  transition-duration: cv.getVar('tour-transition-duration');
+  transition-timing-function: ease;
+
+  $gap: calc(
+    #{cv.getVar('tour-spotlight-padding')} + #{cv.getVar('tour-step-offset')}
+  );
+
+  &.#{iv.$class-prefix}is-bottom {
+    margin-top: $gap;
+  }
+  &.#{iv.$class-prefix}is-top {
+    margin-top: calc(-1 * #{$gap});
+  }
+  &.#{iv.$class-prefix}is-right {
+    margin-left: $gap;
+  }
+  &.#{iv.$class-prefix}is-left {
+    margin-left: calc(-1 * #{$gap});
+  }
+}
+
+.#{iv.$class-prefix}tour-step-header {
+  display: flex;
+  align-items: center;
+  gap: cv.getVar('tour-step-footer-gap');
+  padding: cv.getVar('tour-step-header-padding');
+  color: cv.getVar('tour-step-header-color');
+  font-weight: cv.getVar('tour-step-header-weight');
+  border-bottom: 1px solid cv.getVar('tour-step-border-color');
+
+  > .#{iv.$class-prefix}delete {
+    margin-inline-start: auto;
+  }
+}
+
+// A heading as `titleAs` asks, sized and weighted as the header.
+.#{iv.$class-prefix}tour-step-title {
+  margin: 0;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+}
+
+.#{iv.$class-prefix}tour-step-body {
+  padding: cv.getVar('tour-step-body-padding');
+}
+
+// Skip and the progress line at the start, Back and Next at the end.
+.#{iv.$class-prefix}tour-step-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: cv.getVar('tour-step-footer-gap');
+  padding: cv.getVar('tour-step-footer-padding');
+  border-top: 1px solid cv.getVar('tour-step-border-color');
+
+  > .#{iv.$class-prefix}buttons {
+    flex-wrap: nowrap;
+  }
+}
+
+.#{iv.$class-prefix}tour-progress {
+  margin-inline-end: auto;
+  color: cv.getVar('tour-progress-color');
+  font-size: cv.getVar('size-small');
+}
+
+// ---- Forced colors and reduced motion ------------------------------------------
+
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}tour-spotlight-ring {
+    stroke: Highlight;
+    stroke-width: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}tour-spotlight,
+  .#{iv.$class-prefix}tour-spotlight-ring,
+  .#{iv.$class-prefix}tour-step {
+    transition: none;
+  }
+}

@@ -417,6 +417,38 @@ describe('useAnchoredPosition on a side', () => {
     expect(read()).toEqual({ position: 'bottom', top: 740, left: 400 });
   });
 
+  it('centers a panel in the viewport without an anchor, kept inside it', () => {
+    const Centered = () => {
+      const anchorRef = useRef<HTMLElement>(null);
+      const panelRef = useRef<HTMLDivElement>(null);
+      const resolved = useAnchoredPosition(anchorRef, panelRef, {
+        active: true,
+        position: 'center',
+        fixed: true,
+      });
+      return (
+        <>
+          <div ref={panelRef} />
+          <output>{JSON.stringify(resolved)}</output>
+        </>
+      );
+    };
+    const { unmount } = render(<Centered />);
+    expect(read()).toEqual({ position: 'center', top: 375, left: 450 });
+    unmount();
+    // A viewport smaller than the panel puts it at the top left.
+    Object.defineProperty(root, 'clientWidth', {
+      configurable: true,
+      value: 80,
+    });
+    Object.defineProperty(root, 'clientHeight', {
+      configurable: true,
+      value: 30,
+    });
+    render(<Centered />);
+    expect(read()).toEqual({ position: 'center', top: 0, left: 0 });
+  });
+
   it('gives a panel in place the side alone', () => {
     render(<Side position="left" fixed={false} />);
     expect(read()).toEqual({ position: 'left' });
