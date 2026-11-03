@@ -299,8 +299,8 @@ keep the current link in view. Only the list moves, never the page.
 - **Lists stay lists:** each `MenuList` restates `role="list"`, which Bulma's list reset strips in
   Safari.
 - **Not hidden under a sticky header:** with `scroll-padding-top` on the page, a jump lands below
-  the header, as WCAG's Focus Not Obscured asks. With `isSticky`, the list keeps room at its sides
-  for a link's focus ring, which its scrolling would clip otherwise.
+  the header, as WCAG's Focus Not Obscured asks. With `isSticky`, the list keeps room around its
+  links for a focus ring, which its scrolling would clip otherwise.
 - **No motion of its own:** smooth scrolling is your page's CSS, inside
   `prefers-reduced-motion: no-preference`, and the list scrolls itself instantly.
 - **Forced colors:** the current link keeps Menu's bar in the system's Highlight color, since forced

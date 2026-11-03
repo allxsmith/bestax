@@ -89,10 +89,16 @@ describe.each([
     ]);
   });
 
-  it('keeps room at its sides for a focus ring, and gives it back', () => {
+  it('keeps room around it for a focus ring, at the sides and above and below, and gives it back', () => {
     const [rule] = declares('position');
     const ring = 'calc(var(--bulma-focus-width) + var(--bulma-focus-offset))';
-    expect(rule.style.paddingInline).toBe(ring);
-    expect(rule.style.marginInline).toBe(`calc(-1 * ${ring})`);
+    expect(rule.style.getPropertyValue('padding-inline')).toBe(ring);
+    expect(rule.style.getPropertyValue('padding-block')).toBe(ring);
+    expect(rule.style.getPropertyValue('margin-inline')).toBe(
+      `calc(-1 * ${ring})`
+    );
+    expect(rule.style.getPropertyValue('margin-block')).toBe(
+      `calc(-1 * ${ring})`
+    );
   });
 });

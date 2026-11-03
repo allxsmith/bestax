@@ -26,13 +26,16 @@ $-focus-ring: calc(#{cv.getVar('focus-width')} + #{cv.getVar('focus-offset')});
 // below its top scrolls itself, so its end can still be reached. The room is
 // measured in `dvh`, the viewport as it is now, so a phone's toolbar doesn't
 // cover the list's end, and in `vh` where `dvh` isn't known. Scrolling clips
-// what's outside it, so it keeps room at its sides for a link's focus ring,
-// and gives that room back with a margin, so the links stay where they are.
+// what's outside it, so it keeps room around it for a link's focus ring, at
+// the sides and above the first link and below the last, and gives that room
+// back with a margin, so the links stay where they are.
 .#{iv.$class-prefix}table-of-contents.#{iv.$class-prefix}is-sticky {
+  margin-block: calc(-1 * #{$-focus-ring});
   margin-inline: calc(-1 * #{$-focus-ring});
   max-height: calc(100vh - #{cv.getVar('table-of-contents-sticky-top')});
   max-height: calc(100dvh - #{cv.getVar('table-of-contents-sticky-top')});
   overflow-y: auto;
+  padding-block: $-focus-ring;
   padding-inline: $-focus-ring;
   position: sticky;
   top: cv.getVar('table-of-contents-sticky-top');
