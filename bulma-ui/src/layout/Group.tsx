@@ -13,6 +13,7 @@ import type {
   validJustifyContents,
 } from '../helpers/useBulmaClasses';
 import type { ContainerBreakpoint } from './Container';
+import { CONTAINER_BREAKPOINTS } from '../helpers/containerBreakpoints';
 
 /**
  * The Group component's own props, beside the attributes of the element `as`
@@ -67,12 +68,6 @@ export type GroupProps<T extends LayoutElement = LayoutElement> =
       as?: T;
     };
 
-const BREAKPOINTS: readonly ContainerBreakpoint[] = [
-  'tablet',
-  'desktop',
-  'widescreen',
-];
-
 /**
  * The `Group` component lays its children out in a row that wraps, centered on each other, with half of Bulma's block spacing between them.
  *
@@ -110,7 +105,8 @@ export const Group = forwardRef(function Group(
       modifiers={{
         'is-horizontal': true,
         'is-fullwidth': isFullwidth,
-        [`is-${breakpoint}`]: !!breakpoint && BREAKPOINTS.includes(breakpoint),
+        [`is-${breakpoint}`]:
+          !!breakpoint && CONTAINER_BREAKPOINTS.includes(breakpoint),
       }}
     />
   );
