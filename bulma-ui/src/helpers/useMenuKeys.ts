@@ -25,8 +25,11 @@ export function isEnabledMenuItem(item: Element): boolean {
 }
 
 /** Whether `node` is one of `menu`'s items, enabled or not. */
-const isItemOf = (menu: Element, node: Element | null): boolean =>
-  Boolean(node && menu.contains(node) && node.matches(MENU_ITEM_SELECTOR));
+const isItemOf = (
+  menu: Element,
+  node: Element | null,
+  selector: string
+): boolean => Boolean(node && menu.contains(node) && node.matches(selector));
 
 /** The items in `menu` the keys reach, in document order. */
 export function enabledMenuItems(menu: Element): HTMLElement[] {
@@ -42,6 +45,23 @@ export function enabledMenuItems(menu: Element): HTMLElement[] {
 function activatesItself(item: HTMLElement, key: string): boolean {
   if (item.tagName === 'BUTTON') return true;
   return key === 'Enter' && item.tagName === 'A' && item.hasAttribute('href');
+}
+
+/** Options for `useMenuKeys`, for a list that isn't a menu. */
+export interface MenuKeysOptions {
+  /**
+   * What the items are, as a selector, such as `[role="option"]` for a
+   * listbox.
+   * @defaultValue MENU_ITEM_SELECTOR
+   */
+  itemSelector?: string;
+  /**
+   * Disabled items stay reachable by the arrows, Home, End and type-ahead,
+   * as a listbox's and a tree's are, so a screen reader finds them. Enter
+   * and Space never activate one.
+   * @defaultValue false
+   */
+  disabledReachable?: boolean;
 }
 
 /** What `useMenuKeys` returns. */
@@ -80,21 +100,27 @@ export interface MenuKeys {
  *
  * Items are `MENU_ITEM_SELECTOR` matches, and disabled ones are skipped by
  * all of the above. Escape and Tab are left to the menu's owner, since what
- * closing means is up to it, and so is any other key.
+ * closing means is up to it, and so is any other key. `options` makes the
+ * items another selector's matches, such as a listbox's options, and can
+ * keep disabled items reachable.
  *
  * @function useMenuKeys
+ * @param options - Another kind of item, and whether disabled ones are reached.
  * @returns The `keydown` handler for the menu element, and a way to forget
  * what has been typed.
  */
-export function useMenuKeys(): MenuKeys {
+export function useMenuKeys(options: MenuKeysOptions = {}): MenuKeys {
   const typeahead = useTypeahead();
+  const { itemSelector = MENU_ITEM_SELECTOR, disabledReachable = false } =
+    options;
 
   return useMemo<MenuKeys>(() => {
     const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
       const menu = event.currentTarget;
       const focused = getActiveElementInTree(menu);
-      if (focused !== menu && !isItemOf(menu, focused)) return;
-      const items = enabledMenuItems(menu);
+      if (focused !== menu && !isItemOf(menu, focused, itemSelector)) return;
+      const all = Array.from(menu.querySelectorAll<HTMLElement>(itemSelector));
+      const items = disabledReachable ? all : all.filter(isEnabledMenuItem);
       if (!items.length) return;
       const current = items.indexOf(focused as HTMLElement);
       switch (event.key) {
@@ -122,6 +148,12 @@ export function useMenuKeys(): MenuKeys {
         case ' ': {
           if (current < 0 || event.defaultPrevented) return;
           const item = items[current];
+          // A disabled item the arrows reach does nothing, and Space doesn't
+          // scroll the page.
+          if (!isEnabledMenuItem(item)) {
+            event.preventDefault();
+            return;
+          }
           if (activatesItself(item, event.key)) {
             // The browser clicks on Enter's keydown, and a held key sends one
             // per auto-repeat. Space clicks on keyup, once however long it's
@@ -151,5 +183,5 @@ export function useMenuKeys(): MenuKeys {
       typeaheadMatch(items, typeahead.type(event.key), current)?.focus();
     };
     return { onKeyDown, reset: typeahead.reset };
-  }, [typeahead]);
+  }, [typeahead, itemSelector, disabledReachable]);
 }

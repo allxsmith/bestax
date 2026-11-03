@@ -510,4 +510,67 @@ describe('useMenuKeys', () => {
       expect(screen.getByRole('button', { name: 'Elsewhere' })).toHaveFocus();
     });
   });
+
+  describe('a list of another kind, disabled items reachable', () => {
+    /** A listbox with the hook's handler on it, its options reaching disabled ones. */
+    const List = ({ onPick }: { onPick: (name: string) => void }) => {
+      const keys = useMenuKeys({
+        itemSelector: '[role="option"]',
+        disabledReachable: true,
+      });
+      return (
+        <ul role="listbox" aria-label="Places" onKeyDown={keys.onKeyDown}>
+          {['Asia', 'Europe', 'Oceania'].map(name => (
+            <li
+              key={name}
+              role="option"
+              aria-selected={false}
+              aria-disabled={name === 'Europe' || undefined}
+              tabIndex={-1}
+              onClick={() => onPick(name)}
+            >
+              {name}
+            </li>
+          ))}
+          <li role="menuitem" tabIndex={-1}>
+            Not an option
+          </li>
+        </ul>
+      );
+    };
+    const option = (name: string) => screen.getByRole('option', { name });
+
+    it('moves through its options, disabled ones included, and only them', () => {
+      render(<List onPick={() => {}} />);
+      option('Asia').focus();
+      press('ArrowDown');
+      expect(option('Europe')).toHaveFocus();
+      press('End');
+      expect(option('Oceania')).toHaveFocus();
+      press('ArrowDown');
+      expect(option('Asia')).toHaveFocus();
+      press('e');
+      expect(option('Europe')).toHaveFocus();
+    });
+
+    it('activates an enabled option, and never a disabled one', () => {
+      const onPick = vi.fn();
+      render(<List onPick={onPick} />);
+      option('Europe').focus();
+      expect(press('Enter')).toBe(false);
+      expect(press(' ')).toBe(false);
+      expect(onPick).not.toHaveBeenCalled();
+      option('Oceania').focus();
+      press('Enter');
+      expect(onPick).toHaveBeenCalledWith('Oceania');
+    });
+
+    it('leaves a key alone on an item of another kind', () => {
+      render(<List onPick={() => {}} />);
+      const other = screen.getByRole('menuitem', { name: 'Not an option' });
+      other.focus();
+      expect(press('ArrowDown')).toBe(true);
+      expect(other).toHaveFocus();
+    });
+  });
 });
