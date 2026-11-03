@@ -37,9 +37,12 @@ export interface OverlayFocusOptions {
  * the overlay still holds it, or it's been dropped to `<body>`: closing one
  * under another overlay mustn't pull focus out of the one on top, and focus
  * moved out to the page stays there. The opener is found wherever it sits,
- * inside a shadow root too, and read in a layout effect as the overlay opens,
- * before any effect of the same commit can move focus or make the opener
- * inert.
+ * inside a shadow root too, in the overlay's own document, an iframe's when
+ * it renders into one. It's read in a layout effect as the overlay opens, so
+ * before the commit's passive effects, such as one that makes the page
+ * inert. Content inside the overlay with a layout effect of its own, or an
+ * `autoFocus`, can still move focus first, and then there's no opener to go
+ * back to: focus is never handed back into the overlay that's closing.
  *
  * @function useOverlayFocus
  * @param ref - Ref to the overlay's element.
@@ -58,10 +61,16 @@ export function useOverlayFocus(
   // The element that had focus, wherever it sits: a portaled overlay renders
   // under `document.body` while its opener can be inside a shadow root.
   useClientLayoutEffect(() => {
-    if (open) {
-      openerRef.current = getDeepestActiveElement() as HTMLElement | null;
-    }
-  }, [open]);
+    if (!open) return;
+    const element = ref.current;
+    /* istanbul ignore if: as below, the ref is set while the overlay is open */
+    if (!element) return;
+    // Focus already inside, where an `autoFocus` in the overlay puts it, has
+    // no opener to go back to.
+    openerRef.current = element.contains(getActiveElementInTree(element))
+      ? null
+      : (getDeepestActiveElement(element.ownerDocument) as HTMLElement | null);
+  }, [open, ref]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -76,7 +85,8 @@ export function useOverlayFocus(
     return () => {
       // A removed subtree leaves focus on <body>, which still counts as held.
       const active = getActiveElementInTree(element);
-      const held = active === document.body || element.contains(active);
+      const held =
+        active === element.ownerDocument.body || element.contains(active);
       // Asked now rather than as it opened: it's about this close.
       // eslint-disable-next-line react-hooks/exhaustive-deps
       if (held && (restoreRef.current?.() ?? true)) {
