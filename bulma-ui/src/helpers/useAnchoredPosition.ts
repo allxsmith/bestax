@@ -71,8 +71,11 @@ export interface UseAnchoredPositionOptions {
    * Reads the gap the panel's own stylesheet puts between it and the anchor,
    * in pixels, each time the panel is measured. `auto` leaves room for it as
    * well; the coordinates don't include it, because the stylesheet applies it.
+   * For a side placement it's told the side the panel is on as it's
+   * measured, so it can read the one margin the stylesheet puts the gap in
+   * there.
    */
-  styledGap?: (panel: HTMLElement) => number;
+  styledGap?: (panel: HTMLElement, side?: AnchoredSide) => number;
   /**
    * Whether the panel is at least as wide as the anchor, as a list under its
    * field is. A panel in place gets that from its stylesheet. A fixed one
@@ -108,14 +111,17 @@ export function marginGap(panel: HTMLElement): number {
 }
 
 /**
- * `marginGap` for a panel placed on a side, which can sit to the left or
- * the right of its anchor: the largest magnitude among all four margins,
- * negative on a panel to the left. In pixels.
+ * `marginGap` for a panel placed on a side, whose stylesheet puts the gap in
+ * its top margin above or below the anchor and in its left margin beside
+ * it, negative above it or to its left. It reads that one margin for the
+ * side the panel is on, so a margin on the other axis, such as `mx`, leaves
+ * the gap alone. In pixels.
  */
-export function sideMarginGap(panel: HTMLElement): number {
-  const { marginTop, marginBottom, marginLeft, marginRight } =
-    getComputedStyle(panel);
-  return largestMargin([marginTop, marginBottom, marginLeft, marginRight]);
+export function sideMarginGap(panel: HTMLElement, side?: AnchoredSide): number {
+  const { marginTop, marginLeft } = getComputedStyle(panel);
+  return largestMargin([
+    side === 'left' || side === 'right' ? marginLeft : marginTop,
+  ]);
 }
 
 const oppositeSide: Record<AnchoredSide, AnchoredSide> = {
@@ -267,6 +273,9 @@ export function useAnchoredPosition(
   // The measurement while the panel is active, for `followContent` to run
   // again after a render.
   const updateRef = useRef<(() => void) | null>(null);
+  // Where the panel is drawn now, which decides the margin `styledGap` reads
+  // for a side placement.
+  const shownRef = useRef(resolved.position);
 
   useClientLayoutEffect(() => {
     if (!active) return undefined;
@@ -298,7 +307,10 @@ export function useAnchoredPosition(
           { width, height },
           fixed,
           offset,
-          styledGap?.(panel) ?? 0
+          styledGap?.(
+            panel,
+            isSide(shownRef.current) ? shownRef.current : undefined
+          ) ?? 0
         );
         setResolved(prev => (samePosition(prev, next) ? prev : next));
         return;
@@ -345,8 +357,10 @@ export function useAnchoredPosition(
     matchWidth,
   ]);
 
-  // After every render, on purpose: the panel's content is what changed.
+  // After every render, on purpose: the panel's class now says where it's
+  // drawn, and with `followContent` its content is what changed.
   useClientLayoutEffect(() => {
+    shownRef.current = resolved.position;
     if (followContent) updateRef.current?.();
   });
 

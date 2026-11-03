@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import {
   marginGap,
   sideMarginGap,
@@ -321,13 +321,20 @@ describe('marginGap', () => {
     expect(marginGap(panel({ marginRight: '5px' }))).toBe(0);
   });
 
-  it('reads the inline margins too for a panel placed on a side', () => {
-    expect(
-      sideMarginGap(panel({ marginLeft: '-12px', marginTop: '3px' }))
-    ).toBe(12);
-    expect(sideMarginGap(panel({ marginRight: '5px' }))).toBe(5);
-    expect(sideMarginGap(panel({ marginBottom: '-9px' }))).toBe(9);
-    expect(sideMarginGap(panel({}))).toBe(0);
+  it('reads the one margin the side in use puts the gap in, for a side placement', () => {
+    // A left margin of 12 is the gap beside the anchor, and a top one of 3
+    // the gap above or below it. The right margin, as `mx` sets, is neither.
+    const beside = panel({
+      marginLeft: '-12px',
+      marginTop: '3px',
+      marginRight: '24px',
+    });
+    expect(sideMarginGap(beside, 'left')).toBe(12);
+    expect(sideMarginGap(beside, 'right')).toBe(12);
+    expect(sideMarginGap(beside, 'top')).toBe(3);
+    expect(sideMarginGap(beside, 'bottom')).toBe(3);
+    expect(sideMarginGap(beside)).toBe(3);
+    expect(sideMarginGap(panel({}), 'left')).toBe(0);
   });
 
   it('reads no gap from a panel without margins', () => {
@@ -504,6 +511,42 @@ describe('useAnchoredPosition on a side', () => {
     });
     render(<Centered />);
     expect(read()).toEqual({ position: 'center', top: 0, left: 0 });
+  });
+
+  it('tells styledGap the side the panel is drawn on as it measures', () => {
+    const sides: Array<AnchoredSide | undefined> = [];
+    const styledGap = (_: HTMLElement, side?: AnchoredSide) => {
+      sides.push(side);
+      return 0;
+    };
+    const { rerender } = render(
+      <Side position="bottom" styledGap={styledGap} />
+    );
+    expect(sides).toEqual(['bottom']);
+    // Asked for the left, it's still drawn below as it's measured, and on
+    // the left by the next measurement.
+    rerender(<Side position="left" styledGap={styledGap} />);
+    expect(sides[sides.length - 1]).toBe('bottom');
+    act(() => {
+      window.dispatchEvent(new Event('scroll'));
+    });
+    expect(sides[sides.length - 1]).toBe('left');
+  });
+
+  it('tells styledGap no side while the panel is drawn in the middle', () => {
+    const sides: Array<AnchoredSide | undefined> = [];
+    const styledGap = (_: HTMLElement, side?: AnchoredSide) => {
+      sides.push(side);
+      return 0;
+    };
+    const { rerender } = render(
+      <Side
+        position={'center' as unknown as AnchoredSide}
+        styledGap={styledGap}
+      />
+    );
+    rerender(<Side position="bottom" styledGap={styledGap} />);
+    expect(sides).toEqual([undefined]);
   });
 
   it('gives a panel in place the side alone', () => {
