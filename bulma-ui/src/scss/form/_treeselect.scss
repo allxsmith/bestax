@@ -30,10 +30,12 @@ $tree-select-empty-padding: 0.5em 0.75em !default;
 // scrolling would cut off: the ring's width and its offset.
 $tree-select-tree-inset: 4px !default;
 
-// Registered on the root, and on the panel too, which a portal puts outside
-// it. A panel in place inherits the root's, so a theme set there reaches it.
+// Registered on the root, which a panel in place sits inside and inherits
+// from, so a value set on the root or through `className` reaches it, and on
+// a portaled panel, which a portal puts outside the root, so it carries its
+// own copy, as Combobox's menu does.
 .#{iv.$class-prefix}tree-select,
-.#{iv.$class-prefix}tree-select-panel {
+.#{iv.$class-prefix}tree-select-panel.#{iv.$class-prefix}is-portal {
   @include cv.register-vars(
     (
       'tree-select-panel-max-height': #{$tree-select-panel-max-height},

@@ -620,7 +620,7 @@ field's left, and Right and Left swap in the tree.
 
 <!-- bestax:generated cssvars -->
 
-`TreeSelect` registers these variables on its own `.tree-select` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+`TreeSelect` registers these variables on its own `.tree-select` element, and declares them again on `.tree-select-panel.is-portal`, which takes nothing from it. Override them on `.tree-select` with inline `style`, or with a class via `className` whose rule loads after the library styles, and set them on `.tree-select-panel.is-portal` too, with a selector that matches it and loads after the library styles, or one that exceeds it. A value set on an ancestor is only inherited, and loses to both declarations. See [Theme](../helpers/theme.md).
 
 | CSS Variable                                  | Sass Variable                        | Default                            |
 | --------------------------------------------- | ------------------------------------ | ---------------------------------- |

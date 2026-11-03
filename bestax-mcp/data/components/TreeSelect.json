@@ -554,67 +554,67 @@
       "css": "--bulma-tree-select-panel-max-height",
       "sass": "$tree-select-panel-max-height",
       "default": "15rem",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-tree-select-search-gap",
       "sass": "$tree-select-search-gap",
       "default": "0.5rem",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-tree-select-chevron-width",
       "sass": "$tree-select-chevron-width",
       "default": "var(--bulma-control-height)",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-tree-select-chevron-color",
       "sass": "$tree-select-chevron-color",
       "default": "var(--bulma-text-light)",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-tree-select-chevron-hover-color",
       "sass": "$tree-select-chevron-hover-color",
       "default": "var(--bulma-text-weak)",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-tree-select-chevron-focus-color",
       "sass": "$tree-select-chevron-focus-color",
       "default": "var(--bulma-link)",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-tree-select-chevron-z-index",
       "sass": "$tree-select-chevron-z-index",
       "default": "4",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-tree-select-clear-z-index",
       "sass": "$tree-select-clear-z-index",
       "default": "5",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-tree-select-empty-color",
       "sass": "$tree-select-empty-color",
       "default": "var(--bulma-text-weak)",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-tree-select-empty-padding",
       "sass": "$tree-select-empty-padding",
       "default": "0.5em 0.75em",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-tree-select-tree-inset",
       "sass": "$tree-select-tree-inset",
       "default": "4px",
-      "scope": "root"
+      "scope": "root-and-element"
     }
   ]
 }
