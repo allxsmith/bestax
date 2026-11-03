@@ -118,14 +118,24 @@ describe('Cascader', () => {
     it('puts helper props on the root and the ref on the field, by object or callback', () => {
       const ref = createRef<HTMLInputElement>();
       const { rerender } = render(
-        <City ref={ref} data-testid="root" mt="2" color="info" size="small" />
+        <Cascader
+          label="City"
+          data={PLACES}
+          ref={ref}
+          data-testid="root"
+          mt="2"
+          color="info"
+          size="small"
+        />
       );
       expect(screen.getByTestId('root')).toHaveClass('cascader', 'mt-2');
       expect(ref.current).toBe(field());
       expect(field()).toHaveClass('is-info', 'is-small');
       let node: HTMLInputElement | null = null;
       rerender(
-        <City
+        <Cascader
+          label="City"
+          data={PLACES}
           ref={el => {
             node = el;
           }}
