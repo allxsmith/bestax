@@ -1455,6 +1455,74 @@ describe('Tooltip', () => {
     });
   });
 
+  describe('with describesTrigger off', () => {
+    beforeEach(() => {
+      resetDevWarnings();
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+      resetDevWarnings();
+    });
+
+    it('leaves the trigger’s aria-describedby alone and hides the tooltip from assistive technology', () => {
+      render(
+        <Tooltip label="Delete" describesTrigger={false}>
+          <button aria-label="Delete" aria-describedby="own-hint">
+            <Icon name="trash" />
+          </button>
+        </Tooltip>
+      );
+      const button = screen.getByRole('button', { name: 'Delete' });
+      expect(button).toHaveAttribute('aria-describedby', 'own-hint');
+      expect(bubble()).toHaveAttribute('aria-hidden', 'true');
+      expect(bubble()).toHaveTextContent('Delete');
+    });
+
+    it('still shows on hover and on keyboard focus', () => {
+      render(
+        <Tooltip label="Delete" describesTrigger={false}>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(trigger()).not.toHaveAttribute('aria-describedby');
+      hover(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+      unhover(trigger());
+      advance(0);
+      expect(wrapper()).not.toHaveClass('is-active');
+      keyboardFocus(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+    });
+
+    it('doesn’t warn about a trigger that can’t carry the link', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      render(
+        <Tooltip label="Delete" describesTrigger={false}>
+          <span>Hover me</span>
+        </Tooltip>
+      );
+      expect(warn).not.toHaveBeenCalled();
+    });
+
+    it('describes the trigger again when turned back on', () => {
+      const { rerender } = render(
+        <Tooltip label="Deletes it for good" describesTrigger={false}>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      rerender(
+        <Tooltip label="Deletes it for good">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(trigger()).toHaveAttribute('aria-describedby', bubble().id);
+      expect(bubble()).not.toHaveAttribute('aria-hidden');
+    });
+  });
+
   describe('className handling', () => {
     it('applies custom className', () => {
       const { container } = render(

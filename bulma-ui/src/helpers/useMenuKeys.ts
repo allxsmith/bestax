@@ -44,6 +44,49 @@ function activatesItself(item: HTMLElement, key: string): boolean {
   return key === 'Enter' && item.tagName === 'A' && item.hasAttribute('href');
 }
 
+/** Options for `useMenuKeys`. */
+export interface MenuKeysOptions {
+  /**
+   * The axis the items run along. `'vertical'` moves with Down and Up.
+   * `'horizontal'` moves with Right and Left, read in the menu's writing
+   * direction when the key arrives, so in right-to-left text Left moves on
+   * to the next item and Right back. A horizontal menu should carry
+   * `aria-orientation="horizontal"`, which the hook doesn't set.
+   * @defaultValue 'vertical'
+   */
+  orientation?: 'vertical' | 'horizontal';
+  /**
+   * Swaps the axis's two arrows, for items that run the other way on the
+   * screen from where they start: up from the element that opened them, or
+   * toward the start of the line. Home and End still go to the first and
+   * last items in the DOM.
+   * @defaultValue false
+   */
+  reverse?: boolean;
+}
+
+/**
+ * Which way an arrow key moves through the items: `1` to the next, `-1` to
+ * the previous, or `0` for any other key. A horizontal menu reads its
+ * writing direction now rather than when it rendered, as `Splitter` and
+ * `useTreeView` do, so it follows a `dir` set anywhere above it.
+ */
+function arrowStep(
+  key: string,
+  menu: HTMLElement,
+  orientation: 'vertical' | 'horizontal',
+  reverse: boolean
+): 1 | -1 | 0 {
+  const horizontal = orientation === 'horizontal';
+  const [next, previous] = horizontal
+    ? ['ArrowRight', 'ArrowLeft']
+    : ['ArrowDown', 'ArrowUp'];
+  if (key !== next && key !== previous) return 0;
+  const rtl = horizontal && getComputedStyle(menu).direction === 'rtl';
+  // Each of the three swaps the pair once.
+  return ((key === next) !== rtl) !== reverse ? 1 : -1;
+}
+
 /** What `useMenuKeys` returns. */
 export interface MenuKeys {
   /** The `keydown` handler for the `role="menu"` element. */
@@ -68,7 +111,8 @@ export interface MenuKeys {
  *
  * - Down and Up move to the next and previous enabled item, wrapping, and
  *   Home and End go to the first and last. From no item, Down goes to the
- *   first and Up to the last.
+ *   first and Up to the last. `options` turns the axis sideways or swaps
+ *   its arrows, and the other axis's arrows are left alone.
  * - Enter and Space activate the focused item. A `<button>`, and a link with
  *   an `href` for Enter, get the browser's own click, and anything else gets
  *   one from here, so its `onClick` runs either way. A key held down
@@ -83,10 +127,13 @@ export interface MenuKeys {
  * closing means is up to it, and so is any other key.
  *
  * @function useMenuKeys
+ * @param options - The axis the items run along, and whether its arrows are
+ * swapped. Without it, Down and Up move, as in a menu that drops down.
  * @returns The `keydown` handler for the menu element, and a way to forget
  * what has been typed.
  */
-export function useMenuKeys(): MenuKeys {
+export function useMenuKeys(options: MenuKeysOptions = {}): MenuKeys {
+  const { orientation = 'vertical', reverse = false } = options;
   const typeahead = useTypeahead();
 
   return useMemo<MenuKeys>(() => {
@@ -97,19 +144,22 @@ export function useMenuKeys(): MenuKeys {
       const items = enabledMenuItems(menu);
       if (!items.length) return;
       const current = items.indexOf(focused as HTMLElement);
+      const step = arrowStep(event.key, menu, orientation, reverse);
+      if (step === 1) {
+        event.preventDefault();
+        items[current >= 0 ? (current + 1) % items.length : 0].focus();
+        return;
+      }
+      if (step === -1) {
+        event.preventDefault();
+        items[
+          current >= 0
+            ? (current - 1 + items.length) % items.length
+            : items.length - 1
+        ].focus();
+        return;
+      }
       switch (event.key) {
-        case 'ArrowDown':
-          event.preventDefault();
-          items[current >= 0 ? (current + 1) % items.length : 0].focus();
-          return;
-        case 'ArrowUp':
-          event.preventDefault();
-          items[
-            current >= 0
-              ? (current - 1 + items.length) % items.length
-              : items.length - 1
-          ].focus();
-          return;
         case 'Home':
           event.preventDefault();
           items[0].focus();
@@ -151,5 +201,5 @@ export function useMenuKeys(): MenuKeys {
       typeaheadMatch(items, typeahead.type(event.key), current)?.focus();
     };
     return { onKeyDown, reset: typeahead.reset };
-  }, [typeahead]);
+  }, [typeahead, orientation, reverse]);
 }
