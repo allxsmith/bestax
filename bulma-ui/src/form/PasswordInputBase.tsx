@@ -205,11 +205,27 @@ export const PasswordInputBase = forwardRef<
   };
 
   const inputRef = useRef<HTMLInputElement | null>(null);
+  // A caller's callback ref may return a cleanup, as React 19 allows. It's
+  // held here and run on detach in place of a call with `null`, on React 18
+  // as well, since this ref is the one React calls.
+  const refCleanup = useRef<(() => void) | null>(null);
   const combinedRef = useCallback(
     (node: HTMLInputElement | null) => {
       inputRef.current = node;
-      if (typeof ref === 'function') ref(node);
-      else if (ref) ref.current = node;
+      if (typeof ref === 'function') {
+        if (node === null) {
+          const cleanup = refCleanup.current;
+          refCleanup.current = null;
+          if (cleanup) cleanup();
+          else ref(null);
+          return;
+        }
+        const cleanup: unknown = ref(node);
+        refCleanup.current =
+          typeof cleanup === 'function' ? (cleanup as () => void) : null;
+      } else if (ref) {
+        ref.current = node;
+      }
     },
     [ref]
   );

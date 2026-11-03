@@ -158,6 +158,30 @@ describe('PasswordInput', () => {
       expect(callback).toHaveBeenCalledWith(input());
     });
 
+    it('calls a callback ref with null when the input goes', () => {
+      const callback = vi.fn();
+      const { unmount } = render(
+        <PasswordInput label="Password" ref={callback} />
+      );
+      unmount();
+      expect(callback).toHaveBeenLastCalledWith(null);
+    });
+
+    it('runs the cleanup a callback ref returns when the input goes, in place of a call with null', () => {
+      // React 19 lets a callback ref return a cleanup. The input's own ref
+      // runs it on React 18 as well.
+      const cleanup = vi.fn();
+      const callback = vi.fn((_node: HTMLInputElement | null) => cleanup);
+      const { unmount } = render(
+        <PasswordInput label="Password" ref={callback} />
+      );
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith(input());
+      unmount();
+      expect(cleanup).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
     it('renders the container alone as PasswordInputBase', () => {
       const { container } = render(<PasswordInputBase aria-label="Password" />);
       const box = container.firstElementChild as HTMLElement;
