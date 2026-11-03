@@ -48,7 +48,7 @@
           "name": "gap",
           "type": "BulmaGapStep",
           "default": null,
-          "description": "Space between children, when there are several. None by default.",
+          "description": "Space between children, when there are several. None by default. Needs Bulma's helper classes: under `bestax-no-helpers.css` the default stays.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -57,7 +57,7 @@
           "name": "display",
           "type": "(typeof validDisplays)[number] | 'none'",
           "default": null,
-          "description": "`'inline-flex'` sizes it to its content, to center something inside a line of text. Needs Bulma's helper classes, as every `display` does.",
+          "description": "`'inline-flex'` sizes it to its content, to center something inside a line of text. Needs Bulma's helper classes: under `bestax-no-helpers.css` the default stays.",
           "required": false,
           "inherited": false,
           "deprecated": false

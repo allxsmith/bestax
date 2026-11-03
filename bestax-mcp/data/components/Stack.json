@@ -64,7 +64,7 @@
           "name": "gap",
           "type": "BulmaGapStep",
           "default": null,
-          "description": "Space between children, a step of Bulma's gap scale (`'2'` is 1rem). Unset, it's `--bulma-stack-gap`, Bulma's block spacing.",
+          "description": "Space between children, a step of Bulma's gap scale (`'2'` is 1rem). Unset, it's `--bulma-stack-gap`, Bulma's block spacing. Needs Bulma's helper classes: under `bestax-no-helpers.css` the default stays.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -73,7 +73,7 @@
           "name": "alignItems",
           "type": "(typeof validAlignItems)[number]",
           "default": "'stretch'",
-          "description": "How each child sits across the column. `'stretch'` makes each as wide as the Stack.",
+          "description": "How each child sits across the column. `'stretch'` makes each as wide as the Stack. Needs Bulma's helper classes: under `bestax-no-helpers.css` the default stays.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -82,7 +82,7 @@
           "name": "justifyContent",
           "type": "(typeof validJustifyContents)[number]",
           "default": null,
-          "description": "Where the children sit down the column, when it's taller than they are.",
+          "description": "Where the children sit down the column, when it's taller than they are. Needs Bulma's helper classes: under `bestax-no-helpers.css` the default stays.",
           "required": false,
           "inherited": false,
           "deprecated": false

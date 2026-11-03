@@ -22,19 +22,26 @@ import { CONTAINER_BREAKPOINTS } from '../helpers/containerBreakpoints';
 export interface GroupOwnProps extends LayoutOwnProps {
   /**
    * Space between children, a step of Bulma's gap scale. Unset, it's
-   * `--bulma-stack-horizontal-gap`, half of Bulma's block spacing.
+   * `--bulma-stack-horizontal-gap`, half of Bulma's block spacing. Needs
+   * Bulma's helper classes: under `bestax-no-helpers.css` the default stays.
    */
   gap?: BulmaGapStep;
   /**
    * How each child sits across the row. While `breakpoint` stacks them, it's
-   * where each sits across the column.
+   * where each sits across the column. Needs Bulma's helper classes: under
+   * `bestax-no-helpers.css` the default stays.
    * @defaultValue 'center'
    */
   alignItems?: (typeof validAlignItems)[number];
-  /** Where the children sit along the row: `'space-between'` pushes the ends apart. */
+  /**
+   * Where the children sit along the row: `'space-between'` pushes the ends
+   * apart. Needs Bulma's helper classes: under `bestax-no-helpers.css` the
+   * default stays.
+   */
   justifyContent?: (typeof validJustifyContents)[number];
   /**
-   * Whether children move to a new row when they don't fit.
+   * Whether children move to a new row when they don't fit. Needs Bulma's
+   * helper classes: under `bestax-no-helpers.css` the default stays.
    * @defaultValue 'wrap'
    */
   flexWrap?: (typeof validFlexWraps)[number];
@@ -46,7 +53,9 @@ export interface GroupOwnProps extends LayoutOwnProps {
   /**
    * Stacks the children below this Bulma breakpoint and sets them in a row
    * from it up, the breakpoints Container's `breakpoint` takes. Unset, a row
-   * at every width.
+   * at every width. It's the job Columns and Level do with booleans:
+   * `'tablet'` is where they turn into a row by default, `'desktop'` is
+   * Columns' `isDesktop`, and leaving it unset is their `isMobile`.
    */
   breakpoint?: ContainerBreakpoint;
 }

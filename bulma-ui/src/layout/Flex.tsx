@@ -21,24 +21,49 @@ import type {
  */
 export interface FlexOwnProps extends LayoutOwnProps {
   /**
-   * The main axis, a row unless set. `row-reverse` and `column-reverse`
-   * change only what's seen: reading and Tab order still follow the
-   * children's order (WCAG 1.3.2 and 2.4.3).
+   * The main axis. `row-reverse` and `column-reverse` change only what's seen:
+   * reading and Tab order still follow the children's order (WCAG 1.3.2 and
+   * 2.4.3). Needs Bulma's helper classes: under `bestax-no-helpers.css` the
+   * default stays.
+   * @defaultValue 'row'
    */
   flexDirection?: (typeof validFlexDirections)[number];
-  /** Whether children move to a new line when they don't fit. Unset, CSS's own `nowrap`. */
+  /**
+   * Whether children move to a new line when they don't fit. Needs Bulma's
+   * helper classes: under `bestax-no-helpers.css` the default stays.
+   * @defaultValue 'nowrap'
+   */
   flexWrap?: (typeof validFlexWraps)[number];
-  /** How each child sits across the main axis. Unset, CSS's own `stretch`. */
+  /**
+   * How each child sits across the main axis. Needs Bulma's helper classes:
+   * under `bestax-no-helpers.css` the default stays.
+   * @defaultValue 'stretch'
+   */
   alignItems?: (typeof validAlignItems)[number];
-  /** Where the children sit along the main axis. */
+  /**
+   * Where the children sit along the main axis. Needs Bulma's helper classes:
+   * under `bestax-no-helpers.css` the default stays.
+   */
   justifyContent?: (typeof validJustifyContents)[number];
-  /** How wrapped lines share the space across the main axis. */
+  /**
+   * How wrapped lines share the space across the main axis. Needs Bulma's
+   * helper classes: under `bestax-no-helpers.css` the default stays.
+   */
   alignContent?: (typeof validAlignContents)[number];
-  /** Space between children, a step of Bulma's gap scale. None by default. */
+  /**
+   * Space between children, a step of Bulma's gap scale. None by default. Needs
+   * Bulma's helper classes: under `bestax-no-helpers.css` the default stays.
+   */
   gap?: BulmaGapStep;
-  /** Space between wrapped lines, when it differs from `gap`. */
+  /**
+   * Space between wrapped lines, when it differs from `gap`. Needs Bulma's
+   * helper classes: under `bestax-no-helpers.css` the default stays.
+   */
   rowGap?: BulmaGapStep;
-  /** Space between children along a row, when it differs from `gap`. */
+  /**
+   * Space between children along a row, when it differs from `gap`. Needs
+   * Bulma's helper classes: under `bestax-no-helpers.css` the default stays.
+   */
   columnGap?: BulmaGapStep;
 }
 

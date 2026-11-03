@@ -47,8 +47,8 @@
         {
           "name": "flexDirection",
           "type": "(typeof validFlexDirections)[number]",
-          "default": null,
-          "description": "The main axis, a row unless set. `row-reverse` and `column-reverse` change only what's seen: reading and Tab order still follow the children's order (WCAG 1.3.2 and 2.4.3).",
+          "default": "'row'",
+          "description": "The main axis. `row-reverse` and `column-reverse` change only what's seen: reading and Tab order still follow the children's order (WCAG 1.3.2 and 2.4.3). Needs Bulma's helper classes: under `bestax-no-helpers.css` the default stays.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -56,8 +56,8 @@
         {
           "name": "flexWrap",
           "type": "(typeof validFlexWraps)[number]",
-          "default": null,
-          "description": "Whether children move to a new line when they don't fit. Unset, CSS's own `nowrap`.",
+          "default": "'nowrap'",
+          "description": "Whether children move to a new line when they don't fit. Needs Bulma's helper classes: under `bestax-no-helpers.css` the default stays.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -65,8 +65,8 @@
         {
           "name": "alignItems",
           "type": "(typeof validAlignItems)[number]",
-          "default": null,
-          "description": "How each child sits across the main axis. Unset, CSS's own `stretch`.",
+          "default": "'stretch'",
+          "description": "How each child sits across the main axis. Needs Bulma's helper classes: under `bestax-no-helpers.css` the default stays.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -75,7 +75,7 @@
           "name": "justifyContent",
           "type": "(typeof validJustifyContents)[number]",
           "default": null,
-          "description": "Where the children sit along the main axis.",
+          "description": "Where the children sit along the main axis. Needs Bulma's helper classes: under `bestax-no-helpers.css` the default stays.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -84,7 +84,7 @@
           "name": "alignContent",
           "type": "(typeof validAlignContents)[number]",
           "default": null,
-          "description": "How wrapped lines share the space across the main axis.",
+          "description": "How wrapped lines share the space across the main axis. Needs Bulma's helper classes: under `bestax-no-helpers.css` the default stays.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -93,7 +93,7 @@
           "name": "gap",
           "type": "BulmaGapStep",
           "default": null,
-          "description": "Space between children, a step of Bulma's gap scale. None by default.",
+          "description": "Space between children, a step of Bulma's gap scale. None by default. Needs Bulma's helper classes: under `bestax-no-helpers.css` the default stays.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -102,7 +102,7 @@
           "name": "rowGap",
           "type": "BulmaGapStep",
           "default": null,
-          "description": "Space between wrapped lines, when it differs from `gap`.",
+          "description": "Space between wrapped lines, when it differs from `gap`. Needs Bulma's helper classes: under `bestax-no-helpers.css` the default stays.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -111,7 +111,7 @@
           "name": "columnGap",
           "type": "BulmaGapStep",
           "default": null,
-          "description": "Space between children along a row, when it differs from `gap`.",
+          "description": "Space between children along a row, when it differs from `gap`. Needs Bulma's helper classes: under `bestax-no-helpers.css` the default stays.",
           "required": false,
           "inherited": false,
           "deprecated": false

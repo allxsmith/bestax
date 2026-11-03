@@ -13,11 +13,15 @@ import type { BulmaGapStep, validDisplays } from '../helpers/useBulmaClasses';
  * `as` renders.
  */
 export interface CenterOwnProps extends LayoutOwnProps {
-  /** Space between children, when there are several. None by default. */
+  /**
+   * Space between children, when there are several. None by default. Needs
+   * Bulma's helper classes: under `bestax-no-helpers.css` the default stays.
+   */
   gap?: BulmaGapStep;
   /**
-   * `'inline-flex'` sizes it to its content, to center something inside a
-   * line of text. Needs Bulma's helper classes, as every `display` does.
+   * `'inline-flex'` sizes it to its content, to center something inside a line
+   * of text. Needs Bulma's helper classes: under `bestax-no-helpers.css` the
+   * default stays.
    */
   display?: (typeof validDisplays)[number] | 'none';
 }

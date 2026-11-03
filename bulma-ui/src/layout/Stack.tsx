@@ -18,17 +18,23 @@ import type {
  */
 export interface StackOwnProps extends LayoutOwnProps {
   /**
-   * Space between children, a step of Bulma's gap scale (`'2'` is 1rem).
-   * Unset, it's `--bulma-stack-gap`, Bulma's block spacing.
+   * Space between children, a step of Bulma's gap scale (`'2'` is 1rem). Unset,
+   * it's `--bulma-stack-gap`, Bulma's block spacing. Needs Bulma's helper
+   * classes: under `bestax-no-helpers.css` the default stays.
    */
   gap?: BulmaGapStep;
   /**
    * How each child sits across the column. `'stretch'` makes each as wide as
-   * the Stack.
+   * the Stack. Needs Bulma's helper classes: under `bestax-no-helpers.css` the
+   * default stays.
    * @defaultValue 'stretch'
    */
   alignItems?: (typeof validAlignItems)[number];
-  /** Where the children sit down the column, when it's taller than they are. */
+  /**
+   * Where the children sit down the column, when it's taller than they are.
+   * Needs Bulma's helper classes: under `bestax-no-helpers.css` the default
+   * stays.
+   */
   justifyContent?: (typeof validJustifyContents)[number];
 }
 
