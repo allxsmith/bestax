@@ -162,8 +162,9 @@ widescreen.
 
 `AppFrame.Nav` takes the switches the siblings use. `overlay={false}` drops the backdrop and the
 modal parts: focus still moves in, but Tab can leave for the page and the page still scrolls. There
-a press anywhere outside the drawer closes it, and focus stays where the press puts it: on what
-was pressed if it takes focus, and otherwise on the page. `closeOnEscape` and
+a press anywhere outside the drawer closes it and hands focus to the burger, and then the press
+moves it, as it would on any page: to what was pressed if that takes focus, such as a field, and
+otherwise to the page. A touch that scrolls the page leaves it on the burger. `closeOnEscape` and
 `closeOnClickOutside` turn those off, and `closeOnNavigate={false}` keeps the drawer open as links
 in it are followed, for a drawer of filters rather than pages. `width` sets the column's width and
 the drawer's, which leaves a strip of backdrop on a narrow phone.
@@ -418,9 +419,9 @@ The parts are attached to `AppFrame`, and also exported on their own as `AppFram
 - **The drawer** is modal by default: focus moves to its close button, Tab and Shift+Tab stay
   inside, the page doesn't scroll, the rest of the frame is inert, and Escape closes it while it's
   the topmost overlay, so a `Modal` opened from it closes first. Escape, the close button and a
-  click on the backdrop hand focus back to the burger. Without `overlay`, a press outside the
-  drawer leaves focus where the press puts it. The close button is there for a touch screen reader
-  user, who has no Escape key. It stays a navigation landmark rather than a
+  click on the backdrop hand focus back to the burger, and so does a press outside the drawer
+  without `overlay`, before the press moves it to what was pressed. The close button is there for
+  a touch screen reader user, who has no Escape key. It stays a navigation landmark rather than a
   dialog: the inert frame is what keeps assistive technology inside it, so keep the page's content
   inside the frame's parts.
 - **A closed drawer and a collapsed column** are `visibility: hidden`, so their links are out of

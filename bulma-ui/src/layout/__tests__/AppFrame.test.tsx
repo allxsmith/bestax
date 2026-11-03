@@ -1012,40 +1012,15 @@ describe('AppFrame', () => {
       expect(onNavOpenChange).not.toHaveBeenCalled();
     });
 
-    it('leaves focus to a press outside without an overlay', () => {
+    it('hands focus to the burger after a press outside without an overlay', () => {
       const { onNavOpenChange } = openDrawer({ nav: { overlay: false } });
-      const close = screen.getByRole('button', { name: 'Close navigation' });
-      expect(close).toHaveFocus();
+      expect(
+        screen.getByRole('button', { name: 'Close navigation' })
+      ).toHaveFocus();
+      // A pointerdown with no mousedown after it, as a touch that scrolls.
+      // In a browser, a mousedown would then move focus where the press went.
       fireEvent.pointerDown(link('Page link'));
       expect(onNavOpenChange).toHaveBeenLastCalledWith(false);
-      // Focus isn't handed to the burger: the press's own mousedown moves it.
-      expect(burger()).not.toHaveFocus();
-      expect(close).toHaveFocus();
-    });
-
-    it('forgets a press outside whose close was never made', async () => {
-      mockViewport(PHONE);
-      let allowClose = false;
-      const Page = () => {
-        const [open, setOpen] = useState(false);
-        return (
-          <Frame
-            navOpen={open}
-            onNavOpenChange={next => {
-              if (next || allowClose) setOpen(next);
-            }}
-            nav={{ overlay: false }}
-          />
-        );
-      };
-      render(<Page />);
-      fireEvent.click(burger());
-      fireEvent.pointerDown(link('Page link'));
-      expect(root()).toHaveClass('is-nav-open');
-      await act(() => new Promise(resolve => setTimeout(resolve)));
-      allowClose = true;
-      fireEvent.keyDown(window, { key: 'Escape' });
-      expect(root()).not.toHaveClass('is-nav-open');
       expect(burger()).toHaveFocus();
     });
 

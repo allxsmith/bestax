@@ -183,12 +183,14 @@ export interface AppFrameNavProps
    */
   closeOnEscape?: boolean;
   /**
-   * Closes the drawer on a press outside it: a click on the backdrop, after
-   * which focus goes back to the burger, or without `overlay` a press
-   * anywhere outside it while it's the topmost overlay, which leaves focus
-   * where the press puts it. A press on a control whose `aria-controls` names
-   * the nav, such as the burger, is left to that control. Popover's
-   * `closeOnClickOutside`.
+   * Closes the drawer on a press outside it while it's the topmost overlay:
+   * a click on the backdrop, or without `overlay` a press anywhere outside
+   * it. Focus goes back to the burger as it closes. Without `overlay`, the
+   * press's own mousedown then moves it, as on any page: to what was pressed
+   * if that takes focus, and otherwise off the burger to the page. A touch
+   * that scrolls leaves it on the burger. A press on a control whose
+   * `aria-controls` names the nav, such as the burger, is left to that
+   * control. Popover's `closeOnClickOutside`.
    */
   closeOnClickOutside?: boolean;
   /**
@@ -430,11 +432,7 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
     // closes it, as Popover's does, while it's the topmost overlay, so a
     // press in a Modal opened over it is the Modal's. A press on a control
     // that names the nav in its `aria-controls`, such as the burger, is left
-    // to that control, which toggles it. Focus goes where the press puts it:
-    // the close is made before the press's mousedown moves focus, and handing
-    // it to the burger first would only fight the press. The mark is dropped
-    // after the press, in case the close is never made.
-    const pressedOutsideRef = useRef(false);
+    // to that control, which toggles it.
     const markInsidePress = useOutsidePress(
       navRef,
       open && !overlay && closeOnClickOutside,
@@ -446,22 +444,19 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
             ?.split(/\s+/)
             .includes(id as string);
         if (!isTopmost() || e.composedPath().some(controlsNav)) return;
-        pressedOutsideRef.current = true;
-        setTimeout(() => {
-          pressedOutsideRef.current = false;
-        });
         close();
       }
     );
 
     // Focus moves to the drawer's first tab stop, the close button, as it
     // opens, and back to whatever had it as it closes, unless it has left
-    // the drawer, a press outside closed it, or the window widened and the
-    // drawer is now the column, where focus can stay.
+    // the drawer, or the window widened and the drawer is now the column,
+    // where focus can stay. After a press outside, the press's own mousedown
+    // then takes it wherever the press goes.
     const isDrawerRef = useLatestRef(isDrawer);
     useOverlayFocus(navRef, open, {
       modal: overlay,
-      restore: () => isDrawerRef.current && !pressedOutsideRef.current,
+      restore: () => isDrawerRef.current,
     });
 
     const handleClick = (e: React.MouseEvent<HTMLElement>) => {
