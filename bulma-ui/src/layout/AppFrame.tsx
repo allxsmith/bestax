@@ -309,15 +309,33 @@ const FrameContext = createContext<FrameContextValue | null>(null);
 const cssLength = (value: number | string) =>
   typeof value === 'number' ? `${value}px` : value;
 
-/** Hands `node` to a part's own ref and to the one forwarded to it. */
+/**
+ * Hands `node` to a part's own ref and to the one forwarded to it. A
+ * forwarded callback that returns a cleanup, as React 19 allows, has it held
+ * in `cleanup` and run on detach in place of a call with `null`, on React 18
+ * as well.
+ */
 function setRefs<T>(
   node: T | null,
   own: React.MutableRefObject<T | null>,
-  forwarded: React.ForwardedRef<T>
+  forwarded: React.ForwardedRef<T>,
+  cleanup: React.MutableRefObject<(() => void) | null>
 ) {
   own.current = node;
-  if (typeof forwarded === 'function') forwarded(node);
-  else if (forwarded) forwarded.current = node;
+  if (typeof forwarded === 'function') {
+    if (node === null) {
+      const detach = cleanup.current;
+      cleanup.current = null;
+      if (detach) detach();
+      else forwarded(null);
+      return;
+    }
+    const returned: unknown = forwarded(node);
+    cleanup.current =
+      typeof returned === 'function' ? (returned as () => void) : null;
+  } else if (forwarded) {
+    forwarded.current = node;
+  }
 }
 
 /**
@@ -393,8 +411,9 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
     const backdropClass = usePrefixedClassNames('app-frame-backdrop');
     const navRef = useRef<HTMLElement | null>(null);
     const backdropRef = useRef<HTMLDivElement | null>(null);
+    const navRefCleanup = useRef<(() => void) | null>(null);
     const navRefs = useCallback(
-      (node: HTMLElement | null) => setRefs(node, navRef, ref),
+      (node: HTMLElement | null) => setRefs(node, navRef, ref, navRefCleanup),
       [ref]
     );
 
@@ -755,8 +774,10 @@ const AppFrameRoot = forwardRef<HTMLDivElement, AppFrameProps>(
       ...props,
     });
     const rootRef = useRef<HTMLDivElement | null>(null);
+    const rootRefCleanup = useRef<(() => void) | null>(null);
     const rootRefs = useCallback(
-      (node: HTMLDivElement | null) => setRefs(node, rootRef, ref),
+      (node: HTMLDivElement | null) =>
+        setRefs(node, rootRef, ref, rootRefCleanup),
       [ref]
     );
 

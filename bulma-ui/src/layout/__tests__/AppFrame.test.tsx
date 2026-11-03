@@ -276,6 +276,35 @@ describe('AppFrame', () => {
       expect(navRef).toHaveBeenLastCalledWith(null);
     });
 
+    it('runs the cleanup a callback ref returns in place of a call with null, as React 19 does', () => {
+      const rootCleanup = vi.fn();
+      const navCleanup = vi.fn();
+      const rootRef = vi.fn(() => rootCleanup);
+      const navRef = vi.fn(() => navCleanup);
+      const { rerender, unmount } = render(
+        <AppFrame ref={rootRef}>
+          <AppFrame.Nav ref={navRef}>Nav</AppFrame.Nav>
+        </AppFrame>
+      );
+      expect(rootRef).toHaveBeenCalledWith(root());
+      expect(navRef).toHaveBeenCalledWith(nav());
+      // A new ref: the old one's cleanup runs, and the new one gets the node.
+      const nextNavRef = vi.fn();
+      rerender(
+        <AppFrame ref={rootRef}>
+          <AppFrame.Nav ref={nextNavRef}>Nav</AppFrame.Nav>
+        </AppFrame>
+      );
+      expect(navCleanup).toHaveBeenCalledTimes(1);
+      expect(nextNavRef).toHaveBeenLastCalledWith(nav());
+      unmount();
+      expect(rootCleanup).toHaveBeenCalledTimes(1);
+      expect(rootRef).not.toHaveBeenCalledWith(null);
+      expect(navRef).not.toHaveBeenCalledWith(null);
+      // One that returned nothing still gets null.
+      expect(nextNavRef).toHaveBeenLastCalledWith(null);
+    });
+
     it('passes helper props, classes and attributes to each element', () => {
       render(
         <AppFrame
