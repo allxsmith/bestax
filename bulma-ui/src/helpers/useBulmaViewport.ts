@@ -19,12 +19,8 @@ const VIEWPORT_QUERIES = [
 /** `useBulmaViewport`'s answer below the tablet breakpoint. */
 export const MOBILE = VIEWPORT_QUERIES.length;
 
-/**
- * Where Bulma's `widescreen`, `desktop` and `tablet` breakpoints sit in
- * `VIEWPORT_QUERIES`. The window is at or past one when `useBulmaViewport`
- * answers its index or a smaller one.
- */
-export const VIEWPORT_INDEX = {
+/** Where Bulma's `widescreen`, `desktop` and `tablet` sit in `VIEWPORT_QUERIES`. */
+const VIEWPORT_INDEX = {
   widescreen: 1,
   desktop: 2,
   tablet: 3,
@@ -59,4 +55,34 @@ export function useBulmaViewport(enabled: boolean): number {
   }, [enabled]);
 
   return enabled ? viewport : -1;
+}
+
+/**
+ * Whether the window is at or past one of Bulma's breakpoints, at its default
+ * width, through the one media query Bulma's mixin for it opens with, so a
+ * caller re-renders only when the window crosses that breakpoint. `null`
+ * until it's known: on the server, and before the first layout effect. Where
+ * `matchMedia` isn't there, it's `true`, the wide layout a server renders.
+ *
+ * @function useBulmaBreakpoint
+ * @param breakpoint - The breakpoint: `tablet`, `desktop` or `widescreen`.
+ * @returns Whether the window is at or past it, or `null`.
+ */
+export function useBulmaBreakpoint(
+  breakpoint: keyof typeof VIEWPORT_INDEX
+): boolean | null {
+  const [atOrPast, setAtOrPast] = useState<boolean | null>(null);
+
+  useClientLayoutEffect(() => {
+    const list =
+      typeof window.matchMedia === 'function'
+        ? window.matchMedia(VIEWPORT_QUERIES[VIEWPORT_INDEX[breakpoint]])
+        : null;
+    const update = () => setAtOrPast(list ? list.matches : true);
+    update();
+    list?.addEventListener('change', update);
+    return () => list?.removeEventListener('change', update);
+  }, [breakpoint]);
+
+  return atOrPast;
 }

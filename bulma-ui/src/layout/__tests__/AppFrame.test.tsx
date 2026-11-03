@@ -23,10 +23,12 @@ import { resetDevWarnings } from '../../helpers/devWarnings';
  * A window `width` pixels wide, as `matchMedia` answers the queries the
  * frame asks: each comma-separated part is a min-width, and a part with
  * none (`print`) never matches. Carousel's tests answer them the same way.
+ * It keeps the queries asked, in `queries`.
  */
 const mockViewport = (initialWidth: number) => {
   let width = initialWidth;
   const listeners: (() => void)[] = [];
+  const queries: string[] = [];
   const matches = (query: string) =>
     query.split(',').some(part => {
       const min = /min-width:\s*(\d+)px/.exec(part);
@@ -35,17 +37,21 @@ const mockViewport = (initialWidth: number) => {
   Object.defineProperty(window, 'matchMedia', {
     configurable: true,
     writable: true,
-    value: (query: string) => ({
-      media: query,
-      get matches() {
-        return matches(query);
-      },
-      addEventListener: (_type: string, fn: () => void) => listeners.push(fn),
-      removeEventListener: (_type: string, fn: () => void) =>
-        listeners.splice(listeners.indexOf(fn), 1),
-    }),
+    value: (query: string) => {
+      queries.push(query);
+      return {
+        media: query,
+        get matches() {
+          return matches(query);
+        },
+        addEventListener: (_type: string, fn: () => void) => listeners.push(fn),
+        removeEventListener: (_type: string, fn: () => void) =>
+          listeners.splice(listeners.indexOf(fn), 1),
+      };
+    },
   });
   return {
+    queries,
     resize(next: number) {
       width = next;
       act(() => {
@@ -544,6 +550,14 @@ describe('AppFrame', () => {
       expect(onNavOpenChange).toHaveBeenLastCalledWith(false);
       expect(root()).not.toHaveClass('is-nav-open');
       expect(onNavCollapsedChange).not.toHaveBeenCalled();
+    });
+
+    it('watches the one media query of its breakpoint', () => {
+      const viewport = mockViewport(DESKTOP);
+      render(<Frame breakpoint="tablet" />);
+      expect([...new Set(viewport.queries)]).toEqual([
+        'screen and (min-width: 769px), print',
+      ]);
     });
 
     it('switches at the breakpoint it is given', () => {

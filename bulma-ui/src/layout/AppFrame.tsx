@@ -24,7 +24,7 @@ import { useInertSiblings } from '../helpers/useInertSiblings';
 import { trapTab } from '../helpers/useFocusTrap';
 import { useOverlayFocus } from '../helpers/useOverlayFocus';
 import { useOutsidePress } from '../helpers/useOutsidePress';
-import { useBulmaViewport, VIEWPORT_INDEX } from '../helpers/useBulmaViewport';
+import { useBulmaBreakpoint } from '../helpers/useBulmaViewport';
 import { warnOnce } from '../helpers/devWarnings';
 import { NavbarBurger } from '../components/Navbar';
 import type { NavbarBurgerProps } from '../components/Navbar';
@@ -763,9 +763,9 @@ const AppFrameRoot = forwardRef<HTMLDivElement, AppFrameProps>(
     // The layout switches in the stylesheet. The script needs the width
     // only to know which state the burger toggles, and to close the drawer
     // once the window is at or past the breakpoint.
-    const viewport = useBulmaViewport(true);
-    const isDrawer = viewport > VIEWPORT_INDEX[breakpoint];
-    const isWide = viewport >= 0 && !isDrawer;
+    const wide = useBulmaBreakpoint(breakpoint);
+    const isDrawer = wide === false;
+    const isWide = wide === true;
 
     useEffect(() => {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- the width is known only in the browser, and the drawer closes in answer to it
