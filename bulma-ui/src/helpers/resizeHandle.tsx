@@ -2,6 +2,20 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { classNames } from './classNames';
 
+/**
+ * A length in pixels: a number is pixels already, and a string can be `px`
+ * or `rem`, given a rem's pixels. Anything else, or nothing, is `null`.
+ */
+export function lengthToPx(
+  length: number | string | undefined,
+  remPx: number
+): number | null {
+  if (typeof length === 'number') return length;
+  const match = /^\s*(\d*\.?\d+)\s*(px|rem)\s*$/.exec(length ?? '');
+  if (!match) return null;
+  return parseFloat(match[1]) * (match[2] === 'rem' ? remPx : 1);
+}
+
 /** Props for ResizeHandle. */
 export interface ResizeHandleProps {
   /** Its class, prefixed. */
@@ -40,6 +54,8 @@ export interface ResizeHandleProps {
    * positive: right, or down, or left right to left.
    */
   onDrag: (moved: number) => void;
+  /** A drag is over: let go, cancelled, or the handle lost the pointer. */
+  onDragEnd?: () => void;
   /**
    * An arrow key: 1 forward or -1 back, as for a drag, times ten with Shift.
    * Returning `false` leaves the key alone.
@@ -80,6 +96,7 @@ export function ResizeHandle({
   rtl,
   onDragStart,
   onDrag,
+  onDragEnd,
   onStep,
   onHome,
   onEnd,
@@ -108,11 +125,14 @@ export function ResizeHandle({
     const moved = (across ? event.clientX : event.clientY) - drag.start;
     onDrag(drag.flip ? -moved : moved);
   };
+  // Let go, cancelled, or the pointer lost: a handle that hides mid-drag,
+  // as a column's does when the drag shuts it, loses the pointer.
   const endDrag = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!dragRef.current) return;
     dragRef.current = null;
     event.currentTarget.releasePointerCapture?.(event.pointerId);
     setDragging(false);
+    onDragEnd?.();
   };
   // While dragging, the resize cursor shows wherever the pointer goes.
   useEffect(() => {
@@ -166,6 +186,7 @@ export function ResizeHandle({
       onPointerMove={onPointerMove}
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
+      onLostPointerCapture={endDrag}
       onDoubleClick={onReset}
       onKeyDown={onKeyDown}
     />

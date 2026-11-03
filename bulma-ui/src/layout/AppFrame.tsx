@@ -34,6 +34,7 @@ import type { MenuRail } from '../helpers/menuRail';
 import { NavbarBurger } from '../components/Navbar';
 import type { NavbarBurgerProps } from '../components/Navbar';
 import { Tooltip } from '../components/Tooltip';
+import { lengthToPx, ResizeHandle } from '../helpers/resizeHandle';
 import { Delete } from '../elements/Delete';
 import type { ContainerBreakpoint } from './Container';
 
@@ -118,8 +119,10 @@ export interface AppFrameProps
   /** Whether the column starts collapsed. */
   defaultNavCollapsed?: boolean;
   /**
-   * Called with the state asked for: by the burger, `useAppFrame()`, or a
-   * `Menu.Section`'s button in the collapsed rail, which expands it.
+   * Called with the state asked for: by the burger, `useAppFrame()`, a
+   * `Menu.Section`'s button in the collapsed rail, which expands it, or a
+   * `resizable` nav's handle: a drag below half the column's `minWidth`, or
+   * back out past it, Enter, and a double click, which expands it.
    */
   onNavCollapsedChange?: (collapsed: boolean) => void;
   /**
@@ -175,7 +178,10 @@ export interface AppFrameNavProps
   /**
    * The column's width, and the drawer's up to the window's width less a
    * strip of backdrop. A number is pixels, and a string any CSS length. It
-   * writes `--bulma-app-frame-nav-width`, 16rem by default.
+   * writes `--bulma-app-frame-nav-width`, 16rem by default. With
+   * `resizable`, it's the controlled width: update it from `onWidthChange`,
+   * and give it in pixels, or in `px` or `rem`, which the handle can step
+   * from.
    */
   width?: number | string;
   /**
@@ -236,6 +242,45 @@ export interface AppFrameNavProps
    * the browser, so before the page hydrates such a rail sticks.
    */
   rail?: boolean;
+  /**
+   * Puts a handle on the column's inline-end edge, from the breakpoint up,
+   * that drags or keys its width between `minWidth` and `maxWidth`. It's a
+   * focusable separator named by the nav's own name and controlling the nav,
+   * read as "Sections, separator, 256". Arrow keys move it 10 pixels, 100
+   * with Shift, mirrored right to left; Home and End go to the limits.
+   * Dragging below half of `minWidth` collapses the column, to the rail when
+   * it has one, and dragging it back out past that point opens it at
+   * `minWidth`. Enter collapses it and brings it back at the width it had,
+   * and a double click resets it to `defaultWidth` and expands it. The
+   * collapses go through `onNavCollapsedChange`, the state the burger sets.
+   * The handle hides while the column is collapsed out of view; the burger
+   * brings it back. A development build warns about a `width` with no
+   * `onWidthChange`, since the handle couldn't move it.
+   */
+  resizable?: boolean;
+  /**
+   * The width a `resizable` column starts at when `width` isn't set, and
+   * goes back to on a double click on its handle: pixels, or `px` or `rem`.
+   * Without it, the stylesheet's, 16rem.
+   */
+  defaultWidth?: number | string;
+  /**
+   * Called with the width in pixels on each step of a drag or a key that
+   * changes it, and on a reset. Store it to keep the width across visits.
+   */
+  onWidthChange?: (width: number) => void;
+  /**
+   * The narrowest a drag or a key takes a `resizable` column: pixels, or
+   * `px` or `rem`, as Splitter.Pane's `minSize`.
+   * @defaultValue '12rem'
+   */
+  minWidth?: number | string;
+  /**
+   * The widest a drag or a key takes a `resizable` column, in the same units
+   * as `minWidth`.
+   * @defaultValue '32rem'
+   */
+  maxWidth?: number | string;
 }
 
 /**
@@ -336,6 +381,9 @@ interface FrameContextValue {
 
 const FrameContext = createContext<FrameContextValue | null>(null);
 
+/** How far an arrow key moves a resizable column's edge, in pixels. */
+const STEP = 10;
+
 /** A width prop as CSS: a number is pixels. */
 const cssLength = (value: number | string) =>
   typeof value === 'number' ? `${value}px` : value;
@@ -411,6 +459,11 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
       closeOnClickOutside = true,
       closeOnNavigate = true,
       rail = false,
+      resizable = false,
+      defaultWidth,
+      onWidthChange,
+      minWidth = '12rem',
+      maxWidth = '32rem',
       onClick,
       onPointerDownCapture,
       children,
@@ -629,12 +682,103 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
       }
     }, [railCollapsed, menuClass]);
 
+    // ---- Resizing ----
+    // The width is the caller's with `width`, and the nav's own otherwise,
+    // from `defaultWidth`. Lengths turn into pixels with a rem as the page
+    // has it, and the stylesheet's own width stands in for none; until
+    // they're read, Bulma's 16px and the 16rem default.
+    const [widthState, setWidthState] = useState(defaultWidth);
+    const widthNow = resizable && width === undefined ? widthState : width;
+    const [metrics, setMetrics] = useState({ rem: 16, base: 256 });
+    useClientLayoutEffect(() => {
+      if (!resizable) return;
+      const nav = navRef.current!;
+      const rem = parseFloat(
+        getComputedStyle(nav.ownerDocument.documentElement).fontSize
+      );
+      // The frame's, where the stylesheet registers it.
+      const own = getComputedStyle(nav.parentElement!)
+        .getPropertyValue('--bulma-app-frame-nav-width')
+        .trim();
+      setMetrics({ rem, base: lengthToPx(own, rem) ?? 16 * rem });
+    }, [resizable]);
+    const toPx = (length: number | string | undefined, fallback: number) =>
+      lengthToPx(length, metrics.rem) ?? fallback;
+    const minPx = toPx(minWidth, 12 * metrics.rem);
+    const maxPx = Math.max(minPx, toPx(maxWidth, 32 * metrics.rem));
+    const widthPx = toPx(widthNow, metrics.base);
+    const widthPxRef = useLatestRef(widthPx);
+
+    // A width asked for, in the limits, unless it's the one there is.
+    const resizeTo = (next: number) => {
+      const px = Math.round(Math.min(Math.max(next, minPx), maxPx));
+      if (px === Math.round(widthPxRef.current)) return;
+      if (width === undefined) setWidthState(px);
+      onWidthChange?.(px);
+    };
+    const setCollapsed = (collapsed: boolean) =>
+      frame?.state.setNavCollapsed(collapsed);
+
+    // A drag moves the column's edge from where it was as the drag started:
+    // the rail's edge when it's collapsed to one. Below half of the minimum
+    // it collapses, and back out past that it opens again. The width doesn't
+    // animate while the pointer has it.
+    const [resizing, setResizing] = useState(false);
+    const dragRef = useRef({ start: 0, shut: false });
+    const startDrag = () => {
+      dragRef.current = {
+        start: navRef.current!.getBoundingClientRect().width,
+        shut: navCollapsed,
+      };
+      setResizing(true);
+      return true;
+    };
+    const dragBy = (moved: number) => {
+      const drag = dragRef.current;
+      const next = drag.start + moved;
+      const shut = next < minPx / 2;
+      if (shut !== drag.shut) {
+        drag.shut = shut;
+        setCollapsed(shut);
+      }
+      if (!shut) resizeTo(next);
+    };
+
+    // Keys move the width of an open column; Enter collapses it or brings
+    // it back, and a double click resets it and opens it.
+    const keyTo = (next: number) => {
+      if (navCollapsed) return false;
+      resizeTo(next);
+      return true;
+    };
+    const reset = () => {
+      if (width === undefined) setWidthState(defaultWidth);
+      onWidthChange?.(Math.round(toPx(defaultWidth, metrics.base)));
+      if (navCollapsed) setCollapsed(false);
+    };
+
+    // Without `onWidthChange`, a `width` the handle can't move.
+    useEffect(() => {
+      if (resizable && width !== undefined && !onWidthChange) {
+        warnOnce(
+          'AppFrame:resizable-width',
+          '[bestax-bulma] <AppFrame.Nav resizable> has a width but no ' +
+            "onWidthChange, so its handle can't move it. Pass onWidthChange " +
+            'and update width from it, or use defaultWidth.'
+        );
+      }
+    }, [resizable, width, onWidthChange]);
+
+    const handleClass = usePrefixedClassNames('app-frame-handle');
+    const activeClass = usePrefixedClassNames('is-active');
+    const resizingClass = usePrefixedClassNames('is-resizing');
+
     const navStyle =
-      width === undefined
+      widthNow === undefined
         ? style
         : ({
             ...style,
-            '--bulma-app-frame-nav-width': cssLength(width),
+            '--bulma-app-frame-nav-width': cssLength(widthNow),
           } as React.CSSProperties);
 
     return (
@@ -643,7 +787,10 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
           ref={navRefs}
           className={classNames(
             navClass,
-            { [tallClass]: railCollapsed && railTall },
+            {
+              [tallClass]: railCollapsed && railTall,
+              [resizingClass]: resizing,
+            },
             bulmaHelperClasses,
             className
           )}
@@ -672,6 +819,32 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
             {children}
           </MenuRailContext.Provider>
         </nav>
+        {frame && resizable && (
+          <ResizeHandle
+            className={handleClass}
+            activeClass={activeClass}
+            orientation="vertical"
+            // Collapsed, the column has no width of its own to report.
+            valueNow={navCollapsed ? 0 : widthPx}
+            valueMin={minPx}
+            valueMax={maxPx}
+            label={
+              rest['aria-label'] ||
+              (rest['aria-labelledby'] ? undefined : frame.labels.nav)
+            }
+            labelledBy={rest['aria-labelledby']}
+            controls={navId}
+            rtl={() => getComputedStyle(navRef.current!).direction === 'rtl'}
+            onDragStart={startDrag}
+            onDrag={dragBy}
+            onDragEnd={() => setResizing(false)}
+            onStep={by => keyTo(widthPx + by * STEP)}
+            onHome={() => keyTo(minPx)}
+            onEnd={() => keyTo(maxPx)}
+            onEnter={() => setCollapsed(!navCollapsed)}
+            onReset={reset}
+          />
+        )}
         {frame && overlay && (
           <div
             ref={backdropRef}

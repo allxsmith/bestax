@@ -1952,6 +1952,317 @@ describe('AppFrame.Nav rail', () => {
   });
 });
 
+describe('AppFrame.Nav resizable', () => {
+  /**
+   * jsdom has no PointerEvent, so fireEvent's pointer events drop clientX.
+   * A MouseEvent of the pointer type carries it, as Splitter's tests send.
+   */
+  const pointer = (
+    el: Element,
+    type: 'pointerdown' | 'pointermove' | 'pointerup',
+    clientX = 0
+  ) => {
+    const event = new MouseEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      clientX,
+      button: 0,
+    });
+    Object.defineProperty(event, 'pointerId', { value: 1 });
+    fireEvent(el, event);
+  };
+
+  /** A frame whose nav has a handle, with the props given to the root and the nav. */
+  const ResizeFrame = ({
+    nav,
+    ...props
+  }: AppFrameProps & { nav?: AppFrameNavProps }) => (
+    <AppFrame {...props}>
+      <AppFrame.Header>
+        <AppFrame.Burger />
+      </AppFrame.Header>
+      <AppFrame.Nav resizable {...nav}>
+        <a href="#dashboard">Dashboard</a>
+      </AppFrame.Nav>
+      <AppFrame.Main>Page</AppFrame.Main>
+    </AppFrame>
+  );
+
+  const handle = () => screen.getByRole('separator');
+  const widthOf = () =>
+    nav().style.getPropertyValue('--bulma-app-frame-nav-width');
+  /** The nav laid out `width` pixels wide, as a drag starts from it. */
+  const laidOut = (width: number) =>
+    vi
+      .spyOn(nav(), 'getBoundingClientRect')
+      .mockReturnValue({ width } as DOMRect);
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('is a separator named by the nav and controlling it, with its values in pixels', () => {
+    mockViewport(DESKTOP);
+    render(<ResizeFrame />);
+    const sep = handle();
+    expect(sep).toHaveClass('app-frame-handle');
+    expect(sep).toHaveAttribute('tabindex', '0');
+    expect(sep).toHaveAttribute('aria-orientation', 'vertical');
+    expect(sep).toHaveAccessibleName('Sections');
+    expect(sep).toHaveAttribute('aria-controls', nav().id);
+    // 16rem, between 12rem and 32rem, at Bulma's 16px rem.
+    expect(sep).toHaveAttribute('aria-valuenow', '256');
+    expect(sep).toHaveAttribute('aria-valuemin', '192');
+    expect(sep).toHaveAttribute('aria-valuemax', '512');
+    // After the nav, as its edge is.
+    expect(nav().nextElementSibling).toBe(sep);
+  });
+
+  it('takes the nav’s own name, or what names it', () => {
+    mockViewport(DESKTOP);
+    const { unmount } = render(<ResizeFrame nav={{ 'aria-label': 'Pages' }} />);
+    expect(handle()).toHaveAccessibleName('Pages');
+    unmount();
+    render(
+      <>
+        <h2 id="nav-name">Site map</h2>
+        <ResizeFrame nav={{ 'aria-labelledby': 'nav-name' }} />
+      </>
+    );
+    expect(handle()).toHaveAttribute('aria-labelledby', 'nav-name');
+    expect(handle()).not.toHaveAttribute('aria-label');
+    expect(handle()).toHaveAccessibleName('Site map');
+  });
+
+  it('steps the width with the arrow keys, ten times as far with Shift, within its limits', () => {
+    mockViewport(DESKTOP);
+    const onWidthChange = vi.fn();
+    render(
+      <ResizeFrame nav={{ onWidthChange, minWidth: '200px', maxWidth: 300 }} />
+    );
+    fireEvent.keyDown(handle(), { key: 'ArrowRight' });
+    expect(onWidthChange).toHaveBeenLastCalledWith(266);
+    expect(widthOf()).toBe('266px');
+    expect(handle()).toHaveAttribute('aria-valuenow', '266');
+    fireEvent.keyDown(handle(), { key: 'ArrowLeft', shiftKey: true });
+    expect(onWidthChange).toHaveBeenLastCalledWith(200);
+    fireEvent.keyDown(handle(), { key: 'End' });
+    expect(onWidthChange).toHaveBeenLastCalledWith(300);
+    // Already at the limit: nothing to report.
+    onWidthChange.mockClear();
+    fireEvent.keyDown(handle(), { key: 'ArrowRight' });
+    expect(onWidthChange).not.toHaveBeenCalled();
+    fireEvent.keyDown(handle(), { key: 'Home' });
+    expect(onWidthChange).toHaveBeenLastCalledWith(200);
+    // A key it doesn't use goes on.
+    expect(fireEvent.keyDown(handle(), { key: 'a' })).toBe(true);
+  });
+
+  it('mirrors the arrow keys and the drag right to left', () => {
+    mockViewport(DESKTOP);
+    const real = window.getComputedStyle;
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((el, pseudo) => {
+      const style = real(el, pseudo);
+      return el.matches('.app-frame-nav')
+        ? ({
+            direction: 'rtl',
+            getPropertyValue: (name: string) => style.getPropertyValue(name),
+          } as CSSStyleDeclaration)
+        : style;
+    });
+    const onWidthChange = vi.fn();
+    render(<ResizeFrame nav={{ onWidthChange }} />);
+    // The column is on the right, so its edge moves left to widen it.
+    fireEvent.keyDown(handle(), { key: 'ArrowLeft' });
+    expect(onWidthChange).toHaveBeenLastCalledWith(266);
+    laidOut(266);
+    pointer(handle(), 'pointerdown', 500);
+    pointer(handle(), 'pointermove', 460);
+    expect(onWidthChange).toHaveBeenLastCalledWith(306);
+    pointer(handle(), 'pointerup', 460);
+  });
+
+  it('drags the width, without animating it, and collapses and opens past half the minimum', () => {
+    mockViewport(DESKTOP);
+    const onWidthChange = vi.fn();
+    const onNavCollapsedChange = vi.fn();
+    render(
+      <ResizeFrame
+        onNavCollapsedChange={onNavCollapsedChange}
+        nav={{ onWidthChange }}
+      />
+    );
+    laidOut(256);
+    pointer(handle(), 'pointerdown', 300);
+    expect(handle()).toHaveClass('is-active');
+    expect(nav()).toHaveClass('is-resizing');
+    pointer(handle(), 'pointermove', 340);
+    expect(onWidthChange).toHaveBeenLastCalledWith(296);
+    // Below half of 12rem, 96px: it collapses, and the width stays.
+    onWidthChange.mockClear();
+    pointer(handle(), 'pointermove', 130);
+    expect(onNavCollapsedChange).toHaveBeenLastCalledWith(true);
+    expect(root()).toHaveClass('is-nav-collapsed');
+    expect(onWidthChange).not.toHaveBeenCalled();
+    expect(handle()).toHaveAttribute('aria-valuenow', '0');
+    // Back out past it: open again, at the minimum.
+    pointer(handle(), 'pointermove', 200);
+    expect(onNavCollapsedChange).toHaveBeenLastCalledWith(false);
+    expect(onWidthChange).toHaveBeenLastCalledWith(192);
+    pointer(handle(), 'pointerup', 200);
+    expect(handle()).not.toHaveClass('is-active');
+    expect(nav()).not.toHaveClass('is-resizing');
+    // A move with no drag does nothing.
+    onWidthChange.mockClear();
+    pointer(handle(), 'pointermove', 400);
+    expect(onWidthChange).not.toHaveBeenCalled();
+  });
+
+  it('opens a column collapsed to its rail when the drag passes half the minimum', () => {
+    mockViewport(DESKTOP);
+    const onNavCollapsedChange = vi.fn();
+    render(
+      <ResizeFrame
+        defaultNavCollapsed
+        onNavCollapsedChange={onNavCollapsedChange}
+        nav={{ rail: true }}
+      />
+    );
+    expect(nav()).toHaveClass('is-rail');
+    laidOut(64);
+    pointer(handle(), 'pointerdown', 64);
+    pointer(handle(), 'pointermove', 80);
+    expect(onNavCollapsedChange).not.toHaveBeenCalled();
+    pointer(handle(), 'pointermove', 120);
+    expect(onNavCollapsedChange).toHaveBeenLastCalledWith(false);
+    expect(widthOf()).toBe('192px');
+    pointer(handle(), 'pointerup', 120);
+  });
+
+  it('collapses on Enter and brings the column back at the width it had, with no width keys while it’s shut', () => {
+    mockViewport(DESKTOP);
+    const onWidthChange = vi.fn();
+    render(<ResizeFrame nav={{ onWidthChange, defaultWidth: 300 }} />);
+    fireEvent.keyDown(handle(), { key: 'Enter' });
+    expect(root()).toHaveClass('is-nav-collapsed');
+    // Shut, the arrows and Home and End leave it, and the keys go on.
+    expect(fireEvent.keyDown(handle(), { key: 'ArrowRight' })).toBe(true);
+    expect(fireEvent.keyDown(handle(), { key: 'Home' })).toBe(true);
+    expect(fireEvent.keyDown(handle(), { key: 'End' })).toBe(true);
+    expect(onWidthChange).not.toHaveBeenCalled();
+    fireEvent.keyDown(handle(), { key: 'Enter' });
+    expect(root()).not.toHaveClass('is-nav-collapsed');
+    expect(widthOf()).toBe('300px');
+  });
+
+  it('resets to the default width on a double click, and opens a collapsed column', () => {
+    mockViewport(DESKTOP);
+    const onWidthChange = vi.fn();
+    render(<ResizeFrame nav={{ onWidthChange, defaultWidth: '20rem' }} />);
+    expect(widthOf()).toBe('20rem');
+    fireEvent.keyDown(handle(), { key: 'ArrowRight' });
+    expect(widthOf()).toBe('330px');
+    fireEvent.keyDown(handle(), { key: 'Enter' });
+    fireEvent.doubleClick(handle());
+    expect(widthOf()).toBe('20rem');
+    expect(onWidthChange).toHaveBeenLastCalledWith(320);
+    expect(root()).not.toHaveClass('is-nav-collapsed');
+  });
+
+  it('resets to the stylesheet’s width without a default', () => {
+    mockViewport(DESKTOP);
+    const onWidthChange = vi.fn();
+    render(<ResizeFrame nav={{ onWidthChange }} />);
+    fireEvent.keyDown(handle(), { key: 'ArrowRight' });
+    fireEvent.doubleClick(handle());
+    expect(widthOf()).toBe('');
+    expect(onWidthChange).toHaveBeenLastCalledWith(256);
+  });
+
+  it('leaves a controlled width to its owner', () => {
+    mockViewport(DESKTOP);
+    const onWidthChange = vi.fn();
+    const { rerender } = render(
+      <ResizeFrame nav={{ width: 300, onWidthChange }} />
+    );
+    fireEvent.keyDown(handle(), { key: 'ArrowRight' });
+    expect(onWidthChange).toHaveBeenLastCalledWith(310);
+    expect(widthOf()).toBe('300px');
+    rerender(<ResizeFrame nav={{ width: 310, onWidthChange }} />);
+    expect(widthOf()).toBe('310px');
+    fireEvent.doubleClick(handle());
+    expect(onWidthChange).toHaveBeenLastCalledWith(256);
+    expect(widthOf()).toBe('310px');
+  });
+
+  it('warns once about a width with no onWidthChange', () => {
+    resetDevWarnings();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    mockViewport(DESKTOP);
+    render(<ResizeFrame nav={{ width: 300 }} />);
+    expect(
+      warn.mock.calls.filter(([m]) => /onWidthChange/.test(String(m)))
+    ).toHaveLength(1);
+  });
+
+  it('reads a rem and the stylesheet’s width as the page has them', () => {
+    mockViewport(DESKTOP);
+    const real = window.getComputedStyle;
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((el, pseudo) => {
+      const style = real(el, pseudo);
+      if (el === document.documentElement) {
+        return { fontSize: '20px' } as CSSStyleDeclaration;
+      }
+      if (el.matches('.app-frame')) {
+        return {
+          getPropertyValue: (name: string) =>
+            name === '--bulma-app-frame-nav-width' ? ' 15rem' : '',
+        } as CSSStyleDeclaration;
+      }
+      return style;
+    });
+    render(<ResizeFrame />);
+    // 15rem at 20px, within 12rem and 32rem at 20px.
+    expect(handle()).toHaveAttribute('aria-valuenow', '300');
+    expect(handle()).toHaveAttribute('aria-valuemin', '240');
+    expect(handle()).toHaveAttribute('aria-valuemax', '640');
+  });
+
+  it('has no handle without resizable, or outside a frame', () => {
+    mockViewport(DESKTOP);
+    const { unmount } = render(<Frame />);
+    expect(screen.queryByRole('separator')).toBeNull();
+    unmount();
+    render(<AppFrame.Nav resizable>Links</AppFrame.Nav>);
+    expect(screen.queryByRole('separator')).toBeNull();
+  });
+
+  it('renders its handle on the server, with its values', () => {
+    const html = renderToStaticMarkup(<ResizeFrame />);
+    expect(html).toMatch(
+      /<div class="app-frame-handle" role="separator" tabindex="0" aria-orientation="vertical" aria-valuenow="256" aria-valuemin="192" aria-valuemax="512"/
+    );
+  });
+
+  it('prefixes its classes', () => {
+    mockViewport(DESKTOP);
+    render(
+      <ConfigProvider classPrefix="bestax-">
+        <ResizeFrame />
+      </ConfigProvider>
+    );
+    expect(handle()).toHaveClass('bestax-app-frame-handle');
+    const column = document.querySelector('nav') as HTMLElement;
+    vi.spyOn(column, 'getBoundingClientRect').mockReturnValue({
+      width: 256,
+    } as DOMRect);
+    pointer(handle(), 'pointerdown', 0);
+    expect(handle()).toHaveClass('bestax-is-active');
+    expect(column).toHaveClass('bestax-is-resizing');
+    pointer(handle(), 'pointerup', 0);
+  });
+});
+
 /** Whether `useAppFrame()` reads the nav as a drawer at `breakpoint`. */
 function isDrawerAt(breakpoint: AppFrameProps['breakpoint']) {
   const Probe = () => <output>{String(useAppFrame().isDrawer)}</output>;

@@ -313,7 +313,9 @@ header taller than Bulma's navbar sets it there. `AppFrame.Nav width` writes
 
 `--bulma-app-frame-aside-width`, `--bulma-app-frame-backdrop-background`,
 `--bulma-app-frame-border-color`, `--bulma-app-frame-border-width`,
-`--bulma-app-frame-drawer-shadow`, `--bulma-app-frame-header-background`,
+`--bulma-app-frame-drawer-shadow`, `--bulma-app-frame-handle-active-color`,
+`--bulma-app-frame-handle-size`, `--bulma-app-frame-handle-size-coarse`,
+`--bulma-app-frame-header-background`,
 `--bulma-app-frame-header-height`, `--bulma-app-frame-nav-background`,
 `--bulma-app-frame-nav-padding`, `--bulma-app-frame-nav-rail-width`,
 `--bulma-app-frame-nav-width`, `--bulma-app-frame-skip-link-background`,
