@@ -140,7 +140,7 @@ export const ChatLauncher: Story = {
       <>
         <PageContent />
         <Affix>
-          <Button color="link" isRounded aria-label="Open chat">
+          <Button color="link" radius="rounded" aria-label="Open chat">
             <Icon name="comments" />
           </Button>
         </Affix>

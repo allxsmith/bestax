@@ -15,7 +15,7 @@
     },
     {
       "title": "Nudging One Affix",
-      "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <>\n      <Button onClick={() => setShown(!shown)}>\n        {shown ? 'Hide the chat button' : 'Show the chat button'}\n      </Button>\n      {shown && (\n        <Affix position=\"bottom-left\" mb=\"6\">\n          <Button color=\"link\" isRounded aria-label=\"Open chat\">\n            <Icon name=\"comments\" />\n          </Button>\n        </Affix>\n      )}\n    </>\n  );\n}"
+      "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <>\n      <Button onClick={() => setShown(!shown)}>\n        {shown ? 'Hide the chat button' : 'Show the chat button'}\n      </Button>\n      {shown && (\n        <Affix position=\"bottom-left\" mb=\"6\">\n          <Button color=\"link\" radius=\"rounded\" aria-label=\"Open chat\">\n            <Icon name=\"comments\" />\n          </Button>\n        </Affix>\n      )}\n    </>\n  );\n}"
     },
     {
       "title": "Offsets and the Safe Area",
