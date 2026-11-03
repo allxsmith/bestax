@@ -64,7 +64,7 @@
         {
           "id": "layout-components",
           "file": "references/layout-components.md",
-          "bytes": 21457
+          "bytes": 21680
         }
       ],
       "examples": [
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 15861
+          "bytes": 15882
         }
       ],
       "examples": []

@@ -57,7 +57,10 @@ parts are direct children, in this order: `AppFrame.Header` (`<header>`), `AppFr
 Put it at the top of the app, never inside a `<main>` or a `Container as="main"`: it renders the
 page's `<main>`. Its `Navbar` is not `fixed` and needs no `has-navbar-fixed-top`. A control of
 your own reads and toggles the state with `useAppFrame()`, which is `null` outside a frame:
-`toggleNav()` does what the burger does, and `navId` is for its `aria-controls`. A header taller than Bulma's navbar sets
+`toggleNav()` does what the burger does, and `navId` is for its `aria-controls`. Have the control
+call `event.currentTarget.focus()` before `toggleNav()`, as the burger does: Safari, and Firefox on
+a Mac, don't focus a button on click, so without it a closing drawer has no opener to hand focus
+back to. A header taller than Bulma's navbar sets
 `--bulma-app-frame-header-height` on `:root`.
 
 ## Container
