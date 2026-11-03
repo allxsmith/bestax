@@ -413,8 +413,8 @@ The parts are attached to `AppFrame`, and also exported on their own as `AppFram
   focused element below the header (WCAG 2.4.11, technique C43).
 - **The burger** is a button named "menu" (`labels.burger`), with `aria-expanded` saying whether
   the drawer is open, or from the breakpoint up whether the column is shown, and `aria-controls`
-  naming the nav. The server can't know the width, so it renders the wide state, and the burger
-  is right from the first paint after hydration.
+  naming the nav. The server can't know the width, so until the page hydrates the burger has no
+  `aria-expanded` and shows its bars, and the first paint after hydration has both right.
 - **The drawer** is modal by default: focus moves to its close button, Tab and Shift+Tab stay
   inside, the page doesn't scroll, the rest of the frame is inert, and Escape closes it while it's
   the topmost overlay, so a `Modal` opened from it closes first. Escape, the close button and a
