@@ -323,6 +323,31 @@ describe('Cascader', () => {
       expect(option('Europe')).toHaveFocus();
     });
 
+    it('keeps a disabled node on the picked path selected but unfilled, so it stays readable', () => {
+      render(<City value="madrid" defaultOpen />);
+      expect(lists()).toEqual(['City', 'Europe']);
+      expect(option('Spain')).toHaveAttribute('aria-selected', 'true');
+      expect(option('Spain')).toHaveClass('is-disabled', 'is-open');
+      expect(option('Spain')).not.toHaveClass('is-active');
+      expect(option('Europe')).toHaveClass('is-active');
+    });
+
+    it('opens no path and reports nothing while disabled, and opens it once enabled', () => {
+      const onExpandedChange = vi.fn();
+      const props = {
+        defaultValue: 'berlin',
+        defaultOpen: true,
+        onExpandedChange,
+      };
+      const { rerender } = render(<City {...props} disabled />);
+      expect(dialog()).toBeNull();
+      expect(onExpandedChange).not.toHaveBeenCalled();
+      rerender(<City {...props} />);
+      expect(lists()).toEqual(['City', 'Europe', 'Germany']);
+      expect(onExpandedChange).toHaveBeenCalledTimes(1);
+      expect(onExpandedChange).toHaveBeenCalledWith(['europe', 'germany']);
+    });
+
     it('stops the path at a node that opens no column', () => {
       render(<City expanded={['oceania', 'nowhere']} defaultOpen />);
       expect(lists()).toEqual(['City']);
@@ -508,6 +533,53 @@ describe('Cascader', () => {
       press('ArrowLeft');
       expect(option('Europe')).toHaveFocus();
       expect(dialog()).not.toBeNull();
+    });
+
+    it("opens only the focused item with Right, where a held path hasn't followed focus", () => {
+      render(<City expanded={['europe', 'germany']} />);
+      open();
+      expect(option('Europe')).toHaveFocus();
+      press('ArrowRight');
+      expect(option('Germany')).toHaveFocus();
+      press('ArrowDown');
+      expect(option('France')).toHaveFocus();
+      // The held path still opens Germany, but France has focus, and it's a leaf.
+      expect(current()).toEqual(['Europe', 'Germany']);
+      press('ArrowRight');
+      expect(option('France')).toHaveFocus();
+      expect(lists()).toEqual(['City', 'Europe', 'Germany']);
+    });
+
+    it('opens nothing with Right on a load row, whatever item is current', () => {
+      render(
+        <Cascader
+          label="City"
+          data={[
+            {
+              value: 'photos',
+              label: 'Photos',
+              isLoading: true,
+              children: [
+                {
+                  value: 'summer',
+                  label: 'Summer',
+                  children: [{ value: 'beach', label: 'Beach' }],
+                },
+              ],
+            },
+          ]}
+        />
+      );
+      open();
+      press('ArrowRight');
+      expect(option('Summer')).toHaveFocus();
+      press('End');
+      expect(option('Loading…')).toHaveFocus();
+      press('ArrowRight');
+      expect(option('Loading…')).toHaveFocus();
+      expect(lists()).toEqual(['City', 'Photos']);
+      press('ArrowLeft');
+      expect(option('Photos')).toHaveFocus();
     });
 
     it('leaves Right and Left with a modifier to the page', () => {

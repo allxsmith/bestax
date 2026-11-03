@@ -117,7 +117,11 @@ export interface CascaderProps
   closeOnSelect?: boolean;
   /**
    * The values of the items whose columns are open, which is the open path,
-   * when you hold the state.
+   * when you hold the state. Opening the panel opens the picked node's path
+   * and reports it through `onExpandedChange`: at once for a click or a key,
+   * and only once the panel is on the page when you open it yourself, with
+   * `open` or `defaultOpen`. So when you hold this and open the panel
+   * yourself, set it to the path you want open.
    */
   expanded?: string[];
   /** The path open to begin with, when the Cascader holds its own state. */
@@ -314,10 +318,7 @@ function CascaderList({ context, column, at, name }: ColumnProps) {
       role="listbox"
       // It scrolls, and Firefox makes a scroller a Tab stop of its own.
       tabIndex={-1}
-      onKeyDown={event => {
-        engine.onKeyDown(event, at);
-        keys.onKeyDown(event);
-      }}
+      onKeyDown={keys.onKeyDown}
       onFocus={event => {
         // Type-ahead starts over in each column it comes into, from the
         // field or from another column.
@@ -337,7 +338,9 @@ function CascaderList({ context, column, at, name }: ColumnProps) {
               'dropdown-item',
               'cascader-item',
               {
-                'is-active': isPicked,
+                // Selected either way; filled only enabled, where the
+                // disabled text would be hard to read.
+                'is-active': isPicked && !disabled,
                 'is-open': node.value === current,
                 'is-disabled': disabled,
               }
@@ -349,6 +352,7 @@ function CascaderList({ context, column, at, name }: ColumnProps) {
             tabIndex={node.value === tabStop ? 0 : -1}
             data-initial-focus={node.value === focusTarget ? '' : undefined}
             onFocus={() => engine.moveTo(at, node.value)}
+            onKeyDown={event => engine.onKeyDown(event, at, node)}
             onClick={event => {
               if (disabled) return;
               const onChevron =
@@ -395,6 +399,7 @@ function CascaderList({ context, column, at, name }: ColumnProps) {
           }
           aria-disabled={!retry || undefined}
           tabIndex={tabStop === statusKey ? 0 : -1}
+          onKeyDown={event => engine.onKeyDown(event, at, null)}
           onClick={() => retry?.()}
         >
           {status === 'loading' && (
@@ -528,7 +533,8 @@ export const Cascader = forwardRef<HTMLInputElement, CascaderProps>(
     const engine = useCascaderColumns({
       data,
       index,
-      open: isOpen,
+      // As the panel shows it: a disabled Cascader shows none.
+      open: isOpen && !disabled,
       value,
       expanded: expandedProp,
       defaultExpanded,

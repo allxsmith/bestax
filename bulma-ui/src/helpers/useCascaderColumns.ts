@@ -54,8 +54,16 @@ export interface CascaderColumnsEngine {
   moveTo: (column: number, value: string) => void;
   /** Opens a parent's column and moves focus into it. */
   open: (column: number, node: TreeItemData) => void;
-  /** Right and Left, swapped on a right-to-left page, for a column's listbox. */
-  onKeyDown: (event: React.KeyboardEvent<HTMLElement>, column: number) => void;
+  /**
+   * Right and Left, swapped on a right-to-left page, on the focused row of a
+   * column: its item, or `null` for a load's row. Right opens that item and
+   * nothing else.
+   */
+  onKeyDown: (
+    event: React.KeyboardEvent<HTMLElement>,
+    column: number,
+    node: TreeItemData | null
+  ) => void;
 }
 
 const samePath = (a: string[], b: string[]) =>
@@ -84,7 +92,7 @@ export function useCascaderColumns(
   options: CascaderColumnsOptions
 ): CascaderColumnsEngine {
   const { data, index, open: isOpen, value } = options;
-  const [held, setHeld] = useControlled(
+  const [expanded, setExpanded] = useControlled(
     options.expanded,
     options.defaultExpanded
   );
@@ -95,29 +103,35 @@ export function useCascaderColumns(
   // The column focus moves into once it has rendered.
   const focusIntoRef = useRef<number | null>(null);
 
-  const expanded = held;
   const changeExpanded = (next: string[]) => {
-    setHeld(next);
+    setExpanded(next);
     onExpandedChangeRef.current?.(next);
   };
 
+  // Opens the columns along a value's path and makes it current. `report`
+  // is handed the path when it changes.
+  const revealPath = (
+    target: string | null,
+    report: (path: string[]) => void
+  ) => {
+    const path = target === null ? undefined : index.get(target)?.path;
+    setTail(path ? target : null);
+    if (path && !samePath(path, expanded)) {
+      setExpanded(path);
+      report(path);
+    }
+  };
+
   // Opening the panel opens the picked node's path. A click or a key does
-  // it through `reveal`. `defaultOpen` and a held `open` have no event, so
-  // it's done in the render that opens the panel, where the panel's first
-  // focus finds the picked node, and reported once that render is on the
-  // page.
+  // it through `reveal`, which reports it at once. `defaultOpen` and a held
+  // `open` have no event, so it's done in the render that opens the panel,
+  // where the panel's first focus finds the picked node, and reported once
+  // that render is on the page.
   const [wasOpen, setWasOpen] = useState(false);
   const [toReport, setToReport] = useState<string[] | null>(null);
   if (isOpen !== wasOpen) {
     setWasOpen(isOpen);
-    if (isOpen) {
-      const path = value === null ? undefined : index.get(value)?.path;
-      setTail(path ? value : null);
-      if (path && !samePath(path, held)) {
-        setHeld(path);
-        setToReport([...path]);
-      }
-    }
+    if (isOpen) revealPath(value, path => setToReport([...path]));
   }
   const reportedRef = useRef<string[] | null>(null);
   useEffect(() => {
@@ -150,9 +164,7 @@ export function useCascaderColumns(
   const reveal = (next: string | null) => {
     // The panel is open now, so the render doesn't reveal it again.
     setWasOpen(true);
-    const path = next === null ? undefined : index.get(next)?.path;
-    setTail(path ? next : null);
-    if (path && !samePath(path, expanded)) changeExpanded(path);
+    revealPath(next, path => onExpandedChangeRef.current?.(path));
   };
 
   const moveTo = (column: number, next: string) => {
@@ -192,7 +204,8 @@ export function useCascaderColumns(
 
   const onKeyDown = (
     event: React.KeyboardEvent<HTMLElement>,
-    column: number
+    column: number,
+    node: TreeItemData | null
   ) => {
     if (event.altKey || event.ctrlKey || event.metaKey) return;
     const rtl = getComputedStyle(event.currentTarget).direction === 'rtl';
@@ -200,8 +213,6 @@ export function useCascaderColumns(
     const back = rtl ? 'ArrowRight' : 'ArrowLeft';
     if (event.key === forward) {
       event.preventDefault();
-      const { current, items: here } = columns[column];
-      const node = here.find(item => item.value === current);
       if (node) open(column, node);
     } else if (event.key === back) {
       event.preventDefault();
