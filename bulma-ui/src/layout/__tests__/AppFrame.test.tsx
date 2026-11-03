@@ -1429,6 +1429,31 @@ describe('AppFrame.Nav rail', () => {
     expect(orders).toHaveFocus();
   });
 
+  it('moves focus from a nested link the rail hides to its item’s own link', () => {
+    mockViewport(DESKTOP);
+    const { rerender } = render(<RailFrame navCollapsed={false} />);
+    link('Open orders').focus();
+    rerender(<RailFrame navCollapsed />);
+    expect(link('Orders')).toHaveFocus();
+  });
+
+  it('moves focus from a link in an open section the rail hides to the section’s button', () => {
+    mockViewport(DESKTOP);
+    const { rerender } = render(<RailFrame navCollapsed={false} />);
+    fireEvent.click(reports());
+    link('Sales').focus();
+    rerender(<RailFrame navCollapsed />);
+    expect(reports()).toHaveFocus();
+  });
+
+  it('leaves focus on a top-level link as the column collapses', () => {
+    mockViewport(DESKTOP);
+    const { rerender } = render(<RailFrame navCollapsed={false} />);
+    link('Dashboard').focus();
+    rerender(<RailFrame navCollapsed />);
+    expect(link('Dashboard')).toHaveFocus();
+  });
+
   it('expands the column and opens a section from its button in the rail', () => {
     mockViewport(DESKTOP);
     const onNavCollapsedChange = vi.fn();
