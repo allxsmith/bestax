@@ -164,16 +164,19 @@ describe.each([
   // so the reset wins whichever sheet loads first, and a helper's
   // `!important` still beats it. Top and bottom in all four, since nothing
   // collapses in a flex container.
-  it('zeroes the children’s top and bottom margins in all four, Columns aside', () => {
-    expect(find(rules, `${stack} > :not(#\\#):not(${c('columns')})`)).toEqual({
-      'margin-block': '0',
-    });
+  it('zeroes the children’s top and bottom margins in all four, Columns and Pagination aside', () => {
+    expect(
+      find(
+        rules,
+        `${stack} > :not(#\\#):not(${c('columns')}):not(${c('pagination')})`
+      )
+    ).toEqual({ 'margin-block': '0' });
     // Nothing deeper than the children, and nothing more for a Stack.
     for (const rule of rules) {
       if (/margin/.test(Object.keys(rule.declarations).join(' '))) {
         expect(rule.selector).toMatch(
           new RegExp(
-            `^\\${stack} > (\\${c('columns')}(\\${c('is-gapless')})?)?:not\\(#\\\\#\\)(:not\\(\\${c('columns')}\\))?$`
+            `^\\${stack} > (\\${c('columns')}(\\${c('is-gapless')})?|\\${c('pagination')})?:not\\(#\\\\#\\)(:not\\(\\${c('columns')}\\):not\\(\\${c('pagination')}\\))?$`
           )
         );
       }
@@ -191,6 +194,15 @@ describe.each([
     expect(
       find(rules, `${stack} > ${c('columns')}${c('is-gapless')}:not(#\\#)`)
     ).toEqual({ 'margin-block-end': '0' });
+  });
+
+  // Bulma's Pagination pulls out by its items' margin, so the items line up
+  // with the blocks around it. A Pagination child keeps that at the top and
+  // bottom too, over the block margin Bulma gives it when it isn't last.
+  it('leaves a Pagination child its negative margin at the top and bottom', () => {
+    expect(find(rules, `${stack} > ${c('pagination')}:not(#\\#)`)).toEqual({
+      'margin-block': 'var(--bulma-pagination-margin)',
+    });
   });
 
   it('shares the row equally in a full-width Group', () => {
@@ -228,7 +240,7 @@ describe.each([
 
   it('uses only the prefix it was built with', () => {
     if (prefix) {
-      expect(css).not.toMatch(/(^|[\s,>(])\.(stack|columns)\b/m);
+      expect(css).not.toMatch(/(^|[\s,>(])\.(stack|columns|pagination)\b/m);
       expect(css).not.toMatch(
         /(^|[^-])\.is-(vertical|horizontal|centered|gapless)\b/
       );

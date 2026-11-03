@@ -64,7 +64,8 @@ export interface LayoutOwnProps extends Omit<
    * such as `mt="2"` still adds to it. A `Columns` child keeps its own top and side
    * margins, and takes at the bottom the one Bulma gives the last Columns in
    * a container, the column gap pulled back in (none when gapless), so its
-   * columns line up.
+   * columns line up. A `Pagination` child keeps its negative margins too,
+   * so its links line up.
    */
   children?: React.ReactNode;
   /** Text color helper. */

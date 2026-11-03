@@ -16,8 +16,8 @@
 // weight, so the reset carries an id's weight through `:not(#\#)`, which
 // matches any element. A helper margin on a child (`mt="2"`, `mb="2"`) is
 // `!important` and still wins. Only the direct children: what's inside them
-// keeps its spacing. A Columns child is the exception, since its margins are
-// negative on purpose (below).
+// keeps its spacing. A Columns or Pagination child is the exception, since
+// its margins are negative on purpose (below).
 
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
@@ -47,7 +47,10 @@ $stack-horizontal-gap: calc(#{cv.getVar("block-spacing")} * 0.5) !default;
   display: flex;
 }
 
-.#{iv.$class-prefix}stack > :not(#\#):not(.#{iv.$class-prefix}columns) {
+.#{iv.$class-prefix}stack
+  > :not(#\#):not(.#{iv.$class-prefix}columns):not(
+    .#{iv.$class-prefix}pagination
+  ) {
   margin-block: 0;
 }
 
@@ -74,6 +77,16 @@ $stack-horizontal-gap: calc(#{cv.getVar("block-spacing")} * 0.5) !default;
 .#{iv.$class-prefix}stack
   > .#{iv.$class-prefix}columns.#{iv.$class-prefix}is-gapless:not(#\#) {
   margin-block-end: 0;
+}
+
+// ---- A Pagination child, in any of the four ----------------------------------------
+
+// Bulma's Pagination pulls itself out by the margin its items keep around
+// them, so the items line up with the blocks around it. It keeps that
+// negative margin at the top and bottom too, where the block margin Bulma
+// gives it when it isn't last would otherwise add to the gap.
+.#{iv.$class-prefix}stack > .#{iv.$class-prefix}pagination:not(#\#) {
+  margin-block: cv.getVar("pagination-margin");
 }
 
 // ---- Group: a row that wraps -------------------------------------------------------
