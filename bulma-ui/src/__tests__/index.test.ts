@@ -220,6 +220,8 @@ const PUBLIC_EXPORTS = [
   'ToastContainer',
   'ToggleButton',
   'Tooltip',
+  'Tour',
+  'TourStep',
   'Tr',
   'TreeView',
   'TreeViewItem',

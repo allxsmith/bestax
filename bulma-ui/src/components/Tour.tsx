@@ -32,14 +32,13 @@ import { warnOnce } from '../helpers/devWarnings';
 import { Button } from '../elements/Button';
 import { Buttons } from '../elements/Buttons';
 import { Delete } from '../elements/Delete';
-import type { TooltipPosition } from './Tooltip';
 
 /**
  * The side of its target a step's panel sits on: Tooltip's sides. `left`
  * and `right` are the start and the end, so they swap under right-to-left
  * text.
  */
-export type TourStepPosition = Exclude<TooltipPosition, 'auto'>;
+export type TourStepPosition = 'top' | 'bottom' | 'left' | 'right';
 
 /**
  * What a step points at: a CSS selector, looked up again until it matches,
@@ -86,7 +85,6 @@ export interface TourLabels {
  * Props for the Tour component. The helper props, the other attributes and
  * the `ref` land on the `.tour` element in the portal, which holds the
  * overlay and the current step.
- * @helperProps On the `.tour` `<div>` that holds the overlay and the current step, which the step's text inherits from.
  */
 export interface TourProps
   extends
@@ -180,7 +178,6 @@ export interface TourProps
  * Props for Tour.Step. It renders nothing where it's written; while it's
  * the current step, its attributes, helper props and `ref` land on the
  * step's panel, the `role="dialog"` element.
- * @helperProps On the step's panel, the `role="dialog"` `<div>`, with its other attributes.
  */
 export interface TourStepProps
   extends
@@ -211,7 +208,10 @@ export interface TourStepProps
    * @defaultValue 'bottom'
    */
   position?: TourStepPosition;
-  /** This step's own `overlay`, in place of the tour's. */
+  /**
+   * This step's own `overlay`, in place of the tour's.
+   * @defaultValue the tour's
+   */
   overlay?: boolean;
 }
 

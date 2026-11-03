@@ -20,6 +20,7 @@ import { ContextMenu } from '../components/ContextMenu';
 import { Popover } from '../components/Popover';
 import { SegmentedControl } from '../components/SegmentedControl';
 import { ScrollArea } from '../components/ScrollArea';
+import { Tour } from '../components/Tour';
 import { Command } from '../components/Command';
 import { DataTable } from '../components/DataTable';
 import { Splitter } from '../layout/Splitter';
@@ -68,6 +69,19 @@ const cases: Array<[string, React.ReactElement]> = [
       <SegmentedControl.Segment value="left">Left</SegmentedControl.Segment>
       <SegmentedControl.Segment value="right">Right</SegmentedControl.Segment>
     </SegmentedControl>,
+  ],
+  [
+    'Tour',
+    // A tour renders nothing on the server, so its target gives the render
+    // something to show while the tour's hooks run.
+    <React.Fragment key="tour">
+      <button id="filters">Filters</button>
+      <Tour defaultOpen>
+        <Tour.Step target="#filters" title="Filters">
+          The filters narrow the list.
+        </Tour.Step>
+      </Tour>
+    </React.Fragment>,
   ],
   [
     'ScrollArea',

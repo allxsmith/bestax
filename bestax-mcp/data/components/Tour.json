@@ -1,0 +1,396 @@
+{
+  "name": "Tour",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/tour",
+  "docsUrl": "https://bestax.io/docs/api/components/tour",
+  "examples": [
+    {
+      "title": "Basic Tour",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const filtersRef = React.useRef<HTMLButtonElement>(null);\n  const exportRef = React.useRef<HTMLButtonElement>(null);\n\n  return (\n    <>\n      <Buttons>\n        <Button ref={filtersRef}>Filters</Button>\n        <Button ref={exportRef}>Export</Button>\n        <Button color=\"primary\" onClick={() => setOpen(true)}>\n          Take the tour\n        </Button>\n      </Buttons>\n      <Tour open={open} onOpenChange={setOpen}>\n        <Tour.Step title=\"Welcome\">\n          A quick look around the list and its tools.\n        </Tour.Step>\n        <Tour.Step target={filtersRef} title=\"Filters\">\n          The Filters button narrows the list by status and owner.\n        </Tour.Step>\n        <Tour.Step target={exportRef} title=\"Export\" position=\"left\">\n          The Export button downloads the rows you see as a CSV file.\n        </Tour.Step>\n      </Tour>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Targets",
+      "code": "<Tour open={open} onOpenChange={setOpen}>\n  <Tour.Step target=\"#filters\" title=\"Filters\">\n    The filters above the list narrow it by status and owner.\n  </Tour.Step>\n  <Tour.Step target={exportRef} title=\"Export\">\n    The Export button downloads the rows you see.\n  </Tour.Step>\n</Tour>"
+    },
+    {
+      "title": "Placement",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const targetRef = React.useRef<HTMLButtonElement>(null);\n\n  return (\n    <Block textAlign=\"centered\">\n      <Button ref={targetRef} mb=\"4\">\n        Target\n      </Button>\n      <br />\n      <Button onClick={() => setOpen(true)}>Walk the sides</Button>\n      <Tour open={open} onOpenChange={setOpen}>\n        <Tour.Step target={targetRef} title=\"Bottom\">\n          The default side.\n        </Tour.Step>\n        <Tour.Step target={targetRef} title=\"End\" position=\"right\">\n          The end of the line.\n        </Tour.Step>\n        <Tour.Step target={targetRef} title=\"Top\" position=\"top\">\n          Above the target.\n        </Tour.Step>\n        <Tour.Step target={targetRef} title=\"Start\" position=\"left\">\n          The start of the line.\n        </Tour.Step>\n      </Tour>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Without the Overlay",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const nameRef = React.useRef<HTMLInputElement>(null);\n\n  return (\n    <>\n      <Input ref={nameRef} label=\"Project name\" />\n      <Button mt=\"3\" onClick={() => setOpen(true)}>\n        Try it\n      </Button>\n      <Tour open={open} onOpenChange={setOpen} overlay={false}>\n        <Tour.Step target={nameRef} title=\"Name your project\">\n          Type a name in the field. The page stays usable while this step shows.\n        </Tour.Step>\n      </Tour>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Controlled",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const [step, setStep] = useState(0);\n  const [result, setResult] = useState('not taken');\n\n  return (\n    <>\n      <Button\n        onClick={() => {\n          setStep(0);\n          setOpen(true);\n        }}\n      >\n        Start\n      </Button>\n      <Paragraph mt=\"3\">\n        Step {step + 1}, tour {result}\n      </Paragraph>\n      <Tour\n        open={open}\n        onOpenChange={next => {\n          if (!next && result !== 'finished') setResult('skipped');\n          setOpen(next);\n        }}\n        value={step}\n        onChange={setStep}\n        onFinish={() => setResult('finished')}\n      >\n        <Tour.Step title=\"Your draft\">Everything you write is kept.</Tour.Step>\n        <Tour.Step title=\"Publishing\">Publish when you're ready.</Tour.Step>\n      </Tour>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Labels",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button onClick={() => setOpen(true)}>Empezar</Button>\n      <Tour\n        open={open}\n        onOpenChange={setOpen}\n        labels={{\n          skip: 'Omitir',\n          back: 'Atrás',\n          next: 'Siguiente',\n          done: 'Listo',\n          close: 'Cerrar',\n          progress: (step, total) => `Paso ${step} de ${total}`,\n        }}\n      >\n        <Tour.Step title=\"Bienvenida\">Un recorrido breve.</Tour.Step>\n        <Tour.Step title=\"Eso es todo\">Gracias por mirar.</Tour.Step>\n      </Tour>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const searchRef = React.useRef<HTMLInputElement>(null);\n  const tips = [\n    { id: 'search', title: 'Search', body: 'Find any row by name.' },\n    { id: 'done', title: 'That’s it', body: 'Open this tour again any time.' },\n  ];\n\n  return (\n    <>\n      <Input ref={searchRef} label=\"Search\" />\n      <Button mt=\"3\" onClick={() => setOpen(true)}>\n        Show me\n      </Button>\n      <Tour open={open} onOpenChange={setOpen}>\n        {tips.map(tip => (\n          <Tour.Step\n            key={tip.id}\n            target={tip.id === 'search' ? searchRef : undefined}\n            title={tip.title}\n          >\n            {tip.body}\n          </Tour.Step>\n        ))}\n      </Tour>\n    </>\n  );\n}"
+    }
+  ],
+  "accessibility": "There's no WAI-ARIA pattern for a tour, so each step is a\n[dialog](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/), modal with the overlay and\nnon-modal without it:\n\n- A step is a `role=\"dialog\"`, named by its title through `aria-labelledby`, or by an `aria-label`\n  on the `Tour.Step`, and described by its body. A development build warns about a step with\n  neither a title nor a label.\n- With the overlay, the step has `aria-modal=\"true\"`, and the page under it is out of reach for\n  everyone: everything else on the page is `inert`, the page doesn't scroll, the overlay takes\n  every click, and Tab and Shift+Tab stay in the step. The target is out of reach too, so say in\n  the step's body what it is: the spotlight tells a screen reader nothing.\n- Without the overlay, nothing claims modality. The page and the target stay usable, and Tab stays\n  in the step only while focus is there.\n- Opening moves focus to Next, and ending the tour hands it back to whatever had it when the tour\n  opened. On a step change, focus stays on the control used, so Enter on Next keeps going, and\n  goes to Next when that control is gone, as Back is on the first step.\n- After each step change, a polite `role=\"status\"` line inside the step says where the tour is,\n  \"Step 2 of 5: Filters\", since a dialog whose name changes isn't announced again.\n- <kbd>ArrowRight</kbd> and <kbd>ArrowLeft</kbd> move between steps while focus is in the step,\n  swapped under right-to-left text, but not from a text field, another control that uses the\n  arrows, or a dialog inside the step. Nothing happens past either end.\n- <kbd>Escape</kbd>, Skip and the close button always end the tour, so it's never a keyboard trap.\n  A Modal or Dialog opened from a step takes Escape and Tab until it closes.\n- Under `prefers-reduced-motion: reduce`, the scroll to each target is instant, and the spotlight\n  and the step don't glide between targets.\n- In forced colors, the overlay keeps dimming the page, since it's an SVG fill, the spotlight gets\n  a `Highlight` outline, and the step keeps its border.\n\nA tour sits at the modal layer, under toasts. Content inside a step that renders through a portal\nof its own, such as a Popover with `appendToBody`, lands under the tour, so keep such content in\nplace inside the step.",
+  "related": [
+    "LocaleProvider",
+    "Modal",
+    "Popover",
+    "Steps",
+    "Tooltip",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-tour--default",
+  "summary": "The `Tour` component walks a user through an interface one step at a time, each step a panel pointing at an element with the rest of the page dimmed around it. Each step is a dialog. With the overlay, the default, it's modal: the page under it is inert and still, Tab stays in the step and Escape ends the tour. Without it, the step is a non-modal dialog and the page stays usable.",
+  "import": "import { Tour } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Tour.tsx",
+  "rootClass": "tour",
+  "parts": [
+    {
+      "path": "Tour",
+      "summary": "The `Tour` component walks a user through an interface one step at a time, each step a panel pointing at an element with the rest of the page dimmed around it. Each step is a dialog. With the overlay, the default, it's modal: the page under it is inert and still, Tab stays in the step and Escape ends the tour. Without it, the step is a non-modal dialog and the page stays usable.",
+      "component": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "`Tour.Step`s, in the order the tour visits them. Fragments are opened up, and anything that isn't a `Tour.Step`, a component that renders one included, is left out.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": null,
+          "description": "Whether the tour is showing (controlled).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether it shows from the start (uncontrolled). A tour has to measure its targets, so it shows from the commit after hydration, never in server markup.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "default": null,
+          "description": "Called with `false` when the tour ends: Skip, the close button, Escape, a click outside with `closeOnClickOutside`, or Done after `onFinish`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "default": null,
+          "description": "The current step's index (controlled). One past either end shows the nearest step.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "number",
+          "default": "0",
+          "description": "The step it starts on (uncontrolled), and goes back to each time it opens.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(value: number) => void",
+          "default": null,
+          "description": "Called with the new index when Back, Next or an arrow key changes the step.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onFinish",
+          "type": "() => void",
+          "default": null,
+          "description": "Called when Done on the last step finishes the tour, before `onOpenChange(false)`. Skip, the close button, Escape and a click outside don't call it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "overlay",
+          "type": "boolean",
+          "default": "true",
+          "description": "Dims the page and makes each step modal: `aria-modal`, the rest of the page inert and still, and Tab held in the step. With `false`, a step is a non-modal dialog: Tab still stays in it while focus is there, but the page and its target stay usable. A `Tour.Step` can set its own.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnEscape",
+          "type": "boolean",
+          "default": "true",
+          "description": "Ends the tour on Escape, while no overlay opened over it, such as a Modal opened from a step, is on top. A popup inside the step, and content that calls `preventDefault()` on the key, take it first. Without the overlay the key ends the tour from anywhere on the page, as a Sidebar without its overlay closes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnClickOutside",
+          "type": "boolean",
+          "default": "false",
+          "description": "Ends the tour on a press outside the step, the overlay included. Content the step renders through a portal counts as inside.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "portal",
+          "type": "boolean | string | HTMLElement",
+          "default": "true",
+          "description": "Where the tour renders: `true` for the `ConfigProvider` portal container or `<body>`, a selector or an element for another container, `false` for where it's written. Modal's shape, with a different default. The step and the overlay are fixed to the viewport wherever they render, so a `transform` on an ancestor of an in-place tour moves them with it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "titleAs",
+          "type": "'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p'",
+          "default": "'h2'",
+          "description": "What every step's title renders as: a heading one level under the heading the tour's page sits beneath, or `p`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "TourLabels",
+          "default": null,
+          "description": "The words the tour writes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Tour.Step",
+      "summary": "One step of the tour: a title, a body and the element it points at. It renders nothing where it's written.",
+      "component": null,
+      "props": [
+        {
+          "name": "target",
+          "type": "TourTarget",
+          "default": null,
+          "description": "The element the step points at. Without one, or while it isn't on the page or has no box (in a closed Collapse or a hidden tab panel), the step is centered. A target that turns up later, or gets a box, is found then, and a development build warns once when a step shows without its target.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The title, which names the step's dialog. A step without one needs an `aria-label`, and a development build warns when it has neither.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The body, which describes the step's dialog. Say what the target is: a modal step leaves it out of reach, and the spotlight says nothing to a screen reader.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'top' | 'bottom' | 'left' | 'right'",
+          "default": "'bottom'",
+          "description": "The side of the target the panel sits on. It flips to the opposite side when it doesn't fit, and stays inside the viewport.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "overlay",
+          "type": "boolean",
+          "default": "the tour's",
+          "description": "This step's own `overlay`, in place of the tour's.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-tour-z-index",
+      "sass": "$tour-z-index",
+      "default": "$extras-z-index-modal",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-overlay-background",
+      "sass": "$tour-overlay-background",
+      "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.5)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-spotlight-padding",
+      "sass": "$tour-spotlight-padding",
+      "default": "0.5rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-spotlight-radius",
+      "sass": "$tour-spotlight-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-background",
+      "sass": "$tour-step-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-color",
+      "sass": "$tour-step-color",
+      "default": "var(--bulma-text)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-border-color",
+      "sass": "$tour-step-border-color",
+      "default": "var(--bulma-border-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-radius",
+      "sass": "$tour-step-radius",
+      "default": "var(--bulma-radius-large)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-shadow",
+      "sass": "$tour-step-shadow",
+      "default": "var(--bulma-shadow)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-max-width",
+      "sass": "$tour-step-max-width",
+      "default": "min(24rem, calc(100vw - 2rem))",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-offset",
+      "sass": "$tour-step-offset",
+      "default": "0.5rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-header-padding",
+      "sass": "$tour-step-header-padding",
+      "default": "0.75rem 1rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-header-color",
+      "sass": "$tour-step-header-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-header-weight",
+      "sass": "$tour-step-header-weight",
+      "default": "var(--bulma-weight-semibold)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-body-padding",
+      "sass": "$tour-step-body-padding",
+      "default": "1rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-footer-padding",
+      "sass": "$tour-step-footer-padding",
+      "default": "0.75rem 1rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-footer-gap",
+      "sass": "$tour-step-footer-gap",
+      "default": "0.5rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-progress-color",
+      "sass": "$tour-progress-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-transition-duration",
+      "sass": "$tour-transition-duration",
+      "default": "0.2s",
+      "scope": "root"
+    }
+  ]
+}

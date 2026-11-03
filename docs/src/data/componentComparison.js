@@ -97,6 +97,7 @@ const BESTAX = {
   Timeline: 'components/timeline',
   Toast: 'components/toast',
   Tooltip: 'components/tooltip',
+  Tour: 'components/tour',
   TreeView: 'components/treeview',
   Autocomplete: 'form/autocomplete',
   Checkbox: 'form/checkbox',
@@ -1770,6 +1771,7 @@ export const categories = [
         'Tooltip',
         'Tooltip',
       ],
+      ['Tour (guided onboarding)', 'Tour', 'Tour', 0, 0, 0, 0, 0],
       ['Backdrop / scrim', '~overlay', 'Overlay', 0, 'Backdrop', 0, 0, 0],
       [
         'Floating / draggable panel',

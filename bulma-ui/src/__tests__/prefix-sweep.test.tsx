@@ -419,6 +419,21 @@ const PROPS: Record<string, Record<string, unknown>> = {
     marks: [{ value: 50, label: '50' }],
     tooltip: 'always',
   },
+  // Open on its second step, so Back is swept with every part a step
+  // renders. Its steps have no target, so the step is centered with no
+  // spotlight; Tour.test.tsx sweeps the spotlight under a prefix.
+  Tour: {
+    defaultOpen: true,
+    defaultValue: 1,
+    children: [
+      <Library.Tour.Step key="one" title="One">
+        One
+      </Library.Tour.Step>,
+      <Library.Tour.Step key="two" title="Two">
+        Two
+      </Library.Tour.Step>,
+    ],
+  },
   // A checkbox tree, sized and open, with an icon, a disabled item and a
   // checked one, so the box, the group and the modifiers are swept. An item
   // renders nothing outside a tree, so TreeViewItem's classes are swept here.

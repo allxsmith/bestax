@@ -373,6 +373,18 @@ function TooltipIcon() {
   );
 }
 
+// A button ringed by a spotlight, and a step's panel below it with a line of text and its buttons
+function TourIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="2.5" width="10" height="6" rx="2" strokeDasharray="2 2" />
+      <path d="M6 5.5h4" />
+      <rect x="7" y="12" width="14" height="9.5" rx="2" />
+      <path d="M10 15.5h8M10 18.5h3M15.5 18.5h2.5" />
+    </svg>
+  );
+}
+
 // An open parent's chevron and row, with two rows under its guide line
 function TreeViewIcon() {
   return (
@@ -418,6 +430,7 @@ const ADDON_ICONS = {
   timeline: TimelineIcon,
   toast: ToastIcon,
   tooltip: TooltipIcon,
+  tour: TourIcon,
   treeview: TreeViewIcon,
 };
 

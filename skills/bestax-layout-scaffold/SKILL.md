@@ -183,6 +183,14 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `onOpenChange`, with `aria-keyshortcuts` on the button. The same list inline, in a page or a
   Popover, is `Command`. For server results, build it from parts: `Command.Input`, then
   `Command.List` of `Command.Item`s, or `Command.Empty`, filtered from `onQueryChange`.
+- **A first-visit walkthrough, a "what's new" pass or a "Take the tour" button is `Tour`**, not
+  a `Modal` per step or a `Popover` moved by hand:
+  `<Tour open={open} onOpenChange={setOpen} onFinish={…}>` with a
+  `<Tour.Step target={ref} title="Filters">` per step, its body as children.
+  A target is a ref, an element or a selector, and a step without one sits in the middle. By
+  default a step is modal over a dimmed page, so its body says what the target is; give
+  `overlay={false}` (on the tour or one step) when the user should try the control. The app
+  opens it and stores what `onFinish` and `onOpenChange` say: it doesn't remember who's seen it.
 - Link lists (footer nav, sidebars): a bare `UnorderedList` of `ListItem`s is already
   marker-less and flush — Bulma's reset unstyles `ul` — so no prop or CSS is needed;
   bullets appear only inside `Content`.

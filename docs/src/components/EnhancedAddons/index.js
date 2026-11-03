@@ -199,6 +199,12 @@ const ADDONS = [
     desc: 'Hover hints in any direction and color.',
   },
   {
+    name: 'Tour',
+    icon: 'tour',
+    link: '/docs/api/components/tour',
+    desc: 'A walk through an interface one element at a time, each step a dialog beside it with a spotlight on it.',
+  },
+  {
     name: 'TreeView',
     icon: 'treeview',
     link: '/docs/api/components/treeview',

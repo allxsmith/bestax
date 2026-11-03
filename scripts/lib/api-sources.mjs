@@ -325,6 +325,7 @@ export const SCSS_SOURCES = {
   Tooltip: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_tooltip.scss' },
   ],
+  Tour: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_tour.scss' }],
   Tr: [],
   TreeView: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_treeview.scss' },

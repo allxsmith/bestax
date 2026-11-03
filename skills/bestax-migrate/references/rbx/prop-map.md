@@ -190,7 +190,7 @@ one. rbx forwards a ref on every component; bestax does so on the form controls,
 `Button`, `Carousel`, `CarouselItem`, `ColorSwatch`, `Command`, `Command.Dialog`, `Command.Input`, `DataTable`, `DescriptionList`, `DescriptionList.Item`, `DescriptionList.Label`, `DescriptionList.Value`, `Dialog`, `Dropdown`, `EmptyState`, `Kbd`, `Kbd.Group`,
 `Link`, `LinkButton`, `Loader`, `LocaleProvider`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`,
 `Navbar.Item`, `Navbar.Link`, `NumberFormatter`, `RingProgress`, `ScrollArea`, `SegmentedControl`, `SegmentedControl.Segment`, `Sidebar`, `Splitter`, `Splitter.Pane`, `Timeline`,
-`Timeline.Item`, `Toast`, `ToggleButton`, `TreeView` and `TreeView.Item`. "The form controls" there
+`Timeline.Item`, `Toast`, `ToggleButton`, `Tour`, `Tour.Step`, `TreeView` and `TreeView.Item`. "The form controls" there
 means the inputs themselves: the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios`
 wrappers around them forward nothing, and `Field` is a target this codemod emits.
 

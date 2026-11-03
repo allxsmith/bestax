@@ -683,6 +683,35 @@ function LoadingExample() {
 
 ---
 
+### Tour
+
+A walk through an interface, one element at a time: each `Tour.Step` is a dialog pointing at its `target`, over a dimmed page with a spotlight on the target, or without the overlay as a non-modal dialog that leaves the page usable. Done on the last step calls `onFinish`, apart from Skip and Escape. [View full documentation.](../../api/components/tour.md)
+
+```tsx live
+function TourExample() {
+  const [open, setOpen] = React.useState(false);
+  const filtersRef = React.useRef<HTMLButtonElement>(null);
+  return (
+    <>
+      <Buttons>
+        <Button ref={filtersRef}>Filters</Button>
+        <Button color="primary" onClick={() => setOpen(true)}>
+          Take the tour
+        </Button>
+      </Buttons>
+      <Tour open={open} onOpenChange={setOpen}>
+        <Tour.Step title="Welcome">A quick look around the list.</Tour.Step>
+        <Tour.Step target={filtersRef} title="Filters">
+          The Filters button narrows the list by status and owner.
+        </Tour.Step>
+      </Tour>
+    </>
+  );
+}
+```
+
+---
+
 ## Menus
 
 ### Menu
