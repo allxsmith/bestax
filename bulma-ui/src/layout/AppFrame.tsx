@@ -24,6 +24,7 @@ import { useInertSiblings } from '../helpers/useInertSiblings';
 import { trapTab } from '../helpers/useFocusTrap';
 import { useOverlayFocus } from '../helpers/useOverlayFocus';
 import { useOutsidePress } from '../helpers/useOutsidePress';
+import { getActiveElementInTree } from '../helpers/shadowDom';
 import { useBulmaBreakpoint } from '../helpers/useBulmaViewport';
 import { warnOnce } from '../helpers/devWarnings';
 import { NavbarBurger } from '../components/Navbar';
@@ -450,13 +451,21 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
 
     // Focus moves to the drawer's first tab stop, the close button, as it
     // opens, and back to whatever had it as it closes, unless it has left
-    // the drawer, or the window widened and the drawer is now the column,
-    // where focus can stay. After a press outside, the press's own mousedown
-    // then takes it wherever the press goes.
+    // the drawer. After a press outside, the press's own mousedown then takes
+    // it wherever the press goes. When the window widened, the drawer is the
+    // column again, and focus on its links stays; the close button hides
+    // there, so focus on it, or dropped from it to <body>, goes back too.
     const isDrawerRef = useLatestRef(isDrawer);
     useOverlayFocus(navRef, open, {
       modal: overlay,
-      restore: () => isDrawerRef.current,
+      restore: () => {
+        if (isDrawerRef.current) return true;
+        const nav = navRef.current as HTMLElement;
+        const active = getActiveElementInTree(nav);
+        return (
+          !nav.contains(active) || !!active?.classList.contains(closeClass)
+        );
+      },
     });
 
     const handleClick = (e: React.MouseEvent<HTMLElement>) => {

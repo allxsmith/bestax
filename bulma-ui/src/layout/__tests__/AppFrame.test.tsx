@@ -1034,6 +1034,28 @@ describe('AppFrame', () => {
       expect(link('Orders')).toHaveFocus();
     });
 
+    it('hands focus to the burger when the window widens with it on the close button', () => {
+      const viewport = mockViewport(PHONE);
+      render(<Frame />);
+      fireEvent.click(burger());
+      expect(
+        screen.getByRole('button', { name: 'Close navigation' })
+      ).toHaveFocus();
+      // The close button hides in the column, so focus can't stay on it.
+      viewport.resize(DESKTOP);
+      expect(root()).not.toHaveClass('is-nav-open');
+      expect(burger()).toHaveFocus();
+    });
+
+    it('hands focus to the burger when the window widens with it dropped to the page', () => {
+      const viewport = mockViewport(PHONE);
+      render(<Frame />);
+      fireEvent.click(burger());
+      (document.activeElement as HTMLElement).blur();
+      viewport.resize(DESKTOP);
+      expect(burger()).toHaveFocus();
+    });
+
     it('leaves focus alone when it opens without an overlay over a modal overlay', () => {
       mockViewport(PHONE);
       render(

@@ -173,7 +173,8 @@ An overlay opened from the drawer, such as a `Modal`, goes inside `AppFrame.Nav`
 the frame (Modal's `portal`): while the drawer is open, the rest of the frame is inert.
 
 When the window widens past the breakpoint with the drawer open, the drawer closes and the nav is
-the column again, so focus stays where it is.
+the column again, so focus on one of its links stays where it is. The close button hides in the
+column, so focus on it goes back to the burger.
 
 ### Collapsing the Column
 
