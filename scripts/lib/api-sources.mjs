@@ -236,6 +236,7 @@ export const SCSS_SOURCES = {
     { pkg: 'repo', path: 'bulma-ui/src/scss/elements/_notification.scss' },
     { pkg: 'bulma', path: 'sass/elements/notification.scss' },
   ],
+  NumberFormatter: [],
   Numberinput: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_numberinput.scss' },
   ],
@@ -379,6 +380,7 @@ export const IMPORT_COMPANIONS = {
   Toast: ['Toast', 'ToastContainer', 'toast'],
   ListItem: ['ListItem', 'UnorderedList', 'OrderedList'],
   Notification: ['Notification', 'NotificationContainer', 'notification'],
+  NumberFormatter: ['NumberFormatter', 'useNumberFormat'],
   OrderedList: ['OrderedList', 'ListItem'],
   Pre: ['Pre', 'Code'],
   Table: ['Table', 'Thead', 'Tbody', 'Tfoot', 'Tr', 'Th', 'Td'],

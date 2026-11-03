@@ -390,6 +390,20 @@ Facts about one thing, each a label and its value, as HTML's description list: l
 
 ---
 
+### NumberFormatter
+
+A number written the way a locale writes it, such as a price, a percentage or a count, in a `<data>` element that keeps the number itself; `useNumberFormat` does the same for text outside JSX. [View full documentation.](../../../api/elements/numberformatter.md)
+
+```tsx live
+<NumberFormatter
+  value={8456.4}
+  locale="en-US"
+  format={{ style: 'currency', currency: 'USD' }}
+/>
+```
+
+---
+
 ### Tag
 
 A Bulma-styled label or badge, supporting color (with an `isLight` variant), size, rounded, hoverable, and delete variants. [View full documentation.](../../../api/elements/tag.md)

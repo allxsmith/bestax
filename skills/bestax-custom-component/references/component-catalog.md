@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-118 documented components. Generated from the API docs — every exported
+119 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -63,6 +63,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [ListItem](https://bestax.io/docs/api/elements/listitem) — The `ListItem` component renders a styled list item (`<li>`) element with Bulma helper class integration.
 - [Loader](https://bestax.io/docs/api/elements/loader) — The `Loader` component renders Bulma's `.loader`, a small spinning ring for inline loading states.
 - [Notification](https://bestax.io/docs/api/elements/notification) — The `Notification` component is a Bulma-styled alert/message area for providing feedback, warnings, or information to users.
+- [NumberFormatter](https://bestax.io/docs/api/elements/numberformatter) — The `NumberFormatter` component writes a number the way a locale writes it, such as a price, a percentage or a count…
 - [OrderedList](https://bestax.io/docs/api/elements/orderedlist) — The `OrderedList` component renders a styled ordered list (`<ol>`) element with Bulma helper class integration.
 - [Paragraph](https://bestax.io/docs/api/elements/paragraph) — The `Paragraph` component renders a styled `<p>` element with Bulma helper class integration.
 - [Pre](https://bestax.io/docs/api/elements/pre) — The `Pre` component renders a styled `<pre>` element with Bulma helper class integration.

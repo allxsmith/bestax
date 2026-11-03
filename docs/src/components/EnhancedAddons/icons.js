@@ -285,6 +285,17 @@ function DescriptionListIcon() {
   );
 }
 
+// A one, a comma and a zero, a number written the way a locale writes it
+function NumberFormatterIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M5.5 8.5 8 6v12" />
+      <path d="M11.5 17v1.2c0 .9-.5 1.6-1.2 2" />
+      <ellipse cx="16.5" cy="12" rx="3.5" ry="6" />
+    </svg>
+  );
+}
+
 // A ring with its arc filled most of the way round
 function RingProgressIcon() {
   return (
@@ -383,6 +394,7 @@ const ADDON_ICONS = {
   fieldset: FieldsetIcon,
   hovercard: HoverCardIcon,
   loading: LoadingIcon,
+  numberformatter: NumberFormatterIcon,
   pininput: PinInputIcon,
   popover: PopoverIcon,
   reveal: RevealIcon,
