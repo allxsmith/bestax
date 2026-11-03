@@ -339,25 +339,19 @@ export const BackToTop: Story = {
 export const BackToTopInAScroller: Story = {
   render: function BackToTopInAScrollerExample() {
     const viewportRef = useRef<HTMLDivElement>(null);
-    const headingRef = useRef<HTMLHeadingElement>(null);
     return (
       <Content p="5">
         <Paragraph>
-          The button watches the feed below, scrolls it, and moves focus to its
-          heading.
+          The button watches the feed below, scrolls it, and moves focus to it.
         </Paragraph>
         <ScrollArea ref={viewportRef} maxHeight="14rem" aria-label="Feed">
-          {/* Title forwards no ref, so the heading is written out. */}
-          <h2 ref={headingRef} className="title is-5">
-            Feed
-          </h2>
+          <Title size="5">Feed</Title>
           {Array.from({ length: 12 }, (_, i) => (
             <p key={i}>{NOTE}</p>
           ))}
         </ScrollArea>
         <FloatButton.BackToTop
           scrollContainer={viewportRef}
-          moveFocus={headingRef}
           visibilityHeight={100}
         />
       </Content>

@@ -35,6 +35,14 @@ export interface FloatButtonsProps
    * @defaultValue false
    */
   portal?: boolean | string | HTMLElement;
+  /**
+   * Prints every button's `aria-label` beside its icon, as each one's
+   * `showLabel` does, for touch screens, where a tooltip never shows. A
+   * speed dial in the stack passes it on to its actions; its trigger stays
+   * an icon.
+   * @defaultValue false
+   */
+  showLabels?: boolean;
 }
 
 /**
@@ -61,6 +69,7 @@ export const FloatButtons = forwardRef<HTMLDivElement, FloatButtonsProps>(
     {
       position = 'bottom-right',
       portal = false,
+      showLabels = false,
       className,
       children,
       ...props
@@ -73,9 +82,9 @@ export const FloatButtons = forwardRef<HTMLDivElement, FloatButtonsProps>(
         position,
         tooltipPosition: tooltipSide(position),
         inMenu: false,
-        showLabels: false,
+        showLabels,
       }),
-      [position]
+      [position, showLabels]
     );
 
     return (

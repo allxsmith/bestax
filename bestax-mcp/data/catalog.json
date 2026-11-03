@@ -698,7 +698,7 @@
       "slug": "components/floatbutton",
       "import": "import { FloatButton } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 60,
+      "propCount": 61,
       "exampleCount": 13
     },
     {
@@ -709,7 +709,7 @@
       "slug": "components/floatbuttons",
       "import": "import { FloatButtons, FloatButton } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 4,
+      "propCount": 5,
       "exampleCount": 3
     },
     {

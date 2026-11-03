@@ -66,6 +66,15 @@
           "required": false,
           "inherited": false,
           "deprecated": false
+        },
+        {
+          "name": "showLabels",
+          "type": "boolean",
+          "default": "false",
+          "description": "Prints every button's `aria-label` beside its icon, as each one's `showLabel` does, for touch screens, where a tooltip never shows. A speed dial in the stack passes it on to its actions; its trigger stays an icon.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
         }
       ],
       "extraProps": [

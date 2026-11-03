@@ -2,6 +2,10 @@
 // Round buttons that float in a corner: their shadow, the FloatButtons
 // stack, the speed dial's layout and back to top's fade. The corner, its
 // offsets and the z-index are Affix's, and the circle is IconButton's.
+//
+// Back to top marks itself shown with `is-shown` rather than `is-active`,
+// which on a `.button` is Bulma's pressed state: a shown back to top would
+// look pressed and give no hover feedback.
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
@@ -153,8 +157,9 @@ $float-button-actions-gap: 0.5rem !default;
   }
 }
 
-// Back to top fades in past `visibilityHeight` and out above it. Hidden, it
-// keeps its place, out of the Tab order and the accessibility tree.
+// Back to top fades in past `visibilityHeight`, as `is-shown`, and out above
+// it. Hidden, it keeps its place, out of the Tab order and the accessibility
+// tree.
 .#{iv.$class-prefix}button.#{iv.$class-prefix}float-button-back-to-top {
   @include extras-transition(
     background-color,

@@ -281,6 +281,39 @@ describe('FloatButtons', () => {
     expect(help.parentElement!.parentElement).toBe(stack);
   });
 
+  it('prints every button’s name with showLabels, and hands it to a speed dial’s actions', () => {
+    render(
+      <FloatButtons showLabels>
+        <FloatButton aria-label="Help" icon="question" />
+        <FloatButton.SpeedDial aria-label="Create" icon="plus" defaultOpen>
+          <FloatButton aria-label="Note" icon="note-sticky" />
+        </FloatButton.SpeedDial>
+        <FloatButton.SpeedDial
+          aria-label="Share"
+          icon="share"
+          defaultOpen
+          showLabels={false}
+        >
+          <FloatButton aria-label="Copy" icon="link" />
+        </FloatButton.SpeedDial>
+      </FloatButtons>
+    );
+    const help = screen.getByRole('button', { name: 'Help' });
+    expect(help).toHaveTextContent('Help');
+    expect(help).not.toHaveAttribute('aria-label');
+    expect(screen.getByRole('menuitem', { name: 'Note' })).toHaveTextContent(
+      'Note'
+    );
+    // A dial's own showLabels wins, and its trigger stays an icon.
+    expect(screen.getByRole('menuitem', { name: 'Copy' })).toHaveAttribute(
+      'aria-label',
+      'Copy'
+    );
+    expect(screen.getByRole('button', { name: 'Create' })).toHaveClass(
+      'icon-button'
+    );
+  });
+
   it('takes a Badge around a FloatButton', () => {
     render(
       <FloatButtons>
@@ -666,9 +699,12 @@ describe('FloatButton.SpeedDial', () => {
 
   describe('directions', () => {
     const keysOf = (direction: FloatButtonSpeedDialDirection, rtl = false) => {
-      const { unmount } = render(<Dial direction={direction} />);
+      const { unmount } = render(
+        <Dial direction={direction} style={rtl ? { direction: 'rtl' } : {}} />
+      );
       dialTrigger().focus();
       press('Enter');
+      // jsdom doesn't inherit `direction`, which the hook reads off the menu.
       if (rtl) menu()!.style.direction = 'rtl';
       const seen: string[] = [];
       for (const key of ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']) {
@@ -837,10 +873,38 @@ describe('FloatButton.SpeedDial', () => {
     expect(ref.current).toHaveAttribute('id', 'create');
   });
 
-  it('hands its root to a callback ref', () => {
+  it('hands its root to a callback ref, and null when it goes', () => {
     const ref = vi.fn();
-    render(<Dial ref={ref} />);
+    const { unmount } = render(<Dial ref={ref} />);
     expect(ref).toHaveBeenCalledWith(screen.getByTestId('dial'));
+    unmount();
+    expect(ref).toHaveBeenLastCalledWith(null);
+  });
+
+  it('runs the cleanup a callback ref returns in place of a call with null', () => {
+    const cleanup = vi.fn();
+    const ref = vi.fn(() => cleanup);
+    const { unmount } = render(<Dial ref={ref} />);
+    expect(ref).toHaveBeenCalledTimes(1);
+    unmount();
+    expect(cleanup).toHaveBeenCalledTimes(1);
+    expect(ref).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves the dial open after an action with closeOnClick off', () => {
+    const log: string[] = [];
+    render(<Dial log={log} closeOnClick={false} />);
+    dialTrigger().focus();
+    press('Enter');
+    fireEvent.click(action('Note'));
+    expect(log).toEqual(['note']);
+    expect(menu()).not.toBeNull();
+    expect(action('Note')).toHaveFocus();
+  });
+
+  it('takes Button’s normal size', () => {
+    render(<Dial size="normal" />);
+    expect(dialTrigger()).toHaveClass('is-normal');
   });
 
   it('passes the trigger its icon, color and size', () => {
@@ -1143,6 +1207,17 @@ describe('FloatButton.BackToTop', () => {
     expect(ref.current).toBe(first);
     expect(callback).toHaveBeenCalledWith(second);
     expect(first.querySelector('i')).toHaveClass('fa-arrow-up');
+  });
+
+  it('runs the cleanup its callback ref returns once it goes', () => {
+    const cleanup = vi.fn();
+    const ref = vi.fn(() => cleanup);
+    const { unmount } = render(<FloatButton.BackToTop ref={ref} />);
+    flush();
+    expect(ref).toHaveBeenCalledWith(backToTop());
+    unmount();
+    expect(cleanup).toHaveBeenCalledTimes(1);
+    expect(ref).toHaveBeenCalledTimes(1);
   });
 
   it('puts the helper props, className and attributes on its button', () => {

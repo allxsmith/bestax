@@ -46,7 +46,7 @@ import {
 import { withSubComponents } from '../helpers/withSubComponents';
 
 /** A FloatButton's size; unset, it's Bulma's normal button, 40px across. */
-export type FloatButtonSize = 'small' | 'medium' | 'large';
+export type FloatButtonSize = 'small' | 'normal' | 'medium' | 'large';
 
 /** The way a speed dial's actions run from its trigger, on the screen. */
 export type FloatButtonSpeedDialDirection = 'up' | 'down' | 'left' | 'right';
@@ -68,7 +68,10 @@ export interface FloatButtonOwnProps {
   showLabel?: boolean;
   /** Bulma color, as `Button`'s. Unset, it's Bulma's default button. */
   color?: ButtonOwnProps['color'];
-  /** `'small'` (30px), `'medium'` (50px) or `'large'` (60px). Unset, 40px. */
+  /**
+   * `'small'` (30px), `'normal'` (40px, the same as unset), `'medium'`
+   * (50px) or `'large'` (60px), as `Button`'s.
+   */
   size?: FloatButtonSize;
   /**
    * The corner it's fixed to, as `Affix`'s. Inside `FloatButtons` or a
@@ -128,6 +131,35 @@ type FloatButtonImplProps = FloatButtonOwnProps &
     'aria-label'?: string;
     'aria-labelledby'?: string;
   };
+
+/**
+ * Sets `ownRef` and the ref a consumer forwarded to `node`. A callback ref
+ * that returns a cleanup, as React 19 allows, has it held in `cleanupRef`
+ * and run when the node goes, in place of a call with `null`, on React 18
+ * as well; a callback that returns none gets `null`, as React gives it.
+ */
+function attachRefs<T>(
+  node: T | null,
+  ownRef: React.MutableRefObject<T | null>,
+  forwardedRef: React.ForwardedRef<T>,
+  cleanupRef: React.MutableRefObject<(() => void) | null>
+): void {
+  ownRef.current = node;
+  if (typeof forwardedRef === 'function') {
+    if (node === null) {
+      const cleanup = cleanupRef.current;
+      cleanupRef.current = null;
+      if (cleanup) cleanup();
+      else forwardedRef(null);
+      return;
+    }
+    const cleanup: unknown = forwardedRef(node);
+    cleanupRef.current =
+      typeof cleanup === 'function' ? (cleanup as () => void) : null;
+  } else if (forwardedRef) {
+    forwardedRef.current = node;
+  }
+}
 
 /** What a float button takes inside a speed dial's menu, after its own props. */
 const MENU_ITEM = { role: 'menuitem', tabIndex: -1 } as const;
@@ -283,10 +315,20 @@ export interface FloatButtonSpeedDialOwnProps extends Omit<
    * focus have left the trigger and the actions. The pointer only: keyboard
    * focus on the trigger never opens it, and a touch pointer doesn't either.
    * Activation still toggles it, which is how the keyboard opens it, so a
-   * click on a dial the pointer opened closes it.
+   * click on a dial the pointer opened closes it. It isn't Dropdown's
+   * `hoverable`, which opens on hover in place of a click, through CSS
+   * alone: this opens on hover as well as a click, and the open state,
+   * `aria-expanded` and `onOpenChange` follow it.
    * @defaultValue false
    */
   openOnHover?: boolean;
+  /**
+   * Closes the dial when an action is clicked, or activated with Enter or
+   * Space, and hands focus back to the trigger, as Dropdown's does. Off,
+   * the dial stays open and focus stays on the action.
+   * @defaultValue true
+   */
+  closeOnClick?: boolean;
   /**
    * The way the actions run from the trigger, on the screen, in
    * right-to-left text too. The arrow key that points that way moves away
@@ -296,7 +338,8 @@ export interface FloatButtonSpeedDialOwnProps extends Omit<
   direction?: FloatButtonSpeedDialDirection;
   /**
    * Prints every action's `aria-label` beside it, as each one's `showLabel`
-   * does, for touch screens, where a tooltip never shows.
+   * does, for touch screens, where a tooltip never shows. Unset inside
+   * `FloatButtons`, it's the stack's `showLabels`.
    * @defaultValue false
    */
   showLabels?: boolean;
@@ -331,9 +374,6 @@ export type FloatButtonSpeedDialProps = FloatButtonSpeedDialOwnProps &
     | 'aria-label'
     | 'aria-labelledby'
   >;
-
-/** The four arrow keys. */
-const ARROWS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
 
 /** The arrow key that points from the trigger along each direction. */
 const ALONG = {
@@ -401,8 +441,9 @@ export const FloatButtonSpeedDial = forwardRef<
     defaultOpen = false,
     onOpenChange,
     openOnHover = false,
+    closeOnClick = true,
     direction: directionProp,
-    showLabels = false,
+    showLabels: showLabelsProp,
     position: positionProp = 'bottom-right',
     portal = false,
     className,
@@ -415,6 +456,7 @@ export const FloatButtonSpeedDial = forwardRef<
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
   const outer = useContext(FloatButtonContext);
   const position = outer?.position ?? positionProp;
+  const showLabels = showLabelsProp ?? outer?.showLabels ?? false;
   const direction =
     directionProp ?? (position.startsWith('top') ? 'down' : 'up');
   const sideways = direction === 'left' || direction === 'right';
@@ -442,20 +484,33 @@ export const FloatButtonSpeedDial = forwardRef<
   // has left.
   const tabbedRef = useRef(false);
 
+  const refCleanupRef = useRef<(() => void) | null>(null);
   const setRefs = useCallback(
-    (node: HTMLDivElement | null) => {
-      rootRef.current = node;
-      if (typeof ref === 'function') ref(node);
-      else if (ref) ref.current = node;
-    },
+    (node: HTMLDivElement | null) =>
+      attachRefs(node, rootRef, ref, refCleanupRef),
     [ref]
   );
 
-  // The actions run in DOM order away from the trigger, on the screen, so
-  // the arrow pointing along the dial is the menu's next item and the one
-  // pointing back its previous, whatever the writing direction. They reach
-  // the hook as Down and Up, the keys it moves with by default.
-  const menuKeys = useMenuKeys();
+  // A sideways dial lays its actions out by the writing direction the browser
+  // computes, read here when it opens, so the stylesheet and the page agree
+  // on which way is left, a `dir` attribute or a CSS `direction` alike.
+  const [rtl, setRtl] = useState(false);
+  useClientLayoutEffect(() => {
+    if (!open || !sideways) return;
+    const root = rootRef.current as HTMLDivElement;
+    setRtl(getComputedStyle(root).direction === 'rtl');
+  }, [open, sideways]);
+
+  // The actions run in DOM order away from the trigger, so the arrow pointing
+  // along the dial moves to the next and the one pointing back to the
+  // previous, and the arrows across it do nothing. Up runs against the DOM
+  // order, so it's reversed. Sideways, the hook reads Right as the next in
+  // left-to-right text and Left in right-to-left, so a dial whose actions run
+  // the other way on the screen is reversed.
+  const menuKeys = useMenuKeys({
+    orientation: sideways ? 'horizontal' : 'vertical',
+    reverse: sideways ? (direction === 'left') !== rtl : direction === 'up',
+  });
 
   const focusEdge = (edge: 'first' | 'last') =>
     focusEdgeAction(menuRef.current as HTMLElement, edge);
@@ -469,16 +524,6 @@ export const FloatButtonSpeedDial = forwardRef<
     pendingFocusRef.current = null;
     if (edge) focusEdgeAction(menuRef.current as HTMLElement, edge);
   }, [open, menuKeys]);
-
-  // A sideways dial lays its actions out by the writing direction the browser
-  // computes, read here, so the stylesheet and the page agree on which way is
-  // left, a `dir` attribute or a CSS `direction` alike.
-  const [rtl, setRtl] = useState(false);
-  useClientLayoutEffect(() => {
-    if (!open || !sideways) return;
-    const root = rootRef.current as HTMLDivElement;
-    setRtl(getComputedStyle(root).direction === 'rtl');
-  }, [open, sideways]);
 
   // A key asks to open it on an edge, which the menu focuses once it has
   // mounted. A controlled parent can turn the ask down, and then the edge is
@@ -579,22 +624,6 @@ export const FloatButtonSpeedDial = forwardRef<
       return;
     }
     if (e.key === 'Tab') return;
-    if (ARROWS.has(e.key)) {
-      const step =
-        e.key === ALONG[direction]
-          ? 'ArrowDown'
-          : e.key === AGAINST[direction]
-            ? 'ArrowUp'
-            : null;
-      // The arrows across the dial do nothing.
-      if (!step) return;
-      menuKeys.onKeyDown(
-        step === e.key
-          ? e
-          : (Object.create(e, { key: { value: step } }) as typeof e)
-      );
-      return;
-    }
     menuKeys.onKeyDown(e);
   };
 
@@ -607,6 +636,7 @@ export const FloatButtonSpeedDial = forwardRef<
   };
 
   const handleMenuClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!closeOnClick) return;
     const menu = e.currentTarget;
     const item = (e.target as Element).closest(MENU_ITEM_SELECTOR);
     if (!item || !menu.contains(item) || !isEnabledMenuItem(item)) return;
@@ -867,12 +897,10 @@ export const FloatButtonBackToTop = forwardRef<
     'is-shown': shown,
   });
 
+  const refCleanupRef = useRef<(() => void) | null>(null);
   const setRefs = useCallback(
-    (node: HTMLButtonElement | null) => {
-      buttonRef.current = node;
-      if (typeof ref === 'function') ref(node);
-      else if (ref) ref.current = node;
-    },
+    (node: HTMLButtonElement | null) =>
+      attachRefs(node, buttonRef, ref, refCleanupRef),
     [ref]
   );
 

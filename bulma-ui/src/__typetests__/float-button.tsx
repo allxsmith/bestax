@@ -32,7 +32,7 @@ export const accepted = (
       ref={React.createRef<HTMLButtonElement>()}
     />
     <Badge content={3} overlap="circle">
-      <FloatButton aria-label="Inbox" icon="inbox" size="small" />
+      <FloatButton aria-label="Inbox" icon="inbox" size="normal" />
     </Badge>
     <FloatButton aria-labelledby="compose-name" color="primary">
       <Icon name="pen" />
@@ -73,7 +73,7 @@ export const rejected = (
     {/* @ts-expect-error a dial needs aria-label or aria-labelledby */}
     <FloatButton.SpeedDial icon="plus" />
     {/* @ts-expect-error a size outside the union */}
-    <FloatButton icon="plus" aria-label="New" size="normal" />
+    <FloatButton icon="plus" aria-label="New" size="huge" />
     {/* @ts-expect-error a direction outside the four */}
     <FloatButton.SpeedDial aria-label="Create" direction="around" />
     {/* @ts-expect-error back to top renders a button, with no `as` */}
