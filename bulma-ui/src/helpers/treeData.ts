@@ -110,21 +110,27 @@ export interface TreeSearch {
  */
 export function searchTree(
   data: TreeItemData[],
-  matches: (node: TreeItemData) => boolean
+  matches: (node: TreeItemData, path: TreeItemData[]) => boolean
 ): TreeSearch {
   const hidden = new Set<string>();
   const open: string[] = [];
-  // Whether the nodes, or any node under them, match.
-  const walk = (nodes: TreeItemData[], underMatch: boolean): boolean => {
+  // Whether the nodes, or any node under them, match. `above` is the path
+  // down to them.
+  const walk = (
+    nodes: TreeItemData[],
+    underMatch: boolean,
+    above: TreeItemData[]
+  ): boolean => {
     let found = false;
     for (const node of nodes) {
-      const self = matches(node);
-      const below = walk(childNodes(node), underMatch || self);
+      const path = [...above, node];
+      const self = matches(node, path);
+      const below = walk(childNodes(node), underMatch || self, path);
       if (below) open.push(node.value);
       if (!underMatch && !self && !below) hidden.add(node.value);
       found = found || self || below;
     }
     return found;
   };
-  return { hidden, open, found: walk(data, false) };
+  return { hidden, open, found: walk(data, false, []) };
 }

@@ -135,6 +135,16 @@ describe('searchTree', () => {
     expect(searchTree(TREE, match('A3')).hidden.has('a3x')).toBe(false);
   });
 
+  it('hands each node its path from the top down, the node last', () => {
+    const paths: string[] = [];
+    searchTree(TREE, (node, path) => {
+      expect(path[path.length - 1]).toBe(node);
+      paths.push(path.map(step => step.value).join('/'));
+      return false;
+    });
+    expect(paths).toEqual(['a', 'a/a1', 'a/a2', 'a/a3', 'a/a3/a3x', 'b', 'c']);
+  });
+
   it('hides everything when nothing matches', () => {
     const found = searchTree(TREE, () => false);
     expect(found.found).toBe(false);

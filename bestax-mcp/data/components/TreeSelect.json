@@ -50,6 +50,10 @@
       "code": "<>\n  <TreeSelect\n    label=\"Small\"\n    size=\"small\"\n    color=\"info\"\n    data={[{ value: 'a', label: 'Alpha' }]}\n  />\n  <TreeSelect\n    label=\"Large, rounded\"\n    size=\"large\"\n    isRounded\n    data={[{ value: 'a', label: 'Alpha' }]}\n  />\n</>"
     },
     {
+      "title": "In Another Language",
+      "code": "<TreeSelect\n  label=\"Dossier\"\n  placeholder=\"Choisir un dossier\"\n  searchable\n  clearable\n  defaultValue=\"factures\"\n  labels={{\n    choose: 'Choisir un dossier',\n    search: 'Rechercher',\n    clear: 'Effacer',\n    loading: 'Chargement…',\n    retry: 'Réessayer',\n    loadingAnnouncement: name => `Chargement de ${name}`,\n    loadedAnnouncement: name => `${name} chargé`,\n  }}\n  data={[\n    {\n      value: 'documents',\n      label: 'Documents',\n      children: [\n        { value: 'factures', label: 'Factures' },\n        { value: 'contrats', label: 'Contrats' },\n      ],\n    },\n    { value: 'photos', label: 'Photos' },\n  ]}\n/>"
+    },
+    {
       "title": "Right to Left",
       "code": "<LocaleProvider locale=\"ar\" dir=\"rtl\">\n  <TreeSelect\n    label=\"المجلد\"\n    defaultValue=\"invoices\"\n    clearable\n    data={[\n      {\n        value: 'docs',\n        label: 'المستندات',\n        children: [{ value: 'invoices', label: 'الفواتير' }],\n      },\n      { value: 'photos', label: 'الصور' },\n    ]}\n  />\n</LocaleProvider>"
     }
@@ -285,9 +289,9 @@
         },
         {
           "name": "filter",
-          "type": "(query: string, item: TreeItemData) => boolean",
+          "type": "(query: string, item: TreeItemData, path: TreeItemData[]) => boolean",
           "default": null,
-          "description": "Whether a node matches the search, in place of the locale-aware match on its label. It's handed the search text trimmed. A match's ancestors stay either way. The search runs again when the search text or `data` changes, not when only this does, so one written inline costs nothing.",
+          "description": "Whether a node matches the search, in place of the locale-aware match on its label. It's handed the search text trimmed, the node, and its path from the top node down, the node last, as Cascader's `filter` is. A match's ancestors stay either way. The search runs again when the search text or `data` changes, not when only this does, so one written inline costs nothing.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -411,45 +415,9 @@
         },
         {
           "name": "labels",
-          "type": "{ choose?: string; search?: string; clear?: string }",
+          "type": "TreeSelectLabels",
           "default": null,
           "description": "The visible and accessible strings, in your app's language.",
-          "required": false,
-          "inherited": true,
-          "deprecated": false
-        },
-        {
-          "name": "loadingLabel",
-          "type": "string",
-          "default": null,
-          "description": "What a loading branch's row says, as on TreeView. In your app's language.",
-          "required": false,
-          "inherited": true,
-          "deprecated": false
-        },
-        {
-          "name": "retryLabel",
-          "type": "string",
-          "default": null,
-          "description": "The Retry button's text on a failed load's row, as on TreeView. In your app's language.",
-          "required": false,
-          "inherited": true,
-          "deprecated": false
-        },
-        {
-          "name": "loadingAnnouncement",
-          "type": "(name: string) => string",
-          "default": null,
-          "description": "What the live region says when an open branch starts loading, as on TreeView.",
-          "required": false,
-          "inherited": true,
-          "deprecated": false
-        },
-        {
-          "name": "loadedAnnouncement",
-          "type": "(name: string) => string",
-          "default": null,
-          "description": "What the live region says when that load finishes, as on TreeView.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -616,6 +584,18 @@
       "css": "--bulma-tree-select-chevron-focus-color",
       "sass": "$tree-select-chevron-focus-color",
       "default": "var(--bulma-link)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-select-chevron-z-index",
+      "sass": "$tree-select-chevron-z-index",
+      "default": "4",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-select-clear-z-index",
+      "sass": "$tree-select-clear-z-index",
+      "default": "5",
       "scope": "root"
     },
     {

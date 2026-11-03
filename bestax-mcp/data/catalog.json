@@ -1388,8 +1388,8 @@
       "slug": "form/treeselect",
       "import": "import { TreeSelect } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 50,
-      "exampleCount": 12
+      "propCount": 46,
+      "exampleCount": 13
     },
     {
       "name": "TreeView",
@@ -3006,6 +3006,8 @@
     "--bulma-tree-select-chevron-focus-color": ["TreeSelect"],
     "--bulma-tree-select-chevron-hover-color": ["TreeSelect"],
     "--bulma-tree-select-chevron-width": ["TreeSelect"],
+    "--bulma-tree-select-chevron-z-index": ["TreeSelect"],
+    "--bulma-tree-select-clear-z-index": ["TreeSelect"],
     "--bulma-tree-select-empty-color": ["TreeSelect"],
     "--bulma-tree-select-empty-padding": ["TreeSelect"],
     "--bulma-tree-select-panel-max-height": ["TreeSelect"],
