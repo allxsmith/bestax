@@ -31,6 +31,12 @@ const ADDONS = [
     desc: 'Facts about one thing, each a label and its value, stacked on a phone and lined up in two columns from tablet up.',
   },
   {
+    name: 'NumberFormatter',
+    icon: 'numberformatter',
+    link: '/docs/api/elements/numberformatter',
+    desc: 'A price, a percentage or a count written the way the locale writes it, with the number itself kept in the markup.',
+  },
+  {
     name: 'Avatar',
     icon: 'avatar',
     link: '/docs/api/components/avatar',
