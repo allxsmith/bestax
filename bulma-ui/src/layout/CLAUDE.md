@@ -1,8 +1,10 @@
 # layout/ — page-level structure
 
 Bulma's _layout_ primitives (Container, Section, Hero, Level, Media, Footer), plus the extras
-that do the same job: Splitter, panes the reader resizes. These scaffold a page: they make its
-regions and divide the room between them, and present no content of their own.
+that do the same job: Splitter, panes the reader resizes, and Stack, Group, Center and Flex,
+which space and align what's in a region, on the `.stack` element they share
+(`../helpers/stackLayout.tsx`). These scaffold a page: they make its regions and divide the room
+between them, and present no content of their own.
 
 **Belongs here?** Only structural wrappers a page is built from. Interaction doesn't rule one out:
 Splitter's handles resize regions, the way Columns' gutters space them. If it's content chrome

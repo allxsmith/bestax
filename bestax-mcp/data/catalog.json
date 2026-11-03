@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.57.5"
+    "version": "5.58.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -23,6 +23,7 @@
         "Emphasis",
         "Figure",
         "Icon",
+        "IconButton",
         "IconText",
         "Image",
         "Kbd",
@@ -31,6 +32,7 @@
         "ListItem",
         "Loader",
         "Notification",
+        "NumberFormatter",
         "OrderedList",
         "Paragraph",
         "Pre",
@@ -132,13 +134,17 @@
       "id": "layout",
       "label": "Layout",
       "components": [
+        "Center",
         "Container",
+        "Flex",
         "Footer",
+        "Group",
         "Hero",
         "Level",
         "Media",
         "Section",
-        "Splitter"
+        "Splitter",
+        "Stack"
       ]
     },
     {
@@ -266,7 +272,7 @@
       "slug": "elements/buttons",
       "import": "import { Buttons } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 59,
+      "propCount": 81,
       "exampleCount": 8
     },
     {
@@ -301,6 +307,17 @@
       "compound": false,
       "propCount": 11,
       "exampleCount": 6
+    },
+    {
+      "name": "Center",
+      "kind": "component",
+      "category": "layout",
+      "purpose": "The `Center` component centers its content on both axes.",
+      "slug": "layout/center",
+      "import": "import { Center } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 7,
+      "exampleCount": 4
     },
     {
       "name": "Checkbox",
@@ -688,6 +705,17 @@
       "exampleCount": 18
     },
     {
+      "name": "Flex",
+      "kind": "component",
+      "category": "layout",
+      "purpose": "The `Flex` component is a flex container with CSS's own defaults, taking the flex container's properties as props.",
+      "slug": "layout/flex",
+      "import": "import { Flex } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 13,
+      "exampleCount": 4
+    },
+    {
       "name": "Footer",
       "kind": "component",
       "category": "layout",
@@ -708,6 +736,17 @@
       "compound": true,
       "propCount": 27,
       "exampleCount": 10
+    },
+    {
+      "name": "Group",
+      "kind": "component",
+      "category": "layout",
+      "purpose": "The `Group` component lays its children out in a row that wraps, centered on each other, with half of Bulma's block spacing between them.",
+      "slug": "layout/group",
+      "import": "import { Group } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 11,
+      "exampleCount": 6
     },
     {
       "name": "Hero",
@@ -741,6 +780,17 @@
       "compound": false,
       "propCount": 15,
       "exampleCount": 14
+    },
+    {
+      "name": "IconButton",
+      "kind": "component",
+      "category": "elements",
+      "purpose": "The `IconButton` component renders a button that shows only an icon, and requires a name for it.",
+      "slug": "elements/iconbutton",
+      "import": "import { IconButton } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 22,
+      "exampleCount": 12
     },
     {
       "name": "IconText",
@@ -928,6 +978,17 @@
       "compound": false,
       "propCount": 7,
       "exampleCount": 7
+    },
+    {
+      "name": "NumberFormatter",
+      "kind": "component",
+      "category": "elements",
+      "purpose": "The `NumberFormatter` component writes a number the way a locale writes it, such as a price, a percentage or a count, in a `<data>` element that keeps the…",
+      "slug": "elements/numberformatter",
+      "import": "import { NumberFormatter, useNumberFormat } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 6,
+      "exampleCount": 10
     },
     {
       "name": "Numberinput",
@@ -1205,6 +1266,17 @@
       "exampleCount": 9
     },
     {
+      "name": "Stack",
+      "kind": "component",
+      "category": "layout",
+      "purpose": "The `Stack` component lays its children out in a column, with Bulma's block spacing between them and the margins Bulma gives them zeroed.",
+      "slug": "layout/stack",
+      "import": "import { Stack } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 8,
+      "exampleCount": 8
+    },
+    {
       "name": "Steps",
       "kind": "component",
       "category": "components",
@@ -1400,7 +1472,7 @@
       "import": "import { TreeView } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 27,
-      "exampleCount": 9
+      "exampleCount": 10
     },
     {
       "name": "UnorderedList",
@@ -2815,6 +2887,8 @@
     "--bulma-splitter-line-active-size": ["Splitter"],
     "--bulma-splitter-line-color": ["Splitter"],
     "--bulma-splitter-line-size": ["Splitter"],
+    "--bulma-stack-gap": ["Stack", "Group"],
+    "--bulma-stack-horizontal-gap": ["Stack", "Group"],
     "--bulma-steps-animation-duration": ["Steps"],
     "--bulma-steps-content-margin-top": ["Steps"],
     "--bulma-steps-default-color": ["Steps"],
