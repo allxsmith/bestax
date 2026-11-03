@@ -87,6 +87,7 @@ const NAMED_INDIVIDUALLY = [
  */
 const SUMMARISED_AS_FORM_CONTROLS = [
   'Autocomplete',
+  'Cascader',
   'Checkbox',
   'CheckboxCard',
   'ColorInput',

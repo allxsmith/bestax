@@ -52,6 +52,7 @@ const RENDER_WITH = {
   Sidebar: () => ({ inline: true }),
   Toast: () => ({ inline: true }),
   TreeSelect: () => ({ data: [] }),
+  Cascader: () => ({ data: [] }),
 };
 
 /** Parts a server render cannot open, with why. */

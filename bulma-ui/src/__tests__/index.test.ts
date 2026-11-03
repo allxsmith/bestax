@@ -18,6 +18,7 @@ const PUBLIC_EXPORTS = [
   'Card',
   'Carousel',
   'CarouselItem',
+  'Cascader',
   'Cell',
   'Checkbox',
   'CheckboxCard',
