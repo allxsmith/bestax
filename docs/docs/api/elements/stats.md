@@ -147,8 +147,9 @@ A `LocaleProvider` around the row reaches every figure and change in it. Put it 
 - **A name from the heading above:** point `aria-labelledby` at it, as in
   [Basic Usage](#basic-usage).
 - **Only Stats inside:** a `<dl>` holds only its groups, so put nothing else in the row, and wrap
-  no Stat in it. A `LocaleProvider`, a `Box` or a `role="status"` element goes around the whole
-  row instead.
+  no Stat in it. A `LocaleProvider` or a `Box` goes around the whole row instead. A
+  `role="status"` element doesn't: it goes around one lone Stat whose figure should be announced,
+  since announcing a whole row that refreshes would be noise.
 - **Reading order is the order you write:** the grid places the tiles and follows the writing
   direction, so in a right-to-left page the first tile sits on the right, and a screen reader
   reads them in the same order either way.

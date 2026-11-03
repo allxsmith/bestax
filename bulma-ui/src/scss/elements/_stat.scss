@@ -125,8 +125,10 @@ $stat-description-size: cv.getVar('size-7') !default;
   overflow-wrap: anywhere;
 }
 
-// `loading`'s Skeleton, one line of the figure tall, so the tile keeps its
-// height when the figure arrives.
+// `loading`'s Skeleton, and a figure's `<dd>` still waiting for its value,
+// are one line of the figure tall, so the tile is as tall as its neighbours
+// and keeps its height when the figure arrives.
+.#{iv.$class-prefix}stat .#{iv.$class-prefix}stat-value:empty,
 .#{iv.$class-prefix}stat
   .#{iv.$class-prefix}stat-value
   > .#{iv.$class-prefix}skeleton-block {

@@ -7,6 +7,7 @@ import {
 } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { isGiven } from '../helpers/isGiven';
+import { flattenChildren } from '../helpers/flattenChildren';
 import { useNumberFormat } from '../helpers/localeFormat';
 import { warnOnce } from '../helpers/devWarnings';
 import { NumberFormatter } from './NumberFormatter';
@@ -41,15 +42,18 @@ export interface StatProps
    * What the figure is ("Revenue"), as a `Stat.Label` before the children.
    * A Stat needs one, here or as a `Stat.Label` child: it's the figure's
    * name for assistive tech, and a definition list's values belong to a
-   * term. A Stat with neither a `label` nor children warns in development.
+   * term. A Stat with neither a `label` nor a `Stat.Label` child warns in
+   * development.
    */
   label?: React.ReactNode;
   /**
    * The figure, as a `Stat.Value` after the children. A number is written by
    * `NumberFormatter` with `format` and `locale`; anything else, such as
    * "N/A", renders as given, and `0` renders. `undefined`, `null`, a boolean
-   * and `''` leave it empty: in a Stat with no children its `<dd>` still
-   * renders, so the label keeps a definition while the figure is missing.
+   * and `''` leave it empty, and its `<dd>` still renders, one line of the
+   * figure tall, while the Stat has a label, so the label keeps its
+   * definition while the figure is missing. A `Stat.Value` child takes its
+   * place: with one, `value` and its `<dd>` are left out.
    */
   value?: React.ReactNode;
   /**
@@ -93,17 +97,17 @@ export interface StatProps
   /**
    * Shows a `Skeleton` in place of `value`, one line of the figure tall,
    * and sets `aria-busy` on the Stat. The label, the change and the note
-   * render as given. It stands in for the `value` prop only: a `Stat.Value`
-   * you give as a child renders as given, so put a `Skeleton` in it yourself.
+   * render as given. With a `Stat.Value` child, it only sets `aria-busy`:
+   * the child renders as given, so put a `Skeleton` in it yourself.
    */
   loading?: boolean;
   /**
    * `Stat.Label`, `Stat.Value`, `Stat.Change` and `Stat.Description`, for
    * anything the props don't cover, such as a unit or an info tip. They
    * render between `label` and `value`. They're this Stat's own parts, so
-   * not another Stat: that would be a list inside this one's. With children,
-   * the figure's `<dd>` renders only for a `value`, so give the parts a
-   * `Stat.Value` yourself.
+   * not another Stat: that would be a list inside this one's. The Stat finds
+   * a `Stat.Label` or `Stat.Value` among them by type, so one rendered from
+   * inside a component of your own isn't seen.
    */
   children?: React.ReactNode;
   /**
@@ -340,12 +344,13 @@ export const StatChange = forwardRef<HTMLElement, StatChangeProps>(
       ? { ...format, signDisplay: format.signDisplay || 'exceptZero' }
       : DEFAULT_CHANGE_FORMAT;
     // A change that rounds to zero gets no arrow and no tone, which would
-    // contradict a figure of zero. Its size is compared rather than the
-    // change itself, so the test holds whatever the `signDisplay`: under
-    // 'auto' or 'always', -0.0004 is written "-0%", which zero isn't.
+    // contradict a figure of zero. `Intl` writes no sign with 'exceptZero'
+    // only when the value rounds to zero, by whatever rounding the options
+    // ask for, so the change written that way is zero's text exactly then.
     const formatNumber = useNumberFormat(ownLocale);
+    const signed = { ...options, signDisplay: 'exceptZero' as const };
     const direction =
-      formatNumber(Math.abs(value), options) === formatNumber(0, options)
+      formatNumber(value, signed) === formatNumber(0, signed)
         ? 0
         : Math.sign(value);
     const tone =
@@ -438,12 +443,17 @@ const StatRoot = forwardRef<HTMLElement, StatProps>(
     const statClass = usePrefixedClassNames('stat', {
       [`is-${size}`]: !!size,
     });
-    const hasParts = isGiven(children);
-    // Without a label or parts that could hold one, the figure has no name
-    // and the values no term. With parts, the label is the caller's to give.
-    const unlabelled = !isGiven(label) && !hasParts;
+    // The parts given as children, by type, so the figure's `<dd>` and the
+    // warning below know what's there. A part rendered from inside another
+    // component isn't seen.
+    const parts = flattenChildren(children);
+    const hasPart = (type: unknown) =>
+      parts.some(part => React.isValidElement(part) && part.type === type);
+    const hasValuePart = hasPart(StatValue);
+    const labelled = isGiven(label) || hasPart(StatLabel);
+    // Without a label, the figure has no name and the values no term.
     useEffect(() => {
-      if (unlabelled) {
+      if (!labelled) {
         warnOnce(
           'Stat:unlabelled',
           '[bestax-bulma] <Stat> has no label. Pass label, or a Stat.Label ' +
@@ -451,7 +461,7 @@ const StatRoot = forwardRef<HTMLElement, StatProps>(
             'values have a term in the list.'
         );
       }
-    }, [unlabelled]);
+    }, [labelled]);
     // Its parts take its locale and leave the row, so a Stat inside one of
     // them, in a `<dd>`, renders a `<dl>` of its own.
     const inner = useMemo(() => ({ row: false, locale }), [locale]);
@@ -463,6 +473,10 @@ const StatRoot = forwardRef<HTMLElement, StatProps>(
     ) : isGiven(value) ? (
       value
     ) : null;
+    // A `Stat.Value` child is the figure. Without one, the figure's `<dd>`
+    // renders for a figure, or for a label, empty while the figure is
+    // missing, so the label keeps its definition.
+    const showsFigure = !hasValuePart && (figure !== null || labelled);
     return (
       <Root
         ref={ref as React.Ref<HTMLDivElement & HTMLDListElement>}
@@ -473,9 +487,7 @@ const StatRoot = forwardRef<HTMLElement, StatProps>(
         <StatScopeContext.Provider value={inner}>
           {isGiven(label) && <StatLabel>{label}</StatLabel>}
           {children}
-          {/* Without parts, the figure's <dd> always renders, empty while
-              there's no figure, so the label keeps its definition. */}
-          {(figure !== null || !hasParts) && <StatValue>{figure}</StatValue>}
+          {showsFigure && <StatValue>{figure}</StatValue>}
           {typeof change === 'number' && (
             <StatChange
               value={change}

@@ -177,8 +177,10 @@ describe('Stat styles', () => {
     });
   });
 
-  it('makes loading’s Skeleton one line of the figure tall', () => {
-    expect(find('.stat .stat-value > .skeleton-block')).toEqual({
+  it('makes loading’s Skeleton and an empty figure one line of the figure tall', () => {
+    expect(
+      find('.stat .stat-value:empty, .stat .stat-value > .skeleton-block')
+    ).toEqual({
       'min-height': '1lh',
     });
   });

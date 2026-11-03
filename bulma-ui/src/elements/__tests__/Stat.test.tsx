@@ -91,11 +91,9 @@ describe('Stat', () => {
       ).toEqual([]);
     });
 
-    it('renders the figure’s <dd>, empty, with nothing given', () => {
+    it('renders an empty <dl>, with no <dd> missing its term, with nothing given', () => {
       const { container } = render(<Stat />);
-      expect(container.innerHTML).toBe(
-        '<dl class="stat"><dd class="stat-value"></dd></dl>'
-      );
+      expect(container.innerHTML).toBe('<dl class="stat"></dl>');
     });
 
     it('renders label before the children, and value, change and description after them', () => {
@@ -107,26 +105,24 @@ describe('Stat', () => {
           description="of 50 GB"
           locale="en-US"
         >
-          <Stat.Value>24%</Stat.Value>
+          <Stat.Description>24% of the plan</Stat.Description>
         </Stat>
       );
       expect(partsOf(container.firstElementChild)).toEqual([
         'dt stat-label Storage',
-        'dd stat-value 24%',
+        'dd stat-description 24% of the plan',
         'dd stat-value 12 GB',
         'dd stat-change is-danger -5%',
         'dd stat-description of 50 GB',
       ]);
     });
 
-    it('renders nothing for undefined, null, a boolean or an empty string, the figure’s <dd> left empty, and renders 0', () => {
+    it('renders nothing for undefined, null, a boolean or an empty string, and renders 0', () => {
       for (const nothing of [undefined, null, true, false, '']) {
         const { container, unmount } = render(
           <Stat label={nothing} value={nothing} description={nothing} />
         );
-        expect(container.innerHTML).toBe(
-          '<dl class="stat"><dd class="stat-value"></dd></dl>'
-        );
+        expect(container.innerHTML).toBe('<dl class="stat"></dl>');
         unmount();
       }
       const { container } = render(
@@ -163,30 +159,63 @@ describe('Stat', () => {
       expect(screen.getAllByRole('definition')).toHaveLength(1);
     });
 
-    it('adds no empty <dd> beside parts, which bring their own', () => {
+    it('renders the figure’s <dd>, empty, for a Stat.Label child with no figure', () => {
       const { container } = render(
-        <>
-          <Stat>
-            <Stat.Label>Errors</Stat.Label>
-            <Stat.Change value={-0.4} color="success" locale="en-US" />
-          </Stat>
-          <Stat label="Revenue">
-            <Stat.Value>$8,456</Stat.Value>
-          </Stat>
-        </>
+        <Stat>
+          <Stat.Label>Errors</Stat.Label>
+          <Stat.Change value={-0.4} color="success" locale="en-US" />
+        </Stat>
       );
-      const [errors, revenue] = Array.from(container.children);
-      expect(partsOf(errors)).toEqual([
+      expect(partsOf(container.firstElementChild)).toEqual([
         'dt stat-label Errors',
         'dd stat-change is-success -40%',
+        'dd stat-value',
       ]);
-      expect(partsOf(revenue)).toEqual([
+    });
+
+    it('renders the figure’s <dd> beside children that render nothing', () => {
+      for (const nothing of [[], [null], <React.Fragment key="empty" />]) {
+        const { container, unmount } = render(
+          <Stat label="Total">{nothing}</Stat>
+        );
+        expect(container.innerHTML).toBe(
+          '<dl class="stat"><dt class="stat-label">Total</dt>' +
+            '<dd class="stat-value"></dd></dl>'
+        );
+        unmount();
+      }
+    });
+
+    it('leaves the figure to a Stat.Value child, which takes the value’s place', () => {
+      const { container } = render(
+        <Stat label="Revenue" value="ignored">
+          <>
+            <Stat.Value>$8,456</Stat.Value>
+          </>
+        </Stat>
+      );
+      expect(partsOf(container.firstElementChild)).toEqual([
         'dt stat-label Revenue',
         'dd stat-value $8,456',
       ]);
     });
 
-    it('warns once in development about a Stat with no label and no parts', () => {
+    it('only sets aria-busy for loading beside a Stat.Value child', () => {
+      const { container } = render(
+        <Stat label="Revenue" loading>
+          <Stat.Value>$8,456</Stat.Value>
+        </Stat>
+      );
+      const dl = container.firstElementChild as HTMLElement;
+      expect(dl).toHaveAttribute('aria-busy', 'true');
+      expect(partsOf(dl)).toEqual([
+        'dt stat-label Revenue',
+        'dd stat-value $8,456',
+      ]);
+      expect(dl.querySelector('.skeleton-block')).toBeNull();
+    });
+
+    it('warns once in development about a Stat with no label', () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const { container } = render(
         <>
@@ -204,14 +233,26 @@ describe('Stat', () => {
       );
     });
 
-    it('doesn’t warn with a label, or with parts that can hold one', () => {
+    it('warns about parts with no Stat.Label among them', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      render(
+        <Stat>
+          <Stat.Value>1,234</Stat.Value>
+        </Stat>
+      );
+      expect(warn).toHaveBeenCalledTimes(1);
+    });
+
+    it('doesn’t warn with a label prop or a Stat.Label child', () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(
         <>
           <Stat label="Revenue" value={1} />
           <Stat label={0} />
           <Stat>
-            <Stat.Label>Errors</Stat.Label>
+            <>
+              <Stat.Label>Errors</Stat.Label>
+            </>
           </Stat>
         </>
       );
@@ -368,6 +409,56 @@ describe('Stat', () => {
         expect(arrowOf(dd)).toBe('none');
         expect(classesOf(dd)).toEqual(['stat-change']);
         unmount();
+      }
+    });
+
+    it('follows a directional roundingMode, which rounds a change and its size differently', () => {
+      // The library's TypeScript lib predates `roundingMode`, so the options
+      // are cast below.
+      const cases: [
+        'ceil' | 'floor' | 'halfCeil' | 'halfFloor',
+        number,
+        string,
+        string,
+      ][] = [
+        ['ceil', 0.0004, '+0.1%', 'up'],
+        ['ceil', -0.0004, '0%', 'none'],
+        ['floor', 0.0004, '0%', 'none'],
+        ['floor', -0.0004, '-0.1%', 'down'],
+        ['halfCeil', 0.0005, '+0.1%', 'up'],
+        ['halfCeil', -0.0005, '0%', 'none'],
+        ['halfFloor', 0.0005, '0%', 'none'],
+        ['halfFloor', -0.0005, '-0.1%', 'down'],
+      ];
+      for (const [roundingMode, change, text, arrow] of cases) {
+        for (const signDisplay of ['exceptZero', 'auto', 'always'] as const) {
+          const { container, unmount } = render(
+            <Stat
+              label="Revenue"
+              change={change}
+              changeFormat={
+                {
+                  style: 'percent',
+                  maximumFractionDigits: 1,
+                  roundingMode,
+                  signDisplay,
+                } as Intl.NumberFormatOptions
+              }
+              locale="en-US"
+            />
+          );
+          const dd = changeOf(container);
+          if (signDisplay === 'exceptZero') expect(dd.textContent).toBe(text);
+          expect(arrowOf(dd)).toBe(arrow);
+          expect(classesOf(dd)).toEqual(
+            arrow === 'up'
+              ? ['stat-change', 'is-success']
+              : arrow === 'down'
+                ? ['stat-change', 'is-danger']
+                : ['stat-change']
+          );
+          unmount();
+        }
       }
     });
 
