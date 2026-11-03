@@ -352,10 +352,9 @@ describe('AppFrame', () => {
       );
       fireEvent.click(burger());
       const frame = document.querySelector('.bestax-app-frame') as HTMLElement;
-      expect(frame).toHaveClass(
-        'bestax-app-frame',
-        'bestax-is-desktop',
-        'bestax-is-nav-open'
+      expect(frame).toHaveClass('bestax-app-frame', 'bestax-is-desktop');
+      expect(frame.querySelector('.bestax-app-frame-nav')).toHaveClass(
+        'bestax-is-active'
       );
       expect(frame).not.toHaveClass('app-frame');
       for (const part of [
@@ -574,11 +573,16 @@ describe('AppFrame', () => {
       expect(burger()).toHaveAttribute('aria-expanded', 'false');
       fireEvent.click(burger());
       expect(onNavOpenChange).toHaveBeenLastCalledWith(true);
-      expect(root()).toHaveClass('is-nav-open');
+      // Bulma's active state, on the nav and its backdrop.
+      const backdrop = nav().nextElementSibling as HTMLElement;
+      expect(nav()).toHaveClass('is-active');
+      expect(backdrop).toHaveClass('app-frame-backdrop', 'is-active');
+      expect(root()).not.toHaveClass('is-active');
       expect(burger()).toHaveAttribute('aria-expanded', 'true');
       act(() => burger().click());
       expect(onNavOpenChange).toHaveBeenLastCalledWith(false);
-      expect(root()).not.toHaveClass('is-nav-open');
+      expect(nav()).not.toHaveClass('is-active');
+      expect(backdrop).not.toHaveClass('is-active');
       expect(onNavCollapsedChange).not.toHaveBeenCalled();
     });
 
@@ -628,7 +632,8 @@ describe('AppFrame', () => {
     it('starts from defaultNavOpen and defaultNavCollapsed', () => {
       mockViewport(PHONE);
       render(<Frame defaultNavOpen defaultNavCollapsed />);
-      expect(root()).toHaveClass('is-nav-open', 'is-nav-collapsed');
+      expect(root()).toHaveClass('is-nav-collapsed');
+      expect(nav()).toHaveClass('is-active');
       expect(burger()).toHaveAttribute('aria-expanded', 'true');
     });
 
@@ -640,9 +645,9 @@ describe('AppFrame', () => {
       );
       fireEvent.click(burger());
       expect(onNavOpenChange).toHaveBeenLastCalledWith(true);
-      expect(root()).not.toHaveClass('is-nav-open');
+      expect(nav()).not.toHaveClass('is-active');
       rerender(<Frame navOpen onNavOpenChange={onNavOpenChange} />);
-      expect(root()).toHaveClass('is-nav-open');
+      expect(nav()).toHaveClass('is-active');
     });
 
     it('leaves a controlled navCollapsed to its owner', () => {
@@ -672,7 +677,7 @@ describe('AppFrame', () => {
       expect(document.body.style.overflow).toBe('hidden');
       viewport.resize(DESKTOP);
       expect(onNavOpenChange).toHaveBeenLastCalledWith(false);
-      expect(root()).not.toHaveClass('is-nav-open');
+      expect(nav()).not.toHaveClass('is-active');
       expect(document.body.style.overflow).toBe('');
       expect(screen.getByRole('banner')).not.toHaveAttribute('inert');
     });
@@ -683,7 +688,7 @@ describe('AppFrame', () => {
       render(<Frame navOpen onNavOpenChange={onNavOpenChange} />);
       expect(onNavOpenChange).toHaveBeenCalledWith(false);
       // A controlled open state is its owner's, and nothing of the drawer runs.
-      expect(root()).toHaveClass('is-nav-open');
+      expect(nav()).toHaveClass('is-active');
       expect(document.body.style.overflow).toBe('');
     });
 
@@ -1059,7 +1064,7 @@ describe('AppFrame', () => {
       fireEvent.click(burger());
       link('Orders').focus();
       viewport.resize(DESKTOP);
-      expect(root()).not.toHaveClass('is-nav-open');
+      expect(nav()).not.toHaveClass('is-active');
       expect(link('Orders')).toHaveFocus();
     });
 
@@ -1072,7 +1077,7 @@ describe('AppFrame', () => {
       ).toHaveFocus();
       // The close button hides in the column, so focus can't stay on it.
       viewport.resize(DESKTOP);
-      expect(root()).not.toHaveClass('is-nav-open');
+      expect(nav()).not.toHaveClass('is-active');
       expect(burger()).toHaveFocus();
     });
 
@@ -1135,7 +1140,7 @@ describe('AppFrame', () => {
         </>
       );
       fireEvent.click(burger());
-      expect(root()).toHaveClass('is-nav-open');
+      expect(nav()).toHaveClass('is-active');
       expect(
         screen.getByRole('button', { name: 'Close navigation' })
       ).not.toHaveFocus();
@@ -1318,7 +1323,8 @@ describe('AppFrame', () => {
 
     it('keeps the burger quiet on the server even with the drawer starting open', () => {
       const html = renderToStaticMarkup(<Frame defaultNavOpen />);
-      expect(html).toContain('class="app-frame is-desktop is-nav-open"');
+      expect(html).toContain('class="app-frame is-desktop"');
+      expect(html).toMatch(/<nav class="app-frame-nav is-active"/);
       expect(
         /<button[^>]*app-frame-burger[^>]*>/.exec(html)?.[0]
       ).not.toContain('aria-expanded');

@@ -409,6 +409,7 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
     const navClass = usePrefixedClassNames('app-frame-nav');
     const closeClass = usePrefixedClassNames('app-frame-close');
     const backdropClass = usePrefixedClassNames('app-frame-backdrop');
+    const activeClass = usePrefixedClassNames('is-active');
     const navRef = useRef<HTMLElement | null>(null);
     const backdropRef = useRef<HTMLDivElement | null>(null);
     const navCleanupRef = useRef<(() => void) | null>(null);
@@ -423,6 +424,9 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
     // column, and none of what follows applies.
     const isDrawer = !!frame?.state.isDrawer;
     const open = isDrawer && !!frame?.state.navOpen;
+    // The open drawer is Bulma's active state, on the nav as on a navbar's
+    // menu, and on its backdrop.
+    const shown = { [activeClass]: !!frame?.state.navOpen };
     const modal = open && overlay;
     const close = () => frame?.state.setNavOpen(false);
 
@@ -526,7 +530,7 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
       <>
         <nav
           ref={navRefs}
-          className={classNames(navClass, bulmaHelperClasses, className)}
+          className={classNames(navClass, shown, bulmaHelperClasses, className)}
           style={navStyle}
           onClick={handleClick}
           onPointerDownCapture={e => {
@@ -553,7 +557,7 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
         {frame && overlay && (
           <div
             ref={backdropRef}
-            className={backdropClass}
+            className={classNames(backdropClass, shown)}
             aria-hidden="true"
             onClick={
               closeOnClickOutside
@@ -885,7 +889,6 @@ const AppFrameRoot = forwardRef<HTMLDivElement, AppFrameProps>(
 
     const rootClass = usePrefixedClassNames('app-frame', {
       [`is-${breakpoint}`]: true,
-      'is-nav-open': navOpen,
       'is-nav-collapsed': navCollapsed,
     });
     const skipClass = usePrefixedClassNames('app-frame-skip-link');
