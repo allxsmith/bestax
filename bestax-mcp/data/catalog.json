@@ -698,7 +698,7 @@
       "slug": "components/floatbutton",
       "import": "import { FloatButton } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 59,
+      "propCount": 60,
       "exampleCount": 13
     },
     {
@@ -2047,7 +2047,7 @@
     "--bulma-file-s": ["File"],
     "--bulma-float-button-actions-gap": ["FloatButton"],
     "--bulma-float-button-shadow": ["FloatButton"],
-    "--bulma-float-button-transition-duration": ["FloatButton"],
+    "--bulma-float-button-transition-duration": ["FloatButton", "FloatButtons"],
     "--bulma-float-buttons-gap": ["FloatButtons"],
     "--bulma-footer-background-color": ["Footer"],
     "--bulma-footer-color": ["Footer"],

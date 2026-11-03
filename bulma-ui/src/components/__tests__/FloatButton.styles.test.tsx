@@ -107,6 +107,7 @@ describe('FloatButton styles', () => {
     });
     expect(find(PLAIN, '.float-buttons')).toMatchObject({
       '--bulma-float-buttons-gap': '0.75rem',
+      '--bulma-float-button-transition-duration': 'var(--bulma-duration)',
     });
   });
 
@@ -146,8 +147,8 @@ describe('FloatButton styles', () => {
     ['is-down', 'column'],
     ['is-left', 'row-reverse'],
     ['is-right', 'row'],
-    ['is-left:dir(rtl)', 'row'],
-    ['is-right:dir(rtl)', 'row-reverse'],
+    ['is-left.is-rtl', 'row'],
+    ['is-right.is-rtl', 'row-reverse'],
   ])(
     'lays a dial that is %s out as %s, which its actions inherit',
     (modifier, direction) => {
@@ -200,10 +201,10 @@ describe('FloatButton styles', () => {
       'transition-duration': 'var(--bulma-float-button-transition-duration)',
     });
     expect(
-      find(PLAIN, '.button.float-button-back-to-top:not(.is-active)')
+      find(PLAIN, '.button.float-button-back-to-top:not(.is-shown)')
     ).toEqual({ opacity: '0', visibility: 'hidden' });
     const tooltip =
-      '.button.float-button-back-to-top:not(.is-active) ~ .tooltip-content';
+      '.button.float-button-back-to-top:not(.is-shown) ~ .tooltip-content';
     expect(find(PLAIN, tooltip)).toEqual({
       opacity: '0',
       visibility: 'hidden',
@@ -217,13 +218,43 @@ describe('FloatButton styles', () => {
     });
   });
 
-  it('lets the pointer through the boxes around a hidden back to top', () => {
+  it('lets the pointer through the boxes around a hidden back to top, and hides a stack item holding it, a Badge included, after the fade', () => {
+    const item =
+      '.float-buttons > :has(.float-button-back-to-top:not(.is-shown))';
+    expect(find(PLAIN, item)).toEqual({
+      'pointer-events': 'none',
+      visibility: 'hidden',
+      transition: 'visibility var(--bulma-float-button-transition-duration)',
+    });
+    // It outranks the rule that gives a stack's items the pointer back.
+    expect(weight(item)).toBeGreaterThan(weight('.float-buttons > *'));
+    expect(find(PLAIN, item, [REDUCE])).toEqual({ transition: 'none' });
     expect(
       find(
         PLAIN,
-        '.tooltip:has(> .float-button-back-to-top:not(.is-active)), .affix:not(.float-buttons):has(> .float-button-back-to-top:not(.is-active)), .affix:not(.float-buttons):has(> .tooltip > .float-button-back-to-top:not(.is-active))'
+        '.affix:not(.float-buttons):has(> .float-button-back-to-top:not(.is-shown)), .affix:not(.float-buttons):has(> .tooltip > .float-button-back-to-top:not(.is-shown))'
       )
     ).toEqual({ 'pointer-events': 'none' });
+    // Shown is `is-shown`, which Bulma doesn't style on a button, not its
+    // pressed `is-active`.
+    expect(
+      BULMA.some(r => r.selector.split(', ').includes('.button.is-shown'))
+    ).toBe(false);
+    expect(
+      BULMA.some(r => r.selector.split(', ').includes('.button.is-active'))
+    ).toBe(true);
+  });
+
+  it('hides the trigger’s tooltip while the dial is open', () => {
+    const selector =
+      '.float-button-speed-dial.is-active > .tooltip > .tooltip-content';
+    expect(find(PLAIN, selector)).toEqual({
+      opacity: '0',
+      visibility: 'hidden',
+    });
+    expect(weight(selector)).toBeGreaterThan(
+      weight('.tooltip.is-active .tooltip-content')
+    );
   });
 
   it('keeps every float button’s edge and its focus in forced colors, outranking Bulma’s outline: none', () => {
@@ -232,7 +263,9 @@ describe('FloatButton styles', () => {
       outline: '1px solid ButtonText',
       'outline-offset': '-1px',
     });
-    expect(find(PLAIN, `${selector}:focus-visible`, [FORCED])).toEqual({
+    expect(
+      find(PLAIN, `${selector}:focus-visible, ${selector}.is-focused`, [FORCED])
+    ).toEqual({
       outline: '2px solid Highlight',
       'outline-offset': '2px',
     });

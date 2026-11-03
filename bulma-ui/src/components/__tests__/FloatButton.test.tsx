@@ -518,6 +518,17 @@ describe('FloatButton.SpeedDial', () => {
     expect(menu()).toBeNull();
   });
 
+  it('forgets a Tab that moved nothing once a press comes, so focus the press brings back keeps it open', () => {
+    render(<Dial />);
+    dialTrigger().focus();
+    press('Enter');
+    // A handler kept this Tab from moving focus.
+    press('Tab');
+    fireEvent.pointerDown(dialTrigger());
+    act(() => dialTrigger().focus());
+    expect(menu()).not.toBeNull();
+  });
+
   it('stays open when focus moves within the menu, after Tab or after another key', () => {
     render(<Dial />);
     dialTrigger().focus();
@@ -625,6 +636,34 @@ describe('FloatButton.SpeedDial', () => {
     expect(menu()).toBeNull();
   });
 
+  it('forgets the action a turned-down key asked for, so a later open elsewhere moves no focus', () => {
+    vi.useFakeTimers();
+    try {
+      const { rerender } = render(<Dial open={false} />);
+      dialTrigger().focus();
+      press('ArrowDown');
+      act(() => vi.runAllTimers());
+      rerender(<Dial open />);
+      expect(menu()).not.toBeNull();
+      expect(dialTrigger()).toHaveFocus();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('keeps the action a key asked for when the open goes through', () => {
+    vi.useFakeTimers();
+    try {
+      render(<Dial />);
+      dialTrigger().focus();
+      press('ArrowDown');
+      act(() => vi.runAllTimers());
+      expect(action('Event')).toHaveFocus();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   describe('directions', () => {
     const keysOf = (direction: FloatButtonSpeedDialDirection, rtl = false) => {
       const { unmount } = render(<Dial direction={direction} />);
@@ -665,13 +704,33 @@ describe('FloatButton.SpeedDial', () => {
       }
     );
 
-    it('opens its tooltips above a sideways dial in a bottom corner, below one in a top corner', () => {
+    it('opens a sideways dial’s action tooltips above it in a bottom corner and below it in a top one, and its trigger’s toward the page', () => {
       const { unmount } = render(<Dial direction="left" defaultOpen />);
-      expect(dialTrigger().parentElement).toHaveClass('is-top');
+      expect(dialTrigger().parentElement).toHaveClass('is-left');
       expect(action('Note').parentElement).toHaveClass('is-top');
       unmount();
       render(<Dial direction="right" position="top-left" defaultOpen />);
+      expect(dialTrigger().parentElement).toHaveClass('is-right');
       expect(action('Note').parentElement).toHaveClass('is-bottom');
+    });
+
+    it('marks a sideways dial is-rtl once it opens in right-to-left text, from the direction the browser computes', () => {
+      const { rerender } = render(
+        <Dial direction="left" style={{ direction: 'rtl' }} />
+      );
+      // Closed, nothing is read.
+      expect(screen.getByTestId('dial')).not.toHaveClass('is-rtl');
+      fireEvent.click(dialTrigger());
+      expect(screen.getByTestId('dial')).toHaveClass('is-left', 'is-rtl');
+      fireEvent.click(dialTrigger());
+      rerender(<Dial direction="left" style={{ direction: 'ltr' }} />);
+      fireEvent.click(dialTrigger());
+      expect(screen.getByTestId('dial')).not.toHaveClass('is-rtl');
+    });
+
+    it('never marks a dial that runs up or down is-rtl', () => {
+      render(<Dial style={{ direction: 'rtl' }} defaultOpen />);
+      expect(screen.getByTestId('dial')).not.toHaveClass('is-rtl');
     });
 
     it('opens on the arrow pointing its way from the trigger', () => {
@@ -881,11 +940,11 @@ describe('FloatButton.BackToTop', () => {
     render(<FloatButton.BackToTop visibilityHeight={100} />);
     flush();
     setScroll(100);
-    expect(backToTop()).not.toHaveClass('is-active');
+    expect(backToTop()).not.toHaveClass('is-shown');
     setScroll(101);
-    expect(backToTop()).toHaveClass('is-active');
+    expect(backToTop()).toHaveClass('is-shown');
     setScroll(20);
-    expect(backToTop()).not.toHaveClass('is-active');
+    expect(backToTop()).not.toHaveClass('is-shown');
   });
 
   it('reads the scroll at most once a frame', () => {
@@ -902,7 +961,7 @@ describe('FloatButton.BackToTop', () => {
     const remove = vi.spyOn(window, 'removeEventListener');
     const { unmount } = render(<FloatButton.BackToTop />);
     flush();
-    expect(backToTop()).toHaveClass('is-active');
+    expect(backToTop()).toHaveClass('is-shown');
     unmount();
     expect(remove).toHaveBeenCalledWith('scroll', expect.any(Function));
   });
@@ -959,12 +1018,19 @@ describe('FloatButton.BackToTop', () => {
     expect(screen.getByRole('main')).toHaveAttribute('tabindex', '0');
   });
 
-  it('focuses the first element in <body> when there is no <main>', () => {
-    const { container } = render(<FloatButton.BackToTop />);
+  it('focuses <body> when there is no <main>, until focus moves on', () => {
+    render(
+      <>
+        <a href="#first">First</a>
+        <FloatButton.BackToTop />
+      </>
+    );
     flush();
     fireEvent.click(backToTop());
-    expect(document.body.firstElementChild).toBe(container);
-    expect(container).toHaveFocus();
+    expect(document.activeElement).toBe(document.body);
+    expect(document.body).toHaveAttribute('tabindex', '-1');
+    act(() => screen.getByRole('link').focus());
+    expect(document.body).not.toHaveAttribute('tabindex');
   });
 
   it('focuses the element a moveFocus ref holds, or nothing with moveFocus off', () => {
@@ -1024,7 +1090,7 @@ describe('FloatButton.BackToTop', () => {
       feed.scrollTop = 500;
       fireEvent.scroll(feed);
       flush();
-      expect(backToTop()).toHaveClass('is-active');
+      expect(backToTop()).toHaveClass('is-shown');
       fireEvent.click(backToTop());
       expect(feedScroll).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
       expect(scrollTo).not.toHaveBeenCalled();
@@ -1036,7 +1102,7 @@ describe('FloatButton.BackToTop', () => {
       render(<FloatButton.BackToTop scrollContainer="#missing" />);
       flush();
       setScroll(800);
-      expect(backToTop()).toHaveClass('is-active');
+      expect(backToTop()).toHaveClass('is-shown');
       fireEvent.click(backToTop());
       expect(scrollTo).toHaveBeenCalled();
     });
@@ -1132,6 +1198,6 @@ describe('FloatButton.BackToTop', () => {
     );
     setScroll(900);
     const button = document.querySelector('.bestax-float-button-back-to-top')!;
-    expect(button).toHaveClass('bestax-is-active', 'bestax-float-button');
+    expect(button).toHaveClass('bestax-is-shown', 'bestax-float-button');
   });
 });

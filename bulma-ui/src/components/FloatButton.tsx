@@ -33,6 +33,7 @@ import { hasText, iconFromProp, iconOf } from '../helpers/iconGlyph';
 import type { PolymorphicComponent } from '../helpers/polymorphic';
 import { getActiveElementInTree, isEventInside } from '../helpers/shadowDom';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { chain, useHoverOpen } from '../helpers/useHoverOpen';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { useLatestRef } from '../helpers/useLatestRef';
@@ -331,6 +332,9 @@ export type FloatButtonSpeedDialProps = FloatButtonSpeedDialOwnProps &
     | 'aria-labelledby'
   >;
 
+/** The four arrow keys. */
+const ARROWS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
+
 /** The arrow key that points from the trigger along each direction. */
 const ALONG = {
   up: 'ArrowUp',
@@ -447,20 +451,11 @@ export const FloatButtonSpeedDial = forwardRef<
     [ref]
   );
 
-  // A sideways dial runs left or right on the screen whatever the writing
-  // direction, while useMenuKeys reads a horizontal menu in its line's
-  // direction. So there's one set of keys for actions that run toward the
-  // start of their axis and one for the end, and the key picks between them
-  // when it arrives, reading the direction then, as the hook does.
-  const orientation = sideways ? 'horizontal' : 'vertical';
-  const keysBack = useMenuKeys({ orientation, reverse: true });
-  const keysOn = useMenuKeys({ orientation, reverse: false });
-  const keysFor = (menu: HTMLElement) => {
-    const back = sideways
-      ? (direction === 'left') !== (getComputedStyle(menu).direction === 'rtl')
-      : direction === 'up';
-    return back ? keysBack : keysOn;
-  };
+  // The actions run in DOM order away from the trigger, on the screen, so
+  // the arrow pointing along the dial is the menu's next item and the one
+  // pointing back its previous, whatever the writing direction. They reach
+  // the hook as Down and Up, the keys it moves with by default.
+  const menuKeys = useMenuKeys();
 
   const focusEdge = (edge: 'first' | 'last') =>
     focusEdgeAction(menuRef.current as HTMLElement, edge);
@@ -469,12 +464,34 @@ export const FloatButtonSpeedDial = forwardRef<
   // and focus the action a key asked for.
   useEffect(() => {
     if (!open) return;
-    keysBack.reset();
-    keysOn.reset();
+    menuKeys.reset();
     const edge = pendingFocusRef.current;
     pendingFocusRef.current = null;
     if (edge) focusEdgeAction(menuRef.current as HTMLElement, edge);
-  }, [open, keysBack, keysOn]);
+  }, [open, menuKeys]);
+
+  // A sideways dial lays its actions out by the writing direction the browser
+  // computes, read here, so the stylesheet and the page agree on which way is
+  // left, a `dir` attribute or a CSS `direction` alike.
+  const [rtl, setRtl] = useState(false);
+  useClientLayoutEffect(() => {
+    if (!open || !sideways) return;
+    const root = rootRef.current as HTMLDivElement;
+    setRtl(getComputedStyle(root).direction === 'rtl');
+  }, [open, sideways]);
+
+  // A key asks to open it on an edge, which the menu focuses once it has
+  // mounted. A controlled parent can turn the ask down, and then the edge is
+  // dropped once the event that asked is over, so a later open some other
+  // way doesn't move focus into the menu.
+  const openRef = useLatestRef(open);
+  const openOnEdge = (edge: 'first' | 'last') => {
+    pendingFocusRef.current = edge;
+    requestOpen(true);
+    setTimeout(() => {
+      if (!openRef.current) pendingFocusRef.current = null;
+    });
+  };
 
   // Read when a press lands outside, so the listener stays put while
   // `requestOpen` changes identity with `onOpenChange`.
@@ -483,6 +500,9 @@ export const FloatButtonSpeedDial = forwardRef<
     if (!open) return undefined;
     const doc = (rootRef.current as HTMLDivElement).ownerDocument;
     const handlePointerDown = (e: PointerEvent) => {
+      // A press moves focus its own way, so a Tab before it no longer
+      // decides what the next blur does.
+      tabbedRef.current = false;
       if (!isEventInside(e, rootRef.current)) closeRef.current();
     };
     doc.addEventListener('pointerdown', handlePointerDown);
@@ -528,10 +548,7 @@ export const FloatButtonSpeedDial = forwardRef<
     if (edge) {
       e.preventDefault();
       if (open) focusEdge(edge);
-      else {
-        pendingFocusRef.current = edge;
-        requestOpen(true);
-      }
+      else openOnEdge(edge);
       return;
     }
     if (e.key === 'Enter' || e.key === ' ') {
@@ -540,10 +557,7 @@ export const FloatButtonSpeedDial = forwardRef<
       // hands focus back here, so a held Enter would reopen the menu.
       if (e.repeat) return;
       if (open) requestOpen(false);
-      else {
-        pendingFocusRef.current = 'first';
-        requestOpen(true);
-      }
+      else openOnEdge('first');
       return;
     }
     if (e.key === 'Escape' && open) {
@@ -565,7 +579,23 @@ export const FloatButtonSpeedDial = forwardRef<
       return;
     }
     if (e.key === 'Tab') return;
-    keysFor(e.currentTarget).onKeyDown(e);
+    if (ARROWS.has(e.key)) {
+      const step =
+        e.key === ALONG[direction]
+          ? 'ArrowDown'
+          : e.key === AGAINST[direction]
+            ? 'ArrowUp'
+            : null;
+      // The arrows across the dial do nothing.
+      if (!step) return;
+      menuKeys.onKeyDown(
+        step === e.key
+          ? e
+          : (Object.create(e, { key: { value: step } }) as typeof e)
+      );
+      return;
+    }
+    menuKeys.onKeyDown(e);
   };
 
   const handleMenuBlur = (e: React.FocusEvent<HTMLDivElement>) => {
@@ -588,15 +618,25 @@ export const FloatButtonSpeedDial = forwardRef<
     if (hadFocus) triggerRef.current?.focus();
   };
 
-  const tooltipPosition = tooltipSide(position, sideways);
+  // The actions' tooltips open off the line they run along. The trigger's
+  // opens toward the page, as a lone button's does, which in FloatButtons'
+  // column keeps it off the buttons above and below, and it's hidden while
+  // the dial is open, since a sideways dial's actions take that side then.
+  const actionTooltipPosition = tooltipSide(position, sideways);
   const menuPlacement = useMemo<FloatButtonPlacement>(
-    () => ({ position, tooltipPosition, inMenu: true, showLabels }),
-    [position, tooltipPosition, showLabels]
+    () => ({
+      position,
+      tooltipPosition: actionTooltipPosition,
+      inMenu: true,
+      showLabels,
+    }),
+    [position, actionTooltipPosition, showLabels]
   );
 
   const dialClasses = usePrefixedClassNames('float-button-speed-dial', {
     [`is-${direction}`]: true,
     'is-active': open,
+    'is-rtl': sideways && rtl,
   });
   const actionsClass = usePrefixedClassNames('float-button-actions');
   const floatButtonClass = usePrefixedClassNames('float-button');
@@ -627,7 +667,7 @@ export const FloatButtonSpeedDial = forwardRef<
       <Tooltip
         label={ariaLabel}
         describesTrigger={false}
-        position={tooltipPosition}
+        position={tooltipSide(position)}
       >
         {trigger}
       </Tooltip>
@@ -690,7 +730,6 @@ export interface FloatButtonBackToTopProps
       | keyof FloatButtonOwnProps
       | 'icon'
       | 'children'
-      | 'isActive'
       | 'isRounded'
       | 'isFullwidth'
       | 'isFullWidth'
@@ -727,12 +766,13 @@ export interface FloatButtonBackToTopProps
   /**
    * Where focus goes after it scrolls, shaped like `useFocusTrap`'s
    * `restoreFocus`. `true` focuses the page's `<main>`, or the
-   * `scrollContainer` when there is one, or else the first element in
-   * `<body>`; a ref focuses that element; `false` leaves focus on the
-   * button, which then hides. Focus moves with `preventScroll`, at once,
-   * so it doesn't cut the scroll short. An element that can't take focus
-   * gets `tabindex="-1"` until it loses it, so the next Tab goes on from
-   * there.
+   * `scrollContainer` when there is one, or else `<body>`; a ref focuses
+   * that element; `false` moves none, so the button hides with focus on it
+   * once the scroll is done, focus drops to the document, and the next Tab
+   * starts wherever the browser decides. Focus moves with `preventScroll`,
+   * at once, so it doesn't cut the scroll short. An element that can't take
+   * focus gets `tabindex="-1"` until it loses it, so the next Tab goes on
+   * from there.
    * @defaultValue true
    */
   moveFocus?: boolean | React.RefObject<HTMLElement | null>;
@@ -822,8 +862,9 @@ export const FloatButtonBackToTop = forwardRef<
   const hydrated = useIsHydrated();
   const [shown, setShown] = useState(false);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
+  // Not `is-active`, which is Bulma's pressed button.
   const backToTopClass = usePrefixedClassNames('float-button-back-to-top', {
-    'is-active': shown,
+    'is-shown': shown,
   });
 
   const setRefs = useCallback(
@@ -873,9 +914,7 @@ export const FloatButtonBackToTop = forwardRef<
     });
     const target =
       moveFocus === true
-        ? (scroller ??
-          doc.querySelector<HTMLElement>('main') ??
-          (doc.body.firstElementChild as HTMLElement | null))
+        ? (scroller ?? doc.querySelector<HTMLElement>('main') ?? doc.body)
         : moveFocus
           ? moveFocus.current
           : null;

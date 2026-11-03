@@ -13,8 +13,8 @@ $float-button-transition-duration: cv.getVar('duration') !default;
 $float-buttons-gap: 0.75rem !default;
 $float-button-actions-gap: 0.5rem !default;
 
-// The duration is registered on both, since the dial's actions fade in
-// apart from any one button.
+// The duration is registered on the button, the dial and the stack, since
+// the dial's actions and a stack's item fade apart from any one button.
 .#{iv.$class-prefix}button.#{iv.$class-prefix}float-button {
   @include cv.register-vars(
     (
@@ -37,6 +37,7 @@ $float-button-actions-gap: 0.5rem !default;
   @include cv.register-vars(
     (
       'float-buttons-gap': #{$float-buttons-gap},
+      'float-button-transition-duration': #{$float-button-transition-duration},
     )
   );
 }
@@ -72,8 +73,10 @@ $float-button-actions-gap: 0.5rem !default;
 
 // The speed dial: the trigger, then the actions, nearest first, laid out
 // along its direction, which is physical, so a sideways dial keeps its side
-// in right-to-left text. The actions take the dial's direction and
-// alignment.
+// in right-to-left text. A row runs in the writing direction, so the dial
+// reads the direction the browser computes and sets `is-rtl` for it, rather
+// than this reading `:dir()`, which follows only the `dir` attribute. The
+// actions take the dial's direction and alignment.
 .#{iv.$class-prefix}float-button-speed-dial {
   display: flex;
   gap: cv.getVar('float-button-actions-gap');
@@ -94,11 +97,11 @@ $float-button-actions-gap: 0.5rem !default;
     flex-direction: row;
   }
 
-  &.#{iv.$class-prefix}is-left:dir(rtl) {
+  &.#{iv.$class-prefix}is-left.#{iv.$class-prefix}is-rtl {
     flex-direction: row;
   }
 
-  &.#{iv.$class-prefix}is-right:dir(rtl) {
+  &.#{iv.$class-prefix}is-right.#{iv.$class-prefix}is-rtl {
     flex-direction: row-reverse;
   }
 
@@ -121,6 +124,14 @@ $float-button-actions-gap: 0.5rem !default;
   .#{iv.$class-prefix}float-button-speed-dial.#{iv.$class-prefix}is-down {
     align-items: flex-start;
   }
+}
+
+// Open, the trigger's tooltip is hidden, since the actions can take its side.
+.#{iv.$class-prefix}float-button-speed-dial.#{iv.$class-prefix}is-active
+  > .#{iv.$class-prefix}tooltip
+  > .#{iv.$class-prefix}tooltip-content {
+  opacity: 0;
+  visibility: hidden;
 }
 
 .#{iv.$class-prefix}float-button-actions {
@@ -155,7 +166,7 @@ $float-button-actions-gap: 0.5rem !default;
   );
   transition-duration: cv.getVar('float-button-transition-duration');
 
-  &:not(.#{iv.$class-prefix}is-active) {
+  &:not(.#{iv.$class-prefix}is-shown) {
     opacity: 0;
     visibility: hidden;
 
@@ -167,22 +178,30 @@ $float-button-actions-gap: 0.5rem !default;
   }
 }
 
-// Hidden, its tooltip's wrapper and the Affix it sits in alone still have a
-// box, which would keep the pointer from the page under it.
-.#{iv.$class-prefix}tooltip:has(
-    > .#{iv.$class-prefix}float-button-back-to-top:not(
-        .#{iv.$class-prefix}is-active
+// Hidden, the boxes around it would still keep the pointer from the page
+// under it. In a stack, the item that holds it, a Badge around it included,
+// takes no pointer and hides once the fade is done, so a Badge's count goes
+// with it. Alone, its Affix takes no pointer.
+.#{iv.$class-prefix}float-buttons
+  > :has(
+    .#{iv.$class-prefix}float-button-back-to-top:not(
+        .#{iv.$class-prefix}is-shown
       )
-  ),
+  ) {
+  pointer-events: none;
+  visibility: hidden;
+  transition: visibility cv.getVar('float-button-transition-duration');
+}
+
 .#{iv.$class-prefix}affix:not(.#{iv.$class-prefix}float-buttons):has(
     > .#{iv.$class-prefix}float-button-back-to-top:not(
-        .#{iv.$class-prefix}is-active
+        .#{iv.$class-prefix}is-shown
       )
   ),
 .#{iv.$class-prefix}affix:not(.#{iv.$class-prefix}float-buttons):has(
     > .#{iv.$class-prefix}tooltip
       > .#{iv.$class-prefix}float-button-back-to-top:not(
-        .#{iv.$class-prefix}is-active
+        .#{iv.$class-prefix}is-shown
       )
   ) {
   pointer-events: none;
@@ -192,15 +211,16 @@ $float-button-actions-gap: 0.5rem !default;
 // edge, since Bulma takes a colored button's border away. An outline drawn
 // inside the edge keeps every float button's edge on the page without
 // changing its size. Bulma shows focus with a box-shadow and a border color,
-// which forced colors drop too, so focus widens the outline in the system's
-// highlight color. The class is named twice to outrank Bulma's
+// which forced colors drop too, so focus, and `isFocused`, widens the outline
+// in the system's highlight color. The class is named twice to outrank Bulma's
 // `outline: none` on a pressed or focused button wherever it lands.
 @media (forced-colors: active) {
   .#{iv.$class-prefix}button.#{iv.$class-prefix}float-button.#{iv.$class-prefix}float-button {
     outline: 1px solid ButtonText;
     outline-offset: -1px;
 
-    &:focus-visible {
+    &:focus-visible,
+    &.#{iv.$class-prefix}is-focused {
       outline: 2px solid Highlight;
       outline-offset: 2px;
     }
@@ -214,5 +234,14 @@ $float-button-actions-gap: 0.5rem !default;
 
   .#{iv.$class-prefix}float-button-actions {
     animation: none;
+  }
+
+  .#{iv.$class-prefix}float-buttons
+    > :has(
+      .#{iv.$class-prefix}float-button-back-to-top:not(
+          .#{iv.$class-prefix}is-shown
+        )
+    ) {
+    transition: none;
   }
 }

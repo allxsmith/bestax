@@ -177,8 +177,9 @@ itself, as [Affix's offsets](./affix.md#offsets-and-the-safe-area) show.
 
 `FloatButtons` registers these variables on its own `.float-buttons` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
-| CSS Variable                | Sass Variable        | Default   |
-| --------------------------- | -------------------- | --------- |
-| `--bulma-float-buttons-gap` | `$float-buttons-gap` | `0.75rem` |
+| CSS Variable                               | Sass Variable                       | Default                 |
+| ------------------------------------------ | ----------------------------------- | ----------------------- |
+| `--bulma-float-buttons-gap`                | `$float-buttons-gap`                | `0.75rem`               |
+| `--bulma-float-button-transition-duration` | `$float-button-transition-duration` | `var(--bulma-duration)` |
 
 <!-- /bestax:generated cssvars -->

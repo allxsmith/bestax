@@ -78,8 +78,6 @@ export const rejected = (
     <FloatButton.SpeedDial aria-label="Create" direction="around" />
     {/* @ts-expect-error back to top renders a button, with no `as` */}
     <FloatButton.BackToTop as="a" />
-    {/* @ts-expect-error is-active is what shows back to top, so it isn't a prop */}
-    <FloatButton.BackToTop isActive />
     {/* @ts-expect-error back to top's glyph is `icon`, not children */}
     <FloatButton.BackToTop>↑</FloatButton.BackToTop>
     {/* @ts-expect-error a link's attributes need `as="a"` */}
