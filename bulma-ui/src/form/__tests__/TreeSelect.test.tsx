@@ -1305,7 +1305,8 @@ describe('TreeSelect', () => {
   });
 
   describe('forms', () => {
-    it('is aria-required, with a hidden required field the browser reads, which hands focus to the field', () => {
+    it('is aria-required, with a hidden required field the browser reads, which hands focus to the field a task later', () => {
+      vi.useFakeTimers();
       const { container, rerender } = render(
         <TreeSelect label="Place" data={PLACES} required form="f" />
       );
@@ -1318,8 +1319,13 @@ describe('TreeSelect', () => {
       expect(proxy).toHaveAttribute('form', 'f');
       expect(proxy.name).toBe('');
       expect(proxy.validity.valueMissing).toBe(true);
-      fireEvent.focus(proxy);
+      proxy.focus();
+      expect(proxy).toHaveFocus();
+      act(() => {
+        vi.runAllTimers();
+      });
       expect(field()).toHaveFocus();
+      vi.useRealTimers();
       fireEvent.change(proxy, { target: { value: 'typed' } });
       rerender(
         <TreeSelect
