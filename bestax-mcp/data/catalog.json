@@ -32,6 +32,7 @@
         "ListItem",
         "Loader",
         "Notification",
+        "NumberFormatter",
         "OrderedList",
         "Paragraph",
         "Pre",
@@ -930,6 +931,17 @@
       "exampleCount": 7
     },
     {
+      "name": "NumberFormatter",
+      "kind": "component",
+      "category": "elements",
+      "purpose": "The `NumberFormatter` component writes a number the way a locale writes it, such as a price, a percentage or a count, in a `<data>` element that keeps the…",
+      "slug": "elements/numberformatter",
+      "import": "import { NumberFormatter, useNumberFormat } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 6,
+      "exampleCount": 10
+    },
+    {
       "name": "Numberinput",
       "kind": "component",
       "category": "form",
@@ -1400,7 +1412,7 @@
       "import": "import { TreeView } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 27,
-      "exampleCount": 9
+      "exampleCount": 10
     },
     {
       "name": "UnorderedList",
