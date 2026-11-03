@@ -118,9 +118,10 @@ leave `Navbar.Menu` out.
 Below the breakpoint the nav is a drawer. The burger opens it over a backdrop, and it's modal:
 focus moves to its close button, Tab stays inside, the page behind it doesn't scroll, and the rest
 of the frame is inert. What renders outside the frame, such as a `Modal` opened from the drawer or
-a toast, stays live. Escape, a press outside it, its close button and a link followed from it
-close it, and focus goes back to the burger. Closed, it's hidden, so its links are out of the Tab
-order and out of the accessibility tree, on the server's markup too.
+a toast, stays live. Escape, its close button, a click on the backdrop and a link followed from it
+close it. Focus goes back to the burger, except after a link, where the browser moves it as it
+follows the link. Closed, the drawer is hidden, so its links are out of the Tab order and out of
+the accessibility tree, on the server's markup too.
 
 `breakpoint` sets where the nav turns into a column: `tablet`, `desktop` (the default, where
 Bulma's navbar shows its menu) or `widescreen`. This one is a drawer until the window is
@@ -160,10 +161,18 @@ widescreen.
 ```
 
 `AppFrame.Nav` takes the switches the siblings use. `overlay={false}` drops the backdrop and the
-modal parts: focus still moves in, but Tab can leave for the page and the page still scrolls.
-`closeOnEscape` and `closeOnClickOutside` turn those off, and `closeOnNavigate={false}` keeps the
-drawer open as links in it are followed, for a drawer of filters rather than pages. `width` sets
-the column's width and the drawer's, which leaves a strip of backdrop on a narrow phone.
+modal parts: focus still moves in, but Tab can leave for the page and the page still scrolls. There
+a press anywhere outside the drawer closes it, and focus stays where the press puts it: on what
+was pressed if it takes focus, and otherwise on the page. `closeOnEscape` and
+`closeOnClickOutside` turn those off, and `closeOnNavigate={false}` keeps the drawer open as links
+in it are followed, for a drawer of filters rather than pages. `width` sets the column's width and
+the drawer's, which leaves a strip of backdrop on a narrow phone.
+
+An overlay opened from the drawer, such as a `Modal`, goes inside `AppFrame.Nav` or renders outside
+the frame (Modal's `portal`): while the drawer is open, the rest of the frame is inert.
+
+When the window widens past the breakpoint with the drawer open, the drawer closes and the nav is
+the column again, so focus stays where it is.
 
 ### Collapsing the Column
 
@@ -408,8 +417,10 @@ The parts are attached to `AppFrame`, and also exported on their own as `AppFram
   is right from the first paint after hydration.
 - **The drawer** is modal by default: focus moves to its close button, Tab and Shift+Tab stay
   inside, the page doesn't scroll, the rest of the frame is inert, and Escape closes it while it's
-  the topmost overlay, so a `Modal` opened from it closes first. The close button is there for a
-  touch screen reader user, who has no Escape key. It stays a navigation landmark rather than a
+  the topmost overlay, so a `Modal` opened from it closes first. Escape, the close button and a
+  click on the backdrop hand focus back to the burger. Without `overlay`, a press outside the
+  drawer leaves focus where the press puts it. The close button is there for a touch screen reader
+  user, who has no Escape key. It stays a navigation landmark rather than a
   dialog: the inert frame is what keeps assistive technology inside it, so keep the page's content
   inside the frame's parts.
 - **A closed drawer and a collapsed column** are `visibility: hidden`, so their links are out of
@@ -491,7 +502,7 @@ The parts are attached to `AppFrame`, and also exported on their own as `AppFram
 | `width`               | `number` \| `string`                                | —       | The column's width, and the drawer's up to the window's width less a strip of backdrop. A number is pixels, and a string any CSS length. It writes `--bulma-app-frame-nav-width`, 16rem by default.                                                                                                                                                                                                |
 | `overlay`             | `boolean`                                           | `true`  | Shows a backdrop behind the drawer and makes it modal: Tab stays inside, the page scroll locks, and the rest of the frame is inert, while what renders outside it, such as a Modal opened from the drawer or a toast, stays live. Without it the drawer covers the page without holding Tab, and focus can move to the page beside it. Either way focus moves in as it opens. Sidebar's `overlay`. |
 | `closeOnEscape`       | `boolean`                                           | `true`  | Closes the drawer on Escape, while it's the topmost overlay, so Escape closes one layer at a time.                                                                                                                                                                                                                                                                                                 |
-| `closeOnClickOutside` | `boolean`                                           | `true`  | Closes the drawer on a press outside it, while it's the topmost overlay. A press on a control whose `aria-controls` names the nav, such as the burger, is left to that control. Popover's `closeOnClickOutside`.                                                                                                                                                                                   |
+| `closeOnClickOutside` | `boolean`                                           | `true`  | Closes the drawer on a press outside it: a click on the backdrop, after which focus goes back to the burger, or without `overlay` a press anywhere outside it while it's the topmost overlay, which leaves focus where the press puts it. A press on a control whose `aria-controls` names the nav, such as the burger, is left to that control. Popover's `closeOnClickOutside`.                  |
 | `closeOnNavigate`     | `boolean`                                           | `true`  | Closes the drawer when a link inside it is followed with a plain click: not with a modifier key held, and not on a link with a `target` other than `_self` or a `download`. Turn it off for a drawer of filters rather than links.                                                                                                                                                                 |
 | `className`           | `string`                                            | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                            |
 | `ref`                 | `React.Ref<HTMLElement>`                            | —       | Ref forwarded to the `<nav>`.                                                                                                                                                                                                                                                                                                                                                                      |

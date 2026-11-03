@@ -18,15 +18,12 @@ import {
 import { withSubComponents } from '../helpers/withSubComponents';
 import { flattenChildren } from '../helpers/flattenChildren';
 import { useLatestRef } from '../helpers/useLatestRef';
-import { useOverlayStack } from '../helpers/overlayStack';
+import { useOverlayEscape, useOverlayStack } from '../helpers/overlayStack';
 import { useScrollLock } from '../helpers/scrollLock';
 import { useInertSiblings } from '../helpers/useInertSiblings';
-import { focusTabStop, trapTab } from '../helpers/useFocusTrap';
-import {
-  getActiveElementInTree,
-  getDeepestActiveElement,
-  isEventInside,
-} from '../helpers/shadowDom';
+import { trapTab } from '../helpers/useFocusTrap';
+import { useOverlayFocus } from '../helpers/useOverlayFocus';
+import { useOutsidePress } from '../helpers/useOutsidePress';
 import { useBulmaViewport, VIEWPORT_INDEX } from '../helpers/useBulmaViewport';
 import { warnOnce } from '../helpers/devWarnings';
 import { NavbarBurger } from '../components/Navbar';
@@ -186,9 +183,12 @@ export interface AppFrameNavProps
    */
   closeOnEscape?: boolean;
   /**
-   * Closes the drawer on a press outside it, while it's the topmost overlay.
-   * A press on a control whose `aria-controls` names the nav, such as the
-   * burger, is left to that control. Popover's `closeOnClickOutside`.
+   * Closes the drawer on a press outside it: a click on the backdrop, after
+   * which focus goes back to the burger, or without `overlay` a press
+   * anywhere outside it while it's the topmost overlay, which leaves focus
+   * where the press puts it. A press on a control whose `aria-controls` names
+   * the nav, such as the burger, is left to that control. Popover's
+   * `closeOnClickOutside`.
    */
   closeOnClickOutside?: boolean;
   /**
@@ -380,10 +380,7 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
     const closeClass = usePrefixedClassNames('app-frame-close');
     const backdropClass = usePrefixedClassNames('app-frame-backdrop');
     const navRef = useRef<HTMLElement | null>(null);
-    // The last pointerdown React saw inside the nav. React's tree includes
-    // content the nav portals elsewhere, such as a Modal opened from it,
-    // which the DOM path doesn't.
-    const insidePointerRef = useRef<Event | null>(null);
+    const backdropRef = useRef<HTMLDivElement | null>(null);
     const navRefs = useCallback(
       (node: HTMLElement | null) => setRefs(node, navRef, ref),
       [ref]
@@ -393,17 +390,20 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
     if (frame) warnOnUnreadId('Nav', rest.id, frame.state.navId);
     // The drawer is open only below the breakpoint. Above it the nav is a
     // column, and none of what follows applies.
-    const open = !!frame && frame.state.isDrawer && frame.state.navOpen;
+    const isDrawer = !!frame?.state.isDrawer;
+    const open = isDrawer && !!frame?.state.navOpen;
     const modal = open && overlay;
-    const closeRef = useLatestRef(() => frame?.state.setNavOpen(false));
+    const close = () => frame?.state.setNavOpen(false);
 
     // The rest of the frame goes inert: the header, the page, the aside and
-    // the footer. Not the whole page, since a Modal or a toast renders
-    // beside the frame, often into an element that's there before the
-    // drawer opens, and a Modal opened from the drawer has to stay usable.
-    // First, so that as the drawer closes it lets go before focus goes back
-    // to the burger: an inert element can't take focus.
-    useInertSiblings(navRef, modal, false);
+    // the footer, but not the backdrop, which takes the presses outside the
+    // drawer rather than let them through to what's under it. Not the whole
+    // page, since a Modal or a toast renders beside the frame, often into an
+    // element that's there before the drawer opens, and a Modal opened from
+    // the drawer has to stay usable. First, so that as the drawer closes it
+    // lets go before focus goes back to the burger: an inert element can't
+    // take focus.
+    useInertSiblings(navRef, modal, false, backdropRef);
     const isTopmost = useOverlayStack(open, overlay);
     useScrollLock(modal);
 
@@ -418,64 +418,45 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
       );
     }, [modal, isTopmost]);
 
-    // On `window`, as in Sidebar, so a popup inside the drawer has had the
-    // key first. An Escape it used is left to it, and one the drawer closes
-    // on is marked used.
-    useEffect(() => {
-      if (!open || !closeOnEscape) return undefined;
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key !== 'Escape' || e.defaultPrevented || !isTopmost()) return;
-        e.preventDefault();
-        closeRef.current();
-      };
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [open, closeOnEscape, isTopmost, closeRef]);
+    useOverlayEscape(open && closeOnEscape, isTopmost, close);
 
-    // A press outside closes it, as Popover's does, while it's the topmost
-    // overlay: a press in a Modal opened over it is the Modal's. With an
-    // overlay the rest of the frame is inert, so the press lands on the frame
-    // itself. A press on a control that names the nav in its
-    // `aria-controls`, the burger without an overlay, is left to that
-    // control, which toggles it.
-    useEffect(() => {
-      const nav = navRef.current;
-      if (!open || !closeOnClickOutside || !nav) return undefined;
-      const controlsNav = (node: EventTarget) =>
-        !!(node as Element)
-          .getAttribute?.('aria-controls')
-          ?.split(/\s+/)
-          .includes(nav.id);
-      const handlePointerDown = (e: PointerEvent) => {
-        if (
-          !isTopmost() ||
-          e === insidePointerRef.current ||
-          isEventInside(e, nav) ||
-          e.composedPath().some(controlsNav)
-        ) {
-          return;
-        }
-        closeRef.current();
-      };
-      const doc = nav.ownerDocument;
-      doc.addEventListener('pointerdown', handlePointerDown);
-      return () => doc.removeEventListener('pointerdown', handlePointerDown);
-    }, [open, closeOnClickOutside, closeRef, isTopmost]);
+    // Without an overlay there's no backdrop: a press outside the drawer
+    // closes it, as Popover's does, while it's the topmost overlay, so a
+    // press in a Modal opened over it is the Modal's. A press on a control
+    // that names the nav in its `aria-controls`, such as the burger, is left
+    // to that control, which toggles it. Focus goes where the press puts it:
+    // the close is made before the press's mousedown moves focus, and handing
+    // it to the burger first would only fight the press. The mark is dropped
+    // after the press, in case the close is never made.
+    const pressedOutsideRef = useRef(false);
+    const markInsidePress = useOutsidePress(
+      navRef,
+      open && !overlay && closeOnClickOutside,
+      e => {
+        const id = navRef.current?.id;
+        const controlsNav = (node: EventTarget) =>
+          !!(node as Element)
+            .getAttribute?.('aria-controls')
+            ?.split(/\s+/)
+            .includes(id as string);
+        if (!isTopmost() || e.composedPath().some(controlsNav)) return;
+        pressedOutsideRef.current = true;
+        setTimeout(() => {
+          pressedOutsideRef.current = false;
+        });
+        close();
+      }
+    );
 
     // Focus moves to the drawer's first tab stop, the close button, as it
     // opens, and back to whatever had it as it closes, unless it has left
-    // the drawer already.
-    useEffect(() => {
-      const nav = navRef.current;
-      if (!open || !nav) return undefined;
-      const doc = nav.ownerDocument;
-      const opener = getDeepestActiveElement(doc) as HTMLElement | null;
-      focusTabStop(nav);
-      return () => {
-        const active = getActiveElementInTree(nav);
-        if (active === doc.body || nav.contains(active)) opener?.focus();
-      };
-    }, [open]);
+    // the drawer, a press outside closed it, or the window widened and the
+    // drawer is now the column, where focus can stay.
+    const isDrawerRef = useLatestRef(isDrawer);
+    useOverlayFocus(navRef, open, {
+      modal: overlay,
+      restore: () => isDrawerRef.current && !pressedOutsideRef.current,
+    });
 
     const handleClick = (e: React.MouseEvent<HTMLElement>) => {
       onClick?.(e);
@@ -496,7 +477,7 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
       if (!link || link.hasAttribute('download')) return;
       const target = link.getAttribute('target');
       if (target && target !== '_self') return;
-      closeRef.current();
+      close();
     };
 
     const navStyle =
@@ -516,7 +497,7 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
           onClick={handleClick}
           onPointerDownCapture={e => {
             onPointerDownCapture?.(e);
-            insidePointerRef.current = e.nativeEvent;
+            markInsidePress(e);
           }}
           {...rest}
           id={navId}
@@ -530,13 +511,18 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
               className={closeClass}
               size="medium"
               ariaLabel={frame.labels.closeNav}
-              onClick={() => closeRef.current()}
+              onClick={close}
             />
           )}
           {children}
         </nav>
         {frame && overlay && (
-          <div className={backdropClass} aria-hidden="true" />
+          <div
+            ref={backdropRef}
+            className={backdropClass}
+            aria-hidden="true"
+            onClick={closeOnClickOutside ? close : undefined}
+          />
         )}
       </>
     );

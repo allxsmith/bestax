@@ -787,17 +787,15 @@ describe('AppFrame', () => {
 
     it('holds the page while it is open: inert, scroll locked, Tab inside', () => {
       openDrawer();
-      for (const part of [
-        'skip-link',
-        'header',
-        'backdrop',
-        'main',
-        'footer',
-      ]) {
+      for (const part of ['skip-link', 'header', 'main', 'footer']) {
         expect(document.querySelector(`.app-frame-${part}`)).toHaveAttribute(
           'inert'
         );
       }
+      // The backdrop stays live, to take the presses outside the drawer.
+      expect(document.querySelector('.app-frame-backdrop')).not.toHaveAttribute(
+        'inert'
+      );
       expect(nav()).not.toHaveAttribute('inert');
       expect(document.body.style.overflow).toBe('hidden');
       // Tab from the last stop wraps to the first, the close button.
@@ -923,7 +921,7 @@ describe('AppFrame', () => {
             <AppFrame.Header>
               <AppFrame.Burger />
             </AppFrame.Header>
-            <AppFrame.Nav>
+            <AppFrame.Nav overlay={false}>
               <button type="button" onClick={() => setModal(true)}>
                 New project
               </button>
@@ -970,11 +968,98 @@ describe('AppFrame', () => {
     });
 
     it('stays open on a press outside with closeOnClickOutside={false}', () => {
-      const { onNavOpenChange } = openDrawer({
+      const { onNavOpenChange, rerender } = openDrawer({
         nav: { closeOnClickOutside: false },
       });
+      fireEvent.click(document.querySelector('.app-frame-backdrop') as Element);
+      rerender(
+        <Frame
+          onNavOpenChange={onNavOpenChange}
+          nav={{ closeOnClickOutside: false, overlay: false }}
+        />
+      );
+      fireEvent.pointerDown(link('Page link'));
+      expect(onNavOpenChange).not.toHaveBeenCalled();
+    });
+
+    it('closes on a click on the backdrop, with focus back on the burger', () => {
+      const { onNavOpenChange } = openDrawer();
+      // A press on the backdrop leaves nothing focused, then clicks.
+      (document.activeElement as HTMLElement).blur();
+      fireEvent.click(document.querySelector('.app-frame-backdrop') as Element);
+      expect(onNavOpenChange).toHaveBeenLastCalledWith(false);
+      expect(burger()).toHaveFocus();
+    });
+
+    it('takes no press outside with an overlay: the backdrop does', () => {
+      const { onNavOpenChange } = openDrawer();
       fireEvent.pointerDown(document.body);
       expect(onNavOpenChange).not.toHaveBeenCalled();
+    });
+
+    it('leaves focus to a press outside without an overlay', () => {
+      const { onNavOpenChange } = openDrawer({ nav: { overlay: false } });
+      const close = screen.getByRole('button', { name: 'Close navigation' });
+      expect(close).toHaveFocus();
+      fireEvent.pointerDown(link('Page link'));
+      expect(onNavOpenChange).toHaveBeenLastCalledWith(false);
+      // Focus isn't handed to the burger: the press's own mousedown moves it.
+      expect(burger()).not.toHaveFocus();
+      expect(close).toHaveFocus();
+    });
+
+    it('forgets a press outside whose close was never made', async () => {
+      mockViewport(PHONE);
+      let allowClose = false;
+      const Page = () => {
+        const [open, setOpen] = useState(false);
+        return (
+          <Frame
+            navOpen={open}
+            onNavOpenChange={next => {
+              if (next || allowClose) setOpen(next);
+            }}
+            nav={{ overlay: false }}
+          />
+        );
+      };
+      render(<Page />);
+      fireEvent.click(burger());
+      fireEvent.pointerDown(link('Page link'));
+      expect(root()).toHaveClass('is-nav-open');
+      await act(() => new Promise(resolve => setTimeout(resolve)));
+      allowClose = true;
+      fireEvent.keyDown(window, { key: 'Escape' });
+      expect(root()).not.toHaveClass('is-nav-open');
+      expect(burger()).toHaveFocus();
+    });
+
+    it('leaves focus in the nav when the window widens and it becomes the column', () => {
+      const viewport = mockViewport(PHONE);
+      render(<Frame />);
+      fireEvent.click(burger());
+      link('Orders').focus();
+      viewport.resize(DESKTOP);
+      expect(root()).not.toHaveClass('is-nav-open');
+      expect(link('Orders')).toHaveFocus();
+    });
+
+    it('leaves focus alone when it opens without an overlay over a modal overlay', () => {
+      mockViewport(PHONE);
+      render(
+        <>
+          <Modal active aria-label="Editor">
+            <button type="button">Save</button>
+          </Modal>
+          <Frame nav={{ overlay: false }} />
+        </>
+      );
+      fireEvent.click(burger());
+      expect(root()).toHaveClass('is-nav-open');
+      expect(
+        screen.getByRole('button', { name: 'Close navigation' })
+      ).not.toHaveFocus();
+      expect(burger()).toHaveFocus();
     });
 
     it('closes when a link in it is followed with a plain click', () => {

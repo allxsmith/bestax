@@ -1,6 +1,8 @@
 // INTERNAL: deliberately not exported from src/index.ts.
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { RefObject } from 'react';
+import { useClientLayoutEffect } from './useClientLayoutEffect';
+import { useLatestRef } from './useLatestRef';
 import { isModalOverlayOpen } from './overlayStack';
 import { focusTabStop } from './useFocusTrap';
 import { getActiveElementInTree, getDeepestActiveElement } from './shadowDom';
@@ -20,6 +22,12 @@ export interface OverlayFocusOptions {
    * nodes and moved into the new ones.
    */
   remountKey?: unknown;
+  /**
+   * Asked as the overlay closes, while it still holds focus: `false` leaves
+   * focus where it is, for a close that shouldn't send it back, such as one
+   * whose overlay stays on the page as something else.
+   */
+  restore?: () => boolean;
 }
 
 /**
@@ -29,28 +37,38 @@ export interface OverlayFocusOptions {
  * the overlay still holds it, or it's been dropped to `<body>`: closing one
  * under another overlay mustn't pull focus out of the one on top, and focus
  * moved out to the page stays there. The opener is found wherever it sits,
- * inside a shadow root too.
+ * inside a shadow root too, and read in a layout effect as the overlay opens,
+ * before any effect of the same commit can move focus or make the opener
+ * inert.
  *
  * @function useOverlayFocus
  * @param ref - Ref to the overlay's element.
  * @param open - Whether the overlay is open.
- * @param options - Whether it's modal, and what remounts it.
+ * @param options - Whether it's modal, what remounts it, and whether a
+ * close hands focus back.
  */
 export function useOverlayFocus(
   ref: RefObject<HTMLElement | null>,
   open: boolean,
-  { modal, remountKey }: OverlayFocusOptions
+  { modal, remountKey, restore }: OverlayFocusOptions
 ): void {
+  const openerRef = useRef<HTMLElement | null>(null);
+  const restoreRef = useLatestRef(restore);
+
+  // The element that had focus, wherever it sits: a portaled overlay renders
+  // under `document.body` while its opener can be inside a shadow root.
+  useClientLayoutEffect(() => {
+    if (open) {
+      openerRef.current = getDeepestActiveElement() as HTMLElement | null;
+    }
+  }, [open]);
+
   useEffect(() => {
     if (!open) return undefined;
     const element = ref.current;
     /* istanbul ignore if: the overlay renders whenever it's open, so its ref is set before this runs */
     if (!element) return undefined;
 
-    // The element that had focus, wherever it sits: a portaled overlay
-    // renders under `document.body` while its opener can be inside a shadow
-    // root.
-    const opener = getDeepestActiveElement() as HTMLElement | null;
     if (modal || !isModalOverlayOpen()) {
       focusTabStop(element);
     }
@@ -58,10 +76,13 @@ export function useOverlayFocus(
     return () => {
       // A removed subtree leaves focus on <body>, which still counts as held.
       const active = getActiveElementInTree(element);
-      if (active === document.body || element.contains(active)) {
-        opener?.focus();
+      const held = active === document.body || element.contains(active);
+      // Asked now rather than as it opened: it's about this close.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      if (held && (restoreRef.current?.() ?? true)) {
+        openerRef.current?.focus();
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `modal` is read as the overlay opens, on purpose
-  }, [open, remountKey, ref]);
+  }, [open, remountKey, ref, restoreRef]);
 }
