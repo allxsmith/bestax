@@ -18,6 +18,7 @@ import { useTreeView, type TreeViewEngine } from '../helpers/useTreeView';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
 import { Checkbox } from '../form/Checkbox';
 import { Icon } from '../elements/Icon';
+import { isGiven } from '../helpers/isGiven';
 
 /**
  * How items are picked: `none`, nothing is; `single`, one item at a time;
@@ -65,13 +66,6 @@ const BranchContext = createContext<Branch>(TOP);
 
 /** The box's input lets the row's click toggle it, so a change on its own does nothing. */
 const ignoreChange = () => {};
-
-/** Whether an `icon` was given something to render. */
-const isGiven = (node: React.ReactNode) =>
-  node !== undefined &&
-  node !== null &&
-  typeof node !== 'boolean' &&
-  node !== '';
 
 /**
  * Props for the TreeView component. The helper props, the other attributes
