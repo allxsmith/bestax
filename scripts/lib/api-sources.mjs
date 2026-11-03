@@ -146,6 +146,7 @@ export const SCSS_SOURCES = {
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
     { pkg: 'bulma', path: 'sass/utilities/controls.scss' },
   ],
+  CopyButton: [],
   DataTable: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_datatable.scss' },
   ],

@@ -6,11 +6,11 @@
       "promptName": "custom-component",
       "dir": "bestax-custom-component",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 13964 },
+        { "id": "api", "file": "references/api.md", "bytes": 15143 },
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
-          "bytes": 23790
+          "bytes": 24210
         },
         {
           "id": "library-contributor",
@@ -30,7 +30,7 @@
       "dir": "bestax-form",
       "references": [
         { "id": "api", "file": "references/api.md", "bytes": 27028 },
-        { "id": "patterns", "file": "references/patterns.md", "bytes": 9835 }
+        { "id": "patterns", "file": "references/patterns.md", "bytes": 9898 }
       ],
       "examples": []
     },
@@ -93,7 +93,7 @@
         {
           "id": "bloomer-prop-map",
           "file": "references/bloomer/prop-map.md",
-          "bytes": 26920
+          "bytes": 26934
         },
         {
           "id": "bloomer-unmappables",
@@ -128,7 +128,7 @@
         {
           "id": "rbx-prop-map",
           "file": "references/rbx/prop-map.md",
-          "bytes": 15761
+          "bytes": 15775
         },
         {
           "id": "rbx-unmappables",
@@ -148,7 +148,7 @@
         {
           "id": "react-bulma-components-unmappables",
           "file": "references/react-bulma-components/unmappables.md",
-          "bytes": 14112
+          "bytes": 14126
         }
       ],
       "examples": []
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 16259
+          "bytes": 16540
         }
       ],
       "examples": []
@@ -181,7 +181,7 @@
         {
           "id": "themeable-components",
           "file": "references/themeable-components.md",
-          "bytes": 31023
+          "bytes": 31444
         }
       ],
       "examples": [

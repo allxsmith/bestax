@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-119 documented components. Generated from the API docs — every exported
+121 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -49,6 +49,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Code](https://bestax.io/docs/api/elements/code) — The `Code` component renders a styled `<code>` element with Bulma helper class integration.
 - [ColorSwatch](https://bestax.io/docs/api/elements/colorswatch) — The `ColorSwatch` component shows a color as a small chip, named by its label or by the color itself.
 - [Content](https://bestax.io/docs/api/elements/content) — The `Content` component applies Bulma’s typographic styles to its children, enhancing the appearance of HTML elements like paragraphs, headings, lists…
+- [CopyButton](https://bestax.io/docs/api/elements/copybutton) — The `CopyButton` component renders a button that copies a piece of text to the clipboard, says "Copied" for a moment, and announces the result.
 - [Delete](https://bestax.io/docs/api/elements/delete) — The `Delete` component provides a Bulma-styled close/delete button for dismissing modals, notifications, tags, messages, and more.
 - [DescriptionList](https://bestax.io/docs/api/elements/descriptionlist) — The `DescriptionList` component lists facts about one thing, each a label and its value, such as an order's details or a profile.
 - [Divider](https://bestax.io/docs/api/elements/divider) — The `Divider` component renders a styled horizontal rule (`<hr>`) element with Bulma helper class integration.
@@ -177,5 +178,6 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Valid value constants](https://bestax.io/docs/api/helpers/valid-values) — The helper tuples enumerate the core accepted values for the shared Bulma helper props — public API for building prop types and validation.
 - [classNames](https://bestax.io/docs/api/helpers/classnames) — `classNames` is a utility function for conditionally joining class names together.
 - [useBulmaClasses](https://bestax.io/docs/api/helpers/usebulmaclasses) — `useBulmaClasses` is a custom React hook that generates Bulma helper class strings from a set of props.
+- [useClipboard](https://bestax.io/docs/api/helpers/useclipboard) — `useClipboard` copies text to the clipboard through the Clipboard API, falling back to the copy command where that's missing or refused…
 - [useFocusTrap](https://bestax.io/docs/api/helpers/usefocustrap) — `useFocusTrap` keeps keyboard focus inside a container while it is active: focus moves in when the trap turns on…
 - [usePrefixedClassNames](https://bestax.io/docs/api/helpers/useprefixedclassnames) — `usePrefixedClassNames` builds a component class string that honors the `classPrefix` from `ConfigProvider` — the hook every bestax component uses for its own…

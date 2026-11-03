@@ -17,6 +17,7 @@
         "Code",
         "ColorSwatch",
         "Content",
+        "CopyButton",
         "Delete",
         "DescriptionList",
         "Divider",
@@ -153,6 +154,7 @@
         "Valid value constants",
         "classNames",
         "useBulmaClasses",
+        "useClipboard",
         "useFocusTrap",
         "usePrefixedClassNames"
       ]
@@ -499,6 +501,17 @@
       "compound": false,
       "propCount": 18,
       "exampleCount": 12
+    },
+    {
+      "name": "CopyButton",
+      "kind": "component",
+      "category": "elements",
+      "purpose": "The `CopyButton` component renders a button that copies a piece of text to the clipboard, says \"Copied\" for a moment, and announces the result.",
+      "slug": "elements/copybutton",
+      "import": "import { CopyButton } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 23,
+      "exampleCount": 11
     },
     {
       "name": "DataTable",
@@ -1445,6 +1458,17 @@
       "compound": false,
       "propCount": 0,
       "exampleCount": 46
+    },
+    {
+      "name": "useClipboard",
+      "kind": "helper",
+      "category": "helpers",
+      "purpose": "useClipboard copies text to the clipboard through the Clipboard API, falling back to the copy command, and keeps a copied flag for a moment after.",
+      "slug": "helpers/useclipboard",
+      "import": "import { useClipboard } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 0,
+      "exampleCount": 3
     },
     {
       "name": "useFocusTrap",

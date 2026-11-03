@@ -77,6 +77,12 @@ export const DEPRECATED_PROPS: Readonly<
       note: 'Use `gapWidescreen` instead — `gapWidescreen` wins if both are set.',
     },
   },
+  CopyButton: {
+    isFullWidth: {
+      replacement: 'isFullwidth',
+      note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
+    },
+  },
   File: {
     isFullWidth: {
       replacement: 'isFullwidth',
