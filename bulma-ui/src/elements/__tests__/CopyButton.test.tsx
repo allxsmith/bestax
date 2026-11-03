@@ -413,6 +413,56 @@ describe('CopyButton', () => {
         expect(document.querySelectorAll('[role="status"]')).toHaveLength(1);
       });
 
+      // jsdom has no showModal(), so these stand in for the engine's answer
+      // to the selector: `:modal` matching, or not being known at all.
+      const original = Element.prototype.closest;
+
+      it('puts the region inside a <dialog> opened with showModal()', async () => {
+        vi.useFakeTimers();
+        clipboardWorks();
+        render(
+          <dialog open data-testid="dialog">
+            <CopyButton value="x" />
+          </dialog>
+        );
+        const native = screen.getByTestId('dialog');
+        vi.spyOn(Element.prototype, 'closest').mockImplementation(function (
+          this: Element,
+          selectors: string
+        ) {
+          return selectors.includes('dialog:modal')
+            ? native
+            : original.call(this, selectors);
+        });
+        await click(screen.getByRole('button'));
+        act(() => vi.advanceTimersByTime(announceDelay));
+        const status = native.querySelector('[role="status"]');
+        expect(status).toHaveTextContent('Copied to the clipboard');
+        expect(native.lastElementChild).toBe(status);
+      });
+
+      it('still finds aria-modal where :modal is unknown', async () => {
+        vi.useFakeTimers();
+        clipboardWorks();
+        vi.spyOn(Element.prototype, 'closest').mockImplementation(function (
+          this: Element,
+          selectors: string
+        ) {
+          if (selectors.includes(':modal')) {
+            throw new DOMException('Unknown pseudo-class', 'SyntaxError');
+          }
+          return original.call(this, selectors);
+        });
+        render(
+          <Modal active aria-label="Share">
+            <CopyButton value="x" />
+          </Modal>
+        );
+        await click(screen.getByRole('button', { name: 'Copy' }));
+        act(() => vi.advanceTimersByTime(announceDelay));
+        expect(insideModal()).toEqual([['Copied to the clipboard']]);
+      });
+
       it("still calls the caller's onFocus", () => {
         const onFocus = vi.fn();
         render(<CopyButton value="x" onFocus={onFocus} />);

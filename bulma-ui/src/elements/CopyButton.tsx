@@ -58,9 +58,9 @@ export interface CopyButtonProps
   value: string;
   /**
    * How long the "Copied" label stays, in milliseconds. Another copy
-   * restarts it. It's capped at the longest delay `setTimeout` takes, about
-   * 24.8 days, which a value that isn't a finite number, `Infinity`
-   * included, also gets.
+   * restarts it. A missing or `NaN` value uses the default, a negative one is
+   * `0`, and `Infinity`, or anything longer than the longest delay
+   * `setTimeout` takes (about 24.8 days), is that longest delay.
    * @defaultValue 2000
    */
   duration?: number;
@@ -115,6 +115,26 @@ interface Announcement {
 const describeAnnouncement = (announcement: Announcement) => announcement.text;
 const noAnnouncements: Announcement[] = [];
 
+/** What marks an open modal dialog in ARIA. */
+const modalDialog = '[aria-modal="true"]';
+
+/**
+ * The open modal dialog an element is in: one marked `aria-modal="true"`, or
+ * a `<dialog>` opened with `showModal()`, which makes the rest of the page
+ * inert. An engine without the `:modal` selector throws on the whole list,
+ * so it then looks for the ARIA alone.
+ *
+ * @param element - Where to look up from.
+ * @returns The nearest open modal dialog around it, or `null`.
+ */
+function closestModalDialog(element: Element): HTMLElement | null {
+  try {
+    return element.closest<HTMLElement>(`${modalDialog}, dialog:modal`);
+  } catch {
+    return element.closest<HTMLElement>(modalDialog);
+  }
+}
+
 /**
  * The `CopyButton` component renders a button that copies a piece of text to the clipboard, says "Copied" for a moment, and announces the result.
  *
@@ -123,8 +143,9 @@ const noAnnouncements: Announcement[] = [];
  * older copy command where that's missing or refused, and reports a failure
  * rather than showing "Copied". Each outcome is announced through a polite
  * status region portaled out of the button's place, so it stays the last
- * child of a `Control` or `Buttons`: to the end of the page, or into the open
- * modal dialog the button is in. With `showLabel={false}` it's an
+ * child of a `Control` or `Buttons`: into the open modal dialog the button is
+ * in, otherwise where `Portal` puts portaled content (the `ConfigProvider`'s
+ * `portalContainer`, or the end of the page). With `showLabel={false}` it's an
  * `IconButton`. For a trigger of your own, use `useClipboard`, which it's
  * built on.
  *
@@ -175,10 +196,12 @@ export const CopyButton = forwardRef<HTMLButtonElement, CopyButtonProps>(
     // the button takes focus or a click, rather than once as it mounts,
     // since Modal and Sidebar keep their content mounted while closed, and
     // only an open one is `aria-modal`. A region that moves starts empty, so
-    // it doesn't say the last outcome again.
+    // it doesn't say the last outcome again. This lookup can go once the
+    // overlays hand their content their own root as its portal container
+    // (#1471).
     const [dialog, setDialog] = useState<HTMLElement | null>(null);
     const placeRegion = (button: HTMLElement) => {
-      const next = button.closest<HTMLElement>('[aria-modal="true"]');
+      const next = closestModalDialog(button);
       if (next === dialog) return;
       setDialog(next);
       setAnnouncements(noAnnouncements);
