@@ -964,6 +964,7 @@ portaled through the field's width set inline.
 
 `--bulma-tree-select-chevron-color`, `--bulma-tree-select-chevron-focus-color`,
 `--bulma-tree-select-chevron-hover-color`, `--bulma-tree-select-chevron-width`,
+`--bulma-tree-select-chevron-z-index`, `--bulma-tree-select-clear-z-index`,
 `--bulma-tree-select-empty-color`, `--bulma-tree-select-empty-padding`,
 `--bulma-tree-select-panel-max-height`, `--bulma-tree-select-search-gap`,
 `--bulma-tree-select-tree-inset`

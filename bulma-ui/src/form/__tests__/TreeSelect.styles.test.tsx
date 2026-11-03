@@ -55,6 +55,8 @@ describe('TreeSelect styles', () => {
       'empty-color',
       'empty-padding',
       'tree-inset',
+      'chevron-z-index',
+      'clear-z-index',
     ]) {
       expect(vars).toContain(`--bulma-tree-select-${name}:`);
     }

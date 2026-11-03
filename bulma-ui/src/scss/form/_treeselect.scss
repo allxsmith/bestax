@@ -20,6 +20,10 @@ $tree-select-chevron-width: cv.getVar('control-height') !default;
 $tree-select-chevron-color: cv.getVar('text-light') !default;
 $tree-select-chevron-hover-color: cv.getVar('text-weak') !default;
 $tree-select-chevron-focus-color: cv.getVar('link') !default;
+// Over the field, as Bulma stacks a Control's icon, and the clear button
+// over the chevron.
+$tree-select-chevron-z-index: 4 !default;
+$tree-select-clear-z-index: 5 !default;
 $tree-select-empty-color: cv.getVar('text-weak') !default;
 $tree-select-empty-padding: 0.5em 0.75em !default;
 // Room around the tree for the focus ring of a row at its edge, which the
@@ -38,6 +42,8 @@ $tree-select-tree-inset: 4px !default;
       'tree-select-chevron-color': #{$tree-select-chevron-color},
       'tree-select-chevron-hover-color': #{$tree-select-chevron-hover-color},
       'tree-select-chevron-focus-color': #{$tree-select-chevron-focus-color},
+      'tree-select-chevron-z-index': #{$tree-select-chevron-z-index},
+      'tree-select-clear-z-index': #{$tree-select-clear-z-index},
       'tree-select-empty-color': #{$tree-select-empty-color},
       'tree-select-empty-padding': #{$tree-select-empty-padding},
       'tree-select-tree-inset': #{$tree-select-tree-inset},
@@ -76,7 +82,7 @@ $tree-select-tree-inset: 4px !default;
   pointer-events: none;
   position: absolute;
   width: cv.getVar('tree-select-chevron-width');
-  z-index: 4;
+  z-index: cv.getVar('tree-select-chevron-z-index');
 }
 
 .#{iv.$class-prefix}tree-select .#{iv.$class-prefix}input {
@@ -114,7 +120,7 @@ $tree-select-tree-inset: 4px !default;
   inset-inline-end: cv.getVar('tree-select-chevron-width');
   position: absolute;
   transform: translateY(-50%);
-  z-index: 5;
+  z-index: cv.getVar('tree-select-clear-z-index');
 }
 
 .#{iv.$class-prefix}tree-select-panel {
