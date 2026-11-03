@@ -65,12 +65,19 @@ export interface LightboxLabels {
   resetZoom?: string;
   /** The `Loader`'s name while an image loads. "Loading image". */
   loading?: string;
-  /** Shown, above the alt text, when an image fails to load. "This image didn't load." */
+  /**
+   * Shown, above the alt text, when an image fails to load. The status line
+   * for a failed image starts with it, then a space and the line a loaded
+   * image gets, so write it as a whole sentence, punctuated as your language
+   * does. "This image didn't load."
+   */
   loadError?: string;
   /** The button that tries a failed image again. "Retry". */
   retry?: string;
   /**
-   * Announced after each move, followed by a colon and the image's alt.
+   * The start of the status line read after each move, which goes on with
+   * a colon and the image's alt: "Image 3 of 10: Harbour at dusk". For a
+   * failed image, `loadError` and a space come first.
    * `(current, total) => 'Image 3 of 10'`, counting from 1.
    */
   progress?: (current: number, total: number) => string;
@@ -103,7 +110,7 @@ export interface LightboxProps
   /**
    * Called when a trigger, the close button, Escape, a click on the
    * background or a swipe down opens or closes the viewer, and with `false`
-   * when it's open and `items` becomes empty.
+   * when `items` goes from some to none while it's open.
    */
   onOpenChange?: (open: boolean) => void;
   /**
@@ -119,9 +126,10 @@ export interface LightboxProps
    */
   defaultValue?: number;
   /**
-   * Called with the new index when a trigger, an arrow, a key or a swipe
-   * changes the image. A trigger at another image than the one shown calls
-   * it before `onOpenChange(true)`.
+   * Called with the new index when an arrow, a key or a swipe changes the
+   * image, and when a trigger opens the viewer, with the trigger's `index`
+   * even when that's the image already shown, before `onOpenChange(true)`.
+   * A parent that opens the viewer from `value` hears the trigger that way.
    */
   onChange?: (value: number) => void;
   /**
@@ -634,19 +642,21 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
     // The images either side, fetched ahead so a move shows them at once.
     // With `repeat` and two images, both sides are the one other image, so
     // the indexes are deduplicated and it's fetched once.
-    const [before, after] = Array.from(
+    const neighbours = Array.from(
       new Set(
         [index - 1, index + 1].map(i => (repeat ? (i + count) % count : i))
       )
     )
       .filter(i => i >= 0 && i < count && i !== index)
       .map(i => items[i]);
-    const beforeSrc = before?.src;
-    const beforeSrcSet = before?.srcSet;
-    const beforeSizes = before?.sizes;
-    const afterSrc = after?.src;
-    const afterSrcSet = after?.srcSet;
-    const afterSizes = after?.sizes;
+    // None, one or two of them, in no particular order.
+    const [firstNeighbour, secondNeighbour] = neighbours;
+    const firstSrc = firstNeighbour?.src;
+    const firstSrcSet = firstNeighbour?.srcSet;
+    const firstSizes = firstNeighbour?.sizes;
+    const secondSrc = secondNeighbour?.src;
+    const secondSrcSet = secondNeighbour?.srcSet;
+    const secondSizes = secondNeighbour?.sizes;
     useEffect(() => {
       const fetchAhead = (src?: string, srcSet?: string, sizes?: string) => {
         if (!src) return;
@@ -655,15 +665,15 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
         if (srcSet) img.srcset = srcSet;
         img.src = src;
       };
-      fetchAhead(beforeSrc, beforeSrcSet, beforeSizes);
-      fetchAhead(afterSrc, afterSrcSet, afterSizes);
+      fetchAhead(firstSrc, firstSrcSet, firstSizes);
+      fetchAhead(secondSrc, secondSrcSet, secondSizes);
     }, [
-      beforeSrc,
-      beforeSrcSet,
-      beforeSizes,
-      afterSrc,
-      afterSrcSet,
-      afterSizes,
+      firstSrc,
+      firstSrcSet,
+      firstSizes,
+      secondSrc,
+      secondSrcSet,
+      secondSizes,
     ]);
 
     // The status line, written a moment after it changes, so a quick run of
@@ -674,9 +684,7 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
     // A failed image's line says which image failed too, so a move from one
     // failed image to another still changes it.
     const message =
-      status === 'error'
-        ? `${position}${/[.!?]$/.test(position) ? '' : '.'} ${words.loadError}`
-        : position;
+      status === 'error' ? `${words.loadError} ${position}` : position;
     const [said, setSaid] = useState('');
     useEffect(() => {
       const timer = setTimeout(() => setSaid(message), STATUS_DELAY);
@@ -836,6 +844,9 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
     const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
       onPointerDown?.(event);
       lastPointerTypeRef.current = event.pointerType;
+      // A second finger is a pinch, never a swipe, whether or not anything
+      // zooms, and wherever in the viewer it lands.
+      if (!event.isPrimary) swipe.cancel();
       if (!canZoom || event.defaultPrevented) return;
       const onImage = event.target === image;
       if (!onImage && pointersRef.current.size === 0) return;
@@ -1023,6 +1034,8 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
     const retry = () => {
       setAttempt(n => n + 1);
       setStatus('loading');
+      // Cleared, so a Retry that fails again is announced again.
+      setSaid('');
       // The Retry button goes with the error, so focus waits on the dialog.
       (rootRef.current as HTMLDivElement).focus();
     };
@@ -1039,6 +1052,10 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
     const loadingClass = usePrefixedClassNames('is-loading');
     const leavingClass = usePrefixedClassNames('lightbox-image', 'is-leaving');
     const captionClass = usePrefixedClassNames('lightbox-caption');
+    const startsSwipe = (target: EventTarget) =>
+      !(target as Element).closest(
+        `button, a, input, select, textarea, .${captionClass}`
+      );
     const errorClass = usePrefixedClassNames('lightbox-error');
     const previousClass = usePrefixedClassNames(
       'lightbox-arrow',
@@ -1122,7 +1139,24 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
           )}
         </div>
         <Modal.Content>
-          <Figure className={figureClass} style={figureStyle}>
+          <Figure
+            className={figureClass}
+            style={figureStyle}
+            // A swipe starts on the image or a failed image's message, so
+            // the caption keeps its text selection and Retry and links
+            // their focus.
+            {...swipe.handlers}
+            onMouseDown={event => {
+              if (startsSwipe(event.target)) swipe.handlers.onMouseDown(event);
+            }}
+            onTouchStart={event => {
+              // A second finger is a pinch, not a swipe.
+              if (event.touches.length > 1) swipe.cancel();
+              else if (startsSwipe(event.target)) {
+                swipe.handlers.onTouchStart(event);
+              }
+            }}
+          >
             {status !== 'error' && (
               <img
                 key={`${index}-${attempt}`}
@@ -1137,14 +1171,6 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
                 alt={item.alt}
                 draggable={false}
                 style={imageStyle}
-                // Swipes start on the image, so a press on the caption or
-                // the error keeps its own behavior.
-                {...swipe.handlers}
-                onTouchStart={event => {
-                  // A second finger is a pinch, not a swipe.
-                  if (event.touches.length > 1) swipe.cancel();
-                  else swipe.handlers.onTouchStart(event);
-                }}
                 onLoad={() => setStatus('loaded')}
                 onError={() => {
                   setStatus('error');
@@ -1291,16 +1317,21 @@ const LightboxRoot = forwardRef<HTMLDivElement, LightboxProps>(
     // and the triggers don't re-render with every change here.
     const openAt = useLatestRef((at: number) => {
       if (!count) return;
-      const next = fit(at);
-      if (next !== index) setValue(next);
+      setValue(fit(at));
       if (!open) setOpen(true);
     });
 
-    // With no images left, it closes the way a user's close does, so an
-    // uncontrolled viewer doesn't open again by itself when images return.
+    // When the images run out while it's open, it closes the way a user's
+    // close does, so an uncontrolled viewer doesn't open again by itself when
+    // they return. Only on the drop to none, so a viewer that opens before its
+    // images arrive (a deep link, or `defaultOpen` over data still loading)
+    // stays open for them.
     const closeEmpty = useLatestRef(() => setOpen(false));
+    const countRef = useRef(count);
     useEffect(() => {
-      if (open && !count) closeEmpty.current();
+      const had = countRef.current;
+      countRef.current = count;
+      if (open && had > 0 && count === 0) closeEmpty.current();
     }, [open, count, closeEmpty]);
     const context = useMemo<LightboxContextValue>(
       () => ({ openAt: at => openAt.current(at) }),

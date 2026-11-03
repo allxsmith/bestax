@@ -160,6 +160,8 @@ const pointer = (
     pointerType: 'mouse',
     clientX: 0,
     clientY: 0,
+    // The first pointer down is the primary one, as a browser has it.
+    isPrimary: (init.pointerId ?? 1) === 1,
     ...init,
   });
   // jsdom stamps events with the real clock, which fake timers don't move.
@@ -427,28 +429,44 @@ describe('Lightbox', () => {
       expect(shownImage()).toHaveAttribute('src', '/lighthouse.jpg');
     });
 
-    it('calls onChange from a trigger only for another image than the one shown', () => {
-      const onChange = vi.fn();
-      const onOpenChange = vi.fn();
-      render(
-        <Gallery value={0} onChange={onChange} onOpenChange={onOpenChange} />
-      );
-      open();
-      expect(onChange).not.toHaveBeenCalled();
-      expect(onOpenChange).toHaveBeenCalledWith(true);
+    it('calls onChange from a trigger at the image already shown, for a parent that opens it from value', () => {
+      // The photo kept in the URL: closed while `photo` is undefined, and
+      // `value` falls back to the first image.
+      function UrlGallery() {
+        const [photo, setPhoto] = useState<number>();
+        return (
+          <Gallery
+            open={photo !== undefined}
+            onOpenChange={next => !next && setPhoto(undefined)}
+            value={photo ?? 0}
+            onChange={setPhoto}
+          />
+        );
+      }
+      render(<UrlGallery />);
+      open('Harbour at dusk');
+      expect(dialog()).toBeInTheDocument();
+      expect(shownImage()).toHaveAttribute('src', '/harbour.jpg');
     });
 
-    it('shows nothing open with no items, and closes', () => {
+    it('shows nothing open with no items yet, and opens when they arrive', () => {
       const onOpenChange = vi.fn();
-      render(
-        <Lightbox items={[]} onOpenChange={onOpenChange} defaultOpen>
-          <Lightbox.Trigger index={0}>View</Lightbox.Trigger>
-        </Lightbox>
+      const ui = (items: LightboxItem[]) => (
+        <React.StrictMode>
+          <Lightbox items={items} onOpenChange={onOpenChange} defaultOpen>
+            <Lightbox.Trigger index={0}>View</Lightbox.Trigger>
+          </Lightbox>
+        </React.StrictMode>
       );
+      const { rerender } = render(ui([]));
       expect(queryDialog()).toBeNull();
-      expect(onOpenChange.mock.calls).toEqual([[false]]);
       fireEvent.click(button('View'));
-      expect(onOpenChange.mock.calls).toEqual([[false]]);
+      expect(onOpenChange).not.toHaveBeenCalled();
+
+      // A deep link whose data was still loading.
+      rerender(ui(PHOTOS));
+      expect(dialog()).toBeInTheDocument();
+      expect(onOpenChange).not.toHaveBeenCalled();
     });
 
     it('closes when its items run out, and stays closed when they come back', () => {
@@ -823,6 +841,42 @@ describe('Lightbox', () => {
       key('ArrowRight');
       fireEvent.error(shownImage());
       expect(pressCancelled(button('Retry'))).toBe(false);
+      // The caption's text is the caption's, not a swipe's.
+      key('Home');
+      const caption = document.querySelector('figcaption') as Element;
+      expect(pressCancelled(caption)).toBe(false);
+    });
+
+    it('swipes past a failed image, and down to close, from its message', () => {
+      render(<Gallery defaultOpen />);
+      fireEvent.error(shownImage());
+      const message = () =>
+        document.querySelector('.lightbox-error p') as Element;
+      const swipe = (from: [number, number], to: [number, number]) => {
+        fireEvent.touchStart(message(), {
+          touches: [{ clientX: from[0], clientY: from[1] }],
+        });
+        fireEvent.touchMove(message(), {
+          touches: [{ clientX: to[0], clientY: to[1] }],
+        });
+        fireEvent.touchEnd(message());
+      };
+      swipe([300, 0], [100, 0]);
+      expect(shownImage()).toHaveAttribute('src', '/quay.jpg');
+
+      fireEvent.error(shownImage());
+      swipe([100, 100], [110, 260]);
+      expect(queryDialog()).toBeNull();
+    });
+
+    it('starts no swipe from a touch on Retry', () => {
+      render(<Gallery defaultOpen />);
+      fireEvent.error(shownImage());
+      const retry = button('Retry');
+      fireEvent.touchStart(retry, { touches: [{ clientX: 300, clientY: 0 }] });
+      fireEvent.touchMove(retry, { touches: [{ clientX: 100, clientY: 0 }] });
+      fireEvent.touchEnd(retry);
+      expect(button('Retry')).toBeInTheDocument();
     });
   });
 
@@ -889,7 +943,7 @@ describe('Lightbox', () => {
       expect(error).toHaveTextContent('Pas chargée.');
       expect(error).toHaveTextContent('Harbour at dusk');
       act(() => vi.advanceTimersByTime(500));
-      expect(statusText()).toBe('Image 1 of 3: Harbour at dusk. Pas chargée.');
+      expect(statusText()).toBe('Pas chargée. Image 1 of 3: Harbour at dusk');
 
       fireEvent.click(button('Réessayer'));
       expect(document.querySelector('.lightbox-error')).toBeNull();
@@ -903,7 +957,7 @@ describe('Lightbox', () => {
       fireEvent.error(shownImage());
       expect(document.querySelectorAll('.lightbox-error p')).toHaveLength(1);
       act(() => vi.advanceTimersByTime(500));
-      expect(statusText()).toBe("Image 1 of 1. This image didn't load.");
+      expect(statusText()).toBe("This image didn't load. Image 1 of 1");
     });
 
     it('says which image failed, so two failures in a row are both announced', () => {
@@ -917,16 +971,30 @@ describe('Lightbox', () => {
       fireEvent.error(shownImage());
       act(() => vi.advanceTimersByTime(500));
       expect(statusText()).toBe(
-        "Image 1 of 2: Harbour at dusk. This image didn't load."
+        "This image didn't load. Image 1 of 2: Harbour at dusk"
       );
 
       key('ArrowRight');
       fireEvent.error(shownImage());
       act(() => vi.advanceTimersByTime(500));
-      // No second full stop after the alt's own.
       expect(statusText()).toBe(
-        "Image 2 of 2: What a view! This image didn't load."
+        "This image didn't load. Image 2 of 2: What a view!"
       );
+    });
+
+    it('announces a Retry that fails again', () => {
+      vi.useFakeTimers();
+      render(<Gallery defaultOpen />);
+      fireEvent.error(shownImage());
+      act(() => vi.advanceTimersByTime(500));
+      const failed = "This image didn't load. Image 1 of 3: Harbour at dusk";
+      expect(statusText()).toBe(failed);
+
+      fireEvent.click(button('Retry'));
+      expect(statusText()).toBe('');
+      fireEvent.error(shownImage());
+      act(() => vi.advanceTimersByTime(500));
+      expect(statusText()).toBe(failed);
     });
 
     it('fetches the images either side ahead', () => {
@@ -1334,6 +1402,26 @@ describe('Lightbox', () => {
       fireEvent.click(button('Zoom in'));
       key('+');
       expect(dialog()).not.toHaveClass('is-zoomed');
+    });
+
+    it.each([
+      ['a loading image', {}],
+      ['zoomable off', { zoomable: false }],
+    ])('takes a pinch on %s as no swipe', (_, props) => {
+      render(<Gallery defaultOpen {...props} />);
+      if ('zoomable' in props) fireEvent.load(shownImage());
+      const image = shownImage();
+      const background = document.querySelector('.modal-background') as Element;
+      fireEvent.touchStart(image, { touches: [{ clientX: 300, clientY: 0 }] });
+      // The second finger lands off the image, where only the dialog hears it.
+      pointer(background, 'pointerDown', {
+        pointerId: 2,
+        pointerType: 'touch',
+        clientX: 600,
+      });
+      fireEvent.touchMove(image, { touches: [{ clientX: 100, clientY: 0 }] });
+      fireEvent.touchEnd(image);
+      expect(shownImage()).toHaveAttribute('src', '/harbour.jpg');
     });
 
     it('waits for the image to load before anything zooms', () => {
