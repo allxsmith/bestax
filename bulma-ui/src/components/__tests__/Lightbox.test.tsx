@@ -1689,6 +1689,32 @@ describe('Lightbox', () => {
       expect(shownImage()).toHaveAttribute('src', '/quay.jpg');
     });
 
+    it('takes no color on its own button, typed or not', () => {
+      const untyped = { color: 'link' } as object;
+      render(
+        <Lightbox items={PHOTOS}>
+          <Lightbox.Trigger
+            index={0}
+            // @ts-expect-error `color` is only for a component `as`.
+            color="link"
+          >
+            A
+          </Lightbox.Trigger>
+          <Lightbox.Trigger index={1} {...untyped}>
+            B
+          </Lightbox.Trigger>
+          <Lightbox.Trigger as="span" index={2} {...untyped}>
+            C
+          </Lightbox.Trigger>
+        </Lightbox>
+      );
+      for (const name of ['A', 'B']) {
+        expect(button(name)).not.toHaveAttribute('color');
+        expect(button(name)).not.toHaveClass('has-text-link');
+      }
+      expect(screen.getByText('C')).not.toHaveAttribute('color');
+    });
+
     it('prefixes Button’s classes under a class prefix', () => {
       render(
         <ConfigProvider classPrefix="bestax-">

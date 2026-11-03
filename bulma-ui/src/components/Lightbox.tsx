@@ -12,7 +12,7 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { buttonType } from '../helpers/buttonType';
-import { type PolymorphicComponent } from '../helpers/polymorphic';
+import { type PolymorphicRef } from '../helpers/polymorphic';
 import { isDev, warnOnce } from '../helpers/devWarnings';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { useIsHydrated } from '../helpers/useIsHydrated';
@@ -244,16 +244,41 @@ export type LightboxTriggerProps<T extends React.ElementType = 'button'> =
   LightboxTriggerOwnProps &
     Omit<
       React.ComponentPropsWithoutRef<T>,
-      keyof LightboxTriggerOwnProps | 'as'
+      keyof LightboxTriggerOwnProps | 'as' | ElementColor<T>
     > & {
       /**
        * Renders the trigger through another component, which gets its class,
        * `aria-haspopup`, `type="button"`, click handler and ref along with
        * its own props. `as={Button} color="link"` draws it as Bulma's link
-       * button.
+       * button. `color` is taken only with a component: on an element it
+       * would be HTML's old presentational attribute.
        */
       as?: T;
     };
+
+/**
+ * `color`, for an element `as`: a `<button>` or another tag takes no
+ * `color`, as Link and Navbar.Item take none, while a component such as
+ * Button keeps its own.
+ */
+type ElementColor<T extends React.ElementType> = T extends string
+  ? 'color'
+  : never;
+
+/**
+ * Lightbox.Trigger's call signatures, those of `PolymorphicComponent` over
+ * `LightboxTriggerProps`, so `color` follows `as` as described there.
+ */
+interface LightboxTriggerComponent {
+  <T extends React.ElementType = 'button'>(
+    props: LightboxTriggerProps<T> & { ref?: PolymorphicRef<T> }
+  ): React.ReactElement | null;
+  // The derivation overload `PolymorphicComponent` documents.
+  (
+    props: LightboxTriggerProps & { ref?: PolymorphicRef<'button'> }
+  ): React.ReactElement | null;
+  displayName?: string;
+}
 
 /**
  * The shape the implementation destructures. The public contract is the
@@ -499,7 +524,7 @@ export const LightboxTrigger = forwardRef(function LightboxTrigger(
     children,
     onClick,
     // Kept from the helper classes, which read `color` as a text color: it
-    // belongs to `as`, as Button's `color="link"` does.
+    // belongs to a component `as`, as Button's `color="link"` does.
     color,
     ...props
   } = triggerProps as LightboxTriggerImplProps;
@@ -551,7 +576,9 @@ export const LightboxTrigger = forwardRef(function LightboxTrigger(
       className={classNames(triggerClass, bulmaHelperClasses, className)}
       aria-haspopup="dialog"
       {...rest}
-      color={color}
+      // Never on an element, where it would be HTML's presentational
+      // attribute, even from a caller the types don't check.
+      {...(typeof Component === 'string' ? {} : { color })}
       // A component such as Button renders a <button> too, and needs the
       // type as much, so a trigger in a form doesn't submit it.
       {...(Component === 'button' || typeof Component !== 'string'
@@ -569,7 +596,7 @@ export const LightboxTrigger = forwardRef(function LightboxTrigger(
       {children}
     </Component>
   );
-}) as PolymorphicComponent<LightboxTriggerOwnProps, 'button'>;
+}) as LightboxTriggerComponent;
 
 LightboxTrigger.displayName = 'Lightbox.Trigger';
 

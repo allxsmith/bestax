@@ -232,7 +232,7 @@
           "name": "as",
           "type": "React.ElementType",
           "default": "'button'",
-          "description": "Renders the trigger through another component, which gets its class, `aria-haspopup`, `type=\"button\"`, click handler and ref along with its own props. `as={Button} color=\"link\"` draws it as Bulma's link button.",
+          "description": "Renders the trigger through another component, which gets its class, `aria-haspopup`, `type=\"button\"`, click handler and ref along with its own props. `as={Button} color=\"link\"` draws it as Bulma's link button. `color` is taken only with a component: on an element it would be HTML's old presentational attribute.",
           "required": false,
           "inherited": false,
           "deprecated": false
