@@ -135,12 +135,16 @@ either one is fixed.
 - **TSDoc is the docs source, not a comment.** Every `<Foo>Props` member needs an inline
   `/** … */` — `scripts/gen-api-docs.mjs` renders those into the API page's Props table, so a
   missing one is a build error, and the component's own summary sentence becomes the page's
-  Overview. Three tags: `@defaultValue` when the default is computed rather than destructured
+  Overview. The tags: `@defaultValue` when the default is computed rather than destructured
   (the AST can't see it), `@extraProp {Type} [name=default] - desc` to document a notable
-  prop inherited from the DOM base type, and `@helperProps <sentence>` on the props type of a
+  prop inherited from the DOM base type, `@helperProps <sentence>` on the props type of a
   component that puts its helper props on another element than its other attributes
   (`Checkbox`: the outer `<label>`, and the `<input>`), which the catch-all row prints and
-  `scripts/helper-props-placement.test.mjs` holds to what renders. Do **not** add `@property`
+  `scripts/helper-props-placement.test.mjs` holds to what renders, and `@flexContainer
+<sentence>` on the props type, or a base, of a component whose root its own stylesheet makes
+  a flex container (`Stack`), so the flex container helper props apply with no `display` prop.
+  `props-extract` reads it, and the ESLint plugin's `no-inert-flex-props` takes its flex
+  containers from it through the generated metadata. Do **not** add `@property`
   blocks above an interface — that older style is unverifiable and drifted from the real
   types; it has been migrated away.
   A sub-component's own summary sentence becomes its line in the page's `**Subcomponents:**`
