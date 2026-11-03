@@ -220,32 +220,31 @@ whatever the trigger does, so turn it on only for a trigger with no tap action o
 
 ### On Icons
 
-Tooltips on icon-only buttons. A tooltip describes its trigger rather than naming it, so each button
-gets a name of its own with `aria-label`, and a screen reader reads the name and then the tooltip.
+Tooltips on icon-only buttons. A tooltip describes its trigger rather than naming it, so each
+[`IconButton`](../elements/iconbutton.md) gets a name of its own with `aria-label`, which its types
+require, and a screen reader reads the name and then the tooltip. Give the tooltip something to add
+to the name, not the name again, or it's read twice.
 
 ```tsx live
 function example() {
   return (
     <Buttons p="6">
       <Tooltip label="Moves it to the trash" color="danger" position="bottom">
-        <Button aria-label="Delete">
-          <Icon name="fas fa-trash" />
-        </Button>
+        <IconButton icon="trash" aria-label="Delete" />
       </Tooltip>
       <Tooltip label="Opens it for editing" color="info" position="bottom">
-        <Button aria-label="Edit">
-          <Icon name="fas fa-edit" />
-        </Button>
+        <IconButton icon="pen" aria-label="Edit" />
       </Tooltip>
       <Tooltip label="Saves a copy as a PDF" color="success" position="bottom">
-        <Button aria-label="Download">
-          <Icon name="fas fa-download" />
-        </Button>
+        <IconButton icon="download" aria-label="Download" />
       </Tooltip>
     </Buttons>
   );
 }
 ```
+
+Tooltip wraps its trigger in a `<span>`, so these sit in a plain `Buttons` row rather than one
+with `hasAddons`, whose joined corners go by where each button sits among its siblings.
 
 ---
 
@@ -343,7 +342,7 @@ And around it:
   several elements get none. A development build warns when the first element Tab reaches in the
   trigger doesn't carry the link, or there isn't one.
 - A tooltip describes and doesn't name, so give an icon-only trigger a name of its own, such as an
-  `aria-label`, as [On Icons](#on-icons) does.
+  `IconButton`'s `aria-label`, as [On Icons](#on-icons) does.
 - The `dashed` style provides a visual cue that more information is available.
 
 ---
@@ -352,6 +351,7 @@ And around it:
 
 - [Icon](../elements/icon.md) - Icon component
 - [Button](../elements/button.md) - Button component
+- [IconButton](../elements/iconbutton.md) - A button that shows only an icon, the usual trigger for a tooltip
 - [Popover](./popover.md) - A click-to-open panel for content people interact with
 - [HoverCard](./hovercard.md) - A card that opens on hover or keyboard focus, for previews that hold links
 

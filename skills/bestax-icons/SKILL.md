@@ -106,7 +106,10 @@ everything else takes the standard `aria-label` attribute, e.g.
 - **Decorative icon** (next to visible text that says the same thing, e.g. inside `IconText`
   or a labeled `Button`): leave `ariaLabel` off, and the icon stays out of the accessible
   name. An explicit `aria-hidden="true"`, as in the examples here, says the same thing.
-- **Icon-only control:** name the control (`<Button aria-label="Delete item">`), not the icon.
+- **Icon-only button:** use `IconButton`, whose types require the name:
+  `<IconButton icon="trash" aria-label="Delete item" />`. Name the action, not the picture, and
+  leave the icon unnamed. Any other icon-only control takes the name the same way, on the control
+  (`<Navbar.Burger aria-label="menu" />`), not on the icon.
 
 ## References
 

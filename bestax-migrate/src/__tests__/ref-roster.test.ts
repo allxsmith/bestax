@@ -35,10 +35,12 @@ const REFERENCES = path.join(ROOT, 'skills/bestax-migrate/references');
  * first test until it is placed in this bucket or the next one.
  */
 const NAMED_INDIVIDUALLY = [
+  'Affix',
   'Avatar',
   'Button',
   'Carousel',
   'CarouselItem',
+  'Center',
   'ColorSwatch',
   'Command',
   'Command.Dialog',
@@ -51,6 +53,9 @@ const NAMED_INDIVIDUALLY = [
   'Dialog',
   'Dropdown',
   'EmptyState',
+  'Flex',
+  'Group',
+  'IconButton',
   'Kbd',
   'Kbd.Group',
   'Link',
@@ -72,6 +77,7 @@ const NAMED_INDIVIDUALLY = [
   'Sidebar',
   'Splitter',
   'Splitter.Pane',
+  'Stack',
   'Timeline',
   'Timeline.Item',
   'Toast',

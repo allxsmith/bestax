@@ -34,6 +34,7 @@ export * from './components/TreeView';
 export * from './components/ScrollArea';
 export * from './components/Command';
 export * from './components/DataTable';
+export * from './components/Affix';
 
 export * from './elements/Block';
 export * from './elements/Box';
@@ -50,6 +51,7 @@ export * from './elements/Divider';
 export * from './elements/Emphasis';
 export * from './elements/Figure';
 export * from './elements/Icon';
+export * from './elements/IconButton';
 export * from './elements/IconText';
 export * from './elements/Image';
 export * from './elements/Kbd';
@@ -154,6 +156,7 @@ export * from './helpers/classNames';
 // everything exported here is public forever — an internal DOM-filtering detail
 // is not something to support for the life of the package.
 export type {
+  ConstrainedPolymorphicComponent,
   ConstrainedPolymorphicComponentWithoutRef,
   PolymorphicComponent,
   PolymorphicComponentWithoutRef,
@@ -190,10 +193,16 @@ export type { NumberFormatFunction } from './helpers/localeFormat';
 export { useFocusTrap } from './helpers/useFocusTrap';
 export type { UseFocusTrapOptions } from './helpers/useFocusTrap';
 
+export * from './layout/Center';
 export * from './layout/Container';
+export * from './layout/Flex';
 export * from './layout/Footer';
+export * from './layout/Group';
 export * from './layout/Hero';
 export * from './layout/Level';
 export * from './layout/Media';
 export * from './layout/Section';
 export * from './layout/Splitter';
+export * from './layout/Stack';
+// The elements Stack, Group, Center and Flex render as, which their `as` takes
+export type { LayoutElement } from './helpers/stackLayout';
