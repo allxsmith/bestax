@@ -410,7 +410,7 @@ function PasswordReveal() {
 
 A copy field is an addon too: a read-only `Input` holding the text, and a [`CopyButton`](../elements/copybutton.md) in the second `Control`. The button writes the text, falling back to the older copy command where the Clipboard API is missing or refused, reads "Copied" for a moment, and announces the result itself. Its announcement is portaled out of the `Control`, so Bulma still joins the two.
 
-When neither way of writing works, `onCopyError` focuses the input and selects the text, so the reader can copy it themselves, and a `role="alert"` line explains. That message is an alert rather than a status because focus moves to the input at the same moment, and a screen reader announcing the focused field can drop a polite message. The line is in the page from the start, since a live region that appears together with its text isn't reliably announced.
+When nothing can write, `onCopyError` focuses the input and selects the text, so the reader can copy it themselves. `labels.failedStatus` carries the whole message, so the button's own status announces it once, and a plain line under the field shows it.
 
 ```tsx live
 function ShareLink() {
@@ -418,6 +418,8 @@ function ShareLink() {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [failed, setFailed] = useState(false);
   const link = 'https://bestax.io/docs/api/form/input';
+  const failure =
+    "Couldn't copy automatically. The link is selected, so copy it from the field.";
 
   return (
     <Field label="Share link" labelProps={{ htmlFor: id }}>
@@ -428,6 +430,7 @@ function ShareLink() {
         <Control>
           <CopyButton
             value={link}
+            labels={{ failedStatus: failure }}
             onCopiedChange={() => setFailed(false)}
             onCopyError={() => {
               inputRef.current?.focus();
@@ -437,10 +440,7 @@ function ShareLink() {
           />
         </Control>
       </Field>
-      <p role="alert" className="help is-danger">
-        {failed &&
-          "Couldn't copy automatically. The link is selected, so copy it from the field."}
-      </p>
+      {failed && <p className="help is-danger">{failure}</p>}
     </Field>
   );
 }

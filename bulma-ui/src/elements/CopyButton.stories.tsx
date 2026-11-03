@@ -159,7 +159,7 @@ export const Sizes: Story = {
 /**
  * A copy field: a read-only input and the button in a `Field hasAddons`. If
  * the copy fails, `onCopyError` selects the text so it can be copied by hand,
- * and an alert says so.
+ * and `labels.failedStatus` says so, once, with a plain line showing it.
  */
 export const CopyField: Story = {
   render: function CopyFieldExample() {
@@ -167,6 +167,8 @@ export const CopyField: Story = {
     const inputRef = useRef<HTMLInputElement>(null);
     const [failed, setFailed] = useState(false);
     const link = 'https://bestax.io/docs/api/elements/copybutton';
+    const failure =
+      "Couldn't copy automatically. The link is selected, so copy it from the field.";
 
     return (
       <Field label="Share link" labelProps={{ htmlFor: id }}>
@@ -177,6 +179,7 @@ export const CopyField: Story = {
           <Control>
             <CopyButton
               value={link}
+              labels={{ failedStatus: failure }}
               onCopiedChange={() => setFailed(false)}
               onCopyError={() => {
                 inputRef.current?.focus();
@@ -186,10 +189,7 @@ export const CopyField: Story = {
             />
           </Control>
         </Field>
-        <p role="alert" className="help is-danger">
-          {failed &&
-            "Couldn't copy automatically. The link is selected, so copy it from the field."}
-        </p>
+        {failed && <p className="help is-danger">{failure}</p>}
       </Field>
     );
   },

@@ -1468,7 +1468,7 @@
       "import": "import { useClipboard } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 0,
-      "exampleCount": 3
+      "exampleCount": 2
     },
     {
       "name": "useFocusTrap",

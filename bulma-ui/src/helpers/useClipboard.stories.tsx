@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { useState } from 'react';
 import { useClipboard } from './useClipboard';
 import { Code } from '../elements/Code';
 import { LinkButton } from '../elements/LinkButton';
@@ -20,8 +21,17 @@ const CommitId = ({
   sha = '4a1986aa2c7f3e1b9d05e6a8f2c4b7d1e3f5a9c8',
   duration = 1500,
 }: CommitIdProps) => {
-  const { copy, copied, error } = useClipboard({ duration });
   const short = sha.slice(0, 7);
+  // A new element for each message, so a repeat is announced too.
+  const [said, setSaid] = useState({ id: 0, text: '' });
+  const { copy, copied, error } = useClipboard({
+    duration,
+    onCopiedChange: done =>
+      setSaid(s => ({
+        id: s.id + 1,
+        text: done ? `Copied commit ${short}` : '',
+      })),
+  });
 
   return (
     <>
@@ -33,7 +43,7 @@ const CommitId = ({
         <Code>{short}</Code>
       </LinkButton>
       <Span role="status" visibility="sr-only">
-        {copied ? `Copied commit ${short}` : ''}
+        <span key={said.id}>{said.text}</span>
       </Span>
       <Span ml="2" textColor={error ? 'danger' : 'grey'} aria-hidden="true">
         {copied ? 'Copied' : error ? "Couldn't copy" : ''}

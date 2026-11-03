@@ -34,15 +34,24 @@ import { useClipboard } from '@allxsmith/bestax-bulma';
 ### A Trigger of Your Own
 
 Call `copy` from the click with the text, and read `copied` for the moment after. The status region
-is in the page from the start, empty, and says "Copied" while `copied` is `true`, since a screen
-reader reliably announces a live region whose text changes and not always one that appears with its
-text. The button's name, "Copy commit 4a1986a", holds the words on it.
+is in the page from the start, empty. Each copy puts its message in a new element inside it, keyed
+by a count, so a second copy is announced too: a screen reader reads what's added to a live region,
+and setting the same text again adds nothing. The message goes when `copied` ends. The button's
+name, "Copy commit 4a1986a", holds the words on it.
 
 ```tsx live
 function CommitId() {
   const sha = '4a1986aa2c7f3e1b9d05e6a8f2c4b7d1e3f5a9c8';
   const short = sha.slice(0, 7);
-  const { copy, copied } = useClipboard({ duration: 1500 });
+  const [said, setSaid] = useState({ id: 0, text: '' });
+  const { copy, copied } = useClipboard({
+    duration: 1500,
+    onCopiedChange: done =>
+      setSaid(s => ({
+        id: s.id + 1,
+        text: done ? `Copied commit ${short}` : '',
+      })),
+  });
 
   return (
     <>
@@ -54,7 +63,7 @@ function CommitId() {
         <Code>{short}</Code>
       </LinkButton>
       <Span role="status" visibility="sr-only">
-        {copied ? `Copied commit ${short}` : ''}
+        <span key={said.id}>{said.text}</span>
       </Span>
       <Span ml="2" textColor="grey" aria-hidden="true">
         {copied ? 'Copied' : ''}
@@ -66,14 +75,20 @@ function CommitId() {
 
 ### Handling a Failure
 
-When nothing could write, `copy` resolves `false` and `error` holds the reason. Say so, and give the
-reader a way to copy the text themselves. The status line below reports either outcome, since a
-screen reader doesn't always announce a focused button's new label.
+When nothing could write, `copy` resolves `false`, `error` holds the reason and `onCopyError` is
+called. Say so, and give the reader a way to copy the text themselves. The status line below reports
+either outcome, a new element each time, since a screen reader doesn't always announce a focused
+button's new label.
 
 ```tsx live
 function InviteCode() {
   const code = 'BESTAX-2026';
-  const { copy, copied, error } = useClipboard();
+  const [said, setSaid] = useState({ id: 0, text: '' });
+  const say = (text: string) => setSaid(s => ({ id: s.id + 1, text }));
+  const { copy, copied, error } = useClipboard({
+    onCopiedChange: done => say(done ? 'Invite code copied.' : ''),
+    onCopyError: () => say(`Couldn't copy it, so copy ${code} by hand.`),
+  });
 
   return (
     <>
@@ -81,8 +96,7 @@ function InviteCode() {
         {copied ? 'Copied' : 'Copy'}
       </Button>
       <Paragraph role="status" mt="2" textColor={error ? 'danger' : undefined}>
-        {copied && 'Invite code copied.'}
-        {error && `Couldn't copy it, so copy ${code} by hand.`}
+        <span key={said.id}>{said.text}</span>
       </Paragraph>
     </>
   );
@@ -91,31 +105,25 @@ function InviteCode() {
 
 ### Text You Have to Fetch
 
-Browsers allow a write only shortly after a click or a key press, and in Firefox and Safari a fetch
-that takes a few seconds can outlast that. Fetch the text before the click where you can, and call
-`copy` as soon as you have it where you can't. A copy that has run out of time fails like any
-other.
-
-```tsx
-const { copy } = useClipboard();
-
-async function copyShareLink() {
-  const { url } = await fetch('/api/share-link').then(r => r.json());
-  if (!(await copy(url))) showTheLink(url);
-}
-```
+Browsers allow a write only shortly after a click or a key press, so a copy that waits for
+something first, such as a fetch, may be refused in any browser. Fetch the text before the click,
+when the page or the panel opens, and copy it from the click. The Clipboard API can also take a
+`ClipboardItem` holding a promise of the text, which lets the write start inside the click; this
+hook doesn't offer that.
 
 ---
 
 ## How It Writes
 
-`copy` calls `navigator.clipboard.writeText`. Where `navigator.clipboard` is missing, as it is on
-any page served over plain `http://` other than `localhost`, or where `writeText` refuses, as
-Chromium does in a cross-origin frame without `allow="clipboard-write"`, it falls back to
-`document.execCommand('copy')` with a `copy` listener that puts the text on the clipboard. Where
-`navigator.clipboard` is missing, that runs straight away, before `copy` awaits anything, so it's
-still inside the click. The fallback counts as a success only if the `copy` event fired, since
-WebKit's `execCommand` returns `false` from a copy that happened.
+`copy` calls `navigator.clipboard.writeText`. Where `navigator.clipboard` is missing, as on a page
+served over plain `http://` other than `localhost`, it uses `document.execCommand('copy')` instead,
+with listeners that enable the command and put the text on the clipboard. That runs straight away,
+before `copy` awaits anything, so it's still inside the click.
+
+Where `writeText` refuses, it tries the same command once the refusal arrives. That's after an
+`await`, outside the click, so it writes only where the browser still counts the click by then;
+otherwise the copy fails. The command counts as a success only if its `copy` event fired, since
+`execCommand` can return `false` from a copy that happened.
 
 `execCommand` is deprecated, and the hook keeps the call in one function, so it can go when the
 browsers drop it. It writes plain text only, and never reads the clipboard.
@@ -142,21 +150,21 @@ interface UseClipboardResult {
 
 ### Options
 
-| Option                   | Type                        | Default | Description                                                                                                                                                                                   |
-| ------------------------ | --------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `options.duration`       | `number`                    | `2000`  | How long `copied` stays `true` after a copy, in milliseconds. Another copy restarts it.                                                                                                       |
-| `options.onCopiedChange` | `(copied: boolean) => void` | —       | Called with `true` after each copy that worked, a repeat included, and with `false` when `duration` runs out or a later copy fails.                                                           |
-| `options.onCopyError`    | `(error: Error) => void`    | —       | Called when neither the Clipboard API nor the copy command could write, with the Clipboard API's own error when it refused (such as a `NotAllowedError`), or an `Error` saying neither could. |
+| Option                   | Type                        | Default | Description                                                                                                                                                                                                                             |
+| ------------------------ | --------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `options.duration`       | `number`                    | `2000`  | How long `copied` stays `true` after a copy, in milliseconds. Another copy restarts it. It's capped at the longest delay `setTimeout` takes, about 24.8 days, which a value that isn't a finite number, `Infinity` included, also gets. |
+| `options.onCopiedChange` | `(copied: boolean) => void` | —       | Called with `true` after each copy that worked, a repeat included, and with `false` when `duration` runs out or a later copy fails.                                                                                                     |
+| `options.onCopyError`    | `(error: Error) => void`    | —       | Called when neither the Clipboard API nor the copy command could write, with the Clipboard API's own error when it refused (such as a `NotAllowedError`), or an `Error` saying neither could.                                           |
 
 The callbacks are read when they fire, so an inline function is fine.
 
 ### Returns
 
-| Value    | Type                                 | Description                                                                                                                                             |
-| -------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `copy`   | `(text: string) => Promise<boolean>` | Writes `text`, and resolves `true` once it's written or `false` when it couldn't be. It never rejects, and it keeps its identity from render to render. |
-| `copied` | `boolean`                            | `true` for `duration` after a copy that worked.                                                                                                         |
-| `error`  | `Error \| null`                      | Why the last copy failed, or `null` after one that worked. A failed copy also ends `copied`, so the two are never set together.                         |
+| Value    | Type                                 | Description                                                                                                                                                                                                                                                                             |
+| -------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `copy`   | `(text: string) => Promise<boolean>` | Writes `text`, and resolves `true` once it's written or `false` when it couldn't be. It never rejects, and it keeps its identity from render to render. When copies overlap, only the latest one's outcome sets `copied` and `error` and calls the callbacks, whichever finishes first. |
+| `copied` | `boolean`                            | `true` for `duration` after a copy that worked.                                                                                                                                                                                                                                         |
+| `error`  | `Error \| null`                      | Why the last copy failed, or `null` after one that worked. A failed copy also ends `copied`, so the two are never set together.                                                                                                                                                         |
 
 On the server it does nothing: `copied` is `false`, `error` is `null`, and nothing reads the
 clipboard or the page while rendering. Once the component calling it has unmounted, nothing changes
@@ -170,6 +178,9 @@ finishes without reporting back, though `copy`'s promise still resolves.
 - Announce the result. A "Copied" message is a status message
   ([WCAG 4.1.3](https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html)): put it in a
   `role="status"` region that's in the page, empty, before the click, and write into it after.
+  Add a new element for each message, so a second copy, or a second failure, is announced too.
+- Inside an open modal dialog (`aria-modal="true"`), put the region inside the dialog. A screen
+  reader ignores a live region behind one.
 - Don't count on a changed label alone. A change to a focused button's text isn't read out by every
   screen reader and browser pairing.
 - Keep the trigger's name holding the words on it, so a voice control user can say what they see.

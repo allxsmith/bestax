@@ -163,8 +163,9 @@ Recipes built on addons, each written out in full in the docs:
 - **Copy field** ([docs](https://bestax.io/docs/api/form/input#copy-button)): a read-only input
   and a `CopyButton value={text}` in the second `Control`. It writes, falls back where the Clipboard
   API is missing, reads "Copied" and announces the result itself, from a region it portals out of
-  the `Control`. For a failure, `onCopyError` focuses and selects the input and sets a
-  `role="alert"` line under the field, mounted empty from the start; `onCopiedChange` clears it.
+  the `Control`. For a failure, `onCopyError` focuses and selects the input, and
+  `labels.failedStatus` holds the whole message, so the button announces it once. Show it under the
+  field as plain text, not another live region, which would announce it twice.
 - **Split button** ([docs](https://bestax.io/docs/api/components/dropdown#split-button)): a
   `Button` and a `Dropdown` in `Field hasAddons`, one `Control` each. `Buttons hasAddons` does
   not join the Dropdown's trigger. Keep the default color, since the trigger takes no `color`.

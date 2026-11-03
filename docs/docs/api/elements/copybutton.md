@@ -144,11 +144,9 @@ A read-only input holding the text and the button go in a `Field hasAddons`, eac
 last child and Bulma joins the two.
 
 When a copy fails, `onCopyError` focuses the input and selects its text, so the reader can copy it
-themselves, and a line under the field says so. That line is an alert rather than a status, because
-focus moves to the input at the same moment and a screen reader announcing the focused field can
-drop a polite message. It's in the page from the start, empty, since a live region that appears
-together with its text isn't reliably announced. `onCopiedChange` clears it after a copy that
-works.
+themselves. `labels.failedStatus` carries the whole message, so the button's own status announces
+it once, and the line under the field shows it. That line is plain text, not a live region, so the
+failure isn't announced twice. `onCopiedChange` hides it after a copy that works.
 
 ```tsx live
 function ShareLink() {
@@ -156,6 +154,8 @@ function ShareLink() {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [failed, setFailed] = useState(false);
   const link = 'https://bestax.io/docs/api/elements/copybutton';
+  const failure =
+    "Couldn't copy automatically. The link is selected, so copy it from the field.";
 
   return (
     <Field label="Share link" labelProps={{ htmlFor: id }}>
@@ -166,6 +166,7 @@ function ShareLink() {
         <Control>
           <CopyButton
             value={link}
+            labels={{ failedStatus: failure }}
             onCopiedChange={() => setFailed(false)}
             onCopyError={() => {
               inputRef.current?.focus();
@@ -175,10 +176,7 @@ function ShareLink() {
           />
         </Control>
       </Field>
-      <p role="alert" className="help is-danger">
-        {failed &&
-          "Couldn't copy automatically. The link is selected, so copy it from the field."}
-      </p>
+      {failed && <p className="help is-danger">{failure}</p>}
     </Field>
   );
 }
@@ -320,22 +318,24 @@ A click writes `value` with `navigator.clipboard.writeText`. That can't always w
 - The Clipboard API exists only in secure contexts, so a page served over plain `http://` from
   anywhere but `localhost` (a dev server reached by its network address, an intranet tool) has no
   `navigator.clipboard` at all.
-- Chromium refuses it in a cross-origin frame that wasn't given `allow="clipboard-write"`.
+- A browser can refuse it, such as in a cross-origin frame that wasn't given
+  `allow="clipboard-write"`.
 - Browsers allow a write only shortly after a click or a key press.
 
-Where it's missing or refuses, the button falls back to `document.execCommand('copy')`, the way
-pages copied before the Clipboard API, with a `copy` listener that puts the text on the clipboard.
-Where `navigator.clipboard` is missing, that runs straight away, inside the click. The copy counts
-as a success only if that `copy` event fired, since WebKit's `execCommand` returns `false` from a
-copy that happened. `execCommand` is deprecated, and the call lives in one function, so it can go
-when the browsers drop it.
+Where `navigator.clipboard` is missing, the button uses `document.execCommand('copy')` instead,
+the way pages copied before the Clipboard API, with listeners that enable the command and put the
+text on the clipboard. That runs straight away, inside the click. Where `writeText` refuses, it
+tries the same command once the refusal arrives, which is after an `await` and outside the click,
+so it writes only where the browser still counts the click by then. The copy counts as a success
+only if the command's `copy` event fired, since `execCommand` can return `false` from a copy that
+happened. `execCommand` is deprecated, and the call lives in one function, so it can go when the
+browsers drop it.
 
-When both fail, the button keeps "Copy", announces "Couldn't copy to the clipboard" and calls
+When nothing writes, the button keeps "Copy", announces "Couldn't copy to the clipboard" and calls
 `onCopyError`. It never shows "Copied" for a copy that didn't happen.
 
-It copies plain text only, and only a string you already have: browsers allow the write only
-shortly after the click, so text that has to be fetched first can run out of that time. Fetch it
-first, or call `useClipboard`'s `copy` once you have it.
+It copies plain text only, and only a string you already have: a copy that waits for something,
+such as a fetch, may be refused in any browser. Fetch the text before the click.
 
 ---
 
@@ -351,7 +351,10 @@ first, or call `useClipboard`'s `copy` once you have it.
   [ARIA22](https://www.w3.org/WAI/WCAG22/Techniques/aria/ARIA22)). The region is in the page from
   hydration, well before any click, and is visually hidden. It's portaled to the end of the page,
   or to a `ConfigProvider`'s `portalContainer`, so it isn't a child of the button's `Control` or
-  `Buttons` row. A copy repeated while the button still reads "Copied" is announced again.
+  `Buttons` row. Inside an open modal dialog (`aria-modal="true"`), such as a `Modal`, a `Dialog`
+  or a `Sidebar` with an overlay, it goes inside the dialog instead, since a screen reader ignores
+  a live region behind one. It moves there when the button takes focus or a click. A copy repeated
+  while the button still reads "Copied" is announced again.
 - **Icon-only, it's still named:** `labels.copy` is its `aria-label` in both states, since there are
   no words to follow, and only the glyph swaps. Give it a name that says what it copies when there
   are several on a page ("Copy the Production key").
@@ -396,7 +399,7 @@ first, or call `useClipboard`'s `copy` once you have it.
 | Prop             | Type                                                                                                                                                        | Default  | Description                                                                                                                                                                                                                                                                                                                                                   |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `value`          | `string`                                                                                                                                                    | —        | The text it copies. This is not the `<button>`'s form value, which it doesn't render.                                                                                                                                                                                                                                                                         |
-| `duration`       | `number`                                                                                                                                                    | `2000`   | How long the "Copied" label stays, in milliseconds. Another copy restarts it.                                                                                                                                                                                                                                                                                 |
+| `duration`       | `number`                                                                                                                                                    | `2000`   | How long the "Copied" label stays, in milliseconds. Another copy restarts it. It's capped at the longest delay `setTimeout` takes, about 24.8 days, which a value that isn't a finite number, `Infinity` included, also gets.                                                                                                                                 |
 | `showLabel`      | `boolean`                                                                                                                                                   | `true`   | Shows the label beside the icon, which is then the button's name: it carries no `aria-label`, so the name reads "Copy" and then "Copied" as the words on it do. Turned off, it's a square icon-only button named by `labels.copy` through `aria-label` in both states, and only the glyph changes. An `aria-label` you pass yourself names it in either form. |
 | `labels`         | `{ copy?: string; copied?: string; copiedStatus?: string; failedStatus?: string }`                                                                          | —        | Translations for the label and the announcements.                                                                                                                                                                                                                                                                                                             |
 | `onCopiedChange` | `(copied: boolean) => void`                                                                                                                                 | —        | Called with `true` after each copy that worked, a repeat included, and with `false` when `duration` runs out or a later copy fails.                                                                                                                                                                                                                           |
