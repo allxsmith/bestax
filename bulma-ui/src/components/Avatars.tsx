@@ -3,7 +3,7 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { flattenChildren } from '../helpers/flattenChildren';
-import { useNumberFormat } from '../helpers/localeFormat';
+import { useScopedNumberFormat } from '../helpers/localeFormat';
 import { Avatar, AvatarProps } from './Avatar';
 
 /** Valid overlap spacing values for the Avatars component. */
@@ -59,7 +59,7 @@ const AvatarsComponent: React.FC<AvatarsProps> = ({
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
-  const formatNumber = useNumberFormat();
+  const formatNumber = useScopedNumberFormat();
 
   // A preset spacing maps to a class; a numeric spacing sets the CSS var inline
   // (mirrors Sidebar's inline --bulma-* width var).

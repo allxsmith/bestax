@@ -71,6 +71,7 @@ const NAMED_INDIVIDUALLY = [
   'Navbar.Dropdown',
   'Navbar.Item',
   'Navbar.Link',
+  'NumberFormatter',
   'RingProgress',
   'ScrollArea',
   'SegmentedControl',
