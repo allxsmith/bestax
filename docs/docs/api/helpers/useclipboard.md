@@ -115,10 +115,19 @@ hook doesn't offer that.
 
 ## How It Writes
 
-`copy` calls `navigator.clipboard.writeText`. Where `navigator.clipboard` is missing, as on a page
-served over plain `http://` other than `localhost`, it uses `document.execCommand('copy')` instead,
-with listeners that enable the command and put the text on the clipboard. That runs straight away,
-before `copy` awaits anything, so it's still inside the click.
+`copy` calls `navigator.clipboard.writeText`. That can't always work:
+
+- The Clipboard API exists only in secure contexts, so a page served over plain `http://` from
+  anywhere but `localhost` (a dev server reached by its network address, an intranet tool) has no
+  `navigator.clipboard` at all.
+- A browser can refuse it, such as in a cross-origin frame that wasn't given
+  `allow="clipboard-write"`.
+- Browsers allow a write only shortly after a click or a key press.
+
+Where `navigator.clipboard` is missing, it uses `document.execCommand('copy')` instead, the way
+pages copied before the Clipboard API, with listeners that enable the command and put the text on
+the clipboard. That runs straight away, before `copy` awaits anything, so it's still inside the
+click.
 
 Where `writeText` refuses, it tries the same command once the refusal arrives. That's after an
 `await`, outside the click, so it writes only where the browser still counts the click by then;
@@ -150,11 +159,11 @@ interface UseClipboardResult {
 
 ### Options
 
-| Option                   | Type                        | Default | Description                                                                                                                                                                                                                             |
-| ------------------------ | --------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `options.duration`       | `number`                    | `2000`  | How long `copied` stays `true` after a copy, in milliseconds. Another copy restarts it. It's capped at the longest delay `setTimeout` takes, about 24.8 days, which a value that isn't a finite number, `Infinity` included, also gets. |
-| `options.onCopiedChange` | `(copied: boolean) => void` | —       | Called with `true` after each copy that worked, a repeat included, and with `false` when `duration` runs out or a later copy fails.                                                                                                     |
-| `options.onCopyError`    | `(error: Error) => void`    | —       | Called when neither the Clipboard API nor the copy command could write, with the Clipboard API's own error when it refused (such as a `NotAllowedError`), or an `Error` saying neither could.                                           |
+| Option                   | Type                        | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ------------------------ | --------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `options.duration`       | `number`                    | `2000`  | How long `copied` stays `true` after a copy, in milliseconds. Another copy restarts it. `0` turns the timer off, as a [`Toast`](../components/toast.md)'s `duration={0}` does, so `copied` stays `true` until a later copy fails. A missing or `NaN` value uses the default, a negative one ends it at once, and `Infinity`, or anything longer than the longest delay `setTimeout` takes (about 24.8 days), is that longest delay. |
+| `options.onCopiedChange` | `(copied: boolean) => void` | —       | Called with `true` after each copy that worked, a repeat included, and with `false` when `duration` runs out or a later copy fails.                                                                                                                                                                                                                                                                                                 |
+| `options.onCopyError`    | `(error: Error) => void`    | —       | Called when neither the Clipboard API nor the copy command could write, with the Clipboard API's own error when it refused (such as a `NotAllowedError`), or an `Error` saying neither could.                                                                                                                                                                                                                                       |
 
 The callbacks are read when they fire, so an inline function is fine.
 
@@ -163,7 +172,7 @@ The callbacks are read when they fire, so an inline function is fine.
 | Value    | Type                                 | Description                                                                                                                                                                                                                                                                             |
 | -------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `copy`   | `(text: string) => Promise<boolean>` | Writes `text`, and resolves `true` once it's written or `false` when it couldn't be. It never rejects, and it keeps its identity from render to render. When copies overlap, only the latest one's outcome sets `copied` and `error` and calls the callbacks, whichever finishes first. |
-| `copied` | `boolean`                            | `true` for `duration` after a copy that worked.                                                                                                                                                                                                                                         |
+| `copied` | `boolean`                            | `true` for `duration` after a copy that worked, or, with a `duration` of `0`, until a later copy fails.                                                                                                                                                                                 |
 | `error`  | `Error \| null`                      | Why the last copy failed, or `null` after one that worked. A failed copy also ends `copied`, so the two are never set together.                                                                                                                                                         |
 
 On the server it does nothing: `copied` is `false`, `error` is `null`, and nothing reads the

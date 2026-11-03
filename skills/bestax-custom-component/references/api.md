@@ -240,7 +240,8 @@ function FilterPanel({ children }: { children: React.ReactNode }) {
 `{ copy, copied, error }`. `copy(text)` writes through the Clipboard API, falls back to the copy
 command where that's missing (any plain `http://` page but `localhost`) or refused, and resolves
 `true` or `false`; it never rejects. `copied` is `true` for `duration` ms (2000) after a copy that
-worked, and `error` holds why the last one failed; when copies overlap, only the latest one counts.
+worked, or until a later copy fails when `duration` is `0`, and `error` holds why the last one
+failed; when copies overlap, only the latest one counts.
 Call `copy` from the click with text you already have, with no `await` before it, since browsers
 only allow a write shortly after the click. The hook announces nothing: say the result in a
 `role="status"` region that's in the page, empty, before the click, inside the open modal dialog if

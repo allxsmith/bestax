@@ -47,7 +47,7 @@ const meta: Meta<typeof CopyButton> = {
     duration: {
       control: { type: 'number', min: 0, step: 500 },
       description:
-        'How long "Copied" stays, in milliseconds (default 2000); another copy restarts it',
+        'How long "Copied" stays, in milliseconds (default 2000); another copy restarts it, and 0 keeps it until a later copy fails',
     },
     showLabel: {
       control: 'boolean',

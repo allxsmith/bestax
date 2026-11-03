@@ -5,10 +5,11 @@ import { useLatestRef } from './useLatestRef';
 export interface UseClipboardOptions {
   /**
    * How long `copied` stays `true` after a copy, in milliseconds. Another
-   * copy restarts it. A missing or `NaN` value uses the default, a negative
-   * one is `0`, and `Infinity`, or anything longer than the longest delay
-   * `setTimeout` takes (2147483647 ms, about 24.8 days), is that longest
-   * delay.
+   * copy restarts it. `0` turns the timer off, as Toast's `0` does, so
+   * `copied` stays `true` until a later copy fails. A missing or `NaN` value
+   * uses the default, a negative one ends it at once, and `Infinity`, or
+   * anything longer than the longest delay `setTimeout` takes (2147483647 ms,
+   * about 24.8 days), is that longest delay.
    * @defaultValue 2000
    */
   duration?: number;
@@ -36,7 +37,10 @@ export interface UseClipboardResult {
    * copy command once the later one has started.
    */
   copy: (text: string) => Promise<boolean>;
-  /** `true` for `duration` after a copy that worked. */
+  /**
+   * `true` for `duration` after a copy that worked, or, with a `duration` of
+   * `0`, until a later copy fails.
+   */
   copied: boolean;
   /** Why the last copy failed, or `null` after one that worked. */
   error: Error | null;
@@ -52,14 +56,17 @@ const defaultDuration = 2000;
 const longestDelay = 2 ** 31 - 1;
 
 /**
- * `duration` as a delay `setTimeout` keeps: the default when it's missing or
- * `NaN` (or a JavaScript caller's `null`), `0` for a negative one, and the
- * longest delay for `Infinity` or anything longer.
+ * `duration` as a delay `setTimeout` keeps, or `null` for no timer: `null`
+ * for `0`, as on Toast, the default when it's missing or `NaN` (or a
+ * JavaScript caller's `null`), `0` for a negative one, which ends `copied` at
+ * once, and the longest delay for `Infinity` or anything longer.
  */
-const delayOf = (duration: number | null | undefined) =>
-  duration == null || Number.isNaN(duration)
+const delayOf = (duration: number | null | undefined) => {
+  if (duration === 0) return null;
+  return duration == null || Number.isNaN(duration)
     ? defaultDuration
     : Math.min(Math.max(duration, 0), longestDelay);
+};
 
 /** The error a copy reports when nothing could write and nothing said why. */
 const cannotCopy =
@@ -203,11 +210,14 @@ export function useClipboard(
         return false;
       }
       onCopiedChange?.(true);
-      timerRef.current = setTimeout(() => {
-        copiedRef.current = false;
-        setCopied(false);
-        optionsRef.current.onCopiedChange?.(false);
-      }, delayOf(duration));
+      const delay = delayOf(duration);
+      if (delay !== null) {
+        timerRef.current = setTimeout(() => {
+          copiedRef.current = false;
+          setCopied(false);
+          optionsRef.current.onCopiedChange?.(false);
+        }, delay);
+      }
       return true;
     },
     [optionsRef]

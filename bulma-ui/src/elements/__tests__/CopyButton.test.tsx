@@ -180,6 +180,21 @@ describe('CopyButton', () => {
       expect(button).toHaveAccessibleName('Copy');
     });
 
+    it('keeps "Copied" with a duration of 0, as a Toast stays open', async () => {
+      vi.useFakeTimers();
+      clipboardWorks();
+      const onCopiedChange = vi.fn();
+      render(
+        <CopyButton value="x" duration={0} onCopiedChange={onCopiedChange} />
+      );
+      const button = screen.getByRole('button');
+      await click(button);
+      act(() => vi.advanceTimersByTime(60_000));
+      expect(button).toHaveAccessibleName('Copied');
+      expect(showsCheck(button)).toBe(true);
+      expect(onCopiedChange.mock.calls).toEqual([[true]]);
+    });
+
     it('calls onCopiedChange with true, then false', async () => {
       vi.useFakeTimers();
       clipboardWorks();

@@ -193,7 +193,7 @@ describe('useClipboard', () => {
       expect(result.current.copied).toBe(false);
     });
 
-    it('treats a negative duration as none', async () => {
+    it('ends copied at once for a negative duration', async () => {
       vi.useFakeTimers();
       stubClipboard(() => Promise.resolve());
       const { result } = setup({ duration: -500 });
@@ -201,6 +201,39 @@ describe('useClipboard', () => {
       expect(result.current.copied).toBe(true);
       act(() => vi.advanceTimersByTime(0));
       expect(result.current.copied).toBe(false);
+    });
+
+    it('sets no timer for a duration of 0, as Toast does', async () => {
+      vi.useFakeTimers();
+      const writeText = stubClipboard(() => Promise.resolve());
+      const onCopiedChange = vi.fn();
+      const { result } = setup({ duration: 0, onCopiedChange });
+      await copyWith(result, 'one');
+      expect(vi.getTimerCount()).toBe(0);
+      act(() => vi.advanceTimersByTime(2 ** 31 - 1));
+      expect(result.current.copied).toBe(true);
+      // A repeat keeps it, and reports again.
+      await copyWith(result, 'two');
+      expect(result.current.copied).toBe(true);
+      expect(onCopiedChange.mock.calls).toEqual([[true], [true]]);
+      // Only a copy that fails ends it.
+      writeText.mockImplementation(() =>
+        Promise.reject(new DOMException('Denied', 'NotAllowedError'))
+      );
+      await copyWith(result, 'three');
+      expect(result.current.copied).toBe(false);
+      expect(onCopiedChange.mock.calls).toEqual([[true], [true], [false]]);
+    });
+
+    it('clears a running timer when a copy with a duration of 0 follows', async () => {
+      vi.useFakeTimers();
+      stubClipboard(() => Promise.resolve());
+      const { result, rerender } = setup({ duration: 500 });
+      await copyWith(result, 'one');
+      rerender({ duration: 0 });
+      await copyWith(result, 'two');
+      act(() => vi.advanceTimersByTime(500));
+      expect(result.current.copied).toBe(true);
     });
 
     it('restarts the time on another copy, and reports each copy', async () => {

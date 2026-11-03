@@ -42,6 +42,7 @@ export interface CopyButtonLabels {
  * attributes and the `ref` land on the `<button>`.
  *
  * @extraProp {'button' | 'submit' | 'reset'} [type=button] - `button` unless you pass `submit` or `reset`.
+ * @extraProp {React.MouseEventHandler<HTMLButtonElement>} [onClick] - Runs before the copy. An `onClick` that calls `preventDefault()` stops the copy, and neither `onCopiedChange` nor `onCopyError` fires.
  * @extraProp {React.Ref<HTMLButtonElement>} [ref] - Ref forwarded to the `<button>`.
  */
 export interface CopyButtonProps
@@ -58,9 +59,11 @@ export interface CopyButtonProps
   value: string;
   /**
    * How long the "Copied" label stays, in milliseconds. Another copy
-   * restarts it. A missing or `NaN` value uses the default, a negative one is
-   * `0`, and `Infinity`, or anything longer than the longest delay
-   * `setTimeout` takes (about 24.8 days), is that longest delay.
+   * restarts it. `0` turns the reset off, as Toast's `0` turns off its
+   * auto-close, so "Copied" stays until a later copy fails. A missing or `NaN`
+   * value uses the default, a negative one ends it at once, and `Infinity`,
+   * or anything longer than the longest delay `setTimeout` takes (about 24.8
+   * days), is that longest delay.
    * @defaultValue 2000
    */
   duration?: number;

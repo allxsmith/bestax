@@ -257,7 +257,7 @@
       "slug": "elements/buttons",
       "import": "import { Buttons } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 81,
+      "propCount": 104,
       "exampleCount": 8
     },
     {

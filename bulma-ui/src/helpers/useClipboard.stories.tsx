@@ -71,7 +71,8 @@ const meta: Meta<typeof CommitId> = {
     },
     duration: {
       control: { type: 'number', min: 0, step: 500 },
-      description: 'Passed as `duration`: how long `copied` stays true, in ms',
+      description:
+        'Passed as `duration`: how long `copied` stays true, in ms; 0 keeps it until a later copy fails',
     },
   },
 };
