@@ -27,9 +27,6 @@ import {
   useComboboxEngine,
 } from '../helpers/useComboboxEngine';
 import type { PopoverPosition } from '../components/Popover';
-import { Delete } from '../elements/Delete';
-import { Tag } from '../elements/Tag';
-import { Tags } from '../elements/Tags';
 import { Field } from './Field';
 import { Input, InputProps } from './Input';
 import { FormFieldProps } from './fieldProps';
@@ -41,6 +38,7 @@ import {
 } from './FormContext';
 import { useAutoLabelId } from './useAutoLabelId';
 import { useControlLoading } from './controlLoading';
+import { HiddenValues, ValueTags, tagIds } from './_selectInternals/ValueTags';
 
 const validComboboxSizes = ['small', 'medium', 'large'] as const;
 
@@ -1280,7 +1278,7 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
     };
     // The picks, for the field's description, since its text is the search.
     const tagsId = useId();
-    const tagIds = picked.map((_, index) => `${tagsId}-${index}`);
+    const ids = tagIds(tagsId, picked);
 
     // Each group where `data` first names it, and the items with none
     // together where the first of them is.
@@ -1329,27 +1327,16 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
           onOpenChange?.(next);
         }}
         below={
-          multiple
-            ? picked.length > 0 && (
-                <Tags mt="2">
-                  {picked.map((v, index) => (
-                    <Tag key={v}>
-                      <span id={tagIds[index]}>{labelFor(v)}</span>
-                      {!disabled && (
-                        <Delete
-                          size="small"
-                          ariaLabel={ariaCloseLabel || `Remove ${labelFor(v)}`}
-                          aria-describedby={
-                            ariaCloseLabel ? tagIds[index] : undefined
-                          }
-                          onClick={() => remove(v)}
-                        />
-                      )}
-                    </Tag>
-                  ))}
-                </Tags>
-              )
-            : undefined
+          multiple ? (
+            <ValueTags
+              values={picked}
+              ids={ids}
+              labelFor={labelFor}
+              disabled={disabled}
+              ariaCloseLabel={ariaCloseLabel}
+              onRemove={remove}
+            />
+          ) : undefined
         }
       >
         <ComboboxInput
@@ -1363,7 +1350,7 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
           aria-required={required || undefined}
           form={form}
           aria-describedby={
-            multiple && picked.length > 0 ? tagIds.join(' ') : undefined
+            multiple && picked.length > 0 ? ids.join(' ') : undefined
           }
           placeholder={placeholder}
           value={
@@ -1374,17 +1361,12 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
           onBlur={settle}
         />
         {inline ? list : <ComboboxMenu>{list}</ComboboxMenu>}
-        {name &&
-          (multiple ? picked : [picked[0] ?? '']).map(v => (
-            <input
-              key={v}
-              type="hidden"
-              name={name}
-              value={v}
-              form={form}
-              disabled={disabled}
-            />
-          ))}
+        <HiddenValues
+          name={name}
+          values={multiple ? picked : [picked[0] ?? '']}
+          form={form}
+          disabled={disabled}
+        />
       </ComboboxParts>
     );
   }
