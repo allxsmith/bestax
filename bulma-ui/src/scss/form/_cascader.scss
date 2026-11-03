@@ -60,10 +60,12 @@ $cascader-column-inset: 4px !default;
 // The other sizes, each with the values it changes: Combobox's.
 $cascader-sizes: cb.$combobox-sizes !default;
 
-// Registered on the root, and on the panel too, which a portal puts outside
-// it. A panel in place inherits the root's, so a theme set there reaches it.
+// Registered on the root, which a panel in place sits inside and inherits
+// from, so a value set on the root or through `className` reaches it, and on
+// a portaled panel, which a portal puts outside the root, so it carries its
+// own copy, as Combobox's menu does.
 .#{iv.$class-prefix}cascader,
-.#{iv.$class-prefix}cascader-panel {
+.#{iv.$class-prefix}cascader-panel.#{iv.$class-prefix}is-portal {
   @include cv.register-vars(
     (
       'cascader-chevron-width': #{$cascader-chevron-width},

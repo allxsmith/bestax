@@ -469,139 +469,139 @@
       "css": "--bulma-cascader-chevron-width",
       "sass": "$cascader-chevron-width",
       "default": "var(--bulma-control-height)",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-cascader-chevron-color",
       "sass": "$cascader-chevron-color",
       "default": "var(--bulma-text-light)",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-cascader-chevron-hover-color",
       "sass": "$cascader-chevron-hover-color",
       "default": "var(--bulma-text-weak)",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-cascader-chevron-focus-color",
       "sass": "$cascader-chevron-focus-color",
       "default": "var(--bulma-link)",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-cascader-chevron-z-index",
       "sass": "$cascader-chevron-z-index",
       "default": "4",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-cascader-clear-z-index",
       "sass": "$cascader-clear-z-index",
       "default": "5",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-cascader-search-gap",
       "sass": "$cascader-search-gap",
       "default": "0.5rem",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-cascader-column-width",
       "sass": "$cascader-column-width",
       "default": "11rem",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-cascader-column-max-height",
       "sass": "$cascader-column-max-height",
       "default": "15rem",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-cascader-column-border-width",
       "sass": "$cascader-column-border-width",
       "default": "1px",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-cascader-column-border-color",
       "sass": "$cascader-column-border-color",
       "default": "var(--bulma-border-weak)",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-cascader-item-color",
       "sass": "$cascader-item-color",
       "default": "$combobox-item-color",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-cascader-item-size",
       "sass": "$cascader-item-size",
       "default": "$combobox-item-size",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-cascader-item-padding-y",
       "sass": "$cascader-item-padding-y",
       "default": "$combobox-item-padding-y",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-cascader-item-padding-x",
       "sass": "$cascader-item-padding-x",
       "default": "$combobox-item-padding-x",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-cascader-item-hover-background",
       "sass": "$cascader-item-hover-background",
       "default": "$combobox-item-hover-background",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-cascader-highlight-background",
       "sass": "$cascader-highlight-background",
       "default": "hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), calc(var(--bulma-scheme-main-l) + var(--bulma-active-background-l-delta)))",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-cascader-checked-background",
       "sass": "$cascader-checked-background",
       "default": "var(--bulma-link)",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-cascader-checked-color",
       "sass": "$cascader-checked-color",
       "default": "var(--bulma-link-invert)",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-cascader-disabled-color",
       "sass": "$cascader-disabled-color",
       "default": "var(--bulma-text-weak)",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-cascader-item-chevron-size",
       "sass": "$cascader-item-chevron-size",
       "default": "0.5em",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-cascader-item-gap",
       "sass": "$cascader-item-gap",
       "default": "0.5em",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-cascader-column-inset",
       "sass": "$cascader-column-inset",
       "default": "4px",
-      "scope": "root"
+      "scope": "root-and-element"
     },
     {
       "css": "--bulma-picker-popover-z-index",

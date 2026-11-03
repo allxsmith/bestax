@@ -503,7 +503,7 @@ to match, and Right and Left swap.
 
 <!-- bestax:generated cssvars -->
 
-`Cascader` registers these variables on its own `.cascader` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+`Cascader` registers these variables on its own `.cascader` element, and declares them again on `.cascader-panel.is-portal`, which takes nothing from it. Override them on `.cascader` with inline `style`, or with a class via `className` whose rule loads after the library styles, and set them on `.cascader-panel.is-portal` too, with a selector that matches it and loads after the library styles, or one that exceeds it. A value set on an ancestor is only inherited, and loses to both declarations. See [Theme](../helpers/theme.md).
 
 | CSS Variable                                  | Sass Variable                        | Default                                                                                                                        |
 | --------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |

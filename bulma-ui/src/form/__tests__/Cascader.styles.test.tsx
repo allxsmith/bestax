@@ -47,8 +47,29 @@ function body(rules: Map<string, string>, selector: string): string {
 }
 
 describe('Cascader styles', () => {
+  it('lets a panel in place inherit the root, where a value set on the root or through className reaches it', () => {
+    // No rule gives a panel that isn't portaled a value of its own, which
+    // would beat what it inherits from the root it sits in.
+    for (const [selector, declarations] of PLAIN) {
+      // A rule that sets one of the variables, not one that reads them.
+      if (!/(^|;\s*)--bulma-cascader-[\w-]+:/.test(declarations)) continue;
+      for (const part of selector.split(', ')) {
+        if (part.startsWith('.cascader-panel')) {
+          expect(part).toMatch(
+            /^\.cascader-panel\.is-(portal|small|medium|large)$/
+          );
+        }
+      }
+    }
+  });
+
+  it('gives a portaled panel, outside the root, its own copy of the defaults', () => {
+    const root = body(PLAIN, '.cascader, .cascader-panel.is-portal');
+    expect(root).toContain('--bulma-cascader-search-gap: 0.5rem');
+  });
+
   it('registers its variables on the root and on a portaled panel', () => {
-    const vars = body(PLAIN, '.cascader, .cascader-panel');
+    const vars = body(PLAIN, '.cascader, .cascader-panel.is-portal');
     for (const name of [
       'chevron-width',
       'chevron-color',
@@ -108,7 +129,7 @@ describe('Cascader styles', () => {
   });
 
   it("starts the items from Combobox's values, its sizes included", () => {
-    const vars = body(PLAIN, '.cascader, .cascader-panel');
+    const vars = body(PLAIN, '.cascader, .cascader-panel.is-portal');
     const combobox = rulesOf(compileModule('', 'form/combobox'));
     const own = body(combobox, '.combobox, .combobox-menu.is-portal');
     for (const name of [
