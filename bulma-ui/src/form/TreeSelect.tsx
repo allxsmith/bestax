@@ -12,7 +12,12 @@ import type { BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { warnOnce } from '../helpers/devWarnings';
 import { useLocaleMatcher } from '../helpers/localeFormat';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
-import { TreeViewHiddenContext, toggledList } from '../helpers/useTreeView';
+import {
+  TreeViewHiddenContext,
+  readChecks,
+  toggledList,
+} from '../helpers/useTreeView';
+import { useLatestRef } from '../helpers/useLatestRef';
 import { useControlled } from '../helpers/useControlled';
 import {
   checkRecords,
@@ -128,7 +133,8 @@ interface TreeSelectBaseProps
   /**
    * Whether a node matches the search, in place of the locale-aware match on
    * its label. It's handed the search text trimmed. A match's ancestors stay
-   * either way.
+   * either way. The search runs again when the search text or `data`
+   * changes, not when only this does, so one written inline costs nothing.
    */
   filter?: (query: string, item: TreeItemData) => boolean;
   /** What the panel shows when the search matches nothing, such as "No folders match". Announced once. */
@@ -203,7 +209,10 @@ export interface TreeSelectSingleProps extends TreeSelectBaseProps {
   /**
    * Called with the new value: in `'single'` the picked item's value, or
    * `null` when it's cleared, and in the checkbox modes the new list, after a
-   * check, an uncheck, a tag's button or the clear button.
+   * check, an uncheck, a tag's button or the clear button, each shaped by
+   * `checkedStrategy`. A reset of the field's form calls it too, with
+   * `defaultValue` as it was given, or with `null` or `[]` when you hold
+   * the value, for you to set.
    */
   onChange?: (value: string | null) => void;
   /**
@@ -239,14 +248,21 @@ export interface TreeSelectCheckboxProps extends TreeSelectBaseProps {
   value?: string[];
   /** The values checked to begin with, when TreeSelect holds its own state. */
   defaultValue?: string[];
-  /** Called with the new list after a check, an uncheck, a tag's button or the clear button. */
+  /**
+   * Called with the new list after a check, an uncheck, a tag's button or
+   * the clear button, shaped by `checkedStrategy`, and after a reset of the
+   * field's form, with `defaultValue` as given, or `[]` when you hold the
+   * value.
+   */
   onChange?: (value: string[]) => void;
   /**
    * What a checked branch puts in the value, in `'checkbox'`: `'child'` its
    * leaves, `'parent'` its topmost checked item, `'all'` every checked item,
    * parents included. A checked disabled item is in all three, since only
-   * its own value checks it. It shapes the value a check, an uncheck or a
-   * tag's button makes, which `onChange` reports. The tags and the hidden
+   * its own value checks it. It shapes the value a check, an uncheck, a
+   * tag's button or the clear button makes, which `onChange` reports, and
+   * not `defaultValue`, a value you pass or the one a form reset puts back.
+   * The tags and the hidden
    * inputs show the value as it's held, so a value you pass shows as you
    * pass it, and a branch that loads later changes nothing the form posts.
    * `'checkbox-independent'` always reports exactly the checked items.
@@ -450,21 +466,24 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
     };
 
     const matchText = useLocaleMatcher();
+    const filterRef = useLatestRef(filter);
     const typed = searchable ? query.trim() : '';
-    // Every item reads the hidden set, so it's only built again when what it
-    // depends on changes.
+    // Every item reads the hidden set, so it's only built again when the
+    // search text or the data changes. A `filter` written inline is a new
+    // function each render, so it's read as it is then rather than listed.
     const search = useMemo(
       () =>
         typed
           ? searchTree(data, node => {
-              if (filter) return filter(typed, node);
+              const own = filterRef.current;
+              if (own) return own(typed, node);
               const text = nodeLabel(node);
               return matchText
                 ? matchText(text, typed)
                 : text.toLowerCase().includes(typed.toLowerCase());
             })
           : null,
-      [data, typed, filter, matchText]
+      [data, typed, matchText, filterRef]
     );
     // The branches a search opened that were closed during it, for the
     // search text they were closed under: any new text, from the box or
@@ -567,8 +586,12 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
               const onChevron =
                 isParentNode(node) && !!target.closest(`.${toggleClass}`);
               if (inRow && !onChevron && pickable(node)) {
-                // TreeView opens a parent it's handed this click on.
+                // TreeView opens a parent it's handed this click on, in
+                // this same click: the flag goes once the click is over.
                 clickPickedRef.current = isParentNode(node);
+                queueMicrotask(() => {
+                  clickPickedRef.current = false;
+                });
                 pick(node.value);
               }
             },
@@ -600,21 +623,62 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
     const shaped = (next: string[]) =>
       cascade ? checkedByStrategy(records, next, checkedStrategy) : next;
     const onCheckedChange = (next: string[]) => change(shaped(next));
-    // The value a tag's button leaves, which unchecks its item the way its
-    // box does. It has a button only when that changes the value: a
-    // disabled item is never unchecked, and neither is an item a checked
-    // disabled parent above it checks.
+    // Every item's check state, read once a render, which the clear button
+    // and the tags' buttons decide from. Only `checkbox` reads TreeView's
+    // rules: in `checkbox-independent` a listed item is a checked one.
+    const listedKey = JSON.stringify(listed);
+    const checks = useMemo(
+      () => (cascade ? readChecks(records, new Set(listed)) : null),
+      // `listed` by what it holds, since a held list is a new array each
+      // render.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [cascade, records, listedKey]
+    );
+    const isDisabled = (value: string) => !!index.get(value)?.node.disabled;
+    // Read in `checkbox` only, where there are states to read.
+    const isChecked = (value: string) => checks!.states.get(value) === true;
+    // What a control can uncheck. In `checkbox`, that's each checked end no
+    // checked disabled item above it keeps checked, and every item above it,
+    // which takes it along; elsewhere it's each listed item that isn't
+    // disabled. A disabled item is checked only by its own value, so nothing
+    // unchecks it, or what it keeps checked.
+    const uncheckable = new Set<string>();
+    if (checks) {
+      for (const end of checks.ends) {
+        const { path } = index.get(end)!;
+        if (
+          isChecked(end) &&
+          !path.some(above => isDisabled(above) && isChecked(above))
+        ) {
+          uncheckable.add(end);
+          path.forEach(above => uncheckable.add(above));
+        }
+      }
+    } else if (!single) {
+      picked.forEach(value => !isDisabled(value) && uncheckable.add(value));
+    }
+    // A tag's button takes its value off where that changes what's checked,
+    // the way its box would. A value no node has can always go.
+    const removable = (value: string) =>
+      !index.has(value) || (!isDisabled(value) && uncheckable.has(value));
     const without = (value: string) =>
       cascade && records.has(value)
         ? shaped(toggledList(records, listed, value))
         : listed.filter(item => item !== value);
-    const removable = (value: string) =>
-      !index.get(value)?.node.disabled && !sameValues(without(value), listed);
-    // What the clear button leaves: the checked disabled items, which no
-    // control unchecks.
-    const kept = single
+    // What the clear button leaves: the checked disabled items, and in
+    // `checkbox` what they keep checked, shaped as a check's value is.
+    const cleared = single
       ? []
-      : picked.filter(value => index.get(value)?.node.disabled);
+      : shaped(
+          checks
+            ? Array.from(records.keys()).filter(
+                value => isDisabled(value) && isChecked(value)
+              )
+            : picked.filter(isDisabled)
+        );
+    const canClear = single
+      ? picked.length > 0
+      : uncheckable.size > 0 || picked.some(value => !index.has(value));
     const inputRef = useRef<HTMLInputElement | null>(null);
     const fieldRef = useCallback(
       (node: HTMLInputElement | null) => {
@@ -662,8 +726,8 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
               }
             : undefined
         }
-        onClear={() => change(kept)}
-        clearable={clearable && kept.length < picked.length}
+        onClear={() => change(cleared)}
+        clearable={clearable && canClear}
         onFormReset={() => {
           // Back to `defaultValue`, or to nothing for a held value, which
           // its owner sets from `onChange`.

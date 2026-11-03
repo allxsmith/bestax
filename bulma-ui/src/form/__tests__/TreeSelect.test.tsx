@@ -1626,6 +1626,89 @@ describe('TreeSelect', () => {
       expect(onChange).toHaveBeenCalledTimes(before);
     });
 
+    it('hears a form its `form` names that mounts after the field', () => {
+      const onChange = vi.fn();
+      const field = (
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          defaultValue="tokyo"
+          form="later"
+          onChange={onChange}
+        />
+      );
+      const { rerender } = render(field);
+      rerender(
+        <>
+          {field}
+          <form id="later" data-testid="form" />
+        </>
+      );
+      open();
+      fireEvent.click(item('Oceania'));
+      reset(screen.getByTestId('form') as HTMLFormElement);
+      expect(onChange).toHaveBeenLastCalledWith('tokyo');
+      expect(screen.getByRole('combobox')).toHaveValue('Tokyo');
+    });
+
+    it('lands a reset under way when its `form` changes before the reset task', () => {
+      const onChange = vi.fn();
+      const props = {
+        label: 'Place',
+        data: PLACES,
+        defaultValue: 'tokyo',
+        onChange,
+      };
+      const forms = (
+        <>
+          <form id="one" data-testid="one" />
+          <form id="two" />
+        </>
+      );
+      const { rerender } = render(
+        <>
+          {forms}
+          <TreeSelect {...props} form="one" />
+        </>
+      );
+      open();
+      fireEvent.click(item('Oceania'));
+      act(() => {
+        (screen.getByTestId('one') as HTMLFormElement).reset();
+      });
+      rerender(
+        <>
+          {forms}
+          <TreeSelect {...props} form="two" />
+        </>
+      );
+      act(() => {
+        vi.runAllTimers();
+      });
+      expect(onChange).toHaveBeenLastCalledWith('tokyo');
+    });
+
+    it('leaves a reset of another form alone', () => {
+      const onChange = vi.fn();
+      render(
+        <>
+          <form data-testid="other" />
+          <form>
+            <TreeSelect
+              label="Place"
+              data={PLACES}
+              defaultValue="tokyo"
+              onChange={onChange}
+            />
+          </form>
+        </>
+      );
+      open();
+      fireEvent.click(item('Oceania'));
+      reset(screen.getByTestId('other') as HTMLFormElement);
+      expect(onChange).toHaveBeenCalledTimes(1);
+    });
+
     it('listens to no form outside one', () => {
       render(<TreeSelect label="Place" data={PLACES} defaultValue="tokyo" />);
       expect(field()).toHaveValue('Tokyo');
@@ -1685,6 +1768,104 @@ describe('TreeSelect', () => {
       expect(
         screen.getAllByRole('button').map(b => b.getAttribute('aria-label'))
       ).toEqual(['Remove Eve']);
+    });
+
+    describe.each([
+      ['child', ['locked', 'kid', 'free'], ['locked', 'kid']],
+      ['parent', ['locked', 'free'], ['locked']],
+      ['all', ['locked', 'kid', 'free'], ['locked', 'kid']],
+    ] as const)(
+      "with a checked disabled parent, in '%s'",
+      (strategy, value, cleared) => {
+        // `locked` is disabled and checked, so it keeps `kid` checked.
+        const data: TreeItemData[] = [
+          {
+            value: 'locked',
+            label: 'Locked',
+            disabled: true,
+            children: [{ value: 'kid', label: 'Kid' }],
+          },
+          { value: 'free', label: 'Free' },
+        ];
+        const setup = (held: readonly string[]) => {
+          const onChange = vi.fn();
+          render(
+            <TreeSelect
+              label="People"
+              data={data}
+              selectionMode="checkbox"
+              checkedStrategy={strategy}
+              value={[...held]}
+              onChange={onChange}
+              clearable
+            />
+          );
+          return onChange;
+        };
+
+        it('gives a button only to the tag whose box can be unchecked', () => {
+          setup(value);
+          expect(
+            screen.getAllByRole('button').map(b => b.getAttribute('aria-label'))
+          ).toEqual(['Clear', 'Remove Free']);
+        });
+
+        it('clears what a control can uncheck, shaped by the strategy', () => {
+          const onChange = setup(value);
+          fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+          expect(onChange).toHaveBeenCalledWith([...cleared]);
+        });
+
+        it('shows no clear button once nothing it can take off is left', () => {
+          setup(cleared);
+          expect(screen.queryByRole('button', { name: 'Clear' })).toBeNull();
+        });
+      }
+    );
+
+    it('keeps an item another checked disabled item above it keeps, and the parent it fills', () => {
+      // `outer` is enabled, but all it holds is what `locked` keeps checked.
+      const data: TreeItemData[] = [
+        {
+          value: 'outer',
+          label: 'Outer',
+          children: [
+            {
+              value: 'locked',
+              label: 'Locked',
+              disabled: true,
+              children: [{ value: 'kid', label: 'Kid' }],
+            },
+          ],
+        },
+      ];
+      render(
+        <TreeSelect
+          label="People"
+          data={data}
+          selectionMode="checkbox"
+          checkedStrategy="all"
+          defaultValue={['outer', 'locked', 'kid']}
+          clearable
+        />
+      );
+      expect(screen.queryAllByRole('button')).toEqual([]);
+    });
+
+    it('clears a value no node has, which it can always take off', () => {
+      const onChange = vi.fn();
+      render(
+        <TreeSelect
+          label="Places"
+          data={PLACES}
+          selectionMode="checkbox"
+          defaultValue={['mars']}
+          clearable
+          onChange={onChange}
+        />
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+      expect(onChange).toHaveBeenCalledWith([]);
     });
 
     it("keeps the value as it's held when a branch loads, and shapes only what a check makes", () => {
@@ -1822,6 +2003,52 @@ describe('TreeSelect', () => {
       expect(filter).toHaveBeenCalledTimes(calls);
       rerender(<TreeSelect {...props} query="osa" />);
       expect(filter.mock.calls.length).toBeGreaterThan(calls);
+    });
+
+    it('takes a filter written inline without searching on every render, and reads the newest when it does', () => {
+      const first = vi.fn<(q: string, n: TreeItemData) => boolean>(() => true);
+      const second = vi.fn<(q: string, n: TreeItemData) => boolean>(
+        () => false
+      );
+      const props = {
+        label: 'Place',
+        data: PLACES,
+        searchable: true,
+        defaultOpen: true,
+      };
+      const { rerender } = render(
+        <TreeSelect {...props} query="a" filter={(q, n) => first(q, n)} />
+      );
+      const calls = first.mock.calls.length;
+      rerender(
+        <TreeSelect {...props} query="a" filter={(q, n) => first(q, n)} />
+      );
+      expect(first).toHaveBeenCalledTimes(calls);
+      rerender(
+        <TreeSelect {...props} query="a" filter={(q, n) => second(q, n)} />
+      );
+      rerender(
+        <TreeSelect {...props} query="ab" filter={(q, n) => second(q, n)} />
+      );
+      expect(second).toHaveBeenCalled();
+      expect(screen.queryByRole('tree')).toBeNull();
+    });
+
+    it('drops the open a picking click asks for once that click is over', async () => {
+      const onExpandedChange = vi.fn();
+      render(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          closeOnSelect={false}
+          onExpandedChange={onExpandedChange}
+        />
+      );
+      open();
+      fireEvent.click(item('Europe'));
+      await Promise.resolve();
+      key(item('Europe'), 'ArrowRight');
+      expect(onExpandedChange).toHaveBeenCalledWith(['europe']);
     });
 
     it("marks the panel in place to take at least the field's width", () => {

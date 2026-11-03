@@ -235,23 +235,27 @@ export function DialogSelect({
   // A reset of the field's form puts the value back, as it does a native
   // field's. The reset event fires before the form resets, and a listener
   // after this one can still cancel it, so the value goes back a task later,
-  // and only if the reset went ahead, as File's and Dropzone's do.
+  // and only if the reset went ahead, as File's and Dropzone's do. It's
+  // heard on the field's document, or the shadow root it's in, and matched
+  // to the field's form as it is then, so a form its `form` names that
+  // mounts later, or a `form` that changes, is followed, and a reset
+  // already under way still lands.
   const onFormResetRef = useLatestRef(onFormReset);
   useEffect(() => {
-    const owner = inputRef.current?.form;
-    if (!owner) return undefined;
+    const root = inputRef.current!.getRootNode();
     let timer: ReturnType<typeof setTimeout> | undefined;
     const onReset = (event: Event) => {
+      if (event.target !== inputRef.current?.form) return;
       timer = setTimeout(() => {
         if (!event.defaultPrevented) onFormResetRef.current();
       });
     };
-    owner.addEventListener('reset', onReset);
+    root.addEventListener('reset', onReset, true);
     return () => {
-      owner.removeEventListener('reset', onReset);
+      root.removeEventListener('reset', onReset, true);
       clearTimeout(timer);
     };
-  }, [form, inputRef, onFormResetRef]);
+  }, [inputRef, onFormResetRef]);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (disabled) return;

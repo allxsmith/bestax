@@ -98,7 +98,7 @@
           "name": "onChange",
           "type": "(value: string | null) => void | (value: string[]) => void",
           "default": null,
-          "description": "Called with the new value: in `'single'` the picked item's value, or `null` when it's cleared, and in the checkbox modes the new list, after a check, an uncheck, a tag's button or the clear button.",
+          "description": "Called with the new value: in `'single'` the picked item's value, or `null` when it's cleared, and in the checkbox modes the new list, after a check, an uncheck, a tag's button or the clear button, each shaped by `checkedStrategy`. A reset of the field's form calls it too, with `defaultValue` as it was given, or with `null` or `[]` when you hold the value, for you to set.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -125,7 +125,7 @@
           "name": "checkedStrategy",
           "type": "'child' | 'parent' | 'all'",
           "default": "'child'",
-          "description": "What a checked branch puts in the value, in `'checkbox'`: `'child'` its leaves, `'parent'` its topmost checked item, `'all'` every checked item, parents included. A checked disabled item is in all three, since only its own value checks it. It shapes the value a check, an uncheck or a tag's button makes, which `onChange` reports. The tags and the hidden inputs show the value as it's held, so a value you pass shows as you pass it, and a branch that loads later changes nothing the form posts. `'checkbox-independent'` always reports exactly the checked items.",
+          "description": "What a checked branch puts in the value, in `'checkbox'`: `'child'` its leaves, `'parent'` its topmost checked item, `'all'` every checked item, parents included. A checked disabled item is in all three, since only its own value checks it. It shapes the value a check, an uncheck, a tag's button or the clear button makes, which `onChange` reports, and not `defaultValue`, a value you pass or the one a form reset puts back. The tags and the hidden inputs show the value as it's held, so a value you pass shows as you pass it, and a branch that loads later changes nothing the form posts. `'checkbox-independent'` always reports exactly the checked items.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -287,7 +287,7 @@
           "name": "filter",
           "type": "(query: string, item: TreeItemData) => boolean",
           "default": null,
-          "description": "Whether a node matches the search, in place of the locale-aware match on its label. It's handed the search text trimmed. A match's ancestors stay either way.",
+          "description": "Whether a node matches the search, in place of the locale-aware match on its label. It's handed the search text trimmed. A match's ancestors stay either way. The search runs again when the search text or `data` changes, not when only this does, so one written inline costs nothing.",
           "required": false,
           "inherited": true,
           "deprecated": false
