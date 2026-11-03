@@ -117,6 +117,9 @@ either one is fixed.
   Buttons, Tags, Avatars, Collapses, Checkboxes, Radios. A `.Group` part is for one unit made of
   pieces (Kbd.Group, a key combination) or a section inside a component (Command.Group,
   Combobox.Group).
+- **A layout container takes the name of the layout it draws:** Stack, Group, Center and Flex lay
+  out any children, so they aren't named for what they hold. The top-level `Group` is the row of
+  that family, neither a plural nor a `.Group` part, and the rule above doesn't rename it.
 - `color` takes Bulma's color names and `size` the `'small' | 'medium' | 'large'` union. Text a
   caller may want to translate goes in the same kind of prop the nearest sibling uses (the pickers'
   `labels`), and anything locale-aware reads `LocaleProvider`.
