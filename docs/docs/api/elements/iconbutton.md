@@ -354,8 +354,8 @@ name and its focus, since it isn't `disabled`.
   [4.1.2](https://www.w3.org/WAI/WCAG22/Understanding/name-role-value.html)), so the types require
   `aria-label` or `aria-labelledby`, and a development build warns about an empty or blank one. Name
   the action, not the picture.
-- **The icon is decorative:** it renders `aria-hidden="true"`, so it adds nothing to the name. Don't
-  name the `Icon` too, or the name is read twice.
+- **The name is the button's:** its `aria-label` or `aria-labelledby` names it over anything inside
+  it, so a name on the `Icon` is ignored, and there's no need to give one.
 - **Tooltips describe:** a [`Tooltip`](../components/tooltip.md) around it points the button's
   `aria-describedby` at itself, so the name and the description stay separate. Give the tooltip
   something to add, not the name again.
