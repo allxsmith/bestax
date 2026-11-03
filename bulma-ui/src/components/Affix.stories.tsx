@@ -11,6 +11,7 @@ import { Content } from '../elements/Content';
 import { Icon } from '../elements/Icon';
 import { Paragraph } from '../elements/Paragraph';
 import { Title } from '../elements/Title';
+import { LocaleProvider } from '../helpers/LocaleProvider';
 
 const NOTE =
   'Search now matches tags as well as titles, and remembers the last filter you used on each page. Exports include the time zone, and a CSV export keeps the column order you set in the table.';
@@ -139,7 +140,7 @@ export const ChatLauncher: Story = {
       <>
         <PageContent />
         <Affix>
-          <Button color="link" radius="rounded" aria-label="Open chat">
+          <Button color="link" isRounded aria-label="Open chat">
             <Icon name="comments" />
           </Button>
         </Affix>
@@ -259,7 +260,7 @@ export const Portaled: Story = {
 export const RightToLeft: Story = {
   render: function RightToLeftExample() {
     return (
-      <div dir="rtl" lang="ar">
+      <LocaleProvider locale="ar" dir="rtl">
         <PageContent
           title="ملاحظات الإصدار"
           note="يبحث البحث الآن في الوسوم والعناوين معًا، ويتذكر آخر عامل تصفية استخدمته في كل صفحة. وتتضمن ملفات التصدير المنطقة الزمنية."
@@ -267,7 +268,7 @@ export const RightToLeft: Story = {
         <Affix position="bottom-left">
           <Button color="primary">ملاحظات</Button>
         </Affix>
-      </div>
+      </LocaleProvider>
     );
   },
 };
