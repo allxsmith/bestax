@@ -102,11 +102,22 @@ describe('useSwipe', () => {
     expect(surface()).toHaveTextContent('idle 0,0');
   });
 
+  it('leaves a press alone while disabled', () => {
+    render(<Surface onSwipe={vi.fn()} enabled={false} />);
+    const event = new MouseEvent('mousedown', {
+      bubbles: true,
+      cancelable: true,
+    });
+    surface().dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(false);
+  });
+
   it('starts no drag while disabled', () => {
     const onSwipe = vi.fn();
     render(<Surface onSwipe={onSwipe} enabled={false} />);
 
     mouseDrag([200, 0], [0, 0]);
+    touchSwipe([200, 0], [0, 0]);
 
     expect(onSwipe).not.toHaveBeenCalled();
     expect(surface()).toHaveTextContent('idle 0,0');

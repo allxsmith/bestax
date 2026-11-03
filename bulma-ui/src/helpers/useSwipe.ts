@@ -11,7 +11,8 @@ const SWIPE_THRESHOLD = 50;
 /** Options for `useSwipe`. */
 export interface UseSwipeOptions {
   /**
-   * Whether a press starts a drag. A drag already under way still finishes.
+   * Whether a press starts a drag. Off, the handlers leave a press alone,
+   * `preventDefault()` included. A drag already under way still finishes.
    * @defaultValue true
    */
   enabled?: boolean;
@@ -32,7 +33,7 @@ export interface UseSwipeOptions {
 
 /** The mouse and touch handlers `useSwipe` hands back, to spread on the surface. */
 export interface SwipeHandlers<T extends Element = Element> {
-  /** Starts a drag. Calls `preventDefault()`, so the press neither selects text nor drags an image. */
+  /** Starts a drag. Calls `preventDefault()` while enabled, so the press neither selects text nor drags an image. */
   onMouseDown: (event: React.MouseEvent<T>) => void;
   /** Follows a drag. */
   onMouseMove: (event: React.MouseEvent<T>) => void;
@@ -128,6 +129,9 @@ export function useSwipe<T extends Element = Element>({
     offsetY: offset.y,
     handlers: {
       onMouseDown: event => {
+        // Disabled, the press is left as it is: a click still focuses and
+        // text can still be selected.
+        if (!enabled) return;
         event.preventDefault();
         begin(event.clientX, event.clientY);
       },
