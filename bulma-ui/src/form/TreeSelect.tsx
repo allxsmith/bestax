@@ -20,6 +20,7 @@ import {
 import {
   checkRecords,
   checkedByStrategy,
+  childNodes,
   indexTree,
   isParentNode,
   nodeLabel,
@@ -78,7 +79,7 @@ interface TreeSelectBaseProps
   extends
     Omit<
       React.HTMLAttributes<HTMLDivElement>,
-      'color' | 'onChange' | 'defaultValue'
+      'color' | 'onChange' | 'defaultValue' | 'children'
     >,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
@@ -108,7 +109,7 @@ interface TreeSelectBaseProps
    * children from here. The branches a search opens aren't in it.
    */
   onExpandedChange?: (expanded: string[]) => void;
-  /** Whether the panel is open, when you hold the state. Opening and closing then only call `onOpenChange`. */
+  /** Whether the panel is open, controlled: opening and closing then only call `onOpenChange`. */
   open?: boolean;
   /** The panel is open to begin with. */
   defaultOpen?: boolean;
@@ -176,19 +177,33 @@ interface TreeSelectBaseProps
   loadingAnnouncement?: (name: string) => string;
   /** What the live region says when that load finishes, as on TreeView. */
   loadedAnnouncement?: (name: string) => string;
-  /** @internal The tree comes from `data`. */
-  children?: never;
 }
 
 /** Props for a TreeSelect that picks one item. */
 export interface TreeSelectSingleProps extends TreeSelectBaseProps {
-  /** `'single'`, the default: Enter, Space or a click on a row picks it. */
+  /**
+   * `'single'`: one item, picked with Enter, Space or a click on its row.
+   * `'checkbox'`: any number, with a box on every item. A check reaches every
+   * enabled item under it, and a parent with some of them checked is mixed.
+   * `'checkbox-independent'`: any number, each box checking its own item, so
+   * a parent means the parent alone (Mantine's and Ant Design's
+   * `checkStrictly`). The checkbox modes show the checked items as tags.
+   */
   selectionMode?: 'single';
-  /** The picked item's value when you hold the state, or `null` for none. */
+  /**
+   * The value when you hold the state: in `'single'` the picked item's
+   * value, or `null` for none, and in the checkbox modes the checked values.
+   * In `'checkbox'` a parent's value checks its whole branch, so the list any
+   * `checkedStrategy` gives checks the same boxes.
+   */
   value?: string | null;
-  /** The item picked to begin with, when TreeSelect holds its own state. */
+  /** The value to begin with, when TreeSelect holds its own state: a value or `null`, or a list in the checkbox modes. */
   defaultValue?: string | null;
-  /** Called with the picked item's value, or `null` when it's cleared. */
+  /**
+   * Called with the new value: in `'single'` the picked item's value, or
+   * `null` when it's cleared, and in the checkbox modes the new list, after a
+   * check, an uncheck, a tag's button or the clear button.
+   */
   onChange?: (value: string | null) => void;
   /**
    * A parent's row picks the parent. `false` makes the row, Enter and Space
@@ -201,9 +216,9 @@ export interface TreeSelectSingleProps extends TreeSelectBaseProps {
    * @defaultValue true
    */
   closeOnSelect?: boolean;
-  /** Read with the checkbox modes only. */
+  /** @internal Read with the checkbox modes only. */
   checkedStrategy?: never;
-  /** Read with the checkbox modes only. */
+  /** @internal Read with the checkbox modes only. */
   ariaCloseLabel?: never;
 }
 
@@ -236,9 +251,9 @@ export interface TreeSelectCheckboxProps extends TreeSelectBaseProps {
   checkedStrategy?: TreeSelectCheckedStrategy;
   /** Names each tag's button, in place of "Remove" and the item's label, as on Combobox. */
   ariaCloseLabel?: string;
-  /** Read with `'single'` only. */
+  /** @internal Read with `'single'` only. */
   parentsSelectable?: never;
-  /** Read with `'single'` only: the panel stays open while boxes are checked. */
+  /** @internal Read with `'single'` only: the panel stays open while boxes are checked. */
   closeOnSelect?: never;
 }
 
@@ -269,7 +284,7 @@ const withAll = (list: string[], more: string[]): string[] => [
 ];
 
 /**
- * The `TreeSelect` component is a form field whose options are a tree, such as a folder, a place or a team: it opens a panel holding a real `TreeView`, picks one item or checks a branch at a time, and searches labels.
+ * The `TreeSelect` component is a form field whose options are a tree, such as categories, places or teams: it opens a panel holding a real `TreeView`, picks one item or checks a branch at a time, and searches labels.
  *
  * The field is a read-only `role="combobox"` that opens a dialog, wired as
  * DateInput's is, so focus moves into the tree for real and the tree keeps
@@ -342,7 +357,6 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
       closeOnSelect = true,
       checkedStrategy = 'child',
       ariaCloseLabel,
-      children: _children,
       ...rest
     } = props;
     const disabled = useFieldsetDisabled(disabledProp);
@@ -536,7 +550,7 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
         }
         {...rowHandlers(node)}
       >
-        {node.children?.map(renderNode)}
+        {childNodes(node).map(renderNode)}
       </TreeView.Item>
     );
 
@@ -554,6 +568,14 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
           : listed.filter(item => item !== value)
       );
     const inputRef = useRef<HTMLInputElement | null>(null);
+    const fieldRef = useCallback(
+      (node: HTMLInputElement | null) => {
+        inputRef.current = node;
+        if (typeof ref === 'function') ref(node);
+        else if (ref) ref.current = node;
+      },
+      [ref]
+    );
     const tagsId = useId();
     const ids = tagIds(tagsId, picked);
 
@@ -599,7 +621,7 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
         disabled={disabled}
         size={size}
         inputRef={inputRef}
-        forwardedRef={ref}
+        fieldRef={fieldRef}
         describedBy={single ? undefined : ids.join(' ')}
         below={
           single ? undefined : (

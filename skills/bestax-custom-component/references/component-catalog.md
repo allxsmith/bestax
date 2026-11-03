@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-118 documented components. Generated from the API docs — every exported
+119 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -145,6 +145,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Taginput](https://bestax.io/docs/api/form/taginput) — The `Taginput` component provides a tag/chip input field for managing multiple tags.
 - [TextArea](https://bestax.io/docs/api/form/textarea) — The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, hover/focus/loading states, fixed size…
 - [TimeInput](https://bestax.io/docs/api/form/datetime/timeinput) — The `TimeInput` component is a form input that opens a popover spinner for time-of-day selection.
+- [TreeSelect](https://bestax.io/docs/api/form/treeselect) — The `TreeSelect` component is a form field whose options are a tree, such as categories, places or teams: it opens a panel holding a real `TreeView`…
 
 ## Columns
 

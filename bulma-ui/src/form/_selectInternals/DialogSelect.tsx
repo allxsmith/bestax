@@ -1,7 +1,7 @@
 // INTERNAL: deliberately not exported from src/index.ts. The field a picker
 // of tree data opens its panel from: TreeSelect's, and Cascader's after it.
 
-import React, { useCallback, useId, useRef } from 'react';
+import React, { useId, useRef } from 'react';
 import { classNames, usePrefixedClassNames } from '../../helpers/classNames';
 import {
   useBulmaClasses,
@@ -85,10 +85,13 @@ export interface DialogSelectProps
   isRounded?: boolean;
   position?: PickerPosition;
   appendToBody?: boolean;
-  /** The field's own ref, which a picker focuses after a tag's button. */
-  inputRef: React.MutableRefObject<HTMLInputElement | null>;
-  /** The ref the picker's caller gave, for the field. */
-  forwardedRef: React.ForwardedRef<HTMLInputElement>;
+  /** Holds the field, which focus goes back to. */
+  inputRef: React.RefObject<HTMLInputElement | null>;
+  /**
+   * Set on the field: the picker's callback that fills `inputRef` and the
+   * ref its caller gave.
+   */
+  fieldRef: React.RefCallback<HTMLInputElement>;
   /** The ids of the tags that describe the field. */
   describedBy?: string;
   /** Shown under the field, inside its Field: the tags. */
@@ -150,7 +153,7 @@ export function DialogSelect({
   position = 'bottom-left',
   appendToBody = false,
   inputRef,
-  forwardedRef,
+  fieldRef,
   describedBy,
   below,
   initialFocusSelector,
@@ -191,15 +194,6 @@ export function DialogSelect({
   const localeScope = usePickerLocaleScope(undefined, props.dir);
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
   const rootRef = useRef<HTMLDivElement>(null);
-
-  const setInputRef = useCallback(
-    (node: HTMLInputElement | null) => {
-      inputRef.current = node;
-      if (typeof forwardedRef === 'function') forwardedRef(node);
-      else if (forwardedRef) forwardedRef.current = node;
-    },
-    [inputRef, forwardedRef]
-  );
 
   // The panel is named as the field is, unless it's given a name of its own.
   const panelName: PanelName = chooseLabel
@@ -259,7 +253,7 @@ export function DialogSelect({
   const field = (
     <>
       <input
-        ref={setInputRef}
+        ref={fieldRef}
         type="text"
         className={inputClass}
         id={controlId}

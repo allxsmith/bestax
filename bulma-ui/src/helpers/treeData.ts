@@ -34,9 +34,13 @@ export function indexTree(data: TreeItemData[]): Map<string, TreeNodeEntry> {
 export const nodeLabel = (node: TreeItemData): string =>
   node.label || node.value;
 
+/** The nodes under a node, none when it has no `children`. */
+export const childNodes = (node: TreeItemData): TreeItemData[] =>
+  node.children ?? [];
+
 /** Whether a node is a parent: it has children, or `hasChildren` says it will. */
 export const isParentNode = (node: TreeItemData): boolean =>
-  (node.children?.length ?? 0) > 0 || !!node.hasChildren;
+  childNodes(node).length > 0 || !!node.hasChildren;
 
 /**
  * The records TreeView's check rules read, built from the nodes rather than
@@ -115,7 +119,7 @@ export function searchTree(
     let found = false;
     for (const node of nodes) {
       const self = matches(node);
-      const below = walk(node.children ?? [], underMatch || self);
+      const below = walk(childNodes(node), underMatch || self);
       if (below) open.push(node.value);
       if (!underMatch && !self && !below) hidden.add(node.value);
       found = found || self || below;

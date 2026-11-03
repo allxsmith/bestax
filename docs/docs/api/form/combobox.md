@@ -848,6 +848,7 @@ and a click in the field opens the list. A press in the list never takes focus f
 - [`Autocomplete`](./autocomplete.md): Free text with suggestions, filtered for you.
 - [`Taginput`](./taginput.md): Several values as chips inside the field.
 - [`Select`](./select.md): The native select, the simplest way to pick from a short list.
+- [`TreeSelect`](./treeselect.md): Picks from a tree rather than a flat list.
 - [`Popover`](../components/popover.md): A panel behind a button, where an `inline` Combobox makes a
   searchable select.
 - [`Dropdown`](../components/dropdown.md): A menu of actions, which has no value to pick.

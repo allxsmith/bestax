@@ -213,6 +213,7 @@ const PUBLIC_EXPORTS = [
   'ToggleButton',
   'Tooltip',
   'Tr',
+  'TreeSelect',
   'TreeView',
   'TreeViewItem',
   'UnorderedList',

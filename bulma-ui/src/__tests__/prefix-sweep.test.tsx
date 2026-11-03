@@ -397,6 +397,31 @@ const PROPS: Record<string, Record<string, unknown>> = {
     marks: [{ value: 50, label: '50' }],
     tooltip: 'always',
   },
+  // Checked, clearable, coloured, sized, rounded and open in place, with a
+  // search box and a message, so the field's, the tags', the panel's and
+  // the tree's classes are swept together.
+  TreeSelect: {
+    label: 'Regions',
+    selectionMode: 'checkbox',
+    data: [
+      {
+        value: 'europe',
+        label: 'Europe',
+        icon: 'globe',
+        children: [{ value: 'france', label: 'France' }],
+      },
+    ],
+    defaultValue: ['france'],
+    defaultExpanded: ['europe'],
+    defaultOpen: true,
+    searchable: true,
+    clearable: true,
+    color: 'info',
+    size: 'small',
+    isRounded: true,
+    message: 'Pick some',
+    messageColor: 'danger',
+  },
   // A checkbox tree, sized and open, with an icon, a disabled item and a
   // checked one, so the box, the group and the modifiers are swept. An item
   // renders nothing outside a tree, so TreeViewItem's classes are swept here.

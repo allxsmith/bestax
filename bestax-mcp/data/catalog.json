@@ -118,7 +118,8 @@
         "Switch",
         "Taginput",
         "TextArea",
-        "TimeInput"
+        "TimeInput",
+        "TreeSelect"
       ]
     },
     {
@@ -1380,6 +1381,17 @@
       "exampleCount": 11
     },
     {
+      "name": "TreeSelect",
+      "kind": "component",
+      "category": "form",
+      "purpose": "The `TreeSelect` component is a form field whose options are a tree, such as categories, places or teams: it opens a panel holding a real `TreeView`, picks one…",
+      "slug": "form/treeselect",
+      "import": "import { TreeSelect } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 50,
+      "exampleCount": 12
+    },
+    {
       "name": "TreeView",
       "kind": "component",
       "category": "components",
@@ -2580,56 +2592,64 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-picker-popover-background": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-picker-popover-border-color": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-picker-popover-offset": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-picker-popover-padding": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-picker-popover-radius": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-picker-popover-shadow": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-picker-popover-z-index": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-pin-input-box-width": ["PinInput"],
     "--bulma-pin-input-caret-blink-duration": ["PinInput"],
@@ -2982,6 +3002,16 @@
     "--bulma-tooltip-padding": ["Tooltip"],
     "--bulma-tooltip-radius": ["Tooltip"],
     "--bulma-tooltip-z-index": ["Tooltip"],
+    "--bulma-tree-select-chevron-color": ["TreeSelect"],
+    "--bulma-tree-select-chevron-focus-color": ["TreeSelect"],
+    "--bulma-tree-select-chevron-hover-color": ["TreeSelect"],
+    "--bulma-tree-select-chevron-width": ["TreeSelect"],
+    "--bulma-tree-select-empty-color": ["TreeSelect"],
+    "--bulma-tree-select-empty-padding": ["TreeSelect"],
+    "--bulma-tree-select-panel-max-height": ["TreeSelect"],
+    "--bulma-tree-select-panel-min-width": ["TreeSelect"],
+    "--bulma-tree-select-search-gap": ["TreeSelect"],
+    "--bulma-tree-select-tree-inset": ["TreeSelect"],
     "--bulma-tree-view-gap": ["TreeView"],
     "--bulma-tree-view-group-border": ["TreeView"],
     "--bulma-tree-view-group-margin": ["TreeView"],
