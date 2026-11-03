@@ -290,6 +290,11 @@ interface FrameContextValue {
   labels: Required<Omit<AppFrameLabels, 'burger'>> &
     Pick<AppFrameLabels, 'burger'>;
   mainId: string;
+  /**
+   * Whether the frame has read the width, so it knows whether the nav is a
+   * drawer. Not on the server, nor in the render that hydrates.
+   */
+  modeKnown: boolean;
 }
 
 const FrameContext = createContext<FrameContextValue | null>(null);
@@ -640,8 +645,12 @@ export const AppFrameBurger = forwardRef<
   const frame = useContext(FrameContext);
   const burgerClass = usePrefixedClassNames('app-frame-burger');
   const state = frame?.state;
+  // Until the frame knows whether the nav is a drawer, the burger says
+  // nothing it can't stand behind: no `aria-expanded`, and its bars. It can't
+  // act before then anyway, since that's before hydration.
+  const known = !!frame?.modeKnown;
   const expanded =
-    !!state && (state.isDrawer ? state.navOpen : !state.navCollapsed);
+    known && !!state && (state.isDrawer ? state.navOpen : !state.navCollapsed);
   return (
     <NavbarBurger
       ref={ref}
@@ -649,7 +658,7 @@ export const AppFrameBurger = forwardRef<
       className={classNames(burgerClass, className)}
       aria-label={props['aria-label'] || frame?.labels.burger}
       active={expanded}
-      aria-expanded={expanded}
+      aria-expanded={known ? expanded : null}
       aria-controls={state?.navId}
       onClick={e => {
         onClick?.(e);
@@ -803,6 +812,7 @@ const AppFrameRoot = forwardRef<HTMLDivElement, AppFrameProps>(
           burger: burger || undefined,
         },
         mainId,
+        modeKnown: wide !== null,
       }),
       [
         navOpen,
@@ -817,6 +827,7 @@ const AppFrameRoot = forwardRef<HTMLDivElement, AppFrameProps>(
         closeNav,
         burger,
         mainId,
+        wide,
       ]
     );
 

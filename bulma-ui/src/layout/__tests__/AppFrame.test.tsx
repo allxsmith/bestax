@@ -1,6 +1,6 @@
 import React, { createRef, useState } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { renderToString } from 'react-dom/server';
+import { renderToStaticMarkup, renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import {
   AppFrame,
@@ -583,12 +583,13 @@ describe('AppFrame', () => {
     it('controls nothing outside a frame', () => {
       const onClick = vi.fn();
       render(<AppFrame.Burger onClick={onClick} />);
-      expect(burger()).toHaveAttribute('aria-expanded', 'false');
+      expect(burger()).not.toHaveAttribute('aria-expanded');
       expect(burger()).not.toHaveAttribute('aria-controls');
       expect(burger()).toHaveClass('navbar-burger', 'app-frame-burger');
+      expect(burger()).not.toHaveClass('is-active');
       fireEvent.click(burger());
       expect(onClick).toHaveBeenCalledTimes(1);
-      expect(burger()).toHaveAttribute('aria-expanded', 'false');
+      expect(burger()).not.toHaveAttribute('aria-expanded');
     });
   });
 
@@ -1238,12 +1239,24 @@ describe('AppFrame', () => {
   });
 
   describe('server rendering', () => {
-    it('renders the layout and the wide state', () => {
-      const html = renderToString(<Frame />);
+    it('renders the layout, and a burger that says nothing of a state it can’t know', () => {
+      const html = renderToStaticMarkup(<Frame />);
       expect(html).toContain('class="app-frame is-desktop"');
       expect(html).toMatch(/<a class="app-frame-skip-link" href="#[^"]+-main"/);
-      expect(html).toContain('aria-expanded="true"');
       expect(html).toContain('aria-label="Sections"');
+      const burgerTag = /<button[^>]*app-frame-burger[^>]*>/.exec(html)?.[0];
+      expect(burgerTag).toBeDefined();
+      expect(burgerTag).not.toContain('aria-expanded');
+      expect(burgerTag).not.toContain('is-active');
+      expect(burgerTag).toMatch(/aria-controls="[^"]+-nav"/);
+    });
+
+    it('keeps the burger quiet on the server even with the drawer starting open', () => {
+      const html = renderToStaticMarkup(<Frame defaultNavOpen />);
+      expect(html).toContain('class="app-frame is-desktop is-nav-open"');
+      expect(
+        /<button[^>]*app-frame-burger[^>]*>/.exec(html)?.[0]
+      ).not.toContain('aria-expanded');
     });
 
     it('hydrates without a mismatch and reads the width before paint', async () => {
@@ -1251,9 +1264,8 @@ describe('AppFrame', () => {
       const container = document.createElement('div');
       container.innerHTML = renderToString(<Frame />);
       document.body.appendChild(container);
-      expect(container.querySelector('.app-frame-burger')).toHaveAttribute(
-        'aria-expanded',
-        'true'
+      expect(container.querySelector('.app-frame-burger')).not.toHaveAttribute(
+        'aria-expanded'
       );
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       let unmount = () => {};
