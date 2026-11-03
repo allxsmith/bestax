@@ -12,11 +12,8 @@ import type { BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { warnOnce } from '../helpers/devWarnings';
 import { useLocaleMatcher } from '../helpers/localeFormat';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
-import {
-  TreeViewHiddenContext,
-  toggledList,
-  useControlled,
-} from '../helpers/useTreeView';
+import { TreeViewHiddenContext, toggledList } from '../helpers/useTreeView';
+import { useControlled } from '../helpers/useControlled';
 import {
   checkRecords,
   checkedByStrategy,
@@ -58,7 +55,7 @@ export interface TreeItemData {
   onRetry?: () => void;
 }
 
-/** What a checked branch puts in the value and the tags. */
+/** What a checked branch puts in the value a check makes. */
 export type TreeSelectCheckedStrategy = 'child' | 'parent' | 'all';
 
 /** The visible and accessible strings, in your app's language. */
@@ -152,7 +149,11 @@ interface TreeSelectBaseProps
   required?: boolean;
   /** The field can't be used: it can't be focused or opened, its tags lose their buttons, and its hidden inputs don't post. */
   disabled?: boolean;
-  /** Shows a clear button at the field's inline end while something is picked. */
+  /**
+   * Shows a clear button at the field's inline end while something it can
+   * take off is picked. It leaves checked disabled items, which no control
+   * unchecks.
+   */
   clearable?: boolean;
   /** Bulma color modifier for the field. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
@@ -187,7 +188,7 @@ export interface TreeSelectSingleProps extends TreeSelectBaseProps {
    * enabled item under it, and a parent with some of them checked is mixed.
    * `'checkbox-independent'`: any number, each box checking its own item, so
    * a parent means the parent alone (Mantine's and Ant Design's
-   * `checkStrictly`). The checkbox modes show the checked items as tags.
+   * `checkStrictly`). The checkbox modes show the value as tags.
    */
   selectionMode?: 'single';
   /**
@@ -238,14 +239,17 @@ export interface TreeSelectCheckboxProps extends TreeSelectBaseProps {
   value?: string[];
   /** The values checked to begin with, when TreeSelect holds its own state. */
   defaultValue?: string[];
-  /** Called with the new list after a check, an uncheck or a tag's button. */
+  /** Called with the new list after a check, an uncheck, a tag's button or the clear button. */
   onChange?: (value: string[]) => void;
   /**
-   * What a checked branch puts in the value and the tags, in `'checkbox'`:
-   * `'child'` its leaves, `'parent'` its topmost checked item, `'all'` every
-   * checked item, parents included. A checked disabled item is in all three,
-   * since only its own value checks it. `'checkbox-independent'` always
-   * reports exactly the checked items.
+   * What a checked branch puts in the value, in `'checkbox'`: `'child'` its
+   * leaves, `'parent'` its topmost checked item, `'all'` every checked item,
+   * parents included. A checked disabled item is in all three, since only
+   * its own value checks it. It shapes the value a check, an uncheck or a
+   * tag's button makes, which `onChange` reports. The tags and the hidden
+   * inputs show the value as it's held, so a value you pass shows as you
+   * pass it, and a branch that loads later changes nothing the form posts.
+   * `'checkbox-independent'` always reports exactly the checked items.
    * @defaultValue 'child'
    */
   checkedStrategy?: TreeSelectCheckedStrategy;
@@ -277,6 +281,13 @@ const INITIAL_FOCUS = '[data-initial-focus]';
 const asList = (value: string | string[] | null | undefined): string[] =>
   value == null ? [] : Array.isArray(value) ? value : [value];
 
+/** Whether two lists hold the same values, whatever their order and repeats. */
+const sameValues = (a: string[], b: string[]): boolean => {
+  const inA = new Set(a);
+  const inB = new Set(b);
+  return inA.size === inB.size && [...inA].every(value => inB.has(value));
+};
+
 /** The list with every value of `more` it doesn't have added at the end. */
 const withAll = (list: string[], more: string[]): string[] => [
   ...list,
@@ -297,8 +308,8 @@ const withAll = (list: string[], more: string[]): string[] => [
  * by a search, and `checkedStrategy` decides what the value holds: the
  * leaves, the topmost checked items or every one. With
  * `'checkbox-independent'`, each box is its own item's, so a parent means
- * itself alone (Mantine's and Ant Design's `checkStrictly`). The checked
- * items show as tags under the field.
+ * itself alone (Mantine's and Ant Design's `checkStrictly`). The value shows
+ * as tags under the field.
  *
  * A value no node has is kept and shown as it is, with a warning in
  * development, so a value under a branch that hasn't loaded survives until
@@ -371,23 +382,23 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
     };
 
     // The value, as a list: none or one in `single`.
-    const controlled = valueProp !== undefined;
-    const [ownValue, setOwnValue] = useState(() => asList(defaultValue));
-    const listed = controlled ? asList(valueProp) : ownValue;
+    const [held, setHeld] = useControlled<string | string[] | null>(
+      valueProp,
+      defaultValue ?? null
+    );
+    const listed = asList(held);
     const change = (next: string[]) => {
-      if (!controlled) setOwnValue(next);
+      const value = single ? (next[0] ?? null) : next;
+      setHeld(value);
       // The mode decides which of the two `onChange` takes.
       const report = props.onChange as
         ((value: string | string[] | null) => void) | undefined;
-      report?.(single ? (next[0] ?? null) : next);
+      report?.(value);
     };
-    // What the field, the tags and the hidden inputs show: in `checkbox`,
-    // the list `checkedStrategy` gives for what's checked.
-    const picked = single
-      ? listed.slice(0, 1)
-      : cascade
-        ? checkedByStrategy(records, listed, checkedStrategy)
-        : Array.from(new Set(listed));
+    // What the field, the tags and the hidden inputs show: the value as it's
+    // held. `checkedStrategy` shapes a new value as a check makes it, so a
+    // branch that loads later changes nothing the form posts.
+    const picked = single ? listed.slice(0, 1) : Array.from(new Set(listed));
 
     const unknown = picked.find(value => !index.has(value));
     useEffect(() => {
@@ -416,10 +427,7 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
     const target = Array.from(index.keys()).find(value => pickedSet.has(value));
 
     const [query, setQueryState] = useControlled(queryProp, defaultQuery);
-    // The branches a search opened that were closed during it.
-    const [searchClosed, setSearchClosed] = useState<string[]>([]);
     const setQuery = (next: string) => {
-      setSearchClosed([]);
       if (next === query) return;
       setQueryState(next);
       onQueryChange?.(next);
@@ -443,27 +451,56 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
 
     const matchText = useLocaleMatcher();
     const typed = searchable ? query.trim() : '';
-    const search = typed
-      ? searchTree(data, node => {
-          if (filter) return filter(typed, node);
-          const text = nodeLabel(node);
-          return matchText
-            ? matchText(text, typed)
-            : text.toLowerCase().includes(typed.toLowerCase());
-        })
-      : null;
+    // Every item reads the hidden set, so it's only built again when what it
+    // depends on changes.
+    const search = useMemo(
+      () =>
+        typed
+          ? searchTree(data, node => {
+              if (filter) return filter(typed, node);
+              const text = nodeLabel(node);
+              return matchText
+                ? matchText(text, typed)
+                : text.toLowerCase().includes(typed.toLowerCase());
+            })
+          : null,
+      [data, typed, filter, matchText]
+    );
+    // The branches a search opened that were closed during it, for the
+    // search text they were closed under: any new text, from the box or
+    // from a held `query`, starts over.
+    const [searchClosed, setSearchClosed] = useState({
+      query: typed,
+      values: [] as string[],
+    });
+    if (searchClosed.query !== typed) {
+      setSearchClosed({ query: typed, values: [] });
+    }
+    const closedHere = searchClosed.query === typed ? searchClosed.values : [];
     // The branches a search opens show open over the ones you opened, and
     // close again once it's cleared.
     const forced = search
-      ? search.open.filter(value => !searchClosed.includes(value))
+      ? search.open.filter(value => !closedHere.includes(value))
       : [];
     const shownExpanded = withAll(expanded, forced);
+    // TreeView's click on a row selects it and opens it. A pick by click, as
+    // a pick by Enter, only picks, so the open the tree asks for right after
+    // one on a parent is dropped, and a lazy parent isn't fetched to be
+    // picked.
+    const clickPickedRef = useRef(false);
     const onTreeExpandedChange = (next: string[]) => {
+      if (clickPickedRef.current) {
+        clickPickedRef.current = false;
+        return;
+      }
       const closed = shownExpanded.filter(value => !next.includes(value));
       const opened = next.filter(value => !shownExpanded.includes(value));
       const closedForced = closed.filter(value => forced.includes(value));
       if (closedForced.length > 0) {
-        setSearchClosed(current => [...current, ...closedForced]);
+        setSearchClosed({
+          query: typed,
+          values: [...closedHere, ...closedForced],
+        });
       }
       if (opened.length > 0 || closed.some(value => expanded.includes(value))) {
         changeExpanded([
@@ -520,14 +557,18 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
               }
             },
             onClick: (event: React.MouseEvent<HTMLLIElement>) => {
+              const item = event.currentTarget;
               const target = event.target as Element;
-              // A click in this item's own row, not one bubbling up from an
-              // item inside it, and not on its chevron, which only opens it.
-              if (
-                target.closest('[role="treeitem"]') === event.currentTarget &&
-                !(isParentNode(node) && target.closest(`.${toggleClass}`)) &&
-                pickable(node)
-              ) {
+              // A click in this item's own row, where TreeView reads one,
+              // not one in the group of items inside it, and not on its
+              // chevron, which only opens it.
+              const inRow =
+                target === item || item.firstElementChild!.contains(target);
+              const onChevron =
+                isParentNode(node) && !!target.closest(`.${toggleClass}`);
+              if (inRow && !onChevron && pickable(node)) {
+                // TreeView opens a parent it's handed this click on.
+                clickPickedRef.current = isParentNode(node);
                 pick(node.value);
               }
             },
@@ -555,18 +596,25 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
     );
 
     // In `checkbox`, TreeView reports every checked item, read here into
-    // the list `checkedStrategy` gives. A tag's button unchecks its item the
-    // way its box does.
-    const onCheckedChange = (next: string[]) =>
-      change(
-        cascade ? checkedByStrategy(records, next, checkedStrategy) : next
-      );
-    const remove = (value: string) =>
-      onCheckedChange(
-        cascade && records.has(value)
-          ? toggledList(records, listed, value)
-          : listed.filter(item => item !== value)
-      );
+    // the list `checkedStrategy` gives.
+    const shaped = (next: string[]) =>
+      cascade ? checkedByStrategy(records, next, checkedStrategy) : next;
+    const onCheckedChange = (next: string[]) => change(shaped(next));
+    // The value a tag's button leaves, which unchecks its item the way its
+    // box does. It has a button only when that changes the value: a
+    // disabled item is never unchecked, and neither is an item a checked
+    // disabled parent above it checks.
+    const without = (value: string) =>
+      cascade && records.has(value)
+        ? shaped(toggledList(records, listed, value))
+        : listed.filter(item => item !== value);
+    const removable = (value: string) =>
+      !index.get(value)?.node.disabled && !sameValues(without(value), listed);
+    // What the clear button leaves: the checked disabled items, which no
+    // control unchecks.
+    const kept = single
+      ? []
+      : picked.filter(value => index.get(value)?.node.disabled);
     const inputRef = useRef<HTMLInputElement | null>(null);
     const fieldRef = useCallback(
       (node: HTMLInputElement | null) => {
@@ -614,8 +662,14 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
               }
             : undefined
         }
-        onClear={() => change([])}
-        clearable={clearable}
+        onClear={() => change(kept)}
+        clearable={clearable && kept.length < picked.length}
+        onFormReset={() => {
+          // Back to `defaultValue`, or to nothing for a held value, which
+          // its owner sets from `onChange`.
+          const back = valueProp === undefined ? asList(defaultValue) : [];
+          if (!sameValues(back, listed)) change(back);
+        }}
         clearLabel={labels?.clear || 'Clear'}
         chooseLabel={labels?.choose}
         disabled={disabled}
@@ -631,9 +685,9 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
               labelFor={labelFor}
               disabled={disabled}
               ariaCloseLabel={ariaCloseLabel}
-              removable={value => !index.get(value)?.node.disabled}
+              removable={removable}
               onRemove={value => {
-                remove(value);
+                change(without(value));
                 inputRef.current?.focus();
               }}
             />

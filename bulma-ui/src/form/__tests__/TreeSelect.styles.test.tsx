@@ -46,7 +46,6 @@ describe('TreeSelect styles', () => {
   it('registers its variables on the root and on a portaled panel', () => {
     const vars = body(PLAIN, '.tree-select, .tree-select-panel');
     for (const name of [
-      'panel-min-width',
       'panel-max-height',
       'search-gap',
       'chevron-width',
@@ -90,9 +89,6 @@ describe('TreeSelect styles', () => {
       'max-height: var(--bulma-tree-select-panel-max-height)'
     );
     expect(tree).toContain('overflow-y: auto');
-    expect(body(PLAIN, '.tree-select-panel')).toContain(
-      'min-width: var(--bulma-tree-select-panel-min-width)'
-    );
   });
 
   it('prefixes every class under a class prefix', () => {

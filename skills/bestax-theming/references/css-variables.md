@@ -954,18 +954,19 @@ trigger and the tooltip past what the pointer can cross on its own, so give the 
 ### TreeSelect
 
 Declared on the root, `.tree-select`, and on a portaled panel, `.tree-select-panel`, which sits
-outside it. They draw the chevron and the clear button on the field, size the panel and space the
-search box over the tree. The chevron's defaults are the tokens Bulma's input icon variables
+outside it. They draw the chevron and the clear button on the field, set the panel's height and
+space the search box over the tree. The chevron's defaults are the tokens Bulma's input icon variables
 start from (`control-height`, `text-light`, `text-weak`, `link`), since Bulma registers those on
 the field and its Control. The panel is the picker popover, above, and the tree in it is a
 `TreeView`, below, so `--bulma-picker-popover-*` and `--bulma-tree-view-*` theme them here too.
-`--bulma-tree-select-panel-min-width` applies in place; a portaled panel takes the field's width.
+The panel is at least as wide as the field, in place through the picker popover's own rule and
+portaled through the field's width set inline.
 
 `--bulma-tree-select-chevron-color`, `--bulma-tree-select-chevron-focus-color`,
 `--bulma-tree-select-chevron-hover-color`, `--bulma-tree-select-chevron-width`,
 `--bulma-tree-select-empty-color`, `--bulma-tree-select-empty-padding`,
-`--bulma-tree-select-panel-max-height`, `--bulma-tree-select-panel-min-width`,
-`--bulma-tree-select-search-gap`, `--bulma-tree-select-tree-inset`
+`--bulma-tree-select-panel-max-height`, `--bulma-tree-select-search-gap`,
+`--bulma-tree-select-tree-inset`
 
 ### TreeView
 

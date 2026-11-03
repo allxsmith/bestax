@@ -1,12 +1,13 @@
 // INTERNAL: deliberately not exported from src/index.ts. The field a picker
 // of tree data opens its panel from: TreeSelect's, and Cascader's after it.
 
-import React, { useId, useRef } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 import { classNames, usePrefixedClassNames } from '../../helpers/classNames';
 import {
   useBulmaClasses,
   type BulmaClassesProps,
 } from '../../helpers/useBulmaClasses';
+import { useLatestRef } from '../../helpers/useLatestRef';
 import { Delete } from '../../elements/Delete';
 import { Icon } from '../../elements/Icon';
 import { Control } from '../Control';
@@ -57,10 +58,14 @@ export interface DialogSelectProps
   open: boolean;
   /**
    * Asked to open or close the panel: by a click on the field, its keys,
-   * Escape, Alt+Up, a press outside, Tab out of the panel and the clear
-   * button.
+   * Escape, Alt+Up, a press outside and the clear button.
    */
   onOpenChange: (open: boolean) => void;
+  /**
+   * Called once a reset of the field's form has gone ahead, so the picker
+   * can put its value back.
+   */
+  onFormReset: () => void;
   /**
    * A printable key on the field. Returns whether it used the key, as a
    * search box opening with it does.
@@ -123,10 +128,10 @@ const ignoreChange = () => {};
  * opens a `PickerPopover` dialog panel: in a `Field` of its own unless one is
  * around it, with a chevron at its inline end, a clear button, the hidden
  * inputs for `name` and what the browser's `required` check reads. A click,
- * Enter, Space, Down or Alt+Down opens the panel. Escape and Alt+Up close it
- * and put focus back on the field, and so does Shift+Tab past its first
- * stop. Tab past its last stop closes it and goes on from the field, and a
- * press outside closes it where the press put focus.
+ * Enter, Space, Down or Alt+Down opens the panel, which holds focus, as the
+ * date pickers' does: Tab and Shift+Tab wrap inside it. Escape and Alt+Up
+ * close it and put focus back on the field, and a press outside closes it
+ * where the press put focus.
  */
 export function DialogSelect({
   component,
@@ -137,6 +142,7 @@ export function DialogSelect({
   hasValue,
   open,
   onOpenChange,
+  onFormReset,
   onPrintableKey,
   onClear,
   clearable,
@@ -225,6 +231,27 @@ export function DialogSelect({
     [`is-${messageColor}`]: !!messageColor,
   });
   const isOpen = open && !disabled;
+
+  // A reset of the field's form puts the value back, as it does a native
+  // field's. The reset event fires before the form resets, and a listener
+  // after this one can still cancel it, so the value goes back a task later,
+  // and only if the reset went ahead, as File's and Dropzone's do.
+  const onFormResetRef = useLatestRef(onFormReset);
+  useEffect(() => {
+    const owner = inputRef.current?.form;
+    if (!owner) return undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const onReset = (event: Event) => {
+      timer = setTimeout(() => {
+        if (!event.defaultPrevented) onFormResetRef.current();
+      });
+    };
+    owner.addEventListener('reset', onReset);
+    return () => {
+      owner.removeEventListener('reset', onReset);
+      clearTimeout(timer);
+    };
+  }, [form, inputRef, onFormResetRef]);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (disabled) return;
@@ -338,13 +365,6 @@ export function DialogSelect({
         initialFocusSelector={initialFocusSelector}
         matchWidth
         followContent
-        onTabOut={event => {
-          // Shift+Tab goes back to the field, which comes before the panel.
-          // Tab goes on from the field, as if the panel weren't there.
-          if (event.shiftKey) event.preventDefault();
-          else inputRef.current?.focus();
-          onOpenChange(false);
-        }}
       >
         {children(panelName)}
       </PickerPopover>

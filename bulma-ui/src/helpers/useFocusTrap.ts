@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import { useIsHydrated } from './useIsHydrated';
-import { useLatestRef } from './useLatestRef';
 import { getDeepestActiveElement } from './shadowDom';
 
 /**
@@ -374,35 +373,27 @@ export function focusTabStop(container: HTMLElement, fromLast = false): void {
  * left in that direction inside the container, focus goes to the stop at the
  * other end and the key is marked used, and with no stops at all the
  * container takes focus. Focus outside the container goes in at that end
- * too. Returns whether it handled the key; otherwise the browser does.
- *
- * With `tabOut`, a Tab from focus inside the container that would wrap is
- * handed to it instead, and wraps only when it returns `false`.
+ * too. Returns whether it moved focus; otherwise the browser does.
  */
-function wrapTab(
-  e: KeyboardEvent,
-  container: HTMLElement,
-  tabOut?: (e: KeyboardEvent) => boolean
-): boolean {
+function wrapTab(e: KeyboardEvent, container: HTMLElement): boolean {
   const stops = findTabStops(container);
-  const focused = focusedElement(container.ownerDocument);
-  const focusInside = inside(container, focused);
-  // Whether the browser has no stop left in that direction inside the
-  // container. Comparing positions rather than testing `=== first` also
-  // covers focus resting on the container or on an element outside the tab
-  // order, which the browser would otherwise walk straight out of.
-  const atEdge =
-    !stops ||
-    (e.shiftKey
-      ? !follows(container, stops.first, stops.stopFor(focused))
-      : !follows(container, stops.stopFor(focused), stops.last));
-  if (focusInside && atEdge && tabOut?.(e)) return true;
   if (!stops) {
     e.preventDefault();
     container.focus();
     return true;
   }
-  if (!focusInside || atEdge) {
+  const focused = focusedElement(container.ownerDocument);
+  const current = stops.stopFor(focused);
+  // Wrap whenever the browser has no stop left in that direction inside the
+  // container. Comparing positions rather than testing `=== first` also
+  // covers focus resting on the container or on an element outside the tab
+  // order, which the browser would otherwise walk straight out of.
+  if (
+    !inside(container, focused) ||
+    (e.shiftKey
+      ? !follows(container, stops.first, current)
+      : !follows(container, current, stops.last))
+  ) {
     e.preventDefault();
     focusTabStop(container, e.shiftKey);
     return true;
@@ -423,15 +414,12 @@ function wrapTab(
  * like `focusTabStop`. It's for an overlay that holds Tab from a listener of
  * its own on `window` and asks the overlay stack first, so it stands aside
  * while another overlay is open over it, which a trap listening on the
- * container can't do. `tabOut` is handed a Tab that would wrap, as
- * `useFocusTrap`'s `onTabOut` describes, and the trap wraps it only when
- * `tabOut` returns `false`.
+ * container can't do.
  */
 export function trapTab(
   container: () => HTMLElement | null,
   keyTarget: HTMLElement | Window,
-  holds: () => boolean = () => true,
-  tabOut?: (e: KeyboardEvent) => boolean
+  holds: () => boolean = () => true
 ): () => void {
   // The document focus moves in: the window's own, or the element's.
   const doc =
@@ -451,7 +439,7 @@ export function trapTab(
     const box = container();
     // A trap nested inside this one has already wrapped focus.
     if (e.key !== 'Tab' || e.defaultPrevented || !box || !holds()) return;
-    if (wrapTab(e, box, tabOut)) return;
+    if (wrapTab(e, box)) return;
     wrapFromLast = e.shiftKey;
     clearTimeout(wrapTimer);
     wrapTimer = setTimeout(() => {
@@ -512,15 +500,6 @@ export interface UseFocusTrapOptions {
    * @defaultValue true
    */
   restoreFocus?: boolean | RefObject<HTMLElement | null>;
-  /**
-   * Called in place of wrapping, with the key's event, when Tab or
-   * Shift+Tab from focus inside the container has no stop left in that
-   * direction. The trap then leaves the key alone: unless the handler marks
-   * it used, the browser carries on from wherever focus is, so a handler
-   * that moves focus to the element that opened the container lets Tab go
-   * on from there. For a non-modal panel that closes when Tab leaves it.
-   */
-  onTabOut?: (event: KeyboardEvent) => void;
 }
 
 /**
@@ -576,15 +555,7 @@ export function useFocusTrap(
   containerRef: RefObject<HTMLElement | null>,
   options: UseFocusTrapOptions = {}
 ): void {
-  const {
-    active = true,
-    initialFocusRef,
-    restoreFocus = true,
-    onTabOut,
-  } = options;
-  // Read as each Tab arrives, so a handler written inline doesn't set the
-  // trap up again on every render.
-  const onTabOutRef = useLatestRef(onTabOut);
+  const { active = true, initialFocusRef, restoreFocus = true } = options;
   // Portaled content has no server-rendered counterpart, so a portaled
   // container only exists from the commit after hydration.
   const hydrated = useIsHydrated();
@@ -614,16 +585,7 @@ export function useFocusTrap(
       focusTabStop(container);
     }
 
-    const releaseTab = trapTab(
-      () => container,
-      container,
-      undefined,
-      e => {
-        const handler = onTabOutRef.current;
-        handler?.(e);
-        return !!handler;
-      }
-    );
+    const releaseTab = trapTab(() => container, container);
     return () => {
       releaseTab();
       let target = restoreFocus ? opener : null;
@@ -647,7 +609,6 @@ export function useFocusTrap(
     containerRef,
     initialFocusRef,
     restoreFocus,
-    onTabOutRef,
     refChanges,
   ]);
 

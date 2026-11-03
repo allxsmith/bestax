@@ -50,13 +50,9 @@ export interface PickerPopoverProps {
    */
   localeScope?: PortalLocale;
   /**
-   * Called in place of wrapping when Tab or Shift+Tab would leave the
-   * panel's last or first stop, as `useFocusTrap`'s `onTabOut` is.
-   */
-  onTabOut?: (event: KeyboardEvent) => void;
-  /**
-   * At least as wide as the anchor. In place its stylesheet does that; a
-   * portaled one takes the anchor's width inline.
+   * At least as wide as the anchor: in place through its partial's
+   * `has-anchor-width` rule, which needs the anchor to be the element it's
+   * placed against, and portaled through the anchor's width set inline.
    */
   matchWidth?: boolean;
   /** Placed again after each render, for content that changes size while it's open. */
@@ -83,7 +79,6 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
   restoreFocusRef,
   initialFocusSelector,
   localeScope,
-  onTabOut,
   matchWidth = false,
   followContent = false,
 }) => {
@@ -170,13 +165,13 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
     active: isOpen && trapFocus,
     initialFocusRef,
     restoreFocus: restoreFocusRef ?? true,
-    onTabOut,
   });
 
   const panelClass = usePrefixedClassNames('picker-popover', {
     'is-active': isOpen,
     [`is-${resolved.position}`]: true,
     'is-portal': appendToBody,
+    'has-anchor-width': matchWidth,
   });
 
   if (!isOpen) return null;

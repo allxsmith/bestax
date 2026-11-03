@@ -397,7 +397,27 @@ describe('TreeSelect', () => {
       expect(dialog()).toBeNull();
     });
 
-    it('closes on Tab out of the panel, which goes on from the field', async () => {
+    it('holds Tab inside the panel, wrapping between the search box and the tree, as the pickers do', async () => {
+      const user = userEvent.setup();
+      render(
+        <>
+          <button>Before</button>
+          <TreeSelect label="Place" data={PLACES} searchable />
+          <button>Next</button>
+        </>
+      );
+      open();
+      expect(screen.getByRole('searchbox')).toHaveFocus();
+      await user.tab();
+      expect(item('Asia')).toHaveFocus();
+      await user.tab();
+      expect(screen.getByRole('searchbox')).toHaveFocus();
+      await user.tab({ shift: true });
+      expect(item('Asia')).toHaveFocus();
+      expect(dialog()).not.toBeNull();
+    });
+
+    it('keeps Tab on the tree when it is the only stop', async () => {
       const user = userEvent.setup();
       render(
         <>
@@ -406,30 +426,9 @@ describe('TreeSelect', () => {
         </>
       );
       open();
-      expect(item('Asia')).toHaveFocus();
-      await user.tab();
-      expect(dialog()).toBeNull();
-      expect(screen.getByRole('button', { name: 'Next' })).toHaveFocus();
-    });
-
-    it('closes on Shift+Tab out of the panel, onto the field', async () => {
-      const user = userEvent.setup();
-      render(
-        <>
-          <button>Before</button>
-          <TreeSelect label="Place" data={PLACES} searchable />
-        </>
-      );
-      open();
-      expect(screen.getByRole('searchbox')).toHaveFocus();
       await user.tab();
       expect(item('Asia')).toHaveFocus();
       expect(dialog()).not.toBeNull();
-      await user.tab({ shift: true });
-      expect(screen.getByRole('searchbox')).toHaveFocus();
-      await user.tab({ shift: true });
-      expect(dialog()).toBeNull();
-      expect(field()).toHaveFocus();
     });
 
     it('reports opening and closing, and holds them when controlled', () => {
@@ -740,22 +739,22 @@ describe('TreeSelect', () => {
       }
     );
 
-    it('shows the list as tags under the field, which describe it', () => {
+    it('shows the value as it is held as tags under the field, which describe it', () => {
       const { container } = render(
         <TreeSelect
           label="Places"
           data={PLACES}
           selectionMode="checkbox"
-          defaultValue={['japan']}
+          defaultValue={['japan', 'france']}
         />
       );
       const tags = Array.from(container.querySelectorAll('.tags .tag'));
-      expect(tags.map(tag => tag.textContent)).toEqual(['Tokyo', 'Osaka']);
+      expect(tags.map(tag => tag.textContent)).toEqual(['Japan', 'France']);
       const described = field()
         .getAttribute('aria-describedby')!
         .split(' ')
         .map(id => document.getElementById(id)!.textContent);
-      expect(described).toEqual(['Tokyo', 'Osaka']);
+      expect(described).toEqual(['Japan', 'France']);
       expect(container.querySelector('.tree-select')!.nextElementSibling).toBe(
         container.querySelector('.tags')
       );
@@ -783,7 +782,7 @@ describe('TreeSelect', () => {
           label="Places"
           data={PLACES}
           selectionMode="checkbox"
-          start={['japan']}
+          start={['tokyo', 'osaka']}
         />
       );
       fireEvent.click(screen.getByRole('button', { name: 'Remove Tokyo' }));
@@ -867,7 +866,7 @@ describe('TreeSelect', () => {
           container.querySelectorAll<HTMLInputElement>('input[type="hidden"]'),
           el => `${el.name}=${el.value}`
         )
-      ).toEqual(['places=tokyo', 'places=osaka']);
+      ).toEqual(['places=asia']);
     });
 
     it('focuses the first checked item in the tree, its branch open', () => {
@@ -1466,6 +1465,372 @@ describe('TreeSelect', () => {
     });
   });
 
+  describe('a reset of its form', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    /** Resets the form, and runs the task the value goes back in. */
+    const reset = (form: HTMLFormElement) =>
+      act(() => {
+        form.reset();
+        vi.runAllTimers();
+      });
+
+    const hidden = (container: HTMLElement) =>
+      Array.from(
+        container.querySelectorAll<HTMLInputElement>('input[type="hidden"]'),
+        el => el.value
+      );
+
+    it('puts the value back to defaultValue, with the tags, the hidden inputs and the required stand-in', () => {
+      const onChange = vi.fn();
+      const { container } = render(
+        <form data-testid="form">
+          <TreeSelect
+            label="Places"
+            data={PLACES}
+            selectionMode="checkbox"
+            defaultValue={['france']}
+            name="places"
+            required
+            onChange={onChange}
+          />
+        </form>
+      );
+      open();
+      fireEvent.click(item('Asia'));
+      expect(hidden(container)).toEqual(['tokyo', 'osaka', 'france']);
+      reset(screen.getByTestId('form') as HTMLFormElement);
+      expect(onChange).toHaveBeenLastCalledWith(['france']);
+      expect(hidden(container)).toEqual(['france']);
+      expect(
+        Array.from(container.querySelectorAll('.tag'), tag => tag.textContent)
+      ).toEqual(['France']);
+      expect(
+        container.querySelector<HTMLInputElement>('input[required]')!.value
+      ).toBe('picked');
+    });
+
+    it("empties a value with no defaultValue, and the field's text", () => {
+      const onChange = vi.fn();
+      const { container } = render(
+        <form data-testid="form">
+          <TreeSelect
+            label="Place"
+            data={PLACES}
+            name="place"
+            required
+            onChange={onChange}
+          />
+        </form>
+      );
+      open();
+      fireEvent.click(item('Oceania'));
+      expect(field()).toHaveValue('Oceania');
+      reset(screen.getByTestId('form') as HTMLFormElement);
+      expect(onChange).toHaveBeenLastCalledWith(null);
+      expect(field()).toHaveValue('');
+      expect(hidden(container)).toEqual(['']);
+      expect(
+        container.querySelector<HTMLInputElement>('input[required]')!.validity
+          .valueMissing
+      ).toBe(true);
+    });
+
+    it('reports nothing when the value is the default already', () => {
+      const onChange = vi.fn();
+      render(
+        <form data-testid="form">
+          <TreeSelect
+            label="Place"
+            data={PLACES}
+            defaultValue="tokyo"
+            onChange={onChange}
+          />
+        </form>
+      );
+      reset(screen.getByTestId('form') as HTMLFormElement);
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('leaves a reset that was cancelled alone', () => {
+      const onChange = vi.fn();
+      render(
+        <form data-testid="form">
+          <TreeSelect
+            label="Place"
+            data={PLACES}
+            defaultValue="tokyo"
+            onChange={onChange}
+          />
+        </form>
+      );
+      const form = screen.getByTestId('form') as HTMLFormElement;
+      open();
+      fireEvent.click(item('Oceania'));
+      form.addEventListener('reset', event => event.preventDefault());
+      reset(form);
+      expect(field()).toHaveValue('Oceania');
+      expect(onChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('leaves a held value to its owner, reporting the empty value', () => {
+      const onChange = vi.fn();
+      render(
+        <form data-testid="form">
+          <TreeSelect
+            label="Place"
+            data={PLACES}
+            value="tokyo"
+            onChange={onChange}
+          />
+        </form>
+      );
+      reset(screen.getByTestId('form') as HTMLFormElement);
+      expect(onChange).toHaveBeenCalledWith(null);
+      expect(field()).toHaveValue('Tokyo');
+    });
+
+    it('hears the form its `form` names, and stops listening once gone', () => {
+      const onChange = vi.fn();
+      const { unmount } = render(
+        <>
+          <form id="elsewhere" data-testid="form" />
+          <TreeSelect
+            label="Place"
+            data={PLACES}
+            defaultValue="tokyo"
+            form="elsewhere"
+            onChange={onChange}
+          />
+        </>
+      );
+      open();
+      fireEvent.click(item('Oceania'));
+      reset(screen.getByTestId('form') as HTMLFormElement);
+      expect(field()).toHaveValue('Tokyo');
+      // A reset whose task is still to run when it unmounts does nothing.
+      open();
+      fireEvent.click(item('Oceania'));
+      const before = onChange.mock.calls.length;
+      act(() => {
+        (screen.getByTestId('form') as HTMLFormElement).reset();
+      });
+      unmount();
+      vi.runAllTimers();
+      expect(onChange).toHaveBeenCalledTimes(before);
+    });
+
+    it('listens to no form outside one', () => {
+      render(<TreeSelect label="Place" data={PLACES} defaultValue="tokyo" />);
+      expect(field()).toHaveValue('Tokyo');
+    });
+  });
+
+  describe('clearing, tags, loads and search, at their edges', () => {
+    it('clears to the checked disabled items, and shows no clear button with only those', () => {
+      const onChange = vi.fn();
+      const { rerender } = render(
+        <TreeSelect
+          label="Places"
+          data={PLACES}
+          selectionMode="checkbox"
+          defaultValue={['china', 'tokyo']}
+          clearable
+          onChange={onChange}
+        />
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+      expect(onChange).toHaveBeenCalledWith(['china']);
+      expect(screen.queryByRole('button', { name: 'Clear' })).toBeNull();
+      rerender(
+        <TreeSelect
+          label="Places"
+          data={PLACES}
+          selectionMode="checkbox-independent"
+          value={['china']}
+          clearable
+        />
+      );
+      expect(screen.queryByRole('button', { name: 'Clear' })).toBeNull();
+    });
+
+    it('gives a tag a button only where taking it off changes the value', () => {
+      const data: TreeItemData[] = [
+        {
+          value: 'team',
+          label: 'Team',
+          disabled: true,
+          children: [
+            { value: 'ann', label: 'Ann' },
+            { value: 'bob', label: 'Bob' },
+          ],
+        },
+        { value: 'eve', label: 'Eve' },
+      ];
+      render(
+        <TreeSelect
+          label="People"
+          data={data}
+          selectionMode="checkbox"
+          checkedStrategy="all"
+          defaultValue={['team', 'ann', 'bob', 'eve']}
+        />
+      );
+      expect(
+        screen.getAllByRole('button').map(b => b.getAttribute('aria-label'))
+      ).toEqual(['Remove Eve']);
+    });
+
+    it("keeps the value as it's held when a branch loads, and shapes only what a check makes", () => {
+      const onChange = vi.fn();
+      const lazy = (loaded: boolean): TreeItemData[] => [
+        {
+          value: 'photos',
+          label: 'Photos',
+          hasChildren: true,
+          children: loaded
+            ? [
+                { value: 'summer', label: 'Summer' },
+                { value: 'winter', label: 'Winter' },
+              ]
+            : undefined,
+        },
+        { value: 'docs', label: 'Documents' },
+      ];
+      const { container, rerender } = render(
+        <TreeSelect
+          label="Folders"
+          data={lazy(false)}
+          selectionMode="checkbox"
+          defaultValue={['photos']}
+          name="folders"
+          onChange={onChange}
+        />
+      );
+      const posted = () =>
+        Array.from(
+          container.querySelectorAll<HTMLInputElement>('input[type="hidden"]'),
+          el => el.value
+        );
+      expect(posted()).toEqual(['photos']);
+      rerender(
+        <TreeSelect
+          label="Folders"
+          data={lazy(true)}
+          selectionMode="checkbox"
+          defaultValue={['photos']}
+          name="folders"
+          onChange={onChange}
+        />
+      );
+      expect(posted()).toEqual(['photos']);
+      expect(onChange).not.toHaveBeenCalled();
+      open();
+      fireEvent.click(item('Documents'));
+      expect(onChange).toHaveBeenLastCalledWith(['summer', 'winter', 'docs']);
+      expect(posted()).toEqual(['summer', 'winter', 'docs']);
+    });
+
+    it("in 'single', a click on a parent's row picks it and opens nothing, as Enter does", () => {
+      const onChange = vi.fn();
+      const onExpandedChange = vi.fn();
+      render(
+        <TreeSelect
+          label="Place"
+          closeOnSelect={false}
+          data={[
+            ...PLACES,
+            { value: 'lazy', label: 'Lazy', hasChildren: true },
+          ]}
+          onChange={onChange}
+          onExpandedChange={onExpandedChange}
+        />
+      );
+      open();
+      fireEvent.click(item('Europe'));
+      expect(onChange).toHaveBeenLastCalledWith('europe');
+      expect(item('Europe')).toHaveAttribute('aria-expanded', 'false');
+      fireEvent.click(item('Lazy'));
+      expect(onChange).toHaveBeenLastCalledWith('lazy');
+      expect(item('Lazy')).toHaveAttribute('aria-expanded', 'false');
+      expect(onExpandedChange).not.toHaveBeenCalled();
+      // The chevron still opens it, and a click on its open group picks nothing.
+      fireEvent.click(item('Europe').querySelector('.tree-view-toggle')!);
+      expect(onExpandedChange).toHaveBeenLastCalledWith(['europe']);
+      fireEvent.click(item('Europe').querySelector('[role="group"]')!);
+      expect(onChange).toHaveBeenCalledTimes(2);
+      key(item('Europe'), 'ArrowRight');
+      expect(item('France')).toHaveFocus();
+    });
+
+    it('opens no branch a search hides with *', async () => {
+      const onExpandedChange = vi.fn();
+      const user = userEvent.setup();
+      render(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          searchable
+          onExpandedChange={onExpandedChange}
+        />
+      );
+      open();
+      await user.keyboard('tokyo');
+      key(item('Asia'), '*');
+      expect(onExpandedChange).not.toHaveBeenCalled();
+      expect(shownItems()).toEqual(['Asia', 'Japan', 'Tokyo']);
+    });
+
+    it('starts the closed branches over whenever a held query changes', () => {
+      const props = {
+        label: 'Place',
+        data: PLACES,
+        searchable: true,
+        defaultOpen: true,
+      };
+      const { rerender } = render(<TreeSelect {...props} query="tokyo" />);
+      key(item('Japan'), 'ArrowLeft');
+      expect(item('Japan')).toHaveAttribute('aria-expanded', 'false');
+      rerender(<TreeSelect {...props} query="toky" />);
+      expect(item('Japan')).toHaveAttribute('aria-expanded', 'true');
+      key(item('Japan'), 'ArrowLeft');
+      rerender(<TreeSelect {...props} query="tokyo" />);
+      expect(item('Japan')).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    it("doesn't search again on a render that changes nothing the search reads", () => {
+      const filter = vi.fn((query: string, node: TreeItemData) =>
+        node.value.includes(query)
+      );
+      const props = {
+        label: 'Place',
+        data: PLACES,
+        searchable: true,
+        defaultOpen: true,
+        query: 'tok',
+        filter,
+      };
+      const { rerender } = render(<TreeSelect {...props} />);
+      const calls = filter.mock.calls.length;
+      rerender(<TreeSelect {...props} placeholder="Somewhere" />);
+      expect(filter).toHaveBeenCalledTimes(calls);
+      rerender(<TreeSelect {...props} query="osa" />);
+      expect(filter.mock.calls.length).toBeGreaterThan(calls);
+    });
+
+    it("marks the panel in place to take at least the field's width", () => {
+      render(<TreeSelect label="Place" data={PLACES} />);
+      open();
+      expect(screen.getByRole('dialog')).toHaveClass('has-anchor-width');
+    });
+  });
+
   it('applies classPrefix from ConfigProvider everywhere', () => {
     const { container } = render(
       <ConfigProvider classPrefix="bestax-">
@@ -1552,7 +1917,7 @@ describe('TreeSelect', () => {
       </>
     );
     expect(html).toContain('value="Tokyo"');
-    expect(html).toContain('>Osaka</span>');
+    expect(html).toContain('>Japan</span>');
     expect(html).not.toContain('role="dialog"');
   });
 });

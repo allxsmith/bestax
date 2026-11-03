@@ -2,15 +2,14 @@
 // A form field whose options are a tree. The field is Bulma's input, the
 // panel the pickers' popover (`--bulma-picker-popover-*`) and the tree
 // TreeView's (`--bulma-tree-view-*`), so this draws what sits between them:
-// the chevron and the clear button on the field, the panel's size, the
-// search box over the tree and the message when a search finds nothing.
+// the chevron and the clear button on the field, the panel's height, the
+// search box over the tree and the message when a search finds nothing. The
+// panel is at least as wide as the field through the picker popover's own
+// `has-anchor-width` rule.
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
 
-// In place, the field's width. A portaled panel takes the field's width from
-// the component instead, since it isn't inside the field.
-$tree-select-panel-min-width: 100% !default;
 // The tree scrolls past this, as Combobox's list does.
 $tree-select-panel-max-height: 15rem !default;
 $tree-select-search-gap: 0.5rem !default;
@@ -33,7 +32,6 @@ $tree-select-tree-inset: 4px !default;
 .#{iv.$class-prefix}tree-select-panel {
   @include cv.register-vars(
     (
-      'tree-select-panel-min-width': #{$tree-select-panel-min-width},
       'tree-select-panel-max-height': #{$tree-select-panel-max-height},
       'tree-select-search-gap': #{$tree-select-search-gap},
       'tree-select-chevron-width': #{$tree-select-chevron-width},
@@ -122,7 +120,6 @@ $tree-select-tree-inset: 4px !default;
   display: flex;
   flex-direction: column;
   gap: cv.getVar('tree-select-search-gap');
-  min-width: cv.getVar('tree-select-panel-min-width');
 
   // The tree scrolls, with room for the focus ring of the row at its edge,
   // and still lines up with the search box over it.

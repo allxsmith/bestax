@@ -10,6 +10,7 @@ import {
 import type React from 'react';
 import type { TreeViewSelectionMode } from '../components/TreeView';
 import { useClientLayoutEffect } from './useClientLayoutEffect';
+import { useControlled } from './useControlled';
 import { getActiveElementInTree } from './shadowDom';
 import { typeaheadMatch, typeaheadText, useTypeahead } from './typeahead';
 
@@ -265,16 +266,6 @@ export function toggledList(
       .map(([item]) => item),
     ...list.filter(item => !records.has(item)),
   ];
-}
-
-/** A value the caller holds, or one this hook holds when the caller doesn't. */
-export function useControlled<T>(controlled: T | undefined, initial: T) {
-  const [own, setOwn] = useState(initial);
-  const isControlled = controlled !== undefined;
-  const set = (next: T) => {
-    if (!isControlled) setOwn(next);
-  };
-  return [isControlled ? controlled : own, set] as const;
 }
 
 /**
@@ -653,13 +644,16 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
         if (!event.repeat) press(item, actions.space);
         break;
       case '*': {
+        // The siblings on the page: not the ones a component around the
+        // tree hides, which stay registered.
         const closed: string[] = [];
         registry.records.forEach((record, value) => {
           if (
             record.parent === item.parent &&
             record.isParent &&
             !record.disabled &&
-            !expanded.includes(value)
+            !expanded.includes(value) &&
+            registry.elements.has(value)
           ) {
             closed.push(value);
           }

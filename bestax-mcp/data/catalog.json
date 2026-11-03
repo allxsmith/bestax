@@ -3009,7 +3009,6 @@
     "--bulma-tree-select-empty-color": ["TreeSelect"],
     "--bulma-tree-select-empty-padding": ["TreeSelect"],
     "--bulma-tree-select-panel-max-height": ["TreeSelect"],
-    "--bulma-tree-select-panel-min-width": ["TreeSelect"],
     "--bulma-tree-select-search-gap": ["TreeSelect"],
     "--bulma-tree-select-tree-inset": ["TreeSelect"],
     "--bulma-tree-view-gap": ["TreeView"],
