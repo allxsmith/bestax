@@ -91,6 +91,20 @@ describe('TreeSelect styles', () => {
     expect(tree).toContain('overflow-y: auto');
   });
 
+  it('colors the chevron as focused while the field is focused, drawn focused, or open', () => {
+    const rule = Array.from(PLAIN.keys()).find(selector =>
+      selector.includes('.input:focus ~ .tree-select-chevron')
+    )!;
+    expect(rule.split(', ')).toEqual([
+      '.tree-select .input:focus ~ .tree-select-chevron',
+      '.tree-select .input.is-focused ~ .tree-select-chevron',
+      '.tree-select .input[aria-expanded=true] ~ .tree-select-chevron',
+    ]);
+    expect(body(PLAIN, rule)).toContain(
+      'color: var(--bulma-tree-select-chevron-focus-color)'
+    );
+  });
+
   it('prefixes every class under a class prefix', () => {
     const selectors = Array.from(PREFIXED.keys()).join(' ');
     expect(selectors).toContain('.bestax-tree-select');

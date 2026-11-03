@@ -85,6 +85,7 @@ $tree-select-tree-inset: 4px !default;
   }
 
   &:focus ~ .#{iv.$class-prefix}tree-select-chevron,
+  &.#{iv.$class-prefix}is-focused ~ .#{iv.$class-prefix}tree-select-chevron,
   &[aria-expanded='true'] ~ .#{iv.$class-prefix}tree-select-chevron {
     color: cv.getVar('tree-select-chevron-focus-color');
   }
