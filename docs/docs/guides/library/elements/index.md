@@ -254,6 +254,20 @@ A button that stays pressed while something is on, such as Bold in an editor too
 
 ---
 
+### IconButton
+
+A button that shows only an icon, such as Delete in a table row, with a name its types require and `isRounded` for a circle. [View full documentation.](../../../api/elements/iconbutton.md)
+
+```tsx live
+<Buttons>
+  <IconButton icon="pen" aria-label="Edit" />
+  <IconButton icon="trash" aria-label="Delete" color="danger" />
+  <IconButton icon="plus" aria-label="Add" color="primary" isRounded />
+</Buttons>
+```
+
+---
+
 ## Media
 
 ### Icon

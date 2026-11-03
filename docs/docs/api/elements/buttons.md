@@ -139,7 +139,7 @@ The `isRight` prop aligns the button group to the right edge of its container. T
 
 ### Compound (dot-notation) usage
 
-`Button`, `LinkButton` and `ToggleButton` are also available as `Buttons.Button`, `Buttons.LinkButton` and `Buttons.ToggleButton`, so a button group, a set of toggles included, can be composed from the single `Buttons` import.
+`Button`, `LinkButton`, `ToggleButton` and `IconButton` are also available as `Buttons.Button`, `Buttons.LinkButton`, `Buttons.ToggleButton` and `Buttons.IconButton`, so a button group, a set of toggles included, can be composed from the single `Buttons` import.
 
 ```tsx live
 <>
@@ -147,6 +147,7 @@ The `isRight` prop aligns the button group to the right edge of its container. T
     <Buttons.Button color="primary">Save</Buttons.Button>
     <Buttons.Button>Cancel</Buttons.Button>
     <Buttons.LinkButton>Learn more</Buttons.LinkButton>
+    <Buttons.IconButton icon="ellipsis" aria-label="More actions" />
   </Buttons>
   <Buttons hasAddons role="group" aria-label="Text style">
     <Buttons.ToggleButton defaultPressed>Bold</Buttons.ToggleButton>
@@ -208,5 +209,6 @@ You can use all Bulma helper props (spacing, color, alignment) with `Buttons` fo
 - [`Buttons.Button`](button.md): The `Button` component provides a flexible and highly customizable button for your Bulma React UI.
 - [`Buttons.LinkButton`](linkbutton.md): The `LinkButton` component renders a `<button>` that visually looks like text or a link.
 - [`Buttons.ToggleButton`](togglebutton.md): The `ToggleButton` component renders a button that stays pressed until it's pressed again, and says whether it's on through `aria-pressed`. It's always a `<button type="button">`, so it never submits a form and carries no form value: a setting saved with a form is a `Checkbox` or a `Switch`. A set of toggles that each turn on and off on their own goes in `Buttons hasAddons` with `role="group"` and an `aria-label`. A set where only one can be on is a radio group rather than a row of these: use `SegmentedControl`, or `Radios` for a choice that's sent with a form.
+- [`Buttons.IconButton`](iconbutton.md): The `IconButton` component renders a button that shows only an icon, and requires a name for it. It renders through `Button`, so it takes everything `Button` takes, and adds the icon and a name the types require: `aria-label`, or `aria-labelledby` in its place. Bulma keeps a button whose only child is an `.icon` square at every size, and `isRounded` makes it a circle. It has no tooltip of its own: wrap it in `Tooltip` for a description.
 
 <!-- /bestax:generated props -->

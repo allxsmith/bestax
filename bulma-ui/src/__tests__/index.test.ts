@@ -98,6 +98,7 @@ const PUBLIC_EXPORTS = [
   'HeroHead',
   'HoverCard',
   'Icon',
+  'IconButton',
   'IconText',
   'Image',
   'Input',

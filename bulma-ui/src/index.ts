@@ -50,6 +50,7 @@ export * from './elements/Divider';
 export * from './elements/Emphasis';
 export * from './elements/Figure';
 export * from './elements/Icon';
+export * from './elements/IconButton';
 export * from './elements/IconText';
 export * from './elements/Image';
 export * from './elements/Kbd';

@@ -39,6 +39,12 @@ export const DEPRECATED_PROPS: Readonly<
       note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
     },
   },
+  'Buttons.IconButton': {
+    isFullWidth: {
+      replacement: 'isFullwidth',
+      note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
+    },
+  },
   'Buttons.LinkButton': {
     isFullWidth: {
       replacement: 'isFullwidth',
@@ -88,6 +94,12 @@ export const DEPRECATED_PROPS: Readonly<
     libraryFeatures: {
       replacement: null,
       note: 'Use `variant` and `features` instead.',
+    },
+  },
+  IconButton: {
+    isFullWidth: {
+      replacement: 'isFullwidth',
+      note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
     },
   },
   'IconText.Icon': {

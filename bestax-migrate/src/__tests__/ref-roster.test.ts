@@ -54,6 +54,7 @@ const NAMED_INDIVIDUALLY = [
   'EmptyState',
   'Flex',
   'Group',
+  'IconButton',
   'Kbd',
   'Kbd.Group',
   'Link',
