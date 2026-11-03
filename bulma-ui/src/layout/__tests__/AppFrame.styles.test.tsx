@@ -100,8 +100,8 @@ describe('AppFrame styles', () => {
       '--bulma-app-frame-nav-rail-width': '4rem',
       '--bulma-app-frame-handle-size': '0.75rem',
       '--bulma-app-frame-handle-size-coarse': '1.5rem',
-      '--bulma-app-frame-handle-active-color': 'var(--bulma-primary)',
-      '--bulma-app-frame-handle-active-size': '2px',
+      '--bulma-app-frame-line-active-color': 'var(--bulma-primary)',
+      '--bulma-app-frame-line-active-size': '2px',
       '--bulma-app-frame-nav-background': 'var(--bulma-scheme-main)',
       '--bulma-app-frame-aside-width': '20rem',
       '--bulma-app-frame-border-color': 'var(--bulma-border)',
@@ -288,7 +288,7 @@ describe('AppFrame styles', () => {
           position: 'absolute',
           'inset-inline-start': '50%',
           'border-inline-start':
-            '0 solid var(--bulma-app-frame-handle-active-color)',
+            '0 solid var(--bulma-app-frame-line-active-color)',
         });
         expect(
           find(
@@ -298,7 +298,7 @@ describe('AppFrame styles', () => {
           )
         ).toEqual({
           'border-inline-start-width':
-            'var(--bulma-app-frame-handle-active-size)',
+            'var(--bulma-app-frame-line-active-size)',
         });
         expect(find(PLAIN, `${handle}:focus`, [media])).toEqual({
           outline: 'none',
