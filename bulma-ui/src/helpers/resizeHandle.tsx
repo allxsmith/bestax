@@ -16,6 +16,30 @@ export function lengthToPx(
   return parseFloat(match[1]) * (match[2] === 'rem' ? remPx : 1);
 }
 
+// The page's own cursor and text selection, kept while any handle is being
+// dragged: the first drag to start saves them and the last to end puts them
+// back, so two at once, as two fingers can make, leave nothing behind.
+let drags = 0;
+let saved = { cursor: '', userSelect: '' };
+
+/**
+ * Shows `cursor` everywhere and stops text selection for one drag, and
+ * returns what ends it.
+ */
+function holdPage(cursor: string) {
+  const body = document.body.style;
+  if (drags === 0) saved = { cursor: body.cursor, userSelect: body.userSelect };
+  drags += 1;
+  body.cursor = cursor;
+  body.userSelect = 'none';
+  return () => {
+    drags -= 1;
+    if (drags > 0) return;
+    body.cursor = saved.cursor;
+    body.userSelect = saved.userSelect;
+  };
+}
+
 /** Props for ResizeHandle. */
 export interface ResizeHandleProps {
   /** Its class, prefixed. */
@@ -68,6 +92,8 @@ export interface ResizeHandleProps {
   onEnter: () => boolean | void;
   /** A double click: back to the default. */
   onReset: () => void;
+  /** It took focus, before a key: read anything the keys measure from. */
+  onFocus?: () => void;
 }
 
 /**
@@ -102,6 +128,7 @@ export function ResizeHandle({
   onEnd,
   onEnter,
   onReset,
+  onFocus,
 }: ResizeHandleProps) {
   // A line between parts side by side moves across, so it follows clientX.
   const across = orientation === 'vertical';
@@ -137,14 +164,7 @@ export function ResizeHandle({
   // While dragging, the resize cursor shows wherever the pointer goes.
   useEffect(() => {
     if (!dragging) return;
-    const body = document.body.style;
-    const { cursor, userSelect } = body;
-    body.cursor = across ? 'col-resize' : 'row-resize';
-    body.userSelect = 'none';
-    return () => {
-      body.cursor = cursor;
-      body.userSelect = userSelect;
-    };
+    return holdPage(across ? 'col-resize' : 'row-resize');
   }, [dragging, across]);
 
   // ---- Keys ----
@@ -189,6 +209,7 @@ export function ResizeHandle({
       onLostPointerCapture={endDrag}
       onDoubleClick={onReset}
       onKeyDown={onKeyDown}
+      onFocus={onFocus}
     />
   );
 }
