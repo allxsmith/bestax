@@ -349,7 +349,8 @@ function example() {
 `width` with `onWidthChange` keeps the width yours, in pixels; without them, `defaultWidth` sets
 where it starts. The widths are lengths, not shares of the window, so the column keeps its width as
 the window grows. Widths, limits and defaults take pixels, or `px` or `rem`, as Splitter's limits
-do. The handle sits on the column from the breakpoint up only, and hides while the column is
+do; the handle takes the default for any other length, and a development build warns about it. The
+handle sits on the column from the breakpoint up only, and hides while the column is
 collapsed out of view, where the burger brings it back, unless the keyboard has it, so Enter brings
 it back too. A development build warns about a `width` with no `onWidthChange`, since the handle
 couldn't move it.

@@ -2010,9 +2010,10 @@ describe('AppFrame.Nav resizable', () => {
     expect(sep).toHaveAttribute('aria-orientation', 'vertical');
     expect(sep).toHaveAccessibleName('Sections');
     expect(sep).toHaveAttribute('aria-controls', nav().id);
-    // 16rem, between 12rem and 32rem, at Bulma's 16px rem.
+    // 16rem, up to 32rem, at Bulma's 16px rem; the range starts at the
+    // collapsed width, none, since the column can always collapse.
     expect(sep).toHaveAttribute('aria-valuenow', '256');
-    expect(sep).toHaveAttribute('aria-valuemin', '192');
+    expect(sep).toHaveAttribute('aria-valuemin', '0');
     expect(sep).toHaveAttribute('aria-valuemax', '512');
     // After the nav, as its edge is.
     expect(nav().nextElementSibling).toBe(sep);
@@ -2179,9 +2180,22 @@ describe('AppFrame.Nav resizable', () => {
     expect(widthOf()).toBe('330px');
     fireEvent.keyDown(handle(), { key: 'Enter' });
     fireEvent.doubleClick(handle());
-    expect(widthOf()).toBe('20rem');
+    expect(widthOf()).toBe('320px');
     expect(onWidthChange).toHaveBeenLastCalledWith(320);
     expect(root()).not.toHaveClass('is-nav-collapsed');
+    // Already there: nothing to report.
+    onWidthChange.mockClear();
+    fireEvent.doubleClick(handle());
+    expect(onWidthChange).not.toHaveBeenCalled();
+  });
+
+  it('resets to a default past the limits at the limit', () => {
+    mockViewport(DESKTOP);
+    const onWidthChange = vi.fn();
+    render(<ResizeFrame nav={{ onWidthChange, defaultWidth: '40rem' }} />);
+    fireEvent.keyDown(handle(), { key: 'ArrowLeft' });
+    fireEvent.doubleClick(handle());
+    expect(onWidthChange).toHaveBeenLastCalledWith(512);
   });
 
   it('resets to the stylesheet’s width without a default', () => {
@@ -2190,7 +2204,7 @@ describe('AppFrame.Nav resizable', () => {
     render(<ResizeFrame nav={{ onWidthChange }} />);
     fireEvent.keyDown(handle(), { key: 'ArrowRight' });
     fireEvent.doubleClick(handle());
-    expect(widthOf()).toBe('');
+    expect(widthOf()).toBe('256px');
     expect(onWidthChange).toHaveBeenLastCalledWith(256);
   });
 
@@ -2237,10 +2251,130 @@ describe('AppFrame.Nav resizable', () => {
       return style;
     });
     render(<ResizeFrame />);
-    // 15rem at 20px, within 12rem and 32rem at 20px.
+    // 15rem at 20px, up to 32rem at 20px.
     expect(handle()).toHaveAttribute('aria-valuenow', '300');
-    expect(handle()).toHaveAttribute('aria-valuemin', '240');
+    expect(handle()).toHaveAttribute('aria-valuemin', '0');
     expect(handle()).toHaveAttribute('aria-valuemax', '640');
+  });
+
+  /** A root font size the page can change. */
+  const fontSized = () => {
+    let size = '16px';
+    const real = window.getComputedStyle;
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((el, pseudo) => {
+      const style = real(el, pseudo);
+      if (el === document.documentElement) {
+        return { fontSize: size } as CSSStyleDeclaration;
+      }
+      return style;
+    });
+    return (next: string) => {
+      size = next;
+    };
+  };
+
+  it('reads a rem again as the handle takes focus, so the keys use the page’s font size', () => {
+    mockViewport(DESKTOP);
+    const setSize = fontSized();
+    const onWidthChange = vi.fn();
+    render(<ResizeFrame nav={{ onWidthChange }} />);
+    expect(handle()).toHaveAttribute('aria-valuemax', '512');
+    setSize('20px');
+    fireEvent.focus(handle());
+    // 16rem and 32rem at 20px.
+    expect(handle()).toHaveAttribute('aria-valuenow', '320');
+    expect(handle()).toHaveAttribute('aria-valuemax', '640');
+    fireEvent.keyDown(handle(), { key: 'ArrowRight' });
+    expect(onWidthChange).toHaveBeenLastCalledWith(330);
+    // Nothing changed: the same reading.
+    fireEvent.focus(handle());
+    expect(handle()).toHaveAttribute('aria-valuemax', '640');
+  });
+
+  it('reads a rem again as a drag starts', () => {
+    mockViewport(DESKTOP);
+    const setSize = fontSized();
+    const onWidthChange = vi.fn();
+    render(<ResizeFrame nav={{ onWidthChange }} />);
+    setSize('20px');
+    pointer(handle(), 'pointerdown', 300);
+    pointer(handle(), 'pointermove', 310);
+    // From 16rem at 20px, 320 pixels.
+    expect(onWidthChange).toHaveBeenLastCalledWith(330);
+    pointer(handle(), 'pointerup', 310);
+  });
+
+  it('drags from the width the column has, not its box part way through a transition', () => {
+    mockViewport(DESKTOP);
+    const onWidthChange = vi.fn();
+    render(<ResizeFrame nav={{ onWidthChange }} />);
+    laidOut(200);
+    pointer(handle(), 'pointerdown', 300);
+    pointer(handle(), 'pointermove', 310);
+    expect(onWidthChange).toHaveBeenLastCalledWith(266);
+    pointer(handle(), 'pointerup', 310);
+  });
+
+  it('drags a column collapsed out of view open from none, at the minimum near the pointer', () => {
+    mockViewport(DESKTOP);
+    const onWidthChange = vi.fn();
+    const onNavCollapsedChange = vi.fn();
+    render(
+      <ResizeFrame
+        onNavCollapsedChange={onNavCollapsedChange}
+        nav={{ onWidthChange, defaultWidth: 300 }}
+      />
+    );
+    fireEvent.keyDown(handle(), { key: 'Enter' });
+    // Its box still has its old width, which the drag doesn't start from.
+    laidOut(300);
+    pointer(handle(), 'pointerdown', 0);
+    pointer(handle(), 'pointermove', 80);
+    expect(onNavCollapsedChange).toHaveBeenLastCalledWith(true);
+    pointer(handle(), 'pointermove', 120);
+    expect(onNavCollapsedChange).toHaveBeenLastCalledWith(false);
+    expect(onWidthChange).toHaveBeenLastCalledWith(192);
+    pointer(handle(), 'pointerup', 120);
+  });
+
+  it('keeps the value inside its range while the column is collapsed', () => {
+    mockViewport(DESKTOP);
+    render(<ResizeFrame defaultNavCollapsed />);
+    expect(handle()).toHaveAttribute('aria-valuenow', '0');
+    expect(handle()).toHaveAttribute('aria-valuemin', '0');
+    expect(handle()).toHaveAttribute('aria-valuemax', '512');
+  });
+
+  it('warns once about a width it can’t step from, naming it', () => {
+    resetDevWarnings();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    mockViewport(DESKTOP);
+    const { unmount } = render(<ResizeFrame nav={{ defaultWidth: '30vw' }} />);
+    // Read as the stylesheet's width.
+    expect(handle()).toHaveAttribute('aria-valuenow', '256');
+    unmount();
+    render(
+      <ResizeFrame
+        nav={{ width: 'calc(10rem + 4px)', onWidthChange: vi.fn() }}
+      />
+    );
+    const about = warn.mock.calls.filter(([m]) =>
+      /can't measure/.test(String(m))
+    );
+    expect(about).toHaveLength(1);
+    expect(about[0][0]).toContain('"30vw"');
+  });
+
+  it('takes the default limits for ones it can’t measure', () => {
+    mockViewport(DESKTOP);
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    render(
+      <ResizeFrame nav={{ minWidth: '10vw', maxWidth: 'calc(30rem + 2px)' }} />
+    );
+    fireEvent.keyDown(handle(), { key: 'Home' });
+    expect(handle()).toHaveAttribute('aria-valuenow', '192');
+    fireEvent.keyDown(handle(), { key: 'End' });
+    expect(handle()).toHaveAttribute('aria-valuenow', '512');
   });
 
   it('has no handle without resizable, or outside a frame', () => {
@@ -2255,7 +2389,7 @@ describe('AppFrame.Nav resizable', () => {
   it('renders its handle on the server, with its values', () => {
     const html = renderToStaticMarkup(<ResizeFrame />);
     expect(html).toMatch(
-      /<div class="app-frame-handle" role="separator" tabindex="0" aria-orientation="vertical" aria-valuenow="256" aria-valuemin="192" aria-valuemax="512"/
+      /<div class="app-frame-handle" role="separator" tabindex="0" aria-orientation="vertical" aria-valuenow="256" aria-valuemin="0" aria-valuemax="512"/
     );
   });
 
