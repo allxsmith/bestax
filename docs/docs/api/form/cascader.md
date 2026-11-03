@@ -138,7 +138,8 @@ function example() {
 }
 ```
 
-Opening the panel opens the picked node's path and puts focus on it. `clearable` shows a clear
+Opening the panel opens the picked node's path and puts focus on it, however it opens: a click,
+a key, `defaultOpen` or an `open` you hold. `clearable` shows a clear
 button at the field's end while something is picked. `labels.separator` changes what goes between
 the labels in the field, `" / "` unless you set it.
 
@@ -382,15 +383,22 @@ to match, and Right and Left swap.
 - **Keys on the field:** a click, Enter, Space, Down or Alt+Down opens the panel, and with
   `searchable` a printable key opens it with that key in the search box.
 - **The panel** is a non-modal `dialog`, named by the label or `labels.choose`. Focus moves into
-  it as it opens: onto the picked node, its path open, or onto the first enabled item. It holds
+  it as it opens: onto the picked node, its path open, or with nothing picked onto the first
+  column's item on an open path, or its first enabled item, so a `defaultExpanded` path stays
+  open. It holds
   focus while it's open, as the date pickers' panel does: Tab and Shift+Tab move between the
   search box and the columns, and wrap. Escape and Alt+Up close it and put focus back on the
   field, and so does a pick. A press outside closes it and leaves focus where the press put it.
 - **Each column** is a `listbox` with one tab stop and real focus on its `option`s. The first is
   named as the panel is, and each one after it by the label of the item that opened it. Up, Down,
-  Home, End and type-ahead move within a column, and the item focus is on is the selected one
-  there (`aria-selected`). Right opens the next column and moves into it, Left goes back, and the
-  two swap on a right-to-left page. Disabled items are reachable and `aria-disabled`.
+  Home, End and type-ahead move within a column, and type-ahead starts over in each column it
+  comes into. Right opens the next column and moves into it, Left goes back, and the two swap on a
+  right-to-left page. Disabled items are reachable and `aria-disabled`, and Right moves into a
+  column at its item on the open path even when that one is disabled.
+- **The picked node's path is `aria-selected`,** and drawn as Bulma's active dropdown item. The
+  path you've opened, which follows focus, is drawn with a lighter tint of its own and isn't
+  announced as selected, so moving around never says an item is picked when it isn't. In forced
+  colors the picked path takes the system's highlight and the open path an outline.
 - **An item that opens a column** is described by "Opens a column", or `labels.opens`, since an
   option has no way of its own to say it has items under it. Its chevron is hidden.
 - **A column that's loading** ends in a row that says so, and a failed load's row is named by its
@@ -400,8 +408,10 @@ to match, and Right and Left swap.
   paths that match. When nothing matches, `empty` is said once through a polite status region,
   not again on every key.
 - **`required`** makes the field `aria-required`. A read-only field is left out of the browser's
-  own check, so a hidden field the browser reads carries `required`, and it hands focus to the
-  real one when the browser points at it.
+  own check, so a hidden field over it carries `required`. When the browser stops a submit, it
+  focuses that one and shows its message, which every browser takes down as it loses focus. So
+  focus stays there, named as the field and drawn on the field, a press goes where it lands, and
+  the next key goes to the field and does what it would there.
 - **Forced colors:** the field, the panel and the columns keep their edges in system colors, the
   path through the columns keeps the system's highlight, and the chevrons are borders, so they
   stay.
@@ -461,7 +471,7 @@ to match, and Right and Left swap.
 | `placeholder`         | `string`                                                                         | —               | What the field shows while nothing is picked.                                                                                                                                                                                                                                                                |
 | `name`                | `string`                                                                         | —               | A form field name. A hidden input posts the picked node's value, empty while nothing is picked.                                                                                                                                                                                                              |
 | `form`                | `string`                                                                         | —               | The id of the form the hidden input belongs to, when it isn't an ancestor.                                                                                                                                                                                                                                   |
-| `required`            | `boolean`                                                                        | `false`         | A value is needed: the field is `aria-required`, and the form won't submit while nothing is picked. The browser's message points at the field, and focus goes to it.                                                                                                                                         |
+| `required`            | `boolean`                                                                        | `false`         | A value is needed: the field is `aria-required`, and the form won't submit while nothing is picked. The browser's message points at the field, which shows focus, and the next key goes to it.                                                                                                               |
 | `disabled`            | `boolean`                                                                        | `false`         | The field can't be used: it can't be focused or opened, and its hidden input doesn't post.                                                                                                                                                                                                                   |
 | `clearable`           | `boolean`                                                                        | `false`         | Shows a clear button at the field's inline end while something is picked.                                                                                                                                                                                                                                    |
 | `color`               | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`  | —               | Bulma color modifier for the field.                                                                                                                                                                                                                                                                          |
@@ -494,35 +504,36 @@ to match, and Right and Left swap.
 
 `Cascader` registers these variables on its own `.cascader` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
-| CSS Variable                                  | Sass Variable                        | Default                                                                                                                       |
-| --------------------------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| `--bulma-cascader-chevron-width`              | `$cascader-chevron-width`            | `var(--bulma-control-height)`                                                                                                 |
-| `--bulma-cascader-chevron-color`              | `$cascader-chevron-color`            | `var(--bulma-text-light)`                                                                                                     |
-| `--bulma-cascader-chevron-hover-color`        | `$cascader-chevron-hover-color`      | `var(--bulma-text-weak)`                                                                                                      |
-| `--bulma-cascader-chevron-focus-color`        | `$cascader-chevron-focus-color`      | `var(--bulma-link)`                                                                                                           |
-| `--bulma-cascader-search-gap`                 | `$cascader-search-gap`               | `0.5rem`                                                                                                                      |
-| `--bulma-cascader-column-width`               | `$cascader-column-width`             | `11rem`                                                                                                                       |
-| `--bulma-cascader-column-max-height`          | `$cascader-column-max-height`        | `15rem`                                                                                                                       |
-| `--bulma-cascader-column-border-color`        | `$cascader-column-border-color`      | `var(--bulma-border-weak)`                                                                                                    |
-| `--bulma-cascader-item-color`                 | `$cascader-item-color`               | `var(--bulma-text-strong)`                                                                                                    |
-| `--bulma-cascader-item-size`                  | `$cascader-item-size`                | `0.875rem`                                                                                                                    |
-| `--bulma-cascader-item-padding-y`             | `$cascader-item-padding-y`           | `0.375rem`                                                                                                                    |
-| `--bulma-cascader-item-padding-x`             | `$cascader-item-padding-x`           | `1rem`                                                                                                                        |
-| `--bulma-cascader-item-hover-background`      | `$cascader-item-hover-background`    | `hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), calc(var(--bulma-scheme-main-l) + var(--bulma-hover-background-l-delta)))` |
-| `--bulma-cascader-highlight-background`       | `$cascader-highlight-background`     | `var(--bulma-link)`                                                                                                           |
-| `--bulma-cascader-highlight-color`            | `$cascader-highlight-color`          | `var(--bulma-link-invert)`                                                                                                    |
-| `--bulma-cascader-disabled-color`             | `$cascader-disabled-color`           | `var(--bulma-text-weak)`                                                                                                      |
-| `--bulma-cascader-item-chevron-size`          | `$cascader-item-chevron-size`        | `0.5em`                                                                                                                       |
-| `--bulma-cascader-item-gap`                   | `$cascader-item-gap`                 | `0.5em`                                                                                                                       |
-| `--bulma-cascader-column-inset`               | `$cascader-column-inset`             | `4px`                                                                                                                         |
-| `--bulma-picker-popover-z-index` ‡            | `$picker-popover-z-index`            | `30`                                                                                                                          |
-| `--bulma-picker-popover-background` ‡         | `$picker-popover-background`         | `var(--bulma-scheme-main)`                                                                                                    |
-| `--bulma-picker-popover-radius` ‡             | `$picker-popover-radius`             | `var(--bulma-radius-large)`                                                                                                   |
-| `--bulma-picker-popover-shadow` ‡             | `$picker-popover-shadow`             | `0 8px 24px hsla(0, 0%, 0%, 0.18)`                                                                                            |
-| `--bulma-picker-popover-border-color` ‡       | `$picker-popover-border-color`       | `var(--bulma-border)`                                                                                                         |
-| `--bulma-picker-popover-padding` ‡            | `$picker-popover-padding`            | `0.75rem`                                                                                                                     |
-| `--bulma-picker-popover-offset` ‡             | `$picker-popover-offset`             | `4px`                                                                                                                         |
-| `--bulma-picker-popover-animation-duration` ‡ | `$picker-popover-animation-duration` | `0.15s`                                                                                                                       |
+| CSS Variable                                  | Sass Variable                        | Default                                                                                                                        |
+| --------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| `--bulma-cascader-chevron-width`              | `$cascader-chevron-width`            | `var(--bulma-control-height)`                                                                                                  |
+| `--bulma-cascader-chevron-color`              | `$cascader-chevron-color`            | `var(--bulma-text-light)`                                                                                                      |
+| `--bulma-cascader-chevron-hover-color`        | `$cascader-chevron-hover-color`      | `var(--bulma-text-weak)`                                                                                                       |
+| `--bulma-cascader-chevron-focus-color`        | `$cascader-chevron-focus-color`      | `var(--bulma-link)`                                                                                                            |
+| `--bulma-cascader-search-gap`                 | `$cascader-search-gap`               | `0.5rem`                                                                                                                       |
+| `--bulma-cascader-column-width`               | `$cascader-column-width`             | `11rem`                                                                                                                        |
+| `--bulma-cascader-column-max-height`          | `$cascader-column-max-height`        | `15rem`                                                                                                                        |
+| `--bulma-cascader-column-border-color`        | `$cascader-column-border-color`      | `var(--bulma-border-weak)`                                                                                                     |
+| `--bulma-cascader-item-color`                 | `$cascader-item-color`               | `var(--bulma-text-strong)`                                                                                                     |
+| `--bulma-cascader-item-size`                  | `$cascader-item-size`                | `0.875rem`                                                                                                                     |
+| `--bulma-cascader-item-padding-y`             | `$cascader-item-padding-y`           | `0.375rem`                                                                                                                     |
+| `--bulma-cascader-item-padding-x`             | `$cascader-item-padding-x`           | `1rem`                                                                                                                         |
+| `--bulma-cascader-item-hover-background`      | `$cascader-item-hover-background`    | `hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), calc(var(--bulma-scheme-main-l) + var(--bulma-hover-background-l-delta)))`  |
+| `--bulma-cascader-item-open-background`       | `$cascader-item-open-background`     | `hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), calc(var(--bulma-scheme-main-l) + var(--bulma-active-background-l-delta)))` |
+| `--bulma-cascader-highlight-background`       | `$cascader-highlight-background`     | `var(--bulma-link)`                                                                                                            |
+| `--bulma-cascader-highlight-color`            | `$cascader-highlight-color`          | `var(--bulma-link-invert)`                                                                                                     |
+| `--bulma-cascader-disabled-color`             | `$cascader-disabled-color`           | `var(--bulma-text-weak)`                                                                                                       |
+| `--bulma-cascader-item-chevron-size`          | `$cascader-item-chevron-size`        | `0.5em`                                                                                                                        |
+| `--bulma-cascader-item-gap`                   | `$cascader-item-gap`                 | `0.5em`                                                                                                                        |
+| `--bulma-cascader-column-inset`               | `$cascader-column-inset`             | `4px`                                                                                                                          |
+| `--bulma-picker-popover-z-index` ‡            | `$picker-popover-z-index`            | `30`                                                                                                                           |
+| `--bulma-picker-popover-background` ‡         | `$picker-popover-background`         | `var(--bulma-scheme-main)`                                                                                                     |
+| `--bulma-picker-popover-radius` ‡             | `$picker-popover-radius`             | `var(--bulma-radius-large)`                                                                                                    |
+| `--bulma-picker-popover-shadow` ‡             | `$picker-popover-shadow`             | `0 8px 24px hsla(0, 0%, 0%, 0.18)`                                                                                             |
+| `--bulma-picker-popover-border-color` ‡       | `$picker-popover-border-color`       | `var(--bulma-border)`                                                                                                          |
+| `--bulma-picker-popover-padding` ‡            | `$picker-popover-padding`            | `0.75rem`                                                                                                                      |
+| `--bulma-picker-popover-offset` ‡             | `$picker-popover-offset`             | `4px`                                                                                                                          |
+| `--bulma-picker-popover-animation-duration` ‡ | `$picker-popover-animation-duration` | `0.15s`                                                                                                                        |
 
 ‡ declared on a constituent element: values set via `className`, the `style` prop, or an ancestor are only inherited and lose — target the declaring element in your CSS.
 

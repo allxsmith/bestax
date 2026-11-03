@@ -18,6 +18,7 @@ import { StatusRegion, spokenText } from '../helpers/statusRegion';
 import { useControlled } from '../helpers/useControlled';
 import { useMenuKeys } from '../helpers/useMenuKeys';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
+import { getActiveElementInTree } from '../helpers/shadowDom';
 import {
   useLoadPhase,
   useLoadRegion,
@@ -167,7 +168,7 @@ export interface CascaderProps
   /**
    * A value is needed: the field is `aria-required`, and the form won't
    * submit while nothing is picked. The browser's message points at the
-   * field, and focus goes to it.
+   * field, which shows focus, and the next key goes to it.
    */
   required?: boolean;
   /** The field can't be used: it can't be focused or opened, and its hidden input doesn't post. */
@@ -202,6 +203,10 @@ export interface CascaderProps
 /** What takes focus as the panel opens. */
 const INITIAL_FOCUS = '[data-initial-focus]';
 
+/** Whether a search result can't be picked: some node on its path is disabled. */
+const isPathDisabled = (path: TreeItemData[]) =>
+  path.some(step => step.disabled);
+
 /** Whether a node was given something to render. */
 const isGiven = (node: React.ReactNode) =>
   node !== undefined &&
@@ -219,6 +224,8 @@ interface ColumnContext {
   pick: (value: string) => void;
   /** The item focus lands on as the panel opens. */
   focusTarget: string | undefined;
+  /** The values on the picked node's path, from the top down. */
+  picked: Set<string>;
   hintId: string;
   itemTemplate?: (item: TreeItemData) => React.ReactNode;
   loadingLabel: string;
@@ -236,15 +243,17 @@ interface ColumnProps {
 
 /**
  * One column, a listbox of the items under the node that opened it, with a
- * roving tab stop: its selected item, or else its first enabled one. A
- * parent whose items are on their way, or failed to load, ends its column in
- * a row that says so, which the live region reads out as TreeView's does.
+ * roving tab stop: its item on the open path, or else its first enabled one.
+ * An item on the picked node's path is `aria-selected`. A parent whose items
+ * are on their way, or failed to load, ends its column in a row that says
+ * so, which the live region reads out as TreeView's does.
  */
 function CascaderList({ context, column, at, name }: ColumnProps) {
-  const { engine, keys, region, pickable, pick, focusTarget, hintId } = context;
+  const { engine, keys, region, pickable, pick, focusTarget, hintId, picked } =
+    context;
   const prefix = useClassPrefix();
   const listRef = useRef<HTMLUListElement>(null);
-  const { parent, items, selected } = column;
+  const { parent, items, current } = column;
 
   const status = !parent
     ? null
@@ -267,9 +276,9 @@ function CascaderList({ context, column, at, name }: ColumnProps) {
     })
   );
 
-  // The tab stop: the selected item, the first enabled one, or the row.
+  // The tab stop: the current item, the first enabled one, or the row.
   const tabStop =
-    selected ??
+    current ??
     items.find(item => !item.disabled)?.value ??
     (status ? statusKey : items[0]?.value);
 
@@ -278,7 +287,8 @@ function CascaderList({ context, column, at, name }: ColumnProps) {
   const statusRef = useRef<HTMLLIElement | null>(null);
   const lostRef = useRef(false);
   const setStatusRef = useCallback((node: HTMLLIElement | null) => {
-    if (!node && statusRef.current?.contains(document.activeElement)) {
+    const row = statusRef.current;
+    if (!node && row?.contains(getActiveElementInTree(row))) {
       lostRef.current = true;
     }
     statusRef.current = node;
@@ -308,11 +318,17 @@ function CascaderList({ context, column, at, name }: ColumnProps) {
         engine.onKeyDown(event, at);
         keys.onKeyDown(event);
       }}
+      onFocus={event => {
+        // Type-ahead starts over in each column it comes into, from the
+        // field or from another column.
+        const from = event.relatedTarget as Node | null;
+        if (!event.currentTarget.contains(from)) keys.reset();
+      }}
     >
       {items.map(node => {
         const isParent = isParentNode(node);
         const disabled = !!node.disabled;
-        const isSelected = node.value === selected;
+        const isPicked = picked.has(node.value);
         return (
           <li
             key={node.value}
@@ -321,17 +337,18 @@ function CascaderList({ context, column, at, name }: ColumnProps) {
               'dropdown-item',
               'cascader-item',
               {
-                'is-active': isSelected && !disabled,
+                'is-active': isPicked,
+                'is-open': node.value === current,
                 'is-disabled': disabled,
               }
             )}
             role="option"
-            aria-selected={isSelected && !disabled}
+            aria-selected={isPicked}
             aria-disabled={disabled || undefined}
             aria-describedby={isParent && !disabled ? hintId : undefined}
             tabIndex={node.value === tabStop ? 0 : -1}
             data-initial-focus={node.value === focusTarget ? '' : undefined}
-            onFocus={() => engine.select(at, node.value)}
+            onFocus={() => engine.moveTo(at, node.value)}
             onClick={event => {
               if (disabled) return;
               const onChevron =
@@ -413,9 +430,11 @@ function CascaderList({ context, column, at, name }: ColumnProps) {
  * field is a read-only `role="combobox"` that opens a dialog, wired as
  * DateInput's is, holding one `role="listbox"` per open level, each named
  * after the item that opened it, with real focus moving through them. Up,
- * Down, Home, End and type-ahead move within a column, the item focus is on
- * is the selected one there, Right opens the next column and moves into it,
- * and Left goes back.
+ * Down, Home, End and type-ahead move within a column, and the path you've
+ * opened follows focus, drawn with a tint, Right opens the next column and
+ * moves into it, and Left goes back. Only the picked node's path is
+ * `aria-selected`, drawn as Bulma's active dropdown item, so moving around
+ * never announces an item as selected that isn't.
  *
  * The value is the picked node's own `value`, unique across the tree, as in
  * TreeView and TreeSelect, and the field works the path out from `data`, so
@@ -495,9 +514,22 @@ export const Cascader = forwardRef<HTMLInputElement, CascaderProps>(
       }
     }, [unknown]);
 
+    const [query, setQueryState] = useControlled(queryProp, defaultQuery);
+    const setQuery = (next: string) => {
+      if (next === query) return;
+      setQueryState(next);
+      onQueryChange?.(next);
+    };
+
+    const [isOpen, setOpenState] = useControlled(openProp, defaultOpen);
+    // The columns open the picked node's path whenever the panel opens: here
+    // for a click or a key, and in the engine for `defaultOpen` or a held
+    // `open`.
     const engine = useCascaderColumns({
       data,
       index,
+      open: isOpen,
+      value,
       expanded: expandedProp,
       defaultExpanded,
       onExpandedChange,
@@ -507,23 +539,18 @@ export const Cascader = forwardRef<HTMLInputElement, CascaderProps>(
       disabledReachable: true,
     });
     const region = useLoadRegion(loadingAnnouncement, loadedAnnouncement);
-
-    const [query, setQueryState] = useControlled(queryProp, defaultQuery);
-    const setQuery = (next: string) => {
-      if (next === query) return;
-      setQueryState(next);
-      onQueryChange?.(next);
-    };
-
-    const [isOpen, setOpenState] = useControlled(openProp, defaultOpen);
     const setOpen = (next: boolean) => {
       if (next === isOpen) return;
-      // Opening shows the picked node, its path open.
       if (next) engine.reveal(value);
       else setQuery('');
       setOpenState(next);
       onOpenChange?.(next);
     };
+    const picked = useMemo(
+      () =>
+        new Set(value === null ? [] : nodesTo(index, value).map(n => n.value)),
+      [index, value]
+    );
 
     const pickable = (node: TreeItemData) =>
       !node.disabled && (parentsSelectable || !isParentNode(node));
@@ -536,13 +563,14 @@ export const Cascader = forwardRef<HTMLInputElement, CascaderProps>(
     // that matches the text on any of its labels, or the app's `filter`.
     const matchText = useLocaleMatcher();
     const typed = searchable ? query.trim() : '';
+    const paths = useMemo(() => treePaths(data), [data]);
     const matches = useMemo(() => {
       if (!typed) return [];
       const hit = (text: string) =>
         matchText
           ? matchText(text, typed)
           : text.toLowerCase().includes(typed.toLowerCase());
-      return treePaths(data).filter(path => {
+      return paths.filter(path => {
         const node = path[path.length - 1];
         if (!parentsSelectable && isParentNode(node)) return false;
         return filter
@@ -553,17 +581,19 @@ export const Cascader = forwardRef<HTMLInputElement, CascaderProps>(
       // written inline is a new function every render, and listing it would
       // search again on each.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [data, typed, parentsSelectable, matchText]);
+    }, [paths, typed, parentsSelectable, matchText]);
 
     // Focus lands on the picked node as the panel opens, or else on the
-    // first column's first enabled item; while a search has text, on the
-    // search box.
+    // first column's tab stop, which keeps an open path as it is; while a
+    // search has text, on the search box.
     const firstColumn = engine.columns[0];
     const focusTarget = engine.columns.some(
-      column => value !== null && column.selected === value
+      column => value !== null && column.current === value
     )
       ? value!
-      : firstColumn.items.find(node => !node.disabled)?.value;
+      : (firstColumn.current ??
+        firstColumn.items.find(node => !node.disabled)?.value ??
+        firstColumn.items[0]?.value);
 
     const inputRef = useRef<HTMLInputElement | null>(null);
     const fieldRef = useCallback(
@@ -587,6 +617,7 @@ export const Cascader = forwardRef<HTMLInputElement, CascaderProps>(
       pickable,
       pick,
       focusTarget: typed ? undefined : focusTarget,
+      picked,
       hintId,
       itemTemplate,
       loadingLabel,
@@ -637,7 +668,11 @@ export const Cascader = forwardRef<HTMLInputElement, CascaderProps>(
                 keepFirst
                 size={size}
                 className={searchClass}
-                onSelect={pick}
+                onSelect={next => {
+                  // The columns behind the search show where it is.
+                  engine.reveal(next);
+                  pick(next);
+                }}
               >
                 <Combobox.Input
                   id={searchId}
@@ -655,7 +690,7 @@ export const Cascader = forwardRef<HTMLInputElement, CascaderProps>(
                     // With nothing to pick, Enter would submit the form.
                     if (
                       event.key === 'Enter' &&
-                      !matches.some(path => pickable(path[path.length - 1]))
+                      matches.every(isPathDisabled)
                     ) {
                       event.preventDefault();
                     }
@@ -670,7 +705,7 @@ export const Cascader = forwardRef<HTMLInputElement, CascaderProps>(
                           <Combobox.Item
                             key={node.value}
                             value={node.value}
-                            disabled={path.some(step => step.disabled)}
+                            disabled={isPathDisabled(path)}
                             checked={node.value === value}
                           >
                             {path.map(nodeLabel).join(separator)}

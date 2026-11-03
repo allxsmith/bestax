@@ -68,6 +68,11 @@ const lists = () =>
     );
 const selected = () =>
   screen.queryAllByRole('option', { selected: true }).map(el => el.textContent);
+/** The items on the open path, which is drawn, not announced. */
+const current = () =>
+  Array.from(document.querySelectorAll('.cascader-item.is-open'), el =>
+    el.textContent?.trim()
+  );
 const key = (el: Element, k: string, init: KeyboardEventInit = {}) =>
   fireEvent.keyDown(el, { key: k, ...init });
 const press = (k: string, init: KeyboardEventInit = {}) =>
@@ -187,11 +192,13 @@ describe('Cascader', () => {
       expect(onExpandedChange).toHaveBeenCalledWith(['europe', 'germany']);
       expect(lists()).toEqual(['City', 'Europe', 'Germany']);
       expect(selected()).toEqual(['Europe', 'Germany', 'Berlin']);
+      expect(current()).toEqual(['Europe', 'Germany', 'Berlin']);
       expect(option('Berlin')).toHaveFocus();
       expect(option('Berlin')).toHaveClass(
         'dropdown-item',
         'cascader-item',
-        'is-active'
+        'is-active',
+        'is-open'
       );
       expect(screen.getByRole('dialog')).toHaveClass(
         'picker-popover',
@@ -199,7 +206,7 @@ describe('Cascader', () => {
       );
     });
 
-    it("doesn't report a path that's open already, and focuses the first enabled item with nothing picked", () => {
+    it("doesn't report a path that's open already, and with nothing picked focuses the first column's tab stop", () => {
       const onExpandedChange = vi.fn();
       const { rerender } = render(
         <City
@@ -215,11 +222,103 @@ describe('Cascader', () => {
       rerender(<City value={null} onExpandedChange={onExpandedChange} />);
       open();
       expect(option('Europe')).toHaveFocus();
+      expect(lists()).toEqual(['City', 'Europe']);
+      expect(onExpandedChange).not.toHaveBeenCalled();
+    });
+
+    it('with nothing picked, keeps a defaultExpanded path open, focusing where it starts', () => {
+      const onExpandedChange = vi.fn();
+      render(
+        <City defaultExpanded={['asia']} onExpandedChange={onExpandedChange} />
+      );
+      open();
+      expect(option('Asia')).toHaveFocus();
+      expect(lists()).toEqual(['City', 'Asia']);
+      expect(current()).toEqual(['Asia']);
+      expect(selected()).toEqual([]);
+      expect(onExpandedChange).not.toHaveBeenCalled();
+    });
+
+    it('with nothing picked and no open path, focuses the first enabled item, or the first', () => {
+      const { unmount } = render(
+        <Cascader
+          label="City"
+          data={[
+            { value: 'a', label: 'Alpha', disabled: true },
+            { value: 'b', label: 'Beta' },
+          ]}
+        />
+      );
+      open();
+      expect(option('Beta')).toHaveFocus();
+      unmount();
+      render(
+        <Cascader
+          label="City"
+          data={[{ value: 'a', label: 'Alpha', disabled: true }]}
+        />
+      );
+      open();
+      expect(option('Alpha')).toHaveFocus();
     });
 
     it("focuses the first item when held columns don't show the picked node", () => {
       render(<City defaultValue="berlin" expanded={[]} />);
       open();
+      expect(lists()).toEqual(['City']);
+      expect(option('Europe')).toHaveFocus();
+    });
+
+    it('opens the picked path when it starts open, and reports it once', () => {
+      const onExpandedChange = vi.fn();
+      render(
+        <City
+          defaultValue="munich"
+          defaultOpen
+          onExpandedChange={onExpandedChange}
+        />
+      );
+      expect(lists()).toEqual(['City', 'Europe', 'Germany']);
+      expect(option('Munich')).toHaveFocus();
+      expect(onExpandedChange).toHaveBeenCalledTimes(1);
+      expect(onExpandedChange).toHaveBeenCalledWith(['europe', 'germany']);
+    });
+
+    it('opens the picked path when a held open turns true, each time', () => {
+      const onExpandedChange = vi.fn();
+      const props = { value: 'japan', onExpandedChange };
+      const { rerender } = render(<City {...props} open={false} />);
+      rerender(<City {...props} open />);
+      expect(lists()).toEqual(['City', 'Asia']);
+      expect(option('Japan')).toHaveFocus();
+      expect(onExpandedChange).toHaveBeenLastCalledWith(['asia']);
+      press('ArrowLeft');
+      press('ArrowDown');
+      expect(lists()).toEqual(['City']);
+      rerender(<City {...props} open={false} />);
+      rerender(<City {...props} open />);
+      expect(lists()).toEqual(['City', 'Asia']);
+      expect(onExpandedChange).toHaveBeenLastCalledWith(['asia']);
+    });
+
+    it('reports the path to a held expanded as it opens, which follows it', () => {
+      function Held() {
+        const [expanded, setExpanded] = React.useState<string[]>([]);
+        return (
+          <City
+            value="berlin"
+            defaultOpen
+            expanded={expanded}
+            onExpandedChange={setExpanded}
+          />
+        );
+      }
+      render(<Held />);
+      expect(lists()).toEqual(['City', 'Europe', 'Germany']);
+    });
+
+    it('opens nothing for a picked value no node has, or with none', () => {
+      render(<City value="mars" defaultOpen />);
       expect(lists()).toEqual(['City']);
       expect(option('Europe')).toHaveFocus();
     });
@@ -265,22 +364,42 @@ describe('Cascader', () => {
   });
 
   describe('a column', () => {
-    it('moves focus with Up, Down, Home, End and type-ahead, and the selection follows', () => {
+    it('moves focus with Up, Down, Home, End and type-ahead, the open path following and the picked one staying selected', () => {
       render(<City defaultValue="berlin" />);
       open();
       press('ArrowDown');
       expect(option('Munich')).toHaveFocus();
-      expect(selected()).toEqual(['Europe', 'Germany', 'Munich']);
+      expect(current()).toEqual(['Europe', 'Germany', 'Munich']);
+      expect(selected()).toEqual(['Europe', 'Germany', 'Berlin']);
+      expect(option('Munich')).not.toHaveClass('is-active');
       press('ArrowDown');
       expect(option('Hamburg')).toHaveFocus();
       expect(option('Hamburg')).toHaveAttribute('aria-disabled', 'true');
       expect(option('Hamburg')).toHaveAttribute('aria-selected', 'false');
+      expect(option('Hamburg')).toHaveClass('is-open');
+      expect(option('Berlin')).toHaveAttribute('aria-selected', 'true');
+      expect(option('Berlin')).toHaveClass('is-active');
+      expect(option('Berlin')).not.toHaveClass('is-open');
       press('Home');
       expect(option('Berlin')).toHaveFocus();
       press('End');
       expect(option('Hamburg')).toHaveFocus();
       press('m');
       expect(option('Munich')).toHaveFocus();
+    });
+
+    it('starts type-ahead over in each column it comes into', () => {
+      render(<City defaultValue="berlin" />);
+      open();
+      press('m');
+      expect(option('Munich')).toHaveFocus();
+      press('ArrowLeft');
+      press('s');
+      expect(option('Spain')).toHaveFocus();
+      press('Escape');
+      open();
+      press('h');
+      expect(option('Hamburg')).toHaveFocus();
     });
 
     it('closes the columns after one whose selection moves', () => {
@@ -338,6 +457,34 @@ describe('Cascader', () => {
       expect(option('Germany')).toHaveFocus();
       press('ArrowRight');
       expect(option('Berlin')).toHaveFocus();
+    });
+
+    it('moves into a column open already with Right at its current item, a disabled one too', () => {
+      render(<City defaultValue="berlin" />);
+      open();
+      press('End');
+      expect(option('Hamburg')).toHaveFocus();
+      press('ArrowLeft');
+      press('ArrowRight');
+      expect(option('Hamburg')).toHaveFocus();
+    });
+
+    it('moves into a column that just opened at its first item when all are disabled', () => {
+      render(
+        <Cascader
+          label="City"
+          data={[
+            {
+              value: 'a',
+              label: 'Alpha',
+              children: [{ value: 'b', label: 'Beta', disabled: true }],
+            },
+          ]}
+        />
+      );
+      open();
+      press('ArrowRight');
+      expect(option('Beta')).toHaveFocus();
     });
 
     it('moves into a column open already with Right, at its selected item', () => {
@@ -583,6 +730,52 @@ describe('Cascader', () => {
       expect(calls[0]).toBe('ber');
     });
 
+    it('opens the path of a pick from the search, behind it', async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      const onExpandedChange = vi.fn();
+      render(
+        <City
+          searchable
+          closeOnSelect={false}
+          onChange={onChange}
+          onExpandedChange={onExpandedChange}
+        />
+      );
+      key(field(), 'm');
+      await user.keyboard('un');
+      await user.click(option('Europe / Germany / Munich'));
+      expect(onChange).toHaveBeenCalledWith('munich');
+      expect(onExpandedChange).toHaveBeenLastCalledWith(['europe', 'germany']);
+      await user.clear(screen.getByRole('combobox', { name: 'Search' }));
+      expect(lists()).toEqual(['City', 'Europe', 'Germany']);
+      expect(current()).toEqual(['Europe', 'Germany', 'Munich']);
+      expect(selected()).toEqual(['Europe', 'Germany', 'Munich']);
+    });
+
+    it('keeps Enter from submitting when the only match is under a disabled node', () => {
+      const onSubmit = vi.fn((e: React.FormEvent) => e.preventDefault());
+      render(
+        <form onSubmit={onSubmit}>
+          <City searchable />
+        </form>
+      );
+      key(field(), 'm');
+      const box = screen.getByRole('combobox', { name: 'Search' });
+      fireEvent.change(box, { target: { value: 'madrid' } });
+      expect(option('Europe / Spain / Madrid')).toHaveAttribute(
+        'aria-disabled',
+        'true'
+      );
+      const event = new KeyboardEvent('keydown', {
+        key: 'Enter',
+        bubbles: true,
+        cancelable: true,
+      });
+      box.dispatchEvent(event);
+      expect(event.defaultPrevented).toBe(true);
+    });
+
     it('shows empty when nothing matches, keeps Enter from submitting, and announces it once', () => {
       vi.useFakeTimers();
       try {
@@ -761,6 +954,38 @@ describe('Cascader', () => {
         />
       );
       expect(option('Summer')).toHaveFocus();
+    });
+
+    it('hands focus on from a focused load row inside a shadow root too', () => {
+      const host = document.createElement('div');
+      document.body.append(host);
+      const container = document.createElement('div');
+      host.attachShadow({ mode: 'open' }).append(container);
+      const props = {
+        label: 'City',
+        defaultExpanded: ['photos'],
+        defaultOpen: true,
+      };
+      const { rerender, unmount } = render(
+        <Cascader
+          {...props}
+          data={lazy({ loadError: 'Failed', onRetry: () => {} })}
+        />,
+        { container }
+      );
+      const inShadow = within(container);
+      inShadow.getByRole('option', { name: 'Failed Retry' }).focus();
+      rerender(
+        <Cascader
+          {...props}
+          data={lazy({ children: [{ value: 'summer', label: 'Summer' }] })}
+        />
+      );
+      expect(host.shadowRoot!.activeElement).toBe(
+        inShadow.getByRole('option', { name: 'Summer' })
+      );
+      unmount();
+      host.remove();
     });
   });
 

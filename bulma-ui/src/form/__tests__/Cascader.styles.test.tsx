@@ -63,6 +63,7 @@ describe('Cascader styles', () => {
       'item-padding-y',
       'item-padding-x',
       'item-hover-background',
+      'item-open-background',
       'item-gap',
       'item-chevron-size',
       'highlight-background',
@@ -102,6 +103,23 @@ describe('Cascader styles', () => {
     );
   });
 
+  it('tints the open path, under the picked path, and keeps hover off both', () => {
+    expect(body(PLAIN, '.dropdown-item.cascader-item.is-open')).toContain(
+      'background-color: var(--bulma-cascader-item-open-background)'
+    );
+    expect(
+      Array.from(PLAIN.keys()).find(selector =>
+        selector.startsWith('.dropdown-item.cascader-item:hover')
+      )
+    ).toBe(
+      '.dropdown-item.cascader-item:hover:not(.is-active):not(.is-open):not(.is-disabled)'
+    );
+    const keys = Array.from(PLAIN.keys());
+    expect(keys.indexOf('.dropdown-item.cascader-item.is-open')).toBeLessThan(
+      keys.indexOf('.dropdown-item.cascader-item.is-active')
+    );
+  });
+
   it('fills the items on the path, greys the disabled ones, and rings the focused one', () => {
     expect(body(PLAIN, '.dropdown-item.cascader-item.is-active')).toContain(
       'background-color: var(--bulma-cascader-highlight-background)'
@@ -138,7 +156,7 @@ describe('Cascader styles', () => {
     );
     const css = compile('');
     expect(css).toMatch(
-      /@media \(forced-colors: active\)[\s\S]*\.cascader-item\.is-active[\s\S]*Highlight[\s\S]*GrayText/
+      /@media \(forced-colors: active\)[\s\S]*\.cascader-item\.is-open:not\(:focus-visible\)[\s\S]*outline: 1px solid CanvasText[\s\S]*\.cascader-item\.is-active[\s\S]*Highlight[\s\S]*GrayText/
     );
   });
 

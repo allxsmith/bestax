@@ -368,7 +368,8 @@ Declared on the root, `.cascader`, and on a portaled panel, `.cascader-panel`, w
 it. The chevron and the clear button on the field are drawn as TreeSelect's are, from the tokens
 Bulma's input icon variables start from. The rest lay out the columns and draw their items, which
 are Bulma's dropdown items: Bulma registers `--bulma-dropdown-*` on `.dropdown` alone, and a
-cascader isn't one, so retheme the items through these. A size on the field sets the `item-size`
+cascader isn't one, so retheme the items through these. The picked path takes the `highlight-*`
+pair and the open path, which follows focus, `item-open-background`. A size on the field sets the `item-size`
 and `item-padding-*` values on the panel. The panel is the picker popover, above, so
 `--bulma-picker-popover-*` themes it here too.
 
@@ -379,7 +380,8 @@ and `item-padding-*` values on the panel. The panel is the picker popover, above
 `--bulma-cascader-disabled-color`, `--bulma-cascader-highlight-background`,
 `--bulma-cascader-highlight-color`, `--bulma-cascader-item-chevron-size`,
 `--bulma-cascader-item-color`, `--bulma-cascader-item-gap`,
-`--bulma-cascader-item-hover-background`, `--bulma-cascader-item-padding-x`,
+`--bulma-cascader-item-hover-background`, `--bulma-cascader-item-open-background`,
+`--bulma-cascader-item-padding-x`,
 `--bulma-cascader-item-padding-y`, `--bulma-cascader-item-size`, `--bulma-cascader-search-gap`
 
 ### Checkbox

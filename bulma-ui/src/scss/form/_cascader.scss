@@ -34,7 +34,14 @@ $cascader-item-hover-background: hsl(
   #{cv.getVar('scheme-s')},
   calc(#{cv.getVar('scheme-main-l')} + #{cv.getVar('hover-background-l-delta')})
 ) !default;
-// The pair Bulma's dropdown gives an `is-active` item.
+// The open path, which focus moves along: a tint a step past the hover's,
+// so it reads apart from the picked path.
+$cascader-item-open-background: hsl(
+  #{cv.getVar('scheme-h')},
+  #{cv.getVar('scheme-s')},
+  calc(#{cv.getVar('scheme-main-l')} + #{cv.getVar('active-background-l-delta')})
+) !default;
+// The picked path, in the pair Bulma's dropdown gives an `is-active` item.
 $cascader-highlight-background: cv.getVar('link') !default;
 $cascader-highlight-color: cv.getVar('link-invert') !default;
 $cascader-disabled-color: cv.getVar('text-weak') !default;
@@ -82,6 +89,7 @@ $cascader-sizes: (
       'cascader-item-padding-y': #{$cascader-item-padding-y},
       'cascader-item-padding-x': #{$cascader-item-padding-x},
       'cascader-item-hover-background': #{$cascader-item-hover-background},
+      'cascader-item-open-background': #{$cascader-item-open-background},
       'cascader-highlight-background': #{$cascader-highlight-background},
       'cascader-highlight-color': #{$cascader-highlight-color},
       'cascader-disabled-color': #{$cascader-disabled-color},
@@ -157,9 +165,14 @@ $cascader-sizes: (
     cv.getVar('cascader-item-padding-x');
 
   &:hover:not(.#{iv.$class-prefix}is-active):not(
-      .#{iv.$class-prefix}is-disabled
-    ) {
+      .#{iv.$class-prefix}is-open
+    ):not(.#{iv.$class-prefix}is-disabled) {
     background-color: cv.getVar('cascader-item-hover-background');
+  }
+
+  // On the open path. The picked path's fill, below, wins where they meet.
+  &.#{iv.$class-prefix}is-open {
+    background-color: cv.getVar('cascader-item-open-background');
   }
 
   &.#{iv.$class-prefix}is-active {
@@ -214,8 +227,16 @@ $cascader-sizes: (
 }
 
 @media (forced-colors: active) {
-  // Forced colors takes the fill away, so the item on the path asks for the
-  // system's own pair.
+  // Forced colors takes the fills away, so the picked path asks for the
+  // system's own pair, and the open path is outlined, unless focus draws
+  // its own ring.
+  .#{iv.$class-prefix}dropdown-item.#{iv.$class-prefix}cascader-item.#{iv.$class-prefix}is-open:not(
+      :focus-visible
+    ) {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+  }
+
   .#{iv.$class-prefix}dropdown-item.#{iv.$class-prefix}cascader-item.#{iv.$class-prefix}is-active {
     background-color: Highlight;
     color: HighlightText;

@@ -1,27 +1,35 @@
 // INTERNAL: deliberately not exported from src/index.ts. The columns of a
-// Cascader: which are open, which item each has selected, and the keys that
-// move between them.
+// Cascader: which are open, which item in each is on the open path, and the
+// keys that move between them.
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type React from 'react';
 import type { TreeItemData } from '../form/TreeSelect';
 import { childNodes, isParentNode, type TreeNodeEntry } from './treeData';
 import { useClientLayoutEffect } from './useClientLayoutEffect';
 import { useControlled } from './useControlled';
+import { useLatestRef } from './useLatestRef';
 
-/** One column: the items under the node that opened it, and the one selected. */
+/** One column: the items under the node that opened it, and the one on the open path. */
 export interface CascaderColumn {
   /** The node whose items these are, or `null` for the first column. */
   parent: TreeItemData | null;
   items: TreeItemData[];
-  /** The selected item's value: the one on the path, where focus last was. */
-  selected: string | null;
+  /**
+   * The item on the open path in this column, where focus last was, or
+   * `null`. It isn't the picked one: that's the Cascader's value.
+   */
+  current: string | null;
 }
 
-/** Options for `useCascaderColumns`: the Cascader's props. */
+/** Options for `useCascaderColumns`: the Cascader's props and state. */
 export interface CascaderColumnsOptions {
   data: TreeItemData[];
   index: Map<string, TreeNodeEntry>;
+  /** Whether the panel is open. Opening it opens the picked node's path. */
+  open: boolean;
+  /** The picked node's value. */
+  value: string | null;
   expanded?: string[];
   defaultExpanded: string[];
   onExpandedChange?: (expanded: string[]) => void;
@@ -33,18 +41,25 @@ export interface CascaderColumnsEngine {
   columns: CascaderColumn[];
   /** For the element the columns sit in, which focus moving between them reads. */
   containerRef: React.MutableRefObject<HTMLDivElement | null>;
-  /** Opens the columns along a value's path and selects it, as the panel opens. */
+  /**
+   * Opens the columns along a value's path and makes it current, from an
+   * event: the panel opening on a click or a key, or a pick from the search.
+   * It's reported at once, so a held `expanded` can follow in the same render.
+   */
   reveal: (value: string | null) => void;
   /**
-   * Focus arrived on an item, which selection follows: it ends the path in
-   * its column, and any column further along closes.
+   * Focus arrived on an item, and the open path follows it: the item ends
+   * the path in its column, and any column further along closes.
    */
-  select: (column: number, value: string) => void;
-  /** Opens a parent's column and moves focus to its first enabled item. */
+  moveTo: (column: number, value: string) => void;
+  /** Opens a parent's column and moves focus into it. */
   open: (column: number, node: TreeItemData) => void;
   /** Right and Left, swapped on a right-to-left page, for a column's listbox. */
   onKeyDown: (event: React.KeyboardEvent<HTMLElement>, column: number) => void;
 }
+
+const samePath = (a: string[], b: string[]) =>
+  a.length === b.length && a.every((value, at) => value === b[at]);
 
 /** A column's listbox, by its place among them. */
 const listboxAt = (container: HTMLElement | null, column: number) =>
@@ -55,35 +70,61 @@ const tabStopIn = (listbox: HTMLElement | undefined) =>
   listbox?.querySelector<HTMLElement>('[role="option"][tabindex="0"]');
 
 /**
- * The open path and the selection of a Cascader's columns. `expanded` holds
- * the values of the items whose columns are open, one per column, so the
- * first column shows `data` and each next one the items of the node before
- * it. The last column's selected item, whose column isn't open, is held
- * apart. Focus moves for real: the keys and clicks move it, and the
- * selection follows it.
+ * The open path of a Cascader's columns. `expanded` holds the values of the
+ * items whose columns are open, one per column, so the first column shows
+ * `data` and each next one the items of the node before it. The last
+ * column's current item, whose column isn't open, is held apart. Focus moves
+ * for real: the keys and clicks move it, and the open path follows it.
  *
  * @function useCascaderColumns
- * @param options - The Cascader's data and its `expanded` props.
+ * @param options - The Cascader's data, whether it's open, its value and its `expanded` props.
  * @returns The columns, and what the columns' items and keys call.
  */
 export function useCascaderColumns(
   options: CascaderColumnsOptions
 ): CascaderColumnsEngine {
-  const { data, index, onExpandedChange } = options;
-  const [expanded, setExpanded] = useControlled(
+  const { data, index, open: isOpen, value } = options;
+  const [held, setHeld] = useControlled(
     options.expanded,
     options.defaultExpanded
   );
-  // The selected item in the last column, which opens nothing.
+  const onExpandedChangeRef = useLatestRef(options.onExpandedChange);
+  // The current item in the last column, which opens nothing.
   const [tail, setTail] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   // The column focus moves into once it has rendered.
   const focusIntoRef = useRef<number | null>(null);
 
+  const expanded = held;
   const changeExpanded = (next: string[]) => {
-    setExpanded(next);
-    onExpandedChange?.(next);
+    setHeld(next);
+    onExpandedChangeRef.current?.(next);
   };
+
+  // Opening the panel opens the picked node's path. A click or a key does
+  // it through `reveal`. `defaultOpen` and a held `open` have no event, so
+  // it's done in the render that opens the panel, where the panel's first
+  // focus finds the picked node, and reported once that render is on the
+  // page.
+  const [wasOpen, setWasOpen] = useState(false);
+  const [toReport, setToReport] = useState<string[] | null>(null);
+  if (isOpen !== wasOpen) {
+    setWasOpen(isOpen);
+    if (isOpen) {
+      const path = value === null ? undefined : index.get(value)?.path;
+      setTail(path ? value : null);
+      if (path && !samePath(path, held)) {
+        setHeld(path);
+        setToReport([...path]);
+      }
+    }
+  }
+  const reportedRef = useRef<string[] | null>(null);
+  useEffect(() => {
+    if (!toReport || reportedRef.current === toReport) return;
+    reportedRef.current = toReport;
+    onExpandedChangeRef.current?.(toReport);
+  }, [toReport, onExpandedChangeRef]);
 
   // Each open item opens the next column, as long as it's an enabled parent
   // in the column before; the path stops at the first one that isn't.
@@ -91,9 +132,9 @@ export function useCascaderColumns(
   let parent: TreeItemData | null = null;
   let items = data;
   for (let at = 0; ; at++) {
-    const value = at < expanded.length ? expanded[at] : tail;
-    const node = items.find(item => item.value === value);
-    columns.push({ parent, items, selected: node ? node.value : null });
+    const step = at < expanded.length ? expanded[at] : tail;
+    const node = items.find(item => item.value === step);
+    columns.push({ parent, items, current: node ? node.value : null });
     if (
       at >= expanded.length ||
       !node ||
@@ -106,27 +147,29 @@ export function useCascaderColumns(
     items = childNodes(node);
   }
 
-  const reveal = (value: string | null) => {
-    const path = (value !== null && index.get(value)?.path) || null;
-    if (path && path.join('\0') !== expanded.join('\0')) changeExpanded(path);
-    setTail(path ? value : null);
+  const reveal = (next: string | null) => {
+    // The panel is open now, so the render doesn't reveal it again.
+    setWasOpen(true);
+    const path = next === null ? undefined : index.get(next)?.path;
+    setTail(path ? next : null);
+    if (path && !samePath(path, expanded)) changeExpanded(path);
   };
 
-  const select = (column: number, value: string) => {
-    if (columns[column].selected === value) return;
+  const moveTo = (column: number, next: string) => {
+    if (columns[column].current === next) return;
     if (expanded.length > column) changeExpanded(expanded.slice(0, column));
-    setTail(value);
+    setTail(next);
   };
 
-  // Focus goes into a column at its tab stop: its selected item, or the
-  // first enabled one in a column that just opened. A column with nothing to
-  // pick yet, only a loading row, leaves focus where it was.
-  const focusInto = (column: number) =>
-    listboxAt(containerRef.current, column)
-      ?.querySelector<HTMLElement>(
-        '[role="option"][tabindex="0"]:not([aria-disabled="true"])'
-      )
-      ?.focus();
+  // Focus goes into a column at its tab stop, disabled or not, since the
+  // keys reach disabled items: its current item, or the first enabled one
+  // in a column that just opened. A column still loading, with no items
+  // yet, leaves focus where it was.
+  const focusInto = (column: number) => {
+    const target = columns[column];
+    if (!target || (target.parent?.isLoading && !target.items.length)) return;
+    tabStopIn(listboxAt(containerRef.current, column))?.focus();
+  };
 
   const open = (column: number, node: TreeItemData) => {
     if (node.disabled || !isParentNode(node)) return;
@@ -157,8 +200,8 @@ export function useCascaderColumns(
     const back = rtl ? 'ArrowRight' : 'ArrowLeft';
     if (event.key === forward) {
       event.preventDefault();
-      const value = columns[column].selected;
-      const node = columns[column].items.find(item => item.value === value);
+      const { current, items: here } = columns[column];
+      const node = here.find(item => item.value === current);
       if (node) open(column, node);
     } else if (event.key === back) {
       event.preventDefault();
@@ -168,5 +211,5 @@ export function useCascaderColumns(
     }
   };
 
-  return { columns, containerRef, reveal, select, open, onKeyDown };
+  return { columns, containerRef, reveal, moveTo, open, onKeyDown };
 }
