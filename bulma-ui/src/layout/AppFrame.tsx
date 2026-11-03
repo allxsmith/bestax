@@ -29,6 +29,7 @@ import { useBulmaBreakpoint } from '../helpers/useBulmaViewport';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { warnOnce } from '../helpers/devWarnings';
 import { MenuRailContext } from '../helpers/menuRail';
+import { useLocale } from '../helpers/LocaleProvider';
 import type { MenuRail } from '../helpers/menuRail';
 import { NavbarBurger } from '../components/Navbar';
 import type { NavbarBurgerProps } from '../components/Navbar';
@@ -525,15 +526,17 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
     // The rail's context, which tells the Menu inside to put each item's
     // label in a tooltip, on the column's inline-end side. That's on the
     // right unless the nav is laid out right to left, which only the page
-    // knows: read as the rail appears and each time it collapses.
+    // knows: read as the rail appears, each time it collapses, and when a
+    // LocaleProvider around it switches direction.
     const [side, setSide] = useState<'left' | 'right'>('right');
+    const { dir } = useLocale();
     const modeKnown = !!frame?.modeKnown;
     const railCollapsed = rail && modeKnown && !isDrawer && navCollapsed;
     useClientLayoutEffect(() => {
       if (!rail) return;
       const rtl = getComputedStyle(navRef.current!).direction === 'rtl';
       setSide(rtl ? 'left' : 'right');
-    }, [rail, railCollapsed]);
+    }, [rail, railCollapsed, dir]);
     const state = frame?.state;
     const railValue = useMemo<MenuRail | null>(() => {
       if (!rail || !state) return null;

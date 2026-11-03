@@ -20,6 +20,7 @@ import { Popover } from '../../components/Popover';
 import { Modal } from '../../components/Modal';
 import { Sidebar } from '../../components/Sidebar';
 import { ConfigProvider } from '../../helpers/Config';
+import { LocaleProvider } from '../../helpers/LocaleProvider';
 import { resetDevWarnings } from '../../helpers/devWarnings';
 
 /**
@@ -1608,6 +1609,37 @@ describe('AppFrame.Nav rail', () => {
     mockViewport(DESKTOP);
     render(<OpenSection defaultNavCollapsed />);
     expect(reports()).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('moves the tooltips to the other side when a LocaleProvider switches direction', () => {
+    mockViewport(DESKTOP);
+    // jsdom lays nothing out, so the nav's direction is the nearest dir.
+    const real = window.getComputedStyle;
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((el, pseudo) => {
+      const style = real(el, pseudo);
+      return el.matches('.app-frame-nav')
+        ? ({
+            ...style,
+            direction: el.closest('[dir]')?.getAttribute('dir') ?? 'ltr',
+          } as CSSStyleDeclaration)
+        : style;
+    });
+    try {
+      const { rerender } = render(
+        <LocaleProvider dir="ltr">
+          <RailFrame defaultNavCollapsed />
+        </LocaleProvider>
+      );
+      expect(tipOf(link('Dashboard'))).toHaveClass('is-right');
+      rerender(
+        <LocaleProvider dir="rtl">
+          <RailFrame defaultNavCollapsed />
+        </LocaleProvider>
+      );
+      expect(tipOf(link('Dashboard'))).toHaveClass('is-left');
+    } finally {
+      vi.restoreAllMocks();
+    }
   });
 
   it('renders the rail and its tooltips on the server, so hydrating remounts nothing', () => {
