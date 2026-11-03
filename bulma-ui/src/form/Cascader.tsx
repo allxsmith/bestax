@@ -46,19 +46,53 @@ import type { TreeItemData } from './TreeSelect';
 
 /** The visible and accessible strings, in your app's language. */
 export interface CascaderLabels {
-  /** Names the panel and its first column. Default: the field's label. */
+  /**
+   * Names the panel and its first column.
+   * @defaultValue the field's label
+   */
   choose?: string;
-  /** Names the search box and its results. Default: "Search". */
+  /**
+   * Names the search box and its results.
+   * @defaultValue 'Search'
+   */
   search?: string;
-  /** Names the clear button. Default: "Clear". */
+  /**
+   * Names the clear button.
+   * @defaultValue 'Clear'
+   */
   clear?: string;
-  /** Sits between the path's labels in the field and in search results. Default: `" / "`. */
+  /**
+   * Sits between the path's labels in the field and in search results.
+   * @defaultValue ' / '
+   */
   separator?: string;
   /**
    * Describes an item that opens a column, since a listbox's option can't
-   * say it has items of its own. Default: "Opens a column".
+   * say it has items of its own.
+   * @defaultValue 'Opens a column'
    */
   opens?: string;
+  /**
+   * What a loading column's row says, as on TreeView.
+   * @defaultValue 'Loading…'
+   */
+  loading?: string;
+  /**
+   * The Retry button's text on a failed load's row, as on TreeView.
+   * @defaultValue 'Retry'
+   */
+  retry?: string;
+  /**
+   * What the live region says when a column starts loading, built from the
+   * name of the item that opened it, as on TreeView.
+   * @defaultValue name => `Loading ${name}`
+   */
+  loadingAnnouncement?: (name: string) => string;
+  /**
+   * What the live region says when that load finishes, as on TreeView.
+   * @defaultValue name => `${name} loaded`
+   */
+  loadedAnnouncement?: (name: string) => string;
 }
 
 /**
@@ -106,7 +140,9 @@ export interface CascaderProps
   /**
    * A parent can be picked too: its row, Enter and Space pick it, and Right
    * or its chevron opens its column. Without it, only leaves are picked, and
-   * a parent's row, Enter and Space open its column.
+   * a parent's row, Enter and Space open its column. TreeSelect, which takes
+   * the same `data`, defaults to `true`, as Ant Design's does, so moving a
+   * field from one to the other means setting this to keep what it picks.
    * @defaultValue false
    */
   parentsSelectable?: boolean;
@@ -153,12 +189,13 @@ export interface CascaderProps
   onQueryChange?: (query: string) => void;
   /**
    * Whether a path matches the search, in place of the locale-aware match
-   * on any of its labels. `path` runs from the top node to the one offered,
-   * and the search text comes trimmed. The search runs again when the
-   * search text or `data` changes, not when only this does, so one written
-   * inline costs nothing.
+   * on any of its labels. It's handed the search text trimmed, the node
+   * offered, and its path from the top node down, the node last, as
+   * TreeSelect's `filter` is. The search runs again when the search text or
+   * `data` changes, not when only this does, so one written inline costs
+   * nothing.
    */
-  filter?: (query: string, path: TreeItemData[]) => boolean;
+  filter?: (query: string, item: TreeItemData, path: TreeItemData[]) => boolean;
   /** What the panel shows when the search matches nothing, such as "No cities match". Announced once. */
   empty?: React.ReactNode;
   /** Renders a row's content in place of its label. The field and search results still show the labels. */
@@ -194,14 +231,6 @@ export interface CascaderProps
   appendToBody?: boolean;
   /** The visible and accessible strings, in your app's language. */
   labels?: CascaderLabels;
-  /** What a loading column's row says, as on TreeView. In your app's language. */
-  loadingLabel?: string;
-  /** The Retry button's text on a failed load's row, as on TreeView. In your app's language. */
-  retryLabel?: string;
-  /** What the live region says when a column starts loading, as on TreeView. */
-  loadingAnnouncement?: (name: string) => string;
-  /** What the live region says when that load finishes, as on TreeView. */
-  loadedAnnouncement?: (name: string) => string;
 }
 
 /** What takes focus as the panel opens. */
@@ -338,10 +367,12 @@ function CascaderList({ context, column, at, name }: ColumnProps) {
               'dropdown-item',
               'cascader-item',
               {
-                // Selected either way; filled only enabled, where the
-                // disabled text would be hard to read.
-                'is-active': isPicked && !disabled,
-                'is-open': node.value === current,
+                // As Combobox's: the open path, which follows focus, is
+                // active, and the picked path checked. A disabled one is
+                // selected but not filled, where its text would be hard to
+                // read.
+                'is-active': node.value === current,
+                'is-checked': isPicked && !disabled,
                 'is-disabled': disabled,
               }
             )}
@@ -488,10 +519,6 @@ export const Cascader = forwardRef<HTMLInputElement, CascaderProps>(
       clearable = false,
       size,
       labels,
-      loadingLabel = 'Loading…',
-      retryLabel = 'Retry',
-      loadingAnnouncement,
-      loadedAnnouncement,
       ...rest
     } = props;
     const disabled = useFieldsetDisabled(disabledProp);
@@ -544,7 +571,10 @@ export const Cascader = forwardRef<HTMLInputElement, CascaderProps>(
       itemSelector: '[role="option"]',
       disabledReachable: true,
     });
-    const region = useLoadRegion(loadingAnnouncement, loadedAnnouncement);
+    const region = useLoadRegion(
+      labels?.loadingAnnouncement,
+      labels?.loadedAnnouncement
+    );
     const setOpen = (next: boolean) => {
       if (next === isOpen) return;
       if (next) engine.reveal(value);
@@ -580,7 +610,7 @@ export const Cascader = forwardRef<HTMLInputElement, CascaderProps>(
         const node = path[path.length - 1];
         if (!parentsSelectable && isParentNode(node)) return false;
         return filter
-          ? filter(typed, path)
+          ? filter(typed, node, path)
           : path.some(step => hit(nodeLabel(step)));
       });
       // `filter` is read as it is when the text or the data changes: one
@@ -602,11 +632,26 @@ export const Cascader = forwardRef<HTMLInputElement, CascaderProps>(
         firstColumn.items[0]?.value);
 
     const inputRef = useRef<HTMLInputElement | null>(null);
+    // A forwarded callback's cleanup, which React 19 lets it return, run on
+    // detach in place of a call with `null`, on React 18 as well.
+    const refCleanupRef = useRef<(() => void) | null>(null);
     const fieldRef = useCallback(
       (node: HTMLInputElement | null) => {
         inputRef.current = node;
-        if (typeof ref === 'function') ref(node);
-        else if (ref) ref.current = node;
+        if (typeof ref === 'function') {
+          if (node === null) {
+            const cleanup = refCleanupRef.current;
+            refCleanupRef.current = null;
+            if (cleanup) cleanup();
+            else ref(null);
+            return;
+          }
+          const cleanup: unknown = ref(node);
+          refCleanupRef.current =
+            typeof cleanup === 'function' ? (cleanup as () => void) : null;
+        } else if (ref) {
+          ref.current = node;
+        }
       },
       [ref]
     );
@@ -626,8 +671,8 @@ export const Cascader = forwardRef<HTMLInputElement, CascaderProps>(
       picked,
       hintId,
       itemTemplate,
-      loadingLabel,
-      retryLabel,
+      loadingLabel: labels?.loading || 'Loading…',
+      retryLabel: labels?.retry || 'Retry',
     };
 
     return (

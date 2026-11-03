@@ -12,7 +12,8 @@
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
 @use '../mixins' as *;
-@use '../select-field' as sf;
+@use '../select-field' as *;
+@use 'combobox' as cb;
 
 // The field's chevron, as on TreeSelect: Bulma registers its input variables
 // on the field and its Control, so these start from the tokens those do.
@@ -28,26 +29,27 @@ $cascader-search-gap: 0.5rem !default;
 $cascader-column-width: 11rem !default;
 // A column scrolls past this, as Combobox's list does.
 $cascader-column-max-height: 15rem !default;
+$cascader-column-border-width: 1px !default;
 $cascader-column-border-color: cv.getVar('border-weak') !default;
-$cascader-item-color: cv.getVar('text-strong') !default;
-$cascader-item-size: 0.875rem !default;
-$cascader-item-padding-y: 0.375rem !default;
-$cascader-item-padding-x: 1rem !default;
-$cascader-item-hover-background: hsl(
+// The items are Combobox's, so they start from its values.
+$cascader-item-color: cb.$combobox-item-color !default;
+$cascader-item-size: cb.$combobox-item-size !default;
+$cascader-item-padding-y: cb.$combobox-item-padding-y !default;
+$cascader-item-padding-x: cb.$combobox-item-padding-x !default;
+$cascader-item-hover-background: cb.$combobox-item-hover-background !default;
+// The open path, which follows focus, is the highlight, as on Combobox: a
+// tint a step past the hover's, so it reads apart from the picked path.
+$cascader-highlight-background: hsl(
   #{cv.getVar('scheme-h')},
   #{cv.getVar('scheme-s')},
-  calc(#{cv.getVar('scheme-main-l')} + #{cv.getVar('hover-background-l-delta')})
+  calc(
+    #{cv.getVar('scheme-main-l')} + #{cv.getVar('active-background-l-delta')}
+  )
 ) !default;
-// The open path, which focus moves along: a tint a step past the hover's,
-// so it reads apart from the picked path.
-$cascader-item-open-background: hsl(
-  #{cv.getVar('scheme-h')},
-  #{cv.getVar('scheme-s')},
-  calc(#{cv.getVar('scheme-main-l')} + #{cv.getVar('active-background-l-delta')})
-) !default;
-// The picked path, in the pair Bulma's dropdown gives an `is-active` item.
-$cascader-highlight-background: cv.getVar('link') !default;
-$cascader-highlight-color: cv.getVar('link-invert') !default;
+// The picked path, which is checked as Combobox's picked items are, in the
+// pair Bulma's dropdown gives an active item.
+$cascader-checked-background: cv.getVar('link') !default;
+$cascader-checked-color: cv.getVar('link-invert') !default;
 $cascader-disabled-color: cv.getVar('text-weak') !default;
 $cascader-item-chevron-size: 0.5em !default;
 $cascader-item-gap: 0.5em !default;
@@ -55,24 +57,8 @@ $cascader-item-gap: 0.5em !default;
 // the scrolling would cut off: the ring's width and its offset.
 $cascader-column-inset: 4px !default;
 
-// The other sizes, each with the values it changes, as Combobox's.
-$cascader-sizes: (
-  'small': (
-    'item-size': cv.getVar('size-small'),
-    'item-padding-y': 0.25rem,
-    'item-padding-x': 0.75rem,
-  ),
-  'medium': (
-    'item-size': cv.getVar('size-normal'),
-    'item-padding-y': 0.5rem,
-    'item-padding-x': 1.25rem,
-  ),
-  'large': (
-    'item-size': cv.getVar('size-medium'),
-    'item-padding-y': 0.625rem,
-    'item-padding-x': 1.5rem,
-  ),
-) !default;
+// The other sizes, each with the values it changes: Combobox's.
+$cascader-sizes: cb.$combobox-sizes !default;
 
 // Registered on the root, and on the panel too, which a portal puts outside
 // it. A panel in place inherits the root's, so a theme set there reaches it.
@@ -89,15 +75,16 @@ $cascader-sizes: (
       'cascader-search-gap': #{$cascader-search-gap},
       'cascader-column-width': #{$cascader-column-width},
       'cascader-column-max-height': #{$cascader-column-max-height},
+      'cascader-column-border-width': #{$cascader-column-border-width},
       'cascader-column-border-color': #{$cascader-column-border-color},
       'cascader-item-color': #{$cascader-item-color},
       'cascader-item-size': #{$cascader-item-size},
       'cascader-item-padding-y': #{$cascader-item-padding-y},
       'cascader-item-padding-x': #{$cascader-item-padding-x},
       'cascader-item-hover-background': #{$cascader-item-hover-background},
-      'cascader-item-open-background': #{$cascader-item-open-background},
       'cascader-highlight-background': #{$cascader-highlight-background},
-      'cascader-highlight-color': #{$cascader-highlight-color},
+      'cascader-checked-background': #{$cascader-checked-background},
+      'cascader-checked-color': #{$cascader-checked-color},
       'cascader-disabled-color': #{$cascader-disabled-color},
       'cascader-item-chevron-size': #{$cascader-item-chevron-size},
       'cascader-item-gap': #{$cascader-item-gap},
@@ -120,7 +107,7 @@ $cascader-sizes: (
 }
 
 // The field: its chevron, its clear button and the room it keeps for them.
-@include sf.select-field('cascader');
+@include extras-select-field('cascader');
 
 .#{iv.$class-prefix}cascader-panel {
   display: flex;
@@ -151,7 +138,8 @@ $cascader-sizes: (
   width: cv.getVar('cascader-column-width');
 
   & + & {
-    border-inline-start: 1px solid cv.getVar('cascader-column-border-color');
+    border-inline-start: cv.getVar('cascader-column-border-width') solid
+      cv.getVar('cascader-column-border-color');
   }
 
   &:focus {
@@ -171,19 +159,19 @@ $cascader-sizes: (
     cv.getVar('cascader-item-padding-x');
 
   &:hover:not(.#{iv.$class-prefix}is-active):not(
-      .#{iv.$class-prefix}is-open
+      .#{iv.$class-prefix}is-checked
     ):not(.#{iv.$class-prefix}is-disabled) {
     background-color: cv.getVar('cascader-item-hover-background');
   }
 
   // On the open path. The picked path's fill, below, wins where they meet.
-  &.#{iv.$class-prefix}is-open {
-    background-color: cv.getVar('cascader-item-open-background');
-  }
-
   &.#{iv.$class-prefix}is-active {
     background-color: cv.getVar('cascader-highlight-background');
-    color: cv.getVar('cascader-highlight-color');
+  }
+
+  &.#{iv.$class-prefix}is-checked {
+    background-color: cv.getVar('cascader-checked-background');
+    color: cv.getVar('cascader-checked-color');
   }
 
   &.#{iv.$class-prefix}is-disabled {
@@ -236,14 +224,14 @@ $cascader-sizes: (
   // Forced colors takes the fills away, so the picked path asks for the
   // system's own pair, and the open path is outlined, unless focus draws
   // its own ring.
-  .#{iv.$class-prefix}dropdown-item.#{iv.$class-prefix}cascader-item.#{iv.$class-prefix}is-open:not(
+  .#{iv.$class-prefix}dropdown-item.#{iv.$class-prefix}cascader-item.#{iv.$class-prefix}is-active:not(
       :focus-visible
     ) {
-    outline: 1px solid CanvasText;
-    outline-offset: -1px;
+    outline: cv.getVar('cascader-column-border-width') solid CanvasText;
+    outline-offset: calc(-1 * #{cv.getVar('cascader-column-border-width')});
   }
 
-  .#{iv.$class-prefix}dropdown-item.#{iv.$class-prefix}cascader-item.#{iv.$class-prefix}is-active {
+  .#{iv.$class-prefix}dropdown-item.#{iv.$class-prefix}cascader-item.#{iv.$class-prefix}is-checked {
     background-color: Highlight;
     color: HighlightText;
     forced-color-adjust: none;

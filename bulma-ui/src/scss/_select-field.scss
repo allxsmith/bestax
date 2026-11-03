@@ -11,7 +11,7 @@
 
 // The rules for the root `.<name>`, its `.<name>-chevron` and its
 // `.<name>-clear`.
-@mixin select-field($name) {
+@mixin extras-select-field($name) {
   // What the panel in place, the chevron and the clear button are placed
   // against, when a Control around it holds no other field.
   .#{iv.$class-prefix}#{$name} {

@@ -70,7 +70,7 @@ const selected = () =>
   screen.queryAllByRole('option', { selected: true }).map(el => el.textContent);
 /** The items on the open path, which is drawn, not announced. */
 const current = () =>
-  Array.from(document.querySelectorAll('.cascader-item.is-open'), el =>
+  Array.from(document.querySelectorAll('.cascader-item.is-active'), el =>
     el.textContent?.trim()
   );
 const key = (el: Element, k: string, init: KeyboardEventInit = {}) =>
@@ -149,6 +149,24 @@ describe('Cascader', () => {
       expect(node).toBe(field());
     });
 
+    it("runs a callback ref's cleanup on detach in place of a call with null, and calls one without a cleanup with null", () => {
+      const cleanup = vi.fn();
+      const withCleanup = vi.fn(() => cleanup);
+      const { unmount } = render(
+        <Cascader label="City" data={PLACES} ref={withCleanup} />
+      );
+      expect(withCleanup).toHaveBeenCalledWith(field());
+      unmount();
+      expect(cleanup).toHaveBeenCalledTimes(1);
+      expect(withCleanup).not.toHaveBeenCalledWith(null);
+      const plain = vi.fn();
+      const { unmount: unmountPlain } = render(
+        <Cascader label="City" data={PLACES} ref={plain} />
+      );
+      unmountPlain();
+      expect(plain).toHaveBeenLastCalledWith(null);
+    });
+
     it('names the panel after aria-label or labels.choose, and inside an outer Field after its label', () => {
       const { unmount } = render(<Cascader aria-label="Place" data={PLACES} />);
       fireEvent.click(screen.getByRole('combobox', { name: 'Place' }));
@@ -198,7 +216,7 @@ describe('Cascader', () => {
         'dropdown-item',
         'cascader-item',
         'is-active',
-        'is-open'
+        'is-checked'
       );
       expect(screen.getByRole('dialog')).toHaveClass(
         'picker-popover',
@@ -327,9 +345,9 @@ describe('Cascader', () => {
       render(<City value="madrid" defaultOpen />);
       expect(lists()).toEqual(['City', 'Europe']);
       expect(option('Spain')).toHaveAttribute('aria-selected', 'true');
-      expect(option('Spain')).toHaveClass('is-disabled', 'is-open');
-      expect(option('Spain')).not.toHaveClass('is-active');
-      expect(option('Europe')).toHaveClass('is-active');
+      expect(option('Spain')).toHaveClass('is-disabled', 'is-active');
+      expect(option('Spain')).not.toHaveClass('is-checked');
+      expect(option('Europe')).toHaveClass('is-checked');
     });
 
     it('opens no path and reports nothing while disabled, and opens it once enabled', () => {
@@ -396,15 +414,15 @@ describe('Cascader', () => {
       expect(option('Munich')).toHaveFocus();
       expect(current()).toEqual(['Europe', 'Germany', 'Munich']);
       expect(selected()).toEqual(['Europe', 'Germany', 'Berlin']);
-      expect(option('Munich')).not.toHaveClass('is-active');
+      expect(option('Munich')).not.toHaveClass('is-checked');
       press('ArrowDown');
       expect(option('Hamburg')).toHaveFocus();
       expect(option('Hamburg')).toHaveAttribute('aria-disabled', 'true');
       expect(option('Hamburg')).toHaveAttribute('aria-selected', 'false');
-      expect(option('Hamburg')).toHaveClass('is-open');
+      expect(option('Hamburg')).toHaveClass('is-active');
       expect(option('Berlin')).toHaveAttribute('aria-selected', 'true');
-      expect(option('Berlin')).toHaveClass('is-active');
-      expect(option('Berlin')).not.toHaveClass('is-open');
+      expect(option('Berlin')).toHaveClass('is-checked');
+      expect(option('Berlin')).not.toHaveClass('is-active');
       press('Home');
       expect(option('Berlin')).toHaveFocus();
       press('End');
@@ -787,9 +805,10 @@ describe('Cascader', () => {
         <Cascader
           {...props}
           query=" ber "
-          filter={(query, path) => {
+          filter={(query, item, path) => {
             calls.push(query);
-            return path[path.length - 1].value.startsWith(query);
+            expect(path[path.length - 1]).toBe(item);
+            return item.value.startsWith(query);
           }}
         />
       );
@@ -907,9 +926,11 @@ describe('Cascader', () => {
         const props = {
           label: 'City',
           onExpandedChange,
-          loadingLabel: 'Fetching…',
-          loadingAnnouncement: (name: string) => `Fetching ${name}`,
-          loadedAnnouncement: (name: string) => `${name} fetched`,
+          labels: {
+            loading: 'Fetching…',
+            loadingAnnouncement: (name: string) => `Fetching ${name}`,
+            loadedAnnouncement: (name: string) => `${name} fetched`,
+          },
         };
         const { rerender } = render(<Cascader {...props} data={lazy({})} />);
         open();
@@ -948,7 +969,7 @@ describe('Cascader', () => {
         render(
           <Cascader
             label="City"
-            retryLabel="Again"
+            labels={{ retry: 'Again' }}
             data={lazy({ loadError: "Couldn't load Photos", onRetry })}
             defaultExpanded={['photos']}
             defaultOpen
@@ -1193,7 +1214,8 @@ describe('Cascader', () => {
     expect(option('Berlin')).toHaveClass(
       'bestax-dropdown-item',
       'bestax-cascader-item',
-      'bestax-is-active'
+      'bestax-is-active',
+      'bestax-is-checked'
     );
     expect(option('Hamburg')).toHaveClass('bestax-is-disabled');
     expect(panel.querySelector('.bestax-cascader-item-chevron')).not.toBeNull();

@@ -9,7 +9,7 @@
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
-@use '../select-field' as sf;
+@use '../select-field' as *;
 
 // The tree scrolls past this, as Combobox's list does.
 $tree-select-panel-max-height: 15rem !default;
@@ -53,7 +53,7 @@ $tree-select-tree-inset: 4px !default;
 }
 
 // The field: its chevron, its clear button and the room it keeps for them.
-@include sf.select-field('tree-select');
+@include extras-select-field('tree-select');
 
 .#{iv.$class-prefix}tree-select-panel {
   display: flex;

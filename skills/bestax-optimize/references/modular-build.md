@@ -171,7 +171,8 @@ Notes:
   `bulma/sass/form/input-textarea`, `bulma/sass/elements/tag`, `bulma/sass/elements/delete` and
   `elements/delete` for the field, the tags and the clear button.
 - `Cascader` opens its columns in the pickers' popover, with a `Combobox` list for its search, and
-  its items are Bulma's dropdown items, so it needs `picker-popover`, `form/combobox` and
+  its items are Bulma's dropdown items. Its partial brings `form/combobox` with it, for the search
+  and the values its items start from, so it needs `picker-popover` and
   `bulma/sass/components/dropdown` next to `cascader`, with `bulma/sass/form/input-textarea`,
   `bulma/sass/elements/delete` and `elements/delete` for the field and the clear button, and
   `bulma/sass/elements/loader`, `elements/loader` and `bulma/sass/elements/button` for a column

@@ -8,16 +8,17 @@ import path from 'path';
 const SCSS = path.resolve(__dirname, '../../scss');
 const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
 
-const compile = (prefix: string) =>
+const compileModule = (prefix: string, module: string) =>
   sass.compileString(
     `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
-     @use 'form/cascader';`,
+     @use '${module}';`,
     {
       loadPaths: [SCSS, NODE_MODULES],
       quietDeps: true,
       logger: sass.Logger.silent,
     }
   ).css;
+const compile = (prefix: string) => compileModule(prefix, 'form/cascader');
 
 /**
  * Every rule in a sheet of sass's expanded output: its selector and body. The
@@ -58,6 +59,7 @@ describe('Cascader styles', () => {
       'search-gap',
       'column-width',
       'column-max-height',
+      'column-border-width',
       'column-border-color',
       'column-inset',
       'item-color',
@@ -65,11 +67,11 @@ describe('Cascader styles', () => {
       'item-padding-y',
       'item-padding-x',
       'item-hover-background',
-      'item-open-background',
       'item-gap',
       'item-chevron-size',
       'highlight-background',
-      'highlight-color',
+      'checked-background',
+      'checked-color',
       'disabled-color',
     ]) {
       expect(vars).toContain(`--bulma-cascader-${name}:`);
@@ -101,30 +103,55 @@ describe('Cascader styles', () => {
     expect(column).toContain('overflow-y: auto');
     expect(column).toContain('padding: var(--bulma-cascader-column-inset)');
     expect(body(PLAIN, '.cascader-column + .cascader-column')).toContain(
-      'border-inline-start: 1px solid var(--bulma-cascader-column-border-color)'
+      'border-inline-start: var(--bulma-cascader-column-border-width) solid var(--bulma-cascader-column-border-color)'
     );
   });
 
+  it("starts the items from Combobox's values, its sizes included", () => {
+    const vars = body(PLAIN, '.cascader, .cascader-panel');
+    const combobox = rulesOf(compileModule('', 'form/combobox'));
+    const own = body(combobox, '.combobox, .combobox-menu.is-portal');
+    for (const name of [
+      'item-color',
+      'item-size',
+      'item-padding-y',
+      'item-padding-x',
+      'item-hover-background',
+    ]) {
+      const value = (text: string, prefix: string) =>
+        text.match(new RegExp(`--bulma-${prefix}-${name}: ([^;]+);`))![1];
+      expect(value(vars, 'cascader')).toBe(value(own, 'combobox'));
+    }
+    for (const size of ['small', 'medium', 'large']) {
+      expect(body(PLAIN, `.cascader-panel.is-${size}`)).toBe(
+        body(
+          combobox,
+          `.combobox.is-${size}, .combobox-menu.is-${size}`
+        ).replace(/--bulma-combobox-/g, '--bulma-cascader-')
+      );
+    }
+  });
+
   it('tints the open path, under the picked path, and keeps hover off both', () => {
-    expect(body(PLAIN, '.dropdown-item.cascader-item.is-open')).toContain(
-      'background-color: var(--bulma-cascader-item-open-background)'
+    expect(body(PLAIN, '.dropdown-item.cascader-item.is-active')).toContain(
+      'background-color: var(--bulma-cascader-highlight-background)'
     );
     expect(
       Array.from(PLAIN.keys()).find(selector =>
         selector.startsWith('.dropdown-item.cascader-item:hover')
       )
     ).toBe(
-      '.dropdown-item.cascader-item:hover:not(.is-active):not(.is-open):not(.is-disabled)'
+      '.dropdown-item.cascader-item:hover:not(.is-active):not(.is-checked):not(.is-disabled)'
     );
     const keys = Array.from(PLAIN.keys());
-    expect(keys.indexOf('.dropdown-item.cascader-item.is-open')).toBeLessThan(
-      keys.indexOf('.dropdown-item.cascader-item.is-active')
+    expect(keys.indexOf('.dropdown-item.cascader-item.is-active')).toBeLessThan(
+      keys.indexOf('.dropdown-item.cascader-item.is-checked')
     );
   });
 
   it('fills the items on the path, greys the disabled ones, and rings the focused one', () => {
-    expect(body(PLAIN, '.dropdown-item.cascader-item.is-active')).toContain(
-      'background-color: var(--bulma-cascader-highlight-background)'
+    expect(body(PLAIN, '.dropdown-item.cascader-item.is-checked')).toContain(
+      'background-color: var(--bulma-cascader-checked-background)'
     );
     expect(body(PLAIN, '.dropdown-item.cascader-item.is-disabled')).toContain(
       'color: var(--bulma-cascader-disabled-color)'
@@ -153,12 +180,12 @@ describe('Cascader styles', () => {
   });
 
   it('keeps the path and the disabled items apart in forced colors', () => {
-    expect(body(PLAIN, '.dropdown-item.cascader-item.is-active')).not.toContain(
-      'Highlight'
-    );
+    expect(
+      body(PLAIN, '.dropdown-item.cascader-item.is-checked')
+    ).not.toContain('Highlight');
     const css = compile('');
     expect(css).toMatch(
-      /@media \(forced-colors: active\)[\s\S]*\.cascader-item\.is-open:not\(:focus-visible\)[\s\S]*outline: 1px solid CanvasText[\s\S]*\.cascader-item\.is-active[\s\S]*Highlight[\s\S]*GrayText/
+      /@media \(forced-colors: active\)[\s\S]*\.cascader-item\.is-active:not\(:focus-visible\)[\s\S]*outline: var\(--bulma-cascader-column-border-width\) solid CanvasText[\s\S]*\.cascader-item\.is-checked[\s\S]*Highlight[\s\S]*GrayText/
     );
   });
 
@@ -182,6 +209,9 @@ describe('Cascader styles', () => {
     expect(selectors).toContain('.bestax-cascader-column');
     expect(selectors).toContain(
       '.bestax-dropdown-item.bestax-cascader-item.bestax-is-active'
+    );
+    expect(selectors).toContain(
+      '.bestax-dropdown-item.bestax-cascader-item.bestax-is-checked'
     );
     expect(selectors).toContain('.bestax-cascader-panel.bestax-is-small');
     expect(selectors.replace(/\.bestax-[\w-]+/g, '')).not.toMatch(/\.[a-z]/);

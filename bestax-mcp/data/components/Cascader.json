@@ -42,7 +42,7 @@
       "code": "<LocaleProvider locale=\"ar\" dir=\"rtl\">\n  <Cascader\n    label=\"المدينة\"\n    defaultValue=\"berlin\"\n    clearable\n    data={[\n      {\n        value: 'germany',\n        label: 'ألمانيا',\n        children: [{ value: 'berlin', label: 'برلين' }],\n      },\n      { value: 'oceania', label: 'أوقيانوسيا' },\n    ]}\n  />\n</LocaleProvider>"
     }
   ],
-  "accessibility": "- **The field is a combobox that opens a dialog,** as the date pickers' and TreeSelect's are:\n  `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls` while the\n  panel is open, named by its `label`. It's read-only, and its value is the picked node's path.\n- **Keys on the field:** a click, Enter, Space, Down or Alt+Down opens the panel, and with\n  `searchable` a printable key opens it with that key in the search box.\n- **The panel** is a non-modal `dialog`, named by the label or `labels.choose`. Focus moves into\n  it as it opens: onto the picked node, its path open, or with nothing picked onto the first\n  column's item on an open path, or its first enabled item, so a `defaultExpanded` path stays\n  open. It holds\n  focus while it's open, as the date pickers' panel does: Tab and Shift+Tab move between the\n  search box and the columns, and wrap. Escape and Alt+Up close it and put focus back on the\n  field, and so does a pick. A press outside closes it and leaves focus where the press put it.\n- **Each column** is a `listbox` with one tab stop and real focus on its `option`s. The first is\n  named as the panel is, and each one after it by the label of the item that opened it. Up, Down,\n  Home, End and type-ahead move within a column, and type-ahead starts over in each column it\n  comes into. Right opens the next column and moves into it, Left goes back, and the two swap on a\n  right-to-left page. Disabled items are reachable and `aria-disabled`, and Right moves into a\n  column at its item on the open path even when that one is disabled.\n- **The picked node's path is `aria-selected`,** and drawn as Bulma's active dropdown item. The\n  path you've opened, which follows focus, is drawn with a lighter tint of its own and isn't\n  announced as selected, so moving around never says an item is picked when it isn't. A disabled\n  node on the picked path is selected but not filled, so it stays readable. In forced colors the\n  picked path takes the system's highlight and the open path an outline. Right opens the focused\n  item and nothing else.\n- **An item that opens a column** is described by \"Opens a column\", or `labels.opens`, since an\n  option has no way of its own to say it has items under it. Its chevron is hidden.\n- **A column that's loading** ends in a row that says so, and a failed load's row is named by its\n  message and its Retry, which Enter, Space or a click run. The live region says when a column\n  starts loading and when it's loaded, as TreeView's does.\n- **The search box** is named \"Search\", or `labels.search`, and its results are a listbox of the\n  paths that match. When nothing matches, `empty` is said once through a polite status region,\n  not again on every key.\n- **`required`** makes the field `aria-required`. A read-only field is left out of the browser's\n  own check, so a hidden field over it carries `required`. When the browser stops a submit, it\n  focuses that one and shows its message, which every browser takes down as it loses focus. So\n  focus stays there, reading as the field and drawn on it, with no on-screen keyboard. A press\n  goes where it lands, and the next key, other than a modifier on its own, goes to the field and\n  does what it would there.\n- **Forced colors:** the field, the panel and the columns keep their edges in system colors, the\n  path through the columns keeps the system's highlight, and the chevrons are borders, so they\n  stay.",
+  "accessibility": "- **The field is a combobox that opens a dialog,** as the date pickers' and TreeSelect's are:\n  `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls` while the\n  panel is open, named by its `label`. It's read-only, and its value is the picked node's path.\n- **Keys on the field:** a click, Enter, Space, Down or Alt+Down opens the panel, and with\n  `searchable` a printable key opens it with that key in the search box.\n- **The panel** is a non-modal `dialog`, named by the label or `labels.choose`. Focus moves into\n  it as it opens: onto the picked node, its path open, or with nothing picked onto the first\n  column's item on an open path, or its first enabled item, so a `defaultExpanded` path stays\n  open. It holds\n  focus while it's open, as the date pickers' panel does: Tab and Shift+Tab move between the\n  search box and the columns, and wrap. Escape and Alt+Up close it and put focus back on the\n  field, and so does a pick. A press outside closes it and leaves focus where the press put it.\n- **Each column** is a `listbox` with one tab stop and real focus on its `option`s. The first is\n  named as the panel is, and each one after it by the label of the item that opened it. Up, Down,\n  Home, End and type-ahead move within a column, and type-ahead starts over in each column it\n  comes into. Right opens the next column and moves into it, Left goes back, and the two swap on a\n  right-to-left page. Disabled items are reachable and `aria-disabled`, and Right moves into a\n  column at its item on the open path even when that one is disabled.\n- **The picked node's path is `aria-selected`,** and drawn filled, its items `is-checked` as\n  Combobox's picked items are. The path you've opened, which follows focus, is drawn with a lighter\n  tint, its items `is-active` as Combobox's highlighted item is, and isn't announced as selected, so moving around never says an item is picked when it isn't. A disabled\n  node on the picked path is selected but not filled, so it stays readable. In forced colors the\n  picked path takes the system's highlight and the open path an outline. Right opens the focused\n  item and nothing else.\n- **An item that opens a column** is described by \"Opens a column\", or `labels.opens`, since an\n  option has no way of its own to say it has items under it. Its chevron is hidden.\n- **A column that's loading** ends in a row that says so, and a failed load's row is named by its\n  message and its Retry, which Enter, Space or a click run. The live region says when a column\n  starts loading and when it's loaded, as TreeView's does.\n- **The search box** is named \"Search\", or `labels.search`, and its results are a listbox of the\n  paths that match. When nothing matches, `empty` is said once through a polite status region,\n  not again on every key.\n- **`required`** makes the field `aria-required`. A read-only field is left out of the browser's\n  own check, so a hidden field over it carries `required`. When the browser stops a submit, it\n  focuses that one and shows its message, which every browser takes down as it loses focus. So\n  focus stays there, reading as the field and drawn on it, with no on-screen keyboard. A press\n  goes where it lands, and the next key, other than a modifier on its own, goes to the field and\n  does what it would there.\n- **Forced colors:** the field, the panel and the columns keep their edges in system colors, the\n  path through the columns keeps the system's highlight, and the chevrons are borders, so they\n  stay.",
   "related": [
     "Combobox",
     "Select",
@@ -146,7 +146,7 @@
           "name": "parentsSelectable",
           "type": "boolean",
           "default": "false",
-          "description": "A parent can be picked too: its row, Enter and Space pick it, and Right or its chevron opens its column. Without it, only leaves are picked, and a parent's row, Enter and Space open its column.",
+          "description": "A parent can be picked too: its row, Enter and Space pick it, and Right or its chevron opens its column. Without it, only leaves are picked, and a parent's row, Enter and Space open its column. TreeSelect, which takes the same `data`, defaults to `true`, as Ant Design's does, so moving a field from one to the other means setting this to keep what it picks.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -252,9 +252,9 @@
         },
         {
           "name": "filter",
-          "type": "(query: string, path: TreeItemData[]) => boolean",
+          "type": "(query: string, item: TreeItemData, path: TreeItemData[]) => boolean",
           "default": null,
-          "description": "Whether a path matches the search, in place of the locale-aware match on any of its labels. `path` runs from the top node to the one offered, and the search text comes trimmed. The search runs again when the search text or `data` changes, not when only this does, so one written inline costs nothing.",
+          "description": "Whether a path matches the search, in place of the locale-aware match on any of its labels. It's handed the search text trimmed, the node offered, and its path from the top node down, the node last, as TreeSelect's `filter` is. The search runs again when the search text or `data` changes, not when only this does, so one written inline costs nothing.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -386,42 +386,6 @@
           "deprecated": false
         },
         {
-          "name": "loadingLabel",
-          "type": "string",
-          "default": "'Loading…'",
-          "description": "What a loading column's row says, as on TreeView. In your app's language.",
-          "required": false,
-          "inherited": false,
-          "deprecated": false
-        },
-        {
-          "name": "retryLabel",
-          "type": "string",
-          "default": "'Retry'",
-          "description": "The Retry button's text on a failed load's row, as on TreeView. In your app's language.",
-          "required": false,
-          "inherited": false,
-          "deprecated": false
-        },
-        {
-          "name": "loadingAnnouncement",
-          "type": "(name: string) => string",
-          "default": null,
-          "description": "What the live region says when a column starts loading, as on TreeView.",
-          "required": false,
-          "inherited": false,
-          "deprecated": false
-        },
-        {
-          "name": "loadedAnnouncement",
-          "type": "(name: string) => string",
-          "default": null,
-          "description": "What the live region says when that load finishes, as on TreeView.",
-          "required": false,
-          "inherited": false,
-          "deprecated": false
-        },
-        {
           "name": "labelSize",
           "type": "'small' | 'normal' | 'medium' | 'large'",
           "default": null,
@@ -526,6 +490,18 @@
       "scope": "root"
     },
     {
+      "css": "--bulma-cascader-chevron-z-index",
+      "sass": "$cascader-chevron-z-index",
+      "default": "4",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-cascader-clear-z-index",
+      "sass": "$cascader-clear-z-index",
+      "default": "5",
+      "scope": "root"
+    },
+    {
       "css": "--bulma-cascader-search-gap",
       "sass": "$cascader-search-gap",
       "default": "0.5rem",
@@ -544,6 +520,12 @@
       "scope": "root"
     },
     {
+      "css": "--bulma-cascader-column-border-width",
+      "sass": "$cascader-column-border-width",
+      "default": "1px",
+      "scope": "root"
+    },
+    {
       "css": "--bulma-cascader-column-border-color",
       "sass": "$cascader-column-border-color",
       "default": "var(--bulma-border-weak)",
@@ -552,48 +534,48 @@
     {
       "css": "--bulma-cascader-item-color",
       "sass": "$cascader-item-color",
-      "default": "var(--bulma-text-strong)",
+      "default": "$combobox-item-color",
       "scope": "root"
     },
     {
       "css": "--bulma-cascader-item-size",
       "sass": "$cascader-item-size",
-      "default": "0.875rem",
+      "default": "$combobox-item-size",
       "scope": "root"
     },
     {
       "css": "--bulma-cascader-item-padding-y",
       "sass": "$cascader-item-padding-y",
-      "default": "0.375rem",
+      "default": "$combobox-item-padding-y",
       "scope": "root"
     },
     {
       "css": "--bulma-cascader-item-padding-x",
       "sass": "$cascader-item-padding-x",
-      "default": "1rem",
+      "default": "$combobox-item-padding-x",
       "scope": "root"
     },
     {
       "css": "--bulma-cascader-item-hover-background",
       "sass": "$cascader-item-hover-background",
-      "default": "hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), calc(var(--bulma-scheme-main-l) + var(--bulma-hover-background-l-delta)))",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-cascader-item-open-background",
-      "sass": "$cascader-item-open-background",
-      "default": "hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), calc(var(--bulma-scheme-main-l) + var(--bulma-active-background-l-delta)))",
+      "default": "$combobox-item-hover-background",
       "scope": "root"
     },
     {
       "css": "--bulma-cascader-highlight-background",
       "sass": "$cascader-highlight-background",
+      "default": "hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), calc(var(--bulma-scheme-main-l) + var(--bulma-active-background-l-delta)))",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-cascader-checked-background",
+      "sass": "$cascader-checked-background",
       "default": "var(--bulma-link)",
       "scope": "root"
     },
     {
-      "css": "--bulma-cascader-highlight-color",
-      "sass": "$cascader-highlight-color",
+      "css": "--bulma-cascader-checked-color",
+      "sass": "$cascader-checked-color",
       "default": "var(--bulma-link-invert)",
       "scope": "root"
     },
