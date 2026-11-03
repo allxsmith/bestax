@@ -539,6 +539,28 @@ describe('in an icon rail', () => {
     expect(screen.queryByTestId('tip')).toBeNull();
   });
 
+  it('moves focus from a nested link the rail hides to its item’s own link, icon or not', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const ui = (
+      <Menu.List>
+        <Menu.Item href="#plain">
+          Plain
+          <Menu.List>
+            <Menu.Item href="#deep">Deep</Menu.Item>
+          </Menu.List>
+        </Menu.Item>
+      </Menu.List>
+    );
+    try {
+      const { rerender } = renderIn(railOf(false), ui);
+      screen.getByRole('link', { name: 'Deep' }).focus();
+      rerender(inNav(railOf(true), ui));
+      expect(screen.getByRole('link', { name: 'Plain' })).toHaveFocus();
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
   it('wraps a section’s button with its heading', () => {
     renderIn(
       railOf(false),
