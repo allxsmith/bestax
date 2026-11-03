@@ -92,6 +92,7 @@
       "label": "Form",
       "components": [
         "Autocomplete",
+        "Cascader",
         "Checkbox",
         "CheckboxCard",
         "Checkboxes",
@@ -279,6 +280,17 @@
       "compound": false,
       "propCount": 31,
       "exampleCount": 16
+    },
+    {
+      "name": "Cascader",
+      "kind": "component",
+      "category": "form",
+      "purpose": "The `Cascader` component is a form field whose value sits at the end of a path, such as a city picked by country, then region, then city: it opens a panel of…",
+      "slug": "form/cascader",
+      "import": "import { Cascader } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 47,
+      "exampleCount": 9
     },
     {
       "name": "Cell",
@@ -1636,6 +1648,25 @@
     "--bulma-carousel-overlay-indicator-background-active": ["Carousel"],
     "--bulma-carousel-overlay-indicator-background-hover": ["Carousel"],
     "--bulma-carousel-transition-duration": ["Carousel"],
+    "--bulma-cascader-chevron-color": ["Cascader"],
+    "--bulma-cascader-chevron-focus-color": ["Cascader"],
+    "--bulma-cascader-chevron-hover-color": ["Cascader"],
+    "--bulma-cascader-chevron-width": ["Cascader"],
+    "--bulma-cascader-column-border-color": ["Cascader"],
+    "--bulma-cascader-column-inset": ["Cascader"],
+    "--bulma-cascader-column-max-height": ["Cascader"],
+    "--bulma-cascader-column-width": ["Cascader"],
+    "--bulma-cascader-disabled-color": ["Cascader"],
+    "--bulma-cascader-highlight-background": ["Cascader"],
+    "--bulma-cascader-highlight-color": ["Cascader"],
+    "--bulma-cascader-item-chevron-size": ["Cascader"],
+    "--bulma-cascader-item-color": ["Cascader"],
+    "--bulma-cascader-item-gap": ["Cascader"],
+    "--bulma-cascader-item-hover-background": ["Cascader"],
+    "--bulma-cascader-item-padding-x": ["Cascader"],
+    "--bulma-cascader-item-padding-y": ["Cascader"],
+    "--bulma-cascader-item-size": ["Cascader"],
+    "--bulma-cascader-search-gap": ["Cascader"],
     "--bulma-checkbox-active-color": ["Checkbox"],
     "--bulma-checkbox-background": ["Checkbox"],
     "--bulma-checkbox-border-color": ["Checkbox"],
@@ -2588,6 +2619,7 @@
     "--bulma-panel-tab-border-bottom-width": ["Panel"],
     "--bulma-panel-tabs-font-size": ["Panel"],
     "--bulma-picker-popover-animation-duration": [
+      "Cascader",
       "ColorInput",
       "DateInput",
       "DateRangeInput",
@@ -2596,6 +2628,7 @@
       "TreeSelect"
     ],
     "--bulma-picker-popover-background": [
+      "Cascader",
       "ColorInput",
       "DateInput",
       "DateRangeInput",
@@ -2604,6 +2637,7 @@
       "TreeSelect"
     ],
     "--bulma-picker-popover-border-color": [
+      "Cascader",
       "ColorInput",
       "DateInput",
       "DateRangeInput",
@@ -2612,6 +2646,7 @@
       "TreeSelect"
     ],
     "--bulma-picker-popover-offset": [
+      "Cascader",
       "ColorInput",
       "DateInput",
       "DateRangeInput",
@@ -2620,6 +2655,7 @@
       "TreeSelect"
     ],
     "--bulma-picker-popover-padding": [
+      "Cascader",
       "ColorInput",
       "DateInput",
       "DateRangeInput",
@@ -2628,6 +2664,7 @@
       "TreeSelect"
     ],
     "--bulma-picker-popover-radius": [
+      "Cascader",
       "ColorInput",
       "DateInput",
       "DateRangeInput",
@@ -2636,6 +2673,7 @@
       "TreeSelect"
     ],
     "--bulma-picker-popover-shadow": [
+      "Cascader",
       "ColorInput",
       "DateInput",
       "DateRangeInput",
@@ -2644,6 +2682,7 @@
       "TreeSelect"
     ],
     "--bulma-picker-popover-z-index": [
+      "Cascader",
       "ColorInput",
       "DateInput",
       "DateRangeInput",
