@@ -305,7 +305,7 @@
     },
     {
       "path": "FloatButton.SpeedDial",
-      "summary": "The `FloatButton.SpeedDial` component is a float button that opens a menu of related actions, which are FloatButtons. It's an APG menu button, on Dropdown's model. Activation opens it: Enter and Space toggle it and open it on the nearest action, the arrow that points along the dial opens it on the nearest action, and the opposite arrow on the farthest. In the menu, the arrow pointing away from the trigger moves away from it and the other moves back, Home and End go to the nearest and farthest actions, and typing a letter moves to the next action whose visible text starts with it, which an icon alone has none of, so it finds actions with `showLabels`. Escape closes it and focuses the trigger, Tab closes it and lets focus move on, and a press outside closes it. Activating an action runs its `onClick`, closes the dial and hands focus back to the trigger. Closed, the actions aren't rendered.",
+      "summary": "The `FloatButton.SpeedDial` component is a float button that opens a menu of related actions, which are FloatButtons. It's an APG menu button, on Dropdown's model. Activation opens it: Enter and Space toggle it and open it on the nearest action, the arrow that points along the dial opens it on the nearest action, and the opposite arrow on the farthest. In the menu, the arrow pointing away from the trigger moves away from it and the other moves back, Home and End go to the nearest and farthest actions, and typing a letter moves to the next action whose visible text starts with it, which an icon alone has none of, so it finds actions with `showLabels`. Escape closes it and focuses the trigger, Tab closes it and lets focus move on, and a press outside closes it. Activating an action runs its `onClick`, closes the dial and hands focus back to the trigger, unless `closeOnClick` is false. Closed, the actions aren't rendered.",
       "component": null,
       "props": [
         {
@@ -521,7 +521,7 @@
           "name": "moveFocus",
           "type": "boolean | React.RefObject<HTMLElement | null>",
           "default": "true",
-          "description": "Where focus goes after it scrolls, shaped like `useFocusTrap`'s `restoreFocus`. `true` focuses the page's `<main>`, or the `scrollContainer` when there is one, or else `<body>`; a ref focuses that element; `false` moves none, so the button hides with focus on it once the scroll is done, focus drops to the document, and the next Tab starts wherever the browser decides. Focus moves with `preventScroll`, at once, so it doesn't cut the scroll short. An element that can't take focus gets `tabindex=\"-1\"` until it loses it, so the next Tab goes on from there.",
+          "description": "Where focus goes after it scrolls, shaped like `useFocusTrap`'s `restoreFocus`. `true` focuses the page's `<main>`, or the `scrollContainer` when there is one, or else `<body>`; a ref focuses that element; `false` moves none, so the button hides with focus on it once the scroll is done, focus drops to the document, and the next Tab starts wherever the browser decides. Focus moves with `preventScroll`, at once, so it doesn't cut the scroll short. An element that can't take focus gets `tabindex=\"-1\"`, and no focus ring, until it loses it, so the next Tab goes on from there. A tabindex of its own is left alone.",
           "required": false,
           "inherited": false,
           "deprecated": false

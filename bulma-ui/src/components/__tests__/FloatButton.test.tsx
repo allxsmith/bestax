@@ -281,6 +281,33 @@ describe('FloatButtons', () => {
     expect(help.parentElement!.parentElement).toBe(stack);
   });
 
+  it('lets a button inside turn the stack’s or the dial’s showLabels off', () => {
+    render(
+      <FloatButtons showLabels>
+        <FloatButton aria-label="Help" icon="question" showLabel={false} />
+        <FloatButton.SpeedDial
+          aria-label="Create"
+          icon="plus"
+          defaultOpen
+          showLabels
+        >
+          <FloatButton aria-label="Note" icon="note-sticky" />
+          <FloatButton aria-label="Task" icon="check" showLabel={false} />
+        </FloatButton.SpeedDial>
+      </FloatButtons>
+    );
+    const help = screen.getByRole('button', { name: 'Help' });
+    expect(help).toHaveAttribute('aria-label', 'Help');
+    expect(help).toHaveClass('icon-button');
+    expect(screen.getByRole('menuitem', { name: 'Note' })).toHaveTextContent(
+      'Note'
+    );
+    expect(screen.getByRole('menuitem', { name: 'Task' })).toHaveAttribute(
+      'aria-label',
+      'Task'
+    );
+  });
+
   it('prints every button’s name with showLabels, and hands it to a speed dial’s actions', () => {
     render(
       <FloatButtons showLabels>
@@ -891,6 +918,29 @@ describe('FloatButton.SpeedDial', () => {
     expect(ref).toHaveBeenCalledTimes(1);
   });
 
+  it('moves no focus when a controlled parent turns down a close', () => {
+    vi.useFakeTimers();
+    try {
+      const onOpenChange = vi.fn();
+      const { rerender } = render(<Dial open onOpenChange={onOpenChange} />);
+      act(() => action('Note').focus());
+      press('Escape');
+      act(() => vi.runAllTimers());
+      expect(onOpenChange).toHaveBeenLastCalledWith(false);
+      expect(menu()).not.toBeNull();
+      expect(action('Note')).toHaveFocus();
+      fireEvent.click(action('Task'));
+      act(() => vi.runAllTimers());
+      expect(menu()).not.toBeNull();
+      expect(dialTrigger()).not.toHaveFocus();
+      // Closing later, some other way, leaves focus alone too.
+      rerender(<Dial open={false} onOpenChange={onOpenChange} />);
+      expect(dialTrigger()).not.toHaveFocus();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('leaves the dial open after an action with closeOnClick off', () => {
     const log: string[] = [];
     render(<Dial log={log} closeOnClick={false} />);
@@ -1069,6 +1119,55 @@ describe('FloatButton.BackToTop', () => {
     }
   });
 
+  it('draws no ring on a target it gives a tabindex, and puts its own outline back', () => {
+    render(
+      <>
+        <main style={{ outline: '1px dotted' }}>
+          <a href="#a">First</a>
+        </main>
+        <FloatButton.BackToTop />
+      </>
+    );
+    flush();
+    const main = screen.getByRole('main');
+    fireEvent.click(backToTop());
+    expect(main).toHaveFocus();
+    expect(main.style.outline).toBe('none');
+    act(() => screen.getByRole('link').focus());
+    expect(main).not.toHaveAttribute('tabindex');
+    expect(main.style.outline).toBe('1px dotted');
+  });
+
+  it('leaves a tabindex the target has of its own, even when focus doesn’t take', () => {
+    render(
+      <>
+        <main tabIndex={0}>Content</main>
+        <FloatButton.BackToTop />
+      </>
+    );
+    flush();
+    const main = screen.getByRole('main');
+    vi.spyOn(main, 'focus').mockImplementation(() => {});
+    fireEvent.click(backToTop());
+    expect(main).toHaveAttribute('tabindex', '0');
+    expect(main.style.outline).toBe('');
+  });
+
+  it('takes back the tabindex and the outline when the target still won’t take focus', () => {
+    render(
+      <>
+        <main>Content</main>
+        <FloatButton.BackToTop />
+      </>
+    );
+    flush();
+    const main = screen.getByRole('main');
+    vi.spyOn(main, 'focus').mockImplementation(() => {});
+    fireEvent.click(backToTop());
+    expect(main).not.toHaveAttribute('tabindex');
+    expect(main).not.toHaveAttribute('style');
+  });
+
   it('leaves a target that takes focus as it is', () => {
     render(
       <>
@@ -1093,8 +1192,10 @@ describe('FloatButton.BackToTop', () => {
     fireEvent.click(backToTop());
     expect(document.activeElement).toBe(document.body);
     expect(document.body).toHaveAttribute('tabindex', '-1');
+    expect(document.body.style.outline).toBe('none');
     act(() => screen.getByRole('link').focus());
     expect(document.body).not.toHaveAttribute('tabindex');
+    expect(document.body).not.toHaveAttribute('style');
   });
 
   it('focuses the element a moveFocus ref holds, or nothing with moveFocus off', () => {

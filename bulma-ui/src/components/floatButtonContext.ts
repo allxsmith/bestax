@@ -17,7 +17,10 @@ export interface FloatButtonPlacement {
   tooltipPosition: TooltipPosition;
   /** Inside a speed dial's menu, where each button is one of its items. */
   inMenu: boolean;
-  /** The speed dial's `showLabels`: each button prints its name. */
+  /**
+   * The `showLabels` of the FloatButtons or speed dial around the buttons:
+   * each prints its name, unless its own `showLabel` says otherwise.
+   */
   showLabels: boolean;
 }
 

@@ -197,7 +197,7 @@ const FloatButtonBase = forwardRef(function FloatButton(
   const placement = useContext(FloatButtonContext);
   const floatButtonClass = usePrefixedClassNames('float-button');
   const label = rest['aria-label'];
-  const wantsLabel = Boolean(showLabel || placement?.showLabels);
+  const wantsLabel = showLabel ?? placement?.showLabels ?? false;
   const printed = wantsLabel && hasText(label);
 
   useEffect(() => {
@@ -415,7 +415,8 @@ const HOVER_CLOSE_DELAY = 300;
  * of, so it finds actions with `showLabels`. Escape closes it and focuses the
  * trigger, Tab closes it and lets focus move on, and a press outside closes
  * it. Activating an action runs its `onClick`, closes the dial and hands
- * focus back to the trigger. Closed, the actions aren't rendered.
+ * focus back to the trigger, unless `closeOnClick` is false. Closed, the
+ * actions aren't rendered.
  *
  * @function
  * @param {FloatButtonSpeedDialProps} props - Props for FloatButton.SpeedDial.
@@ -491,9 +492,10 @@ export const FloatButtonSpeedDial = forwardRef<
     [ref]
   );
 
-  // A sideways dial lays its actions out by the writing direction the browser
-  // computes, read here when it opens, so the stylesheet and the page agree
-  // on which way is left, a `dir` attribute or a CSS `direction` alike.
+  // A sideways dial lays its actions out in a flex row, which runs in the
+  // writing direction, so it reads the direction the browser computes when
+  // it opens, and the stylesheet lays the row out from that, a `dir`
+  // attribute or a CSS `direction` alike.
   const [rtl, setRtl] = useState(false);
   useClientLayoutEffect(() => {
     if (!open || !sideways) return;
@@ -501,15 +503,15 @@ export const FloatButtonSpeedDial = forwardRef<
     setRtl(getComputedStyle(root).direction === 'rtl');
   }, [open, sideways]);
 
-  // The actions run in DOM order away from the trigger, so the arrow pointing
-  // along the dial moves to the next and the one pointing back to the
-  // previous, and the arrows across it do nothing. Up runs against the DOM
-  // order, so it's reversed. Sideways, the hook reads Right as the next in
-  // left-to-right text and Left in right-to-left, so a dial whose actions run
-  // the other way on the screen is reversed.
+  // The actions run in DOM order away from the trigger, on the screen, so
+  // the arrow pointing along the dial moves to the next and the one pointing
+  // back to the previous, and the arrows across it do nothing. The hook
+  // reads the arrows as they point on the screen (`physical`), and a dial
+  // that runs up or left, against Down and Right, is reversed.
   const menuKeys = useMenuKeys({
     orientation: sideways ? 'horizontal' : 'vertical',
-    reverse: sideways ? (direction === 'left') !== rtl : direction === 'up',
+    reverse: direction === 'up' || direction === 'left',
+    physical: true,
   });
 
   const focusEdge = (edge: 'first' | 'last') =>
@@ -526,9 +528,10 @@ export const FloatButtonSpeedDial = forwardRef<
   }, [open, menuKeys]);
 
   // A key asks to open it on an edge, which the menu focuses once it has
-  // mounted. A controlled parent can turn the ask down, and then the edge is
-  // dropped once the event that asked is over, so a later open some other
-  // way doesn't move focus into the menu.
+  // mounted, and Escape or an action asks to close it, which hands focus back
+  // to the trigger once it has. A controlled parent can turn either ask
+  // down, and then the focus move is dropped once the event that asked is
+  // over, so a later change some other way moves no focus.
   const openRef = useLatestRef(open);
   const openOnEdge = (edge: 'first' | 'last') => {
     pendingFocusRef.current = edge;
@@ -537,6 +540,21 @@ export const FloatButtonSpeedDial = forwardRef<
       if (!openRef.current) pendingFocusRef.current = null;
     });
   };
+  const returnFocusRef = useRef(false);
+  const closeToTrigger = () => {
+    returnFocusRef.current = true;
+    requestOpen(false);
+    setTimeout(() => {
+      if (openRef.current) returnFocusRef.current = false;
+    });
+  };
+  // Before paint, and before the effects of what an action opened, such as
+  // a Modal that takes focus from here.
+  useClientLayoutEffect(() => {
+    if (open || !returnFocusRef.current) return;
+    returnFocusRef.current = false;
+    triggerRef.current?.focus();
+  }, [open]);
 
   // Read when a press lands outside, so the listener stays put while
   // `requestOpen` changes identity with `onOpenChange`.
@@ -619,8 +637,7 @@ export const FloatButtonSpeedDial = forwardRef<
     if (e.key === 'Escape') {
       if (e.defaultPrevented) return;
       e.preventDefault();
-      requestOpen(false);
-      triggerRef.current?.focus();
+      closeToTrigger();
       return;
     }
     if (e.key === 'Tab') return;
@@ -643,9 +660,8 @@ export const FloatButtonSpeedDial = forwardRef<
     // Closing takes away the action that has focus, and the browser drops
     // focus to the page then, so it goes back to the trigger, as Escape
     // does. An action that moved focus somewhere else keeps it there.
-    const hadFocus = menu.contains(getActiveElementInTree(menu));
-    requestOpen(false);
-    if (hadFocus) triggerRef.current?.focus();
+    if (menu.contains(getActiveElementInTree(menu))) closeToTrigger();
+    else requestOpen(false);
   };
 
   // The actions' tooltips open off the line they run along. The trigger's
@@ -801,8 +817,8 @@ export interface FloatButtonBackToTopProps
    * once the scroll is done, focus drops to the document, and the next Tab
    * starts wherever the browser decides. Focus moves with `preventScroll`,
    * at once, so it doesn't cut the scroll short. An element that can't take
-   * focus gets `tabindex="-1"` until it loses it, so the next Tab goes on
-   * from there.
+   * focus gets `tabindex="-1"`, and no focus ring, until it loses it, so the
+   * next Tab goes on from there. A tabindex of its own is left alone.
    * @defaultValue true
    */
   moveFocus?: boolean | React.RefObject<HTMLElement | null>;
@@ -839,18 +855,38 @@ function scrollerOf(
 }
 
 /**
- * Focuses `target` without scrolling to it. One that can't take focus, such
- * as a `<main>`, gets `tabindex="-1"` for as long as it has it, as skip-link
- * scripts do, so the next Tab starts from there.
+ * Focuses `target` without scrolling to it. One that can't take focus and
+ * has no tabindex of its own, such as a `<main>`, gets `tabindex="-1"` and no
+ * focus ring for as long as it has focus, as skip-link scripts do, so the
+ * next Tab starts from there.
  */
 function focusTop(target: HTMLElement) {
-  target.focus({ preventScroll: true });
-  if (target.matches(':focus')) return;
+  const focused = () => getActiveElementInTree(target) === target;
+  const own = target.hasAttribute('tabindex');
+  // A target with a tabindex of its own keeps it, whether it took focus or
+  // not. Any other is tried as it is first, except <body>, which reads as
+  // the active element whenever nothing has focus, so only a tabindex makes
+  // focusing it count.
+  if (own || target !== target.ownerDocument.body) {
+    target.focus({ preventScroll: true });
+    if (own || focused()) return;
+  }
+  // It takes focus only for this move, so it draws no ring, as skip-link
+  // scripts do: on <body> that would be round the whole page.
+  const { outline } = target.style;
+  const hadStyle = target.hasAttribute('style');
   target.setAttribute('tabindex', '-1');
-  target.addEventListener('blur', () => target.removeAttribute('tabindex'), {
-    once: true,
-  });
+  target.style.outline = 'none';
+  const restore = () => {
+    target.removeAttribute('tabindex');
+    target.style.outline = outline;
+    if (!hadStyle && !target.getAttribute('style')) {
+      target.removeAttribute('style');
+    }
+  };
   target.focus({ preventScroll: true });
+  if (focused()) target.addEventListener('blur', restore, { once: true });
+  else restore();
 }
 
 /**
