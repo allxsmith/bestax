@@ -911,18 +911,14 @@ const AppFrameRoot = forwardRef<HTMLDivElement, AppFrameProps>(
  * The frame's state, for a control of your own inside it: whether the
  * drawer is open and the column collapsed, setters that go through the
  * frame's callbacks, and `toggleNav()`, which does what the burger does.
+ * Outside an AppFrame it's `null`, as the library's other context hooks
+ * are, so a control that can sit outside one renders a fallback or nothing.
  *
  * @function useAppFrame
- * @returns The frame's state. Throws outside an AppFrame.
+ * @returns The frame's state, or `null` outside an AppFrame.
  */
-export function useAppFrame(): AppFrameState {
-  const frame = useContext(FrameContext);
-  if (!frame) {
-    throw new Error(
-      '[bestax-bulma] useAppFrame() must be used inside <AppFrame>.'
-    );
-  }
-  return frame.state;
+export function useAppFrame(): AppFrameState | null {
+  return useContext(FrameContext)?.state ?? null;
 }
 
 export const AppFrame = withSubComponents(

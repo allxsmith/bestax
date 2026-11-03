@@ -265,6 +265,7 @@ export const FiltersAtTablet: Story = {
 /** A control of your own: it reads and toggles the frame through `useAppFrame()`. */
 function SectionsToggle() {
   const frame = useAppFrame();
+  if (!frame) return null;
   const expanded = frame.isDrawer ? frame.navOpen : !frame.navCollapsed;
   return (
     <Button

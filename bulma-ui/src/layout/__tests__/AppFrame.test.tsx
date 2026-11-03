@@ -702,6 +702,7 @@ describe('AppFrame', () => {
   describe('useAppFrame', () => {
     const Toggle = () => {
       const frame = useAppFrame();
+      if (!frame) return <output>outside</output>;
       return (
         <>
           <button
@@ -768,12 +769,9 @@ describe('AppFrame', () => {
       expect(state().navOpen).toBe(false);
     });
 
-    it('throws outside a frame', () => {
-      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
-      expect(() => render(<Toggle />)).toThrow(
-        '[bestax-bulma] useAppFrame() must be used inside <AppFrame>.'
-      );
-      error.mockRestore();
+    it('returns null outside a frame, so a control can render its own fallback', () => {
+      render(<Toggle />);
+      expect(screen.getByRole('status')).toHaveTextContent('outside');
     });
   });
 
@@ -797,7 +795,7 @@ describe('AppFrame', () => {
     it('hands focus back to whatever had it as it opened', () => {
       mockViewport(PHONE);
       const Opener = () => {
-        const { setNavOpen } = useAppFrame();
+        const { setNavOpen } = useAppFrame()!;
         return (
           <button type="button" onClick={() => setNavOpen(true)}>
             Open sections
@@ -1369,7 +1367,7 @@ describe('AppFrame', () => {
 
 /** Whether `useAppFrame()` reads the nav as a drawer at `breakpoint`. */
 function isDrawerAt(breakpoint: AppFrameProps['breakpoint']) {
-  const Probe = () => <output>{String(useAppFrame().isDrawer)}</output>;
+  const Probe = () => <output>{String(useAppFrame()!.isDrawer)}</output>;
   const view = render(
     <AppFrame breakpoint={breakpoint}>
       <Probe />

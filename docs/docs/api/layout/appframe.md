@@ -291,7 +291,8 @@ page has another aside.
 
 `useAppFrame()` gives a control inside the frame the same state the burger has: `navOpen`,
 `navCollapsed`, `isDrawer`, a setter for each, `navId` for its `aria-controls`, and `toggleNav()`,
-which does what the burger does at the current width. It throws outside an `AppFrame`.
+which does what the burger does at the current width. Outside an `AppFrame` it returns `null`,
+so a control that can sit outside one renders a fallback, or nothing.
 
 Have your toggle focus itself before it toggles, as `AppFrame.Burger` does. Safari, and Firefox on a Mac, don't focus a button on click, so without it the drawer has no opener to hand focus back to when it closes.
 
@@ -299,6 +300,7 @@ Have your toggle focus itself before it toggles, as `AppFrame.Burger` does. Safa
 function example() {
   function SectionsToggle() {
     const frame = useAppFrame();
+    if (!frame) return null;
     const expanded = frame.isDrawer ? frame.navOpen : !frame.navCollapsed;
     return (
       <Button
