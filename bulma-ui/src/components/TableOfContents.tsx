@@ -29,7 +29,10 @@ export interface TableOfContentsItem {
 
 /** The visible strings, in your app's language. */
 export interface TableOfContentsLabels {
-  /** The list's visible title, which also names its `<nav>`. "On this page". */
+  /**
+   * The list's visible title, which also names its `<nav>`.
+   * @defaultValue 'On this page'
+   */
   title?: string;
 }
 
@@ -57,7 +60,7 @@ export interface TableOfContentsProps
    * Called with the current section's id when it changes, or `null` above
    * the first section. Never called on the server or before hydration.
    */
-  onActiveChange?: (id: string | null) => void;
+  onCurrentChange?: (id: string | null) => void;
   /**
    * Pixels from the viewport's top where a section counts as reached.
    * Unset, it's the page's `scroll-padding-top`, so the highlight agrees
@@ -134,7 +137,7 @@ export const TableOfContents = forwardRef<HTMLElement, TableOfContentsProps>(
       textColor,
       bgColor,
       items,
-      onActiveChange,
+      onCurrentChange,
       offset,
       isSticky,
       labels,
@@ -148,7 +151,7 @@ export const TableOfContents = forwardRef<HTMLElement, TableOfContentsProps>(
       ...props,
     });
     const titleId = useId();
-    const active = useScrollSpy({ ids: idsOf(items), offset, onActiveChange });
+    const active = useScrollSpy({ ids: idsOf(items), offset, onCurrentChange });
 
     const navRef = useRef<HTMLElement | null>(null);
     const setRefs = useCallback(

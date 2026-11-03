@@ -130,7 +130,7 @@ const meta: Meta<typeof TableOfContents> = {
       control: 'object',
       description: 'The visible strings: title, "On this page" by default',
     },
-    onActiveChange: {
+    onCurrentChange: {
       control: false,
       description:
         'Called with the current section’s id when it changes, or null above the first section',
@@ -234,6 +234,7 @@ export const LongList: Story = {
  * title and the name of the `<nav>`.
  */
 export const Labels: Story = {
+  args: { labels: { title: 'Sur cette page' } },
   render: function LabelsExample(args) {
     const pageId = useId();
     return (
@@ -242,11 +243,7 @@ export const Labels: Story = {
           <Guide prefix={pageId} />
         </Column>
         <Column size="one-quarter">
-          <TableOfContents
-            {...args}
-            labels={{ title: 'Sur cette page' }}
-            items={guide(pageId)}
-          />
+          <TableOfContents {...args} items={guide(pageId)} />
         </Column>
       </Columns>
     );
@@ -254,11 +251,11 @@ export const Labels: Story = {
 };
 
 /**
- * `onActiveChange` reports each new section's id, here to a line above the
+ * `onCurrentChange` reports each new section's id, here to a line above the
  * guide.
  */
-export const OnActiveChange: Story = {
-  render: function OnActiveChangeExample(args) {
+export const OnCurrentChange: Story = {
+  render: function OnCurrentChangeExample(args) {
     const pageId = useId();
     const [current, setCurrent] = useState<string | null>(null);
     return (
@@ -273,7 +270,7 @@ export const OnActiveChange: Story = {
           <TableOfContents
             {...args}
             items={guide(pageId)}
-            onActiveChange={setCurrent}
+            onCurrentChange={setCurrent}
           />
         </Column>
       </Columns>

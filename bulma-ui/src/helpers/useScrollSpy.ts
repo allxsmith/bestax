@@ -19,7 +19,7 @@ export interface UseScrollSpyOptions {
    */
   offset?: number;
   /** Called with the new current id when it changes, or `null` above the first section. */
-  onActiveChange?: (id: string | null) => void;
+  onCurrentChange?: (id: string | null) => void;
 }
 
 /**
@@ -158,7 +158,7 @@ function followedLink(event: MouseEvent): HTMLAnchorElement | undefined {
 export function useScrollSpy({
   ids,
   offset,
-  onActiveChange,
+  onCurrentChange,
 }: UseScrollSpyOptions): string | null {
   const [active, setActive] = useState<string | null>(null);
   // What was last reported, kept across a re-subscribe so the same id isn't
@@ -170,7 +170,7 @@ export function useScrollSpy({
   // ids first include some.
   const heldRef = useRef<string | null>(null);
   const openedRef = useRef(false);
-  const onActiveChangeRef = useLatestRef(onActiveChange);
+  const onCurrentChangeRef = useLatestRef(onCurrentChange);
   // The ids as a value, so a new array with the same ids each render doesn't
   // re-subscribe.
   const key = JSON.stringify(ids);
@@ -188,7 +188,7 @@ export function useScrollSpy({
       if (id === reportedRef.current) return;
       reportedRef.current = id;
       setActive(id);
-      onActiveChangeRef.current?.(id);
+      onCurrentChangeRef.current?.(id);
     };
 
     /** The element for one of the ids, if it's on the page and drawn. */
@@ -315,7 +315,7 @@ export function useScrollSpy({
       window.removeEventListener('resize', onResize);
       document.removeEventListener('click', onClick, { capture: true });
     };
-  }, [key, fixedOffset, onActiveChangeRef]);
+  }, [key, fixedOffset, onCurrentChangeRef]);
 
   return active;
 }

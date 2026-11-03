@@ -258,11 +258,11 @@ describe('TableOfContents', () => {
       expect(document.querySelector('.is-active')).toBeNull();
     });
 
-    it('calls onActiveChange with the id', () => {
+    it('calls onCurrentChange with the id', () => {
       Object.assign(tops, { install: -500, usage: -10 });
-      const onActiveChange = vi.fn();
-      render(<Page onActiveChange={onActiveChange} />);
-      expect(onActiveChange).toHaveBeenCalledWith('usage');
+      const onCurrentChange = vi.fn();
+      render(<Page onCurrentChange={onCurrentChange} />);
+      expect(onCurrentChange).toHaveBeenCalledWith('usage');
     });
 
     it('leaves a click on a link alone, so following one is the browser’s own', () => {

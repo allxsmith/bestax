@@ -119,7 +119,7 @@ const cases: Array<[string, React.ReactElement]> = [
     <TableOfContents
       key="table-of-contents"
       items={[{ id: 'intro', label: 'Intro' }]}
-      onActiveChange={() => {}}
+      onCurrentChange={() => {}}
     />,
   ],
   ['Slider', <Slider key="slider" label="Volume" />],

@@ -15,7 +15,7 @@
     },
     {
       "title": "Reporting the Current Section",
-      "code": "function example() {\n  const [current, setCurrent] = useState<string | null>(null);\n  return (\n    <>\n      <Paragraph textWeight=\"semibold\">\n        Reading: {current ?? 'nothing yet'}\n      </Paragraph>\n      <TableOfContents\n        offset={68}\n        onActiveChange={setCurrent}\n        items={[\n          { id: 'usage', label: 'Usage' },\n          { id: 'which-section-is-current', label: 'Which Section Is Current' },\n          { id: 'accessibility', label: 'Accessibility' },\n          { id: 'related-components', label: 'Related Components' },\n        ]}\n      />\n    </>\n  );\n}"
+      "code": "function example() {\n  const [current, setCurrent] = useState<string | null>(null);\n  return (\n    <>\n      <Paragraph textWeight=\"semibold\">\n        Reading: {current ?? 'nothing yet'}\n      </Paragraph>\n      <TableOfContents\n        offset={68}\n        onCurrentChange={setCurrent}\n        items={[\n          { id: 'usage', label: 'Usage' },\n          { id: 'which-section-is-current', label: 'Which Section Is Current' },\n          { id: 'accessibility', label: 'Accessibility' },\n          { id: 'related-components', label: 'Related Components' },\n        ]}\n      />\n    </>\n  );\n}"
     },
     {
       "title": "The useScrollSpy Hook",
@@ -58,7 +58,7 @@
           "deprecated": false
         },
         {
-          "name": "onActiveChange",
+          "name": "onCurrentChange",
           "type": "(id: string | null) => void",
           "default": null,
           "description": "Called with the current section's id when it changes, or `null` above the first section. Never called on the server or before hydration.",

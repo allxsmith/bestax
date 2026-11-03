@@ -150,10 +150,10 @@ describe('useScrollSpy', () => {
 
     it('is none above the first section', () => {
       Object.assign(tops, { a: 100, b: 600, c: 900 });
-      const onActiveChange = vi.fn();
-      render(<Page offset={50} onActiveChange={onActiveChange} />);
+      const onCurrentChange = vi.fn();
+      render(<Page offset={50} onCurrentChange={onCurrentChange} />);
       expect(active()).toBe('none');
-      expect(onActiveChange).not.toHaveBeenCalled();
+      expect(onCurrentChange).not.toHaveBeenCalled();
     });
 
     it('takes a section a pixel past the line, for a jump that lands a fraction short', () => {
@@ -358,22 +358,22 @@ describe('useScrollSpy', () => {
 
     it('stops watching on unmount', () => {
       Object.assign(tops, { a: -300, b: 20, c: 400 });
-      const onActiveChange = vi.fn();
+      const onCurrentChange = vi.fn();
       const { unmount } = render(
-        <Page offset={50} onActiveChange={onActiveChange} />
+        <Page offset={50} onCurrentChange={onCurrentChange} />
       );
       act(() => {
         window.dispatchEvent(new Event('scroll'));
       });
       clickLink('#a');
       unmount();
-      onActiveChange.mockClear();
+      onCurrentChange.mockClear();
       Object.assign(tops, { b: -200, c: 30 });
       window.dispatchEvent(new Event('scroll'));
       window.dispatchEvent(new Event('resize'));
       clickLink('#c');
       vi.advanceTimersByTime(1000);
-      expect(onActiveChange).not.toHaveBeenCalled();
+      expect(onCurrentChange).not.toHaveBeenCalled();
     });
   });
 
@@ -621,17 +621,17 @@ describe('useScrollSpy', () => {
     });
   });
 
-  describe('onActiveChange', () => {
+  describe('onCurrentChange', () => {
     it('is called with each new id, and with null above the first section', () => {
       Object.assign(tops, { a: -300, b: 20, c: 400 });
-      const onActiveChange = vi.fn();
-      render(<Page offset={50} onActiveChange={onActiveChange} />);
-      expect(onActiveChange.mock.calls).toEqual([['b']]);
+      const onCurrentChange = vi.fn();
+      render(<Page offset={50} onCurrentChange={onCurrentChange} />);
+      expect(onCurrentChange.mock.calls).toEqual([['b']]);
       scroll();
-      expect(onActiveChange).toHaveBeenCalledTimes(1);
+      expect(onCurrentChange).toHaveBeenCalledTimes(1);
       Object.assign(tops, { a: 300, b: 620, c: 1000 });
       scroll();
-      expect(onActiveChange.mock.calls).toEqual([['b'], [null]]);
+      expect(onCurrentChange.mock.calls).toEqual([['b'], [null]]);
     });
 
     it('calls the latest function without watching the page again', () => {
@@ -639,8 +639,8 @@ describe('useScrollSpy', () => {
       const add = vi.spyOn(window, 'addEventListener');
       const first = vi.fn();
       const second = vi.fn();
-      const { rerender } = render(<Page offset={50} onActiveChange={first} />);
-      rerender(<Page offset={50} onActiveChange={second} />);
+      const { rerender } = render(<Page offset={50} onCurrentChange={first} />);
+      rerender(<Page offset={50} onCurrentChange={second} />);
       expect(add.mock.calls.filter(([type]) => type === 'scroll')).toHaveLength(
         1
       );
