@@ -49,6 +49,12 @@ const ADDONS = [
     desc: 'Slide any content with autoplay, drag, arrows, and indicators.',
   },
   {
+    name: 'Cascader',
+    icon: 'cascader',
+    link: '/docs/api/form/cascader',
+    desc: 'A form field that picks along a path, one column per level, and shows the whole path once it closes.',
+  },
+  {
     name: 'CheckboxCard/RadioCard',
     icon: 'choicecard',
     link: '/docs/api/form/checkboxcard',

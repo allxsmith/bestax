@@ -98,6 +98,7 @@ const BESTAX = {
   Tooltip: 'components/tooltip',
   TreeView: 'components/treeview',
   Autocomplete: 'form/autocomplete',
+  Cascader: 'form/cascader',
   Checkbox: 'form/checkbox',
   Checkboxes: 'form/checkboxes',
   ColorInput: 'form/colorinput',
@@ -861,7 +862,7 @@ export const categories = [
         'Combobox',
         'Combobox',
       ],
-      ['Cascader (nested select)', 0, 'Cascader', 0, 0, 0, 0, 0],
+      ['Cascader (nested select)', 'Cascader', 'Cascader', 0, 0, 0, 0, 0],
       [
         'Tag / token input',
         'Taginput',

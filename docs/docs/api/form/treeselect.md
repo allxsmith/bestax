@@ -498,6 +498,8 @@ field's left, and Right and Left swap in the tree.
 ## Related Components
 
 - [`TreeView`](../components/treeview.md): The same tree, on the page rather than in a field.
+- [`Cascader`](./cascader.md): The same `data` and value, picked a column per level, with the
+  path in the field.
 - [`Combobox`](./combobox.md): Picks one value or several from a flat list, with a text field to
   search it.
 - [`Select`](./select.md): The browser's own select, for a short flat list.

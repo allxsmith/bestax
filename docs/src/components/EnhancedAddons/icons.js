@@ -98,6 +98,22 @@ function CollapseIcon() {
   );
 }
 
+// A field with two columns opened under it, a row in the first leading on
+// to the second: cascader
+function CascaderIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="3" width="18" height="6" rx="1.5" />
+      <path d="M6.5 6h7" />
+      <rect x="3" y="11" width="18" height="10" rx="1.5" />
+      <path d="M12 11v10" />
+      <path d="M5.5 14.5h2.5" />
+      <path d="M9 13l1.5 1.5L9 16" />
+      <path d="M14.5 14.5h4M14.5 18h4" />
+    </svg>
+  );
+}
+
 // A field with its list opened under it, the first row checked: combobox
 function ComboboxIcon() {
   return (
@@ -382,6 +398,7 @@ const ADDON_ICONS = {
   avatar: AvatarIcon,
   badge: BadgeIcon,
   carousel: CarouselIcon,
+  cascader: CascaderIcon,
   choicecard: ChoiceCardIcon,
   collapse: CollapseIcon,
   colorpicker: ColorPickerIcon,
