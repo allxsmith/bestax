@@ -1523,6 +1523,84 @@ describe('Tooltip', () => {
     });
   });
 
+  describe('disabled', () => {
+    it('doesn’t open on hover or keyboard focus, and measures nothing', () => {
+      const frame = vi.spyOn(window, 'requestAnimationFrame');
+      render(
+        <Tooltip label="Delete" disabled>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      hover(trigger());
+      advance(0);
+      expect(wrapper()).not.toHaveClass('is-active');
+      expect(wrapper()).not.toHaveClass('is-open');
+      unhover(trigger());
+      advance(0);
+      keyboardFocus(trigger());
+      advance(0);
+      expect(wrapper()).not.toHaveClass('is-active');
+      expect(frame).not.toHaveBeenCalled();
+      frame.mockRestore();
+    });
+
+    it('hides an open tooltip, and opens on the next hover once it’s enabled again', () => {
+      const { rerender } = render(
+        <Tooltip label="Delete">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      hover(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active', 'is-open');
+      rerender(
+        <Tooltip label="Delete" disabled>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(wrapper()).not.toHaveClass('is-active');
+      expect(wrapper()).not.toHaveClass('is-open');
+      // The pointer leaves while it's disabled, so the tooltip closes too.
+      unhover(trigger());
+      advance(0);
+      rerender(
+        <Tooltip label="Delete">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(wrapper()).not.toHaveClass('is-active');
+      hover(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+    });
+
+    it('keeps the trigger mounted as it’s turned on and off', () => {
+      const { rerender } = render(
+        <Tooltip label="Delete">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      const button = trigger();
+      button.focus();
+      rerender(
+        <Tooltip label="Delete" disabled>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(trigger()).toBe(button);
+      expect(button).toHaveFocus();
+    });
+
+    it('still shows with active', () => {
+      render(
+        <Tooltip label="Delete" disabled active>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(wrapper()).toHaveClass('is-active');
+    });
+  });
+
   describe('className handling', () => {
     it('applies custom className', () => {
       const { container } = render(

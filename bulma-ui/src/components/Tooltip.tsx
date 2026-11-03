@@ -131,6 +131,15 @@ export interface TooltipProps
    * @defaultValue true
    */
   describesTrigger?: boolean;
+  /**
+   * Keeps the tooltip closed, and leaves its trigger as it is: hover,
+   * keyboard focus and a tap don't open it, and one that's open hides. For a
+   * tooltip that applies only some of the time, without unmounting the
+   * trigger, which would drop its focus. Turned off again, it opens on the
+   * next hover or focus. `active` still shows it.
+   * @defaultValue false
+   */
+  disabled?: boolean;
   /** Additional classes for the tooltip element. */
   tooltipClassName?: string;
 }
@@ -188,6 +197,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
   closeDelay = 0,
   openOnTap = false,
   describesTrigger = true,
+  disabled = false,
   children,
   className,
   tooltipClassName,
@@ -205,6 +215,9 @@ export const Tooltip: React.FC<TooltipProps> = ({
     ...attrs
   } = rest;
   const [isVisible, setIsVisible] = useState(false);
+  // Open as the pointer and focus have it, unless it's disabled. An ask to
+  // open while it's disabled is turned down, so nothing measures it.
+  const shown = isVisible && !disabled;
   const [resolvedPosition, setResolvedPosition] = useState<
     Exclude<TooltipPosition, 'auto'>
   >(position === 'auto' ? 'top' : position);
@@ -252,7 +265,9 @@ export const Tooltip: React.FC<TooltipProps> = ({
     // dropping `active` leaves it shown while the pointer or focus holds it.
     // An ask to close can come while it's already hidden, which is no change.
     open: isVisible,
-    onOpenChange: setIsVisible,
+    onOpenChange: next => {
+      if (!next || !disabled) setIsVisible(next);
+    },
     openDelay: delay,
     closeDelay,
     // The wrapper stands in for the trigger. It holds only the children and
@@ -274,7 +289,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
       setResolvedPosition(position);
     }
 
-    const showing = isVisible || alwaysActive;
+    const showing = shown || alwaysActive;
     if (!showing) {
       setContentStyle({});
       return;
@@ -356,14 +371,14 @@ export const Tooltip: React.FC<TooltipProps> = ({
 
       setContentStyle(style);
     });
-  }, [position, resolvedPosition, isVisible, alwaysActive, label, content]);
+  }, [position, resolvedPosition, shown, alwaysActive, label, content]);
 
   // Generate Bulma classes
   const tooltipClasses = usePrefixedClassNames('tooltip', {
-    'is-active': alwaysActive || isVisible,
+    'is-active': alwaysActive || shown,
     // Open by the pointer, focus or a tap, rather than shown by `active`
     // alone: only then does the tooltip, and the gap to it, take the pointer.
-    'is-open': isVisible,
+    'is-open': shown,
     [`is-${resolvedPosition}`]: resolvedPosition,
     [`is-${color}`]: color,
     [`is-${size}`]: size,
