@@ -474,6 +474,7 @@ describe('in an icon rail', () => {
   ): MenuRail => ({
     collapsed,
     modeKnown,
+    navId: 'rail-nav',
     expand,
     wrap: (trigger, label) => (
       <span data-testid="tip" data-label={String(label)}>
@@ -482,12 +483,16 @@ describe('in an icon rail', () => {
     ),
   });
 
-  const renderIn = (rail: MenuRail, ui: React.ReactNode) =>
-    render(
-      <MenuRailContext.Provider value={rail}>
+  /** A Menu inside the rail's nav, whose id the rail names. */
+  const inNav = (rail: MenuRail, ui: React.ReactNode) => (
+    <MenuRailContext.Provider value={rail}>
+      <nav id="rail-nav">
         <Menu>{ui}</Menu>
-      </MenuRailContext.Provider>
-    );
+      </nav>
+    </MenuRailContext.Provider>
+  );
+  const renderIn = (rail: MenuRail, ui: React.ReactNode) =>
+    render(inNav(rail, ui));
 
   it('wraps a top-level item with an icon, with its label, and nothing in its nested lists', () => {
     renderIn(
@@ -515,6 +520,22 @@ describe('in an icon rail', () => {
     expect(screen.getByRole('link', { name: 'Plain' }).parentElement).toBe(
       screen.getByRole('link', { name: 'Plain' }).closest('li')
     );
+  });
+
+  it('takes no rail for a Menu outside the rail’s nav', () => {
+    render(
+      <MenuRailContext.Provider value={railOf(true)}>
+        <nav id="rail-nav" />
+        <Menu>
+          <Menu.List>
+            <Menu.Item href="#orders" icon={<Glyph />}>
+              Orders
+            </Menu.Item>
+          </Menu.List>
+        </Menu>
+      </MenuRailContext.Provider>
+    );
+    expect(screen.queryByTestId('tip')).toBeNull();
   });
 
   it('wraps a section’s button with its heading', () => {
@@ -728,20 +749,19 @@ describe('in an icon rail', () => {
     // It asks to stay open rather than close.
     expect(onOpenChange).toHaveBeenLastCalledWith(true);
     rerender(
-      <MenuRailContext.Provider value={railOf(false, expand)}>
-        <Menu>
-          <Menu.Section
-            label="Reports"
-            icon={<Glyph />}
-            defaultOpen
-            onOpenChange={onOpenChange}
-          >
-            <Menu.List>
-              <Menu.Item href="#sales">Sales</Menu.Item>
-            </Menu.List>
-          </Menu.Section>
-        </Menu>
-      </MenuRailContext.Provider>
+      inNav(
+        railOf(false, expand),
+        <Menu.Section
+          label="Reports"
+          icon={<Glyph />}
+          defaultOpen
+          onOpenChange={onOpenChange}
+        >
+          <Menu.List>
+            <Menu.Item href="#sales">Sales</Menu.Item>
+          </Menu.List>
+        </Menu.Section>
+      )
     );
     expect(button).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByRole('link', { name: 'Sales' })).toBeVisible();

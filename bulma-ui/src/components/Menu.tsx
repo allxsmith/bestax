@@ -2,7 +2,9 @@ import React, {
   createContext,
   forwardRef,
   useContext,
+  useEffect,
   useId,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -25,12 +27,17 @@ import {
 // Context to track MenuList nesting level
 const MenuListLevelContext = createContext(0);
 
-// The rail the menu's own top-level items and sections are in. The Menu root
-// claims it from the nav and hands it on here, and gives everything below
-// none, so a Menu inside a Popover or a Modal opened from the menu sees no
-// rail. An item's nested lists and a section's list get none either: the
-// rail hides them.
-const MenuOwnRailContext = createContext<MenuRail | null>(null);
+// The rail the menu's own top-level items and sections are in, and whether
+// the Menu root has checked where it sits. A Menu takes the nav's rail only
+// when its element is inside the nav, so a Menu portaled out of it, into a
+// Popover or a Modal opened from the nav, has none. An item's nested lists
+// and a section's list get none either: the rail hides them.
+interface OwnRail {
+  rail: MenuRail | null;
+  settled: boolean;
+}
+const NO_RAIL: OwnRail = { rail: null, settled: true };
+const MenuOwnRailContext = createContext<OwnRail>(NO_RAIL);
 
 /**
  * Props for the Menu component.
@@ -59,22 +66,40 @@ const MenuComponent: React.FC<MenuProps> = ({
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
-  const rail = useContext(MenuRailContext);
+  const navRail = useContext(MenuRailContext);
+  const rootRef = useRef<HTMLElement>(null);
+
+  // Whether the menu sits inside the rail's nav, which only the page knows.
+  // Taken as inside until a layout effect checks, before paint: a portaled
+  // Menu, the one kind outside, doesn't render on the server.
+  const [inNav, setInNav] = useState<boolean | null>(null);
+  useClientLayoutEffect(() => {
+    if (!navRail) return;
+    let el: HTMLElement | null = rootRef.current;
+    while (el && el.id !== navRail.navId) el = el.parentElement;
+    setInNav(!!el);
+  }, [navRail]);
+  const own = useMemo<OwnRail>(
+    () =>
+      navRail
+        ? { rail: inNav === false ? null : navRail, settled: inNav !== null }
+        : NO_RAIL,
+    [navRail, inNav]
+  );
 
   // Generate Bulma classes with prefix
   const bulmaClasses = usePrefixedClassNames('menu');
 
   return (
-    <MenuRailContext.Provider value={null}>
-      <MenuOwnRailContext.Provider value={rail}>
-        <aside
-          className={classNames(bulmaClasses, bulmaHelperClasses, className)}
-          {...rest}
-        >
-          {children}
-        </aside>
-      </MenuOwnRailContext.Provider>
-    </MenuRailContext.Provider>
+    <MenuOwnRailContext.Provider value={own}>
+      <aside
+        ref={rootRef}
+        className={classNames(bulmaClasses, bulmaHelperClasses, className)}
+        {...rest}
+      >
+        {children}
+      </aside>
+    </MenuOwnRailContext.Provider>
   );
 };
 
@@ -312,16 +337,19 @@ export const MenuItem = forwardRef(function MenuItem(
   );
   const iconClass = usePrefixedClassNames('menu-item-icon');
   const labelClass = usePrefixedClassNames('menu-item-label');
-  const rail = useContext(MenuOwnRailContext);
-  if (rail && !icon) {
-    warnOnce(
-      'Menu:rail-item-icon',
-      '[bestax-bulma] A <Menu.Item> in an <AppFrame.Nav rail> has no icon, ' +
-        'so the collapsed rail has nothing to show for it and its label ' +
-        'spills over the page. Give every top-level Menu.Item and ' +
-        'Menu.Section in a rail an icon.'
-    );
-  }
+  const { rail, settled } = useContext(MenuOwnRailContext);
+  // Once the Menu knows it's in the rail, so a portaled one never warns.
+  useEffect(() => {
+    if (settled && rail && !icon) {
+      warnOnce(
+        'Menu:rail-item-icon',
+        '[bestax-bulma] A <Menu.Item> in an <AppFrame.Nav rail> has no ' +
+          'icon, so the collapsed rail has nothing to show for it and its ' +
+          'label spills over the page. Give every top-level Menu.Item and ' +
+          'Menu.Section in a rail an icon.'
+      );
+    }
+  }, [settled, rail, icon]);
 
   // Split children into label and nested MenuList(s)
   const labelChildren: React.ReactNode[] = [];
@@ -399,7 +427,7 @@ export const MenuItem = forwardRef(function MenuItem(
       tabIndex={tabIndex}
     >
       {rail && icon ? rail.wrap(link, labelChildren) : link}
-      <MenuOwnRailContext.Provider value={null}>
+      <MenuOwnRailContext.Provider value={NO_RAIL}>
         {nestedMenuLists}
       </MenuOwnRailContext.Provider>
     </li>
@@ -486,15 +514,17 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
   const listId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const rail = useContext(MenuOwnRailContext);
-  if (rail && !icon) {
-    warnOnce(
-      'Menu:rail-section-icon',
-      '[bestax-bulma] A <Menu.Section> in an <AppFrame.Nav rail> has no ' +
-        'icon, so in the collapsed rail its button shows nothing. Give ' +
-        'every top-level Menu.Item and Menu.Section in a rail an icon.'
-    );
-  }
+  const { rail, settled } = useContext(MenuOwnRailContext);
+  useEffect(() => {
+    if (settled && rail && !icon) {
+      warnOnce(
+        'Menu:rail-section-icon',
+        '[bestax-bulma] A <Menu.Section> in an <AppFrame.Nav rail> has no ' +
+          'icon, so in the collapsed rail its button shows nothing. Give ' +
+          'every top-level Menu.Item and Menu.Section in a rail an icon.'
+      );
+    }
+  }, [settled, rail, icon]);
   // The rail hides a section's list, so there the button widens the column
   // and opens the section, and says it's collapsed. Until the frame knows
   // whether the column is a rail, as before the page hydrates, the button
@@ -568,7 +598,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
     >
       {rail && icon ? rail.wrap(toggle, label) : toggle}
       <div ref={listRef} id={listId} hidden={!isOpen} {...inertProps(!isOpen)}>
-        <MenuOwnRailContext.Provider value={null}>
+        <MenuOwnRailContext.Provider value={NO_RAIL}>
           {children}
         </MenuOwnRailContext.Provider>
       </div>

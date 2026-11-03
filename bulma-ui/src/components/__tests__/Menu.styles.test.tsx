@@ -448,6 +448,7 @@ describe.each([
       const rail: MenuRail = {
         collapsed: false,
         modeKnown: true,
+        navId: 'rail-nav',
         expand: () => {},
         wrap: (trigger, label) => (
           <Tooltip content={label} describesTrigger={false}>
@@ -458,18 +459,20 @@ describe.each([
       const { container } = render(
         <ConfigProvider classPrefix={prefix}>
           <MenuRailContext.Provider value={rail}>
-            <Menu>
-              <Menu.Section label="Components" icon={<svg />} defaultOpen>
-                <Menu.List>
-                  <Menu.Item href="#a">Button</Menu.Item>
-                </Menu.List>
-              </Menu.Section>
-              <Menu.Section label="Form" icon={<svg />}>
-                <Menu.List>
-                  <Menu.Item href="#b">Input</Menu.Item>
-                </Menu.List>
-              </Menu.Section>
-            </Menu>
+            <nav id="rail-nav">
+              <Menu>
+                <Menu.Section label="Components" icon={<svg />} defaultOpen>
+                  <Menu.List>
+                    <Menu.Item href="#a">Button</Menu.Item>
+                  </Menu.List>
+                </Menu.Section>
+                <Menu.Section label="Form" icon={<svg />}>
+                  <Menu.List>
+                    <Menu.Item href="#b">Input</Menu.Item>
+                  </Menu.List>
+                </Menu.Section>
+              </Menu>
+            </nav>
           </MenuRailContext.Provider>
         </ConfigProvider>
       );

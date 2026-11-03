@@ -19,6 +19,11 @@ export interface MenuRail {
    * a rail or a drawer. Not on the server, nor in the render that hydrates.
    */
   modeKnown: boolean;
+  /**
+   * The nav's id. A Menu takes the rail only when its element sits inside
+   * the element with this id, so one portaled out of the nav doesn't.
+   */
+  navId: string;
   /** Widens the column again. */
   expand: () => void;
   /**

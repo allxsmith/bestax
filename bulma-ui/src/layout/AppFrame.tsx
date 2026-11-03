@@ -216,7 +216,11 @@ export interface AppFrameNavProps
   closeOnNavigate?: boolean;
   /**
    * From the breakpoint up, a collapsed column shrinks to a rail of icons
-   * instead of leaving the page. Every top-level `Menu.Item` and
+   * instead of leaving the page. The rail needs a `Menu` inside the nav: a
+   * Menu portaled out of it, such as one in a Popover or a Modal opened from
+   * it, isn't in the rail, nor is a `Menu.List` with no Menu around it, and a
+   * development build warns when a collapsed rail holds no Menu. Every
+   * top-level `Menu.Item` and
    * `Menu.Section` needs an `icon`: in the rail, an item without one has
    * nothing to show and its label spills over the page, and a section's
    * button is blank, so a development build warns about one without. In the
@@ -571,6 +575,7 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
       return {
         collapsed: railCollapsed,
         modeKnown,
+        navId: navId as string,
         expand: () => state.setNavCollapsed(false),
         wrap: (trigger, label) => (
           <Tooltip
@@ -586,7 +591,22 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
           </Tooltip>
         ),
       };
-    }, [rail, state, railCollapsed, modeKnown, side, tipClass]);
+    }, [rail, state, railCollapsed, modeKnown, navId, side, tipClass]);
+
+    // The rail is the Menu's inside the nav. One portaled out of it, or a
+    // Menu.List with no Menu around it, doesn't take it.
+    const menuClass = usePrefixedClassNames('menu');
+    useEffect(() => {
+      if (railCollapsed && !navRef.current!.querySelector(`.${menuClass}`)) {
+        warnOnce(
+          'AppFrame:rail-menu',
+          '[bestax-bulma] <AppFrame.Nav rail> is collapsed to its rail but ' +
+            'holds no <Menu>, so nothing in it shows as an icon with its ' +
+            'label in a tooltip. Put a Menu inside the nav, with an icon on ' +
+            'each top-level Menu.Item and Menu.Section.'
+        );
+      }
+    }, [railCollapsed, menuClass]);
 
     const navStyle =
       width === undefined

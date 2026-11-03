@@ -1641,6 +1641,123 @@ describe('AppFrame.Nav rail', () => {
     expect(nav()).toHaveClass('is-rail');
   });
 
+  it('leaves a Menu in a Popover at the nav’s foot out of the rail, and doesn’t warn about it', async () => {
+    resetDevWarnings();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    mockViewport(DESKTOP);
+    const onNavCollapsedChange = vi.fn();
+    try {
+      render(
+        <AppFrame
+          defaultNavCollapsed
+          onNavCollapsedChange={onNavCollapsedChange}
+        >
+          <AppFrame.Nav rail>
+            <Menu>
+              <Menu.List>
+                <Menu.Item href="#dashboard" icon={<Glyph />}>
+                  Dashboard
+                </Menu.Item>
+              </Menu.List>
+            </Menu>
+            <Popover
+              appendToBody
+              trigger={<button type="button">Filters</button>}
+            >
+              <Menu>
+                <Menu.List>
+                  <Menu.Item href="#mine">Mine</Menu.Item>
+                </Menu.List>
+                <Menu.Section label="Status" defaultOpen>
+                  <Menu.List>
+                    <Menu.Item href="#open">Open</Menu.Item>
+                  </Menu.List>
+                </Menu.Section>
+              </Menu>
+            </Popover>
+          </AppFrame.Nav>
+          <AppFrame.Main>Page</AppFrame.Main>
+        </AppFrame>
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Filters' }));
+      const status = await screen.findByRole('button', { name: 'Status' });
+      expect(status.closest('.app-frame-rail-tooltip')).toBeNull();
+      expect(link('Mine').closest('.app-frame-rail-tooltip')).toBeNull();
+      expect(status).toHaveAttribute('aria-expanded', 'true');
+      fireEvent.click(status);
+      expect(status).toHaveAttribute('aria-expanded', 'false');
+      expect(onNavCollapsedChange).not.toHaveBeenCalled();
+      // Its items have no icons, and that's fine outside the rail.
+      expect(
+        warn.mock.calls.filter(([m]) => /has no\s+icon/.test(String(m)))
+      ).toEqual([]);
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it('gives the rail to a reusable Menu nested in the nav’s own Menu', () => {
+    mockViewport(DESKTOP);
+    const HelpMenu = () => (
+      <Menu>
+        <Menu.List>
+          <Menu.Item href="#help" icon={<Glyph />}>
+            Help
+          </Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    render(
+      <AppFrame defaultNavCollapsed>
+        <AppFrame.Nav rail>
+          <Menu>
+            <Menu.List>
+              <Menu.Item href="#dashboard" icon={<Glyph />}>
+                Dashboard
+              </Menu.Item>
+            </Menu.List>
+            <HelpMenu />
+          </Menu>
+        </AppFrame.Nav>
+        <AppFrame.Main>Page</AppFrame.Main>
+      </AppFrame>
+    );
+    expect(tipOf(link('Help'))).toHaveClass('app-frame-rail-tooltip');
+    expect(tipOf(link('Dashboard'))).toHaveClass('app-frame-rail-tooltip');
+  });
+
+  it('warns once when a collapsed rail holds no Menu, and not when it does', () => {
+    resetDevWarnings();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    mockViewport(DESKTOP);
+    try {
+      const { unmount } = render(<RailFrame defaultNavCollapsed />);
+      expect(
+        warn.mock.calls.filter(([m]) => /holds no <Menu>/.test(String(m)))
+      ).toEqual([]);
+      unmount();
+      render(
+        <AppFrame defaultNavCollapsed>
+          <AppFrame.Nav rail>
+            <Menu.List>
+              <Menu.Item href="#dashboard" icon={<Glyph />}>
+                Dashboard
+              </Menu.Item>
+            </Menu.List>
+          </AppFrame.Nav>
+          <AppFrame.Main>Page</AppFrame.Main>
+        </AppFrame>
+      );
+      // A Menu.List with no Menu around it isn't in the rail.
+      expect(link('Dashboard').closest('.app-frame-rail-tooltip')).toBeNull();
+      expect(
+        warn.mock.calls.filter(([m]) => /holds no <Menu>/.test(String(m)))
+      ).toHaveLength(1);
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
   it('puts the tooltips on the left of a right-to-left rail', () => {
     mockViewport(DESKTOP);
     const real = window.getComputedStyle;
