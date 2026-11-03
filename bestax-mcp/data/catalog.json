@@ -1389,7 +1389,7 @@
       "import": "import { Tooltip } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 16,
-      "exampleCount": 11
+      "exampleCount": 12
     },
     {
       "name": "TreeView",
@@ -2401,13 +2401,13 @@
     "--bulma-media-level-2-spacing": ["Media"],
     "--bulma-media-spacing": ["Media"],
     "--bulma-media-spacing-large": ["Media"],
+    "--bulma-menu-icon-gap": ["Menu"],
     "--bulma-menu-item-active-background-l-delta": ["Menu"],
     "--bulma-menu-item-background-l": ["Menu"],
     "--bulma-menu-item-background-l-delta": ["Menu"],
     "--bulma-menu-item-color-l": ["Menu"],
     "--bulma-menu-item-h": ["Menu"],
     "--bulma-menu-item-hover-background-l-delta": ["Menu"],
-    "--bulma-menu-item-icon-gap": ["Menu"],
     "--bulma-menu-item-l": ["Menu"],
     "--bulma-menu-item-radius": ["Menu"],
     "--bulma-menu-item-s": ["Menu"],
