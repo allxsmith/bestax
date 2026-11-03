@@ -151,7 +151,9 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `TreeView`**, with `<TreeView.Item value="…" label="…" icon="folder">` items nested inside each
   other: `<TreeView aria-label="Files" selectionMode="single">` with `selected`/`onSelectedChange`
   picks one, and `selectionMode="checkbox"` with `checked`/`onCheckedChange` draws boxes with
-  mixed parents, where a parent's value checks its whole branch. Map the data with a recursive
+  mixed parents, where a parent's value checks its whole branch. For categories, where checking a
+  parent means only the parent, `selectionMode="checkbox-independent"` draws a box per item that
+  checks that item alone, with no mixed parents. Map the data with a recursive
   function, and render an item's children whether it's open or not. A folder that loads when it
   opens takes `hasChildren`, `isLoading` while its children are on their way, and
   `loadError="Couldn't load src"` with `onRetry` when the load fails, setting `isLoading` again

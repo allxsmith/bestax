@@ -22,9 +22,12 @@ import { isGiven } from '../helpers/isGiven';
 
 /**
  * How items are picked: `none`, nothing is; `single`, one item at a time;
- * `checkbox`, any number, with a box on every item and mixed parents.
+ * `checkbox`, any number, with a box on every item and mixed parents;
+ * `checkbox-independent`, any number, with a box on every item that checks
+ * that item alone.
  */
-export type TreeViewSelectionMode = 'none' | 'single' | 'checkbox';
+export type TreeViewSelectionMode =
+  'none' | 'single' | 'checkbox' | 'checkbox-independent';
 
 const validTreeViewSizes = ['small', 'medium', 'large'] as const;
 
@@ -97,6 +100,9 @@ export interface TreeViewProps
    * `single`: one item, picked with Enter, Space or a click.
    * `checkbox`: any number, checked with Space or a click. A check reaches
    * every enabled item under it, and a parent with some of them checked is mixed.
+   * `checkbox-independent`: any number, checked with Space or a click, each
+   * box for its own item. A check reaches nothing under it, and no parent is
+   * mixed (Mantine's and Ant Design's `checkStrictly`).
    */
   selectionMode?: TreeViewSelectionMode;
   /**
@@ -114,18 +120,22 @@ export interface TreeViewProps
   onSelectedChange?: (value: string) => void;
   /**
    * The checked items' values when you hold the state. Read with `checkbox`
-   * only. A value checks its item, and an enabled item also counts as checked
-   * when any item above it is in the list, so a parent's value stands for its
-   * whole branch, loaded or not. A disabled item is checked only by its own value.
+   * and `checkbox-independent` only. A value checks its item. In `checkbox`,
+   * an enabled item also counts as checked when any item above it is in the
+   * list, so a parent's value stands for its whole branch, loaded or not, and
+   * a disabled item is checked only by its own value. In
+   * `checkbox-independent`, a value checks its own item and nothing else.
    */
   checked?: string[];
-  /** The values checked to begin with, when the tree holds its own state. Read with `checkbox` only. */
+  /** The values checked to begin with, when the tree holds its own state. Read with `checkbox` and `checkbox-independent` only. */
   defaultChecked?: string[];
   /**
-   * Called after a check or an uncheck with every item that now shows
-   * checked, parents included, plus any earlier value that matches no item
-   * the tree knows, left as it was. The order means nothing. Passed back as
-   * `checked`, the list shows the same boxes.
+   * Called after a check or an uncheck. In `checkbox`, with every item that
+   * now shows checked, parents included, plus any earlier value that matches
+   * no item the tree knows, left as it was, and the order means nothing. In
+   * `checkbox-independent`, with the list as it was, the item's value added
+   * at the end or every copy of it taken out, and everything else in the
+   * same order. Passed back as `checked`, the list shows the same boxes.
    */
   onCheckedChange?: (checked: string[]) => void;
   /**
@@ -179,7 +189,7 @@ export interface TreeViewItemProps extends Omit<
   icon?: React.ReactNode;
   /**
    * `TreeView.Item`s under this one. Render them whenever you have them,
-   * open or not: the tree hides them while it's closed, and a checkbox tree
+   * open or not: the tree hides them while it's closed, and a `checkbox` tree
    * needs them to know what a check reaches.
    */
   children?: React.ReactNode;
@@ -225,12 +235,14 @@ export interface TreeViewItemProps extends Omit<
  * and close is `Menu`'s job. The root owns which items are open, through
  * `expanded`, `defaultExpanded` and `onExpandedChange`.
  *
- * `selectionMode` picks one of three trees. With `none`, nothing is picked.
+ * `selectionMode` picks the kind of tree. With `none`, nothing is picked.
  * With `single`, one item is, and `selected` says which. With `checkbox`,
  * each item has a box, a check reaches every enabled item under it, closed
  * branches included, and a parent with some of its items checked is mixed.
- * `selected` is read in a `single` tree only, and `checked` in a `checkbox`
- * tree only. Selection never follows focus.
+ * With `checkbox-independent`, each item has a box that checks that item
+ * alone, so a parent means only itself and is never mixed. `selected` is
+ * read in a `single` tree only, and `checked` in the two checkbox trees only.
+ * Selection never follows focus.
  *
  * Disabled items stay reachable from the keys, so a screen reader finds
  * them. The tree needs a name, from `aria-label` or `aria-labelledby`, and a
@@ -353,7 +365,7 @@ const TreeViewRoot = forwardRef<HTMLUListElement, TreeViewProps>(
             ref={setRefs}
             className={classNames(rootClass, bulmaHelperClasses, className)}
             role="tree"
-            aria-multiselectable={engine.rendersClosed || undefined}
+            aria-multiselectable={engine.multiselectable || undefined}
           >
             {children}
           </ul>
@@ -492,7 +504,7 @@ export const TreeViewItem = forwardRef<HTMLLIElement, TreeViewItemProps>(
 
     if (!tree) return null;
 
-    // While it's open the children render in its group. In a checkbox tree
+    // While it's open the children render in its group. In a `checkbox` tree
     // they render while it's closed too, drawing nothing, so a check knows
     // what's under it.
     const items = (open || tree.rendersClosed) && (
