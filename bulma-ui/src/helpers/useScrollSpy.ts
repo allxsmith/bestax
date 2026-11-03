@@ -126,7 +126,10 @@ function followedLink(event: MouseEvent): HTMLAnchorElement | undefined {
  * a plain click on a link to one of the ids (the main button, no modifier
  * key, opening in this page), noted and never stopped, so the browser jumps
  * as it always does; and the `#id` a page opened afresh opens at. Back,
- * Forward and a reload aren't jumps. Once the page has been still for a
+ * Forward and a reload aren't jumps. That `#id` is read once, when `ids`
+ * first has some: a section rendered after that isn't held, even if the
+ * page opened at it, and the reading rule marks where the page is. Once the
+ * page has been still for a
  * moment, the section stays current only if it's where a jump puts it: its
  * top at the line, give or take a shift of the layout smaller than its own
  * height, or, at the end of the page, on screen below the line. Otherwise,

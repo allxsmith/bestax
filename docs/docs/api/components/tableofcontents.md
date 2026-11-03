@@ -263,7 +263,9 @@ of the viewport.
   no modifier key and no `target` that opens it elsewhere, and the `#id` a page opens at when it's
   opened by a link or typed in. A click is only noted, never stopped, so the browser jumps as it
   always does. Back, Forward and a reload aren't jumps: the browser puts the page back where it was,
-  and the reading rule marks it there.
+  and the reading rule marks it there. The `#id` a page opens at is read once, when `items` first has
+  some: a section rendered after that isn't held, even if the page opened at it, and the reading rule
+  marks where the page is.
 - **Missing or hidden sections:** an entry whose `id` isn't on the page keeps its link and is
   skipped until an element with that `id` appears. A section that isn't drawn (`display: none`) is
   never current.
