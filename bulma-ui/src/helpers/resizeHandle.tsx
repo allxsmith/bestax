@@ -1,6 +1,7 @@
 // INTERNAL: deliberately not exported from src/index.ts.
 import React, { useEffect, useRef, useState } from 'react';
 import { classNames } from './classNames';
+import { useLatestRef } from './useLatestRef';
 
 /**
  * A length in pixels: a number is pixels already, and a string can be `px`
@@ -16,27 +17,35 @@ export function lengthToPx(
   return parseFloat(match[1]) * (match[2] === 'rem' ? remPx : 1);
 }
 
-// The page's own cursor and text selection, kept while any handle is being
-// dragged: the first drag to start saves them and the last to end puts them
-// back, so two at once, as two fingers can make, leave nothing behind.
-let drags = 0;
-let saved = { cursor: '', userSelect: '' };
+// A page's own cursor and text selection, kept while any handle in it is
+// being dragged: the first drag to start saves them and the last to end puts
+// them back, so two at once, as two fingers can make, leave nothing behind.
+// Each document keeps its own, so a handle in an iframe holds that page.
+const holds = new WeakMap<
+  Document,
+  { drags: number; cursor: string; userSelect: string }
+>();
 
 /**
- * Shows `cursor` everywhere and stops text selection for one drag, and
- * returns what ends it.
+ * Shows `cursor` everywhere in `doc` and stops text selection there for one
+ * drag, and returns what ends it.
  */
-function holdPage(cursor: string) {
-  const body = document.body.style;
-  if (drags === 0) saved = { cursor: body.cursor, userSelect: body.userSelect };
-  drags += 1;
+function holdPage(doc: Document, cursor: string) {
+  const body = doc.body.style;
+  let hold = holds.get(doc);
+  if (!hold) {
+    hold = { drags: 0, cursor: body.cursor, userSelect: body.userSelect };
+    holds.set(doc, hold);
+  }
+  hold.drags += 1;
   body.cursor = cursor;
   body.userSelect = 'none';
   return () => {
-    drags -= 1;
-    if (drags > 0) return;
-    body.cursor = saved.cursor;
-    body.userSelect = saved.userSelect;
+    hold.drags -= 1;
+    if (hold.drags > 0) return;
+    body.cursor = hold.cursor;
+    body.userSelect = hold.userSelect;
+    holds.delete(doc);
   };
 }
 
@@ -134,20 +143,32 @@ export function ResizeHandle({
   const across = orientation === 'vertical';
 
   // ---- Dragging ----
+  // One pointer drags at a time: the one that started it moves it and ends
+  // it, and another on the handle meanwhile does neither.
   const [dragging, setDragging] = useState(false);
-  const dragRef = useRef<{ start: number; flip: boolean } | null>(null);
+  const elementRef = useRef<HTMLDivElement | null>(null);
+  const dragRef = useRef<{
+    start: number;
+    flip: boolean;
+    pointerId: number;
+  } | null>(null);
+  const ownDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+    return drag && drag.pointerId === event.pointerId ? drag : null;
+  };
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (event.button !== 0) return;
+    if (event.button !== 0 || dragRef.current) return;
     if (!onDragStart()) return;
     event.currentTarget.setPointerCapture?.(event.pointerId);
     dragRef.current = {
       start: across ? event.clientX : event.clientY,
       flip: rtl(),
+      pointerId: event.pointerId,
     };
     setDragging(true);
   };
   const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    const drag = dragRef.current;
+    const drag = ownDrag(event);
     if (!drag) return;
     const moved = (across ? event.clientX : event.clientY) - drag.start;
     onDrag(drag.flip ? -moved : moved);
@@ -155,17 +176,32 @@ export function ResizeHandle({
   // Let go, cancelled, or the pointer lost: a handle that hides mid-drag,
   // as a column's does when the drag shuts it, loses the pointer.
   const endDrag = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragRef.current) return;
+    if (!ownDrag(event)) return;
     dragRef.current = null;
     event.currentTarget.releasePointerCapture?.(event.pointerId);
     setDragging(false);
     onDragEnd?.();
   };
-  // While dragging, the resize cursor shows wherever the pointer goes.
+  // While dragging, the resize cursor shows wherever the pointer goes in the
+  // handle's own document.
   useEffect(() => {
     if (!dragging) return;
-    return holdPage(across ? 'col-resize' : 'row-resize');
+    return holdPage(
+      elementRef.current!.ownerDocument,
+      across ? 'col-resize' : 'row-resize'
+    );
   }, [dragging, across]);
+  // A handle that goes away mid-drag, as one turned off does, ends the drag,
+  // so whatever the drag set up is put back.
+  const onDragEndRef = useLatestRef(onDragEnd);
+  useEffect(
+    () => () => {
+      if (!dragRef.current) return;
+      dragRef.current = null;
+      onDragEndRef.current?.();
+    },
+    [onDragEndRef]
+  );
 
   // ---- Keys ----
   const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -192,6 +228,7 @@ export function ResizeHandle({
 
   return (
     <div
+      ref={elementRef}
       className={classNames(className, dragging && activeClass)}
       role="separator"
       tabIndex={0}
