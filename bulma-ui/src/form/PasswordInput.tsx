@@ -24,7 +24,7 @@ import { useAutoLabelId } from './useAutoLabelId';
  * in development. Wrap the `Control` in a `Field` instead, and set the
  * `label`, `horizontal` and class name on that `Field`.
  *
- * @helperProps Helper props go on the `.passwordinput-container` `<div>`, with
+ * @helperProps Helper props go on the `.password-input-container` `<div>`, with
  * `className` and `style`, so they move and size the field and its toggle
  * together. The other attributes go on the `<input>`.
  * @extraProp {string} [autoComplete="current-password"] - Tells the browser and password managers this is an existing password. Pass `"new-password"` where the user makes one up, on a sign-up or change-password form.

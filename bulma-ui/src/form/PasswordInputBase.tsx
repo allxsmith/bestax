@@ -44,7 +44,7 @@ export interface PasswordInputLabels {
  * Props for PasswordInputBase, the input and its toggle without a Field or a
  * Control.
  *
- * @helperProps Helper props go on the `.passwordinput-container` `<div>`, with
+ * @helperProps Helper props go on the `.password-input-container` `<div>`, with
  * `className` and `style`, so they move and size the field and its toggle
  * together. The other attributes go on the `<input>`.
  * @extraProp {string} [autoComplete="current-password"] - Tells the browser and password managers this is an existing password. Pass `"new-password"` where the user makes one up, on a sign-up or change-password form.
@@ -290,10 +290,10 @@ export const PasswordInputBase = forwardRef<
     return () => window.removeEventListener('pagehide', onPageHide);
   }, [hideRef]);
 
-  const containerClass = usePrefixedClassNames('passwordinput-container', {
+  const containerClass = usePrefixedClassNames('password-input-container', {
     'is-text': isText,
   });
-  const toggleClass = usePrefixedClassNames('passwordinput-toggle');
+  const toggleClass = usePrefixedClassNames('password-input-toggle');
 
   // The icon keeps one name and reports its state; the words change, so
   // the name follows them and there's no state to report.

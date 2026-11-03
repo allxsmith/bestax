@@ -82,7 +82,7 @@ password. It takes everything `Input` does except `type` and the right-icon prop
 (`iconRight`, `iconRightName`, `iconRightSize`, `hasIconsRight`), which draw nothing and warn in
 development, since the button has that edge. `PasswordInputBase` is the input and its button
 without the `Field` and `Control`. On both, helper props, `className` and `style` go on the
-`.passwordinput-container` `<div>` that holds the input and its button; `ref` and the other
+`.password-input-container` `<div>` that holds the input and its button; `ref` and the other
 attributes go on the `<input>`.
 
 | Prop                                            | Type                                             | Notes                                                                                                                                                                |

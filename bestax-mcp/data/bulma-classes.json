@@ -13121,7 +13121,7 @@
     "link-button": "LinkButton",
     "loading": "Loading",
     "numberinput": "Numberinput",
-    "passwordinput-container": "PasswordInput",
+    "password-input-container": "PasswordInput",
     "pin-input": "PinInput",
     "popover": "Popover",
     "styled-radio": "Radio",

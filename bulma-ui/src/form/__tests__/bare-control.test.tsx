@@ -153,7 +153,7 @@ const wrappers: Wrapper[] = [
       hasIconsRight: _hasIconsRight,
       ...p
     }) => <PasswordInput {...p} />,
-    root: '.passwordinput-container',
+    root: '.password-input-container',
   },
   {
     name: 'ColorPicker',

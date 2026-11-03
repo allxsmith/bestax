@@ -87,34 +87,34 @@ function find(rules: Rule[], selector: string) {
   );
 }
 
-const TOGGLE = '.passwordinput-container > .passwordinput-toggle';
+const TOGGLE = '.password-input-container > .password-input-toggle';
 
 describe('PasswordInput styles', () => {
   it('registers its variables on the container', () => {
-    expect(find(PLAIN, '.passwordinput-container')).toEqual({
+    expect(find(PLAIN, '.password-input-container')).toEqual({
       position: 'relative',
-      '--bulma-passwordinput-toggle-width': '2.5em',
-      '--bulma-passwordinput-toggle-text-width': '4.5em',
-      '--bulma-passwordinput-toggle-color': 'var(--bulma-text)',
-      '--bulma-passwordinput-toggle-hover-color': 'var(--bulma-text-strong)',
+      '--bulma-password-input-toggle-width': '2.5em',
+      '--bulma-password-input-toggle-text-width': '4.5em',
+      '--bulma-password-input-toggle-color': 'var(--bulma-text)',
+      '--bulma-password-input-toggle-hover-color': 'var(--bulma-text-strong)',
     });
   });
 
   it('lays the toggle over the right edge, and keeps its width clear of text', () => {
-    expect(find(PLAIN, '.passwordinput-container > .input')).toEqual({
-      'padding-right': 'var(--bulma-passwordinput-toggle-width)',
+    expect(find(PLAIN, '.password-input-container > .input')).toEqual({
+      'padding-right': 'var(--bulma-password-input-toggle-width)',
     });
     expect(find(PLAIN, TOGGLE)).toMatchObject({
       position: 'absolute',
       top: '0',
       right: '0',
       height: '100%',
-      width: 'var(--bulma-passwordinput-toggle-width)',
-      color: 'var(--bulma-passwordinput-toggle-color)',
+      width: 'var(--bulma-password-input-toggle-width)',
+      color: 'var(--bulma-password-input-toggle-color)',
       'font-size': 'var(--bulma-size-normal)',
     });
     expect(find(PLAIN, `${TOGGLE}:hover:not(:disabled)`)).toEqual({
-      color: 'var(--bulma-passwordinput-toggle-hover-color)',
+      color: 'var(--bulma-password-input-toggle-hover-color)',
     });
   });
 
@@ -127,14 +127,14 @@ describe('PasswordInput styles', () => {
     expect(launcher.length).toBeGreaterThan(0);
     for (const rule of launcher) {
       const twin = rule.selector
-        .replace(/dateinput-container/g, 'passwordinput-container')
-        .replace(/dateinput-trigger/g, 'passwordinput-toggle');
+        .replace(/dateinput-container/g, 'password-input-container')
+        .replace(/dateinput-trigger/g, 'password-input-toggle');
       const declarations = Object.fromEntries(
         Object.entries(rule.declarations)
           .filter(([name]) => !name.startsWith('--'))
           .map(([name, value]) => [
             name,
-            value.replace(/picker-trigger/g, 'passwordinput-toggle'),
+            value.replace(/picker-trigger/g, 'password-input-toggle'),
           ])
       );
       expect(find(PLAIN, twin)).toEqual(expect.objectContaining(declarations));
@@ -145,14 +145,14 @@ describe('PasswordInput styles', () => {
     expect(
       find(
         PLAIN,
-        '.passwordinput-container.is-text > .input, .passwordinput-container.is-text > .input.is-rounded'
+        '.password-input-container.is-text > .input, .password-input-container.is-text > .input.is-rounded'
       )
     ).toEqual({
-      'padding-right': 'var(--bulma-passwordinput-toggle-text-width)',
+      'padding-right': 'var(--bulma-password-input-toggle-text-width)',
     });
     expect(
-      find(PLAIN, '.passwordinput-container.is-text > .passwordinput-toggle')
-    ).toEqual({ width: 'var(--bulma-passwordinput-toggle-text-width)' });
+      find(PLAIN, '.password-input-container.is-text > .password-input-toggle')
+    ).toEqual({ width: 'var(--bulma-password-input-toggle-text-width)' });
   });
 
   it('outranks Bulma’s rounded input padding, so the order the sheets load in doesn’t matter', () => {
@@ -177,7 +177,7 @@ describe('PasswordInput styles', () => {
       expect(
         find(
           PLAIN,
-          `.passwordinput-container > .input.is-${size} ~ .passwordinput-toggle`
+          `.password-input-container > .input.is-${size} ~ .password-input-toggle`
         )
       ).toEqual({ 'font-size': `var(--bulma-size-${size})` });
     }
@@ -196,13 +196,13 @@ describe('PasswordInput styles', () => {
   it('hides Edge’s own reveal button on its input only', () => {
     const reveal = PLAIN.filter(r => r.selector.includes('::-ms-reveal'));
     expect(reveal.map(r => r.selector)).toEqual([
-      '.passwordinput-container > .input::-ms-reveal',
+      '.password-input-container > .input::-ms-reveal',
     ]);
     expect(reveal[0].declarations).toEqual({ display: 'none' });
   });
 
   it('sizes and colors a left icon from the input in the container', () => {
-    const left = '.control.has-icons-left > .passwordinput-container';
+    const left = '.control.has-icons-left > .password-input-container';
     expect(find(PLAIN, `${left}:has(> .input.is-large) ~ .icon`)).toEqual({
       'font-size': 'var(--bulma-size-large)',
     });
@@ -228,7 +228,7 @@ describe('PasswordInput styles', () => {
     expect(PREFIXED.map(r => r.selector)).toEqual(
       PLAIN.map(r =>
         r.selector.replace(
-          /\.(passwordinput-|control\b|has-|is-|input\b|icon\b)/g,
+          /\.(password-input-|control\b|has-|is-|input\b|icon\b)/g,
           (_, name: string) => `.bestax-${name}`
         )
       )

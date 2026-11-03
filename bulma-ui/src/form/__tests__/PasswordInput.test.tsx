@@ -25,7 +25,7 @@ afterEach(() => {
 
 const input = () => screen.getByLabelText('Password') as HTMLInputElement;
 const toggle = () =>
-  document.querySelector('.passwordinput-toggle') as HTMLButtonElement;
+  document.querySelector('.password-input-toggle') as HTMLButtonElement;
 
 /** A field whose visibility callback the test reads back. */
 function setup(props: Partial<PasswordInputProps> = {}) {
@@ -51,7 +51,7 @@ describe('PasswordInput', () => {
       const field = container.firstElementChild as HTMLElement;
       expect(field).toHaveClass('field');
       const box = field.querySelector(
-        ':scope > .control > .passwordinput-container'
+        ':scope > .control > .password-input-container'
       ) as HTMLElement;
       expect(box).not.toBeNull();
       expect(box.children).toHaveLength(2);
@@ -102,7 +102,7 @@ describe('PasswordInput', () => {
       expect(input()).toHaveAttribute('name', 'password');
       expect(input()).toHaveAttribute('placeholder', 'Your password');
       expect(input()).toBeRequired();
-      expect(input().parentElement?.className).toBe('passwordinput-container');
+      expect(input().parentElement?.className).toBe('password-input-container');
     });
 
     it('puts helper props, className and style on the container, so the toggle moves with the field', () => {
@@ -115,7 +115,7 @@ describe('PasswordInput', () => {
       });
       const box = input().parentElement as HTMLElement;
       expect(box).toHaveClass(
-        'passwordinput-container',
+        'password-input-container',
         'mt-3',
         'is-inline-block',
         'custom'
@@ -137,7 +137,7 @@ describe('PasswordInput', () => {
         />
       );
       const box = input().parentElement as HTMLElement;
-      expect(box).toHaveClass('passwordinput-container', 'mt-3', 'custom');
+      expect(box).toHaveClass('password-input-container', 'mt-3', 'custom');
       expect(input()).not.toHaveClass('mt-3', 'custom');
       expect(input()).toHaveAttribute('data-probe', 'here');
     });
@@ -185,7 +185,7 @@ describe('PasswordInput', () => {
     it('renders the container alone as PasswordInputBase', () => {
       const { container } = render(<PasswordInputBase aria-label="Password" />);
       const box = container.firstElementChild as HTMLElement;
-      expect(box).toHaveClass('passwordinput-container');
+      expect(box).toHaveClass('password-input-container');
       expect(container.querySelector('.field, .control')).toBeNull();
       expect(box.firstElementChild).toBe(input());
       expect(input()).not.toHaveAttribute('id');
@@ -241,7 +241,7 @@ describe('PasswordInput', () => {
   describe('The text toggle', () => {
     it('shows the word and is named after it, with no pressed state', () => {
       const { container } = setup({ variant: 'text' });
-      expect(container.querySelector('.passwordinput-container')).toHaveClass(
+      expect(container.querySelector('.password-input-container')).toHaveClass(
         'is-text'
       );
       expect(toggle()).toHaveTextContent('Show');
@@ -902,7 +902,7 @@ describe('PasswordInput', () => {
       const fieldEl = container.querySelector('.field.custom-field');
       expect(
         fieldEl?.querySelector(
-          '.control.custom-control > .passwordinput-container'
+          '.control.custom-control > .password-input-container'
         )
       ).not.toBeNull();
       expect(container.querySelector('.control')).toHaveClass(
@@ -1036,9 +1036,9 @@ describe('PasswordInput', () => {
           // Font Awesome's own classes, which no prefix reaches.
           .filter(name => !/^fa/.test(name));
         expect(classes).toEqual([]);
-        const box = container.querySelector('.bestax-passwordinput-container');
+        const box = container.querySelector('.bestax-password-input-container');
         expect(box?.lastElementChild).toHaveClass(
-          'bestax-passwordinput-toggle'
+          'bestax-password-input-toggle'
         );
         expect(box?.classList.contains('bestax-is-text')).toBe(
           variant === 'text'

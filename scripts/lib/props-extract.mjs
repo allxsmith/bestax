@@ -1508,7 +1508,7 @@ const ROOT_CLASS_OVERRIDES = {
   DateTimeInputBase: 'input',
   // Its helper props, className and style go on the container around its
   // `.input`, which registers the toggle's variables too.
-  PasswordInputBase: 'passwordinput-container',
+  PasswordInputBase: 'password-input-container',
   // The row is Bulma's `.buttons`, the class Buttons renders too. Its segments
   // are Button's `.button`, which SCSS_SOURCES says why it doesn't claim.
   SegmentedControl: 'buttons',
