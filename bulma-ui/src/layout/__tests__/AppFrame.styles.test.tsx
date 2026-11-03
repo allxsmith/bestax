@@ -101,6 +101,7 @@ describe('AppFrame styles', () => {
       '--bulma-app-frame-handle-size': '0.75rem',
       '--bulma-app-frame-handle-size-coarse': '1.5rem',
       '--bulma-app-frame-handle-active-color': 'var(--bulma-primary)',
+      '--bulma-app-frame-handle-active-size': '2px',
       '--bulma-app-frame-nav-background': 'var(--bulma-scheme-main)',
       '--bulma-app-frame-aside-width': '20rem',
       '--bulma-app-frame-border-color': 'var(--bulma-border)',
@@ -270,8 +271,8 @@ describe('AppFrame styles', () => {
           'z-index': '29',
           display: 'block',
           'inline-size': 'var(--bulma-app-frame-handle-size)',
-          'margin-inline-end':
-            'calc(-0.5 * var(--bulma-app-frame-handle-size))',
+          // Half its width each side: no room in the track.
+          'margin-inline': 'calc(-0.5 * var(--bulma-app-frame-handle-size))',
           cursor: 'col-resize',
           'touch-action': 'none',
           'user-select': 'none',
@@ -295,7 +296,10 @@ describe('AppFrame styles', () => {
             `${handle}:hover::before, ${handle}:focus-visible::before, ${handle}.is-active::before`,
             [media]
           )
-        ).toEqual({ 'border-inline-start-width': '2px' });
+        ).toEqual({
+          'border-inline-start-width':
+            'var(--bulma-app-frame-handle-active-size)',
+        });
         expect(find(PLAIN, `${handle}:focus`, [media])).toEqual({
           outline: 'none',
         });
@@ -312,19 +316,20 @@ describe('AppFrame styles', () => {
             : `${media} and (pointer: coarse)`;
         expect(find(PLAIN, handle, [coarse])).toEqual({
           'inline-size': 'var(--bulma-app-frame-handle-size-coarse)',
-          'margin-inline-end':
+          'margin-inline':
             'calc(-0.5 * var(--bulma-app-frame-handle-size-coarse))',
         });
       });
 
-      it('hides with a column collapsed out of view, unless a drag or the keyboard still holds it', () => {
+      it('hides with a column collapsed out of view, unless a drag or the keyboard still holds it, and then sits at the window’s edge', () => {
+        const shut = `${root}.is-nav-collapsed > .app-frame-nav:not(.is-rail) + .app-frame-handle`;
         expect(
-          find(
-            PLAIN,
-            `${root}.is-nav-collapsed > .app-frame-nav:not(.is-rail) + .app-frame-handle:not(.is-active):not(:focus-visible)`,
-            [media]
-          )
+          find(PLAIN, `${shut}:not(.is-active):not(:focus-visible)`, [media])
         ).toEqual({ display: 'none' });
+        expect(find(PLAIN, shut, [media])).toEqual({ translate: '50%' });
+        expect(find(PLAIN, `${shut}:dir(rtl)`, [media])).toEqual({
+          translate: '-50%',
+        });
       });
 
       it('stops the column’s width animating while it’s dragged', () => {

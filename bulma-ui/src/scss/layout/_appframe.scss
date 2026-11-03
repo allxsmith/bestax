@@ -49,6 +49,7 @@ $app-frame-skip-link-color: cv.getVar('link') !default;
 $app-frame-handle-size: 0.75rem !default;
 $app-frame-handle-size-coarse: 1.5rem !default;
 $app-frame-handle-active-color: cv.getVar('primary') !default;
+$app-frame-handle-active-size: 2px !default;
 
 // The drawer leaves this much of the window showing beside it, so there's
 // backdrop to press.
@@ -83,6 +84,7 @@ $-drawer-gap: 3rem;
       'app-frame-handle-size': #{$app-frame-handle-size},
       'app-frame-handle-size-coarse': #{$app-frame-handle-size-coarse},
       'app-frame-handle-active-color': #{$app-frame-handle-active-color},
+      'app-frame-handle-active-size': #{$app-frame-handle-active-size},
     )
   );
 }
@@ -377,7 +379,9 @@ html:has(.#{iv.$class-prefix}app-frame) {
 
   // The handle shares the nav's place in the grid, at its end, and sticks
   // as the column does, as tall as the window under the header. It straddles
-  // the column's edge, half over the page.
+  // the column's edge, half over the page, with a negative margin of half its
+  // width on each side, so it takes no room in the column's track and moves
+  // nothing as it shows or hides.
   > .#{iv.$class-prefix}app-frame-handle {
     grid-area: nav;
     justify-self: end;
@@ -389,7 +393,7 @@ html:has(.#{iv.$class-prefix}app-frame) {
     inline-size: cv.getVar('app-frame-handle-size');
     block-size: calc(100vh - #{cv.getVar('app-frame-header-height')});
     block-size: calc(100dvh - #{cv.getVar('app-frame-header-height')});
-    margin-inline-end: calc(-0.5 * #{cv.getVar('app-frame-handle-size')});
+    margin-inline: calc(-0.5 * #{cv.getVar('app-frame-handle-size')});
     cursor: col-resize;
     touch-action: none;
     user-select: none;
@@ -408,7 +412,7 @@ html:has(.#{iv.$class-prefix}app-frame) {
     &:hover::before,
     &:focus-visible::before,
     &.#{iv.$class-prefix}is-active::before {
-      border-inline-start-width: 2px;
+      border-inline-start-width: cv.getVar('app-frame-handle-active-size');
     }
 
     &:focus {
@@ -423,21 +427,27 @@ html:has(.#{iv.$class-prefix}app-frame) {
     // A finger needs a wider strip than a mouse.
     @media (pointer: coarse) {
       inline-size: cv.getVar('app-frame-handle-size-coarse');
-      margin-inline-end: calc(
-        -0.5 * #{cv.getVar('app-frame-handle-size-coarse')}
-      );
+      margin-inline: calc(-0.5 * #{cv.getVar('app-frame-handle-size-coarse')});
     }
   }
 
   // Collapsed out of view, the column has no edge to drag, so its handle
   // hides, unless a drag that just shut it still holds the pointer, or the
-  // keyboard has it, where Enter just shut it and brings it back.
+  // keyboard has it, where Enter just shut it and brings it back. Shown, it
+  // sits at the window's edge, moved in by the half that would be off it,
+  // which takes no room either.
   &.#{iv.$class-prefix}is-nav-collapsed
     > .#{iv.$class-prefix}app-frame-nav:not(.#{iv.$class-prefix}is-rail)
-    + .#{iv.$class-prefix}app-frame-handle:not(
-      .#{iv.$class-prefix}is-active
-    ):not(:focus-visible) {
-    display: none;
+    + .#{iv.$class-prefix}app-frame-handle {
+    translate: 50%;
+
+    &:dir(rtl) {
+      translate: -50%;
+    }
+
+    &:not(.#{iv.$class-prefix}is-active):not(:focus-visible) {
+      display: none;
+    }
   }
 
   > .#{iv.$class-prefix}app-frame-aside {
