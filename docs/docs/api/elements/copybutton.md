@@ -143,40 +143,57 @@ A read-only input holding the text and the button go in a `Field hasAddons`, eac
 `Control`. The button's status region is portaled out of its `Control`, so the button stays the
 last child and Bulma joins the two.
 
-When a copy fails, `onCopyError` focuses the input and selects its text, so the reader can copy it
-themselves. `labels.failedStatus` carries the whole message, so the button's own status announces
-it once, and the line under the field shows it. That line is plain text, not a live region, so the
-failure isn't announced twice. `onCopiedChange` hides it after a copy that works.
+When a copy fails, the line under the field explains, and the input takes focus with its text
+selected, so the reader can copy it themselves. The line is the input's description
+(`aria-describedby`), so a screen reader reads it with the field as focus arrives, and the field
+takes focus only once the line is in the page. That's why it isn't a live region of its own: the
+button's short `failedStatus` is the only announcement, and the instruction comes with the field.
+`onCopiedChange` clears it after a copy that works.
 
 ```tsx live
 function ShareLink() {
   const id = React.useId();
+  const helpId = `${id}-help`;
   const inputRef = React.useRef<HTMLInputElement>(null);
-  const [failed, setFailed] = useState(false);
+  // Counts the failed copies in a row, so each one moves focus.
+  const [failures, setFailures] = useState(0);
   const link = 'https://bestax.io/docs/api/elements/copybutton';
-  const failure =
-    "Couldn't copy automatically. The link is selected, so copy it from the field.";
+
+  // Focus the field once its description is in the page, so a screen
+  // reader reads the instruction with the field.
+  useEffect(() => {
+    if (failures === 0) return;
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, [failures]);
 
   return (
     <Field label="Share link" labelProps={{ htmlFor: id }}>
       <Field hasAddons>
         <Control isExpanded>
-          <Input ref={inputRef} id={id} value={link} readOnly />
+          <Input
+            ref={inputRef}
+            id={id}
+            value={link}
+            readOnly
+            aria-describedby={failures > 0 ? helpId : undefined}
+          />
         </Control>
         <Control>
           <CopyButton
             value={link}
-            labels={{ failedStatus: failure }}
-            onCopiedChange={() => setFailed(false)}
-            onCopyError={() => {
-              inputRef.current?.focus();
-              inputRef.current?.select();
-              setFailed(true);
-            }}
+            labels={{ failedStatus: "Couldn't copy the link" }}
+            onCopiedChange={() => setFailures(0)}
+            onCopyError={() => setFailures(count => count + 1)}
           />
         </Control>
       </Field>
-      {failed && <p className="help is-danger">{failure}</p>}
+      {failures > 0 && (
+        <p id={helpId} className="help is-danger">
+          Couldn't copy automatically. The link is selected, so copy it from the
+          field.
+        </p>
+      )}
     </Field>
   );
 }
@@ -399,7 +416,7 @@ such as a fetch, may be refused in any browser. Fetch the text before the click.
 | Prop             | Type                                                                                                                                                        | Default  | Description                                                                                                                                                                                                                                                                                                                                                   |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `value`          | `string`                                                                                                                                                    | —        | The text it copies. This is not the `<button>`'s form value, which it doesn't render.                                                                                                                                                                                                                                                                         |
-| `duration`       | `number`                                                                                                                                                    | `2000`   | How long the "Copied" label stays, in milliseconds. Another copy restarts it. It's capped at the longest delay `setTimeout` takes, about 24.8 days, which a value that isn't a finite number, `Infinity` included, also gets.                                                                                                                                 |
+| `duration`       | `number`                                                                                                                                                    | `2000`   | How long the "Copied" label stays, in milliseconds. Another copy restarts it. A missing or `NaN` value uses the default, a negative one is `0`, and `Infinity`, or anything longer than the longest delay `setTimeout` takes (about 24.8 days), is that longest delay.                                                                                        |
 | `showLabel`      | `boolean`                                                                                                                                                   | `true`   | Shows the label beside the icon, which is then the button's name: it carries no `aria-label`, so the name reads "Copy" and then "Copied" as the words on it do. Turned off, it's a square icon-only button named by `labels.copy` through `aria-label` in both states, and only the glyph changes. An `aria-label` you pass yourself names it in either form. |
 | `labels`         | `{ copy?: string; copied?: string; copiedStatus?: string; failedStatus?: string }`                                                                          | —        | Translations for the label and the announcements.                                                                                                                                                                                                                                                                                                             |
 | `onCopiedChange` | `(copied: boolean) => void`                                                                                                                                 | —        | Called with `true` after each copy that worked, a repeat included, and with `false` when `duration` runs out or a later copy fails.                                                                                                                                                                                                                           |

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { CopyButton } from './CopyButton';
 import { Buttons } from './Buttons';
 import { Code } from './Code';
@@ -158,38 +158,54 @@ export const Sizes: Story = {
 
 /**
  * A copy field: a read-only input and the button in a `Field hasAddons`. If
- * the copy fails, `onCopyError` selects the text so it can be copied by hand,
- * and `labels.failedStatus` says so, once, with a plain line showing it.
+ * the copy fails, a line under the field explains, as the input's
+ * description, and the input takes focus with its text selected once the
+ * line is in the page, so a screen reader reads the two together.
  */
 export const CopyField: Story = {
   render: function CopyFieldExample() {
     const id = useId();
+    const helpId = `${id}-help`;
     const inputRef = useRef<HTMLInputElement>(null);
-    const [failed, setFailed] = useState(false);
+    // Counts the failed copies in a row, so each one moves focus.
+    const [failures, setFailures] = useState(0);
     const link = 'https://bestax.io/docs/api/elements/copybutton';
-    const failure =
-      "Couldn't copy automatically. The link is selected, so copy it from the field.";
+
+    // Focus the field once its description is in the page, so a screen
+    // reader reads the instruction with the field.
+    useEffect(() => {
+      if (failures === 0) return;
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }, [failures]);
 
     return (
       <Field label="Share link" labelProps={{ htmlFor: id }}>
         <Field hasAddons>
           <Control isExpanded>
-            <Input ref={inputRef} id={id} value={link} readOnly />
+            <Input
+              ref={inputRef}
+              id={id}
+              value={link}
+              readOnly
+              aria-describedby={failures > 0 ? helpId : undefined}
+            />
           </Control>
           <Control>
             <CopyButton
               value={link}
-              labels={{ failedStatus: failure }}
-              onCopiedChange={() => setFailed(false)}
-              onCopyError={() => {
-                inputRef.current?.focus();
-                inputRef.current?.select();
-                setFailed(true);
-              }}
+              labels={{ failedStatus: "Couldn't copy the link" }}
+              onCopiedChange={() => setFailures(0)}
+              onCopyError={() => setFailures(count => count + 1)}
             />
           </Control>
         </Field>
-        {failed && <p className="help is-danger">{failure}</p>}
+        {failures > 0 && (
+          <p id={helpId} className="help is-danger">
+            Couldn't copy automatically. The link is selected, so copy it from
+            the field.
+          </p>
+        )}
       </Field>
     );
   },

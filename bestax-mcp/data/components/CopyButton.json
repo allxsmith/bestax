@@ -27,7 +27,7 @@
     },
     {
       "title": "A Copy Field",
-      "code": "function ShareLink() {\n  const id = React.useId();\n  const inputRef = React.useRef<HTMLInputElement>(null);\n  const [failed, setFailed] = useState(false);\n  const link = 'https://bestax.io/docs/api/elements/copybutton';\n  const failure =\n    \"Couldn't copy automatically. The link is selected, so copy it from the field.\";\n\n  return (\n    <Field label=\"Share link\" labelProps={{ htmlFor: id }}>\n      <Field hasAddons>\n        <Control isExpanded>\n          <Input ref={inputRef} id={id} value={link} readOnly />\n        </Control>\n        <Control>\n          <CopyButton\n            value={link}\n            labels={{ failedStatus: failure }}\n            onCopiedChange={() => setFailed(false)}\n            onCopyError={() => {\n              inputRef.current?.focus();\n              inputRef.current?.select();\n              setFailed(true);\n            }}\n          />\n        </Control>\n      </Field>\n      {failed && <p className=\"help is-danger\">{failure}</p>}\n    </Field>\n  );\n}"
+      "code": "function ShareLink() {\n  const id = React.useId();\n  const helpId = `${id}-help`;\n  const inputRef = React.useRef<HTMLInputElement>(null);\n  // Counts the failed copies in a row, so each one moves focus.\n  const [failures, setFailures] = useState(0);\n  const link = 'https://bestax.io/docs/api/elements/copybutton';\n\n  // Focus the field once its description is in the page, so a screen\n  // reader reads the instruction with the field.\n  useEffect(() => {\n    if (failures === 0) return;\n    inputRef.current?.focus();\n    inputRef.current?.select();\n  }, [failures]);\n\n  return (\n    <Field label=\"Share link\" labelProps={{ htmlFor: id }}>\n      <Field hasAddons>\n        <Control isExpanded>\n          <Input\n            ref={inputRef}\n            id={id}\n            value={link}\n            readOnly\n            aria-describedby={failures > 0 ? helpId : undefined}\n          />\n        </Control>\n        <Control>\n          <CopyButton\n            value={link}\n            labels={{ failedStatus: \"Couldn't copy the link\" }}\n            onCopiedChange={() => setFailures(0)}\n            onCopyError={() => setFailures(count => count + 1)}\n          />\n        </Control>\n      </Field>\n      {failures > 0 && (\n        <p id={helpId} className=\"help is-danger\">\n          Couldn't copy automatically. The link is selected, so copy it from the\n          field.\n        </p>\n      )}\n    </Field>\n  );\n}"
     },
     {
       "title": "Beside a Command",
@@ -62,14 +62,14 @@
     "useClipboard"
   ],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-copybutton--default",
-  "summary": "The `CopyButton` component renders a button that copies a piece of text to the clipboard, says \"Copied\" for a moment, and announces the result. It's a `Button` with a copy icon and \"Copy\", and takes everything `Button` takes. A click writes `value` through the Clipboard API, or through the older copy command where that's missing or refused, and reports a failure rather than showing \"Copied\". Each outcome is announced through a polite status region portaled out of the button's place, so it stays the last child of a `Control` or `Buttons`: to the end of the page, or into the open modal dialog the button is in. With `showLabel={false}` it's an `IconButton`. For a trigger of your own, use `useClipboard`, which it's built on.",
+  "summary": "The `CopyButton` component renders a button that copies a piece of text to the clipboard, says \"Copied\" for a moment, and announces the result. It's a `Button` with a copy icon and \"Copy\", and takes everything `Button` takes. A click writes `value` through the Clipboard API, or through the older copy command where that's missing or refused, and reports a failure rather than showing \"Copied\". Each outcome is announced through a polite status region portaled out of the button's place, so it stays the last child of a `Control` or `Buttons`: into the open modal dialog the button is in, otherwise where `Portal` puts portaled content (the `ConfigProvider`'s `portalContainer`, or the end of the page). With `showLabel={false}` it's an `IconButton`. For a trigger of your own, use `useClipboard`, which it's built on.",
   "import": "import { CopyButton } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/elements/CopyButton.tsx",
   "rootClass": null,
   "parts": [
     {
       "path": "CopyButton",
-      "summary": "The `CopyButton` component renders a button that copies a piece of text to the clipboard, says \"Copied\" for a moment, and announces the result. It's a `Button` with a copy icon and \"Copy\", and takes everything `Button` takes. A click writes `value` through the Clipboard API, or through the older copy command where that's missing or refused, and reports a failure rather than showing \"Copied\". Each outcome is announced through a polite status region portaled out of the button's place, so it stays the last child of a `Control` or `Buttons`: to the end of the page, or into the open modal dialog the button is in. With `showLabel={false}` it's an `IconButton`. For a trigger of your own, use `useClipboard`, which it's built on.",
+      "summary": "The `CopyButton` component renders a button that copies a piece of text to the clipboard, says \"Copied\" for a moment, and announces the result. It's a `Button` with a copy icon and \"Copy\", and takes everything `Button` takes. A click writes `value` through the Clipboard API, or through the older copy command where that's missing or refused, and reports a failure rather than showing \"Copied\". Each outcome is announced through a polite status region portaled out of the button's place, so it stays the last child of a `Control` or `Buttons`: into the open modal dialog the button is in, otherwise where `Portal` puts portaled content (the `ConfigProvider`'s `portalContainer`, or the end of the page). With `showLabel={false}` it's an `IconButton`. For a trigger of your own, use `useClipboard`, which it's built on.",
       "component": null,
       "props": [
         {
@@ -85,7 +85,7 @@
           "name": "duration",
           "type": "number",
           "default": "2000",
-          "description": "How long the \"Copied\" label stays, in milliseconds. Another copy restarts it. It's capped at the longest delay `setTimeout` takes, about 24.8 days, which a value that isn't a finite number, `Infinity` included, also gets.",
+          "description": "How long the \"Copied\" label stays, in milliseconds. Another copy restarts it. A missing or `NaN` value uses the default, a negative one is `0`, and `Infinity`, or anything longer than the longest delay `setTimeout` takes (about 24.8 days), is that longest delay.",
           "required": false,
           "inherited": false,
           "deprecated": false
