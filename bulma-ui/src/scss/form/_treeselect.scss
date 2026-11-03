@@ -9,6 +9,7 @@
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
+@use '../select-field' as sf;
 
 // The tree scrolls past this, as Combobox's list does.
 $tree-select-panel-max-height: 15rem !default;
@@ -29,6 +30,25 @@ $tree-select-tree-inset: 4px !default;
 // Registered on the root, and on the panel too, which a portal puts outside
 // it. A panel in place inherits the root's, so a theme set there reaches it.
 .#{iv.$class-prefix}tree-select,
+.#{iv.$class-prefix}tree-select-panel {
+  @include cv.register-vars(
+    (
+      'tree-select-panel-max-height': #{$tree-select-panel-max-height},
+      'tree-select-search-gap': #{$tree-select-search-gap},
+      'tree-select-chevron-width': #{$tree-select-chevron-width},
+      'tree-select-chevron-color': #{$tree-select-chevron-color},
+      'tree-select-chevron-hover-color': #{$tree-select-chevron-hover-color},
+      'tree-select-chevron-focus-color': #{$tree-select-chevron-focus-color},
+      'tree-select-empty-color': #{$tree-select-empty-color},
+      'tree-select-empty-padding': #{$tree-select-empty-padding},
+      'tree-select-tree-inset': #{$tree-select-tree-inset},
+    )
+  );
+}
+
+// The field: its chevron, its clear button and the room it keeps for them.
+@include sf.select-field('tree-select');
+
 .#{iv.$class-prefix}tree-select-panel {
   @include cv.register-vars(
     (

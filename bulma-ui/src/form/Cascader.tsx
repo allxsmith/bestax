@@ -290,7 +290,7 @@ function CascaderList({ context, column, at, name }: ColumnProps) {
   });
 
   const listClass = prefixedClassNames(prefix, 'cascader-column');
-  const chevronClass = prefixedClassNames(prefix, 'cascader-chevron');
+  const chevronClass = prefixedClassNames(prefix, 'cascader-item-chevron');
   const iconClass = prefixedClassNames(prefix, 'cascader-icon');
   const labelClass = prefixedClassNames(prefix, 'cascader-label');
   const loaderClass = prefixedClassNames(prefix, 'loader');

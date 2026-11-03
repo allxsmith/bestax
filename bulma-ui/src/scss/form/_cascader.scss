@@ -1,0 +1,228 @@
+// Bestax Extras - Cascader Styles
+// A form field whose value sits at the end of a path. The field is
+// TreeSelect's, drawn by the shared select-field rules, and the panel the
+// pickers' popover (`--bulma-picker-popover-*`), at least as wide as the
+// field through its own `has-anchor-width` rule. This draws the columns:
+// lists side by side, scrolling sideways when they don't fit, each item in
+// Bulma's dropdown look. Bulma registers its `--bulma-dropdown-*` variables on
+// `.dropdown` alone, and a cascader isn't one, so the items read these, which
+// start from the values Combobox's items do.
+
+@use 'sass:map';
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+@use '../mixins' as *;
+@use '../select-field' as sf;
+
+// The field's chevron, as on TreeSelect: Bulma registers its input variables
+// on the field and its Control, so these start from the tokens those do.
+$cascader-chevron-width: cv.getVar('control-height') !default;
+$cascader-chevron-color: cv.getVar('text-light') !default;
+$cascader-chevron-hover-color: cv.getVar('text-weak') !default;
+$cascader-chevron-focus-color: cv.getVar('link') !default;
+$cascader-search-gap: 0.5rem !default;
+$cascader-column-width: 11rem !default;
+// A column scrolls past this, as Combobox's list does.
+$cascader-column-max-height: 15rem !default;
+$cascader-column-border-color: cv.getVar('border-weak') !default;
+$cascader-item-color: cv.getVar('text-strong') !default;
+$cascader-item-size: 0.875rem !default;
+$cascader-item-padding-y: 0.375rem !default;
+$cascader-item-padding-x: 1rem !default;
+$cascader-item-hover-background: hsl(
+  #{cv.getVar('scheme-h')},
+  #{cv.getVar('scheme-s')},
+  calc(#{cv.getVar('scheme-main-l')} + #{cv.getVar('hover-background-l-delta')})
+) !default;
+// The pair Bulma's dropdown gives an `is-active` item.
+$cascader-highlight-background: cv.getVar('link') !default;
+$cascader-highlight-color: cv.getVar('link-invert') !default;
+$cascader-disabled-color: cv.getVar('text-weak') !default;
+$cascader-item-chevron-size: 0.5em !default;
+$cascader-item-gap: 0.5em !default;
+// Room around a column's items for the focus ring of one at its edge, which
+// the scrolling would cut off: the ring's width and its offset.
+$cascader-column-inset: 4px !default;
+
+// The other sizes, each with the values it changes, as Combobox's.
+$cascader-sizes: (
+  'small': (
+    'item-size': cv.getVar('size-small'),
+    'item-padding-y': 0.25rem,
+    'item-padding-x': 0.75rem,
+  ),
+  'medium': (
+    'item-size': cv.getVar('size-normal'),
+    'item-padding-y': 0.5rem,
+    'item-padding-x': 1.25rem,
+  ),
+  'large': (
+    'item-size': cv.getVar('size-medium'),
+    'item-padding-y': 0.625rem,
+    'item-padding-x': 1.5rem,
+  ),
+) !default;
+
+// Registered on the root, and on the panel too, which a portal puts outside
+// it. A panel in place inherits the root's, so a theme set there reaches it.
+.#{iv.$class-prefix}cascader,
+.#{iv.$class-prefix}cascader-panel {
+  @include cv.register-vars(
+    (
+      'cascader-chevron-width': #{$cascader-chevron-width},
+      'cascader-chevron-color': #{$cascader-chevron-color},
+      'cascader-chevron-hover-color': #{$cascader-chevron-hover-color},
+      'cascader-chevron-focus-color': #{$cascader-chevron-focus-color},
+      'cascader-search-gap': #{$cascader-search-gap},
+      'cascader-column-width': #{$cascader-column-width},
+      'cascader-column-max-height': #{$cascader-column-max-height},
+      'cascader-column-border-color': #{$cascader-column-border-color},
+      'cascader-item-color': #{$cascader-item-color},
+      'cascader-item-size': #{$cascader-item-size},
+      'cascader-item-padding-y': #{$cascader-item-padding-y},
+      'cascader-item-padding-x': #{$cascader-item-padding-x},
+      'cascader-item-hover-background': #{$cascader-item-hover-background},
+      'cascader-highlight-background': #{$cascader-highlight-background},
+      'cascader-highlight-color': #{$cascader-highlight-color},
+      'cascader-disabled-color': #{$cascader-disabled-color},
+      'cascader-item-chevron-size': #{$cascader-item-chevron-size},
+      'cascader-item-gap': #{$cascader-item-gap},
+      'cascader-column-inset': #{$cascader-column-inset},
+    )
+  );
+}
+
+// The panel takes the field's size as a modifier, so the columns follow it.
+@each $size, $values in $cascader-sizes {
+  .#{iv.$class-prefix}cascader-panel.#{iv.$class-prefix}is-#{$size} {
+    @include cv.register-vars(
+      (
+        'cascader-item-size': #{map.get($values, 'item-size')},
+        'cascader-item-padding-y': #{map.get($values, 'item-padding-y')},
+        'cascader-item-padding-x': #{map.get($values, 'item-padding-x')},
+      )
+    );
+  }
+}
+
+// The field: its chevron, its clear button and the room it keeps for them.
+@include sf.select-field('cascader');
+
+.#{iv.$class-prefix}cascader-panel {
+  display: flex;
+  flex-direction: column;
+  gap: cv.getVar('cascader-search-gap');
+}
+
+// The columns side by side, scrolling sideways when they don't all fit.
+.#{iv.$class-prefix}cascader-columns {
+  display: flex;
+  font-size: cv.getVar('cascader-item-size');
+  overflow-x: auto;
+  overscroll-behavior: contain;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.#{iv.$class-prefix}cascader-column {
+  flex: none;
+  list-style: none;
+  margin: 0;
+  max-height: cv.getVar('cascader-column-max-height');
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: cv.getVar('cascader-column-inset');
+  width: cv.getVar('cascader-column-width');
+
+  & + & {
+    border-inline-start: 1px solid cv.getVar('cascader-column-border-color');
+  }
+
+  &:focus {
+    outline: none;
+  }
+}
+
+// Doubled up to outrank Bulma's `.dropdown-item`, and its 0.875rem.
+.#{iv.$class-prefix}dropdown-item.#{iv.$class-prefix}cascader-item {
+  align-items: center;
+  color: cv.getVar('cascader-item-color');
+  cursor: pointer;
+  display: flex;
+  font-size: inherit;
+  gap: cv.getVar('cascader-item-gap');
+  padding: cv.getVar('cascader-item-padding-y')
+    cv.getVar('cascader-item-padding-x');
+
+  &:hover:not(.#{iv.$class-prefix}is-active):not(
+      .#{iv.$class-prefix}is-disabled
+    ) {
+    background-color: cv.getVar('cascader-item-hover-background');
+  }
+
+  &.#{iv.$class-prefix}is-active {
+    background-color: cv.getVar('cascader-highlight-background');
+    color: cv.getVar('cascader-highlight-color');
+  }
+
+  &.#{iv.$class-prefix}is-disabled {
+    color: cv.getVar('cascader-disabled-color');
+    cursor: not-allowed;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include extras-focus-outline;
+  }
+}
+
+.#{iv.$class-prefix}cascader-label {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.#{iv.$class-prefix}cascader-icon {
+  display: inline-flex;
+  flex: none;
+}
+
+// A parent's chevron, drawn the way TreeView draws its own: two sides of a
+// square, turned to point to the end of the line. It's a border, so it stays
+// in forced colors.
+.#{iv.$class-prefix}cascader-item-chevron {
+  border-color: currentColor;
+  border-style: solid;
+  border-width: 0 0 0.125em 0.125em;
+  flex: none;
+  height: cv.getVar('cascader-item-chevron-size');
+  transform: rotate(-135deg);
+  width: cv.getVar('cascader-item-chevron-size');
+
+  &:dir(rtl) {
+    transform: rotate(45deg);
+  }
+}
+
+// A loading column's row, or a failed load's.
+.#{iv.$class-prefix}cascader-status .#{iv.$class-prefix}loader {
+  flex: none;
+}
+
+@media (forced-colors: active) {
+  // Forced colors takes the fill away, so the item on the path asks for the
+  // system's own pair.
+  .#{iv.$class-prefix}dropdown-item.#{iv.$class-prefix}cascader-item.#{iv.$class-prefix}is-active {
+    background-color: Highlight;
+    color: HighlightText;
+    forced-color-adjust: none;
+  }
+
+  .#{iv.$class-prefix}dropdown-item.#{iv.$class-prefix}cascader-item.#{iv.$class-prefix}is-disabled {
+    color: GrayText;
+  }
+}
