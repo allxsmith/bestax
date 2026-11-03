@@ -460,6 +460,64 @@ describe('icon', () => {
     expect(
       screen.getByRole('button', { name: 'Reports' }).firstElementChild
     ).toHaveClass('bestax-menu-section-icon');
+    expect(
+      screen.getByRole('button', { name: 'Reports' }).nextElementSibling
+    ).toHaveClass('bestax-menu-section-list');
+  });
+
+  it('reads a string as an Icon name, as TreeView.Item does', () => {
+    render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item href="#home" icon="house">
+            Home
+          </Menu.Item>
+        </Menu.List>
+        <Menu.Section label="Reports" icon="chart-line">
+          <Menu.List>
+            <Menu.Item href="#sales">Sales</Menu.Item>
+          </Menu.List>
+        </Menu.Section>
+      </Menu>
+    );
+    const link = screen.getByRole('link', { name: 'Home' });
+    expect(link).not.toHaveTextContent('house');
+    expect(link.querySelector('.menu-item-icon i')).toHaveClass('fa-house');
+    const button = screen.getByRole('button', { name: 'Reports' });
+    expect(button).not.toHaveTextContent('chart-line');
+    expect(button.querySelector('.menu-section-icon i')).toHaveClass(
+      'fa-chart-line'
+    );
+  });
+
+  it('renders nothing for an icon that holds nothing to render', () => {
+    render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item href="#home" icon="">
+            Home
+          </Menu.Item>
+          <Menu.Item href="#about" icon={false}>
+            About
+          </Menu.Item>
+        </Menu.List>
+        <Menu.Section label="Reports" icon={null}>
+          <Menu.List>
+            <Menu.Item href="#sales">Sales</Menu.Item>
+          </Menu.List>
+        </Menu.Section>
+      </Menu>
+    );
+    for (const name of ['Home', 'About']) {
+      const link = screen.getByRole('link', { name });
+      expect(link.querySelector('.menu-item-icon')).toBeNull();
+      expect(link.querySelector('.menu-item-label')).toBeNull();
+    }
+    expect(
+      screen
+        .getByRole('button', { name: 'Reports' })
+        .querySelector('.menu-section-icon')
+    ).toBeNull();
   });
 });
 
@@ -1238,6 +1296,8 @@ describe('Menu.Section', () => {
     expect(chevron).toHaveAttribute('aria-hidden', 'true');
     expect(chevron).toBeEmptyDOMElement();
     expect(screen.getByTestId('section')).toHaveClass('menu-section');
+    // The list it opens and closes has a class of its own to select.
+    expect(regionOf(button)).toHaveClass('menu-section-list');
   });
 
   it('takes a node as its label, and names the button with it', () => {

@@ -38,6 +38,10 @@
       "code": "<Tooltip label=\"Orders over $50 ship free\" openOnTap>\n  <Button>Shipping</Button>\n</Tooltip>"
     },
     {
+      "title": "Disabled",
+      "code": "function example() {\n  const [disabled, setDisabled] = useState(true);\n  return (\n    <>\n      <Block>\n        <Checkbox\n          checked={disabled}\n          onChange={e => setDisabled(e.target.checked)}\n        >\n          Disable the tooltip\n        </Checkbox>\n      </Block>\n      <Tooltip label=\"Saves a copy\" disabled={disabled}>\n        <Button>Save</Button>\n      </Tooltip>\n    </>\n  );\n}"
+    },
+    {
       "title": "On Icons",
       "code": "function example() {\n  return (\n    <Buttons p=\"6\">\n      <Tooltip label=\"Moves it to the trash\" color=\"danger\" position=\"bottom\">\n        <Button aria-label=\"Delete\">\n          <Icon name=\"fas fa-trash\" />\n        </Button>\n      </Tooltip>\n      <Tooltip label=\"Opens it for editing\" color=\"info\" position=\"bottom\">\n        <Button aria-label=\"Edit\">\n          <Icon name=\"fas fa-edit\" />\n        </Button>\n      </Tooltip>\n      <Tooltip label=\"Saves a copy as a PDF\" color=\"success\" position=\"bottom\">\n        <Button aria-label=\"Download\">\n          <Icon name=\"fas fa-download\" />\n        </Button>\n      </Tooltip>\n    </Buttons>\n  );\n}"
     },

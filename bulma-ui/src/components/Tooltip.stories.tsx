@@ -102,6 +102,11 @@ const meta: Meta<typeof Tooltip> = {
       description:
         'Keep the tooltip closed, and its trigger unlinked from it, without remounting the trigger',
     },
+    describesTrigger: {
+      control: 'boolean',
+      description:
+        "Make the tooltip its trigger's description; turn it off for one that only repeats the trigger's own name, such as an icon button's aria-label",
+    },
   },
 };
 

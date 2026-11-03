@@ -56,11 +56,11 @@ parts are direct children, in this order: `AppFrame.Header` (`<header>`), `AppFr
 
 Put it at the top of the app, never inside a `<main>` or a `Container as="main"`: it renders the
 page's `<main>`. Its `Navbar` is not `fixed` and needs no `has-navbar-fixed-top`. A control of
-your own reads and toggles the state with `useAppFrame()`: `toggleNav()` does what the burger does,
-and `navId` is for its `aria-controls`. A header taller than Bulma's navbar sets
-`--bulma-app-frame-header-height` on `:root`. With `AppFrame.Nav rail`, the collapsed column keeps
-its icons and shows each label in a tooltip, which the frame renders: don't wrap the items in a
-`Tooltip` of your own.
+your own reads and toggles the state with `useAppFrame()`, which is `null` outside a frame:
+`toggleNav()` does what the burger does, and `navId` is for its `aria-controls`. A header taller
+than Bulma's navbar sets `--bulma-app-frame-header-height` on `:root`. With `AppFrame.Nav rail`,
+the collapsed column keeps its icons and shows each label in a tooltip, which the frame renders:
+don't wrap the items in a `Tooltip` of your own.
 
 ## Container
 
@@ -299,10 +299,10 @@ https://bestax.io/docs/guides/features/routing.
 `<Menu>` is a vertical sidebar menu. Subcomponents: `Menu.Label`, `Menu.List`, `Menu.Item`,
 `Menu.Section`.
 
-| Prop           | Type                                                                                                                                                                                                                                                                           |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `Menu.Item`    | `active?` (the current page: `is-active` plus `aria-current="page"`, so don't add your own), `href?`, `as?` (custom link component), `icon?` (an `Icon` before the label, hidden from assistive technology, so keep the label); nest a `Menu.List` inside an item for submenus |
-| `Menu.Section` | `label` (the heading, a `ReactNode`), `icon?`, `defaultOpen?`, or `open?` with `onOpenChange?(open)` to hold the state yourself, as `Collapse` does; its child is the group's `Menu.List`, and a closed section's links are out of reach                                       |
+| Prop           | Type                                                                                                                                                                                                                                                                                            |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Menu.Item`    | `active?` (the current page: `is-active` plus `aria-current="page"`, so don't add your own), `href?`, `as?` (custom link component), `icon?` (an `Icon` name, or a node, before the label, hidden from assistive technology, so keep the label); nest a `Menu.List` inside an item for submenus |
+| `Menu.Section` | `label` (the heading, a `ReactNode`), `icon?` (an `Icon` name, or a node), `defaultOpen?`, or `open?` with `onOpenChange?(open)` to hold the state yourself, as `Collapse` does; its child is the group's `Menu.List`, and a closed section's links are out of reach                            |
 
 ```tsx
 <Menu>
