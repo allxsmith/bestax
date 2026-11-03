@@ -71,6 +71,14 @@ It takes every `Button` prop, is `type="button"` unless you pass `submit` or `re
 `isRounded` makes it a circle. For a description on hover, wrap it in `Tooltip`, which describes it
 and doesn't name it.
 
+A button that copies text (a share link, an API key, an install command) is `CopyButton`:
+`<CopyButton value={url} />`, rather than a `Button` calling `navigator.clipboard` yourself. It
+falls back to the copy command where the Clipboard API is missing, reports a failure rather than
+showing "Copied", reads "Copied" for `duration` ms (2000), and announces each result in a status
+region it portals, so it can sit last in a `Control` or `Buttons`. `showLabel={false}` makes it an
+icon-only `IconButton` named by `labels.copy`. Its callbacks are `onCopiedChange` and `onCopyError`
+(not `onCopy`/`onError`, which are DOM events). For a trigger of your own, use `useClipboard`.
+
 A button that turns something on or off and stays that way (Bold, Mute, Show archived) is
 `ToggleButton`: use it rather than `Button isActive`, which only draws a shade and sets no
 `aria-pressed`. It's always `type="button"`, holds its own state (`defaultPressed`) or takes

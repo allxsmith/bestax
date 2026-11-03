@@ -268,6 +268,19 @@ A button that shows only an icon, such as Delete in a table row, with a name its
 
 ---
 
+### CopyButton
+
+A button that copies a piece of text, reads "Copied" for a moment after, and announces the result, falling back to the older copy command where the Clipboard API is missing. [View full documentation.](../../../api/elements/copybutton.md)
+
+```tsx live
+<Buttons>
+  <CopyButton value="https://bestax.io" />
+  <CopyButton value="https://bestax.io" showLabel={false} />
+</Buttons>
+```
+
+---
+
 ## Media
 
 ### Icon

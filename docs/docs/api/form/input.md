@@ -408,35 +408,16 @@ function PasswordReveal() {
 
 ### Copy Button
 
-A copy button is an addon too: a read-only `Input` holding the text, and a `Button` that writes it with `navigator.clipboard.writeText`. The button's label reads "Copied" for a moment afterwards. Screen readers don't reliably announce a change to a button's label, so a `role="status"` line under the field says it too.
+A copy field is an addon too: a read-only `Input` holding the text, and a [`CopyButton`](../elements/copybutton.md) in the second `Control`. The button writes the text, falling back to the older copy command where the Clipboard API is missing or refused, reads "Copied" for a moment, and announces the result itself. Its announcement is portaled out of the `Control`, so Bulma still joins the two.
 
-The clipboard can be missing, since `navigator.clipboard` exists only in secure contexts (HTTPS or localhost), and the browser can refuse the write. Either way the example focuses and selects the text, so the reader can copy it themselves, and explains in a `role="alert"` line. That message is an alert rather than a status because focus moves to the input at the same moment, and a screen reader announcing the focused field can drop a polite message. Both lines are in the page from the start, since a live region that appears together with its text isn't reliably announced.
+When neither way of writing works, `onCopyError` focuses the input and selects the text, so the reader can copy it themselves, and a `role="alert"` line explains. That message is an alert rather than a status because focus moves to the input at the same moment, and a screen reader announcing the focused field can drop a polite message. The line is in the page from the start, since a live region that appears together with its text isn't reliably announced.
 
 ```tsx live
-function CopyButton() {
+function ShareLink() {
   const id = React.useId();
   const inputRef = React.useRef<HTMLInputElement>(null);
-  const [status, setStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
+  const [failed, setFailed] = useState(false);
   const link = 'https://bestax.io/docs/api/form/input';
-
-  // Put the button's label back after a moment.
-  useEffect(() => {
-    if (status !== 'copied') return undefined;
-    const timer = setTimeout(() => setStatus('idle'), 2000);
-    return () => clearTimeout(timer);
-  }, [status]);
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(link);
-      setStatus('copied');
-    } catch {
-      // No clipboard on this page, or the browser refused the write.
-      inputRef.current?.focus();
-      inputRef.current?.select();
-      setStatus('failed');
-    }
-  };
 
   return (
     <Field label="Share link" labelProps={{ htmlFor: id }}>
@@ -445,20 +426,19 @@ function CopyButton() {
           <Input ref={inputRef} id={id} value={link} readOnly />
         </Control>
         <Control>
-          <Button type="button" onClick={copy}>
-            <Icon
-              name={status === 'copied' ? 'check' : 'copy'}
-              aria-hidden="true"
-            />
-            <span>{status === 'copied' ? 'Copied' : 'Copy'}</span>
-          </Button>
+          <CopyButton
+            value={link}
+            onCopiedChange={() => setFailed(false)}
+            onCopyError={() => {
+              inputRef.current?.focus();
+              inputRef.current?.select();
+              setFailed(true);
+            }}
+          />
         </Control>
       </Field>
-      <p role="status" className="help">
-        {status === 'copied' && 'Copied to the clipboard.'}
-      </p>
       <p role="alert" className="help is-danger">
-        {status === 'failed' &&
+        {failed &&
           "Couldn't copy automatically. The link is selected, so copy it from the field."}
       </p>
     </Field>

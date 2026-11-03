@@ -234,6 +234,38 @@ function FilterPanel({ children }: { children: React.ReactNode }) {
 }
 ```
 
+## Copying text: `useClipboard`
+
+`useClipboard({ duration, onCopiedChange, onCopyError })` (`helpers/useClipboard.ts`) returns
+`{ copy, copied, error }`. `copy(text)` writes through the Clipboard API, falls back to the copy
+command where that's missing (any plain `http://` page but `localhost`) or refused, and resolves
+`true` or `false`; it never rejects. `copied` is `true` for `duration` ms (2000) after a copy that
+worked, and `error` holds why the last one failed. Call `copy` from the click, since browsers only
+allow a write shortly after one. The hook announces nothing: say the result in a `role="status"`
+region that's in the page, empty, before the click. For a button, use `CopyButton`, which does
+that already.
+
+```tsx
+function CommitId({ sha }: { sha: string }) {
+  const { copy, copied } = useClipboard();
+  const short = sha.slice(0, 7);
+  return (
+    <>
+      <LinkButton
+        type="button"
+        aria-label={`Copy commit ${short}`}
+        onClick={() => copy(sha)}
+      >
+        <Code>{short}</Code>
+      </LinkButton>
+      <Span role="status" visibility="sr-only">
+        {copied ? `Copied commit ${short}` : ''}
+      </Span>
+    </>
+  );
+}
+```
+
 ## SCSS utilities — from the `bulma` package
 
 ```scss

@@ -43,6 +43,7 @@ const NAMED_INDIVIDUALLY = [
   'Command',
   'Command.Dialog',
   'Command.Input',
+  'CopyButton',
   'DataTable',
   'DescriptionList',
   'DescriptionList.Item',

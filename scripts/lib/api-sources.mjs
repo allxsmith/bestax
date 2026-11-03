@@ -355,6 +355,7 @@ export const SCSS_SOURCES = {
  */
 export const RENDERS_ELEMENT_OF = {
   CheckboxCard: 'Card', // its label is a `.card.checkbox-card`
+  CopyButton: 'Button', // renders a `.button` through Button, or IconButton's
   Dropzone: 'File', // its zone is a `.file.is-boxed.is-fullwidth`
   IconButton: 'Button', // renders `.button.icon-button` through Button
   LinkButton: 'Button', // renders `.button.link-button` through Button
