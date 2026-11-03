@@ -589,7 +589,7 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
     // fades are CSS animations, which start when the stylesheet's selector
     // first matches, even for an image that was already loaded, where a
     // transition wouldn't run.
-    const [shown, setShown] = useState(index);
+    const [shown, setShown] = useState({ index, item });
     const [status, setStatus] = useState<
       'loading' | 'slow' | 'loaded' | 'error'
     >('loading');
@@ -608,23 +608,51 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
       setView(viewRef.current);
     };
 
-    // A move starts the new image fitted. Adjusted while rendering, React's
-    // pattern for state that follows a prop, so the old zoom never paints on
-    // the new image.
-    if (shown !== index) {
-      setShown(index);
+    // A move starts the new image fitted and loading, and so does another
+    // image at the same index after `items` changes. Adjusted while rendering,
+    // React's pattern for state that follows a prop, so the old zoom or load
+    // state never paints on the new image.
+    if (
+      shown.index !== index ||
+      shown.item.src !== item.src ||
+      shown.item.srcSet !== item.srcSet
+    ) {
+      setShown({ index, item });
       setLeaving(
-        reducedMotion ? undefined : status === 'loaded' ? items[shown] : leaving
+        reducedMotion ? undefined : status === 'loaded' ? shown.item : leaving
       );
       setStatus('loading');
       setAttempt(0);
       setView(FITTED);
     }
 
-    // An image already there when it mounts, as one the server rendered and
-    // the browser loaded before hydration, fires no load event.
+    const fail = () => {
+      setStatus('error');
+      setLeaving(undefined);
+    };
+
+    // An image the server rendered loads or fails before hydration, so its
+    // event comes before React listens for it. A broken image is complete
+    // and has no size, and so is a loaded SVG with none of its own, so
+    // `decode()` tells those two apart.
     useClientLayoutEffect(() => {
-      if (image?.complete && image.naturalWidth > 0) setStatus('loaded');
+      if (!image?.complete) return undefined;
+      if (image.naturalWidth > 0) {
+        setStatus('loaded');
+        return undefined;
+      }
+      let live = true;
+      image.decode().then(
+        () => live && setStatus('loaded'),
+        () => {
+          if (!live) return;
+          setStatus('error');
+          setLeaving(undefined);
+        }
+      );
+      return () => {
+        live = false;
+      };
     }, [image]);
 
     // The Loader shows only for an image that takes a while.
@@ -637,7 +665,7 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
         setLeaving(undefined);
       }, LOADER_DELAY);
       return () => clearTimeout(timer);
-    }, [status, index, attempt]);
+    }, [status, shown, attempt]);
 
     // The images either side, fetched ahead so a move shows them at once.
     // With `repeat` and two images, both sides are the one other image, so
@@ -1159,7 +1187,10 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
           >
             {status !== 'error' && (
               <img
-                key={`${index}-${attempt}`}
+                // The index as well as the file: a move between two items
+                // with the same file still makes a new element, whose load
+                // event clears the Loader.
+                key={`${index}-${item.src}-${item.srcSet}-${attempt}`}
                 ref={setImage}
                 className={classNames(
                   imageClass,
@@ -1172,10 +1203,7 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
                 draggable={false}
                 style={imageStyle}
                 onLoad={() => setStatus('loaded')}
-                onError={() => {
-                  setStatus('error');
-                  setLeaving(undefined);
-                }}
+                onError={fail}
                 onDoubleClick={event => {
                   // A touch screen's double tap is handled as it lands.
                   if (canZoom && lastPointerTypeRef.current !== 'touch') {

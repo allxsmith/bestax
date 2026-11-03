@@ -916,6 +916,57 @@ describe('Lightbox', () => {
       expect(shownImage()).not.toHaveClass('is-loading');
     });
 
+    it('starts another image at the same index fresh when the items change', () => {
+      const { rerender } = render(<Gallery defaultOpen />);
+      fireEvent.error(shownImage());
+      expect(button('Retry')).toBeInTheDocument();
+
+      // The failed image is replaced: the new one loads, with no error.
+      const pier = { src: '/pier.jpg', alt: 'Pier at low tide' };
+      rerender(<Gallery defaultOpen items={[pier, ...PHOTOS.slice(1)]} />);
+      expect(screen.queryByRole('button', { name: 'Retry' })).toBeNull();
+      expect(shownImage()).toHaveAttribute('src', '/pier.jpg');
+      expect(shownImage()).toHaveClass('is-loading');
+
+      // A loaded image replaced: the new one loads too, over the old one.
+      fireEvent.load(shownImage());
+      const beach = { src: '/beach.jpg', alt: 'Beach huts' };
+      rerender(<Gallery defaultOpen items={[beach, ...PHOTOS.slice(1)]} />);
+      expect(shownImage()).toHaveClass('is-loading');
+      expect(leavingImage()).toHaveAttribute('src', '/pier.jpg');
+
+      // The same files in new objects, as a refetch gives: nothing restarts.
+      fireEvent.load(shownImage());
+      rerender(
+        <Gallery
+          defaultOpen
+          items={[{ ...beach }, ...PHOTOS.slice(1).map(p => ({ ...p }))]}
+        />
+      );
+      expect(shownImage()).not.toHaveClass('is-loading');
+    });
+
+    it('makes a new image element for a move between two items with the same file', () => {
+      render(
+        <Lightbox
+          items={[
+            { src: '/harbour.jpg', alt: 'Harbour at dusk' },
+            { src: '/harbour.jpg', alt: 'Harbour at dusk, again' },
+          ]}
+          defaultOpen
+        >
+          <span />
+        </Lightbox>
+      );
+      const first = shownImage();
+      fireEvent.load(first);
+      key('ArrowRight');
+      expect(shownImage()).not.toBe(first);
+      expect(shownImage()).toHaveClass('is-loading');
+      fireEvent.load(shownImage());
+      expect(shownImage()).not.toHaveClass('is-loading');
+    });
+
     it('shows a Loader for an image that takes a while', () => {
       vi.useFakeTimers();
       render(<Gallery defaultOpen />);
@@ -1636,6 +1687,95 @@ describe('Lightbox', () => {
         errorSpy.mockRestore();
         await act(async () => root!.unmount());
         container.remove();
+      }
+    });
+
+    /**
+     * A viewer rendered in place on the server, whose image the browser
+     * finished, as broken or as an SVG with no size of its own, before
+     * hydration: complete, no width, and a `decode()` that says which.
+     */
+    async function hydrateFinished(decode: () => Promise<void>) {
+      const ui = <Gallery defaultOpen portal={false} />;
+      const container = document.createElement('div');
+      container.innerHTML = renderToString(ui);
+      document.body.appendChild(container);
+      vi.spyOn(HTMLImageElement.prototype, 'complete', 'get').mockReturnValue(
+        true
+      );
+      vi.spyOn(
+        HTMLImageElement.prototype,
+        'naturalWidth',
+        'get'
+      ).mockReturnValue(0);
+      // jsdom has no decode().
+      Object.defineProperty(HTMLImageElement.prototype, 'decode', {
+        value: decode,
+        configurable: true,
+      });
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      let root: ReturnType<typeof hydrateRoot> | undefined;
+      await act(async () => {
+        root = hydrateRoot(container, ui);
+      });
+      expect(errorSpy).not.toHaveBeenCalled();
+      return async () => {
+        await act(async () => root!.unmount());
+        container.remove();
+        delete (HTMLImageElement.prototype as Partial<HTMLImageElement>).decode;
+      };
+    }
+
+    it('shows the error and Retry for an image that failed before hydration', async () => {
+      const cleanUp = await hydrateFinished(() =>
+        Promise.reject(new Error('EncodingError'))
+      );
+      try {
+        expect(button('Retry')).toBeInTheDocument();
+        expect(screen.queryByRole('progressbar')).toBeNull();
+      } finally {
+        await cleanUp();
+      }
+    });
+
+    it('ignores a decode that settles after the image has changed', async () => {
+      vi.spyOn(HTMLImageElement.prototype, 'complete', 'get').mockReturnValue(
+        true
+      );
+      vi.spyOn(
+        HTMLImageElement.prototype,
+        'naturalWidth',
+        'get'
+      ).mockReturnValue(0);
+      const fails: Array<() => void> = [];
+      Object.defineProperty(HTMLImageElement.prototype, 'decode', {
+        value: () =>
+          new Promise<void>((_, reject) => fails.push(() => reject())),
+        configurable: true,
+      });
+      try {
+        render(<Gallery defaultOpen />);
+        key('ArrowRight');
+        // The first image's decode fails once the second is shown.
+        await act(async () => fails[0]());
+        expect(screen.queryByRole('button', { name: 'Retry' })).toBeNull();
+        await act(async () => fails[fails.length - 1]());
+        expect(button('Retry')).toBeInTheDocument();
+      } finally {
+        delete (HTMLImageElement.prototype as Partial<HTMLImageElement>).decode;
+      }
+    });
+
+    it('takes an SVG with no size of its own, loaded before hydration, as loaded', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      const cleanUp = await hydrateFinished(() => Promise.resolve());
+      try {
+        expect(shownImage()).not.toHaveClass('is-loading');
+        act(() => vi.advanceTimersByTime(1000));
+        expect(screen.queryByRole('progressbar')).toBeNull();
+        expect(screen.queryByRole('button', { name: 'Retry' })).toBeNull();
+      } finally {
+        await cleanUp();
       }
     });
   });
