@@ -323,7 +323,7 @@ function example() {
 
 It stacks at `--bulma-affix-z-index`, one step under the layer Bulma's dropdown menus use. That puts
 it over the page's content, and under what opens over the page: Dropdown, Combobox and the other
-menus, Popover and the pickers' panels, a fixed navbar, the Sidebar and its overlay, Bulma's modal,
+menus, Popover and the pickers' panels, a Bulma navbar, static or fixed, the Sidebar and its overlay, Bulma's modal,
 a full-page Loading, Tooltip and Toast. A menu opened near its corner opens over it. A toast stack in
 the same corner sits over it too, so put toasts in another corner (they start at the top right) or
 move the Affix with a larger offset.
