@@ -466,8 +466,13 @@ describe('in an icon rail', () => {
   const Glyph = () => <svg />;
 
   /** A rail whose wrap marks what it wrapped and keeps the label it was given. */
-  const railOf = (collapsed: boolean, expand = vi.fn()): MenuRail => ({
+  const railOf = (
+    collapsed: boolean,
+    expand = vi.fn(),
+    modeKnown = true
+  ): MenuRail => ({
     collapsed,
+    modeKnown,
     expand,
     wrap: (trigger, label) => (
       <span data-testid="tip" data-label={String(label)}>
@@ -525,6 +530,35 @@ describe('in an icon rail', () => {
     expect(tip.firstElementChild).toBe(
       screen.getByRole('button', { name: 'Reports' })
     );
+  });
+
+  it('leaves aria-expanded off a section until the frame knows the column’s mode', () => {
+    const html = renderToStaticMarkup(
+      <MenuRailContext.Provider value={railOf(false, vi.fn(), false)}>
+        <Menu>
+          <Menu.Section label="Reports" icon={<Glyph />} defaultOpen>
+            <Menu.List>
+              <Menu.Item href="#sales">Sales</Menu.Item>
+            </Menu.List>
+          </Menu.Section>
+        </Menu>
+      </MenuRailContext.Provider>
+    );
+    const button = /<button[^>]*menu-section-toggle[^>]*>/.exec(html)?.[0];
+    expect(button).toBeDefined();
+    expect(button).not.toContain('aria-expanded');
+    // Outside a rail, a section says it as always.
+    expect(
+      renderToStaticMarkup(
+        <Menu>
+          <Menu.Section label="Plain" defaultOpen>
+            <Menu.List>
+              <Menu.Item href="#a">A</Menu.Item>
+            </Menu.List>
+          </Menu.Section>
+        </Menu>
+      )
+    ).toContain('aria-expanded="true"');
   });
 
   it('leaves a section’s own list out of the rail', () => {

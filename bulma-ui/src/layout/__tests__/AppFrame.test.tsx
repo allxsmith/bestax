@@ -1534,6 +1534,30 @@ describe('AppFrame.Nav rail', () => {
     }
   });
 
+  it('leaves aria-expanded off a section in the rail on the server, and sets it once the mode is known', () => {
+    const OpenSection = (props: AppFrameProps) => (
+      <AppFrame {...props}>
+        <AppFrame.Nav rail>
+          <Menu>
+            <Menu.Section label="Reports" icon={<Glyph />} defaultOpen>
+              <Menu.List>
+                <Menu.Item href="#sales">Sales</Menu.Item>
+              </Menu.List>
+            </Menu.Section>
+          </Menu>
+        </AppFrame.Nav>
+        <AppFrame.Main>Page</AppFrame.Main>
+      </AppFrame>
+    );
+    const html = renderToStaticMarkup(<OpenSection defaultNavCollapsed />);
+    const button = /<button[^>]*menu-section-toggle[^>]*>/.exec(html)?.[0];
+    expect(button).toBeDefined();
+    expect(button).not.toContain('aria-expanded');
+    mockViewport(DESKTOP);
+    render(<OpenSection defaultNavCollapsed />);
+    expect(reports()).toHaveAttribute('aria-expanded', 'false');
+  });
+
   it('renders the rail and its tooltips on the server, so hydrating remounts nothing', () => {
     const html = renderToStaticMarkup(<RailFrame defaultNavCollapsed />);
     expect(html).toMatch(/<nav[^>]*class="app-frame-nav is-rail"/);

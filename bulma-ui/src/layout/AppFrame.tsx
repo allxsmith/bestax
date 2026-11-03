@@ -524,8 +524,8 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
     // right unless the nav is laid out right to left, which only the page
     // knows: read as the rail appears and each time it collapses.
     const [side, setSide] = useState<'left' | 'right'>('right');
-    const railCollapsed =
-      rail && !!frame?.modeKnown && !isDrawer && navCollapsed;
+    const modeKnown = !!frame?.modeKnown;
+    const railCollapsed = rail && modeKnown && !isDrawer && navCollapsed;
     useClientLayoutEffect(() => {
       if (!rail) return;
       const rtl = getComputedStyle(navRef.current!).direction === 'rtl';
@@ -536,6 +536,7 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
       if (!rail || !state) return null;
       return {
         collapsed: railCollapsed,
+        modeKnown,
         expand: () => state.setNavCollapsed(false),
         wrap: (trigger, label) => (
           <Tooltip
@@ -548,7 +549,7 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
           </Tooltip>
         ),
       };
-    }, [rail, state, railCollapsed, side, tipClass]);
+    }, [rail, state, railCollapsed, modeKnown, side, tipClass]);
 
     const navStyle =
       width === undefined

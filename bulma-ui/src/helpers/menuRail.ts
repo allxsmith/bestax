@@ -14,6 +14,11 @@ export interface MenuRail {
    * list the rail hides.
    */
   collapsed: boolean;
+  /**
+   * Whether the frame has read the width, so it knows whether the column is
+   * a rail or a drawer. Not on the server, nor in the render that hydrates.
+   */
+  modeKnown: boolean;
   /** Widens the column again. */
   expand: () => void;
   /**

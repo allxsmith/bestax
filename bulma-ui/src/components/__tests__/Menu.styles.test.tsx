@@ -447,6 +447,7 @@ describe.each([
     it('spaces a heading the same inside the Tooltip an AppFrame rail puts it in', () => {
       const rail: MenuRail = {
         collapsed: false,
+        modeKnown: true,
         expand: () => {},
         wrap: (trigger, label) => (
           <Tooltip content={label} describesTrigger={false}>
