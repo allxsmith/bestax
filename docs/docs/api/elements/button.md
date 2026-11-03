@@ -337,7 +337,9 @@ function example() {
 - **Toggles:** `isActive` tells a screen reader nothing. A button that turns something on or off is a [`ToggleButton`](./togglebutton.md), which sets `aria-pressed`.
 
 :::note
-If your button has only an icon, use `aria-label` to provide accessible text.
+A button that shows only an icon is an [`IconButton`](./iconbutton.md), whose types require the
+`aria-label` that names it, and whose `isRounded` makes a circle. On a plain `Button` holding only
+an icon, name it with `aria-label` yourself.
 :::
 
 ---
@@ -346,6 +348,7 @@ If your button has only an icon, use `aria-label` to provide accessible text.
 
 - [`Buttons`](./buttons.md): Group multiple buttons together, including add-ons and alignment.
 - [`ToggleButton`](./togglebutton.md): A button that stays pressed while something is on, and says so through `aria-pressed`.
+- [`IconButton`](./iconbutton.md): A button that shows only an icon, with the name its types require.
 - [`Icon`](../elements/icon.md): Inline icons for use inside buttons.
 - [Helper Props](../helpers/usebulmaclasses.md): List of all supported Bulma helper props for spacing, colors, etc.
 

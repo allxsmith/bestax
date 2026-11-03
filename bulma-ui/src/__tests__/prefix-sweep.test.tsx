@@ -39,6 +39,14 @@ function isComponentExport(value: unknown): value is AnyComponent {
 
 const PROPS: Record<string, Record<string, unknown>> = {
   Icon: { name: 'star' },
+  // Named, colored, sized and rounded, so every class it emits is swept.
+  IconButton: {
+    icon: 'trash',
+    'aria-label': 'Delete',
+    color: 'danger',
+    size: 'small',
+    isRounded: true,
+  },
   IconText: { children: 'Text', iconProps: { name: 'star' } },
   Avatar: { name: 'Ada Lovelace' },
   Badge: { children: '9' },

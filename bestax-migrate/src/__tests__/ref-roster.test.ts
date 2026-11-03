@@ -52,6 +52,7 @@ const NAMED_INDIVIDUALLY = [
   'Dialog',
   'Dropdown',
   'EmptyState',
+  'IconButton',
   'Kbd',
   'Kbd.Group',
   'Link',

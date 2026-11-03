@@ -90,6 +90,12 @@ export const DEPRECATED_PROPS: Readonly<
       note: 'Use `variant` and `features` instead.',
     },
   },
+  IconButton: {
+    isFullWidth: {
+      replacement: 'isFullwidth',
+      note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
+    },
+  },
   'IconText.Icon': {
     icon: { replacement: 'name', note: 'Use `name` instead.' },
     libraryFeatures: {
