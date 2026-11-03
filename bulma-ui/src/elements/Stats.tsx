@@ -5,7 +5,9 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { withSubComponents } from '../helpers/withSubComponents';
 import type { BulmaMinColValue } from '../grid/Grid';
+import { Stat } from './Stat';
 import { StatScopeContext } from './statContext';
 
 /**
@@ -30,8 +32,10 @@ export interface StatsProps
    */
   minCol?: BulmaMinColValue;
   /**
-   * Text color helper. Each Stat in the row without a `textColor` of its own
-   * takes this one, which colors its figure.
+   * Text color helper: `has-text-*` on the `<dl>`, as on Buttons. Each Stat
+   * in the row without a `textColor` of its own takes it too, which colors
+   * its figure, since a Stat sets its own color. The labels, the changes and
+   * the notes keep theirs.
    */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */
@@ -45,7 +49,8 @@ export interface StatsProps
  * the row once, then each label with its values. The tiles fill the grid's
  * columns, each at least `minCol` wide, and wrap without media queries;
  * the `gap` helper prop sets the space between them. Name the row with
- * `aria-labelledby` pointing at the heading above it.
+ * `aria-labelledby` pointing at the heading above it. `Stat` is also
+ * `Stats.Stat`.
  *
  * @function
  * @param {StatsProps} props - Props for the Stats component.
@@ -58,9 +63,10 @@ export interface StatsProps
  *   <Stat label="New customers" value={1234} change={-0.019} />
  * </Stats>
  */
-export const Stats = forwardRef<HTMLDListElement, StatsProps>(
+const StatsRoot = forwardRef<HTMLDListElement, StatsProps>(
   ({ className, minCol, textColor, bgColor, children, ...props }, ref) => {
     const { bulmaHelperClasses, rest } = useBulmaClasses({
+      color: textColor,
       backgroundColor: bgColor,
       ...props,
     });
@@ -82,6 +88,8 @@ export const Stats = forwardRef<HTMLDListElement, StatsProps>(
   }
 );
 
-Stats.displayName = 'Stats';
+StatsRoot.displayName = 'Stats';
+
+export const Stats = withSubComponents(StatsRoot, { Stat }, 'Stats');
 
 export default Stats;

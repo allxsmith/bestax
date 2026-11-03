@@ -108,8 +108,10 @@ tiles, 0.5rem a step.
 
 ### Text Color
 
-`textColor` on the row is each Stat's `textColor` unless it has its own, so it colors the
-figures. The labels, the changes and the notes keep their own colors.
+`textColor` on the row puts `has-text-*` on the `<dl>`, as on [`Buttons`](./buttons.md), and is
+each Stat's `textColor` unless it has its own, so it colors the figures: a Stat sets its own color,
+which a color on the row alone wouldn't reach. The labels, the changes and the notes keep their own
+colors.
 
 ```tsx live
 <Stats minCol={8} textColor="link">
@@ -135,6 +137,22 @@ A `LocaleProvider` around the row reaches every figure and change in it. Put it 
     <Stat label="Neukunden" value={1234} change={0.12} />
   </Stats>
 </LocaleProvider>
+```
+
+### Compound (dot-notation) usage
+
+`Stat` is also available as `Stats.Stat`, parts included, so a row can be composed from the single
+`Stats` import.
+
+```tsx live
+<Stats minCol={8} gap={4}>
+  <Stats.Stat label="Revenue" value="$8,456" description="this month" />
+  <Stats.Stat>
+    <Stats.Stat.Label>New customers</Stats.Stat.Label>
+    <Stats.Stat.Value>1,234</Stats.Stat.Value>
+    <Stats.Stat.Description>this month</Stats.Stat.Description>
+  </Stats.Stat>
+</Stats>
 ```
 
 ---
@@ -180,20 +198,24 @@ A `LocaleProvider` around the row reaches every figure and change in it. Put it 
 
 <!-- bestax:generated props -->
 
-| Prop              | Type                                                                    | Default | Description                                                                                                                   |
-| ----------------- | ----------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `className`       | `string`                                                                | —       | Additional CSS classes to apply.                                                                                              |
-| `children`        | `React.ReactNode`                                                       | —       | `Stat`s, one per figure, and nothing else: they're the groups of its `<dl>`.                                                  |
-| `minCol`          | `BulmaMinColValue`                                                      | —       | The narrowest a tile gets before the row wraps (`is-col-min-*`), as Grid's `minCol`: 1.5rem a step. Unset, it's Bulma's 9rem. |
-| `textColor`       | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper. Each Stat in the row without a `textColor` of its own takes this one, which colors its figure.             |
-| `bgColor`         | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                                                                                                      |
-| `ref`             | `React.Ref<HTMLDListElement>`                                           | —       | Ref forwarded to the `<dl>`.                                                                                                  |
-| `gap`             | `BulmaGapStep`                                                          | —       | The space between tiles (`is-gap-*`), the helper prop with the values Grid's `gap` takes.                                     |
-| `aria-labelledby` | `string`                                                                | —       | The id of the heading above the row, which names it.                                                                          |
-| `...`             | All standard `<dl>` attributes and Bulma helper props                   | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                             |
+| Prop              | Type                                                                    | Default | Description                                                                                                                                                                                                                                    |
+| ----------------- | ----------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className`       | `string`                                                                | —       | Additional CSS classes to apply.                                                                                                                                                                                                               |
+| `children`        | `React.ReactNode`                                                       | —       | `Stat`s, one per figure, and nothing else: they're the groups of its `<dl>`.                                                                                                                                                                   |
+| `minCol`          | `BulmaMinColValue`                                                      | —       | The narrowest a tile gets before the row wraps (`is-col-min-*`), as Grid's `minCol`: 1.5rem a step. Unset, it's Bulma's 9rem.                                                                                                                  |
+| `textColor`       | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper: `has-text-*` on the `<dl>`, as on Buttons. Each Stat in the row without a `textColor` of its own takes it too, which colors its figure, since a Stat sets its own color. The labels, the changes and the notes keep theirs. |
+| `bgColor`         | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                                                                                                                                                                                                                       |
+| `ref`             | `React.Ref<HTMLDListElement>`                                           | —       | Ref forwarded to the `<dl>`.                                                                                                                                                                                                                   |
+| `gap`             | `BulmaGapStep`                                                          | —       | The space between tiles (`is-gap-*`), the helper prop with the values Grid's `gap` takes.                                                                                                                                                      |
+| `aria-labelledby` | `string`                                                                | —       | The id of the heading above the row, which names it.                                                                                                                                                                                           |
+| `...`             | All standard `<dl>` attributes and Bulma helper props                   | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                              |
 
 **Types:**
 
 - `BulmaMinColValue`: `1` | `2` | `3` | `4` | `5` | `6` | `7` | `8` | `9` | `10` | `11` | `12` | `13` | `14` | `15` | `16` | `17` | `18` | `19` | `20` | `21` | `22` | `23` | `24` | `25` | `26` | `27` | `28` | `29` | `30` | `31` | `32` — Allowed minimum column values for Bulma grid.
+
+**Subcomponents:**
+
+- [`Stats.Stat`](stat.md): The `Stat` component shows a figure with its name, and often a change and a note, such as a dashboard's revenue or an account's storage used. It's a label and its values in a description list: a `<dt>` for the label, and a `<dd>` each for the figure, the change and the note. On its own it renders its own `<dl>`; inside `Stats` it's a `<div>` in the row's. A number `value` is written by `NumberFormatter`, so it follows a `LocaleProvider`. A change is written with its sign ("+12%"), so the direction is in the text, beside a decorative arrow and a color.
 
 <!-- /bestax:generated props -->

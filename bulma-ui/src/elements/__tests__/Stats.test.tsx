@@ -127,7 +127,7 @@ describe('Stats', () => {
       expect(dl).toHaveAttribute('data-testid', 'kpis');
     });
 
-    it('gives its textColor to each Stat without one of its own, so it colors their figures', () => {
+    it('puts its textColor on the <dl>, and gives it to each Stat without one of its own, so it colors their figures', () => {
       const { container } = render(
         <Stats textColor="primary">
           <Stat label="Revenue" value="$8,456" />
@@ -137,6 +137,7 @@ describe('Stats', () => {
       expect(classesOf(container.querySelector('dl'))).toEqual([
         'stats',
         'grid',
+        'has-text-primary',
       ]);
       expect(
         Array.from(container.querySelectorAll('dl > div')).map(classesOf)
@@ -159,6 +160,29 @@ describe('Stats', () => {
         Array.from(container.querySelectorAll('data')).map(d => d.textContent)
       ).toEqual(['1.234', '-1,9 %', '56.789']);
     });
+  });
+});
+
+describe('Compound components', () => {
+  it('Stats.Stat is the exported Stat', () => {
+    expect(Stats.Stat).toBe(Stat);
+  });
+
+  it('renders a row through the dot path, with the Stat parts on it', () => {
+    const { container } = render(
+      <Stats>
+        <Stats.Stat label="Revenue" value="$8,456" />
+        <Stats.Stat>
+          <Stats.Stat.Label>Churn</Stats.Stat.Label>
+          <Stats.Stat.Value>2.1%</Stats.Stat.Value>
+        </Stats.Stat>
+      </Stats>
+    );
+    expect(
+      Array.from(container.querySelectorAll('dl.stats > div.stat')).map(
+        tile => tile.textContent
+      )
+    ).toEqual(['Revenue$8,456', 'Churn2.1%']);
   });
 });
 

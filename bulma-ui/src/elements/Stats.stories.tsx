@@ -4,6 +4,7 @@ import { Stats } from './Stats';
 import { Stat } from './Stat';
 import { Box } from './Box';
 import { Title } from './Title';
+import { LocaleProvider } from '../helpers/LocaleProvider';
 import { validColors } from '../helpers/useBulmaClasses';
 
 /** A dashboard's key figures, as Stats. */
@@ -80,7 +81,7 @@ const meta: Meta<typeof Stats> = {
       control: 'select',
       options: [...validColors, 'inherit', 'current'],
       description:
-        'Text color helper; each Stat without its own takes it for its figure',
+        'Text color helper (has-text-* on the dl); each Stat without its own takes it for its figure',
     },
     bgColor: {
       control: 'select',
@@ -162,9 +163,12 @@ export const TextColor: Story = {
       },
     },
   },
+  args: {
+    textColor: 'link',
+  },
   render: function TextColorExample(args) {
     return (
-      <Stats {...args} textColor="link">
+      <Stats {...args}>
         <Stat label="Revenue" value="$8,456" />
         <Stat label="Refunds" value="$312" textColor="danger" />
       </Stats>
@@ -195,18 +199,46 @@ export const RightToLeft: Story = {
     docs: {
       description: {
         story:
-          'The grid follows the writing direction, so the first tile sits on the right.',
+          'In a right-to-left LocaleProvider the grid follows the writing direction, so the first tile sits on the right, and the figures and changes take its locale. The provider goes around the row, since its wrapper can’t sit inside a list.',
       },
     },
   },
   render: function RightToLeftExample(args) {
     return (
-      <div dir="rtl" lang="ar">
+      <LocaleProvider locale="ar-EG" dir="rtl">
         <Stats {...args}>
-          <Stat label="الإيرادات" value={8456.4} change={0.12} locale="ar-EG" />
-          <Stat label="عملاء جدد" value={1234} change={-0.019} locale="ar-EG" />
+          <Stat label="الإيرادات" value={8456.4} change={0.12} />
+          <Stat label="عملاء جدد" value={1234} change={-0.019} />
         </Stats>
-      </div>
+      </LocaleProvider>
     );
+  },
+};
+
+export const CompoundUsage: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Stat is also Stats.Stat, so a row, its parts included, can come from the one Stats import.',
+      },
+    },
+  },
+  render: function CompoundUsageExample(args) {
+    return (
+      <Stats {...args}>
+        <Stats.Stat label="Revenue" value="$8,456" description="this month" />
+        <Stats.Stat>
+          <Stats.Stat.Label>New customers</Stats.Stat.Label>
+          <Stats.Stat.Value>1,234</Stats.Stat.Value>
+          <Stats.Stat.Description>this month</Stats.Stat.Description>
+        </Stats.Stat>
+      </Stats>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getAllByRole('term')).toHaveLength(2);
+    await expect(canvasElement.querySelectorAll('dl')).toHaveLength(1);
   },
 };

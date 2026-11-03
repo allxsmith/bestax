@@ -1224,9 +1224,9 @@
       "purpose": "The `Stats` component lays out a row of `Stat`s, such as the key figures at the top of a dashboard, as one description list on Bulma's smart grid.",
       "slug": "elements/stats",
       "import": "import { Stats, Stat } from '@allxsmith/bestax-bulma';",
-      "compound": false,
-      "propCount": 5,
-      "exampleCount": 4
+      "compound": true,
+      "propCount": 19,
+      "exampleCount": 5
     },
     {
       "name": "Steps",
