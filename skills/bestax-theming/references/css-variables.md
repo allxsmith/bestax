@@ -716,8 +716,9 @@ Declared on the container around the input, `.password-input-container`. The inp
 `variant="text"`, in em so it grows with the input's size, and the input keeps that width clear
 of text. A translation longer than "Show" and "Hide" may want a wider text width.
 
-`--bulma-password-input-toggle-color`, `--bulma-password-input-toggle-hover-color`,
-`--bulma-password-input-toggle-text-width`, `--bulma-password-input-toggle-width`
+`--bulma-password-input-toggle-color`, `--bulma-password-input-toggle-disabled-opacity`,
+`--bulma-password-input-toggle-hover-color`, `--bulma-password-input-toggle-text-width`,
+`--bulma-password-input-toggle-width`
 
 ### PinInput
 
@@ -739,8 +740,8 @@ ones are the date and time pickers' launcher; ColorInput's swatch and launcher t
 `--bulma-picker-popover-border-color`, `--bulma-picker-popover-offset`,
 `--bulma-picker-popover-padding`, `--bulma-picker-popover-radius`,
 `--bulma-picker-popover-shadow`, `--bulma-picker-popover-z-index`,
-`--bulma-picker-trigger-color`, `--bulma-picker-trigger-hover-color`,
-`--bulma-picker-trigger-width`
+`--bulma-picker-trigger-color`, `--bulma-picker-trigger-disabled-opacity`,
+`--bulma-picker-trigger-hover-color`, `--bulma-picker-trigger-width`
 
 ### Popover
 

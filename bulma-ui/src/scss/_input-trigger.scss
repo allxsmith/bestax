@@ -6,6 +6,7 @@
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
+@use 'mixins' as *;
 
 // A button over the input's right edge, in Bulma's 2.5em icon slot. Bulma's
 // Control icons are decorative (`pointer-events: none`), so a button there
@@ -16,10 +17,19 @@
 //
 // `$trigger` is the button's class, without the prefix. `$width` is the slot,
 // which the input keeps as padding so typed text never slides under the
-// button; `$color` and `$hover-color` are the button's. Each is usually a
-// `cv.getVar()`. The button takes the input's `is-small`, `is-medium` or
-// `is-large` font size, so its em-based width tracks the input's.
-@mixin extras-input-trigger($trigger, $width, $color, $hover-color) {
+// button; `$color` and `$hover-color` are the button's, and
+// `$disabled-opacity` a disabled one's. Each is usually a `cv.getVar()`, so
+// every value a theme can change is a registered variable. The color change
+// on hover takes Bulma's duration and easing through `extras-transition`. The
+// button takes the input's `is-small`, `is-medium` or `is-large` font size,
+// so its em-based width tracks the input's.
+@mixin extras-input-trigger(
+  $trigger,
+  $width,
+  $color,
+  $hover-color,
+  $disabled-opacity
+) {
   position: relative;
   @content;
 
@@ -42,7 +52,7 @@
     background: transparent;
     color: $color;
     cursor: pointer;
-    transition: color 0.15s ease;
+    @include extras-transition(color);
 
     .#{iv.$class-prefix}icon {
       pointer-events: none;
@@ -53,7 +63,7 @@
     }
     &:disabled {
       cursor: not-allowed;
-      opacity: 0.5;
+      opacity: $disabled-opacity;
     }
   }
 

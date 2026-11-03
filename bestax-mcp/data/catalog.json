@@ -2618,6 +2618,7 @@
     "--bulma-panel-tab-border-bottom-width": ["Panel"],
     "--bulma-panel-tabs-font-size": ["Panel"],
     "--bulma-password-input-toggle-color": ["PasswordInput"],
+    "--bulma-password-input-toggle-disabled-opacity": ["PasswordInput"],
     "--bulma-password-input-toggle-hover-color": ["PasswordInput"],
     "--bulma-password-input-toggle-text-width": ["PasswordInput"],
     "--bulma-password-input-toggle-width": ["PasswordInput"],

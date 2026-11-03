@@ -97,6 +97,7 @@ describe('PasswordInput styles', () => {
       '--bulma-password-input-toggle-text-width': '4.5em',
       '--bulma-password-input-toggle-color': 'var(--bulma-text)',
       '--bulma-password-input-toggle-hover-color': 'var(--bulma-text-strong)',
+      '--bulma-password-input-toggle-disabled-opacity': '0.5',
     });
   });
 
@@ -116,6 +117,19 @@ describe('PasswordInput styles', () => {
     expect(find(PLAIN, `${TOGGLE}:hover:not(:disabled)`)).toEqual({
       color: 'var(--bulma-password-input-toggle-hover-color)',
     });
+  });
+
+  it('dims a disabled toggle by its variable, and eases its color with Bulma’s timing', () => {
+    expect(find(PLAIN, `${TOGGLE}:disabled`)).toEqual({
+      cursor: 'not-allowed',
+      opacity: 'var(--bulma-password-input-toggle-disabled-opacity)',
+    });
+    // The extras-transition mixin, which reads Bulma's duration and easing.
+    const mixin = sass.compileString(
+      "@use 'mixins' as *;\n.probe { @include extras-transition(color); }",
+      { loadPaths: [SCSS], logger: sass.Logger.silent }
+    ).css;
+    expect(find(PLAIN, TOGGLE)).toMatchObject(find(rulesOf(mixin), '.probe'));
   });
 
   it('shares the pickers’ launcher rule, with its own variables', () => {

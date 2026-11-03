@@ -13,6 +13,7 @@ $picker-popover-animation-duration: 0.15s !default;
 $picker-trigger-width: 2.5em !default;
 $picker-trigger-color: cv.getVar('text') !default;
 $picker-trigger-hover-color: cv.getVar('text-strong') !default;
+$picker-trigger-disabled-opacity: 0.5 !default;
 
 .#{iv.$class-prefix}picker-popover {
   @include cv.register-vars(
@@ -145,13 +146,15 @@ $picker-trigger-pairs: (
       $trigger: $trigger,
       $width: cv.getVar('picker-trigger-width'),
       $color: cv.getVar('picker-trigger-color'),
-      $hover-color: cv.getVar('picker-trigger-hover-color')
+      $hover-color: cv.getVar('picker-trigger-hover-color'),
+      $disabled-opacity: cv.getVar('picker-trigger-disabled-opacity')
     ) {
       @include cv.register-vars(
         (
           'picker-trigger-width': #{$picker-trigger-width},
           'picker-trigger-color': #{$picker-trigger-color},
           'picker-trigger-hover-color': #{$picker-trigger-hover-color},
+          'picker-trigger-disabled-opacity': #{$picker-trigger-disabled-opacity},
         )
       );
     }
