@@ -96,8 +96,11 @@ const meta: Meta<typeof Lightbox> = {
         'Rendered in place, with no wrapper: usually `Lightbox.Trigger`s in whatever layout you like',
     },
     open: {
-      control: 'boolean',
-      description: 'Whether the viewer is open (controlled)',
+      // A control here would hold the viewer open over the canvas, with no
+      // way to close it. The Controlled story wires it up.
+      control: false,
+      description:
+        'Whether the viewer is open (controlled). The Controlled story shows it with `onOpenChange`',
     },
     defaultOpen: {
       control: 'boolean',
@@ -109,8 +112,10 @@ const meta: Meta<typeof Lightbox> = {
         'Called when a trigger, the close button, Escape, a click on the background or a swipe down opens or closes it',
     },
     value: {
-      control: 'number',
-      description: 'The index of the image shown (controlled)',
+      // As with `open`: set here, the arrows couldn't move off it.
+      control: false,
+      description:
+        'The index of the image shown (controlled). The Controlled story shows it with `onChange`',
     },
     defaultValue: {
       control: 'number',
@@ -124,7 +129,8 @@ const meta: Meta<typeof Lightbox> = {
     },
     repeat: {
       control: 'boolean',
-      description: 'Go from the last image to the first and back',
+      description:
+        'Go from the last image to the first and back, as Carousel does. Off, the previous and next buttons are disabled at the ends',
     },
     zoomable: {
       control: 'boolean',
@@ -218,7 +224,7 @@ export const CompoundUsage: Story = {
 export const ViewAllPhotos: Story = {
   render: function ViewAllPhotosExample() {
     return (
-      <Lightbox items={PHOTOS} repeat>
+      <Lightbox items={PHOTOS}>
         <Lightbox.Trigger index={0}>
           <Image as="div" src={photo(1015, 960, 540)} alt="" size="16by9" />
           <Span display="block" mt="2" textWeight="semibold">
@@ -233,8 +239,8 @@ export const ViewAllPhotos: Story = {
 export const AButtonThatOpensIt: Story = {
   render: function AButtonThatOpensItExample() {
     return (
-      <Lightbox items={PHOTOS} repeat>
-        <Lightbox.Trigger index={0} className="button is-link">
+      <Lightbox items={PHOTOS}>
+        <Lightbox.Trigger as={Button} color="link" index={0}>
           Open the album
         </Lightbox.Trigger>
       </Lightbox>
@@ -277,26 +283,26 @@ export const DeeperZoom: Story = {
 const arabic = new Intl.NumberFormat('ar-EG');
 
 export const RightToLeft: Story = {
+  args: {
+    ariaLabel: 'عارض الصور',
+    labels: {
+      close: 'إغلاق',
+      previous: 'الصورة السابقة',
+      next: 'الصورة التالية',
+      zoomIn: 'تكبير',
+      zoomOut: 'تصغير',
+      resetZoom: 'إعادة الحجم',
+      loading: 'جارٍ تحميل الصورة',
+      loadError: 'تعذّر تحميل هذه الصورة.',
+      retry: 'إعادة المحاولة',
+      progress: (current, total) =>
+        `الصورة ${arabic.format(current)} من ${arabic.format(total)}`,
+    },
+  },
   render: function RightToLeftExample(args) {
     return (
       <LocaleProvider dir="rtl" locale="ar-EG">
-        <Lightbox
-          {...args}
-          ariaLabel="عارض الصور"
-          labels={{
-            close: 'إغلاق',
-            previous: 'الصورة السابقة',
-            next: 'الصورة التالية',
-            zoomIn: 'تكبير',
-            zoomOut: 'تصغير',
-            resetZoom: 'إعادة الحجم',
-            loading: 'جارٍ تحميل الصورة',
-            loadError: 'تعذّر تحميل هذه الصورة.',
-            retry: 'إعادة المحاولة',
-            progress: (current, total) =>
-              `الصورة ${arabic.format(current)} من ${arabic.format(total)}`,
-          }}
-        />
+        <Lightbox {...args} />
       </LocaleProvider>
     );
   },

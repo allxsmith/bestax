@@ -12,6 +12,7 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { buttonType } from '../helpers/buttonType';
+import { type PolymorphicComponent } from '../helpers/polymorphic';
 import { isDev, warnOnce } from '../helpers/devWarnings';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { useIsHydrated } from '../helpers/useIsHydrated';
@@ -51,34 +52,60 @@ export interface LightboxItem {
  * `LocaleProvider`'s locale.
  */
 export interface LightboxLabels {
-  /** The close button's name. "Close". */
+  /**
+   * The close button's name.
+   * @defaultValue 'Close'
+   */
   close?: string;
-  /** The previous button's name. "Previous image". */
+  /**
+   * The previous button's name.
+   * @defaultValue 'Previous image'
+   */
   previous?: string;
-  /** The next button's name. "Next image". */
+  /**
+   * The next button's name.
+   * @defaultValue 'Next image'
+   */
   next?: string;
-  /** The zoom-in button's name. "Zoom in". */
+  /**
+   * The zoom-in button's name.
+   * @defaultValue 'Zoom in'
+   */
   zoomIn?: string;
-  /** The zoom-out button's name. "Zoom out". */
+  /**
+   * The zoom-out button's name.
+   * @defaultValue 'Zoom out'
+   */
   zoomOut?: string;
-  /** The button that fits the image again. "Reset zoom". */
+  /**
+   * The button that fits the image again.
+   * @defaultValue 'Reset zoom'
+   */
   resetZoom?: string;
-  /** The `Loader`'s name while an image loads. "Loading image". */
+  /**
+   * The `Loader`'s name while an image loads.
+   * @defaultValue 'Loading image'
+   */
   loading?: string;
   /**
    * Shown, above the alt text, when an image fails to load. The status line
    * for a failed image starts with it, then a space and the line a loaded
    * image gets, so write it as a whole sentence, punctuated as your language
-   * does. "This image didn't load."
+   * does.
+   * @defaultValue "This image didn't load."
    */
   loadError?: string;
-  /** The button that tries a failed image again. "Retry". */
+  /**
+   * The button that tries a failed image again.
+   * @defaultValue 'Retry'
+   */
   retry?: string;
   /**
    * The start of the status line read after each move, which goes on with
    * a colon and the image's alt: "Image 3 of 10: Harbour at dusk". For a
-   * failed image, `loadError` and a space come first.
-   * `(current, total) => 'Image 3 of 10'`, counting from 1.
+   * failed image, `loadError` and a space come first. It gets the image's
+   * place counting from 1, and the number of images.
+   * @defaultValue (current, total) => 'Image ' + current + ' of ' + total
    */
   progress?: (current: number, total: number) => string;
 }
@@ -133,9 +160,9 @@ export interface LightboxProps
    */
   onChange?: (value: number) => void;
   /**
-   * Go from the last image to the first and back. Off, the previous and
-   * next buttons are `aria-disabled` at the ends.
-   * @defaultValue false
+   * Go from the last image to the first and back, as Carousel does. Off,
+   * the previous and next buttons are `aria-disabled` at the ends.
+   * @defaultValue true
    */
   repeat?: boolean;
   /**
@@ -165,10 +192,12 @@ export interface LightboxProps
    */
   closeOnClickOutside?: boolean;
   /**
-   * Renders the viewer into a portal, as Modal's `portal` does: `true` for
-   * the `ConfigProvider`'s `portalContainer` (`document.body` by default),
-   * a selector string, or an element. `false` renders it in place, where a
-   * transformed ancestor can trap it.
+   * Renders the viewer into a portal: `true` for the `ConfigProvider`'s
+   * `portalContainer` (`document.body` by default), a selector string, or an
+   * element. `false` renders it in place. It's on by default, unlike Modal's,
+   * Dialog's and Command.Dialog's, because its triggers sit in gallery
+   * cells, and a cell with a transform or a filter would trap a viewer
+   * rendered in place.
    * @defaultValue true
    */
   portal?: boolean | string | HTMLElement;
@@ -183,18 +212,13 @@ export interface LightboxProps
 }
 
 /**
- * Props for Lightbox.Trigger, a `<button type="button"
- * aria-haspopup="dialog">` that opens the viewer. Its content names it, so
- * give the thumbnail inside a real `alt`. A ratio `Image` renders a
- * `<figure>`, and an image inside a figure doesn't name the button around
- * it, so give that `Image` `as="div"`. A development build warns for a
- * trigger outside a `Lightbox` or with no name.
- * @extraProp {React.Ref<HTMLButtonElement>} [ref] - Ref forwarded to the `<button>`.
+ * The Lightbox.Trigger component's own props, on top of the attributes of
+ * whatever element `as` renders.
  */
-export interface LightboxTriggerProps
-  extends
-    Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'color'>,
-    Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+export interface LightboxTriggerOwnProps extends Omit<
+  BulmaClassesProps,
+  'color' | 'backgroundColor'
+> {
   /** **Required.** The index in `items` the viewer opens at. */
   index: number;
   /**
@@ -203,7 +227,44 @@ export interface LightboxTriggerProps
    * the image's alt from naming the button.
    */
   children?: React.ReactNode;
+  /** Additional CSS classes. */
+  className?: string;
 }
+
+/**
+ * Props for Lightbox.Trigger, a `<button type="button"
+ * aria-haspopup="dialog">` that opens the viewer. Its content names it, so
+ * give the thumbnail inside a real `alt`. A ratio `Image` renders a
+ * `<figure>`, and an image inside a figure doesn't name the button around
+ * it, so give that `Image` `as="div"`. A development build warns for a
+ * trigger outside a `Lightbox` or with no name.
+ * @extraProp {PolymorphicRef<React.ElementType>} [ref] - Ref forwarded to the element `as` renders: the `<button>`, or what `Button` renders.
+ */
+export type LightboxTriggerProps<T extends React.ElementType = 'button'> =
+  LightboxTriggerOwnProps &
+    Omit<
+      React.ComponentPropsWithoutRef<T>,
+      keyof LightboxTriggerOwnProps | 'as'
+    > & {
+      /**
+       * Renders the trigger through another component, which gets its class,
+       * `aria-haspopup`, `type="button"`, click handler and ref along with
+       * its own props. `as={Button} color="link"` draws it as Bulma's link
+       * button.
+       */
+      as?: T;
+    };
+
+/**
+ * The shape the implementation destructures. The public contract is the
+ * generic `LightboxTriggerProps<T>` above.
+ */
+type LightboxTriggerImplProps = LightboxTriggerOwnProps & {
+  as?: React.ElementType;
+  color?: string;
+  type?: React.ButtonHTMLAttributes<HTMLButtonElement>['type'];
+  onClick?: React.MouseEventHandler<HTMLElement>;
+};
 
 /** What a trigger asks of the Lightbox around it. */
 interface LightboxContextValue {
@@ -424,25 +485,35 @@ const ResetZoomIcon = () => (
  *
  * @function
  * @param {LightboxTriggerProps} props - Props for the trigger.
- * @param {React.Ref<HTMLButtonElement>} ref - Forwarded ref to the `<button>`.
+ * @param {React.Ref} ref - Forwarded ref to the element `as` renders.
  * @returns {JSX.Element} The rendered button.
  */
-export const LightboxTrigger = forwardRef<
-  HTMLButtonElement,
-  LightboxTriggerProps
->(({ index, className, children, onClick, ...props }, ref) => {
+export const LightboxTrigger = forwardRef(function LightboxTrigger(
+  triggerProps: LightboxTriggerProps,
+  ref: React.Ref<HTMLElement>
+) {
+  const {
+    as: Component = 'button',
+    index,
+    className,
+    children,
+    onClick,
+    // Kept from the helper classes, which read `color` as a text color: it
+    // belongs to `as`, as Button's `color="link"` does.
+    color,
+    ...props
+  } = triggerProps as LightboxTriggerImplProps;
   const lightbox = useContext(LightboxContext);
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
   const triggerClass = usePrefixedClassNames('lightbox-trigger');
-  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const buttonRef = useRef<HTMLElement | null>(null);
 
   const setRefs = useCallback(
-    (node: HTMLButtonElement | null) => {
+    (node: HTMLElement | null) => {
       buttonRef.current = node;
       if (typeof ref === 'function') return ref(node);
       if (ref) {
-        (ref as React.MutableRefObject<HTMLButtonElement | null>).current =
-          node;
+        (ref as React.MutableRefObject<HTMLElement | null>).current = node;
       }
       return undefined;
     },
@@ -460,7 +531,10 @@ export const LightboxTrigger = forwardRef<
   // Its content is its name, and a thumbnail with `alt=""` leaves it
   // nameless. Checked after each commit, since the content can change.
   useEffect(() => {
-    if (isDev() && !hasName(buttonRef.current as HTMLButtonElement)) {
+    // An `as` component that keeps its ref, or hands back a handle of its
+    // own, leaves no element to check.
+    const button = buttonRef.current;
+    if (isDev() && button instanceof Element && !hasName(button)) {
       warnOnce(
         'Lightbox.Trigger:no-name',
         '[bestax-bulma] <Lightbox.Trigger> has no accessible name. Give ' +
@@ -472,13 +546,18 @@ export const LightboxTrigger = forwardRef<
   });
 
   return (
-    <button
+    <Component
       ref={setRefs}
       className={classNames(triggerClass, bulmaHelperClasses, className)}
       aria-haspopup="dialog"
       {...rest}
-      type={buttonType(rest.type)}
-      onClick={event => {
+      color={color}
+      // A component such as Button renders a <button> too, and needs the
+      // type as much, so a trigger in a form doesn't submit it.
+      {...(Component === 'button' || typeof Component !== 'string'
+        ? { type: buttonType(rest.type) }
+        : {})}
+      onClick={(event: React.MouseEvent<HTMLElement>) => {
         onClick?.(event);
         if (event.defaultPrevented || !lightbox) return;
         // Safari doesn't focus a button that's clicked, and the viewer hands
@@ -488,9 +567,9 @@ export const LightboxTrigger = forwardRef<
       }}
     >
       {children}
-    </button>
+    </Component>
   );
-});
+}) as PolymorphicComponent<LightboxTriggerOwnProps, 'button'>;
 
 LightboxTrigger.displayName = 'Lightbox.Trigger';
 
@@ -527,7 +606,7 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
       index,
       onIndexChange,
       onClose,
-      repeat = false,
+      repeat,
       zoomable = true,
       maxZoom = 3,
       closeOnEscape = true,
@@ -1085,10 +1164,7 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
         `button, a, input, select, textarea, .${captionClass}`
       );
     const errorClass = usePrefixedClassNames('lightbox-error');
-    const previousClass = usePrefixedClassNames(
-      'lightbox-arrow',
-      'is-previous'
-    );
+    const previousClass = usePrefixedClassNames('lightbox-arrow', 'is-prev');
     const nextClass = usePrefixedClassNames('lightbox-arrow', 'is-next');
 
     const imageStyle: React.CSSProperties | undefined = zoomed
@@ -1306,6 +1382,7 @@ const LightboxRoot = forwardRef<HTMLDivElement, LightboxProps>(
       value: controlledValue,
       defaultValue = 0,
       onChange,
+      repeat = true,
       ...props
     },
     ref
@@ -1326,7 +1403,7 @@ const LightboxRoot = forwardRef<HTMLDivElement, LightboxProps>(
     /** An index as one of the images: rounded, then held to the ends or wrapped. */
     const fit = (value: number) => {
       const whole = Number.isFinite(value) ? Math.trunc(value) : 0;
-      return props.repeat
+      return repeat
         ? ((whole % count) + count) % count
         : clamp(whole, 0, count - 1);
     };
@@ -1374,6 +1451,7 @@ const LightboxRoot = forwardRef<HTMLDivElement, LightboxProps>(
             {...props}
             ref={ref}
             items={items}
+            repeat={repeat}
             index={index}
             onIndexChange={setValue}
             onClose={() => setOpen(false)}

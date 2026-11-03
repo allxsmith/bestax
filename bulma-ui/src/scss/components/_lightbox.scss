@@ -11,6 +11,7 @@
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
+@use '../variables' as *;
 @use '../mixins' as *;
 
 // Carousel's overlay arrows, light controls on a dark tint in either scheme.
@@ -32,12 +33,33 @@ $lightbox-arrow-background-hover: hsla(
 $lightbox-arrow-color: cv.getVar('white') !default;
 $lightbox-arrow-size: 3rem !default;
 $lightbox-arrow-offset: 1rem !default;
+$lightbox-arrow-icon-size: 1.5rem !default;
+// The zoom buttons in the toolbar start from the arrows' look.
+$lightbox-toolbar-button-background: cv.getVar(
+  'lightbox-arrow-background'
+) !default;
+$lightbox-toolbar-button-background-hover: cv.getVar(
+  'lightbox-arrow-background-hover'
+) !default;
+$lightbox-toolbar-icon-size: 1.25rem !default;
+// The round buttons' border, transparent until forced colors draws it.
+$lightbox-button-border-width: 1px !default;
 // A button that does nothing at an end, or at a zoom limit.
 $lightbox-disabled-opacity: 0.4 !default;
+// The close button, the toolbar and the arrows sit over the image.
+$lightbox-controls-z-index: $extras-z-index-base !default;
 // The modal's background stays near-black in Bulma's dark theme too, so the
 // text on it is white in both.
 $lightbox-toolbar-color: cv.getVar('white') !default;
+$lightbox-toolbar-gap: 0.75rem !default;
 $lightbox-caption-color: cv.getVar('white') !default;
+$lightbox-caption-max-width: 40em !default;
+$lightbox-caption-padding: 0.75rem 1rem 0 !default;
+// A failed image's message and Retry, where the image would be.
+$lightbox-error-color: cv.getVar('lightbox-caption-color') !default;
+$lightbox-error-gap: 0.75rem !default;
+$lightbox-error-padding: 1rem !default;
+$lightbox-loader-size: 2.5rem !default;
 // The band kept free above the image for the toolbar and the close button,
 // and below it, so the image stays centred.
 $lightbox-spacing: 4.5rem !default;
@@ -45,7 +67,8 @@ $lightbox-spacing: 4.5rem !default;
 $lightbox-image-max-height: calc(
   100% - 2 * #{cv.getVar('lightbox-spacing')}
 ) !default;
-$lightbox-animation-duration: 0.2s !default;
+// The fades and the zoom, timed and eased as Bulma's own transitions are.
+$lightbox-animation-duration: cv.getVar('duration') !default;
 
 .#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox {
   @include cv.register-vars(
@@ -55,9 +78,24 @@ $lightbox-animation-duration: 0.2s !default;
       'lightbox-arrow-color': #{$lightbox-arrow-color},
       'lightbox-arrow-size': #{$lightbox-arrow-size},
       'lightbox-arrow-offset': #{$lightbox-arrow-offset},
+      'lightbox-arrow-icon-size': #{$lightbox-arrow-icon-size},
+      'lightbox-toolbar-button-background':
+        #{$lightbox-toolbar-button-background},
+      'lightbox-toolbar-button-background-hover':
+        #{$lightbox-toolbar-button-background-hover},
+      'lightbox-toolbar-icon-size': #{$lightbox-toolbar-icon-size},
+      'lightbox-button-border-width': #{$lightbox-button-border-width},
       'lightbox-disabled-opacity': #{$lightbox-disabled-opacity},
+      'lightbox-controls-z-index': #{$lightbox-controls-z-index},
       'lightbox-toolbar-color': #{$lightbox-toolbar-color},
+      'lightbox-toolbar-gap': #{$lightbox-toolbar-gap},
       'lightbox-caption-color': #{$lightbox-caption-color},
+      'lightbox-caption-max-width': #{$lightbox-caption-max-width},
+      'lightbox-caption-padding': #{$lightbox-caption-padding},
+      'lightbox-error-color': #{$lightbox-error-color},
+      'lightbox-error-gap': #{$lightbox-error-gap},
+      'lightbox-error-padding': #{$lightbox-error-padding},
+      'lightbox-loader-size': #{$lightbox-loader-size},
       'lightbox-spacing': #{$lightbox-spacing},
       'lightbox-image-max-height': #{$lightbox-image-max-height},
       'lightbox-animation-duration': #{$lightbox-animation-duration},
@@ -77,7 +115,8 @@ $lightbox-animation-duration: 0.2s !default;
 // ---- The viewer ---------------------------------------------------------------
 
 .#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox.#{iv.$class-prefix}is-active {
-  animation: extras-fade-in cv.getVar('lightbox-animation-duration') ease-out;
+  animation: extras-fade-in cv.getVar('lightbox-animation-duration')
+    $extras-easing;
 }
 
 .#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox:focus {
@@ -86,7 +125,7 @@ $lightbox-animation-duration: 0.2s !default;
 
 .#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox
   > .#{iv.$class-prefix}modal-close {
-  z-index: 1;
+  z-index: cv.getVar('lightbox-controls-z-index');
 }
 
 // The image's area: the viewer's width less the arrows' room from a tablet
@@ -106,10 +145,10 @@ $lightbox-animation-duration: 0.2s !default;
   position: absolute;
   inset-block-start: 0;
   inset-inline: 0;
-  z-index: 1;
+  z-index: cv.getVar('lightbox-controls-z-index');
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: cv.getVar('lightbox-toolbar-gap');
   min-height: cv.getVar('lightbox-spacing');
   // Level with the close button, and clear of it.
   padding-block: cv.getVar('modal-close-top');
@@ -146,15 +185,9 @@ $lightbox-animation-duration: 0.2s !default;
   height: cv.getVar('modal-close-dimensions');
   padding: 0;
   // Transparent until forced colors draws it.
-  border: 1px solid transparent;
+  border: cv.getVar('lightbox-button-border-width') solid transparent;
   border-radius: cv.getVar('radius-rounded');
-  background-color: cv.getVar('lightbox-arrow-background');
-  color: cv.getVar('lightbox-toolbar-color');
   pointer-events: auto;
-
-  &:hover {
-    background-color: cv.getVar('lightbox-arrow-background-hover');
-  }
 
   // Bulma's ring is a link-colored shadow, under 3:1 on the near-black
   // background and gone in forced colors, so an outline in the buttons' own
@@ -168,15 +201,22 @@ $lightbox-animation-duration: 0.2s !default;
   &[aria-disabled='true'] {
     opacity: cv.getVar('lightbox-disabled-opacity');
     cursor: not-allowed;
+  }
+}
 
-    &:hover {
-      background-color: cv.getVar('lightbox-arrow-background');
-    }
+.#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox
+  .#{iv.$class-prefix}lightbox-toolbar
+  .#{iv.$class-prefix}button {
+  background-color: cv.getVar('lightbox-toolbar-button-background');
+  color: cv.getVar('lightbox-toolbar-color');
+
+  &:hover:not([aria-disabled='true']) {
+    background-color: cv.getVar('lightbox-toolbar-button-background-hover');
   }
 
   svg {
-    width: 1.25rem;
-    height: 1.25rem;
+    width: cv.getVar('lightbox-toolbar-icon-size');
+    height: cv.getVar('lightbox-toolbar-icon-size');
   }
 }
 
@@ -184,13 +224,18 @@ $lightbox-animation-duration: 0.2s !default;
   .#{iv.$class-prefix}lightbox-arrow {
   position: absolute;
   inset-block-start: 50%;
-  z-index: 1;
+  z-index: cv.getVar('lightbox-controls-z-index');
   width: cv.getVar('lightbox-arrow-size');
   height: cv.getVar('lightbox-arrow-size');
   transform: translateY(-50%);
+  background-color: cv.getVar('lightbox-arrow-background');
   color: cv.getVar('lightbox-arrow-color');
 
-  &.#{iv.$class-prefix}is-previous {
+  &:hover:not([aria-disabled='true']) {
+    background-color: cv.getVar('lightbox-arrow-background-hover');
+  }
+
+  &.#{iv.$class-prefix}is-prev {
     inset-inline-start: cv.getVar('lightbox-arrow-offset');
   }
 
@@ -199,8 +244,8 @@ $lightbox-animation-duration: 0.2s !default;
   }
 
   svg {
-    width: 1.5rem;
-    height: 1.5rem;
+    width: cv.getVar('lightbox-arrow-icon-size');
+    height: cv.getVar('lightbox-arrow-icon-size');
   }
 
   // Right to left, the previous button is on the right, so its chevron
@@ -221,7 +266,7 @@ $lightbox-animation-duration: 0.2s !default;
   height: 100%;
   margin: 0;
   position: relative;
-  transition: transform cv.getVar('lightbox-animation-duration') ease-out;
+  transition: transform cv.getVar('lightbox-animation-duration') $extras-easing;
 
   > :not(.#{iv.$class-prefix}lightbox-caption) {
     grid-area: 1 / 1;
@@ -239,7 +284,7 @@ $lightbox-animation-duration: 0.2s !default;
   touch-action: none;
   user-select: none;
   -webkit-user-drag: none;
-  transition: transform cv.getVar('lightbox-animation-duration') ease-out;
+  transition: transform cv.getVar('lightbox-animation-duration') $extras-easing;
 
   // Hidden until it loads, then faded in.
   &.#{iv.$class-prefix}is-loading {
@@ -247,7 +292,8 @@ $lightbox-animation-duration: 0.2s !default;
   }
 
   &:not(.#{iv.$class-prefix}is-loading):not(.#{iv.$class-prefix}is-leaving) {
-    animation: extras-fade-in cv.getVar('lightbox-animation-duration') ease-out;
+    animation: extras-fade-in cv.getVar('lightbox-animation-duration')
+      $extras-easing;
   }
 
   // The image before it, on top, shown until the new one has loaded and then
@@ -259,8 +305,8 @@ $lightbox-animation-duration: 0.2s !default;
 
   &:not(.#{iv.$class-prefix}is-loading)
     + .#{iv.$class-prefix}lightbox-image.#{iv.$class-prefix}is-leaving {
-    animation: extras-fade-out cv.getVar('lightbox-animation-duration') ease-out
-      forwards;
+    animation: extras-fade-out cv.getVar('lightbox-animation-duration')
+      $extras-easing forwards;
   }
 }
 
@@ -271,9 +317,8 @@ $lightbox-animation-duration: 0.2s !default;
 
 .#{iv.$class-prefix}lightbox-caption {
   justify-self: center;
-  max-width: 40em;
-  padding-block-start: 0.75rem;
-  padding-inline: 1rem;
+  max-width: cv.getVar('lightbox-caption-max-width');
+  padding: cv.getVar('lightbox-caption-padding');
   color: cv.getVar('lightbox-caption-color');
   text-align: center;
   pointer-events: auto;
@@ -283,15 +328,15 @@ $lightbox-animation-duration: 0.2s !default;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  color: cv.getVar('lightbox-caption-color');
+  gap: cv.getVar('lightbox-error-gap');
+  padding: cv.getVar('lightbox-error-padding');
+  color: cv.getVar('lightbox-error-color');
   text-align: center;
   pointer-events: auto;
 }
 
 .#{iv.$class-prefix}lightbox-figure > .#{iv.$class-prefix}loader {
-  font-size: 2.5rem;
+  font-size: cv.getVar('lightbox-loader-size');
 }
 
 // ---- The trigger ----------------------------------------------------------------------

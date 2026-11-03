@@ -104,7 +104,8 @@ of its own than the image the viewer shows.
 
 A trigger can open the viewer at any image, so a cover photo or a "View all photos" button is a
 trigger with `index={0}`. Here the words name the button, so the image inside is decoration with
-an empty `alt`. `repeat` goes from the last image back to the first.
+an empty `alt`. The viewer goes from the last image back to the first, as Carousel does, and
+`repeat={false}` stops it at the ends.
 
 ```tsx live
 function example() {
@@ -124,7 +125,7 @@ function example() {
   ];
 
   return (
-    <Lightbox items={photos} repeat>
+    <Lightbox items={photos}>
       <Lightbox.Trigger index={0}>
         <Image as="div" src={photos[0].src} alt="" size="16by9" />
         <Span display="block" mt="2" textWeight="semibold">
@@ -136,8 +137,8 @@ function example() {
 }
 ```
 
-A trigger draws nothing of its own and fills the width it's given. Give it Bulma's `button` class
-and it looks and sizes like a Bulma button instead:
+A trigger draws nothing of its own and fills the width it's given. Render it through `Button` with
+`as` and it takes Button's props, so `as={Button} color="link"` is Bulma's link button:
 
 ```tsx live
 <Lightbox
@@ -148,7 +149,7 @@ and it looks and sizes like a Bulma button instead:
     },
   ]}
 >
-  <Lightbox.Trigger index={0} className="button is-link">
+  <Lightbox.Trigger as={Button} color="link" index={0}>
     Open the photo
   </Lightbox.Trigger>
 </Lightbox>
@@ -181,7 +182,7 @@ function example() {
     <Lightbox items={photos}>
       <Buttons>
         {photos.map((photo, i) => (
-          <Lightbox.Trigger key={photo.src} index={i} className="button">
+          <Lightbox.Trigger key={photo.src} as={Button} index={i}>
             Photo {i + 1}
           </Lightbox.Trigger>
         ))}
@@ -211,8 +212,8 @@ Both pairs of state are yours to hold when you need them: `open` with `onOpenCha
 (the index of the image shown) with `onChange`. Here they're one piece of state, as a `?photo=`
 query would be. A trigger calls `onChange` with its index before `onOpenChange(true)`, even when
 it's the image already shown, so a parent that opens the viewer from `value` hears it. A `value`
-past either end shows the last or the first image, or wraps round with `repeat`, and doesn't call
-`onChange`.
+past either end wraps round, or with `repeat={false}` shows the last or the first image, and
+doesn't call `onChange`.
 
 ```tsx live
 function example() {
@@ -271,7 +272,7 @@ you say otherwise. A move to another image fits it again.
     },
   ]}
 >
-  <Lightbox.Trigger index={0} className="button">
+  <Lightbox.Trigger as={Button} index={0}>
     Open the tall photo
   </Lightbox.Trigger>
 </Lightbox>
@@ -321,7 +322,7 @@ function example() {
             `الصورة ${arabic.format(current)} من ${arabic.format(total)}`,
         }}
       >
-        <Lightbox.Trigger index={0} className="button">
+        <Lightbox.Trigger as={Button} index={0}>
           عرض الصور
         </Lightbox.Trigger>
       </Lightbox>
@@ -348,10 +349,10 @@ function example() {
   ]}
 >
   <Buttons>
-    <LightboxTrigger index={0} className="button">
+    <LightboxTrigger as={Button} index={0}>
       LightboxTrigger
     </LightboxTrigger>
-    <Lightbox.Trigger index={1} className="button">
+    <Lightbox.Trigger as={Button} index={1}>
       Lightbox.Trigger
     </Lightbox.Trigger>
   </Buttons>
@@ -393,9 +394,9 @@ field in a caption are the field's.
   image. Focus moves to the close button when it opens, Tab stays inside, Escape closes it when
   it's the topmost overlay, and focus goes back to the trigger, or to whatever had it when `open`
   was set.
-- **Real triggers:** each `Lightbox.Trigger` is a `<button type="button" aria-haspopup="dialog">`
-  named by its content, so the thumbnail's `alt` is the button's name, as long as it isn't inside
-  a `<figure>` (give a ratio `Image` `as="div"`).
+- **Real triggers:** each `Lightbox.Trigger` is a `<button type="button" aria-haspopup="dialog">`,
+  or the button `Button` renders with `as={Button}`, named by its content. So the thumbnail's `alt`
+  is the button's name, as long as it isn't inside a `<figure>` (give a ratio `Image` `as="div"`).
 - **Every image has an alt:** `alt` is required in the type, a development build warns once for an
   item without one, and the caption is the `<figure>`'s `<figcaption>`, which names it.
 - **Moves are announced:** after the viewer opens and after each move, a polite status line says
@@ -403,7 +404,7 @@ field in a caption are the field's.
   is hidden from screen readers, so it isn't read twice. For an image that fails to load, the line
   starts with `labels.loadError`: "This image didn't load. Image 3 of 10: Harbour at dusk", and a
   Retry that fails again is announced again.
-- **At the ends:** without `repeat`, the previous or next button is `aria-disabled` but stays in
+- **At the ends:** with `repeat={false}`, the previous or next button is `aria-disabled` but stays in
   the tab order, so focus isn't dropped when it stops working. The zoom buttons do the same at their
   limits.
 - **Single-pointer alternatives:** pinch has the zoom buttons and a double click or tap. Panning a
@@ -444,27 +445,27 @@ field in a caption are the field's.
 
 <!-- bestax:generated props -->
 
-| Prop                  | Type                                                   | Default          | Description                                                                                                                                                                                                                                                                                 |
-| --------------------- | ------------------------------------------------------ | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `items`               | `LightboxItem[]`                                       | —                | **Required.** The images, in order.                                                                                                                                                                                                                                                         |
-| `children`            | `React.ReactNode`                                      | —                | Rendered in place: usually `Lightbox.Trigger`s, in whatever layout you like.                                                                                                                                                                                                                |
-| `open`                | `boolean`                                              | —                | Whether the viewer is open (controlled). With no `items` it shows nothing.                                                                                                                                                                                                                  |
-| `defaultOpen`         | `boolean`                                              | `false`          | Whether the viewer starts open (uncontrolled).                                                                                                                                                                                                                                              |
-| `onOpenChange`        | `(open: boolean) => void`                              | —                | Called when a trigger, the close button, Escape, a click on the background or a swipe down opens or closes the viewer, and with `false` when `items` goes from some to none while it's open.                                                                                                |
-| `value`               | `number`                                               | —                | The index of the image shown (controlled). A value past either end is shown as the last or the first image, or wrapped round with `repeat`, without calling `onChange`.                                                                                                                     |
-| `defaultValue`        | `number`                                               | `0`              | The image an uncontrolled viewer shows when something other than a trigger opens it. A trigger opens at its own `index`.                                                                                                                                                                    |
-| `onChange`            | `(value: number) => void`                              | —                | Called with the new index when an arrow, a key or a swipe changes the image, and when a trigger opens the viewer, with the trigger's `index` even when that's the image already shown, before `onOpenChange(true)`. A parent that opens the viewer from `value` hears the trigger that way. |
-| `repeat`              | `boolean`                                              | `false`          | Go from the last image to the first and back. Off, the previous and next buttons are `aria-disabled` at the ends.                                                                                                                                                                           |
-| `zoomable`            | `boolean`                                              | `true`           | Zoom with the buttons, the wheel, a double click or tap, pinch and the `+`, `-` and `0` keys, and pan a zoomed image by dragging or with the arrow keys. Zoom waits for the image to load. `false` drops the zoom buttons and all of it.                                                    |
-| `maxZoom`             | `number`                                               | `3`              | How far an image zooms, as a multiple of its fitted size. The smallest zoom is always the fitted size.                                                                                                                                                                                      |
-| `closeOnEscape`       | `boolean`                                              | `true`           | Close on Escape. Only the topmost open overlay answers, as with Modal.                                                                                                                                                                                                                      |
-| `closeOnClickOutside` | `boolean`                                              | `true`           | Close on a click on the dark background around the image. The space around the image, beside the toolbar's buttons and under the caption is all background.                                                                                                                                 |
-| `portal`              | `boolean` \| `string` \| `HTMLElement`                 | `true`           | Renders the viewer into a portal, as Modal's `portal` does: `true` for the `ConfigProvider`'s `portalContainer` (`document.body` by default), a selector string, or an element. `false` renders it in place, where a transformed ancestor can trap it.                                      |
-| `ariaLabel`           | `string`                                               | `'Image viewer'` | The dialog's accessible name. It stays the same from image to image; the status line says which image is shown.                                                                                                                                                                             |
-| `labels`              | `LightboxLabels`                                       | —                | The words it writes, for another language.                                                                                                                                                                                                                                                  |
-| `className`           | `string`                                               | —                | Additional CSS classes.                                                                                                                                                                                                                                                                     |
-| `ref`                 | `React.Ref<HTMLDivElement>`                            | —                | Ref forwarded to the viewer's `.modal` element, `null` while it's closed.                                                                                                                                                                                                                   |
-| `...`                 | All standard `<div>` attributes and Bulma helper props | —                | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                           |
+| Prop                  | Type                                                   | Default          | Description                                                                                                                                                                                                                                                                                                                                                                     |
+| --------------------- | ------------------------------------------------------ | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `items`               | `LightboxItem[]`                                       | —                | **Required.** The images, in order.                                                                                                                                                                                                                                                                                                                                             |
+| `children`            | `React.ReactNode`                                      | —                | Rendered in place: usually `Lightbox.Trigger`s, in whatever layout you like.                                                                                                                                                                                                                                                                                                    |
+| `open`                | `boolean`                                              | —                | Whether the viewer is open (controlled). With no `items` it shows nothing.                                                                                                                                                                                                                                                                                                      |
+| `defaultOpen`         | `boolean`                                              | `false`          | Whether the viewer starts open (uncontrolled).                                                                                                                                                                                                                                                                                                                                  |
+| `onOpenChange`        | `(open: boolean) => void`                              | —                | Called when a trigger, the close button, Escape, a click on the background or a swipe down opens or closes the viewer, and with `false` when `items` goes from some to none while it's open.                                                                                                                                                                                    |
+| `value`               | `number`                                               | —                | The index of the image shown (controlled). A value past either end is shown as the last or the first image, or wrapped round with `repeat`, without calling `onChange`.                                                                                                                                                                                                         |
+| `defaultValue`        | `number`                                               | `0`              | The image an uncontrolled viewer shows when something other than a trigger opens it. A trigger opens at its own `index`.                                                                                                                                                                                                                                                        |
+| `onChange`            | `(value: number) => void`                              | —                | Called with the new index when an arrow, a key or a swipe changes the image, and when a trigger opens the viewer, with the trigger's `index` even when that's the image already shown, before `onOpenChange(true)`. A parent that opens the viewer from `value` hears the trigger that way.                                                                                     |
+| `repeat`              | `boolean`                                              | `true`           | Go from the last image to the first and back, as Carousel does. Off, the previous and next buttons are `aria-disabled` at the ends.                                                                                                                                                                                                                                             |
+| `zoomable`            | `boolean`                                              | `true`           | Zoom with the buttons, the wheel, a double click or tap, pinch and the `+`, `-` and `0` keys, and pan a zoomed image by dragging or with the arrow keys. Zoom waits for the image to load. `false` drops the zoom buttons and all of it.                                                                                                                                        |
+| `maxZoom`             | `number`                                               | `3`              | How far an image zooms, as a multiple of its fitted size. The smallest zoom is always the fitted size.                                                                                                                                                                                                                                                                          |
+| `closeOnEscape`       | `boolean`                                              | `true`           | Close on Escape. Only the topmost open overlay answers, as with Modal.                                                                                                                                                                                                                                                                                                          |
+| `closeOnClickOutside` | `boolean`                                              | `true`           | Close on a click on the dark background around the image. The space around the image, beside the toolbar's buttons and under the caption is all background.                                                                                                                                                                                                                     |
+| `portal`              | `boolean` \| `string` \| `HTMLElement`                 | `true`           | Renders the viewer into a portal: `true` for the `ConfigProvider`'s `portalContainer` (`document.body` by default), a selector string, or an element. `false` renders it in place. It's on by default, unlike Modal's, Dialog's and Command.Dialog's, because its triggers sit in gallery cells, and a cell with a transform or a filter would trap a viewer rendered in place. |
+| `ariaLabel`           | `string`                                               | `'Image viewer'` | The dialog's accessible name. It stays the same from image to image; the status line says which image is shown.                                                                                                                                                                                                                                                                 |
+| `labels`              | `LightboxLabels`                                       | —                | The words it writes, for another language.                                                                                                                                                                                                                                                                                                                                      |
+| `className`           | `string`                                               | —                | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                         |
+| `ref`                 | `React.Ref<HTMLDivElement>`                            | —                | Ref forwarded to the viewer's `.modal` element, `null` while it's closed.                                                                                                                                                                                                                                                                                                       |
+| `...`                 | All standard `<div>` attributes and Bulma helper props | —                | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                               |
 
 **Subcomponents:**
 
@@ -472,13 +473,14 @@ field in a caption are the field's.
 
 ### Lightbox.Trigger
 
-| Prop        | Type                                                      | Default | Description                                                                                                                                                                           |
-| ----------- | --------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `index`     | `number`                                                  | —       | **Required.** The index in `items` the viewer opens at.                                                                                                                               |
-| `children`  | `React.ReactNode`                                         | —       | What the button shows: a thumbnail, or text such as "View all photos". A ratio `Image` here takes `as="div"`, since its `<figure>` would keep the image's alt from naming the button. |
-| `className` | `string`                                                  | —       | Additional CSS classes.                                                                                                                                                               |
-| `ref`       | `React.Ref<HTMLButtonElement>`                            | —       | Ref forwarded to the `<button>`.                                                                                                                                                      |
-| `...`       | All standard `<button>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                     |
+| Prop        | Type                                                                                                     | Default    | Description                                                                                                                                                                                                        |
+| ----------- | -------------------------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `as`        | `React.ElementType`                                                                                      | `'button'` | Renders the trigger through another component, which gets its class, `aria-haspopup`, `type="button"`, click handler and ref along with its own props. `as={Button} color="link"` draws it as Bulma's link button. |
+| `index`     | `number`                                                                                                 | —          | **Required.** The index in `items` the viewer opens at.                                                                                                                                                            |
+| `children`  | `React.ReactNode`                                                                                        | —          | What the button shows: a thumbnail, or text such as "View all photos". A ratio `Image` here takes `as="div"`, since its `<figure>` would keep the image's alt from naming the button.                              |
+| `className` | `string`                                                                                                 | —          | Additional CSS classes.                                                                                                                                                                                            |
+| `ref`       | `PolymorphicRef<React.ElementType>`                                                                      | —          | Ref forwarded to the element `as` renders: the `<button>`, or what `Button` renders.                                                                                                                               |
+| `...`       | Remaining props of the element or component selected by `as` (default `<button>`) and Bulma helper props | —          | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                  |
 
 <!-- /bestax:generated props -->
 
@@ -490,18 +492,31 @@ field in a caption are the field's.
 
 `Lightbox` registers these variables on a compound selector (higher specificity than a single class). Override them with inline `style`, or with a selector that exceeds that specificity (one that only matches it must load after the library styles to win by source order) — a lone class via `className` loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
-| CSS Variable                              | Sass Variable                      | Default                                                                                 |
-| ----------------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------- |
-| `--bulma-lightbox-arrow-background`       | `$lightbox-arrow-background`       | `hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.3)` |
-| `--bulma-lightbox-arrow-background-hover` | `$lightbox-arrow-background-hover` | `hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.5)` |
-| `--bulma-lightbox-arrow-color`            | `$lightbox-arrow-color`            | `var(--bulma-white)`                                                                    |
-| `--bulma-lightbox-arrow-size`             | `$lightbox-arrow-size`             | `3rem`                                                                                  |
-| `--bulma-lightbox-arrow-offset`           | `$lightbox-arrow-offset`           | `1rem`                                                                                  |
-| `--bulma-lightbox-disabled-opacity`       | `$lightbox-disabled-opacity`       | `0.4`                                                                                   |
-| `--bulma-lightbox-toolbar-color`          | `$lightbox-toolbar-color`          | `var(--bulma-white)`                                                                    |
-| `--bulma-lightbox-caption-color`          | `$lightbox-caption-color`          | `var(--bulma-white)`                                                                    |
-| `--bulma-lightbox-spacing`                | `$lightbox-spacing`                | `4.5rem`                                                                                |
-| `--bulma-lightbox-image-max-height`       | `$lightbox-image-max-height`       | `calc(100% - 2 * var(--bulma-lightbox-spacing))`                                        |
-| `--bulma-lightbox-animation-duration`     | `$lightbox-animation-duration`     | `0.2s`                                                                                  |
+| CSS Variable                                       | Sass Variable                               | Default                                                                                 |
+| -------------------------------------------------- | ------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `--bulma-lightbox-arrow-background`                | `$lightbox-arrow-background`                | `hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.3)` |
+| `--bulma-lightbox-arrow-background-hover`          | `$lightbox-arrow-background-hover`          | `hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.5)` |
+| `--bulma-lightbox-arrow-color`                     | `$lightbox-arrow-color`                     | `var(--bulma-white)`                                                                    |
+| `--bulma-lightbox-arrow-size`                      | `$lightbox-arrow-size`                      | `3rem`                                                                                  |
+| `--bulma-lightbox-arrow-offset`                    | `$lightbox-arrow-offset`                    | `1rem`                                                                                  |
+| `--bulma-lightbox-arrow-icon-size`                 | `$lightbox-arrow-icon-size`                 | `1.5rem`                                                                                |
+| `--bulma-lightbox-toolbar-button-background`       | `$lightbox-toolbar-button-background`       | `var(--bulma-lightbox-arrow-background)`                                                |
+| `--bulma-lightbox-toolbar-button-background-hover` | `$lightbox-toolbar-button-background-hover` | `var(--bulma-lightbox-arrow-background-hover)`                                          |
+| `--bulma-lightbox-toolbar-icon-size`               | `$lightbox-toolbar-icon-size`               | `1.25rem`                                                                               |
+| `--bulma-lightbox-button-border-width`             | `$lightbox-button-border-width`             | `1px`                                                                                   |
+| `--bulma-lightbox-disabled-opacity`                | `$lightbox-disabled-opacity`                | `0.4`                                                                                   |
+| `--bulma-lightbox-controls-z-index`                | `$lightbox-controls-z-index`                | `$extras-z-index-base`                                                                  |
+| `--bulma-lightbox-toolbar-color`                   | `$lightbox-toolbar-color`                   | `var(--bulma-white)`                                                                    |
+| `--bulma-lightbox-toolbar-gap`                     | `$lightbox-toolbar-gap`                     | `0.75rem`                                                                               |
+| `--bulma-lightbox-caption-color`                   | `$lightbox-caption-color`                   | `var(--bulma-white)`                                                                    |
+| `--bulma-lightbox-caption-max-width`               | `$lightbox-caption-max-width`               | `40em`                                                                                  |
+| `--bulma-lightbox-caption-padding`                 | `$lightbox-caption-padding`                 | `0.75rem 1rem 0`                                                                        |
+| `--bulma-lightbox-error-color`                     | `$lightbox-error-color`                     | `var(--bulma-lightbox-caption-color)`                                                   |
+| `--bulma-lightbox-error-gap`                       | `$lightbox-error-gap`                       | `0.75rem`                                                                               |
+| `--bulma-lightbox-error-padding`                   | `$lightbox-error-padding`                   | `1rem`                                                                                  |
+| `--bulma-lightbox-loader-size`                     | `$lightbox-loader-size`                     | `2.5rem`                                                                                |
+| `--bulma-lightbox-spacing`                         | `$lightbox-spacing`                         | `4.5rem`                                                                                |
+| `--bulma-lightbox-image-max-height`                | `$lightbox-image-max-height`                | `calc(100% - 2 * var(--bulma-lightbox-spacing))`                                        |
+| `--bulma-lightbox-animation-duration`              | `$lightbox-animation-duration`              | `var(--bulma-duration)`                                                                 |
 
 <!-- /bestax:generated cssvars -->

@@ -1,4 +1,9 @@
-import React, { createRef, useState } from 'react';
+import React, {
+  createRef,
+  forwardRef,
+  useImperativeHandle,
+  useState,
+} from 'react';
 import { createPortal } from 'react-dom';
 import {
   act,
@@ -15,6 +20,7 @@ import {
   type LightboxItem,
   type LightboxProps,
 } from '../Lightbox';
+import { Button } from '../../elements/Button';
 import { Image } from '../../elements/Image';
 import { ConfigProvider } from '../../helpers/Config';
 import { LocaleProvider } from '../../helpers/LocaleProvider';
@@ -297,7 +303,7 @@ describe('Lightbox', () => {
         'modal-close is-large',
         'lightbox-toolbar',
         'modal-content',
-        'button lightbox-arrow is-previous',
+        'button lightbox-arrow is-prev',
         'button lightbox-arrow is-next',
         'status',
       ]);
@@ -394,38 +400,39 @@ describe('Lightbox', () => {
       expect(shownImage()).toHaveAttribute('src', '/quay.jpg');
     });
 
-    it('follows a controlled value, held to the ends without calling onChange', () => {
+    it('follows a controlled value, held to the ends without repeat, without calling onChange', () => {
       const onChange = vi.fn();
-      const { rerender } = render(
-        <Lightbox items={PHOTOS} open value={1} onChange={onChange} />
+      const ui = (value: number) => (
+        <Lightbox
+          items={PHOTOS}
+          open
+          repeat={false}
+          value={value}
+          onChange={onChange}
+        />
       );
+      const { rerender } = render(ui(1));
       expect(shownImage()).toHaveAttribute('src', '/quay.jpg');
 
       fireEvent.click(button('Next image'));
       expect(onChange).toHaveBeenCalledWith(2);
       expect(shownImage()).toHaveAttribute('src', '/quay.jpg');
 
-      rerender(<Lightbox items={PHOTOS} open value={9} onChange={onChange} />);
+      rerender(ui(9));
       expect(shownImage()).toHaveAttribute('src', '/lighthouse.jpg');
-      rerender(<Lightbox items={PHOTOS} open value={-4} onChange={onChange} />);
+      rerender(ui(-4));
       expect(shownImage()).toHaveAttribute('src', '/harbour.jpg');
-      rerender(
-        <Lightbox items={PHOTOS} open value={Number.NaN} onChange={onChange} />
-      );
+      rerender(ui(Number.NaN));
       expect(shownImage()).toHaveAttribute('src', '/harbour.jpg');
-      rerender(
-        <Lightbox items={PHOTOS} open value={1.7} onChange={onChange} />
-      );
+      rerender(ui(1.7));
       expect(shownImage()).toHaveAttribute('src', '/quay.jpg');
       expect(onChange).toHaveBeenCalledTimes(1);
     });
 
-    it('wraps a value past either end with repeat', () => {
-      const { rerender } = render(
-        <Lightbox items={PHOTOS} open repeat value={4} />
-      );
+    it('wraps a value past either end, as repeat does by default', () => {
+      const { rerender } = render(<Lightbox items={PHOTOS} open value={4} />);
       expect(shownImage()).toHaveAttribute('src', '/quay.jpg');
-      rerender(<Lightbox items={PHOTOS} open repeat value={-1} />);
+      rerender(<Lightbox items={PHOTOS} open value={-1} />);
       expect(shownImage()).toHaveAttribute('src', '/lighthouse.jpg');
     });
 
@@ -574,9 +581,9 @@ describe('Lightbox', () => {
   });
 
   describe('moving', () => {
-    it('goes on and back with the arrows, disabled but focusable at the ends', () => {
+    it('goes on and back with the arrows, disabled but focusable at the ends without repeat', () => {
       const onChange = vi.fn();
-      render(<Gallery defaultOpen onChange={onChange} />);
+      render(<Gallery defaultOpen repeat={false} onChange={onChange} />);
       const previous = button('Previous image');
       const next = button('Next image');
       expect(previous).toHaveAttribute('aria-disabled', 'true');
@@ -597,8 +604,8 @@ describe('Lightbox', () => {
       expect(previous).not.toHaveAttribute('aria-disabled');
     });
 
-    it('wraps round with repeat', () => {
-      render(<Gallery defaultOpen repeat />);
+    it('wraps round by default', () => {
+      render(<Gallery defaultOpen />);
       expect(button('Previous image')).not.toHaveAttribute('aria-disabled');
       fireEvent.click(button('Previous image'));
       expect(shownImage()).toHaveAttribute('src', '/lighthouse.jpg');
@@ -679,8 +686,8 @@ describe('Lightbox', () => {
 
     it('leaves out the arrows and the counter for a single image', () => {
       const preloads = watchPreloads();
-      render(<Lightbox items={[PHOTOS[0]]} defaultOpen repeat />);
-      // With repeat its neighbours are itself, which it already has.
+      render(<Lightbox items={[PHOTOS[0]]} defaultOpen />);
+      // Repeating, its neighbours are itself, which it already has.
       expect(preloads().src).toEqual([]);
       expect(screen.queryByRole('button', { name: 'Next image' })).toBeNull();
       expect(document.querySelector('.lightbox-progress')).toBeNull();
@@ -1050,7 +1057,7 @@ describe('Lightbox', () => {
 
     it('fetches the images either side ahead', () => {
       const preloads = watchPreloads();
-      render(<Gallery defaultOpen />);
+      render(<Gallery defaultOpen repeat={false} />);
       expect(preloads()).toEqual({
         src: ['/quay.jpg'],
         srcset: [PHOTOS[1].srcSet],
@@ -1065,15 +1072,15 @@ describe('Lightbox', () => {
       ]);
     });
 
-    it('fetches round the ends with repeat', () => {
+    it('fetches round the ends by default', () => {
       const preloads = watchPreloads();
-      render(<Gallery defaultOpen repeat />);
+      render(<Gallery defaultOpen />);
       expect(preloads().src).toEqual(['/lighthouse.jpg', '/quay.jpg']);
     });
 
     it('fetches the other image once when two repeat', () => {
       const preloads = watchPreloads();
-      render(<Lightbox items={PHOTOS.slice(0, 2)} defaultOpen repeat />);
+      render(<Lightbox items={PHOTOS.slice(0, 2)} defaultOpen />);
       expect(preloads().src).toEqual(['/quay.jpg']);
     });
   });
@@ -1647,6 +1654,87 @@ describe('Lightbox', () => {
       expect(button('A')).toHaveClass('lightbox-trigger', 'mt-2', 'mine');
       expect(ref.current).toBe(button('A'));
       expect(callback).toHaveBeenCalledWith(button('B'));
+    });
+
+    it('renders through another component with as, such as Button', () => {
+      const ref = createRef<HTMLButtonElement>();
+      render(
+        <Lightbox items={PHOTOS}>
+          <Lightbox.Trigger
+            as={Button}
+            color="link"
+            isRounded
+            index={1}
+            ref={ref}
+            mt="2"
+          >
+            View all photos
+          </Lightbox.Trigger>
+        </Lightbox>
+      );
+      const view = button('View all photos');
+      // `color` is Button's, not the text color helper.
+      expect(view).toHaveClass(
+        'button',
+        'is-link',
+        'is-rounded',
+        'lightbox-trigger',
+        'mt-2'
+      );
+      expect(view).not.toHaveClass('has-text-link');
+      expect(view).toHaveAttribute('aria-haspopup', 'dialog');
+      expect(view).toHaveAttribute('type', 'button');
+      expect(ref.current).toBe(view);
+      fireEvent.click(view);
+      expect(shownImage()).toHaveAttribute('src', '/quay.jpg');
+    });
+
+    it('prefixes Button’s classes under a class prefix', () => {
+      render(
+        <ConfigProvider classPrefix="bestax-">
+          <Lightbox items={PHOTOS}>
+            <Lightbox.Trigger as={Button} color="link" index={0}>
+              View
+            </Lightbox.Trigger>
+          </Lightbox>
+        </ConfigProvider>
+      );
+      expect(button('View')).toHaveClass(
+        'bestax-button',
+        'bestax-is-link',
+        'bestax-lightbox-trigger'
+      );
+    });
+
+    it('sets no button type on another element', () => {
+      render(
+        <Lightbox items={PHOTOS}>
+          <Lightbox.Trigger as="a" href="#harbour" index={0}>
+            Harbour
+          </Lightbox.Trigger>
+        </Lightbox>
+      );
+      const link = screen.getByRole('link', { name: 'Harbour' });
+      expect(link).not.toHaveAttribute('type');
+      fireEvent.click(link);
+      expect(dialog()).toBeInTheDocument();
+    });
+
+    it('checks no name through a component that hands back a handle of its own', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const Handled = forwardRef<
+        { flash: () => void },
+        React.ButtonHTMLAttributes<HTMLButtonElement>
+      >(function Handled(props, ref) {
+        useImperativeHandle(ref, () => ({ flash: () => {} }));
+        return <button {...props} />;
+      });
+      render(
+        <Lightbox items={PHOTOS}>
+          <Lightbox.Trigger as={Handled} index={0} />
+        </Lightbox>
+      );
+      expect(warn).not.toHaveBeenCalled();
     });
   });
 
