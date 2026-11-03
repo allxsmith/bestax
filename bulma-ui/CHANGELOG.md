@@ -1,3 +1,16 @@
+# [5.60.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.59.0...@allxsmith/bestax-bulma@5.60.0) (2026-11-03)
+
+
+### Bug Fixes
+
+* **bulma-ui:** alias AffixPosition to BadgePosition, and spell its offsets' default $block-spacing ([9ffa9f0](https://github.com/allxsmith/bestax/commit/9ffa9f0ab97823ab7a4d7b976401ee3bf146e650))
+* **bulma-ui:** stack Affix under menus, and keep its offsets out of a Field's spacing ([74cb80e](https://github.com/allxsmith/bestax/commit/74cb80ea8207e279a9ede284dde383b7dd87bb03))
+
+
+### Features
+
+* **bulma-ui:** add Affix, a wrapper fixed to a corner of the viewport ([f27902b](https://github.com/allxsmith/bestax/commit/f27902b3949719319e59e0d013b521b6e088f408)), closes [#1433](https://github.com/allxsmith/bestax/issues/1433)
+
 # [5.59.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.58.0...@allxsmith/bestax-bulma@5.59.0) (2026-11-03)
 
 
