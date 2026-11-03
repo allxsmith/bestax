@@ -58,7 +58,9 @@ export interface CopyButtonProps
   value: string;
   /**
    * How long the "Copied" label stays, in milliseconds. Another copy
-   * restarts it.
+   * restarts it. It's capped at the longest delay `setTimeout` takes, about
+   * 24.8 days, which a value that isn't a finite number, `Infinity`
+   * included, also gets.
    * @defaultValue 2000
    */
   duration?: number;
@@ -121,7 +123,8 @@ const noAnnouncements: Announcement[] = [];
  * older copy command where that's missing or refused, and reports a failure
  * rather than showing "Copied". Each outcome is announced through a polite
  * status region portaled out of the button's place, so it stays the last
- * child of a `Control` or `Buttons`. With `showLabel={false}` it's an
+ * child of a `Control` or `Buttons`: to the end of the page, or into the open
+ * modal dialog the button is in. With `showLabel={false}` it's an
  * `IconButton`. For a trigger of your own, use `useClipboard`, which it's
  * built on.
  *
@@ -147,6 +150,7 @@ export const CopyButton = forwardRef<HTMLButtonElement, CopyButtonProps>(
       onCopiedChange,
       onCopyError,
       onClick,
+      onFocus,
       ...props
     },
     ref
@@ -164,6 +168,20 @@ export const CopyButton = forwardRef<HTMLButtonElement, CopyButtonProps>(
     const announce = (text: string) => {
       countRef.current += 1;
       setAnnouncements([{ id: String(countRef.current), text }]);
+    };
+
+    // The open modal dialog the button is in, which the region goes inside:
+    // a screen reader ignores a live region behind one. It's looked up when
+    // the button takes focus or a click, rather than once as it mounts,
+    // since Modal and Sidebar keep their content mounted while closed, and
+    // only an open one is `aria-modal`. A region that moves starts empty, so
+    // it doesn't say the last outcome again.
+    const [dialog, setDialog] = useState<HTMLElement | null>(null);
+    const placeRegion = (button: HTMLElement) => {
+      const next = button.closest<HTMLElement>('[aria-modal="true"]');
+      if (next === dialog) return;
+      setDialog(next);
+      setAnnouncements(noAnnouncements);
     };
 
     // The hook fires nothing once this has unmounted, so neither does the
@@ -185,7 +203,13 @@ export const CopyButton = forwardRef<HTMLButtonElement, CopyButtonProps>(
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
       onClick?.(event);
       if (event.defaultPrevented) return;
+      placeRegion(event.currentTarget);
       void copy(value);
+    };
+
+    const handleFocus = (event: React.FocusEvent<HTMLButtonElement>) => {
+      onFocus?.(event);
+      placeRegion(event.currentTarget);
     };
 
     const glyph = <Icon>{copied ? <CheckIcon /> : <CopyGlyph />}</Icon>;
@@ -200,6 +224,7 @@ export const CopyButton = forwardRef<HTMLButtonElement, CopyButtonProps>(
         as="button"
         type={buttonType(props.type)}
         onClick={handleClick}
+        onFocus={handleFocus}
       >
         {glyph}
         <span>{copied ? copiedLabel : copyLabel}</span>
@@ -216,6 +241,7 @@ export const CopyButton = forwardRef<HTMLButtonElement, CopyButtonProps>(
         ref={ref}
         as="button"
         onClick={handleClick}
+        onFocus={handleFocus}
       >
         {glyph}
       </IconButton>
@@ -224,7 +250,7 @@ export const CopyButton = forwardRef<HTMLButtonElement, CopyButtonProps>(
     return (
       <>
         {button}
-        <Portal>
+        <Portal container={dialog || undefined}>
           <StatusRegion items={announcements} describe={describeAnnouncement} />
         </Portal>
       </>

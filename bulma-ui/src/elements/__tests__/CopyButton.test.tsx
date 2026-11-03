@@ -4,6 +4,7 @@ import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { CopyButton, type CopyButtonProps } from '../CopyButton';
 import { Buttons } from '../Buttons';
+import { Modal } from '../../components/Modal';
 import { Control } from '../../form/Control';
 import { Field } from '../../form/Field';
 import { ConfigProvider } from '../../helpers/Config';
@@ -349,6 +350,75 @@ describe('CopyButton', () => {
       } finally {
         target.remove();
       }
+    });
+
+    describe('inside an open modal dialog', () => {
+      /** The status regions inside the open modal, and what they say. */
+      const insideModal = () => {
+        const modal = document.querySelector('[aria-modal="true"]');
+        return Array.from(
+          modal?.querySelectorAll('[role="status"]') ?? [],
+          node => Array.from(node.children, child => child.textContent)
+        );
+      };
+
+      it('puts the region inside the dialog, beside the button, not in it', async () => {
+        vi.useFakeTimers();
+        clipboardWorks();
+        render(
+          <Modal active aria-label="Share">
+            <Field hasAddons>
+              <Control data-testid="control">
+                <CopyButton value="x" />
+              </Control>
+            </Field>
+          </Modal>
+        );
+        const button = screen.getByRole('button', { name: 'Copy' });
+        act(() => button.focus());
+        expect(insideModal()).toEqual([[]]);
+        const control = screen.getByTestId('control');
+        expect(control.children).toHaveLength(1);
+        expect(button.querySelector('[role="status"]')).toBeNull();
+        await click(button);
+        act(() => vi.advanceTimersByTime(announceDelay));
+        expect(insideModal()).toEqual([['Copied to the clipboard']]);
+      });
+
+      it('finds a modal that opens after the button mounted, and says nothing old there', async () => {
+        vi.useFakeTimers();
+        clipboardWorks();
+        const { rerender } = render(
+          <Modal active={false}>
+            <CopyButton value="x" />
+          </Modal>
+        );
+        // A copy while it's closed, which a script can still run.
+        await click(screen.getByRole('button', { hidden: true }));
+        act(() => vi.advanceTimersByTime(2000));
+        expect(insideModal()).toEqual([]);
+        rerender(
+          <Modal active aria-label="Share">
+            <CopyButton value="x" />
+          </Modal>
+        );
+        const button = screen.getByRole('button', { name: 'Copy' });
+        act(() => button.focus());
+        act(() => vi.advanceTimersByTime(announceDelay));
+        // The region moved in on focus, empty: the earlier copy isn't said.
+        expect(insideModal()).toEqual([[]]);
+        await click(button);
+        act(() => vi.advanceTimersByTime(announceDelay));
+        expect(insideModal()).toEqual([['Copied to the clipboard']]);
+        expect(document.querySelectorAll('[role="status"]')).toHaveLength(1);
+      });
+
+      it("still calls the caller's onFocus", () => {
+        const onFocus = vi.fn();
+        render(<CopyButton value="x" onFocus={onFocus} />);
+        act(() => screen.getByRole('button').focus());
+        expect(onFocus).toHaveBeenCalledTimes(1);
+      });
     });
 
     it('announces nothing after it unmounts', async () => {
