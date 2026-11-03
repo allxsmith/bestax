@@ -29,6 +29,13 @@ on the root element with `mergeBulmaStyles(bulmaHelperStyles, style)`
 `undefined` when both are absent so unaffected components keep an attribute-free DOM.
 (`useColorStyles` is the underlying per-concern hook.)
 
+The flex container props (`flexDirection`, `flexWrap`, `justifyContent`, `alignContent`,
+`alignItems`) emit a class only on a flex container: when a `display` prop is `flex` or
+`inline-flex`, or when the second argument says the element's own stylesheet makes it one,
+`useBulmaClasses(props, { flexContainer: true })`. That adds no `is-flex` class, so pass it only
+when your CSS sets `display: flex`. `Stack`, `Group`, `Center` and `Flex` pass it, and
+`useFlexboxClasses` takes the same second argument.
+
 `BulmaClassesProps` is the union of all helper prop groups, composed from per-concern hooks
 that can also be used on their own:
 
@@ -176,12 +183,16 @@ or lays something out by side, reads `getComputedStyle(element).direction` when 
 pointer arrives, and uses logical properties (`margin-inline-start`, `inset-inline-end`) in its
 CSS, so `<html dir>` works with or without a provider.
 
+For numbers, use `useNumberFormat()` rather than an `Intl.NumberFormat` of your own. It returns a
+function that writes in the `locale` you pass it, else the provider's, else the runtime's. The
+function is the same from render to render for one locale, and it shares one formatter for each
+locale and set of options. In JSX, `<NumberFormatter value format locale>` writes the same text in
+a `<data value>` element. Inside the library, `library-contributor.md` says which hook a component
+takes.
+
 ```tsx
-const { locale } = useLocale();
-const total = new Intl.NumberFormat(locale, {
-  style: 'currency',
-  currency: 'EUR',
-}).format(amount);
+const format = useNumberFormat();
+const total = format(amount, { style: 'currency', currency: 'EUR' });
 ```
 
 ## Holding focus: `useFocusTrap`

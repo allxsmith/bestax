@@ -160,7 +160,7 @@ Every Bulma class has a corresponding React component in the matching tier, so t
 
 Foundational building blocks: typography, buttons, media, lists, data display, and feedback.
 
-[Block](/docs/api/elements/block), [Box](/docs/api/elements/box), [Button](/docs/api/elements/button), [Buttons](/docs/api/elements/buttons), [Code](/docs/api/elements/code), [ColorSwatch](/docs/api/elements/colorswatch), [Content](/docs/api/elements/content), [CopyButton](/docs/api/elements/copybutton), [Delete](/docs/api/elements/delete), [DescriptionList](/docs/api/elements/descriptionlist), [Divider](/docs/api/elements/divider), [Emphasis](/docs/api/elements/emphasis), [Figure](/docs/api/elements/figure), [Icon](/docs/api/elements/icon), [IconButton](/docs/api/elements/iconbutton), [IconText](/docs/api/elements/icontext), [Image](/docs/api/elements/image), [Kbd](/docs/api/elements/kbd), [Link](/docs/api/elements/link), [LinkButton](/docs/api/elements/linkbutton), [ListItem](/docs/api/elements/listitem), [Loader](/docs/api/elements/loader), [Notification](/docs/api/elements/notification), [OrderedList](/docs/api/elements/orderedlist), [Paragraph](/docs/api/elements/paragraph), [Pre](/docs/api/elements/pre), [Progress](/docs/api/elements/progress), [RingProgress](/docs/api/elements/ringprogress), [Skeleton](/docs/api/elements/skeleton), [Span](/docs/api/elements/span), [Strong](/docs/api/elements/strong), [SubTitle](/docs/api/elements/subtitle), [Table](/docs/api/elements/table), [Tag](/docs/api/elements/tag), [Tags](/docs/api/elements/tags), [Title](/docs/api/elements/title), [ToggleButton](/docs/api/elements/togglebutton), [UnorderedList](/docs/api/elements/unorderedlist)
+[Block](/docs/api/elements/block), [Box](/docs/api/elements/box), [Button](/docs/api/elements/button), [Buttons](/docs/api/elements/buttons), [Code](/docs/api/elements/code), [ColorSwatch](/docs/api/elements/colorswatch), [Content](/docs/api/elements/content), [CopyButton](/docs/api/elements/copybutton), [Delete](/docs/api/elements/delete), [DescriptionList](/docs/api/elements/descriptionlist), [Divider](/docs/api/elements/divider), [Emphasis](/docs/api/elements/emphasis), [Figure](/docs/api/elements/figure), [Icon](/docs/api/elements/icon), [IconButton](/docs/api/elements/iconbutton), [IconText](/docs/api/elements/icontext), [Image](/docs/api/elements/image), [Kbd](/docs/api/elements/kbd), [Link](/docs/api/elements/link), [LinkButton](/docs/api/elements/linkbutton), [ListItem](/docs/api/elements/listitem), [Loader](/docs/api/elements/loader), [Notification](/docs/api/elements/notification), [NumberFormatter](/docs/api/elements/numberformatter), [OrderedList](/docs/api/elements/orderedlist), [Paragraph](/docs/api/elements/paragraph), [Pre](/docs/api/elements/pre), [Progress](/docs/api/elements/progress), [RingProgress](/docs/api/elements/ringprogress), [Skeleton](/docs/api/elements/skeleton), [Span](/docs/api/elements/span), [Strong](/docs/api/elements/strong), [SubTitle](/docs/api/elements/subtitle), [Table](/docs/api/elements/table), [Tag](/docs/api/elements/tag), [Tags](/docs/api/elements/tags), [Title](/docs/api/elements/title), [ToggleButton](/docs/api/elements/togglebutton), [UnorderedList](/docs/api/elements/unorderedlist)
 
 ```tsx live
 <div>
@@ -336,11 +336,11 @@ function FormShowcase() {
 
 ---
 
-## Layout (7)
+## Layout (11)
 
 Page-level structural primitives.
 
-[Container](/docs/api/layout/container), [Footer](/docs/api/layout/footer), [Hero](/docs/api/layout/hero), [Level](/docs/api/layout/level), [Media](/docs/api/layout/media), [Section](/docs/api/layout/section), [Splitter](/docs/api/layout/splitter)
+[Center](/docs/api/layout/center), [Container](/docs/api/layout/container), [Flex](/docs/api/layout/flex), [Footer](/docs/api/layout/footer), [Group](/docs/api/layout/group), [Hero](/docs/api/layout/hero), [Level](/docs/api/layout/level), [Media](/docs/api/layout/media), [Section](/docs/api/layout/section), [Splitter](/docs/api/layout/splitter), [Stack](/docs/api/layout/stack)
 
 ```tsx live
 <Hero color="info" size="small">
@@ -380,7 +380,7 @@ Beyond the core Bulma wrappers, bestax-bulma ships additional components that fi
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Components** | Avatar, Avatars, Badge, Carousel, Collapse, Collapses, Command, ContextMenu, DataTable, Dialog, EmptyState, HoverCard, Loading, Popover, Reveal, ScrollArea, Sidebar, Steps, Timeline, Toast, Tooltip, TreeView |
 | **Form**       | Autocomplete, CheckboxCard, ColorInput, ColorPicker, Combobox, DateInput, DateRangeInput, DateTimeInput, Dropzone, Fieldset, Numberinput, PinInput, RadioCard, Rate, Slider, Switch, Taginput, TimeInput        |
-| **Elements**   | ColorSwatch, DescriptionList, IconButton, Kbd, LinkButton, RingProgress                                                                                                                                         |
-| **Layout**     | Splitter                                                                                                                                                                                                        |
+| **Elements**   | ColorSwatch, DescriptionList, IconButton, Kbd, LinkButton, NumberFormatter, RingProgress                                                                                                                        |
+| **Layout**     | Center, Flex, Group, Splitter, Stack                                                                                                                                                                            |
 
-These extras include purpose-built SCSS that follows Bulma v1's CSS-variable conventions, so they theme and customise exactly like native Bulma components. They're bundled into `bestax.css` — no separate import needed.
+The extras that need styles include purpose-built SCSS that follows Bulma v1's CSS-variable conventions, so they theme and customise exactly like native Bulma components. They're bundled into `bestax.css` — no separate import needed.

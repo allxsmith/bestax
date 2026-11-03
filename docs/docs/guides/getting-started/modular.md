@@ -190,6 +190,7 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 
 // bestax layout
 @use '@allxsmith/bestax-bulma/scss/layout/splitter';
+@use '@allxsmith/bestax-bulma/scss/layout/stack';
 
 // bestax form components
 @use '@allxsmith/bestax-bulma/scss/form/autocomplete';

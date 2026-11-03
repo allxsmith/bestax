@@ -240,6 +240,9 @@ export const ALIASES: Readonly<Record<string, readonly string[]>> = {
   dropdownmenu: ['Dropdown'],
   dropzone: ['Dropzone', 'File'],
   fileupload: ['Dropzone', 'File'],
+  // Chakra's and react-intl's names for it.
+  formatnumber: ['NumberFormatter'],
+  formattednumber: ['NumberFormatter'],
   keyvalue: ['DescriptionList'],
   modaldialog: ['Modal', 'Dialog'],
   offcanvas: ['Sidebar'],

@@ -1,3 +1,17 @@
+# [5.58.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.57.5...@allxsmith/bestax-bulma@5.58.0) (2026-11-03)
+
+
+### Bug Fixes
+
+* **bulma-ui:** ignore a locale Intl refuses in useNumberFormat, and key its cache exactly ([a84b398](https://github.com/allxsmith/bestax/commit/a84b39866cfabccd9dbb1ea92e9fe0adb093481d))
+* **bulma-ui:** settle which number hook a component takes, and keep unknown options cached ([2dfa766](https://github.com/allxsmith/bestax/commit/2dfa76691a673504ad80dee2c30d5a7b5ccd5941))
+
+
+### Features
+
+* **bulma-ui:** add NumberFormatter and make useNumberFormat public ([f1935d1](https://github.com/allxsmith/bestax/commit/f1935d1904e18473a4b7de9f196ab32ad91ba598)), closes [#1425](https://github.com/allxsmith/bestax/issues/1425)
+* **bulma-ui:** add TreeView's checkbox-independent mode, a box that checks its own item ([c31e135](https://github.com/allxsmith/bestax/commit/c31e135b866cca0726f994aee488ae1f5dec9f58)), closes [#1430](https://github.com/allxsmith/bestax/issues/1430)
+
 ## [5.57.5](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.57.4...@allxsmith/bestax-bulma@5.57.5) (2026-11-01)
 
 
