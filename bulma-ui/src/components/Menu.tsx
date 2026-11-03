@@ -14,6 +14,7 @@ import { buttonType } from '../helpers/buttonType';
 import { inertProps } from '../helpers/inertProps';
 import { getActiveElementInTree } from '../helpers/shadowDom';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
+import { MenuRailContext } from '../helpers/menuRail';
 import {
   isCustomElement,
   type PolymorphicComponent,
@@ -295,6 +296,7 @@ export const MenuItem = forwardRef(function MenuItem(
   );
   const iconClass = usePrefixedClassNames('menu-item-icon');
   const labelClass = usePrefixedClassNames('menu-item-label');
+  const rail = useContext(MenuRailContext);
 
   // Split children into label and nested MenuList(s)
   const labelChildren: React.ReactNode[] = [];
@@ -307,6 +309,45 @@ export const MenuItem = forwardRef(function MenuItem(
     }
   });
 
+  const link = (
+    <Component
+      ref={ref}
+      className={itemClass || undefined}
+      // The active item is the current page, the way Pagination marks its
+      // page. Before the spread, so an `aria-current` the caller passes
+      // decides, `false` and `undefined` included. bestax-migrate converts
+      // `is-active` to `active` only beside an `aria-current` of the
+      // element's own, and relies on that to render the same markup.
+      aria-current={active ? 'page' : undefined}
+      {...linkProps}
+      // A menu item inside a form must not submit it, and `<button>` defaults
+      // to type="submit". A sidebar menu sitting in a form is ordinary. A
+      // caller's `submit` or `reset` still wins. Anything else becomes
+      // `button`, since HTML reads a value it does not define for a button as
+      // submit too; `buttonType` says more.
+      //
+      // After `linkProps`, reading through it rather than before it: React
+      // treats `type={undefined}` as "remove the attribute", and a spread
+      // carrying the key with no value is how that arrives, so a default
+      // spread first would be erased by it. `Dropdown.Item` and `Avatar`
+      // apply their button type after the spread too.
+      {...(Component === 'button' ? { type: buttonType(linkProps.type) } : {})}
+    >
+      {icon ? (
+        <>
+          <span className={iconClass} aria-hidden="true">
+            {icon}
+          </span>
+          <span className={labelClass}>{labelChildren}</span>
+        </>
+      ) : (
+        labelChildren
+      )}
+    </Component>
+  );
+
+  // In a column that collapses to an icon rail, an item with an icon shows
+  // its label in a tooltip while only the icon shows.
   return (
     <li
       className={className}
@@ -317,42 +358,7 @@ export const MenuItem = forwardRef(function MenuItem(
       role={role}
       tabIndex={tabIndex}
     >
-      <Component
-        ref={ref}
-        className={itemClass || undefined}
-        // The active item is the current page, the way Pagination marks its
-        // page. Before the spread, so an `aria-current` the caller passes
-        // decides, `false` and `undefined` included. bestax-migrate converts
-        // `is-active` to `active` only beside an `aria-current` of the
-        // element's own, and relies on that to render the same markup.
-        aria-current={active ? 'page' : undefined}
-        {...linkProps}
-        // A menu item inside a form must not submit it, and `<button>` defaults
-        // to type="submit". A sidebar menu sitting in a form is ordinary. A
-        // caller's `submit` or `reset` still wins. Anything else becomes
-        // `button`, since HTML reads a value it does not define for a button as
-        // submit too; `buttonType` says more.
-        //
-        // After `linkProps`, reading through it rather than before it: React
-        // treats `type={undefined}` as "remove the attribute", and a spread
-        // carrying the key with no value is how that arrives, so a default
-        // spread first would be erased by it. `Dropdown.Item` and `Avatar`
-        // apply their button type after the spread too.
-        {...(Component === 'button'
-          ? { type: buttonType(linkProps.type) }
-          : {})}
-      >
-        {icon ? (
-          <>
-            <span className={iconClass} aria-hidden="true">
-              {icon}
-            </span>
-            <span className={labelClass}>{labelChildren}</span>
-          </>
-        ) : (
-          labelChildren
-        )}
-      </Component>
+      {rail && icon ? rail.wrap(link, labelChildren) : link}
       {nestedMenuLists}
     </li>
   );
@@ -438,6 +444,10 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
   const listId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const rail = useContext(MenuRailContext);
+  // The rail hides a section's list, so there the button widens the column
+  // and opens the section, and says it's collapsed.
+  const railCollapsed = !!rail?.collapsed;
 
   // The caller owns the state when `open` is set, and the section does
   // otherwise, as with Collapse. The button reports in both modes.
@@ -446,7 +456,8 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
   const isOpen = controlledOpen ?? internalOpen;
 
   const handleClick = () => {
-    const next = !isOpen;
+    const next = railCollapsed || !isOpen;
+    if (railCollapsed) rail!.expand();
     onOpenChange?.(next);
     if (!isControlled) setInternalOpen(next);
   };
@@ -469,34 +480,38 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
 
   // A real button, so Enter and Space work with no key handler, and
   // `type="button"`, so a menu inside a form isn't submitted by it.
-  //
+  const toggle = (
+    <button
+      ref={toggleRef}
+      type="button"
+      className={toggleClass}
+      aria-expanded={isOpen && !railCollapsed}
+      aria-controls={listId}
+      onClick={handleClick}
+    >
+      {icon && (
+        <span className={iconClass} aria-hidden="true">
+          {icon}
+        </span>
+      )}
+      <span className={labelClass}>{label}</span>
+      <span className={chevronClass} aria-hidden="true" />
+    </button>
+  );
+
   // A closed list is `hidden`, so it isn't drawn and find-in-page doesn't
   // reach it, and `inert`, so its links stay out of Tab and assistive tech
   // even if a stylesheet sets `display` on it and shows it anyway. The markup
   // is the same from the server and on both React majors, which `inertProps`
   // sees to. It stays mounted, so `aria-controls` always names an element
-  // that exists.
+  // that exists. In a column that collapses to an icon rail, a section with
+  // an icon shows its heading in a tooltip while only the icon shows.
   return (
     <div
       className={classNames(sectionClass, bulmaHelperClasses, className)}
       {...rest}
     >
-      <button
-        ref={toggleRef}
-        type="button"
-        className={toggleClass}
-        aria-expanded={isOpen}
-        aria-controls={listId}
-        onClick={handleClick}
-      >
-        {icon && (
-          <span className={iconClass} aria-hidden="true">
-            {icon}
-          </span>
-        )}
-        <span className={labelClass}>{label}</span>
-        <span className={chevronClass} aria-hidden="true" />
-      </button>
+      {rail && icon ? rail.wrap(toggle, label) : toggle}
       <div ref={listRef} id={listId} hidden={!isOpen} {...inertProps(!isOpen)}>
         {children}
       </div>

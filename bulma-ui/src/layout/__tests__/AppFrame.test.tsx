@@ -15,6 +15,7 @@ import {
   type AppFrameNavProps,
 } from '../AppFrame';
 import { Navbar } from '../../components/Navbar';
+import { Menu } from '../../components/Menu';
 import { Modal } from '../../components/Modal';
 import { Sidebar } from '../../components/Sidebar';
 import { ConfigProvider } from '../../helpers/Config';
@@ -1335,6 +1336,206 @@ describe('AppFrame', () => {
       expect(AppFrame.Burger).toBe(AppFrameBurger);
       expect(AppFrame.displayName).toBe('AppFrame');
     });
+  });
+});
+
+describe('AppFrame.Nav rail', () => {
+  const Glyph = () => <svg />;
+
+  /** A frame whose nav has a rail and a Menu of icons, a section and a nested list. */
+  const RailFrame = ({
+    nav,
+    ...props
+  }: AppFrameProps & { nav?: AppFrameNavProps }) => (
+    <AppFrame {...props}>
+      <AppFrame.Header>
+        <AppFrame.Burger />
+      </AppFrame.Header>
+      <AppFrame.Nav rail {...nav}>
+        <Menu>
+          <Menu.Label>General</Menu.Label>
+          <Menu.List>
+            <Menu.Item href="#dashboard" icon={<Glyph />} active>
+              Dashboard
+            </Menu.Item>
+            <Menu.Item href="#orders" icon={<Glyph />}>
+              Orders
+              <Menu.List>
+                <Menu.Item href="#open">Open orders</Menu.Item>
+              </Menu.List>
+            </Menu.Item>
+            <Menu.Item href="#plain">Plain</Menu.Item>
+          </Menu.List>
+          <Menu.Section label="Reports" icon={<Glyph />}>
+            <Menu.List>
+              <Menu.Item href="#sales">Sales</Menu.Item>
+            </Menu.List>
+          </Menu.Section>
+        </Menu>
+      </AppFrame.Nav>
+      <AppFrame.Main>Page</AppFrame.Main>
+    </AppFrame>
+  );
+
+  const reports = () => screen.getByRole('button', { name: 'Reports' });
+  /** The tooltip wrapper around a link or a button. */
+  const tipOf = (el: HTMLElement) => el.parentElement as HTMLElement;
+
+  it('puts each item and section with an icon in a tooltip of its label, hidden from assistive technology', () => {
+    mockViewport(DESKTOP);
+    render(<RailFrame />);
+    const dashboard = link('Dashboard');
+    const tip = tipOf(dashboard);
+    expect(tip).toHaveClass('tooltip', 'app-frame-rail-tooltip', 'is-right');
+    // The link comes first, as the stylesheet expects.
+    expect(tip.firstElementChild).toBe(dashboard);
+    const content = tip.querySelector('.tooltip-content') as HTMLElement;
+    expect(content).toHaveTextContent(/^Dashboard$/);
+    expect(content).toHaveAttribute('aria-hidden', 'true');
+    // The name isn't read twice.
+    expect(dashboard).not.toHaveAttribute('aria-describedby');
+    expect(tipOf(reports())).toHaveClass('app-frame-rail-tooltip');
+    expect(
+      tipOf(reports()).querySelector('.tooltip-content')
+    ).toHaveTextContent(/^Reports$/);
+    // Nothing to show for an item without an icon.
+    expect(tipOf(link('Plain')).localName).toBe('li');
+  });
+
+  it('marks the nav as a rail only while the column is collapsed', () => {
+    mockViewport(DESKTOP);
+    render(<RailFrame />);
+    expect(nav()).not.toHaveClass('is-rail');
+    fireEvent.click(burger());
+    expect(nav()).toHaveClass('app-frame-nav', 'is-rail');
+    expect(root()).toHaveClass('is-nav-collapsed');
+    expect(burger()).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(burger());
+    expect(nav()).not.toHaveClass('is-rail');
+  });
+
+  it('keeps focus on the item that has it as the column collapses and expands', () => {
+    mockViewport(DESKTOP);
+    const { rerender } = render(<RailFrame navCollapsed={false} />);
+    const orders = link('Orders');
+    orders.focus();
+    rerender(<RailFrame navCollapsed />);
+    expect(nav()).toHaveClass('is-rail');
+    expect(link('Orders')).toBe(orders);
+    expect(orders).toHaveFocus();
+    rerender(<RailFrame navCollapsed={false} />);
+    expect(link('Orders')).toBe(orders);
+    expect(orders).toHaveFocus();
+  });
+
+  it('expands the column and opens a section from its button in the rail', () => {
+    mockViewport(DESKTOP);
+    const onNavCollapsedChange = vi.fn();
+    render(
+      <RailFrame
+        defaultNavCollapsed
+        onNavCollapsedChange={onNavCollapsedChange}
+      />
+    );
+    const button = reports();
+    expect(button).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(button);
+    expect(onNavCollapsedChange).toHaveBeenLastCalledWith(false);
+    expect(nav()).not.toHaveClass('is-rail');
+    expect(reports()).toBe(button);
+    expect(button).toHaveAttribute('aria-expanded', 'true');
+    expect(link('Sales')).toBeVisible();
+  });
+
+  it('says an open section in the rail is collapsed, since the rail hides its list', () => {
+    mockViewport(DESKTOP);
+    const { rerender } = render(<RailFrame navCollapsed={false} />);
+    fireEvent.click(reports());
+    expect(reports()).toHaveAttribute('aria-expanded', 'true');
+    rerender(<RailFrame navCollapsed />);
+    expect(reports()).toHaveAttribute('aria-expanded', 'false');
+    rerender(<RailFrame navCollapsed={false} />);
+    expect(reports()).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('leaves a section to open and close as usual in the drawer, where there is no rail', () => {
+    mockViewport(PHONE);
+    const onNavCollapsedChange = vi.fn();
+    render(
+      <RailFrame
+        defaultNavCollapsed
+        onNavCollapsedChange={onNavCollapsedChange}
+      />
+    );
+    fireEvent.click(burger());
+    expect(root()).toHaveClass('is-nav-open');
+    fireEvent.click(reports());
+    expect(reports()).toHaveAttribute('aria-expanded', 'true');
+    fireEvent.click(reports());
+    expect(reports()).toHaveAttribute('aria-expanded', 'false');
+    expect(onNavCollapsedChange).not.toHaveBeenCalled();
+  });
+
+  it('puts the tooltips on the left of a right-to-left rail', () => {
+    mockViewport(DESKTOP);
+    const real = window.getComputedStyle;
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((el, pseudo) => {
+      const style = real(el, pseudo);
+      return el.matches('.app-frame-nav')
+        ? ({ ...style, direction: 'rtl' } as CSSStyleDeclaration)
+        : style;
+    });
+    try {
+      render(<RailFrame />);
+      expect(tipOf(link('Dashboard'))).toHaveClass('is-left');
+      expect(tipOf(link('Dashboard'))).not.toHaveClass('is-right');
+    } finally {
+      vi.restoreAllMocks();
+    }
+  });
+
+  it('renders the rail and its tooltips on the server, so hydrating remounts nothing', () => {
+    const html = renderToStaticMarkup(<RailFrame defaultNavCollapsed />);
+    expect(html).toMatch(/<nav[^>]*class="app-frame-nav is-rail"/);
+    expect(html).toContain('app-frame-rail-tooltip');
+    expect(html).toMatch(/role="tooltip"/);
+    expect(html).not.toContain('aria-describedby');
+  });
+
+  it('prefixes the rail’s classes', () => {
+    mockViewport(DESKTOP);
+    render(
+      <ConfigProvider classPrefix="bestax-">
+        <RailFrame defaultNavCollapsed />
+      </ConfigProvider>
+    );
+    expect(document.querySelector('nav')).toHaveClass(
+      'bestax-app-frame-nav',
+      'bestax-is-rail'
+    );
+    expect(tipOf(link('Dashboard'))).toHaveClass(
+      'bestax-tooltip',
+      'bestax-app-frame-rail-tooltip'
+    );
+  });
+
+  it('gives a menu no tooltips in a nav without a rail, or outside a frame', () => {
+    mockViewport(DESKTOP);
+    const { unmount } = render(<RailFrame nav={{ rail: false }} />);
+    expect(document.querySelector('.tooltip')).toBeNull();
+    unmount();
+    render(
+      <AppFrame.Nav rail>
+        <Menu>
+          <Menu.List>
+            <Menu.Item href="#dashboard" icon={<Glyph />}>
+              Dashboard
+            </Menu.Item>
+          </Menu.List>
+        </Menu>
+      </AppFrame.Nav>
+    );
+    expect(document.querySelector('.tooltip')).toBeNull();
   });
 });
 

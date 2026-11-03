@@ -54,12 +54,16 @@ $menu-item-icon-gap: 0.5em !default;
 // still one space apart, since the margins collapse. They're on the heading,
 // so the label's `em` measures them in the label's own small size, as
 // Bulma's do. The heading doesn't carry `.menu-label` itself, because its
-// own place inside its section never changes.
-.#{iv.$class-prefix}menu-section:not(:first-child) > .#{iv.$class-prefix}menu-section-toggle {
+// own place inside its section never changes. In an AppFrame column with an
+// icon rail, the heading sits in a Tooltip, a block its margins pass
+// through, so they land on it there too.
+.#{iv.$class-prefix}menu-section:not(:first-child) > .#{iv.$class-prefix}menu-section-toggle,
+.#{iv.$class-prefix}menu-section:not(:first-child) > .#{iv.$class-prefix}tooltip > .#{iv.$class-prefix}menu-section-toggle {
   margin-top: cv.getVar("menu-label-spacing");
 }
 
 .#{iv.$class-prefix}menu-section:not(:last-child) > .#{iv.$class-prefix}menu-section-toggle,
+.#{iv.$class-prefix}menu-section:not(:last-child) > .#{iv.$class-prefix}tooltip > .#{iv.$class-prefix}menu-section-toggle,
 .#{iv.$class-prefix}menu-section-toggle[aria-expanded="true"] {
   margin-bottom: cv.getVar("menu-label-spacing");
 }

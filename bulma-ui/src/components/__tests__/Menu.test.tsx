@@ -4,6 +4,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Menu, MenuLabel, MenuList, MenuItem, MenuSection } from '../Menu';
 import { ConfigProvider } from '../../helpers/Config';
+import { MenuRailContext, type MenuRail } from '../../helpers/menuRail';
 
 // A simple link-like mock component for custom "as" prop testing
 type CustomLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
@@ -457,6 +458,159 @@ describe('icon', () => {
     expect(
       screen.getByRole('button', { name: 'Reports' }).firstElementChild
     ).toHaveClass('bestax-menu-section-icon');
+  });
+});
+
+describe('in an icon rail', () => {
+  const Glyph = () => <svg />;
+
+  /** A rail whose wrap marks what it wrapped and keeps the label it was given. */
+  const railOf = (collapsed: boolean, expand = vi.fn()): MenuRail => ({
+    collapsed,
+    expand,
+    wrap: (trigger, label) => (
+      <span data-testid="tip" data-label={String(label)}>
+        {trigger}
+      </span>
+    ),
+  });
+
+  const renderIn = (rail: MenuRail, ui: React.ReactNode) =>
+    render(
+      <MenuRailContext.Provider value={rail}>
+        <Menu>{ui}</Menu>
+      </MenuRailContext.Provider>
+    );
+
+  it('wraps an item with an icon, with its label and not its nested lists', () => {
+    renderIn(
+      railOf(false),
+      <Menu.List>
+        <Menu.Item href="#orders" icon={<Glyph />}>
+          Orders
+          <Menu.List>
+            <Menu.Item href="#open" icon={<Glyph />}>
+              Open
+            </Menu.Item>
+          </Menu.List>
+        </Menu.Item>
+        <Menu.Item href="#plain">Plain</Menu.Item>
+      </Menu.List>
+    );
+    const [orders, open] = screen.getAllByTestId('tip');
+    expect(orders).toHaveAttribute('data-label', 'Orders');
+    expect(orders.firstElementChild).toBe(
+      screen.getByRole('link', { name: 'Orders' })
+    );
+    expect(open).toHaveAttribute('data-label', 'Open');
+    // An item without an icon has nothing to show in the rail.
+    expect(screen.getByRole('link', { name: 'Plain' }).parentElement).toBe(
+      screen.getByRole('link', { name: 'Plain' }).closest('li')
+    );
+  });
+
+  it('wraps a section’s button with its heading', () => {
+    renderIn(
+      railOf(false),
+      <Menu.Section label="Reports" icon={<Glyph />}>
+        <Menu.List>
+          <Menu.Item href="#sales">Sales</Menu.Item>
+        </Menu.List>
+      </Menu.Section>
+    );
+    const tip = screen.getByTestId('tip');
+    expect(tip).toHaveAttribute('data-label', 'Reports');
+    expect(tip.firstElementChild).toBe(
+      screen.getByRole('button', { name: 'Reports' })
+    );
+  });
+
+  it('opens and closes a section as usual while the column is expanded', async () => {
+    const expand = vi.fn();
+    const onOpenChange = vi.fn();
+    renderIn(
+      railOf(false, expand),
+      <Menu.Section
+        label="Reports"
+        icon={<Glyph />}
+        onOpenChange={onOpenChange}
+      >
+        <Menu.List>
+          <Menu.Item href="#sales">Sales</Menu.Item>
+        </Menu.List>
+      </Menu.Section>
+    );
+    const button = screen.getByRole('button', { name: 'Reports' });
+    await userEvent.click(button);
+    expect(button).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.click(button);
+    expect(button).toHaveAttribute('aria-expanded', 'false');
+    expect(onOpenChange.mock.calls).toEqual([[true], [false]]);
+    expect(expand).not.toHaveBeenCalled();
+  });
+
+  it('widens the collapsed column and opens the section, and says it’s collapsed until then', async () => {
+    const expand = vi.fn();
+    const onOpenChange = vi.fn();
+    const { rerender } = renderIn(
+      railOf(true, expand),
+      <Menu.Section
+        label="Reports"
+        icon={<Glyph />}
+        defaultOpen
+        onOpenChange={onOpenChange}
+      >
+        <Menu.List>
+          <Menu.Item href="#sales">Sales</Menu.Item>
+        </Menu.List>
+      </Menu.Section>
+    );
+    const button = screen.getByRole('button', { name: 'Reports' });
+    // Open, but the rail hides its list.
+    expect(button).toHaveAttribute('aria-expanded', 'false');
+    await userEvent.click(button);
+    expect(expand).toHaveBeenCalledTimes(1);
+    // It asks to stay open rather than close.
+    expect(onOpenChange).toHaveBeenLastCalledWith(true);
+    rerender(
+      <MenuRailContext.Provider value={railOf(false, expand)}>
+        <Menu>
+          <Menu.Section
+            label="Reports"
+            icon={<Glyph />}
+            defaultOpen
+            onOpenChange={onOpenChange}
+          >
+            <Menu.List>
+              <Menu.Item href="#sales">Sales</Menu.Item>
+            </Menu.List>
+          </Menu.Section>
+        </Menu>
+      </MenuRailContext.Provider>
+    );
+    expect(button).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('link', { name: 'Sales' })).toBeVisible();
+  });
+
+  it('opens a closed section from the collapsed rail too', async () => {
+    const expand = vi.fn();
+    renderIn(
+      railOf(true, expand),
+      <Menu.Section label="Reports" icon={<Glyph />}>
+        <Menu.List>
+          <Menu.Item href="#sales">Sales</Menu.Item>
+        </Menu.List>
+      </Menu.Section>
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Reports' }));
+    expect(expand).toHaveBeenCalledTimes(1);
+    expect(
+      document.getElementById(
+        screen
+          .getByRole('button', { name: 'Reports' })
+          .getAttribute('aria-controls')!
+      )
+    ).not.toHaveAttribute('hidden');
   });
 });
 

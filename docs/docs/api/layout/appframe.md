@@ -10,6 +10,8 @@ keywords:
   - admin layout
   - sidebar layout
   - navigation drawer
+  - icon rail
+  - mini sidebar
   - skip link
 ---
 
@@ -179,7 +181,8 @@ column, so focus on it goes back to the burger.
 
 ### Collapsing the Column
 
-From the breakpoint up, the burger collapses the column out of view and brings it back. The frame
+From the breakpoint up, the burger collapses the column out of view, or down to
+[a rail of icons](#the-icon-rail), and brings it back. The frame
 holds that state and the drawer's apart, since closing the drawer on a phone shouldn't collapse
 the column on a desktop. Each is yours to control: `navOpen` with `onNavOpenChange` for the
 drawer, and `navCollapsed` with `onNavCollapsedChange` for the column.
@@ -224,6 +227,70 @@ function example() {
 The burger shows at every width, since from the breakpoint up it collapses the column. A column
 that never collapses hides it there with the visibility helpers:
 `<AppFrame.Burger visibilityDesktop="hidden" />` at the default breakpoint.
+
+### The Icon Rail
+
+With `rail` on `AppFrame.Nav`, a collapsed column shrinks to a rail of icons instead of leaving the
+page. Give each top-level `Menu.Item` and `Menu.Section` an `icon`. In the rail the icons stay and
+the labels are visually hidden, so every link keeps its name, and each label shows in a tooltip
+beside the rail on hover and keyboard focus. Nested lists and `Menu.Label` headings hide there, and
+a section's button expands the column and opens the section, so no link is more than one press
+away.
+
+```tsx live
+function example() {
+  const [collapsed, setCollapsed] = useState(true);
+  return (
+    <AppFrame navCollapsed={collapsed} onNavCollapsedChange={setCollapsed}>
+      <AppFrame.Header>
+        <Navbar aria-label="Site">
+          <Navbar.Brand>
+            <Navbar.Item href="#">
+              <strong>Acme</strong>
+            </Navbar.Item>
+            <AppFrame.Burger />
+          </Navbar.Brand>
+        </Navbar>
+      </AppFrame.Header>
+      <AppFrame.Nav rail>
+        <Menu>
+          <Menu.List>
+            <Menu.Item href="#" icon={<Icon name="house" />} active>
+              Dashboard
+            </Menu.Item>
+            <Menu.Item href="#" icon={<Icon name="box" />}>
+              Orders
+            </Menu.Item>
+          </Menu.List>
+          <Menu.Section label="Reports" icon={<Icon name="chart-line" />}>
+            <Menu.List>
+              <Menu.Item href="#">Sales</Menu.Item>
+              <Menu.Item href="#">Returns</Menu.Item>
+            </Menu.List>
+          </Menu.Section>
+        </Menu>
+      </AppFrame.Nav>
+      <AppFrame.Main>
+        <Section>
+          <Paragraph>
+            The column is {collapsed ? 'a rail of icons' : 'expanded'}.
+          </Paragraph>
+        </Section>
+      </AppFrame.Main>
+    </AppFrame>
+  );
+}
+```
+
+The tooltip is a [Tooltip](../components/tooltip.md) with `describesTrigger={false}`, so a screen
+reader reads each name once, from the link. It sits on the column's inline-end side: on the right,
+or on the left of a right-to-left page. Each item with an icon is wrapped in it whenever the nav has
+`rail`, and it shows only while the column is collapsed, so collapsing and expanding never remount
+a link that has focus. Below the breakpoint the drawer shows the whole nav, labels and all.
+
+Collapsed, the column doesn't scroll on its own, so a tooltip beside it isn't clipped. A rail taller
+than the window grows with its icons and scrolls with the page, which a rail of top-level icons
+seldom needs. `--bulma-app-frame-nav-rail-width` sets its width, 4rem by default.
 
 ### Keeping the State
 
@@ -428,6 +495,12 @@ The parts are attached to `AppFrame`, and also exported on their own as `AppFram
   inside the frame's parts.
 - **A closed drawer and a collapsed column** are `visibility: hidden`, so their links are out of
   the Tab order and the accessibility tree before any script runs.
+- **The icon rail** keeps every name: labels are visually hidden, never removed, and icons are
+  `aria-hidden`. Each tooltip adds no `aria-describedby` and is `aria-hidden` itself, so the name
+  isn't read twice. It shows on keyboard focus as well as hover, stays while the pointer moves
+  onto it, and Escape hides it (WCAG 1.4.13). A section's button in the rail reports
+  `aria-expanded="false"`, since the rail hides its list, and pressing it expands the column and
+  opens the section.
 - **Reflow:** at 320 pixels wide the nav is a drawer, so nothing scrolls sideways (WCAG 1.4.10).
 - **Motion:** the drawer's slide, the backdrop's fade and the column's collapse don't play under
   `prefers-reduced-motion: reduce`.

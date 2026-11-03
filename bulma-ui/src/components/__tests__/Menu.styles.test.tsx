@@ -13,6 +13,8 @@ import path from 'path';
 import { render } from '@testing-library/react';
 import { Menu } from '../Menu';
 import { ConfigProvider } from '../../helpers/Config';
+import { MenuRailContext, type MenuRail } from '../../helpers/menuRail';
+import { Tooltip } from '../Tooltip';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 
@@ -331,6 +333,8 @@ describe.each([
           'menu-section-icon',
           'menu-section-label',
           'menu-section-toggle',
+          // The Tooltip an AppFrame rail puts a heading in.
+          'tooltip',
         ].map(name => prefix + name)
       );
       const { container } = renderSections();
@@ -408,8 +412,15 @@ describe.each([
 
     // On the heading, not the section, so the `em` is the label's small size,
     // as it is on Bulma's label.
-    const following = `${p('menu-section')}:not(:first-child) > ${p('menu-section-toggle')}`;
-    const followed = `${p('menu-section')}:not(:last-child) > ${p('menu-section-toggle')}`;
+    // And on a heading inside the Tooltip an AppFrame rail puts it in.
+    const following = [
+      `${p('menu-section')}:not(:first-child) > ${p('menu-section-toggle')}`,
+      `${p('menu-section')}:not(:first-child) > ${p('tooltip')} > ${p('menu-section-toggle')}`,
+    ].join(', ');
+    const followed = [
+      `${p('menu-section')}:not(:last-child) > ${p('menu-section-toggle')}`,
+      `${p('menu-section')}:not(:last-child) > ${p('tooltip')} > ${p('menu-section-toggle')}`,
+    ].join(', ');
     const open = `${p('menu-section-toggle')}[aria-expanded=true]`;
 
     it('spaces sections as Bulma spaces labels: above one that follows something, below one something follows, and under an open heading', () => {
@@ -431,6 +442,42 @@ describe.each([
       expect(buttons.map(b => b.matches(following))).toEqual([false, true]);
       expect(buttons.map(b => b.matches(followed))).toEqual([true, false]);
       expect(buttons.map(b => b.matches(open))).toEqual([true, false]);
+    });
+
+    it('spaces a heading the same inside the Tooltip an AppFrame rail puts it in', () => {
+      const rail: MenuRail = {
+        collapsed: false,
+        expand: () => {},
+        wrap: (trigger, label) => (
+          <Tooltip content={label} describesTrigger={false}>
+            {trigger}
+          </Tooltip>
+        ),
+      };
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <MenuRailContext.Provider value={rail}>
+            <Menu>
+              <Menu.Section label="Components" icon={<svg />} defaultOpen>
+                <Menu.List>
+                  <Menu.Item href="#a">Button</Menu.Item>
+                </Menu.List>
+              </Menu.Section>
+              <Menu.Section label="Form" icon={<svg />}>
+                <Menu.List>
+                  <Menu.Item href="#b">Input</Menu.Item>
+                </Menu.List>
+              </Menu.Section>
+            </Menu>
+          </MenuRailContext.Provider>
+        </ConfigProvider>
+      );
+      const buttons = Array.from(
+        container.querySelectorAll<HTMLElement>(p('menu-section-toggle'))
+      );
+      expect(buttons[0].parentElement).toHaveClass(`${prefix}tooltip`);
+      expect(buttons.map(b => b.matches(following))).toEqual([false, true]);
+      expect(buttons.map(b => b.matches(followed))).toEqual([true, false]);
     });
 
     it('keeps a menu list after a closed section off its heading', () => {

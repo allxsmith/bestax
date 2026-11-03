@@ -170,6 +170,9 @@ Notes:
   next to `scss/form/pininput`, and `bulma/sass/form/tools` for the label and help text around it.
 - `Popover.Close` renders a Bulma button, so an app using it needs `bulma/sass/elements/button`
   next to `scss/components/popover`.
+- `AppFrame.Nav rail` shows each label of its rail in a `Tooltip`, so an app with a rail needs
+  `scss/components/tooltip` next to `scss/layout/appframe`, plus Menu's two partials (above),
+  which set the menu's icons.
 - `ContextMenu`'s menu is Bulma's dropdown markup, so an app using it needs
   `bulma/sass/components/dropdown` next to `scss/components/contextmenu`.
 - `Loader` is stock Bulma styled by `bulma/sass/elements/loader`, and the `isLoading`

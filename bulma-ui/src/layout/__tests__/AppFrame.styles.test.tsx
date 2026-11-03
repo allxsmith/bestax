@@ -97,6 +97,7 @@ describe('AppFrame styles', () => {
     expect(find(PLAIN, '.app-frame')).toMatchObject({
       '--bulma-app-frame-header-background': 'var(--bulma-scheme-main)',
       '--bulma-app-frame-nav-width': '16rem',
+      '--bulma-app-frame-nav-rail-width': '4rem',
       '--bulma-app-frame-nav-background': 'var(--bulma-scheme-main)',
       '--bulma-app-frame-aside-width': '20rem',
       '--bulma-app-frame-border-color': 'var(--bulma-border)',
@@ -238,7 +239,98 @@ describe('AppFrame styles', () => {
       ).toEqual({
         'margin-inline-start': 'calc(-1 * var(--bulma-app-frame-nav-width))',
         visibility: 'hidden',
-        'transition-delay': '0s, var(--bulma-app-frame-transition-duration)',
+        'transition-delay':
+          '0s, 0s, var(--bulma-app-frame-transition-duration)',
+      });
+    });
+
+    it('slides the column’s edge and its width, and hides it only once it’s out', () => {
+      expect(find(PLAIN, `${root} > .app-frame-nav`, [media])).toMatchObject({
+        'transition-property': 'margin-inline-start, inline-size, visibility',
+        'transition-duration':
+          'var(--bulma-app-frame-transition-duration), var(--bulma-app-frame-transition-duration), 0s',
+        'transition-delay': '0s',
+      });
+    });
+
+    describe('collapsed to the rail', () => {
+      const rail = `${root}.is-nav-collapsed > .app-frame-nav.is-rail`;
+
+      it('narrows the column to the icons, over the page, unclipped and as tall as its content', () => {
+        const nav = ruleFor(PLAIN, rail, [media]);
+        expect(nav.declarations).toEqual({
+          'z-index': '29',
+          'margin-inline-start': '0',
+          'inline-size': 'var(--bulma-app-frame-nav-rail-width)',
+          'block-size': 'auto',
+          'min-block-size':
+            'calc(100dvh - var(--bulma-app-frame-header-height))',
+          overflow: 'visible',
+          visibility: 'visible',
+          'transition-delay': '0s',
+        });
+        expect(nav.all.filter(([p]) => p === 'min-block-size')).toEqual([
+          [
+            'min-block-size',
+            'calc(100vh - var(--bulma-app-frame-header-height))',
+          ],
+          [
+            'min-block-size',
+            'calc(100dvh - var(--bulma-app-frame-header-height))',
+          ],
+        ]);
+      });
+
+      it('shows each tooltip and its bridge, and centers each link or button on its icon', () => {
+        expect(
+          find(
+            PLAIN,
+            `${rail} .app-frame-rail-tooltip > .tooltip-content, ${rail} .app-frame-rail-tooltip::after`,
+            [media]
+          )
+        ).toEqual({ display: 'block' });
+        expect(
+          find(PLAIN, `${rail} .app-frame-rail-tooltip > :first-child`, [media])
+        ).toEqual({
+          'padding-inline': '0',
+          'justify-content': 'center',
+          'text-align': 'center',
+        });
+        expect(find(PLAIN, `${rail} .menu-item-icon`, [media])).toEqual({
+          'margin-inline-end': '0',
+        });
+      });
+
+      it('hides each label visually, never with display: none, so it stays the name', () => {
+        const labels = find(
+          PLAIN,
+          `${rail} .menu-item-label, ${rail} .menu-section-label`,
+          [media]
+        );
+        expect(labels).toMatchObject({
+          position: 'absolute',
+          width: '1px',
+          height: '1px',
+          overflow: 'hidden',
+          clip: 'rect(0, 0, 0, 0)',
+        });
+        expect(labels.display).toBeUndefined();
+        expect(labels.visibility).toBeUndefined();
+      });
+
+      it('hides the nested lists, the labels, the chevrons and the sections’ lists', () => {
+        expect(
+          find(
+            PLAIN,
+            [
+              `${rail} .menu-label`,
+              `${rail} .menu-section-chevron`,
+              `${rail} .menu-list ul`,
+              `${rail} .menu-section > div`,
+            ].join(', '),
+            [media]
+          )
+        ).toEqual({ display: 'none' });
       });
     });
 
@@ -259,6 +351,18 @@ describe('AppFrame styles', () => {
           'var(--bulma-app-frame-border-width) solid var(--bulma-app-frame-border-color)',
       });
     });
+  });
+
+  it('makes the rail’s tooltip wrapper a block and hides its tooltip and bridge, at every width', () => {
+    expect(find(PLAIN, '.tooltip.app-frame-rail-tooltip')).toEqual({
+      display: 'block',
+    });
+    expect(
+      find(
+        PLAIN,
+        '.tooltip.app-frame-rail-tooltip > .tooltip-content, .tooltip.app-frame-rail-tooltip::after'
+      )
+    ).toEqual({ display: 'none' });
   });
 
   it('shows the frame’s burger at every width, over Bulma’s rule', () => {
@@ -318,5 +422,12 @@ describe('AppFrame styles', () => {
       '.bestax-app-frame.bestax-is-desktop.bestax-is-nav-collapsed > .bestax-app-frame-nav'
     );
     expect(selectors).toContain('html:has(.bestax-app-frame)');
+    expect(
+      selectors.some(s =>
+        s.includes(
+          '.bestax-app-frame.bestax-is-desktop.bestax-is-nav-collapsed > .bestax-app-frame-nav.bestax-is-rail .bestax-menu-item-label'
+        )
+      )
+    ).toBe(true);
   });
 });

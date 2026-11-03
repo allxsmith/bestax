@@ -315,9 +315,9 @@ header taller than Bulma's navbar sets it there. `AppFrame.Nav width` writes
 `--bulma-app-frame-border-color`, `--bulma-app-frame-border-width`,
 `--bulma-app-frame-drawer-shadow`, `--bulma-app-frame-header-background`,
 `--bulma-app-frame-header-height`, `--bulma-app-frame-nav-background`,
-`--bulma-app-frame-nav-padding`, `--bulma-app-frame-nav-width`,
-`--bulma-app-frame-skip-link-background`, `--bulma-app-frame-skip-link-color`,
-`--bulma-app-frame-transition-duration`
+`--bulma-app-frame-nav-padding`, `--bulma-app-frame-nav-rail-width`,
+`--bulma-app-frame-nav-width`, `--bulma-app-frame-skip-link-background`,
+`--bulma-app-frame-skip-link-color`, `--bulma-app-frame-transition-duration`
 
 ### Autocomplete
 
@@ -702,12 +702,14 @@ Declared on the compound `.button.link-button` — see the compound-selector exc
 
 `Menu.Section`'s, declared on the root, `.menu`, where Bulma declares its own `--bulma-menu-*`:
 the room between a section heading's words and its chevron, and the chevron's box, color and
-turn. The heading itself reads Bulma's label variables (`--bulma-menu-label-color`,
+turn. Beside them, `--bulma-menu-item-icon-gap` is the room between an item's `icon` and its
+label. The heading itself reads Bulma's label variables (`--bulma-menu-label-color`,
 `--bulma-menu-label-font-size`, `--bulma-menu-label-letter-spacing`,
 `--bulma-menu-label-spacing`), so retheming the menu's labels restyles section headings too.
 
-`--bulma-menu-section-chevron-color`, `--bulma-menu-section-chevron-duration`,
-`--bulma-menu-section-chevron-size`, `--bulma-menu-section-gap`
+`--bulma-menu-item-icon-gap`, `--bulma-menu-section-chevron-color`,
+`--bulma-menu-section-chevron-duration`, `--bulma-menu-section-chevron-size`,
+`--bulma-menu-section-gap`
 
 ### Notification
 
