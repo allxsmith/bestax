@@ -687,7 +687,7 @@ describe('Tour', () => {
       expect(next()).toHaveFocus();
     });
 
-    it('leaves focus in a Popover the step portals when the step turns modal', () => {
+    it('moves focus out of a Popover the step portals when the step turns modal, as it goes inert with the page', () => {
       const Turning = ({ overlay }: { overlay: boolean }) => (
         <Tour open overlay={overlay}>
           <Tour.Step title="Filters">
@@ -709,7 +709,10 @@ describe('Tour', () => {
         screen.getByRole('dialog', { name: 'Filters' }).contains(inPopover)
       ).toBe(false);
       rerender(<Turning overlay />);
-      expect(inPopover).toHaveFocus();
+      // Portaled to <body>, the Popover's panel is part of the page the
+      // modal step makes inert, so focus there would be lost.
+      expect(inPopover.closest('[inert]')).not.toBeNull();
+      expect(next()).toHaveFocus();
     });
 
     it('moves focus into a step that turns modal while focus is on the page', () => {

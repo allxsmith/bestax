@@ -30,6 +30,7 @@ import {
 import type { AnchoredSide } from '../helpers/useAnchoredPosition';
 import { useScopedNumberFormat } from '../helpers/localeFormat';
 import { spokenText, visuallyHidden } from '../helpers/statusRegion';
+import { getActiveElementInTree } from '../helpers/shadowDom';
 import { warnOnce } from '../helpers/devWarnings';
 import { Button } from '../elements/Button';
 import { Buttons } from '../elements/Buttons';
@@ -503,8 +504,6 @@ interface TourContextValue {
   /** The target the step points at, on the page with a box, or `null`. */
   target: HTMLElement | null;
   markInsidePress: (event: React.PointerEvent) => void;
-  /** Records whether focus is in the step's React tree, portals included. */
-  markFocus: (inside: boolean) => void;
   /** Shows another step. */
   goTo: (index: number) => void;
   /** Next's action: the next step, or the end of the tour on the last. */
@@ -566,8 +565,6 @@ function TourPanel({
   style,
   onKeyDown,
   onPointerDownCapture,
-  onFocus,
-  onBlur,
   ...props
 }: TourPanelProps) {
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
@@ -603,9 +600,7 @@ function TourPanel({
   // isn't announced again.
   const [said, setSaid] = useState('');
   const shownIndexRef = useRef(index);
-  const { progress, nextRef, markFocus } = tour;
-  // A panel that goes takes focus with it, whether or not a blur says so.
-  useEffect(() => () => markFocus(false), [markFocus]);
+  const { progress, nextRef } = tour;
   const ariaLabel = rest['aria-label'];
   useEffect(() => {
     if (shownIndexRef.current === index) return;
@@ -697,16 +692,6 @@ function TourPanel({
       onPointerDownCapture={e => {
         onPointerDownCapture?.(e);
         tour.markInsidePress(e);
-      }}
-      // React's focus events bubble through portals, so focus in content
-      // the step portals elsewhere, such as a Popover's panel, counts.
-      onFocus={e => {
-        onFocus?.(e);
-        markFocus(true);
-      }}
-      onBlur={e => {
-        onBlur?.(e);
-        markFocus(false);
       }}
     >
       <div className={headerClass}>
@@ -961,16 +946,14 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
       );
     }, [modal, isTopmost]);
 
-    // A step that turns modal while focus is out on the page, as it can be
-    // after a non-modal step, takes focus, since the page is going inert.
-    // Focus counts as in the step anywhere in its React tree, so a Popover's
-    // panel the step portals elsewhere keeps it.
-    const focusInStepRef = useRef(false);
-    const markFocus = useCallback((inside: boolean) => {
-      focusInStepRef.current = inside;
-    }, []);
+    // A step that turns modal while focus is out of it, as it can be after a
+    // non-modal step, takes focus, since the rest of the page is going inert.
+    // That includes content the step portals out of the tour, such as a
+    // Popover's panel rendered into <body>, which goes inert with the page.
     useEffect(() => {
-      if (modal && !focusInStepRef.current) {
+      if (!modal) return;
+      const panel = stepRef.current as HTMLDivElement;
+      if (!panel.contains(getActiveElementInTree(panel))) {
         (nextRef.current as HTMLButtonElement).focus();
       }
     }, [modal]);
@@ -1026,7 +1009,6 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
       nextRef,
       target,
       markInsidePress,
-      markFocus,
       goTo: requestValue,
       next: () => {
         if (index < total - 1) {
