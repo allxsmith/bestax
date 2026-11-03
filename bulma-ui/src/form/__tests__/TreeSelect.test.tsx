@@ -1308,10 +1308,22 @@ describe('TreeSelect', () => {
     it('is aria-required, with a hidden required field over it the browser reads, which keeps focus until the next key', () => {
       // `inset` isn't in jsdom's CSS model, so it's read as written.
       const { container, rerender } = render(
-        <TreeSelect label="Place" data={PLACES} required form="f" />
+        <>
+          <TreeSelect
+            label="Place"
+            data={PLACES}
+            required
+            form="f"
+            aria-describedby="kept"
+          />
+          <p id="kept">Where it's kept</p>
+        </>
       );
-      expect(field()).toHaveAttribute('aria-required', 'true');
-      expect(field()).not.toHaveAttribute('required');
+      // Focused, the stand-in reads as a combobox of the same name, so the
+      // field is held from here.
+      const input = field();
+      expect(input).toHaveAttribute('aria-required', 'true');
+      expect(input).not.toHaveAttribute('required');
       const proxy =
         container.querySelector<HTMLInputElement>('input[required]')!;
       expect(proxy).toHaveAttribute('aria-hidden', 'true');
@@ -1320,22 +1332,32 @@ describe('TreeSelect', () => {
       expect(proxy.name).toBe('');
       expect(proxy.validity.valueMissing).toBe(true);
       expect(proxy.getAttribute('style')).toContain('inset: 0');
+      // No on-screen keyboard, and no zoom on iOS.
+      expect(proxy).toHaveAttribute('inputmode', 'none');
+      expect(proxy).toHaveStyle({ fontSize: '16px' });
       expect(proxy).not.toHaveAttribute('aria-labelledby');
+      expect(proxy).not.toHaveAttribute('role');
       // The browser focuses it to show its message. Focus stays, so the
       // message does, and the field looks focused. Focused, it's in the
-      // accessibility tree, named as the field is.
+      // accessibility tree, and reads as the field does, shut.
       act(() => proxy.focus());
       expect(proxy).toHaveFocus();
-      expect(field()).toHaveClass('is-focused');
+      expect(input).toHaveClass('is-focused');
       expect(proxy).not.toHaveAttribute('aria-hidden');
-      expect(proxy).toHaveAttribute(
-        'aria-labelledby',
-        document.querySelector('label')!.id
-      );
+      expect(proxy).toHaveRole('combobox');
+      expect(proxy).toHaveAccessibleName('Place');
+      expect(proxy).toHaveAccessibleDescription("Where it's kept");
+      expect(proxy).toHaveAttribute('aria-haspopup', 'dialog');
+      expect(proxy).toHaveAttribute('aria-expanded', 'false');
+      // A modifier on its own leaves focus, and the message, where they are.
+      for (const key of ['Shift', 'Control', 'Alt', 'Meta', 'CapsLock']) {
+        fireEvent.keyDown(proxy, { key });
+        expect(proxy).toHaveFocus();
+      }
       // The next key goes to the field and does what it does there.
-      fireEvent.keyDown(proxy, { key: 'Shift' });
-      expect(field()).toHaveFocus();
-      expect(field()).not.toHaveClass('is-focused');
+      fireEvent.keyDown(proxy, { key: 'x' });
+      expect(input).toHaveFocus();
+      expect(input).not.toHaveClass('is-focused');
       expect(proxy).toHaveAttribute('aria-hidden', 'true');
       expect(screen.queryByRole('dialog')).toBeNull();
       act(() => proxy.focus());
@@ -1345,16 +1367,47 @@ describe('TreeSelect', () => {
       );
       fireEvent.change(proxy, { target: { value: 'typed' } });
       rerender(
-        <TreeSelect
-          label="Place"
-          data={PLACES}
-          required
-          form="f"
-          value="tokyo"
-        />
+        <>
+          <TreeSelect
+            label="Place"
+            data={PLACES}
+            required
+            form="f"
+            aria-describedby="kept"
+            value="tokyo"
+          />
+          <p id="kept">Where it's kept</p>
+        </>
       );
       expect(proxy.validity.valueMissing).toBe(false);
     });
+
+    it.each([
+      ['taken away', { required: false }],
+      ['disabled', { disabled: true }],
+    ])(
+      'stops looking focused when the required field is %s while it has focus, which fires no blur',
+      (_, change) => {
+        const { container, rerender } = render(
+          <TreeSelect label="Place" data={PLACES} required />
+        );
+        const proxy =
+          container.querySelector<HTMLInputElement>('input[required]')!;
+        const input = field();
+        act(() => proxy.focus());
+        expect(input).toHaveClass('is-focused');
+        rerender(
+          <TreeSelect label="Place" data={PLACES} required {...change} />
+        );
+        expect(input).not.toHaveClass('is-focused');
+        rerender(<TreeSelect label="Place" data={PLACES} required />);
+        expect(input).not.toHaveClass('is-focused');
+        expect(container.querySelector('input[required]')).toHaveAttribute(
+          'aria-hidden',
+          'true'
+        );
+      }
+    );
 
     it('can be disabled: no opening, no buttons, and nothing posts', () => {
       const { container } = render(

@@ -121,7 +121,23 @@ const requiredProxyStyle: React.CSSProperties = {
   border: 0,
   opacity: 0,
   pointerEvents: 'none',
+  // Focused, it opens no on-screen keyboard (`inputMode`), and iOS zooms
+  // in on a field set under 16px. It's unseen, so the size shows nowhere.
+  fontSize: '16px',
 };
+
+/** Keys pressed on their own that don't act, such as Ctrl to stop speech. */
+const MODIFIER_KEYS = new Set([
+  'Alt',
+  'AltGraph',
+  'CapsLock',
+  'Control',
+  'Fn',
+  'Meta',
+  'NumLock',
+  'ScrollLock',
+  'Shift',
+]);
 
 const ignoreChange = () => {};
 
@@ -216,8 +232,10 @@ export function DialogSelect({
     : fieldName;
 
   // Whether the field `required` hangs on has focus, which the browser gives
-  // it when it stops a submit.
+  // it when it stops a submit. Taking it away or disabling it while it has
+  // focus fires no blur, so that clears it too.
   const [proxyFocused, setProxyFocused] = useState(false);
+  if (proxyFocused && (!required || disabled)) setProxyFocused(false);
 
   const showClear = !!clearable && hasValue && !disabled;
   const rootClasses = usePrefixedClassNames(rootClass, {
@@ -289,6 +307,9 @@ export function DialogSelect({
     }
   };
 
+  const fieldDescription =
+    [ariaDescribedBy, describedBy].filter(Boolean).join(' ') || undefined;
+
   const field = (
     <>
       <input
@@ -303,9 +324,7 @@ export function DialogSelect({
         aria-controls={isOpen ? panelId : undefined}
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledBy}
-        aria-describedby={
-          [ariaDescribedBy, describedBy].filter(Boolean).join(' ') || undefined
-        }
+        aria-describedby={fieldDescription}
         aria-required={required || undefined}
         autoComplete="off"
         value={text}
@@ -346,9 +365,18 @@ export function DialogSelect({
         <input
           // Focus puts it in the accessibility tree, and Chromium won't
           // leave focus hidden, so it's hidden only until it's focused, and
-          // then named as the field is.
-          {...(proxyFocused ? fieldName : { 'aria-hidden': true })}
+          // then reads as the field, shut.
+          {...(proxyFocused
+            ? {
+                ...fieldName,
+                role: 'combobox',
+                'aria-haspopup': 'dialog' as const,
+                'aria-expanded': false,
+                'aria-describedby': fieldDescription,
+              }
+            : { 'aria-hidden': true })}
           tabIndex={-1}
+          inputMode="none"
           required
           value={hasValue ? 'picked' : ''}
           onChange={ignoreChange}
@@ -364,6 +392,7 @@ export function DialogSelect({
           onFocus={() => setProxyFocused(true)}
           onBlur={() => setProxyFocused(false)}
           onKeyDown={event => {
+            if (MODIFIER_KEYS.has(event.key)) return;
             inputRef.current?.focus();
             handleKeyDown(event);
           }}

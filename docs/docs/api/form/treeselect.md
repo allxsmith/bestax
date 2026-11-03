@@ -490,8 +490,9 @@ field's left, and Right and Left swap in the tree.
 - **`required`** makes the field `aria-required`. A read-only field is left out of the browser's
   own check, so a hidden field over it carries `required`. When the browser stops a submit, it
   focuses that one and shows its message, which every browser takes down as it loses focus. So
-  focus stays there, named as the field and drawn on the field, a press goes where it lands, and
-  the next key goes to the field and does what it would there.
+  focus stays there, reading as the field and drawn on it, with no on-screen keyboard. A press
+  goes where it lands, and the next key, other than a modifier on its own, goes to the field and
+  does what it would there.
 - **Forced colors:** the field, the panel and the tree keep their edges in system colors, and the
   chevron is text.
 
