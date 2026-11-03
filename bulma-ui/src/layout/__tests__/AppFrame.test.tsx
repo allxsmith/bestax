@@ -1117,6 +1117,24 @@ describe('AppFrame', () => {
       expect(onNavOpenChange).toHaveBeenLastCalledWith(false);
     });
 
+    it('stays open for a link in a Modal portaled from it', () => {
+      mockViewport(PHONE);
+      const onNavOpenChange = vi.fn();
+      render(
+        <AppFrame onNavOpenChange={onNavOpenChange} defaultNavOpen>
+          <AppFrame.Nav>
+            <Modal portal active aria-label="Help">
+              <a href="#help">Read the help</a>
+            </Modal>
+          </AppFrame.Nav>
+        </AppFrame>
+      );
+      const help = screen.getByRole('link', { name: 'Read the help' });
+      expect(nav().contains(help)).toBe(false);
+      fireEvent.click(help);
+      expect(onNavOpenChange).not.toHaveBeenCalled();
+    });
+
     it('stays open for a followed link with closeOnNavigate={false}', () => {
       const { onNavOpenChange } = openDrawer({
         nav: { closeOnNavigate: false },

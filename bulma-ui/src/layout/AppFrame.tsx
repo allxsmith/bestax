@@ -194,8 +194,9 @@ export interface AppFrameNavProps
   /**
    * Closes the drawer when a link inside it is followed with a plain click:
    * not with a modifier key held, and not on a link with a `target` other
-   * than `_self` or a `download`. Turn it off for a drawer of filters
-   * rather than links.
+   * than `_self` or a `download`. Only a link the nav holds in the page
+   * counts, not one in a Modal or a popup it portals elsewhere. Turn it off
+   * for a drawer of filters rather than links.
    */
   closeOnNavigate?: boolean;
 }
@@ -472,9 +473,11 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
         return;
       }
       // Not skipped for a click whose default was prevented: a router's
-      // link prevents it to navigate without a page load.
+      // link prevents it to navigate without a page load. Only a link the nav
+      // holds: one in a Modal portaled from it is the Modal's.
       const link = (e.target as Element).closest('a[href]');
-      if (!link || link.hasAttribute('download')) return;
+      if (!link || !navRef.current?.contains(link)) return;
+      if (link.hasAttribute('download')) return;
       const target = link.getAttribute('target');
       if (target && target !== '_self') return;
       close();
