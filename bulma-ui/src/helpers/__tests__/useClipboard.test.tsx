@@ -165,7 +165,7 @@ describe('useClipboard', () => {
       expect(result.current.copied).toBe(false);
     });
 
-    it.each([Infinity, NaN, 3e9])(
+    it.each([Infinity, 3e9])(
       "caps a duration of %s at setTimeout's longest delay",
       async duration => {
         vi.useFakeTimers();
@@ -178,6 +178,20 @@ describe('useClipboard', () => {
         expect(result.current.copied).toBe(false);
       }
     );
+
+    it.each([
+      ['NaN', NaN],
+      ['null', null],
+    ])('takes the default for a duration of %s', async (_, duration) => {
+      vi.useFakeTimers();
+      stubClipboard(() => Promise.resolve());
+      const { result } = setup({ duration: duration as number });
+      await copyWith(result, 'x');
+      act(() => vi.advanceTimersByTime(1999));
+      expect(result.current.copied).toBe(true);
+      act(() => vi.advanceTimersByTime(1));
+      expect(result.current.copied).toBe(false);
+    });
 
     it('treats a negative duration as none', async () => {
       vi.useFakeTimers();
@@ -264,8 +278,8 @@ describe('useClipboard', () => {
     });
 
     it('takes its listener off again, whatever the command did', async () => {
-      const listen = vi.spyOn(document, 'addEventListener');
-      const unlisten = vi.spyOn(document, 'removeEventListener');
+      const listen = vi.spyOn(window, 'addEventListener');
+      const unlisten = vi.spyOn(window, 'removeEventListener');
       for (const behavior of ['fires', 'silent', 'throws'] as const) {
         stubCommand(behavior);
         const { result } = setup();
@@ -279,6 +293,25 @@ describe('useClipboard', () => {
       }
       listen.mockRestore();
       unlisten.mockRestore();
+    });
+
+    it("keeps the page's own copy listeners from rewriting it", async () => {
+      stubCommand('fires');
+      // An attribution script or an editor, listening on the document.
+      const rewrite = vi.fn((event: Event) =>
+        (event as ClipboardEvent).clipboardData?.setData('text/plain', 'mine')
+      );
+      document.addEventListener('copy', rewrite, true);
+      window.addEventListener('copy', rewrite);
+      try {
+        const { result } = setup();
+        expect(await copyWith(result, 'copied text')).toBe(true);
+      } finally {
+        document.removeEventListener('copy', rewrite, true);
+        window.removeEventListener('copy', rewrite);
+      }
+      expect(rewrite).not.toHaveBeenCalled();
+      expect(written).toEqual([{ type: 'text/plain', text: 'copied text' }]);
     });
 
     it("leaves a later copy's data alone, and a later beforecopy", async () => {
@@ -372,6 +405,62 @@ describe('useClipboard', () => {
   });
 
   describe('when copies overlap', () => {
+    it("doesn't fall back for a copy a later one overtook", async () => {
+      const pending: Array<{ reject: () => void; resolve: () => void }> = [];
+      stubClipboard(
+        () =>
+          new Promise<void>((resolve, reject) => {
+            pending.push({ resolve, reject: () => reject(new Error('no')) });
+          })
+      );
+      const command = stubCommand('fires');
+      const { result } = setup();
+      let first: Promise<boolean> | undefined;
+      let second: Promise<boolean> | undefined;
+      act(() => {
+        first = result.current.copy('older');
+        second = result.current.copy('newer');
+      });
+      await act(async () => {
+        pending[1].resolve();
+        await second;
+      });
+      await act(async () => {
+        pending[0].reject();
+        expect(await first).toBe(false);
+      });
+      // The older text would have gone over the newer one.
+      expect(command).not.toHaveBeenCalled();
+      expect(written).toEqual([]);
+      expect(result.current.copied).toBe(true);
+    });
+
+    it('still falls back for the latest copy', async () => {
+      const pending: Array<{ reject: () => void }> = [];
+      stubClipboard(
+        () =>
+          new Promise<void>((_, reject) => {
+            pending.push({ reject: () => reject(new Error('no')) });
+          })
+      );
+      stubCommand('fires');
+      const { result } = setup();
+      let latest: Promise<boolean> | undefined;
+      act(() => {
+        void result.current.copy('older');
+        latest = result.current.copy('newer');
+      });
+      await act(async () => {
+        pending[1].reject();
+        expect(await latest).toBe(true);
+      });
+      expect(written).toEqual([{ type: 'text/plain', text: 'newer' }]);
+      await act(async () => {
+        pending[0].reject();
+      });
+      expect(written).toHaveLength(1);
+    });
+
     /** A writeText whose calls each wait until the test settles them. */
     function deferredClipboard() {
       const pending: Array<{ resolve: () => void; reject: () => void }> = [];

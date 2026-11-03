@@ -5,9 +5,10 @@ import { useLatestRef } from './useLatestRef';
 export interface UseClipboardOptions {
   /**
    * How long `copied` stays `true` after a copy, in milliseconds. Another
-   * copy restarts it. It's capped at the longest delay `setTimeout` takes,
-   * 2147483647 ms (about 24.8 days), and a value that isn't a finite number,
-   * `Infinity` included, is that cap too.
+   * copy restarts it. A missing or `NaN` value uses the default, a negative
+   * one is `0`, and `Infinity`, or anything longer than the longest delay
+   * `setTimeout` takes (2147483647 ms, about 24.8 days), is that longest
+   * delay.
    * @defaultValue 2000
    */
   duration?: number;
@@ -30,8 +31,9 @@ export interface UseClipboardResult {
    * Writes `text` to the clipboard, and resolves `true` once it's written or
    * `false` when it couldn't be. It never rejects. Call it from a click or a
    * key press, with no `await` before it: browsers only allow a write
-   * shortly after one. A call that a later one overtakes still writes and
-   * resolves, but leaves `copied`, `error` and the callbacks to the later one.
+   * shortly after one. A call that a later one overtakes leaves `copied`,
+   * `error` and the callbacks to the later one, and doesn't fall back to the
+   * copy command once the later one has started.
    */
   copy: (text: string) => Promise<boolean>;
   /** `true` for `duration` after a copy that worked. */
@@ -40,17 +42,24 @@ export interface UseClipboardResult {
   error: Error | null;
 }
 
+/** How long `copied` lasts when `duration` doesn't say, in ms. */
+const defaultDuration = 2000;
+
 /**
  * The longest delay `setTimeout` takes, in ms. A longer one, `Infinity`
  * included, runs at once.
  */
 const longestDelay = 2 ** 31 - 1;
 
-/** `duration` as a delay `setTimeout` keeps. */
-const delayOf = (duration: number) =>
-  Number.isFinite(duration)
-    ? Math.min(Math.max(duration, 0), longestDelay)
-    : longestDelay;
+/**
+ * `duration` as a delay `setTimeout` keeps: the default when it's missing or
+ * `NaN` (or a JavaScript caller's `null`), `0` for a negative one, and the
+ * longest delay for `Infinity` or anything longer.
+ */
+const delayOf = (duration: number | null | undefined) =>
+  duration == null || Number.isNaN(duration)
+    ? defaultDuration
+    : Math.min(Math.max(duration, 0), longestDelay);
 
 /** The error a copy reports when nothing could write and nothing said why. */
 const cannotCopy =
@@ -74,22 +83,27 @@ function copyWithCommand(text: string): boolean {
   // WebKit enables the copy command only when something is selected or a
   // `beforecopy` listener cancels that event, and nothing is selected here.
   const enable = (event: Event) => event.preventDefault();
+  // On `window` while capturing, so it runs before the page's listeners on
+  // the document and its elements. The copy is this hook's own, so it's
+  // stopped there: a page's own copy handler, such as one that adds a
+  // credit line to whatever is copied, never sees it to rewrite it.
   const onCopy = (event: ClipboardEvent) => {
     if (!event.clipboardData) return;
     event.clipboardData.setData('text/plain', text);
     event.preventDefault();
+    event.stopImmediatePropagation();
     written = true;
   };
-  document.addEventListener('beforecopy', enable, true);
-  document.addEventListener('copy', onCopy, true);
+  window.addEventListener('beforecopy', enable, true);
+  window.addEventListener('copy', onCopy, true);
   try {
     document.execCommand('copy');
   } catch {
     // An engine that refuses, or no longer has the command, can throw, and
     // the event not firing already says so.
   } finally {
-    document.removeEventListener('beforecopy', enable, true);
-    document.removeEventListener('copy', onCopy, true);
+    window.removeEventListener('beforecopy', enable, true);
+    window.removeEventListener('copy', onCopy, true);
   }
   return written;
 }
@@ -99,12 +113,17 @@ function copyWithCommand(text: string): boolean {
  * that's missing or refuses. Where it's missing, the copy command runs before
  * the first `await`, so it's still inside the click that called it. After a
  * refusal it runs once the refusal arrives, which writes only where the
- * browser still counts the click by then.
+ * browser still counts the click by then, and only if no later copy has
+ * started in the meantime, which it would otherwise write over.
  *
  * @param text - The text to write.
+ * @param isLatest - Whether this is still the latest copy.
  * @returns `null` once it's written, or why it couldn't be.
  */
-async function writeToClipboard(text: string): Promise<Error | null> {
+async function writeToClipboard(
+  text: string,
+  isLatest: () => boolean
+): Promise<Error | null> {
   let refusal: unknown = null;
   // Read at the click, never while rendering, so there's always a navigator.
   const { clipboard } = navigator;
@@ -116,7 +135,7 @@ async function writeToClipboard(text: string): Promise<Error | null> {
       refusal = reason;
     }
   }
-  if (copyWithCommand(text)) return null;
+  if (isLatest() && copyWithCommand(text)) return null;
   return refusal instanceof Error ? refusal : new Error(cannotCopy);
 }
 
@@ -165,18 +184,15 @@ export function useClipboard(
     async (text: string) => {
       latestCallRef.current += 1;
       const call = latestCallRef.current;
-      const failure = await writeToClipboard(text);
+      const isLatest = () => call === latestCallRef.current;
+      const failure = await writeToClipboard(text, isLatest);
       // A write overtaken by a later copy, which may finish first, reports
       // through its promise only.
-      if (!mountedRef.current || call !== latestCallRef.current) {
+      if (!mountedRef.current || !isLatest()) {
         return failure === null;
       }
       clearTimeout(timerRef.current);
-      const {
-        duration = 2000,
-        onCopiedChange,
-        onCopyError,
-      } = optionsRef.current;
+      const { duration, onCopiedChange, onCopyError } = optionsRef.current;
       const wasCopied = copiedRef.current;
       copiedRef.current = failure === null;
       setCopied(failure === null);
