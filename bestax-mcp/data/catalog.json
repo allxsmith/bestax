@@ -167,8 +167,8 @@
       "slug": "layout/appframe",
       "import": "import { AppFrame, useAppFrame } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 35,
-      "exampleCount": 8
+      "propCount": 36,
+      "exampleCount": 9
     },
     {
       "name": "Autocomplete",
@@ -882,8 +882,8 @@
       "slug": "components/menu",
       "import": "import { Menu } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 22,
-      "exampleCount": 8
+      "propCount": 24,
+      "exampleCount": 9
     },
     {
       "name": "Message",
@@ -1388,7 +1388,7 @@
       "slug": "components/tooltip",
       "import": "import { Tooltip } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 14,
+      "propCount": 15,
       "exampleCount": 11
     },
     {
@@ -1479,6 +1479,7 @@
     "--bulma-app-frame-header-height": ["AppFrame"],
     "--bulma-app-frame-nav-background": ["AppFrame"],
     "--bulma-app-frame-nav-padding": ["AppFrame"],
+    "--bulma-app-frame-nav-rail-width": ["AppFrame"],
     "--bulma-app-frame-nav-width": ["AppFrame"],
     "--bulma-app-frame-skip-link-background": ["AppFrame"],
     "--bulma-app-frame-skip-link-color": ["AppFrame"],
@@ -2406,6 +2407,7 @@
     "--bulma-menu-item-color-l": ["Menu"],
     "--bulma-menu-item-h": ["Menu"],
     "--bulma-menu-item-hover-background-l-delta": ["Menu"],
+    "--bulma-menu-item-icon-gap": ["Menu"],
     "--bulma-menu-item-l": ["Menu"],
     "--bulma-menu-item-radius": ["Menu"],
     "--bulma-menu-item-s": ["Menu"],

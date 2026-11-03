@@ -181,6 +181,15 @@
           "deprecated": false
         },
         {
+          "name": "describesTrigger",
+          "type": "boolean",
+          "default": "true",
+          "description": "Whether the tooltip is its trigger's description. Turn it off for a tooltip that only shows the name the trigger already has, such as an icon button's `aria-label`, so a screen reader doesn't read the name twice. Off, the trigger's `aria-describedby` is left as it is, the tooltip is hidden from assistive technology with `aria-hidden`, and there's no warning about a trigger that can't carry the link. It still shows on hover and keyboard focus.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "tooltipClassName",
           "type": "string",
           "default": null,
@@ -195,7 +204,7 @@
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
-          "description": "The element that triggers the tooltip. Its `aria-describedby` points at the tooltip, after any ids it already had, so a screen reader reads the tooltip as its description when it takes focus, even while the tooltip is hidden. That takes a single element which passes `aria-describedby` on to its DOM node, as native elements and bestax components do, and takes focus itself, such as a button, a link or a `Span` with `tabIndex={0}`: something focusable inside it doesn't get the link, and text, a fragment or several elements get none. A development build warns when the first element Tab reaches in the trigger doesn't carry the link, or there isn't one.",
+          "description": "The element that triggers the tooltip. Its `aria-describedby` points at the tooltip, after any ids it already had, so a screen reader reads the tooltip as its description when it takes focus, even while the tooltip is hidden. That takes a single element which passes `aria-describedby` on to its DOM node, as native elements and bestax components do, and takes focus itself, such as a button, a link or a `Span` with `tabIndex={0}`: something focusable inside it doesn't get the link, and text, a fragment or several elements get none. A development build warns when the first element Tab reaches in the trigger doesn't carry the link, or there isn't one. With `describesTrigger` off, there's no link and no warning.",
           "required": false,
           "inherited": false,
           "deprecated": false
