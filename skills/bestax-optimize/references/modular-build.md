@@ -121,6 +121,7 @@ Notes:
   ```scss
   @use 'bulma/sass/components/menu';
   @use '@allxsmith/bestax-bulma/scss/components/menu' as bestax-menu;
+  @use '@allxsmith/bestax-bulma/scss/components/tableofcontents'; // TableOfContents only
   ```
 
 - The `pagination` partial **extends** stock Bulma pagination (it keeps the current page marked
