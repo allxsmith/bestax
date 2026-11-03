@@ -51,6 +51,28 @@ describe('useAnchoredPosition', () => {
     );
   });
 
+  it('keeps its placement with a panel and no anchor, unless asked to center', () => {
+    const PanelOnly = () => {
+      const anchorRef = useRef<HTMLElement>(null);
+      const panelRef = useRef<HTMLDivElement>(null);
+      const resolved = useAnchoredPosition(anchorRef, panelRef, {
+        active: true,
+        position: 'top-left',
+        fixed: true,
+      });
+      return (
+        <>
+          <div ref={panelRef} />
+          <output>{JSON.stringify(resolved)}</output>
+        </>
+      );
+    };
+    render(<PanelOnly />);
+    expect(screen.getByRole('status')).toHaveTextContent(
+      '{"position":"top-left"}'
+    );
+  });
+
   it('starts at the corner asked for', () => {
     render(<Detached position="top-right" />);
     expect(screen.getByRole('status')).toHaveTextContent(

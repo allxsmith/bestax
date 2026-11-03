@@ -283,8 +283,10 @@ function useTourTarget(
 
   useClientLayoutEffect(() => {
     if (!active || target == null) return undefined;
-    const doc = rootRef.current?.ownerDocument ?? document;
-    const view = doc.defaultView ?? window;
+    // The root renders whenever the tour shows, so it's on the page here.
+    const root = rootRef.current as HTMLDivElement;
+    const doc = root.ownerDocument;
+    const view = doc.defaultView as Window;
     const update = () => {
       const element = resolveTarget(target, doc);
       const rect = element?.getBoundingClientRect();
@@ -315,7 +317,7 @@ function useTourTarget(
     // The tour's own changes, such as the step moving, can't move the
     // target, so they're left out.
     const observer = new MutationObserver(records => {
-      if (records.some(record => !rootRef.current?.contains(record.target))) {
+      if (records.some(record => !root.contains(record.target))) {
         update();
       }
     });
@@ -359,8 +361,8 @@ function isFullyVisible(element: HTMLElement): boolean {
     node = node.parentElement
   ) {
     const { overflowX, overflowY } = getComputedStyle(node);
-    if (overflowX === 'visible' && overflowY === 'visible') continue;
-    if (!inside(node.getBoundingClientRect())) return false;
+    const clips = /auto|scroll|hidden|clip/.test(`${overflowX} ${overflowY}`);
+    if (clips && !inside(node.getBoundingClientRect())) return false;
   }
   return true;
 }
@@ -530,8 +532,8 @@ function TourPanel({
     if (shownIndexRef.current === index) return;
     shownIndexRef.current = index;
     const doc = (stepRef.current as HTMLDivElement).ownerDocument;
-    if (!doc.activeElement || doc.activeElement === doc.body) {
-      nextRef.current?.focus();
+    if (doc.activeElement === doc.body) {
+      (nextRef.current as HTMLButtonElement).focus();
     }
     const name = titleRef.current ? spokenText(titleRef.current) : ariaLabel;
     setSaid(name ? `${progress}: ${name}` : progress);
@@ -828,11 +830,8 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
         window,
         () => {
           if (modal) return isTopmost('modal');
-          const panel = stepRef.current;
-          return (
-            isTopmost() &&
-            Boolean(panel?.contains(getActiveElementInTree(panel as Node)))
-          );
+          const panel = stepRef.current as HTMLDivElement;
+          return isTopmost() && panel.contains(getActiveElementInTree(panel));
         }
       );
     }, [shown, modal, isTopmost]);
