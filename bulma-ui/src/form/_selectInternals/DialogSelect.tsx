@@ -343,8 +343,11 @@ export function DialogSelect({
           onChange={ignoreChange}
           form={form}
           disabled={disabled}
-          // The browser focuses it to show why the form didn't submit.
-          onFocus={() => inputRef.current?.focus()}
+          // The browser focuses it to show why the form didn't submit, and
+          // focus goes on to the field. A task later: moving it while the
+          // browser is still focusing this leaves Firefox taking no more
+          // clicks on the page until a key is pressed.
+          onFocus={() => setTimeout(() => inputRef.current?.focus())}
           style={requiredProxyStyle}
         />
       )}
