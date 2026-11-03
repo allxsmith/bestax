@@ -344,7 +344,7 @@ html:has(.#{iv.$class-prefix}app-frame) {
     .#{iv.$class-prefix}menu-label,
     .#{iv.$class-prefix}menu-section-chevron,
     .#{iv.$class-prefix}menu-list ul,
-    .#{iv.$class-prefix}menu-section > div {
+    .#{iv.$class-prefix}menu-section-list {
       display: none;
     }
   }

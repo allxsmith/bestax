@@ -524,6 +524,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
   const labelClass = usePrefixedClassNames('menu-section-label');
   const chevronClass = usePrefixedClassNames('menu-section-chevron');
   const iconClass = usePrefixedClassNames('menu-section-icon');
+  const listClass = usePrefixedClassNames('menu-section-list');
   const hasIcon = isGiven(icon);
   const listId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -608,7 +609,13 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
       {...rest}
     >
       {rail && hasIcon ? rail.wrap(toggle, label) : toggle}
-      <div ref={listRef} id={listId} hidden={!isOpen} {...inertProps(!isOpen)}>
+      <div
+        ref={listRef}
+        id={listId}
+        className={listClass}
+        hidden={!isOpen}
+        {...inertProps(!isOpen)}
+      >
         <MenuOwnRailContext.Provider value={NO_RAIL}>
           {children}
         </MenuOwnRailContext.Provider>

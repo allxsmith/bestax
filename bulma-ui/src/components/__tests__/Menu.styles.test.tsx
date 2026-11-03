@@ -342,9 +342,13 @@ describe.each([
       const rendered = new Set(
         Array.from(container.querySelectorAll('[class]'))
           .flatMap(el => Array.from(el.classList))
-          // Bulma's own, drawn by its menu.
+          // Bulma's own, drawn by its menu, and the list's, which only an
+          // AppFrame rail's stylesheet selects, to hide it.
           .filter(
-            name => !['menu', 'menu-list'].includes(name.slice(prefix.length))
+            name =>
+              !['menu', 'menu-list', 'menu-section-list'].includes(
+                name.slice(prefix.length)
+              )
           )
       );
       for (const name of rendered) expect(classes.has(name)).toBe(true);

@@ -341,7 +341,7 @@ describe('AppFrame styles', () => {
               `${rail} .menu-label`,
               `${rail} .menu-section-chevron`,
               `${rail} .menu-list ul`,
-              `${rail} .menu-section > div`,
+              `${rail} .menu-section-list`,
             ].join(', '),
             [media]
           )

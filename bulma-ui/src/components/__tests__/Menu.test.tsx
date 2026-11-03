@@ -460,6 +460,9 @@ describe('icon', () => {
     expect(
       screen.getByRole('button', { name: 'Reports' }).firstElementChild
     ).toHaveClass('bestax-menu-section-icon');
+    expect(
+      screen.getByRole('button', { name: 'Reports' }).nextElementSibling
+    ).toHaveClass('bestax-menu-section-list');
   });
 
   it('reads a string as an Icon name, as TreeView.Item does', () => {
@@ -1293,6 +1296,8 @@ describe('Menu.Section', () => {
     expect(chevron).toHaveAttribute('aria-hidden', 'true');
     expect(chevron).toBeEmptyDOMElement();
     expect(screen.getByTestId('section')).toHaveClass('menu-section');
+    // The list it opens and closes has a class of its own to select.
+    expect(regionOf(button)).toHaveClass('menu-section-list');
   });
 
   it('takes a node as its label, and names the button with it', () => {
