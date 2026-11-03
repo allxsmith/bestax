@@ -42,7 +42,7 @@ const meta: Meta<typeof Affix> = {
     docs: {
       description: {
         component:
-          'Content fixed to a corner of the viewport while the page scrolls under it: a floating button, a chat launcher, a feedback tab or a consent notice. It sits `--bulma-affix-offset-vertical` and `--bulma-affix-offset-horizontal` from the edges plus the safe-area inset, and stacks over the page’s content and under its menus, popovers, the Sidebar, the modals, Tooltip and Toast. It doesn’t scroll, so content that can be taller than the screen scrolls itself. Each story here renders in a frame of its own, since an Affix is fixed to the viewport of the page it’s on.',
+          'Content fixed to a corner of the viewport while the page scrolls under it: a floating button, a chat launcher, a feedback tab or a consent notice. It sits `--bulma-affix-offset-vertical` and `--bulma-affix-offset-horizontal` from the edges plus the safe-area inset, and stacks over the page’s content and under its navbar, static or fixed, its menus, popovers, the Sidebar, the modals, Tooltip and Toast. It doesn’t scroll, so content that can be taller than the screen scrolls itself. Each story here renders in a frame of its own, since an Affix is fixed to the viewport of the page it’s on.',
       },
       // An Affix is fixed to the viewport, so on the docs page each story
       // gets its own frame, or every one would land in the same corner.
@@ -232,8 +232,8 @@ export const UnderAModal: Story = {
           <Box>
             <Title size="4">Over the Affix</Title>
             <Paragraph>
-              The modal and its background stack over the Affix, as menus,
-              popovers, the Sidebar, Tooltip and Toast do.
+              The modal and its background stack over the Affix, as a navbar,
+              menus, popovers, the Sidebar, Tooltip and Toast do.
             </Paragraph>
           </Box>
         </Modal>

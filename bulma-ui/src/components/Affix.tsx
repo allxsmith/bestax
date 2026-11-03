@@ -53,8 +53,9 @@ export interface AffixProps
  * It's a `<div>` with no role, so what's inside keeps its own. It sits
  * `--bulma-affix-offset-vertical` and `--bulma-affix-offset-horizontal`
  * from its corner's edges, plus the device's safe-area inset, and stacks at
- * `--bulma-affix-z-index`, over the page's content and under its menus,
- * popovers, the Sidebar, the modals, Tooltip and Toast. It's as wide as its
+ * `--bulma-affix-z-index`, over the page's content and under its navbar,
+ * static or fixed, its menus, popovers, the Sidebar, the modals, Tooltip and
+ * Toast. It's as wide as its
  * content and never wider than the viewport less its offsets. It doesn't
  * scroll, so nothing inside it is clipped, and content that can be taller
  * than the screen scrolls itself. Its place in the reading and Tab order is
