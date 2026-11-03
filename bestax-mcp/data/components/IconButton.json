@@ -58,6 +58,7 @@
   "related": [
     "Button",
     "Buttons",
+    "CopyButton",
     "Delete",
     "Icon",
     "ToggleButton",
