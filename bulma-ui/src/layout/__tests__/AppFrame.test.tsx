@@ -1431,6 +1431,78 @@ describe('AppFrame.Nav rail', () => {
     expect(tip).toHaveClass('is-open', 'is-active');
   });
 
+  describe('taller than the window under the header', () => {
+    type Observer = { measure: () => void; disconnect: () => void };
+    let observers: Observer[];
+
+    beforeEach(() => {
+      observers = [];
+      (globalThis as { ResizeObserver?: unknown }).ResizeObserver = class {
+        measure: () => void;
+        disconnect = vi.fn();
+        constructor(callback: () => void) {
+          this.measure = callback;
+          observers.push(this);
+        }
+        observe() {}
+      };
+    });
+
+    afterEach(() => {
+      delete (globalThis as { ResizeObserver?: unknown }).ResizeObserver;
+      vi.restoreAllMocks();
+    });
+
+    /** The nav laid out `height` pixels tall with `room` under the header. */
+    const layOut = (height: number, room: number) => {
+      vi.restoreAllMocks();
+      const real = window.getComputedStyle;
+      vi.spyOn(window, 'getComputedStyle').mockImplementation((el, pseudo) => {
+        const style = real(el, pseudo);
+        if (!el.matches('.app-frame-nav')) return style;
+        return {
+          direction: 'ltr',
+          getPropertyValue: (name: string) =>
+            name === 'min-block-size'
+              ? `${room}px`
+              : style.getPropertyValue(name),
+        } as CSSStyleDeclaration;
+      });
+      vi.spyOn(nav(), 'getBoundingClientRect').mockReturnValue({
+        height,
+      } as DOMRect);
+      act(() => observers.at(-1)!.measure());
+    };
+
+    it('scrolls with the page, and sticks again once it fits', () => {
+      mockViewport(DESKTOP);
+      render(<RailFrame defaultNavCollapsed />);
+      expect(observers).toHaveLength(1);
+      layOut(760, 368);
+      expect(nav()).toHaveClass('is-rail', 'is-tall');
+      layOut(668, 668);
+      expect(nav()).not.toHaveClass('is-tall');
+    });
+
+    it('measures only while the column is collapsed to the rail', () => {
+      mockViewport(DESKTOP);
+      const { rerender } = render(<RailFrame navCollapsed={false} />);
+      expect(observers).toHaveLength(0);
+      rerender(<RailFrame navCollapsed />);
+      expect(observers).toHaveLength(1);
+      layOut(760, 368);
+      rerender(<RailFrame navCollapsed={false} />);
+      expect(observers[0].disconnect).toHaveBeenCalled();
+      expect(nav()).not.toHaveClass('is-tall');
+    });
+
+    it('measures nothing in the drawer', () => {
+      mockViewport(PHONE);
+      render(<RailFrame defaultNavCollapsed />);
+      expect(observers).toHaveLength(0);
+    });
+  });
+
   it('marks the nav as a rail only while the column is collapsed', () => {
     mockViewport(DESKTOP);
     render(<RailFrame />);

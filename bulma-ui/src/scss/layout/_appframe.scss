@@ -280,9 +280,9 @@ html:has(.#{iv.$class-prefix}app-frame) {
   }
 
   // Collapsed to the rail, the column narrows to the icons and stays. It
-  // doesn't scroll on its own, so a tooltip beside it isn't clipped, and it's
-  // as tall as its content, so a rail taller than the window scrolls with
-  // the page. It sits over the page, so a tooltip does too.
+  // doesn't scroll on its own, so a tooltip beside it isn't clipped. It's as
+  // tall as its content, and at least the window under the header. It sits
+  // over the page, so a tooltip does too.
   &.#{iv.$class-prefix}is-nav-collapsed
     > .#{iv.$class-prefix}app-frame-nav.#{iv.$class-prefix}is-rail {
     z-index: $extras-z-index-sticky - 1;
@@ -294,6 +294,14 @@ html:has(.#{iv.$class-prefix}app-frame) {
     overflow: visible;
     visibility: visible;
     transition-delay: 0s;
+
+    // Taller than the window under the header, it would stick with its lower
+    // icons out of reach below the window, so it scrolls with the page
+    // instead. The frame measures it and adds `is-tall`.
+    &.#{iv.$class-prefix}is-tall {
+      position: relative;
+      inset-block-start: auto;
+    }
 
     .#{iv.$class-prefix}app-frame-rail-tooltip {
       > .#{iv.$class-prefix}tooltip-content,

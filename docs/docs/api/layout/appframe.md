@@ -290,9 +290,12 @@ or on the left of a right-to-left page. Each item with an icon is wrapped in it 
 `rail`, and it shows only while the column is collapsed, so collapsing and expanding never remount
 a link that has focus. Below the breakpoint the drawer shows the whole nav, labels and all.
 
-Collapsed, the column doesn't scroll on its own, so a tooltip beside it isn't clipped. A rail taller
-than the window grows with its icons and scrolls with the page, which a rail of top-level icons
-seldom needs. `--bulma-app-frame-nav-rail-width` sets its width, 4rem by default.
+Collapsed to the rail, the column doesn't scroll on its own, so a tooltip beside it isn't clipped.
+It sticks under the header while it fits there. A rail taller than the window under the header,
+on a short window or with a long list of icons, scrolls with the page instead: its lower icons
+come into view as the page scrolls, and as Tab reaches them. That takes a measurement in the
+browser, so before the page hydrates such a rail sticks. `--bulma-app-frame-nav-rail-width` sets
+the rail's width, 4rem by default.
 
 ### Keeping the State
 

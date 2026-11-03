@@ -281,6 +281,13 @@ describe('AppFrame styles', () => {
         ]);
       });
 
+      it('lets a rail taller than the window under the header scroll with the page', () => {
+        expect(find(PLAIN, `${rail}.is-tall`, [media])).toEqual({
+          position: 'relative',
+          'inset-block-start': 'auto',
+        });
+      });
+
       it('shows each tooltip and its bridge, and centers each link or button on its icon', () => {
         expect(
           find(

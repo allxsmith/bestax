@@ -165,7 +165,8 @@ export interface AppFrameNavProps
     Omit<React.HTMLAttributes<HTMLElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /**
-   * Usually a `Menu`. A nav taller than the window scrolls on its own. With
+   * Usually a `Menu`. A nav taller than the window scrolls on its own,
+   * except a column collapsed to a rail, which doesn't (see `rail`). With
    * `overlay`, the rest of the frame is inert while the drawer is open, so an
    * overlay opened from the drawer, such as a `Modal`, goes inside the nav or
    * renders outside the frame (Modal's `portal`).
@@ -223,9 +224,12 @@ export interface AppFrameNavProps
    * so each stays its link's or button's name, and shows in a `Tooltip`
    * beside the rail on hover and keyboard focus. Nested lists and
    * `Menu.Label` headings hide there, and a section's button expands the
-   * column and opens the section. Collapsed, the column doesn't scroll on
-   * its own, so a tooltip isn't clipped: a rail taller than the window
-   * scrolls with the page.
+   * column and opens the section. Collapsed to the rail, the column
+   * doesn't scroll on its own, so a tooltip isn't clipped. It sticks under
+   * the header while it fits there. A rail taller than the window under the
+   * header scrolls with the page instead, so its lower icons come into view
+   * as the page scrolls and as Tab reaches them. That takes a measurement in
+   * the browser, so before the page hydrates such a rail sticks.
    */
   rail?: boolean;
 }
@@ -537,6 +541,30 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
       const rtl = getComputedStyle(navRef.current!).direction === 'rtl';
       setSide(rtl ? 'left' : 'right');
     }, [rail, railCollapsed, dir]);
+
+    // The collapsed rail sticks under the header only while it fits there.
+    // It can't scroll on its own, which would clip its tooltips, so one
+    // taller than the window under the header scrolls with the page instead,
+    // and its lower icons come into view as the page scrolls and as Tab
+    // reaches them. The stylesheet makes it at least as tall as the window
+    // under the header, so it's taller than that only when its icons are.
+    const [railTall, setRailTall] = useState(false);
+    const tallClass = usePrefixedClassNames('is-tall');
+    useEffect(() => {
+      if (!railCollapsed || typeof ResizeObserver === 'undefined') {
+        return undefined;
+      }
+      const nav = navRef.current!;
+      const observer = new ResizeObserver(() => {
+        const room = parseFloat(
+          getComputedStyle(nav).getPropertyValue('min-block-size')
+        );
+        setRailTall(nav.getBoundingClientRect().height > room + 1);
+      });
+      observer.observe(nav);
+      return () => observer.disconnect();
+    }, [railCollapsed]);
+
     const state = frame?.state;
     const railValue = useMemo<MenuRail | null>(() => {
       if (!rail || !state) return null;
@@ -572,7 +600,12 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
       <>
         <nav
           ref={navRefs}
-          className={classNames(navClass, bulmaHelperClasses, className)}
+          className={classNames(
+            navClass,
+            { [tallClass]: railCollapsed && railTall },
+            bulmaHelperClasses,
+            className
+          )}
           style={navStyle}
           onClick={handleClick}
           onPointerDownCapture={e => {
