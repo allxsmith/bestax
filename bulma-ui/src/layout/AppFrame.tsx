@@ -247,8 +247,9 @@ export interface AppFrameNavProps
    * Puts a handle on the column's inline-end edge, from the breakpoint up,
    * that drags or keys its width between `minWidth` and `maxWidth`. It's a
    * focusable separator named by the nav's own name and controlling the nav,
-   * read as "Sections, separator, 256". Arrow keys move it 10 pixels, 100
-   * with Shift, mirrored right to left; Home and End go to the limits.
+   * read as "Sections, separator, 256". Arrow keys move it by `step`, ten
+   * times as far with Shift, mirrored right to left; Home and End go to the
+   * limits.
    * Dragging below half of `minWidth` collapses the column, to the rail when
    * it has one, and dragging it back out past that point opens it at
    * `minWidth`. Enter collapses it and brings it back at the width it had,
@@ -289,6 +290,12 @@ export interface AppFrameNavProps
    * @defaultValue '32rem'
    */
   maxWidth?: number | string;
+  /**
+   * How far an arrow key moves a `resizable` column's edge, in pixels. Shift
+   * moves ten times as far.
+   * @defaultValue 10
+   */
+  step?: number;
 }
 
 /**
@@ -388,9 +395,6 @@ interface FrameContextValue {
 }
 
 const FrameContext = createContext<FrameContextValue | null>(null);
-
-/** How far an arrow key moves a resizable column's edge, in pixels. */
-const STEP = 10;
 
 /**
  * A rem in pixels, and the stylesheet's widths, the column's and the
@@ -503,6 +507,7 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
       onWidthChange,
       minWidth = '12rem',
       maxWidth = '32rem',
+      step = 10,
       onClick,
       onPointerDownCapture,
       children,
@@ -961,7 +966,7 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
             onDragStart={startDrag}
             onDrag={dragBy}
             onDragEnd={() => setResizing(false)}
-            onStep={by => keyTo(widthPx + by * STEP)}
+            onStep={by => keyTo(widthPx + by * step)}
             onHome={() => keyTo(minPx)}
             onEnd={() => keyTo(maxPx)}
             onEnter={() => setCollapsed(!navCollapsed)}

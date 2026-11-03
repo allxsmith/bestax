@@ -2108,6 +2108,18 @@ describe('AppFrame.Nav resizable', () => {
     expect(fireEvent.keyDown(handle(), { key: 'a' })).toBe(true);
   });
 
+  it('steps by a step of its own, in pixels, ten times as far with Shift', () => {
+    mockViewport(DESKTOP);
+    const onWidthChange = vi.fn();
+    render(<ResizeFrame nav={{ onWidthChange, step: 4 }} />);
+    fireEvent.keyDown(handle(), { key: 'ArrowRight' });
+    expect(onWidthChange).toHaveBeenLastCalledWith(260);
+    fireEvent.keyDown(handle(), { key: 'ArrowRight', shiftKey: true });
+    expect(onWidthChange).toHaveBeenLastCalledWith(300);
+    // Not an attribute of the nav.
+    expect(nav()).not.toHaveAttribute('step');
+  });
+
   it('mirrors the arrow keys and the drag right to left', () => {
     mockViewport(DESKTOP);
     const real = window.getComputedStyle;

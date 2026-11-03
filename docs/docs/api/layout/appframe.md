@@ -306,7 +306,8 @@ the rail's width, 4rem by default.
 
 With `resizable` on `AppFrame.Nav`, a handle on the column's edge drags its width between
 `minWidth` and `maxWidth`, 12rem and 32rem by default. It's a focusable separator, named by the
-nav's own name: the arrow keys move it 10 pixels, 100 with Shift, Home and End go to the limits,
+nav's own name: the arrow keys move it by `step`, 10 pixels by default and ten times as far with
+Shift, Home and End go to the limits,
 Enter collapses the column and brings it back at the width it had, and a double click resets it to
 `defaultWidth` and opens it. Dragging below half of `minWidth` collapses the column, to the rail
 when it has one, and dragging back out past that point opens it at `minWidth`. The collapses go
