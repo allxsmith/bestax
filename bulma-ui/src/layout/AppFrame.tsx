@@ -658,7 +658,8 @@ export const AppFrameBurger = forwardRef<
   const state = frame?.state;
   // Until the frame knows whether the nav is a drawer, the burger says
   // nothing it can't stand behind: no `aria-expanded`, and its bars. It can't
-  // act before then anyway, since that's before hydration.
+  // act before then anyway, since that's before hydration. Outside a frame
+  // it's a plain Navbar.Burger.
   const known = !!frame?.modeKnown;
   const expanded =
     known && !!state && (state.isDrawer ? state.navOpen : !state.navCollapsed);
@@ -669,7 +670,7 @@ export const AppFrameBurger = forwardRef<
       className={classNames(burgerClass, className)}
       aria-label={props['aria-label'] || frame?.labels.burger}
       active={expanded}
-      aria-expanded={known ? expanded : null}
+      aria-expanded={frame && !known ? null : expanded}
       aria-controls={state?.navId}
       onClick={e => {
         onClick?.(e);

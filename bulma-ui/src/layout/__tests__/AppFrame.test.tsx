@@ -584,13 +584,14 @@ describe('AppFrame', () => {
     it('controls nothing outside a frame', () => {
       const onClick = vi.fn();
       render(<AppFrame.Burger onClick={onClick} />);
-      expect(burger()).not.toHaveAttribute('aria-expanded');
+      // Navbar.Burger's own default: it follows `active`, which is off.
+      expect(burger()).toHaveAttribute('aria-expanded', 'false');
       expect(burger()).not.toHaveAttribute('aria-controls');
       expect(burger()).toHaveClass('navbar-burger', 'app-frame-burger');
       expect(burger()).not.toHaveClass('is-active');
       fireEvent.click(burger());
       expect(onClick).toHaveBeenCalledTimes(1);
-      expect(burger()).not.toHaveAttribute('aria-expanded');
+      expect(burger()).toHaveAttribute('aria-expanded', 'false');
     });
   });
 
