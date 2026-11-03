@@ -39,6 +39,12 @@ export const DEPRECATED_PROPS: Readonly<
       note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
     },
   },
+  'Buttons.IconButton': {
+    isFullWidth: {
+      replacement: 'isFullwidth',
+      note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
+    },
+  },
   'Buttons.LinkButton': {
     isFullWidth: {
       replacement: 'isFullwidth',

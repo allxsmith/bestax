@@ -243,6 +243,7 @@ the first of one.
 Several go in [`Buttons`](./buttons.md), and `hasAddons` joins them into one row. Give a joined row
 `role="group"` and an `aria-label`, so a screen reader names the set. An action that turns something
 on and off, like Bold, is a [`ToggleButton`](./togglebutton.md), which reports whether it's pressed.
+`IconButton` is also `Buttons.IconButton`, so the row can come from the one `Buttons` import.
 
 ```tsx live
 <Buttons hasAddons role="group" aria-label="Zoom">
