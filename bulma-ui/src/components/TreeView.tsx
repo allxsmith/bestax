@@ -7,7 +7,6 @@ import React, {
   useId,
   useMemo,
   useRef,
-  useState,
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
@@ -20,6 +19,11 @@ import {
   type TreeViewEngine,
 } from '../helpers/useTreeView';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
+import {
+  useLoadPhase,
+  useLoadRegion,
+  type LoadAnnouncement,
+} from '../helpers/loadAnnouncements';
 import { Checkbox } from '../form/Checkbox';
 import { Icon } from '../elements/Icon';
 
@@ -34,19 +38,6 @@ export type TreeViewSelectionMode =
 
 const validTreeViewSizes = ['small', 'medium', 'large'] as const;
 
-/** What an open item's load says in the tree's live region. */
-interface LoadAnnouncement {
-  /** The item's key, so what it says next replaces this. */
-  key: string;
-  /** The key and the kind: the region says it once each time it appears. */
-  id: string;
-  kind: 'loading' | 'loaded' | 'error';
-  /** The item's name, read off its label. */
-  name: string;
-  /** A failed load's message, read off its row. */
-  message: string;
-}
-
 /** What the root hands its items: the engine, the live region, and the rows' words. */
 interface TreeContextValue extends TreeViewEngine {
   /** Puts what an item's load says in the live region, or takes it out with `null`. */
@@ -57,9 +48,6 @@ interface TreeContextValue extends TreeViewEngine {
 
 // Not exported, so they stay out of the public API that `index.ts` re-exports.
 const TreeViewContext = createContext<TreeContextValue | null>(null);
-
-const sayLoading = (name: string) => `Loading ${name}`;
-const sayLoaded = (name: string) => `${name} loaded`;
 
 /** Where an item sits: the values of the items above it, and whether one of them is closed. */
 interface Branch {
@@ -338,26 +326,9 @@ const TreeViewRoot = forwardRef<HTMLUListElement, TreeViewProps>(
     });
 
     // What each open item's load says, in the order they started saying it.
-    const [announcements, setAnnouncements] = useState<LoadAnnouncement[]>([]);
-    const announce = useCallback(
-      (key: string, announcement: LoadAnnouncement | null) => {
-        setAnnouncements(current => {
-          const others = current.filter(said => said.key !== key);
-          return announcement ? [...others, announcement] : others;
-        });
-      },
-      []
-    );
-    const describe = useCallback(
-      ({ kind, name, message }: LoadAnnouncement) => {
-        if (kind === 'error') return message;
-        const say =
-          kind === 'loading'
-            ? (loadingAnnouncement ?? sayLoading)
-            : (loadedAnnouncement ?? sayLoaded);
-        return say(name);
-      },
-      [loadingAnnouncement, loadedAnnouncement]
+    const { announcements, announce, describe } = useLoadRegion(
+      loadingAnnouncement,
+      loadedAnnouncement
     );
 
     // The props are spread first, so the role and the attributes the tree
@@ -445,28 +416,11 @@ export const TreeViewItem = forwardRef<HTMLLIElement, TreeViewItemProps>(
     // still open, whichever row it was, until the item closes or loads again.
     // A closed item says nothing, loading or not.
     const phase = shown ? (status ?? 'open') : 'closed';
-    const lastPhaseRef = useRef(phase);
-    const announce = tree?.announce;
-    useEffect(() => {
-      const was = lastPhaseRef.current;
-      lastPhaseRef.current = phase;
-      const kind =
-        phase === 'loading' || phase === 'error'
-          ? phase
-          : phase === 'open' && (was === 'loading' || was === 'error')
-            ? 'loaded'
-            : null;
-      if (!kind) return undefined;
-      // Only an item inside a tree can be open.
-      announce!(labelId, {
-        key: labelId,
-        id: `${labelId}:${kind}`,
-        kind,
-        name: spokenText(labelRef.current!),
-        message: kind === 'error' ? spokenText(statusLabelRef.current!) : '',
-      });
-      return () => announce!(labelId, null);
-    }, [phase, announce, labelId]);
+    useLoadPhase(phase, labelId, tree?.announce, () => ({
+      name: spokenText(labelRef.current!),
+      // A failed load's message, read off its row while it's there.
+      message: statusLabelRef.current ? spokenText(statusLabelRef.current) : '',
+    }));
 
     const itemClass = usePrefixedClassNames('tree-view-item');
     const groupClass = usePrefixedClassNames('tree-view-group');
