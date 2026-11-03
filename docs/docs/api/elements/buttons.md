@@ -148,6 +148,7 @@ The `isRight` prop aligns the button group to the right edge of its container. T
     <Buttons.Button>Cancel</Buttons.Button>
     <Buttons.LinkButton>Learn more</Buttons.LinkButton>
     <Buttons.IconButton icon="ellipsis" aria-label="More actions" />
+    <Buttons.CopyButton value="https://bestax.io" />
   </Buttons>
   <Buttons hasAddons role="group" aria-label="Text style">
     <Buttons.ToggleButton defaultPressed>Bold</Buttons.ToggleButton>
