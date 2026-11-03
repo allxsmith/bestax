@@ -67,19 +67,36 @@ const validTourStepPositions: readonly TourStepPosition[] = [
  * `LocaleProvider`'s locale.
  */
 export interface TourLabels {
-  /** The button that ends the tour early. "Skip". */
+  /**
+   * The button that ends the tour early.
+   * @defaultValue 'Skip'
+   */
   skip?: string;
-  /** The button to the step before. "Back". */
+  /**
+   * The button to the step before.
+   * @defaultValue 'Back'
+   */
   back?: string;
-  /** The button to the next step. "Next". */
+  /**
+   * The button to the next step.
+   * @defaultValue 'Next'
+   */
   next?: string;
-  /** Next on the last step, which finishes the tour. "Done". */
+  /**
+   * Next on the last step, which finishes the tour.
+   * @defaultValue 'Done'
+   */
   done?: string;
-  /** The close button's name. "Close". */
+  /**
+   * The close button's name.
+   * @defaultValue 'Close'
+   */
   close?: string;
   /**
    * The progress line, which also starts the announcement after the step
    * changes ("Step 2 of 5: Filters"). `step` counts from 1.
+   * @defaultValue (step, total) => `Step ${step} of ${total}`, the numbers in
+   * the LocaleProvider's locale
    */
   progress?: (step: number, total: number) => string;
 }
@@ -159,7 +176,11 @@ export interface TourProps
   closeOnEscape?: boolean;
   /**
    * Ends the tour on a press outside the step, the overlay included.
-   * Content the step renders through a portal counts as inside.
+   * Content the step renders through a portal counts as inside. Off by
+   * default, unlike Popover's: a tour is a sequence someone means to finish,
+   * and a stray click on the dimmed page, or on the page around a step
+   * without the overlay, shouldn't end it partway. Skip, the close button
+   * and Escape still end it.
    * @defaultValue false
    */
   closeOnClickOutside?: boolean;

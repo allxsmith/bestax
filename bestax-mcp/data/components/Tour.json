@@ -148,7 +148,7 @@
           "name": "closeOnClickOutside",
           "type": "boolean",
           "default": "false",
-          "description": "Ends the tour on a press outside the step, the overlay included. Content the step renders through a portal counts as inside.",
+          "description": "Ends the tour on a press outside the step, the overlay included. Content the step renders through a portal counts as inside. Off by default, unlike Popover's: a tour is a sequence someone means to finish, and a stray click on the dimmed page, or on the page around a step without the overlay, shouldn't end it partway. Skip, the close button and Escape still end it.",
           "required": false,
           "inherited": false,
           "deprecated": false
