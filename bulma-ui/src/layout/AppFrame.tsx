@@ -276,9 +276,10 @@ export interface AppFrameNavProps
    */
   onWidthChange?: (width: number) => void;
   /**
-   * The narrowest a drag or a key takes a `resizable` column: pixels, or
-   * `px` or `rem`, as Splitter.Pane's `minSize`. The handle takes the
-   * default for anything else, and a development build warns about it.
+   * The narrowest a drag or a key takes a `resizable` column: a number is
+   * pixels, as `width`'s is, and a string a `px` or `rem` length. The handle
+   * takes the default for anything else, and a development build warns
+   * about it.
    * @defaultValue '12rem'
    */
   minWidth?: number | string;
