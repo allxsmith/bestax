@@ -470,10 +470,10 @@ describe('in an icon rail', () => {
   const railOf = (
     collapsed: boolean,
     expand = vi.fn(),
-    modeKnown = true
+    pending = false
   ): MenuRail => ({
     collapsed,
-    modeKnown,
+    pending,
     navId: 'rail-nav',
     expand,
     wrap: (trigger, label) => (
@@ -554,9 +554,9 @@ describe('in an icon rail', () => {
     );
   });
 
-  it('leaves aria-expanded off a section until the frame knows the column’s mode', () => {
+  it('leaves aria-expanded off a section while the frame doesn’t know whether a collapsed column is a rail', () => {
     const html = renderToStaticMarkup(
-      <MenuRailContext.Provider value={railOf(false, vi.fn(), false)}>
+      <MenuRailContext.Provider value={railOf(false, vi.fn(), true)}>
         <Menu>
           <Menu.Section label="Reports" icon={<Glyph />} defaultOpen>
             <Menu.List>

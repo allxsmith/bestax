@@ -574,7 +574,7 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
       if (!rail || !state) return null;
       return {
         collapsed: railCollapsed,
-        modeKnown,
+        pending: !modeKnown && navCollapsed,
         navId: navId as string,
         expand: () => state.setNavCollapsed(false),
         wrap: (trigger, label) => (
@@ -591,7 +591,16 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
           </Tooltip>
         ),
       };
-    }, [rail, state, railCollapsed, modeKnown, navId, side, tipClass]);
+    }, [
+      rail,
+      state,
+      railCollapsed,
+      modeKnown,
+      navCollapsed,
+      navId,
+      side,
+      tipClass,
+    ]);
 
     // The rail is the Menu's inside the nav. One portaled out of it, or a
     // Menu.List with no Menu around it, doesn't take it.

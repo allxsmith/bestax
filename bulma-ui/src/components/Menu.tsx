@@ -526,9 +526,10 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
     }
   }, [settled, rail, icon]);
   // The rail hides a section's list, so there the button widens the column
-  // and opens the section, and says it's collapsed. Until the frame knows
-  // whether the column is a rail, as before the page hydrates, the button
-  // says neither, as AppFrame.Burger does.
+  // and opens the section, and says it's collapsed. While the column is set
+  // to collapse and the frame doesn't know yet whether that makes it a rail,
+  // as before the page hydrates, the button says neither, as AppFrame.Burger
+  // does. Expanded, its state is known, so it says it.
   const railCollapsed = !!rail?.collapsed;
 
   // The caller owns the state when `open` is set, and the section does
@@ -536,8 +537,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
   const isControlled = controlledOpen !== undefined;
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const isOpen = controlledOpen ?? internalOpen;
-  const expanded =
-    rail && !rail.modeKnown ? undefined : isOpen && !railCollapsed;
+  const expanded = rail?.pending ? undefined : isOpen && !railCollapsed;
 
   const handleClick = () => {
     const next = railCollapsed || !isOpen;

@@ -15,10 +15,12 @@ export interface MenuRail {
    */
   collapsed: boolean;
   /**
-   * Whether the frame has read the width, so it knows whether the column is
-   * a rail or a drawer. Not on the server, nor in the render that hydrates.
+   * Whether the column is set to collapse but the frame hasn't read the width
+   * yet, so it doesn't know whether that makes it a rail or leaves a drawer,
+   * as on the server and in the render that hydrates. A section's button says
+   * nothing about its state then.
    */
-  modeKnown: boolean;
+  pending: boolean;
   /**
    * The nav's id. A Menu takes the rail only when its element sits inside
    * the element with this id, so one portaled out of the nav doesn't.

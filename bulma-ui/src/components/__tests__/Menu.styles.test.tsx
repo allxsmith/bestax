@@ -447,7 +447,7 @@ describe.each([
     it('spaces a heading the same inside the Tooltip an AppFrame rail puts it in', () => {
       const rail: MenuRail = {
         collapsed: false,
-        modeKnown: true,
+        pending: false,
         navId: 'rail-nav',
         expand: () => {},
         wrap: (trigger, label) => (

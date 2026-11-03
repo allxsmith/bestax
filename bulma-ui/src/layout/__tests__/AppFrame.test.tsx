@@ -1791,10 +1791,18 @@ describe('AppFrame.Nav rail', () => {
         <AppFrame.Main>Page</AppFrame.Main>
       </AppFrame>
     );
-    const html = renderToStaticMarkup(<OpenSection defaultNavCollapsed />);
-    const button = /<button[^>]*menu-section-toggle[^>]*>/.exec(html)?.[0];
+    const toggleIn = (html: string) =>
+      /<button[^>]*menu-section-toggle[^>]*>/.exec(html)?.[0];
+    const button = toggleIn(
+      renderToStaticMarkup(<OpenSection defaultNavCollapsed />)
+    );
     expect(button).toBeDefined();
     expect(button).not.toContain('aria-expanded');
+    // Not set to collapse, the column is no rail at any width, so the
+    // section's state is known.
+    expect(toggleIn(renderToStaticMarkup(<OpenSection />))).toContain(
+      'aria-expanded="true"'
+    );
     mockViewport(DESKTOP);
     render(<OpenSection defaultNavCollapsed />);
     expect(reports()).toHaveAttribute('aria-expanded', 'false');
