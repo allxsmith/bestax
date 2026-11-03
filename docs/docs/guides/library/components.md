@@ -181,7 +181,7 @@ A long page's sections as links in Bulma's menu look, marking the one being read
 ```tsx live
 <TableOfContents
   offset={68}
-  labels={{ title: 'Navigation' }}
+  labels={{ title: 'Navigation components' }}
   items={[
     { id: 'breadcrumb', label: 'Breadcrumb' },
     { id: 'navbar', label: 'Navbar' },
