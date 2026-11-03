@@ -177,7 +177,7 @@ export const OnSurfaces: Story = {
     docs: {
       description: {
         story:
-          'Stats are text on the page’s background; a Box around each, or around the row, gives them a surface.',
+          'Stats are text on the page’s background; a Box around the whole row gives it a surface. A Box can’t go around one Stat in a row, since the row is a list that holds only its Stats; give that Stat helper props instead.',
       },
     },
   },

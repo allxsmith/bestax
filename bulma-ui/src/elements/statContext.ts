@@ -8,8 +8,11 @@ export interface StatScope {
   /**
    * Whether this is inside a `Stats` row, where a Stat is a `<div>` in the
    * row's `<dl>` rather than a `<dl>` of its own. A Stat sets it back to
-   * `false` for its parts, so a Stat inside one of them, which sits in a
-   * `<dd>`, renders its own `<dl>`.
+   * `false` for its children. Those are meant to be its parts, so a Stat
+   * inside a part sits in a `<dd>`, where a `<dl>` of its own is valid. A
+   * Stat written straight among another's children isn't handled: it renders
+   * a `<dl>` inside the other's list, which HTML doesn't allow, and Stat's
+   * `children` TSDoc says not to.
    */
   row: boolean;
   /** The row's `textColor`, which each Stat in it takes unless it has its own. */

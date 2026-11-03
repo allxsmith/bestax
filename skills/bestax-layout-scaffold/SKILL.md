@@ -145,7 +145,8 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `changeColor="danger"` marks a rise that's bad news, such as churn. The row wraps on its own, so
   add no breakpoint code, and it holds only `Stat`s (a `LocaleProvider` goes around it). `loading`
   shows a `Skeleton` in place of a figure that isn't there yet. One figure on its own is a lone
-  `Stat`; for a card look, a `Box` around it.
+  `Stat`. For a card look, a `Box` goes around a lone `Stat` or the whole `Stats` row, never around
+  one `Stat` inside a row, which would break the row's list.
 - **A file browser, a checkbox tree (permissions, filters) or an outline you browse is
   `TreeView`**, with `<TreeView.Item value="…" label="…" icon="folder">` items nested inside each
   other: `<TreeView aria-label="Files" selectionMode="single">` with `selected`/`onSelectedChange`

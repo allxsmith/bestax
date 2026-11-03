@@ -345,7 +345,7 @@ export const OnASurface: Story = {
     docs: {
       description: {
         story:
-          'A Stat is text on the page’s background; a Box gives it a surface.',
+          'A lone Stat is text on the page’s background; a Box around it gives it a surface.',
       },
     },
   },

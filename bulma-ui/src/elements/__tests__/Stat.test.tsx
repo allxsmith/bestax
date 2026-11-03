@@ -14,6 +14,7 @@ import { Stats } from '../Stats';
 import { NumberFormatter } from '../NumberFormatter';
 import { ConfigProvider } from '../../helpers/Config';
 import { LocaleProvider } from '../../helpers/LocaleProvider';
+import { resetDevWarnings } from '../../helpers/devWarnings';
 
 /** The class list of an element, as an array. */
 const classesOf = (el: Element | null) => Array.from(el?.classList ?? []);
@@ -90,9 +91,11 @@ describe('Stat', () => {
       ).toEqual([]);
     });
 
-    it('renders an empty <dl> with nothing given', () => {
+    it('renders the figure’s <dd>, empty, with nothing given', () => {
       const { container } = render(<Stat />);
-      expect(container.innerHTML).toBe('<dl class="stat"></dl>');
+      expect(container.innerHTML).toBe(
+        '<dl class="stat"><dd class="stat-value"></dd></dl>'
+      );
     });
 
     it('renders label before the children, and value, change and description after them', () => {
@@ -116,12 +119,14 @@ describe('Stat', () => {
       ]);
     });
 
-    it('renders nothing for undefined, null, a boolean or an empty string, and renders 0', () => {
+    it('renders nothing for undefined, null, a boolean or an empty string, the figure’s <dd> left empty, and renders 0', () => {
       for (const nothing of [undefined, null, true, false, '']) {
         const { container, unmount } = render(
           <Stat label={nothing} value={nothing} description={nothing} />
         );
-        expect(container.innerHTML).toBe('<dl class="stat"></dl>');
+        expect(container.innerHTML).toBe(
+          '<dl class="stat"><dd class="stat-value"></dd></dl>'
+        );
         unmount();
       }
       const { container } = render(
@@ -140,6 +145,77 @@ describe('Stat', () => {
         <Stat label="Revenue" change={null as unknown as number} value="N/A" />
       );
       expect(changeOf(container)).toBeNull();
+    });
+  });
+
+  describe('keeping the list valid', () => {
+    beforeEach(() => resetDevWarnings());
+    afterEach(() => vi.restoreAllMocks());
+
+    it('renders the figure’s <dd>, empty, for a label whose value isn’t there yet', () => {
+      const total: number | undefined = undefined;
+      const { container } = render(<Stat label="Total" value={total} />);
+      expect(container.innerHTML).toBe(
+        '<dl class="stat"><dt class="stat-label">Total</dt>' +
+          '<dd class="stat-value"></dd></dl>'
+      );
+      expect(screen.getByRole('term')).toHaveTextContent('Total');
+      expect(screen.getAllByRole('definition')).toHaveLength(1);
+    });
+
+    it('adds no empty <dd> beside parts, which bring their own', () => {
+      const { container } = render(
+        <>
+          <Stat>
+            <Stat.Label>Errors</Stat.Label>
+            <Stat.Change value={-0.4} color="success" locale="en-US" />
+          </Stat>
+          <Stat label="Revenue">
+            <Stat.Value>$8,456</Stat.Value>
+          </Stat>
+        </>
+      );
+      const [errors, revenue] = Array.from(container.children);
+      expect(partsOf(errors)).toEqual([
+        'dt stat-label Errors',
+        'dd stat-change is-success -40%',
+      ]);
+      expect(partsOf(revenue)).toEqual([
+        'dt stat-label Revenue',
+        'dd stat-value $8,456',
+      ]);
+    });
+
+    it('warns once in development about a Stat with no label and no parts', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const { container } = render(
+        <>
+          <Stat value={1234} locale="en-US" />
+          <Stat value={5} description="today" />
+        </>
+      );
+      expect(container.firstElementChild?.outerHTML).toBe(
+        '<dl class="stat"><dd class="stat-value">' +
+          '<data value="1234">1,234</data></dd></dl>'
+      );
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn.mock.calls[0][0]).toMatch(
+        /<Stat> has no label\. Pass label, or a Stat\.Label child/
+      );
+    });
+
+    it('doesn’t warn with a label, or with parts that can hold one', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      render(
+        <>
+          <Stat label="Revenue" value={1} />
+          <Stat label={0} />
+          <Stat>
+            <Stat.Label>Errors</Stat.Label>
+          </Stat>
+        </>
+      );
+      expect(warn).not.toHaveBeenCalled();
     });
   });
 
@@ -220,7 +296,9 @@ describe('Stat', () => {
         'aria-hidden',
         'true'
       );
-      expect(screen.getByRole('definition')).toHaveTextContent('+12%');
+      expect(
+        screen.getAllByRole('definition').map(dd => dd.textContent)
+      ).toEqual(['', '+12%']);
     });
 
     it('takes changeColor for the color only, the arrow still following the sign', () => {
@@ -259,6 +337,58 @@ describe('Stat', () => {
         expect(arrowOf(dd)).toBe('none');
         expect(classesOf(dd)).toEqual(['stat-change']);
         unmount();
+      }
+    });
+
+    it('reads a change that rounds to zero as zero whatever the signDisplay', () => {
+      const cases: [Intl.NumberFormatOptions['signDisplay'], number, string][] =
+        [
+          ['auto', 0.0004, '0%'],
+          ['auto', -0.0004, '-0%'],
+          ['always', 0.0004, '+0%'],
+          ['always', -0.0004, '-0%'],
+          ['exceptZero', -0.0004, '0%'],
+          ['never', -0.0004, '0%'],
+        ];
+      for (const [signDisplay, change, text] of cases) {
+        const { container, unmount } = render(
+          <Stat
+            label="Revenue"
+            change={change}
+            changeFormat={{
+              style: 'percent',
+              maximumFractionDigits: 1,
+              signDisplay,
+            }}
+            locale="en-US"
+          />
+        );
+        const dd = changeOf(container);
+        expect(dd.textContent).toBe(text);
+        expect(arrowOf(dd)).toBe('none');
+        expect(classesOf(dd)).toEqual(['stat-change']);
+        unmount();
+      }
+    });
+
+    it('keeps the direction of a change that doesn’t round to zero, whatever the signDisplay', () => {
+      for (const signDisplay of ['auto', 'always', 'never'] as const) {
+        for (const [change, arrow, tone] of [
+          [0.05, 'up', 'is-success'],
+          [-0.05, 'down', 'is-danger'],
+        ] as const) {
+          const { container, unmount } = render(
+            <Stat
+              label="Revenue"
+              change={change}
+              changeFormat={{ style: 'percent', signDisplay }}
+              locale="en-US"
+            />
+          );
+          expect(arrowOf(changeOf(container))).toBe(arrow);
+          expect(classesOf(changeOf(container))).toEqual(['stat-change', tone]);
+          unmount();
+        }
       }
     });
 
@@ -526,9 +656,9 @@ describe('Stat', () => {
       expect(container.querySelectorAll('dl')).toHaveLength(1);
     });
 
-    it('renders a <dl> of its own for a Stat inside one of its parts', () => {
+    it('renders a <dl> of its own for a Stat inside one of its parts, which leaves the row’s color behind', () => {
       const { container } = render(
-        <Stats>
+        <Stats textColor="link">
           <Stat label="Storage">
             <Stat.Description>
               <Stat label="Photos" value="12 GB" />
@@ -536,8 +666,11 @@ describe('Stat', () => {
           </Stat>
         </Stats>
       );
+      const outer = container.querySelector('dl > div') as HTMLElement;
       const inner = container.querySelector('dd > .stat') as HTMLElement;
+      expect(classesOf(outer)).toEqual(['stat', 'has-text-link']);
       expect(inner.localName).toBe('dl');
+      expect(classesOf(inner)).toEqual(['stat']);
     });
   });
 });

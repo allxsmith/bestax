@@ -87,7 +87,7 @@
           "name": "label",
           "type": "React.ReactNode",
           "default": null,
-          "description": "What the figure is (\"Revenue\"), as a `Stat.Label` before the children.",
+          "description": "What the figure is (\"Revenue\"), as a `Stat.Label` before the children. A Stat needs one, here or as a `Stat.Label` child: it's the figure's name for assistive tech, and a definition list's values belong to a term. A Stat with neither a `label` nor children warns in development.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -96,7 +96,7 @@
           "name": "value",
           "type": "React.ReactNode",
           "default": null,
-          "description": "The figure, as a `Stat.Value` after the children. A number is written by `NumberFormatter` with `format` and `locale`; anything else, such as \"N/A\", renders as given. `undefined`, `null`, a boolean and `''` render nothing, and `0` renders.",
+          "description": "The figure, as a `Stat.Value` after the children. A number is written by `NumberFormatter` with `format` and `locale`; anything else, such as \"N/A\", renders as given, and `0` renders. `undefined`, `null`, a boolean and `''` leave it empty: in a Stat with no children its `<dd>` still renders, so the label keeps a definition while the figure is missing.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -177,7 +177,7 @@
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
-          "description": "`Stat.Label`, `Stat.Value`, `Stat.Change` and `Stat.Description`, for anything the props don't cover, such as a unit or an info tip. They render between `label` and `value`.",
+          "description": "`Stat.Label`, `Stat.Value`, `Stat.Change` and `Stat.Description`, for anything the props don't cover, such as a unit or an info tip. They render between `label` and `value`. They're this Stat's own parts, so not another Stat: that would be a list inside this one's. With children, the figure's `<dd>` renders only for a `value`, so give the parts a `Stat.Value` yourself.",
           "required": false,
           "inherited": false,
           "deprecated": false
