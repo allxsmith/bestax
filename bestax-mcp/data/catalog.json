@@ -3048,7 +3048,6 @@
     "--bulma-tour-step-offset": ["Tour"],
     "--bulma-tour-step-radius": ["Tour"],
     "--bulma-tour-step-shadow": ["Tour"],
-    "--bulma-tour-transition-duration": ["Tour"],
     "--bulma-tour-z-index": ["Tour"],
     "--bulma-tree-view-gap": ["TreeView"],
     "--bulma-tree-view-group-border": ["TreeView"],

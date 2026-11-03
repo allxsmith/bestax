@@ -97,7 +97,6 @@ describe('Tour styles', () => {
       '--bulma-tour-step-border-color': 'var(--bulma-border-weak)',
       '--bulma-tour-step-max-width': 'min(24rem, 100vw - 2rem)',
       '--bulma-tour-progress-color': 'var(--bulma-text-weak)',
-      '--bulma-tour-transition-duration': '0.2s',
       position: 'relative',
       'z-index': 'var(--bulma-tour-z-index)',
     });
@@ -113,10 +112,8 @@ describe('Tour styles', () => {
 
   it('rounds the spotlight and its ring, which draws nothing until forced colors', () => {
     const both = '.tour-spotlight, .tour-spotlight-ring';
-    expect(find(PLAIN, both)).toMatchObject({
+    expect(find(PLAIN, both)).toEqual({
       rx: 'var(--bulma-tour-spotlight-radius)',
-      'transition-property': 'x, y, width, height',
-      'transition-duration': 'var(--bulma-tour-transition-duration)',
     });
     expect(find(PLAIN, '.tour-spotlight-ring')).toEqual({
       fill: 'none',
@@ -133,7 +130,6 @@ describe('Tour styles', () => {
       width: 'max-content',
       'max-width': 'var(--bulma-tour-step-max-width)',
       border: '1px solid var(--bulma-tour-step-border-color)',
-      'transition-property': 'top, left',
     });
     expect(find(PLAIN, '.tour-step.is-bottom')).toEqual({ 'margin-top': gap });
     expect(find(PLAIN, '.tour-step.is-top')).toEqual({
@@ -145,12 +141,12 @@ describe('Tour styles', () => {
     });
   });
 
-  it('stops every glide under reduced motion', () => {
-    expect(
-      find(PLAIN, '.tour-spotlight, .tour-spotlight-ring, .tour-step', [
-        '@media (prefers-reduced-motion: reduce)',
-      ])
-    ).toEqual({ transition: 'none' });
+  it('moves nothing on its own, so the scroll to a target is the only motion', () => {
+    for (const rule of PLAIN) {
+      for (const property of Object.keys(rule.declarations)) {
+        expect(property).not.toMatch(/^(transition|animation)/);
+      }
+    }
   });
 
   it('prefixes every class it styles', () => {

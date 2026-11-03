@@ -41,9 +41,6 @@ $tour-step-body-padding: 1rem !default;
 $tour-step-footer-padding: 0.75rem 1rem !default;
 $tour-step-footer-gap: 0.5rem !default;
 $tour-progress-color: cv.getVar('text-weak') !default;
-// How long the spotlight and the step take to move from one target to the
-// next. Nothing moves under reduced motion.
-$tour-transition-duration: 0.2s !default;
 
 .#{iv.$class-prefix}tour {
   @include cv.register-vars(
@@ -66,7 +63,6 @@ $tour-transition-duration: 0.2s !default;
       'tour-step-footer-padding': #{$tour-step-footer-padding},
       'tour-step-footer-gap': #{$tour-step-footer-gap},
       'tour-progress-color': #{$tour-progress-color},
-      'tour-transition-duration': #{$tour-transition-duration},
     )
   );
 }
@@ -94,13 +90,12 @@ $tour-transition-duration: 0.2s !default;
 }
 
 // The hole in the mask, and a ring drawn at the same place. The component
-// sets where they are, grown by the padding.
+// sets where they are, grown by the padding. Like the step, they don't glide:
+// they follow the target on every scroll, and a transition would trail it
+// while the page scrolls to it, so the scroll is the only motion.
 .#{iv.$class-prefix}tour-spotlight,
 .#{iv.$class-prefix}tour-spotlight-ring {
   rx: cv.getVar('tour-spotlight-radius');
-  transition-property: x, y, width, height;
-  transition-duration: cv.getVar('tour-transition-duration');
-  transition-timing-function: ease;
 }
 
 // Nothing to see, until forced colors give the spotlight an edge.
@@ -123,9 +118,6 @@ $tour-transition-duration: 0.2s !default;
   text-align: start;
   // The panel takes focus itself only when it holds no control.
   outline: none;
-  transition-property: top, left;
-  transition-duration: cv.getVar('tour-transition-duration');
-  transition-timing-function: ease;
 
   $gap: calc(
     #{cv.getVar('tour-spotlight-padding')} + #{cv.getVar('tour-step-offset')}
@@ -192,19 +184,11 @@ $tour-transition-duration: 0.2s !default;
   font-size: cv.getVar('size-small');
 }
 
-// ---- Forced colors and reduced motion ------------------------------------------
+// ---- Forced colors ---------------------------------------------------------------
 
 @media (forced-colors: active) {
   .#{iv.$class-prefix}tour-spotlight-ring {
     stroke: Highlight;
     stroke-width: 2px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .#{iv.$class-prefix}tour-spotlight,
-  .#{iv.$class-prefix}tour-spotlight-ring,
-  .#{iv.$class-prefix}tour-step {
-    transition: none;
   }
 }

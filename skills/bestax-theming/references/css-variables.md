@@ -975,8 +975,6 @@ takes Popover's look from the same Bulma tokens Popover's panel reads, since `--
 is declared on Popover's own panel and doesn't reach a step. `--bulma-tour-overlay-background` is
 Bulma's modal backdrop color at half its strength. `--bulma-tour-spotlight-padding` grows the
 spotlight past the target's edge, and the step sits `--bulma-tour-step-offset` past that.
-`--bulma-tour-transition-duration` is how long the spotlight and the step take to glide to the
-next target; under reduced motion they don't glide at all.
 
 `--bulma-tour-overlay-background`, `--bulma-tour-progress-color`,
 `--bulma-tour-spotlight-padding`, `--bulma-tour-spotlight-radius`,
@@ -985,8 +983,7 @@ next target; under reduced motion they don't glide at all.
 `--bulma-tour-step-footer-gap`, `--bulma-tour-step-footer-padding`,
 `--bulma-tour-step-header-color`, `--bulma-tour-step-header-padding`,
 `--bulma-tour-step-header-weight`, `--bulma-tour-step-max-width`, `--bulma-tour-step-offset`,
-`--bulma-tour-step-radius`, `--bulma-tour-step-shadow`, `--bulma-tour-transition-duration`,
-`--bulma-tour-z-index`
+`--bulma-tour-step-radius`, `--bulma-tour-step-shadow`, `--bulma-tour-z-index`
 
 ### TreeView
 

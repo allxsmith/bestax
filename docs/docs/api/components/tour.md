@@ -312,8 +312,8 @@ non-modal without it:
   arrows, or a dialog inside the step. Nothing happens past either end.
 - <kbd>Escape</kbd>, Skip and the close button always end the tour, so it's never a keyboard trap.
   A Modal or Dialog opened from a step takes Escape and Tab until it closes.
-- Under `prefers-reduced-motion: reduce`, the scroll to each target is instant, and the spotlight
-  and the step don't glide between targets.
+- The scroll to a target is the only motion: the spotlight and the step move with the target
+  rather than glide after it, and under `prefers-reduced-motion: reduce` the scroll is instant.
 - In forced colors, the overlay keeps dimming the page, since it's an SVG fill, the spotlight gets
   a `Highlight` outline, and the step keeps its border.
 
@@ -413,6 +413,5 @@ place inside the step.
 | `--bulma-tour-step-footer-padding` | `$tour-step-footer-padding` | `0.75rem 1rem`                                                                          |
 | `--bulma-tour-step-footer-gap`     | `$tour-step-footer-gap`     | `0.5rem`                                                                                |
 | `--bulma-tour-progress-color`      | `$tour-progress-color`      | `var(--bulma-text-weak)`                                                                |
-| `--bulma-tour-transition-duration` | `$tour-transition-duration` | `0.2s`                                                                                  |
 
 <!-- /bestax:generated cssvars -->
