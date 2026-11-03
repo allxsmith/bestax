@@ -17,7 +17,6 @@ import {
   readChecks,
   toggledList,
 } from '../helpers/useTreeView';
-import { useLatestRef } from '../helpers/useLatestRef';
 import { useControlled } from '../helpers/useControlled';
 import {
   checkRecords,
@@ -466,24 +465,25 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
     };
 
     const matchText = useLocaleMatcher();
-    const filterRef = useLatestRef(filter);
     const typed = searchable ? query.trim() : '';
     // Every item reads the hidden set, so it's only built again when the
-    // search text or the data changes. A `filter` written inline is a new
-    // function each render, so it's read as it is then rather than listed.
+    // search text or the data changes.
     const search = useMemo(
       () =>
         typed
           ? searchTree(data, node => {
-              const own = filterRef.current;
-              if (own) return own(typed, node);
+              if (filter) return filter(typed, node);
               const text = nodeLabel(node);
               return matchText
                 ? matchText(text, typed)
                 : text.toLowerCase().includes(typed.toLowerCase());
             })
           : null,
-      [data, typed, matchText, filterRef]
+      // `filter` is read as it is when the text or the data changes: one
+      // written inline is a new function every render, and listing it would
+      // search again on each.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [data, typed, matchText]
     );
     // The branches a search opened that were closed during it, for the
     // search text they were closed under: any new text, from the box or
