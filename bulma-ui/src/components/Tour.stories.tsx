@@ -26,12 +26,14 @@ const meta: Meta<typeof Tour> = {
       control: false,
       description: 'Tour.Step parts, in the order the tour visits them',
     },
+    // The stories open the tour from a button of their own, so its open
+    // state and step have no controls here.
     open: {
-      control: 'boolean',
+      control: false,
       description: 'Controlled open state',
     },
     defaultOpen: {
-      control: 'boolean',
+      control: false,
       description: 'Initial open state when uncontrolled',
     },
     onOpenChange: {
@@ -40,7 +42,7 @@ const meta: Meta<typeof Tour> = {
         'Called with false when the tour ends: Skip, the close button, Escape, a click outside, or Done',
     },
     value: {
-      control: 'number',
+      control: false,
       description: 'Controlled index of the current step',
     },
     defaultValue: {
