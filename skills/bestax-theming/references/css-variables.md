@@ -868,7 +868,8 @@ Declared on each Stat, `.stat`, whether it's on its own or in a `Stats` row, so 
 through a selector that reaches its Stats. The figure takes the Stat's color, so a `textColor` on
 the Stat recolors it, and the label, the change and the note keep theirs. `size` re-points
 `--bulma-stat-value-size` at Bulma's `size-4`, `size-2` or `size-1`, and a change's `color`
-re-points `--bulma-stat-change-color` at that color's `-on-scheme` variable, on the change itself.
+sets that change's color to the color's `-on-scheme` variable directly, so
+`--bulma-stat-change-color` is the uncolored change's only.
 
 `--bulma-stat-change-color`, `--bulma-stat-change-gap`, `--bulma-stat-change-size`,
 `--bulma-stat-description-color`, `--bulma-stat-description-size`, `--bulma-stat-label-color`,
