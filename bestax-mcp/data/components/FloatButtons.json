@@ -1,0 +1,94 @@
+{
+  "name": "FloatButtons",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/floatbuttons",
+  "docsUrl": "https://bestax.io/docs/api/components/floatbuttons",
+  "examples": [
+    {
+      "title": "Default",
+      "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <>\n      <Button onClick={() => setShown(!shown)}>\n        {shown ? 'Hide the stack' : 'Show the stack'}\n      </Button>\n      {shown && (\n        <FloatButtons position=\"bottom-left\">\n          <FloatButton aria-label=\"Help\" icon=\"question\" />\n          <FloatButton aria-label=\"New message\" icon=\"pen\" color=\"primary\" />\n        </FloatButtons>\n      )}\n    </>\n  );\n}"
+    },
+    {
+      "title": "A Count, a Speed Dial and Back to Top",
+      "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <>\n      <Button onClick={() => setShown(!shown)}>\n        {shown ? 'Hide the stack' : 'Show the stack'}\n      </Button>\n      {shown && (\n        <FloatButtons position=\"bottom-left\">\n          <FloatButton.BackToTop />\n          <Badge content={3} overlap=\"circle\" color=\"danger\">\n            <FloatButton aria-label=\"Inbox, 3 unread\" icon=\"inbox\" />\n          </Badge>\n          <FloatButton.SpeedDial\n            aria-label=\"Create\"\n            icon=\"plus\"\n            color=\"primary\"\n            direction=\"right\"\n          >\n            <FloatButton aria-label=\"Note\" icon=\"note-sticky\" />\n            <FloatButton aria-label=\"Task\" icon=\"check\" />\n          </FloatButton.SpeedDial>\n        </FloatButtons>\n      )}\n    </>\n  );\n}"
+    },
+    {
+      "title": "The Gap",
+      "code": "<FloatButtons className=\"roomy\">\n  <FloatButton aria-label=\"Help\" icon=\"question\" />\n  <FloatButton aria-label=\"New message\" icon=\"pen\" />\n</FloatButtons>"
+    }
+  ],
+  "accessibility": "- **Reading and Tab order are DOM order:** the stack runs top to bottom in the order you write it,\n  which is also the order a screen reader and the Tab key reach the buttons in. Write it after the\n  page's main content.\n- **No role:** it's a positioning wrapper, and each button keeps its own name and role.\n- **The page stays usable:** only the buttons take the pointer, so the gaps between them, and the\n  place a hidden back to top keeps, let a click through to the page under them.\n- **Focus not obscured:** a stack covers more of its corner than one button, so give `html` a\n  `scroll-padding-bottom` at least its height plus its offset, as\n  [Affix's accessibility notes](https://bestax.io/docs/api/components/affix#accessibility) show.",
+  "related": ["Affix", "Badge", "Buttons", "FloatButton"],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-floatbuttons--default",
+  "summary": "The `FloatButtons` component stacks several float buttons in one corner of the screen, so none covers another. It's an `Affix` laid out as a column, `--bulma-float-buttons-gap` apart, top to bottom in the order they're written, which is also their reading and Tab order, and lined up on its corner's side. The buttons inside take no corner of their own, and their tooltips open away from that side.",
+  "import": "import { FloatButtons, FloatButton } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/FloatButtons.tsx",
+  "rootClass": "float-buttons",
+  "parts": [
+    {
+      "path": "FloatButtons",
+      "summary": "The `FloatButtons` component stacks several float buttons in one corner of the screen, so none covers another. It's an `Affix` laid out as a column, `--bulma-float-buttons-gap` apart, top to bottom in the order they're written, which is also their reading and Tab order, and lined up on its corner's side. The buttons inside take no corner of their own, and their tooltips open away from that side.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "`FloatButton`s, a `FloatButton.SpeedDial`, a `FloatButton.BackToTop`, or any of them inside a `Badge`, top to bottom.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'",
+          "default": "'bottom-right'",
+          "description": "The corner, as `Affix`'s. The buttons line up on its side.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "portal",
+          "type": "boolean | string | HTMLElement",
+          "default": "false",
+          "description": "As `Affix`'s `portal`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<div>`, wherever it renders.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-float-buttons-gap",
+      "sass": "$float-buttons-gap",
+      "default": "0.75rem",
+      "scope": "root"
+    }
+  ]
+}

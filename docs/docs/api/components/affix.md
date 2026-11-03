@@ -219,7 +219,8 @@ the client takes over, so the server markup matches. Moving remounts what's insi
 ### Several Things in One Corner
 
 Two Affixes in the same corner sit on top of each other, since each is fixed to the same spot. Put
-the things that share a corner in one Affix and lay them out with the helper props.
+the things that share a corner in one Affix and lay them out with the helper props. For round
+buttons, [`FloatButtons`](./floatbuttons.md) does this for you.
 
 ```tsx live
 function example() {
@@ -382,7 +383,9 @@ give the element `pos="sticky"` and a `top`, as in the
 
 ## Related Components
 
-- [`Button`](../elements/button.md): The usual content, a floating button or a launcher.
+- [`FloatButton`](./floatbutton.md): A round floating button, with a speed dial and back to top,
+  which renders through Affix.
+- [`Button`](../elements/button.md): The usual content, a launcher or a feedback tab.
 - [`Box`](../elements/box.md): A surface with a shadow for a notice pinned to a corner, so it stands
   out from the page under it.
 - [`ScrollArea`](./scrollarea.md): For content in an Affix that can be taller than the screen.

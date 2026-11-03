@@ -377,6 +377,8 @@ name and its focus, since it isn't `disabled`.
   something on and off.
 - [`Buttons`](./buttons.md): Lays out several, and `hasAddons` joins them into one row.
 - [`Tooltip`](../components/tooltip.md): Adds a description to it.
+- [`FloatButton`](../components/floatbutton.md): A round icon button that floats in a corner of the
+  screen, with its name as a tooltip.
 - [`Icon`](./icon.md): The glyph inside it.
 - [`Delete`](./delete.md): Bulma's small round close button, for dismissing a notification, a tag or
   a modal.

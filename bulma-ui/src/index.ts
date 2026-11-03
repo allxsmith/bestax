@@ -35,6 +35,8 @@ export * from './components/ScrollArea';
 export * from './components/Command';
 export * from './components/DataTable';
 export * from './components/Affix';
+export * from './components/FloatButton';
+export * from './components/FloatButtons';
 
 export * from './elements/Block';
 export * from './elements/Box';

@@ -202,6 +202,12 @@ export const SCSS_SOURCES = {
   Fieldset: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_fieldset.scss' }],
   Figure: [],
   File: [{ pkg: 'bulma', path: 'sass/form/file.scss' }],
+  FloatButton: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_floatbutton.scss' },
+  ],
+  FloatButtons: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_floatbutton.scss' },
+  ],
   Footer: [{ pkg: 'bulma', path: 'sass/layout/footer.scss' }],
   Grid: [{ pkg: 'bulma', path: 'sass/grid/grid.scss' }],
   Hero: [{ pkg: 'bulma', path: 'sass/layout/hero.scss' }],
@@ -357,6 +363,7 @@ export const SCSS_SOURCES = {
 export const RENDERS_ELEMENT_OF = {
   CheckboxCard: 'Card', // its label is a `.card.checkbox-card`
   Dropzone: 'File', // its zone is a `.file.is-boxed.is-fullwidth`
+  FloatButton: 'Button', // renders `.button.float-button` through IconButton
   IconButton: 'Button', // renders `.button.icon-button` through Button
   LinkButton: 'Button', // renders `.button.link-button` through Button
   PinInput: 'Input', // each of its boxes is an `.input.pin-input-box`
@@ -379,6 +386,7 @@ export const IMPORT_COMPANIONS = {
   DataTable: ['DataTable', 'useDataTable'],
   Dialog: ['Dialog', 'DialogContainer', 'dialog'],
   Dropdown: ['Dropdown', 'Button', 'Field', 'Control', 'Span'],
+  FloatButtons: ['FloatButtons', 'FloatButton'],
   Toast: ['Toast', 'ToastContainer', 'toast'],
   ListItem: ['ListItem', 'UnorderedList', 'OrderedList'],
   Notification: ['Notification', 'NotificationContainer', 'notification'],

@@ -65,6 +65,8 @@ const BESTAX = {
   ToggleButton: 'elements/togglebutton',
   UnorderedList: 'elements/unorderedlist',
   Affix: 'components/affix',
+  FloatButton: 'components/floatbutton',
+  'FloatButton.SpeedDial': 'components/floatbutton#speed-dial',
   Avatar: 'components/avatar',
   Avatars: 'components/avatars',
   Badge: 'components/badge',
@@ -156,7 +158,6 @@ const BESTAX = {
   overlay: '/docs/guides/helpers/other',
   aspectRatio: '/docs/guides/helpers/other',
   'pos="sticky"': '/docs/guides/helpers/other',
-  'Affix + Button': 'components/affix',
   gap: '/docs/guides/helpers/flex#gap',
   'bestax.css': '/docs/guides/getting-started/installation',
   // Capabilities bestax documents as a recipe rather than a component.
@@ -698,7 +699,7 @@ export const categories = [
       ],
       [
         'Floating action button',
-        '~Affix + Button',
+        'FloatButton',
         '~Affix + ActionIcon',
         0,
         'Fab',
@@ -706,7 +707,7 @@ export const categories = [
         0,
         0,
       ],
-      ['Speed dial', 0, 0, 0, 'SpeedDial', 0, 0, 0],
+      ['Speed dial', 'FloatButton.SpeedDial', 0, 0, 'SpeedDial', 0, 0, 0],
       [
         'Action bar (bulk actions)',
         0,

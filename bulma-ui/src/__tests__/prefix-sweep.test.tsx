@@ -48,6 +48,37 @@ const PROPS: Record<string, Record<string, unknown>> = {
     isRounded: true,
   },
   IconText: { children: 'Text', iconProps: { name: 'star' } },
+  // Named, colored and sized, with a pill beside it in a stack, so every
+  // class a float button and a stack emit is swept.
+  FloatButton: {
+    icon: 'pen',
+    'aria-label': 'Compose',
+    color: 'primary',
+    size: 'large',
+  },
+  FloatButtons: {
+    position: 'top-left',
+    children: [
+      <Library.FloatButton.BackToTop key="top" />,
+      <Library.FloatButton
+        key="pill"
+        aria-label="Compose"
+        icon="pen"
+        showLabel
+      />,
+    ],
+  },
+  // Open and sideways, so the menu, its actions and their tooltips are swept.
+  FloatButtonSpeedDial: {
+    'aria-label': 'Create',
+    icon: 'plus',
+    direction: 'left',
+    defaultOpen: true,
+    children: [
+      <Library.FloatButton key="note" aria-label="Note" icon="note-sticky" />,
+      <Library.FloatButton key="task" aria-label="Task" icon="check" />,
+    ],
+  },
   Avatar: { name: 'Ada Lovelace' },
   Badge: { children: '9' },
   Steps: { items: [{ label: 'Step 1' }], hasNavigation: true },

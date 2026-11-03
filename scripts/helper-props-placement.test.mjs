@@ -66,6 +66,12 @@ const UNRENDERED = new Map([
     `ColorPicker.${part}`,
     'it renders only inside a ColorPicker, which holds its color',
   ]),
+  // Whether it shows hangs on a scroll position only the browser has. It
+  // puts both on its <button>, as the FloatButton tests show.
+  [
+    'FloatButton.BackToTop',
+    'it renders nothing on the server, only once hydrated',
+  ],
 ]);
 
 /** Every opening tag in some markup, with its attributes and classes. */

@@ -82,7 +82,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
 `toast`, `dialog`, `carousel`, `tabs`, `menu`, `reveal`, `avatar`, `avatars`, `badge`,
 `emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`, `pagination`,
-`affix`
+`affix`, `floatbutton`
 
 **Layout** (`@allxsmith/bestax-bulma/scss/layout/<name>`): `splitter`
 

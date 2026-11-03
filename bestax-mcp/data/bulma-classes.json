@@ -13117,6 +13117,8 @@
     "dropzone": "Dropzone",
     "empty-state": "EmptyState",
     "fieldset": "Fieldset",
+    "float-button": "FloatButton",
+    "float-buttons": "FloatButtons",
     "hover-card": "HoverCard",
     "icon-button": "IconButton",
     "kbd": "Kbd",

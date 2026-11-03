@@ -59,6 +59,7 @@
     "Button",
     "Buttons",
     "Delete",
+    "FloatButton",
     "Icon",
     "ToggleButton",
     "Tooltip",

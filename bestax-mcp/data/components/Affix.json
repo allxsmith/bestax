@@ -43,6 +43,7 @@
     "Badge",
     "Box",
     "Button",
+    "FloatButton",
     "Modal",
     "Portal",
     "ScrollArea",

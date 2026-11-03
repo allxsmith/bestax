@@ -1,10 +1,10 @@
 import React, { forwardRef, useEffect } from 'react';
 import { Button, type ButtonOwnProps, type ButtonProps } from './Button';
-import { Icon } from './Icon';
 import { buttonType } from '../helpers/buttonType';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { isDev, warnOnce } from '../helpers/devWarnings';
 import { flattenChildren } from '../helpers/flattenChildren';
+import { hasText, iconFromProp, iconOf } from '../helpers/iconGlyph';
 import type { PolymorphicComponent } from '../helpers/polymorphic';
 
 /**
@@ -104,36 +104,6 @@ type IconButtonImplProps = IconButtonOwnProps & {
   'aria-label'?: unknown;
   'aria-labelledby'?: unknown;
 };
-
-/** Whether a string has something in it besides spaces. */
-const hasText = (value: unknown) =>
-  typeof value === 'string' && value.trim() !== '';
-
-/** Whether a string is only spaces, which JSX leaves between elements. */
-const isBlank = (node: React.ReactNode) =>
-  typeof node === 'string' && node.trim() === '';
-
-/**
- * The glyph in one `.icon`, which is what Bulma keeps square: an `<Icon>` as
- * given, Fragments opened up and blank text left out, and anything else
- * inside an `Icon`. Null when there's nothing to draw, so an empty Fragment
- * or array counts as no glyph.
- */
-function iconOf(node: React.ReactNode) {
-  const items = flattenChildren(node).filter(item => !isBlank(item));
-  if (items.length === 0) return null;
-  const [only] = items;
-  if (items.length === 1 && React.isValidElement(only) && only.type === Icon) {
-    return only;
-  }
-  return <Icon>{items}</Icon>;
-}
-
-/** The glyph `icon` draws: a string is an `Icon` name, the rest as `iconOf`. */
-function iconFromProp(icon: React.ReactNode) {
-  if (typeof icon !== 'string') return iconOf(icon);
-  return hasText(icon) ? <Icon name={icon} /> : null;
-}
 
 /**
  * The `IconButton` component renders a button that shows only an icon, and requires a name for it.
