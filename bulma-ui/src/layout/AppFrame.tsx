@@ -214,8 +214,11 @@ export interface AppFrameNavProps
   closeOnNavigate?: boolean;
   /**
    * From the breakpoint up, a collapsed column shrinks to a rail of icons
-   * instead of leaving the page. Give each top-level `Menu.Item` and
-   * `Menu.Section` an `icon`. In the rail their labels are visually hidden,
+   * instead of leaving the page. Every top-level `Menu.Item` and
+   * `Menu.Section` needs an `icon`: in the rail, an item without one has
+   * nothing to show and its label spills over the page, and a section's
+   * button is blank, so a development build warns about one without. In the
+   * rail their labels are visually hidden,
    * so each stays its link's or button's name, and shows in a `Tooltip`
    * beside the rail on hover and keyboard focus. Nested lists and
    * `Menu.Label` headings hide there, and a section's button expands the

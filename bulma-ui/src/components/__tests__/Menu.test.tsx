@@ -6,6 +6,7 @@ import { Menu, MenuLabel, MenuList, MenuItem, MenuSection } from '../Menu';
 import { ConfigProvider } from '../../helpers/Config';
 import { MenuRailContext, type MenuRail } from '../../helpers/menuRail';
 import { Popover } from '../Popover';
+import { resetDevWarnings } from '../../helpers/devWarnings';
 
 // A simple link-like mock component for custom "as" prop testing
 type CustomLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
@@ -559,6 +560,78 @@ describe('in an icon rail', () => {
         </Menu>
       )
     ).toContain('aria-expanded="true"');
+  });
+
+  it('warns once about a top-level item or section without an icon, and not about the rest', () => {
+    resetDevWarnings();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      renderIn(
+        railOf(false),
+        <>
+          <Menu.List>
+            <Menu.Item href="#dashboard" icon={<Glyph />}>
+              Dashboard
+              <Menu.List>
+                <Menu.Item href="#nested">Nested</Menu.Item>
+              </Menu.List>
+            </Menu.Item>
+          </Menu.List>
+          <Menu.Section label="Reports" icon={<Glyph />}>
+            <Menu.List>
+              <Menu.Item href="#sales">Sales</Menu.Item>
+            </Menu.List>
+          </Menu.Section>
+        </>
+      );
+      // Every top-level part has its icon; nested ones need none.
+      expect(warn).not.toHaveBeenCalled();
+      renderIn(
+        railOf(false),
+        <>
+          <Menu.List>
+            <Menu.Item href="#plain">Plain</Menu.Item>
+            <Menu.Item href="#other">Other</Menu.Item>
+          </Menu.List>
+          <Menu.Section label="Bare">
+            <Menu.List>
+              <Menu.Item href="#a">A</Menu.Item>
+            </Menu.List>
+          </Menu.Section>
+        </>
+      );
+      expect(warn).toHaveBeenCalledTimes(2);
+      expect(warn.mock.calls[0][0]).toMatch(
+        /<Menu\.Item> in an <AppFrame\.Nav rail> has no icon/
+      );
+      expect(warn.mock.calls[1][0]).toMatch(
+        /<Menu\.Section> in an <AppFrame\.Nav rail> has no/
+      );
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it('doesn’t warn about an item without an icon outside a rail', () => {
+    resetDevWarnings();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      render(
+        <Menu>
+          <Menu.List>
+            <Menu.Item href="#plain">Plain</Menu.Item>
+          </Menu.List>
+          <Menu.Section label="Bare">
+            <Menu.List>
+              <Menu.Item href="#a">A</Menu.Item>
+            </Menu.List>
+          </Menu.Section>
+        </Menu>
+      );
+      expect(warn).not.toHaveBeenCalled();
+    } finally {
+      warn.mockRestore();
+    }
   });
 
   it('leaves a section’s own list out of the rail', () => {

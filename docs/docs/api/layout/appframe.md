@@ -231,9 +231,11 @@ that never collapses hides it there with the visibility helpers:
 ### The Icon Rail
 
 With `rail` on `AppFrame.Nav`, a collapsed column shrinks to a rail of icons instead of leaving the
-page. Give each top-level `Menu.Item` and `Menu.Section` an `icon`. In the rail the icons stay and
-the labels are visually hidden, so every link keeps its name, and each label shows in a tooltip
-beside the rail on hover and keyboard focus. Nested lists and `Menu.Label` headings hide there, and
+page. In the rail the icons stay and the labels are visually hidden, so every link keeps its name,
+and each label shows in a tooltip beside the rail on hover and keyboard focus. Every top-level
+`Menu.Item` and `Menu.Section` needs an `icon`: in the rail, an item without one has nothing to
+show and its label spills over the page, and a section's button is blank. A development build
+warns about each one without. Nested lists and `Menu.Label` headings hide there, and
 a section's button expands the column and opens the section, so no link is more than one press
 away.
 

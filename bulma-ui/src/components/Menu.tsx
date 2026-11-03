@@ -15,6 +15,7 @@ import { inertProps } from '../helpers/inertProps';
 import { getActiveElementInTree } from '../helpers/shadowDom';
 import { focusTabStop } from '../helpers/useFocusTrap';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
+import { warnOnce } from '../helpers/devWarnings';
 import { MenuRailContext, type MenuRail } from '../helpers/menuRail';
 import {
   isCustomElement,
@@ -310,6 +311,15 @@ export const MenuItem = forwardRef(function MenuItem(
   const iconClass = usePrefixedClassNames('menu-item-icon');
   const labelClass = usePrefixedClassNames('menu-item-label');
   const rail = useContext(MenuOwnRailContext);
+  if (rail && !icon) {
+    warnOnce(
+      'Menu:rail-item-icon',
+      '[bestax-bulma] A <Menu.Item> in an <AppFrame.Nav rail> has no icon, ' +
+        'so the collapsed rail has nothing to show for it and its label ' +
+        'spills over the page. Give every top-level Menu.Item and ' +
+        'Menu.Section in a rail an icon.'
+    );
+  }
 
   // Split children into label and nested MenuList(s)
   const labelChildren: React.ReactNode[] = [];
@@ -475,6 +485,14 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
   const toggleRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const rail = useContext(MenuOwnRailContext);
+  if (rail && !icon) {
+    warnOnce(
+      'Menu:rail-section-icon',
+      '[bestax-bulma] A <Menu.Section> in an <AppFrame.Nav rail> has no ' +
+        'icon, so in the collapsed rail its button shows nothing. Give ' +
+        'every top-level Menu.Item and Menu.Section in a rail an icon.'
+    );
+  }
   // The rail hides a section's list, so there the button widens the column
   // and opens the section, and says it's collapsed. Until the frame knows
   // whether the column is a rail, as before the page hydrates, the button
