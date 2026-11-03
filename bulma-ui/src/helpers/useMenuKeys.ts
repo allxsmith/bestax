@@ -63,26 +63,37 @@ export interface MenuKeysOptions {
    * @defaultValue false
    */
   reverse?: boolean;
+  /**
+   * Reads a horizontal menu's arrows as they point on the screen: Right
+   * moves on and Left back, in right-to-left text too, for items laid out by
+   * the screen rather than by the writing direction. Vertical arrows are
+   * physical anyway.
+   * @defaultValue false
+   */
+  physical?: boolean;
 }
 
 /**
  * Which way an arrow key moves through the items: `1` to the next, `-1` to
  * the previous, or `0` for any other key. A horizontal menu reads its
  * writing direction now rather than when it rendered, as `Splitter` and
- * `useTreeView` do, so it follows a `dir` set anywhere above it.
+ * `useTreeView` do, so it follows a `dir` set anywhere above it, unless it's
+ * `physical`.
  */
 function arrowStep(
   key: string,
   menu: HTMLElement,
   orientation: 'vertical' | 'horizontal',
-  reverse: boolean
+  reverse: boolean,
+  physical: boolean
 ): 1 | -1 | 0 {
   const horizontal = orientation === 'horizontal';
   const [next, previous] = horizontal
     ? ['ArrowRight', 'ArrowLeft']
     : ['ArrowDown', 'ArrowUp'];
   if (key !== next && key !== previous) return 0;
-  const rtl = horizontal && getComputedStyle(menu).direction === 'rtl';
+  const rtl =
+    horizontal && !physical && getComputedStyle(menu).direction === 'rtl';
   // Each of the three swaps the pair once.
   return ((key === next) !== rtl) !== reverse ? 1 : -1;
 }
@@ -111,8 +122,9 @@ export interface MenuKeys {
  *
  * - Down and Up move to the next and previous enabled item, wrapping, and
  *   Home and End go to the first and last. From no item, Down goes to the
- *   first and Up to the last. `options` turns the axis sideways or swaps
- *   its arrows, and the other axis's arrows are left alone.
+ *   first and Up to the last. `options` turns the axis sideways, swaps
+ *   its arrows, or reads them as they point on the screen, and the other
+ *   axis's arrows are left alone.
  * - Enter and Space activate the focused item. A `<button>`, and a link with
  *   an `href` for Enter, get the browser's own click, and anything else gets
  *   one from here, so its `onClick` runs either way. A key held down
@@ -133,7 +145,11 @@ export interface MenuKeys {
  * what has been typed.
  */
 export function useMenuKeys(options: MenuKeysOptions = {}): MenuKeys {
-  const { orientation = 'vertical', reverse = false } = options;
+  const {
+    orientation = 'vertical',
+    reverse = false,
+    physical = false,
+  } = options;
   const typeahead = useTypeahead();
 
   return useMemo<MenuKeys>(() => {
@@ -144,7 +160,7 @@ export function useMenuKeys(options: MenuKeysOptions = {}): MenuKeys {
       const items = enabledMenuItems(menu);
       if (!items.length) return;
       const current = items.indexOf(focused as HTMLElement);
-      const step = arrowStep(event.key, menu, orientation, reverse);
+      const step = arrowStep(event.key, menu, orientation, reverse, physical);
       if (step === 1) {
         event.preventDefault();
         items[current >= 0 ? (current + 1) % items.length : 0].focus();
@@ -201,5 +217,5 @@ export function useMenuKeys(options: MenuKeysOptions = {}): MenuKeys {
       typeaheadMatch(items, typeahead.type(event.key), current)?.focus();
     };
     return { onKeyDown, reset: typeahead.reset };
-  }, [typeahead, orientation, reverse]);
+  }, [typeahead, orientation, reverse, physical]);
 }

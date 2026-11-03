@@ -259,6 +259,42 @@ describe('useMenuKeys', () => {
       expect(after('ArrowRight')).toBe('Note');
     });
 
+    it('reads a physical horizontal menu’s arrows as they point, in right-to-left text too', () => {
+      render(<Items options={{ orientation: 'horizontal', physical: true }} />);
+      screen.getByRole('menu').style.direction = 'rtl';
+      item('Note').focus();
+      expect(after('ArrowRight')).toBe('Task');
+      expect(after('ArrowLeft')).toBe('Note');
+      expect(press('ArrowDown')).toBe(true);
+    });
+
+    it('reverses a physical horizontal menu by the screen alone', () => {
+      const { unmount } = render(
+        <Items
+          options={{ orientation: 'horizontal', physical: true, reverse: true }}
+        />
+      );
+      item('Note').focus();
+      expect(after('ArrowLeft')).toBe('Task');
+      unmount();
+      render(
+        <Items
+          options={{ orientation: 'horizontal', physical: true, reverse: true }}
+        />
+      );
+      screen.getByRole('menu').style.direction = 'rtl';
+      item('Note').focus();
+      expect(after('ArrowLeft')).toBe('Task');
+      expect(after('ArrowRight')).toBe('Note');
+    });
+
+    it('keeps vertical arrows as they are when physical', () => {
+      render(<Items options={{ physical: true }} />);
+      item('Note').focus();
+      expect(after('ArrowDown')).toBe('Task');
+      expect(after('ArrowUp')).toBe('Note');
+    });
+
     it('keeps Home and End on the first and last items in the DOM', () => {
       render(<Items options={{ orientation: 'horizontal', reverse: true }} />);
       item('Task').focus();
