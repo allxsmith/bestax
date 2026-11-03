@@ -75,6 +75,7 @@ const LOAD_TIME_CALLS = new Set([
   'withSubComponents',
   'Set',
   'Map',
+  'WeakMap',
   'fromEntries',
   'map',
   'filter',
