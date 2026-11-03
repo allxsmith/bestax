@@ -1471,7 +1471,7 @@ describe('AppFrame.Nav rail', () => {
       vi.spyOn(nav(), 'getBoundingClientRect').mockReturnValue({
         height,
       } as DOMRect);
-      act(() => observers.at(-1)!.measure());
+      act(() => observers[observers.length - 1].measure());
     };
 
     it('scrolls with the page, and sticks again once it fits', () => {
