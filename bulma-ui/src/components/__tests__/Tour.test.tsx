@@ -5,6 +5,7 @@ import { hydrateRoot } from 'react-dom/client';
 import { Tour, TourStep } from '../Tour';
 import type { TourProps } from '../Tour';
 import { Modal } from '../Modal';
+import { Popover } from '../Popover';
 import { ConfigProvider } from '../../helpers/Config';
 import { LocaleProvider } from '../../helpers/LocaleProvider';
 import { resetDevWarnings } from '../../helpers/devWarnings';
@@ -28,7 +29,9 @@ beforeEach(() => {
   );
   vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
     function (this: HTMLElement) {
-      const [top, left, width, height] = (this.dataset.rect ?? '0 0 200 100')
+      const [top, left, width, height] = (
+        this.isConnected ? (this.dataset.rect ?? '0 0 200 100') : '0 0 0 0'
+      )
         .split(' ')
         .map(Number);
       return {
@@ -291,11 +294,12 @@ describe('Tour', () => {
           <Tour.Step title="Just a title" />
           <Tour.Step title="False">{false}</Tour.Step>
           <Tour.Step title="Empty">{''}</Tour.Step>
+          <Tour.Step title="Nothing in a list">{[false, null, '']}</Tour.Step>
         </Tour>
       );
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 4; i++) {
         expect(dialog()).not.toHaveAttribute('aria-describedby');
-        if (i < 2) fireEvent.click(next());
+        if (i < 3) fireEvent.click(next());
       }
     });
   });
@@ -636,15 +640,76 @@ describe('Tour', () => {
       expect(next()).toHaveFocus();
     });
 
-    it('without the overlay, leaves Tab to the browser, so it can leave the step for the page', () => {
+    it('without the overlay, sends Tab from Next to the target, and leaves the rest of Tab to the browser', () => {
       render(<Page defaultOpen overlay={false} defaultValue={1} />);
-      // Next is the step's last stop: the browser takes Tab on from there.
+      expect(press('Tab')).toBe(false);
+      const filters = screen.getByRole('button', { name: 'Filters' });
+      expect(filters).toHaveFocus();
+      // From the target, and from anywhere but Next, Tab is the browser's.
+      expect(press('Tab')).toBe(true);
+      expect(press('Tab', { shiftKey: true })).toBe(true);
+      next().focus();
+      expect(press('Tab', { shiftKey: true })).toBe(true);
+      screen.getByRole('button', { name: 'Skip' }).focus();
+      expect(press('Tab')).toBe(true);
+    });
+
+    it('sends Tab from Next to the first control inside a target, and leaves it be when nothing there takes focus', () => {
+      render(
+        <>
+          <div id="panel" data-rect="100 100 300 100">
+            <span>Filters</span>
+            <button type="button">First</button>
+            <button type="button">Second</button>
+          </div>
+          <p id="plain" data-rect="300 100 300 40">
+            Plain text
+          </p>
+          <Tour defaultOpen overlay={false}>
+            <Tour.Step target="#panel" title="Panel">
+              A panel of controls.
+            </Tour.Step>
+            <Tour.Step target="#plain" title="Plain">
+              Text alone.
+            </Tour.Step>
+            <Tour.Step title="Nowhere">No target.</Tour.Step>
+          </Tour>
+        </>
+      );
+      expect(press('Tab')).toBe(false);
+      expect(screen.getByRole('button', { name: 'First' })).toHaveFocus();
+      next().focus();
+      fireEvent.click(next());
       expect(press('Tab')).toBe(true);
       expect(next()).toHaveFocus();
-      const filters = screen.getByRole('button', { name: 'Filters' });
-      filters.focus();
-      expect(press('Tab', { shiftKey: true })).toBe(true);
-      expect(filters).toHaveFocus();
+      fireEvent.click(next());
+      expect(press('Tab')).toBe(true);
+      expect(next()).toHaveFocus();
+    });
+
+    it('leaves focus in a Popover the step portals when the step turns modal', () => {
+      const Turning = ({ overlay }: { overlay: boolean }) => (
+        <Tour open overlay={overlay}>
+          <Tour.Step title="Filters">
+            <Popover
+              trigger={<button type="button">Open filters</button>}
+              defaultOpen
+              appendToBody
+              ariaLabel="Filter panel"
+            >
+              <button type="button">Only mine</button>
+            </Popover>
+          </Tour.Step>
+        </Tour>
+      );
+      const { rerender } = render(<Turning overlay={false} />);
+      const inPopover = screen.getByRole('button', { name: 'Only mine' });
+      inPopover.focus();
+      expect(
+        screen.getByRole('dialog', { name: 'Filters' }).contains(inPopover)
+      ).toBe(false);
+      rerender(<Turning overlay />);
+      expect(inPopover).toHaveFocus();
     });
 
     it('moves focus into a step that turns modal while focus is on the page', () => {
@@ -853,6 +918,27 @@ describe('Tour', () => {
       expect(dialog().style.left).toBe('480px');
     });
 
+    it('keeps a bottom step below with margins on its sides, as mx sets', () => {
+      // 690 + 100 fits under 800 with no gap, and wouldn't with a 24px one.
+      render(
+        <>
+          <button type="button" id="low" data-rect="660 100 80 30">
+            Low
+          </button>
+          <Tour defaultOpen>
+            <Tour.Step
+              target="#low"
+              title="Low"
+              style={{ marginLeft: '24px', marginRight: '24px' }}
+            >
+              Near the bottom.
+            </Tour.Step>
+          </Tour>
+        </>
+      );
+      expect(dialog()).toHaveClass('is-bottom');
+    });
+
     it('places the panel at the bottom for a position it doesn’t know', () => {
       render(
         <>
@@ -972,6 +1058,109 @@ describe('Tour', () => {
       });
       expect(dialog()).toHaveClass('is-centered');
       expect(document.querySelector('.tour-spotlight')).toBeNull();
+    });
+
+    it('takes an inline ref object or a created ref as a target, render after render', () => {
+      function Inline() {
+        const [element, setElement] = useState<HTMLButtonElement | null>(null);
+        const [, setRenders] = useState(0);
+        return (
+          <>
+            <button
+              type="button"
+              ref={setElement}
+              data-rect="100 100 80 30"
+              onClick={() => setRenders(n => n + 1)}
+            >
+              Render again
+            </button>
+            <Tour defaultOpen overlay={false}>
+              <Tour.Step target={{ current: element }} title="Inline">
+                Body.
+              </Tour.Step>
+              {/* eslint-disable-next-line @eslint-react/no-create-ref -- a new ref each render is the case under test */}
+              <Tour.Step target={createRef<HTMLElement>()} title="Created">
+                Body.
+              </Tour.Step>
+            </Tour>
+          </>
+        );
+      }
+      render(<Inline />);
+      expect(dialog()).toHaveClass('is-bottom');
+      for (let i = 0; i < 3; i++) {
+        fireEvent.click(screen.getByRole('button', { name: 'Render again' }));
+      }
+      expect(dialog()).toHaveClass('is-bottom');
+      expect(dialog().style.top).toBe('130px');
+      fireEvent.click(next());
+      expect(dialog()).toHaveClass('is-centered');
+    });
+
+    it('never places the step against a target that left the page, finding its replacement at once', () => {
+      const Remount = ({ id, top }: { id: string; top: number }) => (
+        <>
+          <button
+            key={id}
+            type="button"
+            id="swapped"
+            data-rect={`${top} 100 80 30`}
+          >
+            Swapped
+          </button>
+          <Tour open>
+            <Tour.Step target="#swapped" title="Swapped">
+              Remounted.
+            </Tour.Step>
+          </Tour>
+        </>
+      );
+      const { rerender } = render(<Remount id="a" top={100} />);
+      expect(dialog().style.top).toBe('130px');
+      // Measured in the commit that swaps it, before a frame finds it again.
+      rerender(<Remount id="b" top={300} />);
+      expect(dialog().style.top).toBe('330px');
+    });
+
+    it('keeps its place while a target that left the page has no replacement', () => {
+      const Going = ({ shown, label }: { shown: boolean; label: string }) => (
+        <>
+          {shown && (
+            <button type="button" id="going" data-rect="100 100 80 30">
+              Going
+            </button>
+          )}
+          <Tour open>
+            <Tour.Step target="#going" title="Going" aria-label={label}>
+              Goes.
+            </Tour.Step>
+          </Tour>
+        </>
+      );
+      const { rerender } = render(<Going shown label="Going" />);
+      expect(dialog().style.top).toBe('130px');
+      rerender(<Going shown={false} label="Gone" />);
+      expect(dialog().style.top).toBe('130px');
+    });
+
+    it('finds a target any attribute change makes a selector match', async () => {
+      render(
+        <>
+          <button type="button" id="data" data-rect="100 100 80 30">
+            Data
+          </button>
+          <Tour defaultOpen>
+            <Tour.Step target="[data-ready]" title="Ready">
+              Matches once it's ready.
+            </Tour.Step>
+          </Tour>
+        </>
+      );
+      expect(dialog()).toHaveClass('is-centered');
+      await act(async () => {
+        document.getElementById('data')!.setAttribute('data-ready', '');
+      });
+      expect(dialog()).toHaveClass('is-bottom');
     });
 
     it('finds a target a class change makes a selector match', async () => {
@@ -1204,6 +1393,8 @@ describe('Tour', () => {
 
   describe('props, refs and the portal', () => {
     it('puts the root’s helper props and attributes on .tour, and the step’s on its panel', () => {
+      const onFocus = vi.fn();
+      const onBlur = vi.fn();
       render(
         <Tour defaultOpen className="mine" p="2" data-testid="tour">
           <Tour.Step
@@ -1213,6 +1404,8 @@ describe('Tour', () => {
             id="the-step"
             style={{ zIndex: 1 }}
             onPointerDownCapture={() => {}}
+            onFocus={onFocus}
+            onBlur={onBlur}
           >
             Body.
           </Tour.Step>
@@ -1223,6 +1416,9 @@ describe('Tour', () => {
       expect(dialog()).toHaveAttribute('id', 'the-step');
       expect(dialog().style.zIndex).toBe('1');
       fireEvent.pointerDown(dialog());
+      expect(onFocus).toHaveBeenCalled();
+      next().blur();
+      expect(onBlur).toHaveBeenCalled();
     });
 
     it('forwards the root’s ref and the step’s, objects and callbacks alike', () => {

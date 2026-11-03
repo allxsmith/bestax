@@ -19,7 +19,7 @@ import { useIsHydrated } from '../helpers/useIsHydrated';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { useScrollLock } from '../helpers/scrollLock';
 import { useOverlayEscape, useOverlayStack } from '../helpers/overlayStack';
-import { trapTab } from '../helpers/useFocusTrap';
+import { focusTabStop, trapTab } from '../helpers/useFocusTrap';
 import { useOverlayFocus } from '../helpers/useOverlayFocus';
 import { useInertSiblings } from '../helpers/useInertSiblings';
 import { useOutsidePress } from '../helpers/useOutsidePress';
@@ -30,7 +30,6 @@ import {
 import type { AnchoredSide } from '../helpers/useAnchoredPosition';
 import { useScopedNumberFormat } from '../helpers/localeFormat';
 import { spokenText, visuallyHidden } from '../helpers/statusRegion';
-import { getActiveElementInTree } from '../helpers/shadowDom';
 import { warnOnce } from '../helpers/devWarnings';
 import { Button } from '../elements/Button';
 import { Buttons } from '../elements/Buttons';
@@ -138,10 +137,13 @@ export interface TourProps
   /**
    * Dims the page and makes each step modal: `aria-modal`, the rest of the
    * page inert and still, and Tab held in the step. With `false`, a step is
-   * a non-modal dialog, as a `Popover` is: focus moves in and back, but Tab
-   * leaves it for the page, and the page and its target stay usable, from
-   * the keyboard too. A `Tour.Step` can set its own, and a step that turns
-   * modal while focus is on the page takes focus.
+   * a non-modal dialog, as a `Popover` is, and the page and its target stay
+   * usable, from the keyboard too: focus moves in and back, Tab from the
+   * step's last control, Next, goes on to the target (its first control, or
+   * the target itself when it takes focus), Shift+Tab goes where the browser
+   * sends it, and Escape ends the tour while focus is in the step. A
+   * `Tour.Step` can set its own, and a step that turns modal while focus is
+   * out on the page takes focus.
    * @defaultValue true
    */
   overlay?: boolean;
@@ -241,12 +243,17 @@ interface FoundTarget {
   element: HTMLElement | null;
   box: TargetBox | null;
   /**
-   * The target and the step it was looked up for, so what was found for the
-   * step before isn't used for the next one.
+   * The step it was looked up for, so what was found for the step before
+   * isn't used for the next one.
    */
-  target?: TourTarget;
   index?: number;
-  /** The step's size, so a step whose content grows is placed again. */
+  /**
+   * The step's size. `useAnchoredPosition` measures the step on a render, a
+   * scroll or a resize and doesn't watch its size, so a change in it is
+   * passed on here as state: the render that follows measures it again.
+   * Watching the size in the hook would serve Popover, HoverCard and
+   * Combobox too, and is a change of its own.
+   */
   stepSize?: string;
 }
 
@@ -263,11 +270,16 @@ const sameBox = (a: TargetBox | null, b: TargetBox | null): boolean =>
 
 /**
  * The element a target names, while it's on the page, box or no box. A
- * selector that isn't valid matches nothing.
+ * selector that isn't valid matches nothing, and nor does no target.
  */
-function findTarget(target: TourTarget, doc: Document): HTMLElement | null {
+function findTarget(
+  target: TourTarget | undefined,
+  doc: Document
+): HTMLElement | null {
   let element: HTMLElement | null;
-  if (typeof target === 'string') {
+  if (target == null) {
+    element = null;
+  } else if (typeof target === 'string') {
     try {
       element = doc.querySelector<HTMLElement>(target);
     } catch {
@@ -281,13 +293,13 @@ function findTarget(target: TourTarget, doc: Document): HTMLElement | null {
 
 /**
  * Finds the current step's target and its box while the step shows, and
- * measures it and the step again, once a frame at most, when something
- * might have moved them: a scroll or a resize, a change in the size of the
- * target, the step or the page, or elements added, removed or given another
- * `id` or `class` outside the tour, which can bring a target in or take it
- * away. A target that moves without any of these, as one a transition or a
- * transform slides along does, isn't followed until one of them happens.
- * What's returned is only ever what was found for this step and target.
+ * measures it and the step again, once a frame at most, on a scroll, a
+ * resize of the window, a change in the target's or the step's own size, or
+ * any change to the page outside the tour: an element added or removed, or
+ * an attribute changed. A target moved by something else, as a transform or
+ * a transition slides one along, or by content above it that grows inside a
+ * scrolling element, is followed at the next of those. What's returned is
+ * only ever what was found for this step.
  */
 function useTourTarget(
   rootRef: React.RefObject<HTMLDivElement | null>,
@@ -310,15 +322,15 @@ function useTourTarget(
     // The element watched for size as the target, box or no box, so one
     // that gets a box is noticed.
     let watched: HTMLElement | null = null;
-    // The page's body grows when something above the target does, such as
-    // an image as it loads, so it's watched with the step and the target.
+    // The body is watched as well: on a page that scrolls as a whole, it
+    // grows when something above the target does, such as an image loading.
     const sizes =
       typeof ResizeObserver === 'undefined'
         ? null
         : new ResizeObserver(() => schedule());
     const update = () => {
       frame = 0;
-      const candidate = target == null ? null : findTarget(target, doc);
+      const candidate = findTarget(target, doc);
       if (candidate !== watched) {
         if (watched) sizes?.unobserve(watched);
         if (candidate) sizes?.observe(candidate);
@@ -337,14 +349,15 @@ function useTourTarget(
         : null;
       const { width, height } = step.getBoundingClientRect();
       const stepSize = `${width}x${height}`;
+      // What matters is what was found, not the target's identity, which
+      // an inline ref object changes on every render.
       setFound(prev =>
         prev.element === element &&
         sameBox(prev.box, box) &&
-        prev.target === target &&
         prev.index === index &&
         prev.stepSize === stepSize
           ? prev
-          : { element, box, target, index, stepSize }
+          : { element, box, index, stepSize }
       );
       if (target != null && !element) {
         warnOnce(
@@ -362,14 +375,16 @@ function useTourTarget(
     sizes?.observe(step);
     sizes?.observe(doc.body);
     update();
-    // The tour's own changes can't bring a target in, so they're left out.
+    // Any attribute can bring a target in or move one (`hidden`, `open`,
+    // `style`, a `data-` one a selector names), and the frame bounds the
+    // cost. The tour's own changes can't, so they're left out.
     const observer = new MutationObserver(records => {
       if (records.some(record => !root.contains(record.target))) schedule();
     });
     observer.observe(doc.body, {
       childList: true,
       subtree: true,
-      attributeFilter: ['id', 'class'],
+      attributes: true,
     });
     view.addEventListener('scroll', schedule, { passive: true, capture: true });
     view.addEventListener('resize', schedule, { passive: true });
@@ -382,9 +397,7 @@ function useTourTarget(
     };
   }, [active, target, index, rootRef, stepRef]);
 
-  return active && found.target === target && found.index === index
-    ? found
-    : nothingFound;
+  return active && found.index === index ? found : nothingFound;
 }
 
 /**
@@ -416,9 +429,12 @@ function isFullyVisible(element: HTMLElement): boolean {
   return true;
 }
 
-/** Whether a title or a body is there to show: not empty, `false` or nothing. */
+/**
+ * Whether a title or a body has something to show: any child but `null`,
+ * `undefined`, a boolean or an empty string, in an array too.
+ */
 const isGiven = (node: React.ReactNode): boolean =>
-  node != null && node !== false && node !== '';
+  React.Children.toArray(node).some(child => child !== '');
 
 /**
  * Whether the element uses the arrow keys itself, as a text field, a
@@ -484,7 +500,11 @@ interface TourContextValue {
   progress: string;
   stepRef: React.MutableRefObject<HTMLDivElement | null>;
   nextRef: React.RefObject<HTMLButtonElement | null>;
+  /** The target the step points at, on the page with a box, or `null`. */
+  target: HTMLElement | null;
   markInsidePress: (event: React.PointerEvent) => void;
+  /** Records whether focus is in the step's React tree, portals included. */
+  markFocus: (inside: boolean) => void;
   /** Shows another step. */
   goTo: (index: number) => void;
   /** Next's action: the next step, or the end of the tour on the last. */
@@ -546,6 +566,8 @@ function TourPanel({
   style,
   onKeyDown,
   onPointerDownCapture,
+  onFocus,
+  onBlur,
   ...props
 }: TourPanelProps) {
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
@@ -581,7 +603,9 @@ function TourPanel({
   // isn't announced again.
   const [said, setSaid] = useState('');
   const shownIndexRef = useRef(index);
-  const { progress, nextRef } = tour;
+  const { progress, nextRef, markFocus } = tour;
+  // A panel that goes takes focus with it, whether or not a blur says so.
+  useEffect(() => () => markFocus(false), [markFocus]);
   const ariaLabel = rest['aria-label'];
   useEffect(() => {
     if (shownIndexRef.current === index) return;
@@ -610,6 +634,20 @@ function TourPanel({
       if (!tour.modal && tour.closeOnEscape) {
         e.preventDefault();
         tour.skip();
+      }
+      return;
+    }
+    // Without the overlay, Tab from Next, the step's last control, goes on
+    // to the target rather than past the end of the page, where the step's
+    // portal sits. A target with nothing that takes focus leaves the key to
+    // the browser.
+    const { target } = tour;
+    if (e.key === 'Tab' && !e.shiftKey && !tour.modal && target) {
+      if (from === nextRef.current) {
+        focusTabStop(target);
+        if (target.contains(target.ownerDocument.activeElement)) {
+          e.preventDefault();
+        }
       }
       return;
     }
@@ -659,6 +697,16 @@ function TourPanel({
       onPointerDownCapture={e => {
         onPointerDownCapture?.(e);
         tour.markInsidePress(e);
+      }}
+      // React's focus events bubble through portals, so focus in content
+      // the step portals elsewhere, such as a Popover's panel, counts.
+      onFocus={e => {
+        onFocus?.(e);
+        markFocus(true);
+      }}
+      onBlur={e => {
+        onBlur?.(e);
+        markFocus(false);
       }}
     >
       <div className={headerClass}>
@@ -846,8 +894,22 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
       index,
       shown
     );
-    // A new object for each target, so the placement is measured afresh.
-    const anchorRef = useMemo(() => ({ current: target }), [target]);
+    // What the step is placed against: the target as found, or, once that's
+    // left the page, what the step's target finds now, so the step is never
+    // placed against a detached element's empty box. With nothing found,
+    // the step keeps its last place until the next measurement. A new object
+    // for each, so the placement is measured afresh.
+    const stepTarget = stepProps.target;
+    const anchorRef = useMemo(
+      () => ({
+        get current() {
+          if (!target || target.isConnected) return target;
+          const now = findTarget(stepTarget, target.ownerDocument);
+          return now && now.getClientRects().length > 0 ? now : null;
+        },
+      }),
+      [target, stepTarget]
+    );
     const position =
       stepProps.position && validTourStepPositions.includes(stepProps.position)
         ? stepProps.position
@@ -901,10 +963,14 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
 
     // A step that turns modal while focus is out on the page, as it can be
     // after a non-modal step, takes focus, since the page is going inert.
+    // Focus counts as in the step anywhere in its React tree, so a Popover's
+    // panel the step portals elsewhere keeps it.
+    const focusInStepRef = useRef(false);
+    const markFocus = useCallback((inside: boolean) => {
+      focusInStepRef.current = inside;
+    }, []);
     useEffect(() => {
-      if (!modal) return;
-      const panel = stepRef.current as HTMLDivElement;
-      if (!panel.contains(getActiveElementInTree(panel))) {
+      if (modal && !focusInStepRef.current) {
         (nextRef.current as HTMLButtonElement).focus();
       }
     }, [modal]);
@@ -958,7 +1024,9 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
       progress,
       stepRef,
       nextRef,
+      target,
       markInsidePress,
+      markFocus,
       goTo: requestValue,
       next: () => {
         if (index < total - 1) {
