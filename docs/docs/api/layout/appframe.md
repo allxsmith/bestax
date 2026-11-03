@@ -565,7 +565,8 @@ The parts are attached to `AppFrame`, and also exported on their own as `AppFram
   the Tab order and the accessibility tree before any script runs.
 - **The resize handle** is a focusable `separator` with `aria-valuenow`, `aria-valuemin` and
   `aria-valuemax` in pixels, `aria-controls` naming the nav, and the nav's name, so it's read as
-  "Sections, separator, 256". Its keys do everything a drag does (WCAG 2.1.1). As with Splitter's
+  "Sections, separator, 256". Collapsed, its value is the rail's width, or 0 without a rail, which
+  is where its range starts. Its keys do everything a drag does (WCAG 2.1.1). As with Splitter's
   handles, a pointer can't set a width without dragging; the column works at its default width,
   and the burger collapses and expands it with a click. Its strip is 24 pixels wide for a coarse
   pointer (WCAG 2.5.8), and its line, on hover, focus and drag, is a border, which forced colors
