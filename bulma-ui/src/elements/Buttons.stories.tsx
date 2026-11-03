@@ -246,6 +246,7 @@ export const CompoundUsage: Story = {
         <Buttons.Button color="primary">Save</Buttons.Button>
         <Buttons.Button>Cancel</Buttons.Button>
         <Buttons.LinkButton>Learn more</Buttons.LinkButton>
+        <Buttons.IconButton icon="ellipsis" aria-label="More actions" />
       </Buttons>
       <Buttons hasAddons role="group" aria-label="Text style">
         <Buttons.ToggleButton defaultPressed>Bold</Buttons.ToggleButton>

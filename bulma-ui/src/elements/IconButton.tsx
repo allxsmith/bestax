@@ -32,6 +32,13 @@ export interface IconButtonOwnProps extends ButtonOwnProps {
    * the name: a button with text is a `Button`.
    */
   children?: React.ReactNode;
+  /**
+   * Makes the button a circle the size of its square. The circle comes from
+   * bestax's CSS, in `bestax.css` and its variants, or in `extras.css` next
+   * to your own Bulma. Without it, Bulma's `is-rounded` draws a pill a little
+   * wider than it is tall.
+   */
+  isRounded?: boolean;
 }
 
 /** Names an IconButton by the text of another element. */
