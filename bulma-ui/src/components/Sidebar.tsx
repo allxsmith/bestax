@@ -8,8 +8,11 @@ import { usePortalContainer } from '../helpers/portal';
 import { LocalePortalScope } from '../helpers/LocaleProvider';
 import { useConfig } from '../helpers/Config';
 import { buttonType } from '../helpers/buttonType';
-import { useLatestRef } from '../helpers/useLatestRef';
-import { isModalOverlayOpen, useOverlayStack } from '../helpers/overlayStack';
+import {
+  isModalOverlayOpen,
+  useOverlayEscape,
+  useOverlayStack,
+} from '../helpers/overlayStack';
 import { focusTabStop, trapTab } from '../helpers/useFocusTrap';
 import { inertProps } from '../helpers/inertProps';
 import {
@@ -157,11 +160,6 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
       }
     }, [overlayClose, handleClose]);
 
-    // Read when Escape arrives, so the key listener stays put while
-    // `onClose` changes identity, as an inline one does on every render of
-    // the parent.
-    const handleCloseRef = useLatestRef(handleClose);
-
     // Joins the stack of open overlays, so the sidebar answers Escape only
     // while it's the topmost overlay, and keeps it from those under it. It's
     // modal with an overlay: without one it leaves Tab to a modal overlay
@@ -169,21 +167,9 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
     const isTopmost = useOverlayStack(isOpen, overlay);
     const closesOnEscape = escapeClose && canCancel && Boolean(onClose);
 
-    // Handle escape key. On `window`, as in `Modal`, so everything inside the
-    // sidebar has had the key first, and an Escape it used is left to it. One
-    // the sidebar closes on is marked used, so nothing under it acts on it.
-    useEffect(() => {
-      if (!isOpen || !closesOnEscape) return;
-
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key !== 'Escape' || e.defaultPrevented || !isTopmost()) return;
-        e.preventDefault();
-        handleCloseRef.current();
-      };
-
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen, closesOnEscape, handleCloseRef, isTopmost]);
+    // Escape closes it, on `window`, as in `Modal`, so everything inside the
+    // sidebar has had the key first, and an Escape it used is left to it.
+    useOverlayEscape(isOpen && closesOnEscape, isTopmost, handleClose);
 
     // Keep Tab inside while there's an overlay, as `Modal` does:
     // `aria-modal` hides the rest of the page from assistive technology, so
