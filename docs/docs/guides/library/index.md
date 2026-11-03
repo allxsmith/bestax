@@ -376,11 +376,11 @@ Every component in this library — including all extras — is free and always 
 
 Beyond the core Bulma wrappers, bestax-bulma ships additional components that fill gaps where Bulma doesn't provide a built-in solution:
 
-| Category | Extras |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------, ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Category       | Extras                                                                                                                                                                                                                 |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Components** | Affix, Avatar, Avatars, Badge, Carousel, Collapse, Collapses, Command, ContextMenu, DataTable, Dialog, EmptyState, HoverCard, Loading, Popover, Reveal, ScrollArea, Sidebar, Steps, Timeline, Toast, Tooltip, TreeView |
-| **Form** | Autocomplete, CheckboxCard, ColorInput, ColorPicker, Combobox, DateInput, DateRangeInput, DateTimeInput, Dropzone, Fieldset, Numberinput, PinInput, RadioCard, Rate, Slider, Switch, Taginput, TimeInput |
-| **Elements** | ColorSwatch, DescriptionList, IconButton, Kbd, LinkButton, NumberFormatter, RingProgress |
-| **Layout** | Center, Flex, Group, Splitter, Stack |
+| **Form**       | Autocomplete, CheckboxCard, ColorInput, ColorPicker, Combobox, DateInput, DateRangeInput, DateTimeInput, Dropzone, Fieldset, Numberinput, PinInput, RadioCard, Rate, Slider, Switch, Taginput, TimeInput               |
+| **Elements**   | ColorSwatch, DescriptionList, IconButton, Kbd, LinkButton, NumberFormatter, RingProgress                                                                                                                               |
+| **Layout**     | Center, Flex, Group, Splitter, Stack                                                                                                                                                                                   |
 
 The extras that need styles include purpose-built SCSS that follows Bulma v1's CSS-variable conventions, so they theme and customise exactly like native Bulma components. They're bundled into `bestax.css` — no separate import needed.
