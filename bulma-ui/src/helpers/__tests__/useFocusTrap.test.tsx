@@ -390,6 +390,59 @@ describe('useFocusTrap', () => {
       expect(pressTab().defaultPrevented).toBe(true);
       expect(button('First')).toHaveFocus();
     });
+
+    describe('with onTabOut', () => {
+      it('hands it a Tab past the last stop or a Shift+Tab past the first, unwrapped', () => {
+        const onTabOut = vi.fn();
+        render(<Trap onTabOut={onTabOut} />);
+        button('Last').focus();
+        const forward = pressTab();
+        expect(forward.defaultPrevented).toBe(false);
+        expect(onTabOut).toHaveBeenLastCalledWith(forward);
+        expect(button('Last')).toHaveFocus();
+        button('First').focus();
+        const back = pressTab(true);
+        expect(back.defaultPrevented).toBe(false);
+        expect(onTabOut).toHaveBeenLastCalledWith(back);
+        expect(onTabOut).toHaveBeenCalledTimes(2);
+      });
+
+      it('leaves Tab between the ends to the browser', () => {
+        const onTabOut = vi.fn();
+        render(<Trap onTabOut={onTabOut} />);
+        button('Middle').focus();
+        expect(pressTab().defaultPrevented).toBe(false);
+        expect(onTabOut).not.toHaveBeenCalled();
+      });
+
+      it('hands it a Tab from a container with no tab stops', () => {
+        const onTabOut = vi.fn();
+        render(
+          <Trap onTabOut={onTabOut}>
+            <span>Nothing focusable</span>
+          </Trap>
+        );
+        expect(screen.getByTestId('trap')).toHaveFocus();
+        expect(pressTab().defaultPrevented).toBe(false);
+        expect(onTabOut).toHaveBeenCalledTimes(1);
+      });
+
+      it('reads the latest handler, and wraps again once it has none', () => {
+        const first = vi.fn();
+        const second = vi.fn();
+        const { rerender } = render(<Trap onTabOut={first} />);
+        button('Last').focus();
+        rerender(<Trap onTabOut={second} />);
+        // A new handler doesn't set the trap up again, which would move focus.
+        expect(button('Last')).toHaveFocus();
+        pressTab();
+        expect(first).not.toHaveBeenCalled();
+        expect(second).toHaveBeenCalledTimes(1);
+        rerender(<Trap />);
+        expect(pressTab().defaultPrevented).toBe(true);
+        expect(button('First')).toHaveFocus();
+      });
+    });
   });
 
   describe('which elements are tab stops', () => {

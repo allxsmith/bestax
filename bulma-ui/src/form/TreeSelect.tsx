@@ -463,9 +463,7 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
     // above it open, and the search not hiding it.
     const visible = (value: string) =>
       !search?.hidden.has(value) &&
-      (index.get(value)?.path ?? []).every(above =>
-        shownExpanded.includes(above)
-      );
+      index.get(value)!.path.every(above => shownExpanded.includes(above));
     const focusTarget =
       target !== undefined && visible(target)
         ? target

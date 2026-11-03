@@ -136,7 +136,7 @@ export function DialogSelect({
   onOpenChange,
   onPrintableKey,
   onClear,
-  clearable = false,
+  clearable,
   clearLabel,
   chooseLabel,
   placeholder,
@@ -212,7 +212,7 @@ export function DialogSelect({
           ? { 'aria-labelledby': labelId }
           : {};
 
-  const showClear = clearable && hasValue && !disabled;
+  const showClear = !!clearable && hasValue && !disabled;
   const rootClasses = usePrefixedClassNames(rootClass, {
     'is-disabled': disabled,
     'has-clear': showClear,
@@ -279,9 +279,8 @@ export function DialogSelect({
         placeholder={placeholder}
         disabled={disabled}
         form={form}
-        onClick={() => {
-          if (!disabled) onOpenChange(!isOpen);
-        }}
+        // A disabled field takes no clicks.
+        onClick={() => onOpenChange(!isOpen)}
         onKeyDown={handleKeyDown}
       />
       {showClear && (

@@ -36,7 +36,7 @@ export function ValueTags({
   values,
   ids,
   labelFor,
-  disabled = false,
+  disabled,
   ariaCloseLabel,
   onRemove,
   removable = everyValue,

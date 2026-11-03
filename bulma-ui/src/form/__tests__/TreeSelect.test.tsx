@@ -1,0 +1,1558 @@
+import type { MockInstance } from 'vitest';
+import React, { createRef, useState } from 'react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { renderToString } from 'react-dom/server';
+import {
+  TreeSelect,
+  type TreeItemData,
+  type TreeSelectProps,
+} from '../TreeSelect';
+import { Field } from '../Field';
+import { Control } from '../Control';
+import { Fieldset } from '../Fieldset';
+import { ConfigProvider } from '../../helpers/Config';
+import { LocaleProvider } from '../../helpers/LocaleProvider';
+import { resetDevWarnings } from '../../helpers/devWarnings';
+import { announceDelay } from '../../helpers/statusRegion';
+
+const PLACES: TreeItemData[] = [
+  {
+    value: 'asia',
+    label: 'Asia',
+    children: [
+      {
+        value: 'japan',
+        label: 'Japan',
+        children: [
+          { value: 'tokyo', label: 'Tokyo' },
+          { value: 'osaka', label: 'Osaka' },
+        ],
+      },
+      { value: 'china', label: 'China', disabled: true },
+    ],
+  },
+  {
+    value: 'europe',
+    label: 'Europe',
+    children: [
+      { value: 'france', label: 'France' },
+      { value: 'germany', label: 'Germany' },
+    ],
+  },
+  { value: 'oceania', label: 'Oceania' },
+];
+
+let warnSpy: MockInstance;
+
+beforeEach(() => {
+  resetDevWarnings();
+  warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+});
+
+afterEach(() => {
+  warnSpy.mockRestore();
+});
+
+const field = () => screen.getByRole('combobox');
+const dialog = () => screen.queryByRole('dialog');
+const item = (name: string) => screen.getByRole('treeitem', { name });
+const shownItems = () =>
+  screen
+    .queryAllByRole('treeitem')
+    .map(el => el.querySelector(':scope > div > [id]')!.textContent);
+const open = () => fireEvent.click(field());
+const key = (el: Element, k: string, init: KeyboardEventInit = {}) =>
+  fireEvent.keyDown(el, { key: k, ...init });
+
+/** A TreeSelect whose value is held by the test, as an app holds it. */
+function Held({
+  start,
+  ...rest
+}: TreeSelectProps & { start?: string[] | string | null }) {
+  const [value, setValue] = useState<unknown>(start ?? null);
+  const props = {
+    ...rest,
+    value,
+    onChange: (next: unknown) => {
+      setValue(next);
+      (rest.onChange as ((v: unknown) => void) | undefined)?.(next);
+    },
+  } as TreeSelectProps;
+  return (
+    <>
+      <TreeSelect {...props} />
+      <output>{JSON.stringify(value)}</output>
+    </>
+  );
+}
+
+describe('TreeSelect', () => {
+  describe('the field', () => {
+    it('is a read-only combobox that opens a dialog, named by its label', () => {
+      const { container } = render(<TreeSelect label="Place" data={PLACES} />);
+      const input = screen.getByRole('combobox', { name: 'Place' });
+      expect(input).toHaveAttribute('readonly');
+      expect(input).toHaveAttribute('aria-haspopup', 'dialog');
+      expect(input).toHaveAttribute('aria-expanded', 'false');
+      expect(input).not.toHaveAttribute('aria-controls');
+      expect(input).toHaveClass('input');
+      expect(input).toHaveValue('');
+      expect(
+        container.querySelector('.field > div.tree-select')
+      ).not.toBeNull();
+      expect(input.closest('.control')?.parentElement).toHaveClass(
+        'tree-select'
+      );
+      expect(
+        container.querySelector('.tree-select-chevron .icon')
+      ).toBeInTheDocument();
+      expect(dialog()).toBeNull();
+    });
+
+    it("shows the picked item's label, never its path", () => {
+      render(<TreeSelect label="Place" data={PLACES} defaultValue="tokyo" />);
+      expect(field()).toHaveValue('Tokyo');
+    });
+
+    it('takes a placeholder, the colour, size and rounding modifiers', () => {
+      const { container } = render(
+        <TreeSelect
+          aria-label="Place"
+          data={PLACES}
+          placeholder="Pick a place"
+          color="primary"
+          size="small"
+          isRounded
+        />
+      );
+      expect(field()).toHaveAttribute('placeholder', 'Pick a place');
+      expect(field()).toHaveClass('is-primary', 'is-small', 'is-rounded');
+      expect(container.querySelector('.control')).toHaveClass('is-small');
+    });
+
+    it('puts the helper props and other attributes on the root, and the ref on the field', () => {
+      const ref = createRef<HTMLInputElement>();
+      const { container } = render(
+        <TreeSelect
+          ref={ref}
+          aria-label="Place"
+          data={PLACES}
+          className="mine"
+          data-testid="root"
+          mt="3"
+        />
+      );
+      const root = screen.getByTestId('root');
+      expect(root).toHaveClass('tree-select', 'mine', 'mt-3');
+      expect(ref.current).toBe(field());
+      expect(container.querySelector('.field')).not.toBeNull();
+    });
+
+    it('takes a ref callback', () => {
+      let node: HTMLInputElement | null = null;
+      render(
+        <TreeSelect
+          ref={el => {
+            node = el;
+          }}
+          aria-label="Place"
+          data={PLACES}
+        />
+      );
+      expect(node).toBe(field());
+    });
+
+    it('puts id, aria-label, aria-labelledby and aria-describedby on the field', () => {
+      render(
+        <>
+          <span id="named">Named</span>
+          <span id="hint">Hint</span>
+          <TreeSelect
+            id="place"
+            aria-labelledby="named"
+            aria-describedby="hint"
+            data={PLACES}
+          />
+        </>
+      );
+      expect(field()).toHaveAttribute('id', 'place');
+      expect(field()).toHaveAccessibleName('Named');
+      expect(field()).toHaveAttribute('aria-describedby', 'hint');
+      open();
+      expect(field()).toHaveAttribute('aria-controls', 'place-panel');
+      expect(screen.getByRole('dialog', { name: 'Named' })).toHaveAttribute(
+        'id',
+        'place-panel'
+      );
+      expect(screen.getByRole('tree', { name: 'Named' })).toBeInTheDocument();
+    });
+
+    it('names the panel and the tree after an aria-label, or labels.choose', () => {
+      const { unmount } = render(
+        <TreeSelect aria-label="Place" data={PLACES} />
+      );
+      open();
+      expect(screen.getByRole('dialog', { name: 'Place' })).toBeInTheDocument();
+      expect(screen.getByRole('tree', { name: 'Place' })).toBeInTheDocument();
+      unmount();
+      render(
+        <TreeSelect
+          label="Place"
+          labels={{ choose: 'Choose a place' }}
+          data={PLACES}
+        />
+      );
+      open();
+      expect(
+        screen.getByRole('dialog', { name: 'Choose a place' })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('tree', { name: 'Choose a place' })
+      ).toBeInTheDocument();
+    });
+
+    it("leaves the panel unnamed with nothing to name it, and TreeView's warning says so", () => {
+      render(<TreeSelect data={PLACES} />);
+      open();
+      expect(screen.getByRole('dialog')).not.toHaveAttribute('aria-label');
+      expect(screen.getByRole('dialog')).not.toHaveAttribute('aria-labelledby');
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('<TreeView> has no accessible name')
+      );
+    });
+
+    it('renders no Field of its own inside one, whose label names it and the panel', () => {
+      const { container } = render(
+        <Field label="Outer">
+          <TreeSelect data={PLACES} />
+        </Field>
+      );
+      expect(container.querySelectorAll('.field')).toHaveLength(1);
+      expect(screen.getByRole('combobox', { name: 'Outer' })).toBeTruthy();
+      open();
+      expect(screen.getByRole('dialog', { name: 'Outer' })).toBeTruthy();
+    });
+
+    it("renders no Control of its own inside one, and keeps the caller's", () => {
+      const { container } = render(
+        <Control>
+          <TreeSelect aria-label="Place" data={PLACES} />
+        </Control>
+      );
+      expect(container.querySelectorAll('.control')).toHaveLength(1);
+      expect(container.querySelector('.control > .tree-select')).not.toBeNull();
+      expect(
+        container.querySelector('.tree-select > input.input')
+      ).not.toBeNull();
+    });
+
+    it('renders a message, coloured, and its own Field for horizontal and fieldClassName', () => {
+      const { container } = render(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          message="Where it goes"
+          messageColor="danger"
+          horizontal
+          fieldClassName="my-field"
+          labelSize="small"
+        />
+      );
+      expect(container.querySelector('.field')).toHaveClass(
+        'is-horizontal',
+        'my-field'
+      );
+      expect(screen.getByText('Where it goes')).toHaveClass(
+        'help',
+        'is-danger'
+      );
+    });
+
+    it('renders the message without a Field of its own inside an outer one', () => {
+      render(
+        <Field>
+          <TreeSelect aria-label="Place" data={PLACES} message="Help" />
+        </Field>
+      );
+      expect(screen.getByText('Help')).toHaveClass('help');
+    });
+  });
+
+  describe('opening and closing', () => {
+    it('opens on a click, and a second click closes it', () => {
+      render(<TreeSelect label="Place" data={PLACES} />);
+      open();
+      expect(field()).toHaveAttribute('aria-expanded', 'true');
+      const panel = screen.getByRole('dialog', { name: 'Place' });
+      expect(panel).toHaveClass('picker-popover', 'tree-select-panel');
+      expect(panel).toHaveAttribute('aria-modal', 'false');
+      expect(field()).toHaveAttribute('aria-controls', panel.id);
+      open();
+      expect(dialog()).toBeNull();
+    });
+
+    it.each([
+      ['Enter', {}],
+      [' ', {}],
+      ['ArrowDown', {}],
+      ['ArrowDown', { altKey: true }],
+    ])('opens on %s', (k, init) => {
+      render(<TreeSelect label="Place" data={PLACES} />);
+      key(field(), k, init);
+      expect(dialog()).not.toBeNull();
+    });
+
+    it('leaves other keys alone, and Alt+Up on a shut field', () => {
+      const onOpenChange = vi.fn();
+      render(
+        <TreeSelect label="Place" data={PLACES} onOpenChange={onOpenChange} />
+      );
+      key(field(), 'ArrowUp', { altKey: true });
+      key(field(), 'Enter', { ctrlKey: true });
+      key(field(), 'a');
+      key(field(), 'Tab');
+      expect(onOpenChange).not.toHaveBeenCalled();
+      expect(dialog()).toBeNull();
+    });
+
+    it('focuses the picked item, its branch opened, and reports the branch', () => {
+      const onExpandedChange = vi.fn();
+      render(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          defaultValue="tokyo"
+          defaultExpanded={['europe']}
+          onExpandedChange={onExpandedChange}
+        />
+      );
+      open();
+      expect(onExpandedChange).toHaveBeenCalledWith([
+        'europe',
+        'asia',
+        'japan',
+      ]);
+      expect(item('Tokyo')).toHaveFocus();
+      expect(item('Tokyo')).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it("doesn't report the branch when it's open already", () => {
+      const onExpandedChange = vi.fn();
+      render(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          defaultValue="tokyo"
+          defaultExpanded={['asia', 'japan']}
+          onExpandedChange={onExpandedChange}
+        />
+      );
+      open();
+      expect(onExpandedChange).not.toHaveBeenCalled();
+      expect(item('Tokyo')).toHaveFocus();
+    });
+
+    it('focuses the first item with nothing picked', () => {
+      render(<TreeSelect label="Place" data={PLACES} />);
+      open();
+      expect(item('Asia')).toHaveFocus();
+    });
+
+    it("focuses the first item when held branches don't show the picked one", () => {
+      render(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          defaultValue="tokyo"
+          expanded={[]}
+        />
+      );
+      open();
+      expect(item('Asia')).toHaveFocus();
+      expect(screen.queryByRole('treeitem', { name: 'Tokyo' })).toBeNull();
+    });
+
+    it('closes on Escape and Alt+Up, and puts focus back on the field', () => {
+      render(<TreeSelect label="Place" data={PLACES} />);
+      open();
+      key(item('Asia'), 'Escape');
+      expect(dialog()).toBeNull();
+      expect(field()).toHaveFocus();
+      open();
+      key(item('Asia'), 'ArrowUp', { altKey: true });
+      expect(dialog()).toBeNull();
+      expect(field()).toHaveFocus();
+    });
+
+    it('closes on a press outside', () => {
+      render(
+        <>
+          <button>Outside</button>
+          <TreeSelect label="Place" data={PLACES} />
+        </>
+      );
+      open();
+      fireEvent.pointerDown(screen.getByRole('button', { name: 'Outside' }));
+      expect(dialog()).toBeNull();
+    });
+
+    it('closes on Tab out of the panel, which goes on from the field', async () => {
+      const user = userEvent.setup();
+      render(
+        <>
+          <TreeSelect label="Place" data={PLACES} />
+          <button>Next</button>
+        </>
+      );
+      open();
+      expect(item('Asia')).toHaveFocus();
+      await user.tab();
+      expect(dialog()).toBeNull();
+      expect(screen.getByRole('button', { name: 'Next' })).toHaveFocus();
+    });
+
+    it('closes on Shift+Tab out of the panel, onto the field', async () => {
+      const user = userEvent.setup();
+      render(
+        <>
+          <button>Before</button>
+          <TreeSelect label="Place" data={PLACES} searchable />
+        </>
+      );
+      open();
+      expect(screen.getByRole('searchbox')).toHaveFocus();
+      await user.tab();
+      expect(item('Asia')).toHaveFocus();
+      expect(dialog()).not.toBeNull();
+      await user.tab({ shift: true });
+      expect(screen.getByRole('searchbox')).toHaveFocus();
+      await user.tab({ shift: true });
+      expect(dialog()).toBeNull();
+      expect(field()).toHaveFocus();
+    });
+
+    it('reports opening and closing, and holds them when controlled', () => {
+      const onOpenChange = vi.fn();
+      const { rerender } = render(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          open={false}
+          onOpenChange={onOpenChange}
+        />
+      );
+      open();
+      expect(onOpenChange).toHaveBeenLastCalledWith(true);
+      expect(dialog()).toBeNull();
+      rerender(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          open
+          onOpenChange={onOpenChange}
+        />
+      );
+      expect(dialog()).not.toBeNull();
+      open();
+      expect(onOpenChange).toHaveBeenLastCalledWith(false);
+      expect(dialog()).not.toBeNull();
+    });
+
+    it('opens to begin with under defaultOpen', () => {
+      render(<TreeSelect label="Place" data={PLACES} defaultOpen />);
+      expect(dialog()).not.toBeNull();
+    });
+
+    it('portals the panel with appendToBody, at least as wide as the field', () => {
+      const { container } = render(
+        <TreeSelect label="Place" data={PLACES} appendToBody />
+      );
+      open();
+      const panel = screen.getByRole('dialog');
+      expect(container.contains(panel)).toBe(false);
+      expect(panel).toHaveClass('is-portal');
+      expect(panel.style.position).toBe('fixed');
+      expect(panel.style.minWidth).not.toBe('');
+    });
+
+    it('passes the size to the panel and the tree', () => {
+      render(<TreeSelect label="Place" data={PLACES} size="large" />);
+      open();
+      expect(screen.getByRole('dialog')).toHaveClass('is-large');
+      expect(screen.getByRole('tree')).toHaveClass('is-large');
+    });
+  });
+
+  describe("'single'", () => {
+    it.each(['Enter', ' '])(
+      'picks with %s, closes and puts focus on the field',
+      k => {
+        const onChange = vi.fn();
+        render(<Held label="Place" data={PLACES} onChange={onChange} />);
+        open();
+        key(item('Asia'), 'ArrowDown');
+        key(screen.getAllByRole('treeitem')[0], k);
+        expect(onChange).toHaveBeenCalledWith('asia');
+        expect(dialog()).toBeNull();
+        expect(field()).toHaveFocus();
+        expect(field()).toHaveValue('Asia');
+      }
+    );
+
+    it('picks with a click on a row, a parent included', () => {
+      const onChange = vi.fn();
+      render(<TreeSelect label="Place" data={PLACES} onChange={onChange} />);
+      open();
+      fireEvent.click(item('Europe'));
+      expect(onChange).toHaveBeenCalledWith('europe');
+      expect(field()).toHaveValue('Europe');
+      expect(dialog()).toBeNull();
+    });
+
+    it("only opens a parent from its chevron, and doesn't pick from an item inside", () => {
+      const onChange = vi.fn();
+      const { container } = render(
+        <TreeSelect label="Place" data={PLACES} onChange={onChange} />
+      );
+      open();
+      const chevron = item('Asia').querySelector('.tree-view-toggle')!;
+      fireEvent.click(chevron);
+      expect(onChange).not.toHaveBeenCalled();
+      expect(item('Asia')).toHaveAttribute('aria-expanded', 'true');
+      fireEvent.click(within(item('Asia')).getByText('China'));
+      expect(onChange).not.toHaveBeenCalled();
+      expect(container.querySelector('.tree-view-toggle')).not.toBeNull();
+      fireEvent.click(within(item('Asia')).getByText('Japan'));
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith('japan');
+    });
+
+    it("never picks a disabled item, and a leaf's chevron box picks it", () => {
+      const onChange = vi.fn();
+      render(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          defaultExpanded={['asia']}
+          onChange={onChange}
+        />
+      );
+      open();
+      key(item('China'), 'Enter');
+      fireEvent.click(item('China'));
+      expect(onChange).not.toHaveBeenCalled();
+      fireEvent.click(item('Oceania').querySelector('.tree-view-toggle')!);
+      expect(onChange).toHaveBeenCalledWith('oceania');
+    });
+
+    it('closes on a pick of the picked item, with no change', () => {
+      const onChange = vi.fn();
+      render(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          defaultValue="oceania"
+          onChange={onChange}
+        />
+      );
+      open();
+      expect(item('Oceania')).toHaveFocus();
+      key(item('Oceania'), 'Enter');
+      expect(onChange).not.toHaveBeenCalled();
+      expect(dialog()).toBeNull();
+    });
+
+    it('stays open with closeOnSelect={false}', () => {
+      const onChange = vi.fn();
+      render(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          closeOnSelect={false}
+          onChange={onChange}
+        />
+      );
+      open();
+      key(item('Oceania'), 'Enter');
+      expect(onChange).toHaveBeenCalledWith('oceania');
+      expect(dialog()).not.toBeNull();
+      expect(item('Oceania')).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('leaves held keys, modifiers, other keys and keys from inside to the tree', () => {
+      const onChange = vi.fn();
+      render(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          defaultExpanded={['europe']}
+          onChange={onChange}
+        />
+      );
+      open();
+      key(item('Oceania'), 'Enter', { repeat: true });
+      key(item('Oceania'), 'Enter', { altKey: true });
+      key(item('Oceania'), 'Enter', { ctrlKey: true });
+      key(item('Oceania'), 'Enter', { metaKey: true });
+      key(item('Oceania'), 'Home');
+      // From France, a key on Europe's own handler is France's.
+      key(item('France'), 'x');
+      expect(onChange).not.toHaveBeenCalled();
+      expect(dialog()).not.toBeNull();
+    });
+
+    it('opens and closes a parent instead with parentsSelectable={false}', () => {
+      const onChange = vi.fn();
+      render(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          parentsSelectable={false}
+          onChange={onChange}
+        />
+      );
+      open();
+      key(item('Asia'), 'Enter');
+      expect(item('Asia')).toHaveAttribute('aria-expanded', 'true');
+      key(item('Asia'), ' ');
+      expect(item('Asia')).toHaveAttribute('aria-expanded', 'false');
+      fireEvent.click(item('Europe'));
+      expect(item('Europe')).toHaveAttribute('aria-expanded', 'true');
+      expect(onChange).not.toHaveBeenCalled();
+      expect(dialog()).not.toBeNull();
+      fireEvent.click(item('France'));
+      expect(onChange).toHaveBeenCalledWith('france');
+    });
+
+    it('leaves a disabled parent alone with parentsSelectable={false}', () => {
+      const data: TreeItemData[] = [
+        {
+          value: 'a',
+          label: 'A',
+          disabled: true,
+          children: [{ value: 'b', label: 'B' }],
+        },
+      ];
+      render(<TreeSelect label="L" data={data} parentsSelectable={false} />);
+      open();
+      key(item('A'), 'Enter');
+      expect(item('A')).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('posts one hidden input, empty while nothing is picked', () => {
+      const { container, rerender } = render(
+        <TreeSelect label="Place" data={PLACES} name="place" form="f" />
+      );
+      const hidden = () =>
+        Array.from(
+          container.querySelectorAll<HTMLInputElement>('input[type="hidden"]')
+        ).map(el => [el.name, el.value, el.getAttribute('form')]);
+      expect(hidden()).toEqual([['place', '', 'f']]);
+      rerender(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          name="place"
+          form="f"
+          value="tokyo"
+        />
+      );
+      expect(hidden()).toEqual([['place', 'tokyo', 'f']]);
+    });
+
+    it('holds a controlled value', () => {
+      const onChange = vi.fn();
+      render(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          value="tokyo"
+          onChange={onChange}
+        />
+      );
+      open();
+      fireEvent.click(item('Osaka'));
+      expect(onChange).toHaveBeenCalledWith('osaka');
+      expect(field()).toHaveValue('Tokyo');
+    });
+  });
+
+  describe('the checkbox modes', () => {
+    it("'checkbox' cascades, stays open, and reports the leaves by default", () => {
+      const onChange = vi.fn();
+      render(
+        <TreeSelect
+          label="Places"
+          data={PLACES}
+          selectionMode="checkbox"
+          onChange={onChange}
+        />
+      );
+      open();
+      expect(screen.getByRole('tree')).toHaveAttribute(
+        'aria-multiselectable',
+        'true'
+      );
+      key(item('Asia'), ' ');
+      expect(onChange).toHaveBeenLastCalledWith(['tokyo', 'osaka']);
+      expect(item('Asia')).toHaveAttribute('aria-checked', 'true');
+      expect(dialog()).not.toBeNull();
+      expect(field()).toHaveValue('');
+    });
+
+    it.each([
+      ['parent', ['asia']],
+      ['all', ['asia', 'japan', 'tokyo', 'osaka']],
+      ['child', ['tokyo', 'osaka']],
+    ] as const)(
+      "checkedStrategy '%s' gives %j, and checks the same boxes passed back",
+      (strategy, expected) => {
+        const onChange = vi.fn();
+        const { unmount } = render(
+          <TreeSelect
+            label="Places"
+            data={PLACES}
+            selectionMode="checkbox"
+            checkedStrategy={strategy}
+            onChange={onChange}
+          />
+        );
+        open();
+        fireEvent.click(item('Asia'));
+        expect(onChange).toHaveBeenLastCalledWith(expected);
+        unmount();
+        render(
+          <TreeSelect
+            label="Places"
+            data={PLACES}
+            selectionMode="checkbox"
+            checkedStrategy={strategy}
+            value={[...expected]}
+            defaultExpanded={['asia', 'japan']}
+          />
+        );
+        open();
+        expect(item('Asia')).toHaveAttribute('aria-checked', 'true');
+        expect(item('Japan')).toHaveAttribute('aria-checked', 'true');
+        expect(item('Tokyo')).toHaveAttribute('aria-checked', 'true');
+        expect(item('China')).toHaveAttribute('aria-checked', 'false');
+      }
+    );
+
+    it('shows the list as tags under the field, which describe it', () => {
+      const { container } = render(
+        <TreeSelect
+          label="Places"
+          data={PLACES}
+          selectionMode="checkbox"
+          defaultValue={['japan']}
+        />
+      );
+      const tags = Array.from(container.querySelectorAll('.tags .tag'));
+      expect(tags.map(tag => tag.textContent)).toEqual(['Tokyo', 'Osaka']);
+      const described = field()
+        .getAttribute('aria-describedby')!
+        .split(' ')
+        .map(id => document.getElementById(id)!.textContent);
+      expect(described).toEqual(['Tokyo', 'Osaka']);
+      expect(container.querySelector('.tree-select')!.nextElementSibling).toBe(
+        container.querySelector('.tags')
+      );
+    });
+
+    it("a tag's button unchecks its item as its box does, and focuses the field", () => {
+      render(
+        <Held
+          label="Places"
+          data={PLACES}
+          selectionMode="checkbox"
+          checkedStrategy="parent"
+          start={['asia']}
+        />
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Remove Asia' }));
+      expect(screen.getByRole('status', { hidden: true })).toBeTruthy();
+      expect(screen.getByText('[]')).toBeInTheDocument();
+      expect(field()).toHaveFocus();
+    });
+
+    it("a tag's button in 'child' leaves its siblings checked", () => {
+      render(
+        <Held
+          label="Places"
+          data={PLACES}
+          selectionMode="checkbox"
+          start={['japan']}
+        />
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Remove Tokyo' }));
+      expect(screen.getByText('["osaka"]')).toBeInTheDocument();
+    });
+
+    it('names the buttons with ariaCloseLabel, described by their tags', () => {
+      render(
+        <TreeSelect
+          label="Places"
+          data={PLACES}
+          selectionMode="checkbox"
+          defaultValue={['tokyo']}
+          ariaCloseLabel="Take off"
+        />
+      );
+      const button = screen.getByRole('button', { name: 'Take off' });
+      expect(button).toHaveAccessibleDescription('Tokyo');
+    });
+
+    it('keeps a checked disabled item in every list, with a tag but no button', () => {
+      const onChange = vi.fn();
+      render(
+        <TreeSelect
+          label="Places"
+          data={PLACES}
+          selectionMode="checkbox"
+          checkedStrategy="parent"
+          defaultValue={['china', 'tokyo']}
+          onChange={onChange}
+        />
+      );
+      expect(screen.queryByRole('button', { name: 'Remove China' })).toBeNull();
+      fireEvent.click(screen.getByRole('button', { name: 'Remove Tokyo' }));
+      expect(onChange).toHaveBeenLastCalledWith(['china']);
+    });
+
+    it("'checkbox-independent' checks an item alone and reports exactly the checked items", () => {
+      const onChange = vi.fn();
+      const { container } = render(
+        <TreeSelect
+          label="Categories"
+          data={PLACES}
+          selectionMode="checkbox-independent"
+          defaultValue={['europe', 'europe']}
+          defaultExpanded={['asia']}
+          onChange={onChange}
+          name="categories"
+        />
+      );
+      expect(
+        Array.from(container.querySelectorAll('.tag'), t => t.textContent)
+      ).toEqual(['Europe']);
+      open();
+      fireEvent.click(item('Asia'));
+      expect(onChange).toHaveBeenLastCalledWith(['europe', 'europe', 'asia']);
+      expect(item('Asia')).toHaveAttribute('aria-checked', 'true');
+      expect(item('Japan')).toHaveAttribute('aria-checked', 'false');
+      fireEvent.click(screen.getByRole('button', { name: 'Remove Asia' }));
+      expect(onChange).toHaveBeenLastCalledWith(['europe', 'europe']);
+      expect(
+        Array.from(
+          container.querySelectorAll<HTMLInputElement>('input[type="hidden"]'),
+          el => el.value
+        )
+      ).toEqual(['europe']);
+    });
+
+    it('posts a hidden input per value in the list', () => {
+      const { container } = render(
+        <TreeSelect
+          label="Places"
+          data={PLACES}
+          selectionMode="checkbox"
+          defaultValue={['asia']}
+          name="places"
+        />
+      );
+      expect(
+        Array.from(
+          container.querySelectorAll<HTMLInputElement>('input[type="hidden"]'),
+          el => `${el.name}=${el.value}`
+        )
+      ).toEqual(['places=tokyo', 'places=osaka']);
+    });
+
+    it('focuses the first checked item in the tree, its branch open', () => {
+      render(
+        <TreeSelect
+          label="Places"
+          data={PLACES}
+          selectionMode="checkbox"
+          defaultValue={['france', 'osaka']}
+        />
+      );
+      open();
+      expect(item('Osaka')).toHaveFocus();
+      expect(item('Europe')).toHaveAttribute('aria-expanded', 'false');
+    });
+  });
+
+  describe('values no node has', () => {
+    it('keeps one, shows it as it is, and warns once', () => {
+      const { rerender } = render(
+        <TreeSelect label="Place" data={PLACES} value="mars" />
+      );
+      expect(field()).toHaveValue('mars');
+      rerender(<TreeSelect label="Place" data={PLACES} value="venus" />);
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy.mock.calls[0][0]).toContain('"mars"');
+    });
+
+    it('keeps them in a checked list, with tags that take them off', () => {
+      const onChange = vi.fn();
+      render(
+        <TreeSelect
+          label="Places"
+          data={PLACES}
+          selectionMode="checkbox"
+          defaultValue={['mars', 'tokyo']}
+          onChange={onChange}
+        />
+      );
+      open();
+      fireEvent.click(item('Oceania'));
+      expect(onChange).toHaveBeenLastCalledWith(['tokyo', 'oceania', 'mars']);
+      fireEvent.click(screen.getByRole('button', { name: 'Remove mars' }));
+      expect(onChange).toHaveBeenLastCalledWith(['tokyo', 'oceania']);
+    });
+  });
+
+  describe('search', () => {
+    it('focuses the search box on opening, named Search, and the picked item still shows', () => {
+      render(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          searchable
+          defaultValue="tokyo"
+        />
+      );
+      open();
+      const box = screen.getByRole('searchbox', { name: 'Search' });
+      expect(box).toHaveFocus();
+      expect(box).toHaveClass('input', 'tree-select-search');
+      expect(item('Tokyo')).toBeInTheDocument();
+    });
+
+    it('keeps the ancestors of a match and what is under it, and opens the branches', async () => {
+      const user = userEvent.setup();
+      render(<TreeSelect label="Place" data={PLACES} searchable />);
+      open();
+      await user.keyboard('japan');
+      expect(shownItems()).toEqual(['Asia', 'Japan']);
+      expect(item('Japan')).toHaveAttribute('aria-expanded', 'false');
+      key(item('Japan'), 'ArrowRight');
+      expect(shownItems()).toEqual(['Asia', 'Japan', 'Tokyo', 'Osaka']);
+      await user.clear(screen.getByRole('searchbox'));
+      await user.keyboard('o');
+      expect(shownItems()).toEqual([
+        'Asia',
+        'Japan',
+        'Tokyo',
+        'Osaka',
+        'Europe',
+        'Oceania',
+      ]);
+    });
+
+    it("puts the branches back as they were once it's cleared, keeping ones opened during it", async () => {
+      const onExpandedChange = vi.fn();
+      const user = userEvent.setup();
+      render(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          searchable
+          onExpandedChange={onExpandedChange}
+        />
+      );
+      open();
+      await user.keyboard('fra');
+      expect(shownItems()).toEqual(['Europe', 'France']);
+      expect(onExpandedChange).not.toHaveBeenCalled();
+      await user.clear(screen.getByRole('searchbox'));
+      expect(shownItems()).toEqual(['Asia', 'Europe', 'Oceania']);
+      await user.keyboard('tokyo');
+      key(item('Japan'), 'ArrowLeft');
+      expect(shownItems()).toEqual(['Asia', 'Japan']);
+      key(item('Asia'), 'ArrowLeft');
+      expect(shownItems()).toEqual(['Asia']);
+      key(item('Asia'), 'ArrowRight');
+      expect(onExpandedChange).toHaveBeenLastCalledWith(['asia']);
+      await user.clear(screen.getByRole('searchbox'));
+      expect(shownItems()).toEqual([
+        'Asia',
+        'Japan',
+        'China',
+        'Europe',
+        'Oceania',
+      ]);
+    });
+
+    it('closes a branch opened before the search', async () => {
+      const onExpandedChange = vi.fn();
+      const user = userEvent.setup();
+      render(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          searchable
+          defaultExpanded={['europe']}
+          onExpandedChange={onExpandedChange}
+        />
+      );
+      open();
+      await user.keyboard('ger');
+      key(item('Europe'), 'ArrowLeft');
+      expect(onExpandedChange).toHaveBeenLastCalledWith([]);
+      expect(shownItems()).toEqual(['Europe']);
+    });
+
+    it('matches labels in the LocaleProvider locale, and never values', async () => {
+      const user = userEvent.setup();
+      const data: TreeItemData[] = [
+        { value: 'x1', label: 'Café' },
+        { value: 'cafe-value', label: 'Tea' },
+      ];
+      render(
+        <LocaleProvider locale="fr">
+          <TreeSelect label="Drink" data={data} searchable />
+        </LocaleProvider>
+      );
+      open();
+      await user.keyboard('cafe');
+      expect(shownItems()).toEqual(['Café']);
+    });
+
+    it('matches labels ignoring case outside a LocaleProvider, and by value with no label', async () => {
+      const user = userEvent.setup();
+      render(
+        <TreeSelect
+          label="Thing"
+          data={[{ value: 'Alpha' }, { value: 'b', label: 'Beta' }]}
+          searchable
+        />
+      );
+      open();
+      await user.keyboard('  ALP ');
+      expect(shownItems()).toEqual(['Alpha']);
+    });
+
+    it('takes a filter of its own, with the text trimmed', async () => {
+      const filter = vi.fn(
+        (query: string, node: TreeItemData) => node.value === query
+      );
+      const user = userEvent.setup();
+      render(
+        <TreeSelect label="Place" data={PLACES} searchable filter={filter} />
+      );
+      open();
+      await user.keyboard(' osaka ');
+      expect(filter).toHaveBeenCalledWith('osaka', PLACES[2]);
+      expect(shownItems()).toEqual(['Asia', 'Japan', 'Osaka']);
+    });
+
+    it('shows empty in place of the tree when nothing matches, or nothing without it', async () => {
+      const user = userEvent.setup();
+      const { container, unmount } = render(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          searchable
+          empty="No places match"
+        />
+      );
+      open();
+      await user.keyboard('zz');
+      expect(screen.queryByRole('tree')).toBeNull();
+      expect(
+        container.ownerDocument.querySelector('.tree-select-empty')
+      ).toHaveTextContent('No places match');
+      unmount();
+      render(<TreeSelect label="Place" data={PLACES} searchable />);
+      open();
+      await user.keyboard('zz');
+      expect(screen.queryByRole('tree')).toBeNull();
+      expect(document.querySelector('.tree-select-empty')).toBeNull();
+    });
+
+    it('moves into the tree with Down, onto its tab stop or its first item', async () => {
+      const user = userEvent.setup();
+      render(<TreeSelect label="Place" data={PLACES} searchable />);
+      open();
+      const box = screen.getByRole('searchbox');
+      key(box, 'ArrowDown');
+      expect(item('Asia')).toHaveFocus();
+      key(item('Asia'), 'ArrowDown');
+      box.focus();
+      key(box, 'ArrowDown');
+      expect(item('Europe')).toHaveFocus();
+      box.focus();
+      key(box, 'ArrowDown', { altKey: true });
+      expect(box).toHaveFocus();
+      await user.keyboard('zz');
+      key(box, 'ArrowDown');
+      expect(box).toHaveFocus();
+    });
+
+    it('keeps Enter in the search box from submitting a form', () => {
+      const onSubmit = vi.fn((e: React.FormEvent) => e.preventDefault());
+      render(
+        <form onSubmit={onSubmit}>
+          <TreeSelect label="Place" data={PLACES} searchable />
+        </form>
+      );
+      open();
+      const event = new KeyboardEvent('keydown', {
+        key: 'Enter',
+        bubbles: true,
+        cancelable: true,
+      });
+      screen.getByRole('searchbox').dispatchEvent(event);
+      expect(event.defaultPrevented).toBe(true);
+      key(screen.getByRole('searchbox'), 'a');
+    });
+
+    it('opens on a printable key with it in the box, its caret after it, and empties on closing', () => {
+      const onQueryChange = vi.fn();
+      render(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          searchable
+          onQueryChange={onQueryChange}
+        />
+      );
+      key(field(), 'g');
+      const box = screen.getByRole('searchbox') as HTMLInputElement;
+      expect(box).toHaveValue('g');
+      expect(box).toHaveFocus();
+      expect(box.selectionStart).toBe(1);
+      expect(shownItems()).toEqual(['Europe', 'Germany']);
+      key(box, 'Escape');
+      expect(onQueryChange.mock.calls).toEqual([['g'], ['']]);
+      open();
+      expect(screen.getByRole('searchbox')).toHaveValue('');
+    });
+
+    it("doesn't open on a printable key while composing, or without a search box", () => {
+      const { unmount } = render(
+        <TreeSelect label="Place" data={PLACES} searchable />
+      );
+      key(field(), 'g', { isComposing: true });
+      expect(dialog()).toBeNull();
+      unmount();
+      render(<TreeSelect label="Place" data={PLACES} />);
+      key(field(), 'g');
+      expect(dialog()).toBeNull();
+    });
+
+    it('holds a controlled query', () => {
+      const onQueryChange = vi.fn();
+      render(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          searchable
+          query="ja"
+          onQueryChange={onQueryChange}
+          defaultOpen
+        />
+      );
+      expect(shownItems()).toEqual(['Asia', 'Japan']);
+      fireEvent.change(screen.getByRole('searchbox'), {
+        target: { value: 'jap' },
+      });
+      expect(onQueryChange).toHaveBeenCalledWith('jap');
+      expect(screen.getByRole('searchbox')).toHaveValue('ja');
+    });
+
+    it('starts from defaultQuery, and reads no query without searchable', () => {
+      const { unmount } = render(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          searchable
+          defaultQuery="fr"
+          defaultOpen
+        />
+      );
+      expect(shownItems()).toEqual(['Europe', 'France']);
+      unmount();
+      render(<TreeSelect label="Place" data={PLACES} query="fr" defaultOpen />);
+      expect(shownItems()).toEqual(['Asia', 'Europe', 'Oceania']);
+    });
+
+    it("in 'checkbox', a check during a search reaches the items it hides", async () => {
+      const onChange = vi.fn();
+      const user = userEvent.setup();
+      render(
+        <TreeSelect
+          label="Places"
+          data={PLACES}
+          selectionMode="checkbox"
+          searchable
+          onChange={onChange}
+        />
+      );
+      open();
+      await user.keyboard('japan');
+      expect(shownItems()).toEqual(['Asia', 'Japan']);
+      fireEvent.click(item('Asia'));
+      expect(onChange).toHaveBeenLastCalledWith(['tokyo', 'osaka']);
+      await user.clear(screen.getByRole('searchbox'));
+      await user.keyboard('tokyo');
+      fireEvent.click(item('Tokyo'));
+      expect(onChange).toHaveBeenLastCalledWith(['osaka']);
+      expect(item('Asia')).toHaveAttribute('aria-checked', 'mixed');
+    });
+  });
+
+  describe('announcing no matches', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('says empty once through the status region, not on every key', () => {
+      render(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          searchable
+          empty="No places match"
+        />
+      );
+      open();
+      const box = screen.getByRole('searchbox');
+      const region = () =>
+        screen
+          .getAllByRole('status')
+          .find(el => el.textContent !== '' || el.childElementCount > 0);
+      fireEvent.change(box, { target: { value: 'z' } });
+      act(() => {
+        vi.advanceTimersByTime(announceDelay);
+      });
+      expect(region()?.textContent).toBe('No places match');
+      fireEvent.change(box, { target: { value: 'zz' } });
+      act(() => {
+        vi.advanceTimersByTime(announceDelay);
+      });
+      expect(region()?.children).toHaveLength(1);
+    });
+  });
+
+  describe('clearing', () => {
+    it('shows a clear button while something is picked, which empties it, closes and focuses the field', () => {
+      const onChange = vi.fn();
+      const { container } = render(
+        <Held
+          label="Place"
+          data={PLACES}
+          start="tokyo"
+          clearable
+          onChange={onChange}
+        />
+      );
+      expect(container.querySelector('.tree-select')).toHaveClass('has-clear');
+      open();
+      fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+      expect(onChange).toHaveBeenCalledWith(null);
+      expect(dialog()).toBeNull();
+      expect(field()).toHaveFocus();
+      expect(screen.queryByRole('button', { name: 'Clear' })).toBeNull();
+      expect(container.querySelector('.tree-select')).not.toHaveClass(
+        'has-clear'
+      );
+    });
+
+    it('clears a checked list to [] and takes labels.clear', () => {
+      const onChange = vi.fn();
+      render(
+        <TreeSelect
+          label="Places"
+          data={PLACES}
+          selectionMode="checkbox"
+          defaultValue={['asia']}
+          clearable
+          labels={{ clear: 'Empty' }}
+          onChange={onChange}
+          size="small"
+        />
+      );
+      const button = screen.getByRole('button', { name: 'Empty' });
+      expect(button).toHaveClass('delete', 'is-small', 'tree-select-clear');
+      fireEvent.click(button);
+      expect(onChange).toHaveBeenCalledWith([]);
+    });
+
+    it('shows none without clearable, or while disabled', () => {
+      const { rerender } = render(
+        <TreeSelect label="Place" data={PLACES} defaultValue="tokyo" />
+      );
+      expect(screen.queryByRole('button', { name: 'Clear' })).toBeNull();
+      rerender(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          defaultValue="tokyo"
+          clearable
+          disabled
+        />
+      );
+      expect(screen.queryByRole('button', { name: 'Clear' })).toBeNull();
+    });
+  });
+
+  describe('forms', () => {
+    it('is aria-required, with a hidden required field the browser reads, which hands focus to the field', () => {
+      const { container, rerender } = render(
+        <TreeSelect label="Place" data={PLACES} required form="f" />
+      );
+      expect(field()).toHaveAttribute('aria-required', 'true');
+      expect(field()).not.toHaveAttribute('required');
+      const proxy =
+        container.querySelector<HTMLInputElement>('input[required]')!;
+      expect(proxy).toHaveAttribute('aria-hidden', 'true');
+      expect(proxy).toHaveAttribute('tabindex', '-1');
+      expect(proxy).toHaveAttribute('form', 'f');
+      expect(proxy.name).toBe('');
+      expect(proxy.validity.valueMissing).toBe(true);
+      fireEvent.focus(proxy);
+      expect(field()).toHaveFocus();
+      fireEvent.change(proxy, { target: { value: 'typed' } });
+      rerender(
+        <TreeSelect
+          label="Place"
+          data={PLACES}
+          required
+          form="f"
+          value="tokyo"
+        />
+      );
+      expect(proxy.validity.valueMissing).toBe(false);
+    });
+
+    it('can be disabled: no opening, no buttons, and nothing posts', () => {
+      const { container } = render(
+        <TreeSelect
+          label="Places"
+          data={PLACES}
+          selectionMode="checkbox"
+          defaultValue={['tokyo']}
+          name="places"
+          required
+          disabled
+        />
+      );
+      expect(field()).toBeDisabled();
+      expect(container.querySelector('.tree-select')).toHaveClass(
+        'is-disabled'
+      );
+      open();
+      key(field(), 'Enter');
+      expect(dialog()).toBeNull();
+      expect(screen.queryByRole('button')).toBeNull();
+      container
+        .querySelectorAll('input[type="hidden"], input[required]')
+        .forEach(el => expect(el).toBeDisabled());
+    });
+
+    it('is disabled by a disabled Fieldset', () => {
+      render(
+        <Fieldset legend="Where" disabled>
+          <TreeSelect label="Place" data={PLACES} />
+        </Fieldset>
+      );
+      expect(field()).toBeDisabled();
+    });
+
+    it("isn't shown open while disabled", () => {
+      const { rerender } = render(
+        <TreeSelect label="Place" data={PLACES} defaultOpen />
+      );
+      expect(dialog()).not.toBeNull();
+      rerender(<TreeSelect label="Place" data={PLACES} defaultOpen disabled />);
+      expect(dialog()).toBeNull();
+      expect(field()).toHaveAttribute('aria-expanded', 'false');
+    });
+  });
+
+  describe('the nodes', () => {
+    it("draws icons and itemTemplate's rows, and the field still shows the label", () => {
+      render(
+        <TreeSelect
+          label="Place"
+          data={[
+            { value: 'a', label: 'Alpha', icon: 'folder' },
+            { value: 'b', label: 'Beta', icon: <svg data-testid="svg" /> },
+          ]}
+          defaultValue="a"
+          itemTemplate={node => <b>{node.label}!</b>}
+        />
+      );
+      expect(field()).toHaveValue('Alpha');
+      open();
+      expect(item('Alpha!')).toBeInTheDocument();
+      expect(
+        item('Alpha!').querySelector('.tree-view-icon .icon')
+      ).not.toBeNull();
+      expect(screen.getByTestId('svg')).toBeInTheDocument();
+    });
+
+    it('loads a branch lazily through hasChildren, isLoading, loadError and onRetry', () => {
+      const onRetry = vi.fn();
+      const onExpandedChange = vi.fn();
+      const data = (extra: Partial<TreeItemData>): TreeItemData[] => [
+        { value: 'photos', label: 'Photos', hasChildren: true, ...extra },
+      ];
+      const { rerender } = render(
+        <TreeSelect
+          label="Folder"
+          data={data({})}
+          onExpandedChange={onExpandedChange}
+          loadingLabel="Fetching…"
+          retryLabel="Again"
+          loadingAnnouncement={name => `Fetching ${name}`}
+          loadedAnnouncement={name => `${name} fetched`}
+        />
+      );
+      open();
+      key(item('Photos'), 'ArrowRight');
+      expect(onExpandedChange).toHaveBeenLastCalledWith(['photos']);
+      rerender(
+        <TreeSelect
+          label="Folder"
+          data={data({ isLoading: true })}
+          onExpandedChange={onExpandedChange}
+          loadingLabel="Fetching…"
+          retryLabel="Again"
+        />
+      );
+      expect(item('Fetching…')).toBeInTheDocument();
+      rerender(
+        <TreeSelect
+          label="Folder"
+          data={data({ loadError: "Couldn't load Photos", onRetry })}
+          onExpandedChange={onExpandedChange}
+          retryLabel="Again"
+        />
+      );
+      const failed = screen.getByRole('treeitem', {
+        name: "Couldn't load Photos Again",
+      });
+      fireEvent.click(failed);
+      expect(onRetry).toHaveBeenCalled();
+    });
+
+    it('takes the label from the value when it has none', () => {
+      render(<TreeSelect label="L" data={[{ value: 'x' }]} defaultValue="x" />);
+      expect(field()).toHaveValue('x');
+    });
+
+    it('reads empty children as none', () => {
+      render(
+        <TreeSelect
+          label="L"
+          data={[{ value: 'x', label: 'X', children: [] }]}
+          parentsSelectable={false}
+        />
+      );
+      open();
+      expect(item('X')).not.toHaveAttribute('aria-expanded');
+      fireEvent.click(item('X'));
+      expect(field()).toHaveValue('X');
+    });
+  });
+
+  it('applies classPrefix from ConfigProvider everywhere', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bestax-">
+        <TreeSelect
+          label="Places"
+          data={PLACES}
+          selectionMode="checkbox"
+          defaultValue={['tokyo']}
+          searchable
+          clearable
+          size="small"
+          message="Help"
+        />
+      </ConfigProvider>
+    );
+    expect(container.querySelector('.bestax-tree-select')).toHaveClass(
+      'bestax-has-clear'
+    );
+    expect(container.querySelector('.tree-select')).toBeNull();
+    expect(field()).toHaveClass('bestax-input', 'bestax-is-small');
+    expect(container.querySelector('.bestax-control')).not.toBeNull();
+    expect(
+      container.querySelector('.bestax-tree-select-chevron')
+    ).not.toBeNull();
+    expect(container.querySelector('.bestax-tree-select-clear')).toHaveClass(
+      'bestax-delete'
+    );
+    expect(container.querySelector('.bestax-tags .bestax-tag')).not.toBeNull();
+    open();
+    const panel = screen.getByRole('dialog');
+    expect(panel).toHaveClass(
+      'bestax-picker-popover',
+      'bestax-tree-select-panel',
+      'bestax-is-small'
+    );
+    expect(screen.getByRole('searchbox')).toHaveClass(
+      'bestax-input',
+      'bestax-tree-select-search'
+    );
+    expect(screen.getByRole('tree')).toHaveClass('bestax-tree-view');
+    fireEvent.change(screen.getByRole('searchbox'), {
+      target: { value: 'zz' },
+    });
+    expect(panel.querySelector('[class*="tree-select-empty"]')).toBeNull();
+  });
+
+  it('shows the empty message under classPrefix', () => {
+    render(
+      <ConfigProvider classPrefix="bestax-">
+        <TreeSelect label="P" data={PLACES} searchable empty="None" />
+      </ConfigProvider>
+    );
+    open();
+    fireEvent.change(screen.getByRole('searchbox'), {
+      target: { value: 'zz' },
+    });
+    expect(screen.getByText('None')).toHaveClass('bestax-tree-select-empty');
+  });
+
+  it('picks from a classPrefix tree, its chevron included', () => {
+    const onChange = vi.fn();
+    render(
+      <ConfigProvider classPrefix="bestax-">
+        <TreeSelect label="P" data={PLACES} onChange={onChange} />
+      </ConfigProvider>
+    );
+    open();
+    fireEvent.click(item('Asia').querySelector('.bestax-tree-view-toggle')!);
+    expect(onChange).not.toHaveBeenCalled();
+    fireEvent.click(item('Japan'));
+    expect(onChange).toHaveBeenCalledWith('japan');
+  });
+
+  it('renders its field, text and tags on the server, without the panel', () => {
+    const html = renderToString(
+      <>
+        <TreeSelect label="Place" data={PLACES} defaultValue="tokyo" />
+        <TreeSelect
+          label="Places"
+          data={PLACES}
+          selectionMode="checkbox"
+          defaultValue={['japan']}
+        />
+      </>
+    );
+    expect(html).toContain('value="Tokyo"');
+    expect(html).toContain('>Osaka</span>');
+    expect(html).not.toContain('role="dialog"');
+  });
+});
