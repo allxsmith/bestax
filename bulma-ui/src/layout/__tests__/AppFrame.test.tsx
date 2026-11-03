@@ -16,6 +16,7 @@ import {
 } from '../AppFrame';
 import { Navbar } from '../../components/Navbar';
 import { Menu } from '../../components/Menu';
+import { Popover } from '../../components/Popover';
 import { Modal } from '../../components/Modal';
 import { Sidebar } from '../../components/Sidebar';
 import { ConfigProvider } from '../../helpers/Config';
@@ -1474,6 +1475,45 @@ describe('AppFrame.Nav rail', () => {
     fireEvent.click(reports());
     expect(reports()).toHaveAttribute('aria-expanded', 'false');
     expect(onNavCollapsedChange).not.toHaveBeenCalled();
+  });
+
+  it('leaves a section in a Popover opened from the rail’s menu out of the rail', async () => {
+    mockViewport(DESKTOP);
+    const onNavCollapsedChange = vi.fn();
+    render(
+      <AppFrame defaultNavCollapsed onNavCollapsedChange={onNavCollapsedChange}>
+        <AppFrame.Nav rail>
+          <Menu>
+            <Menu.List>
+              <li>
+                <Popover
+                  appendToBody
+                  trigger={<button type="button">Filters</button>}
+                >
+                  <Menu>
+                    <Menu.Section label="Status" icon={<Glyph />} defaultOpen>
+                      <Menu.List>
+                        <Menu.Item href="#open">Open</Menu.Item>
+                      </Menu.List>
+                    </Menu.Section>
+                  </Menu>
+                </Popover>
+              </li>
+            </Menu.List>
+          </Menu>
+        </AppFrame.Nav>
+        <AppFrame.Main>Page</AppFrame.Main>
+      </AppFrame>
+    );
+    expect(nav()).toHaveClass('is-rail');
+    fireEvent.click(screen.getByRole('button', { name: 'Filters' }));
+    const status = await screen.findByRole('button', { name: 'Status' });
+    expect(status.closest('.app-frame-rail-tooltip')).toBeNull();
+    expect(status).toHaveAttribute('aria-expanded', 'true');
+    fireEvent.click(status);
+    expect(status).toHaveAttribute('aria-expanded', 'false');
+    expect(onNavCollapsedChange).not.toHaveBeenCalled();
+    expect(nav()).toHaveClass('is-rail');
   });
 
   it('puts the tooltips on the left of a right-to-left rail', () => {

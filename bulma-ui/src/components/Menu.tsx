@@ -14,7 +14,7 @@ import { buttonType } from '../helpers/buttonType';
 import { inertProps } from '../helpers/inertProps';
 import { getActiveElementInTree } from '../helpers/shadowDom';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
-import { MenuRailContext } from '../helpers/menuRail';
+import { MenuRailContext, type MenuRail } from '../helpers/menuRail';
 import {
   isCustomElement,
   type PolymorphicComponent,
@@ -22,6 +22,13 @@ import {
 
 // Context to track MenuList nesting level
 const MenuListLevelContext = createContext(0);
+
+// The rail the menu's own top-level items and sections are in. The Menu root
+// claims it from the nav and hands it on here, and gives everything below
+// none, so a Menu inside a Popover or a Modal opened from the menu sees no
+// rail. An item's nested lists and a section's list get none either: the
+// rail hides them.
+const MenuOwnRailContext = createContext<MenuRail | null>(null);
 
 /**
  * Props for the Menu component.
@@ -50,17 +57,22 @@ const MenuComponent: React.FC<MenuProps> = ({
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+  const rail = useContext(MenuRailContext);
 
   // Generate Bulma classes with prefix
   const bulmaClasses = usePrefixedClassNames('menu');
 
   return (
-    <aside
-      className={classNames(bulmaClasses, bulmaHelperClasses, className)}
-      {...rest}
-    >
-      {children}
-    </aside>
+    <MenuRailContext.Provider value={null}>
+      <MenuOwnRailContext.Provider value={rail}>
+        <aside
+          className={classNames(bulmaClasses, bulmaHelperClasses, className)}
+          {...rest}
+        >
+          {children}
+        </aside>
+      </MenuOwnRailContext.Provider>
+    </MenuRailContext.Provider>
   );
 };
 
@@ -296,7 +308,7 @@ export const MenuItem = forwardRef(function MenuItem(
   );
   const iconClass = usePrefixedClassNames('menu-item-icon');
   const labelClass = usePrefixedClassNames('menu-item-label');
-  const rail = useContext(MenuRailContext);
+  const rail = useContext(MenuOwnRailContext);
 
   // Split children into label and nested MenuList(s)
   const labelChildren: React.ReactNode[] = [];
@@ -359,7 +371,9 @@ export const MenuItem = forwardRef(function MenuItem(
       tabIndex={tabIndex}
     >
       {rail && icon ? rail.wrap(link, labelChildren) : link}
-      {nestedMenuLists}
+      <MenuOwnRailContext.Provider value={null}>
+        {nestedMenuLists}
+      </MenuOwnRailContext.Provider>
     </li>
   );
 }) as PolymorphicComponent<MenuItemOwnProps, 'a'>;
@@ -444,7 +458,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
   const listId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const rail = useContext(MenuRailContext);
+  const rail = useContext(MenuOwnRailContext);
   // The rail hides a section's list, so there the button widens the column
   // and opens the section, and says it's collapsed.
   const railCollapsed = !!rail?.collapsed;
@@ -513,7 +527,9 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
     >
       {rail && icon ? rail.wrap(toggle, label) : toggle}
       <div ref={listRef} id={listId} hidden={!isOpen} {...inertProps(!isOpen)}>
-        {children}
+        <MenuOwnRailContext.Provider value={null}>
+          {children}
+        </MenuOwnRailContext.Provider>
       </div>
     </div>
   );

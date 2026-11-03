@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { Menu, MenuLabel, MenuList, MenuItem, MenuSection } from '../Menu';
 import { ConfigProvider } from '../../helpers/Config';
 import { MenuRailContext, type MenuRail } from '../../helpers/menuRail';
+import { Popover } from '../Popover';
 
 // A simple link-like mock component for custom "as" prop testing
 type CustomLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
@@ -482,7 +483,7 @@ describe('in an icon rail', () => {
       </MenuRailContext.Provider>
     );
 
-  it('wraps an item with an icon, with its label and not its nested lists', () => {
+  it('wraps a top-level item with an icon, with its label, and nothing in its nested lists', () => {
     renderIn(
       railOf(false),
       <Menu.List>
@@ -497,12 +498,13 @@ describe('in an icon rail', () => {
         <Menu.Item href="#plain">Plain</Menu.Item>
       </Menu.List>
     );
-    const [orders, open] = screen.getAllByTestId('tip');
+    // The rail hides a nested list, so its items aren't in the rail.
+    const [orders] = screen.getAllByTestId('tip');
+    expect(screen.getAllByTestId('tip')).toHaveLength(1);
     expect(orders).toHaveAttribute('data-label', 'Orders');
     expect(orders.firstElementChild).toBe(
       screen.getByRole('link', { name: 'Orders' })
     );
-    expect(open).toHaveAttribute('data-label', 'Open');
     // An item without an icon has nothing to show in the rail.
     expect(screen.getByRole('link', { name: 'Plain' }).parentElement).toBe(
       screen.getByRole('link', { name: 'Plain' }).closest('li')
@@ -523,6 +525,52 @@ describe('in an icon rail', () => {
     expect(tip.firstElementChild).toBe(
       screen.getByRole('button', { name: 'Reports' })
     );
+  });
+
+  it('leaves a section’s own list out of the rail', () => {
+    renderIn(
+      railOf(true),
+      <Menu.Section label="Reports" icon={<Glyph />} defaultOpen>
+        <Menu.List>
+          <Menu.Item href="#sales" icon={<Glyph />}>
+            Sales
+          </Menu.Item>
+        </Menu.List>
+      </Menu.Section>
+    );
+    expect(screen.getAllByTestId('tip')).toHaveLength(1);
+    expect(screen.getByTestId('tip')).toHaveAttribute('data-label', 'Reports');
+  });
+
+  it('gives a Menu in a Popover opened from the rail’s menu no rail', async () => {
+    const expand = vi.fn();
+    renderIn(
+      railOf(true, expand),
+      <>
+        <Menu.List>
+          <Menu.Item href="#dashboard" icon={<Glyph />}>
+            Dashboard
+          </Menu.Item>
+        </Menu.List>
+        <Popover appendToBody trigger={<button type="button">Filters</button>}>
+          <Menu>
+            <Menu.Section label="Status" icon={<Glyph />} defaultOpen>
+              <Menu.List>
+                <Menu.Item href="#open">Open</Menu.Item>
+              </Menu.List>
+            </Menu.Section>
+          </Menu>
+        </Popover>
+      </>
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Filters' }));
+    const status = await screen.findByRole('button', { name: 'Status' });
+    // Not in the rail: no tooltip, its state as it is, and it closes.
+    expect(status.parentElement).not.toHaveAttribute('data-testid', 'tip');
+    expect(status).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.click(status);
+    expect(status).toHaveAttribute('aria-expanded', 'false');
+    expect(expand).not.toHaveBeenCalled();
   });
 
   it('opens and closes a section as usual while the column is expanded', async () => {
