@@ -23,7 +23,10 @@ import { trapTab } from '../helpers/useFocusTrap';
 import { useOverlayFocus } from '../helpers/useOverlayFocus';
 import { useInertSiblings } from '../helpers/useInertSiblings';
 import { useOutsidePress } from '../helpers/useOutsidePress';
-import { marginGap, useAnchoredPosition } from '../helpers/useAnchoredPosition';
+import {
+  sideMarginGap,
+  useAnchoredPosition,
+} from '../helpers/useAnchoredPosition';
 import type { AnchoredSide } from '../helpers/useAnchoredPosition';
 import { useScopedNumberFormat } from '../helpers/localeFormat';
 import { spokenText, visuallyHidden } from '../helpers/statusRegion';
@@ -801,7 +804,7 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
       // The gap comes from the spotlight padding and the step offset, as a
       // margin on the side facing the target.
       offset: 0,
-      styledGap: marginGap,
+      styledGap: sideMarginGap,
       // The step's content changes with each step, and so does its size.
       followContent: true,
     });

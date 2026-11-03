@@ -1,6 +1,10 @@
 import { useRef } from 'react';
 import { render, screen } from '@testing-library/react';
-import { marginGap, useAnchoredPosition } from '../useAnchoredPosition';
+import {
+  marginGap,
+  sideMarginGap,
+  useAnchoredPosition,
+} from '../useAnchoredPosition';
 import type { AnchoredSide } from '../useAnchoredPosition';
 import type { PickerPosition } from '../../form/_pickerInternals/pickerTypes';
 
@@ -125,6 +129,30 @@ describe('useAnchoredPosition', () => {
       // 694 + 300 + 4 + 10 does not.
       render(<Attached styledGap={() => 10} />);
       expect(screen.getByRole('status')).toHaveTextContent('top-left');
+    });
+
+    it('keeps a corner panel below when only its inline margin is large', () => {
+      // With `marginGap`, a 50px left margin doesn't count, so 694 + 300 + 4
+      // still fits and the panel stays below.
+      const Margined = () => {
+        const anchorRef = useRef<HTMLButtonElement>(null);
+        const panelRef = useRef<HTMLDivElement>(null);
+        const resolved = useAnchoredPosition(anchorRef, panelRef, {
+          active: true,
+          position: 'auto',
+          fixed: false,
+          styledGap: marginGap,
+        });
+        return (
+          <>
+            <button ref={anchorRef}>anchor</button>
+            <div ref={panelRef} style={{ marginLeft: '-50px' }} />
+            <output>{resolved.position}</output>
+          </>
+        );
+      };
+      render(<Margined />);
+      expect(screen.getByRole('status')).toHaveTextContent('bottom-left');
     });
   });
 });
@@ -288,11 +316,18 @@ describe('marginGap', () => {
     expect(marginGap(panel({ marginBottom: '8px' }))).toBe(8);
   });
 
-  it('reads the inline margins too, for a panel beside its anchor', () => {
-    expect(marginGap(panel({ marginLeft: '-12px', marginTop: '3px' }))).toBe(
-      12
-    );
-    expect(marginGap(panel({ marginRight: '5px' }))).toBe(5);
+  it('leaves the inline margins out, so a corner panel’s gap is its block margin', () => {
+    expect(marginGap(panel({ marginLeft: '-12px', marginTop: '3px' }))).toBe(3);
+    expect(marginGap(panel({ marginRight: '5px' }))).toBe(0);
+  });
+
+  it('reads the inline margins too for a panel placed on a side', () => {
+    expect(
+      sideMarginGap(panel({ marginLeft: '-12px', marginTop: '3px' }))
+    ).toBe(12);
+    expect(sideMarginGap(panel({ marginRight: '5px' }))).toBe(5);
+    expect(sideMarginGap(panel({ marginBottom: '-9px' }))).toBe(9);
+    expect(sideMarginGap(panel({}))).toBe(0);
   });
 
   it('reads no gap from a panel without margins', () => {

@@ -92,19 +92,30 @@ export interface UseAnchoredPositionOptions {
   followContent?: boolean;
 }
 
+/** The largest magnitude among some margins, in pixels. */
+const largestMargin = (margins: string[]): number =>
+  Math.max(...margins.map(margin => Math.abs(parseFloat(margin)) || 0));
+
 /**
  * A `styledGap` for a panel whose stylesheet puts the gap in a margin on the
- * side facing the anchor, negative on a portaled panel above it or to its
- * left, so the largest magnitude is the gap. In pixels.
+ * side facing the anchor, negative on a portaled panel above it, so the
+ * larger magnitude is the gap. In pixels. It reads the top and bottom
+ * margins only, so a panel's inline margins don't change its gap.
  */
 export function marginGap(panel: HTMLElement): number {
+  const { marginTop, marginBottom } = getComputedStyle(panel);
+  return largestMargin([marginTop, marginBottom]);
+}
+
+/**
+ * `marginGap` for a panel placed on a side, which can sit to the left or
+ * the right of its anchor: the largest magnitude among all four margins,
+ * negative on a panel to the left. In pixels.
+ */
+export function sideMarginGap(panel: HTMLElement): number {
   const { marginTop, marginBottom, marginLeft, marginRight } =
     getComputedStyle(panel);
-  return Math.max(
-    ...[marginTop, marginBottom, marginLeft, marginRight].map(
-      margin => Math.abs(parseFloat(margin)) || 0
-    )
-  );
+  return largestMargin([marginTop, marginBottom, marginLeft, marginRight]);
 }
 
 const oppositeSide: Record<AnchoredSide, AnchoredSide> = {
