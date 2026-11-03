@@ -131,7 +131,7 @@ describe('Stat styles', () => {
     });
   });
 
-  it('points a colored change at its color’s -on-scheme variant', () => {
+  it('colors a colored change with its color’s -on-scheme variant, over the uncolored one', () => {
     for (const color of [
       'primary',
       'link',
@@ -140,10 +140,17 @@ describe('Stat styles', () => {
       'warning',
       'danger',
     ]) {
-      expect(find(`.stat-change.is-${color}`)).toEqual({
-        '--bulma-stat-change-color': `var(--bulma-${color}-on-scheme)`,
+      expect(find(`.stat .stat-change.is-${color}`)).toEqual({
+        color: `var(--bulma-${color}-on-scheme)`,
       });
     }
+    // Only the root registers the change's variable, so it's the uncolored
+    // change's, and setting it on the Stat reaches it.
+    expect(
+      PLAIN.filter(r => '--bulma-stat-change-color' in r.declarations).map(
+        r => r.selector
+      )
+    ).toEqual(['.stat']);
   });
 
   it('sets each part’s type through the root, outranking Bulma’s .content dd indent', () => {

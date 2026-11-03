@@ -8,9 +8,8 @@
 // Each part stacks under the one before, in the order it's written. The
 // figure takes the Stat's color, so a `textColor` on the Stat colors it,
 // while the label, the change and the note set their own. A `color` on the
-// change re-points its color at that color's `-on-scheme` variant, which
-// Bulma darkens or lightens until it reads as text on the scheme's
-// background. Forced colors replaces every color with the system's, which
+// change sets its color to that color's `-on-scheme` variant, which Bulma
+// darkens or lightens until it reads as text on the scheme's background. Forced colors replaces every color with the system's, which
 // drops the tone, and the sign in the text and the arrow, drawn in
 // `currentColor`, remain.
 
@@ -64,18 +63,6 @@ $stat-description-size: cv.getVar('size-7') !default;
     @include cv.register-vars(
       (
         'stat-value-size': #{$value},
-      )
-    );
-  }
-}
-
-// The change's colors. Each is set on the change itself, so it reaches only
-// the change.
-@each $name in 'primary', 'link', 'info', 'success', 'warning', 'danger' {
-  .#{iv.$class-prefix}stat-change.#{iv.$class-prefix}is-#{$name} {
-    @include cv.register-vars(
-      (
-        'stat-change-color': #{cv.getVar('#{$name}-on-scheme')},
       )
     );
   }
@@ -146,6 +133,16 @@ $stat-description-size: cv.getVar('size-7') !default;
 
   > svg {
     flex: none;
+  }
+}
+
+// The change's colors, set on the change itself, so `--bulma-stat-change-color`
+// stays the uncolored change's. A theme moves these tones through Bulma's own
+// `-on-scheme` colors.
+@each $name in 'primary', 'link', 'info', 'success', 'warning', 'danger' {
+  .#{iv.$class-prefix}stat
+    .#{iv.$class-prefix}stat-change.#{iv.$class-prefix}is-#{$name} {
+    color: cv.getVar('#{$name}-on-scheme');
   }
 }
 
