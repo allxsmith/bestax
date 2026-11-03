@@ -1,3 +1,4 @@
+import { StrictMode } from 'react';
 import { act, render, renderHook } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import {
@@ -114,6 +115,20 @@ describe('useClipboard', () => {
       expect(command).not.toHaveBeenCalled();
       expect(result.current.copied).toBe(true);
       expect(result.current.error).toBeNull();
+    });
+
+    it('still reports under StrictMode, which mounts its effects twice', async () => {
+      vi.useFakeTimers();
+      stubClipboard(() => Promise.resolve());
+      const onCopiedChange = vi.fn();
+      const { result } = renderHook(() => useClipboard({ onCopiedChange }), {
+        wrapper: StrictMode,
+      });
+      await copyWith(result, 'x');
+      expect(result.current.copied).toBe(true);
+      act(() => vi.advanceTimersByTime(2000));
+      expect(result.current.copied).toBe(false);
+      expect(onCopiedChange.mock.calls).toEqual([[true], [false]]);
     });
 
     it('stays copied for 2000 ms by default, then resets', async () => {
