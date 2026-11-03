@@ -332,6 +332,25 @@ describe('TreeView', () => {
       );
       expect(treeFromCallback).toBe(screen.getByRole('tree'));
     });
+
+    it.each<[TreeViewSelectionMode, boolean]>([
+      ['none', false],
+      ['single', false],
+      ['checkbox', true],
+      ['checkbox-independent', true],
+    ])('marks a %s tree multiselectable: %s', (mode, multiselectable) => {
+      render(<Files selectionMode={mode} />);
+      if (multiselectable) {
+        expect(screen.getByRole('tree')).toHaveAttribute(
+          'aria-multiselectable',
+          'true'
+        );
+      } else {
+        expect(screen.getByRole('tree')).not.toHaveAttribute(
+          'aria-multiselectable'
+        );
+      }
+    });
   });
 
   describe('selectionMode="none"', () => {
@@ -856,6 +875,342 @@ describe('TreeView', () => {
         />
       );
       expect(container.querySelector('[aria-checked]')).toBeNull();
+    });
+  });
+
+  describe('selectionMode="checkbox-independent"', () => {
+    /** The permissions tree, with each box checking its own item. */
+    const Independent = (props: Partial<TreeViewProps>) => (
+      <Permissions selectionMode="checkbox-independent" {...props} />
+    );
+    /** Each item on the page, as its label and its `aria-checked`. */
+    const states = (root: ParentNode = document) =>
+      Array.from(root.querySelectorAll('[role="treeitem"]')).map(
+        li =>
+          `${li.querySelector('[id]')!.textContent}=${li.getAttribute('aria-checked')}`
+      );
+
+    it('marks the tree multiselectable and each item checked or not, never mixed', () => {
+      const { container } = render(
+        <Independent defaultChecked={['projects/read', 'projects/write']} />
+      );
+      expect(screen.getByRole('tree')).toHaveAttribute(
+        'aria-multiselectable',
+        'true'
+      );
+      // Every enabled item under Projects is checked, and Projects is still
+      // only itself.
+      expect(states()).toEqual([
+        'Projects=false',
+        'Read=true',
+        'Write=true',
+        'Delete=false',
+        'Billing=false',
+      ]);
+      expect(container.querySelector('[aria-selected]')).toBeNull();
+      expect(container.querySelector('.is-selected')).toBeNull();
+    });
+
+    it('draws a Checkbox in a hidden box, in the item’s own state, never indeterminate', () => {
+      render(<Independent defaultChecked={['projects/read']} />);
+      const check = row('Read').querySelector('.tree-view-check')!;
+      expect(check).toHaveAttribute('aria-hidden', 'true');
+      expect(box('Read')).toHaveAttribute('tabindex', '-1');
+      expect(box('Read').checked).toBe(true);
+      expect(box('Projects').checked).toBe(false);
+      expect(box('Projects').indeterminate).toBe(false);
+      expect(box('Delete')).toBeDisabled();
+    });
+
+    it('toggles with Space and a click on the row, and opens and closes with Enter', () => {
+      const onCheckedChange = vi.fn();
+      const onExpandedChange = vi.fn();
+      render(
+        <Independent
+          onCheckedChange={onCheckedChange}
+          onExpandedChange={onExpandedChange}
+        />
+      );
+      press(item('Projects'), ' ');
+      expect(onCheckedChange).toHaveBeenLastCalledWith(['projects']);
+      expect(item('Projects')).toHaveAttribute('aria-checked', 'true');
+      expect(item('Read')).toHaveAttribute('aria-checked', 'false');
+      fireEvent.click(row('Projects'));
+      expect(onCheckedChange).toHaveBeenLastCalledWith([]);
+      press(item('Projects'), 'Enter');
+      expect(onExpandedChange).toHaveBeenLastCalledWith([]);
+      // Enter on a closed parent opens it, and checks nothing.
+      press(item('Billing'), 'Enter');
+      expect(onExpandedChange).toHaveBeenLastCalledWith(['billing']);
+      expect(item('Billing')).toHaveAttribute('aria-checked', 'false');
+      expect(onCheckedChange).toHaveBeenCalledTimes(2);
+      onCheckedChange.mockClear();
+      onExpandedChange.mockClear();
+      // Enter on a leaf does nothing.
+      press(item('View invoices'), 'Enter');
+      expect(onCheckedChange).not.toHaveBeenCalled();
+      expect(onExpandedChange).not.toHaveBeenCalled();
+    });
+
+    it('toggles once for a click on the box’s input or its label, and leaves focus on the item', () => {
+      const onCheckedChange = vi.fn();
+      render(<Independent onCheckedChange={onCheckedChange} />);
+      fireEvent.click(box('Projects'));
+      expect(onCheckedChange).toHaveBeenCalledTimes(1);
+      expect(box('Projects').checked).toBe(true);
+      expect(box('Read').checked).toBe(false);
+      fireEvent.click(row('Projects').querySelector('.check')!);
+      expect(onCheckedChange).toHaveBeenCalledTimes(2);
+      expect(item('Projects')).toHaveAttribute('aria-checked', 'false');
+      expect(focused()).toBe('Projects');
+    });
+
+    it('checks a closed parent alone, and its items open unchecked', () => {
+      const onCheckedChange = vi.fn();
+      render(<Independent onCheckedChange={onCheckedChange} />);
+      fireEvent.click(row('Billing'));
+      expect(onCheckedChange).toHaveBeenLastCalledWith(['billing']);
+      press(item('Billing'), 'ArrowRight');
+      expect(item('Billing')).toHaveAttribute('aria-checked', 'true');
+      expect(item('View invoices')).toHaveAttribute('aria-checked', 'false');
+      expect(item('Pay invoices')).toHaveAttribute('aria-checked', 'false');
+    });
+
+    it('leaves a parent as it was whatever happens to the items under it, and them as they were', () => {
+      const onCheckedChange = vi.fn();
+      render(
+        <Independent
+          defaultChecked={['projects']}
+          onCheckedChange={onCheckedChange}
+        />
+      );
+      fireEvent.click(row('Read'));
+      fireEvent.click(row('Write'));
+      expect(onCheckedChange).toHaveBeenLastCalledWith([
+        'projects',
+        'projects/read',
+        'projects/write',
+      ]);
+      fireEvent.click(row('Read'));
+      expect(onCheckedChange).toHaveBeenLastCalledWith([
+        'projects',
+        'projects/write',
+      ]);
+      expect(item('Projects')).toHaveAttribute('aria-checked', 'true');
+      fireEvent.click(row('Projects'));
+      expect(onCheckedChange).toHaveBeenLastCalledWith(['projects/write']);
+      expect(item('Write')).toHaveAttribute('aria-checked', 'true');
+    });
+
+    it('checks a listed item alone, whatever is above or below it, disabled or not', () => {
+      render(
+        <TreeView
+          aria-label="Branch"
+          selectionMode="checkbox-independent"
+          defaultChecked={['locked', 'deep']}
+          defaultExpanded={['locked', 'inside']}
+        >
+          <TreeView.Item value="locked" label="Locked" disabled>
+            <TreeView.Item value="inside" label="Inside">
+              <TreeView.Item value="deep" label="Deep" />
+            </TreeView.Item>
+          </TreeView.Item>
+        </TreeView>
+      );
+      expect(states()).toEqual(['Locked=true', 'Inside=false', 'Deep=true']);
+    });
+
+    it('checks a disabled item by its own value only, and never toggles it', () => {
+      const onCheckedChange = vi.fn();
+      render(
+        <Independent
+          defaultChecked={['projects/delete']}
+          onCheckedChange={onCheckedChange}
+        />
+      );
+      expect(item('Delete')).toHaveAttribute('aria-checked', 'true');
+      press(item('Delete'), ' ');
+      fireEvent.click(row('Delete'));
+      fireEvent.click(box('Delete'));
+      expect(onCheckedChange).not.toHaveBeenCalled();
+      fireEvent.click(row('Read'));
+      expect(onCheckedChange).toHaveBeenLastCalledWith([
+        'projects/delete',
+        'projects/read',
+      ]);
+    });
+
+    it('keeps the rest of the list as it was, in its order, with any repeats and values the tree doesn’t know', () => {
+      const onCheckedChange = vi.fn();
+      render(
+        <Independent
+          defaultChecked={[
+            'projects/read',
+            'archive/old',
+            'billing/view',
+            'archive/old',
+          ]}
+          onCheckedChange={onCheckedChange}
+        />
+      );
+      // View invoices is in Billing, which is closed, so the tree doesn't
+      // know it.
+      press(item('Write'), ' ');
+      expect(onCheckedChange).toHaveBeenLastCalledWith([
+        'projects/read',
+        'archive/old',
+        'billing/view',
+        'archive/old',
+        'projects/write',
+      ]);
+      press(item('Read'), ' ');
+      expect(onCheckedChange).toHaveBeenLastCalledWith([
+        'archive/old',
+        'billing/view',
+        'archive/old',
+        'projects/write',
+      ]);
+      press(item('Billing'), 'ArrowRight');
+      expect(item('View invoices')).toHaveAttribute('aria-checked', 'true');
+      expect(item('Billing')).toHaveAttribute('aria-checked', 'false');
+    });
+
+    it('takes out every copy of an item’s value when it unchecks', () => {
+      const onCheckedChange = vi.fn();
+      render(
+        <Independent
+          defaultChecked={['projects/read', 'billing', 'projects/read']}
+          onCheckedChange={onCheckedChange}
+        />
+      );
+      press(item('Read'), ' ');
+      expect(onCheckedChange).toHaveBeenLastCalledWith(['billing']);
+    });
+
+    it('round-trips: the list it reports shows the same boxes when passed back', () => {
+      function Controlled() {
+        const [checked, setChecked] = useState<string[]>(['projects/read']);
+        return (
+          <>
+            <output data-testid="list">{sorted(checked).join(',')}</output>
+            <Independent checked={checked} onCheckedChange={setChecked} />
+          </>
+        );
+      }
+      render(<Controlled />);
+      fireEvent.click(row('Billing'));
+      fireEvent.click(row('Write'));
+      expect(screen.getByTestId('list')).toHaveTextContent(
+        'billing,projects/read,projects/write'
+      );
+      expect(states()).toEqual([
+        'Projects=false',
+        'Read=true',
+        'Write=true',
+        'Delete=false',
+        'Billing=true',
+      ]);
+    });
+
+    it('only reports a check while controlled, until the new list comes back', () => {
+      const onCheckedChange = vi.fn();
+      render(<Independent checked={[]} onCheckedChange={onCheckedChange} />);
+      press(item('Projects'), ' ');
+      expect(onCheckedChange).toHaveBeenCalledWith(['projects']);
+      expect(item('Projects')).toHaveAttribute('aria-checked', 'false');
+    });
+
+    it('doesn’t render a closed item’s children, since a check never reaches them', () => {
+      const mounted = vi.fn();
+      function Counted() {
+        mounted();
+        return <TreeView.Item value="inside" label="Inside" />;
+      }
+      render(
+        <TreeView
+          aria-label="Closed"
+          selectionMode="checkbox-independent"
+          defaultChecked={['inside']}
+        >
+          <TreeView.Item value="closed" label="Closed">
+            <Counted />
+          </TreeView.Item>
+        </TreeView>
+      );
+      expect(mounted).not.toHaveBeenCalled();
+      expect(item('Closed')).toHaveAttribute('aria-checked', 'false');
+      press(item('Closed'), 'ArrowRight');
+      expect(item('Inside')).toHaveAttribute('aria-checked', 'true');
+    });
+
+    it('gives the tab stop to the first checked item on the page', () => {
+      render(<Independent defaultChecked={['billing', 'projects/write']} />);
+      expect(stops()).toEqual(['Write']);
+    });
+
+    it('never checks a loading row or a failed load’s row', () => {
+      const onCheckedChange = vi.fn();
+      const onRetry = vi.fn();
+      render(
+        <TreeView
+          aria-label="Lazy"
+          selectionMode="checkbox-independent"
+          defaultExpanded={['lazy', 'broken']}
+          onCheckedChange={onCheckedChange}
+        >
+          <TreeView.Item value="lazy" label="Lazy" hasChildren isLoading />
+          <TreeView.Item
+            value="broken"
+            label="Broken"
+            hasChildren
+            loadError="Couldn’t load Broken"
+            onRetry={onRetry}
+          />
+        </TreeView>
+      );
+      const loading = item('Loading…');
+      expect(loading).not.toHaveAttribute('aria-checked');
+      press(loading, ' ');
+      press(item('Couldn’t load Broken Retry'), ' ');
+      expect(onRetry).toHaveBeenCalledTimes(1);
+      expect(onCheckedChange).not.toHaveBeenCalled();
+    });
+
+    it('reads a listed item alone on the server, before the items register', () => {
+      const doc = document.createElement('div');
+      doc.innerHTML = renderToStaticMarkup(
+        <Independent defaultChecked={['projects', 'billing/view']} />
+      );
+      expect(states(doc)).toEqual([
+        'Projects=true',
+        'Read=false',
+        'Write=false',
+        'Delete=false',
+        'Billing=false',
+      ]);
+    });
+
+    it('hydrates without a mismatch', async () => {
+      const tree = <Independent defaultChecked={['projects/read']} />;
+      const container = document.createElement('div');
+      container.innerHTML = renderToString(tree);
+      document.body.appendChild(container);
+      // Only after the server render: under jsdom it runs the client's layout
+      // effect, which React 18's server renderer warns about.
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+      let root: ReturnType<typeof hydrateRoot> | undefined;
+      try {
+        await act(async () => {
+          root = hydrateRoot(container, tree);
+        });
+        expect(error).not.toHaveBeenCalled();
+        expect(stops()).toEqual(['Read']);
+        expect(item('Projects')).toHaveAttribute('aria-checked', 'false');
+      } finally {
+        error.mockRestore();
+        await act(async () => root!.unmount());
+        container.remove();
+      }
     });
   });
 

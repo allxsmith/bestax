@@ -2,6 +2,13 @@
 title: TreeView
 sidebar_label: TreeView
 description: 'The `TreeView` component renders a tree of items you browse and pick from, the way a file explorer works: one tab stop, the arrow keys to move, and Right and Left to open and close.'
+keywords:
+  - tree view
+  - file tree
+  - file explorer
+  - checkbox tree
+  - nested checkboxes
+  - checkStrictly
 ---
 
 # TreeView
@@ -16,8 +23,9 @@ The `TreeView` component renders a tree of items you browse and pick from, the w
 
 Reach for it when your data has folders in it: a project's files, where picking one shows it beside
 the tree; permissions or filters with checkboxes, where checking "Billing" checks everything under
-it; an outline you browse, like an org chart or a settings tree; or folders that load from a server
-one level at a time.
+it; categories checked one by one, where checking "Clothing" means Clothing and nothing under it; an
+outline you browse, like an org chart or a settings tree; or folders that load from a server one
+level at a time.
 
 It isn't for site navigation. A tree turns its links into tree items, so there's no opening one in a
 new tab, and it asks for keys a sidebar doesn't need. A sidebar whose sections open and close is
@@ -25,8 +33,8 @@ new tab, and it asks for keys a sidebar doesn't need. A sidebar whose sections o
 [Accessibility](#accessibility) section says more.
 
 You write it as `TreeView.Item`s nested inside each other, with each row's content in `label`. The
-tree owns which items are open, and `selectionMode` picks one of three trees: nothing picked, one
-item picked, or checkboxes.
+tree owns which items are open, and `selectionMode` picks the kind of tree: nothing picked, one item
+picked, checkboxes that check a branch at a time, or checkboxes that each check their own item.
 
 :::info
 Bulma has no tree, so `TreeView` brings its own styles, in `bestax.css` and its variants, or in
@@ -234,7 +242,69 @@ the list back as `checked` and it shows the same boxes. There's no key that chec
 give the tree buttons like Check all and Clear when that matters, as the
 [APG pattern](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/) suggests.
 
-`selected` is read in a `single` tree only, and `checked` in a `checkbox` tree only.
+### Checkboxes That Check One Item
+
+`selectionMode="checkbox-independent"` puts a box on every item too, but each box checks its own
+item and nothing else: a check reaches nothing under it, and no parent is ever mixed. It's for
+picking categories, where filing a product under Clothing doesn't file it under every kind of
+clothing. Mantine and Ant Design call this `checkStrictly`. Here Clothing and Running are checked,
+and Shoes, between them, isn't.
+
+```tsx live
+function example() {
+  const [checked, setChecked] = useState<string[]>([
+    'clothing',
+    'clothing/shoes/running',
+  ]);
+
+  return (
+    <>
+      <TreeView
+        aria-label="Categories"
+        selectionMode="checkbox-independent"
+        checked={checked}
+        onCheckedChange={setChecked}
+        defaultExpanded={['clothing', 'clothing/shoes']}
+      >
+        <TreeView.Item value="clothing" label="Clothing">
+          <TreeView.Item value="clothing/shoes" label="Shoes">
+            <TreeView.Item value="clothing/shoes/running" label="Running" />
+            <TreeView.Item value="clothing/shoes/hiking" label="Hiking" />
+          </TreeView.Item>
+          <TreeView.Item value="clothing/jackets" label="Jackets" />
+        </TreeView.Item>
+        <TreeView.Item value="outdoors" label="Outdoors">
+          <TreeView.Item value="outdoors/tents" label="Tents" />
+          <TreeView.Item value="outdoors/stoves" label="Stoves" />
+        </TreeView.Item>
+      </TreeView>
+      <Paragraph mt="3" textSize="7">
+        Filed under: {checked.length ? checked.join(', ') : 'nothing'}
+      </Paragraph>
+    </>
+  );
+}
+```
+
+It takes `checked`, `defaultChecked` and `onCheckedChange` as a `checkbox` tree does, with simpler
+rules:
+
+- **A value checks its own item, and nothing else.** A parent's value doesn't stand for its branch,
+  so a Check all button lists every value, not just the top ones.
+- **`onCheckedChange` gets the list as it was, with the item's value added at the end or every
+  copy of it taken out.** Everything else stays as you passed it, in the same order, values the
+  tree doesn't know included, such as one under a closed branch: a closed item's children don't
+  render in this mode, since a check never reaches them.
+- **A disabled item is never toggled**, by a key or a click.
+- **The keys and clicks are a `checkbox` tree's:** Space or a click on the row checks or unchecks
+  the item, and Enter opens and closes a parent.
+
+A screen reader hears each item as "checked" or "not checked", never "partially checked", and
+nothing it says tells someone that a parent's box is its own. Where people might expect a check on a
+parent to reach what's under it, say how the boxes work in the text near the tree.
+[What a screen reader says](#accessibility) has the simulated speech.
+
+`selected` is read in a `single` tree only, and `checked` in the two checkbox trees only.
 
 ### Folders That Load
 
@@ -242,7 +312,7 @@ give the tree buttons like Check all and Clear when that matters, as the
 them, and pass `isLoading` until they arrive: the item's group ends in a Loading… row, and the
 tree's live region says the folder is loading, then that it's loaded. If the load fails, pass its
 message as `loadError` and a way to try again as `onRetry`: the row shows the message and a Retry
-button. Loaded children render whether the folder is open or not, which a checkbox tree needs to
+button. Loaded children render whether the folder is open or not, which a `checkbox` tree needs to
 know what a check reaches.
 
 ```tsx live
@@ -472,21 +542,25 @@ its row takes focus.
   of that set: yours win, and the tree's own stay on any item without them.
 - **One tab stop, with real focus:** one item holds `tabIndex={0}` and the rest `-1`, and focus
   moves from item to item, rather than through `aria-activedescendant`. When focus comes into the
-  tree, it lands on the selected item, or in a checkbox tree on the first checked item on the page.
+  tree, it lands on the selected item, or in either checkbox tree on the first checked item on the
+  page.
   Without one, it lands where focus last was, or on the first item. If the item holding the stop
   goes away, its nearest ancestor on the page takes it, and focus goes too if it had focus.
 - **Selection:** a `single` tree marks each enabled item `aria-selected`, `true` or `false`. A
   `checkbox` tree marks `aria-checked` on every item, `true`, `false` or `mixed`, disabled ones
-  included, and adds `aria-multiselectable="true"` to the tree. A tree never has both, and a tree
-  with no `selectionMode` has neither. Selection doesn't follow focus.
+  included, and adds `aria-multiselectable="true"` to the tree. A `checkbox-independent` tree does
+  the same, except that `aria-checked` is only ever `true` or `false`: each says whether that item
+  is checked, and a parent's says nothing about what's under it. A tree never has both
+  `aria-selected` and `aria-checked`, and a tree with no `selectionMode` has neither. Selection
+  doesn't follow focus.
 - **The box** is a [`Checkbox`](../form/checkbox.md) inside an `aria-hidden` span, with
   `tabIndex={-1}`, so it's neither a tab stop nor a second thing for a screen reader to read. The
   item's `aria-checked` is what a screen reader hears.
 - **Disabled items** are `aria-disabled` and stay reachable from the arrow keys, Home, End and
   typing, so a screen reader user finds them. They're never selected, checked, opened or closed.
   One that's already open stays open, so what's under it is still reachable. In a `single` tree a
-  disabled item has no `aria-selected`. In a `checkbox` tree it keeps `aria-checked`, so the state
-  its box shows is heard as well as seen, such as "checked, disabled".
+  disabled item has no `aria-selected`. In either checkbox tree it keeps `aria-checked`, so the
+  state its box shows is heard as well as seen, such as "checked, disabled".
 - **A loading item's row** is a `treeitem` that says Loading…, marked `aria-disabled` and reached
   the way a disabled item is, so a screen reader user who moves into the folder hears what's
   happening. It has no value: it's never selected or checked, it has no `aria-selected` or
@@ -512,10 +586,10 @@ its row takes focus.
 
 Enter and Space do the item's one thing, which depends on the mode:
 
-| Key   | No `selectionMode`       | `single`         | `checkbox`               |
-| ----- | ------------------------ | ---------------- | ------------------------ |
-| Enter | Opens or closes a parent | Selects the item | Opens or closes a parent |
-| Space | Opens or closes a parent | Selects the item | Checks or unchecks it    |
+| Key   | No `selectionMode`       | `single`         | `checkbox` and `checkbox-independent` |
+| ----- | ------------------------ | ---------------- | ------------------------------------- |
+| Enter | Opens or closes a parent | Selects the item | Opens or closes a parent              |
+| Space | Opens or closes a parent | Selects the item | Checks or unchecks it                 |
 
 On a failed load's row, both retry, whatever the mode. The rest work the same in every mode:
 
@@ -537,8 +611,8 @@ On a failed load's row, both retry, whatever the mode. The rest work the same in
   key.
 - **Clicks:** the chevron only opens and closes. The rest of the row does the item's one thing:
   opens or closes it with no `selectionMode`, selects it (and opens or closes a parent) in a
-  `single` tree, and checks it in a `checkbox` tree. A click moves focus and the tab stop to the
-  item.
+  `single` tree, and checks or unchecks it in either checkbox tree. A click moves focus and the tab
+  stop to the item.
 - **Not for site navigation:** APG's own
   [navigation tree example](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/examples/treeview-navigation/)
   says "A pattern more suited for typical site navigation with expandable groups of links is the
@@ -557,7 +631,8 @@ On a failed load's row, both retry, whatever the mode. The rest work the same in
 [Guidepup's Virtual Screen Reader](https://www.guidepup.dev/docs/virtual) 0.33.0, which reads the
 accessibility tree the way the ARIA and HTML specs describe. It isn't a recording of NVDA, JAWS
 or VoiceOver, and each of those words things its own way. The library's tests press these keys
-through it on the FileBrowser, Permissions and DeepTree stories, and fail if what it says changes.
+through it on the FileBrowser, Permissions, DeepTree and Categories stories, and fail if what it
+says changes.
 
 1. **Onto a closed parent, then Right and Left:** "treeitem, helpers, not expanded, level 2,
    position 2, not selected, set size 3". Right reads it again as "expanded" and Left as "not
@@ -584,6 +659,11 @@ through it on the FileBrowser, Permissions and DeepTree stories, and fail if wha
 8. **Tab in and back out, with an item selected:** Tab lands on the selected item, "treeitem,
    Card.tsx, level 3, position 2, selected, set size 3", and Tab again leaves the tree for the next
    control. Shift+Tab comes back to Card.tsx, wherever focus was in the tree before.
+9. **Space in a `checkbox-independent` tree:** the item is read again as "checked", and nothing
+   else changes. With both items under it checked, Left to Shoes still reads "treeitem, Shoes, not
+   checked, expanded, level 2, position 1, set size 2". Space on Shoes reads "checked", and
+   unchecking Running under it leaves Shoes "checked" when focus gets back to it, where a
+   `checkbox` tree would read "partially checked". No item in this mode is ever partially checked.
 
 Still open in [#1171](https://github.com/allxsmith/bestax/issues/1171): recordings with NVDA, JAWS
 and VoiceOver on macOS and iOS, a real Windows contrast theme in place of Chromium's forced colors
@@ -617,29 +697,29 @@ emulation, and runs in Firefox and Safari.
 
 <!-- bestax:generated props -->
 
-| Prop                  | Type                                                  | Default      | Description                                                                                                                                                                                                                                                                                                |
-| --------------------- | ----------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `children`            | `React.ReactNode`                                     | —            | `TreeView.Item`s, nested inside each other for their children. Render an item's children whenever you have them, open or not: the tree hides them while it's closed.                                                                                                                                       |
-| `selectionMode`       | `'none'` \| `'single'` \| `'checkbox'`                | `'none'`     | `none`: nothing is picked, and Enter and Space open and close a parent. `single`: one item, picked with Enter, Space or a click. `checkbox`: any number, checked with Space or a click. A check reaches every enabled item under it, and a parent with some of them checked is mixed.                      |
-| `selected`            | `string` \| `null`                                    | —            | The selected item's value when you hold the state, or `null` for none. Read with `single` only. Picking an item then only calls `onSelectedChange`, and nothing changes until you pass the new value.                                                                                                      |
-| `defaultSelected`     | `string` \| `null`                                    | `null`       | The item selected to begin with, when the tree holds its own state. Read with `single` only.                                                                                                                                                                                                               |
-| `onSelectedChange`    | `(value: string) => void`                             | —            | Called with the value of the item picked. Not called for the one already selected, and moving focus never calls it.                                                                                                                                                                                        |
-| `checked`             | `string[]`                                            | —            | The checked items' values when you hold the state. Read with `checkbox` only. A value checks its item, and an enabled item also counts as checked when any item above it is in the list, so a parent's value stands for its whole branch, loaded or not. A disabled item is checked only by its own value. |
-| `defaultChecked`      | `string[]`                                            | `[]`         | The values checked to begin with, when the tree holds its own state. Read with `checkbox` only.                                                                                                                                                                                                            |
-| `onCheckedChange`     | `(checked: string[]) => void`                         | —            | Called after a check or an uncheck with every item that now shows checked, parents included, plus any earlier value that matches no item the tree knows, left as it was. The order means nothing. Passed back as `checked`, the list shows the same boxes.                                                 |
-| `expanded`            | `string[]`                                            | —            | The open items' values when you hold the state. A value stays in the list while its item's parent is closed, so the item reopens as it was.                                                                                                                                                                |
-| `defaultExpanded`     | `string[]`                                            | `[]`         | The items open to begin with, when the tree holds its own state.                                                                                                                                                                                                                                           |
-| `onExpandedChange`    | `(expanded: string[]) => void`                        | —            | Called with the new list whenever an item opens or closes, `*` included.                                                                                                                                                                                                                                   |
-| `size`                | `'small'` \| `'medium'` \| `'large'`                  | —            | The text size, as Bulma's menu sizes it. The rows, the indent and the chevron scale with it.                                                                                                                                                                                                               |
-| `loadingLabel`        | `string`                                              | `'Loading…'` | What the row in a loading item's group says. In your app's language.                                                                                                                                                                                                                                       |
-| `retryLabel`          | `string`                                              | `'Retry'`    | The Retry button's text on a failed load's row. In your app's language.                                                                                                                                                                                                                                    |
-| `loadingAnnouncement` | `(name: string) => string`                            | —            | What the live region says when an open item starts loading, built from the item's name. In your app's language. Default: `` `Loading ${name}` ``.                                                                                                                                                          |
-| `loadedAnnouncement`  | `(name: string) => string`                            | —            | What the live region says when that load finishes. In your app's language. Default: `` `${name} loaded` ``.                                                                                                                                                                                                |
-| `className`           | `string`                                              | —            | Additional CSS classes.                                                                                                                                                                                                                                                                                    |
-| `aria-label`          | `string`                                              | —            | Names the tree, such as "Files". A tree needs a name, so pass this or `aria-labelledby`, and a development build warns when it has neither.                                                                                                                                                                |
-| `aria-labelledby`     | `string`                                              | —            | The id of a visible heading or label that names the tree, in place of `aria-label`.                                                                                                                                                                                                                        |
-| `ref`                 | `React.Ref<HTMLUListElement>`                         | —            | Ref forwarded to the `<ul>`.                                                                                                                                                                                                                                                                               |
-| `...`                 | All standard `<ul>` attributes and Bulma helper props | —            | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                          |
+| Prop                  | Type                                                               | Default      | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| --------------------- | ------------------------------------------------------------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `children`            | `React.ReactNode`                                                  | —            | `TreeView.Item`s, nested inside each other for their children. Render an item's children whenever you have them, open or not: the tree hides them while it's closed.                                                                                                                                                                                                                                                                                                                       |
+| `selectionMode`       | `'none'` \| `'single'` \| `'checkbox'` \| `'checkbox-independent'` | `'none'`     | `none`: nothing is picked, and Enter and Space open and close a parent. `single`: one item, picked with Enter, Space or a click. `checkbox`: any number, checked with Space or a click. A check reaches every enabled item under it, and a parent with some of them checked is mixed. `checkbox-independent`: any number, checked with Space or a click, each box for its own item. A check reaches nothing under it, and no parent is mixed (Mantine's and Ant Design's `checkStrictly`). |
+| `selected`            | `string` \| `null`                                                 | —            | The selected item's value when you hold the state, or `null` for none. Read with `single` only. Picking an item then only calls `onSelectedChange`, and nothing changes until you pass the new value.                                                                                                                                                                                                                                                                                      |
+| `defaultSelected`     | `string` \| `null`                                                 | `null`       | The item selected to begin with, when the tree holds its own state. Read with `single` only.                                                                                                                                                                                                                                                                                                                                                                                               |
+| `onSelectedChange`    | `(value: string) => void`                                          | —            | Called with the value of the item picked. Not called for the one already selected, and moving focus never calls it.                                                                                                                                                                                                                                                                                                                                                                        |
+| `checked`             | `string[]`                                                         | —            | The checked items' values when you hold the state. Read with `checkbox` and `checkbox-independent` only. A value checks its item. In `checkbox`, an enabled item also counts as checked when any item above it is in the list, so a parent's value stands for its whole branch, loaded or not, and a disabled item is checked only by its own value. In `checkbox-independent`, a value checks its own item and nothing else.                                                              |
+| `defaultChecked`      | `string[]`                                                         | `[]`         | The values checked to begin with, when the tree holds its own state. Read with `checkbox` and `checkbox-independent` only.                                                                                                                                                                                                                                                                                                                                                                 |
+| `onCheckedChange`     | `(checked: string[]) => void`                                      | —            | Called after a check or an uncheck. In `checkbox`, with every item that now shows checked, parents included, plus any earlier value that matches no item the tree knows, left as it was, and the order means nothing. In `checkbox-independent`, with the list as it was, the item's value added at the end or every copy of it taken out, and everything else in the same order. Passed back as `checked`, the list shows the same boxes.                                                 |
+| `expanded`            | `string[]`                                                         | —            | The open items' values when you hold the state. A value stays in the list while its item's parent is closed, so the item reopens as it was.                                                                                                                                                                                                                                                                                                                                                |
+| `defaultExpanded`     | `string[]`                                                         | `[]`         | The items open to begin with, when the tree holds its own state.                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `onExpandedChange`    | `(expanded: string[]) => void`                                     | —            | Called with the new list whenever an item opens or closes, `*` included.                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `size`                | `'small'` \| `'medium'` \| `'large'`                               | —            | The text size, as Bulma's menu sizes it. The rows, the indent and the chevron scale with it.                                                                                                                                                                                                                                                                                                                                                                                               |
+| `loadingLabel`        | `string`                                                           | `'Loading…'` | What the row in a loading item's group says. In your app's language.                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `retryLabel`          | `string`                                                           | `'Retry'`    | The Retry button's text on a failed load's row. In your app's language.                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `loadingAnnouncement` | `(name: string) => string`                                         | —            | What the live region says when an open item starts loading, built from the item's name. In your app's language. Default: `` `Loading ${name}` ``.                                                                                                                                                                                                                                                                                                                                          |
+| `loadedAnnouncement`  | `(name: string) => string`                                         | —            | What the live region says when that load finishes. In your app's language. Default: `` `${name} loaded` ``.                                                                                                                                                                                                                                                                                                                                                                                |
+| `className`           | `string`                                                           | —            | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `aria-label`          | `string`                                                           | —            | Names the tree, such as "Files". A tree needs a name, so pass this or `aria-labelledby`, and a development build warns when it has neither.                                                                                                                                                                                                                                                                                                                                                |
+| `aria-labelledby`     | `string`                                                           | —            | The id of a visible heading or label that names the tree, in place of `aria-label`.                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `ref`                 | `React.Ref<HTMLUListElement>`                                      | —            | Ref forwarded to the `<ul>`.                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `...`                 | All standard `<ul>` attributes and Bulma helper props              | —            | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
 **Subcomponents:**
 
@@ -652,7 +732,7 @@ emulation, and runs in Firefox and Safari.
 | `value`         | `string`                       | —       | **Required.** Identifies the item in `selected`, `checked` and `expanded`. Unique in the tree.                                                                                                                                                                                                                                                                                                                                             |
 | `label`         | `React.ReactNode`              | —       | **Required.** What the row shows, and the item's name for assistive tech. Nothing in it should be a link or a button: a tree item does one thing, and nothing else in its row takes focus.                                                                                                                                                                                                                                                 |
 | `icon`          | `React.ReactNode`              | —       | A picture before the label: an `Icon` name, or a node. Hidden from assistive tech.                                                                                                                                                                                                                                                                                                                                                         |
-| `children`      | `React.ReactNode`              | —       | `TreeView.Item`s under this one. Render them whenever you have them, open or not: the tree hides them while it's closed, and a checkbox tree needs them to know what a check reaches.                                                                                                                                                                                                                                                      |
+| `children`      | `React.ReactNode`              | —       | `TreeView.Item`s under this one. Render them whenever you have them, open or not: the tree hides them while it's closed, and a `checkbox` tree needs them to know what a check reaches.                                                                                                                                                                                                                                                    |
 | `hasChildren`   | `boolean`                      | `false` | Shows the item as a parent before its children are known, such as a folder that loads when it opens.                                                                                                                                                                                                                                                                                                                                       |
 | `isLoading`     | `boolean`                      | `false` | Its children are on their way. While it's open, its group ends in a row that says so, and the tree's live region says it's loading, then that it's loaded once this goes back to `false`. A parent only: pair it with `hasChildren`, or with the children it already has.                                                                                                                                                                  |
 | `loadError`     | `React.ReactNode`              | —       | Its children didn't load. While it's open, its group ends in a row with this message, and a Retry button when there's an `onRetry`, and the live region reads the message out, so name the item in it ("Couldn't load src"), then says it's loaded once this goes with the item still open. A parent only, like `isLoading`. Nothing in it should be a link or a button: the row is what's pressed. `isLoading` wins while both are given. |

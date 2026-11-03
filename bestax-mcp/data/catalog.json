@@ -1400,7 +1400,7 @@
       "import": "import { TreeView } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 27,
-      "exampleCount": 9
+      "exampleCount": 10
     },
     {
       "name": "UnorderedList",
