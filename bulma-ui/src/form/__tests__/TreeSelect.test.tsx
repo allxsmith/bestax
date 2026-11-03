@@ -1305,8 +1305,8 @@ describe('TreeSelect', () => {
   });
 
   describe('forms', () => {
-    it('is aria-required, with a hidden required field the browser reads, which hands focus to the field a task later', () => {
-      vi.useFakeTimers();
+    it('is aria-required, with a hidden required field over it the browser reads, which keeps focus until the next key', () => {
+      // `inset` isn't in jsdom's CSS model, so it's read as written.
       const { container, rerender } = render(
         <TreeSelect label="Place" data={PLACES} required form="f" />
       );
@@ -1319,13 +1319,30 @@ describe('TreeSelect', () => {
       expect(proxy).toHaveAttribute('form', 'f');
       expect(proxy.name).toBe('');
       expect(proxy.validity.valueMissing).toBe(true);
-      proxy.focus();
+      expect(proxy.getAttribute('style')).toContain('inset: 0');
+      expect(proxy).not.toHaveAttribute('aria-labelledby');
+      // The browser focuses it to show its message. Focus stays, so the
+      // message does, and the field looks focused. Focused, it's in the
+      // accessibility tree, named as the field is.
+      act(() => proxy.focus());
       expect(proxy).toHaveFocus();
-      act(() => {
-        vi.runAllTimers();
-      });
+      expect(field()).toHaveClass('is-focused');
+      expect(proxy).not.toHaveAttribute('aria-hidden');
+      expect(proxy).toHaveAttribute(
+        'aria-labelledby',
+        document.querySelector('label')!.id
+      );
+      // The next key goes to the field and does what it does there.
+      fireEvent.keyDown(proxy, { key: 'Shift' });
       expect(field()).toHaveFocus();
-      vi.useRealTimers();
+      expect(field()).not.toHaveClass('is-focused');
+      expect(proxy).toHaveAttribute('aria-hidden', 'true');
+      expect(screen.queryByRole('dialog')).toBeNull();
+      act(() => proxy.focus());
+      fireEvent.keyDown(proxy, { key: 'Enter' });
+      expect(screen.getByRole('dialog')).toContainElement(
+        document.activeElement as HTMLElement
+      );
       fireEvent.change(proxy, { target: { value: 'typed' } });
       rerender(
         <TreeSelect

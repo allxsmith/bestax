@@ -1,7 +1,7 @@
 // INTERNAL: deliberately not exported from src/index.ts. The field a picker
 // of tree data opens its panel from: TreeSelect's, and Cascader's after it.
 
-import React, { useEffect, useId, useRef } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../../helpers/classNames';
 import {
   useBulmaClasses,
@@ -107,13 +107,15 @@ export interface DialogSelectProps
   children: (name: PanelName) => React.ReactNode;
 }
 
-/** A field hidden behind the real one, so the browser's `required` check reads it. */
+/**
+ * A field laid over the real one, unseen and letting presses through, so the
+ * browser's `required` check reads it and its message points at the field.
+ */
 const requiredProxyStyle: React.CSSProperties = {
   position: 'absolute',
-  left: 0,
-  bottom: 0,
+  inset: 0,
   width: '100%',
-  height: '1px',
+  height: '100%',
   margin: 0,
   padding: 0,
   border: 0,
@@ -201,16 +203,21 @@ export function DialogSelect({
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
   const rootRef = useRef<HTMLDivElement>(null);
 
-  // The panel is named as the field is, unless it's given a name of its own.
+  // The field's name, which the panel takes too unless it's given its own.
+  const fieldName: PanelName = ariaLabel
+    ? { 'aria-label': ariaLabel }
+    : ariaLabelledBy
+      ? { 'aria-labelledby': ariaLabelledBy }
+      : labelId
+        ? { 'aria-labelledby': labelId }
+        : {};
   const panelName: PanelName = chooseLabel
     ? { 'aria-label': chooseLabel }
-    : ariaLabel
-      ? { 'aria-label': ariaLabel }
-      : ariaLabelledBy
-        ? { 'aria-labelledby': ariaLabelledBy }
-        : labelId
-          ? { 'aria-labelledby': labelId }
-          : {};
+    : fieldName;
+
+  // Whether the field `required` hangs on has focus, which the browser gives
+  // it when it stops a submit.
+  const [proxyFocused, setProxyFocused] = useState(false);
 
   const showClear = !!clearable && hasValue && !disabled;
   const rootClasses = usePrefixedClassNames(rootClass, {
@@ -221,6 +228,7 @@ export function DialogSelect({
     [`is-${color}`]: !!color,
     [`is-${size}`]: !!size,
     'is-rounded': !!isRounded,
+    'is-focused': proxyFocused,
   });
   const chevronClass = usePrefixedClassNames(`${rootClass}-chevron`);
   const clearClass = usePrefixedClassNames(`${rootClass}-clear`);
@@ -336,18 +344,29 @@ export function DialogSelect({
       {insideControl ? field : <Control size={size}>{field}</Control>}
       {required && (
         <input
+          // Focus puts it in the accessibility tree, and Chromium won't
+          // leave focus hidden, so it's hidden only until it's focused, and
+          // then named as the field is.
+          {...(proxyFocused ? fieldName : { 'aria-hidden': true })}
           tabIndex={-1}
-          aria-hidden="true"
           required
           value={hasValue ? 'picked' : ''}
           onChange={ignoreChange}
           form={form}
           disabled={disabled}
-          // The browser focuses it to show why the form didn't submit, and
-          // focus goes on to the field. A task later: moving it while the
-          // browser is still focusing this leaves Firefox taking no more
-          // clicks on the page until a key is pressed.
-          onFocus={() => setTimeout(() => inputRef.current?.focus())}
+          // When the browser stops a submit, it focuses this and shows its
+          // message beside it, and every browser takes the message down as
+          // this loses focus. So focus stays here, over the field, which
+          // looks focused, and a press goes where it lands, as from any
+          // field. The next key hands focus to the field and does there
+          // what it would have. Firefox also stops taking clicks if focus
+          // leaves while it's still focusing this.
+          onFocus={() => setProxyFocused(true)}
+          onBlur={() => setProxyFocused(false)}
+          onKeyDown={event => {
+            inputRef.current?.focus();
+            handleKeyDown(event);
+          }}
           style={requiredProxyStyle}
         />
       )}

@@ -149,7 +149,7 @@ interface TreeSelectBaseProps
   /**
    * A value is needed: the field is `aria-required`, and the form won't
    * submit while nothing is picked. The browser's message points at the
-   * field, and focus goes to it.
+   * field, which shows focus, and the next key goes to it.
    */
   required?: boolean;
   /** The field can't be used: it can't be focused or opened, its tags lose their buttons, and its hidden inputs don't post. */
