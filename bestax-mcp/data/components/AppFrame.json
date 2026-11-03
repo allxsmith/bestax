@@ -243,7 +243,7 @@
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Usually a `Menu`. A nav taller than the window scrolls on its own. With `overlay`, the rest of the frame is inert while the drawer is open, so an overlay opened from the drawer, such as a `Modal`, goes inside the nav or renders outside the frame (Modal's `portal`).",
+          "description": "Usually a `Menu`. A nav taller than the window scrolls on its own, except a column collapsed to a rail, which doesn't (see `rail`). With `overlay`, the rest of the frame is inert while the drawer is open, so an overlay opened from the drawer, such as a `Modal`, goes inside the nav or renders outside the frame (Modal's `portal`).",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -297,7 +297,7 @@
           "name": "rail",
           "type": "boolean",
           "default": "false",
-          "description": "From the breakpoint up, a collapsed column shrinks to a rail of icons instead of leaving the page. Give each top-level `Menu.Item` and `Menu.Section` an `icon`. In the rail their labels are visually hidden, so each stays its link's or button's name, and shows in a `Tooltip` beside the rail on hover and keyboard focus. Nested lists and `Menu.Label` headings hide there, and a section's button expands the column and opens the section. Collapsed, the column doesn't scroll on its own, so a tooltip isn't clipped: a rail taller than the window scrolls with the page.",
+          "description": "From the breakpoint up, a collapsed column shrinks to a rail of icons instead of leaving the page. Every top-level `Menu.Item` and `Menu.Section` needs an `icon`: in the rail, an item without one has nothing to show and its label spills over the page, and a section's button is blank, so a development build warns about one without. In the rail their labels are visually hidden, so each stays its link's or button's name, and shows in a `Tooltip` beside the rail on hover and keyboard focus. Nested lists and `Menu.Label` headings hide there, and a section's button expands the column and opens the section. Collapsed to the rail, the column doesn't scroll on its own, so a tooltip isn't clipped. It sticks under the header while it fits there. A rail taller than the window under the header scrolls with the page instead, so its lower icons come into view as the page scrolls and as Tab reaches them. That takes a measurement in the browser, so before the page hydrates such a rail sticks.",
           "required": false,
           "inherited": false,
           "deprecated": false

@@ -1388,7 +1388,7 @@
       "slug": "components/tooltip",
       "import": "import { Tooltip } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 15,
+      "propCount": 16,
       "exampleCount": 11
     },
     {

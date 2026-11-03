@@ -190,6 +190,15 @@
           "deprecated": false
         },
         {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Keeps the tooltip closed, and leaves its trigger as it is: hover, keyboard focus and a tap don't open it, and one that's open hides. For a tooltip that applies only some of the time, without unmounting the trigger, which would drop its focus. Turned off again, it opens on the next hover or focus. `active` still shows it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "tooltipClassName",
           "type": "string",
           "default": null,
