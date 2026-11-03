@@ -9,7 +9,6 @@ import { flattenChildren } from '../helpers/flattenChildren';
 import { visuallyHidden } from '../helpers/statusRegion';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { Icon } from '../elements/Icon';
-import { isGiven } from '../helpers/isGiven';
 
 const validTimelineColors = [
   'primary',
@@ -46,6 +45,13 @@ interface TimelineItemContextValue {
 const TimelineItemContext = createContext<TimelineItemContextValue>({
   titleAs: 'h2',
 });
+
+/** Whether a prop was given something to render. */
+const isGiven = (node: React.ReactNode) =>
+  node !== undefined &&
+  node !== null &&
+  typeof node !== 'boolean' &&
+  node !== '';
 
 const isTimelineColor = (color?: string): color is TimelineColor =>
   !!color && (validTimelineColors as readonly string[]).includes(color);

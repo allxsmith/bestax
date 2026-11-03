@@ -533,7 +533,7 @@ If you haven't started your project yet, `pnpm create bestax@latest` will wire u
 
 Every button example above pairs its icon with visible text. When the icon _is_ the whole label — a toolbar or a card action with no room for words — the accessible name has to come from somewhere else, because there is no text for a screen reader to announce.
 
-[`IconButton`](/docs/api/elements/iconbutton) is built for this. It takes the icon's name, or an `Icon` from any of these libraries, and its types won't compile without the `aria-label` that names it:
+[`IconButton`](/docs/api/elements/iconbutton) is built for this. It takes the icon's name, or an `Icon` from any of these libraries, and its types won't compile without an `aria-label` or an `aria-labelledby`:
 
 ```tsx live
 <IconButton color="danger" icon="trash" aria-label="Delete item" />
