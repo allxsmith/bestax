@@ -29,6 +29,13 @@ on the root element with `mergeBulmaStyles(bulmaHelperStyles, style)`
 `undefined` when both are absent so unaffected components keep an attribute-free DOM.
 (`useColorStyles` is the underlying per-concern hook.)
 
+The flex container props (`flexDirection`, `flexWrap`, `justifyContent`, `alignContent`,
+`alignItems`) emit a class only on a flex container: when a `display` prop is `flex` or
+`inline-flex`, or when the second argument says the element's own stylesheet makes it one,
+`useBulmaClasses(props, { flexContainer: true })`. That adds no `is-flex` class, so pass it only
+when your CSS sets `display: flex`. `Stack`, `Group`, `Center` and `Flex` pass it, and
+`useFlexboxClasses` takes the same second argument.
+
 `BulmaClassesProps` is the union of all helper prop groups, composed from per-concern hooks
 that can also be used on their own:
 
