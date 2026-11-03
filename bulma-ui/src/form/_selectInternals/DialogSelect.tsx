@@ -212,8 +212,10 @@ export function DialogSelect({
           ? { 'aria-labelledby': labelId }
           : {};
 
+  const showClear = clearable && hasValue && !disabled;
   const rootClasses = usePrefixedClassNames(rootClass, {
     'is-disabled': disabled,
+    'has-clear': showClear,
   });
   const inputClass = usePrefixedClassNames('input', {
     [`is-${color}`]: !!color,
@@ -229,7 +231,6 @@ export function DialogSelect({
     [`is-${messageColor}`]: !!messageColor,
   });
   const isOpen = open && !disabled;
-  const showClear = clearable && hasValue && !disabled;
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (disabled) return;

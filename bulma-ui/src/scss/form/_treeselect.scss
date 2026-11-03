@@ -1,0 +1,140 @@
+// Bestax Extras - TreeSelect Styles
+// A form field whose options are a tree. The field is Bulma's input, the
+// panel the pickers' popover (`--bulma-picker-popover-*`) and the tree
+// TreeView's (`--bulma-tree-view-*`), so this draws what sits between them:
+// the chevron and the clear button on the field, the panel's size, the
+// search box over the tree and the message when a search finds nothing.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+// In place, the field's width. A portaled panel takes the field's width from
+// the component instead, since it isn't inside the field.
+$tree-select-panel-min-width: 100% !default;
+// The tree scrolls past this, as Combobox's list does.
+$tree-select-panel-max-height: 15rem !default;
+$tree-select-search-gap: 0.5rem !default;
+// The chevron's box at the field's inline end, drawn as a Control's icon is.
+// Bulma registers its input variables on the field and its Control, which the
+// root is outside, so these start from the tokens those start from.
+$tree-select-chevron-width: cv.getVar('control-height') !default;
+$tree-select-chevron-color: cv.getVar('text-light') !default;
+$tree-select-chevron-hover-color: cv.getVar('text-weak') !default;
+$tree-select-chevron-focus-color: cv.getVar('link') !default;
+$tree-select-empty-color: cv.getVar('text-weak') !default;
+$tree-select-empty-padding: 0.5em 0.75em !default;
+// Room around the tree for the focus ring of a row at its edge, which the
+// scrolling would cut off: the ring's width and its offset.
+$tree-select-tree-inset: 4px !default;
+
+// Registered on the root, and on the panel too, which a portal puts outside
+// it. A panel in place inherits the root's, so a theme set there reaches it.
+.#{iv.$class-prefix}tree-select,
+.#{iv.$class-prefix}tree-select-panel {
+  @include cv.register-vars(
+    (
+      'tree-select-panel-min-width': #{$tree-select-panel-min-width},
+      'tree-select-panel-max-height': #{$tree-select-panel-max-height},
+      'tree-select-search-gap': #{$tree-select-search-gap},
+      'tree-select-chevron-width': #{$tree-select-chevron-width},
+      'tree-select-chevron-color': #{$tree-select-chevron-color},
+      'tree-select-chevron-hover-color': #{$tree-select-chevron-hover-color},
+      'tree-select-chevron-focus-color': #{$tree-select-chevron-focus-color},
+      'tree-select-empty-color': #{$tree-select-empty-color},
+      'tree-select-empty-padding': #{$tree-select-empty-padding},
+      'tree-select-tree-inset': #{$tree-select-tree-inset},
+    )
+  );
+}
+
+// What the panel in place, the chevron and the clear button are placed
+// against, when a Control around it holds no other field.
+.#{iv.$class-prefix}tree-select {
+  position: relative;
+
+  .#{iv.$class-prefix}input {
+    cursor: pointer;
+    padding-inline-end: cv.getVar('tree-select-chevron-width');
+  }
+
+  &.#{iv.$class-prefix}has-clear .#{iv.$class-prefix}input {
+    padding-inline-end: calc(2 * #{cv.getVar('tree-select-chevron-width')});
+  }
+
+  .#{iv.$class-prefix}input[disabled] {
+    cursor: not-allowed;
+  }
+}
+
+// Bulma's Control icon, at the inline end, where a press goes to the field.
+.#{iv.$class-prefix}tree-select-chevron {
+  align-items: center;
+  color: cv.getVar('tree-select-chevron-color');
+  display: flex;
+  height: 100%;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  justify-content: center;
+  pointer-events: none;
+  position: absolute;
+  width: cv.getVar('tree-select-chevron-width');
+  z-index: 4;
+}
+
+.#{iv.$class-prefix}tree-select .#{iv.$class-prefix}input {
+  &:hover ~ .#{iv.$class-prefix}tree-select-chevron {
+    color: cv.getVar('tree-select-chevron-hover-color');
+  }
+
+  &:focus ~ .#{iv.$class-prefix}tree-select-chevron,
+  &[aria-expanded='true'] ~ .#{iv.$class-prefix}tree-select-chevron {
+    color: cv.getVar('tree-select-chevron-focus-color');
+  }
+
+  &[disabled] ~ .#{iv.$class-prefix}tree-select-chevron {
+    color: cv.getVar('input-disabled-color');
+  }
+
+  // The chevron's box is in em, so it follows the field's size.
+  &.#{iv.$class-prefix}is-small ~ * {
+    font-size: cv.getVar('size-small');
+  }
+
+  &.#{iv.$class-prefix}is-medium ~ * {
+    font-size: cv.getVar('size-medium');
+  }
+
+  &.#{iv.$class-prefix}is-large ~ * {
+    font-size: cv.getVar('size-large');
+  }
+}
+
+// Beside the chevron, centred on the field's height.
+.#{iv.$class-prefix}tree-select-clear {
+  inset-block-start: 50%;
+  inset-inline-end: cv.getVar('tree-select-chevron-width');
+  position: absolute;
+  transform: translateY(-50%);
+  z-index: 5;
+}
+
+.#{iv.$class-prefix}tree-select-panel {
+  display: flex;
+  flex-direction: column;
+  gap: cv.getVar('tree-select-search-gap');
+  min-width: cv.getVar('tree-select-panel-min-width');
+
+  // The tree scrolls, with room for the focus ring of the row at its edge,
+  // and still lines up with the search box over it.
+  > .#{iv.$class-prefix}tree-view {
+    margin-inline: calc(-1 * #{cv.getVar('tree-select-tree-inset')});
+    max-height: cv.getVar('tree-select-panel-max-height');
+    overflow-y: auto;
+    padding: cv.getVar('tree-select-tree-inset');
+  }
+}
+
+.#{iv.$class-prefix}tree-select-empty {
+  color: cv.getVar('tree-select-empty-color');
+  padding: cv.getVar('tree-select-empty-padding');
+}

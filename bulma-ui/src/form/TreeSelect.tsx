@@ -666,6 +666,9 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
                 <TreeView
                   {...panelName}
                   ref={treeRef}
+                  // It scrolls, and Firefox makes a scroller a Tab stop of
+                  // its own: the roving one on its items is the tree's.
+                  tabIndex={-1}
                   selectionMode={selectionMode}
                   size={size}
                   selected={single ? (picked[0] ?? null) : undefined}
