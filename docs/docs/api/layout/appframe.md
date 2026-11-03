@@ -360,6 +360,8 @@ page has another aside.
 `navCollapsed`, `isDrawer`, a setter for each, `navId` for its `aria-controls`, and `toggleNav()`,
 which does what the burger does at the current width. It throws outside an `AppFrame`.
 
+Have your toggle focus itself before it toggles, as `AppFrame.Burger` does. Safari, and Firefox on a Mac, don't focus a button on click, so without it the drawer has no opener to hand focus back to when it closes.
+
 ```tsx live
 function example() {
   function SectionsToggle() {
@@ -370,7 +372,10 @@ function example() {
         size="small"
         aria-controls={frame.navId}
         aria-expanded={expanded}
-        onClick={frame.toggleNav}
+        onClick={event => {
+          event.currentTarget.focus();
+          frame.toggleNav();
+        }}
       >
         {expanded ? 'Hide sections' : 'Show sections'}
       </Button>
