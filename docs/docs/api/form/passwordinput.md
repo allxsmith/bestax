@@ -218,9 +218,9 @@ function StrengthRecipe() {
 The button stays at the right edge in a right-to-left page, as the date pickers' launcher and Bulma's right icon do, so there it sits where the text starts. Moving all of them to the end of the line is a separate change.
 
 ```tsx live
-<div dir="rtl">
+<LocaleProvider locale="ar" dir="rtl">
   <PasswordInput label="كلمة المرور" />
-</div>
+</LocaleProvider>
 ```
 
 ### Without the Field

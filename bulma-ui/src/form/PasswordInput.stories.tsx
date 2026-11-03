@@ -27,8 +27,9 @@ const meta: Meta<typeof PasswordInput> = {
   },
   argTypes: {
     visible: {
-      control: 'boolean',
-      description: 'Whether the password shows, controlled',
+      control: false,
+      description:
+        'Whether the password shows, controlled: set it from what onVisibleChange reports, as ShowingTwoTogether does',
     },
     defaultVisible: {
       control: 'boolean',
