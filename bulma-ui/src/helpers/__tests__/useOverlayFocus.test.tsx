@@ -78,6 +78,43 @@ describe('useOverlayFocus', () => {
     expect(opener).not.toHaveFocus();
   });
 
+  it('focuses the initial element in place of the first tab stop', () => {
+    const { opener, overlay, inside } = setUp(document);
+    const next = document.createElement('button');
+    overlay.appendChild(next);
+    opener.focus();
+    const { rerender } = renderHook(
+      ({ open }) =>
+        useOverlayFocus({ current: overlay }, open, {
+          modal: true,
+          initialFocus: { current: next },
+        }),
+      { initialProps: { open: true } }
+    );
+    expect(next).toHaveFocus();
+    expect(inside).not.toHaveFocus();
+    rerender({ open: false });
+    expect(opener).toHaveFocus();
+  });
+
+  it('falls back to the first tab stop for an initial element outside, missing or unfocusable', () => {
+    const { opener, overlay, inside } = setUp(document);
+    const disabled = document.createElement('button');
+    disabled.disabled = true;
+    overlay.appendChild(disabled);
+    for (const initial of [opener, null, disabled]) {
+      opener.focus();
+      const { unmount } = renderHook(() =>
+        useOverlayFocus({ current: overlay }, true, {
+          modal: true,
+          initialFocus: { current: initial },
+        })
+      );
+      expect(inside).toHaveFocus();
+      unmount();
+    }
+  });
+
   it('leaves focus where it is when restore says no', () => {
     const { opener, overlay, inside } = setUp(document);
     opener.focus();

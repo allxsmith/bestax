@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { marginGap, useAnchoredPosition } from '../useAnchoredPosition';
+import type { AnchoredSide } from '../useAnchoredPosition';
 import type { PickerPosition } from '../../form/_pickerInternals/pickerTypes';
 
 /** Measures with neither element on the page. */
@@ -265,7 +266,174 @@ describe('marginGap', () => {
     expect(marginGap(panel({ marginBottom: '8px' }))).toBe(8);
   });
 
+  it('reads the inline margins too, for a panel beside its anchor', () => {
+    expect(marginGap(panel({ marginLeft: '-12px', marginTop: '3px' }))).toBe(
+      12
+    );
+    expect(marginGap(panel({ marginRight: '5px' }))).toBe(5);
+  });
+
   it('reads no gap from a panel without margins', () => {
     expect(marginGap(panel({}))).toBe(0);
+  });
+});
+
+describe('useAnchoredPosition on a side', () => {
+  /**
+   * A 100 by 50 panel against an anchor at 400 to 500 across and 300 to 340
+   * down, in a 1000 by 800 client area, unless a test moves the anchor.
+   */
+  const Side = ({
+    position,
+    fixed = true,
+    styledGap,
+    rtl = false,
+  }: {
+    position: AnchoredSide;
+    fixed?: boolean;
+    styledGap?: (panel: HTMLElement) => number;
+    rtl?: boolean;
+  }) => {
+    const anchorRef = useRef<HTMLButtonElement>(null);
+    const panelRef = useRef<HTMLDivElement>(null);
+    const resolved = useAnchoredPosition(anchorRef, panelRef, {
+      active: true,
+      position,
+      fixed,
+      offset: 4,
+      styledGap,
+    });
+    return (
+      <>
+        <button ref={anchorRef} dir={rtl ? 'rtl' : undefined} type="button">
+          anchor
+        </button>
+        <div ref={panelRef} />
+        <output>{JSON.stringify(resolved)}</output>
+      </>
+    );
+  };
+
+  const read = () => JSON.parse(screen.getByRole('status').textContent!);
+  const root = document.documentElement;
+  let anchor = { top: 300, left: 400, width: 100, height: 40 };
+
+  beforeEach(() => {
+    anchor = { top: 300, left: 400, width: 100, height: 40 };
+    Object.defineProperty(root, 'clientWidth', {
+      configurable: true,
+      value: 1000,
+    });
+    Object.defineProperty(root, 'clientHeight', {
+      configurable: true,
+      value: 800,
+    });
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+      function (this: HTMLElement) {
+        const box =
+          this.tagName === 'BUTTON'
+            ? anchor
+            : { top: 0, left: 0, width: 100, height: 50 };
+        return {
+          ...box,
+          bottom: box.top + box.height,
+          right: box.left + box.width,
+          x: box.left,
+          y: box.top,
+          toJSON: () => ({}),
+        } as DOMRect;
+      }
+    );
+    // jsdom has no `direction` of its own, so the `dir` attribute stands in.
+    const computed = window.getComputedStyle;
+    vi.spyOn(window, 'getComputedStyle').mockImplementation(
+      (el: Element, pseudo?: string | null) => {
+        const style = computed(el, pseudo);
+        if (el.getAttribute('dir') !== 'rtl') return style;
+        return { ...style, direction: 'rtl' } as CSSStyleDeclaration;
+      }
+    );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    // Back to jsdom's own, which reads 0.
+    Reflect.deleteProperty(root, 'clientWidth');
+    Reflect.deleteProperty(root, 'clientHeight');
+  });
+
+  it('centers the panel below, above, and beside the anchor', () => {
+    const { rerender } = render(<Side position="bottom" />);
+    expect(read()).toEqual({ position: 'bottom', top: 344, left: 400 });
+    rerender(<Side position="top" />);
+    expect(read()).toEqual({ position: 'top', top: 246, left: 400 });
+    rerender(<Side position="right" />);
+    expect(read()).toEqual({ position: 'right', top: 295, left: 504 });
+    rerender(<Side position="left" />);
+    expect(read()).toEqual({ position: 'left', top: 295, left: 296 });
+  });
+
+  it('swaps left and right under right-to-left text', () => {
+    const { rerender } = render(<Side position="left" rtl />);
+    expect(read()).toEqual({ position: 'right', top: 295, left: 504 });
+    rerender(<Side position="right" rtl />);
+    expect(read()).toEqual({ position: 'left', top: 295, left: 296 });
+    rerender(<Side position="top" rtl />);
+    expect(read().position).toBe('top');
+  });
+
+  it('flips to the opposite side when only that one has room', () => {
+    anchor = { top: 740, left: 900, width: 100, height: 40 };
+    const { rerender } = render(<Side position="bottom" />);
+    expect(read()).toEqual({ position: 'top', top: 686, left: 900 });
+    rerender(<Side position="right" />);
+    expect(read()).toEqual({ position: 'left', top: 735, left: 796 });
+  });
+
+  it('stays on the side asked for when neither has room, inside the viewport', () => {
+    // As tall as the client area, so there's no room above or below it, and
+    // centered under it the panel would start 40px off the left edge.
+    anchor = { top: 0, left: -40, width: 100, height: 800 };
+    render(<Side position="bottom" />);
+    expect(read()).toEqual({ position: 'bottom', top: 750, left: 0 });
+  });
+
+  it('counts the stylesheet’s gap for the fit and leaves it out of the coordinates', () => {
+    anchor = { top: 690, left: 400, width: 100, height: 40 };
+    const { rerender } = render(<Side position="bottom" />);
+    // 730 + 4 + 50 fits under 800.
+    expect(read()).toEqual({ position: 'bottom', top: 734, left: 400 });
+    rerender(<Side position="bottom" styledGap={() => 20} />);
+    // 730 + 24 + 50 doesn't, so it goes above, and the margin lifts it the
+    // last 20px from 636.
+    expect(read()).toEqual({ position: 'top', top: 636, left: 400 });
+  });
+
+  it('keeps the gap when the panel is moved back inside the viewport', () => {
+    // Pushed past the bottom edge below the anchor, the panel is moved up to
+    // end at 800 once its 10px margin has moved it down.
+    anchor = { top: 0, left: 400, width: 100, height: 800 };
+    render(<Side position="bottom" styledGap={() => 10} />);
+    expect(read()).toEqual({ position: 'bottom', top: 740, left: 400 });
+  });
+
+  it('gives a panel in place the side alone', () => {
+    render(<Side position="left" fixed={false} />);
+    expect(read()).toEqual({ position: 'left' });
+  });
+
+  it('starts at the side asked for before anything is measured', () => {
+    const SideDetached = () => {
+      const anchorRef = useRef<HTMLElement>(null);
+      const panelRef = useRef<HTMLElement>(null);
+      const resolved = useAnchoredPosition(anchorRef, panelRef, {
+        active: true,
+        position: 'left',
+        fixed: true,
+      });
+      return <p>{resolved.position}</p>;
+    };
+    render(<SideDetached />);
+    expect(screen.getByText('left')).toBeInTheDocument();
   });
 });
