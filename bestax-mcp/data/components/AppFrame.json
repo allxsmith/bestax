@@ -256,7 +256,7 @@
           "name": "width",
           "type": "number | string",
           "default": null,
-          "description": "The column's width, and the drawer's up to the window's width less a strip of backdrop. A number is pixels, and a string any CSS length. It writes `--bulma-app-frame-nav-width`, 16rem by default. With `resizable`, it's the controlled width: update it from `onWidthChange`, and give it in pixels, or in `px` or `rem`, which the handle can step from.",
+          "description": "The column's width, and the drawer's up to the window's width less a strip of backdrop. A number is pixels, and a string any CSS length. It writes `--bulma-app-frame-nav-width`, 16rem by default. With `resizable`, it's the controlled width: update it from `onWidthChange`. It then takes pixels, or `px` or `rem`, which the handle can step from; the handle reads anything else as the stylesheet's width, and a development build warns about it.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -319,7 +319,7 @@
           "name": "defaultWidth",
           "type": "number | string",
           "default": null,
-          "description": "The width a `resizable` column starts at when `width` isn't set, and goes back to on a double click on its handle: pixels, or `px` or `rem`. Without it, the stylesheet's, 16rem.",
+          "description": "The width a `resizable` column starts at when `width` isn't set, and goes back to on a double click on its handle: pixels, or `px` or `rem`. The handle reads anything else as the stylesheet's width, and a development build warns about it. Without it, the stylesheet's, 16rem.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -337,7 +337,7 @@
           "name": "minWidth",
           "type": "number | string",
           "default": "'12rem'",
-          "description": "The narrowest a drag or a key takes a `resizable` column: pixels, or `px` or `rem`, as Splitter.Pane's `minSize`.",
+          "description": "The narrowest a drag or a key takes a `resizable` column: pixels, or `px` or `rem`, as Splitter.Pane's `minSize`. The handle takes the default for anything else, and a development build warns about it.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -346,7 +346,7 @@
           "name": "maxWidth",
           "type": "number | string",
           "default": "'32rem'",
-          "description": "The widest a drag or a key takes a `resizable` column, in the same units as `minWidth`.",
+          "description": "The widest a drag or a key takes a `resizable` column, in the same units as `minWidth`, with the same default for anything else.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -711,6 +711,12 @@
       "css": "--bulma-app-frame-handle-active-color",
       "sass": "$app-frame-handle-active-color",
       "default": "var(--bulma-primary)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-app-frame-handle-active-size",
+      "sass": "$app-frame-handle-active-size",
+      "default": "2px",
       "scope": "root"
     }
   ]

@@ -1476,6 +1476,7 @@
     "--bulma-app-frame-border-width": ["AppFrame"],
     "--bulma-app-frame-drawer-shadow": ["AppFrame"],
     "--bulma-app-frame-handle-active-color": ["AppFrame"],
+    "--bulma-app-frame-handle-active-size": ["AppFrame"],
     "--bulma-app-frame-handle-size": ["AppFrame"],
     "--bulma-app-frame-handle-size-coarse": ["AppFrame"],
     "--bulma-app-frame-header-background": ["AppFrame"],
