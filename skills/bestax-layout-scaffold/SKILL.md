@@ -143,7 +143,9 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `<Stat label="Revenue" value={8456.4} change={0.12} description="since last month" />`.
   `change` is a fraction written with its sign ("+12%"), green up and red down, and
   `changeColor="danger"` marks a rise that's bad news, such as churn. The row wraps on its own, so
-  add no breakpoint code, and it holds only `Stat`s (a `LocaleProvider` goes around it). `loading`
+  add no breakpoint code, and it holds only `Stat`s (a `LocaleProvider` goes around it, and on a
+  page rendered on the server it's what keeps the server and the browser writing the numbers
+  alike, unless each `Stat` gets a `locale`). `loading`
   shows a `Skeleton` in place of a figure that isn't there yet. One figure on its own is a lone
   `Stat`. For a card look, a `Box` goes around a lone `Stat` or the whole `Stats` row, never around
   one `Stat` inside a row, which would break the row's list.
