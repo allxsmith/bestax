@@ -7,7 +7,6 @@ import React, {
   useId,
   useRef,
 } from 'react';
-import { createPortal } from 'react-dom';
 import {
   classNames,
   usePrefixedClassNames,
@@ -26,9 +25,7 @@ import {
   getActiveElementInTree,
   getDeepestActiveElement,
 } from '../helpers/shadowDom';
-import { usePortalContainer } from '../helpers/portal';
-import { LocalePortalScope } from '../helpers/LocaleProvider';
-import { useIsHydrated } from '../helpers/useIsHydrated';
+import { Portal, usePortalProp } from '../helpers/portal';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { useOverlayStack } from '../helpers/overlayStack';
 import { focusTabStop, trapTab } from '../helpers/useFocusTrap';
@@ -404,7 +401,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   },
   ref
 ) {
-  const { classPrefix, portalContainer } = useConfig();
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
@@ -455,21 +452,15 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
   const generatedTitleId = useId();
   // A portal has no server-rendered counterpart, so the server render and the
-  // hydrating render have to stay inline and only move into the portal once
-  // we're past hydration.
-  const onClient = useIsHydrated();
-  const resolveContainer = usePortalContainer();
-  // Moving into the portal, or from one portal target to another, remounts
-  // the modal's subtree, so any effect holding a DOM node from before the move
-  // is holding a detached one. Effects that touch the modal's nodes key on
-  // this, on `portal` and on `defaultTarget`, so they re-run against the new
-  // tree.
-  const isPortaled = Boolean(portal) && onClient;
-  // The configured `portalContainer` only places a modal portaled with
-  // `portal` set to `true`. In place, or with a target of its own, a change
-  // to it moves nothing, so it mustn't re-run the effects either.
-  const defaultTarget =
-    isPortaled && portal === true ? portalContainer : undefined;
+  // hydrating render stay inline and only move into the portal once we're
+  // past hydration. Moving into the portal, or from one portal target to
+  // another, remounts the modal's subtree, so any effect holding a DOM node
+  // from before the move is holding a detached one. Effects that touch the
+  // modal's nodes key on `isPortaled`, on `portal` and on `defaultTarget`, so
+  // they re-run against the new tree. `defaultTarget` is the configured
+  // `portalContainer` only while it places the modal (portaled with `portal`
+  // set to `true`), so a change to it that moves nothing re-runs nothing.
+  const { isPortaled, container, defaultTarget } = usePortalProp(portal);
 
   useScrollLock(isModalActive && lockScroll);
 
@@ -697,17 +688,11 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     </ModalCloseContext.Provider>
   );
 
-  if (isPortaled) {
-    const target = resolveContainer(
-      typeof portal === 'boolean' ? undefined : portal
-    );
-    return createPortal(
-      <LocalePortalScope target={target}>{modalElement}</LocalePortalScope>,
-      target
-    );
-  }
-
-  return modalElement;
+  return (
+    <Portal disabled={!isPortaled} container={container}>
+      {modalElement}
+    </Portal>
+  );
 });
 
 export const Modal = withSubComponents(

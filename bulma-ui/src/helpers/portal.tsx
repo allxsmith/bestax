@@ -55,6 +55,61 @@ export function usePortalContainer(): (
 }
 
 /**
+ * What a component that takes Modal's `portal` prop does with it now. See
+ * `usePortalProp`.
+ */
+export interface PortalPropState {
+  /**
+   * Whether the content renders in its portal: `portal` is set and
+   * hydration is over. Before that it renders in place.
+   */
+  isPortaled: boolean;
+  /**
+   * The target to pass `Portal` as its `container`: the selector or element
+   * `portal` names, or `undefined` for `true`, which leaves the choice to the
+   * `portalContainer` a `ConfigProvider` sets and then `document.body`.
+   */
+  container?: string | HTMLElement;
+  /**
+   * The `portalContainer` a `ConfigProvider` sets, while it's what places the
+   * content (portaled, with `portal` set to `true`), else `undefined`. A
+   * change to it moves the content, so effects that hold its nodes depend
+   * on it.
+   */
+  defaultTarget?: string | HTMLElement;
+}
+
+/**
+ * Reads Modal's `portal` prop (`boolean | string | HTMLElement`) for a
+ * component that takes it: whether the content is in its portal yet, and
+ * where it goes.
+ *
+ * A portal has no server-rendered counterpart, so such a component renders in
+ * place on the server and while hydrating, and moves into its portal once the
+ * client takes over. Render the content in `Portal` with
+ * `disabled={!isPortaled}` and this `container`. Moving remounts the content,
+ * so an effect that holds one of its nodes depends on `isPortaled`, `portal`
+ * and `defaultTarget`.
+ *
+ * @function usePortalProp
+ * @param portal - The component's `portal` prop.
+ * @returns Whether it's portaled now, its `container`, and the provider's
+ * target while that places it.
+ */
+export function usePortalProp(
+  portal?: boolean | string | HTMLElement
+): PortalPropState {
+  const hydrated = useIsHydrated();
+  const { portalContainer } = useConfig();
+  const isPortaled = Boolean(portal) && hydrated;
+  return {
+    isPortaled,
+    container: typeof portal === 'boolean' ? undefined : portal,
+    defaultTarget: isPortaled && portal === true ? portalContainer : undefined,
+  };
+}
+
+/**
  * Props for the Portal component.
  */
 export interface PortalProps {

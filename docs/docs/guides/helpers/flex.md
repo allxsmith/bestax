@@ -6,11 +6,13 @@ sidebar_position: 6
 
 # Flex
 
-Bulma provides comprehensive flexbox helpers that give you full control over flex container and flex item behavior. Combined with `display="flex"`, all of the flexbox CSS properties are available as helper classes in bestax-bulma.
+Bulma provides comprehensive flexbox helpers that give you full control over flex container and flex item behavior, and bestax-bulma takes each of them as a prop.
+
+The container props (`flexDirection`, `flexWrap`, `justifyContent`, `alignContent` and `alignItems`) need a flex container. [`Flex`](/docs/api/layout/flex), [`Stack`](/docs/api/layout/stack), [`Group`](/docs/api/layout/group) and [`Center`](/docs/api/layout/center) are flex containers already, so they take them as they are. On any other component, set `display="flex"` as well. The item props (`alignSelf`, `flexGrow` and `flexShrink`) go on the children and need neither.
 
 :::tip Composable hook
 
-These props are also available standalone via the `useFlexboxClasses` hook (container classes only emit when a `display` prop is `flex` or `inline-flex`) — see [Composable Mini-Hooks](/docs/api/helpers/usebulmaclasses#composable-mini-hooks).
+These props are also available standalone via the `useFlexboxClasses` hook (container classes only emit when a `display` prop is `flex` or `inline-flex`, or when the hook is told the element is a flex container by its own CSS) — see [Composable Mini-Hooks](/docs/api/helpers/usebulmaclasses#composable-mini-hooks).
 
 :::
 
@@ -52,10 +54,12 @@ The `flexDirection` prop controls the direction of the main axis in a flex conta
 | `flexDirection="column"`         | `is-flex-direction-column`         | `flex-direction: column`         |
 | `flexDirection="column-reverse"` | `is-flex-direction-column-reverse` | `flex-direction: column-reverse` |
 
+The reversed directions change only what's seen: a screen reader and the Tab key still follow the children's order, so use them where the order carries no meaning (WCAG 1.3.2 and 2.4.3).
+
 ### Flex Direction Examples
 
 ```tsx live
-import { Box, Button, Card } from '@allxsmith/bestax-bulma';
+import { Box, Button, Card, Flex } from '@allxsmith/bestax-bulma';
 
 function FlexDirectionExamples() {
   return (
@@ -65,15 +69,11 @@ function FlexDirectionExamples() {
           <Card.Header.Title>Row Direction (Default)</Card.Header.Title>
         </Card.Header>
         <Card.Content>
-          <Box display="flex" flexDirection="row" bgColor="light" p="3">
-            <Button color="primary" mr="2">
-              Item 1
-            </Button>
-            <Button color="info" mr="2">
-              Item 2
-            </Button>
+          <Flex flexDirection="row" gap="1" bgColor="light" p="3">
+            <Button color="primary">Item 1</Button>
+            <Button color="info">Item 2</Button>
             <Button color="success">Item 3</Button>
-          </Box>
+          </Flex>
         </Card.Content>
       </Card>
 
@@ -82,15 +82,11 @@ function FlexDirectionExamples() {
           <Card.Header.Title>Row Reverse</Card.Header.Title>
         </Card.Header>
         <Card.Content>
-          <Box display="flex" flexDirection="row-reverse" bgColor="light" p="3">
-            <Button color="primary" ml="2">
-              Item 1
-            </Button>
-            <Button color="info" ml="2">
-              Item 2
-            </Button>
+          <Flex flexDirection="row-reverse" gap="1" bgColor="light" p="3">
+            <Button color="primary">Item 1</Button>
+            <Button color="info">Item 2</Button>
             <Button color="success">Item 3</Button>
-          </Box>
+          </Flex>
         </Card.Content>
       </Card>
 
@@ -99,15 +95,11 @@ function FlexDirectionExamples() {
           <Card.Header.Title>Column Direction</Card.Header.Title>
         </Card.Header>
         <Card.Content>
-          <Box display="flex" flexDirection="column" bgColor="light" p="3">
-            <Button color="primary" mb="2">
-              Item 1
-            </Button>
-            <Button color="info" mb="2">
-              Item 2
-            </Button>
+          <Flex flexDirection="column" gap="1" bgColor="light" p="3">
+            <Button color="primary">Item 1</Button>
+            <Button color="info">Item 2</Button>
             <Button color="success">Item 3</Button>
-          </Box>
+          </Flex>
         </Card.Content>
       </Card>
 
@@ -116,20 +108,11 @@ function FlexDirectionExamples() {
           <Card.Header.Title>Column Reverse</Card.Header.Title>
         </Card.Header>
         <Card.Content>
-          <Box
-            display="flex"
-            flexDirection="column-reverse"
-            bgColor="light"
-            p="3"
-          >
-            <Button color="primary" mt="2">
-              Item 1
-            </Button>
-            <Button color="info" mt="2">
-              Item 2
-            </Button>
+          <Flex flexDirection="column-reverse" gap="1" bgColor="light" p="3">
+            <Button color="primary">Item 1</Button>
+            <Button color="info">Item 2</Button>
             <Button color="success">Item 3</Button>
-          </Box>
+          </Flex>
         </Card.Content>
       </Card>
     </Box>
@@ -150,7 +133,7 @@ The `flexWrap` prop controls whether flex items wrap to new lines when they exce
 ### Flex Wrap Examples
 
 ```tsx live
-import { Box, Tag, Card, Content } from '@allxsmith/bestax-bulma';
+import { Box, Tag, Card, Content, Flex } from '@allxsmith/bestax-bulma';
 
 function FlexWrapExamples() {
   const tags = [
@@ -172,17 +155,16 @@ function FlexWrapExamples() {
         </Card.Header>
         <Card.Content>
           <Content mb="3">
-            Items overflow the container when they don't fit:
+            Items overflow the container when they don't fit. Make the window
+            narrower to see them run past its edge:
           </Content>
-          :::tip Try This Resize your browser window to see the tags overflow
-          horizontally when the container becomes too narrow. :::
-          <Box display="flex" flexWrap="nowrap" bgColor="light" p="3">
+          <Flex flexWrap="nowrap" gap="1" bgColor="light" p="3">
             {tags.map((tag, index) => (
-              <Tag key={index} color="info" mr="2">
+              <Tag key={index} color="info">
                 {tag}
               </Tag>
             ))}
-          </Box>
+          </Flex>
         </Card.Content>
       </Card>
 
@@ -192,13 +174,13 @@ function FlexWrapExamples() {
         </Card.Header>
         <Card.Content>
           <Content mb="3">Items wrap to new lines when they don't fit:</Content>
-          <Box display="flex" flexWrap="wrap" bgColor="light" p="3">
+          <Flex flexWrap="wrap" gap="1" bgColor="light" p="3">
             {tags.map((tag, index) => (
-              <Tag key={index} color="primary" mr="2" mb="2">
+              <Tag key={index} color="primary">
                 {tag}
               </Tag>
             ))}
-          </Box>
+          </Flex>
         </Card.Content>
       </Card>
 
@@ -208,13 +190,13 @@ function FlexWrapExamples() {
         </Card.Header>
         <Card.Content>
           <Content mb="3">Items wrap to new lines in reverse order:</Content>
-          <Box display="flex" flexWrap="wrap-reverse" bgColor="light" p="3">
+          <Flex flexWrap="wrap-reverse" gap="1" bgColor="light" p="3">
             {tags.map((tag, index) => (
-              <Tag key={index} color="success" mr="2" mt="2">
+              <Tag key={index} color="success">
                 {tag}
               </Tag>
             ))}
-          </Box>
+          </Flex>
         </Card.Content>
       </Card>
     </Box>
@@ -242,7 +224,7 @@ The `justifyContent` prop controls how flex items are aligned along the main axi
 ### Justify Content Examples
 
 ```tsx live
-import { Box, Button, Card, Content } from '@allxsmith/bestax-bulma';
+import { Box, Button, Card, Flex } from '@allxsmith/bestax-bulma';
 
 function JustifyContentExamples() {
   const justifyOptions = [
@@ -262,12 +244,7 @@ function JustifyContentExamples() {
             <Card.Header.Title>{label}</Card.Header.Title>
           </Card.Header>
           <Card.Content>
-            <Box
-              display="flex"
-              justifyContent={value as any}
-              bgColor="light"
-              p="3"
-            >
+            <Flex justifyContent={value as any} bgColor="light" p="3">
               <Button color="primary" size="small">
                 A
               </Button>
@@ -277,7 +254,7 @@ function JustifyContentExamples() {
               <Button color="success" size="small">
                 C
               </Button>
-            </Box>
+            </Flex>
           </Card.Content>
         </Card>
       ))}
@@ -303,7 +280,7 @@ The `alignContent` prop controls how wrapped flex lines are aligned along the cr
 ### Align Content Examples
 
 ```tsx live
-import { Box, Tag, Card, Content } from '@allxsmith/bestax-bulma';
+import { Box, Tag, Card, Content, Flex } from '@allxsmith/bestax-bulma';
 
 function AlignContentExamples() {
   const items = ['Item 1', 'Item 2', 'Item 3', 'Item 4', 'Item 5', 'Item 6'];
@@ -330,20 +307,20 @@ function AlignContentExamples() {
             <Card.Header.Title>{label}</Card.Header.Title>
           </Card.Header>
           <Card.Content>
-            <Box
-              display="flex"
+            <Flex
               flexWrap="wrap"
               alignContent={value as any}
+              gap="0.5"
               bgColor="light"
               p="3"
               style={{ height: '150px' }}
             >
               {items.map((item, index) => (
-                <Tag key={index} color="info" mr="1" mb="1">
+                <Tag key={index} color="info">
                   {item}
                 </Tag>
               ))}
-            </Box>
+            </Flex>
           </Card.Content>
         </Card>
       ))}
@@ -369,7 +346,7 @@ The `alignItems` prop controls how flex items are aligned along the cross axis. 
 ### Align Items Examples
 
 ```tsx live
-import { Box, Button, Card, Content } from '@allxsmith/bestax-bulma';
+import { Box, Button, Card, Flex } from '@allxsmith/bestax-bulma';
 
 function AlignItemsExamples() {
   const alignOptions = [
@@ -388,17 +365,15 @@ function AlignItemsExamples() {
             <Card.Header.Title>{label}</Card.Header.Title>
           </Card.Header>
           <Card.Content>
-            <Box display="flex" alignItems={value as any} bgColor="light" p="3">
-              <Button color="primary" size="small" mr="2">
+            <Flex alignItems={value as any} gap="1" bgColor="light" p="3">
+              <Button color="primary" size="small">
                 Small
               </Button>
-              <Button color="info" mr="2">
-                Medium
-              </Button>
+              <Button color="info">Medium</Button>
               <Button color="success" size="large">
                 Large
               </Button>
-            </Box>
+            </Flex>
           </Card.Content>
         </Card>
       ))}
@@ -427,7 +402,7 @@ The `alignSelf` prop allows individual flex items to override the `alignItems` v
 ### Align Self Examples
 
 ```tsx live
-import { Box, Button, Card, Content } from '@allxsmith/bestax-bulma';
+import { Box, Button, Card, Content, Flex } from '@allxsmith/bestax-bulma';
 
 function AlignSelfExamples() {
   return (
@@ -441,26 +416,26 @@ function AlignSelfExamples() {
             Container has alignItems="flex-start", but individual items override
             with alignSelf:
           </Content>
-          <Box
-            display="flex"
+          <Flex
             alignItems="flex-start"
+            gap="1"
             bgColor="light"
             p="3"
             style={{ height: '150px' }}
           >
-            <Button color="primary" alignSelf="flex-start" mr="2">
+            <Button color="primary" alignSelf="flex-start">
               Flex Start
             </Button>
-            <Button color="info" alignSelf="center" mr="2">
+            <Button color="info" alignSelf="center">
               Center
             </Button>
-            <Button color="success" alignSelf="flex-end" mr="2">
+            <Button color="success" alignSelf="flex-end">
               Flex End
             </Button>
             <Button color="warning" alignSelf="stretch">
               Stretch
             </Button>
-          </Box>
+          </Flex>
         </Card.Content>
       </Card>
     </Box>
@@ -497,7 +472,7 @@ The `flexGrow` and `flexShrink` props control how flex items grow and shrink rel
 ### Flex Grow and Shrink Examples
 
 ```tsx live
-import { Box, Button, Card, Content } from '@allxsmith/bestax-bulma';
+import { Box, Button, Card, Content, Flex } from '@allxsmith/bestax-bulma';
 
 function FlexGrowShrinkExamples() {
   return (
@@ -510,17 +485,17 @@ function FlexGrowShrinkExamples() {
           <Content mb="3">
             Items grow to fill available space based on their flex-grow value:
           </Content>
-          <Box display="flex" bgColor="light" p="3" style={{ height: '150px' }}>
-            <Button color="primary" flexGrow="0" mr="2">
+          <Flex gap="1" bgColor="light" p="3" style={{ height: '150px' }}>
+            <Button color="primary" flexGrow="0">
               Grow 0 (Fixed)
             </Button>
-            <Button color="info" flexGrow="1" mr="2">
+            <Button color="info" flexGrow="1">
               Grow 1
             </Button>
             <Button color="success" flexGrow="2">
               Grow 2 (2x as much)
             </Button>
-          </Box>
+          </Flex>
         </Card.Content>
       </Card>
 
@@ -532,17 +507,17 @@ function FlexGrowShrinkExamples() {
           <Content mb="3">
             Items shrink when space is limited based on their flex-shrink value:
           </Content>
-          <Box display="flex" bgColor="light" p="3" style={{ height: '150px' }}>
-            <Button color="primary" flexShrink="0" mr="2">
+          <Flex gap="1" bgColor="light" p="3" style={{ height: '150px' }}>
+            <Button color="primary" flexShrink="0">
               No Shrink
             </Button>
-            <Button color="info" flexShrink="1" mr="2">
+            <Button color="info" flexShrink="1">
               Shrink 1
             </Button>
             <Button color="success" flexShrink="3">
               Shrink 3
             </Button>
-          </Box>
+          </Flex>
         </Card.Content>
       </Card>
 
@@ -554,12 +529,11 @@ function FlexGrowShrinkExamples() {
           <Content mb="3">
             Responsive layout that adapts to container size:
           </Content>
-          <Box display="flex" bgColor="light" p="3" style={{ height: '150px' }}>
+          <Flex gap="1" bgColor="light" p="3" style={{ height: '150px' }}>
             <Box
               bgColor="primary"
               textColor="white"
               p="2"
-              mr="2"
               flexGrow="1"
               flexShrink="1"
               textAlign="centered"
@@ -570,7 +544,6 @@ function FlexGrowShrinkExamples() {
               bgColor="info"
               textColor="white"
               p="2"
-              mr="2"
               flexGrow="3"
               flexShrink="1"
               textAlign="centered"
@@ -587,7 +560,7 @@ function FlexGrowShrinkExamples() {
             >
               Aside (1:2)
             </Box>
-          </Box>
+          </Flex>
         </Card.Content>
       </Card>
     </Box>
@@ -608,37 +581,33 @@ The gap helpers put space between the items of a flex container, or the cells of
 
 Each whole step is 0.5rem, from `0` up to `8` (4rem), with a half step between each pair, such as `"1.5"` for 0.75rem. That is not the margin scale: `gap="2"` is 1rem where `m="2"` is 0.5rem. A step can also be written as a number (`gap={2}`).
 
-The helpers set the CSS `gap`, so they only take effect on a flex or grid container. Components that already are one, such as `Buttons`, `Tags` and `Grid`, take them as they are, and the helper replaces the spacing Bulma gives them.
+The helpers set the CSS `gap`, so they only take effect on a flex or grid container. Components that already are one, such as `Stack`, `Group`, `Flex`, `Buttons`, `Tags` and `Grid`, take them as they are, and the helper replaces the spacing they'd have otherwise.
 
 `gapless` is the shortcut for `gap="0"`, and `gap` wins when both are set. `columnGap` and `rowGap` win on their own axis over either.
 
 ### Gap Examples
 
-A row of items, spaced apart and centered on each other:
+A row of items, spaced apart and centered on each other, is a [`Group`](/docs/api/layout/group), which wraps when it runs out of room:
 
 ```tsx live
-<Block display="flex" alignItems="center" flexWrap="wrap" gap="2">
+<Group gap="2">
   <Button color="primary">Save</Button>
   <Button>Cancel</Button>
   <Span textColor="grey">Last saved a minute ago</Span>
-</Block>
+</Group>
 ```
 
-A vertical stack. Bulma's block elements, such as `Notification` and `Box`, bring their own bottom margin, which would add to the gap, so the example sets `mb="0"` on each:
+A vertical stack is a [`Stack`](/docs/api/layout/stack). Bulma's block elements, such as `Notification` and `Box`, bring their own bottom margin, which a Stack zeroes, so the gap is the only space between them:
 
 ```tsx live
-<Block display="flex" flexDirection="column" gap="3">
-  <Notification color="info" mb="0">
-    First
-  </Notification>
-  <Notification color="success" mb="0">
-    Second
-  </Notification>
-  <Notification color="warning" mb="0">
-    Third
-  </Notification>
-</Block>
+<Stack gap="3">
+  <Notification color="info">First</Notification>
+  <Notification color="success">Second</Notification>
+  <Notification color="warning">Third</Notification>
+</Stack>
 ```
+
+Without a gap of their own, a Stack spaces its children by Bulma's block spacing and a Group by half of it. In a flex container of your own, made with `display="flex"`, those bottom margins add to the gap, so give each block `mb="0"`.
 
 Different spacing on each axis, with wrapping:
 
@@ -658,141 +627,93 @@ Different spacing on each axis, with wrapping:
 
 ## Complete Layout Example
 
-Here's a comprehensive example showing how to combine multiple flexbox properties to create a complex, responsive layout:
+Here's an example that combines the layout components with the flex props to build a dashboard: a `Stack` for the page, a `Group` for the header, a `Flex` for the side and the main part, and `Center` for the cards and the footer.
 
 ```tsx live
 // import {
 //   Box,
-//   Card,
-//   Title,
-//   Content,
 //   Button,
+//   Card,
+//   Center,
+//   Content,
+//   Flex,
+//   Group,
+//   Stack,
 //   Tag,
+//   Title,
 // } from '@allxsmith/bestax-bulma';
 
 function ComplexFlexboxLayout() {
   return (
-    <Box p="4">
-      <Card>
-        <Card.Header>
-          <Card.Header.Title>Complex Flexbox Layout</Card.Header.Title>
-        </Card.Header>
-        <Card.Content>
-          {/* Main container */}
-          <Box display="flex" flexDirection="column">
-            {/* Header */}
-            <Box
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-              bgColor="primary"
-              textColor="white"
-              p="3"
-              flexShrink="0"
-            >
-              <Title size="5" textColor="white" mb="0">
-                Dashboard
-              </Title>
-              <Box display="flex" alignItems="center">
-                <Tag color="light" mr="2">
-                  Status: Online
-                </Tag>
-                <Button color="light" size="small">
-                  Settings
-                </Button>
-              </Box>
+    <Card>
+      <Card.Header>
+        <Card.Header.Title>Complex Flexbox Layout</Card.Header.Title>
+      </Card.Header>
+      <Card.Content>
+        {/* Main container */}
+        <Stack gap="3">
+          {/* Header */}
+          <Group
+            justifyContent="space-between"
+            bgColor="primary"
+            textColor="white"
+            p="3"
+          >
+            <Title size="5" textColor="white">
+              Dashboard
+            </Title>
+            <Group gap="1">
+              <Tag color="light">Status: Online</Tag>
+              <Button color="light" size="small">
+                Settings
+              </Button>
+            </Group>
+          </Group>
+
+          {/* Content area */}
+          <Flex gap="3" alignItems="flex-start">
+            {/* Sidebar */}
+            <Box flexShrink="0">
+              <strong>Navigation</strong>
+              <ul>
+                <li>Dashboard</li>
+                <li>Analytics</li>
+                <li>Reports</li>
+                <li>Settings</li>
+              </ul>
             </Box>
 
-            {/* Content area */}
-            <Box display="flex" flexGrow="1">
-              {/* Sidebar */}
-              <Box flexShrink="0" mb="0">
-                <strong>Navigation</strong>
-                <ul>
-                  <li>Dashboard</li>
-                  <li>Analytics</li>
-                  <li>Reports</li>
-                  <li>Settings</li>
-                </ul>
-              </Box>
+            {/* Main content */}
+            <Stack flexGrow="1" gap="3">
+              <Title size="4">Welcome to the Dashboard</Title>
 
-              {/* Main content */}
-              <Box flexGrow="1" p="4" display="flex" flexDirection="column">
-                <Title size="4" mb="3">
-                  Welcome to the Dashboard
-                </Title>
+              {/* Cards */}
+              <Group isFullwidth breakpoint="tablet">
+                <Center bgColor="info" textColor="white" p="3">
+                  Card 1
+                </Center>
+                <Center bgColor="success" textColor="white" p="3">
+                  Card 2
+                </Center>
+                <Center bgColor="warning" textColor="black" p="3">
+                  Card 3
+                </Center>
+                <Center bgColor="danger" textColor="white" p="3">
+                  Card 4
+                </Center>
+              </Group>
+            </Stack>
+          </Flex>
 
-                {/* Cards grid */}
-                <Box
-                  display="flex"
-                  flexWrap="wrap"
-                  justifyContent="space-between"
-                  flexGrow="1"
-                >
-                  <Box
-                    bgColor="info"
-                    textColor="white"
-                    p="3"
-                    mb="3"
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    Card 1
-                  </Box>
-                  <Box
-                    bgColor="success"
-                    textColor="white"
-                    p="3"
-                    mb="3"
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    Card 2
-                  </Box>
-                  <Box
-                    bgColor="warning"
-                    textColor="white"
-                    p="3"
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    Card 3
-                  </Box>
-                  <Box
-                    bgColor="danger"
-                    textColor="white"
-                    p="3"
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    Card 4
-                  </Box>
-                </Box>
-              </Box>
-            </Box>
-
-            {/* Footer */}
-            <Box
-              display="flex"
-              justifyContent="center"
-              alignItems="center"
-              bgColor="dark"
-              textColor="white"
-              p="2"
-              flexShrink="0"
-            >
-              <Content textColor="white" mb="0" textAlign="centered">
-                © 2025 Your Company. All rights reserved.
-              </Content>
-            </Box>
-          </Box>
-        </Card.Content>
-      </Card>
-    </Box>
+          {/* Footer */}
+          <Center bgColor="dark" textColor="white" p="2">
+            <Content textColor="white" textAlign="centered">
+              © 2025 Your Company. All rights reserved.
+            </Content>
+          </Center>
+        </Stack>
+      </Card.Content>
+    </Card>
   );
 }
 ```
@@ -801,10 +722,10 @@ function ComplexFlexboxLayout() {
 
 :::tip Flexbox Guidelines
 
-1. **Start with display="flex"**: Always set `display="flex"` on the container before using flexbox properties
+1. **Start with a flex container**: `Flex`, `Stack`, `Group` and `Center` are one already. On any other component, set `display="flex"` before the container props
 2. **Understand the axes**: Remember that flexbox has a main axis (flex-direction) and a cross axis (perpendicular)
 3. **Use semantic properties**: Choose properties that clearly express your layout intent
-4. **Combine with responsive props**: Use viewport props for responsive flexbox layouts
+4. **Combine with responsive props**: Use viewport props for responsive flexbox layouts, or `Group`'s `breakpoint` for a row that stacks on a phone
 5. **Test with different content**: Ensure your layout works with varying content sizes
 
 :::
@@ -812,107 +733,76 @@ function ComplexFlexboxLayout() {
 ### Common Flexbox Patterns
 
 ```tsx live
-import { Box, Title, Button, Content } from '@allxsmith/bestax-bulma';
+// import {
+//   Box,
+//   Button,
+//   Center,
+//   Content,
+//   Group,
+//   Stack,
+//   Title,
+// } from '@allxsmith/bestax-bulma';
 
 function CommonFlexboxPatterns() {
   return (
-    <Box p="4">
+    <Stack gap="6">
       {/* Centered content */}
-      <Box mb="6">
+      <div>
         <Title size="5" mb="3">
           Centered Content
         </Title>
-        <Box display="flex" justifyContent="center" alignItems="center">
-          <Content mb="0" textAlign="centered">
-            Perfectly centered
-          </Content>
-        </Box>
-      </Box>
+        <Center bgColor="light" p="5">
+          <Content textAlign="centered">Perfectly centered</Content>
+        </Center>
+      </div>
 
       {/* Navigation bar */}
-      <Box mb="6">
+      <div>
         <Title size="5" mb="3">
           Navigation Bar Layout
         </Title>
-        <Box
-          display="flex"
+        <Group
           justifyContent="space-between"
-          alignItems="center"
           bgColor="primary"
           textColor="white"
           p="3"
         >
-          <Title textColor="white" mb="0">
-            Logo
-          </Title>
-          <Box display="flex">
-            <Button color="light" mr="2">
-              Home
-            </Button>
-            <Button color="light" mr="2">
-              About
-            </Button>
+          <Title textColor="white">Logo</Title>
+          <Group gap="1">
+            <Button color="light">Home</Button>
+            <Button color="light">About</Button>
             <Button color="light">Contact</Button>
-          </Box>
-        </Box>
-      </Box>
+          </Group>
+        </Group>
+      </div>
 
       {/* Responsive grid alternative */}
-      <Box mb="6">
+      <div>
         <Title size="5" mb="3">
           Responsive Grid Alternative
         </Title>
-        <Box
-          display="flex"
-          flexWrap="wrap"
-          justifyContent="space-between"
-          p="3"
-        >
-          <Box
-            mb="3"
-            bgColor="info"
-            textColor="white"
-            p="3"
-            textAlign="centered"
-          >
+        <Group justifyContent="space-between" p="3">
+          <Box bgColor="info" textColor="white" p="3" textAlign="centered">
             Card 1
           </Box>
-          <Box
-            mb="3"
-            bgColor="success"
-            textColor="white"
-            p="3"
-            textAlign="centered"
-          >
+          <Box bgColor="success" textColor="white" p="3" textAlign="centered">
             Card 2
           </Box>
-          <Box
-            mb="3"
-            bgColor="warning"
-            textColor="white"
-            p="3"
-            textAlign="centered"
-          >
+          <Box bgColor="warning" textColor="black" p="3" textAlign="centered">
             Card 3
           </Box>
-          <Box
-            mb="3"
-            bgColor="danger"
-            textColor="white"
-            p="3"
-            textAlign="centered"
-          >
+          <Box bgColor="danger" textColor="white" p="3" textAlign="centered">
             Card 4
           </Box>
-        </Box>
-      </Box>
+        </Group>
+      </div>
 
-      {/* Sticky footer layout */}
-      <Box>
+      {/* Header, main and footer */}
+      <div>
         <Title size="5" mb="3">
-          Sticky Footer Layout
+          Header, Main and Footer
         </Title>
-        <Box display="flex" flexDirection="column" bgColor="light">
+        <Stack gap="0" bgColor="light">
           <Box bgColor="primary" textColor="white" p="3" textAlign="centered">
             Header
           </Box>
@@ -922,9 +812,9 @@ function CommonFlexboxPatterns() {
           <Box bgColor="dark" textColor="white" p="3" textAlign="centered">
             Footer
           </Box>
-        </Box>
-      </Box>
-    </Box>
+        </Stack>
+      </div>
+    </Stack>
   );
 }
 ```

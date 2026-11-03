@@ -13,6 +13,12 @@ const ADDONS = [
     desc: 'A button that dresses like a link — semantics of a button, look of an anchor.',
   },
   {
+    name: 'IconButton',
+    icon: 'iconbutton',
+    link: '/docs/api/elements/iconbutton',
+    desc: 'A button that shows only an icon, with a name its types require and a true circle when rounded.',
+  },
+  {
     name: 'Kbd',
     icon: 'kbd',
     link: '/docs/api/elements/kbd',
@@ -29,6 +35,12 @@ const ADDONS = [
     icon: 'descriptionlist',
     link: '/docs/api/elements/descriptionlist',
     desc: 'Facts about one thing, each a label and its value, stacked on a phone and lined up in two columns from tablet up.',
+  },
+  {
+    name: 'Affix',
+    icon: 'affix',
+    link: '/docs/api/components/affix',
+    desc: 'Content fixed to a corner of the screen, such as a floating button, over the page and under its menus and modals.',
   },
   {
     name: 'NumberFormatter',
@@ -127,6 +139,12 @@ const ADDONS = [
     desc: 'A section of a form named by its legend, bordered, filled or plain, that one disabled switches off as a whole.',
   },
   {
+    name: 'Flex/Center',
+    icon: 'flex',
+    link: '/docs/api/layout/flex',
+    desc: 'A flex container with the flex properties as props, and one that centers its content on both axes.',
+  },
+  {
     name: 'HoverCard',
     icon: 'hovercard',
     link: '/docs/api/components/hovercard',
@@ -173,6 +191,12 @@ const ADDONS = [
     icon: 'splitter',
     link: '/docs/api/layout/splitter',
     desc: 'Panes with a handle between each pair to drag or move by keyboard, and panes that collapse.',
+  },
+  {
+    name: 'Stack/Group',
+    icon: 'stack',
+    link: '/docs/api/layout/stack',
+    desc: 'A column and a row of any components, spaced by Bulma’s block spacing alone, with no margins to undo.',
   },
   {
     name: 'Steps',

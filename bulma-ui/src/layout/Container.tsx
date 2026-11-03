@@ -7,6 +7,7 @@ import {
   validSchemeColors,
 } from '../helpers/useBulmaClasses';
 import { mergeBulmaStyles } from '../helpers/mergeBulmaStyles';
+import { CONTAINER_BREAKPOINTS } from '../helpers/containerBreakpoints';
 
 /**
  * Bulma container breakpoints.
@@ -102,14 +103,9 @@ export const Container: React.FC<ContainerProps> = ({
   });
 
   // Only allow isMax for supported breakpoints
-  const validMaxBreakpoints: ContainerBreakpoint[] = [
-    'tablet',
-    'desktop',
-    'widescreen',
-  ];
   let breakpointClass: string | undefined;
   if (breakpoint) {
-    if (isMax && validMaxBreakpoints.includes(breakpoint)) {
+    if (isMax && CONTAINER_BREAKPOINTS.includes(breakpoint)) {
       breakpointClass = `is-max-${breakpoint}`;
     } else if (!isMax) {
       breakpointClass = `is-${breakpoint}`;

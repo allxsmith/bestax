@@ -2034,9 +2034,9 @@ async function checkInlineStyle(updateBaseline) {
     if (n > allowed) {
       violations.push(
         `${file} has ${n} inline style={{}} (baseline allows ${allowed}). ` +
-          `Use Bulma helper props instead: Block/Box with display="flex", ` +
-          `flexDirection, alignItems, justifyContent, m*/p* spacing, and ` +
-          `gap between the children.`
+          `Use Bulma helper props instead: Stack, Group, Center or Flex ` +
+          `for layout, with alignItems, justifyContent and gap between the ` +
+          `children, and m*/p* spacing.`
       );
     }
   }
