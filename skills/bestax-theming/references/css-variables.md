@@ -702,12 +702,12 @@ Declared on the compound `.button.link-button` — see the compound-selector exc
 
 `Menu.Section`'s, declared on the root, `.menu`, where Bulma declares its own `--bulma-menu-*`:
 the room between a section heading's words and its chevron, and the chevron's box, color and
-turn. Beside them, `--bulma-menu-item-icon-gap` is the room between an item's `icon` and its
-label. The heading itself reads Bulma's label variables (`--bulma-menu-label-color`,
+turn. Beside them, `--bulma-menu-icon-gap` is the room between an `icon` and its label, an
+item's or a section's. The heading itself reads Bulma's label variables (`--bulma-menu-label-color`,
 `--bulma-menu-label-font-size`, `--bulma-menu-label-letter-spacing`,
 `--bulma-menu-label-spacing`), so retheming the menu's labels restyles section headings too.
 
-`--bulma-menu-item-icon-gap`, `--bulma-menu-section-chevron-color`,
+`--bulma-menu-icon-gap`, `--bulma-menu-section-chevron-color`,
 `--bulma-menu-section-chevron-duration`, `--bulma-menu-section-chevron-size`,
 `--bulma-menu-section-gap`
 

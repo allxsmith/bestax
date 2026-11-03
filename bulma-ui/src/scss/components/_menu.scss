@@ -15,8 +15,8 @@ $menu-section-gap: 0.375em !default;
 $menu-section-chevron-size: 1em !default;
 $menu-section-chevron-color: currentColor !default;
 $menu-section-chevron-duration: cv.getVar("duration") !default;
-// The room between an item's icon and its label.
-$menu-item-icon-gap: 0.5em !default;
+// The room between an icon and its label, an item's or a section's.
+$menu-icon-gap: 0.5em !default;
 
 .#{iv.$class-prefix}menu {
   @include cv.register-vars(
@@ -25,7 +25,7 @@ $menu-item-icon-gap: 0.5em !default;
       "menu-section-chevron-size": #{$menu-section-chevron-size},
       "menu-section-chevron-color": #{$menu-section-chevron-color},
       "menu-section-chevron-duration": #{$menu-section-chevron-duration},
-      "menu-item-icon-gap": #{$menu-item-icon-gap},
+      "menu-icon-gap": #{$menu-icon-gap},
     )
   );
 }
@@ -34,15 +34,16 @@ $menu-item-icon-gap: 0.5em !default;
 // stays Bulma's block, so the icon sits in the line with the label.
 .#{iv.$class-prefix}menu-item-icon {
   display: inline-flex;
-  margin-inline-end: cv.getVar("menu-item-icon-gap");
+  margin-inline-end: cv.getVar("menu-icon-gap");
   vertical-align: middle;
 }
 
-// A section's icon is a part of its heading's line, which spaces it from the
-// label with the heading's own gap.
+// A section's icon is a part of its heading's line, the icon gap from its
+// label as an item's is.
 .#{iv.$class-prefix}menu-section-icon {
   display: inline-flex;
   flex: none;
+  margin-inline-end: cv.getVar("menu-icon-gap");
 }
 
 // The space Bulma puts around a label, which turns on where the label sits
@@ -81,7 +82,6 @@ $menu-item-icon-gap: 0.5em !default;
   font-family: inherit;
   font-size: cv.getVar("menu-label-font-size");
   font-weight: inherit;
-  gap: cv.getVar("menu-section-gap");
   letter-spacing: cv.getVar("menu-label-letter-spacing");
   line-height: inherit;
   margin: 0;
@@ -115,6 +115,7 @@ $menu-item-icon-gap: 0.5em !default;
   flex: none;
   height: cv.getVar("menu-section-chevron-size");
   justify-content: center;
+  margin-inline-start: cv.getVar("menu-section-gap");
   width: cv.getVar("menu-section-chevron-size");
 
   &::after {

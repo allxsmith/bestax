@@ -303,7 +303,11 @@ describe('AppFrame styles', () => {
           'justify-content': 'center',
           'text-align': 'center',
         });
-        expect(find(PLAIN, `${rail} .menu-item-icon`, [media])).toEqual({
+        expect(
+          find(PLAIN, `${rail} .menu-item-icon, ${rail} .menu-section-icon`, [
+            media,
+          ])
+        ).toEqual({
           'margin-inline-end': '0',
         });
         // A section's icon as large as the items', not the heading's size.

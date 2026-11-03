@@ -328,7 +328,8 @@ html:has(.#{iv.$class-prefix}app-frame) {
       @include extras-sr-only;
     }
 
-    .#{iv.$class-prefix}menu-item-icon {
+    .#{iv.$class-prefix}menu-item-icon,
+    .#{iv.$class-prefix}menu-section-icon {
       margin-inline-end: 0;
     }
 

@@ -252,7 +252,7 @@ describe.each([
     it('sets an item’s icon in the line before its label, its gap apart', () => {
       expect(declarations(found, p('menu-item-icon'))).toEqual({
         display: 'inline-flex',
-        'margin-inline-end': 'var(--bulma-menu-item-icon-gap)',
+        'margin-inline-end': 'var(--bulma-menu-icon-gap)',
         'vertical-align': 'middle',
       });
       const { getByRole } = renderIcons();
@@ -263,11 +263,12 @@ describe.each([
       ).toBe(true);
     });
 
-    it('keeps a section’s icon whole in its heading, which spaces it', () => {
+    it('keeps a section’s icon whole in its heading, the same gap from its label as an item’s', () => {
       expect(declarations(found, p('menu-section-icon'))).toEqual({
         display: 'inline-flex',
         // `none`, as jsdom spells it out.
         flex: '0 0 auto',
+        'margin-inline-end': 'var(--bulma-menu-icon-gap)',
       });
       const { getByRole } = renderIcons();
       expect(
@@ -355,7 +356,7 @@ describe.each([
         '--bulma-menu-section-chevron-size': '1em',
         '--bulma-menu-section-chevron-color': 'currentColor',
         '--bulma-menu-section-chevron-duration': 'var(--bulma-duration)',
-        '--bulma-menu-item-icon-gap': '0.5em',
+        '--bulma-menu-icon-gap': '0.5em',
       });
     });
 
@@ -391,7 +392,6 @@ describe.each([
         'font-family': 'inherit',
         'font-size': 'var(--bulma-menu-label-font-size)',
         'font-weight': 'inherit',
-        gap: 'var(--bulma-menu-section-gap)',
         'letter-spacing': 'var(--bulma-menu-label-letter-spacing)',
         'line-height': 'inherit',
         margin: '0px',
@@ -556,10 +556,11 @@ describe.each([
         )
       );
 
-    it('draws TreeView’s chevron in a box of the same size', () => {
-      expect(declarations(section, p('menu-section-chevron'))).toEqual(
-        renamed(declarations(tree, p('tree-view-toggle')))
-      );
+    it('draws TreeView’s chevron in a box of the same size, the section gap from the words', () => {
+      expect(declarations(section, p('menu-section-chevron'))).toEqual({
+        ...renamed(declarations(tree, p('tree-view-toggle'))),
+        'margin-inline-start': 'var(--bulma-menu-section-gap)',
+      });
       expect(
         declarations(section, `${p('menu-section-chevron')}::after`)
       ).toEqual(renamed(declarations(tree, theirs('[aria-expanded]'))));
