@@ -218,6 +218,37 @@ whatever the trigger does, so turn it on only for a trigger with no tap action o
 
 ---
 
+### Disabled
+
+`disabled` keeps the tooltip closed for as long as it's set, for a tooltip that applies only some
+of the time. Its trigger stays mounted, so focus on it isn't dropped, as it would be if you rendered
+the trigger without its `Tooltip`. While it's disabled, the trigger's `aria-describedby` doesn't
+point at the tooltip, so a screen reader doesn't read one that never shows. Turned off again, it
+opens on the next hover or focus.
+
+```tsx live
+function example() {
+  const [disabled, setDisabled] = useState(true);
+  return (
+    <>
+      <Block>
+        <Checkbox
+          checked={disabled}
+          onChange={e => setDisabled(e.target.checked)}
+        >
+          Disable the tooltip
+        </Checkbox>
+      </Block>
+      <Tooltip label="Saves a copy" disabled={disabled}>
+        <Button>Save</Button>
+      </Tooltip>
+    </>
+  );
+}
+```
+
+---
+
 ### On Icons
 
 Tooltips on icon-only buttons. A tooltip describes its trigger rather than naming it, so each button
