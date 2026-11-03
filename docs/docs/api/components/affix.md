@@ -132,9 +132,12 @@ function example() {
       </Button>
       {shown && (
         <Affix position="bottom-left" mb="6">
-          <Button color="link" radius="rounded" aria-label="Open chat">
-            <Icon name="comments" />
-          </Button>
+          <IconButton
+            icon="comments"
+            color="link"
+            isRounded
+            aria-label="Open chat"
+          />
         </Affix>
       )}
     </>
@@ -236,12 +239,8 @@ function example() {
           flexDirection="column"
           gap="2"
         >
-          <Button color="link" aria-label="Open chat">
-            <Icon name="comments" />
-          </Button>
-          <Button color="primary" aria-label="Help">
-            <Icon name="question" />
-          </Button>
+          <IconButton icon="comments" color="link" aria-label="Open chat" />
+          <IconButton icon="question" color="primary" aria-label="Help" />
         </Affix>
       )}
     </>

@@ -15,7 +15,7 @@
     },
     {
       "title": "Nudging One Affix",
-      "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <>\n      <Button onClick={() => setShown(!shown)}>\n        {shown ? 'Hide the chat button' : 'Show the chat button'}\n      </Button>\n      {shown && (\n        <Affix position=\"bottom-left\" mb=\"6\">\n          <Button color=\"link\" radius=\"rounded\" aria-label=\"Open chat\">\n            <Icon name=\"comments\" />\n          </Button>\n        </Affix>\n      )}\n    </>\n  );\n}"
+      "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <>\n      <Button onClick={() => setShown(!shown)}>\n        {shown ? 'Hide the chat button' : 'Show the chat button'}\n      </Button>\n      {shown && (\n        <Affix position=\"bottom-left\" mb=\"6\">\n          <IconButton\n            icon=\"comments\"\n            color=\"link\"\n            isRounded\n            aria-label=\"Open chat\"\n          />\n        </Affix>\n      )}\n    </>\n  );\n}"
     },
     {
       "title": "Offsets and the Safe Area",
@@ -27,7 +27,7 @@
     },
     {
       "title": "Several Things in One Corner",
-      "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <>\n      <Button onClick={() => setShown(!shown)}>\n        {shown ? 'Hide the buttons' : 'Show the buttons'}\n      </Button>\n      {shown && (\n        <Affix\n          position=\"bottom-left\"\n          display=\"flex\"\n          flexDirection=\"column\"\n          gap=\"2\"\n        >\n          <Button color=\"link\" aria-label=\"Open chat\">\n            <Icon name=\"comments\" />\n          </Button>\n          <Button color=\"primary\" aria-label=\"Help\">\n            <Icon name=\"question\" />\n          </Button>\n        </Affix>\n      )}\n    </>\n  );\n}"
+      "code": "function example() {\n  const [shown, setShown] = useState(false);\n  return (\n    <>\n      <Button onClick={() => setShown(!shown)}>\n        {shown ? 'Hide the buttons' : 'Show the buttons'}\n      </Button>\n      {shown && (\n        <Affix\n          position=\"bottom-left\"\n          display=\"flex\"\n          flexDirection=\"column\"\n          gap=\"2\"\n        >\n          <IconButton icon=\"comments\" color=\"link\" aria-label=\"Open chat\" />\n          <IconButton icon=\"question\" color=\"primary\" aria-label=\"Help\" />\n        </Affix>\n      )}\n    </>\n  );\n}"
     },
     {
       "title": "A Consent Notice",

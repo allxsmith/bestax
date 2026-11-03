@@ -8,7 +8,7 @@ import { Box } from '../elements/Box';
 import { Button } from '../elements/Button';
 import { Buttons } from '../elements/Buttons';
 import { Content } from '../elements/Content';
-import { Icon } from '../elements/Icon';
+import { IconButton } from '../elements/IconButton';
 import { Paragraph } from '../elements/Paragraph';
 import { Title } from '../elements/Title';
 import { LocaleProvider } from '../helpers/LocaleProvider';
@@ -140,9 +140,12 @@ export const ChatLauncher: Story = {
       <>
         <PageContent />
         <Affix>
-          <Button color="link" radius="rounded" aria-label="Open chat">
-            <Icon name="comments" />
-          </Button>
+          <IconButton
+            icon="comments"
+            color="link"
+            isRounded
+            aria-label="Open chat"
+          />
         </Affix>
       </>
     );
