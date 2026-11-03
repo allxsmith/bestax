@@ -1454,7 +1454,7 @@ describe('AppFrame.Nav rail', () => {
     });
 
     /** The nav laid out `height` pixels tall with `room` under the header. */
-    const layOut = (height: number, room: number) => {
+    const lay = (height: number, room: number) => {
       vi.restoreAllMocks();
       const real = window.getComputedStyle;
       vi.spyOn(window, 'getComputedStyle').mockImplementation((el, pseudo) => {
@@ -1471,8 +1471,45 @@ describe('AppFrame.Nav rail', () => {
       vi.spyOn(nav(), 'getBoundingClientRect').mockReturnValue({
         height,
       } as DOMRect);
+    };
+    /** That layout, and the observer telling the nav its size changed. */
+    const layOut = (height: number, room: number) => {
+      lay(height, room);
       act(() => observers[observers.length - 1].measure());
     };
+
+    it('measures as it collapses, before paint, and starts afresh after expanding', () => {
+      mockViewport(DESKTOP);
+      const { rerender } = render(<RailFrame navCollapsed />);
+      layOut(760, 368);
+      expect(nav()).toHaveClass('is-tall');
+      rerender(<RailFrame navCollapsed={false} />);
+      expect(nav()).not.toHaveClass('is-tall');
+      // The window grew, and the rail now fits: collapsing again never shows
+      // the old measurement, not even for a commit.
+      lay(668, 668);
+      const classes: string[] = [];
+      const watch = new MutationObserver(records =>
+        classes.push(...records.map(r => r.oldValue ?? ''))
+      );
+      watch.observe(nav(), {
+        attributeFilter: ['class'],
+        attributeOldValue: true,
+      });
+      rerender(<RailFrame navCollapsed />);
+      classes.push(
+        ...watch.takeRecords().map(r => r.oldValue ?? ''),
+        nav().className
+      );
+      watch.disconnect();
+      expect(nav()).toHaveClass('is-rail');
+      expect(classes.filter(c => c.includes('is-tall'))).toEqual([]);
+      // And a rail too tall for the window is measured as it collapses too.
+      rerender(<RailFrame navCollapsed={false} />);
+      lay(760, 368);
+      rerender(<RailFrame navCollapsed />);
+      expect(nav()).toHaveClass('is-tall');
+    });
 
     it('scrolls with the page, and sticks again once it fits', () => {
       mockViewport(DESKTOP);
@@ -1847,8 +1884,8 @@ describe('AppFrame.Nav rail', () => {
       const style = real(el, pseudo);
       return el.matches('.app-frame-nav')
         ? ({
-            ...style,
             direction: el.closest('[dir]')?.getAttribute('dir') ?? 'ltr',
+            getPropertyValue: (name: string) => style.getPropertyValue(name),
           } as CSSStyleDeclaration)
         : style;
     });

@@ -264,7 +264,7 @@ describe('AppFrame styles', () => {
           'inline-size': 'var(--bulma-app-frame-nav-rail-width)',
           'block-size': 'auto',
           'min-block-size':
-            'calc(100dvh - var(--bulma-app-frame-header-height))',
+            'calc(100svh - var(--bulma-app-frame-header-height))',
           overflow: 'visible',
           visibility: 'visible',
           'transition-delay': '0s',
@@ -276,7 +276,7 @@ describe('AppFrame styles', () => {
           ],
           [
             'min-block-size',
-            'calc(100dvh - var(--bulma-app-frame-header-height))',
+            'calc(100svh - var(--bulma-app-frame-header-height))',
           ],
         ]);
       });

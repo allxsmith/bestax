@@ -290,7 +290,11 @@ html:has(.#{iv.$class-prefix}app-frame) {
     inline-size: cv.getVar('app-frame-nav-rail-width');
     block-size: auto;
     min-block-size: calc(100vh - #{cv.getVar('app-frame-header-height')});
-    min-block-size: calc(100dvh - #{cv.getVar('app-frame-header-height')});
+    // The small viewport, not the dynamic one: the frame compares the rail's
+    // height with this to tell whether it fits under the header (`is-tall`),
+    // and a touch browser's toolbar sliding in and out doesn't change it, so a
+    // rail near the edge doesn't flip between sticking and scrolling.
+    min-block-size: calc(100svh - #{cv.getVar('app-frame-header-height')});
     overflow: visible;
     visibility: visible;
     transition-delay: 0s;

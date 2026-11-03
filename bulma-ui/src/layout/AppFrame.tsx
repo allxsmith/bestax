@@ -550,23 +550,34 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
     // It can't scroll on its own, which would clip its tooltips, so one
     // taller than the window under the header scrolls with the page instead,
     // and its lower icons come into view as the page scrolls and as Tab
-    // reaches them. The stylesheet makes it at least as tall as the window
-    // under the header, so it's taller than that only when its icons are.
+    // reaches them. The stylesheet makes it at least its room tall, the small
+    // viewport (svh) less the header, so it's taller than that only when its
+    // icons are. The small viewport doesn't change as a touch browser's
+    // toolbar slides in and out, so a rail near the edge doesn't flip between
+    // sticking and scrolling as the page scrolls. Measured as it collapses,
+    // before paint, then each time its size changes; expanded, it's no rail,
+    // so the next collapse starts afresh.
     const [railTall, setRailTall] = useState(false);
     const tallClass = usePrefixedClassNames('is-tall');
-    useEffect(() => {
-      if (!railCollapsed || typeof ResizeObserver === 'undefined') {
-        return undefined;
-      }
+    useClientLayoutEffect(() => {
+      if (!railCollapsed) return undefined;
       const nav = navRef.current!;
-      const observer = new ResizeObserver(() => {
+      const measure = () => {
         const room = parseFloat(
           getComputedStyle(nav).getPropertyValue('min-block-size')
         );
         setRailTall(nav.getBoundingClientRect().height > room + 1);
-      });
-      observer.observe(nav);
-      return () => observer.disconnect();
+      };
+      measure();
+      const observer =
+        typeof ResizeObserver === 'undefined'
+          ? undefined
+          : new ResizeObserver(measure);
+      observer?.observe(nav);
+      return () => {
+        observer?.disconnect();
+        setRailTall(false);
+      };
     }, [railCollapsed]);
 
     const state = frame?.state;
