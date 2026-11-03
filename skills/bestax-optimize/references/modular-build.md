@@ -93,7 +93,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `colorswatch`, `delete`,
 `descriptionlist`, `kbd`, `linkbutton`, `loader`, `notification`, `progress`, `ringprogress`,
-`skeleton`
+`skeleton`, `stat`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`
 

@@ -39,6 +39,8 @@
         "RingProgress",
         "Skeleton",
         "Span",
+        "Stat",
+        "Stats",
         "Strong",
         "SubTitle",
         "Table",
@@ -1203,6 +1205,28 @@
       "compound": true,
       "propCount": 21,
       "exampleCount": 9
+    },
+    {
+      "name": "Stat",
+      "kind": "component",
+      "category": "elements",
+      "purpose": "The `Stat` component shows a figure with its name, and often a change and a note, such as a dashboard's revenue or an account's storage used.",
+      "slug": "elements/stat",
+      "import": "import { Stat } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 31,
+      "exampleCount": 12
+    },
+    {
+      "name": "Stats",
+      "kind": "component",
+      "category": "elements",
+      "purpose": "The `Stats` component lays out a row of `Stat`s, such as the key figures at the top of a dashboard, as one description list on Bulma's smart grid.",
+      "slug": "elements/stats",
+      "import": "import { Stats, Stat } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 5,
+      "exampleCount": 4
     },
     {
       "name": "Steps",
@@ -2812,6 +2836,17 @@
     "--bulma-splitter-line-active-size": ["Splitter"],
     "--bulma-splitter-line-color": ["Splitter"],
     "--bulma-splitter-line-size": ["Splitter"],
+    "--bulma-stat-change-color": ["Stat"],
+    "--bulma-stat-change-gap": ["Stat"],
+    "--bulma-stat-change-size": ["Stat"],
+    "--bulma-stat-description-color": ["Stat"],
+    "--bulma-stat-description-size": ["Stat"],
+    "--bulma-stat-label-color": ["Stat"],
+    "--bulma-stat-label-size": ["Stat"],
+    "--bulma-stat-value-color": ["Stat"],
+    "--bulma-stat-value-line-height": ["Stat"],
+    "--bulma-stat-value-size": ["Stat"],
+    "--bulma-stat-value-weight": ["Stat"],
     "--bulma-steps-animation-duration": ["Steps"],
     "--bulma-steps-content-margin-top": ["Steps"],
     "--bulma-steps-default-color": ["Steps"],
@@ -3416,6 +3451,26 @@
       "component": "Splitter",
       "path": "Splitter.Pane",
       "purpose": "One pane of a Splitter, sized by the splitter around it."
+    },
+    "StatChange": {
+      "component": "Stat",
+      "path": "Stat.Change",
+      "purpose": "A change written with its sign, such as \"+12%\", after an arrow that repeats the direction: a `<dd>`, green when it's up and red when it's down unless `color`…"
+    },
+    "StatDescription": {
+      "component": "Stat",
+      "path": "Stat.Description",
+      "purpose": "A note under the figure: a `<dd>`, small and in the weaker text color."
+    },
+    "StatLabel": {
+      "component": "Stat",
+      "path": "Stat.Label",
+      "purpose": "What the figure is: a `<dt>`, small and in the weaker text color."
+    },
+    "StatValue": {
+      "component": "Stat",
+      "path": "Stat.Value",
+      "purpose": "The figure: a `<dd>`, large, in the Stat's color, with digits of one width so a figure that updates doesn't shift."
     },
     "Step": {
       "component": "Steps",

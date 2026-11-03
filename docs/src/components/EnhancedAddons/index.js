@@ -37,6 +37,12 @@ const ADDONS = [
     desc: 'A price, a percentage or a count written the way the locale writes it, with the number itself kept in the markup.',
   },
   {
+    name: 'Stat',
+    icon: 'stat',
+    link: '/docs/api/elements/stat',
+    desc: 'A figure with its name, a signed change and a note, and Stats for a row of them as one list that wraps on its own.',
+  },
+  {
     name: 'Avatar',
     icon: 'avatar',
     link: '/docs/api/components/avatar',

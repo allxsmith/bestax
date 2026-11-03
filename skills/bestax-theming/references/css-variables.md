@@ -862,6 +862,19 @@ more for WCAG 2.5.8.
 `--bulma-splitter-handle-size-coarse`, `--bulma-splitter-line-active-color`,
 `--bulma-splitter-line-active-size`, `--bulma-splitter-line-color`, `--bulma-splitter-line-size`
 
+### Stat
+
+Declared on each Stat, `.stat`, whether it's on its own or in a `Stats` row, so retheme a row
+through a selector that reaches its Stats. The figure takes the Stat's color, so a `textColor` on
+the Stat recolors it, and the label, the change and the note keep theirs. `size` re-points
+`--bulma-stat-value-size` at Bulma's `size-4`, `size-2` or `size-1`, and a change's `color`
+re-points `--bulma-stat-change-color` at that color's `-on-scheme` variable, on the change itself.
+
+`--bulma-stat-change-color`, `--bulma-stat-change-gap`, `--bulma-stat-change-size`,
+`--bulma-stat-description-color`, `--bulma-stat-description-size`, `--bulma-stat-label-color`,
+`--bulma-stat-label-size`, `--bulma-stat-value-color`, `--bulma-stat-value-line-height`,
+`--bulma-stat-value-size`, `--bulma-stat-value-weight`
+
 ### Steps
 
 `--bulma-steps-animation-duration`, `--bulma-steps-content-margin-top`,

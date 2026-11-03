@@ -258,6 +258,9 @@ export const ALIASES: Readonly<Record<string, readonly string[]>> = {
   snackbar: ['Toast'],
   spinbutton: ['Numberinput'],
   spinner: ['Loader'],
+  // Ant Design's Statistic, and Chakra's Stat.Group for a row of them.
+  statistic: ['Stat'],
+  statgroup: ['Stats'],
   stepper: ['Steps', 'Numberinput'],
   summarylist: ['DescriptionList'],
   taggroup: ['Tags'],
