@@ -582,9 +582,16 @@ function TourPanel({
 
   return (
     <div
-      aria-labelledby={hasTitle && !rest['aria-label'] ? titleId : undefined}
-      aria-describedby={children != null ? bodyId : undefined}
       {...rest}
+      // After the spread, reading through it, so a key it carries with no
+      // value doesn't take the title's name or the body's description away.
+      aria-labelledby={
+        rest['aria-labelledby'] ||
+        (hasTitle && !rest['aria-label'] ? titleId : undefined)
+      }
+      aria-describedby={
+        rest['aria-describedby'] || (children != null ? bodyId : undefined)
+      }
       ref={setRef}
       className={classNames(panelClass, bulmaHelperClasses, className)}
       style={{ ...style, top: placement.top, left: placement.left }}

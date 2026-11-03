@@ -283,6 +283,35 @@ describe('Tour', () => {
       );
     });
 
+    it('keeps the title’s name and the body’s description through a spread of undefined, and takes its own', () => {
+      const spread = {
+        'aria-labelledby': undefined,
+        'aria-describedby': undefined,
+      };
+      const { unmount } = render(
+        <Tour defaultOpen>
+          <Tour.Step title="Kept" {...spread}>
+            Described.
+          </Tour.Step>
+        </Tour>
+      );
+      expect(
+        screen.getByRole('dialog', { name: 'Kept' })
+      ).toHaveAccessibleDescription('Described.');
+      unmount();
+      render(
+        <>
+          <p id="own">Own description</p>
+          <Tour defaultOpen>
+            <Tour.Step title="Own" aria-describedby="own">
+              Body.
+            </Tour.Step>
+          </Tour>
+        </>
+      );
+      expect(dialog()).toHaveAccessibleDescription('Own description');
+    });
+
     it('stays quiet about a step named by aria-labelledby', () => {
       render(
         <>
