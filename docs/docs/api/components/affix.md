@@ -132,7 +132,7 @@ function example() {
       </Button>
       {shown && (
         <Affix position="bottom-left" mb="6">
-          <Button color="link" radius="rounded" aria-label="Open chat">
+          <Button color="link" isRounded aria-label="Open chat">
             <Icon name="comments" />
           </Button>
         </Affix>
@@ -304,7 +304,7 @@ the line.
 function example() {
   const [shown, setShown] = useState(false);
   return (
-    <div dir="rtl" lang="ar">
+    <LocaleProvider locale="ar" dir="rtl">
       <Button onClick={() => setShown(!shown)}>
         {shown ? 'إخفاء' : 'إظهار'}
       </Button>
@@ -313,7 +313,7 @@ function example() {
           <Button color="primary">ملاحظات</Button>
         </Affix>
       )}
-    </div>
+    </LocaleProvider>
   );
 }
 ```
