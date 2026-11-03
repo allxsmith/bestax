@@ -253,8 +253,9 @@ export interface AppFrameNavProps
    * `minWidth`. Enter collapses it and brings it back at the width it had,
    * and a double click resets it to `defaultWidth` and expands it. The
    * collapses go through `onNavCollapsedChange`, the state the burger sets.
-   * The handle hides while the column is collapsed out of view; the burger
-   * brings it back. A development build warns about a `width` with no
+   * The handle hides while the column is collapsed out of view, and the
+   * burger brings it back, unless the keyboard has it, so Enter brings it
+   * back too. A development build warns about a `width` with no
    * `onWidthChange`, since the handle couldn't move it.
    */
   resizable?: boolean;
@@ -708,11 +709,18 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
     const maxPx = Math.max(minPx, toPx(maxWidth, 32 * metrics.rem));
     const widthPx = toPx(widthNow, metrics.base);
     const widthPxRef = useLatestRef(widthPx);
+    // The width a drag just asked for, until a render shows it: two moves
+    // can come before one, and the second mustn't ask again.
+    const askedRef = useRef<number | null>(null);
+    useClientLayoutEffect(() => {
+      askedRef.current = null;
+    });
 
     // A width asked for, in the limits, unless it's the one there is.
     const resizeTo = (next: number) => {
       const px = Math.round(Math.min(Math.max(next, minPx), maxPx));
-      if (px === Math.round(widthPxRef.current)) return;
+      if (px === (askedRef.current ?? Math.round(widthPxRef.current))) return;
+      askedRef.current = px;
       if (width === undefined) setWidthState(px);
       onWidthChange?.(px);
     };

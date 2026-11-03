@@ -430,10 +430,13 @@ html:has(.#{iv.$class-prefix}app-frame) {
   }
 
   // Collapsed out of view, the column has no edge to drag, so its handle
-  // hides, unless a drag that just shut it still holds the pointer.
+  // hides, unless a drag that just shut it still holds the pointer, or the
+  // keyboard has it, where Enter just shut it and brings it back.
   &.#{iv.$class-prefix}is-nav-collapsed
     > .#{iv.$class-prefix}app-frame-nav:not(.#{iv.$class-prefix}is-rail)
-    + .#{iv.$class-prefix}app-frame-handle:not(.#{iv.$class-prefix}is-active) {
+    + .#{iv.$class-prefix}app-frame-handle:not(
+      .#{iv.$class-prefix}is-active
+    ):not(:focus-visible) {
     display: none;
   }
 

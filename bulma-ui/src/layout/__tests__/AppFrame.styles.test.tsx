@@ -317,11 +317,11 @@ describe('AppFrame styles', () => {
         });
       });
 
-      it('hides with a column collapsed out of view, unless a drag still holds it', () => {
+      it('hides with a column collapsed out of view, unless a drag or the keyboard still holds it', () => {
         expect(
           find(
             PLAIN,
-            `${root}.is-nav-collapsed > .app-frame-nav:not(.is-rail) + .app-frame-handle:not(.is-active)`,
+            `${root}.is-nav-collapsed > .app-frame-nav:not(.is-rail) + .app-frame-handle:not(.is-active):not(:focus-visible)`,
             [media]
           )
         ).toEqual({ display: 'none' });

@@ -2118,6 +2118,21 @@ describe('AppFrame.Nav resizable', () => {
     expect(onWidthChange).not.toHaveBeenCalled();
   });
 
+  it('asks for a width once, when two moves come before a render', () => {
+    mockViewport(DESKTOP);
+    const onWidthChange = vi.fn();
+    render(<ResizeFrame nav={{ onWidthChange }} />);
+    laidOut(256);
+    pointer(handle(), 'pointerdown', 300);
+    act(() => {
+      pointer(handle(), 'pointermove', 340);
+      pointer(handle(), 'pointermove', 340);
+    });
+    expect(onWidthChange).toHaveBeenCalledTimes(1);
+    expect(onWidthChange).toHaveBeenLastCalledWith(296);
+    pointer(handle(), 'pointerup', 340);
+  });
+
   it('opens a column collapsed to its rail when the drag passes half the minimum', () => {
     mockViewport(DESKTOP);
     const onNavCollapsedChange = vi.fn();
