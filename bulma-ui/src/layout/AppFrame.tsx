@@ -547,6 +547,9 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
             content={label}
             position={side}
             describesTrigger={false}
+            // Only the collapsed rail shows it, so it doesn't open, or
+            // measure itself, in the wide column or the drawer.
+            disabled={!railCollapsed}
           >
             {trigger}
           </Tooltip>

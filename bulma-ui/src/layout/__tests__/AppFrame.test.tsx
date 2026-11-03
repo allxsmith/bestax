@@ -1403,6 +1403,33 @@ describe('AppFrame.Nav rail', () => {
     expect(tipOf(link('Plain')).localName).toBe('li');
   });
 
+  it('opens the tooltips only while the column is collapsed to the rail', async () => {
+    mockViewport(DESKTOP);
+    const { rerender } = render(<RailFrame navCollapsed={false} />);
+    const dashboard = link('Dashboard');
+    const tip = tipOf(dashboard);
+    const content = tip.querySelector('.tooltip-content') as HTMLElement;
+    const over = () => {
+      const event = new MouseEvent('pointerover', { bubbles: true });
+      Object.defineProperty(event, 'pointerType', { value: 'mouse' });
+      fireEvent(dashboard, event);
+    };
+    const settle = () => act(() => new Promise(resolve => setTimeout(resolve)));
+    over();
+    await settle();
+    // The wide column: nothing opens, so nothing is measured.
+    expect(tip).not.toHaveClass('is-open');
+    expect(content).not.toHaveAttribute('style');
+    rerender(<RailFrame navCollapsed />);
+    expect(tip).not.toHaveClass('is-open');
+    // Collapsed, the next hover opens it.
+    fireEvent(dashboard, new MouseEvent('pointerout', { bubbles: true }));
+    await settle();
+    over();
+    await settle();
+    expect(tip).toHaveClass('is-open', 'is-active');
+  });
+
   it('marks the nav as a rail only while the column is collapsed', () => {
     mockViewport(DESKTOP);
     render(<RailFrame />);
