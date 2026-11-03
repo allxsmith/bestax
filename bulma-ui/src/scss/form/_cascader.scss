@@ -20,6 +20,10 @@ $cascader-chevron-width: cv.getVar('control-height') !default;
 $cascader-chevron-color: cv.getVar('text-light') !default;
 $cascader-chevron-hover-color: cv.getVar('text-weak') !default;
 $cascader-chevron-focus-color: cv.getVar('link') !default;
+// Over the field, as Bulma stacks a Control's icon, and the clear button
+// over the chevron.
+$cascader-chevron-z-index: 4 !default;
+$cascader-clear-z-index: 5 !default;
 $cascader-search-gap: 0.5rem !default;
 $cascader-column-width: 11rem !default;
 // A column scrolls past this, as Combobox's list does.
@@ -80,6 +84,8 @@ $cascader-sizes: (
       'cascader-chevron-color': #{$cascader-chevron-color},
       'cascader-chevron-hover-color': #{$cascader-chevron-hover-color},
       'cascader-chevron-focus-color': #{$cascader-chevron-focus-color},
+      'cascader-chevron-z-index': #{$cascader-chevron-z-index},
+      'cascader-clear-z-index': #{$cascader-clear-z-index},
       'cascader-search-gap': #{$cascader-search-gap},
       'cascader-column-width': #{$cascader-column-width},
       'cascader-column-max-height': #{$cascader-column-max-height},

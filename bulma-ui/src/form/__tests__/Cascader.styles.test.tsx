@@ -53,6 +53,8 @@ describe('Cascader styles', () => {
       'chevron-color',
       'chevron-hover-color',
       'chevron-focus-color',
+      'chevron-z-index',
+      'clear-z-index',
       'search-gap',
       'column-width',
       'column-max-height',

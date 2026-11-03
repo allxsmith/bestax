@@ -375,6 +375,7 @@ and `item-padding-*` values on the panel. The panel is the picker popover, above
 
 `--bulma-cascader-chevron-color`, `--bulma-cascader-chevron-focus-color`,
 `--bulma-cascader-chevron-hover-color`, `--bulma-cascader-chevron-width`,
+`--bulma-cascader-chevron-z-index`, `--bulma-cascader-clear-z-index`,
 `--bulma-cascader-column-border-color`, `--bulma-cascader-column-inset`,
 `--bulma-cascader-column-max-height`, `--bulma-cascader-column-width`,
 `--bulma-cascader-disabled-color`, `--bulma-cascader-highlight-background`,
@@ -986,6 +987,7 @@ portaled through the field's width set inline.
 
 `--bulma-tree-select-chevron-color`, `--bulma-tree-select-chevron-focus-color`,
 `--bulma-tree-select-chevron-hover-color`, `--bulma-tree-select-chevron-width`,
+`--bulma-tree-select-chevron-z-index`, `--bulma-tree-select-clear-z-index`,
 `--bulma-tree-select-empty-color`, `--bulma-tree-select-empty-padding`,
 `--bulma-tree-select-panel-max-height`, `--bulma-tree-select-search-gap`,
 `--bulma-tree-select-tree-inset`

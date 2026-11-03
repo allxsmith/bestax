@@ -640,6 +640,8 @@ field's left, and Right and Left swap in the tree.
 | `--bulma-tree-select-chevron-color`           | `$tree-select-chevron-color`         | `var(--bulma-text-light)`          |
 | `--bulma-tree-select-chevron-hover-color`     | `$tree-select-chevron-hover-color`   | `var(--bulma-text-weak)`           |
 | `--bulma-tree-select-chevron-focus-color`     | `$tree-select-chevron-focus-color`   | `var(--bulma-link)`                |
+| `--bulma-tree-select-chevron-z-index`         | `$tree-select-chevron-z-index`       | `4`                                |
+| `--bulma-tree-select-clear-z-index`           | `$tree-select-clear-z-index`         | `5`                                |
 | `--bulma-tree-select-empty-color`             | `$tree-select-empty-color`           | `var(--bulma-text-weak)`           |
 | `--bulma-tree-select-empty-padding`           | `$tree-select-empty-padding`         | `0.5em 0.75em`                     |
 | `--bulma-tree-select-tree-inset`              | `$tree-select-tree-inset`            | `4px`                              |

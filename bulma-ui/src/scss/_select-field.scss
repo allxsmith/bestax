@@ -3,8 +3,8 @@
 // opens its panel from draws the same: the chevron and the clear button at
 // its inline end, the room it keeps for them, and their colors as it's
 // hovered, focused, opened and disabled. Each component registers the
-// variables these rules read under its own name, `--bulma-<name>-chevron-*`,
-// and includes the rules for its root.
+// variables these rules read under its own name, `--bulma-<name>-chevron-*`
+// and `--bulma-<name>-clear-z-index`, and includes the rules for its root.
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
@@ -43,7 +43,7 @@
     pointer-events: none;
     position: absolute;
     width: cv.getVar('#{$name}-chevron-width');
-    z-index: 4;
+    z-index: cv.getVar('#{$name}-chevron-z-index');
   }
 
   .#{iv.$class-prefix}#{$name} .#{iv.$class-prefix}input {
@@ -81,6 +81,6 @@
     inset-inline-end: cv.getVar('#{$name}-chevron-width');
     position: absolute;
     transform: translateY(-50%);
-    z-index: 5;
+    z-index: cv.getVar('#{$name}-clear-z-index');
   }
 }
