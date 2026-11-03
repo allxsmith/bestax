@@ -461,6 +461,61 @@ describe('icon', () => {
       screen.getByRole('button', { name: 'Reports' }).firstElementChild
     ).toHaveClass('bestax-menu-section-icon');
   });
+
+  it('reads a string as an Icon name, as TreeView.Item does', () => {
+    render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item href="#home" icon="house">
+            Home
+          </Menu.Item>
+        </Menu.List>
+        <Menu.Section label="Reports" icon="chart-line">
+          <Menu.List>
+            <Menu.Item href="#sales">Sales</Menu.Item>
+          </Menu.List>
+        </Menu.Section>
+      </Menu>
+    );
+    const link = screen.getByRole('link', { name: 'Home' });
+    expect(link).not.toHaveTextContent('house');
+    expect(link.querySelector('.menu-item-icon i')).toHaveClass('fa-house');
+    const button = screen.getByRole('button', { name: 'Reports' });
+    expect(button).not.toHaveTextContent('chart-line');
+    expect(button.querySelector('.menu-section-icon i')).toHaveClass(
+      'fa-chart-line'
+    );
+  });
+
+  it('renders nothing for an icon that holds nothing to render', () => {
+    render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item href="#home" icon="">
+            Home
+          </Menu.Item>
+          <Menu.Item href="#about" icon={false}>
+            About
+          </Menu.Item>
+        </Menu.List>
+        <Menu.Section label="Reports" icon={null}>
+          <Menu.List>
+            <Menu.Item href="#sales">Sales</Menu.Item>
+          </Menu.List>
+        </Menu.Section>
+      </Menu>
+    );
+    for (const name of ['Home', 'About']) {
+      const link = screen.getByRole('link', { name });
+      expect(link.querySelector('.menu-item-icon')).toBeNull();
+      expect(link.querySelector('.menu-item-label')).toBeNull();
+    }
+    expect(
+      screen
+        .getByRole('button', { name: 'Reports' })
+        .querySelector('.menu-section-icon')
+    ).toBeNull();
+  });
 });
 
 describe('in an icon rail', () => {

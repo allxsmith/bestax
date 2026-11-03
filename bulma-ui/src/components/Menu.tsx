@@ -18,6 +18,7 @@ import { moveFocusOut } from '../helpers/moveFocusOut';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { warnOnce } from '../helpers/devWarnings';
 import { MenuRailContext, type MenuRail } from '../helpers/menuRail';
+import { Icon } from '../elements/Icon';
 import {
   isCustomElement,
   type PolymorphicComponent,
@@ -25,6 +26,17 @@ import {
 
 // Context to track MenuList nesting level
 const MenuListLevelContext = createContext(0);
+
+/** Whether an `icon` was given something to render, as TreeView.Item reads it. */
+const isGiven = (node: React.ReactNode) =>
+  node !== undefined &&
+  node !== null &&
+  typeof node !== 'boolean' &&
+  node !== '';
+
+/** An `icon` to render: a string is an `Icon` name, and a node is itself. */
+const iconNode = (icon: React.ReactNode) =>
+  typeof icon === 'string' ? <Icon name={icon} /> : icon;
 
 // The rail the menu's own top-level items and sections are in, and whether
 // the Menu root has checked where it sits. A Menu takes the nav's rail only
@@ -206,8 +218,8 @@ export interface MenuItemOwnProps extends BulmaClassesProps {
   /** Item content and optional nested MenuList. */
   children: React.ReactNode;
   /**
-   * An icon before the label, such as an `Icon`. It's hidden from assistive
-   * technology, since the label names the item. With it, the rest of the
+   * An icon before the label: an `Icon` name, or a node. It's hidden from
+   * assistive technology, since the label names the item. With it, the rest of the
    * label is wrapped in a `menu-item-label` span; without it, the item
    * renders as it always has. In an `AppFrame.Nav rail` column collapsed to
    * its icons, the label is visually hidden, stays the link's name, and
@@ -336,10 +348,11 @@ export const MenuItem = forwardRef(function MenuItem(
   );
   const iconClass = usePrefixedClassNames('menu-item-icon');
   const labelClass = usePrefixedClassNames('menu-item-label');
+  const hasIcon = isGiven(icon);
   const { rail, settled } = useContext(MenuOwnRailContext);
   // Once the Menu knows it's in the rail, so a portaled one never warns.
   useEffect(() => {
-    if (settled && rail && !icon) {
+    if (settled && rail && !hasIcon) {
       warnOnce(
         'Menu:rail-item-icon',
         '[bestax-bulma] A <Menu.Item> in an <AppFrame.Nav rail> has no ' +
@@ -348,7 +361,7 @@ export const MenuItem = forwardRef(function MenuItem(
           'Menu.Section in a rail an icon.'
       );
     }
-  }, [settled, rail, icon]);
+  }, [settled, rail, hasIcon]);
 
   // Split children into label and nested MenuList(s)
   const labelChildren: React.ReactNode[] = [];
@@ -366,7 +379,7 @@ export const MenuItem = forwardRef(function MenuItem(
   // link, which stays, or to the nav when that can't take focus. A layout
   // effect, while that link still has focus.
   const liRef = useRef<HTMLLIElement>(null);
-  const wrapped = !!rail && !!icon;
+  const wrapped = !!rail && hasIcon;
   const hidesNested = !!rail?.collapsed && nestedMenuLists.length > 0;
   useClientLayoutEffect(() => {
     if (!hidesNested) return;
@@ -400,10 +413,10 @@ export const MenuItem = forwardRef(function MenuItem(
       // apply their button type after the spread too.
       {...(Component === 'button' ? { type: buttonType(linkProps.type) } : {})}
     >
-      {icon ? (
+      {hasIcon ? (
         <>
           <span className={iconClass} aria-hidden="true">
-            {icon}
+            {iconNode(icon)}
           </span>
           <span className={labelClass}>{labelChildren}</span>
         </>
@@ -426,7 +439,7 @@ export const MenuItem = forwardRef(function MenuItem(
       role={role}
       tabIndex={tabIndex}
     >
-      {rail && icon ? rail.wrap(link, labelChildren) : link}
+      {wrapped ? rail.wrap(link, labelChildren) : link}
       <MenuOwnRailContext.Provider value={NO_RAIL}>
         {nestedMenuLists}
       </MenuOwnRailContext.Provider>
@@ -449,8 +462,8 @@ export interface MenuSectionProps
   /** **Required.** The section's heading, drawn like `Menu.Label` inside the button that opens and closes it. Keep links and buttons out of it, since it's inside one. */
   label: React.ReactNode;
   /**
-   * An icon before the heading, such as an `Icon`, hidden from assistive
-   * technology, since the heading names the button. In an `AppFrame.Nav
+   * An icon before the heading: an `Icon` name, or a node. It's hidden from
+   * assistive technology, since the heading names the button. In an `AppFrame.Nav
    * rail` column collapsed to its icons, the heading is visually hidden,
    * stays the button's name, and shows in a Tooltip on hover and keyboard
    * focus.
@@ -511,12 +524,13 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
   const labelClass = usePrefixedClassNames('menu-section-label');
   const chevronClass = usePrefixedClassNames('menu-section-chevron');
   const iconClass = usePrefixedClassNames('menu-section-icon');
+  const hasIcon = isGiven(icon);
   const listId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const { rail, settled } = useContext(MenuOwnRailContext);
   useEffect(() => {
-    if (settled && rail && !icon) {
+    if (settled && rail && !hasIcon) {
       warnOnce(
         'Menu:rail-section-icon',
         '[bestax-bulma] A <Menu.Section> in an <AppFrame.Nav rail> has no ' +
@@ -524,7 +538,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
           'every top-level Menu.Item and Menu.Section in a rail an icon.'
       );
     }
-  }, [settled, rail, icon]);
+  }, [settled, rail, hasIcon]);
   // The rail hides a section's list, so there the button widens the column
   // and opens the section, and says it's collapsed. While the column is set
   // to collapse and the frame doesn't know yet whether that makes it a rail,
@@ -571,9 +585,9 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
       aria-controls={listId}
       onClick={handleClick}
     >
-      {icon && (
+      {hasIcon && (
         <span className={iconClass} aria-hidden="true">
-          {icon}
+          {iconNode(icon)}
         </span>
       )}
       <span className={labelClass}>{label}</span>
@@ -593,7 +607,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
       className={classNames(sectionClass, bulmaHelperClasses, className)}
       {...rest}
     >
-      {rail && icon ? rail.wrap(toggle, label) : toggle}
+      {rail && hasIcon ? rail.wrap(toggle, label) : toggle}
       <div ref={listRef} id={listId} hidden={!isOpen} {...inertProps(!isOpen)}>
         <MenuOwnRailContext.Provider value={NO_RAIL}>
           {children}
