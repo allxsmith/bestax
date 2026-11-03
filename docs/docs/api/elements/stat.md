@@ -80,7 +80,7 @@ Name the row by the heading above it with `aria-labelledby`.
 
 ```tsx live
 <>
-  <Title as="h2" size="5" id="stat-kpis">
+  <Title as="h2" textSize="5" id="stat-kpis">
     This month
   </Title>
   <Stats aria-labelledby="stat-kpis" minCol={8} gap={4}>

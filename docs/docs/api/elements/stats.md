@@ -50,7 +50,7 @@ window narrower to see the tiles wrap.
 
 ```tsx live
 <>
-  <Title as="h2" size="5" id="stats-kpis">
+  <Title as="h2" textSize="5" id="stats-kpis">
     This month
   </Title>
   <Stats aria-labelledby="stats-kpis" minCol={8} gap={4}>

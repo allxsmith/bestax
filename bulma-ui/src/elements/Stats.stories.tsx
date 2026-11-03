@@ -102,7 +102,7 @@ export const Default: Story = {
   render: function DefaultExample(args) {
     return (
       <>
-        <Title as="h2" size="5" id="kpis">
+        <Title as="h2" textSize="5" id="kpis">
           This month
         </Title>
         <Stats {...args} aria-labelledby="kpis" />

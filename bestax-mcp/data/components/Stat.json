@@ -11,7 +11,7 @@
     },
     {
       "title": "A Row of Stats",
-      "code": "<>\n  <Title as=\"h2\" size=\"5\" id=\"stat-kpis\">\n    This month\n  </Title>\n  <Stats aria-labelledby=\"stat-kpis\" minCol={8} gap={4}>\n    <Stat\n      label=\"Revenue\"\n      value={8456.4}\n      format={{ style: 'currency', currency: 'USD' }}\n      locale=\"en-US\"\n      change={0.12}\n    />\n    <Stat label=\"New customers\" value={1234} locale=\"en-US\" change={-0.019} />\n    <Stat\n      label=\"Churn\"\n      value={0.021}\n      format={{ style: 'percent', maximumFractionDigits: 1 }}\n      locale=\"en-US\"\n      change={0.004}\n      changeColor=\"danger\"\n    />\n  </Stats>\n</>"
+      "code": "<>\n  <Title as=\"h2\" textSize=\"5\" id=\"stat-kpis\">\n    This month\n  </Title>\n  <Stats aria-labelledby=\"stat-kpis\" minCol={8} gap={4}>\n    <Stat\n      label=\"Revenue\"\n      value={8456.4}\n      format={{ style: 'currency', currency: 'USD' }}\n      locale=\"en-US\"\n      change={0.12}\n    />\n    <Stat label=\"New customers\" value={1234} locale=\"en-US\" change={-0.019} />\n    <Stat\n      label=\"Churn\"\n      value={0.021}\n      format={{ style: 'percent', maximumFractionDigits: 1 }}\n      locale=\"en-US\"\n      change={0.004}\n      changeColor=\"danger\"\n    />\n  </Stats>\n</>"
     },
     {
       "title": "Formatting the Figure",
