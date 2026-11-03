@@ -64,12 +64,42 @@ export type TreeSelectCheckedStrategy = 'child' | 'parent' | 'all';
 
 /** The visible and accessible strings, in your app's language. */
 export interface TreeSelectLabels {
-  /** Names the panel and the tree in it. Default: the field's label. */
+  /**
+   * Names the panel and the tree in it.
+   * @defaultValue the field's label
+   */
   choose?: string;
-  /** Names the search box. Default: "Search". */
+  /**
+   * Names the search box.
+   * @defaultValue 'Search'
+   */
   search?: string;
-  /** Names the clear button. Default: "Clear". */
+  /**
+   * Names the clear button.
+   * @defaultValue 'Clear'
+   */
   clear?: string;
+  /**
+   * What a loading branch's row says, as on TreeView.
+   * @defaultValue 'Loading…'
+   */
+  loading?: string;
+  /**
+   * The Retry button's text on a failed load's row, as on TreeView.
+   * @defaultValue 'Retry'
+   */
+  retry?: string;
+  /**
+   * What the live region says when an open branch starts loading, built
+   * from its name, as on TreeView.
+   * @defaultValue name => `Loading ${name}`
+   */
+  loadingAnnouncement?: (name: string) => string;
+  /**
+   * What the live region says when that load finishes, as on TreeView.
+   * @defaultValue name => `${name} loaded`
+   */
+  loadedAnnouncement?: (name: string) => string;
 }
 
 /**
@@ -131,11 +161,13 @@ interface TreeSelectBaseProps
   onQueryChange?: (query: string) => void;
   /**
    * Whether a node matches the search, in place of the locale-aware match on
-   * its label. It's handed the search text trimmed. A match's ancestors stay
-   * either way. The search runs again when the search text or `data`
-   * changes, not when only this does, so one written inline costs nothing.
+   * its label. It's handed the search text trimmed, the node, and its path
+   * from the top node down, the node last, as Cascader's `filter` is. A
+   * match's ancestors stay either way. The search runs again when the search
+   * text or `data` changes, not when only this does, so one written inline
+   * costs nothing.
    */
-  filter?: (query: string, item: TreeItemData) => boolean;
+  filter?: (query: string, item: TreeItemData, path: TreeItemData[]) => boolean;
   /** What the panel shows when the search matches nothing, such as "No folders match". Announced once. */
   empty?: React.ReactNode;
   /** Renders a row's content in place of its label. The field and the tags still show the label. */
@@ -175,14 +207,6 @@ interface TreeSelectBaseProps
   appendToBody?: boolean;
   /** The visible and accessible strings, in your app's language. */
   labels?: TreeSelectLabels;
-  /** What a loading branch's row says, as on TreeView. In your app's language. */
-  loadingLabel?: string;
-  /** The Retry button's text on a failed load's row, as on TreeView. In your app's language. */
-  retryLabel?: string;
-  /** What the live region says when an open branch starts loading, as on TreeView. */
-  loadingAnnouncement?: (name: string) => string;
-  /** What the live region says when that load finishes, as on TreeView. */
-  loadedAnnouncement?: (name: string) => string;
 }
 
 /** Props for a TreeSelect that picks one item. */
@@ -370,10 +394,6 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
       clearable = false,
       size,
       labels,
-      loadingLabel,
-      retryLabel,
-      loadingAnnouncement,
-      loadedAnnouncement,
       selectionMode = 'single',
       value: valueProp,
       defaultValue,
@@ -471,8 +491,8 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
     const search = useMemo(
       () =>
         typed
-          ? searchTree(data, node => {
-              if (filter) return filter(typed, node);
+          ? searchTree(data, (node, path) => {
+              if (filter) return filter(typed, node, path);
               const text = nodeLabel(node);
               return matchText
                 ? matchText(text, typed)
@@ -680,11 +700,26 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
       ? picked.length > 0
       : uncheckable.size > 0 || picked.some(value => !index.has(value));
     const inputRef = useRef<HTMLInputElement | null>(null);
+    // A forwarded callback's cleanup, which React 19 lets it return, run on
+    // detach in place of a call with `null`, on React 18 as well.
+    const refCleanupRef = useRef<(() => void) | null>(null);
     const fieldRef = useCallback(
       (node: HTMLInputElement | null) => {
         inputRef.current = node;
-        if (typeof ref === 'function') ref(node);
-        else if (ref) ref.current = node;
+        if (typeof ref === 'function') {
+          if (node === null) {
+            const cleanup = refCleanupRef.current;
+            refCleanupRef.current = null;
+            if (cleanup) cleanup();
+            else ref(null);
+            return;
+          }
+          const cleanup: unknown = ref(node);
+          refCleanupRef.current =
+            typeof cleanup === 'function' ? (cleanup as () => void) : null;
+        } else if (ref) {
+          ref.current = node;
+        }
       },
       [ref]
     );
@@ -814,10 +849,10 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
                   onCheckedChange={onCheckedChange}
                   expanded={shownExpanded}
                   onExpandedChange={onTreeExpandedChange}
-                  loadingLabel={loadingLabel}
-                  retryLabel={retryLabel}
-                  loadingAnnouncement={loadingAnnouncement}
-                  loadedAnnouncement={loadedAnnouncement}
+                  loadingLabel={labels?.loading}
+                  retryLabel={labels?.retry}
+                  loadingAnnouncement={labels?.loadingAnnouncement}
+                  loadedAnnouncement={labels?.loadedAnnouncement}
                 >
                   {data.map(renderNode)}
                 </TreeView>

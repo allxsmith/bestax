@@ -1400,8 +1400,8 @@
       "slug": "form/treeselect",
       "import": "import { TreeSelect } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 50,
-      "exampleCount": 12
+      "propCount": 46,
+      "exampleCount": 13
     },
     {
       "name": "TreeView",

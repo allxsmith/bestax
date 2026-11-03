@@ -163,6 +163,24 @@ describe('TreeSelect', () => {
       expect(node).toBe(field());
     });
 
+    it("runs a callback ref's cleanup on detach in place of a call with null, and calls one without a cleanup with null", () => {
+      const cleanup = vi.fn();
+      const withCleanup = vi.fn(() => cleanup);
+      const { unmount } = render(
+        <TreeSelect label="Place" data={PLACES} ref={withCleanup} />
+      );
+      expect(withCleanup).toHaveBeenCalledWith(field());
+      unmount();
+      expect(cleanup).toHaveBeenCalledTimes(1);
+      expect(withCleanup).not.toHaveBeenCalledWith(null);
+      const plain = vi.fn();
+      const { unmount: unmountPlain } = render(
+        <TreeSelect label="Place" data={PLACES} ref={plain} />
+      );
+      unmountPlain();
+      expect(plain).toHaveBeenLastCalledWith(null);
+    });
+
     it('puts id, aria-label, aria-labelledby and aria-describedby on the field', () => {
       render(
         <>
@@ -1037,7 +1055,8 @@ describe('TreeSelect', () => {
 
     it('takes a filter of its own, with the text trimmed', async () => {
       const filter = vi.fn(
-        (query: string, node: TreeItemData) => node.value === query
+        (query: string, node: TreeItemData, path: TreeItemData[]) =>
+          node.value === query && path[path.length - 1] === node
       );
       const user = userEvent.setup();
       render(
@@ -1045,7 +1064,11 @@ describe('TreeSelect', () => {
       );
       open();
       await user.keyboard(' osaka ');
-      expect(filter).toHaveBeenCalledWith('osaka', PLACES[2]);
+      expect(filter).toHaveBeenCalledWith('osaka', PLACES[2], [PLACES[2]]);
+      const [asia] = PLACES;
+      const japan = asia.children![0];
+      const osaka = japan.children![1];
+      expect(filter).toHaveBeenCalledWith('osaka', osaka, [asia, japan, osaka]);
       expect(shownItems()).toEqual(['Asia', 'Japan', 'Osaka']);
     });
 
@@ -1487,10 +1510,12 @@ describe('TreeSelect', () => {
           label="Folder"
           data={data({})}
           onExpandedChange={onExpandedChange}
-          loadingLabel="Fetching…"
-          retryLabel="Again"
-          loadingAnnouncement={name => `Fetching ${name}`}
-          loadedAnnouncement={name => `${name} fetched`}
+          labels={{
+            loading: 'Fetching…',
+            retry: 'Again',
+            loadingAnnouncement: name => `Fetching ${name}`,
+            loadedAnnouncement: name => `${name} fetched`,
+          }}
         />
       );
       open();
@@ -1501,8 +1526,7 @@ describe('TreeSelect', () => {
           label="Folder"
           data={data({ isLoading: true })}
           onExpandedChange={onExpandedChange}
-          loadingLabel="Fetching…"
-          retryLabel="Again"
+          labels={{ loading: 'Fetching…', retry: 'Again' }}
         />
       );
       expect(item('Fetching…')).toBeInTheDocument();
@@ -1511,7 +1535,7 @@ describe('TreeSelect', () => {
           label="Folder"
           data={data({ loadError: "Couldn't load Photos", onRetry })}
           onExpandedChange={onExpandedChange}
-          retryLabel="Again"
+          labels={{ retry: 'Again' }}
         />
       );
       const failed = screen.getByRole('treeitem', {
