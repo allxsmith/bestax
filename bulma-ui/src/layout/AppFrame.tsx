@@ -533,7 +533,14 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
             ref={backdropRef}
             className={backdropClass}
             aria-hidden="true"
-            onClick={closeOnClickOutside ? close : undefined}
+            onClick={
+              closeOnClickOutside
+                ? () => {
+                    // Not under an overlay opened over the drawer.
+                    if (isTopmost()) close();
+                  }
+                : undefined
+            }
           />
         )}
       </>

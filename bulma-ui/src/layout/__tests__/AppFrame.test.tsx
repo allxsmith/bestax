@@ -16,6 +16,7 @@ import {
 } from '../AppFrame';
 import { Navbar } from '../../components/Navbar';
 import { Modal } from '../../components/Modal';
+import { Sidebar } from '../../components/Sidebar';
 import { ConfigProvider } from '../../helpers/Config';
 import { resetDevWarnings } from '../../helpers/devWarnings';
 
@@ -1054,6 +1055,45 @@ describe('AppFrame', () => {
       (document.activeElement as HTMLElement).blur();
       viewport.resize(DESKTOP);
       expect(burger()).toHaveFocus();
+    });
+
+    it('leaves the backdrop alone under an overlay opened over the drawer', () => {
+      mockViewport(PHONE);
+      const onNavOpenChange = vi.fn();
+      const Page = () => {
+        const [help, setHelp] = useState(false);
+        return (
+          <AppFrame onNavOpenChange={onNavOpenChange}>
+            <AppFrame.Header>
+              <AppFrame.Burger />
+            </AppFrame.Header>
+            <AppFrame.Nav>
+              <button type="button" onClick={() => setHelp(true)}>
+                Help
+              </button>
+              <Sidebar
+                isOpen={help}
+                overlay={false}
+                onClose={() => setHelp(false)}
+                aria-label="Help"
+              >
+                <button type="button">Got it</button>
+              </Sidebar>
+            </AppFrame.Nav>
+          </AppFrame>
+        );
+      };
+      render(<Page />);
+      fireEvent.click(burger());
+      fireEvent.click(screen.getByRole('button', { name: 'Help' }));
+      onNavOpenChange.mockClear();
+      const backdrop = document.querySelector('.app-frame-backdrop') as Element;
+      fireEvent.click(backdrop);
+      expect(onNavOpenChange).not.toHaveBeenCalled();
+      // Closed, the Sidebar leaves the drawer on top again.
+      fireEvent.keyDown(window, { key: 'Escape' });
+      fireEvent.click(backdrop);
+      expect(onNavOpenChange).toHaveBeenLastCalledWith(false);
     });
 
     it('leaves focus alone when it opens without an overlay over a modal overlay', () => {
