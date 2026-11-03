@@ -169,6 +169,33 @@ describe.each(LAYOUTS)('%s', (_name, Layout, modifier) => {
     );
   });
 
+  it('keeps textColor and bgColor through a spread carrying color and backgroundColor', () => {
+    const spread = { color: undefined, backgroundColor: undefined };
+    const untyped = { color: 'danger', backgroundColor: 'dark' } as object;
+    render(
+      <>
+        <Layout
+          data-testid="spread"
+          textColor="primary"
+          bgColor="light"
+          {...spread}
+        />
+        <Layout
+          data-testid="untyped"
+          textColor="primary"
+          bgColor="light"
+          {...untyped}
+        />
+      </>
+    );
+    for (const id of ['spread', 'untyped']) {
+      const root = screen.getByTestId(id);
+      expect(root).toHaveClass('has-text-primary', 'has-background-light');
+      expect(root).not.toHaveClass('has-text-danger', 'has-background-dark');
+      expect(root).not.toHaveAttribute('color');
+    }
+  });
+
   it('prefixes every class under ConfigProvider classPrefix', () => {
     render(
       <ConfigProvider classPrefix="bestax-">

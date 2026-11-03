@@ -98,6 +98,11 @@ export const StackLayout = forwardRef<HTMLElement, StackLayoutProps>(
       className,
       textColor,
       bgColor,
+      // Not accepted, and taken out before the spread below, where a spread's
+      // `color: undefined`, or a JavaScript caller's `color`, would replace
+      // `textColor`, as `backgroundColor` would `bgColor`.
+      color: _color,
+      backgroundColor: _backgroundColor,
       modifiers,
       children,
       ...props
