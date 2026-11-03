@@ -209,7 +209,8 @@ const photos = [
 
 Both pairs of state are yours to hold when you need them: `open` with `onOpenChange`, and `value`
 (the index of the image shown) with `onChange`. Here they're one piece of state, as a `?photo=`
-query would be. A trigger calls `onChange` with its index before `onOpenChange(true)`. A `value`
+query would be. A trigger at another image than the one shown calls `onChange` with its index
+before `onOpenChange(true)`. A `value`
 past either end shows the last or the first image, or wraps round with `repeat`, and doesn't call
 `onChange`.
 
@@ -376,7 +377,9 @@ function example() {
 | Drag, while zoomed                       | Pan                                                                   |
 | Click on the background around the image | Close, unless `closeOnClickOutside` is `false`                        |
 
-Swipes start on the image or its caption, and stop while it's zoomed, when a drag pans instead. Keys with Ctrl,
+Swipes start on the image, so a press on the caption still selects its text and follows its
+links, and they stop while it's zoomed, when a drag pans instead. Zoom waits for the image to
+load. Keys with Ctrl,
 Alt or Command held are left to the browser, so its own zoom still works, and keys typed into a
 field in a caption are the field's.
 
@@ -396,8 +399,8 @@ field in a caption are the field's.
   item without one, and the caption is the `<figure>`'s `<figcaption>`, which names it.
 - **Moves are announced:** after the viewer opens and after each move, a polite status line says
   "Image 3 of 10: Harbour at dusk", from `labels.progress` and the image's alt. The visible counter
-  is hidden from screen readers, so it isn't read twice. A failed image's message is announced the
-  same way.
+  is hidden from screen readers, so it isn't read twice. For an image that fails to load, the line
+  goes on with `labels.loadError`: "Image 3 of 10: Harbour at dusk. This image didn't load."
 - **At the ends:** without `repeat`, the previous or next button is `aria-disabled` but stays in
   the tab order, so focus isn't dropped when it stops working. The zoom buttons do the same at their
   limits.
@@ -445,12 +448,12 @@ field in a caption are the field's.
 | `children`            | `React.ReactNode`                                      | —                | Rendered in place: usually `Lightbox.Trigger`s, in whatever layout you like.                                                                                                                                                                           |
 | `open`                | `boolean`                                              | —                | Whether the viewer is open (controlled). With no `items` it shows nothing.                                                                                                                                                                             |
 | `defaultOpen`         | `boolean`                                              | `false`          | Whether the viewer starts open (uncontrolled).                                                                                                                                                                                                         |
-| `onOpenChange`        | `(open: boolean) => void`                              | —                | Called when a trigger, the close button, Escape, a click on the background or a swipe down opens or closes the viewer.                                                                                                                                 |
+| `onOpenChange`        | `(open: boolean) => void`                              | —                | Called when a trigger, the close button, Escape, a click on the background or a swipe down opens or closes the viewer, and with `false` when it's open and `items` becomes empty.                                                                      |
 | `value`               | `number`                                               | —                | The index of the image shown (controlled). A value past either end is shown as the last or the first image, or wrapped round with `repeat`, without calling `onChange`.                                                                                |
 | `defaultValue`        | `number`                                               | `0`              | The image an uncontrolled viewer shows when something other than a trigger opens it. A trigger opens at its own `index`.                                                                                                                               |
-| `onChange`            | `(value: number) => void`                              | —                | Called with the new index when a trigger, an arrow, a key or a swipe changes the image. A trigger calls it before `onOpenChange(true)`.                                                                                                                |
+| `onChange`            | `(value: number) => void`                              | —                | Called with the new index when a trigger, an arrow, a key or a swipe changes the image. A trigger at another image than the one shown calls it before `onOpenChange(true)`.                                                                            |
 | `repeat`              | `boolean`                                              | `false`          | Go from the last image to the first and back. Off, the previous and next buttons are `aria-disabled` at the ends.                                                                                                                                      |
-| `zoomable`            | `boolean`                                              | `true`           | Zoom with the buttons, the wheel, a double click or tap, pinch and the `+`, `-` and `0` keys, and pan a zoomed image by dragging or with the arrow keys. `false` drops the zoom buttons and all of it.                                                 |
+| `zoomable`            | `boolean`                                              | `true`           | Zoom with the buttons, the wheel, a double click or tap, pinch and the `+`, `-` and `0` keys, and pan a zoomed image by dragging or with the arrow keys. Zoom waits for the image to load. `false` drops the zoom buttons and all of it.               |
 | `maxZoom`             | `number`                                               | `3`              | How far an image zooms, as a multiple of its fitted size. The smallest zoom is always the fitted size.                                                                                                                                                 |
 | `closeOnEscape`       | `boolean`                                              | `true`           | Close on Escape. Only the topmost open overlay answers, as with Modal.                                                                                                                                                                                 |
 | `closeOnClickOutside` | `boolean`                                              | `true`           | Close on a click on the dark background around the image. The space around the image, beside the toolbar's buttons and under the caption is all background.                                                                                            |

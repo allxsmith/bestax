@@ -59,6 +59,13 @@ const key = (name: string, init: KeyboardEventInit = {}) =>
 const statusText = () => screen.getByRole('status').textContent;
 const transformOf = (el: Element) => (el as HTMLElement).style.transform;
 
+/** Renders, and lets the image shown load, which zoom waits for. */
+const renderLoaded = (ui: React.ReactElement) => {
+  const result = render(ui);
+  fireEvent.load(shownImage());
+  return result;
+};
+
 /** Opens the gallery at a photo by its trigger. */
 const open = (alt = 'Harbour at dusk') => fireEvent.click(trigger(alt));
 
@@ -420,14 +427,18 @@ describe('Lightbox', () => {
       expect(shownImage()).toHaveAttribute('src', '/lighthouse.jpg');
     });
 
-    it('calls onChange from a trigger even with its index already shown', () => {
+    it('calls onChange from a trigger only for another image than the one shown', () => {
       const onChange = vi.fn();
-      render(<Gallery value={0} onChange={onChange} />);
+      const onOpenChange = vi.fn();
+      render(
+        <Gallery value={0} onChange={onChange} onOpenChange={onOpenChange} />
+      );
       open();
-      expect(onChange).toHaveBeenCalledWith(0);
+      expect(onChange).not.toHaveBeenCalled();
+      expect(onOpenChange).toHaveBeenCalledWith(true);
     });
 
-    it('shows nothing open with no items', () => {
+    it('shows nothing open with no items, and closes', () => {
       const onOpenChange = vi.fn();
       render(
         <Lightbox items={[]} onOpenChange={onOpenChange} defaultOpen>
@@ -435,8 +446,25 @@ describe('Lightbox', () => {
         </Lightbox>
       );
       expect(queryDialog()).toBeNull();
+      expect(onOpenChange.mock.calls).toEqual([[false]]);
       fireEvent.click(button('View'));
-      expect(onOpenChange).not.toHaveBeenCalled();
+      expect(onOpenChange.mock.calls).toEqual([[false]]);
+    });
+
+    it('closes when its items run out, and stays closed when they come back', () => {
+      const onOpenChange = vi.fn();
+      const { rerender } = render(<Gallery onOpenChange={onOpenChange} />);
+      open();
+      expect(dialog()).toBeInTheDocument();
+
+      // A refetch that empties the list for a moment.
+      rerender(<Gallery onOpenChange={onOpenChange} items={[]} />);
+      expect(queryDialog()).toBeNull();
+      expect(onOpenChange).toHaveBeenLastCalledWith(false);
+
+      rerender(<Gallery onOpenChange={onOpenChange} />);
+      expect(queryDialog()).toBeNull();
+      expect(onOpenChange.mock.calls).toEqual([[true], [false]]);
     });
 
     it('forwards its ref to the dialog, null while closed', () => {
@@ -762,6 +790,42 @@ describe('Lightbox', () => {
     });
   });
 
+  describe('presses outside the image', () => {
+    /** Whether a mousedown on the element was cancelled. */
+    const pressCancelled = (el: Element) => {
+      const event = new MouseEvent('mousedown', {
+        bubbles: true,
+        cancelable: true,
+      });
+      el.dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+
+    it('leaves a press on a caption link and on Retry alone', () => {
+      render(
+        <Lightbox
+          items={[
+            {
+              ...PHOTOS[0],
+              caption: <a href="#credits">Credits</a>,
+            },
+            PHOTOS[1],
+          ]}
+          defaultOpen
+        />
+      );
+      expect(
+        pressCancelled(screen.getByRole('link', { name: 'Credits' }))
+      ).toBe(false);
+      // The image's own press is the swipe's.
+      expect(pressCancelled(shownImage())).toBe(true);
+
+      key('ArrowRight');
+      fireEvent.error(shownImage());
+      expect(pressCancelled(button('Retry'))).toBe(false);
+    });
+  });
+
   describe('captions', () => {
     it('puts the caption in the figure’s figcaption', () => {
       render(<Gallery defaultOpen />);
@@ -825,7 +889,7 @@ describe('Lightbox', () => {
       expect(error).toHaveTextContent('Pas chargée.');
       expect(error).toHaveTextContent('Harbour at dusk');
       act(() => vi.advanceTimersByTime(500));
-      expect(statusText()).toBe('Pas chargée.');
+      expect(statusText()).toBe('Image 1 of 3: Harbour at dusk. Pas chargée.');
 
       fireEvent.click(button('Réessayer'));
       expect(document.querySelector('.lightbox-error')).toBeNull();
@@ -834,9 +898,35 @@ describe('Lightbox', () => {
     });
 
     it('leaves out the alt line for a failed image with an empty alt', () => {
+      vi.useFakeTimers();
       render(<Lightbox items={[{ src: '/a.jpg', alt: '' }]} defaultOpen />);
       fireEvent.error(shownImage());
       expect(document.querySelectorAll('.lightbox-error p')).toHaveLength(1);
+      act(() => vi.advanceTimersByTime(500));
+      expect(statusText()).toBe("Image 1 of 1. This image didn't load.");
+    });
+
+    it('says which image failed, so two failures in a row are both announced', () => {
+      vi.useFakeTimers();
+      render(
+        <Lightbox
+          items={[PHOTOS[0], { src: '/b.jpg', alt: 'What a view!' }]}
+          defaultOpen
+        />
+      );
+      fireEvent.error(shownImage());
+      act(() => vi.advanceTimersByTime(500));
+      expect(statusText()).toBe(
+        "Image 1 of 2: Harbour at dusk. This image didn't load."
+      );
+
+      key('ArrowRight');
+      fireEvent.error(shownImage());
+      act(() => vi.advanceTimersByTime(500));
+      // No second full stop after the alt's own.
+      expect(statusText()).toBe(
+        "Image 2 of 2: What a view! This image didn't load."
+      );
     });
 
     it('fetches the images either side ahead', () => {
@@ -860,6 +950,12 @@ describe('Lightbox', () => {
       const preloads = watchPreloads();
       render(<Gallery defaultOpen repeat />);
       expect(preloads().src).toEqual(['/lighthouse.jpg', '/quay.jpg']);
+    });
+
+    it('fetches the other image once when two repeat', () => {
+      const preloads = watchPreloads();
+      render(<Lightbox items={PHOTOS.slice(0, 2)} defaultOpen repeat />);
+      expect(preloads().src).toEqual(['/quay.jpg']);
     });
   });
 
@@ -925,7 +1021,7 @@ describe('Lightbox', () => {
 
     it('steps by half again up to maxZoom, and back to fitted', () => {
       layOut();
-      render(<Gallery defaultOpen />);
+      renderLoaded(<Gallery defaultOpen />);
       expect(button('Zoom out')).toHaveAttribute('aria-disabled', 'true');
       expect(button('Reset zoom')).toHaveAttribute('aria-disabled', 'true');
       expect(transformOf(shownImage())).toBe('');
@@ -951,7 +1047,7 @@ describe('Lightbox', () => {
 
     it('zooms with the keys, and pans with the arrows while zoomed', () => {
       layOut();
-      render(<Gallery defaultOpen />);
+      renderLoaded(<Gallery defaultOpen />);
       key('+');
       key('=');
       expect(transformOf(shownImage())).toBe('translate(0px, 0px) scale(2.25)');
@@ -974,13 +1070,13 @@ describe('Lightbox', () => {
 
     it('caps at maxZoom, and reads a bad one as 3', () => {
       layOut();
-      const { unmount } = render(<Gallery defaultOpen maxZoom={2} />);
+      const { unmount } = renderLoaded(<Gallery defaultOpen maxZoom={2} />);
       zoomIn();
       zoomIn();
       expect(transformOf(shownImage())).toBe('translate(0px, 0px) scale(2)');
       unmount();
 
-      render(<Gallery defaultOpen maxZoom={Number.NaN} />);
+      renderLoaded(<Gallery defaultOpen maxZoom={Number.NaN} />);
       zoomIn();
       zoomIn();
       zoomIn();
@@ -989,7 +1085,7 @@ describe('Lightbox', () => {
 
     it('toggles 2x at the pointer with a double click', () => {
       layOut();
-      render(<Gallery defaultOpen />);
+      renderLoaded(<Gallery defaultOpen />);
       // 100px right of centre and 50px down: that point stays put.
       fireEvent.doubleClick(shownImage(), { clientX: 600, clientY: 450 });
       expect(transformOf(shownImage())).toBe(
@@ -1001,7 +1097,7 @@ describe('Lightbox', () => {
 
     it('zooms with the wheel at the pointer', () => {
       layOut();
-      render(<Gallery defaultOpen />);
+      renderLoaded(<Gallery defaultOpen />);
       const at = { clientX: 700, clientY: 400 };
       // A big step counts as 100px, so it can't jump.
       const notch = fireEvent.wheel(shownImage(), { deltaY: -300, ...at });
@@ -1034,7 +1130,7 @@ describe('Lightbox', () => {
 
     it('pans a zoomed image with a drag, to its edges', () => {
       layOut();
-      render(<Gallery defaultOpen />);
+      renderLoaded(<Gallery defaultOpen />);
       zoomIn();
       zoomIn();
       zoomIn();
@@ -1055,7 +1151,7 @@ describe('Lightbox', () => {
 
     it('doesn’t swipe while zoomed', () => {
       layOut();
-      render(<Gallery defaultOpen />);
+      renderLoaded(<Gallery defaultOpen />);
       zoomIn();
       const image = shownImage();
       fireEvent.touchStart(image, { touches: [{ clientX: 300, clientY: 0 }] });
@@ -1067,7 +1163,7 @@ describe('Lightbox', () => {
 
     it('pinches, and carries on panning with the finger left down', () => {
       layOut();
-      render(<Gallery defaultOpen />);
+      renderLoaded(<Gallery defaultOpen />);
       const image = shownImage();
       const background = document.querySelector('.modal-background') as Element;
       pointer(image, 'pointerDown', {
@@ -1110,7 +1206,7 @@ describe('Lightbox', () => {
 
     it('snaps back to fitted from a pinch that ends near it', () => {
       layOut();
-      render(<Gallery defaultOpen />);
+      renderLoaded(<Gallery defaultOpen />);
       const image = shownImage();
       pointer(image, 'pointerDown', {
         pointerId: 1,
@@ -1135,7 +1231,7 @@ describe('Lightbox', () => {
 
     it('pinches from two fingers that land together', () => {
       layOut();
-      render(<Gallery defaultOpen />);
+      renderLoaded(<Gallery defaultOpen />);
       const image = shownImage();
       pointer(image, 'pointerDown', {
         pointerId: 1,
@@ -1163,7 +1259,7 @@ describe('Lightbox', () => {
       const onPointerMove = vi.fn();
       const onPointerUp = vi.fn();
       const onPointerCancel = vi.fn();
-      render(
+      renderLoaded(
         <Gallery
           defaultOpen
           onPointerDown={onPointerDown}
@@ -1189,7 +1285,7 @@ describe('Lightbox', () => {
 
     it('toggles with a double tap, and not with two slow or distant taps', () => {
       layOut();
-      render(<Gallery defaultOpen />);
+      renderLoaded(<Gallery defaultOpen />);
       const image = shownImage();
       const tap = (clientX: number, timeStamp: number) => {
         const at = { pointerType: 'touch', clientX, clientY: 400, timeStamp };
@@ -1210,7 +1306,7 @@ describe('Lightbox', () => {
 
     it('takes a finger that moves as no tap', () => {
       layOut();
-      render(<Gallery defaultOpen />);
+      renderLoaded(<Gallery defaultOpen />);
       const image = shownImage();
       const tap = (to: number) => {
         pointer(image, 'pointerDown', { pointerType: 'touch', clientX: 500 });
@@ -1224,7 +1320,7 @@ describe('Lightbox', () => {
 
     it('resets when the image changes', () => {
       layOut();
-      render(<Gallery defaultOpen />);
+      renderLoaded(<Gallery defaultOpen />);
       fireEvent.click(button('Zoom in'));
       key('End');
       expect(transformOf(shownImage())).toBe('');
@@ -1240,21 +1336,27 @@ describe('Lightbox', () => {
       expect(dialog()).not.toHaveClass('is-zoomed');
     });
 
-    it('fits again when an image zoomed while loading fails', () => {
+    it('waits for the image to load before anything zooms', () => {
       layOut();
       render(<Gallery defaultOpen />);
+      const image = shownImage();
+      expect(button('Zoom in')).toHaveAttribute('aria-disabled', 'true');
+      fireEvent.click(button('Zoom in'));
       key('+');
-      expect(dialog()).toHaveClass('is-zoomed');
-      fireEvent.error(shownImage());
+      expect(fireEvent.wheel(image, { deltaY: -100 })).toBe(true);
+      fireEvent.doubleClick(image, { clientX: 600, clientY: 450 });
+      pointer(image, 'pointerDown', { pointerId: 1, clientX: 450 });
+      pointer(image, 'pointerDown', { pointerId: 2, clientX: 550 });
+      pointer(image, 'pointerMove', { pointerId: 2, clientX: 750 });
       expect(dialog()).not.toHaveClass('is-zoomed');
-      // The arrow keys move again, rather than pan an image that isn't there.
-      key('ArrowRight');
-      expect(shownImage()).toHaveAttribute('src', '/quay.jpg');
+
+      fireEvent.load(image);
+      expect(button('Zoom in')).not.toHaveAttribute('aria-disabled');
     });
 
     it('leaves all of it out with zoomable off', () => {
       layOut();
-      render(<Gallery defaultOpen zoomable={false} />);
+      renderLoaded(<Gallery defaultOpen zoomable={false} />);
       expect(screen.queryByRole('button', { name: 'Zoom in' })).toBeNull();
       const image = shownImage();
       expect(fireEvent.wheel(image, { deltaY: -100 })).toBe(true);

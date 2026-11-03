@@ -102,7 +102,8 @@ export interface LightboxProps
   defaultOpen?: boolean;
   /**
    * Called when a trigger, the close button, Escape, a click on the
-   * background or a swipe down opens or closes the viewer.
+   * background or a swipe down opens or closes the viewer, and with `false`
+   * when it's open and `items` becomes empty.
    */
   onOpenChange?: (open: boolean) => void;
   /**
@@ -119,7 +120,8 @@ export interface LightboxProps
   defaultValue?: number;
   /**
    * Called with the new index when a trigger, an arrow, a key or a swipe
-   * changes the image. A trigger calls it before `onOpenChange(true)`.
+   * changes the image. A trigger at another image than the one shown calls
+   * it before `onOpenChange(true)`.
    */
   onChange?: (value: number) => void;
   /**
@@ -131,7 +133,8 @@ export interface LightboxProps
   /**
    * Zoom with the buttons, the wheel, a double click or tap, pinch and the
    * `+`, `-` and `0` keys, and pan a zoomed image by dragging or with the
-   * arrow keys. `false` drops the zoom buttons and all of it.
+   * arrow keys. Zoom waits for the image to load. `false` drops the zoom
+   * buttons and all of it.
    * @defaultValue true
    */
   zoomable?: boolean;
@@ -629,34 +632,51 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
     }, [status, index, attempt]);
 
     // The images either side, fetched ahead so a move shows them at once.
-    const neighbours = [index - 1, index + 1]
-      .map(i => (repeat ? (i + count) % count : i))
+    // With `repeat` and two images, both sides are the one other image, so
+    // the indexes are deduplicated and it's fetched once.
+    const [before, after] = Array.from(
+      new Set(
+        [index - 1, index + 1].map(i => (repeat ? (i + count) % count : i))
+      )
+    )
       .filter(i => i >= 0 && i < count && i !== index)
       .map(i => items[i]);
-    const preloadKey = JSON.stringify(
-      neighbours.map(({ src, srcSet, sizes }) => [src, srcSet, sizes])
-    );
+    const beforeSrc = before?.src;
+    const beforeSrcSet = before?.srcSet;
+    const beforeSizes = before?.sizes;
+    const afterSrc = after?.src;
+    const afterSrcSet = after?.srcSet;
+    const afterSizes = after?.sizes;
     useEffect(() => {
-      (JSON.parse(preloadKey) as [string, string?, string?][]).forEach(
-        ([src, srcSet, sizes]) => {
-          const img = document.createElement('img');
-          if (sizes) img.sizes = sizes;
-          if (srcSet) img.srcset = srcSet;
-          img.src = src;
-        }
-      );
-    }, [preloadKey]);
+      const fetchAhead = (src?: string, srcSet?: string, sizes?: string) => {
+        if (!src) return;
+        const img = document.createElement('img');
+        if (sizes) img.sizes = sizes;
+        if (srcSet) img.srcset = srcSet;
+        img.src = src;
+      };
+      fetchAhead(beforeSrc, beforeSrcSet, beforeSizes);
+      fetchAhead(afterSrc, afterSrcSet, afterSizes);
+    }, [
+      beforeSrc,
+      beforeSrcSet,
+      beforeSizes,
+      afterSrc,
+      afterSrcSet,
+      afterSizes,
+    ]);
 
     // The status line, written a moment after it changes, so a quick run of
     // moves is read once. It's written on opening too, which says which image
     // the viewer opened at.
     const progress = words.progress(index + 1, count);
+    const position = item.alt ? `${progress}: ${item.alt}` : progress;
+    // A failed image's line says which image failed too, so a move from one
+    // failed image to another still changes it.
     const message =
       status === 'error'
-        ? words.loadError
-        : item.alt
-          ? `${progress}: ${item.alt}`
-          : progress;
+        ? `${position}${/[.!?]$/.test(position) ? '' : '.'} ${words.loadError}`
+        : position;
     const [said, setSaid] = useState('');
     useEffect(() => {
       const timer = setTimeout(() => setSaid(message), STATUS_DELAY);
@@ -696,14 +716,18 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
 
     // ---- Zooming and panning --------------------------------------------------
 
-    // Only called with an image on screen: a gesture or a key needs one, and
-    // the zoom buttons check for it, since a failed image leaves none.
+    // Zoom waits for the image: a loading one has no size to zoom, and a
+    // failed one isn't there.
+    const canZoom = zoomable && status === 'loaded';
+
+    // Only called with an image on screen: every way to zoom or pan checks
+    // `canZoom` first, and a pan needs a zoom.
     const geometry = () =>
       measure(image as HTMLImageElement, rootRef.current as HTMLDivElement);
 
     /** Zooms to `zoom`, kept within the limits, about the viewer's centre. */
     const zoomTo = (next: (zoom: number) => number) => {
-      if (!image) return;
+      if (!canZoom) return;
       const g = geometry();
       updateView(v =>
         zoomView(
@@ -762,14 +786,15 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
       );
     });
     useEffect(() => {
-      if (!image || !zoomable) return undefined;
+      if (!canZoom) return undefined;
+      const target = image as HTMLImageElement;
       const onWheel = (event: WheelEvent) => {
         event.preventDefault();
         handleWheel.current(event);
       };
-      image.addEventListener('wheel', onWheel, { passive: false });
-      return () => image.removeEventListener('wheel', onWheel);
-    }, [image, zoomable, handleWheel]);
+      target.addEventListener('wheel', onWheel, { passive: false });
+      return () => target.removeEventListener('wheel', onWheel);
+    }, [image, canZoom, handleWheel]);
 
     // Pointers on the image: one pans a zoomed image, two pinch. The first
     // has to land on the image; the second can land anywhere in the viewer.
@@ -811,7 +836,7 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
     const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
       onPointerDown?.(event);
       lastPointerTypeRef.current = event.pointerType;
-      if (!zoomable || event.defaultPrevented) return;
+      if (!canZoom || event.defaultPrevented) return;
       const onImage = event.target === image;
       if (!onImage && pointersRef.current.size === 0) return;
       pointersRef.current.set(event.pointerId, {
@@ -982,7 +1007,7 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
         case '=':
         case '-':
         case '0':
-          if (!zoomable) return;
+          if (!canZoom) return;
           if (event.key === '0') resetZoom();
           else if (event.key === '-') zoomOut();
           else zoomIn();
@@ -1080,9 +1105,7 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
               <Button
                 type="button"
                 aria-label={words.zoomIn}
-                aria-disabled={
-                  view.zoom >= limit || status === 'error' || undefined
-                }
+                aria-disabled={!canZoom || view.zoom >= limit || undefined}
                 onClick={zoomIn}
               >
                 <ZoomInIcon />
@@ -1099,16 +1122,7 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
           )}
         </div>
         <Modal.Content>
-          <Figure
-            className={figureClass}
-            style={figureStyle}
-            {...swipe.handlers}
-            onTouchStart={event => {
-              // A second finger is a pinch, not a swipe.
-              if (event.touches.length > 1) swipe.cancel();
-              else swipe.handlers.onTouchStart(event);
-            }}
-          >
+          <Figure className={figureClass} style={figureStyle}>
             {status !== 'error' && (
               <img
                 key={`${index}-${attempt}`}
@@ -1123,16 +1137,22 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
                 alt={item.alt}
                 draggable={false}
                 style={imageStyle}
+                // Swipes start on the image, so a press on the caption or
+                // the error keeps its own behavior.
+                {...swipe.handlers}
+                onTouchStart={event => {
+                  // A second finger is a pinch, not a swipe.
+                  if (event.touches.length > 1) swipe.cancel();
+                  else swipe.handlers.onTouchStart(event);
+                }}
                 onLoad={() => setStatus('loaded')}
                 onError={() => {
                   setStatus('error');
                   setLeaving(undefined);
-                  // Zoomed while it was loading, there's nothing left to pan.
-                  updateView(() => FITTED);
                 }}
                 onDoubleClick={event => {
                   // A touch screen's double tap is handled as it lands.
-                  if (zoomable && lastPointerTypeRef.current !== 'touch') {
+                  if (canZoom && lastPointerTypeRef.current !== 'touch') {
                     toggleZoomAt(event.clientX, event.clientY);
                   }
                 }}
@@ -1271,9 +1291,17 @@ const LightboxRoot = forwardRef<HTMLDivElement, LightboxProps>(
     // and the triggers don't re-render with every change here.
     const openAt = useLatestRef((at: number) => {
       if (!count) return;
-      setValue(fit(at));
+      const next = fit(at);
+      if (next !== index) setValue(next);
       if (!open) setOpen(true);
     });
+
+    // With no images left, it closes the way a user's close does, so an
+    // uncontrolled viewer doesn't open again by itself when images return.
+    const closeEmpty = useLatestRef(() => setOpen(false));
+    useEffect(() => {
+      if (open && !count) closeEmpty.current();
+    }, [open, count, closeEmpty]);
     const context = useMemo<LightboxContextValue>(
       () => ({ openAt: at => openAt.current(at) }),
       [openAt]
