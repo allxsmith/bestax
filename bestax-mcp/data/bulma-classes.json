@@ -13094,6 +13094,7 @@
     }
   ],
   "ownClasses": {
+    "affix": "Affix",
     "app-frame": "AppFrame",
     "autocomplete": "Autocomplete",
     "avatar": "Avatar",
@@ -13117,7 +13118,9 @@
     "dropzone": "Dropzone",
     "empty-state": "EmptyState",
     "fieldset": "Fieldset",
+    "stack": "Stack",
     "hover-card": "HoverCard",
+    "icon-button": "IconButton",
     "kbd": "Kbd",
     "link-button": "LinkButton",
     "loading": "Loading",

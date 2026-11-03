@@ -6,16 +6,16 @@
       "promptName": "custom-component",
       "dir": "bestax-custom-component",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 13964 },
+        { "id": "api", "file": "references/api.md", "bytes": 14931 },
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
-          "bytes": 23836
+          "bytes": 25031
         },
         {
           "id": "library-contributor",
           "file": "references/library-contributor.md",
-          "bytes": 22089
+          "bytes": 23311
         },
         { "id": "patterns", "file": "references/patterns.md", "bytes": 4601 }
       ],
@@ -64,7 +64,7 @@
         {
           "id": "layout-components",
           "file": "references/layout-components.md",
-          "bytes": 21680
+          "bytes": 24787
         }
       ],
       "examples": [
@@ -93,7 +93,7 @@
         {
           "id": "bloomer-prop-map",
           "file": "references/bloomer/prop-map.md",
-          "bytes": 27026
+          "bytes": 27104
         },
         {
           "id": "bloomer-unmappables",
@@ -128,7 +128,7 @@
         {
           "id": "rbx-prop-map",
           "file": "references/rbx/prop-map.md",
-          "bytes": 15867
+          "bytes": 15945
         },
         {
           "id": "rbx-unmappables",
@@ -148,7 +148,7 @@
         {
           "id": "react-bulma-components-unmappables",
           "file": "references/react-bulma-components/unmappables.md",
-          "bytes": 14218
+          "bytes": 14296
         }
       ],
       "examples": []
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 15882
+          "bytes": 16310
         }
       ],
       "examples": []
@@ -176,12 +176,12 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 65388
+          "bytes": 66571
         },
         {
           "id": "themeable-components",
           "file": "references/themeable-components.md",
-          "bytes": 31027
+          "bytes": 36883
         }
       ],
       "examples": [

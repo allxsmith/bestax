@@ -7,8 +7,7 @@ import React, {
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useIsHydrated } from '../helpers/useIsHydrated';
-import { useConfig } from '../helpers/Config';
+import { usePortalProp } from '../helpers/portal';
 import { Modal } from './Modal';
 
 /** Valid dialog type/color values. */
@@ -137,11 +136,7 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
     // the Modal's subtree, these buttons included, so the focus effect below
     // has to re-run against the new nodes, exactly as the Modal's own focus
     // effect does, on the same inputs.
-    const isHydrated = useIsHydrated();
-    const isPortaled = Boolean(portal) && isHydrated;
-    const { portalContainer } = useConfig();
-    const defaultTarget =
-      isPortaled && portal === true ? portalContainer : undefined;
+    const { isPortaled, defaultTarget } = usePortalProp(portal);
 
     // Focus management — Dialog picks a specific button rather than the
     // Modal's default (first focusable/root); this effect runs after the

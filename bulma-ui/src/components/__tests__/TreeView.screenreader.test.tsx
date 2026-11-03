@@ -5,14 +5,21 @@
 // a screen reader, and a change that alters what's said fails here. What each
 // real reader says still needs checking with that reader.
 //
-// The scenarios are #1171's steps to reproduce, one test each, driven by keys
-// pressed through the reader, on the stories the issue names. The docs page's
-// Accessibility section quotes these logs, so a change here changes it too.
+// The scenarios are #1171's steps to reproduce, one test each, then one for
+// the checkbox-independent mode (#1430), driven by keys pressed through the
+// reader, on the stories the issue names and the Categories story. The docs
+// page's Accessibility section quotes these logs, so a change here changes it
+// too.
 import React from 'react';
 import { render } from '@testing-library/react';
 import { Virtual } from '@guidepup/virtual-screen-reader';
 import { TreeView, type TreeViewProps } from '../TreeView';
-import meta, { DeepTree, FileBrowser, Permissions } from '../TreeView.stories';
+import meta, {
+  Categories,
+  DeepTree,
+  FileBrowser,
+  Permissions,
+} from '../TreeView.stories';
 
 type Story = () => React.ReactElement;
 // The default story is a tree with no selectionMode, rendered from the meta.
@@ -22,6 +29,7 @@ const DefaultStory = meta.render as unknown as (
 const FileBrowserStory = FileBrowser.render as unknown as Story;
 const PermissionsStory = Permissions.render as unknown as Story;
 const DeepTreeStory = DeepTree.render as unknown as Story;
+const CategoriesStory = Categories.render as unknown as Story;
 
 // A reader of each test's own, so one that fails part way can't carry on
 // pressing keys into the next.
@@ -270,6 +278,41 @@ describe('TreeView, as a simulated screen reader says it', () => {
       'treeitem, TreeView.tsx, level 3, position 3, not selected, set size 3',
       'button, After',
       'treeitem, Card.tsx, level 3, position 2, selected, set size 3',
+    ]);
+  });
+
+  it('9. a check with Space, in a checkbox-independent tree, and the parent above it staying as it was', async () => {
+    await start(<CategoriesStory />);
+    await tabIntoTree();
+    expect(await said()).toEqual([
+      'button, Before',
+      'treeitem, Clothing, checked, expanded, level 1, position 1, set size 2',
+    ]);
+
+    await press('ArrowDown', 'ArrowDown', 'ArrowDown');
+    expect(await said()).toEqual([
+      'treeitem, Shoes, not checked, expanded, level 2, position 1, set size 2',
+      'treeitem, Running, checked, level 3, position 1, set size 2',
+      'treeitem, Hiking, not checked, level 3, position 2, set size 2',
+    ]);
+
+    // The check is read on the item, and Shoes is read as it was: never
+    // partially checked, and not checked by the items under it.
+    await press(' ', 'ArrowLeft');
+    expect(await said()).toEqual([
+      'treeitem, Hiking, checked, level 3, position 2, set size 2',
+      'treeitem, Shoes, not checked, expanded, level 2, position 1, set size 2',
+    ]);
+
+    // A check on the parent is read on the parent alone. Unchecking an item
+    // under it leaves the parent checked, where a checkbox tree would turn
+    // it mixed.
+    await press(' ', 'ArrowDown', ' ', 'ArrowLeft');
+    expect(await said()).toEqual([
+      'treeitem, Shoes, checked, expanded, level 2, position 1, set size 2',
+      'treeitem, Running, checked, level 3, position 1, set size 2',
+      'treeitem, Running, not checked, level 3, position 1, set size 2',
+      'treeitem, Shoes, checked, expanded, level 2, position 1, set size 2',
     ]);
   });
 });

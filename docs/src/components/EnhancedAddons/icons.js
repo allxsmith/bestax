@@ -31,6 +31,17 @@ function KbdIcon() {
   );
 }
 
+// A screen with a round button held in its bottom-right corner
+function AffixIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M7 8h8M7 12h5" />
+      <circle cx="16" cy="16" r="2" />
+    </svg>
+  );
+}
+
 // Person in a frame — avatar
 function AvatarIcon() {
   return (
@@ -285,6 +296,27 @@ function DescriptionListIcon() {
   );
 }
 
+// A square button holding nothing but a trash can
+function IconButtonIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="4" y="4" width="16" height="16" rx="3" />
+      <path d="M9 9h6M11 9V8h2v1M10 9l.5 6.5h3L14 9" />
+    </svg>
+  );
+}
+
+// A one, a comma and a zero, a number written the way a locale writes it
+function NumberFormatterIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M5.5 8.5 8 6v12" />
+      <path d="M11.5 17v1.2c0 .9-.5 1.6-1.2 2" />
+      <ellipse cx="16.5" cy="12" rx="3.5" ry="6" />
+    </svg>
+  );
+}
+
 // A ring with its arc filled most of the way round
 function RingProgressIcon() {
   return (
@@ -313,6 +345,29 @@ function AppFrameIcon() {
       <rect x="3" y="4" width="18" height="16" rx="2" />
       <path d="M3 8.5h18" />
       <path d="M9 8.5V20" />
+    </svg>
+  );
+}
+
+// Two blocks stacked in a column, over a row of three small ones
+function StackIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="3" width="18" height="5" rx="1.5" />
+      <rect x="3" y="10" width="18" height="5" rx="1.5" />
+      <rect x="3" y="17" width="5" height="4" rx="1" />
+      <rect x="9.5" y="17" width="5" height="4" rx="1" />
+      <rect x="16" y="17" width="5" height="4" rx="1" />
+    </svg>
+  );
+}
+
+// A box with a smaller one in its middle
+function FlexIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <rect x="9" y="9" width="6" height="6" rx="1" />
     </svg>
   );
 }
@@ -378,6 +433,7 @@ const ADDON_ICONS = {
   appframe: AppFrameIcon,
   linkbutton: LinkButtonIcon,
   kbd: KbdIcon,
+  affix: AffixIcon,
   avatar: AvatarIcon,
   badge: BadgeIcon,
   carousel: CarouselIcon,
@@ -393,8 +449,11 @@ const ADDON_ICONS = {
   dropzone: DropzoneIcon,
   emptystate: EmptyStateIcon,
   fieldset: FieldsetIcon,
+  flex: FlexIcon,
   hovercard: HoverCardIcon,
+  iconbutton: IconButtonIcon,
   loading: LoadingIcon,
+  numberformatter: NumberFormatterIcon,
   pininput: PinInputIcon,
   popover: PopoverIcon,
   reveal: RevealIcon,
@@ -402,6 +461,7 @@ const ADDON_ICONS = {
   scrollarea: ScrollAreaIcon,
   sidebar: SidebarIcon,
   splitter: SplitterIcon,
+  stack: StackIcon,
   steps: StepsIcon,
   timeline: TimelineIcon,
   toast: ToastIcon,

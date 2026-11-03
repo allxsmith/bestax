@@ -297,6 +297,30 @@ describe('useBulmaClasses', () => {
     expect(bulmaHelperClasses).toBe('is-block');
   });
 
+  it('passes flexContainer through, so the container classes need no display prop', () => {
+    const props = {
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '2',
+      id: 'list',
+    } as const;
+    const withOption = renderHook(() =>
+      useBulmaClasses(props, { flexContainer: true })
+    ).result.current;
+    expect(withOption.bulmaHelperClasses).toBe(
+      'is-gap-2 is-flex-direction-column is-align-items-center'
+    );
+    expect(withOption.rest).toEqual({ id: 'list' });
+
+    // Without it, the same props render what they always have.
+    for (const options of [undefined, {}, { flexContainer: false }]) {
+      const without = renderHook(() => useBulmaClasses(props, options)).result
+        .current;
+      expect(without.bulmaHelperClasses).toBe('is-gap-2');
+      expect(without.rest).toEqual({ id: 'list' });
+    }
+  });
+
   // Other Helpers
   it('applies other helper classes', () => {
     const { bulmaHelperClasses } = renderUseBulmaClasses({

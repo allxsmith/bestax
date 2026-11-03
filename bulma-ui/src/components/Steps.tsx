@@ -2,7 +2,7 @@ import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useNumberFormat } from '../helpers/localeFormat';
+import { useScopedNumberFormat } from '../helpers/localeFormat';
 
 /** Available size modifiers for the Steps component. */
 export type StepsSize = 'small' | 'medium' | 'large';
@@ -152,7 +152,7 @@ export const Step: React.FC<StepProps> = ({
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
-  const formatNumber = useNumberFormat();
+  const formatNumber = useScopedNumberFormat();
 
   const stepClasses = classNames(
     usePrefixedClassNames('steps-segment', {
