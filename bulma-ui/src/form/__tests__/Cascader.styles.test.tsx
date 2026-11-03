@@ -160,6 +160,20 @@ describe('Cascader styles', () => {
     );
   });
 
+  it('colors the chevron as focused while the field is focused, drawn focused, or open', () => {
+    const rule = Array.from(PLAIN.keys()).find(selector =>
+      selector.includes('.input:focus ~ .cascader-chevron')
+    )!;
+    expect(rule.split(', ')).toEqual([
+      '.cascader .input:focus ~ .cascader-chevron',
+      '.cascader .input.is-focused ~ .cascader-chevron',
+      '.cascader .input[aria-expanded=true] ~ .cascader-chevron',
+    ]);
+    expect(body(PLAIN, rule)).toContain(
+      'color: var(--bulma-cascader-chevron-focus-color)'
+    );
+  });
+
   it('prefixes every class under a class prefix', () => {
     const selectors = Array.from(PREFIXED.keys()).join(' ');
     expect(selectors).toContain('.bestax-cascader');

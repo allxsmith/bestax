@@ -52,6 +52,7 @@
     }
 
     &:focus ~ .#{iv.$class-prefix}#{$name}-chevron,
+    &.#{iv.$class-prefix}is-focused ~ .#{iv.$class-prefix}#{$name}-chevron,
     &[aria-expanded='true'] ~ .#{iv.$class-prefix}#{$name}-chevron {
       color: cv.getVar('#{$name}-chevron-focus-color');
     }
