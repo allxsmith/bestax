@@ -95,6 +95,8 @@ describe('Tour styles', () => {
       '--bulma-tour-spotlight-radius': 'var(--bulma-radius)',
       '--bulma-tour-step-background': 'var(--bulma-scheme-main)',
       '--bulma-tour-step-border-color': 'var(--bulma-border-weak)',
+      '--bulma-tour-step-border-width': '1px',
+      '--bulma-tour-step-header-gap': '0.5rem',
       '--bulma-tour-step-max-width': 'min(24rem, 100vw - 2rem)',
       '--bulma-tour-progress-color': 'var(--bulma-text-weak)',
       position: 'relative',
@@ -129,7 +131,8 @@ describe('Tour styles', () => {
       position: 'fixed',
       width: 'max-content',
       'max-width': 'var(--bulma-tour-step-max-width)',
-      border: '1px solid var(--bulma-tour-step-border-color)',
+      border:
+        'var(--bulma-tour-step-border-width) solid var(--bulma-tour-step-border-color)',
     });
     expect(find(PLAIN, '.tour-step.is-bottom')).toEqual({ 'margin-top': gap });
     expect(find(PLAIN, '.tour-step.is-top')).toEqual({
@@ -139,6 +142,25 @@ describe('Tour styles', () => {
     expect(find(PLAIN, '.tour-step.is-left')).toEqual({
       'margin-left': `calc(-1 * ${gap})`,
     });
+  });
+
+  it('draws every line at the step’s border width, and spaces the header by its own gap', () => {
+    const line =
+      'var(--bulma-tour-step-border-width) solid var(--bulma-tour-step-border-color)';
+    expect(find(PLAIN, '.tour-step-header')).toMatchObject({
+      gap: 'var(--bulma-tour-step-header-gap)',
+      'border-bottom': line,
+    });
+    expect(find(PLAIN, '.tour-step-footer')).toMatchObject({
+      gap: 'var(--bulma-tour-step-footer-gap)',
+      'border-top': line,
+    });
+    // Only the variable's own default writes a width.
+    for (const rule of PLAIN) {
+      for (const [property, value] of Object.entries(rule.declarations)) {
+        if (!property.startsWith('--')) expect(value).not.toMatch(/\b1px\b/);
+      }
+    }
   });
 
   it('moves nothing on its own, so the scroll to a target is the only motion', () => {

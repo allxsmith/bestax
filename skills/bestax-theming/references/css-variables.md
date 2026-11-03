@@ -979,9 +979,10 @@ spotlight past the target's edge, and the step sits `--bulma-tour-step-offset` p
 `--bulma-tour-overlay-background`, `--bulma-tour-progress-color`,
 `--bulma-tour-spotlight-padding`, `--bulma-tour-spotlight-radius`,
 `--bulma-tour-step-background`, `--bulma-tour-step-body-padding`,
-`--bulma-tour-step-border-color`, `--bulma-tour-step-color`,
-`--bulma-tour-step-footer-gap`, `--bulma-tour-step-footer-padding`,
-`--bulma-tour-step-header-color`, `--bulma-tour-step-header-padding`,
+`--bulma-tour-step-border-color`, `--bulma-tour-step-border-width`,
+`--bulma-tour-step-color`, `--bulma-tour-step-footer-gap`, `--bulma-tour-step-footer-padding`,
+`--bulma-tour-step-header-color`, `--bulma-tour-step-header-gap`,
+`--bulma-tour-step-header-padding`,
 `--bulma-tour-step-header-weight`, `--bulma-tour-step-max-width`, `--bulma-tour-step-offset`,
 `--bulma-tour-step-radius`, `--bulma-tour-step-shadow`, `--bulma-tour-z-index`
 

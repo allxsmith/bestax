@@ -29,12 +29,16 @@ $tour-spotlight-radius: cv.getVar('radius') !default;
 $tour-step-background: cv.getVar('scheme-main') !default;
 $tour-step-color: cv.getVar('text') !default;
 $tour-step-border-color: cv.getVar('border-weak') !default;
+// The step's border, and the lines under its header and over its footer.
+$tour-step-border-width: 1px !default;
 $tour-step-radius: cv.getVar('radius-large') !default;
 $tour-step-shadow: cv.getVar('shadow') !default;
 $tour-step-max-width: min(24rem, calc(100vw - 2rem)) !default;
 // Between the spotlight's edge and the panel.
 $tour-step-offset: 0.5rem !default;
 $tour-step-header-padding: 0.75rem 1rem !default;
+// Between the title and the close button.
+$tour-step-header-gap: 0.5rem !default;
 $tour-step-header-color: cv.getVar('text-strong') !default;
 $tour-step-header-weight: cv.getVar('weight-semibold') !default;
 $tour-step-body-padding: 1rem !default;
@@ -52,11 +56,13 @@ $tour-progress-color: cv.getVar('text-weak') !default;
       'tour-step-background': #{$tour-step-background},
       'tour-step-color': #{$tour-step-color},
       'tour-step-border-color': #{$tour-step-border-color},
+      'tour-step-border-width': #{$tour-step-border-width},
       'tour-step-radius': #{$tour-step-radius},
       'tour-step-shadow': #{$tour-step-shadow},
       'tour-step-max-width': #{$tour-step-max-width},
       'tour-step-offset': #{$tour-step-offset},
       'tour-step-header-padding': #{$tour-step-header-padding},
+      'tour-step-header-gap': #{$tour-step-header-gap},
       'tour-step-header-color': #{$tour-step-header-color},
       'tour-step-header-weight': #{$tour-step-header-weight},
       'tour-step-body-padding': #{$tour-step-body-padding},
@@ -112,7 +118,8 @@ $tour-progress-color: cv.getVar('text-weak') !default;
   max-width: cv.getVar('tour-step-max-width');
   background-color: cv.getVar('tour-step-background');
   color: cv.getVar('tour-step-color');
-  border: 1px solid cv.getVar('tour-step-border-color');
+  border: cv.getVar('tour-step-border-width') solid
+    cv.getVar('tour-step-border-color');
   border-radius: cv.getVar('tour-step-radius');
   box-shadow: cv.getVar('tour-step-shadow');
   text-align: start;
@@ -140,11 +147,12 @@ $tour-progress-color: cv.getVar('text-weak') !default;
 .#{iv.$class-prefix}tour-step-header {
   display: flex;
   align-items: center;
-  gap: cv.getVar('tour-step-footer-gap');
+  gap: cv.getVar('tour-step-header-gap');
   padding: cv.getVar('tour-step-header-padding');
   color: cv.getVar('tour-step-header-color');
   font-weight: cv.getVar('tour-step-header-weight');
-  border-bottom: 1px solid cv.getVar('tour-step-border-color');
+  border-bottom: cv.getVar('tour-step-border-width') solid
+    cv.getVar('tour-step-border-color');
 
   > .#{iv.$class-prefix}delete {
     margin-inline-start: auto;
@@ -171,7 +179,8 @@ $tour-progress-color: cv.getVar('text-weak') !default;
   align-items: center;
   gap: cv.getVar('tour-step-footer-gap');
   padding: cv.getVar('tour-step-footer-padding');
-  border-top: 1px solid cv.getVar('tour-step-border-color');
+  border-top: cv.getVar('tour-step-border-width') solid
+    cv.getVar('tour-step-border-color');
 
   > .#{iv.$class-prefix}buttons {
     flex-wrap: nowrap;

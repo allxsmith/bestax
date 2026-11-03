@@ -321,6 +321,12 @@
       "scope": "root"
     },
     {
+      "css": "--bulma-tour-step-border-width",
+      "sass": "$tour-step-border-width",
+      "default": "1px",
+      "scope": "root"
+    },
+    {
       "css": "--bulma-tour-step-radius",
       "sass": "$tour-step-radius",
       "default": "var(--bulma-radius-large)",
@@ -348,6 +354,12 @@
       "css": "--bulma-tour-step-header-padding",
       "sass": "$tour-step-header-padding",
       "default": "0.75rem 1rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-header-gap",
+      "sass": "$tour-step-header-gap",
+      "default": "0.5rem",
       "scope": "root"
     },
     {

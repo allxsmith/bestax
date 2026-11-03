@@ -407,11 +407,13 @@ place inside the step.
 | `--bulma-tour-step-background`     | `$tour-step-background`     | `var(--bulma-scheme-main)`                                                              |
 | `--bulma-tour-step-color`          | `$tour-step-color`          | `var(--bulma-text)`                                                                     |
 | `--bulma-tour-step-border-color`   | `$tour-step-border-color`   | `var(--bulma-border-weak)`                                                              |
+| `--bulma-tour-step-border-width`   | `$tour-step-border-width`   | `1px`                                                                                   |
 | `--bulma-tour-step-radius`         | `$tour-step-radius`         | `var(--bulma-radius-large)`                                                             |
 | `--bulma-tour-step-shadow`         | `$tour-step-shadow`         | `var(--bulma-shadow)`                                                                   |
 | `--bulma-tour-step-max-width`      | `$tour-step-max-width`      | `min(24rem, calc(100vw - 2rem))`                                                        |
 | `--bulma-tour-step-offset`         | `$tour-step-offset`         | `0.5rem`                                                                                |
 | `--bulma-tour-step-header-padding` | `$tour-step-header-padding` | `0.75rem 1rem`                                                                          |
+| `--bulma-tour-step-header-gap`     | `$tour-step-header-gap`     | `0.5rem`                                                                                |
 | `--bulma-tour-step-header-color`   | `$tour-step-header-color`   | `var(--bulma-text-strong)`                                                              |
 | `--bulma-tour-step-header-weight`  | `$tour-step-header-weight`  | `var(--bulma-weight-semibold)`                                                          |
 | `--bulma-tour-step-body-padding`   | `$tour-step-body-padding`   | `1rem`                                                                                  |
