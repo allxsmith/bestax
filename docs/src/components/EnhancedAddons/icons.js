@@ -31,6 +31,17 @@ function KbdIcon() {
   );
 }
 
+// A screen with a round button held in its bottom-right corner
+function AffixIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M7 8h8M7 12h5" />
+      <circle cx="16" cy="16" r="2" />
+    </svg>
+  );
+}
+
 // Person in a frame — avatar
 function AvatarIcon() {
   return (
@@ -410,6 +421,7 @@ function TreeViewIcon() {
 const ADDON_ICONS = {
   linkbutton: LinkButtonIcon,
   kbd: KbdIcon,
+  affix: AffixIcon,
   avatar: AvatarIcon,
   badge: BadgeIcon,
   carousel: CarouselIcon,

@@ -65,6 +65,7 @@ const BESTAX = {
   ColorSwatch: 'elements/colorswatch',
   ToggleButton: 'elements/togglebutton',
   UnorderedList: 'elements/unorderedlist',
+  Affix: 'components/affix',
   Avatar: 'components/avatar',
   Avatars: 'components/avatars',
   Badge: 'components/badge',
@@ -160,6 +161,7 @@ const BESTAX = {
   overlay: '/docs/guides/helpers/other',
   aspectRatio: '/docs/guides/helpers/other',
   'pos="sticky"': '/docs/guides/helpers/other',
+  'Affix + Button': 'components/affix',
   gap: '/docs/guides/helpers/flex#gap',
   'bestax.css': '/docs/guides/getting-started/installation',
   // Capabilities bestax documents as a recipe rather than a component.
@@ -699,7 +701,16 @@ export const categories = [
         '~Button + Menu',
         '~ButtonGroup',
       ],
-      ['Floating action button', 0, '~Affix + ActionIcon', 0, 'Fab', 0, 0, 0],
+      [
+        'Floating action button',
+        '~Affix + Button',
+        '~Affix + ActionIcon',
+        0,
+        'Fab',
+        0,
+        0,
+        0,
+      ],
       ['Speed dial', 0, 0, 0, 'SpeedDial', 0, 0, 0],
       [
         'Action bar (bulk actions)',
@@ -1304,8 +1315,8 @@ export const categories = [
         'Resizable',
       ],
       [
-        'Affix (sticky)',
-        '~pos="sticky"',
+        'Affix (fixed or sticky)',
+        'Affix',
         'Affix',
         0,
         '~Fab (back-to-top demo)',
@@ -2107,5 +2118,13 @@ export const corrections = [
       'Heading / title': { mui: 'partial' },
       'Visually hidden (a11y)': { rbootstrap: 'partial' },
     },
+  },
+  {
+    edition: '2026-10-13',
+    pr: 1455,
+    renamed: {
+      'Affix (sticky)': 'Affix (fixed or sticky)',
+    },
+    cells: {},
   },
 ];

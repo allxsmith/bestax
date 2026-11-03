@@ -6,6 +6,7 @@ import * as IndexExports from '../index';
 // make it on purpose, and pick the release type to match. `isBrowser` is
 // deprecated and leaves at the next major.
 const PUBLIC_EXPORTS = [
+  'Affix',
   'Autocomplete',
   'Avatar',
   'Avatars',

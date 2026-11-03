@@ -37,6 +37,12 @@ const ADDONS = [
     desc: 'Facts about one thing, each a label and its value, stacked on a phone and lined up in two columns from tablet up.',
   },
   {
+    name: 'Affix',
+    icon: 'affix',
+    link: '/docs/api/components/affix',
+    desc: 'Content fixed to a corner of the screen, such as a floating button, over the page and under its menus and modals.',
+  },
+  {
     name: 'NumberFormatter',
     icon: 'numberformatter',
     link: '/docs/api/elements/numberformatter',

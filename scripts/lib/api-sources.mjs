@@ -87,6 +87,7 @@ export const GENERATED_EXEMPT = new Set(['helpers']);
  */
 // <generated:scss-sources>
 export const SCSS_SOURCES = {
+  Affix: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_affix.scss' }],
   Autocomplete: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_autocomplete.scss' },
   ],
