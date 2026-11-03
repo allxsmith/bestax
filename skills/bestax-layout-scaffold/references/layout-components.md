@@ -56,11 +56,11 @@ parts are direct children, in this order: `AppFrame.Header` (`<header>`), `AppFr
 
 Put it at the top of the app, never inside a `<main>` or a `Container as="main"`: it renders the
 page's `<main>`. Its `Navbar` is not `fixed` and needs no `has-navbar-fixed-top`. A control of
-your own reads and toggles the state with `useAppFrame()`: `toggleNav()` does what the burger does,
-and `navId` is for its `aria-controls`. A header taller than Bulma's navbar sets
-`--bulma-app-frame-header-height` on `:root`. With `AppFrame.Nav rail`, the collapsed column keeps
-its icons and shows each label in a tooltip, which the frame renders: don't wrap the items in a
-`Tooltip` of your own.
+your own reads and toggles the state with `useAppFrame()`, which is `null` outside a frame:
+`toggleNav()` does what the burger does, and `navId` is for its `aria-controls`. A header taller
+than Bulma's navbar sets `--bulma-app-frame-header-height` on `:root`. With `AppFrame.Nav rail`,
+the collapsed column keeps its icons and shows each label in a tooltip, which the frame renders:
+don't wrap the items in a `Tooltip` of your own.
 
 ## Container
 

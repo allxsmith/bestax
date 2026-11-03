@@ -124,7 +124,8 @@ a toast, stays live. Escape, its close button, a click on the backdrop and a lin
 close it, and focus goes back to the burger. After a link, the navigation takes it from there: a
 router that moves focus on navigation moves it, and an in-page `#` link leaves it at its target, as
 it does anywhere on the page. Closed, the drawer is hidden, so its links are out of the Tab order
-and out of the accessibility tree, on the server's markup too.
+and out of the accessibility tree, on the server's markup too. Open, the nav and its backdrop take
+Bulma's `is-active`, as a navbar's menu does, for a stylesheet of your own to select.
 
 `breakpoint` sets where the nav turns into a column: `tablet`, `desktop` (the default, where
 Bulma's navbar shows its menu) or `widescreen`. This one is a drawer until the window is
@@ -366,7 +367,8 @@ page has another aside.
 
 `useAppFrame()` gives a control inside the frame the same state the burger has: `navOpen`,
 `navCollapsed`, `isDrawer`, a setter for each, `navId` for its `aria-controls`, and `toggleNav()`,
-which does what the burger does at the current width. It throws outside an `AppFrame`.
+which does what the burger does at the current width. Outside an `AppFrame` it returns `null`,
+so a control that can sit outside one renders a fallback, or nothing.
 
 Have your toggle focus itself before it toggles, as `AppFrame.Burger` does. Safari, and Firefox on a Mac, don't focus a button on click, so without it the drawer has no opener to hand focus back to when it closes.
 
@@ -374,6 +376,7 @@ Have your toggle focus itself before it toggles, as `AppFrame.Burger` does. Safa
 function example() {
   function SectionsToggle() {
     const frame = useAppFrame();
+    if (!frame) return null;
     const expanded = frame.isDrawer ? frame.navOpen : !frame.navCollapsed;
     return (
       <Button

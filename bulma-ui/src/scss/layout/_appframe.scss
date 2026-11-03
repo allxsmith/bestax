@@ -152,8 +152,9 @@ html:has(.#{iv.$class-prefix}app-frame) {
   }
 }
 
-.#{iv.$class-prefix}app-frame.#{iv.$class-prefix}is-nav-open
-  > .#{iv.$class-prefix}app-frame-nav {
+// The open drawer is Bulma's active state, on the nav as on a navbar's menu.
+.#{iv.$class-prefix}app-frame
+  > .#{iv.$class-prefix}app-frame-nav.#{iv.$class-prefix}is-active {
   transform: none;
   visibility: visible;
   transition-delay: 0s;
@@ -180,8 +181,8 @@ html:has(.#{iv.$class-prefix}app-frame) {
   transition-timing-function: $extras-easing;
 }
 
-.#{iv.$class-prefix}app-frame.#{iv.$class-prefix}is-nav-open
-  > .#{iv.$class-prefix}app-frame-backdrop {
+.#{iv.$class-prefix}app-frame
+  > .#{iv.$class-prefix}app-frame-backdrop.#{iv.$class-prefix}is-active {
   opacity: 1;
   visibility: visible;
   transition-delay: 0s;
