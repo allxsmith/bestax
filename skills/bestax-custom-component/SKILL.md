@@ -68,8 +68,8 @@ A button that shows only an icon (Delete in a table row, Settings in a navbar) i
 glyph goes in `icon` or as the one child (`<Icon name="trash" />`, or an SVG), not both. Its
 types require `aria-label`, or `aria-labelledby` in its place, so name the action, not the picture.
 It takes every `Button` prop, is `type="button"` unless you pass `submit` or `reset`, and
-`isRounded` makes it a circle. For a description on hover, wrap it in `Tooltip`, which describes it
-and doesn't name it.
+`isRounded` makes it a circle. Several go in `Buttons`, where it's also `Buttons.IconButton`. For a
+description on hover, wrap it in `Tooltip`, which describes it and doesn't name it.
 
 A button that turns something on or off and stays that way (Bold, Mute, Show archived) is
 `ToggleButton`: use it rather than `Button isActive`, which only draws a shade and sets no
