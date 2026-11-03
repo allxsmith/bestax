@@ -10,7 +10,7 @@ import {
 /** What the stubbed copy command does when it runs. */
 type CommandBehavior =
   | 'fires' // fires `copy` with clipboard data, and returns `true`
-  | 'fires-returns-false' // fires it, but returns `false`, as WebKit does
+  | 'webkit' // as WebKit does with nothing selected: see stubCommand
   | 'fires-without-data' // fires `copy` with no `clipboardData`
   | 'silent' // fires nothing, and returns `false`
   | 'throws'; // throws, as an engine without the command would
@@ -20,11 +20,20 @@ let written: Array<{ type: string; text: string }>;
 /** Whether each fired `copy` event was cancelled, in order. */
 let cancelled: boolean[];
 
-/** Stubs `document.execCommand`, which jsdom doesn't have. */
+/**
+ * Stubs `document.execCommand`, which jsdom doesn't have. Its `webkit`
+ * behavior is WebKit's with nothing selected: it fires `beforecopy`, fires
+ * `copy` only if a listener cancelled that, and returns `false` either way.
+ */
 function stubCommand(behavior: CommandBehavior) {
   const command = vi.fn((name: string) => {
     if (behavior === 'throws') throw new Error(`no ${name} command`);
     if (behavior === 'silent') return false;
+    if (behavior === 'webkit') {
+      const before = new Event('beforecopy', { cancelable: true });
+      document.dispatchEvent(before);
+      if (!before.defaultPrevented) return false;
+    }
     const event = new Event('copy', { bubbles: true, cancelable: true });
     if (behavior !== 'fires-without-data') {
       Object.defineProperty(event, 'clipboardData', {
@@ -156,6 +165,30 @@ describe('useClipboard', () => {
       expect(result.current.copied).toBe(false);
     });
 
+    it.each([Infinity, NaN, 3e9])(
+      "caps a duration of %s at setTimeout's longest delay",
+      async duration => {
+        vi.useFakeTimers();
+        stubClipboard(() => Promise.resolve());
+        const { result } = setup({ duration });
+        await copyWith(result, 'x');
+        act(() => vi.advanceTimersByTime(2 ** 31 - 2));
+        expect(result.current.copied).toBe(true);
+        act(() => vi.advanceTimersByTime(1));
+        expect(result.current.copied).toBe(false);
+      }
+    );
+
+    it('treats a negative duration as none', async () => {
+      vi.useFakeTimers();
+      stubClipboard(() => Promise.resolve());
+      const { result } = setup({ duration: -500 });
+      await copyWith(result, 'x');
+      expect(result.current.copied).toBe(true);
+      act(() => vi.advanceTimersByTime(0));
+      expect(result.current.copied).toBe(false);
+    });
+
     it('restarts the time on another copy, and reports each copy', async () => {
       vi.useFakeTimers();
       stubClipboard(() => Promise.resolve());
@@ -214,8 +247,8 @@ describe('useClipboard', () => {
       expect(result.current.error).toBeNull();
     });
 
-    it('counts the copy event, not the return value', async () => {
-      stubCommand('fires-returns-false');
+    it('enables the command with beforecopy, and counts the event, not the return value', async () => {
+      stubCommand('webkit');
       const { result } = setup();
       expect(await copyWith(result, 'webkit')).toBe(true);
       expect(result.current.copied).toBe(true);
@@ -238,19 +271,24 @@ describe('useClipboard', () => {
         const { result } = setup();
         await copyWith(result, 'x');
       }
-      const added = listen.mock.calls.filter(([type]) => type === 'copy');
-      const removed = unlisten.mock.calls.filter(([type]) => type === 'copy');
-      expect(added).toHaveLength(3);
-      expect(removed).toEqual(added);
+      for (const type of ['copy', 'beforecopy']) {
+        const added = listen.mock.calls.filter(call => call[0] === type);
+        const removed = unlisten.mock.calls.filter(call => call[0] === type);
+        expect(added).toHaveLength(3);
+        expect(removed).toEqual(added);
+      }
       listen.mockRestore();
       unlisten.mockRestore();
     });
 
-    it("leaves a later copy's data alone", async () => {
+    it("leaves a later copy's data alone, and a later beforecopy", async () => {
       stubCommand('fires');
       const { result } = setup();
       await copyWith(result, 'mine');
       // A copy of the reader's own, after the fallback has finished.
+      const before = new Event('beforecopy', { cancelable: true });
+      document.dispatchEvent(before);
+      expect(before.defaultPrevented).toBe(false);
       const event = new Event('copy', { bubbles: true, cancelable: true });
       document.dispatchEvent(event);
       expect(event.defaultPrevented).toBe(false);
@@ -330,6 +368,75 @@ describe('useClipboard', () => {
       await copyWith(result, 'x');
       expect(result.current.error).toBeNull();
       expect(result.current.copied).toBe(true);
+    });
+  });
+
+  describe('when copies overlap', () => {
+    /** A writeText whose calls each wait until the test settles them. */
+    function deferredClipboard() {
+      const pending: Array<{ resolve: () => void; reject: () => void }> = [];
+      stubClipboard(
+        () =>
+          new Promise<void>((resolve, reject) => {
+            pending.push({ resolve, reject: () => reject(new Error('no')) });
+          })
+      );
+      return pending;
+    }
+
+    it('keeps the later copy when the earlier one finishes last', async () => {
+      const pending = deferredClipboard();
+      stubCommand('silent');
+      const onCopiedChange = vi.fn();
+      const onCopyError = vi.fn();
+      const { result } = setup({ onCopiedChange, onCopyError });
+      let first: Promise<boolean> | undefined;
+      let second: Promise<boolean> | undefined;
+      act(() => {
+        first = result.current.copy('first');
+        second = result.current.copy('second');
+      });
+      await act(async () => {
+        pending[1].resolve();
+        await second;
+      });
+      expect(result.current.copied).toBe(true);
+      await act(async () => {
+        pending[0].reject();
+        expect(await first).toBe(false);
+      });
+      expect(result.current.copied).toBe(true);
+      expect(result.current.error).toBeNull();
+      expect(onCopiedChange.mock.calls).toEqual([[true]]);
+      expect(onCopyError).not.toHaveBeenCalled();
+    });
+
+    it('keeps the later copy when the earlier one finishes first', async () => {
+      const pending = deferredClipboard();
+      stubCommand('silent');
+      const onCopiedChange = vi.fn();
+      const onCopyError = vi.fn();
+      const { result } = setup({ onCopiedChange, onCopyError });
+      let first: Promise<boolean> | undefined;
+      let second: Promise<boolean> | undefined;
+      act(() => {
+        first = result.current.copy('first');
+        second = result.current.copy('second');
+      });
+      await act(async () => {
+        pending[0].resolve();
+        expect(await first).toBe(true);
+      });
+      expect(result.current.copied).toBe(false);
+      expect(onCopiedChange).not.toHaveBeenCalled();
+      await act(async () => {
+        pending[1].reject();
+        expect(await second).toBe(false);
+      });
+      expect(result.current.copied).toBe(false);
+      expect(result.current.error?.message).toBe('no');
+      expect(onCopiedChange).not.toHaveBeenCalled();
+      expect(onCopyError).toHaveBeenCalledTimes(1);
     });
   });
 
