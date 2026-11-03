@@ -59,6 +59,11 @@ beforeEach(() => {
     configurable: true,
     value: 800,
   });
+  // A frame runs at once, so what a change asks to measure lands in `act`.
+  vi.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
+    callback(0);
+    return 0;
+  });
 });
 
 afterEach(() => {
@@ -67,7 +72,39 @@ afterEach(() => {
   Reflect.deleteProperty(root, 'clientHeight');
   Reflect.deleteProperty(Element.prototype, 'scrollIntoView');
   Reflect.deleteProperty(window, 'matchMedia');
+  Reflect.deleteProperty(globalThis, 'ResizeObserver');
 });
+
+/** A ResizeObserver the tests fire by hand, recording what it watches. */
+class MockResizeObserver {
+  static last: MockResizeObserver | null = null;
+  watched = new Set<Element>();
+  constructor(private callback: ResizeObserverCallback) {
+    MockResizeObserver.last = this;
+  }
+  observe(el: Element) {
+    this.watched.add(el);
+  }
+  unobserve(el: Element) {
+    this.watched.delete(el);
+  }
+  disconnect() {
+    this.watched.clear();
+  }
+  fire() {
+    act(() => {
+      this.callback([], this as unknown as ResizeObserver);
+    });
+  }
+}
+
+const withResizeObserver = () => {
+  Object.defineProperty(globalThis, 'ResizeObserver', {
+    configurable: true,
+    value: MockResizeObserver,
+  });
+  return () => MockResizeObserver.last as MockResizeObserver;
+};
 
 const steps = (
   <>
@@ -252,9 +289,14 @@ describe('Tour', () => {
       render(
         <Tour defaultOpen>
           <Tour.Step title="Just a title" />
+          <Tour.Step title="False">{false}</Tour.Step>
+          <Tour.Step title="Empty">{''}</Tour.Step>
         </Tour>
       );
-      expect(dialog()).not.toHaveAttribute('aria-describedby');
+      for (let i = 0; i < 3; i++) {
+        expect(dialog()).not.toHaveAttribute('aria-describedby');
+        if (i < 2) fireEvent.click(next());
+      }
     });
   });
 
@@ -393,6 +435,38 @@ describe('Tour', () => {
 
     it('stays open on Escape with closeOnEscape off', () => {
       render(<Page defaultOpen closeOnEscape={false} />);
+      press('Escape');
+      expect(dialog()).toBeVisible();
+    });
+
+    it('without the overlay, ends only on an Escape from inside the step', () => {
+      const onOpenChange = vi.fn();
+      render(
+        <>
+          <input aria-label="Search the page" />
+          <Tour defaultOpen overlay={false} onOpenChange={onOpenChange}>
+            <Tour.Step title="Search">
+              <div role="dialog" aria-label="Nested">
+                <button type="button">In the nested dialog</button>
+              </div>
+            </Tour.Step>
+          </Tour>
+        </>
+      );
+      const field = screen.getByRole('textbox', { name: 'Search the page' });
+      field.focus();
+      expect(fireEvent.keyDown(field, { key: 'Escape' })).toBe(true);
+      fireEvent.keyDown(
+        screen.getByRole('button', { name: 'In the nested dialog' }),
+        { key: 'Escape' }
+      );
+      expect(onOpenChange).not.toHaveBeenCalled();
+      expect(fireEvent.keyDown(next(), { key: 'Escape' })).toBe(false);
+      expect(onOpenChange).toHaveBeenCalledWith(false);
+    });
+
+    it('without the overlay and closeOnEscape off, stays open on an Escape inside the step', () => {
+      render(<Page defaultOpen overlay={false} closeOnEscape={false} />);
       press('Escape');
       expect(dialog()).toBeVisible();
     });
@@ -562,14 +636,37 @@ describe('Tour', () => {
       expect(next()).toHaveFocus();
     });
 
-    it('without the overlay, holds Tab while focus is in the step and lets Tab from the page through', () => {
-      render(<Page defaultOpen overlay={false} />);
-      expect(press('Tab')).toBe(false);
-      expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus();
-      const opener = screen.getByRole('button', { name: 'Open' });
-      opener.focus();
+    it('without the overlay, leaves Tab to the browser, so it can leave the step for the page', () => {
+      render(<Page defaultOpen overlay={false} defaultValue={1} />);
+      // Next is the step's last stop: the browser takes Tab on from there.
       expect(press('Tab')).toBe(true);
-      expect(opener).toHaveFocus();
+      expect(next()).toHaveFocus();
+      const filters = screen.getByRole('button', { name: 'Filters' });
+      filters.focus();
+      expect(press('Tab', { shiftKey: true })).toBe(true);
+      expect(filters).toHaveFocus();
+    });
+
+    it('moves focus into a step that turns modal while focus is on the page', () => {
+      const Mixed = ({ value }: { value: number }) => (
+        <>
+          <button type="button" id="target" data-rect="100 100 80 30">
+            Try me
+          </button>
+          <Tour open value={value}>
+            <Tour.Step target="#target" title="Try it" overlay={false}>
+              Use the button.
+            </Tour.Step>
+            <Tour.Step title="Look">The page waits.</Tour.Step>
+          </Tour>
+        </>
+      );
+      const { rerender } = render(<Mixed value={0} />);
+      const target = screen.getByRole('button', { name: 'Try me' });
+      target.focus();
+      rerender(<Mixed value={1} />);
+      expect(dialog()).toHaveAttribute('aria-modal', 'true');
+      expect(next()).toHaveFocus();
     });
 
     it('leaves Tab and Escape to a Modal opened from a step', () => {
@@ -852,6 +949,7 @@ describe('Tour', () => {
     });
 
     it('moves to a target that turns up, and back to the middle when it goes', async () => {
+      withResizeObserver();
       render(
         <Tour defaultOpen>
           <Tour.Step target="#late" title="Late">
@@ -876,8 +974,92 @@ describe('Tour', () => {
       expect(document.querySelector('.tour-spotlight')).toBeNull();
     });
 
+    it('finds a target a class change makes a selector match', async () => {
+      render(
+        <>
+          <button type="button" id="later" data-rect="100 100 80 30">
+            Later
+          </button>
+          <Tour defaultOpen>
+            <Tour.Step target=".is-ready" title="Ready">
+              Matches once it's ready.
+            </Tour.Step>
+          </Tour>
+        </>
+      );
+      expect(dialog()).toHaveClass('is-centered');
+      await act(async () => {
+        document.getElementById('later')!.classList.add('is-ready');
+      });
+      expect(dialog()).toHaveClass('is-bottom');
+    });
+
+    it('watches a boxless target, the step and the page for size, and measures again', () => {
+      const observer = withResizeObserver();
+      render(
+        <>
+          <div hidden id="box">
+            <button type="button" id="inside" data-rect="100 100 80 30">
+              Inside
+            </button>
+          </div>
+          <Tour defaultOpen>
+            <Tour.Step target="#inside" title="Inside">
+              In a box that opens.
+            </Tour.Step>
+            <Tour.Step title="Grows">Its content grows.</Tour.Step>
+          </Tour>
+        </>
+      );
+      const inside = document.getElementById('inside') as HTMLElement;
+      expect(observer().watched).toEqual(
+        new Set([dialog(), document.body, inside])
+      );
+      expect(dialog()).toHaveClass('is-centered');
+      // Showing it changes no id or class: only its size says so.
+      document.getElementById('box')!.removeAttribute('hidden');
+      observer().fire();
+      expect(dialog()).toHaveClass('is-bottom');
+      fireEvent.click(next());
+      expect(observer().watched.has(inside)).toBe(false);
+      expect(dialog().style.top).toBe('350px');
+      dialog().dataset.rect = '0 0 200 300';
+      observer().fire();
+      expect(dialog().style.top).toBe('250px');
+    });
+
+    it('measures once a frame, however many changes ask in it', () => {
+      const frames: FrameRequestCallback[] = [];
+      vi.mocked(window.requestAnimationFrame).mockImplementation(callback => {
+        frames.push(callback);
+        return frames.length;
+      });
+      render(<Page defaultOpen defaultValue={1} />);
+      act(() => {
+        window.dispatchEvent(new Event('scroll'));
+        window.dispatchEvent(new Event('resize'));
+        window.dispatchEvent(new Event('scroll'));
+      });
+      expect(frames).toHaveLength(1);
+      const filters = document.getElementById('filters') as HTMLElement;
+      filters.dataset.rect = '200 100 80 30';
+      act(() => frames[0](0));
+      expect(
+        (document.querySelector('.tour-spotlight') as SVGElement).style.y
+      ).toBe('calc(200px - var(--bulma-tour-spotlight-padding))');
+      act(() => {
+        window.dispatchEvent(new Event('scroll'));
+      });
+      expect(frames).toHaveLength(2);
+    });
+
     it('follows its target on scroll, and on resize', () => {
       render(<Page defaultOpen defaultValue={1} />);
+      // A scroll that moves nothing leaves it where it is.
+      act(() => {
+        window.dispatchEvent(new Event('scroll'));
+      });
+      expect(dialog().style.top).toBe('130px');
       const filters = document.getElementById('filters') as HTMLElement;
       filters.dataset.rect = '200 100 80 30';
       act(() => {
@@ -977,6 +1159,29 @@ describe('Tour', () => {
       expect(scrollIntoView).not.toHaveBeenCalled();
       unmount();
       render(<Clipped inner="400 100 50 20" />);
+      expect(scrollIntoView).toHaveBeenCalledTimes(1);
+    });
+
+    it('doesn’t scroll to the step before’s target when the next one is missing', () => {
+      const scrollIntoView = scrollTo();
+      render(
+        <>
+          <button type="button" id="far" data-rect="2000 100 80 30">
+            Far
+          </button>
+          <Tour defaultOpen>
+            <Tour.Step target="#far" title="Far">
+              Below.
+            </Tour.Step>
+            <Tour.Step target="#missing" title="Missing">
+              Nowhere.
+            </Tour.Step>
+          </Tour>
+        </>
+      );
+      expect(scrollIntoView).toHaveBeenCalledTimes(1);
+      fireEvent.click(next());
+      expect(dialog()).toHaveClass('is-centered');
       expect(scrollIntoView).toHaveBeenCalledTimes(1);
     });
 

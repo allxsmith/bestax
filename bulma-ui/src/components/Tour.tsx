@@ -138,17 +138,19 @@ export interface TourProps
   /**
    * Dims the page and makes each step modal: `aria-modal`, the rest of the
    * page inert and still, and Tab held in the step. With `false`, a step is
-   * a non-modal dialog: Tab still stays in it while focus is there, but the
-   * page and its target stay usable. A `Tour.Step` can set its own.
+   * a non-modal dialog, as a `Popover` is: focus moves in and back, but Tab
+   * leaves it for the page, and the page and its target stay usable, from
+   * the keyboard too. A `Tour.Step` can set its own, and a step that turns
+   * modal while focus is on the page takes focus.
    * @defaultValue true
    */
   overlay?: boolean;
   /**
-   * Ends the tour on Escape, while no overlay opened over it, such as a
-   * Modal opened from a step, is on top. A popup inside the step, and
-   * content that calls `preventDefault()` on the key, take it first. Without
-   * the overlay the key ends the tour from anywhere on the page, as a
-   * Sidebar without its overlay closes.
+   * Ends the tour on Escape. With the overlay, from anywhere, while no
+   * overlay opened over it, such as a Modal opened from a step, is on top.
+   * Without it, only while focus is in the step, so an Escape meant for the
+   * page stays with the page. A popup inside the step, and content that
+   * calls `preventDefault()` on the key, take it first.
    * @defaultValue true
    */
   closeOnEscape?: boolean;
@@ -238,6 +240,14 @@ interface Edges {
 interface FoundTarget {
   element: HTMLElement | null;
   box: TargetBox | null;
+  /**
+   * The target and the step it was looked up for, so what was found for the
+   * step before isn't used for the next one.
+   */
+  target?: TourTarget;
+  index?: number;
+  /** The step's size, so a step whose content grows is placed again. */
+  stepSize?: string;
 }
 
 const nothingFound: FoundTarget = { element: null, box: null };
@@ -252,10 +262,10 @@ const sameBox = (a: TargetBox | null, b: TargetBox | null): boolean =>
     a.height === b.height);
 
 /**
- * The element a target names, when it's on the page with a box to point
- * at. A selector that isn't valid matches nothing.
+ * The element a target names, while it's on the page, box or no box. A
+ * selector that isn't valid matches nothing.
  */
-function resolveTarget(target: TourTarget, doc: Document): HTMLElement | null {
+function findTarget(target: TourTarget, doc: Document): HTMLElement | null {
   let element: HTMLElement | null;
   if (typeof target === 'string') {
     try {
@@ -266,32 +276,56 @@ function resolveTarget(target: TourTarget, doc: Document): HTMLElement | null {
   } else {
     element = 'current' in target ? target.current : target;
   }
-  return element?.isConnected && element.getClientRects().length > 0
-    ? element
-    : null;
+  return element?.isConnected ? element : null;
 }
 
 /**
  * Finds the current step's target and its box while the step shows, and
- * finds them again on every scroll, resize and change to the page outside
- * the tour, so a target that mounts, gets a box, moves or goes is followed.
- * Nothing is looked up for a step without a target.
+ * measures it and the step again, once a frame at most, when something
+ * might have moved them: a scroll or a resize, a change in the size of the
+ * target, the step or the page, or elements added, removed or given another
+ * `id` or `class` outside the tour, which can bring a target in or take it
+ * away. A target that moves without any of these, as one a transition or a
+ * transform slides along does, isn't followed until one of them happens.
+ * What's returned is only ever what was found for this step and target.
  */
 function useTourTarget(
   rootRef: React.RefObject<HTMLDivElement | null>,
+  stepRef: React.RefObject<HTMLDivElement | null>,
   target: TourTarget | undefined,
+  index: number,
   active: boolean
 ): FoundTarget {
   const [found, setFound] = useState(nothingFound);
 
   useClientLayoutEffect(() => {
-    if (!active || target == null) return undefined;
-    // The root renders whenever the tour shows, so it's on the page here.
+    if (!active) return undefined;
+    // The root and the step render whenever the tour shows, so they're on
+    // the page here.
     const root = rootRef.current as HTMLDivElement;
+    const step = stepRef.current as HTMLDivElement;
     const doc = root.ownerDocument;
     const view = doc.defaultView as Window;
+    let frame = 0;
+    // The element watched for size as the target, box or no box, so one
+    // that gets a box is noticed.
+    let watched: HTMLElement | null = null;
+    // The page's body grows when something above the target does, such as
+    // an image as it loads, so it's watched with the step and the target.
+    const sizes =
+      typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver(() => schedule());
     const update = () => {
-      const element = resolveTarget(target, doc);
+      frame = 0;
+      const candidate = target == null ? null : findTarget(target, doc);
+      if (candidate !== watched) {
+        if (watched) sizes?.unobserve(watched);
+        if (candidate) sizes?.observe(candidate);
+        watched = candidate;
+      }
+      const element =
+        candidate && candidate.getClientRects().length > 0 ? candidate : null;
       const rect = element?.getBoundingClientRect();
       const box = rect
         ? {
@@ -301,12 +335,18 @@ function useTourTarget(
             height: rect.height,
           }
         : null;
+      const { width, height } = step.getBoundingClientRect();
+      const stepSize = `${width}x${height}`;
       setFound(prev =>
-        prev.element === element && sameBox(prev.box, box)
+        prev.element === element &&
+        sameBox(prev.box, box) &&
+        prev.target === target &&
+        prev.index === index &&
+        prev.stepSize === stepSize
           ? prev
-          : { element, box }
+          : { element, box, target, index, stepSize }
       );
-      if (!element) {
+      if (target != null && !element) {
         warnOnce(
           `Tour:missing-target:${typeof target === 'string' ? target : ''}`,
           '[bestax-bulma] A Tour.Step showed without its target on the page, ' +
@@ -316,29 +356,35 @@ function useTourTarget(
         );
       }
     };
+    const schedule = () => {
+      if (!frame) frame = view.requestAnimationFrame(update);
+    };
+    sizes?.observe(step);
+    sizes?.observe(doc.body);
     update();
-    // The tour's own changes, such as the step moving, can't move the
-    // target, so they're left out.
+    // The tour's own changes can't bring a target in, so they're left out.
     const observer = new MutationObserver(records => {
-      if (records.some(record => !root.contains(record.target))) {
-        update();
-      }
+      if (records.some(record => !root.contains(record.target))) schedule();
     });
     observer.observe(doc.body, {
       childList: true,
       subtree: true,
-      attributes: true,
+      attributeFilter: ['id', 'class'],
     });
-    view.addEventListener('scroll', update, { passive: true, capture: true });
-    view.addEventListener('resize', update, { passive: true });
+    view.addEventListener('scroll', schedule, { passive: true, capture: true });
+    view.addEventListener('resize', schedule, { passive: true });
     return () => {
+      view.cancelAnimationFrame(frame);
+      sizes?.disconnect();
       observer.disconnect();
-      view.removeEventListener('scroll', update, { capture: true });
-      view.removeEventListener('resize', update);
+      view.removeEventListener('scroll', schedule, { capture: true });
+      view.removeEventListener('resize', schedule);
     };
-  }, [active, target, rootRef]);
+  }, [active, target, index, rootRef, stepRef]);
 
-  return active && target != null ? found : nothingFound;
+  return active && found.target === target && found.index === index
+    ? found
+    : nothingFound;
 }
 
 /**
@@ -369,6 +415,10 @@ function isFullyVisible(element: HTMLElement): boolean {
   }
   return true;
 }
+
+/** Whether a title or a body is there to show: not empty, `false` or nothing. */
+const isGiven = (node: React.ReactNode): boolean =>
+  node != null && node !== false && node !== '';
 
 /**
  * Whether the element uses the arrow keys itself, as a text field, a
@@ -424,6 +474,8 @@ interface TourContextValue {
   index: number;
   total: number;
   modal: boolean;
+  /** Whether Escape from inside a non-modal step ends the tour. */
+  closeOnEscape: boolean;
   /** The side of its target the panel sits on, or `center`, and where. */
   placement: { side: AnchoredSide | 'center'; top?: number; left?: number };
   titleAs: TourTitleElement;
@@ -510,7 +562,7 @@ function TourPanel({
     [stepRef, forwardedRef]
   );
 
-  const hasTitle = title != null && title !== false && title !== '';
+  const hasTitle = isGiven(title);
   const named =
     hasTitle || Boolean(rest['aria-label']) || Boolean(rest['aria-labelledby']);
   useEffect(() => {
@@ -544,24 +596,26 @@ function TourPanel({
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     onKeyDown?.(e);
+    const from = e.target as HTMLElement;
+    // A key used already, or from a dialog nested in the step, such as a
+    // Popover's, isn't the tour's.
     if (
       e.defaultPrevented ||
-      e.altKey ||
-      e.ctrlKey ||
-      e.metaKey ||
-      e.shiftKey
+      from.closest('[role="dialog"], [role="alertdialog"]') !== e.currentTarget
     ) {
       return;
     }
-    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-    const from = e.target as HTMLElement;
-    // A key from a control that uses arrows, or from a dialog nested in the
-    // step, such as a Popover's, isn't the tour's.
-    if (
-      from.closest('[role="dialog"], [role="alertdialog"]') !==
-        e.currentTarget ||
-      usesArrows(from)
-    ) {
+    // A modal step takes Escape through the overlay stack, on `window`.
+    if (e.key === 'Escape') {
+      if (!tour.modal && tour.closeOnEscape) {
+        e.preventDefault();
+        tour.skip();
+      }
+      return;
+    }
+    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    // A control that uses the arrows keeps them.
+    if ((e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') || usesArrows(from)) {
       return;
     }
     const rtl = getComputedStyle(e.currentTarget).direction === 'rtl';
@@ -593,7 +647,7 @@ function TourPanel({
         (hasTitle && !rest['aria-label'] ? titleId : undefined)
       }
       aria-describedby={
-        rest['aria-describedby'] || (children != null ? bodyId : undefined)
+        rest['aria-describedby'] || (isGiven(children) ? bodyId : undefined)
       }
       ref={setRef}
       className={classNames(panelClass, bulmaHelperClasses, className)}
@@ -787,7 +841,9 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
 
     const { element: target, box } = useTourTarget(
       rootRef,
+      stepRef,
       stepProps.target,
+      index,
       shown
     );
     // A new object for each target, so the placement is measured afresh.
@@ -811,10 +867,12 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
 
     const close = useCallback(() => requestOpen(false), [requestOpen]);
 
-    // Joins the stack of open overlays, so Escape and Tab go to whatever is
-    // on top: a Modal opened from a step holds both until it closes.
-    const isTopmost = useOverlayStack(shown, modal);
-    useOverlayEscape(shown && closeOnEscape, isTopmost, close);
+    // A modal step joins the stack of open overlays, so Escape and Tab go to
+    // whatever is on top: a Modal opened from a step holds both until it
+    // closes. A non-modal step stays out of it, as a Popover does, and takes
+    // Escape only from inside itself.
+    const isTopmost = useOverlayStack(modal);
+    useOverlayEscape(modal && closeOnEscape, isTopmost, close);
 
     // The page goes inert before focus moves in, and its lock comes off
     // before focus is handed back, so focus can land on the opener again:
@@ -829,22 +887,27 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
       initialFocus: nextRef,
     });
 
-    // Tab and Shift+Tab stay in the step. Modal, it holds them while it's
-    // the topmost modal overlay. Without the overlay, only while focus is in
-    // the step and nothing is open over it, so Tab from the page goes on
-    // through the page.
+    // A modal step holds Tab and Shift+Tab while it's the topmost modal
+    // overlay. A non-modal one doesn't, so the page and the target it points
+    // at stay reachable from the keyboard.
     useEffect(() => {
-      if (!shown) return undefined;
+      if (!modal) return undefined;
       return trapTab(
         () => stepRef.current,
         window,
-        () => {
-          if (modal) return isTopmost('modal');
-          const panel = stepRef.current as HTMLDivElement;
-          return isTopmost() && panel.contains(getActiveElementInTree(panel));
-        }
+        () => isTopmost('modal')
       );
-    }, [shown, modal, isTopmost]);
+    }, [modal, isTopmost]);
+
+    // A step that turns modal while focus is out on the page, as it can be
+    // after a non-modal step, takes focus, since the page is going inert.
+    useEffect(() => {
+      if (!modal) return;
+      const panel = stepRef.current as HTMLDivElement;
+      if (!panel.contains(getActiveElementInTree(panel))) {
+        (nextRef.current as HTMLButtonElement).focus();
+      }
+    }, [modal]);
 
     const markInsidePress = useOutsidePress(
       stepRef,
@@ -878,6 +941,7 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
       index,
       total,
       modal,
+      closeOnEscape,
       placement: {
         side: target ? (placed.position as AnchoredSide) : 'center',
         top: placed.top,
