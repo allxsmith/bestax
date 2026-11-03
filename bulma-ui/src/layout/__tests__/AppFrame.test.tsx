@@ -1546,6 +1546,37 @@ describe('AppFrame.Nav rail', () => {
     expect(reports()).toHaveFocus();
   });
 
+  it('moves focus to the nav when the item’s own link can’t take it, until it leaves', () => {
+    mockViewport(DESKTOP);
+    const NoHref = ({ collapsed }: { collapsed: boolean }) => (
+      <AppFrame navCollapsed={collapsed}>
+        <AppFrame.Nav rail>
+          <Menu>
+            <Menu.List>
+              <Menu.Item icon={<Glyph />}>
+                Reports
+                <Menu.List>
+                  <Menu.Item href="#monthly">Monthly</Menu.Item>
+                </Menu.List>
+              </Menu.Item>
+            </Menu.List>
+          </Menu>
+        </AppFrame.Nav>
+        <AppFrame.Main>
+          <a href="#page">Page link</a>
+        </AppFrame.Main>
+      </AppFrame>
+    );
+    const { rerender } = render(<NoHref collapsed={false} />);
+    link('Monthly').focus();
+    rerender(<NoHref collapsed />);
+    // A link with no href can't take focus, so the nav does, for now.
+    expect(nav()).toHaveFocus();
+    expect(nav()).toHaveAttribute('tabindex', '-1');
+    link('Page link').focus();
+    expect(nav()).not.toHaveAttribute('tabindex');
+  });
+
   it('leaves focus on a top-level link as the column collapses', () => {
     mockViewport(DESKTOP);
     const { rerender } = render(<RailFrame navCollapsed={false} />);

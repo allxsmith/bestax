@@ -14,8 +14,7 @@ import { withSubComponents } from '../helpers/withSubComponents';
 import { omitAttrs } from '../helpers/anchorAttrs';
 import { buttonType } from '../helpers/buttonType';
 import { inertProps } from '../helpers/inertProps';
-import { getActiveElementInTree } from '../helpers/shadowDom';
-import { focusTabStop } from '../helpers/useFocusTrap';
+import { moveFocusOut } from '../helpers/moveFocusOut';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { warnOnce } from '../helpers/devWarnings';
 import { MenuRailContext, type MenuRail } from '../helpers/menuRail';
@@ -364,17 +363,18 @@ export const MenuItem = forwardRef(function MenuItem(
 
   // The rail hides an item's nested lists. Focus on a link in one as the
   // column collapses would drop to the page, so it moves to the item's own
-  // link, which stays. A layout effect, while that link still has focus.
+  // link, which stays, or to the nav when that can't take focus. A layout
+  // effect, while that link still has focus.
   const liRef = useRef<HTMLLIElement>(null);
+  const wrapped = !!rail && !!icon;
   const hidesNested = !!rail?.collapsed && nestedMenuLists.length > 0;
   useClientLayoutEffect(() => {
     if (!hidesNested) return;
-    const li = liRef.current!;
-    const active = getActiveElementInTree(li);
-    if (li.contains(active) && !li.firstElementChild!.contains(active)) {
-      focusTabStop(li);
-    }
-  }, [hidesNested]);
+    const [own, ...nested] = Array.from(liRef.current!.children);
+    // The item's own link, inside the rail's tooltip when it has one.
+    const target = wrapped ? own.firstElementChild : own;
+    moveFocusOut(nested, target as HTMLElement, rail!.nav());
+  }, [hidesNested, wrapped, rail]);
 
   const link = (
     <Component
@@ -557,11 +557,8 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
   // collapsing the column to it moves focus the same way.
   useClientLayoutEffect(() => {
     if (isOpen && !railCollapsed) return;
-    const list = listRef.current!;
-    if (list.contains(getActiveElementInTree(list))) {
-      toggleRef.current!.focus();
-    }
-  }, [isOpen, railCollapsed]);
+    moveFocusOut([listRef.current!], toggleRef.current, rail?.nav() ?? null);
+  }, [isOpen, railCollapsed, rail]);
 
   // A real button, so Enter and Space work with no key handler, and
   // `type="button"`, so a menu inside a form isn't submitted by it.

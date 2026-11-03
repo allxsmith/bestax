@@ -26,6 +26,8 @@ export interface MenuRail {
    * the element with this id, so one portaled out of the nav doesn't.
    */
   navId: string;
+  /** The nav, where focus goes when nothing in the menu can take it. */
+  nav: () => HTMLElement | null;
   /** Widens the column again. */
   expand: () => void;
   /**

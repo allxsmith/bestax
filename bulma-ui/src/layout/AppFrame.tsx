@@ -576,6 +576,7 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
         collapsed: railCollapsed,
         pending: !modeKnown && navCollapsed,
         navId: navId as string,
+        nav: () => navRef.current,
         expand: () => state.setNavCollapsed(false),
         wrap: (trigger, label) => (
           <Tooltip

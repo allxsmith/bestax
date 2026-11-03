@@ -449,6 +449,7 @@ describe.each([
         collapsed: false,
         pending: false,
         navId: 'rail-nav',
+        nav: () => null,
         expand: () => {},
         wrap: (trigger, label) => (
           <Tooltip content={label} describesTrigger={false}>

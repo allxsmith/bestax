@@ -475,6 +475,7 @@ describe('in an icon rail', () => {
     collapsed,
     pending,
     navId: 'rail-nav',
+    nav: () => document.getElementById('rail-nav'),
     expand,
     wrap: (trigger, label) => (
       <span data-testid="tip" data-label={String(label)}>
