@@ -299,6 +299,10 @@ describe('AppFrame styles', () => {
         expect(find(PLAIN, `${rail} .menu-item-icon`, [media])).toEqual({
           'margin-inline-end': '0',
         });
+        // A section's icon as large as the items', not the heading's size.
+        expect(find(PLAIN, `${rail} .menu-section-toggle`, [media])).toEqual({
+          'font-size': 'inherit',
+        });
       });
 
       it('hides each label visually, never with display: none, so it stays the name', () => {

@@ -319,6 +319,12 @@ html:has(.#{iv.$class-prefix}app-frame) {
       margin-inline-end: 0;
     }
 
+    // A section's heading is set small, like a label, and its icon with it.
+    // In the rail it's the icon alone, as large as the items' icons.
+    .#{iv.$class-prefix}menu-section-toggle {
+      font-size: inherit;
+    }
+
     // Only the top level shows: a nested list, a section's list, a label and
     // a section's chevron hide. A section's button expands the column.
     .#{iv.$class-prefix}menu-label,
