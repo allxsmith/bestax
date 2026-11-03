@@ -3,6 +3,7 @@ import { Button, type ButtonOwnProps } from './Button';
 import { Icon } from './Icon';
 import { IconButton, type IconButtonProps } from './IconButton';
 import { buttonType } from '../helpers/buttonType';
+import { CheckIcon } from '../helpers/checkIcon';
 import { Portal } from '../helpers/portal';
 import { StatusRegion } from '../helpers/statusRegion';
 import { useClipboard } from '../helpers/useClipboard';
@@ -103,24 +104,6 @@ const CopyGlyph = () => (
   </svg>
 );
 
-/** A check mark, drawn as Combobox draws its own. */
-const CheckGlyph = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 16 16"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    width="1em"
-    height="1em"
-    focusable="false"
-  >
-    <polyline points="3 8.5 6.5 12 13 4.5" />
-  </svg>
-);
-
 /** One copy's outcome, as the status region announces it. */
 interface Announcement {
   id: string;
@@ -205,7 +188,7 @@ export const CopyButton = forwardRef<HTMLButtonElement, CopyButtonProps>(
       void copy(value);
     };
 
-    const glyph = <Icon>{copied ? <CheckGlyph /> : <CopyGlyph />}</Icon>;
+    const glyph = <Icon>{copied ? <CheckIcon /> : <CopyGlyph />}</Icon>;
 
     // The props are spread first, so it stays a `<button>` that doesn't
     // submit by accident, whatever a JavaScript caller or a spread object

@@ -22,6 +22,7 @@ import {
   useAnchoredPosition,
 } from '../helpers/useAnchoredPosition';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
+import { CheckIcon } from '../helpers/checkIcon';
 import {
   ComboboxEngine,
   useComboboxEngine,
@@ -1066,20 +1067,7 @@ export const ComboboxItem: React.FC<ComboboxItemProps> = ({
     >
       {checked && (
         <span className={checkClass} aria-hidden="true">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            width="1em"
-            height="1em"
-            focusable="false"
-          >
-            <polyline points="3 8.5 6.5 12 13 4.5" />
-          </svg>
+          <CheckIcon />
         </span>
       )}
       {children}
