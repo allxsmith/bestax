@@ -373,6 +373,9 @@ function CascaderList({ context, column, at, name }: ColumnProps) {
           )}
           role="option"
           aria-selected={false}
+          aria-labelledby={
+            retry ? `${statusId}-label ${statusId}-retry` : `${statusId}-label`
+          }
           aria-disabled={!retry || undefined}
           tabIndex={tabStop === statusKey ? 0 : -1}
           onClick={() => retry?.()}
@@ -380,12 +383,20 @@ function CascaderList({ context, column, at, name }: ColumnProps) {
           {status === 'loading' && (
             <span className={loaderClass} aria-hidden="true" />
           )}
-          <span className={labelClass} ref={statusLabelRef}>
+          <span
+            className={labelClass}
+            id={`${statusId}-label`}
+            ref={statusLabelRef}
+          >
             {status === 'loading' ? context.loadingLabel : parent!.loadError}
           </span>
           {retry && (
             // Drawn, but the row is what's pressed and its name says so.
-            <span className={retryClass} aria-hidden="true">
+            <span
+              className={retryClass}
+              id={`${statusId}-retry`}
+              aria-hidden="true"
+            >
               {context.retryLabel}
             </span>
           )}
@@ -575,7 +586,7 @@ export const Cascader = forwardRef<HTMLInputElement, CascaderProps>(
       region,
       pickable,
       pick,
-      focusTarget: typed ? undefined : (focusTarget ?? undefined),
+      focusTarget: typed ? undefined : focusTarget,
       hintId,
       itemTemplate,
       loadingLabel,

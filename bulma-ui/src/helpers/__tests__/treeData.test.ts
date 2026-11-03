@@ -5,7 +5,9 @@ import {
   indexTree,
   isParentNode,
   nodeLabel,
+  nodesTo,
   searchTree,
+  treePaths,
 } from '../treeData';
 
 const TREE: TreeItemData[] = [
@@ -140,5 +142,31 @@ describe('searchTree', () => {
     expect(found.found).toBe(false);
     expect(found.open).toEqual([]);
     expect(found.hidden.size).toBe(7);
+  });
+});
+
+describe('nodesTo', () => {
+  const index = indexTree(TREE);
+  const labels = (value: string) => nodesTo(index, value).map(nodeLabel);
+
+  it('gives the nodes from the top down to the one with the value', () => {
+    expect(labels('a3x')).toEqual(['A', 'A3', 'A3x']);
+    expect(labels('b')).toEqual(['B']);
+  });
+
+  it('gives none for a value no node has', () => {
+    expect(nodesTo(index, 'zz')).toEqual([]);
+  });
+});
+
+describe('treePaths', () => {
+  it("gives every node's path in the order the tree reads", () => {
+    expect(
+      treePaths(TREE).map(path => path.map(node => node.value).join('/'))
+    ).toEqual(['a', 'a/a1', 'a/a2', 'a/a3', 'a/a3/a3x', 'b', 'c']);
+  });
+
+  it('gives none for an empty tree', () => {
+    expect(treePaths([])).toEqual([]);
   });
 });
