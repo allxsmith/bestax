@@ -411,9 +411,9 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
     const backdropClass = usePrefixedClassNames('app-frame-backdrop');
     const navRef = useRef<HTMLElement | null>(null);
     const backdropRef = useRef<HTMLDivElement | null>(null);
-    const navRefCleanup = useRef<(() => void) | null>(null);
+    const navCleanupRef = useRef<(() => void) | null>(null);
     const navRefs = useCallback(
-      (node: HTMLElement | null) => setRefs(node, navRef, ref, navRefCleanup),
+      (node: HTMLElement | null) => setRefs(node, navRef, ref, navCleanupRef),
       [ref]
     );
 
@@ -774,10 +774,10 @@ const AppFrameRoot = forwardRef<HTMLDivElement, AppFrameProps>(
       ...props,
     });
     const rootRef = useRef<HTMLDivElement | null>(null);
-    const rootRefCleanup = useRef<(() => void) | null>(null);
+    const rootCleanupRef = useRef<(() => void) | null>(null);
     const rootRefs = useCallback(
       (node: HTMLDivElement | null) =>
-        setRefs(node, rootRef, ref, rootRefCleanup),
+        setRefs(node, rootRef, ref, rootCleanupRef),
       [ref]
     );
 
