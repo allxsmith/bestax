@@ -244,6 +244,9 @@ export const ALIASES: Readonly<Record<string, readonly string[]>> = {
   filetree: ['TreeView'],
   fileupload: ['Dropzone', 'File'],
   foldertree: ['TreeView'],
+  // Chakra's and react-intl's names for it.
+  formatnumber: ['NumberFormatter'],
+  formattednumber: ['NumberFormatter'],
   keyvalue: ['DescriptionList'],
   modaldialog: ['Modal', 'Dialog'],
   offcanvas: ['Sidebar'],
