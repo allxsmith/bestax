@@ -1,7 +1,6 @@
 // INTERNAL: deliberately not exported from src/index.ts. The parts a field
 // holding values shows and posts them with, shared by Combobox and TreeSelect.
 
-import React from 'react';
 import { Delete } from '../../elements/Delete';
 import { Tag } from '../../elements/Tag';
 import { Tags } from '../../elements/Tags';
