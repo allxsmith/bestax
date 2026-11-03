@@ -187,7 +187,9 @@ export interface MenuItemOwnProps extends BulmaClassesProps {
    * label is wrapped in a `menu-item-label` span; without it, the item
    * renders as it always has. In an `AppFrame.Nav rail` column collapsed to
    * its icons, the label is visually hidden, stays the link's name, and
-   * shows in a Tooltip on hover and keyboard focus.
+   * shows in a Tooltip on hover and keyboard focus. It's Menu.Item's own
+   * prop, so a component passed as `as` never receives an `icon` of its own:
+   * pass that one under another name.
    */
   icon?: React.ReactNode;
   /**
