@@ -343,6 +343,123 @@ describe('Compound components', () => {
   });
 });
 
+describe('icon', () => {
+  const Glyph = () => <svg data-testid="glyph" />;
+
+  it('renders an item without one as it always has', () => {
+    const html = renderToStaticMarkup(
+      <Menu>
+        <Menu.List>
+          <Menu.Item href="#orders">Orders</Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    expect(html).toContain('<a href="#orders">Orders</a>');
+  });
+
+  it('puts the icon before the label, hidden from assistive technology, and the label in a span', () => {
+    render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item href="#orders" icon={<Glyph />}>
+            Orders
+            <Menu.List>
+              <Menu.Item href="#open">Open</Menu.Item>
+            </Menu.List>
+          </Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    const link = screen.getByRole('link', { name: 'Orders' });
+    const [icon, label] = Array.from(link.children);
+    expect(icon).toHaveClass('menu-item-icon');
+    expect(icon).toHaveAttribute('aria-hidden', 'true');
+    expect(icon).toContainElement(screen.getByTestId('glyph'));
+    expect(label).toHaveClass('menu-item-label');
+    expect(label).toHaveTextContent(/^Orders$/);
+    expect(link.children).toHaveLength(2);
+    // The nested list stays beside the link, outside its label.
+    expect(link.nextElementSibling).toHaveAttribute('role', 'list');
+    expect(screen.getByRole('link', { name: 'Open' }).children).toHaveLength(0);
+  });
+
+  it('puts the icon in a button item and a custom link too', () => {
+    render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item as="button" icon={<Glyph />}>
+            Filter
+          </Menu.Item>
+          <Menu.Item as={CustomLink} to="/home" icon={<Glyph />}>
+            Home
+          </Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    expect(
+      screen.getByRole('button', { name: 'Filter' }).firstElementChild
+    ).toHaveClass('menu-item-icon');
+    expect(
+      screen.getByRole('link', { name: 'Home' }).firstElementChild
+    ).toHaveClass('menu-item-icon');
+  });
+
+  it('puts the icon before a section’s heading, hidden from assistive technology', () => {
+    render(
+      <Menu>
+        <Menu.Section label="Reports" icon={<Glyph />}>
+          <Menu.List>
+            <Menu.Item href="#sales">Sales</Menu.Item>
+          </Menu.List>
+        </Menu.Section>
+        <Menu.Section label="Plain">
+          <Menu.List>
+            <Menu.Item href="#a">A</Menu.Item>
+          </Menu.List>
+        </Menu.Section>
+      </Menu>
+    );
+    const button = screen.getByRole('button', { name: 'Reports' });
+    const [icon, label, chevron] = Array.from(button.children);
+    expect(icon).toHaveClass('menu-section-icon');
+    expect(icon).toHaveAttribute('aria-hidden', 'true');
+    expect(icon).toContainElement(screen.getByTestId('glyph'));
+    expect(label).toHaveClass('menu-section-label');
+    expect(chevron).toHaveClass('menu-section-chevron');
+    // Without one, the heading is as it was.
+    expect(
+      Array.from(screen.getByRole('button', { name: 'Plain' }).children).map(
+        el => el.className
+      )
+    ).toEqual(['menu-section-label', 'menu-section-chevron']);
+  });
+
+  it('prefixes the icon’s and the label’s classes', () => {
+    render(
+      <ConfigProvider classPrefix="bestax-">
+        <Menu>
+          <Menu.List>
+            <Menu.Item href="#orders" icon={<Glyph />}>
+              Orders
+            </Menu.Item>
+          </Menu.List>
+          <Menu.Section label="Reports" icon={<Glyph />}>
+            <Menu.List>
+              <Menu.Item href="#sales">Sales</Menu.Item>
+            </Menu.List>
+          </Menu.Section>
+        </Menu>
+      </ConfigProvider>
+    );
+    const link = screen.getByRole('link', { name: 'Orders' });
+    expect(link.firstElementChild).toHaveClass('bestax-menu-item-icon');
+    expect(link.lastElementChild).toHaveClass('bestax-menu-item-label');
+    expect(
+      screen.getByRole('button', { name: 'Reports' }).firstElementChild
+    ).toHaveClass('bestax-menu-section-icon');
+  });
+});
+
 describe('href routing', () => {
   it('withholds href from a non-anchor intrinsic tag', () => {
     render(

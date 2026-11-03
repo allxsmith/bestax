@@ -297,10 +297,10 @@ https://bestax.io/docs/guides/features/routing.
 `<Menu>` is a vertical sidebar menu. Subcomponents: `Menu.Label`, `Menu.List`, `Menu.Item`,
 `Menu.Section`.
 
-| Prop           | Type                                                                                                                                                                                                                            |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Menu.Item`    | `active?` (the current page: `is-active` plus `aria-current="page"`, so don't add your own), `href?`, `as?` (custom link component); nest a `Menu.List` inside an item for submenus                                             |
-| `Menu.Section` | `label` (the heading, a `ReactNode`), `defaultOpen?`, or `open?` with `onOpenChange?(open)` to hold the state yourself, as `Collapse` does; its child is the group's `Menu.List`, and a closed section's links are out of reach |
+| Prop           | Type                                                                                                                                                                                                                                                                           |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Menu.Item`    | `active?` (the current page: `is-active` plus `aria-current="page"`, so don't add your own), `href?`, `as?` (custom link component), `icon?` (an `Icon` before the label, hidden from assistive technology, so keep the label); nest a `Menu.List` inside an item for submenus |
+| `Menu.Section` | `label` (the heading, a `ReactNode`), `icon?`, `defaultOpen?`, or `open?` with `onOpenChange?(open)` to hold the state yourself, as `Collapse` does; its child is the group's `Menu.List`, and a closed section's links are out of reach                                       |
 
 ```tsx
 <Menu>

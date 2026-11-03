@@ -1,6 +1,7 @@
 // Bestax Extras - Menu Styles
-// Two additions to Bulma's menu: `Menu.Section`, a section that opens and
-// closes, and a mark for the active item in forced colors.
+// Three additions to Bulma's menu: an icon before an item's or a section's
+// label, `Menu.Section`, a section that opens and closes, and a mark for the
+// active item in forced colors.
 
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
@@ -14,6 +15,8 @@ $menu-section-gap: 0.375em !default;
 $menu-section-chevron-size: 1em !default;
 $menu-section-chevron-color: currentColor !default;
 $menu-section-chevron-duration: cv.getVar("duration") !default;
+// The room between an item's icon and its label.
+$menu-item-icon-gap: 0.5em !default;
 
 .#{iv.$class-prefix}menu {
   @include cv.register-vars(
@@ -22,8 +25,24 @@ $menu-section-chevron-duration: cv.getVar("duration") !default;
       "menu-section-chevron-size": #{$menu-section-chevron-size},
       "menu-section-chevron-color": #{$menu-section-chevron-color},
       "menu-section-chevron-duration": #{$menu-section-chevron-duration},
+      "menu-item-icon-gap": #{$menu-item-icon-gap},
     )
   );
+}
+
+// An item's icon, before its label, from `Menu.Item`'s `icon`. The item
+// stays Bulma's block, so the icon sits in the line with the label.
+.#{iv.$class-prefix}menu-item-icon {
+  display: inline-flex;
+  margin-inline-end: cv.getVar("menu-item-icon-gap");
+  vertical-align: middle;
+}
+
+// A section's icon is a part of its heading's line, which spaces it from the
+// label with the heading's own gap.
+.#{iv.$class-prefix}menu-section-icon {
+  display: inline-flex;
+  flex: none;
 }
 
 // The space Bulma puts around a label, which turns on where the label sits

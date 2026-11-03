@@ -167,6 +167,15 @@ export interface MenuItemOwnProps extends BulmaClassesProps {
   /** Item content and optional nested MenuList. */
   children: React.ReactNode;
   /**
+   * An icon before the label, such as an `Icon`. It's hidden from assistive
+   * technology, since the label names the item. With it, the rest of the
+   * label is wrapped in a `menu-item-label` span; without it, the item
+   * renders as it always has. In an `AppFrame.Nav rail` column collapsed to
+   * its icons, the label is visually hidden, stays the link's name, and
+   * shows in a Tooltip on hover and keyboard focus.
+   */
+  icon?: React.ReactNode;
+  /**
    * Marks the item as the current one. It adds Bulma's `is-active` class, and
    * `aria-current="page"` on the element `as` renders, so assistive tech can
    * tell which item is current too. An `aria-current` you pass wins, even
@@ -245,6 +254,7 @@ export const MenuItem = forwardRef(function MenuItem(
   const {
     className,
     children,
+    icon,
     active,
     as: Component = 'a',
     'data-testid': testId,
@@ -283,6 +293,8 @@ export const MenuItem = forwardRef(function MenuItem(
     { [usePrefixedClassNames('is-active')]: active },
     bulmaHelperClasses
   );
+  const iconClass = usePrefixedClassNames('menu-item-icon');
+  const labelClass = usePrefixedClassNames('menu-item-label');
 
   // Split children into label and nested MenuList(s)
   const labelChildren: React.ReactNode[] = [];
@@ -330,7 +342,16 @@ export const MenuItem = forwardRef(function MenuItem(
           ? { type: buttonType(linkProps.type) }
           : {})}
       >
-        {labelChildren}
+        {icon ? (
+          <>
+            <span className={iconClass} aria-hidden="true">
+              {icon}
+            </span>
+            <span className={labelClass}>{labelChildren}</span>
+          </>
+        ) : (
+          labelChildren
+        )}
       </Component>
       {nestedMenuLists}
     </li>
@@ -351,6 +372,14 @@ export interface MenuSectionProps
   className?: string;
   /** **Required.** The section's heading, drawn like `Menu.Label` inside the button that opens and closes it. Keep links and buttons out of it, since it's inside one. */
   label: React.ReactNode;
+  /**
+   * An icon before the heading, such as an `Icon`, hidden from assistive
+   * technology, since the heading names the button. In an `AppFrame.Nav
+   * rail` column collapsed to its icons, the heading is visually hidden,
+   * stays the button's name, and shows in a Tooltip on hover and keyboard
+   * focus.
+   */
+  icon?: React.ReactNode;
   /**
    * The `Menu.List` of links the section shows while it's open. The section
    * itself goes directly in `Menu`, beside its labels and lists: inside a
@@ -393,6 +422,7 @@ export interface MenuSectionProps
 export const MenuSection: React.FC<MenuSectionProps> = ({
   className,
   label,
+  icon,
   children,
   open: controlledOpen,
   defaultOpen = false,
@@ -404,6 +434,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
   const toggleClass = usePrefixedClassNames('menu-section-toggle');
   const labelClass = usePrefixedClassNames('menu-section-label');
   const chevronClass = usePrefixedClassNames('menu-section-chevron');
+  const iconClass = usePrefixedClassNames('menu-section-icon');
   const listId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -458,6 +489,11 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
         aria-controls={listId}
         onClick={handleClick}
       >
+        {icon && (
+          <span className={iconClass} aria-hidden="true">
+            {icon}
+          </span>
+        )}
         <span className={labelClass}>{label}</span>
         <span className={chevronClass} aria-hidden="true" />
       </button>

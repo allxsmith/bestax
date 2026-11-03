@@ -1,4 +1,5 @@
-// `_menu.scss` adds two things to Bulma's menu: the look of `Menu.Section`
+// `_menu.scss` adds three things to Bulma's menu: an icon before an item's
+// or a section's label (#1432), the look of `Menu.Section`
 // (#1172), and, in forced colors, a bar in the system's Highlight color on
 // the active item, since forced colors replaces Bulma's fill and text color
 // (#1094). jsdom evaluates no media query and never loads the partial on its
@@ -116,6 +117,10 @@ const REDUCED = '@media (prefers-reduced-motion: reduce)';
 const itemRulesOf = (found: Found[]) =>
   found.filter(({ rule }) => /menu-list/.test(rule.selectorText));
 
+/** The rule for an item's icon, which is Menu.Item's. */
+const itemIconRulesOf = (found: Found[]) =>
+  found.filter(({ rule }) => /menu-item-icon/.test(rule.selectorText));
+
 describe.each([
   ['no prefix', ''],
   ['a class prefix', 'bestax-'],
@@ -222,8 +227,60 @@ describe.each([
     });
   });
 
+  describe('icons', () => {
+    /** An item and a section, each with an icon. */
+    const renderIcons = () =>
+      render(
+        <ConfigProvider classPrefix={prefix}>
+          <Menu>
+            <Menu.List>
+              <Menu.Item href="#a" icon={<svg />}>
+                Orders
+              </Menu.Item>
+            </Menu.List>
+            <Menu.Section label="Reports" icon={<svg />}>
+              <Menu.List>
+                <Menu.Item href="#b">Sales</Menu.Item>
+              </Menu.List>
+            </Menu.Section>
+          </Menu>
+        </ConfigProvider>
+      );
+
+    it('sets an item’s icon in the line before its label, its gap apart', () => {
+      expect(declarations(found, p('menu-item-icon'))).toEqual({
+        display: 'inline-flex',
+        'margin-inline-end': 'var(--bulma-menu-item-icon-gap)',
+        'vertical-align': 'middle',
+      });
+      const { getByRole } = renderIcons();
+      expect(
+        getByRole('link', { name: 'Orders' }).firstElementChild!.matches(
+          p('menu-item-icon')
+        )
+      ).toBe(true);
+    });
+
+    it('keeps a section’s icon whole in its heading, which spaces it', () => {
+      expect(declarations(found, p('menu-section-icon'))).toEqual({
+        display: 'inline-flex',
+        // `none`, as jsdom spells it out.
+        flex: '0 0 auto',
+      });
+      const { getByRole } = renderIcons();
+      expect(
+        getByRole('button', { name: 'Reports' }).firstElementChild!.matches(
+          p('menu-section-icon')
+        )
+      ).toBe(true);
+    });
+  });
+
   describe('Menu.Section', () => {
-    const section = found.filter(f => !itemRulesOf(found).includes(f));
+    const section = found.filter(
+      f =>
+        !itemRulesOf(found).includes(f) && !itemIconRulesOf(found).includes(f)
+    );
     const bulma = allRulesOf(
       fs.readFileSync(path.join(BULMA, 'css', 'bulma.css'), 'utf8')
     );
@@ -271,6 +328,7 @@ describe.each([
           'menu',
           'menu-section',
           'menu-section-chevron',
+          'menu-section-icon',
           'menu-section-label',
           'menu-section-toggle',
         ].map(name => prefix + name)
@@ -293,6 +351,7 @@ describe.each([
         '--bulma-menu-section-chevron-size': '1em',
         '--bulma-menu-section-chevron-color': 'currentColor',
         '--bulma-menu-section-chevron-duration': 'var(--bulma-duration)',
+        '--bulma-menu-item-icon-gap': '0.5em',
       });
     });
 

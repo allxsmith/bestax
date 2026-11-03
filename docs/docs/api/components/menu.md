@@ -122,6 +122,35 @@ Highlight a menu entry by setting the `active` prop on a `Menu.Item`. This visua
 
 ---
 
+### Icons
+
+Give a `Menu.Item` or a `Menu.Section` an `icon`, such as an `Icon`, and it sits before the label.
+It's hidden from assistive technology, since the label already names the link, and the rest of
+the label goes in a `menu-item-label` span. An item without an `icon` renders as it always has.
+In an [AppFrame](../layout/appframe.md#the-icon-rail) column collapsed to its icons, the labels
+are visually hidden and show in a tooltip instead.
+
+```tsx live
+<Menu>
+  <Menu.List>
+    <Menu.Item href="#dashboard" icon={<Icon name="house" />} active>
+      Dashboard
+    </Menu.Item>
+    <Menu.Item href="#orders" icon={<Icon name="box" />}>
+      Orders
+    </Menu.Item>
+  </Menu.List>
+  <Menu.Section label="Reports" icon={<Icon name="chart-line" />}>
+    <Menu.List>
+      <Menu.Item href="#sales">Sales</Menu.Item>
+      <Menu.Item href="#returns">Returns</Menu.Item>
+    </Menu.List>
+  </Menu.Section>
+</Menu>
+```
+
+---
+
 ### Deeply Nested Menu
 
 Create multi-level navigation by nesting `Menu.List` components inside `Menu.Item`. This is ideal for complex sidebars or admin panels with grouped and deeply nested navigation links.
@@ -313,6 +342,9 @@ function example() {
   default, so the current item isn't only a color. An `aria-current` you pass wins: a menu of
   sections on one page can say `"location"`, and `aria-current={false}` turns it off.
 - Use semantic nesting (`Menu.List` inside `Menu.Item`) for submenus.
+- An item's or a section's `icon` is `aria-hidden`, so the label alone names the link or the
+  button. Keep the label even when only the icon shows: in an AppFrame rail it's visually hidden,
+  not removed, so it's still the name.
 - Give each item an `href`, a router link through `as`, or `as="button"`, so the keyboard can
   reach it.
 - `Menu.Item as="button"` defaults to `type="button"`, so a menu item inside a form doesn't
