@@ -899,6 +899,20 @@ helper class is `!important` and wins over either. `Center` and `Flex` read neit
 
 `--bulma-stack-gap`, `--bulma-stack-horizontal-gap`
 
+### Stat
+
+Declared on each Stat, `.stat`, whether it's on its own or in a `Stats` row, so retheme a row
+through a selector that reaches its Stats. The figure takes the Stat's color, so a `textColor` on
+the Stat recolors it, and the label, the change and the note keep theirs. `size` re-points
+`--bulma-stat-value-size` at Bulma's `size-4`, `size-2` or `size-1`, and a change's `color`
+sets that change's color to the color's `-on-scheme` variable directly, so
+`--bulma-stat-change-color` is the uncolored change's only.
+
+`--bulma-stat-change-color`, `--bulma-stat-change-gap`, `--bulma-stat-change-size`,
+`--bulma-stat-description-color`, `--bulma-stat-description-size`, `--bulma-stat-label-color`,
+`--bulma-stat-label-size`, `--bulma-stat-value-color`, `--bulma-stat-value-line-height`,
+`--bulma-stat-value-size`, `--bulma-stat-value-weight`
+
 ### Steps
 
 `--bulma-steps-animation-duration`, `--bulma-steps-content-margin-top`,

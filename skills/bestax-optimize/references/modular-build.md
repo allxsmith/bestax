@@ -94,7 +94,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `colorswatch`, `delete`,
 `descriptionlist`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`, `progress`,
-`ringprogress`, `skeleton`
+`ringprogress`, `skeleton`, `stat`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`
 
@@ -207,6 +207,9 @@ Notes:
   (`bulma/sass/components/modal`) and `Tag isDelete` (`bulma/sass/elements/tag`) with them, so
   include it (`as bestax-delete`) in any build that shows a close button. Its rules win over
   Bulma's either way, so the order of the `@use` lines does not matter.
+- `Stats` lays its row out on Bulma's smart grid (`.grid` and `is-col-min-*`), so a build with a
+  `Stats` row wants `bulma/sass/grid/grid` beside the `stat` partial, which only resets the row's
+  margins.
 - `Table` is stock Bulma (`bulma/sass/elements/table`), and `DataTable` renders one. The prebuilt
   stylesheets build it with `$table-cell-text-align: start`, so header cells line up with the
   body cells under them on a right-to-left page, where Bulma's default, `left`, keeps them on the

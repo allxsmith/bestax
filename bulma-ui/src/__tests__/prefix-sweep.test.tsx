@@ -178,6 +178,25 @@ const PROPS: Record<string, Record<string, unknown>> = {
     ],
   },
   DescriptionListItem: { label: 'Order', value: '#1234' },
+  // Sized, with every prop part and a change, so each class it emits is swept.
+  Stat: {
+    label: 'Revenue',
+    value: 8456.4,
+    change: 0.12,
+    description: 'since last month',
+    size: 'large',
+  },
+  // A row with a loading tile, a minimum width and a gap, so the grid's
+  // classes and the Skeleton's are swept.
+  Stats: {
+    minCol: 8,
+    gap: 4,
+    children: [
+      <Library.Stat key="a" label="Revenue" value={8456.4} change={-0.019} />,
+      <Library.Stat key="b" label="Churn" loading />,
+    ],
+  },
+  StatChange: { value: 0.12, color: 'danger' },
   // Sized, colored and rounded, in sections, so every class it emits is swept.
   RingProgress: {
     label: 'Storage',
