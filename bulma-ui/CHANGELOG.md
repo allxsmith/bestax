@@ -1,3 +1,33 @@
+# [5.64.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.63.0...@allxsmith/bestax-bulma@5.64.0) (2026-11-04)
+
+
+### Bug Fixes
+
+* **bulma-ui:** cap a sticky TableOfContents at the dynamic viewport height ([e05e160](https://github.com/allxsmith/bestax/commit/e05e160b18a2806e0c6bc6c9ddad42da02f262f5))
+* **bulma-ui:** check a TableOfContents once a frame, and hold only a jump the browser made ([d710398](https://github.com/allxsmith/bestax/commit/d7103985f439a57af5be49b067de17ce1dab9601)), closes [#id](https://github.com/allxsmith/bestax/issues/id)
+* **bulma-ui:** drop PasswordInput's pageshow listener, which pagehide already covers ([02625bb](https://github.com/allxsmith/bestax/commit/02625bb2ede81b7560e4e177e1504f5e4bde796c))
+* **bulma-ui:** give the input trigger rule Bulma's transition and a registered opacity ([96ab9ec](https://github.com/allxsmith/bestax/commit/96ab9ec4253c249661626e32900675427a91c8a5))
+* **bulma-ui:** hide PasswordInput for a form mounted after it, or in a shadow root ([9e6e43b](https://github.com/allxsmith/bestax/commit/9e6e43b69841b274e3cd59c725648ec411f9003f))
+* **bulma-ui:** hide PasswordInput's password again when the page is left ([f0600b1](https://github.com/allxsmith/bestax/commit/f0600b1e50144b45e3cc5a739a1c19906cb2c64c))
+* **bulma-ui:** hold a TableOfContents jump from a click or the opening hash only ([0b753cb](https://github.com/allxsmith/bestax/commit/0b753cb927efe2c3b8cb3a9d9cab8c55a2cd3ae8))
+* **bulma-ui:** hyphenate PasswordInput's classes and variables as password-input-* ([7eda441](https://github.com/allxsmith/bestax/commit/7eda441a1ef03c6a718feec3b15d397c8a66137b))
+* **bulma-ui:** keep a callback ref's cleanup in PasswordInput's ref merge ([23a48e1](https://github.com/allxsmith/bestax/commit/23a48e164253c402622b3c0407f6d94c6492cbab))
+* **bulma-ui:** keep a held PasswordInput's field and toggle in step after it hides itself ([54290e3](https://github.com/allxsmith/bestax/commit/54290e3323f1da33d6f954cdf26b6b3ed9a811cf))
+* **bulma-ui:** keep a TableOfContents jump held through a layout shift once the page arrives ([c081eb9](https://github.com/allxsmith/bestax/commit/c081eb94cd8ef98bcc8f523848b20f6b6f30ec6a))
+* **bulma-ui:** keep room above and below a sticky TableOfContents for a link's focus ring ([4c8eb7f](https://github.com/allxsmith/bestax/commit/4c8eb7ff62453373ccd7dd951efc0adab262c2a3))
+* **bulma-ui:** leave PasswordInput's value attribute to React, so a form reset restores it ([d12b1ec](https://github.com/allxsmith/bestax/commit/d12b1ec12902a63cb745dadc11db006292e742f7))
+* **bulma-ui:** name TableOfContents' callback onCurrentChange, apart from Dropdown's ([cc9c535](https://github.com/allxsmith/bestax/commit/cc9c5356c88ebb43fa3c0ec84628be8b2b58f5e8))
+* **bulma-ui:** put PasswordInput's helper props on its container, and mask it while loading ([6df64aa](https://github.com/allxsmith/bestax/commit/6df64aa66444d13edd46dcf0f2ccfc27e5afa87a))
+* **bulma-ui:** read the opening #id in useScrollSpy once its ids arrive, not at mount ([a860de3](https://github.com/allxsmith/bestax/commit/a860de39f2c3f774ed7e014168734091346a3c51)), closes [#id](https://github.com/allxsmith/bestax/issues/id)
+* **bulma-ui:** render PasswordInput's hide through React rather than setting the field's type ([8665e61](https://github.com/allxsmith/bestax/commit/8665e61f347e35c79787dea7c3b4f02a3f26bdb3))
+* **bulma-ui:** report PasswordInput's hide once for two events before React renders ([4bbcbe3](https://github.com/allxsmith/bestax/commit/4bbcbe383ef0fc39706096f0903202dcb63e6261))
+
+
+### Features
+
+* **bulma-ui:** add PasswordInput, a password field with a button that shows it ([0307370](https://github.com/allxsmith/bestax/commit/0307370b1f868f4aac43dc8e56a202f40309a5d2)), closes [#1424](https://github.com/allxsmith/bestax/issues/1424)
+* **bulma-ui:** add TableOfContents and useScrollSpy, a page's sections marked as you read ([96ebf19](https://github.com/allxsmith/bestax/commit/96ebf1926761d305b28d96bf3b832f6658c40b30)), closes [#id](https://github.com/allxsmith/bestax/issues/id) [#1428](https://github.com/allxsmith/bestax/issues/1428)
+
 # [5.63.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.62.0...@allxsmith/bestax-bulma@5.63.0) (2026-11-04)
 
 
