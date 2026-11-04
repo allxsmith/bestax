@@ -1,3 +1,36 @@
+## [1.18.31](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.30...bestax-mcp@1.18.31) (2026-11-04)
+
+
+### Bug Fixes
+
+* **bulma-ui:** announce a CopyButton's result inside a native modal <dialog> too ([03d897a](https://github.com/allxsmith/bestax/commit/03d897a2d0083acfa971d5e8d36e722124a69d16)), closes [#1471](https://github.com/allxsmith/bestax/issues/1471)
+* **bulma-ui:** announce a CopyButton's result inside the open modal dialog it's in ([0a683f4](https://github.com/allxsmith/bestax/commit/0a683f4a4cadbbc58401cf59f72b2e9796d0ff80))
+* **bulma-ui:** attach Stat to Stats as Stats.Stat, and put Stats' textColor on its <dl> ([4b4c2d7](https://github.com/allxsmith/bestax/commit/4b4c2d7f288e10c3ec1b138330f7213c6405bfe3))
+* **bulma-ui:** color the select field's chevron as focused while the field is drawn focused ([ee9c653](https://github.com/allxsmith/bestax/commit/ee9c6534db31a40873f28807bc104a8e0ec01e0d))
+* **bulma-ui:** decide TreeSelect's clear and tag buttons from the check state ([6d46dbd](https://github.com/allxsmith/bestax/commit/6d46dbd8c90887ce83e235d5c48331bc6183f6a8))
+* **bulma-ui:** enable WebKit's copy command, keep only the latest copy, and cap duration ([2d0ee48](https://github.com/allxsmith/bestax/commit/2d0ee4860dcab6b122a56da4f59bf4bf9e169ca1))
+* **bulma-ui:** give a Stat's figure one rule, and read a change's zero as Intl rounds it ([274447f](https://github.com/allxsmith/bestax/commit/274447f5d00b3fcfd5ea6589541cbee213cb8d12))
+* **bulma-ui:** hand focus from the hidden required field to the field a task later ([385a2fc](https://github.com/allxsmith/bestax/commit/385a2fcc4005ad33784f458f5711bd90f93c8d59))
+* **bulma-ui:** hold Tab in TreeSelect's panel, and keep its value through resets, loads and clears ([cbef61a](https://github.com/allxsmith/bestax/commit/cbef61a461c39e3d441b2df858d32492db71b781))
+* **bulma-ui:** keep a Stat's list valid, and test a change's zero by its size ([a15a6a8](https://github.com/allxsmith/bestax/commit/a15a6a8daaaa086d1b8f788d73184ba1669dcc33))
+* **bulma-ui:** keep an overtaken copy and the page's own copy listeners from writing over a copy ([ee00a0f](https://github.com/allxsmith/bestax/commit/ee00a0fe5d4e1f47090b24517c1dd2753233fb65))
+* **bulma-ui:** keep the browser's required message up, focus on its field until the next key ([bf719fa](https://github.com/allxsmith/bestax/commit/bf719faebc291f53663f322a3e5ad007443b0922))
+* **bulma-ui:** let the focused required stand-in read as the field, and leave it on a modifier ([7f80920](https://github.com/allxsmith/bestax/commit/7f80920935fb4c08cf1770b469812192eff3c969))
+* **bulma-ui:** let TreeSelect's panel in place inherit the root's variables ([c7da82c](https://github.com/allxsmith/bestax/commit/c7da82c3009927f7215c8bdcc644e1213f20f0a4))
+* **bulma-ui:** put TreeSelect's strings in labels, hand filter the path, keep a ref's cleanup ([0c95ed5](https://github.com/allxsmith/bestax/commit/0c95ed557b3ccf10efbc0764b973821d701cc367))
+* **bulma-ui:** read CopyButton's duration 0 as Toast does, and attach it to Buttons ([3573247](https://github.com/allxsmith/bestax/commit/357324751879ac2a75c681c925013f20fc34c692))
+* **bulma-ui:** register how TreeSelect's chevron and clear button stack ([f0ad87b](https://github.com/allxsmith/bestax/commit/f0ad87b6b423ce6b5d6e707915d2f5f955e79f3e))
+
+
+### Features
+
+* **bulma-ui:** add CopyButton and useClipboard stories ([637ced5](https://github.com/allxsmith/bestax/commit/637ced5d735849dd384a3437fc7c505a1da4d23d))
+* **bulma-ui:** add CopyButton, and the useClipboard hook it's built on ([e3977ec](https://github.com/allxsmith/bestax/commit/e3977ec7df2d4af2b9954b03ff193726c0d388f7))
+* **bulma-ui:** add Stat and Stats, a figure with its name, change and note ([59c90e9](https://github.com/allxsmith/bestax/commit/59c90e936363426de945eaf6edbb9e252b990df9))
+* **bulma-ui:** add TreeSelect, a form field that picks from a tree ([5aa8e30](https://github.com/allxsmith/bestax/commit/5aa8e30341b42d145e3e3b5898c6f800ec4ed150))
+* **bulma-ui:** draw TreeSelect's chevron, clear button and panel ([13f2887](https://github.com/allxsmith/bestax/commit/13f2887b369a6cdb2ccceb0282dafdb087a6d344))
+* **bulma-ui:** give TreeSelect its story, docs page and listings ([effc780](https://github.com/allxsmith/bestax/commit/effc780e666204765a0893b08ee7857a78b8aa3b))
+
 ## [1.18.30](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.29...bestax-mcp@1.18.30) (2026-11-04)
 
 
