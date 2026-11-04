@@ -1,3 +1,26 @@
+## [1.18.30](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.29...bestax-mcp@1.18.30) (2026-11-04)
+
+
+### Bug Fixes
+
+* **bulma-ui:** build AppFrame's drawer on the shared overlay hooks, with a live backdrop ([7ac1580](https://github.com/allxsmith/bestax/commit/7ac158084cb88ae45c088e4ed4f4b65c737b6d88))
+* **bulma-ui:** close AppFrame's drawer only for a link the nav holds ([29d27ac](https://github.com/allxsmith/bestax/commit/29d27ac571ffb2fce3db772697c06b4b6034bc28))
+* **bulma-ui:** give a lone AppFrame.Burger Navbar.Burger's aria-expanded ([3929d37](https://github.com/allxsmith/bestax/commit/3929d37e4272b6d65e2da9799060002d527311d0))
+* **bulma-ui:** hand focus to AppFrame's burger after a press outside the drawer ([36626a8](https://github.com/allxsmith/bestax/commit/36626a83813b32813e81ba76eed569f949b16930))
+* **bulma-ui:** have useAppFrame return null outside a frame, as the other context hooks do ([5cc3192](https://github.com/allxsmith/bestax/commit/5cc319275b1cd44e53011355692cd90e07461168))
+* **bulma-ui:** leave AppFrame.Burger's aria-expanded off until the frame knows its mode ([2c2f829](https://github.com/allxsmith/bestax/commit/2c2f82934f0f2bccac517c2259dede9427eb1dc6))
+* **bulma-ui:** leave AppFrame's backdrop to an overlay opened over the drawer ([c5b49de](https://github.com/allxsmith/bestax/commit/c5b49de05bbec8472f40f4951a691e5f31f639f0))
+* **bulma-ui:** mark AppFrame's open drawer with Bulma's is-active on the nav and its backdrop ([f6e20e6](https://github.com/allxsmith/bestax/commit/f6e20e6db638102e3322739dcc813e8b9a235252))
+* **bulma-ui:** read useOverlayFocus's opener in the overlay's own document ([3bc1e16](https://github.com/allxsmith/bestax/commit/3bc1e160aed28b6cb7e07518eadaae269a401d5c))
+* **bulma-ui:** run the cleanup an AppFrame part's callback ref returns ([c21d7c9](https://github.com/allxsmith/bestax/commit/c21d7c95c84fd96199fe4dc978326931da69269f))
+* **bulma-ui:** send focus from AppFrame's hidden close button to the burger ([5041213](https://github.com/allxsmith/bestax/commit/5041213c608da6d05df0c295466b860d335c7a63))
+* **bulma-ui:** watch only the breakpoint AppFrame switches at ([cca79b1](https://github.com/allxsmith/bestax/commit/cca79b10263936af4cb3cab29fa91ad95b99d5fa))
+
+
+### Features
+
+* **bulma-ui:** add AppFrame, the frame an app's pages sit in ([0a1bbbf](https://github.com/allxsmith/bestax/commit/0a1bbbf148d31021be2cd4357c9ee592410e6d91)), closes [#1432](https://github.com/allxsmith/bestax/issues/1432)
+
 ## [1.18.29](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.28...bestax-mcp@1.18.29) (2026-11-03)
 
 

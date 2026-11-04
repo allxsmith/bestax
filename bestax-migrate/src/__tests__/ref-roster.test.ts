@@ -36,6 +36,13 @@ const REFERENCES = path.join(ROOT, 'skills/bestax-migrate/references');
  */
 const NAMED_INDIVIDUALLY = [
   'Affix',
+  'AppFrame',
+  'AppFrame.Aside',
+  'AppFrame.Burger',
+  'AppFrame.Footer',
+  'AppFrame.Header',
+  'AppFrame.Main',
+  'AppFrame.Nav',
   'Avatar',
   'Button',
   'Carousel',

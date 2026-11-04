@@ -23,6 +23,7 @@ import { ScrollArea } from '../components/ScrollArea';
 import { Command } from '../components/Command';
 import { DataTable } from '../components/DataTable';
 import { Splitter } from '../layout/Splitter';
+import { AppFrame } from '../layout/AppFrame';
 import { Slider } from '../form/Slider';
 import { PinInput } from '../form/PinInput';
 import { ColorPicker } from '../form/ColorPicker';
@@ -82,6 +83,18 @@ const cases: Array<[string, React.ReactElement]> = [
       </Splitter.Pane>
       <Splitter.Pane label="Editor">Editor</Splitter.Pane>
     </Splitter>,
+  ],
+  [
+    // It reads the width in a layout effect, to know which state the burger
+    // toggles.
+    'AppFrame',
+    <AppFrame key="app-frame" defaultNavOpen>
+      <AppFrame.Header>
+        <AppFrame.Burger />
+      </AppFrame.Header>
+      <AppFrame.Nav>Nav</AppFrame.Nav>
+      <AppFrame.Main>Main</AppFrame.Main>
+    </AppFrame>,
   ],
   [
     'Command',

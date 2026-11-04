@@ -37,6 +37,12 @@ const ADDONS = [
     desc: 'Facts about one thing, each a label and its value, stacked on a phone and lined up in two columns from tablet up.',
   },
   {
+    name: 'AppFrame',
+    icon: 'appframe',
+    link: '/docs/api/layout/appframe',
+    desc: 'The frame an app’s pages sit in: a sticky header and nav column, a drawer on phones, and a skip link.',
+  },
+  {
     name: 'Affix',
     icon: 'affix',
     link: '/docs/api/components/affix',
