@@ -441,6 +441,19 @@ function TreeViewIcon() {
   );
 }
 
+// A field with a chevron at its end, and a tree opened under it
+function TreeSelectIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="3" width="18" height="6" rx="1.5" />
+      <path d="M15.5 5l1.5 1.5L18.5 5" />
+      <rect x="3" y="11" width="18" height="10" rx="1.5" />
+      <path d="M6.5 14h7" />
+      <path d="M8 16v2.5h2M11.5 18.5h5" />
+    </svg>
+  );
+}
+
 const ADDON_ICONS = {
   appframe: AppFrameIcon,
   linkbutton: LinkButtonIcon,
@@ -479,6 +492,7 @@ const ADDON_ICONS = {
   timeline: TimelineIcon,
   toast: ToastIcon,
   tooltip: TooltipIcon,
+  treeselect: TreeSelectIcon,
   treeview: TreeViewIcon,
 };
 

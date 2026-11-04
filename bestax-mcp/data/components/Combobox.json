@@ -70,6 +70,7 @@
     "Popover",
     "Select",
     "Taginput",
+    "TreeSelect",
     "useBulmaClasses"
   ],
   "storybook": "https://bestax.io/storybook/?path=/story/form-combobox--default",

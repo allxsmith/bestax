@@ -14,7 +14,11 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { warnOnce } from '../helpers/devWarnings';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
-import { useTreeView, type TreeViewEngine } from '../helpers/useTreeView';
+import {
+  TreeViewHiddenContext,
+  useTreeView,
+  type TreeViewEngine,
+} from '../helpers/useTreeView';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
 import { Checkbox } from '../form/Checkbox';
 import { Icon } from '../elements/Icon';
@@ -407,6 +411,10 @@ export const TreeViewItem = forwardRef<HTMLLIElement, TreeViewItemProps>(
   ) {
     const tree = useContext(TreeViewContext);
     const branch = useContext(BranchContext);
+    // Hidden by a component around the tree, such as TreeSelect's search,
+    // it renders as an item under a closed parent does.
+    const hiddenItems = useContext(TreeViewHiddenContext);
+    const hiddenHere = branch.hidden || hiddenItems.has(value);
     // Also the item's key in the live region.
     const labelId = useId();
     const hasItems = React.Children.toArray(children).length > 0;
@@ -415,7 +423,7 @@ export const TreeViewItem = forwardRef<HTMLLIElement, TreeViewItemProps>(
     const parent = branch.path[branch.path.length - 1] ?? null;
 
     // The row at the end of its group, while it's open and on the page.
-    const shown = open && !branch.hidden;
+    const shown = open && !hiddenHere;
     const status = !shown
       ? null
       : isLoading
@@ -490,9 +498,9 @@ export const TreeViewItem = forwardRef<HTMLLIElement, TreeViewItemProps>(
     const childBranch = useMemo(
       () => ({
         path: [...branch.path, value],
-        hidden: branch.hidden || !open,
+        hidden: hiddenHere || !open,
       }),
-      [branch, value, open]
+      [branch, value, hiddenHere, open]
     );
 
     const { selected, checked } =
@@ -505,14 +513,14 @@ export const TreeViewItem = forwardRef<HTMLLIElement, TreeViewItemProps>(
     if (!tree) return null;
 
     // While it's open the children render in its group. In a `checkbox` tree
-    // they render while it's closed too, drawing nothing, so a check knows
-    // what's under it.
-    const items = (open || tree.rendersClosed) && (
+    // they render while it's closed or hidden too, drawing nothing, so a
+    // check knows what's under it.
+    const items = (shown || tree.rendersClosed) && (
       <BranchContext.Provider value={childBranch}>
         {children}
       </BranchContext.Provider>
     );
-    if (branch.hidden) return <>{items}</>;
+    if (hiddenHere) return <>{items}</>;
 
     const info = { value, parent, disabled, isParent, open };
     // A position the caller gives wins, for a set the page holds only part of.

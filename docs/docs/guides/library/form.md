@@ -258,6 +258,32 @@ A text field with a list to pick from under it. Given `data`, it filters the lis
 
 ---
 
+### TreeSelect
+
+A field whose options are a tree, such as a folder, a place or a team. It opens a panel holding a `TreeView`, picks one item or checks a branch at a time, and can search labels.
+
+```tsx live
+<TreeSelect
+  label="Save to"
+  searchable
+  data={[
+    {
+      value: 'docs',
+      label: 'Documents',
+      children: [
+        { value: 'invoices', label: 'Invoices' },
+        { value: 'contracts', label: 'Contracts' },
+      ],
+    },
+    { value: 'photos', label: 'Photos' },
+  ]}
+/>
+```
+
+[View full documentation.](../../api/form/treeselect)
+
+---
+
 ### Switch
 
 Toggle switch for on/off states. A styled checkbox that appears as a toggle, commonly used for settings.

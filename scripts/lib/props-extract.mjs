@@ -1539,6 +1539,9 @@ const ROOT_CLASS_OVERRIDES = {
   // they list no variables, the way Buttons doesn't.
   Stack: 'stack',
   Group: 'stack',
+  // Its root is drawn by the internal `form/_selectInternals/DialogSelect.tsx`,
+  // which it hands the class by name.
+  TreeSelect: 'tree-select',
 };
 
 /**
@@ -1593,6 +1596,9 @@ export const EXTRA_VAR_ROOTS = {
   // the shared popover.
   ColorInput: ['picker-popover'],
   ColorInputBase: ['picker-popover'],
+  // TreeSelect's panel is the shared popover, and its tree a TreeView, whose
+  // page lists that one's variables.
+  TreeSelect: ['picker-popover'],
   DateTimeInput: ['datetimeinput', 'dateinput', 'timeinput', 'picker-popover'],
   DateTimeInputBase: [
     'datetimeinput',
