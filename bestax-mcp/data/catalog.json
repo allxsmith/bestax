@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.62.0"
+    "version": "5.63.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -115,6 +115,7 @@
         "File",
         "Input",
         "Numberinput",
+        "PasswordInput",
         "PinInput",
         "Radio",
         "RadioCard",
@@ -1084,6 +1085,17 @@
       "compound": false,
       "propCount": 4,
       "exampleCount": 10
+    },
+    {
+      "name": "PasswordInput",
+      "kind": "component",
+      "category": "form",
+      "purpose": "The `PasswordInput` component is a password field with a button inside it that shows what was typed.",
+      "slug": "form/passwordinput",
+      "import": "import { PasswordInput } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 29,
+      "exampleCount": 11
     },
     {
       "name": "PinInput",
@@ -2215,6 +2227,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2225,6 +2238,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2235,6 +2249,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2245,6 +2260,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2255,6 +2271,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2265,6 +2282,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2275,6 +2293,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2285,6 +2304,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2295,6 +2315,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2305,6 +2326,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2315,6 +2337,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2325,6 +2348,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2335,6 +2359,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2345,6 +2370,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2355,6 +2381,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2365,6 +2392,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2375,6 +2403,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2385,6 +2414,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2395,6 +2425,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2405,6 +2436,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2415,6 +2447,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2425,6 +2458,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2435,6 +2469,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2445,6 +2480,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2455,6 +2491,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2465,6 +2502,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2475,6 +2513,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2485,6 +2524,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2495,6 +2535,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2505,6 +2546,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2783,6 +2825,11 @@
     "--bulma-panel-tab-border-bottom-style": ["Panel"],
     "--bulma-panel-tab-border-bottom-width": ["Panel"],
     "--bulma-panel-tabs-font-size": ["Panel"],
+    "--bulma-password-input-toggle-color": ["PasswordInput"],
+    "--bulma-password-input-toggle-disabled-opacity": ["PasswordInput"],
+    "--bulma-password-input-toggle-hover-color": ["PasswordInput"],
+    "--bulma-password-input-toggle-text-width": ["PasswordInput"],
+    "--bulma-password-input-toggle-width": ["PasswordInput"],
     "--bulma-picker-popover-animation-duration": [
       "ColorInput",
       "DateInput",
@@ -3648,6 +3695,12 @@
       "component": "Panel",
       "path": "Panel.Tabs",
       "purpose": "Panel tabs (renders as `<p class=\"panel-tabs\">`)"
+    },
+    "PasswordInputBase": {
+      "component": "PasswordInput",
+      "path": "PasswordInputBase",
+      "purpose": "The raw PasswordInput: a password field with a button inside it that shows what was typed, without Field/Control wrapping.",
+      "standalone": "base"
     },
     "PopoverBody": {
       "component": "Popover",

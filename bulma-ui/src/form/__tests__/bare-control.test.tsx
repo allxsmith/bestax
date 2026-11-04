@@ -19,6 +19,7 @@ import { PinInput } from '../PinInput';
 import { Rate } from '../Rate';
 import { ColorPicker } from '../ColorPicker';
 import { ColorInput } from '../ColorInput';
+import { PasswordInput } from '../PasswordInput';
 import { File as FileInput } from '../File';
 import { Dropzone } from '../Dropzone';
 import { Taginput } from '../Taginput';
@@ -141,6 +142,19 @@ const wrappers: Wrapper[] = [
     name: 'ColorInput',
     render: p => <ColorInput {...p} />,
     root: '.colorinput',
+  },
+  {
+    name: 'PasswordInput',
+    // The toggle takes the right icon's place, so the right-icon props are
+    // left out: it draws none, and warns about them on its own.
+    render: ({
+      iconRight: _iconRight,
+      iconRightName: _iconRightName,
+      iconRightSize: _iconRightSize,
+      hasIconsRight: _hasIconsRight,
+      ...p
+    }) => <PasswordInput {...p} />,
+    root: '.password-input-container',
   },
   {
     name: 'ColorPicker',

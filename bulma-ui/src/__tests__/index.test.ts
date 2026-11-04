@@ -169,6 +169,8 @@ const PUBLIC_EXPORTS = [
   'PanelInputBlock',
   'PanelTabs',
   'Paragraph',
+  'PasswordInput',
+  'PasswordInputBase',
   'PinInput',
   'Popover',
   'PopoverBody',
