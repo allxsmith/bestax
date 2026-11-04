@@ -2,6 +2,7 @@ import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { Button } from './Button';
+import { CopyButton } from './CopyButton';
 import { IconButton } from './IconButton';
 import { LinkButton } from './LinkButton';
 import { ToggleButton } from './ToggleButton';
@@ -105,6 +106,7 @@ export const Buttons = withSubComponents(
     LinkButton,
     ToggleButton,
     IconButton,
+    CopyButton,
   },
   'Buttons'
 );

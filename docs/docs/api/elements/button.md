@@ -349,6 +349,7 @@ an icon, name it with `aria-label` yourself.
 - [`Buttons`](./buttons.md): Group multiple buttons together, including add-ons and alignment.
 - [`ToggleButton`](./togglebutton.md): A button that stays pressed while something is on, and says so through `aria-pressed`.
 - [`IconButton`](./iconbutton.md): A button that shows only an icon, with the name its types require.
+- [`CopyButton`](./copybutton.md): A button that copies a piece of text and announces the result.
 - [`Icon`](../elements/icon.md): Inline icons for use inside buttons.
 - [Helper Props](../helpers/usebulmaclasses.md): List of all supported Bulma helper props for spacing, colors, etc.
 

@@ -63,6 +63,8 @@ const PROPS: Record<string, Record<string, unknown>> = {
     isRounded: true,
   },
   IconText: { children: 'Text', iconProps: { name: 'star' } },
+  // Colored and sized; its own test sweeps the icon-only form.
+  CopyButton: { value: 'https://bestax.io', color: 'primary', size: 'small' },
   Avatar: { name: 'Ada Lovelace' },
   Badge: { children: '9' },
   Steps: { items: [{ label: 'Step 1' }], hasNavigation: true },
