@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-129 documented components. Generated from the API docs — every exported
+131 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -73,6 +73,8 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [RingProgress](https://bestax.io/docs/api/elements/ringprogress) — The `RingProgress` component draws a value as a ring that fills as it grows, with anything you pass shown in the middle.
 - [Skeleton](https://bestax.io/docs/api/elements/skeleton) — The `Skeleton` component provides a Bulma-styled skeleton loader for React applications, useful for indicating that content is loading.
 - [Span](https://bestax.io/docs/api/elements/span) — The `Span` component renders a styled inline `<span>` element with Bulma helper class integration.
+- [Stat](https://bestax.io/docs/api/elements/stat) — The `Stat` component shows a figure with its name, and often a change and a note, such as a dashboard's revenue or an account's storage used.
+- [Stats](https://bestax.io/docs/api/elements/stats) — The `Stats` component lays out a row of `Stat`s, such as the key figures at the top of a dashboard, as one description list on Bulma's smart grid.
 - [Strong](https://bestax.io/docs/api/elements/strong) — The `Strong` component renders a styled `<strong>` element with Bulma helper class integration.
 - [SubTitle](https://bestax.io/docs/api/elements/subtitle) — The `SubTitle` component renders a Bulma-styled subtitle (secondary heading), supporting sizes `1-6` and rendering as any heading or paragraph element (`h1-h6`…
 - [Table](https://bestax.io/docs/api/elements/table) — The `Table` component and its subcomponents provide a highly composable, Bulma-styled table system for React.

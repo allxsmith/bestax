@@ -89,6 +89,10 @@ This example demonstrates using the `Level` component to create a centered stati
 
 Bulma 0.9 drew that label with a `heading` class, which Bulma v1 dropped, so the label here is a `Paragraph` made small, uppercase, and semibold with helper props.
 
+:::tip
+For a row of figures in an app, reach for [`Stats`](../elements/stats.md) instead. `Level` renders a `<nav>`, so a screen reader lists these figures among the page's navigation landmarks, and nothing ties a value to its label. `Stats` makes the row one description list, and each [`Stat`](../elements/stat.md) writes its number the way the locale does.
+:::
+
 ```tsx live
 <Level>
   <Level.Item hasTextCentered>

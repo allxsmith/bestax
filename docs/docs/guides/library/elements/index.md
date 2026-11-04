@@ -431,6 +431,43 @@ A number written the way a locale writes it, such as a price, a percentage or a 
 
 ---
 
+### Stat
+
+A figure with its name, and often a change and a note, as a label and its values in a description list; a change is written with its sign, so the direction is in the text as well as in the arrow and the color. [View full documentation.](../../../api/elements/stat.md)
+
+```tsx live
+<Stat
+  label="Revenue"
+  value={8456.4}
+  format={{ style: 'currency', currency: 'USD' }}
+  locale="en-US"
+  change={0.12}
+  description="since last month"
+/>
+```
+
+---
+
+### Stats
+
+A row of `Stat` components as one description list on Bulma's smart grid, the tiles wrapping as the row narrows. [View full documentation.](../../../api/elements/stats.md)
+
+```tsx live
+<Stats minCol={8} gap={4}>
+  <Stat label="New customers" value={1234} locale="en-US" change={-0.019} />
+  <Stat
+    label="Churn"
+    value={0.021}
+    format={{ style: 'percent', maximumFractionDigits: 1 }}
+    locale="en-US"
+    change={0.004}
+    changeColor="danger"
+  />
+</Stats>
+```
+
+---
+
 ### Tag
 
 A Bulma-styled label or badge, supporting color (with an `isLight` variant), size, rounded, hoverable, and delete variants. [View full documentation.](../../../api/elements/tag.md)

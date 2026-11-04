@@ -317,6 +317,18 @@ function NumberFormatterIcon() {
   );
 }
 
+// A short faint label over a large figure, with an arrow pointing up beside a small change
+function StatIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M4 5h7" strokeOpacity="0.45" />
+      <path d="M4.5 11.5h12" strokeWidth="4" />
+      <path d="M4.5 19.5l2.5-2.5 2.5 2.5M7 17v4.5" />
+      <path d="M12.5 19.5h6" />
+    </svg>
+  );
+}
+
 // A ring with its arc filled most of the way round
 function RingProgressIcon() {
   return (
@@ -467,6 +479,7 @@ const ADDON_ICONS = {
   iconbutton: IconButtonIcon,
   loading: LoadingIcon,
   numberformatter: NumberFormatterIcon,
+  stat: StatIcon,
   pininput: PinInputIcon,
   popover: PopoverIcon,
   reveal: RevealIcon,

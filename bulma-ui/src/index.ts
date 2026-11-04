@@ -68,6 +68,8 @@ export * from './elements/Progress';
 export * from './elements/RingProgress';
 export * from './elements/Skeleton';
 export * from './elements/Span';
+export * from './elements/Stat';
+export * from './elements/Stats';
 export * from './elements/Strong';
 export * from './elements/SubTitle';
 export * from './elements/Table';
