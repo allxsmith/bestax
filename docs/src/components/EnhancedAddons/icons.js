@@ -227,6 +227,20 @@ function HoverCardIcon() {
   );
 }
 
+// A field holding three dots, and an eye at its end
+function PasswordInputIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="1.5" y="7" width="21" height="10" rx="2" />
+      <circle cx="5" cy="12" r="0.6" />
+      <circle cx="8" cy="12" r="0.6" />
+      <circle cx="11" cy="12" r="0.6" />
+      <path d="M14.5 12s1.5-2.2 3.5-2.2 3.5 2.2 3.5 2.2-1.5 2.2-3.5 2.2-3.5-2.2-3.5-2.2z" />
+      <circle cx="18" cy="12" r="0.8" />
+    </svg>
+  );
+}
+
 // A row of four boxes, two filled, the caret in the third: pin input
 function PinInputIcon() {
   return (
@@ -479,6 +493,7 @@ const ADDON_ICONS = {
   iconbutton: IconButtonIcon,
   loading: LoadingIcon,
   numberformatter: NumberFormatterIcon,
+  passwordinput: PasswordInputIcon,
   stat: StatIcon,
   pininput: PinInputIcon,
   popover: PopoverIcon,

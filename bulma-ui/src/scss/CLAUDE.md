@@ -16,6 +16,9 @@ of their own — Bulma provides it. A partial exists only for components that ex
   It loads no Bulma module, since tests compile it with only this folder on the load path
 - `_selected-row.scss` — `extras-selected-table-cell`, the cells Checkbox's and Radio's
   selected-row rules share; it reads Bulma's `$colors`, which is why it isn't in `_mixins.scss`
+- `_input-trigger.scss` — `extras-input-trigger`, a button laid over an input's right edge, which
+  the date and time pickers' launcher and PasswordInput's toggle share; it reads Bulma's class
+  prefix and variables, so it isn't in `_mixins.scss` either
 - `versions/` — the flavor builds: `bestax-prefixed`, `bestax-no-helpers`, `bestax-no-dark-mode`,
   `bestax-no-helpers-prefixed`. A new partial is included by all of them automatically (they reuse
   the same `_index` imports), but must **work** under each — especially the prefixed build.
