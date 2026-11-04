@@ -1,3 +1,24 @@
+# [5.63.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.62.0...@allxsmith/bestax-bulma@5.63.0) (2026-11-04)
+
+
+### Bug Fixes
+
+* **bulma-ui:** announce a CopyButton's result inside a native modal <dialog> too ([03d897a](https://github.com/allxsmith/bestax/commit/03d897a2d0083acfa971d5e8d36e722124a69d16)), closes [#1471](https://github.com/allxsmith/bestax/issues/1471)
+* **bulma-ui:** announce a CopyButton's result inside the open modal dialog it's in ([0a683f4](https://github.com/allxsmith/bestax/commit/0a683f4a4cadbbc58401cf59f72b2e9796d0ff80))
+* **bulma-ui:** attach Stat to Stats as Stats.Stat, and put Stats' textColor on its <dl> ([4b4c2d7](https://github.com/allxsmith/bestax/commit/4b4c2d7f288e10c3ec1b138330f7213c6405bfe3))
+* **bulma-ui:** enable WebKit's copy command, keep only the latest copy, and cap duration ([2d0ee48](https://github.com/allxsmith/bestax/commit/2d0ee4860dcab6b122a56da4f59bf4bf9e169ca1))
+* **bulma-ui:** give a Stat's figure one rule, and read a change's zero as Intl rounds it ([274447f](https://github.com/allxsmith/bestax/commit/274447f5d00b3fcfd5ea6589541cbee213cb8d12))
+* **bulma-ui:** keep a Stat's list valid, and test a change's zero by its size ([a15a6a8](https://github.com/allxsmith/bestax/commit/a15a6a8daaaa086d1b8f788d73184ba1669dcc33))
+* **bulma-ui:** keep an overtaken copy and the page's own copy listeners from writing over a copy ([ee00a0f](https://github.com/allxsmith/bestax/commit/ee00a0fe5d4e1f47090b24517c1dd2753233fb65))
+* **bulma-ui:** read CopyButton's duration 0 as Toast does, and attach it to Buttons ([3573247](https://github.com/allxsmith/bestax/commit/357324751879ac2a75c681c925013f20fc34c692))
+
+
+### Features
+
+* **bulma-ui:** add CopyButton and useClipboard stories ([637ced5](https://github.com/allxsmith/bestax/commit/637ced5d735849dd384a3437fc7c505a1da4d23d))
+* **bulma-ui:** add CopyButton, and the useClipboard hook it's built on ([e3977ec](https://github.com/allxsmith/bestax/commit/e3977ec7df2d4af2b9954b03ff193726c0d388f7))
+* **bulma-ui:** add Stat and Stats, a figure with its name, change and note ([59c90e9](https://github.com/allxsmith/bestax/commit/59c90e936363426de945eaf6edbb9e252b990df9))
+
 # [5.62.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.61.0...@allxsmith/bestax-bulma@5.62.0) (2026-11-04)
 
 
