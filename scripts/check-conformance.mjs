@@ -157,7 +157,7 @@ const BASELINE = join(HERE, 'conformance-baseline.json');
 // Plural group containers of "Beyond Bulma" extras are not listed as homepage
 // cards (owner call on #257: Avatar yes, Avatars no). The guide page still
 // lists them.
-const HOME_EXEMPT = new Set(['Avatars', 'Collapses']);
+const HOME_EXEMPT = new Set(['Avatars', 'Collapses', 'Stats']);
 
 // Legacy API pages missing `## Accessibility`. New pages must have it.
 const ACCESSIBILITY_EXEMPT = new Set([
@@ -2034,9 +2034,9 @@ async function checkInlineStyle(updateBaseline) {
     if (n > allowed) {
       violations.push(
         `${file} has ${n} inline style={{}} (baseline allows ${allowed}). ` +
-          `Use Bulma helper props instead: Block/Box with display="flex", ` +
-          `flexDirection, alignItems, justifyContent, m*/p* spacing, and ` +
-          `gap between the children.`
+          `Use Bulma helper props instead: Stack, Group, Center or Flex ` +
+          `for layout, with alignItems, justifyContent and gap between the ` +
+          `children, and m*/p* spacing.`
       );
     }
   }

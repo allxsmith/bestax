@@ -313,7 +313,7 @@ NavbarItem.displayName = 'NavbarItem';
  */
 export interface NavbarBurgerProps
   extends
-    React.ButtonHTMLAttributes<HTMLButtonElement>,
+    Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'aria-expanded'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes. */
   className?: string;
@@ -343,11 +343,12 @@ export interface NavbarBurgerProps
   'aria-label'?: string;
   /**
    * Expanded state for assistive technology. It follows `active` unless you
-   * pass `true` or `false`; a spread carrying `'aria-expanded': undefined`
+   * pass `true` or `false`, and `null` leaves it off, for a burger whose
+   * state isn't known yet; a spread carrying `'aria-expanded': undefined`
    * still follows `active`.
    * @defaultValue active
    */
-  'aria-expanded'?: boolean;
+  'aria-expanded'?: boolean | null;
   /** Click handler. */
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
@@ -387,7 +388,11 @@ export const NavbarBurger = forwardRef<HTMLButtonElement, NavbarBurgerProps>(
         // too: the button is drawn as an icon, so `''` would leave it unnamed.
         // A caller's own value still wins; `buttonType` says more.
         aria-label={rest['aria-label'] || 'menu'}
-        aria-expanded={rest['aria-expanded'] ?? !!active}
+        aria-expanded={
+          rest['aria-expanded'] === null
+            ? undefined
+            : (rest['aria-expanded'] ?? !!active)
+        }
         type={buttonType(rest.type)}
       >
         {/* Bulma v1's burger mixin positions four spans: the first two meet

@@ -1,0 +1,306 @@
+// Bestax Extras - AppFrame Styles
+// The frame an app's pages sit in: a header across the top, a nav column down
+// the side, the page, an aside and a footer, laid out by a grid. The header
+// and the column stick while the document scrolls. Bulma has no frame.
+//
+// Below the root's breakpoint the nav is a drawer instead: fixed to the
+// inline-start edge, slid out and `visibility: hidden` until it opens, so a
+// closed one is out of the Tab order and the accessibility tree before any
+// script runs. The layout is all in here, with a media query per breakpoint
+// class, so the server's markup lays out as the browser's does.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+@use 'bulma/sass/utilities/mixins' as mx;
+@use '../variables' as *;
+@use '../mixins' as *;
+
+// How far down the nav column starts sticking, and how far an in-page link
+// or a Tab scrolls clear of the sticky header. A header taller than Bulma's
+// navbar sets it on `:root`.
+$app-frame-header-height: cv.getVar('navbar-height') !default;
+$app-frame-header-background: cv.getVar('scheme-main') !default;
+$app-frame-nav-width: 16rem !default;
+$app-frame-nav-padding: 0.75rem !default;
+$app-frame-nav-background: cv.getVar('scheme-main') !default;
+$app-frame-aside-width: 20rem !default;
+$app-frame-border-color: cv.getVar('border') !default;
+$app-frame-border-width: 1px !default;
+// The modal background's color: the inverted scheme at 0.86 alpha.
+$app-frame-backdrop-background: hsla(
+  #{cv.getVar('scheme-h')},
+  #{cv.getVar('scheme-s')},
+  #{cv.getVar('scheme-invert-l')},
+  0.86
+) !default;
+$app-frame-drawer-shadow: cv.getVar('shadow') !default;
+$app-frame-transition-duration: cv.getVar('duration') !default;
+$app-frame-skip-link-background: cv.getVar('scheme-main') !default;
+$app-frame-skip-link-color: cv.getVar('link') !default;
+
+// The drawer leaves this much of the window showing beside it, so there's
+// backdrop to press.
+$-drawer-gap: 3rem;
+
+// On Bulma's variables host, as `--bulma-navbar-height` is, so the document
+// can read it for `scroll-padding-top`.
+#{iv.$variables-host} {
+  @include cv.register-vars(
+    (
+      'app-frame-header-height': #{$app-frame-header-height},
+    )
+  );
+}
+
+.#{iv.$class-prefix}app-frame {
+  @include cv.register-vars(
+    (
+      'app-frame-header-background': #{$app-frame-header-background},
+      'app-frame-nav-width': #{$app-frame-nav-width},
+      'app-frame-nav-padding': #{$app-frame-nav-padding},
+      'app-frame-nav-background': #{$app-frame-nav-background},
+      'app-frame-aside-width': #{$app-frame-aside-width},
+      'app-frame-border-color': #{$app-frame-border-color},
+      'app-frame-border-width': #{$app-frame-border-width},
+      'app-frame-backdrop-background': #{$app-frame-backdrop-background},
+      'app-frame-drawer-shadow': #{$app-frame-drawer-shadow},
+      'app-frame-transition-duration': #{$app-frame-transition-duration},
+      'app-frame-skip-link-background': #{$app-frame-skip-link-background},
+      'app-frame-skip-link-color': #{$app-frame-skip-link-color},
+    )
+  );
+}
+
+// An in-page link or a Tab lands below the sticky header (WCAG technique C43).
+html:has(.#{iv.$class-prefix}app-frame) {
+  scroll-padding-top: cv.getVar('app-frame-header-height');
+}
+
+// ---- The grid, below the breakpoint ----------------------------------------------
+
+// One column: the header, the page, the aside under it, and the footer. A
+// part that isn't there leaves an empty `auto` row, which takes no room.
+.#{iv.$class-prefix}app-frame {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto auto;
+  grid-template-areas: 'header' 'main' 'aside' 'footer';
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.#{iv.$class-prefix}app-frame-header {
+  grid-area: header;
+  position: sticky;
+  inset-block-start: 0;
+  z-index: $extras-z-index-sticky;
+  background-color: cv.getVar('app-frame-header-background');
+}
+
+.#{iv.$class-prefix}app-frame-main {
+  grid-area: main;
+  min-width: 0;
+
+  // Focus lands here from the skip link, to start the Tab order there. It's
+  // not a control, so it draws no ring.
+  &:focus {
+    outline: none;
+  }
+}
+
+.#{iv.$class-prefix}app-frame-aside {
+  grid-area: aside;
+  min-width: 0;
+}
+
+.#{iv.$class-prefix}app-frame-footer {
+  grid-area: footer;
+  min-width: 0;
+}
+
+// The drawer: over everything, header included, from the inline-start edge.
+// It slides out and hides once the slide is over, and shows at once as it
+// opens, so focus can move in straight away.
+.#{iv.$class-prefix}app-frame-nav {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-start: 0;
+  z-index: $extras-z-index-fixed;
+  inline-size: min(
+    #{cv.getVar('app-frame-nav-width')},
+    calc(100vw - #{$-drawer-gap})
+  );
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: cv.getVar('app-frame-nav-padding');
+  background-color: cv.getVar('app-frame-nav-background');
+  box-shadow: cv.getVar('app-frame-drawer-shadow');
+  transform: translateX(-100%);
+  visibility: hidden;
+  transition-property: transform, visibility;
+  transition-duration: cv.getVar('app-frame-transition-duration'), 0s;
+  transition-delay: 0s, cv.getVar('app-frame-transition-duration');
+  transition-timing-function: $extras-easing;
+
+  &:dir(rtl) {
+    transform: translateX(100%);
+  }
+}
+
+// The open drawer is Bulma's active state, on the nav as on a navbar's menu.
+.#{iv.$class-prefix}app-frame
+  > .#{iv.$class-prefix}app-frame-nav.#{iv.$class-prefix}is-active {
+  transform: none;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+// The close button, at the top of the drawer on its far side. Bulma's
+// `.delete` is inline, which an auto margin can't push, whichever loads last.
+.#{iv.$class-prefix}app-frame-nav > .#{iv.$class-prefix}app-frame-close {
+  display: flex;
+  margin-inline-start: auto;
+  margin-block-end: 0.5rem;
+}
+
+.#{iv.$class-prefix}app-frame-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: $extras-z-index-fixed - 1;
+  background-color: cv.getVar('app-frame-backdrop-background');
+  opacity: 0;
+  visibility: hidden;
+  transition-property: opacity, visibility;
+  transition-duration: cv.getVar('app-frame-transition-duration'), 0s;
+  transition-delay: 0s, cv.getVar('app-frame-transition-duration');
+  transition-timing-function: $extras-easing;
+}
+
+.#{iv.$class-prefix}app-frame
+  > .#{iv.$class-prefix}app-frame-backdrop.#{iv.$class-prefix}is-active {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+// Bulma hides a navbar's burger from desktop up. The frame's shows at every
+// width, since from the breakpoint up it collapses the column.
+.#{iv.$class-prefix}navbar-burger.#{iv.$class-prefix}app-frame-burger {
+  display: inline-flex;
+}
+
+// Hidden until it has focus, then over the header's start. It shows at once,
+// rather than fading its background in with Bulma's link transition, which
+// leaves its text over the header's while it fades.
+.#{iv.$class-prefix}app-frame-skip-link {
+  @include extras-sr-only;
+  transition: none;
+
+  &:focus {
+    position: fixed;
+    inset-block-start: 0.5rem;
+    inset-inline-start: 0.5rem;
+    z-index: $extras-z-index-fixed;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0.5em 1em;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+    border-radius: cv.getVar('radius');
+    background-color: cv.getVar('app-frame-skip-link-background');
+    color: cv.getVar('app-frame-skip-link-color');
+    box-shadow: cv.getVar('shadow');
+    @include extras-focus-outline;
+  }
+}
+
+// ---- From the breakpoint up ------------------------------------------------------
+
+// Three columns, the nav's, the page's and the aside's, each as wide as what's
+// in it, under the header. The footer sits under the page. The nav is a
+// column that sticks under the header as tall as the window less the header,
+// and collapsed it slides out past the inline-start edge as its column
+// closes, then hides.
+@mixin -wide {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    'header header header'
+    'nav main aside'
+    'nav footer aside';
+
+  > .#{iv.$class-prefix}app-frame-nav {
+    grid-area: nav;
+    position: sticky;
+    inset: auto;
+    inset-block-start: cv.getVar('app-frame-header-height');
+    z-index: auto;
+    align-self: start;
+    inline-size: cv.getVar('app-frame-nav-width');
+    block-size: calc(100vh - #{cv.getVar('app-frame-header-height')});
+    block-size: calc(100dvh - #{cv.getVar('app-frame-header-height')});
+    border-inline-end: cv.getVar('app-frame-border-width') solid
+      cv.getVar('app-frame-border-color');
+    box-shadow: none;
+    transform: none;
+    visibility: visible;
+    transition-property: margin-inline-start, visibility;
+    transition-delay: 0s;
+  }
+
+  &.#{iv.$class-prefix}is-nav-collapsed > .#{iv.$class-prefix}app-frame-nav {
+    margin-inline-start: calc(-1 * #{cv.getVar('app-frame-nav-width')});
+    visibility: hidden;
+    transition-delay: 0s, cv.getVar('app-frame-transition-duration');
+  }
+
+  > .#{iv.$class-prefix}app-frame-nav > .#{iv.$class-prefix}app-frame-close,
+  > .#{iv.$class-prefix}app-frame-backdrop {
+    display: none;
+  }
+
+  > .#{iv.$class-prefix}app-frame-aside {
+    inline-size: cv.getVar('app-frame-aside-width');
+    border-inline-start: cv.getVar('app-frame-border-width') solid
+      cv.getVar('app-frame-border-color');
+  }
+}
+
+@include mx.tablet {
+  .#{iv.$class-prefix}app-frame.#{iv.$class-prefix}is-tablet {
+    @include -wide;
+  }
+}
+
+@include mx.desktop {
+  .#{iv.$class-prefix}app-frame.#{iv.$class-prefix}is-desktop {
+    @include -wide;
+  }
+}
+
+@include mx.widescreen {
+  .#{iv.$class-prefix}app-frame.#{iv.$class-prefix}is-widescreen {
+    @include -wide;
+  }
+}
+
+// ---- Media ---------------------------------------------------------------------
+
+// The drawer's shadow is dropped in forced colors, so its open edge gets a
+// border, as the column has.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}app-frame-nav {
+    border-inline-end: cv.getVar('app-frame-border-width') solid
+      cv.getVar('app-frame-border-color');
+  }
+}
+
+// No slide, collapse or fade: each state shows at once.
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}app-frame-nav,
+  .#{iv.$class-prefix}app-frame-backdrop {
+    transition: none !important;
+  }
+}

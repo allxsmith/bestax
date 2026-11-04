@@ -23,6 +23,7 @@ import { ScrollArea } from '../components/ScrollArea';
 import { Command } from '../components/Command';
 import { DataTable } from '../components/DataTable';
 import { Splitter } from '../layout/Splitter';
+import { AppFrame } from '../layout/AppFrame';
 import { Slider } from '../form/Slider';
 import { PinInput } from '../form/PinInput';
 import { ColorPicker } from '../form/ColorPicker';
@@ -32,6 +33,7 @@ import { DateInput } from '../form/DateInput';
 import { TimeInput } from '../form/TimeInput';
 import { DateTimeInput } from '../form/DateTimeInput';
 import { DateRangeInput } from '../form/DateRangeInput';
+import { TreeSelect } from '../form/TreeSelect';
 
 const cases: Array<[string, React.ReactElement]> = [
   [
@@ -85,6 +87,18 @@ const cases: Array<[string, React.ReactElement]> = [
     </Splitter>,
   ],
   [
+    // It reads the width in a layout effect, to know which state the burger
+    // toggles.
+    'AppFrame',
+    <AppFrame key="app-frame" defaultNavOpen>
+      <AppFrame.Header>
+        <AppFrame.Burger />
+      </AppFrame.Header>
+      <AppFrame.Nav>Nav</AppFrame.Nav>
+      <AppFrame.Main>Main</AppFrame.Main>
+    </AppFrame>,
+  ],
+  [
     'Command',
     <Command
       key="command"
@@ -128,6 +142,17 @@ const cases: Array<[string, React.ReactElement]> = [
   ['TimeInput', <TimeInput key="time" label="Time" />],
   ['DateTimeInput', <DateTimeInput key="datetime" label="When" />],
   ['DateRangeInput', <DateRangeInput key="range" label="Dates" />],
+  [
+    // Open, so the panel and the tree in it render on the server too.
+    'TreeSelect',
+    <TreeSelect
+      key="tree-select"
+      label="Folder"
+      defaultOpen
+      searchable
+      data={[{ value: 'a', label: 'A', children: [{ value: 'b' }] }]}
+    />,
+  ],
 ];
 
 describe('server rendering (node environment)', () => {

@@ -18,6 +18,7 @@ import { useClassPrefix } from '../helpers/Config';
 import { getActiveElementInTree } from '../helpers/shadowDom';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
+import { MOBILE, useBulmaViewport } from '../helpers/useBulmaViewport';
 import { inertProps } from '../helpers/inertProps';
 import { Icon } from '../elements/Icon';
 import { Button } from '../elements/Button';
@@ -104,25 +105,9 @@ const DefaultNextIcon = () => (
 );
 
 /**
- * The media queries Bulma's `fullhd`, `widescreen`, `desktop` and `tablet`
- * mixins open with, widest first, at Bulma's default breakpoints. The
- * stylesheet picks the count in view with those mixins; these tell the
- * script which count that is. Narrower than the last one is `mobile`.
- */
-const VIEWPORT_QUERIES = [
-  'screen and (min-width: 1408px)',
-  'screen and (min-width: 1216px)',
-  'screen and (min-width: 1024px)',
-  'screen and (min-width: 769px), print',
-];
-
-/** `useBulmaViewport`'s answer below the tablet breakpoint. */
-const MOBILE = VIEWPORT_QUERIES.length;
-
-/**
  * The `--bulma-carousel-items-to-show*` variable each count prop writes, in
- * the order the component lists them: the viewports as above, mobile, and
- * last `itemsToShow` itself.
+ * the order the component lists them: `useBulmaViewport`'s viewports, widest
+ * first, then mobile, and last `itemsToShow` itself.
  */
 const COUNT_SUFFIXES = [
   '-fullhd',
@@ -132,36 +117,6 @@ const COUNT_SUFFIXES = [
   '-mobile',
   '',
 ];
-
-/**
- * Which of Bulma's viewports the window is in: the index of the widest
- * `VIEWPORT_QUERIES` entry that matches, `MOBILE` below them all, or `-1`
- * when that isn't known (on the server, before the first layout effect, and
- * whenever `enabled` is off, so a carousel with one count everywhere
- * subscribes to nothing).
- *
- * @function
- * @param {boolean} enabled - Whether any viewport-specific count is set.
- * @returns {number} The viewport, as described above.
- */
-function useBulmaViewport(enabled: boolean): number {
-  const [viewport, setViewport] = useState(-1);
-
-  useClientLayoutEffect(() => {
-    if (!enabled || typeof window.matchMedia !== 'function') return undefined;
-    const lists = VIEWPORT_QUERIES.map(query => window.matchMedia(query));
-    const update = () => {
-      const index = lists.findIndex(list => list.matches);
-      setViewport(index < 0 ? MOBILE : index);
-    };
-    update();
-    lists.forEach(list => list.addEventListener('change', update));
-    return () =>
-      lists.forEach(list => list.removeEventListener('change', update));
-  }, [enabled]);
-
-  return enabled ? viewport : -1;
-}
 
 /**
  * A count prop as the whole number the carousel works with: rounded down,

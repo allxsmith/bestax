@@ -64,6 +64,12 @@ $picker-trigger-disabled-opacity: 0.5 !default;
     right: 0;
     margin-bottom: cv.getVar('picker-popover-offset');
   }
+  // At least as wide as the anchor it's placed against, as a list under a
+  // field is. Portaled, the anchor's width comes inline instead, since 100%
+  // there would be the viewport's.
+  &.#{iv.$class-prefix}has-anchor-width:not(.#{iv.$class-prefix}is-portal) {
+    min-width: 100%;
+  }
   // Portaled: fixed to the viewport at the top and left the positioning hook
   // sets inline, so the corner's own right and bottom must not apply. Left
   // in, `right: 0` stretches the panel to the viewport's right edge and the

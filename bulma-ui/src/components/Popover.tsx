@@ -17,8 +17,8 @@ import { useIsHydrated } from '../helpers/useIsHydrated';
 import { focusTabStop, useFocusTrap } from '../helpers/useFocusTrap';
 import { marginGap, useAnchoredPosition } from '../helpers/useAnchoredPosition';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
-import { useLatestRef } from '../helpers/useLatestRef';
-import { getDeepestActiveElement, isEventInside } from '../helpers/shadowDom';
+import { getDeepestActiveElement } from '../helpers/shadowDom';
+import { useOutsidePress } from '../helpers/useOutsidePress';
 import { buttonType } from '../helpers/buttonType';
 import { warnOnce } from '../helpers/devWarnings';
 import { Button, ButtonOwnProps } from '../elements/Button';
@@ -210,9 +210,6 @@ const PopoverComponent: React.FC<PopoverProps> = ({
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
   const rootRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  // The last pointerdown React saw inside the panel. React's tree includes
-  // content the panel portals elsewhere, which the DOM path doesn't.
-  const insidePointerRef = useRef<Event | null>(null);
   const baseId = useId();
   const panelId = `${baseId}-panel`;
   const titleId = `${baseId}-title`;
@@ -280,25 +277,14 @@ const PopoverComponent: React.FC<PopoverProps> = ({
     };
   }, [panelMounted, trapFocus, triggerNode]);
 
-  // Read when a press lands outside, so the listener stays put while `close`
-  // changes identity, which it does with `onOpenChange`, and an inline one
-  // changes on every render of the parent.
-  const closeRef = useLatestRef(close);
-
-  useEffect(() => {
-    if (!panelMounted || !closeOnClickOutside) return undefined;
-    const handlePointerDown = (e: PointerEvent) => {
-      if (e === insidePointerRef.current || isEventInside(e, rootRef.current)) {
-        return;
-      }
-      closeRef.current();
-    };
-    // The wrapper is on the page whenever the panel is. Its document, an
-    // iframe's when the tree renders into one, is where presses land.
-    const doc = (rootRef.current as HTMLDivElement).ownerDocument;
-    doc.addEventListener('pointerdown', handlePointerDown);
-    return () => doc.removeEventListener('pointerdown', handlePointerDown);
-  }, [panelMounted, closeOnClickOutside, closeRef]);
+  // A press outside the wrapper, which holds the trigger and the panel,
+  // closes it. One inside the panel's React tree counts as inside, so content
+  // the panel portals elsewhere does too.
+  const markInsidePress = useOutsidePress(
+    rootRef,
+    panelMounted && closeOnClickOutside,
+    close
+  );
 
   const handlePanelKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key !== 'Escape' || !closeOnEscape || e.defaultPrevented) return;
@@ -394,9 +380,7 @@ const PopoverComponent: React.FC<PopoverProps> = ({
                 : undefined
             }
             onKeyDown={handlePanelKeyDown}
-            onPointerDownCapture={e => {
-              insidePointerRef.current = e.nativeEvent;
-            }}
+            onPointerDownCapture={markInsidePress}
           >
             {children}
           </PopoverPanel>

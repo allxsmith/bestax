@@ -63,6 +63,14 @@ Wrap it in the library's `ClientOnly` rather than checking `typeof window`: it r
 until the page has hydrated, so the server and client markup match. `references/api.md` has the
 details.
 
+A button that shows only an icon (Delete in a table row, Settings in a navbar) is `IconButton`:
+`<IconButton icon="trash" aria-label="Delete" />`, rather than a `Button` holding an `Icon`. The
+glyph goes in `icon` or as the one child (`<Icon name="trash" />`, or an SVG), not both. Its
+types require `aria-label`, or `aria-labelledby` in its place, so name the action, not the picture.
+It takes every `Button` prop, is `type="button"` unless you pass `submit` or `reset`, and
+`isRounded` makes it a circle. Several go in `Buttons`, where it's also `Buttons.IconButton`. For a
+description on hover, wrap it in `Tooltip`, which describes it and doesn't name it.
+
 A button that turns something on or off and stays that way (Bold, Mute, Show archived) is
 `ToggleButton`: use it rather than `Button isActive`, which only draws a shade and sets no
 `aria-pressed`. It's always `type="button"`, holds its own state (`defaultPressed`) or takes
@@ -168,9 +176,12 @@ free. `references/api.md` documents the helpers.
 
 ## Styling ladder — use the lowest rung that works
 
-**Rung 1 — helper props only (default).** House rules: never `style={{}}`. Layout with
-`Block`/`Box` and `display="flex"`, `flexDirection`, `alignItems`, `justifyContent`, and space
-the children with `gap`. Before writing `style={{ … }}` anywhere, translate each declaration:
+**Rung 1 — helper props only (default).** House rules: never `style={{}}`. Lay children out
+with `Stack` (a column), `Group` (a row that wraps), `Center` or `Flex`, which are flex
+containers already and zero the margins Bulma gives their children, so `gap` is the only space;
+`alignItems`, `justifyContent` and the rest go straight on them. Don't reach for `Box` as a
+plain flex container: it's a padded, shadowed surface. Before writing `style={{ … }}` anywhere,
+translate each declaration:
 
 | Inline style you're about to write       | Helper props instead                                                                                                                                           |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |

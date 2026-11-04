@@ -1,6 +1,6 @@
 ---
 name: bestax-form
-description: Build forms with @allxsmith/bestax-bulma — Field/Control/Label/Help composition, inputs, selects, checkboxes, radios, switches, and advanced controls (Autocomplete, Combobox, Slider, Numberinput, PinInput, Rate, Taginput, File, date/time). There is no form/validation library; this skill shows the components and the validate-it-yourself error pattern. Use when building a form, wiring inputs to state, or showing validation/error state.
+description: Build forms with @allxsmith/bestax-bulma — Field/Control/Label/Help composition, inputs, selects, checkboxes, radios, switches, and advanced controls (Autocomplete, Combobox, TreeSelect, Slider, Numberinput, PinInput, Rate, Taginput, File, date/time). There is no form/validation library; this skill shows the components and the validate-it-yourself error pattern. Use when building a form, wiring inputs to state, or showing validation/error state.
 license: MIT
 ---
 
@@ -116,6 +116,7 @@ All import from `@allxsmith/bestax-bulma`. Convenience components auto-wrap Fiel
 | `Dropzone`                                              | Drop or pick files; checks `accept`/size/count, lists them, form-ready.    |
 | `Autocomplete`                                          | Free text with suggestions it filters for you, + keyboard nav.             |
 | `Combobox`                                              | A value from a list: `data` for a select, tags or groups, or parts.        |
+| `TreeSelect`                                            | A value, or checked values, from a tree: a field opening a `TreeView`.     |
 | `Slider`                                                | Range slider; single/dual thumbs, steps, tooltips, vertical.               |
 | `Numberinput`                                           | Numeric input with increment/decrement, min/max, step, stepper.            |
 | `PasswordInput` (+ `PasswordInputBase`)                 | A password with a show button inside: an eye, or the words Show and Hide.  |
@@ -136,6 +137,12 @@ is `Autocomplete`, which filters its `data` itself. A value picked from a list i
 parts for a server search whose answer must show unfiltered, or a "Create" item: then it keeps no
 value and never sets the field's text, so you filter the items, keep the value and set the text in
 `onSelect`.
+
+**A value that lives in a tree is `TreeSelect`**, not a `Combobox` with indented labels. Give it
+the tree as `data` (nodes with `value`, `label` and `children`); it opens a panel holding a real
+`TreeView`. `selectionMode` is `'single'` (one value or `null`), `'checkbox'` (a check reaches the
+branch under it, and `checkedStrategy` reports the leaves, the topmost checked items or all of
+them) or `'checkbox-independent'` (each box is its own item's). `searchable` adds a search box.
 
 **A verification code or a PIN is `PinInput`**, not a row of one-character `Input`s with focus
 moved by hand. It holds the code in one real input under a row of boxes, so a screen reader hears
@@ -307,7 +314,7 @@ multi-field form plus the advanced inputs.
 ## Reuse the shipped components
 
 bestax ships the whole form surface — Input, Select, TextArea, Checkbox(es), Radio(s), Switch, File,
-Dropzone, Autocomplete, Combobox, Slider, Numberinput, PinInput, PasswordInput, Rate, Taginput, the date/time inputs, and
+Dropzone, Autocomplete, Combobox, TreeSelect, Slider, Numberinput, PinInput, PasswordInput, Rate, Taginput, the date/time inputs, and
 Fieldset to group them (see the inventory above). **Compose these; don't hand-roll raw `<input class="input">` markup or
 reinvent a control.** If you think a control is missing, check `bulma-ui/src/index.ts` and
 `docs/docs/api/form/` first — it's probably already there under a different name.

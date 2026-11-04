@@ -49,6 +49,14 @@ export interface PickerPopoverProps {
    * `LocaleProvider`'s: the picker's own, from `usePickerLocaleScope`.
    */
   localeScope?: PortalLocale;
+  /**
+   * At least as wide as the anchor: in place through its partial's
+   * `has-anchor-width` rule, which needs the anchor to be the element it's
+   * placed against, and portaled through the anchor's width set inline.
+   */
+  matchWidth?: boolean;
+  /** Placed again after each render, for content that changes size while it's open. */
+  followContent?: boolean;
 }
 
 const isBrowser = typeof window !== 'undefined';
@@ -71,6 +79,8 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
   restoreFocusRef,
   initialFocusSelector,
   localeScope,
+  matchWidth = false,
+  followContent = false,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const resolveContainer = usePortalContainer();
@@ -99,6 +109,8 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
     // the panel.
     offset: 0,
     styledGap: marginGap,
+    matchWidth,
+    followContent,
   });
 
   // Read when a press lands outside or a key arrives, so both listeners stay
@@ -159,6 +171,7 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
     'is-active': isOpen,
     [`is-${resolved.position}`]: true,
     'is-portal': appendToBody,
+    'has-anchor-width': matchWidth,
   });
 
   if (!isOpen) return null;
@@ -168,6 +181,7 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
         position: 'fixed',
         top: resolved.top,
         left: resolved.left,
+        minWidth: resolved.minWidth,
       }
     : {};
 
