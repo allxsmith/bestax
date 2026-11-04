@@ -84,7 +84,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`, `pagination`,
 `affix`
 
-**Layout** (`@allxsmith/bestax-bulma/scss/layout/<name>`): `splitter`, `stack`
+**Layout** (`@allxsmith/bestax-bulma/scss/layout/<name>`): `appframe`, `splitter`, `stack`
 
 **Form** (`@allxsmith/bestax-bulma/scss/form/<name>`):
 `checkbox`, `checkboxcard`, `radio`, `radiocard`, `switch`, `slider`, `numberinput`, `pininput`,
@@ -200,8 +200,8 @@ Notes:
   module in any build that shows a dismissible notification. It doesn't depend on the order of
   the two `@use` lines either.
 - `Delete` is stock Bulma too (`bulma/sass/elements/delete`), and it's the close button of
-  `Notification`, `Message`, `Toast`, a `Modal` card and the tags of `Taginput`, `Combobox` and
-  `Dropzone`. Bulma draws its circle and cross as background colors, which forced colors
+  `Notification`, `Message`, `Toast`, a `Modal` card, `AppFrame`'s drawer and the tags of
+  `Taginput`, `Combobox` and `Dropzone`. Bulma draws its circle and cross as background colors, which forced colors
   (Windows' contrast themes) replaces, so they vanish there. The `delete` extras partial keeps
   them drawn in the system's button colors, and the `Modal`'s floating close
   (`bulma/sass/components/modal`) and `Tag isDelete` (`bulma/sass/elements/tag`) with them, so

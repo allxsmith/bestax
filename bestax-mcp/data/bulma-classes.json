@@ -13095,6 +13095,7 @@
   ],
   "ownClasses": {
     "affix": "Affix",
+    "app-frame": "AppFrame",
     "autocomplete": "Autocomplete",
     "avatar": "Avatar",
     "avatars": "Avatars",

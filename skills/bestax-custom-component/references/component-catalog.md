@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-126 documented components. Generated from the API docs — every exported
+127 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -162,6 +162,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 
 ## Layout
 
+- [AppFrame](https://bestax.io/docs/api/layout/appframe) — The `AppFrame` component lays out an app's pages: a header across the top, a navigation column down the side, the page, and an aside and a footer…
 - [Center](https://bestax.io/docs/api/layout/center) — The `Center` component centers its content on both axes.
 - [Container](https://bestax.io/docs/api/layout/container) — The `Container` component provides a responsive and flexible layout wrapper for your Bulma React UI.
 - [Flex](https://bestax.io/docs/api/layout/flex) — The `Flex` component is a flex container with CSS's own defaults, taking the flex container's properties as props.

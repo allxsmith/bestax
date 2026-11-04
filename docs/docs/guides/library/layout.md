@@ -10,6 +10,44 @@ This page summarizes all Bulma-styled layout components in Bestax, with a brief 
 
 ---
 
+## AppFrame
+
+The frame an app's pages sit in, an app shell: a header across the top, a navigation column down the side, and the page, with the nav a drawer behind the burger on narrow screens and a skip link first.
+
+```tsx live
+<AppFrame>
+  <AppFrame.Header>
+    <Navbar aria-label="Site">
+      <Navbar.Brand>
+        <Navbar.Item href="#">
+          <strong>Acme</strong>
+        </Navbar.Item>
+        <AppFrame.Burger />
+      </Navbar.Brand>
+    </Navbar>
+  </AppFrame.Header>
+  <AppFrame.Nav>
+    <Menu>
+      <Menu.List>
+        <Menu.Item href="#" active>
+          Dashboard
+        </Menu.Item>
+        <Menu.Item href="#">Orders</Menu.Item>
+      </Menu.List>
+    </Menu>
+  </AppFrame.Nav>
+  <AppFrame.Main>
+    <Section>
+      <Paragraph>The page goes here.</Paragraph>
+    </Section>
+  </AppFrame.Main>
+</AppFrame>
+```
+
+[View full documentation.](../../api/layout/appframe)
+
+---
+
 ## Container
 
 A responsive layout wrapper for centering and constraining content. Supports fixed/fluid layouts, breakpoints, and color helpers.
