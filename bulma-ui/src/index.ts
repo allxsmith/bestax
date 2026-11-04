@@ -192,6 +192,7 @@ export type { NumberFormatFunction } from './helpers/localeFormat';
 export { useFocusTrap } from './helpers/useFocusTrap';
 export type { UseFocusTrapOptions } from './helpers/useFocusTrap';
 
+export * from './layout/AppFrame';
 export * from './layout/Center';
 export * from './layout/Container';
 export * from './layout/Flex';

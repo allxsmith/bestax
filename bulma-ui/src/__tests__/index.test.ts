@@ -7,6 +7,13 @@ import * as IndexExports from '../index';
 // deprecated and leaves at the next major.
 const PUBLIC_EXPORTS = [
   'Affix',
+  'AppFrame',
+  'AppFrameAside',
+  'AppFrameBurger',
+  'AppFrameFooter',
+  'AppFrameHeader',
+  'AppFrameMain',
+  'AppFrameNav',
   'Autocomplete',
   'Avatar',
   'Avatars',
@@ -237,6 +244,7 @@ const PUBLIC_EXPORTS = [
   'switchColors',
   'switchSizes',
   'toast',
+  'useAppFrame',
   'useBulmaClasses',
   'useClassPrefix',
   'useColorClasses',

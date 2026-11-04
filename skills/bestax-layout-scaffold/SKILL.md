@@ -154,6 +154,13 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `defaultOpen` on the group holding the current page (or `open`/`onOpenChange` to hold the state).
   Its heading is a real button with `aria-expanded`, and its links stay links, each a tab stop.
   Not `TreeView`, and not a `Collapse` inside a hand-written `<li>`.
+- **An app's frame, a header across the top with a navigation column down the side, is
+  `AppFrame`**, not a `fixed` `Navbar` over `Columns`: `<AppFrame>` with `AppFrame.Header` (a
+  `Navbar` with `<AppFrame.Burger />` in its `Navbar.Brand`), `AppFrame.Nav` (the `Menu`) and
+  `AppFrame.Main` (the page), plus `AppFrame.Aside` and `AppFrame.Footer` when there are any. The
+  header and the column stick on their own, so no `fixed` and no `has-navbar-fixed-top`; below
+  desktop the column is a drawer the burger opens, and from desktop up the burger collapses it.
+  It renders the page's `<main>`, so it goes at the top of the app, never inside a `<main>`.
 - **Panes the user resizes are `Splitter`** (a file tree beside an editor, a list beside its
   detail, a query above its results), not hand-written drag code or fixed `Columns`:
   `<Splitter height={480}>` with a `<Splitter.Pane label="Files" defaultSize={25} minSize="12rem">`
@@ -307,7 +314,8 @@ bestax's too, but only while the starter's `App` imports it.
 
 ## Examples
 
-- `examples/app-shell.tsx` — fixed `Navbar` + sidebar `Menu` + content (dashboard).
+- `examples/app-shell.tsx`: an `AppFrame` with a `Navbar` header, a `Menu` column and the page
+  (dashboard).
 - `examples/landing.tsx` — fixed `Navbar` (controlled burger) + `Hero` + `Section`s + `Footer`.
 - `examples/centered.tsx` — centered single column (auth/settings).
 - `examples/card-grid.tsx` — multiline `Columns` of `Card`s (catalog).
@@ -321,8 +329,10 @@ bestax's too, but only while the starter's `App` imports it.
 - [ ] Use `Grid`/`Cell` for uniform grids (equal heights per row, free); `Columns`/`Column`
       for proportional or per-breakpoint side-by-side layout — with the flex recipe when its
       cards must match height.
-- [ ] Wire `active` state to **both** `Navbar.Burger` and `Navbar.Menu` (they are controlled).
-- [ ] For a fixed navbar, add `has-navbar-fixed-top` to `<html>`.
+- [ ] An app shell is `AppFrame`, with `AppFrame.Burger` in `Navbar.Brand`: no `fixed`, no
+      `has-navbar-fixed-top`, and never inside a `<main>`.
+- [ ] Elsewhere, wire `active` state to **both** `Navbar.Burger` and `Navbar.Menu` (they are
+      controlled), and for a fixed navbar add `has-navbar-fixed-top` to `<html>`.
 - [ ] Do not use `Tile` — it is not shipped.
 - [ ] Action feedback goes through `Toast`, a confirmation through `Dialog`, a text-styled
       action through `LinkButton` — not `Notification`, `Modal` or a bare `<a>`.

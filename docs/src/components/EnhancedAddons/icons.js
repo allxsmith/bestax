@@ -338,6 +338,17 @@ function ScrollAreaIcon() {
   );
 }
 
+// A window with a bar across its top and a column down its side
+function AppFrameIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M3 8.5h18" />
+      <path d="M9 8.5V20" />
+    </svg>
+  );
+}
+
 // Two blocks stacked in a column, over a row of three small ones
 function StackIcon() {
   return (
@@ -419,6 +430,7 @@ function TreeViewIcon() {
 }
 
 const ADDON_ICONS = {
+  appframe: AppFrameIcon,
   linkbutton: LinkButtonIcon,
   kbd: KbdIcon,
   affix: AffixIcon,

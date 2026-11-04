@@ -1,0 +1,631 @@
+{
+  "name": "AppFrame",
+  "kind": "component",
+  "category": "layout",
+  "slug": "layout/appframe",
+  "docsUrl": "https://bestax.io/docs/api/layout/appframe",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<AppFrame>\n  <AppFrame.Header>\n    <Navbar aria-label=\"Site\">\n      <Navbar.Brand>\n        <Navbar.Item href=\"#\">\n          <strong>Acme</strong>\n        </Navbar.Item>\n        <AppFrame.Burger />\n      </Navbar.Brand>\n    </Navbar>\n  </AppFrame.Header>\n  <AppFrame.Nav>\n    <Menu>\n      <Menu.List>\n        <Menu.Item href=\"#\" active>\n          Dashboard\n        </Menu.Item>\n        <Menu.Item href=\"#\">Orders</Menu.Item>\n        <Menu.Item href=\"#\">Settings</Menu.Item>\n      </Menu.List>\n    </Menu>\n  </AppFrame.Nav>\n  <AppFrame.Main>\n    <Section>\n      <Title as=\"h1\">Dashboard</Title>\n      <Paragraph>The page goes here.</Paragraph>\n    </Section>\n  </AppFrame.Main>\n  <AppFrame.Footer>\n    <Footer as=\"div\">\n      <Paragraph textAlign=\"centered\">Acme, Inc.</Paragraph>\n    </Footer>\n  </AppFrame.Footer>\n</AppFrame>"
+    },
+    {
+      "title": "The Drawer",
+      "code": "<AppFrame breakpoint=\"widescreen\">\n  <AppFrame.Header>\n    <Navbar aria-label=\"Site\">\n      <Navbar.Brand>\n        <Navbar.Item href=\"#\">\n          <strong>Acme</strong>\n        </Navbar.Item>\n        <AppFrame.Burger />\n      </Navbar.Brand>\n    </Navbar>\n  </AppFrame.Header>\n  <AppFrame.Nav width=\"14rem\">\n    <Menu>\n      <Menu.List>\n        <Menu.Item href=\"#\" active>\n          Inbox\n        </Menu.Item>\n        <Menu.Item href=\"#\">Sent</Menu.Item>\n        <Menu.Item href=\"#\">Archive</Menu.Item>\n      </Menu.List>\n    </Menu>\n  </AppFrame.Nav>\n  <AppFrame.Main>\n    <Section>\n      <Paragraph>\n        Narrower than widescreen, the burger opens the drawer.\n      </Paragraph>\n    </Section>\n  </AppFrame.Main>\n</AppFrame>"
+    },
+    {
+      "title": "Collapsing the Column",
+      "code": "function example() {\n  const [collapsed, setCollapsed] = useState(false);\n  return (\n    <AppFrame navCollapsed={collapsed} onNavCollapsedChange={setCollapsed}>\n      <AppFrame.Header>\n        <Navbar aria-label=\"Site\">\n          <Navbar.Brand>\n            <Navbar.Item href=\"#\">\n              <strong>Acme</strong>\n            </Navbar.Item>\n            <AppFrame.Burger />\n          </Navbar.Brand>\n        </Navbar>\n      </AppFrame.Header>\n      <AppFrame.Nav>\n        <Menu>\n          <Menu.List>\n            <Menu.Item href=\"#\" active>\n              Dashboard\n            </Menu.Item>\n            <Menu.Item href=\"#\">Orders</Menu.Item>\n          </Menu.List>\n        </Menu>\n      </AppFrame.Nav>\n      <AppFrame.Main>\n        <Section>\n          <Paragraph>\n            The column is {collapsed ? 'collapsed' : 'expanded'}.\n          </Paragraph>\n        </Section>\n      </AppFrame.Main>\n    </AppFrame>\n  );\n}"
+    },
+    {
+      "title": "Keeping the State",
+      "code": "// On the server, read the cookie into `initialCollapsed`, then:\nconst [collapsed, setCollapsed] = useState(initialCollapsed);\n\n<AppFrame\n  navCollapsed={collapsed}\n  onNavCollapsedChange={next => {\n    setCollapsed(next);\n    document.cookie = `nav-collapsed=${next}; path=/; max-age=31536000`;\n  }}\n>\n  …\n</AppFrame>;"
+    },
+    {
+      "title": "Beside the Page",
+      "code": "<AppFrame>\n  <AppFrame.Header>\n    <Navbar aria-label=\"Site\">\n      <Navbar.Brand>\n        <Navbar.Item href=\"#\">\n          <strong>Docs</strong>\n        </Navbar.Item>\n        <AppFrame.Burger />\n      </Navbar.Brand>\n    </Navbar>\n  </AppFrame.Header>\n  <AppFrame.Nav>\n    <Menu>\n      <Menu.List>\n        <Menu.Item href=\"#\" active>\n          Getting started\n        </Menu.Item>\n        <Menu.Item href=\"#\">Components</Menu.Item>\n      </Menu.List>\n    </Menu>\n  </AppFrame.Nav>\n  <AppFrame.Main>\n    <Section>\n      <Title as=\"h1\">Getting started</Title>\n    </Section>\n  </AppFrame.Main>\n  <AppFrame.Aside aria-label=\"On this page\" width=\"14rem\" p=\"4\">\n    <Paragraph textWeight=\"semibold\">On this page</Paragraph>\n    <Paragraph>Install</Paragraph>\n  </AppFrame.Aside>\n</AppFrame>"
+    },
+    {
+      "title": "A Toggle of Your Own",
+      "code": "function example() {\n  function SectionsToggle() {\n    const frame = useAppFrame();\n    if (!frame) return null;\n    const expanded = frame.isDrawer ? frame.navOpen : !frame.navCollapsed;\n    return (\n      <Button\n        size=\"small\"\n        aria-controls={frame.navId}\n        aria-expanded={expanded}\n        onClick={event => {\n          event.currentTarget.focus();\n          frame.toggleNav();\n        }}\n      >\n        {expanded ? 'Hide sections' : 'Show sections'}\n      </Button>\n    );\n  }\n  return (\n    <AppFrame>\n      <AppFrame.Nav>\n        <Menu>\n          <Menu.List>\n            <Menu.Item href=\"#\" active>\n              Dashboard\n            </Menu.Item>\n          </Menu.List>\n        </Menu>\n      </AppFrame.Nav>\n      <AppFrame.Main>\n        <Section>\n          <SectionsToggle />\n        </Section>\n      </AppFrame.Main>\n    </AppFrame>\n  );\n}"
+    },
+    {
+      "title": "Labels",
+      "code": "<AppFrame\n  labels={{\n    skipLink: 'Zum Inhalt springen',\n    nav: 'Bereiche',\n    closeNav: 'Navigation schließen',\n    burger: 'Menü',\n  }}\n>\n  …\n</AppFrame>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<AppFrame>\n  <AppFrameHeader>\n    <Navbar aria-label=\"Site\">\n      <Navbar.Brand>\n        <Navbar.Item href=\"#\">\n          <strong>Acme</strong>\n        </Navbar.Item>\n        <AppFrameBurger />\n      </Navbar.Brand>\n    </Navbar>\n  </AppFrameHeader>\n  <AppFrameNav>\n    <Menu>\n      <Menu.List>\n        <Menu.Item href=\"#\" active>\n          Dashboard\n        </Menu.Item>\n      </Menu.List>\n    </Menu>\n  </AppFrameNav>\n  <AppFrame.Main>\n    <Section>\n      <Paragraph>\n        AppFrameNav and AppFrame.Nav are the same component.\n      </Paragraph>\n    </Section>\n  </AppFrame.Main>\n</AppFrame>"
+    }
+  ],
+  "accessibility": "- **Landmarks:** the header, the nav, the page and the footer are the page's banner, navigation,\n  main and contentinfo landmarks, and the aside a complementary one, as long as the frame sits at\n  the top of the page. A development build warns when it sits inside a `main` or a sectioning\n  element, where the header and footer stop being landmarks.\n- **Names:** the nav is named \"Sections\" (`labels.nav`), since the `Navbar` in the header names\n  its own navigation. The name leaves out the word \"navigation\", which the role says. A `Menu`\n  in the nav keeps its `<aside>`, which inside a `<nav>` is a plain element unless it's named.\n- **Skip link:** the first thing on the page, hidden until it has focus, moves focus to the page's\n  `<main>` (WCAG 2.4.1).\n- **Sticky header:** `scroll-padding-top` on the document keeps an in-page link's target and a\n  focused element below the header (WCAG 2.4.11, technique C43).\n- **The burger** is a button named \"menu\" (`labels.burger`), with `aria-expanded` saying whether\n  the drawer is open, or from the breakpoint up whether the column is shown, and `aria-controls`\n  naming the nav. The server can't know the width, so until the page hydrates the burger has no\n  `aria-expanded` and shows its bars, and the first paint after hydration has both right.\n- **The drawer** is modal by default: focus moves to its close button, Tab and Shift+Tab stay\n  inside, the page doesn't scroll, the rest of the frame is inert, and Escape closes it while it's\n  the topmost overlay, so a `Modal` opened from it closes first. Escape, the close button and a\n  click on the backdrop hand focus back to the burger, and so does a press outside the drawer\n  without `overlay`, before the press moves it to what was pressed. The close button is there for\n  a touch screen reader user, who has no Escape key. It stays a navigation landmark rather than a\n  dialog: the inert frame is what keeps assistive technology inside it, so keep the page's content\n  inside the frame's parts.\n- **A closed drawer and a collapsed column** are `visibility: hidden`, so their links are out of\n  the Tab order and the accessibility tree before any script runs.\n- **Reflow:** at 320 pixels wide the nav is a drawer, so nothing scrolls sideways (WCAG 1.4.10).\n- **Motion:** the drawer's slide, the backdrop's fade and the column's collapse don't play under\n  `prefers-reduced-motion: reduce`.\n- **Forced colors:** the column keeps its divider, and the drawer gets a border on its open edge in\n  place of its shadow.\n- **Right to left:** the column sits on the right, and the drawer slides in from the right.",
+  "related": [
+    "Footer",
+    "Menu",
+    "Navbar",
+    "Sidebar",
+    "Splitter",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/layout-appframe--default",
+  "summary": "The `AppFrame` component lays out an app's pages: a header across the top, a navigation column down the side, the page, and an aside and a footer, with the nav a drawer behind a burger on narrow screens. The header and the column stick while the document scrolls, and a skip link comes first. The layout is CSS, so the server renders it as the browser does. It holds two states, each yours to control: whether the drawer is open, and whether the column is collapsed. `AppFrame.Burger` and `useAppFrame()` toggle whichever applies at the current width.",
+  "import": "import { AppFrame, useAppFrame } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/layout/AppFrame.tsx",
+  "rootClass": "app-frame",
+  "parts": [
+    {
+      "path": "AppFrame",
+      "summary": "The `AppFrame` component lays out an app's pages: a header across the top, a navigation column down the side, the page, and an aside and a footer, with the nav a drawer behind a burger on narrow screens. The header and the column stick while the document scrolls, and a skip link comes first. The layout is CSS, so the server renders it as the browser does. It holds two states, each yours to control: whether the drawer is open, and whether the column is collapsed. `AppFrame.Burger` and `useAppFrame()` toggle whichever applies at the current width.",
+      "component": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The parts, each a direct child: `Header`, `Nav`, `Main`, `Aside` and `Footer`, in that order, since it's the Tab order. The frame reads the `id` of `Main` and `Nav` off its children for the skip link and the burger, so a part wrapped in a component of your own takes no `id` of its own. Put the frame at the top of the page, outside any `main` or sectioning element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "breakpoint",
+          "type": "'tablet' | 'desktop' | 'widescreen'",
+          "default": "'desktop'",
+          "description": "The width from which the nav is a column beside the page. Below it, the nav is a drawer the burger opens. The stylesheet switches the layout at Bulma's breakpoint, and the script reads the width at Bulma's default breakpoints, so a theme that moves Bulma's breakpoints moves the layout but not which state the burger toggles.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "navOpen",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the drawer is open, below the breakpoint. With it, the state is yours: update it from `onNavOpenChange`. It has no effect from the breakpoint up, where the frame asks to close it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultNavOpen",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the drawer starts open.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onNavOpenChange",
+          "type": "(open: boolean) => void",
+          "default": null,
+          "description": "Called with the state asked for: by the burger, `useAppFrame()`, Escape, a press outside, the close button, a followed link (see `AppFrame.Nav`'s `closeOnNavigate`), or the window being at or past the breakpoint while it's open, which closes it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "navCollapsed",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the column is collapsed out of view, from the breakpoint up. With it, the state is yours: update it from `onNavCollapsedChange`. It has no effect below the breakpoint, where the drawer always shows the whole nav.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultNavCollapsed",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the column starts collapsed.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onNavCollapsedChange",
+          "type": "(collapsed: boolean) => void",
+          "default": null,
+          "description": "Called with the state asked for, by the burger or `useAppFrame()`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "skipLink",
+          "type": "boolean",
+          "default": "true",
+          "description": "Renders a skip link first, visible when it has focus, that moves focus to `AppFrame.Main`. Turn it off only for a page that has its own.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "{ skipLink?: string; nav?: string; closeNav?: string; burger?: string }",
+          "default": null,
+          "description": "The strings the frame renders. Each one left out keeps its English default.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the root `<div>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "AppFrame.Header",
+      "summary": "The top bar of an AppFrame, which sticks while the page scrolls.",
+      "component": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Usually a `Navbar`, not `fixed`, with `AppFrame.Burger` in its `Navbar.Brand`. A header taller than Bulma's navbar sets `--bulma-app-frame-header-height` on `:root`, so the nav column, an in-page link and focus clear it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<header>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "AppFrame.Nav",
+      "summary": "The navigation of an AppFrame: a column beside the page from the breakpoint up, and a drawer below it.",
+      "component": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Usually a `Menu`. A nav taller than the window scrolls on its own. With `overlay`, the rest of the frame is inert while the drawer is open, so an overlay opened from the drawer, such as a `Modal`, goes inside the nav or renders outside the frame (Modal's `portal`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "number | string",
+          "default": null,
+          "description": "The column's width, and the drawer's up to the window's width less a strip of backdrop. A number is pixels, and a string any CSS length. It writes `--bulma-app-frame-nav-width`, 16rem by default.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "overlay",
+          "type": "boolean",
+          "default": "true",
+          "description": "Shows a backdrop behind the drawer and makes it modal: Tab stays inside, the page scroll locks, and the rest of the frame is inert, while what renders outside it, such as a Modal opened from the drawer or a toast, stays live. Without it the drawer covers the page without holding Tab, and focus can move to the page beside it. Either way focus moves in as it opens. Sidebar's `overlay`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnEscape",
+          "type": "boolean",
+          "default": "true",
+          "description": "Closes the drawer on Escape, while it's the topmost overlay, so Escape closes one layer at a time.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnClickOutside",
+          "type": "boolean",
+          "default": "true",
+          "description": "Closes the drawer on a press outside it while it's the topmost overlay: a click on the backdrop, or without `overlay` a press anywhere outside it. Focus goes back to the burger as it closes. Without `overlay`, the press's own mousedown then moves it, as on any page: to what was pressed if that takes focus, and otherwise off the burger to the page. A touch that scrolls leaves it on the burger. A press on a control whose `aria-controls` names the nav, such as the burger, is left to that control. Popover's `closeOnClickOutside`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnNavigate",
+          "type": "boolean",
+          "default": "true",
+          "description": "Closes the drawer when a link inside it is followed with a plain click: not with a modifier key held, and not on a link with a `target` other than `_self` or a `download`. Only a link the nav holds in the page counts, not one in a Modal or a popup it portals elsewhere. Focus goes back to the burger, and the navigation takes it from there: a router that moves focus on navigation moves it, and an in-page `#` link leaves it at its target, as it does anywhere on the page. Turn it off for a drawer of filters rather than links.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<nav>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "default": null,
+          "description": "The nav's id, which the burger's `aria-controls` points at. The frame makes one when there's none.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "default": null,
+          "description": "The nav's name. Without it or `aria-labelledby`, it's the frame's `labels.nav`, \"Sections\".",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "AppFrame.Main",
+      "summary": "The page's main content in an AppFrame, which the skip link moves focus to.",
+      "component": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The page. A `Container` or a `Section` inside it gives Bulma's widths and padding.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<main>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "default": null,
+          "description": "Its id, which the skip link points at. The frame makes one when there's none.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "AppFrame.Aside",
+      "summary": "Content beside the page in an AppFrame, which moves under it below the breakpoint.",
+      "component": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "What sits beside the page: an outline, details, filters.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "number | string",
+          "default": null,
+          "description": "Its width from the breakpoint up; below it, the aside moves under the page. A number is pixels, and a string any CSS length. It writes `--bulma-app-frame-aside-width`, 20rem by default.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<aside>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "AppFrame.Footer",
+      "summary": "The bottom of an AppFrame, under the page.",
+      "component": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Plain content, or bestax's `Footer` with `as=\"div\"` for Bulma's footer look.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<footer>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "AppFrame.Burger",
+      "summary": "The button that opens the drawer, or collapses the column from the breakpoint up: Navbar.Burger, wired to the frame.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color for the burger.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Renders `has-text-<color>`, exactly like `textColor`. Bulma has no `.navbar-burger.is-<color>` rule, so this is not a filled variant. `textColor` takes precedence when both are set, and is the one that reaches the full color list.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Custom content inside the burger, rendered after its four bar spans. Bulma styles every `<span>` in the burger as a bar, so an extra span here draws an extra bar.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "default": "'menu'",
+          "description": "Accessible name. Pass your own to replace it. An empty one, or a spread carrying `'aria-label': undefined`, keeps the default rather than leaving the button unnamed.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onClick",
+          "type": "React.MouseEventHandler<HTMLButtonElement>",
+          "default": null,
+          "description": "Click handler.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLButtonElement>",
+          "default": null,
+          "description": "Ref forwarded to the burger button element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "type",
+          "type": "'button' | 'submit' | 'reset'",
+          "default": "'button'",
+          "description": "Button type. Defaults to `'button'`, so a burger inside a form does not submit it. Pass `'submit'` or `'reset'` and yours is used; any other value, or a spread carrying `type: undefined`, renders `'button'`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <button> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-app-frame-header-height",
+      "sass": "$app-frame-header-height",
+      "default": "var(--bulma-navbar-height)",
+      "scope": "global"
+    },
+    {
+      "css": "--bulma-app-frame-header-background",
+      "sass": "$app-frame-header-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-app-frame-nav-width",
+      "sass": "$app-frame-nav-width",
+      "default": "16rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-app-frame-nav-padding",
+      "sass": "$app-frame-nav-padding",
+      "default": "0.75rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-app-frame-nav-background",
+      "sass": "$app-frame-nav-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-app-frame-aside-width",
+      "sass": "$app-frame-aside-width",
+      "default": "20rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-app-frame-border-color",
+      "sass": "$app-frame-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-app-frame-border-width",
+      "sass": "$app-frame-border-width",
+      "default": "1px",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-app-frame-backdrop-background",
+      "sass": "$app-frame-backdrop-background",
+      "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.86)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-app-frame-drawer-shadow",
+      "sass": "$app-frame-drawer-shadow",
+      "default": "var(--bulma-shadow)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-app-frame-transition-duration",
+      "sass": "$app-frame-transition-duration",
+      "default": "var(--bulma-duration)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-app-frame-skip-link-background",
+      "sass": "$app-frame-skip-link-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-app-frame-skip-link-color",
+      "sass": "$app-frame-skip-link-color",
+      "default": "var(--bulma-link)",
+      "scope": "root"
+    }
+  ]
+}
