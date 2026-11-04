@@ -90,7 +90,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `checkbox`, `checkboxcard`, `radio`, `radiocard`, `switch`, `slider`, `numberinput`, `pininput`,
 `rate`, `autocomplete`, `combobox`, `taginput`, `picker-popover`, `dateinput`, `timeinput`,
 `datetimeinput`, `daterangeinput`, `file`, `fieldset`, `field`, `dropzone`, `colorpicker`,
-`colorinput`, `treeselect`
+`colorinput`, `passwordinput`, `treeselect`
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `colorswatch`, `delete`,
 `descriptionlist`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`, `progress`,
@@ -169,6 +169,9 @@ Notes:
   `scss/form/colorpicker`, and `bulma/sass/form/tools` for the label and help text around it.
 - `ColorInput` opens a `ColorPicker` in the pickers' popover, so it needs `colorpicker` (and what
   that needs) and `picker-popover` next to `colorinput`.
+- `PasswordInput` lays its button over a Bulma input, so an app using it needs
+  `bulma/sass/form/input-textarea` next to `scss/form/passwordinput`, and `bulma/sass/form/tools`
+  for the label and help text around it.
 - `TreeSelect` opens a `TreeView` in the pickers' popover, so it needs `components/treeview`,
   `form/checkbox` for its boxes and `picker-popover` next to `treeselect`, with
   `bulma/sass/form/input-textarea`, `bulma/sass/elements/tag`, `bulma/sass/elements/delete` and

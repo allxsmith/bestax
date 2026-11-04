@@ -75,7 +75,7 @@
     },
     {
       "title": "Password Reveal",
-      "code": "function PasswordReveal() {\n  const id = React.useId();\n  const [visible, setVisible] = useState(false);\n\n  return (\n    <Field label=\"Password\" labelProps={{ htmlFor: id }}>\n      <Field hasAddons>\n        <Control isExpanded>\n          <Input\n            id={id}\n            type={visible ? 'text' : 'password'}\n            autoComplete=\"current-password\"\n          />\n        </Control>\n        <Control>\n          <Button\n            type=\"button\"\n            aria-label=\"Show password\"\n            aria-pressed={visible}\n            onClick={() => setVisible(shown => !shown)}\n          >\n            <Icon name={visible ? 'eye-slash' : 'eye'} aria-hidden=\"true\" />\n          </Button>\n        </Control>\n      </Field>\n    </Field>\n  );\n}"
+      "code": "<PasswordInput label=\"Password\" />"
     },
     {
       "title": "Copy Button",
