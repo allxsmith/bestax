@@ -687,6 +687,30 @@ in a tooltip without an override of its own. The sizes are in `em`, so `textSize
 `--bulma-kbd-border-width`, `--bulma-kbd-color`, `--bulma-kbd-family`, `--bulma-kbd-padding`,
 `--bulma-kbd-radius`, `--bulma-kbd-size`, `--bulma-kbd-weight`
 
+### Lightbox
+
+Declared on the viewer's root, `.modal.lightbox`, which also sets Bulma's own
+`--bulma-modal-content-width`, so the image is as wide as the viewer less the room for the arrows.
+That's two classes, so a lone class through `className` loses to it: set them inline through
+`style`, which lands on the root, or with a rule at least as specific that loads after the
+library's. Its background is Bulma's modal background, `--bulma-modal-background-background-color`,
+near-black in both schemes, which is why the text and the icons default to white; keep them light
+if you change it. In forced colors the buttons' borders take the system's colors whatever these say.
+The zoom buttons start from the arrows' backgrounds and the error's text from the caption's color,
+so each follows the other until you set it apart. The fades and the zoom take Bulma's
+`--bulma-duration` and `--bulma-easing`.
+
+`--bulma-lightbox-animation-duration`, `--bulma-lightbox-arrow-background`,
+`--bulma-lightbox-arrow-background-hover`, `--bulma-lightbox-arrow-color`,
+`--bulma-lightbox-arrow-icon-size`, `--bulma-lightbox-arrow-offset`, `--bulma-lightbox-arrow-size`,
+`--bulma-lightbox-button-border-width`, `--bulma-lightbox-caption-color`,
+`--bulma-lightbox-caption-max-width`, `--bulma-lightbox-caption-padding`,
+`--bulma-lightbox-controls-z-index`, `--bulma-lightbox-disabled-opacity`,
+`--bulma-lightbox-error-color`, `--bulma-lightbox-error-gap`, `--bulma-lightbox-error-padding`,
+`--bulma-lightbox-image-max-height`, `--bulma-lightbox-loader-size`, `--bulma-lightbox-spacing`,
+`--bulma-lightbox-toolbar-button-background`, `--bulma-lightbox-toolbar-button-background-hover`,
+`--bulma-lightbox-toolbar-color`, `--bulma-lightbox-toolbar-gap`, `--bulma-lightbox-toolbar-icon-size`
+
 ### LinkButton
 
 Declared on the compound `.button.link-button` — see the compound-selector exception above.

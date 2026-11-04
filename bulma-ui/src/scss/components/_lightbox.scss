@@ -1,0 +1,392 @@
+// Bestax Extras - Lightbox Styles
+// Bulma's image modal, finished: `.modal` with its near-black background and
+// `.modal-close.is-large`, the image centred as large as the viewer allows,
+// a bar along the top with the counter and the zoom buttons, round previous
+// and next buttons at the inline edges, and the caption under the image.
+//
+// The root carries both `modal` and `lightbox`, so these rules outrank
+// Bulma's `.modal` ones in either stylesheet order. The space around the
+// image takes no pointer events, so a click there lands on
+// `.modal-background`, which closes the viewer.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+@use '../variables' as *;
+@use '../mixins' as *;
+
+// Carousel's overlay arrows, light controls on a dark tint in either scheme.
+// The same values rather than an `@use` of `_carousel.scss`, which would put
+// the carousel's whole stylesheet into a modular build that asks only for
+// this one.
+$lightbox-arrow-background: hsla(
+  #{cv.getVar('scheme-h')},
+  #{cv.getVar('scheme-s')},
+  #{cv.getVar('scheme-invert-l')},
+  0.3
+) !default;
+$lightbox-arrow-background-hover: hsla(
+  #{cv.getVar('scheme-h')},
+  #{cv.getVar('scheme-s')},
+  #{cv.getVar('scheme-invert-l')},
+  0.5
+) !default;
+$lightbox-arrow-color: cv.getVar('white') !default;
+$lightbox-arrow-size: 3rem !default;
+$lightbox-arrow-offset: 1rem !default;
+$lightbox-arrow-icon-size: 1.5rem !default;
+// The zoom buttons in the toolbar start from the arrows' look.
+$lightbox-toolbar-button-background: cv.getVar(
+  'lightbox-arrow-background'
+) !default;
+$lightbox-toolbar-button-background-hover: cv.getVar(
+  'lightbox-arrow-background-hover'
+) !default;
+$lightbox-toolbar-icon-size: 1.25rem !default;
+// The round buttons' border, transparent until forced colors draws it.
+$lightbox-button-border-width: 1px !default;
+// A button that does nothing at an end, or at a zoom limit.
+$lightbox-disabled-opacity: 0.4 !default;
+// The close button, the toolbar and the arrows sit over the image.
+$lightbox-controls-z-index: $extras-z-index-base !default;
+// The modal's background stays near-black in Bulma's dark theme too, so the
+// text on it is white in both.
+$lightbox-toolbar-color: cv.getVar('white') !default;
+$lightbox-toolbar-gap: 0.75rem !default;
+$lightbox-caption-color: cv.getVar('white') !default;
+$lightbox-caption-max-width: 40em !default;
+$lightbox-caption-padding: 0.75rem 1rem 0 !default;
+// A failed image's message and Retry, where the image would be.
+$lightbox-error-color: cv.getVar('lightbox-caption-color') !default;
+$lightbox-error-gap: 0.75rem !default;
+$lightbox-error-padding: 1rem !default;
+$lightbox-loader-size: 2.5rem !default;
+// The band kept free above the image for the toolbar and the close button,
+// and below it, so the image stays centred.
+$lightbox-spacing: 4.5rem !default;
+// The image and its caption share the viewer's height less the two bands.
+$lightbox-image-max-height: calc(
+  100% - 2 * #{cv.getVar('lightbox-spacing')}
+) !default;
+// The fades and the zoom, timed and eased as Bulma's own transitions are.
+$lightbox-animation-duration: cv.getVar('duration') !default;
+
+.#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox {
+  @include cv.register-vars(
+    (
+      'lightbox-arrow-background': #{$lightbox-arrow-background},
+      'lightbox-arrow-background-hover': #{$lightbox-arrow-background-hover},
+      'lightbox-arrow-color': #{$lightbox-arrow-color},
+      'lightbox-arrow-size': #{$lightbox-arrow-size},
+      'lightbox-arrow-offset': #{$lightbox-arrow-offset},
+      'lightbox-arrow-icon-size': #{$lightbox-arrow-icon-size},
+      'lightbox-toolbar-button-background':
+        #{$lightbox-toolbar-button-background},
+      'lightbox-toolbar-button-background-hover':
+        #{$lightbox-toolbar-button-background-hover},
+      'lightbox-toolbar-icon-size': #{$lightbox-toolbar-icon-size},
+      'lightbox-button-border-width': #{$lightbox-button-border-width},
+      'lightbox-disabled-opacity': #{$lightbox-disabled-opacity},
+      'lightbox-controls-z-index': #{$lightbox-controls-z-index},
+      'lightbox-toolbar-color': #{$lightbox-toolbar-color},
+      'lightbox-toolbar-gap': #{$lightbox-toolbar-gap},
+      'lightbox-caption-color': #{$lightbox-caption-color},
+      'lightbox-caption-max-width': #{$lightbox-caption-max-width},
+      'lightbox-caption-padding': #{$lightbox-caption-padding},
+      'lightbox-error-color': #{$lightbox-error-color},
+      'lightbox-error-gap': #{$lightbox-error-gap},
+      'lightbox-error-padding': #{$lightbox-error-padding},
+      'lightbox-loader-size': #{$lightbox-loader-size},
+      'lightbox-spacing': #{$lightbox-spacing},
+      'lightbox-image-max-height': #{$lightbox-image-max-height},
+      'lightbox-animation-duration': #{$lightbox-animation-duration},
+      // Bulma's own, wide enough for the image with room for the arrows at
+      // either side, in place of its 40rem.
+      'modal-content-width': calc(
+          100% - 2 *
+            (
+              #{cv.getVar('lightbox-arrow-size')} + 2 *
+                #{cv.getVar('lightbox-arrow-offset')}
+            )
+        ),
+    )
+  );
+}
+
+// ---- The viewer ---------------------------------------------------------------
+
+.#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox.#{iv.$class-prefix}is-active {
+  animation: extras-fade-in cv.getVar('lightbox-animation-duration')
+    $extras-easing;
+}
+
+.#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox:focus {
+  outline: none;
+}
+
+.#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox
+  > .#{iv.$class-prefix}modal-close {
+  z-index: cv.getVar('lightbox-controls-z-index');
+}
+
+// The image's area: the viewer's width less the arrows' room from a tablet
+// up, and its whole width below, where the arrows sit over the image.
+.#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox
+  > .#{iv.$class-prefix}modal-content {
+  height: cv.getVar('lightbox-image-max-height');
+  max-height: none;
+  margin: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+// ---- The toolbar ----------------------------------------------------------------
+
+.#{iv.$class-prefix}lightbox-toolbar {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: cv.getVar('lightbox-controls-z-index');
+  display: flex;
+  align-items: center;
+  gap: cv.getVar('lightbox-toolbar-gap');
+  min-height: cv.getVar('lightbox-spacing');
+  // Level with the close button, and clear of it.
+  padding-block: cv.getVar('modal-close-top');
+  padding-inline: cv.getVar('modal-close-right')
+    calc(
+      #{cv.getVar('modal-close-right')} * 2 +
+        #{cv.getVar('modal-close-dimensions')}
+    );
+  color: cv.getVar('lightbox-toolbar-color');
+  pointer-events: none;
+
+  > .#{iv.$class-prefix}buttons {
+    flex-wrap: nowrap;
+    margin-block-end: 0;
+    margin-inline-start: auto;
+  }
+}
+
+.#{iv.$class-prefix}lightbox-progress {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+// ---- The buttons over the dark background ------------------------------------------
+
+.#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox
+  .#{iv.$class-prefix}lightbox-toolbar
+  .#{iv.$class-prefix}button,
+.#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox
+  .#{iv.$class-prefix}lightbox-arrow {
+  align-items: center;
+  justify-content: center;
+  width: cv.getVar('modal-close-dimensions');
+  height: cv.getVar('modal-close-dimensions');
+  padding: 0;
+  // Transparent until forced colors draws it.
+  border: cv.getVar('lightbox-button-border-width') solid transparent;
+  border-radius: cv.getVar('radius-rounded');
+  pointer-events: auto;
+
+  // Bulma's ring is a link-colored shadow, under 3:1 on the near-black
+  // background and gone in forced colors, so an outline in the buttons' own
+  // color takes its place.
+  &:focus-visible {
+    @include extras-focus-outline;
+    outline-color: currentColor;
+    box-shadow: none;
+  }
+
+  &[aria-disabled='true'] {
+    opacity: cv.getVar('lightbox-disabled-opacity');
+    cursor: not-allowed;
+  }
+}
+
+.#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox
+  .#{iv.$class-prefix}lightbox-toolbar
+  .#{iv.$class-prefix}button {
+  background-color: cv.getVar('lightbox-toolbar-button-background');
+  color: cv.getVar('lightbox-toolbar-color');
+
+  &:hover:not([aria-disabled='true']) {
+    background-color: cv.getVar('lightbox-toolbar-button-background-hover');
+  }
+
+  svg {
+    width: cv.getVar('lightbox-toolbar-icon-size');
+    height: cv.getVar('lightbox-toolbar-icon-size');
+  }
+}
+
+.#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox
+  .#{iv.$class-prefix}lightbox-arrow {
+  position: absolute;
+  inset-block-start: 50%;
+  z-index: cv.getVar('lightbox-controls-z-index');
+  width: cv.getVar('lightbox-arrow-size');
+  height: cv.getVar('lightbox-arrow-size');
+  transform: translateY(-50%);
+  background-color: cv.getVar('lightbox-arrow-background');
+  color: cv.getVar('lightbox-arrow-color');
+
+  &:hover:not([aria-disabled='true']) {
+    background-color: cv.getVar('lightbox-arrow-background-hover');
+  }
+
+  &.#{iv.$class-prefix}is-prev {
+    inset-inline-start: cv.getVar('lightbox-arrow-offset');
+  }
+
+  &.#{iv.$class-prefix}is-next {
+    inset-inline-end: cv.getVar('lightbox-arrow-offset');
+  }
+
+  svg {
+    width: cv.getVar('lightbox-arrow-icon-size');
+    height: cv.getVar('lightbox-arrow-icon-size');
+  }
+
+  // Right to left, the previous button is on the right, so its chevron
+  // points that way.
+  svg:dir(rtl) {
+    transform: scaleX(-1);
+  }
+}
+
+// ---- The image and its caption -----------------------------------------------------
+
+// One cell the image fills, with the caption under it. The image, the one
+// fading out over it, the Loader and the error share the cell.
+.#{iv.$class-prefix}lightbox-figure {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  height: 100%;
+  margin: 0;
+  position: relative;
+  transition: transform cv.getVar('lightbox-animation-duration') $extras-easing;
+
+  > :not(.#{iv.$class-prefix}lightbox-caption) {
+    grid-area: 1 / 1;
+    place-self: center;
+  }
+}
+
+.#{iv.$class-prefix}lightbox-image {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  pointer-events: auto;
+  // Pinch zooms the image rather than the page, and a drag pans it.
+  touch-action: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  transition: transform cv.getVar('lightbox-animation-duration') $extras-easing;
+
+  // Hidden until it loads, then faded in.
+  &.#{iv.$class-prefix}is-loading {
+    opacity: 0;
+  }
+
+  &:not(.#{iv.$class-prefix}is-loading):not(.#{iv.$class-prefix}is-leaving) {
+    animation: extras-fade-in cv.getVar('lightbox-animation-duration')
+      $extras-easing;
+  }
+
+  // The image before it, on top, shown until the new one has loaded and then
+  // faded out as that one fades in. Animations rather than transitions, so
+  // the fades run for an image that was already loaded too.
+  &.#{iv.$class-prefix}is-leaving {
+    pointer-events: none;
+  }
+
+  &:not(.#{iv.$class-prefix}is-loading)
+    + .#{iv.$class-prefix}lightbox-image.#{iv.$class-prefix}is-leaving {
+    animation: extras-fade-out cv.getVar('lightbox-animation-duration')
+      $extras-easing forwards;
+  }
+}
+
+.#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox.#{iv.$class-prefix}is-zoomed
+  .#{iv.$class-prefix}lightbox-image {
+  cursor: grab;
+}
+
+.#{iv.$class-prefix}lightbox-caption {
+  justify-self: center;
+  max-width: cv.getVar('lightbox-caption-max-width');
+  padding: cv.getVar('lightbox-caption-padding');
+  color: cv.getVar('lightbox-caption-color');
+  text-align: center;
+  pointer-events: auto;
+}
+
+.#{iv.$class-prefix}lightbox-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: cv.getVar('lightbox-error-gap');
+  padding: cv.getVar('lightbox-error-padding');
+  color: cv.getVar('lightbox-error-color');
+  text-align: center;
+  pointer-events: auto;
+}
+
+.#{iv.$class-prefix}lightbox-figure > .#{iv.$class-prefix}loader {
+  font-size: cv.getVar('lightbox-loader-size');
+}
+
+// ---- The trigger ----------------------------------------------------------------------
+
+// A button around a thumbnail, drawn as the thumbnail: no button chrome, as
+// wide as the column or cell it's in, since a ratio `Image` has no width of
+// its own, and an outline around what it holds. `:where()` keeps all of it
+// at no specificity, so a trigger given Bulma's `button` class looks and
+// sizes like a Bulma button instead.
+:where(.#{iv.$class-prefix}lightbox-trigger) {
+  @include extras-button-reset;
+  text-align: inherit;
+}
+
+:where(.#{iv.$class-prefix}lightbox-trigger:not(.#{iv.$class-prefix}button)) {
+  display: block;
+  width: 100%;
+
+  &:focus-visible {
+    @include extras-focus-outline;
+  }
+}
+
+// ---- Motion and forced colors ------------------------------------------------------------
+
+// The fades are on selectors more specific than these, hence `!important`.
+// Script keeps no outgoing image under reduced motion either.
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox.#{iv.$class-prefix}is-active,
+  .#{iv.$class-prefix}lightbox-image {
+    animation: none !important;
+  }
+
+  .#{iv.$class-prefix}lightbox-figure,
+  .#{iv.$class-prefix}lightbox-image {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox
+    .#{iv.$class-prefix}lightbox-toolbar
+    .#{iv.$class-prefix}button,
+  .#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox
+    .#{iv.$class-prefix}lightbox-arrow {
+    border-color: ButtonText;
+
+    &[aria-disabled='true'] {
+      border-color: GrayText;
+      color: GrayText;
+    }
+  }
+}

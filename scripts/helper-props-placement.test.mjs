@@ -50,6 +50,7 @@ const RENDER_WITH = {
   'Command.Dialog': () => ({ defaultOpen: true, actions: [] }),
   Dialog: () => ({ isOpen: true }),
   HoverCard: ({ createElement }) => ({ trigger: createElement('button') }),
+  Lightbox: () => ({ defaultOpen: true, items: [{ src: 'a.jpg', alt: 'A' }] }),
   Loading: () => ({ active: true }),
   Popover: ({ createElement }) => ({ trigger: createElement('button') }),
   Sidebar: () => ({ inline: true }),

@@ -230,6 +230,19 @@ const PROPS: Record<string, Record<string, unknown>> = {
     messageColor: 'info',
     children: 'Fields',
   },
+  // Open on an image with a caption, zoom and arrows, so every class the
+  // viewer and its trigger emit is swept.
+  Lightbox: {
+    items: [
+      { src: '/a.jpg', alt: 'A', caption: 'First' },
+      { src: '/b.jpg', alt: 'B' },
+    ],
+    defaultOpen: true,
+    children: (
+      <Library.Lightbox.Trigger index={0}>View</Library.Lightbox.Trigger>
+    ),
+  },
+  LightboxTrigger: { index: 0, children: 'View' },
   // Sticky, with a nested entry, so each class it and its Menu parts emit is
   // swept. Nothing is current in jsdom, which TableOfContents.test.tsx covers.
   TableOfContents: {

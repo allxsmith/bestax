@@ -66,6 +66,8 @@ const NAMED_INDIVIDUALLY = [
   'IconButton',
   'Kbd',
   'Kbd.Group',
+  'Lightbox',
+  'Lightbox.Trigger',
   'Link',
   'LinkButton',
   'Loader',
