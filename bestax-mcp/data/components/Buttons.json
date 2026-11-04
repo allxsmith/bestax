@@ -35,7 +35,7 @@
     },
     {
       "title": "Compound (dot-notation) usage",
-      "code": "<>\n  <Buttons>\n    <Buttons.Button color=\"primary\">Save</Buttons.Button>\n    <Buttons.Button>Cancel</Buttons.Button>\n    <Buttons.LinkButton>Learn more</Buttons.LinkButton>\n    <Buttons.IconButton icon=\"ellipsis\" aria-label=\"More actions\" />\n  </Buttons>\n  <Buttons hasAddons role=\"group\" aria-label=\"Text style\">\n    <Buttons.ToggleButton defaultPressed>Bold</Buttons.ToggleButton>\n    <Buttons.ToggleButton>Italic</Buttons.ToggleButton>\n    <Buttons.ToggleButton>Underline</Buttons.ToggleButton>\n  </Buttons>\n</>"
+      "code": "<>\n  <Buttons>\n    <Buttons.Button color=\"primary\">Save</Buttons.Button>\n    <Buttons.Button>Cancel</Buttons.Button>\n    <Buttons.LinkButton>Learn more</Buttons.LinkButton>\n    <Buttons.IconButton icon=\"ellipsis\" aria-label=\"More actions\" />\n    <Buttons.CopyButton value=\"https://bestax.io\" />\n  </Buttons>\n  <Buttons hasAddons role=\"group\" aria-label=\"Text style\">\n    <Buttons.ToggleButton defaultPressed>Bold</Buttons.ToggleButton>\n    <Buttons.ToggleButton>Italic</Buttons.ToggleButton>\n    <Buttons.ToggleButton>Underline</Buttons.ToggleButton>\n  </Buttons>\n</>"
     }
   ],
   "accessibility": "- Grouping buttons in a `<div class=\"buttons\">` has no negative impact on accessibility.\n- Ensure each `Button` has a clear label (text or `aria-label`).\n- For a set of toggles that each turn on and off on their own, use [`ToggleButton`](https://bestax.io/docs/api/elements/togglebutton) in `Buttons hasAddons`, and give the `Buttons` `role=\"group\"` and an `aria-label`. A set where only one can be on is a radio group, so use [`SegmentedControl`](https://bestax.io/docs/api/components/segmentedcontrol) for it, which draws the same `has-addons` row, or [`Radios`](https://bestax.io/docs/api/form/radios) when the choice is sent with a form.\n\n:::tip\nYou can use all Bulma helper props (spacing, color, alignment) with `Buttons` for even more control.\n:::",
@@ -884,6 +884,254 @@
         }
       ],
       "catchAll": "Remaining props of the element or component selected by as (default <button>) and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Buttons.CopyButton",
+      "summary": "The `CopyButton` component renders a button that copies a piece of text to the clipboard, says \"Copied\" for a moment, and announces the result. It's a `Button` with a copy icon and \"Copy\", and takes everything `Button` takes. A click writes `value` through the Clipboard API, or through the older copy command where that's missing or refused, and reports a failure rather than showing \"Copied\". Each outcome is announced through a polite status region portaled out of the button's place, so it stays the last child of a `Control` or `Buttons`: into the open modal dialog the button is in, otherwise where `Portal` puts portaled content (the `ConfigProvider`'s `portalContainer`, or the end of the page). With `showLabel={false}` it's an `IconButton`. For a trigger of your own, use `useClipboard`, which it's built on.",
+      "component": "CopyButton",
+      "props": [
+        {
+          "name": "value",
+          "type": "string",
+          "default": null,
+          "description": "The text it copies. This is not the `<button>`'s form value, which it doesn't render.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "duration",
+          "type": "number",
+          "default": "2000",
+          "description": "How long the \"Copied\" label stays, in milliseconds. Another copy restarts it. `0` turns the reset off, as Toast's `0` turns off its auto-close, so \"Copied\" stays until a later copy fails. A missing or `NaN` value uses the default, a negative one ends it at once, and `Infinity`, or anything longer than the longest delay `setTimeout` takes (about 24.8 days), is that longest delay.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "showLabel",
+          "type": "boolean",
+          "default": "true",
+          "description": "Shows the label beside the icon, which is then the button's name: it carries no `aria-label`, so the name reads \"Copy\" and then \"Copied\" as the words on it do. Turned off, it's a square icon-only button named by `labels.copy` through `aria-label` in both states, and only the glyph changes. An `aria-label` you pass yourself names it in either form.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "{ copy?: string; copied?: string; copiedStatus?: string; failedStatus?: string }",
+          "default": null,
+          "description": "Translations for the label and the announcements.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onCopiedChange",
+          "type": "(copied: boolean) => void",
+          "default": null,
+          "description": "Called with `true` after each copy that worked, a repeat included, and with `false` when `duration` runs out or a later copy fails.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onCopyError",
+          "type": "(error: Error) => void",
+          "default": null,
+          "description": "Called when neither the Clipboard API nor the fallback could write. A copy field can select its text from here, so the reader can copy it themselves.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'white' | 'light' | 'dark' | 'black' | 'text' | 'ghost'",
+          "default": null,
+          "description": "Bulma color variant for the button. `ghost` renders a link-like button; `text` renders a minimal text-only button.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the button.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isLight",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies a lighter color variant.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button rounded.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Displays a loading spinner, with everything inside the button hidden behind it, in forced colors (Windows' contrast themes) too. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn. Bulma alone hides only the label, so the rest needs bestax's CSS loaded.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isStatic",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button non-interactive.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFullwidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button full-width.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFullWidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button full-width.",
+          "required": false,
+          "inherited": true,
+          "deprecated": true,
+          "deprecationNote": "Use `isFullwidth` instead — `isFullwidth` wins if both are set."
+        },
+        {
+          "name": "isOutlined",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies outlined styling (requires color).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isInverted",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies inverted styling (requires color).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFocused",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies focused styling (visual only).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isActive",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies active styling (visual only), with no `aria-pressed`. For a button that stays pressed, use `ToggleButton`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isHovered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies hovered styling (visual only).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isDisabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies disabled styling.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Custom class name.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "type",
+          "type": "'button' | 'submit' | 'reset'",
+          "default": "button",
+          "description": "`button` unless you pass `submit` or `reset`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClick",
+          "type": "React.MouseEventHandler<HTMLButtonElement>",
+          "default": null,
+          "description": "Runs before the copy. An `onClick` that calls `preventDefault()` stops the copy, and neither `onCopiedChange` nor `onCopyError` fires.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLButtonElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<button>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <button> attributes and Bulma helper props",
       "types": []
     }
   ],

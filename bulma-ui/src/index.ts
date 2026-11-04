@@ -46,6 +46,7 @@ export * from './elements/ToggleButton';
 export * from './elements/Code';
 export * from './elements/ColorSwatch';
 export * from './elements/Content';
+export * from './elements/CopyButton';
 export * from './elements/Delete';
 export * from './elements/DescriptionList';
 export * from './elements/Divider';
@@ -195,6 +196,13 @@ export type { NumberFormatFunction } from './helpers/localeFormat';
 // Keeping keyboard focus inside an overlay
 export { useFocusTrap } from './helpers/useFocusTrap';
 export type { UseFocusTrapOptions } from './helpers/useFocusTrap';
+
+// Copying text to the clipboard
+export { useClipboard } from './helpers/useClipboard';
+export type {
+  UseClipboardOptions,
+  UseClipboardResult,
+} from './helpers/useClipboard';
 
 export * from './layout/AppFrame';
 export * from './layout/Center';
