@@ -521,6 +521,11 @@ describe('Navbar.Burger', () => {
     expect(screen.getByTestId('burger')).toHaveAttribute('aria-label', 'menu');
   });
 
+  it('leaves aria-expanded off for null, whatever active says', () => {
+    render(<Navbar.Burger active aria-expanded={null} data-testid="burger" />);
+    expect(screen.getByTestId('burger')).not.toHaveAttribute('aria-expanded');
+  });
+
   it('lets an explicit type and aria-expanded win', () => {
     render(
       <Navbar.Burger

@@ -1,8 +1,16 @@
 // INTERNAL: deliberately not exported from src/index.ts.
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
 import type React from 'react';
 import type { TreeViewSelectionMode } from '../components/TreeView';
 import { useClientLayoutEffect } from './useClientLayoutEffect';
+import { useControlled } from './useControlled';
 import { getActiveElementInTree } from './shadowDom';
 import { typeaheadMatch, typeaheadText, useTypeahead } from './typeahead';
 
@@ -167,6 +175,17 @@ function pathOf(element: Element, { values }: Registry): string[] {
 }
 
 /**
+ * The values of the items a tree hides while they stay in it, as TreeSelect's
+ * search hides the items that don't match. A hidden item renders as one under
+ * a closed parent does: nothing on the page, and in a `checkbox` tree it and
+ * its children still register, so a check still reaches them. Internal, for
+ * the components that put a TreeView inside them.
+ */
+export const TreeViewHiddenContext = createContext<ReadonlySet<string>>(
+  new Set()
+);
+
+/**
  * Every known item's check state, by the rules in #1096:
  *
  * - a disabled item is checked only when its own value is listed;
@@ -177,7 +196,7 @@ function pathOf(element: Element, { values }: Registry): string[] {
  *
  * Also returns the items of the second kind, which are what a toggle sets.
  */
-function readChecks(
+export function readChecks(
   records: Map<string, TreeViewItemRecord>,
   listed: Set<string>
 ): { states: Map<string, TreeViewCheckState>; ends: string[] } {
@@ -219,7 +238,7 @@ function readChecks(
  * back by the rules. That's every item that shows checked, parents
  * included, plus any listed value no item has.
  */
-function toggledList(
+export function toggledList(
   records: Map<string, TreeViewItemRecord>,
   list: string[],
   value: string
@@ -247,16 +266,6 @@ function toggledList(
       .map(([item]) => item),
     ...list.filter(item => !records.has(item)),
   ];
-}
-
-/** A value the caller holds, or one this hook holds when the caller doesn't. */
-function useControlled<T>(controlled: T | undefined, initial: T) {
-  const [own, setOwn] = useState(initial);
-  const isControlled = controlled !== undefined;
-  const set = (next: T) => {
-    if (!isControlled) setOwn(next);
-  };
-  return [isControlled ? controlled : own, set] as const;
 }
 
 /**
@@ -635,13 +644,16 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
         if (!event.repeat) press(item, actions.space);
         break;
       case '*': {
+        // The siblings on the page: not the ones a component around the
+        // tree hides, which stay registered.
         const closed: string[] = [];
         registry.records.forEach((record, value) => {
           if (
             record.parent === item.parent &&
             record.isParent &&
             !record.disabled &&
-            !expanded.includes(value)
+            !expanded.includes(value) &&
+            registry.elements.has(value)
           ) {
             closed.push(value);
           }

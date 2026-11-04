@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.58.0"
+    "version": "5.61.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -55,6 +55,7 @@
       "id": "components",
       "label": "Components",
       "components": [
+        "Affix",
         "Avatar",
         "Avatars",
         "Badge",
@@ -121,7 +122,8 @@
         "Switch",
         "Taginput",
         "TextArea",
-        "TimeInput"
+        "TimeInput",
+        "TreeSelect"
       ]
     },
     {
@@ -134,6 +136,7 @@
       "id": "layout",
       "label": "Layout",
       "components": [
+        "AppFrame",
         "Center",
         "Container",
         "Flex",
@@ -166,6 +169,28 @@
     }
   ],
   "components": [
+    {
+      "name": "Affix",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `Affix` component keeps its content fixed to a corner of the viewport while the page scrolls under it.",
+      "slug": "components/affix",
+      "import": "import { Affix } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 4,
+      "exampleCount": 8
+    },
+    {
+      "name": "AppFrame",
+      "kind": "component",
+      "category": "layout",
+      "purpose": "The `AppFrame` component lays out an app's pages: a header across the top, a navigation column down the side, the page, and an aside and a footer, with the nav…",
+      "slug": "layout/appframe",
+      "import": "import { AppFrame, useAppFrame } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 35,
+      "exampleCount": 8
+    },
     {
       "name": "Autocomplete",
       "kind": "component",
@@ -1465,6 +1490,17 @@
       "exampleCount": 11
     },
     {
+      "name": "TreeSelect",
+      "kind": "component",
+      "category": "form",
+      "purpose": "The `TreeSelect` component is a form field whose options are a tree, such as categories, places or teams: it opens a panel holding a real `TreeView`, picks one…",
+      "slug": "form/treeselect",
+      "import": "import { TreeSelect } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 46,
+      "exampleCount": 13
+    },
+    {
       "name": "TreeView",
       "kind": "component",
       "category": "components",
@@ -1554,6 +1590,22 @@
     }
   ],
   "cssVarIndex": {
+    "--bulma-affix-offset-horizontal": ["Affix"],
+    "--bulma-affix-offset-vertical": ["Affix"],
+    "--bulma-affix-z-index": ["Affix"],
+    "--bulma-app-frame-aside-width": ["AppFrame"],
+    "--bulma-app-frame-backdrop-background": ["AppFrame"],
+    "--bulma-app-frame-border-color": ["AppFrame"],
+    "--bulma-app-frame-border-width": ["AppFrame"],
+    "--bulma-app-frame-drawer-shadow": ["AppFrame"],
+    "--bulma-app-frame-header-background": ["AppFrame"],
+    "--bulma-app-frame-header-height": ["AppFrame"],
+    "--bulma-app-frame-nav-background": ["AppFrame"],
+    "--bulma-app-frame-nav-padding": ["AppFrame"],
+    "--bulma-app-frame-nav-width": ["AppFrame"],
+    "--bulma-app-frame-skip-link-background": ["AppFrame"],
+    "--bulma-app-frame-skip-link-color": ["AppFrame"],
+    "--bulma-app-frame-transition-duration": ["AppFrame"],
     "--bulma-autocomplete-border-color": ["Autocomplete"],
     "--bulma-autocomplete-border-hover-color": ["Autocomplete"],
     "--bulma-autocomplete-dropdown-background": ["Autocomplete"],
@@ -2676,56 +2728,64 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-picker-popover-background": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-picker-popover-border-color": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-picker-popover-offset": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-picker-popover-padding": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-picker-popover-radius": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-picker-popover-shadow": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-picker-popover-z-index": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-pin-input-box-width": ["PinInput"],
     "--bulma-pin-input-caret-blink-duration": ["PinInput"],
@@ -3080,6 +3140,17 @@
     "--bulma-tooltip-padding": ["Tooltip"],
     "--bulma-tooltip-radius": ["Tooltip"],
     "--bulma-tooltip-z-index": ["Tooltip"],
+    "--bulma-tree-select-chevron-color": ["TreeSelect"],
+    "--bulma-tree-select-chevron-focus-color": ["TreeSelect"],
+    "--bulma-tree-select-chevron-hover-color": ["TreeSelect"],
+    "--bulma-tree-select-chevron-width": ["TreeSelect"],
+    "--bulma-tree-select-chevron-z-index": ["TreeSelect"],
+    "--bulma-tree-select-clear-z-index": ["TreeSelect"],
+    "--bulma-tree-select-empty-color": ["TreeSelect"],
+    "--bulma-tree-select-empty-padding": ["TreeSelect"],
+    "--bulma-tree-select-panel-max-height": ["TreeSelect"],
+    "--bulma-tree-select-search-gap": ["TreeSelect"],
+    "--bulma-tree-select-tree-inset": ["TreeSelect"],
     "--bulma-tree-view-gap": ["TreeView"],
     "--bulma-tree-view-group-border": ["TreeView"],
     "--bulma-tree-view-group-margin": ["TreeView"],
@@ -3104,6 +3175,36 @@
     "--bulma-tree-view-toggle-size": ["TreeView"]
   },
   "documentedWith": {
+    "AppFrameAside": {
+      "component": "AppFrame",
+      "path": "AppFrame.Aside",
+      "purpose": "Content beside the page in an AppFrame, which moves under it below the breakpoint."
+    },
+    "AppFrameBurger": {
+      "component": "AppFrame",
+      "path": "AppFrame.Burger",
+      "purpose": "The button that opens the drawer, or collapses the column from the breakpoint up: Navbar.Burger, wired to the frame."
+    },
+    "AppFrameFooter": {
+      "component": "AppFrame",
+      "path": "AppFrame.Footer",
+      "purpose": "The bottom of an AppFrame, under the page."
+    },
+    "AppFrameHeader": {
+      "component": "AppFrame",
+      "path": "AppFrame.Header",
+      "purpose": "The top bar of an AppFrame, which sticks while the page scrolls."
+    },
+    "AppFrameMain": {
+      "component": "AppFrame",
+      "path": "AppFrame.Main",
+      "purpose": "The page's main content in an AppFrame, which the skip link moves focus to."
+    },
+    "AppFrameNav": {
+      "component": "AppFrame",
+      "path": "AppFrame.Nav",
+      "purpose": "The navigation of an AppFrame: a column beside the page from the breakpoint up, and a drawer below it."
+    },
     "CarouselItem": {
       "component": "Carousel",
       "path": "CarouselItem",

@@ -35,6 +35,14 @@ const REFERENCES = path.join(ROOT, 'skills/bestax-migrate/references');
  * first test until it is placed in this bucket or the next one.
  */
 const NAMED_INDIVIDUALLY = [
+  'Affix',
+  'AppFrame',
+  'AppFrame.Aside',
+  'AppFrame.Burger',
+  'AppFrame.Footer',
+  'AppFrame.Header',
+  'AppFrame.Main',
+  'AppFrame.Nav',
   'Avatar',
   'Button',
   'Carousel',
@@ -132,6 +140,7 @@ const SUMMARISED_AS_FORM_CONTROLS = [
   'TextAreaBase',
   'TimeInput',
   'TimeInputBase',
+  'TreeSelect',
 ] as const;
 
 /**

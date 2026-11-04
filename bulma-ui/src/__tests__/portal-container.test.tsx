@@ -13,6 +13,7 @@ import { Popover } from '../components/Popover';
 import { HoverCard } from '../components/HoverCard';
 import { ContextMenu } from '../components/ContextMenu';
 import { Modal } from '../components/Modal';
+import { Affix } from '../components/Affix';
 import { Dialog } from '../components/Dialog';
 import { Toast, ToastContainer, toast } from '../components/Toast';
 import { Sidebar } from '../components/Sidebar';
@@ -112,6 +113,28 @@ describe('Popover', () => {
     expect(target).toContainElement(
       screen.getByRole('dialog', { name: 'Portaled' })
     );
+  });
+});
+
+describe('Affix', () => {
+  it('portals into the portalContainer when portal is true', () => {
+    withDefault(<Affix portal>Help</Affix>);
+    expect(target).toContainElement(screen.getByText('Help'));
+  });
+
+  it.each([
+    ['a selector', () => '#own'],
+    ['an element', () => own],
+  ])('lets its own portal target, as %s, win', (_, makeTarget) => {
+    withDefault(<Affix portal={makeTarget()}>Help</Affix>);
+    expect(own).toContainElement(screen.getByText('Help'));
+    expect(target).toBeEmptyDOMElement();
+  });
+
+  it('still renders in place without portal', () => {
+    const { container } = withDefault(<Affix>Help</Affix>);
+    expect(container).toContainElement(screen.getByText('Help'));
+    expect(target).toBeEmptyDOMElement();
   });
 });
 

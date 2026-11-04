@@ -37,6 +37,18 @@ const ADDONS = [
     desc: 'Facts about one thing, each a label and its value, stacked on a phone and lined up in two columns from tablet up.',
   },
   {
+    name: 'AppFrame',
+    icon: 'appframe',
+    link: '/docs/api/layout/appframe',
+    desc: 'The frame an app’s pages sit in: a sticky header and nav column, a drawer on phones, and a skip link.',
+  },
+  {
+    name: 'Affix',
+    icon: 'affix',
+    link: '/docs/api/components/affix',
+    desc: 'Content fixed to a corner of the screen, such as a floating button, over the page and under its menus and modals.',
+  },
+  {
     name: 'NumberFormatter',
     icon: 'numberformatter',
     link: '/docs/api/elements/numberformatter',
@@ -209,6 +221,12 @@ const ADDONS = [
     icon: 'tooltip',
     link: '/docs/api/components/tooltip',
     desc: 'Hover hints in any direction and color.',
+  },
+  {
+    name: 'TreeSelect',
+    icon: 'treeselect',
+    link: '/docs/api/form/treeselect',
+    desc: 'A form field whose options are a tree, which picks one item or checks a branch at a time, with search if you want it.',
   },
   {
     name: 'TreeView',

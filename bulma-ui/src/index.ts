@@ -34,6 +34,7 @@ export * from './components/TreeView';
 export * from './components/ScrollArea';
 export * from './components/Command';
 export * from './components/DataTable';
+export * from './components/Affix';
 
 export * from './elements/Block';
 export * from './elements/Box';
@@ -99,6 +100,7 @@ export * from './form/PinInput';
 export * from './form/Rate';
 export * from './form/Autocomplete';
 export * from './form/Combobox';
+export * from './form/TreeSelect';
 export * from './form/Taginput';
 export * from './form/ColorPicker';
 
@@ -199,6 +201,7 @@ export type {
   UseClipboardResult,
 } from './helpers/useClipboard';
 
+export * from './layout/AppFrame';
 export * from './layout/Center';
 export * from './layout/Container';
 export * from './layout/Flex';

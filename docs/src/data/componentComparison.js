@@ -66,6 +66,7 @@ const BESTAX = {
   ColorSwatch: 'elements/colorswatch',
   ToggleButton: 'elements/togglebutton',
   UnorderedList: 'elements/unorderedlist',
+  Affix: 'components/affix',
   Avatar: 'components/avatar',
   Avatars: 'components/avatars',
   Badge: 'components/badge',
@@ -125,6 +126,7 @@ const BESTAX = {
   Switch: 'form/switch',
   Taginput: 'form/taginput',
   TextArea: 'form/textarea',
+  TreeSelect: 'form/treeselect',
   DateInput: 'form/datetime/dateinput',
   DateRangeInput: 'form/datetime/daterangeinput',
   DateTimeInput: 'form/datetime/datetimeinput',
@@ -133,6 +135,7 @@ const BESTAX = {
   Columns: 'columns', // columns.md is the folder-index doc → /docs/api/columns
   Cell: 'grid/cell',
   Grid: 'grid', // grid.md is the folder-index doc → /docs/api/grid
+  AppFrame: 'layout/appframe',
   Container: 'layout/container',
   Footer: 'layout/footer',
   Hero: 'layout/hero',
@@ -161,6 +164,7 @@ const BESTAX = {
   overlay: '/docs/guides/helpers/other',
   aspectRatio: '/docs/guides/helpers/other',
   'pos="sticky"': '/docs/guides/helpers/other',
+  'Affix + Button': 'components/affix',
   gap: '/docs/guides/helpers/flex#gap',
   'bestax.css': '/docs/guides/getting-started/installation',
   // Capabilities bestax documents as a recipe rather than a component.
@@ -702,7 +706,16 @@ export const categories = [
         '~Button + Menu',
         '~ButtonGroup',
       ],
-      ['Floating action button', 0, '~Affix + ActionIcon', 0, 'Fab', 0, 0, 0],
+      [
+        'Floating action button',
+        '~Affix + Button',
+        '~Affix + ActionIcon',
+        0,
+        'Fab',
+        0,
+        0,
+        0,
+      ],
       ['Speed dial', 0, 0, 0, 'SpeedDial', 0, 0, 0],
       [
         'Action bar (bulk actions)',
@@ -1105,7 +1118,7 @@ export const categories = [
       ],
       [
         'App shell (layout frame)',
-        0,
+        'AppFrame',
         'AppShell',
         0,
         '~Drawer + AppBar',
@@ -1307,8 +1320,8 @@ export const categories = [
         'Resizable',
       ],
       [
-        'Affix (sticky)',
-        '~pos="sticky"',
+        'Affix (fixed or sticky)',
+        'Affix',
         'Affix',
         0,
         '~Fab (back-to-top demo)',
@@ -1466,7 +1479,7 @@ export const categories = [
         'TreeView',
         '~Collapsible',
       ],
-      ['Tree select', 0, 'TreeSelect', 0, 0, 0, 0, 0],
+      ['Tree select', 'TreeSelect', 'TreeSelect', 0, 0, 0, 0, 0],
       ['Timeline', 'Timeline', 'Timeline', 0, 'Timeline', 0, 'Timeline', 0],
       ['Kbd (keyboard key)', 'Kbd', 'Kbd', 0, 0, 0, 'Kbd', 'Kbd'],
       [
@@ -1929,7 +1942,7 @@ export const categories = [
         'VisuallyHidden',
         0,
       ],
-      ['Skip link (a11y)', 0, 0, 0, 0, 0, 'SkipNavLink', 0],
+      ['Skip link (a11y)', '~AppFrame', 0, 0, 0, 0, 'SkipNavLink', 0],
       [
         'No-SSR guard',
         'ClientOnly',
@@ -2110,5 +2123,13 @@ export const corrections = [
       'Heading / title': { mui: 'partial' },
       'Visually hidden (a11y)': { rbootstrap: 'partial' },
     },
+  },
+  {
+    edition: '2026-10-13',
+    pr: 1455,
+    renamed: {
+      'Affix (sticky)': 'Affix (fixed or sticky)',
+    },
+    cells: {},
   },
 ];

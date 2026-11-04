@@ -31,6 +31,17 @@ function KbdIcon() {
   );
 }
 
+// A screen with a round button held in its bottom-right corner
+function AffixIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M7 8h8M7 12h5" />
+      <circle cx="16" cy="16" r="2" />
+    </svg>
+  );
+}
+
 // Person in a frame — avatar
 function AvatarIcon() {
   return (
@@ -327,6 +338,17 @@ function ScrollAreaIcon() {
   );
 }
 
+// A window with a bar across its top and a column down its side
+function AppFrameIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M3 8.5h18" />
+      <path d="M9 8.5V20" />
+    </svg>
+  );
+}
+
 // Two blocks stacked in a column, over a row of three small ones
 function StackIcon() {
   return (
@@ -407,9 +429,24 @@ function TreeViewIcon() {
   );
 }
 
+// A field with a chevron at its end, and a tree opened under it
+function TreeSelectIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="3" width="18" height="6" rx="1.5" />
+      <path d="M15.5 5l1.5 1.5L18.5 5" />
+      <rect x="3" y="11" width="18" height="10" rx="1.5" />
+      <path d="M6.5 14h7" />
+      <path d="M8 16v2.5h2M11.5 18.5h5" />
+    </svg>
+  );
+}
+
 const ADDON_ICONS = {
+  appframe: AppFrameIcon,
   linkbutton: LinkButtonIcon,
   kbd: KbdIcon,
+  affix: AffixIcon,
   avatar: AvatarIcon,
   badge: BadgeIcon,
   carousel: CarouselIcon,
@@ -442,6 +479,7 @@ const ADDON_ICONS = {
   timeline: TimelineIcon,
   toast: ToastIcon,
   tooltip: TooltipIcon,
+  treeselect: TreeSelectIcon,
   treeview: TreeViewIcon,
 };
 

@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-126 documented components. Generated from the API docs — every exported
+129 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -84,6 +84,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 
 ## Components
 
+- [Affix](https://bestax.io/docs/api/components/affix) — The `Affix` component keeps its content fixed to a corner of the viewport while the page scrolls under it.
 - [Avatar](https://bestax.io/docs/api/components/avatar) — The `Avatar` component represents a person or entity as a compact image.
 - [Avatars](https://bestax.io/docs/api/components/avatars) — The `Avatars` component renders an overlapping/stacked group of `Avatar`s, the "members" list pattern.
 - [Badge](https://bestax.io/docs/api/components/badge) — The `Badge` component is a small status/count indicator overlaid on the corner of another element, or rendered standalone.
@@ -148,6 +149,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Taginput](https://bestax.io/docs/api/form/taginput) — The `Taginput` component provides a tag/chip input field for managing multiple tags.
 - [TextArea](https://bestax.io/docs/api/form/textarea) — The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, hover/focus/loading states, fixed size…
 - [TimeInput](https://bestax.io/docs/api/form/datetime/timeinput) — The `TimeInput` component is a form input that opens a popover spinner for time-of-day selection.
+- [TreeSelect](https://bestax.io/docs/api/form/treeselect) — The `TreeSelect` component is a form field whose options are a tree, such as categories, places or teams: it opens a panel holding a real `TreeView`…
 
 ## Columns
 
@@ -161,6 +163,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 
 ## Layout
 
+- [AppFrame](https://bestax.io/docs/api/layout/appframe) — The `AppFrame` component lays out an app's pages: a header across the top, a navigation column down the side, the page, and an aside and a footer…
 - [Center](https://bestax.io/docs/api/layout/center) — The `Center` component centers its content on both axes.
 - [Container](https://bestax.io/docs/api/layout/container) — The `Container` component provides a responsive and flexible layout wrapper for your Bulma React UI.
 - [Flex](https://bestax.io/docs/api/layout/flex) — The `Flex` component is a flex container with CSS's own defaults, taking the flex container's properties as props.

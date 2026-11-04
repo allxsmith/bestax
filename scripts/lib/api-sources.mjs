@@ -87,6 +87,8 @@ export const GENERATED_EXEMPT = new Set(['helpers']);
  */
 // <generated:scss-sources>
 export const SCSS_SOURCES = {
+  Affix: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_affix.scss' }],
+  AppFrame: [{ pkg: 'repo', path: 'bulma-ui/src/scss/layout/_appframe.scss' }],
   Autocomplete: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_autocomplete.scss' },
   ],
@@ -331,6 +333,10 @@ export const SCSS_SOURCES = {
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_tooltip.scss' },
   ],
   Tr: [],
+  TreeSelect: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_treeselect.scss' },
+  ],
   TreeView: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_treeview.scss' },
   ],
@@ -403,5 +409,6 @@ export const IMPORT_COMPANIONS = {
   Select: ['Select', 'Field', 'Control'],
   TextArea: ['TextArea', 'Field', 'Control'],
   Grid: ['Grid', 'Cell'],
+  AppFrame: ['AppFrame', 'useAppFrame'],
 };
 // </generated:import-companions>

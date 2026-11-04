@@ -13094,6 +13094,8 @@
     }
   ],
   "ownClasses": {
+    "affix": "Affix",
+    "app-frame": "AppFrame",
     "autocomplete": "Autocomplete",
     "avatar": "Avatar",
     "avatars": "Avatars",
@@ -13140,6 +13142,7 @@
     "timeline": "Timeline",
     "toast": "Toast",
     "tooltip": "Tooltip",
+    "tree-select": "TreeSelect",
     "tree-view": "TreeView"
   },
   "byHand": {

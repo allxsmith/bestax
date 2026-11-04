@@ -6,6 +6,14 @@ import * as IndexExports from '../index';
 // make it on purpose, and pick the release type to match. `isBrowser` is
 // deprecated and leaves at the next major.
 const PUBLIC_EXPORTS = [
+  'Affix',
+  'AppFrame',
+  'AppFrameAside',
+  'AppFrameBurger',
+  'AppFrameFooter',
+  'AppFrameHeader',
+  'AppFrameMain',
+  'AppFrameNav',
   'Autocomplete',
   'Avatar',
   'Avatars',
@@ -220,6 +228,7 @@ const PUBLIC_EXPORTS = [
   'ToggleButton',
   'Tooltip',
   'Tr',
+  'TreeSelect',
   'TreeView',
   'TreeViewItem',
   'UnorderedList',
@@ -237,6 +246,7 @@ const PUBLIC_EXPORTS = [
   'switchColors',
   'switchSizes',
   'toast',
+  'useAppFrame',
   'useBulmaClasses',
   'useClassPrefix',
   'useClipboard',

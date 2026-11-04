@@ -38,6 +38,21 @@ function isComponentExport(value: unknown): value is AnyComponent {
 }
 
 const PROPS: Record<string, Record<string, unknown>> = {
+  // Every part, the drawer open and the column collapsed, so each class the
+  // frame emits is swept.
+  AppFrame: {
+    defaultNavOpen: true,
+    defaultNavCollapsed: true,
+    children: [
+      <Library.AppFrame.Header key="header">
+        <Library.AppFrame.Burger />
+      </Library.AppFrame.Header>,
+      <Library.AppFrame.Nav key="nav">Nav</Library.AppFrame.Nav>,
+      <Library.AppFrame.Main key="main">Main</Library.AppFrame.Main>,
+      <Library.AppFrame.Aside key="aside">Aside</Library.AppFrame.Aside>,
+      <Library.AppFrame.Footer key="footer">Footer</Library.AppFrame.Footer>,
+    ],
+  },
   Icon: { name: 'star' },
   // Named, colored, sized and rounded, so every class it emits is swept.
   IconButton: {
@@ -425,6 +440,31 @@ const PROPS: Record<string, Record<string, unknown>> = {
   Slider: {
     marks: [{ value: 50, label: '50' }],
     tooltip: 'always',
+  },
+  // Checked, clearable, coloured, sized, rounded and open in place, with a
+  // search box and a message, so the field's, the tags', the panel's and
+  // the tree's classes are swept together.
+  TreeSelect: {
+    label: 'Regions',
+    selectionMode: 'checkbox',
+    data: [
+      {
+        value: 'europe',
+        label: 'Europe',
+        icon: 'globe',
+        children: [{ value: 'france', label: 'France' }],
+      },
+    ],
+    defaultValue: ['france'],
+    defaultExpanded: ['europe'],
+    defaultOpen: true,
+    searchable: true,
+    clearable: true,
+    color: 'info',
+    size: 'small',
+    isRounded: true,
+    message: 'Pick some',
+    messageColor: 'danger',
   },
   // A checkbox tree, sized and open, with an icon, a disabled item and a
   // checked one, so the box, the group and the modifiers are swept. An item

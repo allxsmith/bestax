@@ -676,6 +676,8 @@ emulation, and runs in Firefox and Safari.
 - [`Menu`](./menu.md): Site navigation, including a sidebar that looks like a tree, and
   `Menu.Section` for groups of links that open and close. Use it for links, and `TreeView` for
   data you browse and pick from.
+- [`TreeSelect`](../form/treeselect.md): The same tree in a form field, opened from it, with the
+  picked items named in the field or as tags.
 - [`Checkbox`](../form/checkbox.md): The box a checkbox tree draws, with its mixed state.
 - [`Loader`](../elements/loader.md): Bulma's ring, which a loading item's row turns.
 - [`Collapse`](./collapse.md): A single section that opens and closes.
