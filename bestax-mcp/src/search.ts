@@ -239,7 +239,11 @@ export const ALIASES: Readonly<Record<string, readonly string[]>> = {
   drawer: ['Sidebar'],
   dropdownmenu: ['Dropdown'],
   dropzone: ['Dropzone', 'File'],
+  // A tree on the page. TreeSelect's name says "tree" too, so without these
+  // the field ties the tree for them and sorts first.
+  filetree: ['TreeView'],
   fileupload: ['Dropzone', 'File'],
+  foldertree: ['TreeView'],
   // Chakra's and react-intl's names for it.
   formatnumber: ['NumberFormatter'],
   formattednumber: ['NumberFormatter'],

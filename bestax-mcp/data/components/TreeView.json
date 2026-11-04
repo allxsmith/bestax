@@ -53,6 +53,7 @@
     "Loader",
     "Menu",
     "Sidebar",
+    "TreeSelect",
     "useBulmaClasses"
   ],
   "storybook": "https://bestax.io/storybook/?path=/story/components-treeview--default",

@@ -223,6 +223,12 @@ const ADDONS = [
     desc: 'Hover hints in any direction and color.',
   },
   {
+    name: 'TreeSelect',
+    icon: 'treeselect',
+    link: '/docs/api/form/treeselect',
+    desc: 'A form field whose options are a tree, which picks one item or checks a branch at a time, with search if you want it.',
+  },
+  {
     name: 'TreeView',
     icon: 'treeview',
     link: '/docs/api/components/treeview',

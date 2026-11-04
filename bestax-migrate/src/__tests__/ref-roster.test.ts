@@ -139,6 +139,7 @@ const SUMMARISED_AS_FORM_CONTROLS = [
   'TextAreaBase',
   'TimeInput',
   'TimeInputBase',
+  'TreeSelect',
 ] as const;
 
 /**

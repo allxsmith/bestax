@@ -13,6 +13,7 @@ import {
 import { ConfigProvider } from '../../helpers/Config';
 import { resetDevWarnings } from '../../helpers/devWarnings';
 import { TYPEAHEAD_TIMEOUT } from '../../helpers/typeahead';
+import { TreeViewHiddenContext } from '../../helpers/useTreeView';
 import {
   announceDelay,
   announcementLifetime,
@@ -1383,6 +1384,33 @@ describe('TreeView', () => {
       press(item('A'), '*');
       expect(onExpandedChange).not.toHaveBeenCalled();
     });
+
+    it.each(['checkbox', 'single'] as const)(
+      'opens no parent beside the item that a component around the tree hides, in a %s tree',
+      mode => {
+        const onExpandedChange = vi.fn();
+        render(
+          <TreeViewHiddenContext.Provider value={new Set(['b'])}>
+            <TreeView
+              aria-label="Siblings"
+              selectionMode={mode}
+              onExpandedChange={onExpandedChange}
+            >
+              <TreeView.Item value="a" label="A">
+                <TreeView.Item value="a1" label="A1" />
+              </TreeView.Item>
+              <TreeView.Item value="b" label="B">
+                <TreeView.Item value="b1" label="B1" />
+              </TreeView.Item>
+            </TreeView>
+          </TreeViewHiddenContext.Provider>
+        );
+        expect(screen.queryByRole('treeitem', { name: 'B' })).toBeNull();
+        focus('A');
+        press(item('A'), '*');
+        expect(onExpandedChange).toHaveBeenCalledWith(['a']);
+      }
+    );
 
     it('moves to the next item whose label starts with what was typed', () => {
       vi.useFakeTimers();
