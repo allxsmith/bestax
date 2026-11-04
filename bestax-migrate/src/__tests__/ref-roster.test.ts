@@ -92,6 +92,7 @@ const NAMED_INDIVIDUALLY = [
   'Stat.Label',
   'Stat.Value',
   'Stats',
+  'TableOfContents',
   'Timeline',
   'Timeline.Item',
   'Toast',

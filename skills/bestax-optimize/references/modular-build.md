@@ -80,8 +80,8 @@ is **more complete** than the docs page's Option C example, which omits several)
 
 **Components** (`@allxsmith/bestax-bulma/scss/components/<name>`):
 `loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
-`toast`, `dialog`, `carousel`, `tabs`, `menu`, `reveal`, `avatar`, `avatars`, `badge`,
-`emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`, `pagination`,
+`toast`, `dialog`, `carousel`, `tabs`, `menu`, `tableofcontents`, `reveal`, `avatar`, `avatars`,
+`badge`, `emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`, `pagination`,
 `affix`
 
 **Layout** (`@allxsmith/bestax-bulma/scss/layout/<name>`): `appframe`, `splitter`, `stack`
@@ -116,11 +116,13 @@ Notes:
 
 - The `menu` partial **extends** stock Bulma menu (it draws `Menu.Section`'s heading and chevron,
   and keeps the active item marked in forced colors, Windows' contrast themes), so an app using
-  `Menu` needs both, in either order:
+  `Menu`, or a `TableOfContents`, which renders one, needs both, in either order, and the
+  `tableofcontents` partial for the latter:
 
   ```scss
   @use 'bulma/sass/components/menu';
   @use '@allxsmith/bestax-bulma/scss/components/menu' as bestax-menu;
+  @use '@allxsmith/bestax-bulma/scss/components/tableofcontents'; // TableOfContents only
   ```
 
 - The `pagination` partial **extends** stock Bulma pagination (it keeps the current page marked
