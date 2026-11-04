@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { Buttons } from '../Buttons';
 import { Button } from '../Button';
+import { IconButton } from '../IconButton';
 import { LinkButton } from '../LinkButton';
 import { ToggleButton } from '../ToggleButton';
 import { ConfigProvider } from '../../helpers/Config';
@@ -189,10 +190,11 @@ describe('Buttons Component', () => {
 });
 
 describe('Compound components', () => {
-  test('Buttons.Button, Buttons.LinkButton and Buttons.ToggleButton are the exported components', () => {
+  test('Buttons.Button, Buttons.LinkButton, Buttons.ToggleButton and Buttons.IconButton are the exported components', () => {
     expect(Buttons.Button).toBe(Button);
     expect(Buttons.LinkButton).toBe(LinkButton);
     expect(Buttons.ToggleButton).toBe(ToggleButton);
+    expect(Buttons.IconButton).toBe(IconButton);
   });
 
   test('renders buttons through the dot path', () => {

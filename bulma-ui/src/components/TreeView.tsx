@@ -14,16 +14,24 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { warnOnce } from '../helpers/devWarnings';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
-import { useTreeView, type TreeViewEngine } from '../helpers/useTreeView';
+import {
+  TreeViewHiddenContext,
+  useTreeView,
+  type TreeViewEngine,
+} from '../helpers/useTreeView';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
 import { Checkbox } from '../form/Checkbox';
 import { Icon } from '../elements/Icon';
+import { isGiven } from '../helpers/isGiven';
 
 /**
  * How items are picked: `none`, nothing is; `single`, one item at a time;
- * `checkbox`, any number, with a box on every item and mixed parents.
+ * `checkbox`, any number, with a box on every item and mixed parents;
+ * `checkbox-independent`, any number, with a box on every item that checks
+ * that item alone.
  */
-export type TreeViewSelectionMode = 'none' | 'single' | 'checkbox';
+export type TreeViewSelectionMode =
+  'none' | 'single' | 'checkbox' | 'checkbox-independent';
 
 const validTreeViewSizes = ['small', 'medium', 'large'] as const;
 
@@ -66,13 +74,6 @@ const BranchContext = createContext<Branch>(TOP);
 /** The box's input lets the row's click toggle it, so a change on its own does nothing. */
 const ignoreChange = () => {};
 
-/** Whether an `icon` was given something to render. */
-const isGiven = (node: React.ReactNode) =>
-  node !== undefined &&
-  node !== null &&
-  typeof node !== 'boolean' &&
-  node !== '';
-
 /**
  * Props for the TreeView component. The helper props, the other attributes
  * and the `ref` land on the `<ul role="tree">`.
@@ -103,6 +104,9 @@ export interface TreeViewProps
    * `single`: one item, picked with Enter, Space or a click.
    * `checkbox`: any number, checked with Space or a click. A check reaches
    * every enabled item under it, and a parent with some of them checked is mixed.
+   * `checkbox-independent`: any number, checked with Space or a click, each
+   * box for its own item. A check reaches nothing under it, and no parent is
+   * mixed (Mantine's and Ant Design's `checkStrictly`).
    */
   selectionMode?: TreeViewSelectionMode;
   /**
@@ -120,18 +124,22 @@ export interface TreeViewProps
   onSelectedChange?: (value: string) => void;
   /**
    * The checked items' values when you hold the state. Read with `checkbox`
-   * only. A value checks its item, and an enabled item also counts as checked
-   * when any item above it is in the list, so a parent's value stands for its
-   * whole branch, loaded or not. A disabled item is checked only by its own value.
+   * and `checkbox-independent` only. A value checks its item. In `checkbox`,
+   * an enabled item also counts as checked when any item above it is in the
+   * list, so a parent's value stands for its whole branch, loaded or not, and
+   * a disabled item is checked only by its own value. In
+   * `checkbox-independent`, a value checks its own item and nothing else.
    */
   checked?: string[];
-  /** The values checked to begin with, when the tree holds its own state. Read with `checkbox` only. */
+  /** The values checked to begin with, when the tree holds its own state. Read with `checkbox` and `checkbox-independent` only. */
   defaultChecked?: string[];
   /**
-   * Called after a check or an uncheck with every item that now shows
-   * checked, parents included, plus any earlier value that matches no item
-   * the tree knows, left as it was. The order means nothing. Passed back as
-   * `checked`, the list shows the same boxes.
+   * Called after a check or an uncheck. In `checkbox`, with every item that
+   * now shows checked, parents included, plus any earlier value that matches
+   * no item the tree knows, left as it was, and the order means nothing. In
+   * `checkbox-independent`, with the list as it was, the item's value added
+   * at the end or every copy of it taken out, and everything else in the
+   * same order. Passed back as `checked`, the list shows the same boxes.
    */
   onCheckedChange?: (checked: string[]) => void;
   /**
@@ -185,7 +193,7 @@ export interface TreeViewItemProps extends Omit<
   icon?: React.ReactNode;
   /**
    * `TreeView.Item`s under this one. Render them whenever you have them,
-   * open or not: the tree hides them while it's closed, and a checkbox tree
+   * open or not: the tree hides them while it's closed, and a `checkbox` tree
    * needs them to know what a check reaches.
    */
   children?: React.ReactNode;
@@ -231,12 +239,14 @@ export interface TreeViewItemProps extends Omit<
  * and close is `Menu`'s job. The root owns which items are open, through
  * `expanded`, `defaultExpanded` and `onExpandedChange`.
  *
- * `selectionMode` picks one of three trees. With `none`, nothing is picked.
+ * `selectionMode` picks the kind of tree. With `none`, nothing is picked.
  * With `single`, one item is, and `selected` says which. With `checkbox`,
  * each item has a box, a check reaches every enabled item under it, closed
  * branches included, and a parent with some of its items checked is mixed.
- * `selected` is read in a `single` tree only, and `checked` in a `checkbox`
- * tree only. Selection never follows focus.
+ * With `checkbox-independent`, each item has a box that checks that item
+ * alone, so a parent means only itself and is never mixed. `selected` is
+ * read in a `single` tree only, and `checked` in the two checkbox trees only.
+ * Selection never follows focus.
  *
  * Disabled items stay reachable from the keys, so a screen reader finds
  * them. The tree needs a name, from `aria-label` or `aria-labelledby`, and a
@@ -359,7 +369,7 @@ const TreeViewRoot = forwardRef<HTMLUListElement, TreeViewProps>(
             ref={setRefs}
             className={classNames(rootClass, bulmaHelperClasses, className)}
             role="tree"
-            aria-multiselectable={engine.rendersClosed || undefined}
+            aria-multiselectable={engine.multiselectable || undefined}
           >
             {children}
           </ul>
@@ -401,6 +411,10 @@ export const TreeViewItem = forwardRef<HTMLLIElement, TreeViewItemProps>(
   ) {
     const tree = useContext(TreeViewContext);
     const branch = useContext(BranchContext);
+    // Hidden by a component around the tree, such as TreeSelect's search,
+    // it renders as an item under a closed parent does.
+    const hiddenItems = useContext(TreeViewHiddenContext);
+    const hiddenHere = branch.hidden || hiddenItems.has(value);
     // Also the item's key in the live region.
     const labelId = useId();
     const hasItems = React.Children.toArray(children).length > 0;
@@ -409,7 +423,7 @@ export const TreeViewItem = forwardRef<HTMLLIElement, TreeViewItemProps>(
     const parent = branch.path[branch.path.length - 1] ?? null;
 
     // The row at the end of its group, while it's open and on the page.
-    const shown = open && !branch.hidden;
+    const shown = open && !hiddenHere;
     const status = !shown
       ? null
       : isLoading
@@ -484,9 +498,9 @@ export const TreeViewItem = forwardRef<HTMLLIElement, TreeViewItemProps>(
     const childBranch = useMemo(
       () => ({
         path: [...branch.path, value],
-        hidden: branch.hidden || !open,
+        hidden: hiddenHere || !open,
       }),
-      [branch, value, open]
+      [branch, value, hiddenHere, open]
     );
 
     const { selected, checked } =
@@ -498,15 +512,15 @@ export const TreeViewItem = forwardRef<HTMLLIElement, TreeViewItemProps>(
 
     if (!tree) return null;
 
-    // While it's open the children render in its group. In a checkbox tree
-    // they render while it's closed too, drawing nothing, so a check knows
-    // what's under it.
-    const items = (open || tree.rendersClosed) && (
+    // While it's open the children render in its group. In a `checkbox` tree
+    // they render while it's closed or hidden too, drawing nothing, so a
+    // check knows what's under it.
+    const items = (shown || tree.rendersClosed) && (
       <BranchContext.Provider value={childBranch}>
         {children}
       </BranchContext.Provider>
     );
-    if (branch.hidden) return <>{items}</>;
+    if (hiddenHere) return <>{items}</>;
 
     const info = { value, parent, disabled, isParent, open };
     // A position the caller gives wins, for a set the page holds only part of.

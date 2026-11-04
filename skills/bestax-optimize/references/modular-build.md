@@ -82,19 +82,19 @@ is **more complete** than the docs page's Option C example, which omits several)
 `loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
 `toast`, `dialog`, `carousel`, `lightbox`, `tabs`, `menu`, `reveal`, `avatar`, `avatars`,
 `badge`, `emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`,
-`pagination`
+`pagination`, `affix`
 
-**Layout** (`@allxsmith/bestax-bulma/scss/layout/<name>`): `splitter`
+**Layout** (`@allxsmith/bestax-bulma/scss/layout/<name>`): `appframe`, `splitter`, `stack`
 
 **Form** (`@allxsmith/bestax-bulma/scss/form/<name>`):
 `checkbox`, `checkboxcard`, `radio`, `radiocard`, `switch`, `slider`, `numberinput`, `pininput`,
 `rate`, `autocomplete`, `combobox`, `taginput`, `picker-popover`, `dateinput`, `timeinput`,
 `datetimeinput`, `daterangeinput`, `file`, `fieldset`, `field`, `dropzone`, `colorpicker`,
-`colorinput`
+`colorinput`, `treeselect`
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `colorswatch`, `delete`,
-`descriptionlist`, `kbd`, `linkbutton`, `loader`, `notification`, `progress`, `ringprogress`,
-`skeleton`
+`descriptionlist`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`, `progress`,
+`ringprogress`, `skeleton`, `stat`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`
 
@@ -167,10 +167,19 @@ Notes:
   `scss/form/colorpicker`, and `bulma/sass/form/tools` for the label and help text around it.
 - `ColorInput` opens a `ColorPicker` in the pickers' popover, so it needs `colorpicker` (and what
   that needs) and `picker-popover` next to `colorinput`.
+- `TreeSelect` opens a `TreeView` in the pickers' popover, so it needs `components/treeview`,
+  `form/checkbox` for its boxes and `picker-popover` next to `treeselect`, with
+  `bulma/sass/form/input-textarea`, `bulma/sass/elements/tag`, `bulma/sass/elements/delete` and
+  `elements/delete` for the field, the tags and the clear button.
 - `PinInput`'s boxes are Bulma inputs, so an app using it needs `bulma/sass/form/input-textarea`
   next to `scss/form/pininput`, and `bulma/sass/form/tools` for the label and help text around it.
 - `Popover.Close` renders a Bulma button, so an app using it needs `bulma/sass/elements/button`
   next to `scss/components/popover`.
+- `IconButton` is a Bulma button holding an icon, so an app using it needs
+  `bulma/sass/elements/button` and `bulma/sass/elements/icon`. The `iconbutton` partial makes a
+  rounded one a circle, where Bulma's `is-rounded` gives a pill, and keeps the `text` and `ghost`
+  looks from underlining the glyph. Its rules win over Bulma's either way, so the order of the
+  `@use` lines does not matter.
 - `ContextMenu`'s menu is Bulma's dropdown markup, so an app using it needs
   `bulma/sass/components/dropdown` next to `scss/components/contextmenu`.
 - `Lightbox`'s viewer is Bulma's modal, with Bulma buttons for its controls and a `Loader` for a
@@ -196,13 +205,16 @@ Notes:
   module in any build that shows a dismissible notification. It doesn't depend on the order of
   the two `@use` lines either.
 - `Delete` is stock Bulma too (`bulma/sass/elements/delete`), and it's the close button of
-  `Notification`, `Message`, `Toast`, a `Modal` card and the tags of `Taginput`, `Combobox` and
-  `Dropzone`. Bulma draws its circle and cross as background colors, which forced colors
+  `Notification`, `Message`, `Toast`, a `Modal` card, `AppFrame`'s drawer and the tags of
+  `Taginput`, `Combobox` and `Dropzone`. Bulma draws its circle and cross as background colors, which forced colors
   (Windows' contrast themes) replaces, so they vanish there. The `delete` extras partial keeps
   them drawn in the system's button colors, and the `Modal`'s floating close
   (`bulma/sass/components/modal`) and `Tag isDelete` (`bulma/sass/elements/tag`) with them, so
   include it (`as bestax-delete`) in any build that shows a close button. Its rules win over
   Bulma's either way, so the order of the `@use` lines does not matter.
+- `Stats` lays its row out on Bulma's smart grid (`.grid` and `is-col-min-*`), so a build with a
+  `Stats` row wants `bulma/sass/grid/grid` beside the `stat` partial, which only resets the row's
+  margins.
 - `Table` is stock Bulma (`bulma/sass/elements/table`), and `DataTable` renders one. The prebuilt
   stylesheets build it with `$table-cell-text-align: start`, so header cells line up with the
   body cells under them on a right-to-left page, where Bulma's default, `left`, keeps them on the

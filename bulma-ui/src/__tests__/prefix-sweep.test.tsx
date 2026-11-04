@@ -38,7 +38,30 @@ function isComponentExport(value: unknown): value is AnyComponent {
 }
 
 const PROPS: Record<string, Record<string, unknown>> = {
+  // Every part, the drawer open and the column collapsed, so each class the
+  // frame emits is swept.
+  AppFrame: {
+    defaultNavOpen: true,
+    defaultNavCollapsed: true,
+    children: [
+      <Library.AppFrame.Header key="header">
+        <Library.AppFrame.Burger />
+      </Library.AppFrame.Header>,
+      <Library.AppFrame.Nav key="nav">Nav</Library.AppFrame.Nav>,
+      <Library.AppFrame.Main key="main">Main</Library.AppFrame.Main>,
+      <Library.AppFrame.Aside key="aside">Aside</Library.AppFrame.Aside>,
+      <Library.AppFrame.Footer key="footer">Footer</Library.AppFrame.Footer>,
+    ],
+  },
   Icon: { name: 'star' },
+  // Named, colored, sized and rounded, so every class it emits is swept.
+  IconButton: {
+    icon: 'trash',
+    'aria-label': 'Delete',
+    color: 'danger',
+    size: 'small',
+    isRounded: true,
+  },
   IconText: { children: 'Text', iconProps: { name: 'star' } },
   Avatar: { name: 'Ada Lovelace' },
   Badge: { children: '9' },
@@ -105,6 +128,13 @@ const PROPS: Record<string, Record<string, unknown>> = {
     actionText: 'Undo',
   },
   Taginput: { value: ['tag-one'] },
+  // It has no class of its own, so its helper classes are what's swept.
+  NumberFormatter: {
+    value: 1234.5,
+    textColor: 'primary',
+    bgColor: 'light',
+    textWeight: 'semibold',
+  },
   // Vertical, with a collapsed pane, so every class it emits is swept.
   Splitter: {
     orientation: 'vertical',
@@ -117,6 +147,18 @@ const PROPS: Record<string, Record<string, unknown>> = {
       </Library.Splitter.Pane>,
     ],
   },
+  // Full width with a breakpoint and the props that replace its defaults, so
+  // every class Group emits is swept. Stack, Center and Flex render the same
+  // `.stack` with one modifier each.
+  Group: {
+    isFullwidth: true,
+    breakpoint: 'tablet',
+    gap: '1',
+    alignItems: 'baseline',
+    flexWrap: 'nowrap',
+    children: 'Group',
+  },
+  Flex: { flexDirection: 'column', alignContent: 'center', rowGap: '2' },
   // Every orientation class and dividers, with an item from its props and
   // one from its parts, so each class the family emits is swept.
   DescriptionList: {
@@ -136,6 +178,25 @@ const PROPS: Record<string, Record<string, unknown>> = {
     ],
   },
   DescriptionListItem: { label: 'Order', value: '#1234' },
+  // Sized, with every prop part and a change, so each class it emits is swept.
+  Stat: {
+    label: 'Revenue',
+    value: 8456.4,
+    change: 0.12,
+    description: 'since last month',
+    size: 'large',
+  },
+  // A row with a loading tile, a minimum width and a gap, so the grid's
+  // classes and the Skeleton's are swept.
+  Stats: {
+    minCol: 8,
+    gap: 4,
+    children: [
+      <Library.Stat key="a" label="Revenue" value={8456.4} change={-0.019} />,
+      <Library.Stat key="b" label="Churn" loading />,
+    ],
+  },
+  StatChange: { value: 0.12, color: 'danger' },
   // Sized, colored and rounded, in sections, so every class it emits is swept.
   RingProgress: {
     label: 'Storage',
@@ -409,6 +470,31 @@ const PROPS: Record<string, Record<string, unknown>> = {
   Slider: {
     marks: [{ value: 50, label: '50' }],
     tooltip: 'always',
+  },
+  // Checked, clearable, coloured, sized, rounded and open in place, with a
+  // search box and a message, so the field's, the tags', the panel's and
+  // the tree's classes are swept together.
+  TreeSelect: {
+    label: 'Regions',
+    selectionMode: 'checkbox',
+    data: [
+      {
+        value: 'europe',
+        label: 'Europe',
+        icon: 'globe',
+        children: [{ value: 'france', label: 'France' }],
+      },
+    ],
+    defaultValue: ['france'],
+    defaultExpanded: ['europe'],
+    defaultOpen: true,
+    searchable: true,
+    clearable: true,
+    color: 'info',
+    size: 'small',
+    isRounded: true,
+    message: 'Pick some',
+    messageColor: 'danger',
   },
   // A checkbox tree, sized and open, with an icon, a disabled item and a
   // checked one, so the box, the group and the modifiers are swept. An item

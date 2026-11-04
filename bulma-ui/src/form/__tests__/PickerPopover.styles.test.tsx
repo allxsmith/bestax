@@ -11,6 +11,7 @@ import { SCSS, compileScss, compileSheet } from '../../__tests__/compile-scss';
 import { DateInput } from '../DateInput';
 import { TimeInput } from '../TimeInput';
 import { DateTimeInput } from '../DateTimeInput';
+import { TreeSelect } from '../TreeSelect';
 import { ConfigProvider } from '../../helpers/Config';
 import type { PickerPosition } from '../_pickerInternals/pickerTypes';
 
@@ -66,6 +67,52 @@ function openPanel(
   );
   return panel;
 }
+
+describe.each(prefixes)(
+  'a panel that matches its anchor\'s width, with class prefix "%s"',
+  prefix => {
+    const openTreeSelect = (appendToBody: boolean) => {
+      render(
+        <ConfigProvider classPrefix={prefix}>
+          <TreeSelect
+            aria-label="Place"
+            data={[{ value: 'a' }]}
+            appendToBody={appendToBody}
+          />
+        </ConfigProvider>
+      );
+      fireEvent.click(screen.getByRole('combobox'));
+      return screen.getByRole('dialog');
+    };
+
+    it('is at least as wide as the anchor in place', () => {
+      const panel = openTreeSelect(false);
+      expect(panel).toHaveClass(`${prefix}has-anchor-width`);
+      expect(getComputedStyle(panel).minWidth).toBe('100%');
+    });
+
+    it("takes the anchor's width inline once portaled, never the viewport's", () => {
+      const panel = openTreeSelect(true);
+      expect(panel).toHaveClass(
+        `${prefix}has-anchor-width`,
+        `${prefix}is-portal`
+      );
+      expect(getComputedStyle(panel).minWidth).not.toBe('100%');
+    });
+
+    it("leaves a picker's panel that doesn't match alone", () => {
+      render(
+        <ConfigProvider classPrefix={prefix}>
+          <DateInput aria-label="Date" />
+        </ConfigProvider>
+      );
+      fireEvent.click(screen.getByRole('combobox'));
+      const panel = screen.getByRole('dialog');
+      expect(panel).not.toHaveClass(`${prefix}has-anchor-width`);
+      expect(getComputedStyle(panel).minWidth).not.toBe('100%');
+    });
+  }
+);
 
 const gap = 'var(--bulma-picker-popover-offset)';
 // The edge an in-place panel faces the input with, the gap past it.

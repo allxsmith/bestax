@@ -1,3 +1,108 @@
+# [5.62.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.61.0...@allxsmith/bestax-bulma@5.62.0) (2026-11-04)
+
+
+### Bug Fixes
+
+* **bulma-ui:** color the select field's chevron as focused while the field is drawn focused ([ee9c653](https://github.com/allxsmith/bestax/commit/ee9c6534db31a40873f28807bc104a8e0ec01e0d))
+* **bulma-ui:** decide TreeSelect's clear and tag buttons from the check state ([6d46dbd](https://github.com/allxsmith/bestax/commit/6d46dbd8c90887ce83e235d5c48331bc6183f6a8))
+* **bulma-ui:** hand focus from the hidden required field to the field a task later ([385a2fc](https://github.com/allxsmith/bestax/commit/385a2fcc4005ad33784f458f5711bd90f93c8d59))
+* **bulma-ui:** hold Tab in TreeSelect's panel, and keep its value through resets, loads and clears ([cbef61a](https://github.com/allxsmith/bestax/commit/cbef61a461c39e3d441b2df858d32492db71b781))
+* **bulma-ui:** keep the browser's required message up, focus on its field until the next key ([bf719fa](https://github.com/allxsmith/bestax/commit/bf719faebc291f53663f322a3e5ad007443b0922))
+* **bulma-ui:** let the focused required stand-in read as the field, and leave it on a modifier ([7f80920](https://github.com/allxsmith/bestax/commit/7f80920935fb4c08cf1770b469812192eff3c969))
+* **bulma-ui:** let TreeSelect's panel in place inherit the root's variables ([c7da82c](https://github.com/allxsmith/bestax/commit/c7da82c3009927f7215c8bdcc644e1213f20f0a4))
+* **bulma-ui:** put TreeSelect's strings in labels, hand filter the path, keep a ref's cleanup ([0c95ed5](https://github.com/allxsmith/bestax/commit/0c95ed557b3ccf10efbc0764b973821d701cc367))
+* **bulma-ui:** register how TreeSelect's chevron and clear button stack ([f0ad87b](https://github.com/allxsmith/bestax/commit/f0ad87b6b423ce6b5d6e707915d2f5f955e79f3e))
+
+
+### Features
+
+* **bulma-ui:** add TreeSelect, a form field that picks from a tree ([5aa8e30](https://github.com/allxsmith/bestax/commit/5aa8e30341b42d145e3e3b5898c6f800ec4ed150))
+* **bulma-ui:** draw TreeSelect's chevron, clear button and panel ([13f2887](https://github.com/allxsmith/bestax/commit/13f2887b369a6cdb2ccceb0282dafdb087a6d344))
+* **bulma-ui:** give TreeSelect its story, docs page and listings ([effc780](https://github.com/allxsmith/bestax/commit/effc780e666204765a0893b08ee7857a78b8aa3b))
+
+# [5.61.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.60.0...@allxsmith/bestax-bulma@5.61.0) (2026-11-04)
+
+
+### Bug Fixes
+
+* **bulma-ui:** build AppFrame's drawer on the shared overlay hooks, with a live backdrop ([7ac1580](https://github.com/allxsmith/bestax/commit/7ac158084cb88ae45c088e4ed4f4b65c737b6d88))
+* **bulma-ui:** close AppFrame's drawer only for a link the nav holds ([29d27ac](https://github.com/allxsmith/bestax/commit/29d27ac571ffb2fce3db772697c06b4b6034bc28))
+* **bulma-ui:** give a lone AppFrame.Burger Navbar.Burger's aria-expanded ([3929d37](https://github.com/allxsmith/bestax/commit/3929d37e4272b6d65e2da9799060002d527311d0))
+* **bulma-ui:** hand focus to AppFrame's burger after a press outside the drawer ([36626a8](https://github.com/allxsmith/bestax/commit/36626a83813b32813e81ba76eed569f949b16930))
+* **bulma-ui:** have useAppFrame return null outside a frame, as the other context hooks do ([5cc3192](https://github.com/allxsmith/bestax/commit/5cc319275b1cd44e53011355692cd90e07461168))
+* **bulma-ui:** leave AppFrame.Burger's aria-expanded off until the frame knows its mode ([2c2f829](https://github.com/allxsmith/bestax/commit/2c2f82934f0f2bccac517c2259dede9427eb1dc6))
+* **bulma-ui:** leave AppFrame's backdrop to an overlay opened over the drawer ([c5b49de](https://github.com/allxsmith/bestax/commit/c5b49de05bbec8472f40f4951a691e5f31f639f0))
+* **bulma-ui:** mark AppFrame's open drawer with Bulma's is-active on the nav and its backdrop ([f6e20e6](https://github.com/allxsmith/bestax/commit/f6e20e6db638102e3322739dcc813e8b9a235252))
+* **bulma-ui:** read useOverlayFocus's opener in the overlay's own document ([3bc1e16](https://github.com/allxsmith/bestax/commit/3bc1e160aed28b6cb7e07518eadaae269a401d5c))
+* **bulma-ui:** run the cleanup an AppFrame part's callback ref returns ([c21d7c9](https://github.com/allxsmith/bestax/commit/c21d7c95c84fd96199fe4dc978326931da69269f))
+* **bulma-ui:** send focus from AppFrame's hidden close button to the burger ([5041213](https://github.com/allxsmith/bestax/commit/5041213c608da6d05df0c295466b860d335c7a63))
+* **bulma-ui:** watch only the breakpoint AppFrame switches at ([cca79b1](https://github.com/allxsmith/bestax/commit/cca79b10263936af4cb3cab29fa91ad95b99d5fa))
+
+
+### Features
+
+* **bulma-ui:** add AppFrame, the frame an app's pages sit in ([0a1bbbf](https://github.com/allxsmith/bestax/commit/0a1bbbf148d31021be2cd4357c9ee592410e6d91)), closes [#1432](https://github.com/allxsmith/bestax/issues/1432)
+
+# [5.60.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.59.0...@allxsmith/bestax-bulma@5.60.0) (2026-11-03)
+
+
+### Bug Fixes
+
+* **bulma-ui:** alias AffixPosition to BadgePosition, and spell its offsets' default $block-spacing ([9ffa9f0](https://github.com/allxsmith/bestax/commit/9ffa9f0ab97823ab7a4d7b976401ee3bf146e650))
+* **bulma-ui:** stack Affix under menus, and keep its offsets out of a Field's spacing ([74cb80e](https://github.com/allxsmith/bestax/commit/74cb80ea8207e279a9ede284dde383b7dd87bb03))
+
+
+### Features
+
+* **bulma-ui:** add Affix, a wrapper fixed to a corner of the viewport ([f27902b](https://github.com/allxsmith/bestax/commit/f27902b3949719319e59e0d013b521b6e088f408)), closes [#1433](https://github.com/allxsmith/bestax/issues/1433)
+
+# [5.59.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.58.0...@allxsmith/bestax-bulma@5.59.0) (2026-11-03)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep a hidden Stack hidden, and a Columns child lined up ([a296483](https://github.com/allxsmith/bestax/commit/a2964830d5ad482bfe539dca3c068bc678fccefe))
+* **bulma-ui:** keep a Pagination's negative margins inside a Stack, Group, Center or Flex ([ca35d7e](https://github.com/allxsmith/bestax/commit/ca35d7ec60f3d98b6964f33211d927dd20e804b9))
+* **bulma-ui:** keep a Stack's textColor and bgColor through a spread color or backgroundColor ([a214bda](https://github.com/allxsmith/bestax/commit/a214bda29702d88dad192fe9ff1d7ac9d99190a1))
+* **bulma-ui:** mark IconButton's forbidding name props internal, and draw only a glyph that draws ([4a1986a](https://github.com/allxsmith/bestax/commit/4a1986aa2d8ae5f386fd50086296f985d0f9d0a6))
+* **bulma-ui:** take IconButton's glyph from icon or from children, and keep text and ghost unlined ([9174c8c](https://github.com/allxsmith/bestax/commit/9174c8cf5411db2264c6bcf28a2938cf47562596))
+* **bulma-ui:** warn when an IconButton has no glyph to draw ([09ed698](https://github.com/allxsmith/bestax/commit/09ed698a1432c04d7a0d01f4989503093aafef47))
+* **bulma-ui:** zero a Pagination's block margin in a Stack from tablet up, as Bulma does ([62643a7](https://github.com/allxsmith/bestax/commit/62643a7543f3249237633fc6e5bac2c2e245414a))
+* **bulma-ui:** zero a Stack child's top margin too, so the gap is the only space ([9c496e5](https://github.com/allxsmith/bestax/commit/9c496e59cdc9167f203e569d471007ed211e4a26))
+* **docs:** go back to main's prop-row merging in the API docs generator ([a15326a](https://github.com/allxsmith/bestax/commit/a15326a99dc189094497d17c00161b5187224b2d))
+* **docs:** leave a prop's row to the union branch that takes it, not one that forbids it ([961d8b6](https://github.com/allxsmith/bestax/commit/961d8b68f61e7f81e4e2caf44cc18a5b2d1f9dda))
+* **docs:** merge prop rows only across union branches, and count a union the props type names as own ([ea58811](https://github.com/allxsmith/bestax/commit/ea58811eadb316551eb4dac59ce46978188c8b6d))
+* **eslint-plugin:** let Stack, Group, Center and Flex take the flex container props ([6793c3f](https://github.com/allxsmith/bestax/commit/6793c3f405e283bdb8f7f0dc25063fe4e587c6a5))
+* **eslint-plugin:** report a flex container's props only where display certainly turns it off ([fe82889](https://github.com/allxsmith/bestax/commit/fe82889d6ed60a4f6304030b46a0720aac1d601b))
+* **eslint-plugin:** report flex props on a Stack that display turns off, and read the set from a tag ([b9b8c8a](https://github.com/allxsmith/bestax/commit/b9b8c8a7398ca3534535f7adcc471cbb2e2cfd8e))
+
+
+### Features
+
+* **bulma-ui:** add IconButton, a button that shows only an icon and requires a name ([d4a1d2b](https://github.com/allxsmith/bestax/commit/d4a1d2bfe45b8ab7608650f00488caf70f66025f)), closes [#1422](https://github.com/allxsmith/bestax/issues/1422)
+* **bulma-ui:** add Stack, Group, Center and Flex, flex containers on the helper props ([d3274a2](https://github.com/allxsmith/bestax/commit/d3274a2ef30cd94c8622afc9551cf0b9b244f1cc)), closes [#1427](https://github.com/allxsmith/bestax/issues/1427)
+* **bulma-ui:** attach IconButton to Buttons as Buttons.IconButton ([56a974d](https://github.com/allxsmith/bestax/commit/56a974d4d01ba65c35d93a0c35eea388c6fd5139))
+* **bulma-ui:** let the flex helpers know an element is a flex container by its own CSS ([19b29a2](https://github.com/allxsmith/bestax/commit/19b29a27034b0fcacb525a0255c4e8b8dc48f20c))
+
+
+### Reverts
+
+* **bulma-ui:** keep isGiven in each component, which the Stat branch moves to helpers ([8e9260d](https://github.com/allxsmith/bestax/commit/8e9260d307d127fc59d593799d29b2f9a2a87eae))
+
+# [5.58.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.57.5...@allxsmith/bestax-bulma@5.58.0) (2026-11-03)
+
+
+### Bug Fixes
+
+* **bulma-ui:** ignore a locale Intl refuses in useNumberFormat, and key its cache exactly ([a84b398](https://github.com/allxsmith/bestax/commit/a84b39866cfabccd9dbb1ea92e9fe0adb093481d))
+* **bulma-ui:** settle which number hook a component takes, and keep unknown options cached ([2dfa766](https://github.com/allxsmith/bestax/commit/2dfa76691a673504ad80dee2c30d5a7b5ccd5941))
+
+
+### Features
+
+* **bulma-ui:** add NumberFormatter and make useNumberFormat public ([f1935d1](https://github.com/allxsmith/bestax/commit/f1935d1904e18473a4b7de9f196ab32ad91ba598)), closes [#1425](https://github.com/allxsmith/bestax/issues/1425)
+* **bulma-ui:** add TreeView's checkbox-independent mode, a box that checks its own item ([c31e135](https://github.com/allxsmith/bestax/commit/c31e135b866cca0726f994aee488ae1f5dec9f58)), closes [#1430](https://github.com/allxsmith/bestax/issues/1430)
+
 ## [5.57.5](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.57.4...@allxsmith/bestax-bulma@5.57.5) (2026-11-01)
 
 

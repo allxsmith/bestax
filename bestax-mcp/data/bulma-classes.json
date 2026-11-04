@@ -13094,6 +13094,8 @@
     }
   ],
   "ownClasses": {
+    "affix": "Affix",
+    "app-frame": "AppFrame",
     "autocomplete": "Autocomplete",
     "avatar": "Avatar",
     "avatars": "Avatars",
@@ -13116,7 +13118,9 @@
     "dropzone": "Dropzone",
     "empty-state": "EmptyState",
     "fieldset": "Fieldset",
+    "stack": "Stack",
     "hover-card": "HoverCard",
+    "icon-button": "IconButton",
     "kbd": "Kbd",
     "lightbox": "Lightbox",
     "link-button": "LinkButton",
@@ -13133,12 +13137,15 @@
     "sidebar": "Sidebar",
     "slider": "Slider",
     "splitter": "Splitter",
+    "stat": "Stat",
+    "stats": "Stats",
     "steps": "Steps",
     "switch": "Switch",
     "taginput": "Taginput",
     "timeline": "Timeline",
     "toast": "Toast",
     "tooltip": "Tooltip",
+    "tree-select": "TreeSelect",
     "tree-view": "TreeView"
   },
   "byHand": {

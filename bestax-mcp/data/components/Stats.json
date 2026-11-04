@@ -1,0 +1,278 @@
+{
+  "name": "Stats",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/stats",
+  "docsUrl": "https://bestax.io/docs/api/elements/stats",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<>\n  <Title as=\"h2\" textSize=\"5\" id=\"stats-kpis\">\n    This month\n  </Title>\n  <Stats aria-labelledby=\"stats-kpis\" minCol={8} gap={4}>\n    <Stat\n      label=\"Revenue\"\n      value={8456.4}\n      format={{ style: 'currency', currency: 'USD' }}\n      locale=\"en-US\"\n      change={0.12}\n      description=\"since last month\"\n    />\n    <Stat\n      label=\"New customers\"\n      value={1234}\n      locale=\"en-US\"\n      change={-0.019}\n      description=\"since last month\"\n    />\n    <Stat\n      label=\"Churn\"\n      value={0.021}\n      format={{ style: 'percent', maximumFractionDigits: 1 }}\n      locale=\"en-US\"\n      change={0.004}\n      changeColor=\"danger\"\n      description=\"since last month\"\n    />\n    <Stat\n      label=\"Requests\"\n      value={1234567}\n      format={{ notation: 'compact' }}\n      locale=\"en-US\"\n      change={0}\n      description=\"since last month\"\n    />\n  </Stats>\n</>"
+    },
+    {
+      "title": "Tile Width and Gap",
+      "code": "<Stats minCol={5} gap={2}>\n  <Stat label=\"Mon\" value={12} />\n  <Stat label=\"Tue\" value={18} />\n  <Stat label=\"Wed\" value={9} />\n  <Stat label=\"Thu\" value={21} />\n  <Stat label=\"Fri\" value={15} />\n</Stats>"
+    },
+    {
+      "title": "Text Color",
+      "code": "<Stats minCol={8} textColor=\"link\">\n  <Stat label=\"Revenue\" value=\"$8,456\" />\n  <Stat label=\"Refunds\" value=\"$312\" textColor=\"danger\" />\n</Stats>"
+    },
+    {
+      "title": "In a LocaleProvider",
+      "code": "<LocaleProvider locale=\"de-DE\">\n  <Stats minCol={8} gap={4}>\n    <Stat\n      label=\"Umsatz\"\n      value={8456.4}\n      format={{ style: 'currency', currency: 'EUR' }}\n      change={-0.019}\n    />\n    <Stat label=\"Neukunden\" value={1234} change={0.12} />\n  </Stats>\n</LocaleProvider>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Stats minCol={8} gap={4}>\n  <Stats.Stat label=\"Revenue\" value=\"$8,456\" description=\"this month\" />\n  <Stats.Stat>\n    <Stats.Stat.Label>New customers</Stats.Stat.Label>\n    <Stats.Stat.Value>1,234</Stats.Stat.Value>\n    <Stats.Stat.Description>this month</Stats.Stat.Description>\n  </Stats.Stat>\n</Stats>"
+    }
+  ],
+  "accessibility": "- **One list for the row:** a `<dl>` with a `<div>` for each Stat, which browsers expose as a list\n  of terms and their definitions. Chromium, Firefox and WebKit give the same tree: each label\n  followed by its figure, its change and its note, in the order written.\n- **A name from the heading above:** point `aria-labelledby` at it, as in\n  [Basic Usage](https://bestax.io/docs/api/elements/stats#basic-usage).\n- **Only Stats inside:** a `<dl>` holds only its groups, so put nothing else in the row, and wrap\n  no Stat in it. A `LocaleProvider` or a `Box` goes around the whole row instead. A\n  `role=\"status\"` element doesn't: it goes around one lone Stat whose figure should be announced,\n  since announcing a whole row that refreshes would be noise.\n- **Reading order is the order you write:** the grid places the tiles and follows the writing\n  direction, so in a right-to-left page the first tile sits on the right, and a screen reader\n  reads them in the same order either way.\n- **Not interactive and not live:** it has no tab stop and announces nothing when a figure\n  changes. See [`Stat`](https://bestax.io/docs/api/elements/stat#a-figure-that-should-be-announced) for the one figure that\n  should be announced.",
+  "related": ["Grid", "Stat", "Title", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-stats--default",
+  "summary": "The `Stats` component lays out a row of `Stat`s, such as the key figures at the top of a dashboard, as one description list on Bulma's smart grid. It's a `<dl>` with a `<div>` for each Stat, so a screen reader announces the row once, then each label with its values. The tiles fill the grid's columns, each at least `minCol` wide, and wrap without media queries; the `gap` helper prop sets the space between them. Name the row with `aria-labelledby` pointing at the heading above it. `Stat` is also `Stats.Stat`.",
+  "import": "import { Stats, Stat } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/Stats.tsx",
+  "rootClass": "stats",
+  "parts": [
+    {
+      "path": "Stats",
+      "summary": "The `Stats` component lays out a row of `Stat`s, such as the key figures at the top of a dashboard, as one description list on Bulma's smart grid. It's a `<dl>` with a `<div>` for each Stat, so a screen reader announces the row once, then each label with its values. The tiles fill the grid's columns, each at least `minCol` wide, and wrap without media queries; the `gap` helper prop sets the space between them. Name the row with `aria-labelledby` pointing at the heading above it. `Stat` is also `Stats.Stat`.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "`Stat`s, one per figure, and nothing else: they're the groups of its `<dl>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "minCol",
+          "type": "BulmaMinColValue",
+          "default": null,
+          "description": "The narrowest a tile gets before the row wraps (`is-col-min-*`), as Grid's `minCol`: 1.5rem a step. Unset, it's Bulma's 9rem.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper: `has-text-*` on the `<dl>`, as on Buttons. Each Stat in the row without a `textColor` of its own takes it too, which colors its figure, since a Stat sets its own color. The labels, the changes and the notes keep theirs.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDListElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<dl>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "gap",
+          "type": "BulmaGapStep",
+          "default": null,
+          "description": "The space between tiles (`is-gap-*`), the helper prop with the values Grid's `gap` takes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "aria-labelledby",
+          "type": "string",
+          "default": null,
+          "description": "The id of the heading above the row, which names it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <dl> attributes and Bulma helper props",
+      "types": [
+        {
+          "name": "BulmaMinColValue",
+          "expansion": "1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32",
+          "summary": "Allowed minimum column values for Bulma grid."
+        }
+      ]
+    },
+    {
+      "path": "Stats.Stat",
+      "summary": "The `Stat` component shows a figure with its name, and often a change and a note, such as a dashboard's revenue or an account's storage used. It's a label and its values in a description list: a `<dt>` for the label, and a `<dd>` each for the figure, the change and the note. On its own it renders its own `<dl>`; inside `Stats` it's a `<div>` in the row's. A number `value` is written by `NumberFormatter`, so it follows a `LocaleProvider`. A change is written with its sign (\"+12%\"), so the direction is in the text, beside a decorative arrow and a color.",
+      "component": "Stat",
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "What the figure is (\"Revenue\"), as a `Stat.Label` before the children. A Stat needs one, here or as a `Stat.Label` child: it's the figure's name for assistive tech, and a definition list's values belong to a term. A Stat with neither a `label` nor a `Stat.Label` child warns in development.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The figure, as a `Stat.Value` after the children. A number is written by `NumberFormatter` with `format` and `locale`; anything else, such as \"N/A\", renders as given, and `0` renders. `undefined`, `null`, a boolean and `''` leave it empty, and its `<dd>` still renders, one line of the figure tall, while the Stat has a label, so the label keeps its definition while the figure is missing. A `Stat.Value` child takes its place: with one, `value` and its `<dd>` are left out.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "format",
+          "type": "Intl.NumberFormatOptions",
+          "default": null,
+          "description": "`Intl.NumberFormat` options for a number `value`, as NumberFormatter's `format`. A `value` that isn't a number ignores it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "default": null,
+          "description": "The locale for `value` and `change`, as NumberFormatter's `locale`. Unset, it's the `LocaleProvider`'s around it, and with neither, the runtime's own, so give one, here or through a `LocaleProvider`, on a page rendered on the server.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "change",
+          "type": "number",
+          "default": null,
+          "description": "The change, as a `Stat.Change` after the value. With the default format it's a fraction (`0.12` for 12%); with your own `changeFormat`, it's in that format's terms. It's written with its sign, so the direction is in the text.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "changeFormat",
+          "type": "Intl.NumberFormatOptions",
+          "default": "{ style: 'percent', signDisplay: 'exceptZero', maximumFractionDigits: 1 }",
+          "description": "`Intl.NumberFormat` options for `change`. Yours replace the default, and `signDisplay: 'exceptZero'` is added unless you set a `signDisplay`. With `signDisplay: 'never'`, or `'negative'` on a rise, the text carries no direction: the arrow is hidden from assistive tech and the tone is color alone, so keep a sign, or say the direction in `description`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "changeColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "The change's color. Unset, it's the sign's: `success` up, `danger` down, and none at zero. Set it where up is bad news, such as a cost or an error rate.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "description",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "A note under the figure (\"since last month\"), as a `Stat.Description` last.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "The figure's size, a step of Bulma's size scale. The label, the change and the note stay small.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows a `Skeleton` in place of `value`, one line of the figure tall, and sets `aria-busy` on the Stat. The label, the change and the note render as given. With a `Stat.Value` child, it only sets `aria-busy`: the child renders as given, so put a `Skeleton` in it yourself.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "`Stat.Label`, `Stat.Value`, `Stat.Change` and `Stat.Description`, for anything the props don't cover, such as a unit or an info tip. They render between `label` and `value`. They're this Stat's own parts, so not another Stat: that would be a list inside this one's. The Stat finds a `Stat.Label` or `Stat.Value` among them by type, so one rendered from inside a component of your own isn't seen.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper. It colors the figure; the label, the change and the note keep their own colors. Inside `Stats`, a Stat without one takes the row's.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLElement>",
+          "default": null,
+          "description": "Ref forwarded to the root, a `<div>` inside `Stats` or a `<dl>` on its own.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": []
+}

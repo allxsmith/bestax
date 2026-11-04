@@ -239,7 +239,14 @@ export const ALIASES: Readonly<Record<string, readonly string[]>> = {
   drawer: ['Sidebar'],
   dropdownmenu: ['Dropdown'],
   dropzone: ['Dropzone', 'File'],
+  // A tree on the page. TreeSelect's name says "tree" too, so without these
+  // the field ties the tree for them and sorts first.
+  filetree: ['TreeView'],
   fileupload: ['Dropzone', 'File'],
+  foldertree: ['TreeView'],
+  // Chakra's and react-intl's names for it.
+  formatnumber: ['NumberFormatter'],
+  formattednumber: ['NumberFormatter'],
   keyvalue: ['DescriptionList'],
   modaldialog: ['Modal', 'Dialog'],
   offcanvas: ['Sidebar'],
@@ -255,6 +262,9 @@ export const ALIASES: Readonly<Record<string, readonly string[]>> = {
   snackbar: ['Toast'],
   spinbutton: ['Numberinput'],
   spinner: ['Loader'],
+  // Ant Design's Statistic, and Chakra's Stat.Group for a row of them.
+  statistic: ['Stat'],
+  statgroup: ['Stats'],
   stepper: ['Steps', 'Numberinput'],
   summarylist: ['DescriptionList'],
   taggroup: ['Tags'],

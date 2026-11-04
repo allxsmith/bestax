@@ -23,6 +23,7 @@ import { File as FileInput } from '../File';
 import { Dropzone } from '../Dropzone';
 import { Taginput } from '../Taginput';
 import { Combobox } from '../Combobox';
+import { TreeSelect } from '../TreeSelect';
 import { resetDevWarnings } from '../../helpers/devWarnings';
 import type { FormFieldProps } from '../fieldProps';
 import type { ControlLevelProps } from '../FormContext';
@@ -176,6 +177,14 @@ const wrappers: Wrapper[] = [
       </Combobox>
     ),
     root: '.combobox',
+    ownControl: false,
+  },
+  {
+    name: 'TreeSelect',
+    // Its own Control is the field's, inside the root, and it takes no
+    // Control-level props, so the tests that pass them skip it.
+    render: p => <TreeSelect {...(p as FormFieldProps)} data={[]} />,
+    root: '.tree-select',
     ownControl: false,
   },
 ];

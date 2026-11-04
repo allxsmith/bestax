@@ -5,11 +5,16 @@ source-verified. Import everything from the package root:
 
 ```tsx
 import {
+  AppFrame,
   Container,
   Section,
   Hero,
   Footer,
   Level,
+  Stack,
+  Group,
+  Center,
+  Flex,
   Columns,
   Column,
   Grid,
@@ -32,6 +37,35 @@ Every component also accepts the shared Bulma helper props (`m`/`p` spacing, `te
 > **There is no `Tile` component.** For uniform grids (cards, galleries) use `Grid` / `Cell` —
 > equal-height cells for free; for proportional or per-breakpoint layouts use
 > `Columns` / `Column`.
+
+## AppFrame
+
+`<AppFrame>` is the frame an app's pages sit in, the app shell: a header across the top, a
+navigation column down the side, the page, and an aside and a footer when there are any, with a
+skip link first. The header and the column stick while the page scrolls. Below its breakpoint the
+nav is a modal drawer behind `AppFrame.Burger`; from it up the burger collapses the column. The
+parts are direct children, in this order: `AppFrame.Header` (`<header>`), `AppFrame.Nav`
+(`<nav>`), `AppFrame.Main` (`<main>`), `AppFrame.Aside` (`<aside>`), `AppFrame.Footer`
+(`<footer>`). `AppFrame.Burger` goes in the header's `Navbar.Brand`.
+
+| Prop                                                              | Type                                                                               |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `breakpoint`                                                      | `'tablet' \| 'desktop' \| 'widescreen'` (default `desktop`: a drawer below it)     |
+| `navOpen` / `defaultNavOpen` / `onNavOpenChange(open)`            | the drawer, below the breakpoint                                                   |
+| `navCollapsed` / `defaultNavCollapsed` / `onNavCollapsedChange()` | the column, from the breakpoint up                                                 |
+| `skipLink`                                                        | `boolean` (default `true`)                                                         |
+| `labels`                                                          | `{ skipLink?, nav?, closeNav?, burger? }`, for another language                    |
+| `AppFrame.Nav`                                                    | `width?`, `overlay?`, `closeOnEscape?`, `closeOnClickOutside?`, `closeOnNavigate?` |
+| `AppFrame.Aside`                                                  | `width?`, and an `aria-label` when the page has another aside                      |
+
+Put it at the top of the app, never inside a `<main>` or a `Container as="main"`: it renders the
+page's `<main>`. Its `Navbar` is not `fixed` and needs no `has-navbar-fixed-top`. A control of
+your own reads and toggles the state with `useAppFrame()`, which is `null` outside a frame:
+`toggleNav()` does what the burger does, and `navId` is for its `aria-controls`. Have the control
+call `event.currentTarget.focus()` before `toggleNav()`, as the burger does: Safari, and Firefox on
+a Mac, don't focus a button on click, so without it a closing drawer has no opener to hand focus
+back to. A header taller than Bulma's navbar sets
+`--bulma-app-frame-header-height` on `:root`.
 
 ## Container
 
@@ -99,6 +133,36 @@ Every component also accepts the shared Bulma helper props (`m`/`p` spacing, `te
 | `Level.isMobile`             | `boolean` (keep horizontal on mobile) |
 | `Level.Item.as`              | `'div' \| 'p' \| 'a'`                 |
 | `Level.Item.hasTextCentered` | `boolean`                             |
+
+## Stack / Group / Center / Flex
+
+Flex containers for laying out any components, with no `display` prop to add. Each zeroes the
+top and bottom margins Bulma gives its direct children (Box, Notification, Card, Title, Field,
+Media), so `gap` is the only space between them: no `mb="0"` on the children, and a spacing
+helper such as `mt="2"` still adds to it. A `Columns` child keeps its own top and side margins and takes at the
+bottom the one Bulma gives the last Columns in a container (the column gap pulled back in, none
+when gapless), so its columns line up, and a `Pagination` child keeps its negative margins too. None draws a surface; put a `Box` or a `Card` inside or around. A `display` prop that isn't flex turns one
+off, as on any component.
+
+- `<Stack>`: a column, children stretched across it, `gap` Bulma's block spacing (1.5rem).
+- `<Group>`: a row that wraps, children centered on each other, `gap` half that (0.75rem). A
+  toolbar is `<Group justifyContent="space-between">`.
+- `<Center>`: centers its content on both axes, no gap. Give it a height (`aspectRatio`, or a
+  parent with one) to center vertically.
+- `<Flex>`: CSS's own defaults (a row, no wrap, no gap) and every flex container prop.
+
+| Prop                                                       | Type                                                                                                                                      |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `gap`, and on Flex `rowGap` / `columnGap`                  | `'0'`–`'8'` in half steps, or the number; whole step = 0.5rem                                                                             |
+| `alignItems`, `justifyContent`, `flexWrap`, `alignContent` | the flex helper values (`'center'`, `'space-between'`, `'wrap'`, …)                                                                       |
+| `Flex.flexDirection`                                       | `'row' \| 'row-reverse' \| 'column' \| 'column-reverse'`                                                                                  |
+| `Group.isFullwidth`                                        | `boolean` (children share the row equally)                                                                                                |
+| `Group.breakpoint`                                         | `'tablet' \| 'desktop' \| 'widescreen'` (a column below it)                                                                               |
+| `as`                                                       | `'div'` (default), `'main'`, `'section'`, `'article'`, `'aside'`, `'header'`, `'footer'`, `'nav'`, `'ul'`, `'ol'`, `'form'`, `'fieldset'` |
+
+Stack, Group and Center take no `flexDirection`: they never reorder. A Title and its SubTitle go
+in one element of their own inside a Stack, or the gap comes between them. For a grid of
+same-shaped items, use `Grid` / `Cell`.
 
 ## Columns / Column
 

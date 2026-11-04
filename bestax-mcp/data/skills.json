@@ -6,16 +6,16 @@
       "promptName": "custom-component",
       "dir": "bestax-custom-component",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 13964 },
+        { "id": "api", "file": "references/api.md", "bytes": 14931 },
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
-          "bytes": 23844
+          "bytes": 25865
         },
         {
           "id": "library-contributor",
           "file": "references/library-contributor.md",
-          "bytes": 22089
+          "bytes": 23311
         },
         { "id": "patterns", "file": "references/patterns.md", "bytes": 4601 }
       ],
@@ -25,11 +25,11 @@
     },
     {
       "name": "bestax-form",
-      "description": "Build forms with @allxsmith/bestax-bulma — Field/Control/Label/Help composition, inputs, selects, checkboxes, radios, switches, and advanced controls (Autocomplete, Combobox, Slider, Numberinput, PinInput, Rate, Taginput, File, date/time). There is no form/validation library; this skill shows the components and the validate-it-yourself error pattern. Use when building a form, wiring inputs to state, or showing validation/error state.",
+      "description": "Build forms with @allxsmith/bestax-bulma — Field/Control/Label/Help composition, inputs, selects, checkboxes, radios, switches, and advanced controls (Autocomplete, Combobox, TreeSelect, Slider, Numberinput, PinInput, Rate, Taginput, File, date/time). There is no form/validation library; this skill shows the components and the validate-it-yourself error pattern. Use when building a form, wiring inputs to state, or showing validation/error state.",
       "promptName": "form",
       "dir": "bestax-form",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 27028 },
+        { "id": "api", "file": "references/api.md", "bytes": 28749 },
         { "id": "patterns", "file": "references/patterns.md", "bytes": 9835 }
       ],
       "examples": []
@@ -59,16 +59,16 @@
         {
           "id": "archetypes",
           "file": "references/archetypes.md",
-          "bytes": 10260
+          "bytes": 10090
         },
         {
           "id": "layout-components",
           "file": "references/layout-components.md",
-          "bytes": 18956
+          "bytes": 24787
         }
       ],
       "examples": [
-        { "id": "app-shell", "file": "examples/app-shell.tsx", "bytes": 2758 },
+        { "id": "app-shell", "file": "examples/app-shell.tsx", "bytes": 2412 },
         { "id": "card-grid", "file": "examples/card-grid.tsx", "bytes": 2673 },
         { "id": "centered", "file": "examples/centered.tsx", "bytes": 1416 },
         {
@@ -93,7 +93,7 @@
         {
           "id": "bloomer-prop-map",
           "file": "references/bloomer/prop-map.md",
-          "bytes": 26938
+          "bytes": 27216
         },
         {
           "id": "bloomer-unmappables",
@@ -128,7 +128,7 @@
         {
           "id": "rbx-prop-map",
           "file": "references/rbx/prop-map.md",
-          "bytes": 15779
+          "bytes": 16057
         },
         {
           "id": "rbx-unmappables",
@@ -148,7 +148,7 @@
         {
           "id": "react-bulma-components-unmappables",
           "file": "references/react-bulma-components/unmappables.md",
-          "bytes": 14130
+          "bytes": 14408
         }
       ],
       "examples": []
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 16202
+          "bytes": 17227
         }
       ],
       "examples": []
@@ -176,12 +176,12 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 66275
+          "bytes": 70369
         },
         {
           "id": "themeable-components",
           "file": "references/themeable-components.md",
-          "bytes": 31027
+          "bytes": 38342
         }
       ],
       "examples": [

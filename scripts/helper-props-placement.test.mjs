@@ -52,6 +52,7 @@ const RENDER_WITH = {
   Popover: ({ createElement }) => ({ trigger: createElement('button') }),
   Sidebar: () => ({ inline: true }),
   Toast: () => ({ inline: true }),
+  TreeSelect: () => ({ data: [] }),
 };
 
 /** Parts a server render cannot open, with why. */
