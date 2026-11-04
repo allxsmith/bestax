@@ -342,11 +342,14 @@ test('a constrained `as` names no default element in the catch-all', () => {
 test('every polymorphic component has a recognized `as` constraint', () => {
   // The catch-all wording is chosen from this. 'unknown' falls back to the open
   // phrasing, which on a CONSTRAINED component promises a shape the compiler
-  // refuses — the defect the constraint reader was added to fix. The reader
-  // resolves a tag-union alias only within the same source file, so moving
-  // `DropdownItemElement` next to its paired interface in helpers/polymorphic.ts
-  // would silently regress the docs and the MCP index. This is what notices.
-  const targets = [...POLYMORPHIC, ['Dropdown', 'Dropdown.Item']];
+  // refuses — the defect the constraint reader was added to fix. A tag-union
+  // alias it can't follow, one hop away in the same file or imported, would
+  // silently regress the docs and the MCP index. This is what notices.
+  const targets = [
+    ...POLYMORPHIC,
+    ['Dropdown', 'Dropdown.Item'],
+    ...CONSTRAINED_LAYOUTS,
+  ];
   for (const [component, path] of targets) {
     assert.deepEqual(
       table(component, path).catchAll.asKinds?.filter(k => k === 'unknown'),
@@ -358,6 +361,53 @@ test('every polymorphic component has a recognized `as` constraint', () => {
     'tags',
   ]);
   assert.deepEqual(table('Button', 'Button').catchAll.asKinds, ['open']);
+});
+
+// Stack, Group, Center and Flex constrain `as` to `LayoutElement`, which they
+// IMPORT from helpers/stackLayout.tsx rather than declare beside themselves, so
+// the reader has to follow the import to see it's a closed set of tags.
+const CONSTRAINED_LAYOUTS = [
+  ['Stack', 'Stack'],
+  ['Group', 'Group'],
+  ['Center', 'Center'],
+  ['Flex', 'Flex'],
+];
+
+test('an imported tag union is a closed `as`, which takes no component', () => {
+  for (const [component, path] of CONSTRAINED_LAYOUTS) {
+    const t = table(component, path);
+    assert.deepEqual(t.catchAll.asKinds, ['tags'], `${path} asKinds`);
+    assert.match(
+      t.catchAll.text,
+      /^Remaining props of the element selected by `as` and/,
+      `${path} promises a component`
+    );
+    assert.equal(
+      t.rows.find(r => r.name === 'as').type,
+      '`LayoutElement`',
+      `${path} as`
+    );
+    assert.ok(
+      t.extraProps.some(r => r.name === 'ref'),
+      `${path} lost its ref row`
+    );
+  }
+});
+
+test('`@flexContainer` on a base marks the part a flex container, and only then', () => {
+  // The ESLint plugin's metadata takes its flex containers from this, so a
+  // tag that stopped reaching through the shared `LayoutOwnProps` would have
+  // `no-inert-flex-props` report props that render.
+  for (const [component, path] of CONSTRAINED_LAYOUTS) {
+    assert.equal(table(component, path).flexContainer, true, path);
+  }
+  for (const [component, path] of [
+    ['Box', 'Box'],
+    ['Level', 'Level'],
+    ['Buttons', 'Buttons'],
+  ]) {
+    assert.equal(table(component, path).flexContainer, undefined, path);
+  }
 });
 
 test('a union element base names every element, not the first', () => {

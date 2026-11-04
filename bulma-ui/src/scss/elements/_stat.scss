@@ -1,0 +1,153 @@
+// Bestax Extras - Stat Styles
+// A figure with its name, and often a change and a note, as a description
+// list: a `<dt>` for the label and a `<dd>` each for the figure, the change
+// and the note. A Stat is a `<div>` in a `Stats` row's `<dl>`, or a `<dl>` of
+// its own. `Stats` is Bulma's `.grid`, which lays the row out, so all it
+// needs here is the list's margins reset; this sets the type.
+//
+// Each part stacks under the one before, in the order it's written. The
+// figure takes the Stat's color, so a `textColor` on the Stat colors it,
+// while the label, the change and the note set their own. A `color` on the
+// change sets its color to that color's `-on-scheme` variant, which Bulma
+// darkens or lightens until it reads as text on the scheme's background. Forced colors replaces every color with the system's, which
+// drops the tone, and the sign in the text and the arrow, drawn in
+// `currentColor`, remain.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+$stat-label-color: cv.getVar('text-weak') !default;
+$stat-label-size: cv.getVar('size-7') !default;
+$stat-value-color: cv.getVar('text-strong') !default;
+$stat-value-size: cv.getVar('size-3') !default;
+$stat-value-size-small: cv.getVar('size-4') !default;
+$stat-value-size-medium: cv.getVar('size-2') !default;
+$stat-value-size-large: cv.getVar('size-1') !default;
+$stat-value-weight: cv.getVar('weight-semibold') !default;
+// Bulma's title line height, tight for large figures.
+$stat-value-line-height: 1.125 !default;
+$stat-change-color: cv.getVar('text') !default;
+$stat-change-size: cv.getVar('size-7') !default;
+// Between the arrow and the number.
+$stat-change-gap: 0.25em !default;
+$stat-description-color: cv.getVar('text-weak') !default;
+$stat-description-size: cv.getVar('size-7') !default;
+
+.#{iv.$class-prefix}stat {
+  @include cv.register-vars(
+    (
+      'stat-label-color': #{$stat-label-color},
+      'stat-label-size': #{$stat-label-size},
+      'stat-value-color': #{$stat-value-color},
+      'stat-value-size': #{$stat-value-size},
+      'stat-value-weight': #{$stat-value-weight},
+      'stat-value-line-height': #{$stat-value-line-height},
+      'stat-change-color': #{$stat-change-color},
+      'stat-change-size': #{$stat-change-size},
+      'stat-change-gap': #{$stat-change-gap},
+      'stat-description-color': #{$stat-description-color},
+      'stat-description-size': #{$stat-description-size},
+    )
+  );
+}
+
+@each $size,
+  $value
+    in (
+      'small': $stat-value-size-small,
+      'medium': $stat-value-size-medium,
+      'large': $stat-value-size-large
+    )
+{
+  .#{iv.$class-prefix}stat.#{iv.$class-prefix}is-#{$size} {
+    @include cv.register-vars(
+      (
+        'stat-value-size': #{$value},
+      )
+    );
+  }
+}
+
+// ---- The row and the Stat ----------------------------------------------------
+
+.#{iv.$class-prefix}stats {
+  margin-inline: 0;
+  margin-block-start: 0;
+}
+
+.#{iv.$class-prefix}stat {
+  margin: 0;
+  // On the root, so a `textColor` helper's class outranks it and the figure
+  // inherits either.
+  color: cv.getVar('stat-value-color');
+
+  // A Stat on its own is a block, as Bulma spaces its blocks.
+  &:not(:last-child) {
+    margin-bottom: cv.getVar('block-spacing');
+  }
+}
+
+// In a row the grid's gap spaces the tiles.
+.#{iv.$class-prefix}stats > .#{iv.$class-prefix}stat {
+  margin-bottom: 0;
+}
+
+// ---- The parts -------------------------------------------------------------------
+
+// Each through the root, so it outranks Bulma's `.content dd` indent.
+.#{iv.$class-prefix}stat .#{iv.$class-prefix}stat-label {
+  margin: 0;
+  color: cv.getVar('stat-label-color');
+  font-size: cv.getVar('stat-label-size');
+}
+
+.#{iv.$class-prefix}stat .#{iv.$class-prefix}stat-value {
+  margin: 0;
+  font-size: cv.getVar('stat-value-size');
+  font-weight: cv.getVar('stat-value-weight');
+  line-height: cv.getVar('stat-value-line-height');
+  // Digits of one width, so a figure that updates doesn't shift.
+  font-variant-numeric: tabular-nums;
+  // A long figure wraps rather than widen its tile.
+  overflow-wrap: anywhere;
+}
+
+// `loading`'s Skeleton, and a figure's `<dd>` still waiting for its value,
+// are one line of the figure tall, so the tile is as tall as its neighbours
+// and keeps its height when the figure arrives.
+.#{iv.$class-prefix}stat .#{iv.$class-prefix}stat-value:empty,
+.#{iv.$class-prefix}stat
+  .#{iv.$class-prefix}stat-value
+  > .#{iv.$class-prefix}skeleton-block {
+  min-height: 1lh;
+}
+
+.#{iv.$class-prefix}stat .#{iv.$class-prefix}stat-change {
+  display: flex;
+  align-items: center;
+  gap: cv.getVar('stat-change-gap');
+  margin: 0;
+  color: cv.getVar('stat-change-color');
+  font-size: cv.getVar('stat-change-size');
+  font-variant-numeric: tabular-nums;
+
+  > svg {
+    flex: none;
+  }
+}
+
+// The change's colors, set on the change itself, so `--bulma-stat-change-color`
+// stays the uncolored change's. A theme moves these tones through Bulma's own
+// `-on-scheme` colors.
+@each $name in 'primary', 'link', 'info', 'success', 'warning', 'danger' {
+  .#{iv.$class-prefix}stat
+    .#{iv.$class-prefix}stat-change.#{iv.$class-prefix}is-#{$name} {
+    color: cv.getVar('#{$name}-on-scheme');
+  }
+}
+
+.#{iv.$class-prefix}stat .#{iv.$class-prefix}stat-description {
+  margin: 0;
+  color: cv.getVar('stat-description-color');
+  font-size: cv.getVar('stat-description-size');
+}

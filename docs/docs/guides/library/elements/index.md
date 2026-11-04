@@ -254,6 +254,20 @@ A button that stays pressed while something is on, such as Bold in an editor too
 
 ---
 
+### IconButton
+
+A button that shows only an icon, such as Delete in a table row, with a name its types require and `isRounded` for a circle. [View full documentation.](../../../api/elements/iconbutton.md)
+
+```tsx live
+<Buttons>
+  <IconButton icon="pen" aria-label="Edit" />
+  <IconButton icon="trash" aria-label="Delete" color="danger" />
+  <IconButton icon="plus" aria-label="Add" color="primary" isRounded />
+</Buttons>
+```
+
+---
+
 ## Media
 
 ### Icon
@@ -386,6 +400,57 @@ Facts about one thing, each a label and its value, as HTML's description list: l
   <DescriptionList.Item label="Placed on" value="14 October 2026" />
   <DescriptionList.Item label="Total" value="$86.40" />
 </DescriptionList>
+```
+
+---
+
+### NumberFormatter
+
+A number written the way a locale writes it, such as a price, a percentage or a count, in a `<data>` element that keeps the number itself; `useNumberFormat` does the same for text outside JSX. [View full documentation.](../../../api/elements/numberformatter.md)
+
+```tsx live
+<NumberFormatter
+  value={8456.4}
+  locale="en-US"
+  format={{ style: 'currency', currency: 'USD' }}
+/>
+```
+
+---
+
+### Stat
+
+A figure with its name, and often a change and a note, as a label and its values in a description list; a change is written with its sign, so the direction is in the text as well as in the arrow and the color. [View full documentation.](../../../api/elements/stat.md)
+
+```tsx live
+<Stat
+  label="Revenue"
+  value={8456.4}
+  format={{ style: 'currency', currency: 'USD' }}
+  locale="en-US"
+  change={0.12}
+  description="since last month"
+/>
+```
+
+---
+
+### Stats
+
+A row of `Stat` components as one description list on Bulma's smart grid, the tiles wrapping as the row narrows. [View full documentation.](../../../api/elements/stats.md)
+
+```tsx live
+<Stats minCol={8} gap={4}>
+  <Stat label="New customers" value={1234} locale="en-US" change={-0.019} />
+  <Stat
+    label="Churn"
+    value={0.021}
+    format={{ style: 'percent', maximumFractionDigits: 1 }}
+    locale="en-US"
+    change={0.004}
+    changeColor="danger"
+  />
+</Stats>
 ```
 
 ---

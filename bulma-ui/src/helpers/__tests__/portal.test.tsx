@@ -1,8 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { render, screen, act, fireEvent } from '@testing-library/react';
+import {
+  render,
+  renderHook,
+  screen,
+  act,
+  fireEvent,
+} from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
-import { Portal, resolvePortalContainer } from '../portal';
+import {
+  Portal,
+  resolvePortalContainer,
+  usePortalProp,
+  type PortalPropState,
+} from '../portal';
 import { ConfigProvider } from '../Config';
 import { Button } from '../../elements/Button';
 
@@ -385,5 +396,86 @@ describe("Portal under a ConfigProvider's portalContainer", () => {
         container.remove();
       }
     });
+  });
+});
+
+describe('usePortalProp', () => {
+  const target = document.createElement('aside');
+  const read = (
+    portal?: boolean | string | HTMLElement,
+    portalContainer?: string | HTMLElement
+  ) =>
+    renderHook(() => usePortalProp(portal), {
+      wrapper: ({ children }) => (
+        <ConfigProvider portalContainer={portalContainer}>
+          {children}
+        </ConfigProvider>
+      ),
+    }).result.current;
+
+  it.each([
+    ['omitted', undefined],
+    ['false', false],
+    ['an empty selector', ''],
+  ])('renders in place when portal is %s', (_, portal) => {
+    expect(read(portal, target)).toEqual({
+      isPortaled: false,
+      container: portal === '' ? '' : undefined,
+      defaultTarget: undefined,
+    });
+  });
+
+  it('leaves true to the provider, and names its container as the target', () => {
+    expect(read(true, target)).toEqual({
+      isPortaled: true,
+      container: undefined,
+      defaultTarget: target,
+    });
+    expect(read(true)).toEqual({
+      isPortaled: true,
+      container: undefined,
+      defaultTarget: undefined,
+    });
+  });
+
+  it.each([
+    ['a selector', '#own'],
+    ['an element', document.createElement('div')],
+  ])(
+    'passes %s through as the container, with no provider target',
+    (_, own) => {
+      expect(read(own, target)).toEqual({
+        isPortaled: true,
+        container: own,
+        defaultTarget: undefined,
+      });
+    }
+  );
+
+  it('is in place on the server and while hydrating, and portaled after', async () => {
+    const seen: PortalPropState[] = [];
+    function Probe() {
+      const state = usePortalProp(true);
+      seen.push(state);
+      return <span>{String(state.isPortaled)}</span>;
+    }
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(<Probe />);
+    expect(container.textContent).toBe('false');
+    document.body.appendChild(container);
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    let unmountRoot = () => {};
+    await act(async () => {
+      const root = hydrateRoot(container, <Probe />);
+      unmountRoot = () => root.unmount();
+    });
+    expect(errorSpy).not.toHaveBeenCalled();
+    expect(seen.map(state => state.isPortaled)).toEqual([false, false, true]);
+    expect(container.textContent).toBe('true');
+
+    await act(async () => unmountRoot());
+    errorSpy.mockRestore();
+    container.remove();
   });
 });

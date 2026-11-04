@@ -303,6 +303,34 @@ The remaining extras register the variables below — names only; each default l
 component's SCSS partial under `bulma-ui/src/scss/` as a `$<name> !default` variable. The same
 own-selector override rule applies.
 
+### Affix
+
+The offsets start at Bulma's `$block-spacing` as a value, so a Sass build that sets it moves every
+Affix, and a Field, where Bulma narrows `--bulma-block-spacing`, doesn't. Each edge adds the
+device's safe-area inset on top in the stylesheet, which is 0 unless the page sets
+`viewport-fit=cover`; there's no variable for it. The variables are declared on `.affix`, so a theme
+sets them there with a selector that outweighs the library's, such as `:root .affix`. A spacing
+helper margin (`mb="6"`) moves one Affix further in without touching the variables. The z-index
+starts one step under the dropdown layer, so menus open over it.
+
+`--bulma-affix-offset-horizontal`, `--bulma-affix-offset-vertical`, `--bulma-affix-z-index`
+
+### AppFrame
+
+Declared on the root, `.app-frame`, except `--bulma-app-frame-header-height`, which is on `:root`
+beside `--bulma-navbar-height`, its default, so the document's `scroll-padding-top` can read it. A
+header taller than Bulma's navbar sets it there. `AppFrame.Nav width` writes
+`--bulma-app-frame-nav-width` on the nav, and `AppFrame.Aside width` writes
+`--bulma-app-frame-aside-width` on the aside.
+
+`--bulma-app-frame-aside-width`, `--bulma-app-frame-backdrop-background`,
+`--bulma-app-frame-border-color`, `--bulma-app-frame-border-width`,
+`--bulma-app-frame-drawer-shadow`, `--bulma-app-frame-header-background`,
+`--bulma-app-frame-header-height`, `--bulma-app-frame-nav-background`,
+`--bulma-app-frame-nav-padding`, `--bulma-app-frame-nav-width`,
+`--bulma-app-frame-skip-link-background`, `--bulma-app-frame-skip-link-color`,
+`--bulma-app-frame-transition-duration`
+
 ### Autocomplete
 
 `--bulma-autocomplete-border-color`, `--bulma-autocomplete-border-hover-color`,
@@ -718,9 +746,9 @@ in `em`, so they follow the size of the boxes, and the caret is `currentColor`, 
 `--bulma-pin-input-caret-color`, `--bulma-pin-input-caret-height`, `--bulma-pin-input-caret-width`,
 `--bulma-pin-input-gap`
 
-### Picker popover (DateInput / TimeInput / DateTimeInput / DateRangeInput / ColorInput)
+### Picker popover (DateInput / TimeInput / DateTimeInput / DateRangeInput / ColorInput / TreeSelect)
 
-ColorInput's panel takes the `--bulma-picker-popover-*` variables here. The `--bulma-picker-trigger-*`
+ColorInput's and TreeSelect's panels take the `--bulma-picker-popover-*` variables here. The `--bulma-picker-trigger-*`
 ones are the date and time pickers' launcher; ColorInput's swatch and launcher take the
 `--bulma-colorinput-*` variables in its own section, above.
 
@@ -862,6 +890,29 @@ more for WCAG 2.5.8.
 `--bulma-splitter-handle-size-coarse`, `--bulma-splitter-line-active-color`,
 `--bulma-splitter-line-active-size`, `--bulma-splitter-line-color`, `--bulma-splitter-line-size`
 
+### Stack and Group
+
+Declared on the `.stack` element that `Stack`, `Group`, `Center` and `Flex` all render, so set
+them there, through `className` or `style`. `--bulma-stack-gap` is a Stack's gap and follows
+`--bulma-block-spacing`; `--bulma-stack-horizontal-gap` is a Group's, half of it. A `gap` prop's
+helper class is `!important` and wins over either. `Center` and `Flex` read neither.
+
+`--bulma-stack-gap`, `--bulma-stack-horizontal-gap`
+
+### Stat
+
+Declared on each Stat, `.stat`, whether it's on its own or in a `Stats` row, so retheme a row
+through a selector that reaches its Stats. The figure takes the Stat's color, so a `textColor` on
+the Stat recolors it, and the label, the change and the note keep theirs. `size` re-points
+`--bulma-stat-value-size` at Bulma's `size-4`, `size-2` or `size-1`, and a change's `color`
+sets that change's color to the color's `-on-scheme` variable directly, so
+`--bulma-stat-change-color` is the uncolored change's only.
+
+`--bulma-stat-change-color`, `--bulma-stat-change-gap`, `--bulma-stat-change-size`,
+`--bulma-stat-description-color`, `--bulma-stat-description-size`, `--bulma-stat-label-color`,
+`--bulma-stat-label-size`, `--bulma-stat-value-color`, `--bulma-stat-value-line-height`,
+`--bulma-stat-value-size`, `--bulma-stat-value-weight`
+
 ### Steps
 
 `--bulma-steps-animation-duration`, `--bulma-steps-content-margin-top`,
@@ -959,6 +1010,24 @@ trigger and the tooltip past what the pointer can cross on its own, so give the 
 `--bulma-tooltip-font-weight`, `--bulma-tooltip-line-height`, `--bulma-tooltip-max-width`,
 `--bulma-tooltip-multiline-width`, `--bulma-tooltip-padding`, `--bulma-tooltip-radius`,
 `--bulma-tooltip-z-index`
+
+### TreeSelect
+
+Declared on the root, `.tree-select`, and on a portaled panel, `.tree-select-panel`, which sits
+outside it. They draw the chevron and the clear button on the field, set the panel's height and
+space the search box over the tree. The chevron's defaults are the tokens Bulma's input icon variables
+start from (`control-height`, `text-light`, `text-weak`, `link`), since Bulma registers those on
+the field and its Control. The panel is the picker popover, above, and the tree in it is a
+`TreeView`, below, so `--bulma-picker-popover-*` and `--bulma-tree-view-*` theme them here too.
+The panel is at least as wide as the field, in place through the picker popover's own rule and
+portaled through the field's width set inline.
+
+`--bulma-tree-select-chevron-color`, `--bulma-tree-select-chevron-focus-color`,
+`--bulma-tree-select-chevron-hover-color`, `--bulma-tree-select-chevron-width`,
+`--bulma-tree-select-chevron-z-index`, `--bulma-tree-select-clear-z-index`,
+`--bulma-tree-select-empty-color`, `--bulma-tree-select-empty-padding`,
+`--bulma-tree-select-panel-max-height`, `--bulma-tree-select-search-gap`,
+`--bulma-tree-select-tree-inset`
 
 ### TreeView
 
