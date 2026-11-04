@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-133 documented components. Generated from the API docs — every exported
+134 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -116,6 +116,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [SegmentedControl](https://bestax.io/docs/api/components/segmentedcontrol) — The `SegmentedControl` component renders a row of buttons where only one can be on, and tells a screen reader it's a radio group.
 - [Sidebar](https://bestax.io/docs/api/components/sidebar) — The `Sidebar` component provides a slide-out navigation panel that appears from the left or right side of the screen.
 - [Steps](https://bestax.io/docs/api/components/steps) — The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow.
+- [TableOfContents](https://bestax.io/docs/api/components/tableofcontents) — The `TableOfContents` component lists a long page's sections as links in Bulma's menu look, and marks the one being read.
 - [Tabs](https://bestax.io/docs/api/components/tabs) — The `Tabs` component provides flexible and fully-featured Bulma tab navigation for your Bulma React UI.
 - [Timeline](https://bestax.io/docs/api/components/timeline) — The `Timeline` component renders a list of events in the order they happened, each with a marker on a line down the side.
 - [Toast](https://bestax.io/docs/api/components/toast) — The `Toast` component provides brief notification messages with optional action and cancel buttons.

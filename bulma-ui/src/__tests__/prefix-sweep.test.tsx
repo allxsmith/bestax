@@ -243,6 +243,18 @@ const PROPS: Record<string, Record<string, unknown>> = {
     ),
   },
   LightboxTrigger: { index: 0, children: 'View' },
+  // Sticky, with a nested entry, so each class it and its Menu parts emit is
+  // swept. Nothing is current in jsdom, which TableOfContents.test.tsx covers.
+  TableOfContents: {
+    isSticky: true,
+    items: [
+      {
+        id: 'usage',
+        label: 'Usage',
+        children: [{ id: 'props', label: 'Props' }],
+      },
+    ],
+  },
   // Every modifier, so each class the frame takes is swept.
   ScrollArea: {
     'aria-label': 'Notes',

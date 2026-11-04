@@ -23,6 +23,7 @@ import { ScrollArea } from '../components/ScrollArea';
 import { Command } from '../components/Command';
 import { DataTable } from '../components/DataTable';
 import { Lightbox } from '../components/Lightbox';
+import { TableOfContents } from '../components/TableOfContents';
 import { Splitter } from '../layout/Splitter';
 import { AppFrame } from '../layout/AppFrame';
 import { Slider } from '../form/Slider';
@@ -135,6 +136,15 @@ const cases: Array<[string, React.ReactElement]> = [
       data={[{ id: '1', name: 'Ada' }]}
       selectionMode="multiple"
       isResponsive
+    />,
+  ],
+  [
+    // Its scroll spy keeps its callback through useLatestRef.
+    'TableOfContents',
+    <TableOfContents
+      key="table-of-contents"
+      items={[{ id: 'intro', label: 'Intro' }]}
+      onCurrentChange={() => {}}
     />,
   ],
   ['Slider', <Slider key="slider" label="Volume" />],
