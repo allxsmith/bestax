@@ -1,3 +1,25 @@
+# [5.62.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.61.0...@allxsmith/bestax-bulma@5.62.0) (2026-11-04)
+
+
+### Bug Fixes
+
+* **bulma-ui:** color the select field's chevron as focused while the field is drawn focused ([ee9c653](https://github.com/allxsmith/bestax/commit/ee9c6534db31a40873f28807bc104a8e0ec01e0d))
+* **bulma-ui:** decide TreeSelect's clear and tag buttons from the check state ([6d46dbd](https://github.com/allxsmith/bestax/commit/6d46dbd8c90887ce83e235d5c48331bc6183f6a8))
+* **bulma-ui:** hand focus from the hidden required field to the field a task later ([385a2fc](https://github.com/allxsmith/bestax/commit/385a2fcc4005ad33784f458f5711bd90f93c8d59))
+* **bulma-ui:** hold Tab in TreeSelect's panel, and keep its value through resets, loads and clears ([cbef61a](https://github.com/allxsmith/bestax/commit/cbef61a461c39e3d441b2df858d32492db71b781))
+* **bulma-ui:** keep the browser's required message up, focus on its field until the next key ([bf719fa](https://github.com/allxsmith/bestax/commit/bf719faebc291f53663f322a3e5ad007443b0922))
+* **bulma-ui:** let the focused required stand-in read as the field, and leave it on a modifier ([7f80920](https://github.com/allxsmith/bestax/commit/7f80920935fb4c08cf1770b469812192eff3c969))
+* **bulma-ui:** let TreeSelect's panel in place inherit the root's variables ([c7da82c](https://github.com/allxsmith/bestax/commit/c7da82c3009927f7215c8bdcc644e1213f20f0a4))
+* **bulma-ui:** put TreeSelect's strings in labels, hand filter the path, keep a ref's cleanup ([0c95ed5](https://github.com/allxsmith/bestax/commit/0c95ed557b3ccf10efbc0764b973821d701cc367))
+* **bulma-ui:** register how TreeSelect's chevron and clear button stack ([f0ad87b](https://github.com/allxsmith/bestax/commit/f0ad87b6b423ce6b5d6e707915d2f5f955e79f3e))
+
+
+### Features
+
+* **bulma-ui:** add TreeSelect, a form field that picks from a tree ([5aa8e30](https://github.com/allxsmith/bestax/commit/5aa8e30341b42d145e3e3b5898c6f800ec4ed150))
+* **bulma-ui:** draw TreeSelect's chevron, clear button and panel ([13f2887](https://github.com/allxsmith/bestax/commit/13f2887b369a6cdb2ccceb0282dafdb087a6d344))
+* **bulma-ui:** give TreeSelect its story, docs page and listings ([effc780](https://github.com/allxsmith/bestax/commit/effc780e666204765a0893b08ee7857a78b8aa3b))
+
 # [5.61.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.60.0...@allxsmith/bestax-bulma@5.61.0) (2026-11-04)
 
 
