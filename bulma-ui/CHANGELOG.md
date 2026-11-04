@@ -1,3 +1,20 @@
+# [5.65.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.64.0...@allxsmith/bestax-bulma@5.65.0) (2026-11-04)
+
+
+### Bug Fixes
+
+* **bulma-ui:** catch a Lightbox image that failed before hydration, and restart a swapped one ([829aa68](https://github.com/allxsmith/bestax/commit/829aa6887ce2a79b4de7cad71d5f07163b42ce5f))
+* **bulma-ui:** leave a press alone while useSwipe is disabled ([60ab95a](https://github.com/allxsmith/bestax/commit/60ab95ae4a6b0277dcc417c2efbc1c75b8ac75ca))
+* **bulma-ui:** let a failed Lightbox image be swiped, and lead its status with the error ([a1dc096](https://github.com/allxsmith/bestax/commit/a1dc096ada95ca5d8bf18b8ccac7262f8171d23e))
+* **bulma-ui:** name, default and theme Lightbox the way its siblings are ([63e87f7](https://github.com/allxsmith/bestax/commit/63e87f76272ee227b63e1f03ea0e98e4f9391313))
+* **bulma-ui:** say which Lightbox image failed, and zoom only once it has loaded ([d93bc51](https://github.com/allxsmith/bestax/commit/d93bc51c79f53a1febaa6b370a32f728e8f68084))
+* **bulma-ui:** take color on Lightbox.Trigger only through a component as ([f79823a](https://github.com/allxsmith/bestax/commit/f79823ae1c748c7c5377209af8b46b888830b533))
+
+
+### Features
+
+* **bulma-ui:** add Lightbox, images shown one at a time in a modal viewer ([cdd0be0](https://github.com/allxsmith/bestax/commit/cdd0be0d153d81fb3726b99438f54a1223757443)), closes [#1436](https://github.com/allxsmith/bestax/issues/1436)
+
 # [5.64.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.63.0...@allxsmith/bestax-bulma@5.64.0) (2026-11-04)
 
 
