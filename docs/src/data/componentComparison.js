@@ -32,6 +32,7 @@ const BESTAX = {
   Buttons: 'elements/buttons',
   Code: 'elements/code',
   Content: 'elements/content',
+  CopyButton: 'elements/copybutton',
   Delete: 'elements/delete',
   DescriptionList: 'elements/descriptionlist',
   Divider: 'elements/divider',
@@ -171,6 +172,8 @@ const BESTAX = {
   'Dropdown (split button recipe)': 'components/dropdown#split-button',
   // The October edition credits the recipe, which PasswordInput replaced.
   'Input (password reveal recipe)': 'form/passwordinput',
+  // The October 2026 edition still names this one. The section kept its
+  // heading, and now builds the copy field on CopyButton.
   'Input (copy button recipe)': 'form/input#copy-button',
 };
 const bestaxHref = name => {
@@ -657,7 +660,7 @@ export const categories = [
       ],
       [
         'Copy button',
-        '~Input (copy button recipe)',
+        'CopyButton',
         'CopyButton',
         0,
         0,

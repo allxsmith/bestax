@@ -652,7 +652,7 @@ function brokenStorybookLinks(text, ids) {
     ...text.matchAll(/https:\/\/bestax\.io\/storybook\/\?path=[^\s)"\\]+/g),
   ].map(m => m[0]);
   return {
-    count: urls.length,
+    urls,
     broken: urls.filter(url => {
       const id = url.match(/[?&]path=\/(?:story|docs)\/([^&#]+)/)?.[1];
       return !id || !ids.has(id);
@@ -672,10 +672,10 @@ test('every Storybook link in the index and the docs opens a story that exists',
   assert.ok(ids.has('elements-button--default'), 'story ids were not derived');
   const broken = [];
 
-  let inIndex = 0;
+  const inIndex = new Set();
   for (const [name, record] of components) {
     const found = brokenStorybookLinks(JSON.stringify(record), ids);
-    inIndex += found.count;
+    found.urls.forEach(url => inIndex.add(url));
     broken.push(...found.broken.map(url => `index ${name}: ${url}`));
   }
   // An extraction that broke would empty the field on every record at once, and
@@ -687,7 +687,7 @@ test('every Storybook link in the index and the docs opens a story that exists',
   );
 
   const docs = join(REPO, 'docs', 'docs');
-  let onPages = 0;
+  const onPages = new Set();
   for (const entry of await readdir(docs, {
     recursive: true,
     withFileTypes: true,
@@ -695,11 +695,19 @@ test('every Storybook link in the index and the docs opens a story that exists',
     if (!entry.isFile() || !/\.mdx?$/.test(entry.name)) continue;
     const file = join(entry.parentPath, entry.name);
     const found = brokenStorybookLinks(await readFile(file, 'utf8'), ids);
-    onPages += found.count;
+    found.urls.forEach(url => onPages.add(url));
     const page = file.slice(REPO.length + 1);
     broken.push(...found.broken.map(url => `${page}: ${url}`));
   }
-  assert.ok(onPages >= inIndex, 'the docs pages were not read');
+  // Each link in the index was copied from a page, so a page holds each one.
+  // Compared as sets: a helper's record carries its page's link twice, once as
+  // the record's `storybook` and once in the prose it keeps, so a count of
+  // links in the index outgrows the pages' count by one for each helper.
+  assert.deepEqual(
+    [...inIndex].filter(url => !onPages.has(url)),
+    [],
+    'the docs pages were not read'
+  );
 
   assert.deepEqual(broken, []);
 });
