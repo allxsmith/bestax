@@ -55,11 +55,11 @@
   },
   "dependencies": {
     "@allxsmith/bestax-bulma": "workspace:^",
-    "@babel/parser": "^7.29.11",
+    "@babel/parser": "^7.29.12",
     "chalk": "^6.0.1",
     "commander": "^15.0.0",
     "jscodeshift": "^17.3.0",
-    "parse5": "^8.0.1",
+    "parse5": "^8.1.0",
     "property-information": "^7.2.0"
   },
   "devDependencies": {
