@@ -103,6 +103,25 @@ describe('Carousel stylesheet', () => {
     );
   });
 
+  it('shifts the track the other way right to left, and mirrors the arrows', () => {
+    // The inline transform multiplies by this. Unset, it falls back to -1,
+    // which is the left-to-right shift the component has always used.
+    expect(css).toContain('.carousel-slides:dir(rtl)');
+    expect(css).toContain('--carousel-shift-sign: 1');
+    expect(css).toContain(
+      'inset-inline-start: var(--bulma-carousel-arrow-offset)'
+    );
+    expect(css).toContain(
+      'inset-inline-end: var(--bulma-carousel-arrow-offset)'
+    );
+    expect(css).toContain(
+      'inset-inline-start: var(--bulma-carousel-arrow-offset-mobile)'
+    );
+    expect(css).toContain('svg:dir(rtl)');
+    expect(css).toContain('scaleX(-1)');
+    expect(css).not.toContain('left: var(--bulma-carousel-arrow-offset)');
+  });
+
   it('reads the tablet count in print, as the script does', () => {
     // The script's tablet query carries Bulma's `, print`, as the mixin does.
     expect(stylesheetPick('print', 0)).toBe(

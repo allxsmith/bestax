@@ -240,6 +240,8 @@ const PopoverComponent: React.FC<PopoverProps> = ({
     // coordinates leave it out and `auto` reads it off the panel.
     offset: 0,
     styledGap: marginGap,
+    // `bottom-left` follows the writing direction, as the stylesheet does.
+    logical: true,
   });
 
   // The trigger renders first inside the wrapper. Read when needed rather

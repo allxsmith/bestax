@@ -458,9 +458,11 @@ describe('Slider', () => {
       const ticks = container.querySelectorAll('.slider-tick');
       // 3 ticks: 25%, 50%, 75% (no 0% or 100%)
       expect(ticks.length).toBe(3);
-      expect(ticks[0]).toHaveStyle({ left: '25%' });
-      expect(ticks[1]).toHaveStyle({ left: '50%' });
-      expect(ticks[2]).toHaveStyle({ left: '75%' });
+      // From the inline start: left to right that is the physical left.
+      expect((ticks[0] as HTMLElement).style.insetInlineStart).toBe('25%');
+      expect((ticks[1] as HTMLElement).style.insetInlineStart).toBe('50%');
+      expect((ticks[2] as HTMLElement).style.insetInlineStart).toBe('75%');
+      expect((ticks[0] as HTMLElement).style.left).toBe('');
     });
   });
 
@@ -501,6 +503,29 @@ describe('Slider', () => {
       expect(container.querySelector('.slider')).not.toHaveClass(
         'has-tick-labels'
       );
+    });
+
+    it('places the 0 and 100 marks from the inline start, on either direction', () => {
+      const marks = [
+        { value: 0, label: '0' },
+        { value: 100, label: '100' },
+      ];
+      const { container, rerender } = render(<Slider marks={marks} />);
+      const at = () =>
+        [...container.querySelectorAll('.slider-tick')].map(
+          tick => (tick as HTMLElement).style.insetInlineStart
+        );
+      // One property for both directions. Left to right it is the left edge.
+      expect(at()).toEqual(['0%', '100%']);
+      rerender(
+        <div dir="rtl">
+          <Slider marks={marks} />
+        </div>
+      );
+      expect(at()).toEqual(['0%', '100%']);
+      expect(
+        (container.querySelector('.slider-tick') as HTMLElement).style.left
+      ).toBe('');
     });
 
     it('marks take precedence over ticks', () => {
@@ -746,11 +771,11 @@ describe('Slider', () => {
       // Sampled subset: i=1..99 => 99 interior ticks (no endpoints).
       expect(ticks.length).toBe(99);
       // First sampled tick is at min + 1 * (10000/100) = 100 => 1%.
-      expect(ticks[0]).toHaveStyle({ left: '1%' });
+      expect((ticks[0] as HTMLElement).style.insetInlineStart).toBe('1%');
       // 50th sampled tick is at min + 50 * (10000/100) = 5000 => 50%.
-      expect(ticks[49]).toHaveStyle({ left: '50%' });
+      expect((ticks[49] as HTMLElement).style.insetInlineStart).toBe('50%');
       // Last sampled tick is at min + 99 * (10000/100) = 9900 => 99%.
-      expect(ticks[98]).toHaveStyle({ left: '99%' });
+      expect((ticks[98] as HTMLElement).style.insetInlineStart).toBe('99%');
     });
   });
 

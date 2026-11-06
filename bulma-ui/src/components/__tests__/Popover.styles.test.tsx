@@ -55,6 +55,20 @@ describe('Popover styles under a class prefix', () => {
     );
   });
 
+  it('swaps the horizontal edge right to left, and not left to right', () => {
+    const css = styleEl.textContent ?? '';
+    expect(css).toMatch(
+      /\.bestax-popover-content\.bestax-is-bottom-left:dir\(rtl\)[\s\S]*?left:\s*auto;\s*right:\s*0/
+    );
+    expect(css).toMatch(
+      /\.bestax-popover-content\.bestax-is-bottom-right:dir\(rtl\)[\s\S]*?right:\s*auto;\s*left:\s*0/
+    );
+    // The rule that matches left to right still sets the physical left.
+    expect(css).toMatch(
+      /\.bestax-popover-content\.bestax-is-bottom-left,\s*\.bestax-popover-content\.bestax-is-top-left\s*\{[^}]*left:\s*0/
+    );
+  });
+
   it('places an inline panel below the trigger, the gap from the offset variable', () => {
     renderPrefixed();
     const style = getComputedStyle(screen.getByRole('dialog'));

@@ -111,6 +111,8 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
     styledGap: marginGap,
     matchWidth,
     followContent,
+    // `bottom-left` follows the writing direction, as the stylesheet does.
+    logical: true,
   });
 
   // Read when a press lands outside or a key arrives, so both listeners stay

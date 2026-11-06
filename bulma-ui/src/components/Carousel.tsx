@@ -757,8 +757,11 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
             className={carouselSlidesClass}
             style={{
               // One item is the track's width plus a gap, over the count the
-              // stylesheet has in view; account for the prepended clones
-              transform: `translateX(calc(${-(shownIndex + cloneCount)} * (100% + var(--bulma-carousel-item-gap, 0px)) / var(--bulma-carousel-items-in-view, 1)))`,
+              // stylesheet has in view; account for the prepended clones.
+              // The sign is -1 left to right. Right to left the flex row
+              // reverses, and the stylesheet sets the sign to +1 so the
+              // same shift keeps a slide in view.
+              transform: `translateX(calc(var(--carousel-shift-sign, -1) * ${shownIndex + cloneCount} * (100% + var(--bulma-carousel-item-gap, 0px)) / var(--bulma-carousel-items-in-view, 1)))`,
               // Disable transition during drag or instant snap after wrap-around
               transition:
                 isDragging || skipTransition
