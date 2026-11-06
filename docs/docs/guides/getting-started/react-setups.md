@@ -877,19 +877,46 @@ the server and hydrate on the client, like any client component. The helpers tha
 such as `classNames`, run on the server as plain functions. `ConfigProvider` can wrap the whole app
 from the root layout, and a class prefix or icon library set there reaches every page.
 
-Three things to know:
+Two things to know:
 
-- A Server Component can't reach a component's parts through a dot. `Navbar.Item` comes out
-  `undefined` there, which is React's rule for client modules. Use the part's own export,
-  `NavbarItem`, or render the component inside a client component, a file that starts with
-  `'use client'`, where `Navbar.Item` works as it does everywhere else.
+- A Server Component can't reach a component's parts through a dot. `Card.Header` comes out
+  `undefined` there, which is React's rule for client modules. Import the part by name. The
+  dotted name still works inside a client component, a file that starts with `'use client'`.
+
+  ```tsx
+  import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardHeaderTitle,
+  } from '@allxsmith/bestax-bulma';
+
+  export default function Page() {
+    return (
+      <Card>
+        <CardHeader>
+          <CardHeaderTitle>From a Server Component</CardHeaderTitle>
+        </CardHeader>
+        <CardContent>
+          CardHeader is the same component as Card.Header.
+        </CardContent>
+      </Card>
+    );
+  }
+  ```
+
+  The other parts follow the same shape. Card: `CardHeaderIcon`, `CardImage`, `CardFooter`,
+  `CardFooterItem`. Modal: `ModalBackground`, `ModalContent`, `ModalClose`, `ModalCard`,
+  `ModalCardHead`, `ModalCardTitle`, `ModalCardBody`, `ModalCardFoot`. Sidebar:
+  `SidebarHeader`, `SidebarTitle`, `SidebarClose`, `SidebarBody`, `SidebarFooter`. Message:
+  `MessageHeader`, `MessageBody`. Figure: `FigureCaption`. `OrderedList.Item` and
+  `UnorderedList.Item` are `ListItem`. `ContextMenu.Item` and `ContextMenu.Divider` are
+  `DropdownItem` and `DropdownDivider`. Navbar's parts (`NavbarItem`, `NavbarBrand`, and the
+  rest) were already exported this way.
+
 - A Server Component can only pass a client component props React can send from the server, and a
   function isn't one. So an event handler (`<Button onClick={...}>`) or `ClientOnly`'s render
   function child goes in a client component, the same as anything that keeps state.
-- `Card`, `Modal`, `Sidebar`, `Message` and `Figure`, and the list components' items, have no
-  export of their own for their parts yet
-  ([#1356](https://github.com/allxsmith/bestax/issues/1356)), so use them inside a client
-  component.
 
 The example pages above start with `'use client'` because they use `useState`, not because of
 bestax-bulma.

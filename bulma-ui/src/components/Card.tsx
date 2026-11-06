@@ -423,7 +423,7 @@ export interface CardHeaderIconProps
  * @param {CardHeaderProps} props - Props for the CardHeader component.
  * @returns {JSX.Element} The rendered card header.
  */
-const CardHeader: React.FC<CardHeaderProps> = ({
+export const CardHeader: React.FC<CardHeaderProps> = ({
   className,
   children,
   centered,
@@ -479,7 +479,7 @@ const CardHeader: React.FC<CardHeaderProps> = ({
  * @param {CardHeaderTitleProps} props - Props for the CardHeaderTitle component.
  * @returns {JSX.Element} The rendered card header title.
  */
-const CardHeaderTitle: React.FC<CardHeaderTitleProps> = ({
+export const CardHeaderTitle: React.FC<CardHeaderTitleProps> = ({
   as = 'div',
   className,
   children,
@@ -518,7 +518,7 @@ const CardHeaderTitle: React.FC<CardHeaderTitleProps> = ({
  * @param {CardHeaderIconProps} props - Props for the CardHeaderIcon component.
  * @returns {JSX.Element} The rendered card header icon button.
  */
-const CardHeaderIcon: React.FC<CardHeaderIconProps> = ({
+export const CardHeaderIcon: React.FC<CardHeaderIconProps> = ({
   className,
   children,
   color,
@@ -559,7 +559,7 @@ const CardHeaderIcon: React.FC<CardHeaderIconProps> = ({
  * @param {CardImageProps} props - Props for the CardImage component.
  * @returns {JSX.Element} The rendered card image container.
  */
-const CardImage: React.FC<CardImageProps> = ({
+export const CardImage: React.FC<CardImageProps> = ({
   className,
   children,
   color,
@@ -593,7 +593,7 @@ const CardImage: React.FC<CardImageProps> = ({
  * @param {CardContentProps} props - Props for the CardContent component.
  * @returns {JSX.Element} The rendered card content container.
  */
-const CardContent: React.FC<CardContentProps> = ({
+export const CardContent: React.FC<CardContentProps> = ({
   className,
   children,
   color,
@@ -627,7 +627,7 @@ const CardContent: React.FC<CardContentProps> = ({
  * @param {CardFooterProps} props - Props for the CardFooter component.
  * @returns {JSX.Element} The rendered card footer.
  */
-const CardFooter: React.FC<CardFooterProps> = ({
+export const CardFooter: React.FC<CardFooterProps> = ({
   className,
   children,
   color,
@@ -661,7 +661,7 @@ const CardFooter: React.FC<CardFooterProps> = ({
  * @param {CardFooterItemProps} props - Props for the CardFooterItem component.
  * @returns {JSX.Element} The rendered card footer item.
  */
-const CardFooterItem: React.FC<CardFooterItemProps> = ({
+export const CardFooterItem: React.FC<CardFooterItemProps> = ({
   as = 'span',
   className,
   children,

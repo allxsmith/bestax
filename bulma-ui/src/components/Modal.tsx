@@ -184,7 +184,7 @@ const ModalCloseContext = createContext<(() => void) | undefined>(undefined);
  * @param {ModalBackgroundProps} props - Component props.
  * @returns {JSX.Element} Modal background element.
  */
-const ModalBackground: React.FC<ModalBackgroundProps> = ({
+export const ModalBackground: React.FC<ModalBackgroundProps> = ({
   className,
   ...props
 }) => {
@@ -202,7 +202,10 @@ const ModalBackground: React.FC<ModalBackgroundProps> = ({
  * @param {ModalContentProps} props - Component props.
  * @returns {JSX.Element} Modal content element.
  */
-const ModalContent: React.FC<ModalContentProps> = ({ className, ...props }) => {
+export const ModalContent: React.FC<ModalContentProps> = ({
+  className,
+  ...props
+}) => {
   const classes = classNames(usePrefixedClassNames('modal-content'), className);
   return <div className={classes} {...props} />;
 };
@@ -214,7 +217,7 @@ const ModalContent: React.FC<ModalContentProps> = ({ className, ...props }) => {
  * @param {ModalCardHeadProps} props - Component props.
  * @returns {JSX.Element} Modal card header element.
  */
-const ModalCardHead: React.FC<ModalCardHeadProps> = ({
+export const ModalCardHead: React.FC<ModalCardHeadProps> = ({
   className,
   ...props
 }) => {
@@ -232,7 +235,7 @@ const ModalCardHead: React.FC<ModalCardHeadProps> = ({
  * @param {ModalCardTitleProps} props - Component props.
  * @returns {JSX.Element} Modal card title element.
  */
-const ModalCardTitle: React.FC<ModalCardTitleProps> = ({
+export const ModalCardTitle: React.FC<ModalCardTitleProps> = ({
   className,
   ...props
 }) => {
@@ -250,7 +253,7 @@ const ModalCardTitle: React.FC<ModalCardTitleProps> = ({
  * @param {ModalCardBodyProps} props - Component props.
  * @returns {JSX.Element} Modal card body element.
  */
-const ModalCardBody: React.FC<ModalCardBodyProps> = ({
+export const ModalCardBody: React.FC<ModalCardBodyProps> = ({
   className,
   ...props
 }) => {
@@ -268,7 +271,7 @@ const ModalCardBody: React.FC<ModalCardBodyProps> = ({
  * @param {ModalCardFootProps} props - Component props.
  * @returns {JSX.Element} Modal card footer element.
  */
-const ModalCardFoot: React.FC<ModalCardFootProps> = ({
+export const ModalCardFoot: React.FC<ModalCardFootProps> = ({
   className,
   ...props
 }) => {
@@ -295,7 +298,7 @@ const ModalCardComponent: React.FC<ModalCardProps> = ({
   return <div className={classes} {...props} />;
 };
 
-const ModalCard = withSubComponents(ModalCardComponent, {
+export const ModalCard = withSubComponents(ModalCardComponent, {
   Head: ModalCardHead,
   Title: ModalCardTitle,
   Body: ModalCardBody,
@@ -317,7 +320,7 @@ const ModalCard = withSubComponents(ModalCardComponent, {
  *
  * The size prop only applies to the 'floating' variant.
  */
-const ModalClose: React.FC<ModalCloseProps> = ({
+export const ModalClose: React.FC<ModalCloseProps> = ({
   className,
   size = 'large',
   variant = 'delete',

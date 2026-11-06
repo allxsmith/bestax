@@ -182,6 +182,8 @@ Combine multiple props such as `header`, `textColor`, `bgColor`, `m`, `p`, `text
 
 Every card section is also available as a static — `Card.Header` (with `Card.Header.Title` and `Card.Header.Icon`), `Card.Image`, `Card.Content`, `Card.Footer`, and `Card.FooterItem` — so a whole card can be composed from the single `Card` import. Each static's props are listed under [Compound component props](#compound-component-props).
 
+The same parts are named exports: `CardHeader`, `CardHeaderTitle`, `CardHeaderIcon`, `CardImage`, `CardContent`, `CardFooter`, and `CardFooterItem`. Each is the same component as the dotted name (`Card.Header` is `CardHeader`). A Next.js Server Component imports the named export, because the dotted name is `undefined` there.
+
 #### Complete Card with Compound Components
 
 ```tsx live
