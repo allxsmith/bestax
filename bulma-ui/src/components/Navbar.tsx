@@ -74,6 +74,15 @@ export interface NavbarProps
   fixed?: 'top' | 'bottom';
   /** Navbar content (compose with subcomponents). */
   children?: React.ReactNode;
+  /**
+   * Accessible name. Defaults to `main navigation`. A screen reader announces
+   * the role and then the label, so that default is read "main navigation
+   * navigation". Pass a name without the role word (`aria-label="Site"`), and
+   * a different name on each Navbar when a page has more than one. A passed
+   * `aria-label` replaces the default.
+   * @defaultValue 'main navigation'
+   */
+  'aria-label'?: string;
 }
 
 /**
