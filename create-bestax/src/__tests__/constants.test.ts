@@ -322,25 +322,16 @@ describe('constants', () => {
       ).not.toContain('Routing:');
     });
 
-    it("names the parts a Next.js app's Server Components can't reach yet", () => {
+    it("names the part exports a Next.js app's Server Components import", () => {
       const next = CLAUDE_MD('my-app', {
         bulmaFlavor: 'complete',
         iconLibrary: 'none',
         framework: 'next',
       });
-      expect(next).toContain('their own export (`NavbarItem`, `NavbarBrand`)');
-      for (const component of [
-        'Card',
-        'Modal',
-        'Sidebar',
-        'Message',
-        'Figure',
-      ]) {
-        expect(next).toContain(`\`${component}\``);
-      }
       expect(next).toContain(
-        "the list components' items have no such exports yet"
+        'their own export (`NavbarItem`, `CardHeader`, `ModalCard`, `SidebarHeader`, `MessageHeader`, `FigureCaption`, `ListItem`)'
       );
+      expect(next).not.toContain('have no such exports yet');
       expect(
         CLAUDE_MD('my-app', { bulmaFlavor: 'complete', iconLibrary: 'none' })
       ).not.toContain('Server Component');
