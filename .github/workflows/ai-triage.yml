@@ -611,7 +611,7 @@ jobs:
         # rebase away from being wrong.
         env:
           CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
-        uses: anthropics/claude-code-action@d70510b174a1244958df0b03166a54912811f3e6 # v1.0.264
+        uses: anthropics/claude-code-action@d535f5172dec02b204866b393d6b20b9b2aaf98d # v1.0.266
         with:
           # CLAUDE_CODE_OAUTH_TOKEN pays for the session. github_token is
           # passed explicitly so the action skips its OIDC→app token
