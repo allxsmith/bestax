@@ -1694,12 +1694,20 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   },
   // A `.has-dropdown` item stays a `Navbar.Item` with the class: a
   // `Navbar.Dropdown` would hand its `.navbar-link` dropdown semantics.
+  // `active` writes `aria-current="page"` unless the element has its own,
+  // the way `Menu.Item` and `Pagination.Link` do, so `is-active` converts
+  // only beside one and stays a class otherwise.
   'navbar-item': {
     ...BASE,
     target: 'Navbar.Item',
     tag: 'a',
     as: 'any',
-    modifiers: flags({ 'is-active': 'active' }),
+    modifiers: {
+      'is-active': {
+        writes: [{ prop: 'active' }],
+        needsAttr: { name: 'aria-current', value: 'page' },
+      },
+    },
     writesAttr: {
       type: {
         on: ['button'],
