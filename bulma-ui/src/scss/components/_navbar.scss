@@ -1,0 +1,20 @@
+// Bestax Extras - Navbar Styles
+// Bulma draws `.navbar-burger`'s bars as `background-color: currentColor`
+// on a button with no background. Forced colors (Windows' contrast themes)
+// replaces background colors, and Chromium paints the bars in the page's
+// Canvas color, so the burger vanishes while it still works. This keeps
+// the bars in ButtonText. Outside forced colors it changes nothing.
+//
+// Bulma's CSS can land on either side of this partial, as it can for
+// `_delete.scss`, so the selector names its class twice to outrank Bulma's
+// `.navbar-burger span`, wherever the two load.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}navbar-burger.#{iv.$class-prefix}navbar-burger span {
+    // Opt out so Chromium keeps these bars in ButtonText, not Canvas.
+    forced-color-adjust: none;
+    background-color: ButtonText;
+  }
+}
