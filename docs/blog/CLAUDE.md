@@ -288,7 +288,8 @@ These files back every edition:
    - **Record a correction** when a cell's mark was wrong in the last edition, rather than
      changed by the library since. That can happen any time between editions, so do it in the
      PR that fixes the cell: add the cell to `corrections` under a fix with the last edition's
-     `reviewed` date (the live `lastReviewed` until the bump below), the PR number (fill it in
+     `reviewed` date (the newest snapshot's `reviewed`; that matches the live `lastReviewed`
+     until a review moves the sheet ahead of the last edition), the PR number (fill it in
      once the PR is open), and the mark the fix gives the cell (`full`, `partial` or `none`).
      The edition's changes table then shows that cell as a correction, not a change. If a
      release moves the cell again before the edition, leave the entry be: the mark no longer
