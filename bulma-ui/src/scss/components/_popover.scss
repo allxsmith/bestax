@@ -83,21 +83,43 @@ $popover-animation-duration: 0.15s !default;
     bottom: 100%;
     margin-bottom: cv.getVar('popover-offset');
   }
+  // `left` is the inline start: the physical left, and the physical right
+  // on a right-to-left page, so a trigger at that edge doesn't push the
+  // panel off the viewport. Left to right these are the physical sides.
   &.#{iv.$class-prefix}is-bottom-left,
   &.#{iv.$class-prefix}is-top-left {
     left: 0;
+
+    &:dir(rtl) {
+      left: auto;
+      right: 0;
+    }
   }
   &.#{iv.$class-prefix}is-bottom-right,
   &.#{iv.$class-prefix}is-top-right {
     right: 0;
+
+    &:dir(rtl) {
+      right: auto;
+      left: 0;
+    }
   }
 
   // Portaled: fixed to the viewport at the trigger's edge, which the
-  // component sets inline, so only the gap comes from here.
+  // component sets inline, so only the gap comes from here. The corner's
+  // right-to-left swap must not pin the other edge over that coordinate.
   &.#{iv.$class-prefix}is-portal {
     position: fixed;
     right: auto;
     bottom: auto;
+
+    &.#{iv.$class-prefix}is-bottom-left:dir(rtl),
+    &.#{iv.$class-prefix}is-top-left:dir(rtl),
+    &.#{iv.$class-prefix}is-bottom-right:dir(rtl),
+    &.#{iv.$class-prefix}is-top-right:dir(rtl) {
+      left: auto;
+      right: auto;
+    }
 
     &.#{iv.$class-prefix}is-top-left,
     &.#{iv.$class-prefix}is-top-right {

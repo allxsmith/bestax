@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Slider } from './Slider';
 import { Field } from './Field';
 import { Control } from './Control';
+import { LocaleProvider } from '../helpers/LocaleProvider';
 
 const meta: Meta<typeof Slider> = {
   title: 'Form/Slider',
@@ -872,6 +873,14 @@ export const WithFieldControlWrapper: Story = {
  * a `name` prop. In range mode use `nameLow` and `nameHigh` so each thumb
  * submits as its own form field.
  */
+export const RightToLeft: Story = {
+  render: () => (
+    <LocaleProvider locale="ar" dir="rtl">
+      <Slider label="مستوى" defaultValue={25} />
+    </LocaleProvider>
+  ),
+};
+
 export const RangeWithNames: Story = {
   render: function SliderForm() {
     const [submitted, setSubmitted] = useState<string>('');

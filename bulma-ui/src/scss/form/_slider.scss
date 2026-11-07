@@ -92,6 +92,17 @@ $slider-vertical-height: 200px !default;
     cv.getVar("slider-track-color") var(--slider-progress, 0%),
     cv.getVar("slider-track-color") 100%
   );
+  // The native range mirrors, so 0% of this gradient is the inline start
+  // (the right), where the minimum sits. `to right` would paint the left.
+  &:dir(rtl) {
+    background: linear-gradient(
+      to left,
+      cv.getVar("slider-fill-color") 0%,
+      cv.getVar("slider-fill-color") var(--slider-progress, 0%),
+      cv.getVar("slider-track-color") var(--slider-progress, 0%),
+      cv.getVar("slider-track-color") 100%
+    );
+  }
   border-radius: cv.getVar("slider-radius");
   outline: none;
   cursor: pointer;
@@ -268,6 +279,12 @@ $slider-vertical-height: 200px !default;
 .#{iv.$class-prefix}slider-tick {
   position: absolute;
   transform: translateX(-50%);
+
+  // The inline start edge is the right one right to left, so centering
+  // shifts the other way. A vertical tick replaces this transform.
+  &:dir(rtl) {
+    transform: translateX(50%);
+  }
   width: cv.getVar("slider-tick-width");
   height: cv.getVar("slider-tick-height");
   background: cv.getVar("slider-tick-color");
@@ -318,6 +335,19 @@ $slider-vertical-height: 200px !default;
       cv.getVar("slider-track-color") var(--slider-progress-high, 100%),
       cv.getVar("slider-track-color") 100%
     );
+    // Same mirror as the single thumb: the stops are measured from the
+    // inline start, which is the right when the page is.
+    &:dir(rtl) {
+      background: linear-gradient(
+        to left,
+        cv.getVar("slider-track-color") 0%,
+        cv.getVar("slider-track-color") var(--slider-progress-low, 0%),
+        cv.getVar("slider-fill-color") var(--slider-progress-low, 0%),
+        cv.getVar("slider-fill-color") var(--slider-progress-high, 100%),
+        cv.getVar("slider-track-color") var(--slider-progress-high, 100%),
+        cv.getVar("slider-track-color") 100%
+      );
+    }
     pointer-events: none;
   }
 

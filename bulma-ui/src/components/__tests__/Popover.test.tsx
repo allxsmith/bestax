@@ -740,6 +740,45 @@ describe('Popover', () => {
       });
     };
 
+    it('keeps a portaled bottom-left panel on the page right to left', () => {
+      const style = document.createElement('style');
+      style.textContent = '[dir="rtl"] { direction: rtl; }';
+      document.head.appendChild(style);
+      document.documentElement.setAttribute('dir', 'rtl');
+      try {
+        setViewport(1000, 1000);
+        const { container } = render(
+          <FilterPopover defaultOpen appendToBody position="bottom-left" />
+        );
+        measure(
+          container,
+          rect({ top: 100, bottom: 130, left: 900, right: 960 }),
+          { width: 200, height: 150 }
+        );
+        const dialog = screen.getByRole('dialog');
+        expect(dialog).toHaveClass('is-bottom-left');
+        // Right edges line up. Left to right the panel would start at 900.
+        expect(dialog.style.left).toBe('760px');
+        expect(dialog.style.top).toBe('130px');
+      } finally {
+        document.documentElement.removeAttribute('dir');
+        style.remove();
+      }
+    });
+
+    it('still lines a portaled bottom-left panel up with the physical left', () => {
+      setViewport(1000, 1000);
+      const { container } = render(
+        <FilterPopover defaultOpen appendToBody position="bottom-left" />
+      );
+      measure(
+        container,
+        rect({ top: 100, bottom: 130, left: 900, right: 960 }),
+        { width: 200, height: 150 }
+      );
+      expect(screen.getByRole('dialog').style.left).toBe('900px');
+    });
+
     it('opens below on the left by default, placed by CSS', () => {
       render(<FilterPopover defaultOpen />);
       const dialog = screen.getByRole('dialog');

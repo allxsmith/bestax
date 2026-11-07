@@ -12,6 +12,7 @@ import { ListItem } from '../elements/ListItem';
 import { Checkbox } from '../form/Checkbox';
 import { Checkboxes } from '../form/Checkboxes';
 import { Input } from '../form/Input';
+import { LocaleProvider } from '../helpers/LocaleProvider';
 
 const meta: Meta<typeof Popover> = {
   title: 'Components/Popover',
@@ -129,6 +130,18 @@ export const Default: Story = {
  * holds the content, `Popover.Footer` lines up the actions, and
  * `Popover.Close` closes the popover and hands focus back to the trigger.
  */
+export const RightToLeft: Story = {
+  render: () => (
+    <LocaleProvider locale="ar" dir="rtl">
+      <Popover trigger={<Button>فتح</Button>}>
+        <Popover.Body>
+          <Paragraph>لوحة</Paragraph>
+        </Popover.Body>
+      </Popover>
+    </LocaleProvider>
+  ),
+};
+
 export const CompoundUsage: Story = {
   render: () => (
     <Popover trigger={<Button>Rename</Button>}>

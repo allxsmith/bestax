@@ -4,6 +4,27 @@ import { render, fireEvent, act } from '@testing-library/react';
 import { TimeInput } from '../TimeInput';
 import { TimeWheels } from '../_pickerInternals/TimeWheels';
 import { __resetAudioTickForTest } from '../_pickerInternals/audioTick';
+import { LocaleProvider } from '../../helpers/LocaleProvider';
+
+describe('TimeWheels direction', () => {
+  it('keeps hours to the left of minutes on a right-to-left page', () => {
+    const { container } = render(
+      <div dir="rtl">
+        <TimeWheels value={{ hours: 10, minutes: 30 }} onChange={() => {}} />
+      </div>
+    );
+    expect(container.querySelector('.timeinput')).toHaveAttribute('dir', 'ltr');
+  });
+
+  it('keeps that direction inside a LocaleProvider too', () => {
+    const { container } = render(
+      <LocaleProvider locale="ar" dir="rtl">
+        <TimeWheels value={{ hours: 10, minutes: 30 }} onChange={() => {}} />
+      </LocaleProvider>
+    );
+    expect(container.querySelector('.timeinput')).toHaveAttribute('dir', 'ltr');
+  });
+});
 
 // -------------------------------------------------------------------------
 // Interaction machinery of TimeWheels: pointer drags, fling momentum, snap

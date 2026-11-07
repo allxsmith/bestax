@@ -704,9 +704,11 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         <div className={prefixedClassNames(classPrefix, 'slider-ticks')}>
           {tickPositions.map((tick, i) => {
             const pct = ((tick.value - min) / (max - min)) * 100;
+            // From the inline start, so a right-to-left page puts 0 on the
+            // right, where the native thumb sits. Left to right that is `left`.
             const posStyle = isVertical
               ? { bottom: `${pct}%` }
-              : { left: `${pct}%` };
+              : { insetInlineStart: `${pct}%` };
             const isEndpoint = tick.value === min || tick.value === max;
             return (
               <span

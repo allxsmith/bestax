@@ -68,9 +68,11 @@ const inject = (css: string) => {
 };
 
 let sheet: CSSStyleSheet;
+let dateinputCss = '';
 
 beforeAll(() => {
-  sheet = inject(compileSheet('form/_dateinput.scss')).sheet as CSSStyleSheet;
+  dateinputCss = compileSheet('form/_dateinput.scss');
+  sheet = inject(dateinputCss).sheet as CSSStyleSheet;
 });
 
 afterAll(() => {
@@ -103,6 +105,17 @@ describe.each(pickers)('%s calendar colour styles', (_name, picker) => {
   it('leaves an uncoloured calendar on the primary defaults', () => {
     const { container } = render(picker());
     expect(computedAccents(calendarRoot(container))).toEqual(defaults);
+  });
+});
+
+describe('calendar month chevrons', () => {
+  it('mirrors the glyphs right to left and leaves them alone left to right', () => {
+    expect(dateinputCss).toMatch(
+      /\.dateinput-nav-prev svg:dir\(rtl\),\s*\.dateinput-nav-next svg:dir\(rtl\)/
+    );
+    expect(dateinputCss).toContain('transform: scaleX(-1)');
+    // The month label's caret points down. It is not one of these.
+    expect(dateinputCss).not.toContain('.dateinput-month-caret:dir(rtl)');
   });
 });
 

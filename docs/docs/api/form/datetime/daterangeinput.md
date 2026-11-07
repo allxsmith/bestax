@@ -267,6 +267,7 @@ function RangeFormDemo() {
 - The start and end days are described as "Start date" and "End date", so moving onto either says which it is. While the end is still being picked, the day the range would end on is described as "Choose as end date" (`labels.rangePreviewEnd`).
 - A polite live region in the calendar states the range in words, such as "Start date: June 10, 2024, End date: June 13, 2024", and announces each pick. The grid points at it too, so moving into the grid reads the current range.
 - Everything else is the calendar `DateInput` uses: a roving `tabindex`, `aria-disabled` on disabled days and `aria-current="date"` on today.
+- On a right-to-left page the launcher sits at the end of the line and the calendar icon at the start, and the previous-month chevron points right.
 
 ---
 

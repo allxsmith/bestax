@@ -590,6 +590,7 @@ Carousel that stops at the first and last slides.
 - Indicators use `role="tablist"` and `role="tab"` semantics, one for each position a step can land on
 - The Left and Right arrow keys move the carousel while focus is on its arrows or indicators. Inside an item they're left to the item's content, such as a field or a slider
 - Previous/Next buttons are properly disabled at boundaries when not repeating
+- On a right-to-left page the previous arrow sits at the end of the line and the next arrow at the start, and their chevrons flip. The track moves with the reading direction, so the slide in view stays in view. Arrow keys are unchanged.
 
 ---
 

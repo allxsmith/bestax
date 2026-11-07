@@ -1177,7 +1177,7 @@ describe('Carousel with several items in view', () => {
         </Carousel>
       );
       expect(track().style.transform).toBe(
-        'translateX(calc(-1 * (100% + var(--bulma-carousel-item-gap, 0px)) / var(--bulma-carousel-items-in-view, 1)))'
+        'translateX(calc(var(--carousel-shift-sign, -1) * 1 * (100% + var(--bulma-carousel-item-gap, 0px)) / var(--bulma-carousel-items-in-view, 1)))'
       );
     });
 
@@ -1187,7 +1187,9 @@ describe('Carousel with several items in view', () => {
           {itemsOf(5)}
         </Carousel>
       );
-      expect(track().style.transform).toMatch(/^translateX\(calc\(-2 \* /);
+      expect(track().style.transform).toMatch(
+        /^translateX\(calc\(var\(--carousel-shift-sign, -1\) \* 2 \* /
+      );
     });
   });
 
@@ -1432,7 +1434,9 @@ describe('Carousel with several items in view', () => {
       // Positions 0, 2 and 4; from 4 the next is 0, one item on.
       fireEvent.click(screen.getByLabelText('Next slide'));
       expect(onChange).not.toHaveBeenCalled();
-      expect(track().style.transform).toMatch(/^translateX\(calc\(-7 \* /);
+      expect(track().style.transform).toMatch(
+        /^translateX\(calc\(var\(--carousel-shift-sign, -1\) \* 7 \* /
+      );
 
       // A transition ending inside an item is not the track's own.
       fireEvent.transitionEnd(realItems(5)[0]);
@@ -1459,7 +1463,9 @@ describe('Carousel with several items in view', () => {
       );
       fireEvent.click(screen.getByLabelText('Previous slide'));
       // Position 4, read from the clones before the first item.
-      expect(track().style.transform).toMatch(/^translateX\(calc\(-1 \* /);
+      expect(track().style.transform).toMatch(
+        /^translateX\(calc\(var\(--carousel-shift-sign, -1\) \* 1 \* /
+      );
       fireEvent.transitionEnd(track());
       expect(onChange).toHaveBeenCalledWith(4);
       act(() => {

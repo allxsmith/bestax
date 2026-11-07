@@ -14,7 +14,7 @@ The `TimeInput` component is a form input that opens a popover spinner for time-
 
 <!-- /bestax:generated overview -->
 
-A clickable launcher icon on the right opens the popover, and you can type directly in the field with segmented keyboard entry. It supports 12-hour and 24-hour formats, optional seconds, custom hour/minute/second increments, min/max bounds, an unselectable-times predicate, and a native `<input type="time">` fallback for touch devices.
+A launcher at the end of the line opens the popover, and the clock icon sits at the start. On a left-to-right page that is the right and the left. You can type directly in the field with segmented keyboard entry. The wheels stay left to right, so 10:30 does not read backwards. It supports 12-hour and 24-hour formats, optional seconds, custom hour/minute/second increments, min/max bounds, an unselectable-times predicate, and a native `<input type="time">` fallback for touch devices.
 
 ---
 
@@ -989,6 +989,7 @@ function TimeInputFormDemo() {
 - Each spinner column has `role="spinbutton"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.
 - In a 12-hour picker, AM/PM is one of those spinbutton columns rather than a toggle button. Its `aria-valuetext` reads `AM` or `PM`; `↑`, `PageUp` and `End` move it to PM, and `↓`, `PageDown` and `Home` move it to AM. It stops at either end instead of wrapping around. Its accessible name is `AM/PM` unless `labels.ampm` sets another.
 - Honors `prefers-reduced-motion`.
+- On a right-to-left page the launcher sits at the end of the line and the clock icon at the start. The wheels keep `dir="ltr"`, so hours stay to the left of minutes.
 
 ---
 

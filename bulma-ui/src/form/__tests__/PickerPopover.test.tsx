@@ -14,6 +14,7 @@ import { TimeInput } from '../TimeInput';
 import { DateTimeInput } from '../DateTimeInput';
 import { DateInput } from '../DateInput';
 import { DateRangeInput } from '../DateRangeInput';
+import { LocaleProvider } from '../../helpers/LocaleProvider';
 
 const Harness: React.FC<{
   appendToBody?: boolean;
@@ -658,6 +659,86 @@ describe('PickerPopover position resolution', () => {
     // top = anchor top − height, left = anchor right − width.
     expect(dialog.style.top).toBe('580px');
     expect(dialog.style.left).toBe('760px');
+  });
+
+  it('lines an explicit bottom-left up with the physical left', () => {
+    setViewport(1000, 1000);
+    const { getByRole } = renderWithRects(
+      <PositionedHarness position="bottom-left" />,
+      makeRect({ top: 50, bottom: 70, left: 900, right: 960 }),
+      { width: 200, height: 300 }
+    );
+    const dialog = getByRole('dialog');
+    expect(dialog.className).toMatch(/is-bottom-left/);
+    expect(dialog.style.left).toBe('900px');
+    expect(dialog.style.top).toBe('70px');
+  });
+
+  it('keeps bottom-left on the page when the anchor is at the inline start', () => {
+    // jsdom does not map the dir attribute to `direction` on its own.
+    const style = document.createElement('style');
+    style.textContent = '[dir="rtl"] { direction: rtl; }';
+    document.head.appendChild(style);
+    document.documentElement.setAttribute('dir', 'rtl');
+    try {
+      setViewport(1000, 1000);
+      const { getByRole } = renderWithRects(
+        <PositionedHarness position="bottom-left" />,
+        makeRect({ top: 50, bottom: 70, left: 900, right: 960 }),
+        { width: 200, height: 300 }
+      );
+      const dialog = getByRole('dialog');
+      expect(dialog.className).toMatch(/is-bottom-left/);
+      // Right edges line up (960 − 200). The left-to-right place is 900,
+      // which runs the 200px panel off a 1000px viewport.
+      expect(dialog.style.left).toBe('760px');
+      expect(dialog.style.top).toBe('70px');
+    } finally {
+      document.documentElement.removeAttribute('dir');
+      style.remove();
+    }
+  });
+
+  it('picks the inline start for auto when that side stays on the page', () => {
+    const style = document.createElement('style');
+    style.textContent = '[dir="rtl"] { direction: rtl; }';
+    document.head.appendChild(style);
+    document.documentElement.setAttribute('dir', 'rtl');
+    try {
+      setViewport(1000, 1000);
+      const { getByRole } = renderWithRects(
+        <PositionedHarness position="auto" />,
+        makeRect({ top: 50, bottom: 70, left: 900, right: 960 }),
+        { width: 200, height: 300 }
+      );
+      const dialog = getByRole('dialog');
+      // Left to right this anchor is `bottom-right` (900 + 200 does not
+      // fit). Right to left, start alignment does: the right edges line up.
+      expect(dialog.className).toMatch(/is-bottom-left/);
+      expect(dialog.style.left).toBe('760px');
+    } finally {
+      document.documentElement.removeAttribute('dir');
+      style.remove();
+    }
+  });
+
+  it('does the same inside a LocaleProvider', () => {
+    const style = document.createElement('style');
+    style.textContent = '[dir="rtl"] { direction: rtl; }';
+    document.head.appendChild(style);
+    try {
+      setViewport(1000, 1000);
+      const { getByRole } = renderWithRects(
+        <LocaleProvider locale="ar" dir="rtl">
+          <PositionedHarness position="bottom-left" />
+        </LocaleProvider>,
+        makeRect({ top: 50, bottom: 70, left: 900, right: 960 }),
+        { width: 200, height: 300 }
+      );
+      expect(getByRole('dialog').style.left).toBe('760px');
+    } finally {
+      style.remove();
+    }
   });
 
   it('appendToBody computes fixed coordinates for an explicit bottom-left', () => {

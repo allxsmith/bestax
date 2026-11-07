@@ -244,6 +244,7 @@ for a non-modal dialog:
   Escape first.
 - <kbd>Enter</kbd> and <kbd>Space</kbd> toggle a trigger the browser doesn't click on its own.
 - The open animation is turned off under `prefers-reduced-motion: reduce`.
+- On a right-to-left page a `left` or `right` corner swaps, so `bottom-left` lines the panel's right edge up with the trigger's and a trigger at the start of the line does not push the panel off the screen. `Combobox` and `HoverCard` keep physical corners.
 
 ---
 

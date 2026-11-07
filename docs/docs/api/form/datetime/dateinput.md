@@ -14,7 +14,7 @@ The `DateInput` component is a form input that opens a popover calendar for date
 
 <!-- /bestax:generated overview -->
 
-A clickable launcher icon on the right opens the popover, and you can type directly in the field with segmented keyboard entry. It uses native `Date` and `Intl` only (no extra dependencies), supports month and year pickers, min/max bounds, disabled-date predicates, custom token formats or `Intl.DateTimeFormatOptions`, locale-aware day/month names, an inline mode, and a native `<input type="date">` fallback for touch devices.
+A launcher at the end of the line opens the popover, and the calendar icon sits at the start. On a left-to-right page that is the right and the left. You can type directly in the field with segmented keyboard entry. It uses native `Date` and `Intl` only (no extra dependencies), supports month and year pickers, min/max bounds, disabled-date predicates, custom token formats or `Intl.DateTimeFormatOptions`, locale-aware day/month names, an inline mode, and a native `<input type="date">` fallback for touch devices.
 
 ---
 
@@ -970,6 +970,7 @@ function DateInputFormDemo() {
 - The year list is a `role="listbox"` named by the `chooseYear` label. As the selection surface its options take `aria-selected` from the value's year rather than from focus, which roves through the list. When the focused year is disabled, the nearest enabled year takes the tab stop, so `Tab` still reaches the list.
 - The launcher and popover are named "Choose month" or "Choose year" to match the granularity; override them, and the month grid's "Previous year" / "Next year" buttons, through `labels` (`chooseMonth`, `chooseYear`, `prevYear`, `nextYear`).
 - Honors `prefers-reduced-motion` (skip popover fade-in).
+- On a right-to-left page the launcher sits at the end of the line and the calendar icon at the start, and the previous-month chevron points right. The month names follow the page.
 
 ---
 

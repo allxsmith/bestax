@@ -69,6 +69,16 @@ export interface UseAnchoredPositionOptions {
    * @defaultValue false
    */
   followContent?: boolean;
+  /**
+   * Treat `left` and `right` as the inline start and end. A right-to-left
+   * anchor then keeps a `bottom-left` panel on the page instead of lining
+   * its physical left edge up with the anchor's and running off the viewport.
+   * Left to right it changes nothing. Popover and the pickers' popover turn
+   * it on, because their stylesheets mirror those corners the same way.
+   * A caller whose corners stay physical leaves it off.
+   * @defaultValue false
+   */
+  logical?: boolean;
 }
 
 /**
@@ -86,20 +96,33 @@ export function marginGap(panel: HTMLElement): number {
 
 /**
  * The corner that keeps a panel of this size in the viewport, preferring
- * below the anchor and lined up with its left edge.
+ * below the anchor and lined up with its inline start (`left`, or the
+ * physical right when `logicalRtl`).
  */
 function resolveAuto(
   view: Window,
   rect: DOMRect,
   panelWidth: number,
   panelHeight: number,
-  gap: number
+  gap: number,
+  logicalRtl: boolean
 ): AnchoredCorner {
   const fitsBelow = rect.bottom + panelHeight + gap <= view.innerHeight;
-  const fitsRight = rect.left + panelWidth <= view.innerWidth;
-  if (fitsBelow) return fitsRight ? 'bottom-left' : 'bottom-right';
-  return fitsRight ? 'top-left' : 'top-right';
+  // Start alignment stays inside the viewport. Left to right that is the
+  // panel's right edge; right to left, with logical corners, its left edge.
+  const fitsStart = logicalRtl
+    ? rect.right - panelWidth >= 0
+    : rect.left + panelWidth <= view.innerWidth;
+  if (fitsBelow) return fitsStart ? 'bottom-left' : 'bottom-right';
+  return fitsStart ? 'top-left' : 'top-right';
 }
+
+/**
+ * Whether a `left` corner lines the panel's physical left up with the
+ * anchor's. Right to left, a logical `left` lines up the right edges instead.
+ */
+const alignsPhysicallyLeft = (corner: AnchoredCorner, logicalRtl: boolean) =>
+  corner.endsWith('left') !== logicalRtl;
 
 const samePosition = (a: AnchoredPosition, b: AnchoredPosition): boolean =>
   a.position === b.position &&
@@ -136,6 +159,7 @@ export function useAnchoredPosition(
     styledGap,
     matchWidth = false,
     followContent = false,
+    logical = false,
   }: UseAnchoredPositionOptions
 ): AnchoredPosition {
   const [resolved, setResolved] = useState<AnchoredPosition>({
@@ -161,6 +185,11 @@ export function useAnchoredPosition(
         ? Math.max(measured.width, rect.width)
         : measured.width;
       const { height } = measured;
+      // The anchor's own direction, so `<html dir="rtl">` and a
+      // LocaleProvider agree. Read only when the corners are logical:
+      // a physical caller keeps today's placement on a right-to-left page.
+      const logicalRtl =
+        logical && getComputedStyle(anchor).direction === 'rtl';
       const corner =
         position === 'auto'
           ? resolveAuto(
@@ -168,7 +197,8 @@ export function useAnchoredPosition(
               rect,
               width,
               height,
-              offset + (styledGap?.(panel) ?? 0)
+              offset + (styledGap?.(panel) ?? 0),
+              logicalRtl
             )
           : position;
       const next: AnchoredPosition = fixed
@@ -177,7 +207,9 @@ export function useAnchoredPosition(
             top: corner.startsWith('bottom')
               ? rect.bottom + offset
               : rect.top - height - offset,
-            left: corner.endsWith('left') ? rect.left : rect.right - width,
+            left: alignsPhysicallyLeft(corner, logicalRtl)
+              ? rect.left
+              : rect.right - width,
             ...(matchWidth ? { minWidth: rect.width } : {}),
           }
         : { position: corner };
@@ -201,6 +233,7 @@ export function useAnchoredPosition(
     offset,
     styledGap,
     matchWidth,
+    logical,
   ]);
 
   // After every render, on purpose: the panel's content is what changed.
