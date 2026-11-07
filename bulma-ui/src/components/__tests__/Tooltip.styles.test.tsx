@@ -53,6 +53,29 @@ const rulesFor = (selector: string) =>
       rule.selectorText.split(',').some(part => part.trim() === selector)
   );
 
+/**
+ * Every style rule in the compiled sheet, with the at-rules it sits in
+ * (`@media (forced-colors: active)`), outermost first. jsdom evaluates no
+ * media query, so a forced-colors rule is read here rather than computed.
+ */
+const allRules = () => {
+  const out: { rule: CSSStyleRule; within: string[] }[] = [];
+  const walk = (list: CSSRuleList, within: string[]) => {
+    for (const rule of Array.from(list)) {
+      if (rule instanceof CSSStyleRule) {
+        out.push({ rule, within });
+      } else if ('cssRules' in rule) {
+        walk((rule as CSSGroupingRule).cssRules, [
+          ...within,
+          rule.cssText.split('{')[0].trim(),
+        ]);
+      }
+    }
+  };
+  walk(styleEl.sheet!.cssRules, []);
+  return out;
+};
+
 /** Shows it the way the pointer does, so it is open rather than only active. */
 const hoverOpen = () => {
   const event = new MouseEvent('pointerover', { bubbles: true });
@@ -220,5 +243,26 @@ describe('Tooltip styles under a class prefix', () => {
     expect(getComputedStyle(content()).top).toBe(
       'calc(100% + var(--bulma-tooltip-arrow-size) + var(--bulma-tooltip-arrow-margin))'
     );
+  });
+
+  it('gives the box an outline and the arrow CanvasText in forced colors', () => {
+    const forced = allRules().filter(
+      ({ within }) =>
+        within.length === 1 && within[0] === '@media (forced-colors: active)'
+    );
+    const box = forced.find(
+      ({ rule }) => rule.selectorText === '.bestax-tooltip-content'
+    );
+    const arrow = forced.find(
+      ({ rule }) => rule.selectorText === '.bestax-tooltip-content::before'
+    );
+    expect(box).toBeDefined();
+    expect(arrow).toBeDefined();
+    // jsdom writes a system color in lowercase.
+    expect(box!.rule.style.cssText.toLowerCase()).toContain('outline');
+    expect(box!.rule.style.cssText.toLowerCase()).toContain('canvastext');
+    expect(
+      arrow!.rule.style.getPropertyValue('--bulma-tooltip-background').trim()
+    ).toMatch(/^canvastext$/i);
   });
 });
