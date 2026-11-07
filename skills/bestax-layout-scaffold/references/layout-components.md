@@ -383,7 +383,10 @@ is a `div` with `role="button"`).
 
 `<Card>` for catalog/grid items. Use the props form (`header`, `image`, `footer`) or the compound
 subcomponents (`Card.Header` + `.Title`/`.Icon`, `Card.Image`, `Card.Content`, `Card.Footer`,
-`Card.FooterItem`).
+`Card.FooterItem`). Those parts are also named exports — `CardHeader`, `CardHeaderTitle`,
+`CardHeaderIcon`, `CardImage`, `CardContent`, `CardFooter`, `CardFooterItem` — the same
+components as the dotted names. A Next.js Server Component imports the named export; the dot is
+`undefined` there.
 
 | Prop                            | Type                          |
 | ------------------------------- | ----------------------------- |

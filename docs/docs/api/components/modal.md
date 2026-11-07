@@ -32,7 +32,17 @@ Use `Modal` for forms or custom content — an empty overlay you build the conte
 <!-- bestax:generated import -->
 
 ```tsx
-import { Modal } from '@allxsmith/bestax-bulma';
+import {
+  Modal,
+  ModalBackground,
+  ModalContent,
+  ModalClose,
+  ModalCard,
+  ModalCardHead,
+  ModalCardTitle,
+  ModalCardBody,
+  ModalCardFoot,
+} from '@allxsmith/bestax-bulma';
 ```
 
 <!-- /bestax:generated import -->
@@ -277,6 +287,8 @@ Callback refs behave the same on React 18 and 19: if your callback returns a cle
 #### Modal.Card with compound components
 
 The compound components API provides more flexibility and better readability for complex modals. Use `Modal.Background`, `Modal.Card`, and related sub-components for full control over the modal structure.
+
+The same parts are named exports: `ModalBackground`, `ModalContent`, `ModalClose`, `ModalCard`, `ModalCardHead`, `ModalCardTitle`, `ModalCardBody`, and `ModalCardFoot`. Each is the same component as the dotted name (`Modal.Card.Head` is `ModalCardHead`). A Next.js Server Component imports the named export, because the dotted name is `undefined` there.
 
 Pass `onClose` to the `Modal` here too. Escape calls it, and so does `Modal.Close`, unless you give the button an `onClick` of your own: yours then replaces the close, so call `onClose` from it if the button should still close the modal. `Modal.Background` doesn't call `onClose` on its own, so a click on the background closes the modal only once you pass it `onClick={onClose}`.
 
