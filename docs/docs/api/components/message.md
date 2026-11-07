@@ -27,7 +27,7 @@ Supports Bulma color modifiers, sizes, and both header/body sections. The close 
 <!-- bestax:generated import -->
 
 ```tsx
-import { Message } from '@allxsmith/bestax-bulma';
+import { Message, MessageHeader, MessageBody } from '@allxsmith/bestax-bulma';
 ```
 
 <!-- /bestax:generated import -->

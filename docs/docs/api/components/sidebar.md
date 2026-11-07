@@ -23,7 +23,14 @@ It's ideal for mobile navigation, settings panels, or any content that should ov
 <!-- bestax:generated import -->
 
 ```tsx
-import { Sidebar } from '@allxsmith/bestax-bulma';
+import {
+  Sidebar,
+  SidebarHeader,
+  SidebarTitle,
+  SidebarClose,
+  SidebarBody,
+  SidebarFooter,
+} from '@allxsmith/bestax-bulma';
 ```
 
 <!-- /bestax:generated import -->

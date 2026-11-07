@@ -32,7 +32,17 @@ Use `Modal` for forms or custom content — an empty overlay you build the conte
 <!-- bestax:generated import -->
 
 ```tsx
-import { Modal } from '@allxsmith/bestax-bulma';
+import {
+  Modal,
+  ModalBackground,
+  ModalContent,
+  ModalClose,
+  ModalCard,
+  ModalCardHead,
+  ModalCardTitle,
+  ModalCardBody,
+  ModalCardFoot,
+} from '@allxsmith/bestax-bulma';
 ```
 
 <!-- /bestax:generated import -->

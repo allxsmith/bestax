@@ -301,7 +301,7 @@
       "category": "components",
       "purpose": "The `Card` component renders a Bulma-styled card with optional header, image, content, and footer.",
       "slug": "components/card",
-      "import": "import { Card } from '@allxsmith/bestax-bulma';",
+      "import": "import { Card, CardHeader, CardHeaderTitle, CardHeaderIcon, CardImage, CardContent, CardFooter, CardFooterItem } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 51,
       "exampleCount": 14
@@ -719,7 +719,7 @@
       "category": "elements",
       "purpose": "The `Figure` component renders a styled `<figure>` element with Bulma helper class integration.",
       "slug": "elements/figure",
-      "import": "import { Figure } from '@allxsmith/bestax-bulma';",
+      "import": "import { Figure, FigureCaption } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 8,
       "exampleCount": 7
@@ -983,7 +983,7 @@
       "category": "components",
       "purpose": "The `Message` component provides Bulma's flexible notice/message box for your Bulma React UI.",
       "slug": "components/message",
-      "import": "import { Message } from '@allxsmith/bestax-bulma';",
+      "import": "import { Message, MessageHeader, MessageBody } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 12,
       "exampleCount": 8
@@ -994,7 +994,7 @@
       "category": "components",
       "purpose": "The `Modal` component provides an empty, accessible overlay for arbitrary content — for a ready-made confirm or alert, reach for `Dialog` instead.",
       "slug": "components/modal",
-      "import": "import { Modal } from '@allxsmith/bestax-bulma';",
+      "import": "import { Modal, ModalBackground, ModalContent, ModalClose, ModalCard, ModalCardHead, ModalCardTitle, ModalCardBody, ModalCardFoot } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 23,
       "exampleCount": 10
@@ -1269,7 +1269,7 @@
       "category": "components",
       "purpose": "The `Sidebar` component provides a slide-out navigation panel that appears from the left or right side of the screen.",
       "slug": "components/sidebar",
-      "import": "import { Sidebar } from '@allxsmith/bestax-bulma';",
+      "import": "import { Sidebar, SidebarHeader, SidebarTitle, SidebarClose, SidebarBody, SidebarFooter } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 22,
       "exampleCount": 8
@@ -3353,8 +3353,9 @@
     },
     "CardHeader": {
       "component": "Card",
-      "path": "Card.Header",
-      "purpose": "Card header compound component. Wraps children in a `.card-header` element."
+      "path": "CardHeader",
+      "purpose": "Card header compound component. Wraps children in a `.card-header` element.",
+      "standalone": "companion"
     },
     "CardHeaderIcon": {
       "component": "Card",
@@ -3650,8 +3651,9 @@
     },
     "ModalCard": {
       "component": "Modal",
-      "path": "Modal.Card",
-      "purpose": "Modal.Card - Renders modal card wrapper with compound components."
+      "path": "ModalCard",
+      "purpose": "Modal.Card - Renders modal card wrapper with compound components.",
+      "standalone": "companion"
     },
     "ModalCardBody": {
       "component": "Modal",

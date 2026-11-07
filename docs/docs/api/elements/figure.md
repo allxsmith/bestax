@@ -27,7 +27,7 @@ The Figure component is a thin wrapper around the HTML `<figure>` element with a
 <!-- bestax:generated import -->
 
 ```tsx
-import { Figure } from '@allxsmith/bestax-bulma';
+import { Figure, FigureCaption } from '@allxsmith/bestax-bulma';
 ```
 
 <!-- /bestax:generated import -->

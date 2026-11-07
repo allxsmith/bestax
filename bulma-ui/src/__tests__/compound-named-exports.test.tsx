@@ -240,6 +240,11 @@ const parts: Part[] = [
 ];
 
 describe('named exports of compound parts', () => {
+  it('types the nested card header parts on the named export', () => {
+    expect(CardHeader.Title).toBe(Card.Header.Title);
+    expect(CardHeader.Icon).toBe(Card.Header.Icon);
+  });
+
   it.each(parts)(
     '$name is the dotted part, and both render',
     ({ named, dotted, selector, children }) => {

@@ -23,7 +23,16 @@ It supports custom colors, shadows, spacing, alignment, and more for flexible, a
 <!-- bestax:generated import -->
 
 ```tsx
-import { Card } from '@allxsmith/bestax-bulma';
+import {
+  Card,
+  CardHeader,
+  CardHeaderTitle,
+  CardHeaderIcon,
+  CardImage,
+  CardContent,
+  CardFooter,
+  CardFooterItem,
+} from '@allxsmith/bestax-bulma';
 ```
 
 <!-- /bestax:generated import -->

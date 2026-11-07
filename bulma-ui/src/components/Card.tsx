@@ -423,7 +423,7 @@ export interface CardHeaderIconProps
  * @param {CardHeaderProps} props - Props for the CardHeader component.
  * @returns {JSX.Element} The rendered card header.
  */
-export const CardHeader: React.FC<CardHeaderProps> = ({
+const CardHeaderBase: React.FC<CardHeaderProps> = ({
   className,
   children,
   centered,
@@ -726,8 +726,8 @@ export const CardFooterItem: React.FC<CardFooterItemProps> = ({
   );
 };
 
-// Attach nested Title and Icon components to CardHeader
-const CardHeaderCompound = withSubComponents(CardHeader, {
+// Export the compound, not the bare function, so `CardHeader.Title` typechecks.
+export const CardHeader = withSubComponents(CardHeaderBase, {
   Title: CardHeaderTitle,
   Icon: CardHeaderIcon,
 });
@@ -736,7 +736,7 @@ const CardHeaderCompound = withSubComponents(CardHeader, {
 export const Card = withSubComponents(
   CardComponent,
   {
-    Header: CardHeaderCompound,
+    Header: CardHeader,
     Image: CardImage,
     Content: CardContent,
     Footer: CardFooter,
