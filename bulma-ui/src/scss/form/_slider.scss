@@ -92,8 +92,8 @@ $slider-vertical-height: 200px !default;
     cv.getVar("slider-track-color") var(--slider-progress, 0%),
     cv.getVar("slider-track-color") 100%
   );
-  // The native range mirrors, so the fill has to start at the inline end.
-  // `to right` would keep painting the physical left.
+  // The native range mirrors, so 0% of this gradient is the inline start
+  // (the right), where the minimum sits. `to right` would paint the left.
   &:dir(rtl) {
     background: linear-gradient(
       to left,

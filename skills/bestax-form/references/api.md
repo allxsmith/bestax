@@ -183,8 +183,10 @@ variants. Field/Control composition like the other convenience inputs, with pick
 with custom fallback). An `inline` picker renders no `Control` anywhere, so leave its
 Control-level props out: they do nothing there and warn in development.
 
-Every one of them has a launcher button at the right edge (`triggerIcon`) that gives way to the loading
-spinner of the `Control` they sit in, which shares that edge. A convenience input sits in the
+Every one of them has a launcher button at the inline end (`triggerIcon`), the right edge on a
+left-to-right page and the left edge on a right-to-left one. The calendar or clock icon sits at
+the inline start. The launcher gives way to the loading spinner of the `Control` they sit in,
+which shares that edge. A convenience input sits in the
 `Control` it renders for its own `isLoading`, unless it is inside your own `Control`; a `*Base`
 variant only ever sits in yours. Inside your own `Control`, put `isLoading` on that `Control`: the
 convenience input renders no `Control` of its own there, so its own `isLoading` draws nothing and

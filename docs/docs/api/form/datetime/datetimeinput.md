@@ -14,7 +14,7 @@ The `DateTimeInput` combines a calendar and a time **wheel spinner** in a single
 
 <!-- /bestax:generated overview -->
 
-The popover opens to the **calendar** with an iOS-style footer: the selected **time** as a tappable value, a **Reset** button (reverts your edits to the value the popover opened with), and a circular **✓** confirm button. **Clicking the time floats the wheel spinner over the calendar** (hours, minutes, and optionally seconds — the same wheels the `TimeInput` uses), so the popover never grows or scrolls; clicking the time again, clicking outside the wheel card, or pressing `Escape` hides it. It supports the full prop surface of both `DateInput` and `TimeInput`, plus a native `<input type="datetime-local">` fallback for touch devices. A clickable launcher icon on the right opens the popover, and you can type directly in the field with segmented keyboard entry.
+The popover opens to the **calendar** with an iOS-style footer: the selected **time** as a tappable value, a **Reset** button (reverts your edits to the value the popover opened with), and a circular **✓** confirm button. **Clicking the time floats the wheel spinner over the calendar** (hours, minutes, and optionally seconds — the same wheels the `TimeInput` uses), so the popover never grows or scrolls; clicking the time again, clicking outside the wheel card, or pressing `Escape` hides it. It supports the full prop surface of both `DateInput` and `TimeInput`, plus a native `<input type="datetime-local">` fallback for touch devices. A launcher at the end of the line opens the popover, and the calendar icon sits at the start. On a left-to-right page that is the right and the left. You can type directly in the field with segmented keyboard entry. The time wheels stay left to right.
 
 ---
 
@@ -842,6 +842,7 @@ function DateTimeInputFormDemo() {
 - In a 12-hour picker, AM/PM is one of those wheels, reading `AM` or `PM`. Its accessible name is `AM/PM` unless `labels.ampm` sets another.
 - The footer's confirm button exposes an accessible label (`Done`); the Reset button reverts your edits to the value the popover opened with.
 - Tab order walks from the calendar to the footer (Reset / ✓), and from the time wheels to the footer while they are open.
+- On a right-to-left page the launcher sits at the end of the line and the calendar icon at the start. The time wheels keep `dir="ltr"`.
 
 ---
 

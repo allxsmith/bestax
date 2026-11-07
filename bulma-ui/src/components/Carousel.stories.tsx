@@ -13,6 +13,7 @@ import { Card } from './Card';
 import { Columns } from '../columns/Columns';
 import { Column } from '../columns/Column';
 import SubTitle from '../elements/SubTitle';
+import { LocaleProvider } from '../helpers/LocaleProvider';
 
 const meta: Meta<typeof Carousel> = {
   title: 'Components/Carousel',
@@ -199,6 +200,20 @@ export const Default: Story = {
 /**
  * Auto-playing carousel.
  */
+export const RightToLeft: Story = {
+  render: () => (
+    <LocaleProvider locale="ar" dir="rtl">
+      <Block p="5">
+        <Carousel>
+          <CarouselItem>الأول</CarouselItem>
+          <CarouselItem>الثاني</CarouselItem>
+          <CarouselItem>الثالث</CarouselItem>
+        </Carousel>
+      </Block>
+    </LocaleProvider>
+  ),
+};
+
 export const Autoplay: Story = {
   render: function AutoplayExample() {
     return (
