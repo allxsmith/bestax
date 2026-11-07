@@ -1,0 +1,22 @@
+// Bestax Extras - Button Styles
+// Forced colors (Windows' contrast themes) replaces a colored button's fill,
+// and Bulma sets its border width to 0, so in Chromium the button has no
+// edge and an icon-only one shows only its glyph. This gives those buttons
+// back a 1px border there. An outlined button keeps the width it sets, and
+// Bulma subtracts the width from the padding, so the size stays the same.
+// The color class is named twice to outrank Bulma's `.button.is-<color>`
+// whichever stylesheet loads first. Outside forced colors it changes nothing.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+@use 'bulma/sass/utilities/derived-variables' as dv;
+
+@media (forced-colors: active) {
+  @each $name, $color in dv.$colors {
+    .#{iv.$class-prefix}button.#{iv.$class-prefix}is-#{$name}.#{iv.$class-prefix}is-#{$name}:not(
+        .#{iv.$class-prefix}is-outlined
+      ) {
+      @include cv.register-var('button-border-width', 1px);
+    }
+  }
+}
