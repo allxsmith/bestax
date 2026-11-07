@@ -334,6 +334,7 @@ function example() {
 - **States:** The `isDisabled` and `disabled` props ensure correct `aria-disabled` and `disabled` attributes.
 - **Keyboard:** When rendered as `<a>`, disabled buttons are not focusable.
 - **Focus:** Use `isFocused` and `isActive` for visual feedback, but rely on browser focus for actual accessibility.
+- **Forced colors:** In Windows' contrast themes a colored button keeps a 1px border, so it still has an edge when the theme replaces its fill, while an outlined button is left as it is.
 - **Toggles:** `isActive` tells a screen reader nothing. A button that turns something on or off is a [`ToggleButton`](./togglebutton.md), which sets `aria-pressed`.
 
 :::note
