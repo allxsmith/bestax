@@ -7,16 +7,8 @@ import Heading from '@theme/Heading';
 import styles from './styles.module.css';
 
 /**
- * Swizzled @theme/NotFound/Content.
- *
- * NotFound itself is left alone, so the layout, navbar, footer, and
- * document title stay Docusaurus's. The stock Content is not rendered:
- * its second paragraph asks the reader to contact whoever linked them,
- * and this page replaces that copy.
- *
- * Quick Start, Components, Templates, and Blog are the navbar targets.
- * Components opens the API sidebar, whose first page is the Elements
- * index — /docs/api is not a page. The path hint uses the same URLs.
+ * Components opens the API sidebar. Its first page is the Elements
+ * index, because /docs/api is not a page.
  */
 const NEXT = [
   {
@@ -46,10 +38,14 @@ const NEXT = [
  * so this only runs in the browser, where the address is the one that
  * missed.
  */
+function under(pathname, prefix) {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
+
 function PathHint() {
   const { pathname } = useLocation();
 
-  if (pathname.startsWith('/docs/api/')) {
+  if (under(pathname, '/docs/api')) {
     return (
       <p className={styles.hint}>
         This address is under the component docs. Try{' '}
@@ -58,7 +54,7 @@ function PathHint() {
     );
   }
 
-  if (pathname.startsWith('/blog/')) {
+  if (under(pathname, '/blog')) {
     return (
       <p className={styles.hint}>
         This address is under the blog. Try{' '}
