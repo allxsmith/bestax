@@ -120,6 +120,30 @@ export const BurgerActive: Story = {
   ),
 };
 
+// The current page. `active` is `is-active` and `aria-current="page"`.
+export const CurrentPage: Story = {
+  render: () => (
+    <Navbar>
+      <Navbar.Menu active>
+        <Navbar.Start>
+          <Navbar.Item href="#home">Home</Navbar.Item>
+          <Navbar.Item href="#about" active>
+            About
+          </Navbar.Item>
+        </Navbar.Start>
+      </Navbar.Menu>
+    </Navbar>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`active` marks the current page with `is-active` and `aria-current="page"`. An `aria-current` you pass wins, including `false`, when the item is active for another reason.',
+      },
+    },
+  },
+};
+
 // Navbar menu with start and end
 export const MenuStartEnd: Story = {
   render: () => (
