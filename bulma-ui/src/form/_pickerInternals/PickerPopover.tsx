@@ -20,6 +20,11 @@ export interface PickerPopoverProps {
   onClose: () => void;
   anchorRef: React.RefObject<HTMLElement | null>;
   children: React.ReactNode;
+  /**
+   * The corner it opens from. Left out, it's `bottom-left` lined up with the
+   * anchor's start edge: the stylesheet's `is-start-aligned` rule in place,
+   * and the anchor's direction when portaled.
+   */
   position?: PickerPosition;
   appendToBody?: boolean;
   className?: string;
@@ -66,7 +71,7 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
   onClose,
   anchorRef,
   children,
-  position = 'bottom-left',
+  position,
   appendToBody = false,
   className,
   trapFocus = true,
@@ -111,8 +116,6 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
     styledGap: marginGap,
     matchWidth,
     followContent,
-    // `bottom-left` follows the writing direction, as the stylesheet does.
-    logical: true,
   });
 
   // Read when a press lands outside or a key arrives, so both listeners stay
@@ -172,6 +175,9 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
   const panelClass = usePrefixedClassNames('picker-popover', {
     'is-active': isOpen,
     [`is-${resolved.position}`]: true,
+    // The default lines up with the field's inline start, so the stylesheet
+    // moves it to the right edge on a right-to-left page.
+    'is-start-aligned': position === undefined,
     'is-portal': appendToBody,
     'has-anchor-width': matchWidth,
   });

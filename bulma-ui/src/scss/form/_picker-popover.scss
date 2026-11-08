@@ -44,48 +44,37 @@ $picker-trigger-disabled-opacity: 0.5 !default;
 
   // The gap is a margin on the side facing the anchor, as on Popover, so the
   // positioning hook can read it off the panel when `auto` picks a corner.
-  // `left` is the inline start: the physical left, and the physical right
-  // on a right-to-left page, so a trigger at that edge doesn't push the
-  // panel off the viewport. Left to right these are the physical sides.
   &.#{iv.$class-prefix}is-bottom-left {
     top: 100%;
     left: 0;
     margin-top: cv.getVar('picker-popover-offset');
-
-    &:dir(rtl) {
-      left: auto;
-      right: 0;
-    }
   }
   &.#{iv.$class-prefix}is-bottom-right {
     top: 100%;
     right: 0;
     margin-top: cv.getVar('picker-popover-offset');
-
-    &:dir(rtl) {
-      right: auto;
-      left: 0;
-    }
   }
   &.#{iv.$class-prefix}is-top-left {
     bottom: 100%;
     left: 0;
     margin-bottom: cv.getVar('picker-popover-offset');
-
-    &:dir(rtl) {
-      left: auto;
-      right: 0;
-    }
   }
   &.#{iv.$class-prefix}is-top-right {
     bottom: 100%;
     right: 0;
     margin-bottom: cv.getVar('picker-popover-offset');
-
-    &:dir(rtl) {
-      right: auto;
-      left: 0;
-    }
+  }
+  // With no `position`, the panel lines up with the field's inline start, so
+  // a field at the start of a right-to-left line doesn't push it off the
+  // screen. A corner the caller names stays physical. Portaled, the picker
+  // sets the edge inline instead. `:where()` keeps this at the corner rules'
+  // weight, so a rule that moves the panel elsewhere, as TimeInput's
+  // narrow-screen sheet does, still wins.
+  &.#{iv.$class-prefix}is-start-aligned:where(
+      :not(.#{iv.$class-prefix}is-portal):dir(rtl)
+    ) {
+    left: auto;
+    right: 0;
   }
   // At least as wide as the anchor it's placed against, as a list under a
   // field is. Portaled, the anchor's width comes inline instead, since 100%
@@ -102,16 +91,6 @@ $picker-trigger-disabled-opacity: 0.5 !default;
     position: fixed;
     right: auto;
     bottom: auto;
-
-    // The corner's right-to-left swap would pin the other edge. The hook
-    // sets the physical left, so both sides stay free of that.
-    &.#{iv.$class-prefix}is-bottom-left:dir(rtl),
-    &.#{iv.$class-prefix}is-top-left:dir(rtl),
-    &.#{iv.$class-prefix}is-bottom-right:dir(rtl),
-    &.#{iv.$class-prefix}is-top-right:dir(rtl) {
-      left: auto;
-      right: auto;
-    }
 
     &.#{iv.$class-prefix}is-top-left,
     &.#{iv.$class-prefix}is-top-right {

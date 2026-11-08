@@ -740,15 +740,25 @@ describe('Popover', () => {
       });
     };
 
-    it('keeps a portaled bottom-left panel on the page right to left', () => {
+    /** Runs a test on a right-to-left page. jsdom maps no `dir` to `direction`. */
+    const rightToLeft = (test: () => void) => {
       const style = document.createElement('style');
       style.textContent = '[dir="rtl"] { direction: rtl; }';
       document.head.appendChild(style);
       document.documentElement.setAttribute('dir', 'rtl');
       try {
+        test();
+      } finally {
+        document.documentElement.removeAttribute('dir');
+        style.remove();
+      }
+    };
+
+    it('lines the default panel up with the right edge on a right-to-left page', () => {
+      rightToLeft(() => {
         setViewport(1000, 1000);
         const { container } = render(
-          <FilterPopover defaultOpen appendToBody position="bottom-left" />
+          <FilterPopover defaultOpen appendToBody />
         );
         measure(
           container,
@@ -756,27 +766,55 @@ describe('Popover', () => {
           { width: 200, height: 150 }
         );
         const dialog = screen.getByRole('dialog');
-        expect(dialog).toHaveClass('is-bottom-left');
-        // Right edges line up. Left to right the panel would start at 900.
+        expect(dialog).toHaveClass('is-bottom-left', 'is-start-aligned');
+        // 960 - 200. Lined up on the left it would start at 900 and run
+        // past the 1000px viewport.
         expect(dialog.style.left).toBe('760px');
         expect(dialog.style.top).toBe('130px');
-      } finally {
-        document.documentElement.removeAttribute('dir');
-        style.remove();
-      }
+      });
     });
 
-    it('still lines a portaled bottom-left panel up with the physical left', () => {
-      setViewport(1000, 1000);
-      const { container } = render(
-        <FilterPopover defaultOpen appendToBody position="bottom-left" />
+    it('marks the default as start aligned, for the stylesheet to place', () => {
+      const { unmount } = render(<FilterPopover defaultOpen />);
+      expect(screen.getByRole('dialog')).toHaveClass(
+        'is-bottom-left',
+        'is-start-aligned'
       );
+      unmount();
+      render(<FilterPopover defaultOpen position="bottom-left" />);
+      expect(screen.getByRole('dialog')).toHaveClass('is-bottom-left');
+      expect(screen.getByRole('dialog')).not.toHaveClass('is-start-aligned');
+    });
+
+    it('keeps a corner the caller names physical on a right-to-left page', () => {
+      rightToLeft(() => {
+        setViewport(1000, 1000);
+        const { container } = render(
+          <FilterPopover defaultOpen appendToBody position="bottom-left" />
+        );
+        measure(
+          container,
+          rect({ top: 100, bottom: 130, left: 400, right: 460 }),
+          { width: 200, height: 150 }
+        );
+        const dialog = screen.getByRole('dialog');
+        expect(dialog).toHaveClass('is-bottom-left');
+        expect(dialog).not.toHaveClass('is-start-aligned');
+        expect(dialog.style.left).toBe('400px');
+      });
+    });
+
+    it('lines the default panel up with the left edge left to right', () => {
+      setViewport(1000, 1000);
+      const { container } = render(<FilterPopover defaultOpen appendToBody />);
       measure(
         container,
-        rect({ top: 100, bottom: 130, left: 900, right: 960 }),
+        rect({ top: 100, bottom: 130, left: 400, right: 460 }),
         { width: 200, height: 150 }
       );
-      expect(screen.getByRole('dialog').style.left).toBe('900px');
+      const dialog = screen.getByRole('dialog');
+      expect(dialog).toHaveClass('is-bottom-left');
+      expect(dialog.style.left).toBe('400px');
     });
 
     it('opens below on the left by default, placed by CSS', () => {

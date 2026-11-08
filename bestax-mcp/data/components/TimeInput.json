@@ -537,7 +537,7 @@
           "name": "position",
           "type": "'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto'",
           "default": "'bottom-left'",
-          "description": "Popover anchor position relative to the input.",
+          "description": "Where the popover opens against the field. Left out, it opens below and lines up with the field's start edge, which is its right edge when the picker reads right to left. A corner you pass stays physical, so `bottom-left` lines up the left edges either way.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -908,7 +908,7 @@
           "name": "position",
           "type": "'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto'",
           "default": "'bottom-left'",
-          "description": "Popover anchor position relative to the input.",
+          "description": "Where the popover opens against the field. Left out, it opens below and lines up with the field's start edge, which is its right edge when the picker reads right to left. A corner you pass stays physical, so `bottom-left` lines up the left edges either way.",
           "required": false,
           "inherited": false,
           "deprecated": false

@@ -74,7 +74,11 @@ export interface PopoverProps
    */
   onOpenChange?: (open: boolean) => void;
   /**
-   * Where the panel opens against the trigger.
+   * Where the panel opens against the trigger. Left out, it opens below and
+   * lines up with the trigger's start edge, which is its right edge on a
+   * right-to-left page, so a trigger at the start of the line doesn't push
+   * the panel off the screen. A corner you pass stays physical, so
+   * `bottom-left` lines up the left edges on either page.
    * @defaultValue 'bottom-left'
    */
   position?: PopoverPosition;
@@ -197,7 +201,7 @@ const PopoverComponent: React.FC<PopoverProps> = ({
   open: controlledOpen,
   defaultOpen = false,
   onOpenChange,
-  position = 'bottom-left',
+  position,
   appendToBody = false,
   trapFocus = true,
   closeOnClickOutside = true,
@@ -240,8 +244,6 @@ const PopoverComponent: React.FC<PopoverProps> = ({
     // coordinates leave it out and `auto` reads it off the panel.
     offset: 0,
     styledGap: marginGap,
-    // `bottom-left` follows the writing direction, as the stylesheet does.
-    logical: true,
   });
 
   // The trigger renders first inside the wrapper. Read when needed rather
@@ -353,6 +355,9 @@ const PopoverComponent: React.FC<PopoverProps> = ({
   const panelClasses = classNames(
     usePrefixedClassNames('popover-content', {
       [`is-${resolved.position}`]: true,
+      // The default lines up with the trigger's inline start, so the
+      // stylesheet moves it to the right edge on a right-to-left page.
+      'is-start-aligned': position === undefined,
       'is-portal': appendToBody,
     }),
     contentClassName
