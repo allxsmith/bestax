@@ -50,7 +50,7 @@ export interface SidebarProps
   fullWidth?: boolean;
   /**
    * Show an overlay behind the sidebar, which makes it modal: it gets
-   * `aria-modal="true"`, locks body scroll, and keeps Tab and Shift+Tab
+   * `aria-modal="true"`, locks page scroll, and keeps Tab and Shift+Tab
    * inside it while it is the topmost modal overlay. A Modal or Dialog opened
    * over it, even one rendered inside it, holds Tab until it closes. Without
    * an overlay the sidebar isn't modal and holds no Tab: on the page, Tab
@@ -185,8 +185,9 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
       );
     }, [isOpen, overlay, isTopmost]);
 
-    // Prevent body scroll when sidebar is open. Ref-counted through the shared
-    // helper so an overlapping Modal/Dialog/Loading doesn't unlock underneath.
+    // Lock the page's scrolling when sidebar is open. Ref-counted through the
+    // shared helper so an overlapping Modal/Dialog/Loading doesn't unlock
+    // underneath.
     useScrollLock(isOpen && overlay);
 
     // Move focus into the sidebar on open, to the first stop Tab wraps to or
