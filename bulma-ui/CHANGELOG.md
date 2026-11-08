@@ -1,3 +1,27 @@
+# [5.66.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.65.1...@allxsmith/bestax-bulma@5.66.0) (2026-11-08)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** index CardHeader and ModalCard as Card.Header and Modal.Card ([09279f4](https://github.com/allxsmith/bestax/commit/09279f459bca3ec93bb5dff81f9e24a5ae4c1dcf))
+* **bulma-ui:** flip only the carousel's built-in chevrons right to left ([e3f1ead](https://github.com/allxsmith/bestax/commit/e3f1eada3b7bb1829f1667c5afefd4fee85b541f))
+* **bulma-ui:** give a picker's Control the picker's own direction ([78a9a1a](https://github.com/allxsmith/bestax/commit/78a9a1a99219f4f543d199676d9ebc5076a7f91c))
+* **bulma-ui:** keep CardHeader's name in React DevTools ([a36f82d](https://github.com/allxsmith/bestax/commit/a36f82d1342338eb8f977c81282e8ea7bcb23889))
+* **bulma-ui:** keep carousel, slider, popovers and pickers on a right-to-left page ([4555ba3](https://github.com/allxsmith/bestax/commit/4555ba352fec1398bfaa28dcb0e08085c081ba5c))
+* **bulma-ui:** keep the slider's value bubble over its thumb right to left ([bddb627](https://github.com/allxsmith/bestax/commit/bddb627697ad236fe69cabbde1f476e4ae7a50ee))
+* **bulma-ui:** move only the default popover corner on a right-to-left page ([45e0cb5](https://github.com/allxsmith/bestax/commit/45e0cb5009ba11ee04410c531e23f2c1aa583e97)), closes [#1336](https://github.com/allxsmith/bestax/issues/1336)
+* **bulma-ui:** set the carousel's shift sign on every track ([3902e3c](https://github.com/allxsmith/bestax/commit/3902e3c0cf5fe8196126fb1896a16495eca61ce7))
+* **bulma-ui:** turn a right-to-left carousel's swipe and arrow keys around ([a5dcf71](https://github.com/allxsmith/bestax/commit/a5dcf716b240462f502a001a6bd248f5175149c3))
+* **bulma-ui:** type CardHeader as the compound with Title and Icon ([0519258](https://github.com/allxsmith/bestax/commit/0519258ff983c86dce3bde1ae2c0199cc9c2efd5))
+* **create-bestax:** build Card and Modal from parts in a client component ([7db8dbd](https://github.com/allxsmith/bestax/commit/7db8dbd4d1df3f658150bef1c564a0b39f74ea15))
+* **create-bestax:** name the part exports a Server Component imports ([12015cc](https://github.com/allxsmith/bestax/commit/12015cc07689cccc3d4caa071a7ac73c0be5d78c))
+
+
+### Features
+
+* **bulma-ui:** export compound parts by name for Server Components ([618c5d3](https://github.com/allxsmith/bestax/commit/618c5d3bfb33d7df80dfbc1eb3546daa66283ae2))
+* **bulma-ui:** export SegmentedControl.Segment as SegmentedControlSegment ([a546dd8](https://github.com/allxsmith/bestax/commit/a546dd8c5a113724659da1dba460fb5a99e38197))
+
 ## [5.65.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.65.0...@allxsmith/bestax-bulma@5.65.1) (2026-11-08)
 
 
