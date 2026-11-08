@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react';
 import type { ElementType, ReactNode } from 'react';
+import * as entry from '../index';
 import {
   Card,
   CardContent,
@@ -38,8 +39,8 @@ import {
 } from '../index';
 
 /**
- * A part a Server Component imports by name, beside the dotted form. `named`
- * and `dotted` are the same function. `selector` is what both render.
+ * A part exported by name beside its dotted form. `named` and `dotted` are
+ * the same function. `selector` is what both render.
  */
 type Part = {
   name: string;
@@ -262,4 +263,72 @@ describe('named exports of compound parts', () => {
       }
     }
   );
+});
+
+/**
+ * Parts exported under a name other than the two the walk below accepts,
+ * keyed by their dotted path. The list items are `ListItem`, ContextMenu's
+ * parts are Dropdown's, and Tabs names its parts in the singular.
+ */
+const RENAMED_PARTS: Record<string, string> = {
+  'OrderedList.Item': 'ListItem',
+  'UnorderedList.Item': 'ListItem',
+  'ContextMenu.Item': 'DropdownItem',
+  'ContextMenu.Divider': 'DropdownDivider',
+  'Tabs.List': 'TabList',
+  'Tabs.Item': 'TabItem',
+  'TabsContent.Item': 'TabContentItem',
+};
+
+/** What `forwardRef` and `memo` return: a component that isn't a function. */
+const WRAPPED_COMPONENTS = new Set<unknown>([
+  Symbol.for('react.forward_ref'),
+  Symbol.for('react.memo'),
+]);
+
+const isComponent = (value: unknown): boolean =>
+  typeof value === 'function' ||
+  (typeof value === 'object' &&
+    value !== null &&
+    WRAPPED_COMPONENTS.has((value as { $$typeof?: unknown }).$$typeof));
+
+const exported = entry as Record<string, unknown>;
+
+/**
+ * Every capitalised static that is a component, on every component the entry
+ * exports. A nested compound such as `CardHeader` is an export itself, so its
+ * own parts are walked as its statics.
+ */
+const statics = Object.entries(exported).flatMap(([parent, component]) =>
+  /^[A-Z]/.test(parent) && isComponent(component)
+    ? Object.entries(component as object)
+        .filter(([key, part]) => /^[A-Z]/.test(key) && isComponent(part))
+        .map(([key, part]) => ({ path: `${parent}.${key}`, parent, key, part }))
+    : []
+);
+
+describe('every compound part', () => {
+  it('walks nested parts as well as top-level ones', () => {
+    const paths = statics.map(({ path }) => path);
+    expect(paths).toContain('Card.Header');
+    expect(paths).toContain('CardHeader.Title');
+  });
+
+  it('is exported by name, as the same component', () => {
+    const unnamed = statics
+      .filter(({ path, parent, key, part }) => {
+        const names =
+          path in RENAMED_PARTS
+            ? [RENAMED_PARTS[path]]
+            : [`${parent}${key}`, key];
+        return !names.some(name => exported[name] === part);
+      })
+      .map(({ path }) => path);
+    expect(unnamed).toEqual([]);
+  });
+
+  it('keeps no renamed entry for a part that is gone', () => {
+    const paths = statics.map(({ path }) => path);
+    expect(paths).toEqual(expect.arrayContaining(Object.keys(RENAMED_PARTS)));
+  });
 });
