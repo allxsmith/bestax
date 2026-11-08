@@ -27,7 +27,7 @@ Supports Bulma color modifiers, sizes, and both header/body sections. The close 
 <!-- bestax:generated import -->
 
 ```tsx
-import { Message } from '@allxsmith/bestax-bulma';
+import { Message, MessageHeader, MessageBody } from '@allxsmith/bestax-bulma';
 ```
 
 <!-- /bestax:generated import -->
@@ -123,7 +123,7 @@ Use the `size` prop (`'small'`, `'medium'`, `'large'`) to adjust the size of the
 
 ### Compound (dot-notation) usage
 
-The message header and body are available as the `Message.Header` and `Message.Body` statics, so a whole message can be composed from the single `Message` import. Each static's props are listed under [Compound component props](#compound-component-props).
+The message header and body are available as the `Message.Header` and `Message.Body` statics, so a whole message can be composed from the single `Message` import. Each static's props are listed under [Compound component props](#compound-component-props). The same parts are named exports, `MessageHeader` and `MessageBody`, and each is the same component as the dotted name. A Next.js Server Component imports the named export, because the dotted name is `undefined` there.
 
 #### Complete Message with Compound Components
 

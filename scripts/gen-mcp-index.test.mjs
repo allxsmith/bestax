@@ -932,7 +932,7 @@ test('exports documented with a component reach the index as its parts (#1150, #
   );
   assert.equal(part('Dialog', 'DialogContainer').noProps, true);
   // A name with a page of its own, or a part already, is no extra.
-  for (const name of ['Dropdown', 'Table', 'Columns']) {
+  for (const name of ['Dropdown', 'Table', 'Columns', 'Card', 'Modal']) {
     assert.ok(
       components.get(name).parts.every(p => !p.standalone),
       `${name} grew a standalone part`
@@ -970,6 +970,9 @@ test('every export documented with a component is found by its name', () => {
     ['NavbarItem', 'Navbar', 'Navbar.Item'],
     ['MenuItem', 'Menu', 'Menu.Item'],
     ['TabsContent', 'Tabs', 'Tabs.Content'],
+    // Also when the page imports it beside its parent.
+    ['CardHeader', 'Card', 'Card.Header'],
+    ['ModalCard', 'Modal', 'Modal.Card'],
   ]) {
     assert.deepEqual(
       [documentedWith[name]?.component, documentedWith[name]?.path],

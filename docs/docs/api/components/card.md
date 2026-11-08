@@ -23,7 +23,16 @@ It supports custom colors, shadows, spacing, alignment, and more for flexible, a
 <!-- bestax:generated import -->
 
 ```tsx
-import { Card } from '@allxsmith/bestax-bulma';
+import {
+  Card,
+  CardHeader,
+  CardHeaderTitle,
+  CardHeaderIcon,
+  CardImage,
+  CardContent,
+  CardFooter,
+  CardFooterItem,
+} from '@allxsmith/bestax-bulma';
 ```
 
 <!-- /bestax:generated import -->
@@ -181,6 +190,8 @@ Combine multiple props such as `header`, `textColor`, `bgColor`, `m`, `p`, `text
 ### Compound (dot-notation) usage
 
 Every card section is also available as a static — `Card.Header` (with `Card.Header.Title` and `Card.Header.Icon`), `Card.Image`, `Card.Content`, `Card.Footer`, and `Card.FooterItem` — so a whole card can be composed from the single `Card` import. Each static's props are listed under [Compound component props](#compound-component-props).
+
+The same parts are named exports: `CardHeader`, `CardHeaderTitle`, `CardHeaderIcon`, `CardImage`, `CardContent`, `CardFooter`, and `CardFooterItem`. Each is the same component as the dotted name (`Card.Header` is `CardHeader`). `Card` lays out its parts by checking which part each child is, and that check can't recognize a part written in a Next.js Server Component, so build a card from its parts inside a client component. From a Server Component, set the card up through its props (`header`, `image`, `footer`) instead. [Next.js Specific](../../guides/getting-started/react-setups.md#nextjs-specific) has more.
 
 #### Complete Card with Compound Components
 

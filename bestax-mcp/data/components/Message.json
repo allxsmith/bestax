@@ -42,7 +42,7 @@
   "related": ["Notification", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-message--primary",
   "summary": "The `Message` component provides Bulma's flexible notice/message box for your Bulma React UI.",
-  "import": "import { Message } from '@allxsmith/bestax-bulma';",
+  "import": "import { Message, MessageHeader, MessageBody } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/components/Message.tsx",
   "rootClass": "message",
   "parts": [

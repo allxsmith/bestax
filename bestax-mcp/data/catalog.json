@@ -301,7 +301,7 @@
       "category": "components",
       "purpose": "The `Card` component renders a Bulma-styled card with optional header, image, content, and footer.",
       "slug": "components/card",
-      "import": "import { Card } from '@allxsmith/bestax-bulma';",
+      "import": "import { Card, CardHeader, CardHeaderTitle, CardHeaderIcon, CardImage, CardContent, CardFooter, CardFooterItem } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 51,
       "exampleCount": 14
@@ -719,7 +719,7 @@
       "category": "elements",
       "purpose": "The `Figure` component renders a styled `<figure>` element with Bulma helper class integration.",
       "slug": "elements/figure",
-      "import": "import { Figure } from '@allxsmith/bestax-bulma';",
+      "import": "import { Figure, FigureCaption } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 8,
       "exampleCount": 7
@@ -983,7 +983,7 @@
       "category": "components",
       "purpose": "The `Message` component provides Bulma's flexible notice/message box for your Bulma React UI.",
       "slug": "components/message",
-      "import": "import { Message } from '@allxsmith/bestax-bulma';",
+      "import": "import { Message, MessageHeader, MessageBody } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 12,
       "exampleCount": 8
@@ -994,7 +994,7 @@
       "category": "components",
       "purpose": "The `Modal` component provides an empty, accessible overlay for arbitrary content — for a ready-made confirm or alert, reach for `Dialog` instead.",
       "slug": "components/modal",
-      "import": "import { Modal } from '@allxsmith/bestax-bulma';",
+      "import": "import { Modal, ModalBackground, ModalContent, ModalClose, ModalCard, ModalCardHead, ModalCardTitle, ModalCardBody, ModalCardFoot } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 23,
       "exampleCount": 10
@@ -1247,7 +1247,7 @@
       "category": "components",
       "purpose": "The `SegmentedControl` component renders a row of buttons where only one can be on, and tells a screen reader it's a radio group.",
       "slug": "components/segmentedcontrol",
-      "import": "import { SegmentedControl } from '@allxsmith/bestax-bulma';",
+      "import": "import { SegmentedControl, SegmentedControlSegment } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 16,
       "exampleCount": 11
@@ -1269,7 +1269,7 @@
       "category": "components",
       "purpose": "The `Sidebar` component provides a slide-out navigation panel that appears from the left or right side of the screen.",
       "slug": "components/sidebar",
-      "import": "import { Sidebar } from '@allxsmith/bestax-bulma';",
+      "import": "import { Sidebar, SidebarHeader, SidebarTitle, SidebarClose, SidebarBody, SidebarFooter } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 22,
       "exampleCount": 8
@@ -3336,6 +3336,41 @@
       "path": "AppFrame.Nav",
       "purpose": "The navigation of an AppFrame: a column beside the page from the breakpoint up, and a drawer below it."
     },
+    "CardContent": {
+      "component": "Card",
+      "path": "Card.Content",
+      "purpose": "Card content compound component. Wraps children in a `.card-content` element."
+    },
+    "CardFooter": {
+      "component": "Card",
+      "path": "Card.Footer",
+      "purpose": "Card footer compound component. Wraps children in a `.card-footer` element."
+    },
+    "CardFooterItem": {
+      "component": "Card",
+      "path": "Card.FooterItem",
+      "purpose": "Card footer item compound component. Wraps children in a `.card-footer-item` span."
+    },
+    "CardHeader": {
+      "component": "Card",
+      "path": "Card.Header",
+      "purpose": "Card header compound component. Wraps children in a `.card-header` element."
+    },
+    "CardHeaderIcon": {
+      "component": "Card",
+      "path": "Card.Header.Icon",
+      "purpose": "Card header icon compound component. Renders a `.card-header-icon` button."
+    },
+    "CardHeaderTitle": {
+      "component": "Card",
+      "path": "Card.Header.Title",
+      "purpose": "Card header title compound component. Renders a `.card-header-title` element."
+    },
+    "CardImage": {
+      "component": "Card",
+      "path": "Card.Image",
+      "purpose": "Card image compound component. Wraps children in a `.card-image` element."
+    },
     "CarouselItem": {
       "component": "Carousel",
       "path": "CarouselItem",
@@ -3512,6 +3547,11 @@
       "path": "Field.Label",
       "purpose": "FieldLabel component for rendering a Bulma field label."
     },
+    "FigureCaption": {
+      "component": "Figure",
+      "path": "Figure.Caption",
+      "purpose": "FigureCaption component for rendering a styled figcaption element."
+    },
     "HeroBody": {
       "component": "Hero",
       "path": "Hero.Body",
@@ -3592,6 +3632,56 @@
       "component": "Menu",
       "path": "Menu.Section",
       "purpose": "A section of the menu that opens and closes: its heading is a button drawn like `Menu.Label`, and its `Menu.List` of links shows while it's open."
+    },
+    "MessageBody": {
+      "component": "Message",
+      "path": "Message.Body",
+      "purpose": "Message body compound component. Renders a `.message-body` element."
+    },
+    "MessageHeader": {
+      "component": "Message",
+      "path": "Message.Header",
+      "purpose": "Message header compound component. Renders a `.message-header` element."
+    },
+    "ModalBackground": {
+      "component": "Modal",
+      "path": "Modal.Background",
+      "purpose": "Modal.Background - Renders the modal background overlay."
+    },
+    "ModalCard": {
+      "component": "Modal",
+      "path": "Modal.Card",
+      "purpose": "Modal.Card - Renders modal card wrapper with compound components."
+    },
+    "ModalCardBody": {
+      "component": "Modal",
+      "path": "Modal.Card.Body",
+      "purpose": "Modal.Card.Body - Renders modal card body section."
+    },
+    "ModalCardFoot": {
+      "component": "Modal",
+      "path": "Modal.Card.Foot",
+      "purpose": "Modal.Card.Foot - Renders modal card footer section."
+    },
+    "ModalCardHead": {
+      "component": "Modal",
+      "path": "Modal.Card.Head",
+      "purpose": "Modal.Card.Head - Renders modal card header section."
+    },
+    "ModalCardTitle": {
+      "component": "Modal",
+      "path": "Modal.Card.Title",
+      "purpose": "Modal.Card.Title - Renders modal card title."
+    },
+    "ModalClose": {
+      "component": "Modal",
+      "path": "Modal.Close",
+      "purpose": "Modal.Close - Renders modal close button with two variant styles."
+    },
+    "ModalContent": {
+      "component": "Modal",
+      "path": "Modal.Content",
+      "purpose": "Modal.Content - Renders modal content wrapper for custom content."
     },
     "NavbarBrand": {
       "component": "Navbar",
@@ -3735,11 +3825,41 @@
       "path": "Popover.Header",
       "purpose": "The popover's title, which names the panel for assistive technology."
     },
+    "SegmentedControlSegment": {
+      "component": "SegmentedControl",
+      "path": "SegmentedControl.Segment",
+      "purpose": "One option in the row: a `<button role=\"radio\">` that's checked while the group's value is its `value`, filled with the group's `color` and marked…"
+    },
     "SelectBase": {
       "component": "Select",
       "path": "SelectBase",
       "purpose": "Bulma Select component with full Bulma helper class support.",
       "standalone": "base"
+    },
+    "SidebarBody": {
+      "component": "Sidebar",
+      "path": "Sidebar.Body",
+      "purpose": "Main content area of the sidebar."
+    },
+    "SidebarClose": {
+      "component": "Sidebar",
+      "path": "Sidebar.Close",
+      "purpose": "Close button for the sidebar."
+    },
+    "SidebarFooter": {
+      "component": "Sidebar",
+      "path": "Sidebar.Footer",
+      "purpose": "Footer area of the sidebar."
+    },
+    "SidebarHeader": {
+      "component": "Sidebar",
+      "path": "Sidebar.Header",
+      "purpose": "Container for the sidebar header."
+    },
+    "SidebarTitle": {
+      "component": "Sidebar",
+      "path": "Sidebar.Title",
+      "purpose": "Title text inside the header."
     },
     "SplitterPane": {
       "component": "Splitter",

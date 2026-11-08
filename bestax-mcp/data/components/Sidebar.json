@@ -42,7 +42,7 @@
   "related": ["Menu", "Modal"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-sidebar",
   "summary": "The `Sidebar` component provides a slide-out navigation panel that appears from the left or right side of the screen.",
-  "import": "import { Sidebar } from '@allxsmith/bestax-bulma';",
+  "import": "import { Sidebar, SidebarHeader, SidebarTitle, SidebarClose, SidebarBody, SidebarFooter } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/components/Sidebar.tsx",
   "rootClass": "sidebar",
   "parts": [

@@ -387,132 +387,133 @@ export interface SegmentedControlSegmentProps
  * @param {React.Ref<HTMLButtonElement>} ref - Forwarded ref to the `<button>`.
  * @returns {JSX.Element} The rendered segment.
  */
-const Segment = forwardRef<HTMLButtonElement, SegmentedControlSegmentProps>(
-  function Segment(
-    {
-      value,
-      isDisabled,
-      disabled,
-      className,
-      onClick,
-      onKeyDown,
-      onFocus,
-      onBlur,
-      ...props
+export const SegmentedControlSegment = forwardRef<
+  HTMLButtonElement,
+  SegmentedControlSegmentProps
+>(function SegmentedControlSegment(
+  {
+    value,
+    isDisabled,
+    disabled,
+    className,
+    onClick,
+    onKeyDown,
+    onFocus,
+    onBlur,
+    ...props
+  },
+  ref
+) {
+  const ctx = useContext(SegmentedControlContext);
+  const checked = ctx !== null && ctx.checked === value;
+  const off = Boolean(isDisabled || disabled);
+
+  // Prefixed like Button's own classes, which a hand-written
+  // `className="is-selected"` could not be under ConfigProvider classPrefix.
+  // Bulma lifts `is-selected` above its neighbours in `.buttons.has-addons`.
+  const selectedClass = usePrefixedClassNames({ 'is-selected': checked });
+
+  const nodeRef = useRef<HTMLButtonElement | null>(null);
+  const setRefs = useCallback(
+    (node: HTMLButtonElement | null) => {
+      nodeRef.current = node;
+      if (typeof ref === 'function') ref(node);
+      else if (ref) ref.current = node;
     },
-    ref
-  ) {
-    const ctx = useContext(SegmentedControlContext);
-    const checked = ctx !== null && ctx.checked === value;
-    const off = Boolean(isDisabled || disabled);
+    [ref]
+  );
 
-    // Prefixed like Button's own classes, which a hand-written
-    // `className="is-selected"` could not be under ConfigProvider classPrefix.
-    // Bulma lifts `is-selected` above its neighbours in `.buttons.has-addons`.
-    const selectedClass = usePrefixedClassNames({ 'is-selected': checked });
+  const register = ctx?.register;
+  useEffect(() => {
+    if (!register) {
+      warnOnce(
+        'SegmentedControl.Segment:outside',
+        '[bestax-bulma] <SegmentedControl.Segment> is outside a ' +
+          '<SegmentedControl>, so nothing can check it. Put it inside one.'
+      );
+      return undefined;
+    }
+    return register({
+      value,
+      disabled: off,
+      node: nodeRef.current as HTMLButtonElement,
+    });
+  }, [register, value, off]);
 
-    const nodeRef = useRef<HTMLButtonElement | null>(null);
-    const setRefs = useCallback(
-      (node: HTMLButtonElement | null) => {
-        nodeRef.current = node;
-        if (typeof ref === 'function') ref(node);
-        else if (ref) ref.current = node;
-      },
-      [ref]
-    );
+  // The caller's onClick runs first, so a `preventDefault()` there keeps
+  // the segment from being checked. A disabled button gets no click.
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    onClick?.(event);
+    if (event.defaultPrevented) return;
+    ctx?.select(value);
+  };
 
-    const register = ctx?.register;
-    useEffect(() => {
-      if (!register) {
-        warnOnce(
-          'SegmentedControl.Segment:outside',
-          '[bestax-bulma] <SegmentedControl.Segment> is outside a ' +
-            '<SegmentedControl>, so nothing can check it. Put it inside one.'
-        );
-        return undefined;
-      }
-      return register({
-        value,
-        disabled: off,
-        node: nodeRef.current as HTMLButtonElement,
-      });
-    }, [register, value, off]);
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    onKeyDown?.(event);
+    if (
+      !ctx ||
+      event.defaultPrevented ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey
+    ) {
+      return;
+    }
+    const target = segmentFor(event.currentTarget, event.key);
+    if (!target) return;
+    event.preventDefault();
+    // The row has taken this key, so nothing above it acts on it too: a
+    // Carousel moves its slide on the arrows from a document listener that
+    // doesn't read `defaultPrevented`. Keys the row leaves alone still bubble.
+    event.stopPropagation();
+    target.focus();
+    // The check follows focus, APG's rule for a radio group outside a
+    // toolbar. It goes through a click on the segment, as a native radio's
+    // does, so its onClick sees it. Inside a toolbar the arrows would move
+    // focus alone; that is the line a toolbar would change.
+    target.click();
+  };
 
-    // The caller's onClick runs first, so a `preventDefault()` there keeps
-    // the segment from being checked. A disabled button gets no click.
-    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-      onClick?.(event);
-      if (event.defaultPrevented) return;
-      ctx?.select(value);
-    };
+  const handleFocus = (event: React.FocusEvent<HTMLButtonElement>) => {
+    onFocus?.(event);
+    ctx?.setFocused(value);
+  };
 
-    const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
-      onKeyDown?.(event);
-      if (
-        !ctx ||
-        event.defaultPrevented ||
-        event.altKey ||
-        event.ctrlKey ||
-        event.metaKey
-      ) {
-        return;
-      }
-      const target = segmentFor(event.currentTarget, event.key);
-      if (!target) return;
-      event.preventDefault();
-      // The row has taken this key, so nothing above it acts on it too: a
-      // Carousel moves its slide on the arrows from a document listener that
-      // doesn't read `defaultPrevented`. Keys the row leaves alone still bubble.
-      event.stopPropagation();
-      target.focus();
-      // The check follows focus, APG's rule for a radio group outside a
-      // toolbar. It goes through a click on the segment, as a native radio's
-      // does, so its onClick sees it. Inside a toolbar the arrows would move
-      // focus alone; that is the line a toolbar would change.
-      target.click();
-    };
+  // The segment focus moves to, if any, records itself straight after.
+  const handleBlur = (event: React.FocusEvent<HTMLButtonElement>) => {
+    onBlur?.(event);
+    ctx?.setFocused(undefined);
+  };
 
-    const handleFocus = (event: React.FocusEvent<HTMLButtonElement>) => {
-      onFocus?.(event);
-      ctx?.setFocused(value);
-    };
+  // The props are spread first, so what a radio depends on wins over
+  // anything a JavaScript caller or a spread object passes along: it stays
+  // a button, never submits, reports whether it's checked, and the group
+  // decides whether Tab reaches it.
+  return (
+    <Button
+      {...props}
+      ref={setRefs}
+      as="button"
+      type="button"
+      role="radio"
+      aria-checked={checked}
+      tabIndex={ctx ? (ctx.tabStop === value ? 0 : -1) : undefined}
+      isDisabled={off}
+      color={checked ? ctx.color : undefined}
+      className={classNames(selectedClass, className)}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+    />
+  );
+});
 
-    // The segment focus moves to, if any, records itself straight after.
-    const handleBlur = (event: React.FocusEvent<HTMLButtonElement>) => {
-      onBlur?.(event);
-      ctx?.setFocused(undefined);
-    };
-
-    // The props are spread first, so what a radio depends on wins over
-    // anything a JavaScript caller or a spread object passes along: it stays
-    // a button, never submits, reports whether it's checked, and the group
-    // decides whether Tab reaches it.
-    return (
-      <Button
-        {...props}
-        ref={setRefs}
-        as="button"
-        type="button"
-        role="radio"
-        aria-checked={checked}
-        tabIndex={ctx ? (ctx.tabStop === value ? 0 : -1) : undefined}
-        isDisabled={off}
-        color={checked ? ctx.color : undefined}
-        className={classNames(selectedClass, className)}
-        onClick={handleClick}
-        onKeyDown={handleKeyDown}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-      />
-    );
-  }
-);
-
-Segment.displayName = 'SegmentedControl.Segment';
+SegmentedControlSegment.displayName = 'SegmentedControl.Segment';
 
 export const SegmentedControl = withSubComponents(
   SegmentedControlRoot,
-  { Segment },
+  { Segment: SegmentedControlSegment },
   'SegmentedControl'
 );
 
