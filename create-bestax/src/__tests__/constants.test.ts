@@ -329,8 +329,15 @@ describe('constants', () => {
         framework: 'next',
       });
       expect(next).toContain(
-        'their own export (`NavbarItem`, `CardHeader`, `ModalCard`, `SidebarHeader`, `MessageHeader`, `FigureCaption`, `ListItem`)'
+        'their own export (`NavbarItem`, `SidebarHeader`, `FigureCaption`, `ListItem`)'
       );
+      expect(next).toContain(
+        'Build a `Card` or `Modal` from its parts in a client component'
+      );
+      expect(next).toContain(
+        'https://bestax.io/docs/guides/getting-started/react-setups#nextjs-specific'
+      );
+      expect(next).not.toContain('`CardHeader`');
       expect(next).not.toContain('have no such exports yet');
       expect(
         CLAUDE_MD('my-app', { bulmaFlavor: 'complete', iconLibrary: 'none' })
