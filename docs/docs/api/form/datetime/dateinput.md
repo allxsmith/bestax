@@ -966,7 +966,7 @@ function DateInputFormDemo() {
 - Popover panel has `role="dialog"` with an accessible name. Opening it puts focus on the focused date, month or year.
 - Closing the popover with `Escape` or a pick returns focus to the input, whether the input or the launcher opened it. Under `openOnFocus` that returning focus leaves the popover closed; focusing or clicking the input again opens it. Dismissing without a pick commits nothing: an empty field stays empty, and leaving afterwards commits only what you typed.
 - Calendar uses `role="grid"` with cells as `role="gridcell"`.
-- Cells expose `aria-selected`, `aria-disabled`, and `aria-current="date"` for today.
+- Cells expose `aria-selected`, `aria-disabled`, and `aria-current="date"` for today. On a server-rendered page, today's day, month and year get it once the page hydrates, so the reader's clock decides which.
 - Roving `tabindex` keeps a single grid cell focusable at a time, and focus moves with it, inline as in the popover. When the focused date is disabled, that cell is the nearest enabled day of the month.
 - The month grid is a `role="grid"` of `role="row"`s, labelled by the year in its header. Each month cell carries the full month name as its accessible name, `aria-current="date"` for this month and `aria-disabled` for a month with no selectable day.
 - The year list is a `role="listbox"` named by the `chooseYear` label. As the selection surface its options take `aria-selected` from the value's year rather than from focus, which roves through the list. When the focused year is disabled, the nearest enabled year takes the tab stop, so `Tab` still reaches the list.

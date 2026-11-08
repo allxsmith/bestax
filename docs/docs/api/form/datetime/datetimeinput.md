@@ -838,7 +838,7 @@ function DateTimeInputFormDemo() {
 - Trigger uses `role="combobox"` with `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls`.
 - Popover panel has `role="dialog"` with an accessible name. Opening it puts focus on the focused date.
 - Closing the popover with `Escape`, the ✓ button or `Enter` on a time wheel returns focus to the input, whether the input or the launcher opened it. Under `openOnFocus` that returning focus leaves the popover closed; focusing or clicking the input again opens it. Closing it commits nothing by itself: an empty field stays empty, and leaving afterwards commits only what you typed, so seconds the display leaves out are kept.
-- Calendar uses `role="grid"`; cells expose `aria-selected`, `aria-disabled`, and `aria-current="date"`.
+- Calendar uses `role="grid"`; cells expose `aria-selected`, `aria-disabled`, and `aria-current="date"` for today. On a server-rendered page, today gets it once the page hydrates, so the reader's clock decides which day.
 - Roving `tabindex` keeps a single day focusable at a time, and focus moves with it, inline as in the popover. When the focused date is disabled, that cell is the nearest enabled day of the month.
 - Each time wheel uses `role="spinbutton"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.
 - In a 12-hour picker, AM/PM is one of those wheels, reading `AM` or `PM`. Its accessible name is `AM/PM` unless `labels.ampm` sets another.
