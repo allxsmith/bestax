@@ -46,7 +46,7 @@ publishes its SCSS sources (`src/scss` ships in the npm package, exposed via the
 
 **Rule:** stock Bulma components map to `bulma/sass/<category>/<lowercased-name>`; bestax
 extras map to `@allxsmith/bestax-bulma/scss/<category>/<lowercased-name>`. Components that
-are pure stock Bulma (Button, Box, Card, Navbar, Modal, Hero, …) have **no** extras partial —
+are pure stock Bulma (Box, Card, Navbar, Modal, Hero, …) have **no** extras partial —
 Bulma's own module is all they need.
 
 Bulma groups its form controls, so their modules don't follow the name: `Input` and `TextArea`
@@ -92,9 +92,9 @@ is **more complete** than the docs page's Option C example, which omits several)
 `datetimeinput`, `daterangeinput`, `file`, `fieldset`, `field`, `dropzone`, `colorpicker`,
 `colorinput`, `passwordinput`, `treeselect`
 
-**Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `colorswatch`, `delete`,
-`descriptionlist`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`, `progress`,
-`ringprogress`, `skeleton`, `stat`
+**Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `button`, `colorswatch`,
+`delete`, `descriptionlist`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
+`progress`, `ringprogress`, `skeleton`, `stat`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`
 
@@ -220,6 +220,11 @@ Notes:
   (`bulma/sass/components/modal`) and `Tag isDelete` (`bulma/sass/elements/tag`) with them, so
   include it (`as bestax-delete`) in any build that shows a close button. Its rules win over
   Bulma's either way, so the order of the `@use` lines does not matter.
+- `Button` is stock Bulma too (`bulma/sass/elements/button`). Bulma draws a colored button with
+  no border, and forced colors (Windows' contrast themes) replaces its fill, so an icon-only one
+  shows only its glyph there. The `button` extras partial gives a colored button a 1px border in
+  forced colors, so include it (`as bestax-button`) in any build that shows a colored button.
+  Its rules win over Bulma's either way, so the order of the `@use` lines does not matter.
 - `Stats` lays its row out on Bulma's smart grid (`.grid` and `is-col-min-*`), so a build with a
   `Stats` row wants `bulma/sass/grid/grid` beside the `stat` partial, which only resets the row's
   margins.
@@ -284,8 +289,8 @@ not `flexbox` — `flexbox` holds only the alignment props. Verified failure mod
 The `npm create bestax` starter renders `Container`, `Section`, `Columns`/`Column`, `Image`,
 `Title`/`SubTitle`, `Box`, `Card`, `Buttons`/`Button`, and `Notification` with its close
 button: all stock Bulma, plus the `notification` and `delete` extras partials for that close
-button. Its
-helper props are `display` (visibility), `flexGrow` (flexbox), and `textAlign` (typography);
+button and the `button` partial for its colored buttons' edge in forced colors. Its helper
+props are `display` (visibility), `flexGrow` (flexbox), and `textAlign` (typography);
 it uses no spacing or color props. That inventory compiles to the following, verified
 pixel-equivalent to the prebuilt `complete` flavor in headless Chromium (light and dark, phone
 and desktop width, notification open), at 274 KB raw / 30 KB gzip vs 819 KB / 84 KB.
@@ -316,6 +321,7 @@ Scaffolded with an icon library, the starter also needs `bulma/sass/elements/ico
 @use 'bulma/sass/helpers/flexbox'; // flexGrow
 @use 'bulma/sass/helpers/typography'; // textAlign
 
+@use '@allxsmith/bestax-bulma/scss/elements/button' as bestax-button; // colored buttons' edge in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/delete' as bestax-delete; // the close button in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/notification' as bestax-notification; // text clears the close button
 ```
