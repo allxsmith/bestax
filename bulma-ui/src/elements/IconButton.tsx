@@ -5,6 +5,7 @@ import { buttonType } from '../helpers/buttonType';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { isDev, warnOnce } from '../helpers/devWarnings';
 import { flattenChildren } from '../helpers/flattenChildren';
+import { isElementOf } from '../helpers/elementType';
 import type { PolymorphicComponent } from '../helpers/polymorphic';
 
 /**
@@ -130,7 +131,7 @@ function iconOf(node: React.ReactNode) {
   const items = flattenChildren(node).filter(item => !isBlank(item));
   if (items.length === 0) return null;
   const [only] = items;
-  if (items.length === 1 && React.isValidElement(only) && only.type === Icon) {
+  if (items.length === 1 && isElementOf(only, Icon)) {
     return only;
   }
   return <Icon>{items}</Icon>;
