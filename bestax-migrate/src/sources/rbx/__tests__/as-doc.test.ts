@@ -51,6 +51,7 @@ const CASES: Array<[string, string, boolean, string?]> = [
     true,
     'Media.Left',
   ],
+  ['Level', '<Level as="div">x</Level>', true, 'Level'],
   ['Level', '<Level.Item as="a">x</Level.Item>', true, 'Level.Item'],
   ['Control', '<Control as="div">x</Control>', true, 'Control'],
   ['Menu', '<Menu.List.Item as="a">x</Menu.List.Item>', true, 'Menu.Item'],

@@ -1573,6 +1573,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Level',
     tag: 'nav',
+    as: ['nav', 'div', 'header', 'footer'],
     modifiers: flags({ 'is-mobile': 'isMobile' }),
     ownProps: ['as', 'isMobile', 'color', 'bgColor', 'textColor'],
   },

@@ -60,7 +60,7 @@ a `tag:<Target>` TODO instead of a conversion. A component's own `as` can take m
 | `.hero-head`           | `Hero.Head`           | `<div>`, `<header>`, `<nav>` via `as`                                                            |
 | `.hero-body`           | `Hero.Body`           | `<div>` only                                                                                     |
 | `.hero-foot`           | `Hero.Foot`           | `<div>`, `<footer>`, `<nav>` via `as`                                                            |
-| `.level`               | `Level`               | `<nav>` only                                                                                     |
+| `.level`               | `Level`               | `<nav>`, `<div>`, `<header>`, `<footer>` via `as`                                                |
 | `.level-left`          | `Level.Left`          | `<div>` only                                                                                     |
 | `.level-right`         | `Level.Right`         | `<div>` only                                                                                     |
 | `.level-item`          | `Level.Item`          | `<div>`, `<p>`, `<a>` via `as`                                                                   |
