@@ -875,7 +875,7 @@
       "slug": "layout/level",
       "import": "import { Level } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 23,
+      "propCount": 24,
       "exampleCount": 5
     },
     {
