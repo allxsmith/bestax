@@ -155,7 +155,7 @@ A container inside the provider's own wrapper takes the content as it is, and th
 </LocaleProvider>
 ```
 
-A date or time picker with a `locale` of its own is read the way a nested provider is: its popover, portaled or not, and an inline calendar take its `lang`, and the direction of its locale unless it has a `dir` of its own. So a French picker in an Arabic section shows a French calendar laid out left to right.
+A date or time picker with a `locale` of its own is read the way a nested provider is: its popover, portaled or not, and an inline calendar take its `lang`, and the direction of its locale unless it has a `dir` of its own. So a French picker in an Arabic section shows a French calendar laid out left to right. The `Control` the picker renders takes that direction too, so its icon stays at the start of the field and the launcher at the end. In a `Control` of your own, give the `Control` the picker's `dir`.
 
 For content you portal yourself without `Portal`, put the values from `useLocale()` on it.
 

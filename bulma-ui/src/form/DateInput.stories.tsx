@@ -221,6 +221,8 @@ export const RightToLeft: Story = {
         <TimeInput label="الوقت" />
         <DateTimeInput label="التاريخ والوقت" mobileNative={false} />
         <DateRangeInput label="المدى" mobileNative={false} />
+        {/* A picker of the other direction keeps its icon and launcher apart. */}
+        <DateInput label="Date" locale="fr" mobileNative={false} />
       </Block>
     </LocaleProvider>
   ),
