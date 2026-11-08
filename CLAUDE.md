@@ -108,6 +108,49 @@ Enforced in review (a green CI does **not** check these):
   need both updated, and skill-affecting changes update `skills/` **in the same PR**.
 - Run `pnpm all` locally before opening a PR.
 
+## Finishing a change
+
+A change is rarely one file. Go through this list before you commit, for a one-line fix as much
+as for a feature. CI catches some of these and not others, so a green run doesn't mean it's done.
+
+- **Read the issue's comments, not only its body.** A maintainer's comment can widen the scope or
+  settle a design question the body left open. Do what the latest one asks, or say in the PR body
+  why you didn't.
+- **Look for the same defect next door:** the other variants, sizes and states a selector
+  reaches, the components that share the hook or mixin, a sibling with the same default. Fix what
+  the issue covers and name the rest in the PR body.
+- **Read the guide for each directory you change.** Every `CLAUDE.md` on the path to a file you
+  edit applies to it (`bulma-ui/CLAUDE.md`, `bulma-ui/src/scss/CLAUDE.md`, `docs/CLAUDE.md`,
+  `skills/CLAUDE.md` and the rest). Some agent tools load only the ones on the path to the
+  directory they started in, so open them yourself.
+- **Edited a skill, an API docs page or a TSDoc comment:** run `pnpm format`, then `pnpm gen`,
+  and commit what they rewrite. `bestax-mcp/data/skills.json` records each skill file's size, so
+  formatting after `gen` leaves it stale.
+- **Added an SCSS partial:** register it in its folder's `_index.scss`, then update everything
+  that lists the partials or shows a modular build: `skills/bestax-optimize/references/modular-build.md`
+  (the inventory, which stock components have a partial, and the starter's worked example), the
+  quick example in `skills/bestax-optimize/SKILL.md` and its copy in
+  `docs/docs/skills/optimize.mdx`, `docs/docs/guides/getting-started/modular.md` (the partials
+  block, and the paragraphs on what each partial adjusts and what it needs), and the stock list
+  at the top of `bulma-ui/src/scss/CLAUDE.md`. Only the inventory has a test.
+- **Changed what a partial does,** for example it now applies outside forced colors: update how
+  those same pages describe it.
+- **Changed what a component does for accessibility** (a focus ring, forced colors, an `aria-*`
+  attribute it sets): add or update the bullet in the Accessibility section of its API page. That
+  section is written by hand, and nothing checks it.
+- **Declared a prop on a props interface,** even one it already inherits, to give it TSDoc: keep
+  the inherited type (see TSDoc in `bulma-ui/CLAUDE.md`). If the component is a target of
+  bestax-migrate's bulma-classes class map, classify the prop there (`ownProps` or
+  `passThrough`), since its truth test holds the map to every prop a target declares.
+- **Test the fix, not the code near it.** Assert the declaration or behavior that is the fix,
+  revert the fix and watch the test fail, then put it back. For CSS, cover the class-prefixed
+  build too.
+- **Changed more than one package:** one commit per package, each with that package's scope (see
+  "Commits" below).
+- **Keep the PR body true.** Tick only what you did, name follow-up work as an issue or as not
+  done, and leave no placeholders. Change the body in the same step as the push that changes what
+  it describes.
+
 ## Commits — release-affecting, not cosmetic
 
 Conventional Commits, enforced by commitlint (husky `commit-msg` hook) and consumed by
@@ -126,6 +169,9 @@ semantic-release. Two repo-specific rules:
   `@allxsmith/bestax-bulma` release because its index documents the library (VERSIONING.md,
   "bestax-mcp releases with bestax-bulma"). The `releaseRules` in each package's
   `release.config.js` are the source of truth.
+- **A change to two packages needs a commit for each,** with that package's scope. A release reads
+  the scope of each commit, so a bestax-migrate change inside a `fix(bulma-ui)` commit releases
+  only the library, and the published codemod never gets it.
 
 ```
 feat(bulma-ui): add Collapse component   → minor release of bulma-ui, patch of bestax-mcp
@@ -135,13 +181,16 @@ docs: fix typo in contributing guide     → no release; scope optional
 
 Full versioning details (breaking-change footers, tag formats): `VERSIONING.md`.
 
-**No breaking changes until the next major.** A change that would need a `BREAKING CHANGE:`
-footer in any package doesn't ship, and that reaches past the library's API: a removed or renamed
-export, prop, type, CLI flag, MCP tool or lint rule, a narrowed type or peer range, a raised Node
-floor, or a default or behavior existing code relies on. Its issue gets the `next-major` label and
-waits, so the breaking changes land together in one major release rather than one at a time.
-Where an issue offers a breaking fix and a compatible one, ship the compatible one and split the
-breaking option into its own `next-major` issue.
+**No breaking changes to `@allxsmith/bestax-bulma` until its next major.** A library change
+that would need a `BREAKING CHANGE:` footer doesn't ship: a removed or renamed export, prop or
+type, a narrowed type or peer range, a raised Node floor, or a default or behavior existing code
+relies on. That includes what a value a caller passes means. A fix may change what happens by
+default where nothing could rely on the old result, but an explicit prop value keeps its meaning
+(#1336). Its issue gets the `next-major` label and waits, so the library's breaking changes land
+together in one major release rather than one at a time. Where an issue offers a breaking fix and
+a compatible one, ship the compatible one and split the breaking option into its own `next-major`
+issue. The other packages may take a major of their own when a change needs one: put the
+`BREAKING CHANGE:` footer on that package's commit, and say so in the PR body.
 
 ## Dependencies are a deliberate act
 
