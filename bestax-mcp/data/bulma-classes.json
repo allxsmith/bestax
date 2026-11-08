@@ -2649,7 +2649,12 @@
       "bgColor": "bgColor",
       "part": false,
       "why": null,
-      "modifiers": { "is-active": { "writes": [{ "prop": "active" }] } },
+      "modifiers": {
+        "is-active": {
+          "writes": [{ "prop": "active" }],
+          "needsAttr": { "name": "aria-current", "value": "page" }
+        }
+      },
       "omits": {},
       "wrapsChildren": null,
       "folds": null,
