@@ -1528,6 +1528,17 @@ describe('Combobox', () => {
       expect(menu.closest('.combobox')).not.toBeNull();
     });
 
+    it('marks the default as start aligned, for the stylesheet to place', () => {
+      const { container, rerender } = render(<CountrySelect defaultOpen />);
+      const menu = () => container.querySelector('.dropdown-menu');
+      expect(menu()).toHaveClass('is-bottom-left', 'is-start-aligned');
+      rerender(<CountrySelect defaultOpen position="bottom-left" />);
+      expect(menu()).toHaveClass('is-bottom-left');
+      expect(menu()).not.toHaveClass('is-start-aligned');
+      rerender(<CountrySelect defaultOpen position="auto" />);
+      expect(menu()).not.toHaveClass('is-start-aligned');
+    });
+
     it('opens below on the left by default, and resolves auto to a corner', () => {
       const { container, rerender } = render(<CountrySelect defaultOpen />);
       expect(container.querySelector('.dropdown-menu')).toHaveClass(
@@ -1595,6 +1606,73 @@ describe('Combobox', () => {
         expect(menu.style.left).toBe('40px');
         expect(menu.style.minWidth).toBe('300px');
         expect(field()).toHaveAttribute('aria-controls', listbox().id);
+      });
+
+      /** A field from 600 to 700px, and a menu 300px wide, wider than it. */
+      const narrowField = () =>
+        rects.mockImplementation(function (this: HTMLElement) {
+          const root = this.classList.contains('combobox');
+          return {
+            top: root ? 100 : 0,
+            bottom: root ? 136 : 200,
+            left: root ? 600 : 0,
+            right: root ? 700 : 300,
+            width: root ? 100 : 300,
+            height: root ? 36 : 200,
+            x: 0,
+            y: 0,
+            toJSON: () => ({}),
+          } as DOMRect;
+        });
+
+      /** Runs a test on a right-to-left page. jsdom maps no `dir` to `direction`. */
+      const rightToLeft = (test: () => void) => {
+        const style = document.createElement('style');
+        style.textContent = '[dir="rtl"] { direction: rtl; }';
+        document.head.appendChild(style);
+        document.documentElement.setAttribute('dir', 'rtl');
+        try {
+          test();
+        } finally {
+          document.documentElement.removeAttribute('dir');
+          style.remove();
+        }
+      };
+
+      it('lines a default menu wider than the field up with its right edge on a right-to-left page', () => {
+        narrowField();
+        rightToLeft(() => {
+          render(<CountrySelect defaultOpen appendToBody />);
+          const menu = document.body.querySelector(
+            '.dropdown-menu'
+          ) as HTMLElement;
+          expect(menu).toHaveClass('is-bottom-left', 'is-start-aligned');
+          // 700 - 300. Lined up on the left it would run from 600 to 900.
+          expect(menu.style.left).toBe('400px');
+        });
+      });
+
+      it('keeps a corner the caller names physical on a right-to-left page', () => {
+        narrowField();
+        rightToLeft(() => {
+          render(
+            <CountrySelect defaultOpen appendToBody position="bottom-left" />
+          );
+          const menu = document.body.querySelector(
+            '.dropdown-menu'
+          ) as HTMLElement;
+          expect(menu).not.toHaveClass('is-start-aligned');
+          expect(menu.style.left).toBe('600px');
+        });
+      });
+
+      it('lines a default menu up with the left edge left to right', () => {
+        narrowField();
+        render(<CountrySelect defaultOpen appendToBody />);
+        const menu = document.body.querySelector(
+          '.dropdown-menu'
+        ) as HTMLElement;
+        expect(menu.style.left).toBe('600px');
       });
 
       it('lines a right corner up with the field at its own width', () => {
