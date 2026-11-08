@@ -677,6 +677,28 @@ test('a discriminant merged with a plain boolean reads as boolean', () => {
   }
 });
 
+test('a branch that forbids a prop adds nothing to its row (#1460)', () => {
+  // A union branch says a prop is absent by typing it `undefined` or `never`.
+  // Icon's children branch says `name?: undefined`, which is not a value to
+  // pass, so the row lists the one type the name branch takes.
+  assert.equal(row('Icon', 'name').type, '`string`');
+  assert.equal(row('Icon', 'name', { markdown: false }).type, 'string');
+  // Nor does a forbidding branch listed first describe the row. Command's
+  // `actions` branch forbids `children` ahead of the branch built from parts,
+  // which is the one that takes it.
+  const children = row('Command', 'children', { markdown: false });
+  assert.equal(children.type, 'React.ReactNode');
+  assert.match(children.description, /^The parts, in order/);
+  // The row sits where the branch that takes the prop declares it. Slider's
+  // single value branch forbids `minDistance` ahead of `ariaLabel`, and the
+  // range branch declares it after.
+  const slider = extractComponent('Slider').tables[0].rows.map(r => r.name);
+  assert.ok(
+    slider.indexOf('minDistance') > slider.indexOf('ariaLabel'),
+    slider.join(', ')
+  );
+});
+
 test('structured mode leaks no markdown into any documented component', () => {
   // The whole point of the mode. A single escaped cell anywhere reaches an
   // agent as literal backticks in a type it is about to write into source.
