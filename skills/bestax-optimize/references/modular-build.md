@@ -46,7 +46,7 @@ publishes its SCSS sources (`src/scss` ships in the npm package, exposed via the
 
 **Rule:** stock Bulma components map to `bulma/sass/<category>/<lowercased-name>`; bestax
 extras map to `@allxsmith/bestax-bulma/scss/<category>/<lowercased-name>`. Components that
-are pure stock Bulma (Box, Card, Navbar, Modal, Hero, …) have **no** extras partial —
+are pure stock Bulma (Box, Card, Modal, Hero, …) have **no** extras partial —
 Bulma's own module is all they need.
 
 Bulma groups its form controls, so their modules don't follow the name: `Input` and `TextArea`
@@ -82,7 +82,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
 `toast`, `dialog`, `carousel`, `lightbox`, `tabs`, `menu`, `tableofcontents`, `reveal`, `avatar`, `avatars`,
 `badge`, `emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`,
-`pagination`, `affix`
+`pagination`, `affix`, `navbar`
 
 **Layout** (`@allxsmith/bestax-bulma/scss/layout/<name>`): `appframe`, `splitter`, `stack`
 
@@ -133,6 +133,16 @@ Notes:
   ```scss
   @use 'bulma/sass/components/pagination';
   @use '@allxsmith/bestax-bulma/scss/components/pagination' as bestax-pagination;
+  ```
+
+- The `navbar` partial **extends** stock Bulma navbar (it keeps the burger's bars in
+  ButtonText in forced colors, where Chromium paints them in the page's Canvas color), so an
+  app using `Navbar` needs both, in either order. `AppFrame.Burger` renders `Navbar.Burger`,
+  so a build with one wants this partial too:
+
+  ```scss
+  @use 'bulma/sass/components/navbar';
+  @use '@allxsmith/bestax-bulma/scss/components/navbar' as bestax-navbar;
   ```
 
 - The `file` partial **extends** stock Bulma file (File's keyboard focus ring, and the rounded
