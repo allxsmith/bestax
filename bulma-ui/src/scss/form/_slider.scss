@@ -600,7 +600,46 @@ $slider-vertical-height: 200px !default;
 
 // High Contrast Mode support
 @media (forced-colors: active) {
+  // The track and the fill are a gradient, which forced colors drops, so a
+  // single-thumb slider showed only its thumb. The element that paints them
+  // opts out and paints them in the system's colors: the fill in Highlight,
+  // the rest of the track in CanvasText, and both in GrayText while
+  // disabled. The range slider's track paints the same gradient and had
+  // opted out with its own colors, so it takes these too.
+  .#{iv.$class-prefix}slider-input,
+  .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-range .#{iv.$class-prefix}slider-track {
+    forced-color-adjust: none;
+    @include cv.register-vars(
+      (
+        "slider-fill-color": Highlight,
+        "slider-track-color": CanvasText,
+      )
+    );
+  }
+
+  .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-disabled .#{iv.$class-prefix}slider-input,
+  .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-disabled.#{iv.$class-prefix}is-range .#{iv.$class-prefix}slider-track {
+    @include cv.register-vars(
+      (
+        "slider-fill-color": GrayText,
+        "slider-track-color": GrayText,
+      )
+    );
+  }
+
   .#{iv.$class-prefix}slider-input {
+    // The opt-out reaches the thumb too, and forced colors would have
+    // dropped its shadows, the focus ring's included. Its border shows focus.
+    &::-webkit-slider-thumb,
+    &:focus::-webkit-slider-thumb {
+      box-shadow: none;
+    }
+
+    &::-moz-range-thumb,
+    &:focus::-moz-range-thumb {
+      box-shadow: none;
+    }
+
     &::-webkit-slider-thumb {
       background: ButtonText;
       border-color: ButtonText;

@@ -5,8 +5,10 @@
 // computed style.
 import * as sass from 'sass';
 import path from 'path';
+import type { ReactElement } from 'react';
 import { render } from '@testing-library/react';
 import { Slider } from '../Slider';
+import { ConfigProvider } from '../../helpers/Config';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
@@ -26,6 +28,144 @@ describe('Slider fill direction', () => {
     // The vertical track grows upward. Its own direction is part of the
     // control, not the page's, so the page's direction doesn't repaint it.
     expect(css).toMatch(/linear-gradient\(\s*to top,/);
+  });
+});
+
+// Forced colors drops the gradient the track and the fill are painted with,
+// so a single-thumb slider showed only its thumb (#1509). jsdom evaluates no
+// media query, so the rules are read off the compiled sheet, with no prefix
+// and under one.
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('Slider track in forced colors, with %s', (_label, prefix) => {
+  const FORCED = '@media (forced-colors: active)';
+  const p = (name: string) => `.${prefix}${name}`;
+  const compiled = sass.compileString(
+    `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+     @use 'form/slider';`,
+    {
+      loadPaths: [SCSS, NODE_MODULES],
+      quietDeps: true,
+      logger: sass.Logger.silent,
+    }
+  ).css;
+
+  /** Every style rule, with the at-rules it sits in, outermost first. */
+  const rules = (() => {
+    const sheet = document.createElement('style');
+    sheet.textContent = compiled;
+    document.head.appendChild(sheet);
+    const out: { rule: CSSStyleRule; within: string }[] = [];
+    const walk = (list: CSSRuleList, within: string) => {
+      for (const rule of Array.from(list)) {
+        if (rule instanceof CSSStyleRule) out.push({ rule, within });
+        else if ('cssRules' in rule) {
+          walk(
+            (rule as CSSGroupingRule).cssRules,
+            rule.cssText.split('{')[0].trim()
+          );
+        }
+      }
+    };
+    try {
+      walk((sheet.sheet as CSSStyleSheet).cssRules, '');
+    } finally {
+      sheet.remove();
+    }
+    return out;
+  })();
+
+  const oneLine = (selector: string) => selector.split(/\s*,\s*/).join(', ');
+  const forced = (selector: string) =>
+    rules.filter(
+      ({ rule, within }) =>
+        within === FORCED && oneLine(rule.selectorText) === selector
+    );
+
+  const input = p('slider-input');
+  const rangeTrack = `${p('slider')}${p('is-range')} ${p('slider-track')}`;
+  const painted = `${input}, ${rangeTrack}`;
+  const disabled = `${p('slider')}${p('is-disabled')} ${input}, ${p('slider')}${p('is-disabled')}${p('is-range')} ${p('slider-track')}`;
+  const value = (selector: string, name: string) =>
+    forced(selector)
+      .map(({ rule }) => rule.style.getPropertyValue(name).trim())
+      .filter(Boolean);
+
+  it('opts the track out of forced colors and paints it in system colors', () => {
+    expect(value(painted, 'forced-color-adjust')).toEqual(['none']);
+    expect(value(painted, '--bulma-slider-fill-color')).toEqual([
+      expect.stringMatching(/^highlight$/i),
+    ]);
+    expect(value(painted, '--bulma-slider-track-color')).toEqual([
+      expect.stringMatching(/^canvastext$/i),
+    ]);
+  });
+
+  it('paints a disabled track in the system color for disabled text', () => {
+    for (const name of [
+      '--bulma-slider-fill-color',
+      '--bulma-slider-track-color',
+    ]) {
+      expect(value(disabled, name)).toEqual([
+        expect.stringMatching(/^graytext$/i),
+      ]);
+    }
+  });
+
+  // The colors above reach every track because each gradient reads them.
+  it.each([
+    ['a single thumb', input],
+    ['a single thumb right to left', `${input}:dir(rtl)`],
+    ['a vertical slider', `${p('slider')}${p('is-vertical')} ${input}`],
+    ['the range track', rangeTrack],
+    ['the range track right to left', `${rangeTrack}:dir(rtl)`],
+  ])('paints %s from the two variables', (_what, selector) => {
+    const gradients = rules
+      .filter(
+        ({ rule, within }) => !within && oneLine(rule.selectorText) === selector
+      )
+      .map(({ rule }) => rule.style.getPropertyValue('background'))
+      .filter(Boolean);
+    expect(gradients).toHaveLength(1);
+    expect(gradients[0]).toContain('linear-gradient(');
+    expect(gradients[0]).toContain('var(--bulma-slider-fill-color)');
+    expect(gradients[0]).toContain('var(--bulma-slider-track-color)');
+  });
+
+  it('takes the thumb’s shadows off, which the opt-out would otherwise keep', () => {
+    for (const pseudo of ['::-webkit-slider-thumb', '::-moz-range-thumb']) {
+      expect(
+        value(`${input}${pseudo}, ${input}:focus${pseudo}`, 'box-shadow')
+      ).toEqual(['none']);
+    }
+  });
+
+  it('lands on the element each kind of slider paints its track on', () => {
+    const at = (ui: ReactElement, selector: string) =>
+      render(ui).container.querySelector(selector)!;
+    const wrap = (ui: ReactElement) => (
+      <ConfigProvider classPrefix={prefix}>{ui}</ConfigProvider>
+    );
+    expect(at(wrap(<Slider defaultValue={40} />), input).matches(input)).toBe(
+      true
+    );
+    expect(
+      at(
+        wrap(<Slider range defaultValue={[20, 70]} />),
+        p('slider-track')
+      ).matches(rangeTrack)
+    ).toBe(true);
+    const [single, range] = disabled.split(', ');
+    expect(
+      at(wrap(<Slider defaultValue={40} disabled />), input).matches(single)
+    ).toBe(true);
+    expect(
+      at(
+        wrap(<Slider range defaultValue={[20, 70]} disabled />),
+        p('slider-track')
+      ).matches(range)
+    ).toBe(true);
   });
 });
 
