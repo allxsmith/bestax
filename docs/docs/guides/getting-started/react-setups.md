@@ -877,42 +877,38 @@ the server and hydrate on the client, like any client component. The helpers tha
 such as `classNames`, run on the server as plain functions. `ConfigProvider` can wrap the whole app
 from the root layout, and a class prefix or icon library set there reaches every page.
 
-Two things to know:
+Three things to know:
 
-- A Server Component can't reach a component's parts through a dot. `Card.Header` comes out
-  `undefined` there, which is React's rule for client modules. Import the part by name. The
-  dotted name still works inside a client component, a file that starts with `'use client'`.
+- A Server Component can't reach a component's parts through a dot. `Figure.Caption` comes out
+  `undefined` there, which is React's rule for client modules. Import the part by name instead.
+  It's the same component as the dotted name.
 
   ```tsx
-  import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardHeaderTitle,
-  } from '@allxsmith/bestax-bulma';
+  import { Figure, FigureCaption, Image } from '@allxsmith/bestax-bulma';
 
   export default function Page() {
     return (
-      <Card>
-        <CardHeader>
-          <CardHeaderTitle>From a Server Component</CardHeaderTitle>
-        </CardHeader>
-        <CardContent>
-          CardHeader is the same component as Card.Header.
-        </CardContent>
-      </Card>
+      <Figure>
+        <Image src="/chart.png" alt="Sign-ups by month" />
+        <FigureCaption>Sign-ups by month</FigureCaption>
+      </Figure>
     );
   }
   ```
 
-  The other parts follow the same shape. Card: `CardHeaderIcon`, `CardImage`, `CardFooter`,
-  `CardFooterItem`. Modal: `ModalBackground`, `ModalContent`, `ModalClose`, `ModalCard`,
-  `ModalCardHead`, `ModalCardTitle`, `ModalCardBody`, `ModalCardFoot`. Sidebar:
-  `SidebarHeader`, `SidebarTitle`, `SidebarClose`, `SidebarBody`, `SidebarFooter`. Message:
-  `MessageHeader`, `MessageBody`. Figure: `FigureCaption`. `OrderedList.Item` and
-  `UnorderedList.Item` are `ListItem`. `ContextMenu.Item` and `ContextMenu.Divider` are
-  `DropdownItem` and `DropdownDivider`. Navbar's parts (`NavbarItem`, `NavbarBrand`, and the
-  rest) were already exported this way.
+  Sidebar's parts work the same way (`SidebarHeader`, `SidebarTitle`, `SidebarClose`,
+  `SidebarBody`, `SidebarFooter`), and so do Navbar's (`NavbarItem`, `NavbarBrand`, and the
+  rest), `SegmentedControlSegment`, and `ListItem`, which is `OrderedList.Item` and
+  `UnorderedList.Item`. The dotted names still work inside a client component, a file that
+  starts with `'use client'`.
+
+- Some components lay out their parts by checking which part each child is, and that check
+  can't recognize a part written in a Server Component. Compose these inside a client component:
+  `Card` and `Modal` built from their parts, `Tabs` with `Tabs.Content`, a `Menu.Item` holding a
+  nested `Menu.List`, a horizontal `Field` with `Field.Label` and `Field.Body`, and `Splitter`.
+  Their parts have named exports too (`CardHeader`, `ModalCard`), which a client component can
+  use in place of the dotted names. A `Card` set up through its props (`header`, `image`,
+  `footer`) renders from a Server Component as it does anywhere.
 
 - A Server Component can only pass a client component props React can send from the server, and a
   function isn't one. So an event handler (`<Button onClick={...}>`) or `ClientOnly`'s render

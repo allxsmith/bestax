@@ -123,7 +123,11 @@ instead of hand-writing markup.
   \`Navbar.Item\`, \`Tabs.Tab\`, \`Hero.Body\`, \`Columns.Column\`, \`Table.Tr\`) and as
   named exports of the same component (\`CardHeader\`, \`NavbarItem\`). A Next.js
   Server Component imports the named export: the dotted name is \`undefined\`
-  there. See the component's linked page for the full set. Sub-parts do **not** all take helper
+  there. Build a \`Card\` or \`Modal\` from its parts in a client component, though,
+  since each checks which part each child is and can't recognize a part written in
+  a Server Component; a few other components do the same
+  (https://bestax.io/docs/guides/getting-started/react-setups#nextjs-specific).
+  See the component's linked page for the full set. Sub-parts do **not** all take helper
   props: the \`Card.*\`, \`Table.*\`, \`Menu.*\`, and \`Hero.*\` families do (most
   \`Navbar.*\` too), but \`Modal.*\`, \`Tabs.*\`, and \`Message.*\` sub-parts take none —
   just \`className\`, HTML attributes, and their own few (\`Tabs.Tab\` requires
