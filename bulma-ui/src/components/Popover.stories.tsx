@@ -126,9 +126,8 @@ export const Default: Story = {
 };
 
 /**
- * The parts as statics: `Popover.Header` names the panel, `Popover.Body`
- * holds the content, `Popover.Footer` lines up the actions, and
- * `Popover.Close` closes the popover and hands focus back to the trigger.
+ * On a right-to-left page a popover with no `position` lines its right edge
+ * up with the trigger's.
  */
 export const RightToLeft: Story = {
   render: () => (
@@ -142,6 +141,11 @@ export const RightToLeft: Story = {
   ),
 };
 
+/**
+ * The parts as statics: `Popover.Header` names the panel, `Popover.Body`
+ * holds the content, `Popover.Footer` lines up the actions, and
+ * `Popover.Close` closes the popover and hands focus back to the trigger.
+ */
 export const CompoundUsage: Story = {
   render: () => (
     <Popover trigger={<Button>Rename</Button>}>

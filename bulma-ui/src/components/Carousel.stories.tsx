@@ -198,7 +198,8 @@ export const Default: Story = {
 };
 
 /**
- * Auto-playing carousel.
+ * On a right-to-left page the slides run from right to left, the previous
+ * arrow sits on the right and the built-in chevrons flip.
  */
 export const RightToLeft: Story = {
   render: () => (
@@ -214,6 +215,9 @@ export const RightToLeft: Story = {
   ),
 };
 
+/**
+ * Auto-playing carousel.
+ */
 export const Autoplay: Story = {
   render: function AutoplayExample() {
     return (

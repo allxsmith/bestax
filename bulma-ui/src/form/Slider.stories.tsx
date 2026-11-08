@@ -869,9 +869,8 @@ export const WithFieldControlWrapper: Story = {
 };
 
 /**
- * Form submission — Slider is HTML-form-compatible. In single-value mode pass
- * a `name` prop. In range mode use `nameLow` and `nameHigh` so each thumb
- * submits as its own form field.
+ * On a right-to-left page the fill, the marks and the value bubble start
+ * from the right, as the native range does.
  */
 export const RightToLeft: Story = {
   render: () => (
@@ -881,6 +880,11 @@ export const RightToLeft: Story = {
   ),
 };
 
+/**
+ * Form submission — Slider is HTML-form-compatible. In single-value mode pass
+ * a `name` prop. In range mode use `nameLow` and `nameHigh` so each thumb
+ * submits as its own form field.
+ */
 export const RangeWithNames: Story = {
   render: function SliderForm() {
     const [submitted, setSubmitted] = useState<string>('');
