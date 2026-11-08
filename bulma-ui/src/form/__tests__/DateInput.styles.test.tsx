@@ -68,9 +68,11 @@ const inject = (css: string) => {
 };
 
 let sheet: CSSStyleSheet;
+let dateinputCss = '';
 
 beforeAll(() => {
-  sheet = inject(compileSheet('form/_dateinput.scss')).sheet as CSSStyleSheet;
+  dateinputCss = compileSheet('form/_dateinput.scss');
+  sheet = inject(dateinputCss).sheet as CSSStyleSheet;
 });
 
 afterAll(() => {
@@ -103,6 +105,34 @@ describe.each(pickers)('%s calendar colour styles', (_name, picker) => {
   it('leaves an uncoloured calendar on the primary defaults', () => {
     const { container } = render(picker());
     expect(computedAccents(calendarRoot(container))).toEqual(defaults);
+  });
+});
+
+describe('calendar month chevrons', () => {
+  const flipped = (el: Element) =>
+    getComputedStyle(el).transform === 'scaleX(-1)';
+
+  it('mirrors the glyphs right to left and leaves them alone left to right', () => {
+    const { container } = render(
+      <>
+        <div dir="rtl">
+          <DateInput inline />
+        </div>
+        <div dir="ltr">
+          <DateInput inline />
+        </div>
+      </>
+    );
+    const [rtl, ltr] = Array.from(container.children);
+    for (const nav of ['.dateinput-nav-prev', '.dateinput-nav-next']) {
+      const button = rtl.querySelector(nav)!;
+      // Once: the glyph turns, and the button around it doesn't.
+      expect(flipped(button.querySelector('svg')!)).toBe(true);
+      expect(flipped(button)).toBe(false);
+      expect(flipped(ltr.querySelector(`${nav} svg`)!)).toBe(false);
+    }
+    // The month label's caret points down. It is not one of these.
+    expect(dateinputCss).not.toContain('.dateinput-month-caret:dir(rtl)');
   });
 });
 

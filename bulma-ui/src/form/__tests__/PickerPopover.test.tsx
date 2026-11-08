@@ -14,6 +14,9 @@ import { TimeInput } from '../TimeInput';
 import { DateTimeInput } from '../DateTimeInput';
 import { DateInput } from '../DateInput';
 import { DateRangeInput } from '../DateRangeInput';
+import { LocaleProvider } from '../../helpers/LocaleProvider';
+import { ColorInput } from '../ColorInput';
+import { TreeSelect } from '../TreeSelect';
 
 const Harness: React.FC<{
   appendToBody?: boolean;
@@ -566,8 +569,14 @@ describe('PickerPopover position resolution', () => {
     }) as DOMRect;
 
   const PositionedHarness: React.FC<{
+    /** `default` leaves the prop out. */
     position?:
-      'auto' | 'bottom-left' | 'bottom-right' | 'top-left' | 'top-right';
+      | 'auto'
+      | 'bottom-left'
+      | 'bottom-right'
+      | 'top-left'
+      | 'top-right'
+      | 'default';
     appendToBody?: boolean;
   }> = ({ position = 'auto', appendToBody = true }) => {
     const anchorRef = useRef<HTMLButtonElement>(null);
@@ -580,7 +589,7 @@ describe('PickerPopover position resolution', () => {
           isOpen
           onClose={() => {}}
           anchorRef={anchorRef}
-          position={position}
+          position={position === 'default' ? undefined : position}
           appendToBody={appendToBody}
           ariaLabel="positioned"
         >
@@ -658,6 +667,173 @@ describe('PickerPopover position resolution', () => {
     // top = anchor top − height, left = anchor right − width.
     expect(dialog.style.top).toBe('580px');
     expect(dialog.style.left).toBe('760px');
+  });
+
+  it('lines an explicit bottom-left up with the physical left', () => {
+    setViewport(1000, 1000);
+    const { getByRole } = renderWithRects(
+      <PositionedHarness position="bottom-left" />,
+      makeRect({ top: 50, bottom: 70, left: 900, right: 960 }),
+      { width: 200, height: 300 }
+    );
+    const dialog = getByRole('dialog');
+    expect(dialog.className).toMatch(/is-bottom-left/);
+    expect(dialog.style.left).toBe('900px');
+    expect(dialog.style.top).toBe('70px');
+  });
+
+  /** Runs a test on a right-to-left page. jsdom maps no `dir` to `direction`. */
+  const rightToLeft = (test: () => void) => {
+    const style = document.createElement('style');
+    style.textContent = '[dir="rtl"] { direction: rtl; }';
+    document.head.appendChild(style);
+    document.documentElement.setAttribute('dir', 'rtl');
+    try {
+      test();
+    } finally {
+      document.documentElement.removeAttribute('dir');
+      style.remove();
+    }
+  };
+
+  it('lines the default up with the right edge on a right-to-left page', () => {
+    rightToLeft(() => {
+      setViewport(1000, 1000);
+      const { getByRole } = renderWithRects(
+        <PositionedHarness position="default" />,
+        makeRect({ top: 50, bottom: 70, left: 900, right: 960 }),
+        { width: 200, height: 300 }
+      );
+      const dialog = getByRole('dialog');
+      expect(dialog).toHaveClass('is-bottom-left', 'is-start-aligned');
+      // 960 - 200. Lined up on the left it would start at 900 and run the
+      // 200px panel off the 1000px viewport.
+      expect(dialog.style.left).toBe('760px');
+      expect(dialog.style.top).toBe('70px');
+    });
+  });
+
+  it('marks only the default as start aligned, for the stylesheet to place', () => {
+    const { getByRole, unmount } = render(
+      <PositionedHarness position="default" appendToBody={false} />
+    );
+    expect(getByRole('dialog')).toHaveClass(
+      'is-bottom-left',
+      'is-start-aligned'
+    );
+    unmount();
+    render(<PositionedHarness position="bottom-left" appendToBody={false} />);
+    expect(screen.getByRole('dialog')).not.toHaveClass('is-start-aligned');
+  });
+
+  it('keeps an explicit bottom-left physical on a right-to-left page', () => {
+    rightToLeft(() => {
+      setViewport(1000, 1000);
+      const { getByRole } = renderWithRects(
+        <PositionedHarness position="bottom-left" />,
+        makeRect({ top: 50, bottom: 70, left: 400, right: 460 }),
+        { width: 200, height: 300 }
+      );
+      const dialog = getByRole('dialog');
+      expect(dialog.className).toMatch(/is-bottom-left/);
+      expect(dialog.style.left).toBe('400px');
+    });
+  });
+
+  it('keeps an explicit bottom-right physical on a right-to-left page', () => {
+    rightToLeft(() => {
+      setViewport(1000, 1000);
+      const { getByRole } = renderWithRects(
+        <PositionedHarness position="bottom-right" />,
+        makeRect({ top: 50, bottom: 70, left: 400, right: 460 }),
+        { width: 200, height: 300 }
+      );
+      expect(getByRole('dialog').className).toMatch(/is-bottom-right/);
+      expect(getByRole('dialog').style.left).toBe('260px');
+    });
+  });
+
+  it('measures auto against the physical sides on a right-to-left page', () => {
+    rightToLeft(() => {
+      setViewport(1000, 1000);
+      const { getByRole } = renderWithRects(
+        <PositionedHarness position="auto" />,
+        makeRect({ top: 50, bottom: 70, left: 100, right: 160 }),
+        { width: 200, height: 300 }
+      );
+      // 100 + 200 fits, so auto keeps the left edges, as left to right.
+      expect(getByRole('dialog').className).toMatch(/is-bottom-left/);
+      expect(getByRole('dialog').style.left).toBe('100px');
+    });
+  });
+
+  it('lines the default up with the left edge left to right', () => {
+    setViewport(1000, 1000);
+    const { getByRole } = renderWithRects(
+      <PositionedHarness position="default" />,
+      makeRect({ top: 50, bottom: 70, left: 400, right: 460 }),
+      { width: 200, height: 300 }
+    );
+    expect(getByRole('dialog').className).toMatch(/is-bottom-left/);
+    expect(getByRole('dialog').style.left).toBe('400px');
+  });
+
+  // Each field leaves its `position` unset unless the caller sets one, so
+  // the popover can line up with the field's start edge.
+  it.each([
+    ['DateInput', (p: object) => <DateInput label="Date" {...p} />],
+    ['TimeInput', (p: object) => <TimeInput label="Time" {...p} />],
+    ['DateTimeInput', (p: object) => <DateTimeInput label="When" {...p} />],
+    ['DateRangeInput', (p: object) => <DateRangeInput label="Stay" {...p} />],
+    ['ColorInput', (p: object) => <ColorInput label="Color" {...p} />],
+    [
+      'TreeSelect',
+      (p: object) => (
+        <TreeSelect
+          label="Place"
+          data={[{ value: 'here', label: 'Here' }]}
+          {...p}
+        />
+      ),
+    ],
+  ])(
+    'leaves the corner of %s to the start edge by default, and to the caller once named',
+    (_, field) => {
+      const open = () =>
+        fireEvent.keyDown(screen.getAllByRole('combobox')[0], {
+          key: 'ArrowDown',
+          altKey: true,
+        });
+      rightToLeft(() => {
+        const { unmount } = render(field({ mobileNative: false }));
+        open();
+        expect(screen.getByRole('dialog')).toHaveClass('is-start-aligned');
+        unmount();
+        render(field({ mobileNative: false, position: 'bottom-left' }));
+        open();
+        expect(screen.getByRole('dialog')).toHaveClass('is-bottom-left');
+        expect(screen.getByRole('dialog')).not.toHaveClass('is-start-aligned');
+      });
+    }
+  );
+
+  it('reads the direction a LocaleProvider sets for the default', () => {
+    const style = document.createElement('style');
+    style.textContent = '[dir="rtl"] { direction: rtl; }';
+    document.head.appendChild(style);
+    try {
+      setViewport(1000, 1000);
+      const { getByRole } = renderWithRects(
+        <LocaleProvider locale="ar" dir="rtl">
+          <PositionedHarness position="default" />
+        </LocaleProvider>,
+        makeRect({ top: 50, bottom: 70, left: 900, right: 960 }),
+        { width: 200, height: 300 }
+      );
+      expect(getByRole('dialog').style.left).toBe('760px');
+    } finally {
+      style.remove();
+    }
   });
 
   it('appendToBody computes fixed coordinates for an explicit bottom-left', () => {

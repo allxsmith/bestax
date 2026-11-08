@@ -8,7 +8,7 @@
 @use 'bulma/sass/utilities/css-variables' as cv;
 @use 'mixins' as *;
 
-// A button over the input's right edge, in Bulma's 2.5em icon slot. Bulma's
+// A button over one edge of the input, in Bulma's 2.5em icon slot. Bulma's
 // Control icons are decorative (`pointer-events: none`), so a button there
 // needs rules of its own. Include it on the element that holds the input and
 // the button, which it positions. A content block, when given, lands in that
@@ -22,25 +22,44 @@
 // every value a theme can change is a registered variable. The color change
 // on hover takes Bulma's duration and easing through `extras-transition`. The
 // button takes the input's `is-small`, `is-medium` or `is-large` font size,
-// so its em-based width tracks the input's.
+// so its em-based width tracks the input's. `$logical` puts the slot on the
+// inline end (the pickers). Left out, it stays on the physical right
+// (PasswordInput).
 @mixin extras-input-trigger(
   $trigger,
   $width,
   $color,
   $hover-color,
-  $disabled-opacity
+  $disabled-opacity,
+  $logical: false
 ) {
   position: relative;
   @content;
 
   > .#{iv.$class-prefix}input {
-    padding-right: $width;
+    @if $logical {
+      padding-inline-end: $width;
+    } @else {
+      padding-right: $width;
+    }
+  }
+
+  // Bulma's `.input.is-rounded` sets its own side padding at two classes,
+  // which ties the rule above. At three this wins whichever sheet loads first.
+  @if $logical {
+    > .#{iv.$class-prefix}input.#{iv.$class-prefix}is-rounded {
+      padding-inline-end: $width;
+    }
   }
 
   > .#{iv.$class-prefix}#{$trigger} {
     position: absolute;
     top: 0;
-    right: 0;
+    @if $logical {
+      inset-inline-end: 0;
+    } @else {
+      right: 0;
+    }
     z-index: 4;
     height: 100%;
     width: $width;

@@ -110,7 +110,13 @@ export interface ColorInputBaseProps
   openOnFocus?: boolean;
   /** Closes the panel once a swatch is chosen. */
   closeOnSwatchClick?: boolean;
-  /** The panel's place relative to the field. */
+  /**
+   * Where the panel opens against the field. Left out, it opens below and
+   * lines up with the field's start edge, which is its right edge when the
+   * picker reads right to left. A corner you pass stays physical, so
+   * `bottom-left` lines up the left edges either way.
+   * @defaultValue 'bottom-left'
+   */
   position?: PickerPosition;
   /**
    * Renders the panel through a portal, into the `portalContainer` a
@@ -167,7 +173,7 @@ export const ColorInputBase = forwardRef<HTMLInputElement, ColorInputBaseProps>(
       onClose,
       openOnFocus = false,
       closeOnSwatchClick = false,
-      position = 'bottom-left',
+      position,
       appendToBody = false,
       color,
       size,

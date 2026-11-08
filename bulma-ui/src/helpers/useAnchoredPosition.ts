@@ -28,8 +28,15 @@ export interface AnchoredPosition {
 export interface UseAnchoredPositionOptions {
   /** Whether the panel is on the page. Nothing is measured while it is not. */
   active: boolean;
-  /** The corner asked for, or `auto` to pick one that keeps the panel in the viewport. */
-  position: PickerPosition;
+  /**
+   * The corner asked for, or `auto` to pick one that keeps the panel in the
+   * viewport. A named corner is physical, whatever the page's direction.
+   * Left out, the corner is `bottom-left` lined up with the anchor's inline
+   * start, which is its right edge right to left. A panel in place gets that
+   * from its stylesheet, as Popover's and the pickers' do; a fixed panel's
+   * coordinates read the anchor's direction.
+   */
+  position?: PickerPosition;
   /**
    * Whether the panel is fixed to the viewport (it was portaled away from the
    * anchor), which needs coordinates. Otherwise the panel's CSS places it
@@ -139,7 +146,8 @@ export function useAnchoredPosition(
   }: UseAnchoredPositionOptions
 ): AnchoredPosition {
   const [resolved, setResolved] = useState<AnchoredPosition>({
-    position: position === 'auto' ? 'bottom-left' : position,
+    position:
+      position === undefined || position === 'auto' ? 'bottom-left' : position,
   });
   // The measurement while the panel is active, for `followContent` to run
   // again after a render.
@@ -170,14 +178,24 @@ export function useAnchoredPosition(
               height,
               offset + (styledGap?.(panel) ?? 0)
             )
-          : position;
+          : (position ?? 'bottom-left');
+      // The default lines up with the anchor's inline start, so right to
+      // left a fixed panel lines up the right edges. A named corner doesn't,
+      // and a panel in place takes the default's side from its stylesheet.
+      const startsRight =
+        position === undefined &&
+        fixed &&
+        getComputedStyle(anchor).direction === 'rtl';
       const next: AnchoredPosition = fixed
         ? {
             position: corner,
             top: corner.startsWith('bottom')
               ? rect.bottom + offset
               : rect.top - height - offset,
-            left: corner.endsWith('left') ? rect.left : rect.right - width,
+            left:
+              corner.endsWith('left') && !startsRight
+                ? rect.left
+                : rect.right - width,
             ...(matchWidth ? { minWidth: rect.width } : {}),
           }
         : { position: corner };

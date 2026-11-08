@@ -92,6 +92,17 @@ $slider-vertical-height: 200px !default;
     cv.getVar("slider-track-color") var(--slider-progress, 0%),
     cv.getVar("slider-track-color") 100%
   );
+  // The native range mirrors, so 0% of this gradient is the inline start
+  // (the right), where the minimum sits. `to right` would paint the left.
+  &:dir(rtl) {
+    background: linear-gradient(
+      to left,
+      cv.getVar("slider-fill-color") 0%,
+      cv.getVar("slider-fill-color") var(--slider-progress, 0%),
+      cv.getVar("slider-track-color") var(--slider-progress, 0%),
+      cv.getVar("slider-track-color") 100%
+    );
+  }
   border-radius: cv.getVar("slider-radius");
   outline: none;
   cursor: pointer;
@@ -198,6 +209,11 @@ $slider-vertical-height: 200px !default;
   top: -2rem;
   // Default transform; overridden by inline style when nudge is applied
   transform: translateX(-50%);
+  // The inline transform centres a horizontal bubble on the thumb by this.
+  // It's placed from the inline start, which is its right edge right to
+  // left, so there it shifts the other way. Set on every bubble, so none
+  // takes another slider's.
+  --slider-output-shift: -50%;
   padding: 0.25rem 0.5rem;
   font-size: cv.getVar("slider-output-font-size");
   font-weight: cv.getVar("slider-output-font-weight");
@@ -211,6 +227,10 @@ $slider-vertical-height: 200px !default;
   transition-property: opacity, visibility;
   transition-duration: cv.getVar("slider-transition-duration");
   transition-timing-function: ease;
+
+  &:dir(rtl) {
+    --slider-output-shift: 50%;
+  }
 
   &::after {
     content: "";
@@ -268,6 +288,12 @@ $slider-vertical-height: 200px !default;
 .#{iv.$class-prefix}slider-tick {
   position: absolute;
   transform: translateX(-50%);
+
+  // The inline start edge is the right one right to left, so centering
+  // shifts the other way. A vertical tick replaces this transform.
+  &:dir(rtl) {
+    transform: translateX(50%);
+  }
   width: cv.getVar("slider-tick-width");
   height: cv.getVar("slider-tick-height");
   background: cv.getVar("slider-tick-color");
@@ -318,6 +344,19 @@ $slider-vertical-height: 200px !default;
       cv.getVar("slider-track-color") var(--slider-progress-high, 100%),
       cv.getVar("slider-track-color") 100%
     );
+    // Same mirror as the single thumb: the stops are measured from the
+    // inline start, which is the right when the page is.
+    &:dir(rtl) {
+      background: linear-gradient(
+        to left,
+        cv.getVar("slider-track-color") 0%,
+        cv.getVar("slider-track-color") var(--slider-progress-low, 0%),
+        cv.getVar("slider-fill-color") var(--slider-progress-low, 0%),
+        cv.getVar("slider-fill-color") var(--slider-progress-high, 100%),
+        cv.getVar("slider-track-color") var(--slider-progress-high, 100%),
+        cv.getVar("slider-track-color") 100%
+      );
+    }
     pointer-events: none;
   }
 

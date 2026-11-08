@@ -137,7 +137,8 @@ export interface CarouselProps
   repeat?: boolean;
   /**
    * Enable drag/swipe navigation. Default: true. A swipe moves one step,
-   * however far it travels.
+   * however far it travels. A swipe toward the start of the line goes on,
+   * so on a right-to-left page a swipe right brings the next slide in.
    */
   hasDrag?: boolean;
   /**
@@ -233,9 +234,17 @@ export interface CarouselProps
   indicatorPosition?: 'bottom' | 'top';
   /** Indicator style. Default: 'dots'. */
   indicatorStyle?: 'circles' | 'dots' | 'lines' | 'bars';
-  /** Icon name for the previous arrow button. */
+  /**
+   * Icon name for the previous arrow button. On a right-to-left page that
+   * button sits on the right and the built-in chevron flips to point there,
+   * but an icon you name is drawn as given, so pick one that points the way
+   * the page reads.
+   */
   iconPrev?: string;
-  /** Icon name for the next arrow button. */
+  /**
+   * Icon name for the next arrow button. On a right-to-left page it sits on
+   * the left, and an icon you name is drawn as given, as with `iconPrev`.
+   */
   iconNext?: string;
   /** Icon library to use. */
   iconLibrary?: IconLibrary;
@@ -520,11 +529,20 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       }
     }, [pauseOnHover]);
 
-    // Drag and swipe, through the shared hook: a drag left goes on and a
-    // drag right goes back, past its 50px threshold.
+    // Right to left the track runs the other way, so the next slide is on
+    // the left. Read when a swipe or key arrives, as Lightbox does, so a
+    // LocaleProvider and the page's own `dir` both count.
+    const isRtl = () =>
+      getComputedStyle(carouselRef.current as HTMLDivElement).direction ===
+      'rtl';
+
+    // Drag and swipe, through the shared hook, past its 50px threshold: a
+    // drag toward the start of the line goes on, which is a drag left on a
+    // left-to-right page, and a drag the other way goes back.
     const swipe = useSwipe<HTMLDivElement>({
       enabled: hasDrag,
-      onSwipe: direction => (direction === 'left' ? goToNext() : goToPrev()),
+      onSwipe: direction =>
+        direction === (isRtl() ? 'right' : 'left') ? goToNext() : goToPrev(),
     });
     const isDragging = swipe.isSwiping;
     const dragOffset = swipe.offsetX;
@@ -540,14 +558,17 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
           return;
         }
 
+        // The arrow points where the slide comes from: right to left the
+        // next one is on the left.
+        const rtl = getComputedStyle(node).direction === 'rtl';
         switch (e.key) {
           case 'ArrowLeft':
             e.preventDefault();
-            goToPrevRef.current();
+            (rtl ? goToNextRef : goToPrevRef).current();
             break;
           case 'ArrowRight':
             e.preventDefault();
-            goToNextRef.current();
+            (rtl ? goToPrevRef : goToNextRef).current();
             break;
         }
       };
@@ -757,8 +778,11 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
             className={carouselSlidesClass}
             style={{
               // One item is the track's width plus a gap, over the count the
-              // stylesheet has in view; account for the prepended clones
-              transform: `translateX(calc(${-(shownIndex + cloneCount)} * (100% + var(--bulma-carousel-item-gap, 0px)) / var(--bulma-carousel-items-in-view, 1)))`,
+              // stylesheet has in view; account for the prepended clones.
+              // The sign is -1 left to right. Right to left the flex row
+              // reverses, and the stylesheet sets the sign to +1 so the
+              // same shift keeps a slide in view.
+              transform: `translateX(calc(var(--carousel-shift-sign, -1) * ${shownIndex + cloneCount} * (100% + var(--bulma-carousel-item-gap, 0px)) / var(--bulma-carousel-items-in-view, 1)))`,
               // Disable transition during drag or instant snap after wrap-around
               transition:
                 isDragging || skipTransition
