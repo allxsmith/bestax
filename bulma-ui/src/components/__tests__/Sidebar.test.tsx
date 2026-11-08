@@ -287,18 +287,18 @@ describe('Sidebar', () => {
     });
   });
 
-  describe('Body Scroll Lock', () => {
-    it('prevents body scroll when open with overlay', () => {
+  describe('Page Scroll Lock', () => {
+    it('prevents page scroll when open with overlay', () => {
       render(
         <Sidebar isOpen onClose={() => {}}>
           <div>Content</div>
         </Sidebar>
       );
 
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
     });
 
-    it('restores body scroll when closed', () => {
+    it('restores page scroll when closed', () => {
       const { rerender } = render(
         <Sidebar isOpen onClose={() => {}}>
           <div>Content</div>
@@ -311,18 +311,18 @@ describe('Sidebar', () => {
         </Sidebar>
       );
 
-      expect(document.body.style.overflow).not.toBe('hidden');
+      expect(document.documentElement.style.overflow).not.toBe('hidden');
     });
 
-    it('does not lock body scroll when overlay is false', () => {
-      const originalOverflow = document.body.style.overflow;
+    it('does not lock page scroll when overlay is false', () => {
+      const originalOverflow = document.documentElement.style.overflow;
       render(
         <Sidebar isOpen onClose={() => {}} overlay={false}>
           <div>Content</div>
         </Sidebar>
       );
 
-      expect(document.body.style.overflow).toBe(originalOverflow);
+      expect(document.documentElement.style.overflow).toBe(originalOverflow);
     });
   });
 
@@ -1026,9 +1026,9 @@ describe('Sidebar', () => {
       removeSpy.mockRestore();
     });
 
-    it('restores body overflow to original value on unmount', () => {
+    it('restores the page overflow to its original value on unmount', () => {
       const original = 'scroll';
-      document.body.style.overflow = original;
+      document.documentElement.style.overflow = original;
 
       const { unmount } = render(
         <Sidebar isOpen onClose={() => {}}>
@@ -1036,14 +1036,14 @@ describe('Sidebar', () => {
         </Sidebar>
       );
 
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
 
       unmount();
 
-      expect(document.body.style.overflow).toBe(original);
+      expect(document.documentElement.style.overflow).toBe(original);
 
       // cleanup
-      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     });
 
     it('does not trigger onClose for non-Escape keys', () => {

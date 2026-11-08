@@ -17,7 +17,7 @@
           "file": "references/library-contributor.md",
           "bytes": 23311
         },
-        { "id": "patterns", "file": "references/patterns.md", "bytes": 4601 }
+        { "id": "patterns", "file": "references/patterns.md", "bytes": 4632 }
       ],
       "examples": [
         { "id": "stat-card", "file": "examples/stat-card.tsx", "bytes": 3734 }

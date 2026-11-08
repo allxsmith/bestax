@@ -224,7 +224,7 @@ function example() {
 ```
 
 :::tip
-When `isFullPage` is true and the loading is active, body scroll is automatically disabled. The lock is ref-counted and shared with `Modal`, `Dialog` and `Sidebar`, so dismissing the loader doesn't unlock the page underneath an overlay that is still open.
+When `isFullPage` is true and the loading is active, the page doesn't scroll under it. The lock is ref-counted and shared with [`Modal`](./modal.md#accessibility), `Dialog` and `Sidebar`, so dismissing the loader doesn't unlock the page underneath an overlay that is still open.
 :::
 
 ---
