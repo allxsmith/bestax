@@ -761,6 +761,43 @@ describe('get_css_variables', () => {
     expect(failed(res)).toBe(true);
   });
 
+  // A part that is a component of its own is styled by that component's
+  // variables. They used to be the family's, so `Stats.Stat` was "Stats
+  // registers no CSS variables" (#1480).
+  describe('a part that is a component of its own', () => {
+    it.each([
+      ['Stats.Stat', 'Stat', '--bulma-stat-value-color', null],
+      ['Buttons.Button', 'Button', '--bulma-button-h', null],
+      ['Field.Control', 'Control', '--bulma-input-h', 'Field'],
+    ])(
+      'answers %s with the variables of %s',
+      async (path, component, variable, family) => {
+        const out = text(await call('get_css_variables', { component: path }));
+        expect(out).toMatch(new RegExp(`^\`${path}\` is \`${component}\`\\.`));
+        expect(out).toContain(`# ${component} CSS variables`);
+        expect(out).toContain(`\`${variable}\``);
+        const pointer = `get_css_variables({ component: "${family}" })`;
+        if (family) expect(out).toContain(pointer);
+        else expect(out).not.toContain('own variables are in');
+      }
+    );
+
+    it('answers a part of that component with its variables too', async () => {
+      const out = text(
+        await call('get_css_variables', { component: 'Stats.Stat.Label' })
+      );
+      expect(out).toMatch(/^`Stats\.Stat` is `Stat`, so /);
+      expect(out).toContain('# Stat CSS variables');
+    });
+
+    it("keeps a part with no component of its own on the family's", async () => {
+      const out = text(
+        await call('get_css_variables', { component: 'Navbar.Brand' })
+      );
+      expect(out).toMatch(/^# Navbar CSS variables/);
+    });
+  });
+
   // The index named whichever declarer the generator read last, so DateInput's
   // calendar variables were "declared by DateTimeInput" (#964).
   it('names every declarer, the one a variable is named after first', async () => {

@@ -789,7 +789,13 @@ export async function createServer(
       if (component) {
         const resolved = await resolveName(component);
         if (!resolved) return notFound(component);
-        const record = await loadComponent(resolved);
+        const named = await loadComponent(resolved);
+        // A part that is a component of its own has that component's variables,
+        // not its family's: `Buttons.Button` is `Button`, and `Stats.Stat.Label`
+        // is a part of `Stat` (#1480).
+        const { record: owner, focus } = await focusOn(named, component);
+        const own = focus?.part?.component;
+        const record = own && hasEntry(own) ? await loadComponent(own) : owner;
         const vars = query
           ? record.cssVars.filter(v =>
               v.css.toLowerCase().includes(query.toLowerCase())
@@ -817,11 +823,22 @@ export async function createServer(
           );
         }
         const documented = await documentedExport(component);
+        const lead = [
+          documented &&
+            `\`${documented.name}\` is documented with \`${record.name}\`, ` +
+              `whose variables these are.`,
+          focus?.part && record !== owner
+            ? `\`${focus.asked ?? focus.part.path}\` is \`${record.name}\`.`
+            : focus?.asked &&
+              throughLine(focus.asked, focus.part?.path ?? focus.wanted),
+          record !== named &&
+            named.cssVars.length > 0 &&
+            `\`${named.name}\`'s own variables are in ` +
+              `\`get_css_variables({ component: "${named.name}" })\`.`,
+        ].filter(Boolean);
         return textResult(
-          (documented
-            ? `\`${documented.name}\` is documented with \`${record.name}\`, ` +
-              `whose variables these are.\n\n`
-            : '') + renderCssVarsAnswer(record, vars, query),
+          (lead.length ? `${lead.join(' ')}\n\n` : '') +
+            renderCssVarsAnswer(record, vars, query),
           note()
         );
       }
