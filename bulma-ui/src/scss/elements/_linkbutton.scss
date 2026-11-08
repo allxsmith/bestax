@@ -75,16 +75,3 @@ $link-button-ghost-hover-color: cv.getVar("text-strong") !default;
     }
   }
 }
-
-// Not nested under .link-button: a ghost Button has no link-button class.
-.#{iv.$class-prefix}button.#{iv.$class-prefix}is-ghost:focus-visible,
-.#{iv.$class-prefix}button.#{iv.$class-prefix}is-ghost.#{iv.$class-prefix}is-focused {
-  outline-color: hsl(
-    cv.getVar("focus-h"),
-    cv.getVar("focus-s"),
-    cv.getVar("focus-l")
-  );
-  outline-offset: cv.getVar("focus-offset");
-  outline-style: cv.getVar("focus-style");
-  outline-width: cv.getVar("focus-width");
-}

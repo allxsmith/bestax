@@ -1,0 +1,47 @@
+// Bestax Extras - Button Styles
+// Bulma's control mixin sets `outline: none` on a focused button and shows
+// focus through the button's border color and a box-shadow instead. Where
+// those show nothing, these give the button Bulma's focus outline, in its
+// focus color, style, width and offset:
+//
+// - A ghost button, which Bulma draws with no border and no shadow, so it
+//   shows no focus at all. This one applies outside forced colors too.
+// - Every button in forced colors (Windows' contrast themes), which drops the
+//   shadow and forces the border's color, so a focused button can look just
+//   like an unfocused one there. A ghost button matches both rules there,
+//   and they draw the same outline.
+//
+// `.is-focused` is the class `isFocused` sets, so it gets the outline too.
+// The ghost rule doesn't ask for LinkButton's class, since a ghost Button has
+// none.
+//
+// Bulma's CSS can land on either side of this partial, as `_loader.scss`
+// says, so each selector outranks the mixin's rules by its classes: the
+// ghost rule has three to Bulma's two, and the forced colors rule names
+// `.button` twice, as `_delete.scss` does.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+@mixin -focus-outline {
+  outline-color: hsl(
+    cv.getVar('focus-h'),
+    cv.getVar('focus-s'),
+    cv.getVar('focus-l')
+  );
+  outline-offset: cv.getVar('focus-offset');
+  outline-style: cv.getVar('focus-style');
+  outline-width: cv.getVar('focus-width');
+}
+
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-ghost:focus-visible,
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-ghost.#{iv.$class-prefix}is-focused {
+  @include -focus-outline;
+}
+
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}button:focus-visible,
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}button.#{iv.$class-prefix}is-focused {
+    @include -focus-outline;
+  }
+}
