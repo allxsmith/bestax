@@ -82,7 +82,8 @@ const FORCED = '@media (forced-colors: active)';
 
 const GHOST_FOCUS =
   '.button.is-ghost:focus-visible, .button.is-ghost.is-focused';
-const FORCED_FOCUS = '.button.button:focus-visible, .button.button.is-focused';
+const FORCED_FOCUS =
+  '.button.button:not(.is-loading):focus-visible, .button.button:not(.is-loading).is-focused';
 
 /** Bulma's focus outline, in its focus color, style, width and offset. */
 const FOCUS_OUTLINE = {
@@ -104,10 +105,10 @@ function find(rules: Rule[], selector: string, context: string[] = []) {
 
 /**
  * A compound selector's weight in classes and pseudo-classes, which is all
- * these selectors are made of.
+ * these selectors are made of. `:not()` weighs what it holds.
  */
 const weight = (selector: string) =>
-  (selector.match(/\.[\w-]+|:[\w-]+/g) ?? []).length;
+  (selector.replace(/:not\(/g, '(').match(/\.[\w-]+|:[\w-]+/g) ?? []).length;
 
 /** Whether a selector is the keyboard or forced focus state these draw. */
 const focused = (selector: string) =>
@@ -121,7 +122,7 @@ const focused = (selector: string) =>
 const matchesClasses = (element: Element, selectors: string) =>
   selectors
     .split(', ')
-    .every(part => element.matches(part.replace(/:[\w-]+/g, '')));
+    .every(part => element.matches(part.replace(/:focus-visible/g, '')));
 
 describe('Button focus outline', () => {
   it("draws Bulma's focus outline on a focused ghost button", () => {
@@ -171,6 +172,19 @@ describe('Button focus outline', () => {
       const button = getByRole('button', { name });
       expect(button).toHaveClass('is-focused');
       expect(matchesClasses(button, FORCED_FOCUS)).toBe(true);
+    }
+  });
+
+  it('leaves a loading button to the loader, which rings it in system colors', () => {
+    const { getByRole } = render(
+      <Button isLoading isFocused>
+        Saving
+      </Button>
+    );
+    const button = getByRole('button', { name: 'Saving' });
+    expect(button).toHaveClass('is-loading', 'is-focused');
+    for (const part of FORCED_FOCUS.split(', ')) {
+      expect(button.matches(part.replace(/:focus-visible/g, ''))).toBe(false);
     }
   });
 

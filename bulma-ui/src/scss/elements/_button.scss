@@ -9,7 +9,9 @@
 // - Every button in forced colors (Windows' contrast themes), which drops the
 //   shadow and forces the border's color, so a focused button can look just
 //   like an unfocused one there. A ghost button matches both rules there,
-//   and they draw the same outline.
+//   and they draw the same outline. A loading button is left to
+//   `_loader.scss`, which turns forcing off on it and rings it in the
+//   system's colors.
 //
 // `.is-focused` is the class `isFocused` sets, so it gets the outline too.
 // The ghost rule doesn't ask for LinkButton's class, since a ghost Button has
@@ -40,8 +42,8 @@
 }
 
 @media (forced-colors: active) {
-  .#{iv.$class-prefix}button.#{iv.$class-prefix}button:focus-visible,
-  .#{iv.$class-prefix}button.#{iv.$class-prefix}button.#{iv.$class-prefix}is-focused {
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}button:not(.#{iv.$class-prefix}is-loading):focus-visible,
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}button:not(.#{iv.$class-prefix}is-loading).#{iv.$class-prefix}is-focused {
     @include -focus-outline;
   }
 }
