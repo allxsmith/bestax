@@ -1385,6 +1385,39 @@ describe('plan', () => {
       }
     });
 
+    it("makes an item's is-active active only beside an aria-current of its own", () => {
+      // `active` writes aria-current="page" unless the item has its own.
+      // Without one the class stays a class, which renders the same.
+      expect(
+        plan(facts('a', 'navbar-item is-active', { 'aria-current': 'page' }))
+      ).toMatchObject({
+        conversion: { props: [['active', true]], className: null },
+        todos: [],
+      });
+      expect(plan(facts('a', 'navbar-item is-active'))).toMatchObject({
+        conversion: { props: [], className: 'is-active' },
+        todos: [],
+      });
+      // A `.has-dropdown` container too, where the class opens the dropdown.
+      expect(
+        plan(facts('div', 'navbar-item has-dropdown is-active')).conversion
+      ).toMatchObject({
+        props: [['as', 'div']],
+        className: 'has-dropdown is-active',
+      });
+      // Under a condition too: without one, it stays in the call.
+      const conditional = (attributes: Record<string, string>) =>
+        plan(
+          facts('a', 'navbar-item', attributes, {
+            conditional: [['is-active']],
+          })
+        ).conversion?.conditional;
+      expect(conditional({ 'aria-current': 'page' })).toEqual([
+        ['active', 'is-active'],
+      ]);
+      expect(conditional({})).toBeUndefined();
+    });
+
     it('leaves the burger and the dropdown trigger to a person', () => {
       expect(plan(facts('a', 'navbar-burger')).todos.map(t => t.rule)).toEqual([
         'family:navbar-burger',
