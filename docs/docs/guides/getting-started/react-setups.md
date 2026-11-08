@@ -902,13 +902,15 @@ Three things to know:
   `UnorderedList.Item`. The dotted names still work inside a client component, a file that
   starts with `'use client'`.
 
-- Some components lay out their parts by checking which part each child is, and that check
-  can't recognize a part written in a Server Component. Compose these inside a client component:
-  `Card` and `Modal` built from their parts, `Tabs` with `Tabs.Content`, a `Menu.Item` holding a
-  nested `Menu.List`, a horizontal `Field` with `Field.Label` and `Field.Body`, and `Splitter`.
-  Their parts have named exports too (`CardHeader`, `ModalCard`), which a client component can
-  use in place of the dotted names. A `Card` set up through its props (`header`, `image`,
-  `footer`) renders from a Server Component as it does anywhere.
+- Some components check which part each child is, and that check can't recognize a part written
+  in a Server Component. Compose these inside a client component: `Card` and `Modal` built from
+  their parts, `Tabs` with `Tabs.Content`, a `Menu.Item` holding a nested `Menu.List`, a
+  horizontal `Field` with `Field.Label` and `Field.Body`, `Splitter`, a `Stat` built from its
+  parts, an `AppFrame` whose `AppFrame.Main` or `AppFrame.Nav` has an `id` of its own, and an
+  `IconButton` with an `Icon` child. Their parts have named exports too (`CardHeader`,
+  `ModalCard`), which a client component can use in place of the dotted names. A `Card` set up
+  through its props (`header`, `image`, `footer`) renders from a Server Component as it does
+  anywhere, and so does an `IconButton` whose `icon` prop is a name (`icon="star"`).
 
 - A Server Component can only pass a client component props React can send from the server, and a
   function isn't one. So an event handler (`<Button onClick={...}>`) or `ClientOnly`'s render
