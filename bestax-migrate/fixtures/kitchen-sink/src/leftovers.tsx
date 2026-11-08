@@ -74,6 +74,14 @@ export function Leftovers() {
       />
       {/* Bulma v1 has no rule for the `.heading` label this rendered */}
       <Heading heading>Stats</Heading>
+      {/* The label's element and weight, which the codemod can't read */}
+      <Heading
+        heading
+        renderAs={choice === 'a' ? 'h2' : 'h3'}
+        weight={choice === 'a' ? 'bold' : 'light'}
+      >
+        Dynamic label
+      </Heading>
       <Heading subtitle={choice === 'a'}>Dynamic subtitle</Heading>
       <Heading heading={choice === 'a'}>Dynamic heading</Heading>
       {/* bestax's Title renders the heading its size names, and this one is unreadable */}

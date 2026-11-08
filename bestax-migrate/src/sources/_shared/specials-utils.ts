@@ -305,9 +305,10 @@ export function applyIconProps(
 }
 
 /**
- * Turn a literal modifier prop into an `is-*` class fragment for an element
- * on its way to becoming plain HTML. Returns the class (or undefined) and
- * always removes the attribute.
+ * Turn a literal modifier prop into an `is-*` class fragment (or another
+ * `prefix`'s, such as `has-text-weight-`) for an element on its way to
+ * becoming plain HTML. Returns `base` with the class added, and always
+ * removes the attribute.
  */
 export function modifierClass(
   ctx: TransformContext,
@@ -315,20 +316,21 @@ export function modifierClass(
   element: any,
   prop: string,
   base: string,
-  where: string
+  where: string,
+  prefix = 'is-'
 ): string {
   const attr = findAttr(element, prop);
   if (!attr) return base;
   const literal = literalValueOf(attr);
   removeAttr(element, attr);
   if (literal.kind === 'string' || literal.kind === 'number') {
-    return `${base} is-${literal.value}`;
+    return `${base} ${prefix}${literal.value}`;
   }
   addTodo(
     ctx,
     path,
     `prop:${prop}`,
-    `dynamic ${where} \`${prop}\`; add the matching is-* class by hand`
+    `dynamic ${where} \`${prop}\`; add the matching ${prefix}* class by hand`
   );
   return base;
 }
@@ -529,6 +531,35 @@ export function dropLinkAttrsForPlainTag(
     );
     ctx.dirty = true;
   }
+}
+
+/**
+ * The tag a plain-element rewrite writes: the literal tag the source's own
+ * element prop names (bloomer's `tag`, rbx's `as`, react-bulma-components'
+ * `renderAs`), or the one the source rendered by default. The prop is always
+ * removed; a value the codemod can't read keeps the default and gets a TODO.
+ */
+export function plainTag(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  element: any,
+  prop: string,
+  fallback: string,
+  where: string
+): string {
+  const attr = findAttr(element, prop);
+  if (!attr) return fallback;
+  const literal = literalValueOf(attr);
+  removeAttr(element, attr);
+  ctx.dirty = true;
+  if (literal.kind === 'string') return literal.value;
+  addTodo(
+    ctx,
+    path,
+    `prop:${prop}`,
+    `dynamic ${where} \`${prop}\`; it became a plain <${fallback}> — render the tag yourself`
+  );
+  return fallback;
 }
 
 /**
