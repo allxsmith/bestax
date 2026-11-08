@@ -154,6 +154,12 @@ $dateinput-cell-range-preview-bg: color-mix(
     opacity: 0.4;
     cursor: not-allowed;
   }
+
+  // The row reverses right to left, so the glyph has to as well: previous
+  // month points at the inline start.
+  svg:dir(rtl) {
+    transform: scaleX(-1);
+  }
 }
 
 // The day names and each week of the grid lay out in seven columns. The

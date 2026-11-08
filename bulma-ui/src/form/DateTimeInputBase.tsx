@@ -168,7 +168,13 @@ export interface DateTimeInputBaseProps
   openOnFocus?: boolean;
   /** Off by default — users typically tweak both halves before committing. */
   closeOnSelect?: boolean;
-  /** Popover anchor position. */
+  /**
+   * Where the popover opens against the field. Left out, it opens below and
+   * lines up with the field's start edge, which is its right edge when the
+   * picker reads right to left. A corner you pass stays physical, so
+   * `bottom-left` lines up the left edges either way.
+   * @defaultValue 'bottom-left'
+   */
   position?: PickerPosition;
   /**
    * Render the popover through a portal, into the `portalContainer` a
@@ -286,7 +292,7 @@ export const DateTimeInputBase = forwardRef<
     popover = true,
     openOnFocus = true,
     closeOnSelect = false,
-    position = 'bottom-left',
+    position,
     appendToBody = false,
     color,
     size,

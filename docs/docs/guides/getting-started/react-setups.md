@@ -879,17 +879,42 @@ from the root layout, and a class prefix or icon library set there reaches every
 
 Three things to know:
 
-- A Server Component can't reach a component's parts through a dot. `Navbar.Item` comes out
-  `undefined` there, which is React's rule for client modules. Use the part's own export,
-  `NavbarItem`, or render the component inside a client component, a file that starts with
-  `'use client'`, where `Navbar.Item` works as it does everywhere else.
+- A Server Component can't reach a component's parts through a dot. `Figure.Caption` comes out
+  `undefined` there, which is React's rule for client modules. Import the part by name instead.
+  It's the same component as the dotted name.
+
+  ```tsx
+  import { Figure, FigureCaption, Image } from '@allxsmith/bestax-bulma';
+
+  export default function Page() {
+    return (
+      <Figure>
+        <Image src="/chart.png" alt="Sign-ups by month" />
+        <FigureCaption>Sign-ups by month</FigureCaption>
+      </Figure>
+    );
+  }
+  ```
+
+  Sidebar's parts work the same way (`SidebarHeader`, `SidebarTitle`, `SidebarClose`,
+  `SidebarBody`, `SidebarFooter`), and so do Navbar's (`NavbarItem`, `NavbarBrand`, and the
+  rest), `SegmentedControlSegment`, and `ListItem`, which is `OrderedList.Item` and
+  `UnorderedList.Item`. The dotted names still work inside a client component, a file that
+  starts with `'use client'`.
+
+- Some components check which part each child is, and that check can't recognize a part written
+  in a Server Component. Compose these inside a client component: `Card` and `Modal` built from
+  their parts, `Tabs` with `Tabs.Content`, a `Menu.Item` holding a nested `Menu.List`, a
+  horizontal `Field` with `Field.Label` and `Field.Body`, `Splitter`, a `Stat` built from its
+  parts, an `AppFrame` whose `AppFrame.Main` or `AppFrame.Nav` has an `id` of its own, and an
+  `IconButton` with an `Icon` child. Their parts have named exports too (`CardHeader`,
+  `ModalCard`), which a client component can use in place of the dotted names. A `Card` set up
+  through its props (`header`, `image`, `footer`) renders from a Server Component as it does
+  anywhere, and so does an `IconButton` whose `icon` prop is a name (`icon="star"`).
+
 - A Server Component can only pass a client component props React can send from the server, and a
   function isn't one. So an event handler (`<Button onClick={...}>`) or `ClientOnly`'s render
   function child goes in a client component, the same as anything that keeps state.
-- `Card`, `Modal`, `Sidebar`, `Message` and `Figure`, and the list components' items, have no
-  export of their own for their parts yet
-  ([#1356](https://github.com/allxsmith/bestax/issues/1356)), so use them inside a client
-  component.
 
 The example pages above start with `'use client'` because they use `useState`, not because of
 bestax-bulma.

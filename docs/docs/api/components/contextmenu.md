@@ -365,8 +365,10 @@ selector that has both of its classes. Its own variables, listed under
 ### Compound (dot-notation) usage
 
 `ContextMenu.Item` and `ContextMenu.Divider` are `Dropdown.Item` and `Dropdown.Divider`, the same
-components, so items written for a `Dropdown` work in a `ContextMenu` unchanged and the whole menu
-comes from the one import.
+components, exported as `DropdownItem` and `DropdownDivider`. Items written for a `Dropdown` work
+in a `ContextMenu` unchanged, and the whole menu comes from the one import. A Next.js Server
+Component imports `DropdownItem` and `DropdownDivider`, because the dotted names are `undefined`
+there.
 
 ```tsx live
 <ContextMenu

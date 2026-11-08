@@ -125,9 +125,10 @@ Notes:
   @use '@allxsmith/bestax-bulma/scss/components/tableofcontents'; // TableOfContents only
   ```
 
-- The `pagination` partial **extends** stock Bulma pagination (it keeps the current page marked
-  in forced colors, where Bulma's colors for it are replaced), so an app using `Pagination`, or a
-  `DataTable` with pages, whose pager is one, needs both, in either order:
+- The `pagination` partial **extends** stock Bulma pagination (the links' keyboard focus ring,
+  which Bulma's own styles turn off, and the current page marked in forced colors, where Bulma's
+  colors for it are replaced), so an app using `Pagination`, or a `DataTable` with pages, whose
+  pager is one, needs both, in either order:
 
   ```scss
   @use 'bulma/sass/components/pagination';

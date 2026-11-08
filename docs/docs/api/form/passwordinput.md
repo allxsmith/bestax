@@ -16,7 +16,7 @@ The `PasswordInput` component is a password field with a button inside it that s
 
 Reach for it on a sign-in form, a sign-up or change-password form, or a field for an API secret, a Wi-Fi key or anything else people type blind. Seeing what you typed helps anyone who has trouble typing accurately, and WCAG's [Accessible Authentication](https://www.w3.org/WAI/WCAG22/Understanding/accessible-authentication-minimum.html) and NIST's [SP 800-63B](https://pages.nist.gov/800-63-4/sp800-63b.html) both point to it.
 
-The button sits inside the field at its right edge, where the date pickers' launcher sits. By default it's an eye named "Show password" that reports whether it's on; `variant="text"` makes it the words "Show" and "Hide". The field also asks the browser for the right things: `autocomplete="current-password"`, no spellcheck, no autocorrect and no automatic capitals, and it hides the password again when its form submits.
+The button sits inside the field at its right edge, where the date pickers' launcher sits on a left-to-right page. By default it's an eye named "Show password" that reports whether it's on; `variant="text"` makes it the words "Show" and "Hide". The field also asks the browser for the right things: `autocomplete="current-password"`, no spellcheck, no autocorrect and no automatic capitals, and it hides the password again when its form submits.
 
 :::info
 Bulma's control icons take no clicks, so `PasswordInput` brings a few lines of its own styles, in `bestax.css` and its variants, or in `extras.css` next to your own Bulma.
@@ -215,7 +215,7 @@ function StrengthRecipe() {
 
 ### Right to Left
 
-The button stays at the right edge in a right-to-left page, as the date pickers' launcher and Bulma's right icon do, so there it sits where the text starts. Moving all of them to the end of the line is a separate change.
+The button stays at the physical right in a right-to-left page, as Bulma's right icon does, so there it sits where the text starts. The date and time pickers' launcher moves to the end of the line instead. Moving this button with them is a separate change.
 
 ```tsx live
 <LocaleProvider locale="ar" dir="rtl">

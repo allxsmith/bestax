@@ -323,3 +323,22 @@ $tooltip-large-arrow-size: 7px !default;
     )
   );
 }
+
+// Forced colors turns the box's background into the page's and paints every
+// side of the arrow. An outline, not a border, so the tooltip doesn't grow.
+// Only the arrow opts out, so its transparent sides stay transparent and the
+// side that points takes the system's text color.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}tooltip-content {
+    outline: 1px solid CanvasText;
+  }
+
+  .#{iv.$class-prefix}tooltip-content::before {
+    forced-color-adjust: none;
+    @include cv.register-vars(
+      (
+        "tooltip-background": CanvasText,
+      )
+    );
+  }
+}

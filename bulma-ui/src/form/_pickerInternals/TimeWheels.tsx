@@ -997,9 +997,13 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
   };
 
   return (
+    // A time reads left to right in the locales that mirror the page, the
+    // same as PinInput's boxes. Otherwise the wheels reverse and 10:30
+    // reads 30 : 10.
     <div
       id={id}
       className={classNames(rootClass, className)}
+      dir="ltr"
       aria-disabled={disabled}
     >
       <div
