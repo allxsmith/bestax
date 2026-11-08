@@ -155,7 +155,7 @@
           "name": "inline",
           "type": "boolean",
           "default": "false",
-          "description": "Renders inline instead of using a portal.",
+          "description": "Renders inline instead of using a portal. Without it, the sidebar renders inline on the server and while hydrating, moving into the portal once the client takes over, so hydration matches.",
           "required": false,
           "inherited": false,
           "deprecated": false
