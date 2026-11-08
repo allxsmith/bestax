@@ -505,27 +505,22 @@ describe('Slider', () => {
       );
     });
 
-    it('places the 0 and 100 marks from the inline start, on either direction', () => {
+    it('places the 0 and 100 marks from the inline start', () => {
+      // Left to right that is the left edge. Slider.styles.test.tsx checks
+      // the right-to-left side, which needs the stylesheet.
       const marks = [
         { value: 0, label: '0' },
         { value: 100, label: '100' },
       ];
-      const { container, rerender } = render(<Slider marks={marks} />);
-      const at = () =>
-        [...container.querySelectorAll('.slider-tick')].map(
-          tick => (tick as HTMLElement).style.insetInlineStart
-        );
-      // One property for both directions. Left to right it is the left edge.
-      expect(at()).toEqual(['0%', '100%']);
-      rerender(
-        <div dir="rtl">
-          <Slider marks={marks} />
-        </div>
+      const { container } = render(<Slider marks={marks} />);
+      const ticks = [...container.querySelectorAll('.slider-tick')].map(
+        tick => (tick as HTMLElement).style
       );
-      expect(at()).toEqual(['0%', '100%']);
-      expect(
-        (container.querySelector('.slider-tick') as HTMLElement).style.left
-      ).toBe('');
+      expect(ticks.map(style => style.insetInlineStart)).toEqual([
+        '0%',
+        '100%',
+      ]);
+      expect(ticks.map(style => style.left)).toEqual(['', '']);
     });
 
     it('marks take precedence over ticks', () => {

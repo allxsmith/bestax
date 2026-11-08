@@ -210,15 +210,20 @@ describe('PasswordInput styles', () => {
         'inset-inline-start': '0',
       });
     }
-    // A plain Control's icon is not in this sheet.
-    expect(
-      PICKERS.some(
-        r =>
-          r.selector.includes('inset-inline-start') &&
-          !r.selector.includes('container') &&
-          !r.selector.includes('picker-popover')
-      )
-    ).toBe(false);
+    // A plain Control's icon and input stay where Bulma puts them: each rule
+    // here that moves something to the inline start reaches it through a
+    // picker's container.
+    const inlineStart = PICKERS.filter(
+      r =>
+        'inset-inline-start' in r.declarations ||
+        'padding-inline-start' in r.declarations
+    );
+    expect(inlineStart.length).toBeGreaterThan(0);
+    for (const rule of inlineStart) {
+      expect(rule.selector).toMatch(
+        /^\.control\.has-icons-left > \.(date|time|datetime)input-container /
+      );
+    }
   });
 
   it('widens the toggle and the room for it with the text variant', () => {
