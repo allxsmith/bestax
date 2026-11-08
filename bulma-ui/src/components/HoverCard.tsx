@@ -95,7 +95,11 @@ export interface HoverCardProps
    */
   closeDelay?: number;
   /**
-   * Where the card opens against the trigger.
+   * Where the card opens against the trigger. Left out, it opens below and
+   * lines up with the trigger's start edge, which is its right edge on a
+   * right-to-left page, so a trigger at the start of the line doesn't push
+   * the card off the screen. A corner you pass stays physical, so
+   * `bottom-left` lines up the left edges on either page.
    * @defaultValue 'bottom-left'
    */
   position?: HoverCardPosition;
@@ -163,7 +167,7 @@ export const HoverCard: React.FC<HoverCardProps> = ({
   onOpenChange,
   openDelay = 600,
   closeDelay = 300,
-  position = 'bottom-left',
+  position,
   appendToBody = false,
   openOnTap = false,
   className,
@@ -274,6 +278,9 @@ export const HoverCard: React.FC<HoverCardProps> = ({
   const cardClasses = classNames(
     usePrefixedClassNames('hover-card-content', {
       [`is-${resolved.position}`]: true,
+      // The default lines up with the trigger's inline start, so the
+      // stylesheet moves it to the right edge on a right-to-left page.
+      'is-start-aligned': position === undefined,
       'is-portal': appendToBody,
     }),
     contentClassName
