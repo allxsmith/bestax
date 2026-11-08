@@ -548,9 +548,17 @@ describe('PickerPopover position resolution', () => {
     });
   };
 
+  // A scroll or resize places the panel again in the next frame.
+  beforeEach(() => {
+    vi.useFakeTimers({
+      toFake: ['requestAnimationFrame', 'cancelAnimationFrame'],
+    });
+  });
+
   afterEach(() => {
     setViewport(originalInnerWidth, originalInnerHeight);
     vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   const makeRect = (r: {
@@ -601,7 +609,8 @@ describe('PickerPopover position resolution', () => {
 
   /**
    * Renders the harness, mocks the anchor + panel rects, then fires a window
-   * resize so updatePosition re-runs against the mocked measurements.
+   * resize and runs the frame it asks for, so the panel is measured again
+   * against the mocked rects.
    */
   const renderWithRects = (
     ui: React.ReactElement,
@@ -622,6 +631,7 @@ describe('PickerPopover position resolution', () => {
     );
     act(() => {
       fireEvent(window, new Event('resize'));
+      vi.advanceTimersToNextFrame();
     });
     return result;
   };
@@ -866,6 +876,7 @@ describe('PickerPopover position resolution', () => {
     );
     act(() => {
       fireEvent(window, new Event('resize'));
+      vi.advanceTimersToNextFrame();
     });
     // 690 + 300 fits the 1000px viewport, but not with the 20px gap as well.
     expect(dialog.className).toMatch(/is-top-left/);
@@ -888,6 +899,7 @@ describe('PickerPopover position resolution', () => {
     );
     act(() => {
       fireEvent(window, new Event('resize'));
+      vi.advanceTimersToNextFrame();
     });
     // 680 + 300 + 20 fills the 1000px viewport exactly.
     expect(dialog.className).toMatch(/is-bottom-left/);
@@ -922,6 +934,7 @@ describe('PickerPopover position resolution', () => {
     );
     act(() => {
       fireEvent.scroll(window);
+      vi.advanceTimersToNextFrame();
     });
     expect(dialog.className).toMatch(/is-top-right/);
     expect(dialog.style.top).toBe('580px');
