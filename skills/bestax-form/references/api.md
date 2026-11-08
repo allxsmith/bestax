@@ -82,8 +82,9 @@ password. It takes everything `Input` does except `type` and the right-icon prop
 (`iconRight`, `iconRightName`, `iconRightSize`, `hasIconsRight`), which draw nothing and warn in
 development, since the button has that edge. `PasswordInputBase` is the input and its button
 without the `Field` and `Control`. On both, helper props, `className` and `style` go on the
-`.password-input-container` `<div>` that holds the input and its button; `ref` and the other
-attributes go on the `<input>`.
+`.password-input-container` `<div>` that holds the input and its button; the background and text
+helpers (`backgroundColor`, `textWeight`, `fontFamily`, …), `ref` and the other attributes go on
+the `<input>`.
 
 | Prop                                            | Type                                             | Notes                                                                                                                                                                |
 | ----------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -182,6 +183,11 @@ them with no wiring.
 variants. Field/Control composition like the other convenience inputs, with picker UIs (native
 with custom fallback). An `inline` picker renders no `Control` anywhere, so leave its
 Control-level props out: they do nothing there and warn in development.
+
+Their helper props go on the picker's container, so a margin or a width moves the field and its
+launcher together. The background helpers style the field itself, and the text helpers style the
+field and the popover, so `backgroundColor`, `textWeight` or `fontFamily` work on a picker as they
+do on `Input`.
 
 Every one of them has a launcher button at the inline end (`triggerIcon`), the right edge on a
 left-to-right page and the left edge on a right-to-left one. The calendar or clock icon sits at
@@ -286,7 +292,8 @@ for none, so `required` works), a swatch, and a launcher that opens the same squ
 `alpha`, `swatches` and `eyeDropper` in the pickers' popover. It opens on the launcher, the
 swatch or Alt+ArrowDown; `openOnFocus` and `closeOnSwatchClick` are opt-in. It takes the same
 `value`/`onChange`/`onChangeEnd`/`format`, the Field props, `isLoading`, and `Input`'s
-`color`/`size`/`isRounded`. `ColorInputBase` is the field without Field and Control.
+`color`/`size`/`isRounded`. `ColorInputBase` is the field without Field and Control. Their
+helper props place as the date pickers' do.
 
 ## Validation-related props (no library)
 

@@ -409,7 +409,7 @@
         }
       ],
       "catchAll": "All standard <input> attributes and Bulma helper props",
-      "helperPropsNote": "Helper props go on the `.colorinput` `<div>`, with `className`. The other attributes go on the text `<input>`.",
+      "helperPropsNote": "Helper props go on the `.colorinput` `<div>`, with `className`, except that the background helpers go on the text `<input>`, and the text helpers on both, since Bulma's `.input` sets its own background and font, and the popover inside the `<div>` takes the text ones. The other attributes go on the `<input>`.",
       "types": []
     },
     {
@@ -664,7 +664,7 @@
         }
       ],
       "catchAll": "All standard <input> attributes and Bulma helper props",
-      "helperPropsNote": "Helper props go on the `.colorinput` `<div>`, with `className`. The other attributes go on the text `<input>`.",
+      "helperPropsNote": "Helper props go on the `.colorinput` `<div>`, with `className`, except that the background helpers go on the text `<input>`, and the text helpers on both, since Bulma's `.input` sets its own background and font, and the popover inside the `<div>` takes the text ones. The other attributes go on the `<input>`.",
       "types": [],
       "standalone": "base"
     }
