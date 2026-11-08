@@ -118,8 +118,9 @@ describe('Carousel stylesheet', () => {
     expect(css).toContain(
       'inset-inline-start: var(--bulma-carousel-arrow-offset-mobile)'
     );
-    expect(css).toContain('svg:dir(rtl)');
+    expect(css).toContain('.carousel-arrow > svg:dir(rtl)');
     expect(css).toContain('scaleX(-1)');
+    expect(css).not.toContain('.icon:dir(rtl)');
     expect(css).not.toContain('left: var(--bulma-carousel-arrow-offset)');
   });
 

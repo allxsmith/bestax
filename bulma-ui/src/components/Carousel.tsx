@@ -234,9 +234,17 @@ export interface CarouselProps
   indicatorPosition?: 'bottom' | 'top';
   /** Indicator style. Default: 'dots'. */
   indicatorStyle?: 'circles' | 'dots' | 'lines' | 'bars';
-  /** Icon name for the previous arrow button. */
+  /**
+   * Icon name for the previous arrow button. On a right-to-left page that
+   * button sits on the right and the built-in chevron flips to point there,
+   * but an icon you name is drawn as given, so pick one that points the way
+   * the page reads.
+   */
   iconPrev?: string;
-  /** Icon name for the next arrow button. */
+  /**
+   * Icon name for the next arrow button. On a right-to-left page it sits on
+   * the left, and an icon you name is drawn as given, as with `iconPrev`.
+   */
   iconNext?: string;
   /** Icon library to use. */
   iconLibrary?: IconLibrary;

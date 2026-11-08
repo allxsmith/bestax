@@ -345,8 +345,10 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
     }
 
     // Previous sits on the inline start, so its chevron points that way.
-    svg:dir(rtl),
-    .#{iv.$class-prefix}icon:dir(rtl) {
+    // Only the built-in chevron, the button's own svg: an `iconPrev` or
+    // `iconNext` is the caller's to point, and an svg inside its `.icon`, as
+    // Font Awesome's SVG mode renders, would flip twice under a broader rule.
+    > svg:dir(rtl) {
       transform: scaleX(-1);
     }
 

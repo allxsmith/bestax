@@ -2089,4 +2089,38 @@ describe('Carousel right-to-left styles', () => {
     expect(sign(outer)).toBe('1');
     expect(sign(inner)).toBe('-1');
   });
+
+  const flip = (el: Element) => getComputedStyle(el).transform;
+
+  it('flips the built-in chevrons right to left, and not left to right', () => {
+    const { container } = render(
+      <>
+        <div dir="rtl">
+          <TestCarousel />
+        </div>
+        <div dir="ltr">
+          <TestCarousel />
+        </div>
+      </>
+    );
+    const [rtlPrev, rtlNext, ltrPrev] = Array.from(
+      container.querySelectorAll('.carousel-arrow > svg')
+    );
+    expect(flip(rtlPrev)).toBe('scaleX(-1)');
+    expect(flip(rtlNext)).toBe('scaleX(-1)');
+    expect(flip(ltrPrev)).not.toBe('scaleX(-1)');
+  });
+
+  it("leaves a caller's icon as given right to left, svg and all", () => {
+    const { container } = render(
+      <div dir="rtl">
+        <TestCarousel iconPrev="arrow-right" iconNext="arrow-left" />
+      </div>
+    );
+    const icon = container.querySelector('.carousel-arrow.is-prev .icon')!;
+    // Font Awesome's SVG mode swaps the `<i>` for an `<svg>` in the span.
+    icon.innerHTML = '<svg viewBox="0 0 10 10"></svg>';
+    expect(flip(icon)).not.toBe('scaleX(-1)');
+    expect(flip(icon.querySelector('svg')!)).not.toBe('scaleX(-1)');
+  });
 });

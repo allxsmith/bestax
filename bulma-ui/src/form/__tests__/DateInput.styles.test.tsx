@@ -109,11 +109,28 @@ describe.each(pickers)('%s calendar colour styles', (_name, picker) => {
 });
 
 describe('calendar month chevrons', () => {
+  const flipped = (el: Element) =>
+    getComputedStyle(el).transform === 'scaleX(-1)';
+
   it('mirrors the glyphs right to left and leaves them alone left to right', () => {
-    expect(dateinputCss).toMatch(
-      /\.dateinput-nav-prev svg:dir\(rtl\),\s*\.dateinput-nav-next svg:dir\(rtl\)/
+    const { container } = render(
+      <>
+        <div dir="rtl">
+          <DateInput inline />
+        </div>
+        <div dir="ltr">
+          <DateInput inline />
+        </div>
+      </>
     );
-    expect(dateinputCss).toContain('transform: scaleX(-1)');
+    const [rtl, ltr] = Array.from(container.children);
+    for (const nav of ['.dateinput-nav-prev', '.dateinput-nav-next']) {
+      const button = rtl.querySelector(nav)!;
+      // Once: the glyph turns, and the button around it doesn't.
+      expect(flipped(button.querySelector('svg')!)).toBe(true);
+      expect(flipped(button)).toBe(false);
+      expect(flipped(ltr.querySelector(`${nav} svg`)!)).toBe(false);
+    }
     // The month label's caret points down. It is not one of these.
     expect(dateinputCss).not.toContain('.dateinput-month-caret:dir(rtl)');
   });
