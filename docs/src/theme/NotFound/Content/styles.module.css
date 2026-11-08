@@ -95,6 +95,11 @@
   background: var(--ifm-color-emphasis-100);
 }
 
+/* Outranks the dark-mode border, so a hovered card still turns the primary color. */
+[data-theme='dark'] .card:hover {
+  border-color: var(--ifm-color-primary);
+}
+
 .cardLabel {
   font-size: 1.05rem;
   font-weight: 700;

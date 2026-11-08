@@ -1,3 +1,5 @@
+// This overrides only the Content piece of @theme/NotFound. Docusaurus
+// passes it nothing but an optional className.
 import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import useBaseUrl from '@docusaurus/useBaseUrl';
