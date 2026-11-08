@@ -86,9 +86,9 @@ Some partials change a stock component rather than add one (`elements/_button.sc
   after Bulma, so match Bulma's selector and add one class or ancestor (`.button.button`,
   `.pagination .pagination-link`), and test both load orders.
 - **Check every case the selector reaches.** A loop over Bulma's `$colors` also reaches `text`,
-  which is every `LinkButton`. A rule for one state can erase another state's only cue: a border
-  at rest in forced colors is the same border Bulma draws for focus. List the variants, sizes and
-  states the rule touches, and check each.
+  which `LinkButton` uses by default. A rule for one state can erase another state's only cue: a
+  border at rest in forced colors is the same border Bulma draws for focus. List the variants,
+  sizes and states the rule touches, and check each.
 - **Forced colors:** scope the rule to `@media (forced-colors: active)`, paint with system colors
   (`CanvasText`, `ButtonText`), and put `forced-color-adjust: none` only on the smallest element
   that needs it, so everything else keeps the user's palette.
