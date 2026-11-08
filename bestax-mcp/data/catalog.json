@@ -535,7 +535,7 @@
       "import": "import { ContextMenu } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 10,
-      "exampleCount": 9
+      "exampleCount": 8
     },
     {
       "name": "Control",
