@@ -185,8 +185,11 @@ Control-level props out: they do nothing there and warn in development.
 
 Every one of them has a launcher button at the inline end (`triggerIcon`), the right edge on a
 left-to-right page and the left edge on a right-to-left one. The calendar or clock icon sits at
-the inline start. The launcher gives way to the loading spinner of the `Control` they sit in,
-which shares that edge. A convenience input sits in the
+the inline start. A picker with its own `locale` or `dir` gives the `Control` it renders the same
+`dir`, so the two stay apart; inside your own `Control`, set that `dir` on it. With no `position`
+the popover lines up with the field's start edge, its right edge right to left, and a `position`
+you pass stays physical. The launcher gives way to the loading spinner of the `Control` they sit
+in, which shares that edge. A convenience input sits in the
 `Control` it renders for its own `isLoading`, unless it is inside your own `Control`; a `*Base`
 variant only ever sits in yours. Inside your own `Control`, put `isLoading` on that `Control`: the
 convenience input renders no `Control` of its own there, so its own `isLoading` draws nothing and

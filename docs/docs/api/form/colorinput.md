@@ -170,7 +170,8 @@ and the launcher grow with it.
 ### Right to Left
 
 In a right-to-left page the swatch sits on the right and the launcher on the left, and the panel's
-square and sliders run from the right.
+square and sliders run from the right. With no `position`, the panel lines up with the field's
+right edge. A `position` you pass stays physical.
 
 ```tsx live
 <LocaleProvider locale="ar" dir="rtl">

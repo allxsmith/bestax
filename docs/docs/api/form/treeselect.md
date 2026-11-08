@@ -482,7 +482,8 @@ the way that language does.
 ### Right to Left
 
 Inside a right-to-left page or `LocaleProvider`, the chevron and the clear button move to the
-field's left, and Right and Left swap in the tree.
+field's left, and Right and Left swap in the tree. With no `position`, the panel lines up with the
+field's right edge. A `position` you pass stays physical.
 
 ```tsx live
 <LocaleProvider locale="ar" dir="rtl">
