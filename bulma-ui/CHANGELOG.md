@@ -1,3 +1,10 @@
+## [5.66.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.66.1...@allxsmith/bestax-bulma@5.66.2) (2026-11-08)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep Navbar burger bars visible in forced colors ([e49414c](https://github.com/allxsmith/bestax/commit/e49414c36a1c1639700c9a8a8f663100a4c9674b))
+
 ## [5.66.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.66.0...@allxsmith/bestax-bulma@5.66.1) (2026-11-08)
 
 
