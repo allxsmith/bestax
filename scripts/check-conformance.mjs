@@ -504,6 +504,13 @@ async function checkDocsGenerated() {
  */
 const ORPHAN_EXEMPT = new Map([
   [
+    'bulma-ui/src/scss/elements/_button.scss',
+    're-sets button-border-width, a Bulma variable Button already ' +
+      'documents, inside a forced-colors media query, on a doubled color ' +
+      'class with :not() the attribution walk cannot place. It registers ' +
+      'nothing of its own to claim, so this stays until it does',
+  ],
+  [
     'bulma-ui/src/scss/form/_picker-popover.scss',
     'shared picker chrome owned by no single component; needs an ownership ' +
       'decision before it can be claimed — #543',

@@ -6,6 +6,12 @@
 // its rules as text, the way IconButton's styles test reads its own, beside
 // Bulma's button rules, which they have to outrank. No browser: jsdom's CSSOM
 // drops `:focus-visible` and evaluates no media query.
+//
+// Bulma also sets a colored button's border width to 0, and forced colors
+// replaces its fill, so the partial gives that width back, at 1px, inside
+// `forced-colors: active` only (#1458). An outlined button is left out of
+// that selector, which `matches` checks without a browser, and so is a text
+// button, which has no fill to lose.
 import * as sass from 'sass';
 import path from 'path';
 import { render } from '@testing-library/react';
@@ -79,6 +85,34 @@ const PREFIXED = rulesOf(compile(`@use 'elements/button';`, 'bestax-'));
 const BULMA = rulesOf(compile(`@use 'bulma/sass/elements/button';`));
 
 const FORCED = '@media (forced-colors: active)';
+
+/** Whether a rule draws an outline, or sets the border width. */
+const outlines = (rule: Rule) =>
+  Object.keys(rule.declarations).some(property =>
+    property.startsWith('outline')
+  );
+const borders = (rule: Rule) =>
+  '--bulma-button-border-width' in rule.declarations;
+
+/**
+ * Bulma's button colors, the keys of `$colors` in the order it ships them,
+ * without `text`.
+ */
+const COLORS = [
+  'white',
+  'black',
+  'light',
+  'dark',
+  'primary',
+  'link',
+  'info',
+  'success',
+  'warning',
+  'danger',
+];
+
+const colored = (name: string, prefix = '') =>
+  `.${prefix}button.${prefix}is-${name}.${prefix}is-${name}:not(.${prefix}is-outlined)`;
 
 const GHOST_FOCUS =
   '.button.is-ghost:focus-visible, .button.is-ghost.is-focused';
@@ -204,8 +238,10 @@ describe('Button focus outline', () => {
     expect(button.matches('.button.is-ghost.is-focused')).toBe(false);
   });
 
-  it('has only these rules, the forced colors one in its media query', () => {
-    expect(PLAIN.map(r => [r.context.join(' '), r.selector])).toEqual([
+  it('draws only these outlines, the forced colors one in its media query', () => {
+    expect(
+      PLAIN.filter(outlines).map(r => [r.context.join(' '), r.selector])
+    ).toEqual([
       ['', GHOST_FOCUS],
       [FORCED, FORCED_FOCUS],
     ]);
@@ -252,8 +288,109 @@ describe('Button focus outline', () => {
     );
     const button = getByRole('button', { name: 'Ghost' });
     expect(button).toHaveClass('bestax-button', 'bestax-is-focused');
-    for (const rule of PREFIXED) {
+    for (const rule of PREFIXED.filter(outlines)) {
       expect(matchesClasses(button, rule.selector)).toBe(true);
     }
+  });
+});
+
+describe('colored buttons in forced colors', () => {
+  it('sets a 1px border width on each doubled color class, and only there', () => {
+    expect(PLAIN.filter(borders)).toEqual(
+      COLORS.map(name => ({
+        context: [FORCED],
+        selector: colored(name),
+        declarations: { '--bulma-button-border-width': '1px' },
+      }))
+    );
+  });
+
+  it('holds these borders and the focus outlines, and nothing else', () => {
+    expect(PLAIN.filter(rule => !outlines(rule) && !borders(rule))).toEqual([]);
+  });
+
+  it("loops over Bulma's colors, all but text", () => {
+    const css = compile(
+      `@use 'sass:map';
+       @use 'bulma/sass/utilities/derived-variables' as dv;
+       :root { --colors: #{map.keys(dv.$colors)}; }`
+    );
+    const keys = rulesOf(css)[0].declarations['--colors'].split(/,\s*/);
+    expect(keys).toContain('text');
+    expect(COLORS).toEqual(keys.filter(name => name !== 'text'));
+    expect(COLORS).toEqual(
+      expect.arrayContaining(['white', 'black', 'light', 'dark'])
+    );
+  });
+
+  it('gives a text button, and so a text or underline LinkButton, no border', () => {
+    expect(
+      PLAIN.filter(borders).some(rule => rule.selector.includes('is-text'))
+    ).toBe(false);
+    const { getByRole } = render(
+      <div>
+        <Button color="text">Text</Button>
+        <LinkButton>Link</LinkButton>
+        <LinkButton variant="underline">Underline</LinkButton>
+      </div>
+    );
+    for (const name of ['Text', 'Link', 'Underline']) {
+      const button = getByRole('button', { name });
+      expect(button).toHaveClass('is-text');
+      for (const rule of PLAIN.filter(borders)) {
+        expect(button.matches(rule.selector)).toBe(false);
+      }
+    }
+  });
+
+  it('excludes an outlined button and still matches a colored one', () => {
+    const selector = colored('primary');
+    const button = document.createElement('button');
+    button.className = 'button is-primary';
+    expect(button.matches(selector)).toBe(true);
+    button.classList.add('is-outlined');
+    expect(button.matches(selector)).toBe(false);
+  });
+
+  it('keeps the focus outline on a colored button, whose border no longer changes on focus', () => {
+    // Bulma gives a focused colored button the same 1px border, so the
+    // outline is what tells it apart from one at rest.
+    const focusBorder = BULMA.filter(
+      rule =>
+        !rule.context.length &&
+        rule.declarations['--bulma-button-border-width'] === '1px' &&
+        rule.selector.split(', ').includes('.button.is-primary:focus-visible')
+    );
+    expect(focusBorder).toHaveLength(1);
+    const { getByRole } = render(
+      <Button color="primary" isFocused>
+        Save
+      </Button>
+    );
+    const button = getByRole('button', { name: 'Save' });
+    expect(button.matches(colored('primary'))).toBe(true);
+    expect(matchesClasses(button, FORCED_FOCUS)).toBe(true);
+  });
+
+  it("outranks Bulma's colored-button rule, whichever stylesheet loads first", () => {
+    const theirs = BULMA.filter(
+      rule =>
+        rule.declarations['--bulma-button-border-width'] === '0px' &&
+        rule.selector === '.button.is-primary'
+    );
+    expect(theirs).toHaveLength(1);
+    expect(weight(colored('primary'))).toBeGreaterThan(
+      weight('.button.is-primary')
+    );
+  });
+
+  it('prefixes every class under a class prefix', () => {
+    expect(PREFIXED.filter(borders)).toEqual(
+      COLORS.map(name => ({
+        context: [FORCED],
+        selector: colored(name, 'bestax-'),
+        declarations: { '--bulma-button-border-width': '1px' },
+      }))
+    );
   });
 });

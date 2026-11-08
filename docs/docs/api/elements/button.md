@@ -335,6 +335,7 @@ function example() {
 - **Keyboard:** When rendered as `<a>`, disabled buttons are not focusable.
 - **Focus:** Use `isFocused` and `isActive` for visual feedback, but rely on browser focus for actual accessibility.
 - **Focus ring:** Bulma shows a focused button with its border and a shadow. A ghost button has neither, and forced colors (Windows' contrast themes) drops the shadow and sets the border's color, so bestax's styles give a focused ghost button, and every focused button in forced colors, an outline. `isFocused` draws it too.
+- **Forced colors:** In Windows' contrast themes a colored button keeps a 1px border, so it still has an edge when the theme replaces its fill, while an outlined button and a `text` one are left as they are.
 - **Toggles:** `isActive` tells a screen reader nothing. A button that turns something on or off is a [`ToggleButton`](./togglebutton.md), which sets `aria-pressed`.
 
 :::note

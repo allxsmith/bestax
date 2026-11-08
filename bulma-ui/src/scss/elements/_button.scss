@@ -17,13 +17,29 @@
 // The ghost rule doesn't ask for LinkButton's class, since a ghost Button has
 // none.
 //
+// Forced colors also replaces a colored button's fill, and Bulma sets its
+// border width to 0, so in Chromium the button has no edge and an icon-only
+// one shows only its glyph. The last rule gives those buttons back a 1px
+// border there. An outlined button keeps the width it sets, and Bulma
+// subtracts the width from the padding, so the size stays the same. Bulma
+// gives a colored button that same border only while it's focused, so with
+// one at rest the outline above is what shows focus.
+//
+// Bulma's colors include `text`, but `.button.is-text` is a text button, as
+// `Button color="text"` and LinkButton's text and underline variants render
+// it. It has no fill to lose, and a border at rest would draw a box around a
+// link, so the loop leaves it out.
+//
 // Bulma's CSS can land on either side of this partial, as `_loader.scss`
-// says, so each selector outranks the mixin's rules by its classes: the
-// ghost rule has three to Bulma's two, and the forced colors rule names
-// `.button` twice, as `_delete.scss` does.
+// says, so each selector outranks Bulma's rule by its classes: the ghost rule
+// has three to the mixin's two, the forced colors outline names `.button`
+// twice, as `_delete.scss` does, and the border names the color class twice
+// to outrank Bulma's `.button.is-<color>`.
 
+@use 'sass:map';
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
+@use 'bulma/sass/utilities/derived-variables' as dv;
 
 @mixin -focus-outline {
   outline-color: hsl(
@@ -45,5 +61,13 @@
   .#{iv.$class-prefix}button.#{iv.$class-prefix}button:not(.#{iv.$class-prefix}is-loading):focus-visible,
   .#{iv.$class-prefix}button.#{iv.$class-prefix}button:not(.#{iv.$class-prefix}is-loading).#{iv.$class-prefix}is-focused {
     @include -focus-outline;
+  }
+
+  @each $name in map.keys(map.remove(dv.$colors, 'text')) {
+    .#{iv.$class-prefix}button.#{iv.$class-prefix}is-#{$name}.#{iv.$class-prefix}is-#{$name}:not(
+        .#{iv.$class-prefix}is-outlined
+      ) {
+      @include cv.register-var('button-border-width', 1px);
+    }
   }
 }
