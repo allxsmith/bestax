@@ -76,14 +76,14 @@ export interface NavbarProps
   children?: React.ReactNode;
   /**
    * Accessible name. Defaults to `main navigation`. A screen reader announces
-   * the landmark's role and then this name, so the default is read
-   * "navigation, main navigation". The name contains the role word, so
-   * "navigation" is heard twice. Pass a name without it
-   * (`aria-label="Site"`), and a different name on each Navbar when a page
-   * has more than one. A passed `aria-label` replaces the default.
+   * it with the landmark's role, and since the name holds the role word,
+   * "navigation" is heard twice. Pass a name without it (`aria-label="Site"`),
+   * and a different name on each Navbar when a page has more than one. A
+   * passed `aria-label` replaces the default, and `aria-label={undefined}`
+   * removes it, leaving the landmark unnamed.
    * @defaultValue 'main navigation'
    */
-  'aria-label'?: string;
+  'aria-label'?: React.AriaAttributes['aria-label'];
 }
 
 /**
