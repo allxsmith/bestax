@@ -72,14 +72,16 @@
   // `<button>`, a link's for a link, and no surface for a variant that has
   // none, as below. Forcing off reaches everything inside too, which the
   // rule at the top already hides. It also stops the browser recoloring the
-  // border to show focus, so a focused one gets an outline.
+  // border to show focus, so a focused one gets an outline, and so does one
+  // with `is-focused`.
   .#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading {
     forced-color-adjust: none;
     background-color: Canvas !important;
     border-color: CanvasText !important;
     color: transparent !important;
 
-    &:focus-visible {
+    &:focus-visible,
+    &.#{iv.$class-prefix}is-focused {
       outline: 2px solid CanvasText;
       outline-offset: 2px;
     }
@@ -100,7 +102,8 @@
     background-color: ButtonFace !important;
     border-color: ButtonText !important;
 
-    &:focus-visible {
+    &:focus-visible,
+    &.#{iv.$class-prefix}is-focused {
       outline-color: ButtonText;
     }
   }
@@ -108,7 +111,8 @@
   a[href].#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading {
     border-color: LinkText !important;
 
-    &:focus-visible {
+    &:focus-visible,
+    &.#{iv.$class-prefix}is-focused {
       outline-color: LinkText;
     }
   }
@@ -123,7 +127,8 @@
     background-color: transparent !important;
     border-color: CanvasText !important;
 
-    &:focus-visible {
+    &:focus-visible,
+    &.#{iv.$class-prefix}is-focused {
       outline-color: CanvasText;
     }
   }
