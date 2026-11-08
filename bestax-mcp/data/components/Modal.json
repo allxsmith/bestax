@@ -407,26 +407,6 @@
       ],
       "catchAll": "All standard <button> attributes",
       "types": []
-    },
-    {
-      "path": "ModalCard",
-      "summary": "Modal.Card - Renders modal card wrapper with compound components. Use with Modal.Card.Head, Modal.Card.Title, Modal.Card.Body, and Modal.Card.Foot.",
-      "component": null,
-      "props": [
-        {
-          "name": "className",
-          "type": "string",
-          "default": null,
-          "description": "Additional CSS classes.",
-          "required": false,
-          "inherited": false,
-          "deprecated": false
-        }
-      ],
-      "extraProps": [],
-      "catchAll": "All standard <div> attributes",
-      "types": [],
-      "standalone": "companion"
     }
   ],
   "cssVars": [

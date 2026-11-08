@@ -3353,9 +3353,8 @@
     },
     "CardHeader": {
       "component": "Card",
-      "path": "CardHeader",
-      "purpose": "Card header compound component. Wraps children in a `.card-header` element.",
-      "standalone": "companion"
+      "path": "Card.Header",
+      "purpose": "Card header compound component. Wraps children in a `.card-header` element."
     },
     "CardHeaderIcon": {
       "component": "Card",
@@ -3651,9 +3650,8 @@
     },
     "ModalCard": {
       "component": "Modal",
-      "path": "ModalCard",
-      "purpose": "Modal.Card - Renders modal card wrapper with compound components.",
-      "standalone": "companion"
+      "path": "Modal.Card",
+      "purpose": "Modal.Card - Renders modal card wrapper with compound components."
     },
     "ModalCardBody": {
       "component": "Modal",

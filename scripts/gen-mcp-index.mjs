@@ -590,9 +590,12 @@ export function standaloneTables(
       role: 'base',
     });
   }
-  const carried = new Set(
-    info.tables.flatMap(t => [t.path, t.impl, t.component].filter(Boolean))
-  );
+  // A sub that is a compound itself (`Card.Header`) has its table read off its
+  // base, so the constant composing it (`CardHeader`) is carried too.
+  const carried = new Set([
+    ...info.tables.flatMap(t => [t.path, t.impl, t.component].filter(Boolean)),
+    ...(info.compoundNames?.values() ?? []),
+  ]);
   for (const companion of IMPORT_COMPANIONS[name] ?? []) {
     if (!COMPONENT_NAME.test(companion) || companion === name) continue;
     if (titles.has(companion) || carried.has(companion)) continue;
