@@ -8,7 +8,7 @@
 // · 0 = none. Row order is fixed (see the header comment on `categories`); the display
 // order is controlled by `libs[].idx`.
 
-export const lastReviewed = '2026-10-13';
+export const lastReviewed = '2026-11-06';
 
 // ---------------------------------------------------------------------------
 // Link resolvers — bestax links are internal (validated by the production build's
@@ -56,6 +56,9 @@ const BESTAX = {
   Progress: 'elements/progress',
   Skeleton: 'elements/skeleton',
   Span: 'elements/span',
+  Stat: 'elements/stat',
+  'Stat / Stats': 'elements/stat',
+  Stats: 'elements/stats',
   Strong: 'elements/strong',
   SubTitle: 'elements/subtitle',
   Table: 'elements/table',
@@ -202,6 +205,7 @@ const MANTINE = {
   NavigationProgress: 'x/nprogress',
   Lightbox: 'x/lightbox',
   CodeHighlight: 'code-highlight/code-highlight',
+  JsonViewer: 'code-highlight/json-viewer',
   modals: 'x/modals',
   MantineProvider: 'theming/mantine-provider',
   clsx: 'https://github.com/lukeed/clsx',
@@ -918,6 +922,7 @@ export const categories = [
         'InputOTP',
       ],
       ['JSON input', 0, 'JsonInput', 0, 0, 0, 0, 0],
+      ['Masked input', 0, 'MaskInput', 0, 0, 0, 0, 0],
       [
         'Slider',
         'Slider',
@@ -1239,7 +1244,7 @@ export const categories = [
         0,
         0,
         0,
-        '~Listbox',
+        'Command',
         'Command',
       ],
       ['Route progress bar', 0, 'NavigationProgress', 0, 0, 0, 0, 0],
@@ -1493,7 +1498,9 @@ export const categories = [
         '~Collapsible',
       ],
       ['Tree select', 'TreeSelect', 'TreeSelect', 0, 0, 0, 0, 0],
+      ['JSON viewer', 0, 'JsonViewer', 0, 0, 0, 0, 0],
       ['Timeline', 'Timeline', 'Timeline', 0, 'Timeline', 0, 'Timeline', 0],
+      ['Agent trace', 0, 0, 0, 0, 0, 0, 'Trace'],
       ['Kbd (keyboard key)', 'Kbd', 'Kbd', 0, 0, 0, 'Kbd', 'Kbd'],
       [
         'Number formatter',
@@ -1505,6 +1512,8 @@ export const categories = [
         'FormatNumber',
         0,
       ],
+      ['Rolling number', 0, 'RollingNumber', 0, 0, 0, 0, 0],
+      ['Stat (label and figure)', 'Stat / Stats', 0, 0, 0, 0, 'Stat', 0],
       ['Image', 'Image', 'Image', 'Image', '~CardMedia', 'Image', 'Image', 0],
       ['Image list / gallery', 0, 0, 0, 'ImageList', 0, 0, 0],
       [
@@ -1607,7 +1616,7 @@ export const categories = [
         0,
         0,
         'CodeBlock',
-        0,
+        'CodeBlock',
       ],
       [
         'Blockquote',
@@ -1824,6 +1833,7 @@ export const categories = [
         0,
       ],
       ['Anchored positioning primitive', 0, 0, 'Overlay', 'Popper', 0, 0, 0],
+      ['Product tour', 0, 'Tour', 0, 0, 0, 0, 0],
     ],
   },
   {
@@ -1988,7 +1998,8 @@ export const categories = [
 // Snapshots carry this list as it stands, so published editions never change.
 //
 // A fix names the edition it corrects by that edition's `reviewed` date
-// (between editions, that's `lastReviewed`), the pull request that made it,
+// (the newest snapshot's `reviewed`, which matches `lastReviewed` until a
+// review moves the live sheet ahead of the last edition), the pull request that made it,
 // and the mark it gave each cell ('full', 'partial' or 'none'), by the row's
 // name in that edition and the library id. A cell reads as a correction only
 // while it still has the fix's mark, so a release that moves it again before
