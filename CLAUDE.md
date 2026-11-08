@@ -130,9 +130,9 @@ as for a feature. CI catches some of these and not others, so a green run doesn'
   that lists the partials or shows a modular build: `skills/bestax-optimize/references/modular-build.md`
   (the inventory, which stock components have a partial, and the starter's worked example), the
   quick example in `skills/bestax-optimize/SKILL.md` and its copy in
-  `docs/docs/skills/optimize.mdx`, `docs/docs/guides/getting-started/modular.md` (the partials
-  block, and the paragraphs on what each partial adjusts and what it needs), and the stock list
-  at the top of `bulma-ui/src/scss/CLAUDE.md`. Only the inventory has a test.
+  `docs/docs/skills/optimize.mdx`, and `docs/docs/guides/getting-started/modular.md` (the
+  partials block, and the paragraphs on what each partial adjusts and what it needs). Only the
+  inventory has a test.
 - **Changed what a partial does,** for example it now applies outside forced colors: update how
   those same pages describe it.
 - **Changed what a component does for accessibility** (a focus ring, forced colors, an `aria-*`
