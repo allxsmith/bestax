@@ -2238,12 +2238,21 @@ describe("lookup_bulma_classes on classes Bulma v1 doesn't have", () => {
     "not a Bulma 1 class: Bulma 1's stylesheet has no rule for it.";
 
   it('says a Bulma 0.9 class v1 removed was removed', async () => {
-    expect(await lookup('columns is-variable is-2')).toContain(
-      `| \`is-variable\` | stays in \`className\` | ${REMOVED}`
+    expect(await lookup('columns is-vertical')).toContain(
+      `| \`is-vertical\` | stays in \`className\` | ${REMOVED}`
     );
     // Beside a family converted by hand too, rather than "converted with it".
+    expect(await lookup('message is-vertical')).toContain(
+      `| \`is-vertical\` | stays in \`className\` | ${REMOVED}`
+    );
+  });
+
+  it('says what to do instead with a removed class the codemod flags', async () => {
+    expect(await lookup('columns is-variable is-2')).toContain(
+      '| `is-variable` | stays in `className` | Bulma v1 removed `is-variable`, so it styles nothing now; drop it'
+    );
     expect(await lookup('message heading')).toContain(
-      `| \`heading\` | stays in \`className\` | ${REMOVED}`
+      '| `heading` | stays in `className` | Bulma v1 dropped the `.heading` styles'
     );
   });
 
