@@ -4,7 +4,12 @@ import { render, fireEvent, act, screen } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { createPortal } from 'react-dom';
-import { useFocusTrap, UseFocusTrapOptions } from '../useFocusTrap';
+import {
+  focusTabStopAfter,
+  trapTab,
+  useFocusTrap,
+  UseFocusTrapOptions,
+} from '../useFocusTrap';
 import { useIsHydrated } from '../useIsHydrated';
 import { Portal } from '../portal';
 
@@ -1626,5 +1631,178 @@ describe('useFocusTrap', () => {
       act(() => button('Cancel').focus());
       expect(pressTab().defaultPrevented).toBe(false);
     });
+  });
+});
+
+describe('focusTabStopAfter', () => {
+  const popup = () => screen.getByTestId('popup');
+
+  it('focuses the first stop after the element, passing over its own and hidden or disabled ones', () => {
+    render(
+      <>
+        <button>Before</button>
+        <div data-testid="popup">
+          <button>Inside</button>
+        </div>
+        <button hidden>Hidden</button>
+        <button disabled>Disabled</button>
+        <span tabIndex={-1}>Not a stop</span>
+        <a href="#next">Next</a>
+      </>
+    );
+    act(() => button('Inside').focus());
+    expect(focusTabStopAfter(popup())).toBe(true);
+    expect(screen.getByRole('link', { name: 'Next' })).toHaveFocus();
+  });
+
+  it('leaves focus alone at the end of the page', () => {
+    render(
+      <>
+        <button>Before</button>
+        <div data-testid="popup">
+          <button>Inside</button>
+        </div>
+      </>
+    );
+    act(() => button('Inside').focus());
+    expect(focusTabStopAfter(popup())).toBe(false);
+    expect(button('Inside')).toHaveFocus();
+  });
+
+  it('does nothing on a page with no tab stops', () => {
+    render(
+      <div data-testid="popup" tabIndex={-1}>
+        Nothing to focus
+      </div>
+    );
+    act(() => popup().focus());
+    expect(focusTabStopAfter(popup())).toBe(false);
+    expect(popup()).toHaveFocus();
+  });
+
+  it('passes over a stop that refuses focus', () => {
+    render(
+      <>
+        <div data-testid="popup">
+          <button>Inside</button>
+        </div>
+        <button>Refuses</button>
+        <button>Takes it</button>
+      </>
+    );
+    button('Refuses').focus = () => {};
+    act(() => button('Inside').focus());
+    expect(focusTabStopAfter(popup())).toBe(true);
+    expect(button('Takes it')).toHaveFocus();
+  });
+
+  describe('inside a trap', () => {
+    const Page: React.FC<{ after?: boolean; active?: boolean }> = ({
+      after = false,
+      active = true,
+    }) => (
+      <>
+        <Trap active={active}>
+          <button>First</button>
+          <div data-testid="popup">
+            <button>Inside</button>
+          </div>
+          {after && <button>Last</button>}
+        </Trap>
+        <button>Outside</button>
+      </>
+    );
+
+    it('focuses the next stop inside it', () => {
+      render(<Page after />);
+      act(() => button('Inside').focus());
+      expect(focusTabStopAfter(popup())).toBe(true);
+      expect(button('Last')).toHaveFocus();
+    });
+
+    it('wraps to its first stop rather than leave it', () => {
+      render(<Page />);
+      act(() => button('Inside').focus());
+      expect(focusTabStopAfter(popup())).toBe(true);
+      expect(button('First')).toHaveFocus();
+    });
+
+    it('goes on past it once the trap is off', () => {
+      const { rerender } = render(<Page />);
+      rerender(<Page active={false} />);
+      act(() => button('Inside').focus());
+      expect(focusTabStopAfter(popup())).toBe(true);
+      expect(button('Outside')).toHaveFocus();
+    });
+  });
+
+  describe('inside a trap that holds Tab only while it says so', () => {
+    let holds = true;
+    let release: () => void;
+    beforeEach(() => {
+      holds = true;
+      render(
+        <>
+          <div data-testid="box">
+            <button>First</button>
+            <div data-testid="popup">
+              <button>Inside</button>
+            </div>
+          </div>
+          <button>Outside</button>
+        </>
+      );
+      release = trapTab(
+        () => screen.getByTestId('box'),
+        window,
+        () => holds
+      );
+    });
+    afterEach(() => release());
+
+    it('wraps inside while it holds', () => {
+      act(() => button('Inside').focus());
+      expect(focusTabStopAfter(popup())).toBe(true);
+      expect(button('First')).toHaveFocus();
+    });
+
+    it('goes on past it while it stands aside', () => {
+      holds = false;
+      act(() => button('Inside').focus());
+      expect(focusTabStopAfter(popup())).toBe(true);
+      expect(button('Outside')).toHaveFocus();
+    });
+  });
+
+  it('wraps inside a modal dialog that no trap here holds', () => {
+    render(
+      <>
+        <div role="dialog" aria-modal="true" aria-label="Settings">
+          <button>First</button>
+          <div data-testid="popup">
+            <button>Inside</button>
+          </div>
+        </div>
+        <button>Outside</button>
+      </>
+    );
+    act(() => button('Inside').focus());
+    expect(focusTabStopAfter(popup())).toBe(true);
+    expect(button('First')).toHaveFocus();
+  });
+
+  it('finds the stop after it across a shadow root', () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const root = host.attachShadow({ mode: 'open' });
+    root.innerHTML =
+      '<div data-popup><button>Inside</button></div><button>Shadow next</button>';
+    const inner = root.querySelector('button') as HTMLButtonElement;
+    inner.focus();
+    expect(
+      focusTabStopAfter(root.querySelector('[data-popup]') as HTMLElement)
+    ).toBe(true);
+    expect(focused()).toBe(root.querySelectorAll('button')[1]);
+    host.remove();
   });
 });

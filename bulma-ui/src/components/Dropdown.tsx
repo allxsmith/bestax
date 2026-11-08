@@ -18,6 +18,7 @@ import {
 import { buttonType } from '../helpers/buttonType';
 import { enabledMenuItems, useMenuKeys } from '../helpers/useMenuKeys';
 import { useLatestRef } from '../helpers/useLatestRef';
+import { focusTabStopAfter } from '../helpers/useFocusTrap';
 
 /**
  * Checks if code is running in a browser environment.
@@ -76,11 +77,13 @@ export interface DropdownProps
  * item whose text starts with it, skipping disabled ones, and letters typed
  * in quick succession add up to one search. Typing searches once focus is in
  * the menu, so a letter typed on the trigger does nothing. Escape closes the
- * menu and focuses the trigger, and Tab closes it and lets focus move on.
- * Anything focusable in the menu that isn't an item, such as a field, keeps
- * its own keys apart from Escape and Tab, though an Escape it calls
- * `preventDefault()` on in its own `onKeyDown` stays its own and leaves the
- * menu open. For a panel built around fields, use `Popover`.
+ * menu and focuses the trigger. Tab closes it and moves focus to the next
+ * tab stop after the Dropdown, wrapping inside a focus trap such as Modal's,
+ * and Shift+Tab closes it and focuses the trigger. Anything focusable in the
+ * menu that isn't an item, such as a field, keeps its own keys apart from
+ * Escape and Tab, though an Escape it calls `preventDefault()` on in its own
+ * `onKeyDown` stays its own and leaves the menu open. For a panel built
+ * around fields, use `Popover`.
  *
  * @function
  * @param {DropdownProps} props - Props for the Dropdown component.
@@ -307,6 +310,20 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
       if (e.key === 'Tab') {
         setActive(false);
         onActiveChange?.(false);
+        // Closing can hide the items before the browser moves focus, and
+        // Firefox then drops focus to the page from one, so focus moves here
+        // instead: Shift+Tab to the trigger, and Tab on past the Dropdown.
+        // A menu the pointer shows on a `hoverable` Dropdown isn't open and
+        // stays shown, so Tab walks its items as the browser does. A Tab
+        // something already used, such as a focus trap around the Dropdown
+        // wrapping from the last item, keeps the focus it gave.
+        if (!active || e.defaultPrevented) return;
+        if (e.shiftKey) {
+          e.preventDefault();
+          triggerRef.current?.focus();
+        } else if (focusTabStopAfter(dropdownRef.current as HTMLElement)) {
+          e.preventDefault();
+        }
         return;
       }
 

@@ -252,8 +252,11 @@ out of the box:
   <kbd>Enter</kbd>/<kbd>Space</kbd> close it.
 - Inside the menu: <kbd>ArrowDown</kbd>/<kbd>ArrowUp</kbd> move between items and wrap around;
   <kbd>Home</kbd>/<kbd>End</kbd> jump to the first/last item; <kbd>Escape</kbd> closes the menu
-  and returns focus to the trigger; <kbd>Tab</kbd> closes the menu and lets focus continue
-  naturally.
+  and returns focus to the trigger.
+- <kbd>Tab</kbd> in an open menu closes it and moves focus to the next tab stop after the
+  Dropdown, and <kbd>Shift</kbd>+<kbd>Tab</kbd> closes it and focuses the trigger. Inside a
+  focus trap, such as a `Modal`'s, a Dropdown with nothing after it sends Tab to the trap's
+  first stop, as Tab from the trap's last stop does.
 - Typing a letter moves to the next item whose text starts with it, and typing it again cycles
   through the items that do. Letters typed in quick succession add up to one search, so
   <kbd>d</kbd> then <kbd>u</kbd> lands on "Duplicate" past "Download". Text hidden with

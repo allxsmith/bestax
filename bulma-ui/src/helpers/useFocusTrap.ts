@@ -272,6 +272,8 @@ interface TabStops {
   stopFor(node: Element): Element;
   /** The stops from one end inward, the last first when `fromLast`. */
   from(fromLast: boolean): Generator<HTMLElement>;
+  /** The stops Tab reaches after `node`, outside it, in order. */
+  after(node: Node): Generator<HTMLElement>;
 }
 
 /**
@@ -322,6 +324,15 @@ function findTabStops(container: HTMLElement): TabStops | null {
     }
   }
 
+  // Only the candidates past `node` get the style checks.
+  function* after(node: Node): Generator<HTMLElement> {
+    for (const el of candidates) {
+      if (!inside(node, el) && follows(container, node, el) && isStop(el)) {
+        yield el;
+      }
+    }
+  }
+
   const first = from(false).next().value;
   if (!first) return null;
   return {
@@ -329,6 +340,7 @@ function findTabStops(container: HTMLElement): TabStops | null {
     last: from(true).next().value as HTMLElement,
     stopFor: node => (isGroupedRadio(node) && groupStop(node)) || node,
     from,
+    after,
   };
 }
 
@@ -352,20 +364,87 @@ const focusedElement = (doc: Document): Element =>
  * A stop that doesn't take focus is passed over for the next one in. An
  * `<object>` or `<embed>` with nothing to show is one: it counts as a stop by
  * its kind, but browsers refuse to focus it, and which ones they refuse
- * depends on the browser and on what has loaded, so only trying tells. A
- * stop took focus when focus moved, wherever it went (a stop can hand focus
- * on), or when focus was on it already. `src/index.ts` names its exports from
- * this module, so this one stays internal.
+ * depends on the browser and on what has loaded, so only trying tells.
+ * `src/index.ts` names its exports from this module, so this one stays
+ * internal.
  */
 export function focusTabStop(container: HTMLElement, fromLast = false): void {
-  const doc = container.ownerDocument;
   for (const stop of findTabStops(container)?.from(fromLast) ?? []) {
-    const before = focusedElement(doc);
-    stop.focus();
-    const now = focusedElement(doc);
-    if (now !== before || inside(stop, now)) return;
+    if (tookFocus(stop)) return;
   }
   container.focus();
+}
+
+/**
+ * Focuses `stop` and says whether it took focus: focus moved, wherever it
+ * went (a stop can hand focus on), or was on it already.
+ */
+function tookFocus(stop: HTMLElement): boolean {
+  const doc = stop.ownerDocument;
+  const before = focusedElement(doc);
+  stop.focus();
+  const now = focusedElement(doc);
+  return now !== before || inside(stop, now);
+}
+
+/**
+ * The traps holding Tab right now, each as the container it reads and whether
+ * it holds the key. `focusTabStopAfter` wraps at a trap's edge itself rather
+ * than leave the Tab to the trap, because the trap may still see the popup
+ * showing: one on its container hears the key before a React handler inside
+ * it, and in Firefox one on `window`, as Modal's is, found the popup still
+ * showing too. The trap then lets the key through from an item that isn't
+ * its last stop, and Firefox drops focus to the page as the item hides.
+ * Nothing in the DOM marks a trap's container, so `trapTab` adds each trap
+ * here as it starts and removes it when it stops.
+ */
+const traps = new Set<{
+  container: () => HTMLElement | null;
+  holds: () => boolean;
+}>();
+
+/**
+ * The element Tab stays inside around `node`: the nearest container of a
+ * trap that holds Tab, or of a modal dialog (`aria-modal="true"`), and
+ * `null` when there's neither.
+ */
+function tabBoundary(node: Element): HTMLElement | null {
+  const held = new Set<Element>();
+  for (const trap of traps) {
+    const box = trap.container();
+    if (box && trap.holds()) held.add(box);
+  }
+  for (
+    let el = flatParent(node) as Element | null;
+    el;
+    el = flatParent(el) as Element | null
+  ) {
+    if (held.has(el) || el.getAttribute('aria-modal') === 'true') {
+      return el as HTMLElement;
+    }
+  }
+  return null;
+}
+
+/**
+ * Moves focus where Tab goes from `element` when nothing inside it can take
+ * focus: to the first tab stop after it and outside it. Inside a trap that
+ * holds Tab, or a modal dialog, it looks no further than that container, and
+ * with nothing after `element` there, focus wraps to the container's first
+ * stop, as the trap's own Tab does. Returns whether it moved focus, which it
+ * doesn't at the end of the page, where the browser takes the key. It's for
+ * a popup that hides as a Tab inside it arrives, before the browser moves
+ * focus. Internal like `focusTabStop`.
+ */
+export function focusTabStopAfter(element: HTMLElement): boolean {
+  const boundary = tabBoundary(element);
+  const top = boundary ?? element.ownerDocument.documentElement;
+  for (const stop of findTabStops(top)?.after(element) ?? []) {
+    if (tookFocus(stop)) return true;
+  }
+  if (!boundary) return false;
+  focusTabStop(boundary);
+  return true;
 }
 
 /**
@@ -458,9 +537,12 @@ export function trapTab(
     focusTabStop(box, fromLast);
   };
 
+  const trap = { container, holds };
+  traps.add(trap);
   keys.addEventListener('keydown', handleKeyDown);
   doc.addEventListener('focusin', handleFocusIn, true);
   return () => {
+    traps.delete(trap);
     keys.removeEventListener('keydown', handleKeyDown);
     doc.removeEventListener('focusin', handleFocusIn, true);
     clearTimeout(wrapTimer);
