@@ -1,4 +1,6 @@
 import React from 'react';
+import { renderToString } from 'react-dom/server';
+import { hydrateRoot } from 'react-dom/client';
 import { render, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Calendar, CalendarProps } from '../_pickerInternals/Calendar';
@@ -100,8 +102,8 @@ describe('Calendar', () => {
       expect(names[6]).toBe('Sunday');
     });
 
-    it("names the columns in the locale's words beside names of your own", () => {
-      const { container } = render(
+    it('names the columns by day names of your own, adding none', () => {
+      const { container, getAllByRole } = render(
         <Harness
           locale="de-DE"
           firstDayOfWeek={1}
@@ -113,7 +115,56 @@ describe('Calendar', () => {
           .map(h => h.textContent)
           .join('')
       ).toBe('MDMDFSS');
-      expect(headers(container)[0]).toHaveAttribute('aria-label', 'Montag');
+      for (const header of headers(container)) {
+        expect(header).not.toHaveAttribute('aria-label');
+      }
+      expect(getAllByRole('columnheader', { name: 'M' })).toHaveLength(2);
+    });
+
+    it('names the columns in full beside day names it ignores', () => {
+      // Names that aren't seven are ignored, as the header shows.
+      const { container } = render(
+        <Harness locale="en-US" dayNames={['A', 'B']} />
+      );
+      expect(headers(container)[0]).toHaveTextContent('Sun');
+      expect(headers(container)[0]).toHaveAttribute('aria-label', 'Sunday');
+    });
+
+    it('adds the full names once the page has hydrated', async () => {
+      // The server and the render hydrating its HTML name the columns by
+      // what they show, so a browser that spells the long names otherwise
+      // hydrates without a mismatch; the commit after adds them.
+      const ui = <Harness locale="en-US" />;
+      const container = document.createElement('div');
+      container.innerHTML = renderToString(ui);
+      expect(headers(container)).toHaveLength(7);
+      for (const header of headers(container)) {
+        expect(header).not.toHaveAttribute('aria-label');
+      }
+      document.body.appendChild(container);
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      let root: ReturnType<typeof hydrateRoot> | undefined;
+      try {
+        await act(async () => {
+          root = hydrateRoot(container, ui);
+        });
+        expect(errorSpy).not.toHaveBeenCalled();
+        expect(
+          headers(container).map(h => h.getAttribute('aria-label'))
+        ).toEqual([
+          'Sunday',
+          'Monday',
+          'Tuesday',
+          'Wednesday',
+          'Thursday',
+          'Friday',
+          'Saturday',
+        ]);
+      } finally {
+        errorSpy.mockRestore();
+        await act(async () => root?.unmount());
+        container.remove();
+      }
     });
 
     it('leaves every day named by its number', () => {

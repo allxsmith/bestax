@@ -14,6 +14,7 @@ import {
 import { useConfig } from '../../helpers/Config';
 import { getActiveElementInTree } from '../../helpers/shadowDom';
 import { visuallyHidden } from '../../helpers/statusRegion';
+import { useIsHydrated } from '../../helpers/useIsHydrated';
 import {
   DateGranularity,
   DateRangeValue,
@@ -323,17 +324,26 @@ export const Calendar: React.FC<CalendarProps> = ({
   // Nothing before year 1 can be picked or reached, as in HTML's date inputs.
   const min = useMemo(() => floorMin(minProp), [minProp]);
 
-  const computedDayNames = useMemo(() => {
-    if (dayNames && dayNames.length === 7) return dayNames;
-    return fromFirstDay(getDayNames(locale, 'short'), firstDayOfWeek);
-  }, [dayNames, locale, firstDayOfWeek]);
+  const customDayNames = dayNames && dayNames.length === 7 ? dayNames : null;
+  const computedDayNames = useMemo(
+    () =>
+      customDayNames ??
+      fromFirstDay(getDayNames(locale, 'short'), firstDayOfWeek),
+    [customDayNames, locale, firstDayOfWeek]
+  );
 
-  // Each weekday column is named by its full weekday in the locale, whatever
-  // the header shows, so a screen reader names the column as focus moves
-  // across the grid.
+  // Each weekday column is named by its full weekday in the locale, so a
+  // screen reader names the column as focus moves across the grid. A server
+  // and a browser can spell those names differently, so they're added only
+  // once the page has hydrated, and never beside day names the caller gave,
+  // which name the columns themselves.
+  const hydrated = useIsHydrated();
   const weekdayNames = useMemo(
-    () => fromFirstDay(getDayNames(locale, 'long'), firstDayOfWeek),
-    [locale, firstDayOfWeek]
+    () =>
+      hydrated && !customDayNames
+        ? fromFirstDay(getDayNames(locale, 'long'), firstDayOfWeek)
+        : null,
+    [hydrated, customDayNames, locale, firstDayOfWeek]
   );
 
   const computedMonthNames = useMemo(() => {
@@ -1004,7 +1014,7 @@ export const Calendar: React.FC<CalendarProps> = ({
                 <div
                   key={i}
                   role="columnheader"
-                  aria-label={weekdayNames[i]}
+                  aria-label={weekdayNames?.[i]}
                   className={dayNameClass}
                 >
                   {name}
