@@ -439,8 +439,9 @@ The parts are attached to `AppFrame`, and also exported on their own as `AppFram
 - **Reflow:** at 320 pixels wide the nav is a drawer, so nothing scrolls sideways (WCAG 1.4.10).
 - **Motion:** the drawer's slide, the backdrop's fade and the column's collapse don't play under
   `prefers-reduced-motion: reduce`.
-- **Forced colors:** the column keeps its divider, and the drawer gets a border on its open edge in
-  place of its shadow.
+- **Forced colors:** the column keeps its divider, the drawer gets a border on its open edge in
+  place of its shadow, and the burger keeps its bars, as a [`Navbar`](../components/navbar.md)'s
+  does.
 - **Right to left:** the column sits on the right, and the drawer slides in from the right.
 
 ---

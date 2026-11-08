@@ -513,6 +513,11 @@ function example() {
   `tabIndex` and click included. The keyboard path is wired either way.
 - `hoverable` dropdowns keep working with a mouse (hover-to-open); the keyboard path above
   opens and closes them independently of hover.
+- **Forced colors:** Bulma draws the burger's bars as a background color, which forced colors
+  (Windows' contrast themes) replaces, so the burger would vanish there while it still works and
+  takes focus. bestax's styles keep its bars visible in the system's button text color. That rule
+  ships in `bestax.css` and `extras.css`, not in Bulma's own stylesheet, and an
+  [`AppFrame`](../layout/appframe.md)'s burger gets it too.
 
 :::note
 There's no arrow-key roving between navbar items and no outside-click handling for
