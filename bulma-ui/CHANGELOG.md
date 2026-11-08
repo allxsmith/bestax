@@ -1,3 +1,15 @@
+## [5.66.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.66.0...@allxsmith/bestax-bulma@5.66.1) (2026-11-08)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** convert a navbar item's is-active only beside its own aria-current ([02934d7](https://github.com/allxsmith/bestax/commit/02934d79ee890c37bfa3340c20c79e06486197f8))
+* **bulma-ui:** give colored buttons an edge in forced colors ([fbb33ed](https://github.com/allxsmith/bestax/commit/fbb33ed2b855f660658c704cd9c8d9cf22b5a25a))
+* **bulma-ui:** give Pagination links a keyboard focus ring ([ef17ead](https://github.com/allxsmith/bestax/commit/ef17ead3b7a95b2b9f3ddb9d880f11909aa681c4)), closes [#1417](https://github.com/allxsmith/bestax/issues/1417)
+* **bulma-ui:** keep Tooltip's edge and arrow in forced colors ([f8132c8](https://github.com/allxsmith/bestax/commit/f8132c8d6f24b84c2ec7230b179877f82396d350))
+* **bulma-ui:** leave text buttons out of the forced-colors border ([4dd8b21](https://github.com/allxsmith/bestax/commit/4dd8b21fde95c63e47827d8737c0c15fc0f50c39))
+* **bulma-ui:** set aria-current="page" on an active Navbar.Item ([ab7e6a9](https://github.com/allxsmith/bestax/commit/ab7e6a98eef519856368f1adc812611b540721b0))
+
 # [5.66.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.65.1...@allxsmith/bestax-bulma@5.66.0) (2026-11-08)
 
 
