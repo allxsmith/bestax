@@ -1,3 +1,12 @@
+## [5.65.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.65.0...@allxsmith/bestax-bulma@5.65.1) (2026-11-08)
+
+
+### Bug Fixes
+
+* **bulma-ui:** leave a loading button's focus ring to the loader in forced colors ([cfa1ed9](https://github.com/allxsmith/bestax/commit/cfa1ed95cd28992551f22e3fcb717d8d503afc29))
+* **bulma-ui:** show a focus ring on a ghost button ([d0b35e9](https://github.com/allxsmith/bestax/commit/d0b35e94f6c88bed4c1678ce8a1532a9309fb2f6))
+* **bulma-ui:** show a focus ring on ghost buttons and on every button in forced colors ([f7f4dbf](https://github.com/allxsmith/bestax/commit/f7f4dbfeebf9bce49cee7c7f94e3016c33f5a2ed))
+
 # [5.65.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.64.0...@allxsmith/bestax-bulma@5.65.0) (2026-11-04)
 
 

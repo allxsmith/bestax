@@ -139,7 +139,7 @@ export interface MessageBodyProps extends React.HTMLAttributes<HTMLDivElement> {
  * @param {MessageHeaderProps} props - Props for the MessageHeader component.
  * @returns {JSX.Element} The rendered message header.
  */
-const MessageHeader: React.FC<MessageHeaderProps> = ({
+export const MessageHeader: React.FC<MessageHeaderProps> = ({
   className,
   children,
   ...props
@@ -159,7 +159,7 @@ const MessageHeader: React.FC<MessageHeaderProps> = ({
  * @param {MessageBodyProps} props - Props for the MessageBody component.
  * @returns {JSX.Element} The rendered message body.
  */
-const MessageBody: React.FC<MessageBodyProps> = ({
+export const MessageBody: React.FC<MessageBodyProps> = ({
   className,
   children,
   ...props

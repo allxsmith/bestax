@@ -12,6 +12,7 @@ import { ListItem } from '../elements/ListItem';
 import { Checkbox } from '../form/Checkbox';
 import { Checkboxes } from '../form/Checkboxes';
 import { Input } from '../form/Input';
+import { LocaleProvider } from '../helpers/LocaleProvider';
 
 const meta: Meta<typeof Popover> = {
   title: 'Components/Popover',
@@ -122,6 +123,22 @@ export const Default: Story = {
       </Popover>
     );
   },
+};
+
+/**
+ * On a right-to-left page a popover with no `position` lines its right edge
+ * up with the trigger's.
+ */
+export const RightToLeft: Story = {
+  render: () => (
+    <LocaleProvider locale="ar" dir="rtl">
+      <Popover trigger={<Button>فتح</Button>}>
+        <Popover.Body>
+          <Paragraph>لوحة</Paragraph>
+        </Popover.Body>
+      </Popover>
+    </LocaleProvider>
+  ),
 };
 
 /**

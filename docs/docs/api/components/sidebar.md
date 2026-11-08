@@ -23,7 +23,14 @@ It's ideal for mobile navigation, settings panels, or any content that should ov
 <!-- bestax:generated import -->
 
 ```tsx
-import { Sidebar } from '@allxsmith/bestax-bulma';
+import {
+  Sidebar,
+  SidebarHeader,
+  SidebarTitle,
+  SidebarClose,
+  SidebarBody,
+  SidebarFooter,
+} from '@allxsmith/bestax-bulma';
 ```
 
 <!-- /bestax:generated import -->
@@ -316,7 +323,7 @@ function example() {
 
 ### Compound (dot-notation) usage
 
-`Sidebar.Header`, `Sidebar.Title`, `Sidebar.Close`, `Sidebar.Body`, and `Sidebar.Footer` are all statics on `Sidebar`, so the whole panel can be composed from the single `Sidebar` import.
+`Sidebar.Header`, `Sidebar.Title`, `Sidebar.Close`, `Sidebar.Body`, and `Sidebar.Footer` are all statics on `Sidebar`, so the whole panel can be composed from the single `Sidebar` import. The same parts are named exports: `SidebarHeader`, `SidebarTitle`, `SidebarClose`, `SidebarBody`, and `SidebarFooter`. Each is the same component as the dotted name. A Next.js Server Component imports the named export, because the dotted name is `undefined` there.
 
 ```tsx live
 function example() {

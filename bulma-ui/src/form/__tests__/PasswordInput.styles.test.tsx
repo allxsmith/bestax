@@ -132,11 +132,20 @@ describe('PasswordInput styles', () => {
     expect(find(PLAIN, TOGGLE)).toMatchObject(find(rulesOf(mixin), '.probe'));
   });
 
-  it('shares the pickers’ launcher rule, with its own variables', () => {
-    // Both come from the `extras-input-trigger` mixin, so each picker rule
-    // has a twin here that differs only in the names.
-    const launcher = PICKERS.filter(r =>
-      r.selector.startsWith('.dateinput-container')
+  it('shares the pickers’ launcher rule, except the side it sits on', () => {
+    // Both come from the `extras-input-trigger` mixin. The pickers pass
+    // `$logical`, so their side is the inline end; the toggle stays on the
+    // physical right. Everything else is the same rule with its own names.
+    const side = new Set([
+      'padding-inline-end',
+      'inset-inline-end',
+      'padding-right',
+      'right',
+    ]);
+    const launcher = PICKERS.filter(
+      r =>
+        r.selector.startsWith('.dateinput-container') &&
+        !r.selector.includes('is-rounded')
     );
     expect(launcher.length).toBeGreaterThan(0);
     for (const rule of launcher) {
@@ -145,13 +154,75 @@ describe('PasswordInput styles', () => {
         .replace(/dateinput-trigger/g, 'password-input-toggle');
       const declarations = Object.fromEntries(
         Object.entries(rule.declarations)
-          .filter(([name]) => !name.startsWith('--'))
+          .filter(([name]) => !name.startsWith('--') && !side.has(name))
           .map(([name, value]) => [
             name,
             value.replace(/picker-trigger/g, 'password-input-toggle'),
           ])
       );
       expect(find(PLAIN, twin)).toEqual(expect.objectContaining(declarations));
+    }
+    expect(find(PLAIN, '.password-input-container > .input')).toMatchObject({
+      'padding-right': 'var(--bulma-password-input-toggle-width)',
+    });
+    expect(find(PLAIN, TOGGLE).right).toBe('0');
+    expect(find(PLAIN, TOGGLE)).not.toHaveProperty('inset-inline-end');
+  });
+
+  it('puts the date pickers’ launcher and icon on the logical sides', () => {
+    for (const container of [
+      'dateinput-container',
+      'timeinput-container',
+      'datetimeinput-container',
+    ]) {
+      expect(find(PICKERS, `.${container} > .input`)).toEqual({
+        'padding-inline-end': 'var(--bulma-picker-trigger-width)',
+      });
+      expect(find(PICKERS, `.${container} > .input.is-rounded`)).toEqual({
+        'padding-inline-end': 'var(--bulma-picker-trigger-width)',
+      });
+      const trigger = container.startsWith('datetime')
+        ? 'datetimeinput-trigger'
+        : container.startsWith('time')
+          ? 'timeinput-trigger'
+          : 'dateinput-trigger';
+      expect(find(PICKERS, `.${container} > .${trigger}`)).toMatchObject({
+        'inset-inline-end': '0',
+      });
+      expect(find(PICKERS, `.${container} > .${trigger}`)).not.toHaveProperty(
+        'right'
+      );
+      const input = find(
+        PICKERS,
+        `.control.has-icons-left > .${container} > .input`
+      );
+      expect(input).toEqual({
+        'padding-left': '0',
+        'padding-right': '0',
+        'padding-inline-start': 'var(--bulma-input-height)',
+        'padding-inline-end': 'var(--bulma-picker-trigger-width)',
+      });
+      expect(
+        find(PICKERS, `.control.has-icons-left > .${container} ~ .icon.is-left`)
+      ).toEqual({
+        left: 'auto',
+        right: 'auto',
+        'inset-inline-start': '0',
+      });
+    }
+    // A plain Control's icon and input stay where Bulma puts them: each rule
+    // here that moves something to the inline start reaches it through a
+    // picker's container.
+    const inlineStart = PICKERS.filter(
+      r =>
+        'inset-inline-start' in r.declarations ||
+        'padding-inline-start' in r.declarations
+    );
+    expect(inlineStart.length).toBeGreaterThan(0);
+    for (const rule of inlineStart) {
+      expect(rule.selector).toMatch(
+        /^\.control\.has-icons-left > \.(date|time|datetime)input-container /
+      );
     }
   });
 

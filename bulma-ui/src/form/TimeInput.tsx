@@ -10,6 +10,7 @@ import {
   rendersOwnControl,
 } from './FormContext';
 import { useAutoLabelId } from './useAutoLabelId';
+import { usePickerDirAttrs } from './_pickerInternals/useLocaleDefaults';
 
 /**
  * Props for the TimeInput convenience wrapper. Extends `TimeInputBaseProps`
@@ -129,6 +130,8 @@ export const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
       controlClassName,
       ...baseProps
     } = props;
+    // The picker's own direction, which the Control below takes too.
+    const pickerDirAttrs = usePickerDirAttrs(baseProps.locale, baseProps.dir);
     const insideField = useInsideField();
     const insideControl = useInsideControl();
     const ownField = rendersOwnField('TimeInput', {
@@ -182,6 +185,7 @@ export const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
     if (ownControl) {
       content = (
         <Control
+          {...pickerDirAttrs}
           iconLeft={iconLeft}
           iconRight={iconRight}
           iconLeftName={iconLeftName}

@@ -64,6 +64,18 @@ $picker-trigger-disabled-opacity: 0.5 !default;
     right: 0;
     margin-bottom: cv.getVar('picker-popover-offset');
   }
+  // With no `position`, the panel lines up with the field's inline start, so
+  // a field at the start of a right-to-left line doesn't push it off the
+  // screen. A corner the caller names stays physical. Portaled, the picker
+  // sets the edge inline instead. `:where()` keeps this at the corner rules'
+  // weight, so a rule that moves the panel elsewhere, as TimeInput's
+  // narrow-screen sheet does, still wins.
+  &.#{iv.$class-prefix}is-start-aligned:where(
+      :not(.#{iv.$class-prefix}is-portal):dir(rtl)
+    ) {
+    left: auto;
+    right: 0;
+  }
   // At least as wide as the anchor it's placed against, as a list under a
   // field is. Portaled, the anchor's width comes inline instead, since 100%
   // there would be the viewport's.
@@ -134,12 +146,14 @@ $picker-containers: (
   }
 }
 
-// Right-side launcher button. The picker bases render this real <button>
-// inside their *-container (Bulma's Control icons are decorative —
+// Launcher button on the inline end. The picker bases render this real
+// <button> inside their *-container (Bulma's Control icons are decorative —
 // `pointer-events: none` — so they can't open the popover). It toggles the
 // popover and is keyboard-focusable. Its rules are the `extras-input-trigger`
-// mixin's, which PasswordInput's toggle shares: Bulma's 2.5em icon slot,
-// tracking the input's size modifier through the sibling selector.
+// mixin's, which PasswordInput's toggle shares except the side: the toggle
+// stays on the physical right, and this slot follows the writing direction.
+// Bulma's 2.5em width tracks the input's size modifier through the sibling
+// selector. Left to right the end is the right, as before.
 $picker-trigger-pairs: (
   ('dateinput-container' 'dateinput-trigger'),
   ('timeinput-container' 'timeinput-trigger'),
@@ -153,7 +167,8 @@ $picker-trigger-pairs: (
       $width: cv.getVar('picker-trigger-width'),
       $color: cv.getVar('picker-trigger-color'),
       $hover-color: cv.getVar('picker-trigger-hover-color'),
-      $disabled-opacity: cv.getVar('picker-trigger-disabled-opacity')
+      $disabled-opacity: cv.getVar('picker-trigger-disabled-opacity'),
+      $logical: true
     ) {
       @include cv.register-vars(
         (
@@ -164,5 +179,30 @@ $picker-trigger-pairs: (
         )
       );
     }
+  }
+}
+
+// The calendar or clock icon is Bulma's `has-icons-left`, pinned to the
+// physical left with `padding-left`. Moving only the launcher onto the inline
+// end would stack it on that icon right to left, so the icon goes to the
+// inline start with it. Only these containers: a plain Control's icons stay
+// physical. The zeros lose to the logical properties after them, which are
+// the sides Bulma's physical padding was setting left to right.
+@each $container in $picker-containers {
+  .#{iv.$class-prefix}control.#{iv.$class-prefix}has-icons-left
+    > .#{$container}
+    > .#{iv.$class-prefix}input {
+    padding-left: 0;
+    padding-right: 0;
+    padding-inline-start: cv.getVar('input-height');
+    padding-inline-end: cv.getVar('picker-trigger-width');
+  }
+
+  .#{iv.$class-prefix}control.#{iv.$class-prefix}has-icons-left
+    > .#{$container}
+    ~ .#{iv.$class-prefix}icon.#{iv.$class-prefix}is-left {
+    left: auto;
+    right: auto;
+    inset-inline-start: 0;
   }
 }

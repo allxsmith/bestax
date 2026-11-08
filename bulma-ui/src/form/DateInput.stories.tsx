@@ -7,6 +7,10 @@ import { Field } from './Field';
 import { Control } from './Control';
 import { Block } from '../elements/Block';
 import { Paragraph } from '../elements/Paragraph';
+import { LocaleProvider } from '../helpers/LocaleProvider';
+import { TimeInput } from './TimeInput';
+import { DateTimeInput } from './DateTimeInput';
+import { DateRangeInput } from './DateRangeInput';
 
 const meta: Meta<typeof DateInput> = {
   title: 'Form/DateInput',
@@ -207,6 +211,21 @@ export const FirstDayOfWeek: Story = {
       },
     },
   },
+};
+
+export const RightToLeft: Story = {
+  render: () => (
+    <LocaleProvider locale="ar" dir="rtl">
+      <Block>
+        <DateInput label="التاريخ" mobileNative={false} />
+        <TimeInput label="الوقت" />
+        <DateTimeInput label="التاريخ والوقت" mobileNative={false} />
+        <DateRangeInput label="المدى" mobileNative={false} />
+        {/* A picker of the other direction keeps its icon and launcher apart. */}
+        <DateInput label="Date" locale="fr" mobileNative={false} />
+      </Block>
+    </LocaleProvider>
+  ),
 };
 
 export const Locale: Story = {

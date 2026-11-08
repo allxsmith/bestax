@@ -458,9 +458,11 @@ describe('Slider', () => {
       const ticks = container.querySelectorAll('.slider-tick');
       // 3 ticks: 25%, 50%, 75% (no 0% or 100%)
       expect(ticks.length).toBe(3);
-      expect(ticks[0]).toHaveStyle({ left: '25%' });
-      expect(ticks[1]).toHaveStyle({ left: '50%' });
-      expect(ticks[2]).toHaveStyle({ left: '75%' });
+      // From the inline start: left to right that is the physical left.
+      expect((ticks[0] as HTMLElement).style.insetInlineStart).toBe('25%');
+      expect((ticks[1] as HTMLElement).style.insetInlineStart).toBe('50%');
+      expect((ticks[2] as HTMLElement).style.insetInlineStart).toBe('75%');
+      expect((ticks[0] as HTMLElement).style.left).toBe('');
     });
   });
 
@@ -501,6 +503,24 @@ describe('Slider', () => {
       expect(container.querySelector('.slider')).not.toHaveClass(
         'has-tick-labels'
       );
+    });
+
+    it('places the 0 and 100 marks from the inline start', () => {
+      // Left to right that is the left edge. Slider.styles.test.tsx checks
+      // the right-to-left side, which needs the stylesheet.
+      const marks = [
+        { value: 0, label: '0' },
+        { value: 100, label: '100' },
+      ];
+      const { container } = render(<Slider marks={marks} />);
+      const ticks = [...container.querySelectorAll('.slider-tick')].map(
+        tick => (tick as HTMLElement).style
+      );
+      expect(ticks.map(style => style.insetInlineStart)).toEqual([
+        '0%',
+        '100%',
+      ]);
+      expect(ticks.map(style => style.left)).toEqual(['', '']);
     });
 
     it('marks take precedence over ticks', () => {
@@ -746,11 +766,11 @@ describe('Slider', () => {
       // Sampled subset: i=1..99 => 99 interior ticks (no endpoints).
       expect(ticks.length).toBe(99);
       // First sampled tick is at min + 1 * (10000/100) = 100 => 1%.
-      expect(ticks[0]).toHaveStyle({ left: '1%' });
+      expect((ticks[0] as HTMLElement).style.insetInlineStart).toBe('1%');
       // 50th sampled tick is at min + 50 * (10000/100) = 5000 => 50%.
-      expect(ticks[49]).toHaveStyle({ left: '50%' });
+      expect((ticks[49] as HTMLElement).style.insetInlineStart).toBe('50%');
       // Last sampled tick is at min + 99 * (10000/100) = 9900 => 99%.
-      expect(ticks[98]).toHaveStyle({ left: '99%' });
+      expect((ticks[98] as HTMLElement).style.insetInlineStart).toBe('99%');
     });
   });
 
@@ -1026,6 +1046,56 @@ describe('Slider', () => {
         const output = container.querySelector('.slider-output') as HTMLElement;
         expect(output.style.transform).toContain('translateX');
       });
+    });
+
+    it('measures the nudge from the right edge on a right-to-left page', () => {
+      // jsdom maps no `dir` to `direction`, which the nudge reads.
+      const rtl = document.createElement('style');
+      rtl.textContent = '[dir="rtl"] { direction: rtl; }';
+      document.head.appendChild(rtl);
+      try {
+        withMockedLayout({ left: 0, right: 100, width: 100 }, 80, () => {
+          const { container } = render(
+            <div dir="rtl">
+              <Slider value={0} min={0} max={100} showOutput />
+            </div>
+          );
+          // The minimum sits at the right edge, so an 80px bubble centred on
+          // it runs 40px past that edge and moves left by as much.
+          const output = container.querySelector(
+            '.slider-output'
+          ) as HTMLElement;
+          expect(output.style.transform).toBe(
+            'translateX(calc(var(--slider-output-shift, -50%) + -40px))'
+          );
+          expect(
+            output.style.getPropertyValue('--slider-output-arrow-offset')
+          ).toBe('calc(50% - -40px)');
+        });
+      } finally {
+        rtl.remove();
+      }
+    });
+
+    it('measures the same thumb from the left edge left to right', () => {
+      withMockedLayout({ left: 0, right: 100, width: 100 }, 80, () => {
+        const { container } = render(
+          <Slider value={0} min={0} max={100} showOutput />
+        );
+        const output = container.querySelector('.slider-output') as HTMLElement;
+        expect(output.style.transform).toBe(
+          'translateX(calc(var(--slider-output-shift, -50%) + 40px))'
+        );
+      });
+    });
+
+    it('places the bubble from the inline start, as the thumb is', () => {
+      const { container } = render(
+        <Slider defaultValue={25} tooltip="always" />
+      );
+      const output = container.querySelector('.slider-output') as HTMLElement;
+      expect(output.style.insetInlineStart).toMatch(/^calc\(/);
+      expect(output.style.left).toBe('');
     });
 
     it('nudges high tooltip in range mode when clipped at right edge', () => {

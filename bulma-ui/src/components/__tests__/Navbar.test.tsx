@@ -136,6 +136,20 @@ describe('Navbar', () => {
     expect(nav).toHaveAttribute('aria-label', 'main-nav');
   });
 
+  it('names the nav main navigation by default, and an undefined aria-label removes it', () => {
+    const { rerender } = render(<Navbar data-testid="navbar">Test</Navbar>);
+    expect(screen.getByTestId('navbar')).toHaveAttribute(
+      'aria-label',
+      'main navigation'
+    );
+    rerender(
+      <Navbar data-testid="navbar" aria-label={undefined}>
+        Test
+      </Navbar>
+    );
+    expect(screen.getByTestId('navbar')).not.toHaveAttribute('aria-label');
+  });
+
   it('does not pass Bulma-specific props to nav', () => {
     render(
       <Navbar

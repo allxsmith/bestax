@@ -63,6 +63,24 @@ export function usePickerLocaleScope(
 }
 
 /**
+ * The `dir` a picker's root ends up with: the one passed to it, else its own
+ * locale's inside a `LocaleProvider`, else none, so it follows the page. A
+ * picker that renders its own `Control` puts it there too. Bulma places the
+ * Control's icon and loading spinner against the Control's direction, and
+ * the launcher sits inside the picker's root, so the two have to agree or a
+ * French picker in an Arabic section puts the icon on top of the launcher.
+ * Returned as attributes to spread, empty when there's no `dir` to set.
+ */
+export function usePickerDirAttrs(
+  ownLocale: string | undefined,
+  ownDir: string | undefined
+): { dir?: string } {
+  const { rootAttrs } = usePickerLocaleScope(ownLocale, ownDir);
+  const dir = ownDir ?? rootAttrs.dir;
+  return dir === undefined ? NO_ROOT_ATTRS : { dir };
+}
+
+/**
  * Whether a picker's `dayNames` replace the calendar's own, which `Calendar`
  * does only for a full week of seven.
  */
