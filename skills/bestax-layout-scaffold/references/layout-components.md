@@ -300,16 +300,16 @@ flexDirection="column"` + `flexGrow="1"` pattern applies to `Cell` + `Card`.
 `Navbar.Burger`, `Navbar.Menu`, `Navbar.Start`, `Navbar.End`, `Navbar.Dropdown`,
 `Navbar.DropdownMenu`, `Navbar.Divider`.
 
-| Prop            | Type                                                                                                             |
-| --------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `fixed`         | `'top' \| 'bottom'`                                                                                              |
-| `transparent`   | `boolean`                                                                                                        |
-| `isSpaced`      | `boolean` (Bulma's `is-spaced`, from desktop up)                                                                 |
-| `hasShadow`     | `boolean` (default `false`, unlike `Card`'s; Bulma's `has-shadow`)                                               |
-| `color`         | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'black' \| 'dark' \| 'light' \| 'white'` |
-| `Navbar.Item`   | `as?`, `active?`, `href`                                                                                         |
-| `Navbar.Burger` | `active?`, `onClick`                                                                                             |
-| `Navbar.Menu`   | `active?` (toggled open on mobile)                                                                               |
+| Prop            | Type                                                                                                                 |
+| --------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `fixed`         | `'top' \| 'bottom'`                                                                                                  |
+| `transparent`   | `boolean`                                                                                                            |
+| `isSpaced`      | `boolean` (Bulma's `is-spaced`, from desktop up)                                                                     |
+| `hasShadow`     | `boolean` (default `false`, unlike `Card`'s; Bulma's `has-shadow`)                                                   |
+| `color`         | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'black' \| 'dark' \| 'light' \| 'white'`     |
+| `Navbar.Item`   | `as?`, `active?` (the current page: `is-active` plus `aria-current="page"`; an `aria-current` you pass wins), `href` |
+| `Navbar.Burger` | `active?`, `onClick`                                                                                                 |
+| `Navbar.Menu`   | `active?` (toggled open on mobile)                                                                                   |
 
 The burger/menu is controlled state — toggle `Navbar.Burger active`/`onClick` and pass the same
 flag to `Navbar.Menu active`. **A `fixed="top"` navbar requires `has-navbar-fixed-top` on `<html>`**

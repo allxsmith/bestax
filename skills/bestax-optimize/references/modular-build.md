@@ -234,9 +234,11 @@ Notes:
 - `Button` is stock Bulma too (`bulma/sass/elements/button`). Bulma shows a focused button with
   its border and a shadow, which a ghost button doesn't have, and forced colors (Windows'
   contrast themes) drops the shadow and sets the border's color, so a focused button can look
-  like an unfocused one there. The `button` extras partial gives those a focus outline, so
-  include it (`as bestax-button`) in any build that loads Bulma's button module. Its rules win
-  over Bulma's either way, so the order of the `@use` lines does not matter.
+  like an unfocused one there. Forced colors also replaces a colored button's fill, which Bulma
+  draws with no border, so an icon-only one shows only its glyph there. The `button` extras
+  partial gives those focused buttons an outline, and a colored button a 1px border in forced
+  colors, so include it (`as bestax-button`) in any build that loads Bulma's button module. Its
+  rules win over Bulma's either way, so the order of the `@use` lines does not matter.
 - `Stats` lays its row out on Bulma's smart grid (`.grid` and `is-col-min-*`), so a build with a
   `Stats` row wants `bulma/sass/grid/grid` beside the `stat` partial, which only resets the row's
   margins.
@@ -301,7 +303,7 @@ not `flexbox` — `flexbox` holds only the alignment props. Verified failure mod
 The `npm create bestax` starter renders `Container`, `Section`, `Columns`/`Column`, `Image`,
 `Title`/`SubTitle`, `Box`, `Card`, `Buttons`/`Button`, and `Notification` with its close
 button: all stock Bulma, plus the `notification` and `delete` extras partials for that close
-button and the `button` partial for the buttons' focus outline in forced colors. Its helper
+button and the `button` partial for the buttons' focus outline and edge in forced colors. Its helper
 props are `display` (visibility), `flexGrow` (flexbox), and `textAlign` (typography);
 it uses no spacing or color props. That inventory compiles to the following, verified
 pixel-equivalent to the prebuilt `complete` flavor in headless Chromium (light and dark, phone
@@ -333,7 +335,7 @@ Scaffolded with an icon library, the starter also needs `bulma/sass/elements/ico
 @use 'bulma/sass/helpers/flexbox'; // flexGrow
 @use 'bulma/sass/helpers/typography'; // textAlign
 
-@use '@allxsmith/bestax-bulma/scss/elements/button' as bestax-button; // focus outline in forced colors
+@use '@allxsmith/bestax-bulma/scss/elements/button' as bestax-button; // focus outline and edge in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/delete' as bestax-delete; // the close button in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/notification' as bestax-notification; // text clears the close button
 ```

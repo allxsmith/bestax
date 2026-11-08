@@ -225,7 +225,8 @@ class you pass through `className`, or with the component's `style` prop. A size
 modifier can declare the variable again on a more specific selector (`.delete.is-small`), which a
 lone class loses to and `style` does not. Each component's API page lists its variables under
 **CSS & Sass Variables** and says where Bulma declares them; the extras below follow the same
-rule.
+rule. In forced colors a colored button's `--bulma-button-border-width` is `1px`, so it keeps an
+edge when the theme replaces its fill, and an outlined button or a `text` one keeps its own.
 
 ## Shadow — override the upstream token, not the derived one
 

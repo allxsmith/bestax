@@ -77,3 +77,25 @@ Rules the pattern encodes:
   CSS & Sass Variables section, which is how LinkButton shipped its variables invisibly
   (#464). The orphan rule in `check:conformance` now fails on a partial that no component
   claims, so the miss is loud, but the fix is still yours to make.
+
+## A partial that adjusts stock Bulma
+
+Some partials change a stock component rather than add one (`elements/_button.scss`,
+`components/_pagination.scss`, `components/_menu.scss`). They follow the pattern above, plus:
+
+- **Outrank Bulma whichever stylesheet loads first.** An app may load `extras.css` before or
+  after Bulma, so match Bulma's selector and add one class or ancestor (`.button.button`,
+  `.pagination .pagination-link`), and test both load orders.
+- **Check every case the selector reaches.** A loop over Bulma's `$colors` also reaches `text`,
+  which `LinkButton` uses by default. A rule for one state can erase another state's only cue: a
+  border at rest in forced colors is the same border Bulma draws for focus. List the variants,
+  sizes and states the rule touches, and check each.
+- **Forced colors:** scope the rule to `@media (forced-colors: active)`, paint with system colors
+  (`CanvasText`, `ButtonText`), and put `forced-color-adjust: none` only on the smallest element
+  that needs it, so everything else keeps the user's palette.
+- **Name the `@use`.** Docs that show the partial beside the Bulma module it adjusts load it
+  `as bestax-<name>`, since Sass refuses two `@use` lines with the same name.
+- `ORPHAN_EXEMPT` in `scripts/check-conformance.mjs` is for a partial no component can claim. Its
+  reason says why that stays true, not which issue added it.
+- A new partial also means updating every page that lists the partials: see "Finishing a change"
+  in the root `CLAUDE.md`.
