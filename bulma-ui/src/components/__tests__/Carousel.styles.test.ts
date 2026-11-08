@@ -104,8 +104,9 @@ describe('Carousel stylesheet', () => {
   });
 
   it('shifts the track the other way right to left, and mirrors the arrows', () => {
-    // The inline transform multiplies by this. Unset, it falls back to -1,
-    // which is the left-to-right shift the component has always used.
+    // The inline transform multiplies by this: -1 is the left-to-right shift
+    // the component has always used, set on every track so none inherits it.
+    expect(css).toContain('--carousel-shift-sign: -1');
     expect(css).toContain('.carousel-slides:dir(rtl)');
     expect(css).toContain('--carousel-shift-sign: 1');
     expect(css).toContain(

@@ -220,10 +220,13 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
     gap: cv.getVar("carousel-item-gap");
     width: 100%;
     will-change: transform;
-
     // The flex row reverses right to left, so the inline transform's
     // negative shift would park every slide off the inline start. The
-    // transform multiplies by this: -1 left to right, +1 right to left.
+    // transform multiplies by this: -1 left to right, +1 right to left. Set
+    // on every track, since a custom property inherits and a left-to-right
+    // carousel inside a right-to-left one would otherwise take its `1`.
+    --carousel-shift-sign: -1;
+
     &:dir(rtl) {
       --carousel-shift-sign: 1;
     }

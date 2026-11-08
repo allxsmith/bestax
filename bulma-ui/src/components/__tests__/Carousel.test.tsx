@@ -4,6 +4,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Carousel, CarouselItem } from '../Carousel';
 import { ConfigProvider } from '../../helpers/Config';
+import { compileSheet } from '../../__tests__/compile-scss';
 
 // Mock timers for auto-play testing
 vi.useFakeTimers();
@@ -2052,5 +2053,40 @@ describe('Carousel with several items in view', () => {
       ).toHaveLength(2);
       expect(root.querySelectorAll('.bestax-indicator-item')).toHaveLength(4);
     });
+  });
+});
+
+// The stylesheet's right-to-left rules, read through the cascade jsdom runs
+// on the compiled partial.
+describe('Carousel right-to-left styles', () => {
+  let sheet: HTMLStyleElement;
+  beforeAll(() => {
+    sheet = document.createElement('style');
+    sheet.textContent = compileSheet('components/_carousel.scss');
+    document.head.appendChild(sheet);
+  });
+  afterAll(() => sheet.remove());
+
+  const sign = (track: Element) =>
+    getComputedStyle(track).getPropertyValue('--carousel-shift-sign');
+
+  it('gives a left-to-right carousel inside a right-to-left one its own sign', () => {
+    const { container } = render(
+      <div dir="rtl">
+        <Carousel>
+          <CarouselItem>
+            <div dir="ltr">
+              <TestCarousel />
+            </div>
+          </CarouselItem>
+          <CarouselItem>Outer 2</CarouselItem>
+        </Carousel>
+      </div>
+    );
+    const [outer, inner] = Array.from(
+      container.querySelectorAll('.carousel-slides')
+    );
+    expect(sign(outer)).toBe('1');
+    expect(sign(inner)).toBe('-1');
   });
 });
