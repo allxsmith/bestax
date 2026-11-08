@@ -1534,27 +1534,31 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
       rules.filter(
         rule => rule.forcedColorsOnly && rule.selectors.includes(selector)
       );
-    const base = focus(`.${prefix}button.${prefix}is-loading:focus-visible`);
-    expect(base.map(rule => rule.values.outline?.value)).toEqual([
-      '2px solid CanvasText',
-    ]);
-    expect(base[0].values['outline-offset']?.value).toBe('2px');
-    expect(
-      focus(`button.${prefix}button.${prefix}is-loading:focus-visible`).map(
-        rule => rule.values['outline-color']?.value
-      )
-    ).toEqual(['ButtonText']);
-    expect(
-      focus(`a[href].${prefix}button.${prefix}is-loading:focus-visible`).map(
-        rule => rule.values['outline-color']?.value
-      )
-    ).toEqual(['LinkText']);
-    for (const variant of ['is-ghost', 'is-text', 'is-outlined']) {
+    // From the keyboard, or from `isFocused`, which forced colors outlines
+    // on every button.
+    for (const state of [':focus-visible', `.${prefix}is-focused`]) {
+      const base = focus(`.${prefix}button.${prefix}is-loading${state}`);
+      expect(base.map(rule => rule.values.outline?.value)).toEqual([
+        '2px solid CanvasText',
+      ]);
+      expect(base[0].values['outline-offset']?.value).toBe('2px');
       expect(
-        focus(
-          `.${prefix}button.${prefix}${variant}.${prefix}is-loading:focus-visible`
-        ).map(rule => rule.values['outline-color']?.value)
-      ).toEqual(['CanvasText']);
+        focus(`button.${prefix}button.${prefix}is-loading${state}`).map(
+          rule => rule.values['outline-color']?.value
+        )
+      ).toEqual(['ButtonText']);
+      expect(
+        focus(`a[href].${prefix}button.${prefix}is-loading${state}`).map(
+          rule => rule.values['outline-color']?.value
+        )
+      ).toEqual(['LinkText']);
+      for (const variant of ['is-ghost', 'is-text', 'is-outlined']) {
+        expect(
+          focus(
+            `.${prefix}button.${prefix}${variant}.${prefix}is-loading${state}`
+          ).map(rule => rule.values['outline-color']?.value)
+        ).toEqual(['CanvasText']);
+      }
     }
     // And no system color outside forced colors, anywhere in the sheet: one
     // there would show in every theme, not just a contrast one.
