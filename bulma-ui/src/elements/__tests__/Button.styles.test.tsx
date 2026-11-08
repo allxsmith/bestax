@@ -2,9 +2,13 @@
 // its fill, so `_button.scss` gives that width back, at 1px, inside
 // `forced-colors: active` only (#1458). jsdom evaluates no media query, so
 // these compile the partial and read the rules as text. An outlined button
-// is left out of the selector, which `matches` checks without a browser.
+// is left out of the selector, which `matches` checks without a browser, and
+// so is a text button, which has no fill to lose.
 import * as sass from 'sass';
 import path from 'path';
+import { render } from '@testing-library/react';
+import { Button } from '../Button';
+import { LinkButton } from '../LinkButton';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
@@ -69,13 +73,15 @@ function rulesOf(css: string): Rule[] {
 
 const FORCED = '@media (forced-colors: active)';
 
-/** Bulma's button colors, the keys of `$colors`, in the order it ships them. */
+/**
+ * Bulma's button colors, the keys of `$colors` in the order it ships them,
+ * without `text`.
+ */
 const COLORS = [
   'white',
   'black',
   'light',
   'dark',
-  'text',
   'primary',
   'link',
   'info',
@@ -99,6 +105,38 @@ describe('colored buttons in forced colors', () => {
         declarations: { '--bulma-button-border-width': '1px' },
       }))
     );
+  });
+
+  it("loops over Bulma's colors, all but text", () => {
+    const css = compile(
+      `@use 'sass:map';
+       @use 'bulma/sass/utilities/derived-variables' as dv;
+       :root { --colors: #{map.keys(dv.$colors)}; }`
+    );
+    const keys = rulesOf(css)[0].declarations['--colors'].split(/,\s*/);
+    expect(keys).toContain('text');
+    expect(COLORS).toEqual(keys.filter(name => name !== 'text'));
+    expect(COLORS).toEqual(
+      expect.arrayContaining(['white', 'black', 'light', 'dark'])
+    );
+  });
+
+  it('gives a text button, and so a text or underline LinkButton, no rule', () => {
+    expect(PLAIN.some(rule => rule.selector.includes('is-text'))).toBe(false);
+    const { getByRole } = render(
+      <div>
+        <Button color="text">Text</Button>
+        <LinkButton>Link</LinkButton>
+        <LinkButton variant="underline">Underline</LinkButton>
+      </div>
+    );
+    for (const name of ['Text', 'Link', 'Underline']) {
+      const button = getByRole('button', { name });
+      expect(button).toHaveClass('is-text');
+      for (const rule of PLAIN) {
+        expect(button.matches(rule.selector)).toBe(false);
+      }
+    }
   });
 
   it('excludes an outlined button and still matches a colored one', () => {

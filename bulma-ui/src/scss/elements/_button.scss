@@ -6,13 +6,19 @@
 // Bulma subtracts the width from the padding, so the size stays the same.
 // The color class is named twice to outrank Bulma's `.button.is-<color>`
 // whichever stylesheet loads first. Outside forced colors it changes nothing.
+//
+// Bulma's colors include `text`, but `.button.is-text` is a text button, as
+// `Button color="text"` and LinkButton's text and underline variants render
+// it. It has no fill to lose, and a border at rest would draw a box around a
+// link, so the loop leaves it out.
 
+@use 'sass:map';
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
 @use 'bulma/sass/utilities/derived-variables' as dv;
 
 @media (forced-colors: active) {
-  @each $name, $color in dv.$colors {
+  @each $name in map.keys(map.remove(dv.$colors, 'text')) {
     .#{iv.$class-prefix}button.#{iv.$class-prefix}is-#{$name}.#{iv.$class-prefix}is-#{$name}:not(
         .#{iv.$class-prefix}is-outlined
       ) {
