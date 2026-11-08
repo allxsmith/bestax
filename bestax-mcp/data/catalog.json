@@ -1007,7 +1007,7 @@
       "slug": "components/navbar",
       "import": "import { Navbar } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 57,
+      "propCount": 58,
       "exampleCount": 19
     },
     {

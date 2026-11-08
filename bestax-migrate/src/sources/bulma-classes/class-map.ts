@@ -1661,6 +1661,8 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       'hasShadow',
       'fixed',
     ],
+    // It reaches the <nav> as written, so Bulma's own label converts with it.
+    passThrough: ['aria-label'],
   },
   // No background prop on these parts.
   'navbar-brand': {

@@ -1,6 +1,6 @@
 # scss/ — styles for the bestax "extras"
 
-**Only extras get SCSS.** Components that are stock Bulma (Button, Card, Navbar, …) ship no CSS
+**Only extras get SCSS.** Components that are stock Bulma (Box, Card, Navbar, …) ship no CSS
 of their own — Bulma provides it. A partial exists only for components that extend beyond Bulma
 (Carousel, Collapse, Dialog, the extended form inputs, …) — or that extend a stock component
 (e.g. `_tabs.scss` adds vertical Tabs). The `_index.scss` files are the authoritative inventory.
