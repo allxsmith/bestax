@@ -309,7 +309,7 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
 /**
  * Props for the SidebarHeader component.
  */
-interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Header content. */
   children?: React.ReactNode;
 }
@@ -321,7 +321,7 @@ interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
  * @param {SidebarHeaderProps} props - Props for the SidebarHeader component.
  * @returns {JSX.Element} The rendered sidebar header.
  */
-const SidebarHeader: React.FC<SidebarHeaderProps> = ({
+export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
   className,
   children,
   ...props
@@ -337,7 +337,7 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = ({
 /**
  * Props for the SidebarTitle component.
  */
-interface SidebarTitleProps extends React.HTMLAttributes<HTMLParagraphElement> {
+export interface SidebarTitleProps extends React.HTMLAttributes<HTMLParagraphElement> {
   /** Title content. */
   children?: React.ReactNode;
 }
@@ -349,7 +349,7 @@ interface SidebarTitleProps extends React.HTMLAttributes<HTMLParagraphElement> {
  * @param {SidebarTitleProps} props - Props for the SidebarTitle component.
  * @returns {JSX.Element} The rendered sidebar title.
  */
-const SidebarTitle: React.FC<SidebarTitleProps> = ({
+export const SidebarTitle: React.FC<SidebarTitleProps> = ({
   className,
   children,
   ...props
@@ -368,7 +368,7 @@ const SidebarTitle: React.FC<SidebarTitleProps> = ({
  * @extraProp {'button' | 'submit' | 'reset'} [type='button'] - Button type. Defaults to `'button'`, so a close button inside a form does not submit it. Pass `'submit'` or `'reset'` and yours is used; any other value, or a spread carrying `type: undefined`, renders `'button'`.
  * @extraProp {string} [aria-label='Close'] - Accessible name. Pass your own to replace it. An empty one, or a spread carrying `'aria-label': undefined`, keeps the default rather than leaving the button unnamed.
  */
-type SidebarCloseProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
+export type SidebarCloseProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 /**
  * Close button for the sidebar.
@@ -377,7 +377,7 @@ type SidebarCloseProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
  * @param {SidebarCloseProps} props - Props for the SidebarClose component.
  * @returns {JSX.Element} The rendered close button.
  */
-const SidebarClose: React.FC<SidebarCloseProps> = ({
+export const SidebarClose: React.FC<SidebarCloseProps> = ({
   className,
   children,
   ...props
@@ -403,7 +403,7 @@ const SidebarClose: React.FC<SidebarCloseProps> = ({
 /**
  * Props for the SidebarBody component.
  */
-interface SidebarBodyProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface SidebarBodyProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Body content. */
   children?: React.ReactNode;
 }
@@ -415,7 +415,7 @@ interface SidebarBodyProps extends React.HTMLAttributes<HTMLDivElement> {
  * @param {SidebarBodyProps} props - Props for the SidebarBody component.
  * @returns {JSX.Element} The rendered sidebar body.
  */
-const SidebarBody: React.FC<SidebarBodyProps> = ({
+export const SidebarBody: React.FC<SidebarBodyProps> = ({
   className,
   children,
   ...props
@@ -431,7 +431,7 @@ const SidebarBody: React.FC<SidebarBodyProps> = ({
 /**
  * Props for the SidebarFooter component.
  */
-interface SidebarFooterProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface SidebarFooterProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Footer content. */
   children?: React.ReactNode;
 }
@@ -443,7 +443,7 @@ interface SidebarFooterProps extends React.HTMLAttributes<HTMLDivElement> {
  * @param {SidebarFooterProps} props - Props for the SidebarFooter component.
  * @returns {JSX.Element} The rendered sidebar footer.
  */
-const SidebarFooter: React.FC<SidebarFooterProps> = ({
+export const SidebarFooter: React.FC<SidebarFooterProps> = ({
   className,
   children,
   ...props

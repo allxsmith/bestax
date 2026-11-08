@@ -13,6 +13,7 @@ import {
   rendersOwnControl,
 } from './FormContext';
 import { useAutoLabelledBy } from './useAutoLabelId';
+import { usePickerDirAttrs } from './_pickerInternals/useLocaleDefaults';
 
 /**
  * Props for the DateRangeInput convenience wrapper. Extends
@@ -124,6 +125,8 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
       controlClassName,
       ...baseProps
     } = props;
+    // The picker's own direction, which the Control below takes too.
+    const pickerDirAttrs = usePickerDirAttrs(baseProps.locale, baseProps.dir);
     const insideField = useInsideField();
     const insideControl = useInsideControl();
     const ownField = rendersOwnField('DateRangeInput', {
@@ -177,6 +180,7 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
     if (ownControl) {
       content = (
         <Control
+          {...pickerDirAttrs}
           iconLeft={iconLeft}
           iconRight={iconRight}
           iconLeftName={iconLeftName}

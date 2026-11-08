@@ -7,6 +7,8 @@ import { readdirSync } from 'fs';
 import path from 'path';
 import type { ReactElement } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { PickerPopover } from '../_pickerInternals/PickerPopover';
 import { SCSS, compileScss, compileSheet } from '../../__tests__/compile-scss';
 import { DateInput } from '../DateInput';
 import { TimeInput } from '../TimeInput';
@@ -110,6 +112,37 @@ describe.each(prefixes)(
       const panel = screen.getByRole('dialog');
       expect(panel).not.toHaveClass(`${prefix}has-anchor-width`);
       expect(getComputedStyle(panel).minWidth).not.toBe('100%');
+    });
+  }
+);
+
+describe.each(prefixes)(
+  'a panel open on first paint, with class prefix "%s"',
+  prefix => {
+    it('sits at the right edge right to left before any effect runs', () => {
+      // Server markup, so no effect has read the direction: the stylesheet
+      // alone has to place it.
+      const page = document.createElement('div');
+      page.setAttribute('dir', 'rtl');
+      page.innerHTML = renderToStaticMarkup(
+        <ConfigProvider classPrefix={prefix}>
+          <PickerPopover
+            isOpen
+            onClose={() => {}}
+            anchorRef={{ current: null }}
+          >
+            Panel
+          </PickerPopover>
+        </ConfigProvider>
+      );
+      document.body.appendChild(page);
+      try {
+        const style = getComputedStyle(page.querySelector('[role="dialog"]')!);
+        expect(style.right).toBe('0px');
+        expect(style.left).not.toBe('0px');
+      } finally {
+        page.remove();
+      }
     });
   }
 );
@@ -566,6 +599,98 @@ describe.each(published)('panel placement in %s', file => {
           });
         }
       );
+    });
+  });
+
+  describe('on a right-to-left page', () => {
+    beforeEach(() => document.documentElement.setAttribute('dir', 'rtl'));
+    afterEach(() => document.documentElement.removeAttribute('dir'));
+
+    /** Opens the picker with no `position`, and returns its panel. */
+    const openDefault = (
+      picker: (props: PickerProps) => ReactElement,
+      appendToBody: boolean
+    ) => {
+      render(
+        <ConfigProvider classPrefix={prefix}>
+          {picker({ appendToBody } as PickerProps)}
+        </ConfigProvider>
+      );
+      fireEvent.click(screen.getByRole('combobox'));
+      const panel = screen.getByRole('dialog');
+      expect(panel).toHaveClass(
+        `${prefix}is-bottom-left`,
+        `${prefix}is-start-aligned`
+      );
+      return panel;
+    };
+
+    describe.each([PHONE, DESKTOP])('at %ipx wide', width => {
+      const inPlace =
+        width === PHONE
+          ? pickers.filter(([name]) => name !== 'TimeInput')
+          : pickers;
+
+      it.each(inPlace)(
+        'lines a default in-place %s panel up with the right edge',
+        (_name, picker) => {
+          const panel = openDefault(picker, false);
+          expect(
+            edges(placement(panel, placementRules(sheet.cssRules, width)))
+          ).toEqual({
+            position: 'absolute',
+            top: offset,
+            right: '0px',
+            bottom: 'auto',
+            left: 'auto',
+          });
+        }
+      );
+
+      it.each(inPlace)(
+        'keeps an in-place %s panel at a named bottom-left on the left',
+        (_name, picker) => {
+          const panel = openPanel(picker, prefix, {
+            position: 'bottom-left',
+            appendToBody: false,
+          });
+          expect(panel).not.toHaveClass(`${prefix}is-start-aligned`);
+          expect(
+            edges(placement(panel, placementRules(sheet.cssRules, width)))
+          ).toEqual({
+            position: 'absolute',
+            top: offset,
+            right: 'auto',
+            bottom: 'auto',
+            left: '0px',
+          });
+        }
+      );
+
+      it.each(pickers)(
+        'places a default portaled %s panel by its inline coordinates alone',
+        (_name, picker) => {
+          const panel = openDefault(picker, true);
+          const placed = placement(
+            panel,
+            placementRules(sheet.cssRules, width)
+          );
+          expect([placed.left, placed.right]).toEqual([
+            panel.style.left,
+            'auto',
+          ]);
+        }
+      );
+    });
+
+    it('keeps a default in-place TimeInput panel a sheet on a phone', () => {
+      const panel = openDefault(props => <TimeInput {...props} />, false);
+      const placed = placement(panel, placementRules(sheet.cssRules, PHONE));
+      expect([placed.position, placed.left, placed.right]).toEqual([
+        'fixed',
+        '1rem',
+        '1rem',
+      ]);
     });
   });
 

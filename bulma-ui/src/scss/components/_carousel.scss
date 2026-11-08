@@ -220,6 +220,16 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
     gap: cv.getVar("carousel-item-gap");
     width: 100%;
     will-change: transform;
+    // The flex row reverses right to left, so the inline transform's
+    // negative shift would park every slide off the inline start. The
+    // transform multiplies by this: -1 left to right, +1 right to left. Set
+    // on every track, since a custom property inherits and a left-to-right
+    // carousel inside a right-to-left one would otherwise take its `1`.
+    --carousel-shift-sign: -1;
+
+    &:dir(rtl) {
+      --carousel-shift-sign: 1;
+    }
   }
 
   // Individual slide: an equal share of the track, less the gaps between
@@ -327,11 +337,19 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
     }
 
     &.#{iv.$class-prefix}is-prev {
-      left: cv.getVar("carousel-arrow-offset");
+      inset-inline-start: cv.getVar("carousel-arrow-offset");
     }
 
     &.#{iv.$class-prefix}is-next {
-      right: cv.getVar("carousel-arrow-offset");
+      inset-inline-end: cv.getVar("carousel-arrow-offset");
+    }
+
+    // Previous sits on the inline start, so its chevron points that way.
+    // Only the built-in chevron, the button's own svg: an `iconPrev` or
+    // `iconNext` is the caller's to point, and an svg inside its `.icon`, as
+    // Font Awesome's SVG mode renders, would flip twice under a broader rule.
+    > svg:dir(rtl) {
+      transform: scaleX(-1);
     }
 
     // Transparent variant (no background)
@@ -626,11 +644,11 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
       }
 
       &.#{iv.$class-prefix}is-prev {
-        left: cv.getVar("carousel-arrow-offset-mobile");
+        inset-inline-start: cv.getVar("carousel-arrow-offset-mobile");
       }
 
       &.#{iv.$class-prefix}is-next {
-        right: cv.getVar("carousel-arrow-offset-mobile");
+        inset-inline-end: cv.getVar("carousel-arrow-offset-mobile");
       }
     }
 

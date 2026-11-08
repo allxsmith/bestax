@@ -13,6 +13,7 @@ import { Card } from './Card';
 import { Columns } from '../columns/Columns';
 import { Column } from '../columns/Column';
 import SubTitle from '../elements/SubTitle';
+import { LocaleProvider } from '../helpers/LocaleProvider';
 
 const meta: Meta<typeof Carousel> = {
   title: 'Components/Carousel',
@@ -194,6 +195,24 @@ export const Default: Story = {
       </Block>
     );
   },
+};
+
+/**
+ * On a right-to-left page the slides run from right to left, the previous
+ * arrow sits on the right and the built-in chevrons flip.
+ */
+export const RightToLeft: Story = {
+  render: () => (
+    <LocaleProvider locale="ar" dir="rtl">
+      <Block p="5">
+        <Carousel>
+          <CarouselItem>الأول</CarouselItem>
+          <CarouselItem>الثاني</CarouselItem>
+          <CarouselItem>الثالث</CarouselItem>
+        </Carousel>
+      </Block>
+    </LocaleProvider>
+  ),
 };
 
 /**

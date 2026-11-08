@@ -184,7 +184,13 @@ export interface DateInputBaseProps
   openOnFocus?: boolean;
   /** Close the popover after a date is selected. */
   closeOnSelect?: boolean;
-  /** Popover anchor position relative to the input. */
+  /**
+   * Where the popover opens against the field. Left out, it opens below and
+   * lines up with the field's start edge, which is its right edge when the
+   * picker reads right to left. A corner you pass stays physical, so
+   * `bottom-left` lines up the left edges either way.
+   * @defaultValue 'bottom-left'
+   */
   position?: PickerPosition;
   /**
    * Render the popover through a portal, into the `portalContainer` a
@@ -276,7 +282,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       popover = true,
       openOnFocus = true,
       closeOnSelect = true,
-      position = 'bottom-left',
+      position,
       appendToBody = false,
       color,
       size,

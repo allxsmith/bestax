@@ -34,7 +34,7 @@ export interface FigureCaptionProps
  * @param {FigureCaptionProps} props - Props for the FigureCaption component.
  * @returns {JSX.Element} The rendered figcaption element.
  */
-const FigureCaption: React.FC<FigureCaptionProps> = ({
+export const FigureCaption: React.FC<FigureCaptionProps> = ({
   className,
   textColor,
   bgColor,

@@ -4,6 +4,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Carousel, CarouselItem } from '../Carousel';
 import { ConfigProvider } from '../../helpers/Config';
+import { compileSheet } from '../../__tests__/compile-scss';
 
 // Mock timers for auto-play testing
 vi.useFakeTimers();
@@ -518,6 +519,41 @@ describe('Carousel', () => {
 
       expect(onChange).toHaveBeenCalledWith(1);
     });
+
+    describe('on a right-to-left page', () => {
+      // jsdom maps no `dir` to `direction`, which the keys read.
+      let rtl: HTMLStyleElement;
+      beforeEach(() => {
+        rtl = document.createElement('style');
+        rtl.textContent = '[dir="rtl"] { direction: rtl; }';
+        document.head.appendChild(rtl);
+      });
+      afterEach(() => rtl.remove());
+
+      it('goes to the next slide, on the left, on ArrowLeft', () => {
+        const onChange = vi.fn();
+        render(
+          <div dir="rtl">
+            <TestCarousel value={0} onChange={onChange} />
+          </div>
+        );
+        screen.getByLabelText('Next slide').focus();
+        fireEvent.keyDown(document, { key: 'ArrowLeft' });
+        expect(onChange).toHaveBeenCalledWith(1);
+      });
+
+      it('goes to the previous slide, on the right, on ArrowRight', () => {
+        const onChange = vi.fn();
+        render(
+          <div dir="rtl">
+            <TestCarousel value={1} onChange={onChange} />
+          </div>
+        );
+        screen.getByLabelText('Previous slide').focus();
+        fireEvent.keyDown(document, { key: 'ArrowRight' });
+        expect(onChange).toHaveBeenCalledWith(0);
+      });
+    });
   });
 
   describe('Drag Navigation', () => {
@@ -606,6 +642,46 @@ describe('Carousel', () => {
       fireEvent.touchEnd(carouselContainer);
 
       expect(onChange).toHaveBeenCalledWith(1);
+    });
+
+    describe('on a right-to-left page', () => {
+      // jsdom maps no `dir` to `direction`, which the swipe reads.
+      let rtl: HTMLStyleElement;
+      beforeEach(() => {
+        rtl = document.createElement('style');
+        rtl.textContent = '[dir="rtl"] { direction: rtl; }';
+        document.head.appendChild(rtl);
+      });
+      afterEach(() => rtl.remove());
+
+      const swipe = (container: HTMLElement, from: number, to: number) => {
+        const track = container.querySelector('.carousel-container')!;
+        fireEvent.touchStart(track, { touches: [{ clientX: from }] });
+        fireEvent.touchMove(track, { touches: [{ clientX: to }] });
+        fireEvent.touchEnd(track);
+      };
+
+      it('brings the next slide in from the left on a swipe right', () => {
+        const onChange = vi.fn();
+        const { container } = render(
+          <div dir="rtl">
+            <TestCarousel value={0} onChange={onChange} />
+          </div>
+        );
+        swipe(container, 100, 200);
+        expect(onChange).toHaveBeenCalledWith(1);
+      });
+
+      it('goes back on a swipe left', () => {
+        const onChange = vi.fn();
+        const { container } = render(
+          <div dir="rtl">
+            <TestCarousel value={1} onChange={onChange} />
+          </div>
+        );
+        swipe(container, 200, 100);
+        expect(onChange).toHaveBeenCalledWith(0);
+      });
     });
 
     it('ignores touchMove without prior touchStart', () => {
@@ -1177,7 +1253,7 @@ describe('Carousel with several items in view', () => {
         </Carousel>
       );
       expect(track().style.transform).toBe(
-        'translateX(calc(-1 * (100% + var(--bulma-carousel-item-gap, 0px)) / var(--bulma-carousel-items-in-view, 1)))'
+        'translateX(calc(var(--carousel-shift-sign, -1) * 1 * (100% + var(--bulma-carousel-item-gap, 0px)) / var(--bulma-carousel-items-in-view, 1)))'
       );
     });
 
@@ -1187,7 +1263,9 @@ describe('Carousel with several items in view', () => {
           {itemsOf(5)}
         </Carousel>
       );
-      expect(track().style.transform).toMatch(/^translateX\(calc\(-2 \* /);
+      expect(track().style.transform).toMatch(
+        /^translateX\(calc\(var\(--carousel-shift-sign, -1\) \* 2 \* /
+      );
     });
   });
 
@@ -1432,7 +1510,9 @@ describe('Carousel with several items in view', () => {
       // Positions 0, 2 and 4; from 4 the next is 0, one item on.
       fireEvent.click(screen.getByLabelText('Next slide'));
       expect(onChange).not.toHaveBeenCalled();
-      expect(track().style.transform).toMatch(/^translateX\(calc\(-7 \* /);
+      expect(track().style.transform).toMatch(
+        /^translateX\(calc\(var\(--carousel-shift-sign, -1\) \* 7 \* /
+      );
 
       // A transition ending inside an item is not the track's own.
       fireEvent.transitionEnd(realItems(5)[0]);
@@ -1459,7 +1539,9 @@ describe('Carousel with several items in view', () => {
       );
       fireEvent.click(screen.getByLabelText('Previous slide'));
       // Position 4, read from the clones before the first item.
-      expect(track().style.transform).toMatch(/^translateX\(calc\(-1 \* /);
+      expect(track().style.transform).toMatch(
+        /^translateX\(calc\(var\(--carousel-shift-sign, -1\) \* 1 \* /
+      );
       fireEvent.transitionEnd(track());
       expect(onChange).toHaveBeenCalledWith(4);
       act(() => {
@@ -1971,5 +2053,74 @@ describe('Carousel with several items in view', () => {
       ).toHaveLength(2);
       expect(root.querySelectorAll('.bestax-indicator-item')).toHaveLength(4);
     });
+  });
+});
+
+// The stylesheet's right-to-left rules, read through the cascade jsdom runs
+// on the compiled partial.
+describe('Carousel right-to-left styles', () => {
+  let sheet: HTMLStyleElement;
+  beforeAll(() => {
+    sheet = document.createElement('style');
+    sheet.textContent = compileSheet('components/_carousel.scss');
+    document.head.appendChild(sheet);
+  });
+  afterAll(() => sheet.remove());
+
+  const sign = (track: Element) =>
+    getComputedStyle(track).getPropertyValue('--carousel-shift-sign');
+
+  it('gives a left-to-right carousel inside a right-to-left one its own sign', () => {
+    const { container } = render(
+      <div dir="rtl">
+        <Carousel>
+          <CarouselItem>
+            <div dir="ltr">
+              <TestCarousel />
+            </div>
+          </CarouselItem>
+          <CarouselItem>Outer 2</CarouselItem>
+        </Carousel>
+      </div>
+    );
+    const [outer, inner] = Array.from(
+      container.querySelectorAll('.carousel-slides')
+    );
+    expect(sign(outer)).toBe('1');
+    expect(sign(inner)).toBe('-1');
+  });
+
+  const flip = (el: Element) => getComputedStyle(el).transform;
+
+  it('flips the built-in chevrons right to left, and not left to right', () => {
+    const { container } = render(
+      <>
+        <div dir="rtl">
+          <TestCarousel />
+        </div>
+        <div dir="ltr">
+          <TestCarousel />
+        </div>
+      </>
+    );
+    const [rtlPrev, rtlNext, ltrPrev] = Array.from(
+      container.querySelectorAll('.carousel-arrow > svg')
+    );
+    expect(flip(rtlPrev)).toBe('scaleX(-1)');
+    expect(flip(rtlNext)).toBe('scaleX(-1)');
+    expect(flip(ltrPrev)).not.toBe('scaleX(-1)');
+  });
+
+  it("leaves a caller's icon as given right to left, svg and all", () => {
+    const { container } = render(
+      <div dir="rtl">
+        <TestCarousel iconPrev="arrow-right" iconNext="arrow-left" />
+      </div>
+    );
+    const icon = container.querySelector('.carousel-arrow.is-prev .icon')!;
+    // Font Awesome's SVG mode swaps the `<i>` for an `<svg>` in the span.
+    icon.innerHTML = '<svg viewBox="0 0 10 10"></svg>';
+    expect(flip(icon)).not.toBe('scaleX(-1)');
+    expect(flip(icon.querySelector('svg')!)).not.toBe('scaleX(-1)');
   });
 });
