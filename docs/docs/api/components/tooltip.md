@@ -344,6 +344,10 @@ And around it:
 - A tooltip describes and doesn't name, so give an icon-only trigger a name of its own, such as an
   `IconButton`'s `aria-label`, as [On Icons](#on-icons) does.
 - The `dashed` style provides a visual cue that more information is available.
+- **Forced colors:** forced colors (Windows' contrast themes) gives the tooltip the page's own
+  background and paints every side of the arrow, so the box would read as loose text and the arrow
+  as a square. bestax's styles outline the box in the system's text color there, and keep the
+  arrow a triangle in that color, pointing at the trigger.
 
 ---
 
