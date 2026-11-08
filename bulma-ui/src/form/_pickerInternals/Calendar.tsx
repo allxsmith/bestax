@@ -86,6 +86,18 @@ interface CalendarBaseProps {
    * receives the period's first day.
    */
   granularity?: DateGranularity;
+  /**
+   * Disable every button the calendar draws, its days and header included,
+   * as a disabled fieldset around it does, so nothing can be picked or
+   * focused.
+   */
+  disabled?: boolean;
+  /**
+   * Pick nothing. Focus still moves through the dates, by key and pointer,
+   * and the header still turns the month, but a click, Enter or Space selects
+   * no day, month or year.
+   */
+  readOnly?: boolean;
 }
 
 /** A calendar that picks one day, month or year. */
@@ -282,7 +294,7 @@ function yearStep(
 export const Calendar: React.FC<CalendarProps> = ({
   value,
   focusedDate,
-  onSelect,
+  onSelect: onSelectProp,
   onFocusedDateChange,
   min: minProp,
   max,
@@ -304,7 +316,13 @@ export const Calendar: React.FC<CalendarProps> = ({
   range,
   onRangeSelect,
   allowDisabledInRange = false,
+  disabled: calendarDisabled = false,
+  readOnly = false,
 }) => {
+  // A disabled or read-only calendar picks nothing, so its picks reach no
+  // `onSelect`, and a range pick returns before it starts.
+  const canPick = !calendarDisabled && !readOnly;
+  const onSelect = canPick ? onSelectProp : undefined;
   const gridRef = useRef<HTMLDivElement>(null);
   const monthGridRef = useRef<HTMLDivElement>(null);
   const yearGridRef = useRef<HTMLDivElement>(null);
@@ -392,13 +410,16 @@ export const Calendar: React.FC<CalendarProps> = ({
   // The start of a range being picked, which nothing outside the calendar
   // sees until its end is picked too. It starts as the range's own pending
   // start, and starts there again whenever the range changes from outside.
-  const [anchor, setAnchor] = useState<Date | null>(valuePending);
+  const [pendingAnchor, setAnchor] = useState<Date | null>(valuePending);
   const rangeKey = `${timeOf(range?.[0])}|${timeOf(range?.[1])}`;
   const [anchorRangeKey, setAnchorRangeKey] = useState(rangeKey);
   if (anchorRangeKey !== rangeKey) {
     setAnchorRangeKey(rangeKey);
     setAnchor(valuePending);
   }
+  // A calendar that picks nothing has no start pending, so it previews no
+  // range and says nothing of picking an end.
+  const anchor = canPick ? pendingAnchor : null;
   // The day under the pointer while a start is pending, which the preview
   // runs to ahead of the focused day.
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
@@ -428,6 +449,7 @@ export const Calendar: React.FC<CalendarProps> = ({
   // and otherwise the start of a new one.
   const pickRangeDay = useCallback(
     (picked: Date) => {
+      if (!canPick) return;
       const day = startOfDay(picked);
       // The pointer is on the picked day, which the focused day now is too.
       setHoverDate(null);
@@ -438,7 +460,7 @@ export const Calendar: React.FC<CalendarProps> = ({
         setAnchor(day);
       }
     },
-    [anchor, canEndAt, onRangeSelect]
+    [canPick, anchor, canEndAt, onRangeSelect]
   );
 
   // What the grid shows: while a start is pending, the range from it to the
@@ -924,6 +946,7 @@ export const Calendar: React.FC<CalendarProps> = ({
             className={monthTriggerClass}
             aria-haspopup="listbox"
             aria-expanded={view === 'years'}
+            disabled={calendarDisabled}
             onClick={() => {
               setNavYear(null);
               setView(v => (v === 'years' ? baseView : 'years'));
@@ -956,7 +979,7 @@ export const Calendar: React.FC<CalendarProps> = ({
               type="button"
               className={navPrevClass}
               aria-label={isDayGranularity ? t.prevMonth : t.prevYear}
-              disabled={prevDisabled || view !== baseView}
+              disabled={calendarDisabled || prevDisabled || view !== baseView}
               onClick={() => onFocusedDateChange(prevAnchor)}
             >
               {navArrow('M10 3l-5 5 5 5')}
@@ -965,7 +988,7 @@ export const Calendar: React.FC<CalendarProps> = ({
               type="button"
               className={navNextClass}
               aria-label={isDayGranularity ? t.nextMonth : t.nextYear}
-              disabled={nextDisabled || view !== baseView}
+              disabled={calendarDisabled || nextDisabled || view !== baseView}
               onClick={() => onFocusedDateChange(nextAnchor)}
             >
               {navArrow('M6 3l5 5-5 5')}
@@ -989,6 +1012,8 @@ export const Calendar: React.FC<CalendarProps> = ({
             aria-labelledby={labelId}
             aria-multiselectable={rangeMode || undefined}
             aria-describedby={rangeMode ? rangeSummaryId : undefined}
+            aria-disabled={calendarDisabled || undefined}
+            aria-readonly={readOnly || undefined}
             className={gridClass}
             onKeyDown={handleKeyDown}
             onMouseLeave={anchor ? () => setHoverDate(null) : undefined}
@@ -996,7 +1021,8 @@ export const Calendar: React.FC<CalendarProps> = ({
           >
             {inWeeks(
               cells.map(cell => {
-                const disabled = isDateUnselectable(cell.date);
+                const disabled =
+                  calendarDisabled || isDateUnselectable(cell.date);
                 const time = cell.date.getTime();
                 // Range mode. The range on show has its ends filled. Every day
                 // of a committed range is selected, and of a preview only the
@@ -1093,6 +1119,8 @@ export const Calendar: React.FC<CalendarProps> = ({
           ref={monthGridRef}
           role="grid"
           aria-labelledby={labelId}
+          aria-disabled={calendarDisabled || undefined}
+          aria-readonly={readOnly || undefined}
           className={monthsGridClass}
           onKeyDown={handleMonthKeyDown}
           {...gridFocusHandlers}
@@ -1101,7 +1129,7 @@ export const Calendar: React.FC<CalendarProps> = ({
             <div key={row[0]} role="row" className={monthsRowClass}>
               {row.map(month => {
                 const date = makeDate(focusedYear, month);
-                const disabled = disabledMonths[month];
+                const disabled = calendarDisabled || disabledMonths[month];
                 const isSelected = !!value && isSameMonth(value, date);
                 const isFocused = month === tabStopMonth;
                 const isCurrent = isSameMonth(date, today);
@@ -1154,6 +1182,8 @@ export const Calendar: React.FC<CalendarProps> = ({
           className={yearsGridClass}
           role="listbox"
           aria-label={isYearGranularity ? t.chooseYear : monthLabel}
+          aria-disabled={calendarDisabled || undefined}
+          aria-readonly={(isYearGranularity && readOnly) || undefined}
           onKeyDown={handleYearListKeyDown}
         >
           {yearList.map(year => {
@@ -1164,7 +1194,7 @@ export const Calendar: React.FC<CalendarProps> = ({
             const isSelected = isYearGranularity
               ? !!value && value.getFullYear() === year
               : isFocused;
-            const disabled = disabledYears.has(year);
+            const disabled = calendarDisabled || disabledYears.has(year);
             const cellCls = prefixedClassNames(
               classPrefix,
               'dateinput-year-cell',

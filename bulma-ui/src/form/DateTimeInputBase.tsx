@@ -124,9 +124,17 @@ export interface DateTimeInputBaseProps
   min?: Date;
   /** Upper bound for the combined date-time. */
   max?: Date;
-  /** Disable the input. */
+  /**
+   * Disable the input. An `inline` panel disables its days, header buttons,
+   * Time, Reset and ✓, but its hidden input still submits the value, where a
+   * disabled input submits nothing.
+   */
   disabled?: boolean;
-  /** Read-only input. */
+  /**
+   * Read-only input. An `inline` panel still moves through the dates by key
+   * and by its header, but a click, Enter or Space picks nothing, and Time
+   * and Reset are disabled, so the time can't change either.
+   */
   readOnly?: boolean;
   /** Placeholder text. */
   placeholder?: string;
@@ -699,6 +707,8 @@ export const DateTimeInputBase = forwardRef<
             id={`${popoverId}-cal`}
             autoFocusCell={open}
             labels={labels}
+            disabled={disabled}
+            readOnly={readOnly}
           />
         </div>
         {timeOpen && (
@@ -724,7 +734,7 @@ export const DateTimeInputBase = forwardRef<
                 unselectableTimes={unselectableTimes}
                 color={color}
                 size={size}
-                disabled={disabled}
+                disabled={disabled || readOnly}
                 id={timeWheelsId}
                 labels={labels}
                 itemHeight={wheelItemHeight}
@@ -748,7 +758,7 @@ export const DateTimeInputBase = forwardRef<
           // The wheels exist only while open, so only then is there an
           // element for the button to name.
           aria-controls={timeOpen ? timeWheelsId : undefined}
-          disabled={disabled}
+          disabled={disabled || readOnly}
         >
           <span>{t.time}</span>
           <span className={footerTimePillClass}>
@@ -760,6 +770,7 @@ export const DateTimeInputBase = forwardRef<
             type="button"
             className={footerResetClass}
             onClick={() => commitValue(valueAtOpenRef.current)}
+            disabled={disabled || readOnly}
           >
             {t.reset}
           </button>
@@ -768,6 +779,7 @@ export const DateTimeInputBase = forwardRef<
             className={footerDoneClass}
             aria-label={t.done}
             onClick={() => setOpen(false)}
+            disabled={disabled}
           >
             <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
               <path
