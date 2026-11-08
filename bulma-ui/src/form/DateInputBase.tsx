@@ -167,7 +167,14 @@ export interface DateInputBaseProps
    * the two can differ.
    */
   locale?: string;
-  /** Render the calendar inline (no popover). */
+  /**
+   * Render the calendar inline (no popover).
+   * On a server-rendered page it marks today once the page hydrates, by
+   * the browser's clock rather than the server's. With no `value` or
+   * `defaultValue` it opens on the month the clock reads, and around the end
+   * of a month the server's clock and the browser's can read different
+   * months, so give it a date both render the same.
+   */
   inline?: boolean;
   /**
    * Use `<input type="date">` on coarse-pointer + small-viewport devices. At

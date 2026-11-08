@@ -16,7 +16,7 @@ sidebar_position: 1
     </Column>
     <Column>
       <Title size="4" mb="1">
-        80 typed components
+        Typed React components for Bulma
       </Title>
       <SubTitle size="6" textColor="grey">
         Elements, Components, Form, Layout — all in one package.
@@ -156,7 +156,7 @@ Every Bulma class has a corresponding React component in the matching tier, so t
 
 ---
 
-## Elements (41)
+## Elements
 
 Foundational building blocks: typography, buttons, media, lists, data display, and feedback.
 
@@ -187,7 +187,7 @@ Foundational building blocks: typography, buttons, media, lists, data display, a
 
 ---
 
-## Components (28)
+## Components
 
 Higher-level composed UI patterns: navigation, overlays, feedback, and interactive controls.
 
@@ -224,7 +224,7 @@ Higher-level composed UI patterns: navigation, overlays, feedback, and interacti
 
 ---
 
-## Form (26)
+## Form
 
 Input controls for building accessible, flexible forms.
 
@@ -336,7 +336,7 @@ function FormShowcase() {
 
 ---
 
-## Layout (12)
+## Layout
 
 Page-level structural primitives.
 
