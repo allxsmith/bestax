@@ -375,7 +375,7 @@ function SliderRangeFormDemo() {
 - Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes
 - Fully keyboard accessible with arrow keys
 - Focus states clearly visible
-- On a right-to-left page the native range mirrors, and the fill and the tick marks follow it, so a value of 25 fills from the right. A vertical slider still fills from the bottom.
+- On a right-to-left page the native range mirrors, and the fill, the tick marks and the value bubble follow it, so a value of 25 fills from the right. A vertical slider still fills from the bottom.
 
 ---
 

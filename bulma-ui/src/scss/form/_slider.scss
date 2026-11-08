@@ -209,6 +209,11 @@ $slider-vertical-height: 200px !default;
   top: -2rem;
   // Default transform; overridden by inline style when nudge is applied
   transform: translateX(-50%);
+  // The inline transform centres a horizontal bubble on the thumb by this.
+  // It's placed from the inline start, which is its right edge right to
+  // left, so there it shifts the other way. Set on every bubble, so none
+  // takes another slider's.
+  --slider-output-shift: -50%;
   padding: 0.25rem 0.5rem;
   font-size: cv.getVar("slider-output-font-size");
   font-weight: cv.getVar("slider-output-font-weight");
@@ -222,6 +227,10 @@ $slider-vertical-height: 200px !default;
   transition-property: opacity, visibility;
   transition-duration: cv.getVar("slider-transition-duration");
   transition-timing-function: ease;
+
+  &:dir(rtl) {
+    --slider-output-shift: 50%;
+  }
 
   &::after {
     content: "";

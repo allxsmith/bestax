@@ -1053,6 +1053,56 @@ describe('Slider', () => {
       });
     });
 
+    it('measures the nudge from the right edge on a right-to-left page', () => {
+      // jsdom maps no `dir` to `direction`, which the nudge reads.
+      const rtl = document.createElement('style');
+      rtl.textContent = '[dir="rtl"] { direction: rtl; }';
+      document.head.appendChild(rtl);
+      try {
+        withMockedLayout({ left: 0, right: 100, width: 100 }, 80, () => {
+          const { container } = render(
+            <div dir="rtl">
+              <Slider value={0} min={0} max={100} showOutput />
+            </div>
+          );
+          // The minimum sits at the right edge, so an 80px bubble centred on
+          // it runs 40px past that edge and moves left by as much.
+          const output = container.querySelector(
+            '.slider-output'
+          ) as HTMLElement;
+          expect(output.style.transform).toBe(
+            'translateX(calc(var(--slider-output-shift, -50%) + -40px))'
+          );
+          expect(
+            output.style.getPropertyValue('--slider-output-arrow-offset')
+          ).toBe('calc(50% - -40px)');
+        });
+      } finally {
+        rtl.remove();
+      }
+    });
+
+    it('measures the same thumb from the left edge left to right', () => {
+      withMockedLayout({ left: 0, right: 100, width: 100 }, 80, () => {
+        const { container } = render(
+          <Slider value={0} min={0} max={100} showOutput />
+        );
+        const output = container.querySelector('.slider-output') as HTMLElement;
+        expect(output.style.transform).toBe(
+          'translateX(calc(var(--slider-output-shift, -50%) + 40px))'
+        );
+      });
+    });
+
+    it('places the bubble from the inline start, as the thumb is', () => {
+      const { container } = render(
+        <Slider defaultValue={25} tooltip="always" />
+      );
+      const output = container.querySelector('.slider-output') as HTMLElement;
+      expect(output.style.insetInlineStart).toMatch(/^calc\(/);
+      expect(output.style.left).toBe('');
+    });
+
     it('nudges high tooltip in range mode when clipped at right edge', () => {
       withMockedLayout({ left: 0, right: 100, width: 100 }, 80, () => {
         const { container } = render(

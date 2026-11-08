@@ -2,6 +2,8 @@
 // read the compiled sheet rather than a computed background.
 import * as sass from 'sass';
 import path from 'path';
+import { render } from '@testing-library/react';
+import { Slider } from '../Slider';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
@@ -23,5 +25,46 @@ describe('Slider fill direction', () => {
     expect(css).toMatch(/linear-gradient\(\s*to top,/);
     expect(css).toContain('.slider-tick:dir(rtl)');
     expect(css).toContain('transform: translateX(50%)');
+  });
+});
+
+describe('Slider value bubble direction', () => {
+  let sheet: HTMLStyleElement;
+  beforeAll(() => {
+    sheet = document.createElement('style');
+    sheet.textContent = css;
+    document.head.appendChild(sheet);
+  });
+  afterAll(() => sheet.remove());
+
+  // The bubble sits at the thumb's distance from the inline start, so right
+  // to left its right edge is there and centring it shifts it right.
+  it.each([
+    ['ltr', '-50%'],
+    ['rtl', '50%'],
+  ])('centres a bubble on a %s page by a shift of %s', (dir, shift) => {
+    const { container } = render(
+      <div dir={dir}>
+        <Slider defaultValue={25} showOutput />
+      </div>
+    );
+    const output = container.querySelector('.slider-output') as HTMLElement;
+    expect(
+      getComputedStyle(output).getPropertyValue('--slider-output-shift')
+    ).toBe(shift);
+  });
+
+  it("sets the shift on each bubble, so a nested slider doesn't take its page's", () => {
+    const { container } = render(
+      <div dir="rtl">
+        <div dir="ltr">
+          <Slider defaultValue={25} showOutput />
+        </div>
+      </div>
+    );
+    const output = container.querySelector('.slider-output') as HTMLElement;
+    expect(
+      getComputedStyle(output).getPropertyValue('--slider-output-shift')
+    ).toBe('-50%');
   });
 });

@@ -876,7 +876,7 @@ export const WithFieldControlWrapper: Story = {
 export const RightToLeft: Story = {
   render: () => (
     <LocaleProvider locale="ar" dir="rtl">
-      <Slider label="مستوى" defaultValue={25} />
+      <Slider label="مستوى" defaultValue={25} showOutput />
     </LocaleProvider>
   ),
 };
