@@ -1247,7 +1247,7 @@
       "category": "components",
       "purpose": "The `SegmentedControl` component renders a row of buttons where only one can be on, and tells a screen reader it's a radio group.",
       "slug": "components/segmentedcontrol",
-      "import": "import { SegmentedControl } from '@allxsmith/bestax-bulma';",
+      "import": "import { SegmentedControl, SegmentedControlSegment } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 16,
       "exampleCount": 11
@@ -3826,6 +3826,11 @@
       "component": "Popover",
       "path": "Popover.Header",
       "purpose": "The popover's title, which names the panel for assistive technology."
+    },
+    "SegmentedControlSegment": {
+      "component": "SegmentedControl",
+      "path": "SegmentedControl.Segment",
+      "purpose": "One option in the row: a `<button role=\"radio\">` that's checked while the group's value is its `value`, filled with the group's `color` and marked…"
     },
     "SelectBase": {
       "component": "Select",

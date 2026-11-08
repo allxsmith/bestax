@@ -207,6 +207,7 @@ const PUBLIC_EXPORTS = [
   'ScrollArea',
   'Section',
   'SegmentedControl',
+  'SegmentedControlSegment',
   'Select',
   'SelectBase',
   'Sidebar',

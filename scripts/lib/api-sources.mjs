@@ -431,6 +431,7 @@ export const IMPORT_COMPANIONS = {
     'ModalCardBody',
     'ModalCardFoot',
   ],
+  SegmentedControl: ['SegmentedControl', 'SegmentedControlSegment'],
   Sidebar: [
     'Sidebar',
     'SidebarHeader',
