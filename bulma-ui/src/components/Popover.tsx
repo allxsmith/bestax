@@ -12,7 +12,7 @@ import React, {
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
-import { Portal } from '../helpers/portal';
+import { PopupPortal } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { focusTabStop, useFocusTrap } from '../helpers/useFocusTrap';
 import { marginGap, useAnchoredPosition } from '../helpers/useAnchoredPosition';
@@ -84,13 +84,14 @@ export interface PopoverProps
   position?: PopoverPosition;
   /**
    * Render the panel through `Portal`, into the `portalContainer` a
-   * `ConfigProvider` sets, `document.body` by default, fixed to the viewport,
-   * so an ancestor's `overflow`, `transform` or stacking context can't clip
-   * it. The panel then shows from the commit after hydration, never in server
-   * markup. It is measured against the trigger when it opens and on resize
-   * and scroll, so it doesn't follow content that changes size while it is
-   * open. Theming variables set on an ancestor of the trigger reach it only
-   * when its container is inside that ancestor.
+   * `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog`
+   * it's in, else `document.body`, fixed to the viewport, so an ancestor's
+   * `overflow`, `transform` or stacking context can't clip it. The panel
+   * then shows from the commit after hydration, never in server markup. It
+   * is measured against the trigger when it opens and on resize and scroll,
+   * so it doesn't follow content that changes size while it is open.
+   * Theming variables set on an ancestor of the trigger reach it only when
+   * its container is inside that ancestor.
    * @defaultValue false
    */
   appendToBody?: boolean;
@@ -369,7 +370,7 @@ const PopoverComponent: React.FC<PopoverProps> = ({
     <div className={rootClasses} {...rest} ref={rootRef}>
       {clonedTrigger}
       {isOpen && (
-        <Portal disabled={!appendToBody}>
+        <PopupPortal disabled={!appendToBody}>
           <PopoverPanel
             panelRef={panelRef}
             titleId={titleId}
@@ -391,7 +392,7 @@ const PopoverComponent: React.FC<PopoverProps> = ({
           >
             {children}
           </PopoverPanel>
-        </Portal>
+        </PopupPortal>
       )}
     </div>
   );

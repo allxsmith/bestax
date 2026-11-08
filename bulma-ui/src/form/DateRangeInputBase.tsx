@@ -160,7 +160,8 @@ export interface DateRangeInputBaseProps
   position?: PickerPosition;
   /**
    * Render the popover through a portal, into the `portalContainer` a
-   * `ConfigProvider` sets, `document.body` by default.
+   * `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog` it's
+   * in, else `document.body`.
    */
   appendToBody?: boolean;
   /**

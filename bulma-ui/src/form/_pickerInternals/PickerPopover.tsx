@@ -2,7 +2,10 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../../helpers/classNames';
 import { useFocusTrap } from '../../helpers/useFocusTrap';
-import { usePortalContainer } from '../../helpers/portal';
+import {
+  resolvePortalContainer,
+  usePopupContainer,
+} from '../../helpers/portal';
 import {
   LocalePortalScope,
   type PortalLocale,
@@ -88,7 +91,7 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
   followContent = false,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
-  const resolveContainer = usePortalContainer();
+  const popupContainer = usePopupContainer();
   // Read as the trap turns on, once the panel's content has rendered.
   const initialFocusRef = useMemo(
     () =>
@@ -217,7 +220,7 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
   );
 
   if (appendToBody && isBrowser) {
-    const target = resolveContainer();
+    const target = resolvePortalContainer(popupContainer);
     return createPortal(
       <LocalePortalScope target={target} scope={localeScope}>
         {panel}

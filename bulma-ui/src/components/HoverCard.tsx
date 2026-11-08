@@ -9,7 +9,7 @@ import React, {
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { Portal } from '../helpers/portal';
+import { PopupPortal } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { marginGap, useAnchoredPosition } from '../helpers/useAnchoredPosition';
 import { chain, useHoverOpen } from '../helpers/useHoverOpen';
@@ -101,14 +101,15 @@ export interface HoverCardProps
   position?: HoverCardPosition;
   /**
    * Render the card through `Portal`, into the `portalContainer` a
-   * `ConfigProvider` sets, `document.body` by default, fixed to the viewport,
-   * so an ancestor's `overflow`, `transform` or stacking context can't clip
-   * it. A trigger in running text needs it too, since the card's block
-   * content can't sit inside a `<p>`. The card then shows from the commit
-   * after hydration, never in server markup, and it sits in the Tab order
-   * where its container is. At the end of `<body>`, the default, Tab reaches
-   * it only after the rest of the page, and focus leaving the trigger on the
-   * way closes it, so keyboard users can open it, read it and close it with
+   * `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog`
+   * it's in, else `document.body`, fixed to the viewport, so an ancestor's
+   * `overflow`, `transform` or stacking context can't clip it. A trigger in
+   * running text needs it too, since the card's block content can't sit
+   * inside a `<p>`. The card then shows from the commit after hydration,
+   * never in server markup, and it sits in the Tab order where its container
+   * is. At the end of `<body>` or of a dialog, Tab reaches it only after the
+   * rest of the page or the dialog, and focus leaving the trigger on the way
+   * closes it, so keyboard users can open it, read it and close it with
    * Escape, and whatever it links to has to be reachable from the page as
    * well. It is measured against the trigger when it opens and on resize and
    * scroll, so it doesn't follow content that changes size while it is open.
@@ -298,7 +299,7 @@ export const HoverCard: React.FC<HoverCardProps> = ({
     >
       {clonedTrigger}
       {isOpen && (
-        <Portal disabled={!appendToBody}>
+        <PopupPortal disabled={!appendToBody}>
           <div
             ref={cardRef}
             id={cardId}
@@ -315,7 +316,7 @@ export const HoverCard: React.FC<HoverCardProps> = ({
           >
             {children}
           </div>
-        </Portal>
+        </PopupPortal>
       )}
     </span>
   );

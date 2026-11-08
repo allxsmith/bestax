@@ -206,7 +206,7 @@ interface TreeSelectBaseProps
    * @defaultValue 'bottom-left'
    */
   position?: PickerPosition;
-  /** Renders the panel through a portal, into a `ConfigProvider`'s `portalContainer`, `document.body` by default. */
+  /** Renders the panel through a portal, into a `ConfigProvider`'s `portalContainer`, else the `Modal`, `Dialog` or `Command.Dialog` it's in, else `document.body`. */
   appendToBody?: boolean;
   /** The visible and accessible strings, in your app's language. */
   labels?: TreeSelectLabels;

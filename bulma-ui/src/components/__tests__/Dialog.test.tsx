@@ -3,6 +3,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { Dialog, DialogContainer, dialog } from '../Dialog';
+import { Popover } from '../Popover';
 
 describe('Dialog', () => {
   afterEach(() => {
@@ -277,6 +278,36 @@ describe('Dialog', () => {
         'dialog-message'
       );
     });
+
+    it.each([
+      ['in place', false],
+      ['portaled', true],
+    ])(
+      'portals a popup in the message into the alertdialog, %s',
+      (_, portal) => {
+        // The Modal around it is `role="presentation"`, so its root is
+        // outside what `aria-modal` leaves to screen readers.
+        render(
+          <Dialog
+            isOpen
+            portal={portal}
+            message={
+              <Popover
+                trigger={<button type="button">Details</button>}
+                ariaLabel="Details"
+                appendToBody
+                defaultOpen
+              >
+                Paid on the 3rd.
+              </Popover>
+            }
+          />
+        );
+        expect(
+          screen.getByRole('dialog', { name: 'Details' }).parentElement
+        ).toBe(screen.getByRole('alertdialog'));
+      }
+    );
   });
 
   describe('Rendering structure', () => {
