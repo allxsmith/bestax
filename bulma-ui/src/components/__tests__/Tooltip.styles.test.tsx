@@ -245,24 +245,39 @@ describe('Tooltip styles under a class prefix', () => {
     );
   });
 
-  it('gives the box an outline and the arrow CanvasText in forced colors', () => {
-    const forced = allRules().filter(
-      ({ within }) =>
-        within.length === 1 && within[0] === '@media (forced-colors: active)'
-    );
-    const box = forced.find(
-      ({ rule }) => rule.selectorText === '.bestax-tooltip-content'
-    );
-    const arrow = forced.find(
-      ({ rule }) => rule.selectorText === '.bestax-tooltip-content::before'
-    );
-    expect(box).toBeDefined();
-    expect(arrow).toBeDefined();
-    // jsdom writes a system color in lowercase.
-    expect(box!.rule.style.cssText.toLowerCase()).toContain('outline');
-    expect(box!.rule.style.cssText.toLowerCase()).toContain('canvastext');
-    expect(
-      arrow!.rule.style.getPropertyValue('--bulma-tooltip-background').trim()
-    ).toMatch(/^canvastext$/i);
+  describe('in forced colors', () => {
+    /** The declarations of the one forced-colors rule for `selector`. */
+    const forcedRule = (selector: string) => {
+      const found = allRules().filter(
+        ({ rule, within }) =>
+          within.length === 1 &&
+          within[0] === '@media (forced-colors: active)' &&
+          rule.selectorText === selector
+      );
+      expect(found).toHaveLength(1);
+      return found[0].rule.style;
+    };
+
+    // A system color is compared without its case.
+    it('outlines the box in the system text color', () => {
+      const box = forcedRule('.bestax-tooltip-content');
+      expect(box.getPropertyValue('outline').toLowerCase()).toBe(
+        '1px solid canvastext'
+      );
+    });
+
+    // Forced colors paints every side of the arrow's border, which makes it a
+    // square. Opting out keeps its transparent sides, and the side that points
+    // takes the background variable.
+    it('opts the arrow out and points it in the system text color', () => {
+      const arrow = forcedRule('.bestax-tooltip-content::before');
+      expect(arrow.getPropertyValue('forced-color-adjust')).toBe('none');
+      expect(
+        arrow
+          .getPropertyValue('--bulma-tooltip-background')
+          .trim()
+          .toLowerCase()
+      ).toBe('canvastext');
+    });
   });
 });
