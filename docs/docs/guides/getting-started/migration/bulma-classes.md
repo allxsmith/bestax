@@ -216,6 +216,9 @@ rule. The ones you'll see most:
 | `ref:<Target>`           | Keep the element; the component won't pass the ref through                                             |
 | `rsc`                    | Add `'use client'` if the file can be a client component, then re-run                                  |
 | `legacy:tile`            | Rebuild tiles with [Grid and Cell](/docs/api/grid); see the [Bulma 0.9 → 1 guide](./bulma-0-9-to-1.md) |
+| `legacy:heading`         | Restyle the label with helper props, or give `.heading` a rule of your own                             |
+| `legacy:number`          | Give `.number` a rule of your own, or drop the class                                                   |
+| `legacy:is-variable`     | Drop the class; v1's `is-0` to `is-8` set the gap without it                                           |
 
 Every rule, with a recipe, is in the skill's
 [unmappables reference](https://github.com/allxsmith/bestax/blob/main/skills/bestax-migrate/references/bulma-classes/unmappables.md).

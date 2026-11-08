@@ -2839,9 +2839,20 @@ export const REMOVED_IN_V1: readonly string[] = [
   'tile',
 ];
 
-/** Bulma 0.9 classes v1 dropped, with what replaced them. */
+/**
+ * Bulma 0.9 classes v1 dropped, with what replaced them. The tiles'
+ * modifiers have no entry: Bulma 0.9 styled them only beside `tile`, whose
+ * entry flags the element. The `heading` message says what the library
+ * sources' `flagDroppedHeading` says.
+ */
 export const LEGACY_09: Readonly<Record<string, string>> = {
   tile: 'Bulma v1 removed tiles; rebuild the layout with `Grid` and `Cell` (see the Bulma 0.9 to 1 guide)',
+  heading:
+    'Bulma v1 dropped the `.heading` styles, so the `heading` class styles nothing now; restyle it with bestax helpers (e.g. `<Paragraph textSize="7" textTransform="uppercase" textWeight="semibold" mb="1">`) or a `.heading` rule of your own',
+  number:
+    "Bulma v1 dropped `.number`, Bulma 0.9's rounded badge, so the `number` class styles nothing now; give it a rule of your own, or drop it if that look no longer matters",
+  'is-variable':
+    "Bulma v1 removed `is-variable`, so it styles nothing now; drop it, since v1's `is-0` to `is-8` set the gap of a `.columns` without it (bestax `Columns` writes them from its `gap` prop)",
   'is-marginless':
     'Bulma v1 removed `is-marginless`, so it styles nothing now; write v1\'s `m-0` in its place, or `m="0"` on a bestax component. The codemod does that itself wherever the element converts',
   'is-paddingless':
