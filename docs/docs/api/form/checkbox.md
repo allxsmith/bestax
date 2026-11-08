@@ -260,3 +260,5 @@ Keep the label text inside the `Checkbox` when you shrink the box. The whole lab
 <!-- /bestax:generated cssvars -->
 
 `--bulma-checkbox-size` has a floor: the box doesn't render smaller than 24px, whatever the variable says. [Box Size](#box-size) says why, and how to go below it.
+
+**Focus shadow size:** `--bulma-checkbox-focus-shadow-size` (`$checkbox-focus-shadow-size`) is registered, and nothing reads it, so setting it changes nothing. The keyboard focus ring is a `2px` outline in `--bulma-checkbox-active-color`, with no shadow for a size to apply to. It stays registered so a Sass build that configures it keeps compiling.
