@@ -518,6 +518,41 @@ describe('Carousel', () => {
 
       expect(onChange).toHaveBeenCalledWith(1);
     });
+
+    describe('on a right-to-left page', () => {
+      // jsdom maps no `dir` to `direction`, which the keys read.
+      let rtl: HTMLStyleElement;
+      beforeEach(() => {
+        rtl = document.createElement('style');
+        rtl.textContent = '[dir="rtl"] { direction: rtl; }';
+        document.head.appendChild(rtl);
+      });
+      afterEach(() => rtl.remove());
+
+      it('goes to the next slide, on the left, on ArrowLeft', () => {
+        const onChange = vi.fn();
+        render(
+          <div dir="rtl">
+            <TestCarousel value={0} onChange={onChange} />
+          </div>
+        );
+        screen.getByLabelText('Next slide').focus();
+        fireEvent.keyDown(document, { key: 'ArrowLeft' });
+        expect(onChange).toHaveBeenCalledWith(1);
+      });
+
+      it('goes to the previous slide, on the right, on ArrowRight', () => {
+        const onChange = vi.fn();
+        render(
+          <div dir="rtl">
+            <TestCarousel value={1} onChange={onChange} />
+          </div>
+        );
+        screen.getByLabelText('Previous slide').focus();
+        fireEvent.keyDown(document, { key: 'ArrowRight' });
+        expect(onChange).toHaveBeenCalledWith(0);
+      });
+    });
   });
 
   describe('Drag Navigation', () => {
@@ -606,6 +641,46 @@ describe('Carousel', () => {
       fireEvent.touchEnd(carouselContainer);
 
       expect(onChange).toHaveBeenCalledWith(1);
+    });
+
+    describe('on a right-to-left page', () => {
+      // jsdom maps no `dir` to `direction`, which the swipe reads.
+      let rtl: HTMLStyleElement;
+      beforeEach(() => {
+        rtl = document.createElement('style');
+        rtl.textContent = '[dir="rtl"] { direction: rtl; }';
+        document.head.appendChild(rtl);
+      });
+      afterEach(() => rtl.remove());
+
+      const swipe = (container: HTMLElement, from: number, to: number) => {
+        const track = container.querySelector('.carousel-container')!;
+        fireEvent.touchStart(track, { touches: [{ clientX: from }] });
+        fireEvent.touchMove(track, { touches: [{ clientX: to }] });
+        fireEvent.touchEnd(track);
+      };
+
+      it('brings the next slide in from the left on a swipe right', () => {
+        const onChange = vi.fn();
+        const { container } = render(
+          <div dir="rtl">
+            <TestCarousel value={0} onChange={onChange} />
+          </div>
+        );
+        swipe(container, 100, 200);
+        expect(onChange).toHaveBeenCalledWith(1);
+      });
+
+      it('goes back on a swipe left', () => {
+        const onChange = vi.fn();
+        const { container } = render(
+          <div dir="rtl">
+            <TestCarousel value={1} onChange={onChange} />
+          </div>
+        );
+        swipe(container, 200, 100);
+        expect(onChange).toHaveBeenCalledWith(0);
+      });
     });
 
     it('ignores touchMove without prior touchStart', () => {
