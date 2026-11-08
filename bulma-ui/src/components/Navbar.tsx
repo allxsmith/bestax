@@ -74,6 +74,16 @@ export interface NavbarProps
   fixed?: 'top' | 'bottom';
   /** Navbar content (compose with subcomponents). */
   children?: React.ReactNode;
+  /**
+   * Accessible name. Defaults to `main navigation`. A screen reader announces
+   * it with the landmark's role, and since the name holds the role word,
+   * "navigation" is heard twice. Pass a name without it (`aria-label="Site"`),
+   * and a different name on each Navbar when a page has more than one. A
+   * passed `aria-label` replaces the default, and `aria-label={undefined}`
+   * removes it, leaving the landmark unnamed.
+   * @defaultValue 'main navigation'
+   */
+  'aria-label'?: React.AriaAttributes['aria-label'];
 }
 
 /**

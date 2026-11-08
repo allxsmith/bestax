@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.65.0"
+    "version": "5.65.1"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -1007,7 +1007,7 @@
       "slug": "components/navbar",
       "import": "import { Navbar } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 57,
+      "propCount": 58,
       "exampleCount": 19
     },
     {
