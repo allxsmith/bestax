@@ -154,6 +154,10 @@ either one is fixed.
   list, so write it for a reader ("Top bar for navigation or branding"), not for the compiler.
   Type aliases get the same treatment: a union too long to inline in a cell is rendered as its
   name plus a `**Types:**` footnote built from the alias's own TSDoc.
+  Redeclaring an inherited prop to give it TSDoc keeps the inherited type:
+  `'aria-label'?: React.AriaAttributes['aria-label']`, not `string`, which is narrower under
+  `exactOptionalPropertyTypes` and so a breaking change. `@extraProp` documents one without
+  redeclaring it.
 - Multi-part components attach sub-components as statics via `withSubComponents`
   (`src/helpers/withSubComponents.ts`) — it must mutate the base (identity-preserving),
   never wrap it. A compound family ships these artifacts beyond the base anatomy rule:
@@ -162,6 +166,11 @@ either one is fixed.
   a `CompoundUsage` story, and a `### Compound (dot-notation) usage` live example at the
   end of the API page's `## Usage` section. Prefer exporting subs by name from the same
   module so identity tests are possible.
+  A parent that arranges its parts by comparing `child.type` with a part lays out wrong when
+  the parts are written in a React Server Component, because they reach the client as lazy
+  references (#1500). Don't add a new comparison like that: let the part find its parent
+  through context, the way `SegmentedControl.Segment` does. Anything the docs say works from a
+  Server Component needs a real Next.js build behind it, since jsdom has no server boundary.
 - Components must work with a custom class prefix (`ConfigProvider`) — tests assert
   `bestax-`-prefixed class output; never hardcode a `"button"`-style class string outside the
   classname helpers (`usePrefixedClassNames`).
