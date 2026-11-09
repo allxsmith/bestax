@@ -1,27 +1,28 @@
 /**
  * @vitest-environment node
  *
- * SSR coverage for Toast: when `typeof document === 'undefined'` and the
- * toast is not inline, the component should return null (no portal), and
+ * SSR coverage for Toast, where `document` is undefined. A portal has no
+ * server-rendered counterpart, so a Toast renders in place on the server, and
+ * the client's hydrating render matches it before moving it into its portal.
  * ToastContainer renders nothing whatever `toast` holds on the server.
  *
  * jsdom's `document` is a non-configurable getter on Window which cannot be
- * shadowed at runtime, so this branch must be exercised in a Node test
- * environment where `document` is naturally undefined.
+ * shadowed at runtime, so this has to run in a Node test environment.
  */
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Toast, ToastContainer, toast } from '../Toast';
 
 describe('Toast SSR (node environment)', () => {
-  it('returns null (empty markup) when document is undefined', () => {
+  it('renders a toast in place, in its position box', () => {
     const html = renderToStaticMarkup(
       React.createElement(Toast, { message: 'SSR test', duration: 0 })
     );
-    expect(html).toBe('');
+    expect(html).toContain('toast-container');
+    expect(html).toContain('SSR test');
   });
 
-  it('still renders inline when inline=true and document is undefined', () => {
+  it('renders inline when inline=true', () => {
     const html = renderToStaticMarkup(
       React.createElement(Toast, {
         message: 'Inline SSR',

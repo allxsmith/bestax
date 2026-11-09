@@ -47,7 +47,7 @@ export interface IconButtonLabelledBy {
   /** The id of the element whose text names the button, in place of `aria-label`. */
   'aria-labelledby': string;
   /**
-   * @internal Not with `aria-labelledby`, which already names the button.
+   * Not with `aria-labelledby`, which already names the button.
    * Declared so the two can't be passed together.
    */
   'aria-label'?: undefined;
@@ -63,10 +63,7 @@ export interface IconButtonLabel {
    * development.
    */
   'aria-label': string;
-  /**
-   * @internal Not with `aria-label`. Declared so the two can't be passed
-   * together.
-   */
+  /** Not with `aria-label`. Declared so the two can't be passed together. */
   'aria-labelledby'?: undefined;
 }
 
