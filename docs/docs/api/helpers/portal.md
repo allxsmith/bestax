@@ -112,6 +112,7 @@ The `dir` and `lang` of a [`LocaleProvider`](./localeprovider.md) are the except
 
 - The DOM decides reading and Tab order, not the React tree. Content portaled to the end of `document.body` comes last in both, so a keyboard user can't reach it from the button that opened it by pressing Tab. Move focus into interactive floating content when it opens, and back to what opened it when it closes.
 - Give floating content a role and an accessible name (`role="dialog"` with `aria-label` or `aria-labelledby`), and give its trigger `aria-expanded` and `aria-controls`. Ids work across the portal, since they are shared by the whole document.
+- A modal dialog's `aria-modal` hides the rest of the page from screen readers that honor it, content at the end of `document.body` included. The library's popups, such as a `Popover` with `appendToBody`, go into the `Modal`, `Dialog` or `Command.Dialog` they're opened in. A `Portal` doesn't, so inside one, give it a `container` inside the dialog.
 - Content that only appears after hydration is missing from the server HTML. Keep anything a reader or a crawler needs on first load out of a portal.
 
 ---
