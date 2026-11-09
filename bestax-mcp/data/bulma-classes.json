@@ -3961,7 +3961,7 @@
       "textColor": null,
       "bgColor": null,
       "part": false,
-      "why": "bestax `Message` always wraps its children in `.message-body`",
+      "why": "bestax `Message` writes a `data-testid` of its own over the one it's given, and wraps children other than its own parts in `.message-body`",
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
