@@ -114,10 +114,8 @@ export interface HoverCardProps
    * it only after the rest of the page, and focus leaving the trigger on the
    * way closes it, so keyboard users can open it, read it and close it with
    * Escape, and whatever it links to has to be reachable from the page as
-   * well. It is measured against the trigger when it opens and on resize and
-   * scroll, so it doesn't follow content that changes size while it is open.
-   * Theming variables set on an ancestor of the trigger reach it only when its
-   * container is inside that ancestor.
+   * well. Theming variables set on an ancestor of the trigger reach it only
+   * when its container is inside that ancestor.
    * @defaultValue false
    */
   appendToBody?: boolean;

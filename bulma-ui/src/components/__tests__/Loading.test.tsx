@@ -441,32 +441,32 @@ describe('Loading', () => {
     });
   });
 
-  describe('body scroll lock', () => {
+  describe('page scroll lock', () => {
     afterEach(() => {
-      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     });
 
-    it('sets body overflow to hidden when full page and active', () => {
+    it('locks the page when full page and active', () => {
       render(<Loading active isFullPage />);
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
     });
 
-    it('does not set body overflow when not full page', () => {
+    it('does not lock the page when not full page', () => {
       render(<Loading active />);
-      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
     });
 
-    it('does not set body overflow when not active', () => {
+    it('does not lock the page when not active', () => {
       render(<Loading active={false} isFullPage />);
-      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
     });
 
-    it('restores body overflow on unmount', () => {
+    it('restores the page overflow on unmount', () => {
       const { unmount } = render(<Loading active isFullPage />);
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
 
       unmount();
-      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
     });
   });
 
