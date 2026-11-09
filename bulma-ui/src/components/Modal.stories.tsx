@@ -76,7 +76,9 @@ export const ModalContent: StoryObj<ModalProps> = {
   render: () => (
     <ControlledModal>
       <Box>
-        <Title size="4">Custom Content</Title>
+        <Title as="h3" textSize="4">
+          Custom Content
+        </Title>
         <Paragraph>{declarationLatin}</Paragraph>
       </Box>
     </ControlledModal>
@@ -88,7 +90,9 @@ export const ModalContentExplicit: StoryObj<ModalProps> = {
   render: () => (
     <ControlledModal type="content">
       <Box>
-        <Title size="4">Explicit Content Modal</Title>
+        <Title as="h3" textSize="4">
+          Explicit Content Modal
+        </Title>
         <Paragraph>{declarationLatin}</Paragraph>
       </Box>
     </ControlledModal>
@@ -157,7 +161,7 @@ const CompoundModalContentComponent = () => {
         <Modal.Background onClick={closeModal} />
         <Modal.Content>
           <Box>
-            <Title size="4" id="compound-content-modal-title">
+            <Title as="h3" textSize="4" id="compound-content-modal-title">
               Compound Component Content Modal
             </Title>
             <Paragraph>{declarationLatin}</Paragraph>
