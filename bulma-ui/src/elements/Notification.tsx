@@ -38,17 +38,19 @@ export interface NotificationProps
    * notification renders unstyled; those log a console warning in development
    * and will be removed from this union in the next major version.
    *
-   * `dark` takes the dark color's own text and background from bestax's
-   * stylesheets, as a dark `Button` has. With Bulma's CSS alone, a dark
-   * notification's text inherits the color around it, which on a light page
-   * is one shade off its background.
+   * `dark` and `light` take their color's own text and background from
+   * bestax's stylesheets, as a dark or light `Button` has. With Bulma's CSS
+   * alone, their text inherits the color around it, which on a light page is
+   * one shade off a dark notification's background, and on a dark page is
+   * hard to read on a light one.
    */
   color?: (typeof validColors)[number];
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
-   * Use the light color variant. The dark color has none, so `color="dark"`
-   * with `isLight` looks the same as without it, as a dark `Button` does.
+   * Use the light color variant. The light and dark colors have none, so
+   * `color="light"` or `color="dark"` with `isLight` looks the same as
+   * without it, as a light or dark `Button` does.
    */
   isLight?: boolean;
   /**
@@ -158,15 +160,17 @@ export interface NotificationOptions {
    * notification renders unstyled; those log a console warning in development
    * and will be removed from this union in the next major version.
    *
-   * `dark` takes the dark color's own text and background from bestax's
-   * stylesheets, as a dark `Button` has. With Bulma's CSS alone, a dark
-   * notification's text inherits the color around it, which on a light page
-   * is one shade off its background.
+   * `dark` and `light` take their color's own text and background from
+   * bestax's stylesheets, as a dark or light `Button` has. With Bulma's CSS
+   * alone, their text inherits the color around it, which on a light page is
+   * one shade off a dark notification's background, and on a dark page is
+   * hard to read on a light one.
    */
   color?: (typeof validColors)[number];
   /**
-   * Use the light color variant. The dark color has none, so `color="dark"`
-   * with `isLight` looks the same as without it, as a dark `Button` does.
+   * Use the light color variant. The light and dark colors have none, so
+   * `color="light"` or `color="dark"` with `isLight` looks the same as
+   * without it, as a light or dark `Button` does.
    */
   isLight?: boolean;
   /** Duration in ms before auto-close. Default 3000. */

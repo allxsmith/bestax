@@ -754,12 +754,13 @@ passed as a direct child in browsers that support `:has()`. It is the padding fo
 button: a `Delete` passed in with a `size` gets it plus or minus the difference between the two
 sizes.
 
-A dark notification, with or without `isLight`, sets `--bulma-notification-background-l` and
-`--bulma-notification-color-l` to the dark color's own `--bulma-dark-l` and
-`--bulma-dark-invert-l`, so it reads as a dark button does. Bulma's dark variant of the dark color
-would otherwise give it text that inherits the color around it. That rule outranks a selector like
-`.notification.is-dark`, so set either variable on a dark notification through `style`. Bulma's own
-`--bulma-notification-*` variables set the rest.
+A dark or light notification, with or without `isLight`, sets `--bulma-notification-background-l`
+and `--bulma-notification-color-l` to that color's own `--bulma-dark-l` and
+`--bulma-dark-invert-l`, or `--bulma-light-l` and `--bulma-light-invert-l`, so it reads as a dark
+or light button does. Bulma's own variant of that color would otherwise give it text that inherits
+the color around it. Those rules outrank a selector like `.notification.is-dark`, so set either
+variable on a dark or light notification through `style`. Bulma's own `--bulma-notification-*`
+variables set the rest.
 
 ### Numberinput
 
@@ -993,6 +994,14 @@ set on the root itself, since its own declaration wins over one on an ancestor.
 
 `--bulma-tabs-content-padding`, `--bulma-tabs-vertical-border-color`,
 `--bulma-tabs-vertical-border-width`, `--bulma-tabs-vertical-min-width`
+
+### Tag
+
+A light tag, with or without `isLight`, sets `--bulma-tag-color-l` to the light color's own
+`--bulma-light-invert-l`, so its text reads as a light button's does. Bulma's light variant of the
+light color would otherwise give it text that inherits the color around it. That rule outranks a
+selector like `.tag.is-light`, so set the variable on a light tag through `style`. Bulma's own
+`--bulma-tag-*` variables set the rest.
 
 ### Taginput
 

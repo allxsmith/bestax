@@ -511,6 +511,12 @@ const ORPHAN_EXEMPT = new Map([
       'nothing of its own to claim, so this stays until it does',
   ],
   [
+    'bulma-ui/src/scss/elements/_tag.scss',
+    're-sets tag-color-l, a Bulma variable Tag already documents, on a ' +
+      'doubled color class with :not() the attribution walk cannot place. ' +
+      'It registers nothing of its own to claim, so this stays until it does',
+  ],
+  [
     'bulma-ui/src/scss/form/_picker-popover.scss',
     'shared picker chrome owned by no single component; needs an ownership ' +
       'decision before it can be claimed — #543',
