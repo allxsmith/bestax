@@ -79,3 +79,20 @@ export function SiteFooter() {
     </>
   );
 }
+
+export function Stats() {
+  return (
+    <>
+      <div className="level is-mobile">
+        <div className="level-item has-text-centered">
+          <p className="title">1,234</p>
+        </div>
+      </div>
+      <header className="level">
+        <div className="level-left">
+          <p className="level-item">Posts</p>
+        </div>
+      </header>
+    </>
+  );
+}
