@@ -290,7 +290,9 @@ export const ColorInputBase = forwardRef<HTMLInputElement, ColorInputBaseProps>(
       [`is-${color}`]: !!color,
       [`is-${size}`]: !!size,
       'is-rounded': !!isRounded,
-      'is-danger': invalid && !color,
+      // The danger color's own class is this key too, and this one comes
+      // later, so it has to set the class for `danger` as well or it erases it.
+      'is-danger': color === 'danger' || (invalid && !color),
     });
     const containerClass = usePrefixedClassNames('colorinput', {
       'has-trigger': triggerIcon,
