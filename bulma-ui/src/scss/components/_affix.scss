@@ -33,15 +33,18 @@ $affix-z-index: $extras-z-index-dropdown - 1 !default;
 // stays on the right in right-to-left text. Each side adds the device's
 // safe-area inset for that edge, which is 0 unless the page sets
 // `viewport-fit=cover`. A margin from the spacing helpers adds to the
-// distance, since a fixed box's margin pushes it off its inset.
+// distance, since a fixed box's margin pushes it off its inset. The sides
+// also add the room the page's scrollbar gave back there while an overlay
+// locks the page, so the Affix stays put as the scrollbar goes.
 .#{iv.$class-prefix}affix {
   position: fixed;
   z-index: cv.getVar('affix-z-index');
   // As wide as its content, and never wider than the viewport less the
-  // offset and the safe area on both sides.
+  // offset, the safe area and the scrollbar's room on both sides.
   max-width: calc(
     100% - 2 * #{cv.getVar('affix-offset-horizontal')} -
-      env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)
+      env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) -
+      #{$extras-scroll-lock-offset-left} - #{$extras-scroll-lock-offset-right}
   );
 
   &.#{iv.$class-prefix}is-top-right,
@@ -61,14 +64,16 @@ $affix-z-index: $extras-z-index-dropdown - 1 !default;
   &.#{iv.$class-prefix}is-top-right,
   &.#{iv.$class-prefix}is-bottom-right {
     right: calc(
-      #{cv.getVar('affix-offset-horizontal')} + env(safe-area-inset-right, 0px)
+      #{cv.getVar('affix-offset-horizontal')} + env(safe-area-inset-right, 0px) +
+        #{$extras-scroll-lock-offset-right}
     );
   }
 
   &.#{iv.$class-prefix}is-top-left,
   &.#{iv.$class-prefix}is-bottom-left {
     left: calc(
-      #{cv.getVar('affix-offset-horizontal')} + env(safe-area-inset-left, 0px)
+      #{cv.getVar('affix-offset-horizontal')} + env(safe-area-inset-left, 0px) +
+        #{$extras-scroll-lock-offset-left}
     );
   }
 }

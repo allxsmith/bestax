@@ -1150,8 +1150,8 @@ describe('NotificationContainer with notifications shown at their own position',
   // Where a stack sits, read back from the inline style that fixes it there.
   const positionOf = (stack: HTMLElement) => {
     const edge = stack.style.bottom === '0px' ? 'bottom' : 'top';
-    if (stack.style.left === '50%') return edge;
-    return `${edge}-${stack.style.right === '0px' ? 'right' : 'left'}`;
+    if (stack.style.transform === 'translateX(-50%)') return edge;
+    return `${edge}-${stack.style.right ? 'right' : 'left'}`;
   };
 
   // Each stack the container renders, in page order, with its messages.
@@ -1212,6 +1212,34 @@ describe('NotificationContainer with notifications shown at their own position',
     ]);
   });
 
+  it('adds the room a scroll lock gives back on its side, so a stack stays put', () => {
+    // While an overlay locks the page, the window's edges take back the room
+    // the page's scrollbar had, and the lock sets it on <html>. Without a
+    // lock each variable falls back to 0.
+    render(<NotificationContainer position="top-right" />);
+    act(() => {
+      notification.show({ message: 'Right', duration: 0 });
+      notification.show({ message: 'Left', position: 'top-left', duration: 0 });
+      notification.show({ message: 'Middle', position: 'bottom', duration: 0 });
+    });
+    const styleOf = (message: string) =>
+      screen.getByText(message).closest('.notification')!.parentElement!.style;
+    const left = 'var(--bulma-scroll-lock-offset-left, 0px)';
+    const right = 'var(--bulma-scroll-lock-offset-right, 0px)';
+
+    expect(styleOf('Right').right).toBe(right);
+    expect(styleOf('Right').left).toBe('');
+    expect(styleOf('Left').left).toBe(left);
+    expect(styleOf('Left').right).toBe('');
+    // A centered stack moves by half of what the two sides take back.
+    expect(styleOf('Middle').left).toBe(`calc(50% + (${left} - ${right}) / 2)`);
+    expect(styleOf('Middle').right).toBe('');
+    // No wider than the window was before the lock.
+    for (const message of ['Right', 'Left', 'Middle']) {
+      expect(styleOf(message).maxWidth).toBe(`calc(100% - ${left} - ${right})`);
+    }
+  });
+
   it("gives a notification at the container's own position the container's stack", () => {
     // What a container rendered before notifications could be placed on
     // their own: one stack, fixed to the container's position, and then the
@@ -1227,7 +1255,7 @@ describe('NotificationContainer with notifications shown at their own position',
         .filter(el => el !== container)
         .map(el => el.outerHTML)
     ).toEqual([
-      '<div style="position: fixed; z-index: 100; display: flex; flex-direction: column-reverse; gap: 0.75rem; padding: 1rem; pointer-events: none; max-width: 100%; bottom: 0px; left: 50%; transform: translateX(-50%); align-items: center;">' +
+      '<div style="position: fixed; z-index: 100; display: flex; flex-direction: column-reverse; gap: 0.75rem; padding: 1rem; pointer-events: none; max-width: calc(100% - var(--bulma-scroll-lock-offset-left, 0px) - var(--bulma-scroll-lock-offset-right, 0px)); bottom: 0px; left: calc(50% + (var(--bulma-scroll-lock-offset-left, 0px) - var(--bulma-scroll-lock-offset-right, 0px)) / 2); transform: translateX(-50%); align-items: center;">' +
         '<div class="notification has-delete" style="pointer-events: auto;"><button type="button" class="delete" aria-label="Close notification"></button><span>One</span></div>' +
         '<div class="notification has-delete" style="pointer-events: auto;"><button type="button" class="delete" aria-label="Close notification"></button><span>Two</span></div>' +
         '</div>',
