@@ -1,3 +1,11 @@
+## [5.67.4](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.3...@allxsmith/bestax-bulma@5.67.4) (2026-11-09)
+
+
+### Bug Fixes
+
+* **bulma-ui:** add the full weekday names after hydration, and not beside dayNames ([c574636](https://github.com/allxsmith/bestax/commit/c574636455211b2b88e8ce12148db1b8bd44b7ed))
+* **bulma-ui:** head the calendar's day columns with their weekdays ([ec9efa2](https://github.com/allxsmith/bestax/commit/ec9efa250e44a1ce7b962d124bcddc7878793e9c)), closes [#1439](https://github.com/allxsmith/bestax/issues/1439)
+
 ## [5.67.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.2...@allxsmith/bestax-bulma@5.67.3) (2026-11-09)
 
 
