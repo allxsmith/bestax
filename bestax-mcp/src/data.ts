@@ -71,17 +71,24 @@ export interface Part {
 /**
  * An export with no catalog entry of its own, and where its table is: a part of
  * another record, a standalone one (`InputBase`) or a sub-component that is also
- * exported on its own (`Thead`, as `Table.Thead`).
+ * exported on its own (`Thead`, as `Table.Thead`). A name an import line gives
+ * beside its component that is no part at all, such as the hook `useDataTable`,
+ * has no table and no `path` (#1465).
  */
 export interface DocumentedWith {
   /** The record that documents it. */
   component: string;
-  /** Its part in that record. */
-  path: string;
+  /** Its part in that record, unless it is no part. */
+  path?: string;
   /** Its one-line purpose, for search. */
   purpose: string;
   /** Set when the part is a standalone one. */
   standalone?: Standalone;
+  /**
+   * The heading of the section of the record's page that documents a name
+   * with no `path`, or the title of an example that calls it.
+   */
+  section?: string;
 }
 
 export interface CssVar {
@@ -246,45 +253,50 @@ function cleanName(input: string): string {
  * intent is unambiguous.
  */
 export async function resolveName(input: string): Promise<string | null> {
-  const catalog = await loadCatalog();
   const root = cleanName(input).split('.')[0];
-  const exact = catalog.components.find(c => c.name === root);
-  if (exact) return exact.name;
-  const lower = root.toLowerCase();
-  const ci = catalog.components.find(c => c.name.toLowerCase() === lower);
-  if (ci) return ci.name;
-  return documentedEntry(catalog, root)?.entry.component ?? null;
+  return lookupName(await loadCatalog(), root)?.component ?? null;
 }
 
 /**
- * An export documented with another record, by its name as asked, exactly or in
- * any letter case, with the name as the index spells it.
+ * What a name is in the index: a component with an entry, or an export
+ * documented with one, as the index spells it. A name spelled exactly as the
+ * index has it wins over one that matches in another letter case, so `toast`
+ * is the function documented with Toast and `Toast` is the component.
  */
-function documentedEntry(
+function lookupName(
   catalog: Catalog,
   name: string
-): { name: string; entry: DocumentedWith } | null {
-  const { documentedWith } = catalog;
-  if (Object.hasOwn(documentedWith, name)) {
-    return { name, entry: documentedWith[name] };
-  }
+): {
+  component: string;
+  documented?: { name: string; entry: DocumentedWith };
+} | null {
+  const { components, documentedWith } = catalog;
+  const documented = (key: string) => ({
+    component: documentedWith[key].component,
+    documented: { name: key, entry: documentedWith[key] },
+  });
+  const exact = components.find(c => c.name === name);
+  if (exact) return { component: exact.name };
+  if (Object.hasOwn(documentedWith, name)) return documented(name);
   const lower = name.toLowerCase();
+  const ci = components.find(c => c.name.toLowerCase() === lower);
+  if (ci) return { component: ci.name };
   const key = Object.keys(documentedWith).find(k => k.toLowerCase() === lower);
-  return key ? { name: key, entry: documentedWith[key] } : null;
+  return key ? documented(key) : null;
 }
 
 /**
  * The export a name asks for when it is documented with another record
- * (`InputBase`, `Thead`), as the index spells it, with the part that is its
- * table. Null for a dot-path and for a component with an entry of its own,
- * which the generator never lists there.
+ * (`InputBase`, `Thead`, `useDataTable`), as the index spells it, with the part
+ * that is its table when it has one. Null for a dot-path and for a component
+ * with an entry of its own, which the generator never lists there.
  */
 export async function documentedExport(
   input: string
 ): Promise<{ name: string; entry: DocumentedWith } | null> {
   const cleaned = cleanName(input);
   if (cleaned.includes('.')) return null;
-  return documentedEntry(await loadCatalog(), cleaned);
+  return lookupName(await loadCatalog(), cleaned)?.documented ?? null;
 }
 
 /**
