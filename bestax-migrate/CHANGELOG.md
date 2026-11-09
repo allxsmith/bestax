@@ -1,3 +1,13 @@
+## [2.36.2](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.36.1...bestax-migrate@2.36.2) (2026-11-09)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** give Message's TODO a reason that is still true ([aaea802](https://github.com/allxsmith/bestax/commit/aaea8028be30197b4e985ca5ecf26c90d4a4648d))
+* **bulma-ui:** keep a hovered Slider thumb's border at rest in forced colors ([8d46e50](https://github.com/allxsmith/bestax/commit/8d46e500100eb94bacb3c4c46c1aaca8c76405a0))
+* **bulma-ui:** put Message's own parts straight in its article ([316ca07](https://github.com/allxsmith/bestax/commit/316ca0762a3a63a084064ce9bbc182f5cdf898d5)), closes [#1501](https://github.com/allxsmith/bestax/issues/1501)
+* **bulma-ui:** show a Slider's track and fill in forced colors ([03870bf](https://github.com/allxsmith/bestax/commit/03870bf7c8849f4e5cfb1191a702ad4a7cbd34f1))
+
 ## [2.36.1](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.36.0...bestax-migrate@2.36.1) (2026-11-09)
 
 
