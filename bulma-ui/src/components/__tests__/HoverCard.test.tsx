@@ -1407,6 +1407,15 @@ describe('HoverCard', () => {
       advance(300);
       expect(card()).toBeNull();
     });
+
+    it('portals the card into the Modal it is in', () => {
+      render(
+        <Modal active aria-label="Team">
+          <Profile appendToBody defaultOpen />
+        </Modal>
+      );
+      expect(card()!.parentElement).toBe(screen.getByTestId('modal'));
+    });
   });
 
   describe('props and classes', () => {

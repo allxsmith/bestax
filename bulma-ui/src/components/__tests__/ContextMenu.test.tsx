@@ -1391,6 +1391,31 @@ describe('ContextMenu', () => {
       contextMenu(region());
       expect(box().parentElement).toBe(screen.getByTestId('overlays'));
     });
+
+    it('renders into the Modal it is in, where aria-modal leaves it to screen readers', () => {
+      render(
+        <Modal active aria-label="Files">
+          <FileMenu />
+        </Modal>
+      );
+      contextMenu(region());
+      expect(box().parentElement).toBe(screen.getByTestId('modal'));
+    });
+
+    it("keeps to a ConfigProvider's portalContainer inside a Modal", () => {
+      const target = document.createElement('section');
+      document.body.appendChild(target);
+      render(
+        <ConfigProvider portalContainer={target}>
+          <Modal active aria-label="Files">
+            <FileMenu />
+          </Modal>
+        </ConfigProvider>
+      );
+      contextMenu(region());
+      expect(box().parentElement).toBe(target);
+      target.remove();
+    });
   });
 
   describe('Compound components', () => {

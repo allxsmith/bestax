@@ -390,10 +390,8 @@ is a `div` with `role="button"`).
 subcomponents (`Card.Header` + `.Title`/`.Icon`, `Card.Image`, `Card.Content`, `Card.Footer`,
 `Card.FooterItem`). Those parts are also named exports (`CardHeader`, `CardHeaderTitle`,
 `CardHeaderIcon`, `CardImage`, `CardContent`, `CardFooter`, `CardFooterItem`), the same
-components as the dotted names. In a Next.js App Router app, build a card from its parts inside a
-client component (a file that starts with `'use client'`): `Card` lays out its parts by checking
-which part each child is, and that check can't recognize a part written in a Server Component. A
-Server Component uses the props form.
+components as the dotted names. A Next.js Server Component imports the parts by name, since a
+dotted name is `undefined` there.
 
 | Prop                            | Type                          |
 | ------------------------------- | ----------------------------- |
