@@ -425,7 +425,8 @@ in the browser:
   inside its `<li>` with no class but `is-active`, and puts its `className` on the `<li>`, so the
   class has nowhere to go. On an `<a>` inside a `.menu-list` it adds nothing, so drop it and
   re-run, and the item can convert. On any other tag, keep the markup.
-- **`family:message`**: `Message` always wraps its children in `.message-body`.
+- **`family:message`**: `Message` writes a `data-testid` of its own over the one it's given, and
+  wraps children other than `Message.Header` and `Message.Body` in a `.message-body`.
 - **`family:panel-icon`**: `Panel.Icon` renders through `Icon`, which always writes an
   `aria-label`, so write `<Panel.Icon>` by hand with the `<i>` inside. The rest of a panel converts,
   a `<label>` or `<div>` `.panel-block` included, as `Panel.Block` with `as` and its contents as
