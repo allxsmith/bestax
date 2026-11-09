@@ -643,6 +643,24 @@ $slider-vertical-height: 200px !default;
   .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-range .#{iv.$class-prefix}slider-track {
     forced-color-adjust: none;
   }
+
+  // Forced colors turns the value bubble's fill into the page's and paints
+  // every side of its arrow, which then draws as a square. An outline, not a
+  // border, so the bubble doesn't grow. Only the arrow opts out, so its
+  // transparent sides stay transparent and the side that points, whichever
+  // way the bubble faces, takes the system's text color.
+  .#{iv.$class-prefix}slider-output {
+    outline: 1px solid CanvasText;
+  }
+
+  .#{iv.$class-prefix}slider-output::after {
+    forced-color-adjust: none;
+    @include cv.register-vars(
+      (
+        "slider-output-background": CanvasText,
+      )
+    );
+  }
 }
 
 // Reduced motion

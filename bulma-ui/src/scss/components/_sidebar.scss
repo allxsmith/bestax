@@ -306,17 +306,19 @@ $sidebar-static-border-color: cv.getVar("border") !default;
   }
 }
 
-// Static variant (inline sidebar, not overlay)
+// Static variant (inline sidebar, not overlay). The border sits between the
+// sidebar and the content: on its end, or its start with `is-right`, so it
+// faces the content on a right-to-left page too.
 .#{iv.$class-prefix}sidebar.#{iv.$class-prefix}is-static {
   position: relative;
   transform: none;
   box-shadow: none;
   z-index: auto;
-  border-right: 1px solid cv.getVar("sidebar-static-border-color");
+  border-inline-end: 1px solid cv.getVar("sidebar-static-border-color");
 
   &.#{iv.$class-prefix}is-right {
-    border-right: none;
-    border-left: 1px solid cv.getVar("sidebar-static-border-color");
+    border-inline-end: none;
+    border-inline-start: 1px solid cv.getVar("sidebar-static-border-color");
   }
 }
 
@@ -340,8 +342,9 @@ $sidebar-static-border-color: cv.getVar("border") !default;
       margin: 0;
     }
 
+    // Out of sight but still in the link, so the link keeps its name.
     span:not(.#{iv.$class-prefix}icon) {
-      display: none;
+      @include extras-sr-only;
     }
   }
 }

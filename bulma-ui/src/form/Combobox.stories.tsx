@@ -15,6 +15,7 @@ import { Tag } from '../elements/Tag';
 import { Tags } from '../elements/Tags';
 import { Hero } from '../layout/Hero';
 import { ConfigProvider } from '../helpers/Config';
+import { LocaleProvider } from '../helpers/LocaleProvider';
 
 const COUNTRIES = [
   'Argentina',
@@ -935,6 +936,41 @@ export const FlipsAbove: Story = {
     const panel = canvasElement.querySelector('.combobox-menu');
     await expect(panel).toHaveClass('is-top-left');
   },
+};
+
+export const RightToLeft: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'On a right-to-left page a menu with no position lines its right edge up with the field’s, so a menu wider than a narrow field at the start of the line stays on the screen. This one is portaled, so it takes the width its items want.',
+      },
+    },
+  },
+  render: () => (
+    <LocaleProvider locale="ar" dir="rtl">
+      <Columns>
+        <Column size="one-quarter">
+          <Combobox label="المدينة" appendToBody>
+            <Combobox.Input />
+            <Combobox.Menu>
+              <Combobox.List>
+                <Combobox.Item value="riyadh">
+                  الرياض، المملكة العربية السعودية
+                </Combobox.Item>
+                <Combobox.Item value="cairo">
+                  القاهرة، جمهورية مصر العربية
+                </Combobox.Item>
+                <Combobox.Item value="amman">
+                  عمّان، المملكة الأردنية الهاشمية
+                </Combobox.Item>
+              </Combobox.List>
+            </Combobox.Menu>
+          </Combobox>
+        </Column>
+      </Columns>
+    </LocaleProvider>
+  ),
 };
 
 function ModalWithCombobox() {
