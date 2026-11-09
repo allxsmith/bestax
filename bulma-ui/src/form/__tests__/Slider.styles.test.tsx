@@ -330,15 +330,13 @@ describe.each([
     expect(
       own.rule.style.getPropertyValue('--bulma-slider-output-background').trim()
     ).toMatch(/^canvastext$/i);
-    // The bubble keeps the user's palette: only the arrow, and the range
-    // track that opted out before it, do.
+    // The bubble keeps the user's palette: only the arrow opts out, besides
+    // the elements that paint the track's gradient.
     const optedOut = rules
       .filter(({ rule }) => rule.style.getPropertyValue('forced-color-adjust'))
-      .map(({ rule }) => rule.selectorText);
-    expect(optedOut).toEqual([
-      `${p('slider')}${p('is-range')} ${p('slider-track')}`,
-      arrow,
-    ]);
+      .map(({ rule }) => rule.selectorText.split(/\s*,\s*/).join(', '));
+    const track = `${p('slider')}${p('is-range')} ${p('slider-track')}`;
+    expect(optedOut).toEqual([`${p('slider-input')}, ${track}`, track, arrow]);
   });
 
   // The color above reaches every way the arrow points because each one
