@@ -30,6 +30,7 @@ import {
   proseComponentInfo,
   readSkills,
   reportFailure,
+  sectionPurpose,
   standaloneTables,
 } from './gen-mcp-index.mjs';
 import { sectionSpans } from './lib/api-page.mjs';
@@ -1017,12 +1018,24 @@ test('every name an import line gives is a catalog entry or documented with one'
     ['notification', 'Notification', 'Programmatic API'],
     ['validColors', 'Valid value constants', undefined],
   ]) {
+    const { purpose, ...where } = documentedWith[name];
     assert.deepEqual(
-      documentedWith[name],
-      { component, purpose: '', ...(section ? { section } : {}) },
+      where,
+      { component, ...(section ? { section } : {}) },
       name
     );
+    // What its section says first, and nothing for one with no section (#1579).
+    assert.equal(purpose === '', section === undefined, name);
   }
+  assert.equal(
+    documentedWith.useDataTable.purpose,
+    '`useDataTable` takes the same columns, data and state options as ' +
+      '`DataTable` and returns the table.'
+  );
+  assert.equal(
+    documentedWith.toast.purpose,
+    'For showing toasts from anywhere in your app, use the programmatic API.'
+  );
   // A hook its page documents but its import line leaves out is not one.
   assert.equal(documentedWith.useClassPrefix, undefined);
   const titles = new Set(catalog.components.map(c => c.name));
@@ -1087,6 +1100,51 @@ test('importSection names a heading, else an example, else a section whose code 
   assert.equal(importSection(page, examples, 'dialog'), 'Programmatic API');
   // A `$` in a name is matched as itself.
   assert.equal(importSection(['## The $store'], [], '$store'), 'The $store');
+});
+
+test('sectionPurpose reads the first sentence under the section', () => {
+  const lines = [
+    '## Usage',
+    '### The useThing Hook',
+    '',
+    '```tsx',
+    'useThing();',
+    '```',
+    '',
+    '`useThing` returns the thing the nearest provider holds, and',
+    'nothing outside one. It reads the context once.',
+    '',
+    'More prose.',
+    '### Empty',
+    '',
+    '```tsx',
+    'useOther();',
+    '```',
+    '### Passing It',
+    '',
+    'Pass it as the first argument:',
+    '#### Nested',
+    '',
+    'A deeper heading names its own sentence for an example title.',
+  ];
+  assert.equal(
+    sectionPurpose(lines, 'The useThing Hook'),
+    '`useThing` returns the thing the nearest provider holds, and nothing ' +
+      'outside one.'
+  );
+  // A section that opens with code alone, or names no heading, has none.
+  assert.equal(sectionPurpose(lines, 'Empty'), '');
+  assert.equal(sectionPurpose(lines, 'Not here'), '');
+  // A lead-in to code ends as a sentence, and an example title's last part
+  // names its heading.
+  assert.equal(
+    sectionPurpose(lines, 'Passing It'),
+    'Pass it as the first argument.'
+  );
+  assert.equal(
+    sectionPurpose(lines, 'Passing It › Nested'),
+    'A deeper heading names its own sentence for an example title.'
+  );
 });
 
 test('every component the barrel exports is a catalog entry or documented with one', () => {
