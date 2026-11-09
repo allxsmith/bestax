@@ -142,7 +142,10 @@ interface ComboboxBaseProps
    * Where the menu opens against the field: below (`bottom-*`) or above
    * (`top-*`), lined up with its left or right edge. `auto` picks the one
    * that keeps the list in the viewport, preferring below. The same union
-   * Popover takes.
+   * Popover takes. Left out, it opens below and lines up with the field's
+   * start edge, which is its right edge on a right-to-left page, so a menu
+   * wider than the field doesn't hang off the screen. A corner you pass
+   * stays physical, so `bottom-left` lines up the left edges on either page.
    * @defaultValue 'bottom-left'
    */
   position?: PopoverPosition;
@@ -476,6 +479,11 @@ interface ComboboxContextValue {
   reportPanel: (element: HTMLElement) => () => void;
   /** Where the panel goes against the field. */
   placement: AnchoredPosition;
+  /**
+   * No `position` was passed, so the panel lines up with the field's inline
+   * start, which the stylesheet moves to its right edge right to left.
+   */
+  startAligned: boolean;
   size?: ComboboxProps['size'];
   multiple: boolean;
   inline: boolean;
@@ -518,6 +526,7 @@ const standalone: ComboboxContextValue = {
   onFieldChange: noop,
   reportPanel: registerNothing,
   placement: { position: 'bottom-left' },
+  startAligned: true,
   multiple: false,
   inline: false,
   appendToBody: false,
@@ -571,7 +580,7 @@ const ComboboxParts = forwardRef<HTMLDivElement, ComboboxPartsRootProps>(
       keepFirst = false,
       multiple = false,
       inline = false,
-      position = 'bottom-left',
+      position,
       appendToBody = false,
       size,
       label,
@@ -717,6 +726,7 @@ const ComboboxParts = forwardRef<HTMLDivElement, ComboboxPartsRootProps>(
       onFieldChange,
       reportPanel,
       placement,
+      startAligned: position === undefined,
       size: validSize,
       multiple,
       inline,
@@ -898,8 +908,15 @@ export const ComboboxMenu: React.FC<ComboboxMenuProps> = ({
   onPointerDownCapture,
   ...props
 }) => {
-  const { engine, inline, appendToBody, placement, reportPanel, size } =
-    useCombobox();
+  const {
+    engine,
+    inline,
+    appendToBody,
+    placement,
+    startAligned,
+    reportPanel,
+    size,
+  } = useCombobox();
   // Children that are all `null`, `false` or `''` leave no panel, whatever
   // `open` says. This reads the elements it's handed, not what they render.
   const hasContent = flattenChildren(children).some(child => child !== '');
@@ -916,6 +933,9 @@ export const ComboboxMenu: React.FC<ComboboxMenuProps> = ({
 
   const menuClass = usePrefixedClassNames('dropdown-menu', 'combobox-menu', {
     [`is-${placement.position}`]: true,
+    // The default lines up with the field's inline start, so the stylesheet
+    // moves it to the right edge on a right-to-left page.
+    'is-start-aligned': startAligned,
     'is-portal': appendToBody,
     [`is-${size}`]: !!size,
   });

@@ -645,6 +645,36 @@ export function importSection(lines, examples, name) {
 }
 
 /**
+ * What a page says first under a section it documents a name in, as a purpose:
+ * the first sentence of the first prose paragraph under the heading, before the
+ * next heading, clipped the way a purpose is. A section from an example title
+ * ("A › B") is the `B` heading after the `A` one, since a `####` title can
+ * repeat under another `###`. '' when the section opens with no prose, so a
+ * row keeps its plain "documented with" text (#1579).
+ */
+export function sectionPurpose(lines, section) {
+  const mask = fenceMask(lines);
+  const heading = (line, i) =>
+    !mask[i] && line.match(/^#{1,6}[ \t]+(.+?)[ \t]*$/)?.[1];
+  let at = -1;
+  for (const title of section.split(' › ')) {
+    at = lines.findIndex((line, i) => i > at && heading(line, i) === title);
+    if (at < 0) return '';
+  }
+  const body = [];
+  for (let i = at + 1; i < lines.length && !heading(lines[i], i); i++) {
+    body.push(mask[i] ? '' : lines[i]);
+  }
+  const first = body.findIndex(line => firstProseLine(line));
+  if (first < 0) return '';
+  const blank = body.findIndex((line, i) => i > first && !line.trim());
+  const paragraph = body.slice(first, blank < 0 ? undefined : blank).join(' ');
+  // A section that leads into its code ("pass it as the first argument:") ends
+  // as a sentence does.
+  return clipAtWord(firstSentence(paragraph)).replace(/:$/, '.');
+}
+
+/**
  * Each export with no catalog entry of its own that a record documents, with
  * the record and the part that is its table: the standalone parts above, which
  * keep their `standalone` role, and a sub-component the barrel exports by name
@@ -659,9 +689,9 @@ export function importSection(lines, examples, name) {
  * Last, what an import line gives beside its component that is no part of any
  * record: a hook (`useDataTable`), a function (`toast`) or a constant
  * (`validColors`). `imported` maps each to the record whose import line gives
- * it and the section of that page that documents it (`importSection`). It has
- * no table, so no `path`, and its `section` is left out when the page has none
- * for it (#1465).
+ * it, the section of that page that documents it (`importSection`) and what
+ * that section says first (`sectionPurpose`). It has no table, so no `path`,
+ * and its `section` is left out when the page has none for it (#1465).
  */
 export function documentedWith(
   components,
@@ -701,9 +731,9 @@ export function documentedWith(
   for (const [impl, home] of subs) {
     if (exported.has(impl)) claim(impl, home.component, home.path);
   }
-  for (const [name, { component, section }] of imported) {
+  for (const [name, { component, section, purpose = '' }] of imported) {
     if (titles.has(name) || Object.hasOwn(out, name)) continue;
-    out[name] = { component, purpose: '', ...(section ? { section } : {}) };
+    out[name] = { component, purpose, ...(section ? { section } : {}) };
   }
   return Object.fromEntries(
     Object.entries(out).sort((a, b) => byCodePoint(a[0], b[0]))
@@ -1160,9 +1190,13 @@ export async function build() {
       components.set(name, record);
       for (const id of importedNames(record.import)) {
         if (titles.has(id) || imported.has(id)) continue;
+        const section = importSection(lines, record.examples, id);
         imported.set(id, {
           component: name,
-          section: importSection(lines, record.examples, id),
+          section,
+          purpose: section
+            ? absoluteLinks(sectionPurpose(lines, section), relPath)
+            : '',
         });
       }
       members.push(name);
