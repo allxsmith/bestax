@@ -32,8 +32,8 @@ become `<Cell>`, and `size={n}` becomes a column span.
 ## `component:Heading` — Bulma v1 dropped `.heading`
 
 rbx's `Heading` is Bulma 0.9's small uppercase label, and bestax has no component for it. It becomes
-the plain `<p className="heading">` rbx rendered, but Bulma v1 has no rule for that class, so the
-label renders as body text. Restyle it with helper props, as a small, uppercase, semibold
+the plain element rbx rendered, a `<p>` or the tag a literal `as` names, with `className="heading"`,
+but Bulma v1 has no rule for that class, so the label renders as body text. Restyle it with helper props, as a small, uppercase, semibold
 `Paragraph`:
 
 ```jsx
@@ -80,6 +80,9 @@ See the `as` section of [prop-map.md](prop-map.md) for the components that do ac
 The same rule fires a second way: several bestax components accept `as` but narrow it to the
 tags Bulma's markup allows there, so a literal outside that union (`<Control as="span">`,
 `<Media as="section">`) is dropped and named. The TODO lists the tags that component renders.
+
+A dynamic `as` on a `Heading`, which becomes plain markup, is flagged too: the plain element
+takes rbx's default `<p>`.
 
 ## `prop:href` — a link needs the anchor
 

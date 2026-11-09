@@ -15,8 +15,11 @@ colors). The `_index.scss` files are the authoritative inventory.
 - `_variables.scss` — `$extras-*` tokens derived from Bulma's HSL channel vars (`--bulma-primary-h/s/l`)
 - `_mixins.scss` — shared mixins: `extras-transition`, `extras-focus-outline` (a11y), `extras-sr-only`.
   It loads no Bulma module, since tests compile it with only this folder on the load path
+- `_color-classes.scss` — `extras-color-classes`, the modifier class of each color in Bulma's
+  `$colors`, as a list for a `:not()` that skips an element carrying another color; it reads
+  Bulma's `$colors`, which is why it isn't in `_mixins.scss`
 - `_selected-row.scss` — `extras-selected-table-cell`, the cells Checkbox's and Radio's
-  selected-row rules share; it reads Bulma's `$colors`, which is why it isn't in `_mixins.scss`
+  selected-row rules share, built on `extras-color-classes`
 - `_input-trigger.scss` — `extras-input-trigger`, a button laid over an input's right edge, which
   the date and time pickers' launcher and PasswordInput's toggle share; it reads Bulma's class
   prefix and variables, so it isn't in `_mixins.scss` either
