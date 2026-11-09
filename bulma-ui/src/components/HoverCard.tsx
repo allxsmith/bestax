@@ -101,17 +101,17 @@ export interface HoverCardProps
   position?: HoverCardPosition;
   /**
    * Render the card through `Portal`, into the `portalContainer` a
-   * `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog`
-   * it's in, else `document.body`, fixed to the viewport, so an ancestor's
-   * `overflow`, `transform` or stacking context can't clip it. A trigger in
-   * running text needs it too, since the card's block content can't sit
-   * inside a `<p>`. The card then shows from the commit after hydration,
-   * never in server markup, and it sits in the Tab order where its container
-   * is. At the end of `<body>` or of a dialog, Tab reaches it only after the
-   * rest of the page or the dialog, and focus leaving the trigger on the way
-   * closes it, so keyboard users can open it, read it and close it with
-   * Escape, and whatever it links to has to be reachable from the page as
-   * well. Theming variables set on an ancestor of the trigger reach it only
+   * `ConfigProvider` sets, else the overlay it's in that takes its popups,
+   * such as a `Modal`, else `document.body`, fixed to the viewport, so an
+   * ancestor's `overflow`, `transform` or stacking context can't clip it. A
+   * trigger in running text needs it too, since the card's block content
+   * can't sit inside a `<p>`. The card then shows from the commit after
+   * hydration, never in server markup, and it sits in the Tab order where its
+   * container is. At the end of `<body>` or of an overlay, Tab reaches it
+   * only after the rest of the page or the overlay, and focus leaving the
+   * trigger on the way closes it, so keyboard users can open it, read it and
+   * close it with Escape, and whatever it links to has to be reachable from
+   * the page as well. Theming variables set on an ancestor of the trigger reach it only
    * when its container is inside that ancestor.
    * @defaultValue false
    */

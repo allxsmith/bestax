@@ -65,8 +65,12 @@ const PortalScopeContext = createContext<HTMLElement | null>(null);
  * the popups inside it portal, unless a `ConfigProvider` sets a
  * `portalContainer`. Modal, Dialog and Command.Dialog wrap their content in
  * it, each with the element that carries their `aria-modal`, since a screen
- * reader that honors it hides everything outside that element. The nearest
- * one wins, so a Dialog's own box wins over the Modal it renders.
+ * reader that honors it hides everything outside that element. AppFrame's
+ * nav does too while it's a drawer, which draws over the page, so its popups
+ * show above it. The nearest one wins, so a Dialog's own box wins over the
+ * Modal it renders. An `undefined` node leaves the scope around it in place,
+ * for a part that only takes its popups some of the time, so its content
+ * keeps one tree either way.
  *
  * @function PortalScope
  * @param props - `node`, the element popups portal into, and `children`.
@@ -76,11 +80,12 @@ export function PortalScope({
   node,
   children,
 }: {
-  node: HTMLElement | null;
+  node: HTMLElement | null | undefined;
   children?: React.ReactNode;
 }) {
+  const outer = useContext(PortalScopeContext);
   return (
-    <PortalScopeContext.Provider value={node}>
+    <PortalScopeContext.Provider value={node === undefined ? outer : node}>
       {children}
     </PortalScopeContext.Provider>
   );
