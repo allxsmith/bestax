@@ -1306,6 +1306,86 @@ describe('DateTimeInputBase remaining branches', () => {
     const { container } = render(<DateTimeInput inline defaultValue={dt()} />);
     expect(container.querySelector('input[type="hidden"]')).toBeNull();
   });
+
+  describe('inline, disabled and readOnly', () => {
+    /** The cell for `day` of the month on show. */
+    const day = (n: number) =>
+      Array.from(
+        document.querySelectorAll<HTMLButtonElement>('[role="gridcell"]')
+      ).find(
+        c => !c.className.includes('is-other-month') && c.textContent === `${n}`
+      )!;
+
+    it('picks nothing and disables the footer when disabled, and still submits', () => {
+      const onChange = vi.fn();
+      const { container, getByRole, getByText, getByLabelText } = render(
+        <form>
+          <DateTimeInput
+            inline
+            disabled
+            name="when"
+            defaultValue={dt()}
+            onChange={onChange}
+          />
+        </form>
+      );
+      expect(getByRole('grid')).toHaveAttribute('aria-disabled', 'true');
+      fireEvent.click(day(20));
+      fireEvent.keyDown(getByRole('grid'), { key: 'Enter' });
+      expect(onChange).not.toHaveBeenCalled();
+      expect(getByRole('button', { name: /Time/ })).toBeDisabled();
+      expect(getByText('Reset')).toBeDisabled();
+      expect(getByLabelText('Done')).toBeDisabled();
+      // What a form receives is unchanged: the hidden input still posts.
+      const data = new FormData(container.querySelector('form')!);
+      expect(Array.from(data.entries())).toEqual([
+        ['when', '2024-06-07T13:45'],
+      ]);
+    });
+
+    it('picks nothing and keeps the time when readOnly, and still submits', () => {
+      const onChange = vi.fn();
+      const { container, getByRole, getByText } = render(
+        <form>
+          <DateTimeInput
+            inline
+            readOnly
+            name="when"
+            defaultValue={dt()}
+            onChange={onChange}
+          />
+        </form>
+      );
+      expect(getByRole('grid')).toHaveAttribute('aria-readonly', 'true');
+      fireEvent.click(day(20));
+      fireEvent.keyDown(getByRole('grid'), { key: 'Enter' });
+      expect(onChange).not.toHaveBeenCalled();
+      expect(getByRole('button', { name: /Time/ })).toBeDisabled();
+      expect(getByText('Reset')).toBeDisabled();
+      const data = new FormData(container.querySelector('form')!);
+      expect(Array.from(data.entries())).toEqual([
+        ['when', '2024-06-07T13:45'],
+      ]);
+    });
+
+    it('stops the open wheels when readOnly turns on', () => {
+      const onChange = vi.fn();
+      const { getByRole, getAllByRole, rerender } = render(
+        <DateTimeInput inline defaultValue={dt()} onChange={onChange} />
+      );
+      fireEvent.click(getByRole('button', { name: /Time/ }));
+      rerender(
+        <DateTimeInput
+          inline
+          readOnly
+          defaultValue={dt()}
+          onChange={onChange}
+        />
+      );
+      fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
+      expect(onChange).not.toHaveBeenCalled();
+    });
+  });
 });
 
 // -------------------------------------------------------------------------

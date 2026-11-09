@@ -1,6 +1,7 @@
 // Bestax Extras - Menu Styles
-// Two additions to Bulma's menu: `Menu.Section`, a section that opens and
-// closes, and a mark for the active item in forced colors.
+// Additions to Bulma's menu: items that start their labels where the line
+// starts, `Menu.Section`, a section that opens and closes, and a mark for the
+// active item in forced colors.
 
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
@@ -24,6 +25,19 @@ $menu-section-chevron-duration: cv.getVar("duration") !default;
       "menu-section-chevron-duration": #{$menu-section-chevron-duration},
     )
   );
+}
+
+// Bulma aligns each item's text `left`, and an item spans the menu, so on a
+// right-to-left page the items' text stays at the left, under a `Menu.Label`
+// or a section heading that sits at the right. `start` is `left` left to
+// right, so nothing moves there. The doubled class outranks Bulma's rule
+// whichever stylesheet loads first. Bulma has no variable for this one.
+.#{iv.$class-prefix}menu-list.#{iv.$class-prefix}menu-list {
+  a,
+  button,
+  .#{iv.$class-prefix}menu-item {
+    text-align: start;
+  }
 }
 
 // The space Bulma puts around a label, which turns on where the label sits
