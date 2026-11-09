@@ -96,6 +96,7 @@ everywhere else:
 | `Footer`                     | `'footer' \| 'div'`                                                                     |
 | `Media`                      | `'article' \| 'div'`                                                                    |
 | `Media.Left`                 | `'figure' \| 'div'`                                                                     |
+| `Level`                      | `'nav' \| 'div' \| 'header' \| 'footer'`                                                |
 | `Level.Item`                 | `'div' \| 'p' \| 'a'`                                                                   |
 | `Control`                    | `'div' \| 'p'`                                                                          |
 | `Menu.Item`                  | any element type                                                                        |

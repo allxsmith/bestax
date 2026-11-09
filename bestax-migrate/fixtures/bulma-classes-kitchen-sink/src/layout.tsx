@@ -106,6 +106,11 @@ export function Layout() {
             </a>
           </div>
         </nav>
+        <div className="level is-mobile">
+          <div className="level-item has-text-centered">
+            <p className="title">1,234</p>
+          </div>
+        </div>
         <div className="media">
           <figure className="media-left">
             <p className="image is-64x64">
