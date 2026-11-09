@@ -40,9 +40,9 @@ Bulma has no frame, so `AppFrame` brings its own styles, in `bestax.css` and its
 :::
 
 :::note
-An `AppFrame` is a whole page. The examples below sit inside this one, so their headers and an
-open drawer go under the site's own header, and the drawer covers the rest of this page. The
-StackBlitz and CodeSandbox buttons open each as a page of its own.
+An `AppFrame` is a whole page. The examples below sit inside this one, so as you scroll past one,
+its header sticks under the site's own. The StackBlitz and CodeSandbox buttons open each as a page
+of its own.
 :::
 
 ---

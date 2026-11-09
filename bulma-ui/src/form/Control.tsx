@@ -149,13 +149,6 @@ export const Control = React.forwardRef<
     const Component = (as === 'p' ? 'p' : 'div') as 'div' | 'p';
     const { classPrefix } = useConfig();
 
-    // Remove textColor/bgColor from props before spreading
-    const {
-      textColor: _ignoredTextColor,
-      bgColor: _ignoredBgColor,
-      ...restProps
-    } = props as Record<string, unknown>;
-
     const safeTextColor = allowedColors.includes(
       textColor as (typeof allowedColors)[number]
     )
@@ -171,7 +164,7 @@ export const Control = React.forwardRef<
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color: safeTextColor,
       backgroundColor: safeBgColor,
-      ...restProps,
+      ...(props as Record<string, unknown>),
     });
 
     // Prepare icon props for the shortcut. A truthiness test (not `!== undefined`)
@@ -206,15 +199,9 @@ export const Control = React.forwardRef<
     });
     const controlClass = classNames(mainClass, bulmaHelperClasses, className);
 
-    // --- FIX: Spread both restProps (for data-testid, etc) AND rest (from useBulmaClasses) ---
     return (
       <ControlProvider value={true}>
-        <Component
-          className={controlClass}
-          ref={ref as typeof ref}
-          {...restProps}
-          {...rest}
-        >
+        <Component className={controlClass} ref={ref as typeof ref} {...rest}>
           <ControlLoadingProvider value={!!isLoading}>
             {children}
           </ControlLoadingProvider>
