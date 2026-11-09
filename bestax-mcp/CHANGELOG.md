@@ -1,3 +1,11 @@
+## [1.18.38](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.37...bestax-mcp@1.18.38) (2026-11-09)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** give a part that is a component of its own that component's variables ([7c491cf](https://github.com/allxsmith/bestax/commit/7c491cfe6af4c3eeed43984190433cc4da70be2e)), closes [#1480](https://github.com/allxsmith/bestax/issues/1480)
+* **bestax-mcp:** resolve a dot-path through a static that is a component of its own ([7f0126f](https://github.com/allxsmith/bestax/commit/7f0126f148664fd40aeaca80d2520b5df9c1e959)), closes [#1480](https://github.com/allxsmith/bestax/issues/1480)
+
 ## [1.18.37](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.36...bestax-mcp@1.18.37) (2026-11-09)
 
 
