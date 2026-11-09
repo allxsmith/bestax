@@ -55,6 +55,9 @@ const preview: Preview = {
           'Layout',
           'Helpers',
           'Skills',
+          // The Skills section opens on its Overview, then lists the
+          // skills in the default order.
+          ['Overview', '*'],
         ],
       },
     },
