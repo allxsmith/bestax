@@ -27,7 +27,12 @@ import { Theme } from '@allxsmith/bestax-bulma';
 ```tsx
 function BasicThemeCustomization() {
   return (
-    <Theme primaryH="262" primaryS="52%" primaryL="56%">
+    <Theme
+      primaryH="262"
+      primaryS="52%"
+      primaryL="56%"
+      bulmaVars={{ '--bulma-primary-invert-l': '100%' }}
+    >
       <Box p="4">
         <Button color="primary">Violet Primary Button</Button>
       </Box>
@@ -41,7 +46,13 @@ function BasicThemeCustomization() {
 ```tsx
 function GlobalTheme() {
   return (
-    <Theme isRoot={true} primaryH="262" primaryS="52%" primaryL="56%">
+    <Theme
+      isRoot={true}
+      primaryH="262"
+      primaryS="52%"
+      primaryL="56%"
+      bulmaVars={{ '--bulma-primary-invert-l': '100%' }}
+    >
       <div>
         <Button color="primary">Global Violet Theme</Button>
         <Button color="info">Info Button</Button>
@@ -207,7 +218,12 @@ function LocalTheme() {
     <div>
       <Button color="primary">Standard Primary</Button>
 
-      <Theme primaryH="158" primaryS="64%" primaryL="30%">
+      <Theme
+        primaryH="158"
+        primaryS="64%"
+        primaryL="30%"
+        bulmaVars={{ '--bulma-primary-invert-l': '100%' }}
+      >
         <Button color="primary">Emerald Primary</Button>
       </Theme>
 
@@ -399,10 +415,17 @@ function StyledTheme() {
 ```tsx
 function NestedThemes() {
   return (
-    <Theme primaryH="218" primaryS="52%" primaryL="48%" p="4">
+    <Theme
+      primaryH="218"
+      primaryS="52%"
+      primaryL="48%"
+      bulmaVars={{ '--bulma-primary-invert-l': '100%' }}
+      p="4"
+    >
       <Title>Outer Theme (Ink Blue)</Title>
       <Button color="primary">Ink Blue Primary</Button>
 
+      {/* Sets only the trio: the white label comes from the outer Theme */}
       <Theme primaryH="160" primaryS="45%" primaryL="32%" p="3" mt="4">
         <Title size="4">Inner Theme (Green)</Title>
         <Button color="primary">Green Primary</Button>
@@ -422,7 +445,13 @@ function NestedThemes() {
 function PrefixedTheme() {
   return (
     <ConfigProvider classPrefix="bestax-">
-      <Theme primaryH="236" primaryS="55%" primaryL="58%" isRoot>
+      <Theme
+        primaryH="236"
+        primaryS="55%"
+        primaryL="58%"
+        bulmaVars={{ '--bulma-primary-invert-l': '100%' }}
+        isRoot
+      >
         <Button color="primary">Prefixed & Themed Button</Button>
       </Theme>
     </ConfigProvider>
@@ -495,6 +524,7 @@ typed API, so move it to `bulmaVars`:
   primaryS="73%"
   primaryL="44%"
   bulmaVars={{
+    '--bulma-primary-invert-l': '100%',
     '--bulma-radius': '2px',
     '--bulma-radius-small': '1px',
     '--bulma-family-primary': '"IBM Plex Sans", system-ui, sans-serif',
@@ -534,7 +564,12 @@ You can set the scheme and color variables in two ways:
 1. **Named Props** (recommended where one exists):
 
    ```tsx
-   <Theme primaryH="262" primaryS="52%" primaryL="56%">
+   <Theme
+     primaryH="262"
+     primaryS="52%"
+     primaryL="56%"
+     bulmaVars={{ '--bulma-primary-invert-l': '100%' }} // the label has no named prop
+   >
      <App />
    </Theme>
    ```
@@ -547,6 +582,7 @@ You can set the scheme and color variables in two ways:
        '--bulma-primary-h': '262',
        '--bulma-primary-s': '52%',
        '--bulma-primary-l': '56%',
+       '--bulma-primary-invert-l': '100%',
        '--bulma-block-spacing': '2rem',
      }}
    >
@@ -560,6 +596,7 @@ You can set the scheme and color variables in two ways:
      primaryH="262" // This takes precedence
      bulmaVars={{
        '--bulma-primary-h': '180', // This is overridden
+       '--bulma-primary-invert-l': '100%',
        '--bulma-block-spacing': '2rem',
      }}
    >
@@ -579,6 +616,7 @@ to typecheck, so a typo in it is silently dropped; annotate it with
 <Theme
   primaryH="262"
   bulmaVars={{
+    '--bulma-primary-invert-l': '100%',
     '--bulma-block-spacing': '2rem', // start typing '--bulma-' to list the rest
   }}
 >
