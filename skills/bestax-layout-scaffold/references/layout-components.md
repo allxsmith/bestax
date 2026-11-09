@@ -128,11 +128,16 @@ back to. A header taller than Bulma's navbar sets
 `<Level>` is a horizontal toolbar (left/right groups). Subcomponents: `Level.Left`, `Level.Right`,
 `Level.Item`.
 
-| Prop                         | Type                                  |
-| ---------------------------- | ------------------------------------- |
-| `Level.isMobile`             | `boolean` (keep horizontal on mobile) |
-| `Level.Item.as`              | `'div' \| 'p' \| 'a'`                 |
-| `Level.Item.hasTextCentered` | `boolean`                             |
+| Prop                         | Type                                                     |
+| ---------------------------- | -------------------------------------------------------- |
+| `Level.as`                   | `'nav'` (default) \| `'div'` \| `'header'` \| `'footer'` |
+| `Level.isMobile`             | `boolean` (keep horizontal on mobile)                    |
+| `Level.Item.as`              | `'div' \| 'p' \| 'a'`                                    |
+| `Level.Item.hasTextCentered` | `boolean`                                                |
+
+A `nav` is a navigation landmark, so keep the default for a row of links. A row that isn't
+navigation takes `as="div"`, or `as="header"` when it opens a section and `as="footer"` when it
+closes one. A dashboard's row of key figures is `Stats`, not a `Level`.
 
 ## Stack / Group / Center / Flex
 

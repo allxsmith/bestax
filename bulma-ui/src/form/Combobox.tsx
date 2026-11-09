@@ -219,7 +219,7 @@ interface ComboboxDataBaseProps extends ComboboxBaseProps {
    * `Combobox.Input`.
    */
   'aria-labelledby'?: string;
-  /** @internal With `data`, the Combobox renders its own parts. */
+  /** With `data`, the Combobox renders its own parts. */
   children?: never;
 }
 
@@ -260,7 +260,7 @@ export interface ComboboxSingleDataProps extends ComboboxDataBaseProps {
    * `multiple` the array.
    */
   onChange?: (value: string | null) => void;
-  /** @internal With one value there are no tags to name. */
+  /** With one value there are no tags to name. */
   ariaCloseLabel?: never;
 }
 
@@ -313,27 +313,27 @@ export interface ComboboxPartsProps extends ComboboxBaseProps {
    * @defaultValue false
    */
   multiple?: boolean;
-  /** @internal Built from parts, there's no `data`. */
+  /** Built from parts, there's no `data`. */
   data?: never;
-  /** @internal Built from parts, the app keeps the value. */
+  /** Built from parts, the app keeps the value. */
   value?: never;
-  /** @internal Built from parts, the app keeps the value. */
+  /** Built from parts, the app keeps the value. */
   defaultValue?: never;
-  /** @internal Built from parts, `onSelect` reports a pick. */
+  /** Built from parts, `onSelect` reports a pick. */
   onChange?: never;
-  /** @internal Built from parts, `Combobox.Input` takes the placeholder. */
+  /** Built from parts, `Combobox.Input` takes the placeholder. */
   placeholder?: never;
-  /** @internal Built from parts, the app posts the value. */
+  /** Built from parts, the app posts the value. */
   name?: never;
-  /** @internal Built from parts, `Combobox.Empty` is the empty message. */
+  /** Built from parts, `Combobox.Empty` is the empty message. */
   empty?: never;
-  /** @internal Built from parts, `Combobox.Item` renders its own content. */
+  /** Built from parts, `Combobox.Item` renders its own content. */
   itemTemplate?: never;
-  /** @internal Built from parts, `Combobox.Input` takes `disabled`. */
+  /** Built from parts, `Combobox.Input` takes `disabled`. */
   disabled?: never;
-  /** @internal Built from parts, `Combobox.Input` takes `required`. */
+  /** Built from parts, `Combobox.Input` takes `required`. */
   required?: never;
-  /** @internal Built from parts, the app posts the value. */
+  /** Built from parts, the app posts the value. */
   form?: never;
 }
 

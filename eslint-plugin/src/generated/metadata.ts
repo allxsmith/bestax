@@ -388,7 +388,12 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
     ],
     [
       'level',
-      { component: 'Level', converts: true, tag: 'nav', tags: ['nav'] },
+      {
+        component: 'Level',
+        converts: true,
+        tag: 'nav',
+        tags: ['nav', 'div', 'header', 'footer'],
+      },
     ],
     [
       'level-left',

@@ -141,7 +141,7 @@ export interface CommandActionsProps extends CommandBaseProps {
    * @defaultValue 'No results'
    */
   empty?: React.ReactNode;
-  /** @internal With `actions`, the Command renders its own parts. */
+  /** With `actions`, the Command renders its own parts. */
   children?: never;
 }
 
@@ -155,13 +155,13 @@ export interface CommandPartsProps extends CommandBaseProps {
    * with a warning in development.
    */
   children?: React.ReactNode;
-  /** @internal Built from parts, the app renders the items. */
+  /** Built from parts, the app renders the items. */
   actions?: never;
-  /** @internal Built from parts, the app filters. */
+  /** Built from parts, the app filters. */
   filter?: never;
-  /** @internal Built from parts, `Command.Input` takes the placeholder. */
+  /** Built from parts, `Command.Input` takes the placeholder. */
   placeholder?: never;
-  /** @internal Built from parts, `Command.Empty` is the empty message. */
+  /** Built from parts, `Command.Empty` is the empty message. */
   empty?: never;
 }
 

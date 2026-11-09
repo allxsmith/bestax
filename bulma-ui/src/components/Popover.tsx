@@ -87,9 +87,7 @@ export interface PopoverProps
    * `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog`
    * it's in, else `document.body`, fixed to the viewport, so an ancestor's
    * `overflow`, `transform` or stacking context can't clip it. The panel
-   * then shows from the commit after hydration, never in server markup. It
-   * is measured against the trigger when it opens and on resize and scroll,
-   * so it doesn't follow content that changes size while it is open.
+   * then shows from the commit after hydration, never in server markup.
    * Theming variables set on an ancestor of the trigger reach it only when
    * its container is inside that ancestor.
    * @defaultValue false

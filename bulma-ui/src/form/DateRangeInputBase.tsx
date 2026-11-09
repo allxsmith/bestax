@@ -125,6 +125,11 @@ export interface DateRangeInputBaseProps
   /**
    * Render the calendar inline, with no inputs and no popover. The hidden
    * form inputs still carry the range.
+   * On a server-rendered page it marks today once the page hydrates, by
+   * the browser's clock rather than the server's. With no `value` or
+   * `defaultValue` it opens on the month the clock reads, and around the end
+   * of a month the server's clock and the browser's can read different
+   * months, so give it a date both render the same.
    */
   inline?: boolean;
   /**

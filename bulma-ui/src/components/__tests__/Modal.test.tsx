@@ -10,7 +10,7 @@ import { ConfigProvider } from '../../helpers/Config';
 import { inertProps } from '../../helpers/inertProps';
 
 afterEach(() => {
-  document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
 });
 
 const latin =
@@ -1081,25 +1081,25 @@ describe('Modal', () => {
   });
 
   describe('Scroll lock', () => {
-    it('locks body scroll while active by default', () => {
+    it('locks page scroll while active by default', () => {
       const { unmount } = render(<Modal active>{latin}</Modal>);
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
       unmount();
-      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
     });
 
-    it('does not lock body scroll when inactive', () => {
+    it('does not lock page scroll when inactive', () => {
       render(<Modal>{latin}</Modal>);
-      expect(document.body.style.overflow).not.toBe('hidden');
+      expect(document.documentElement.style.overflow).not.toBe('hidden');
     });
 
-    it('does not lock body scroll when lockScroll is false', () => {
+    it('does not lock page scroll when lockScroll is false', () => {
       render(
         <Modal active lockScroll={false}>
           {latin}
         </Modal>
       );
-      expect(document.body.style.overflow).not.toBe('hidden');
+      expect(document.documentElement.style.overflow).not.toBe('hidden');
     });
 
     it('stays locked when an overlapping Loading closes first', () => {
@@ -1111,10 +1111,10 @@ describe('Modal', () => {
       );
 
       const { rerender } = render(overlays(true));
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
 
       rerender(overlays(false));
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
     });
 
     it('stays locked when an overlapping Sidebar closes first', () => {
@@ -1128,10 +1128,10 @@ describe('Modal', () => {
       );
 
       const { rerender } = render(overlays(true));
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
 
       rerender(overlays(false));
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
     });
   });
 

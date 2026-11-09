@@ -1377,6 +1377,20 @@ function defaultsForInterface(ts, decl) {
   return found;
 }
 
+/**
+ * Whether a member forbids its prop rather than typing it: a property typed
+ * exactly `undefined` or `never`, which is how one branch of a union props
+ * type says the prop is absent on that path (`name?: undefined`).
+ */
+function forbidsProp(ts, member) {
+  const kind = member.type?.kind;
+  return (
+    ts.isPropertySignature(member) &&
+    (kind === ts.SyntaxKind.UndefinedKeyword ||
+      kind === ts.SyntaxKind.NeverKeyword)
+  );
+}
+
 function memberRows(
   ts,
   decl,
@@ -1976,10 +1990,24 @@ export function extractComponent(
     }
 
     // Deduplicate by prop name, keeping the most-derived declaration.
+    //
+    // A union branch forbids a prop by typing it `undefined` or `never`, as
+    // `IconChildrenProps` says `name?: undefined`. Where another branch takes
+    // the prop, the forbidding members add nothing to its row: not a type, and
+    // not the description, default or deprecation, which come from the first
+    // branch that takes it, at that branch's place in the table, whichever
+    // order the union lists its branches in. A prop that every declaration
+    // forbids keeps its first row.
     const byName = new Map();
     for (const row of rows) {
       const prev = byName.get(row.name);
       if (!prev) {
+        byName.set(row.name, row);
+        continue;
+      }
+      if (forbidsProp(ts, row.node)) continue;
+      if (forbidsProp(ts, prev.node)) {
+        byName.delete(row.name);
         byName.set(row.name, row);
         continue;
       }
@@ -1990,10 +2018,7 @@ export function extractComponent(
         prev.type = `${prev.type} | ${row.type}`;
       }
     }
-    // The forbidding branch types the prop `never`, which merged into cells
-    // like ``never` | `number`` on slider.md — noise standing where the
-    // reader needs a type. Dropping it leaves exactly what may be passed, and
-    // the boolean literals a discriminant contributes read as `boolean`, with
+    // The boolean literals a discriminant contributes read as `boolean`, with
     // or without a branch that takes a plain `boolean` beside them (Combobox's
     // `multiple` is `false`, `true` and `boolean` across its three branches).
     // The literals below are the RENDERED members, so they carry backticks in
@@ -2004,7 +2029,6 @@ export function extractComponent(
     for (const row of byName.values()) {
       const seen = new Set();
       let ms = row.type.split(' | ').filter(m => !seen.has(m) && seen.add(m));
-      if (ms.length > 1) ms = ms.filter(m => m !== tick('never'));
       if (ms.length > 1 && ms.every(m => booleans.includes(m))) {
         ms = [tick('boolean')];
       }
