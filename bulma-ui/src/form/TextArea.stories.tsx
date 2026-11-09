@@ -267,7 +267,7 @@ export const WithFieldControlWrapper: Story = {
     >
       <Field.Body>
         <Field>
-          <Control iconLeftName="comment">
+          <Control>
             <TextArea
               id="message-field-control"
               placeholder="Enter your message"
