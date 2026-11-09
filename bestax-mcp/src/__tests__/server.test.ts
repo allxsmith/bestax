@@ -740,6 +740,74 @@ describe('get_examples', () => {
     );
     expect(out.match(/```tsx/g)?.length).toBe(2);
   });
+
+  // A dot-path goes on through a static that is a component of its own, as in
+  // get_props, so `Stats.Stat.Label` has Stat's examples, not Stats' (#1578).
+  describe('on a dot-path', () => {
+    it('answers through a static with the examples that use the part', async () => {
+      const out = text(
+        await call('get_examples', { component: 'Stats.Stat.Label' })
+      );
+      expect(out).toMatch(/^# Stat\.Label examples\n/);
+      expect(out).toContain(
+        '`Stats.Stat` is `Stat`, so `Stats.Stat.Label` is `Stat.Label`. ' +
+          "From `Stat`'s documentation page, the ones that use `Stat.Label`."
+      );
+      const record = await loadComponent('Stat');
+      const using = record.examples.filter(e => e.code.includes('<Stat.Label'));
+      expect(using.length).toBeGreaterThan(0);
+      expect(out.match(/^### /gm)?.length).toBe(using.length);
+    });
+
+    it('narrows a part of the record itself the same way', async () => {
+      const out = text(
+        await call('get_examples', { component: 'Navbar.Brand', limit: 30 })
+      );
+      expect(out).toMatch(/^# Navbar\.Brand examples\n/);
+      for (const code of out.split('```tsx').slice(1)) {
+        expect(code).toContain('Navbar.Brand');
+      }
+    });
+
+    // Its own page writes it `<Thead>` as often as `<Table.Thead>`, and the
+    // bare name `Thead` reaches the same examples.
+    it('narrows a part that is its own export by both of its names', async () => {
+      const out = text(
+        await call('get_examples', { component: 'Table.Thead', limit: 30 })
+      );
+      const record = await loadComponent('Table');
+      const using = record.examples.filter(e =>
+        /<(Table\.)?Thead\b/.test(e.code)
+      );
+      expect(using.length).toBeGreaterThan(1);
+      expect(out.match(/^### /gm)?.length).toBe(using.length);
+      const bare = text(
+        await call('get_examples', { component: 'Thead', limit: 30 })
+      );
+      expect(bare.match(/^### /gm)?.length).toBe(using.length);
+    });
+
+    it("gives all the record's examples when none uses the part", async () => {
+      const out = text(
+        await call('get_examples', { component: 'Table.Tfoot', limit: 1 })
+      );
+      expect(out).toContain(
+        "No example on `Table`'s documentation page uses `Table.Tfoot`, so " +
+          "these are all of `Table`'s."
+      );
+      expect(out).toMatch(/^### /m);
+    });
+
+    it('says where it went when the rest names no part', async () => {
+      const out = text(
+        await call('get_examples', { component: 'Stats.Stat.Nope', limit: 1 })
+      );
+      expect(out).toMatch(/^# Stat examples\n/);
+      expect(out).toContain(
+        '`Stat` has no part `Stat.Nope`, so these are all of its examples.'
+      );
+    });
+  });
 });
 
 describe('get_css_variables', () => {
@@ -2079,16 +2147,164 @@ describe('exports documented with another component', () => {
   });
 });
 
+// What an import line gives beside its component that is no part of any record: a
+// hook, a function or a constant. They used to be refused, as "No component named
+// useDataTable" (#1465).
+describe('names an import line gives beside its component', () => {
+  it.each([
+    [
+      'useDataTable',
+      'DataTable',
+      'in the section "The useDataTable Hook", which `get_examples({ component: ' +
+        '"DataTable", query: "The useDataTable Hook" })` returns.',
+    ],
+    [
+      'useAppFrame',
+      'AppFrame',
+      'in the section "A Toggle of Your Own", which `get_examples({ component: ' +
+        '"AppFrame", query: "A Toggle of Your Own" })` returns.',
+    ],
+    [
+      'useLocale',
+      'LocaleProvider',
+      'in the section "useLocale", which `get_component({ name: ' +
+        '"LocaleProvider", include: ["reference"] })` returns.',
+    ],
+  ])(
+    'answers get_props for %s with the props of %s, and names its section',
+    async (name, component, where) => {
+      const out = text(await call('get_props', { component: name }));
+      expect(out).toMatch(new RegExp(`^# ${component}\n`));
+      expect(out).toContain(
+        `\`${name}\` is documented with \`${component}\`, ${where} ` +
+          `The props below are \`${component}\`'s.`
+      );
+      expect(out).toContain('| Prop | Type | Default | Notes |');
+    }
+  );
+
+  it('answers every hook the issue named', async () => {
+    for (const name of [
+      'useAppFrame',
+      'useIsHydrated',
+      'useConfig',
+      'useDataTable',
+      'useLocale',
+      'useNumberFormat',
+      'useScrollSpy',
+    ]) {
+      const res = await call('get_props', { component: name });
+      expect(failed(res), name).toBe(false);
+      expect(text(res), name).toContain(`\`${name}\` is documented with`);
+      expect(text(res), name).toContain('in the section "');
+    }
+  });
+
+  it('answers get_component the same way', async () => {
+    const out = text(await call('get_component', { name: 'useConfig' }));
+    expect(out).toMatch(/^# ConfigProvider\n\n`useConfig` is documented with/);
+    expect(out).toContain('in the section "useConfig"');
+  });
+
+  it('answers get_examples with the examples that call it', async () => {
+    const out = text(await call('get_examples', { component: 'useScrollSpy' }));
+    expect(out).toContain('### The useScrollSpy Hook');
+    // Its Basic Usage names the hook in a label, and does not call it.
+    expect(out).not.toContain('### Basic Usage');
+  });
+
+  it("answers get_examples with all the record's when no example calls it", async () => {
+    const out = text(await call('get_examples', { component: 'useLocale' }));
+    expect(out).toMatch(/^# useLocale examples\n/);
+    expect(out).toContain('in the section "useLocale"');
+    expect(out).toContain(
+      "No example calls it, so these are all of `LocaleProvider`'s."
+    );
+    expect(out).toContain('### A Right-to-Left Section');
+  });
+
+  it('says so when the record has no examples either', async () => {
+    const out = text(await call('get_examples', { component: 'useConfig' }));
+    expect(out).toContain('in the section "useConfig"');
+    expect(out).toContain(
+      'ConfigProvider has no examples on its documentation page.'
+    );
+  });
+
+  // `toast` is a word an example's text uses too, so a mention is no use: its
+  // section is the one whose code calls it.
+  it('names the section whose code calls a function', async () => {
+    const out = text(await call('get_props', { component: 'toast' }));
+    expect(out).toMatch(/^# Toast\n/);
+    expect(out).toContain(
+      '`toast` is documented with `Toast`, in the section "Programmatic API", ' +
+        'on its page: https://bestax.io/'
+    );
+  });
+
+  // The lowercase function's name used to reach the component's examples, by
+  // letter case, and still does, through the record it is documented with.
+  it.each([
+    ['notification', 'Notification'],
+    ['toast', 'Toast'],
+    ['dialog', 'Dialog'],
+  ])(
+    'answers get_examples for %s with examples of %s',
+    async (name, record) => {
+      const res = await call('get_examples', { component: name });
+      expect(failed(res)).toBe(false);
+      const out = text(res);
+      expect(out).toMatch(new RegExp(`^# ${name} examples\n`));
+      expect(out).toContain(`\`${name}\` is documented with \`${record}\``);
+      expect(out).toMatch(/^### /m);
+    }
+  );
+
+  // Its row said only "documented with DataTable" (#1579).
+  it.each([
+    [
+      'useDataTable',
+      'documented with DataTable — `useDataTable` takes the same columns',
+    ],
+    [
+      'toast',
+      'documented with Toast — For showing toasts from anywhere in your app',
+    ],
+  ])('gives search_bestax a purpose for %s', async (query, detail) => {
+    const out = text(await call('search_bestax', { query, kind: 'component' }));
+    const row = out
+      .split('\n')
+      .find(l => l.startsWith(`| component | ${query} |`));
+    expect(row).toContain(detail);
+  });
+
+  it('keeps the component when only the letter case differs', async () => {
+    const out = text(await call('get_props', { component: 'Toast' }));
+    expect(out).not.toContain('is documented with');
+  });
+
+  it('answers a constant with the page that documents it', async () => {
+    const out = text(await call('get_props', { component: 'validColors' }));
+    expect(out).toMatch(/^# Valid value constants\n/);
+    expect(out).toContain(
+      '`validColors` is documented with `Valid value constants`, which ' +
+        '`get_component({ name: "Valid value constants", include: ["reference"] })` ' +
+        'returns.'
+    );
+  });
+});
+
 // A name the server hands out that its own tools refuse sends an agent nowhere, which
 // is what #1150 and #1174 were. This walks list_components, the import line, the parts
 // and the exports a record documents, its related components and the one whose
 // variables style it, the CSS variable index, and what lookup_bulma_classes answers
-// for every class it has a root or a hint for. A part that is a component of its own
+// for every class it has a root or a hint for. An import line's names include hooks,
+// functions and constants (#1465). A part that is a component of its own
 // (`Stats.Stat`, which is `Stat`) hands out that component's parts through it too
 // (`Stats.Stat.Label`, #1480). Example code and skill bodies name components too, and
 // are not walked.
 describe('every component or part name an answer hands out', () => {
-  const NAME = /^[A-Z][A-Za-z0-9]*(?:\.[A-Z][A-Za-z0-9]*)*$/;
+  const NAME = /^[A-Za-z_$][\w$]*(?:\.[A-Z][A-Za-z0-9]*)*$/;
   const handed = new Map<string, string>();
   const examples = new Map<string, string>();
   const hand = (name: string, where: string) => {
@@ -2155,7 +2371,13 @@ describe('every component or part name an answer hands out', () => {
   it('resolves in get_props', async () => {
     expect(handed.size).toBeGreaterThan(150);
     expect([...handed.keys()]).toEqual(
-      expect.arrayContaining(['Card.Header.Title', 'Stats.Stat.Label'])
+      expect.arrayContaining([
+        'Card.Header.Title',
+        'Stats.Stat.Label',
+        'useDataTable',
+        'toast',
+        'validColors',
+      ])
     );
     const refused: string[] = [];
     for (const [name, where] of handed) {
@@ -2238,12 +2460,21 @@ describe("lookup_bulma_classes on classes Bulma v1 doesn't have", () => {
     "not a Bulma 1 class: Bulma 1's stylesheet has no rule for it.";
 
   it('says a Bulma 0.9 class v1 removed was removed', async () => {
-    expect(await lookup('columns is-variable is-2')).toContain(
-      `| \`is-variable\` | stays in \`className\` | ${REMOVED}`
+    expect(await lookup('columns is-vertical')).toContain(
+      `| \`is-vertical\` | stays in \`className\` | ${REMOVED}`
     );
     // Beside a family converted by hand too, rather than "converted with it".
+    expect(await lookup('message is-vertical')).toContain(
+      `| \`is-vertical\` | stays in \`className\` | ${REMOVED}`
+    );
+  });
+
+  it('says what to do instead with a removed class the codemod flags', async () => {
+    expect(await lookup('columns is-variable is-2')).toContain(
+      '| `is-variable` | stays in `className` | Bulma v1 removed `is-variable`, so it styles nothing now; drop it'
+    );
     expect(await lookup('message heading')).toContain(
-      `| \`heading\` | stays in \`className\` | ${REMOVED}`
+      '| `heading` | stays in `className` | Bulma v1 dropped the `.heading` styles'
     );
   });
 

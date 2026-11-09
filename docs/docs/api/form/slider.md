@@ -372,10 +372,12 @@ function SliderRangeFormDemo() {
 - `ariaLabel` wins over the label. In range mode each entry is that thumb's whole name, with no label in front, and an empty entry counts as unset.
 - An `aria-label` or `aria-labelledby` you pass straight to a range Slider names the whole Slider, so it takes the label's place at the start of both thumbs' names: `<Slider range aria-label="Budget" />` announces "Budget Minimum value" and "Budget Maximum value". An `ariaLabel` entry still wins for its own thumb. To keep a label out of the thumbs' names altogether, pass `aria-labelledby={undefined}`, and they stay "Minimum value" and "Maximum value".
 - A `Field` label you wire by hand with `labelProps={{ htmlFor }}`, as in a horizontal form, gets no generated id, so give it one of your own there as well, as in `labelProps={{ htmlFor: 'price', id: 'price-label' }}`, and it starts both thumbs' names the same way. Without that `id` it reaches a range Slider only through its `for`, which the thumbs' default `aria-label` outranks, so they stay "Minimum value" and "Maximum value".
+- In forced colors (Windows' contrast themes) the track and its fill would disappear, since they're painted as a gradient. bestax's styles paint the fill in the system's highlight color and the rest of the track in its text color there, both in the color for disabled text while the slider is disabled, so the track shows how far it's filled.
 - Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes
 - Fully keyboard accessible with arrow keys
 - Focus states clearly visible
 - On a right-to-left page the native range mirrors, and the fill, the tick marks and the value bubble follow it, so a value of 25 fills from the right. A vertical slider still fills from the bottom.
+- In forced colors (Windows' contrast themes) the value bubble takes the page's own background, and every side of its arrow would be painted, drawing it as a square. bestax's styles outline the bubble in the system's text color there, and keep the arrow a triangle in that color, pointing at the thumb whichever side the bubble sits on.
 
 ---
 

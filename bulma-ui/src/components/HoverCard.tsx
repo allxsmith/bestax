@@ -9,7 +9,7 @@ import React, {
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { Portal } from '../helpers/portal';
+import { PopupPortal } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { marginGap, useAnchoredPosition } from '../helpers/useAnchoredPosition';
 import { chain, useHoverOpen } from '../helpers/useHoverOpen';
@@ -95,20 +95,25 @@ export interface HoverCardProps
    */
   closeDelay?: number;
   /**
-   * Where the card opens against the trigger.
+   * Where the card opens against the trigger. Left out, it opens below and
+   * lines up with the trigger's start edge, which is its right edge on a
+   * right-to-left page, so a trigger at the start of the line doesn't push
+   * the card off the screen. A corner you pass stays physical, so
+   * `bottom-left` lines up the left edges on either page.
    * @defaultValue 'bottom-left'
    */
   position?: HoverCardPosition;
   /**
    * Render the card through `Portal`, into the `portalContainer` a
-   * `ConfigProvider` sets, `document.body` by default, fixed to the viewport,
-   * so an ancestor's `overflow`, `transform` or stacking context can't clip
-   * it. A trigger in running text needs it too, since the card's block
-   * content can't sit inside a `<p>`. The card then shows from the commit
-   * after hydration, never in server markup, and it sits in the Tab order
-   * where its container is. At the end of `<body>`, the default, Tab reaches
-   * it only after the rest of the page, and focus leaving the trigger on the
-   * way closes it, so keyboard users can open it, read it and close it with
+   * `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog`
+   * it's in, else `document.body`, fixed to the viewport, so an ancestor's
+   * `overflow`, `transform` or stacking context can't clip it. A trigger in
+   * running text needs it too, since the card's block content can't sit
+   * inside a `<p>`. The card then shows from the commit after hydration,
+   * never in server markup, and it sits in the Tab order where its container
+   * is. At the end of `<body>` or of a dialog, Tab reaches it only after the
+   * rest of the page or the dialog, and focus leaving the trigger on the way
+   * closes it, so keyboard users can open it, read it and close it with
    * Escape, and whatever it links to has to be reachable from the page as
    * well. Theming variables set on an ancestor of the trigger reach it only
    * when its container is inside that ancestor.
@@ -161,7 +166,7 @@ export const HoverCard: React.FC<HoverCardProps> = ({
   onOpenChange,
   openDelay = 600,
   closeDelay = 300,
-  position = 'bottom-left',
+  position,
   appendToBody = false,
   openOnTap = false,
   className,
@@ -272,6 +277,9 @@ export const HoverCard: React.FC<HoverCardProps> = ({
   const cardClasses = classNames(
     usePrefixedClassNames('hover-card-content', {
       [`is-${resolved.position}`]: true,
+      // The default lines up with the trigger's inline start, so the
+      // stylesheet moves it to the right edge on a right-to-left page.
+      'is-start-aligned': position === undefined,
       'is-portal': appendToBody,
     }),
     contentClassName
@@ -296,7 +304,7 @@ export const HoverCard: React.FC<HoverCardProps> = ({
     >
       {clonedTrigger}
       {isOpen && (
-        <Portal disabled={!appendToBody}>
+        <PopupPortal disabled={!appendToBody}>
           <div
             ref={cardRef}
             id={cardId}
@@ -313,7 +321,7 @@ export const HoverCard: React.FC<HoverCardProps> = ({
           >
             {children}
           </div>
-        </Portal>
+        </PopupPortal>
       )}
     </span>
   );

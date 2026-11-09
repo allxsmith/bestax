@@ -46,9 +46,14 @@ Match the old proportions with `Cell` span props; tiles' `vertical` becomes grid
 ## `component:Heading` — Bulma v1 dropped `.heading`
 
 A `Heading` with a truthy `heading` is Bulma 0.9's small uppercase label, and bestax has no
-component for it. It becomes a plain `<p className="heading">`, but Bulma v1 has no rule for that
-class, so it styles nothing. Restyle it with helper props, as a small, uppercase, semibold
-`Paragraph`:
+component for it. It becomes the plain element RBC rendered: an `<h1>`, or the tag a literal
+`renderAs` names, with `className="heading"`, plus `is-<size>` and `has-text-weight-<weight>` for
+a literal `size` and `weight` (`<Heading heading size={6} weight="bold">` becomes
+`<h1 className="heading is-6 has-text-weight-bold">`). Bulma v1 has no rule for `heading`, so that
+class styles nothing. The `<h1>` keeps the label in the page's heading outline, as RBC had it.
+
+Where the label isn't really a heading, restyle it with helper props, as a small, uppercase,
+semibold `Paragraph`:
 
 ```jsx
 <Heading heading>Followers</Heading>
@@ -57,7 +62,7 @@ class, so it styles nothing. Restyle it with helper props, as a small, uppercase
 </Paragraph>
 ```
 
-Or keep the class and give it a rule of your own. Bulma 0.9's was:
+Or keep the element and give the class a rule of your own. Bulma 0.9's was:
 
 ```css
 .heading {
@@ -67,6 +72,22 @@ Or keep the class and give it a rule of your own. Bulma 0.9's was:
   margin-bottom: 5px;
   text-transform: uppercase;
 }
+```
+
+## `prop:renderAs` — an element the codemod can't read
+
+Where a component becomes plain markup, a literal `renderAs` names the element written. One the
+codemod can't read leaves the element RBC rendered by default, with this TODO, so render the tag
+you meant yourself.
+
+## `prop:size`, `prop:weight` on a `heading` label
+
+A `size` or `weight` the codemod can't read stays off the label's plain element, with a TODO. Add
+the classes RBC wrote for them by hand:
+
+```jsx
+<Heading heading size={size} weight={weight}>Tweets</Heading>
+<h1 className={`heading is-${size} has-text-weight-${weight}`}>Tweets</h1>
 ```
 
 ## Controlled `Dropdown` (`value` / `onChange`, `Dropdown.Item value`)

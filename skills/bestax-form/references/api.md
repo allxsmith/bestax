@@ -36,6 +36,9 @@ Wraps a single input; adds icons and loading.
 | `size`                           | `'small' \| 'medium' \| 'large'` | Control size.                   |
 | `as`                             | `'div' \| 'p'`                   | Root element (default `div`).   |
 
+Over a `TextArea` an icon covers the text, so leave the icon props off a `Control` that holds
+one.
+
 ## Fieldset — `form/Fieldset.tsx`
 
 A native `<fieldset>` for a section of a form. It starts its own Field scope, so the convenience
@@ -82,8 +85,9 @@ password. It takes everything `Input` does except `type` and the right-icon prop
 (`iconRight`, `iconRightName`, `iconRightSize`, `hasIconsRight`), which draw nothing and warn in
 development, since the button has that edge. `PasswordInputBase` is the input and its button
 without the `Field` and `Control`. On both, helper props, `className` and `style` go on the
-`.password-input-container` `<div>` that holds the input and its button; `ref` and the other
-attributes go on the `<input>`.
+`.password-input-container` `<div>` that holds the input and its button; the background and text
+helpers (`backgroundColor`, `textWeight`, `fontFamily`, …), `ref` and the other attributes go on
+the `<input>`.
 
 | Prop                                            | Type                                             | Notes                                                                                                                                                                |
 | ----------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -168,7 +172,7 @@ them with no wiring.
 | Component      | Key props                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Autocomplete` | `data` (`string[]` or item objects), `value`, `onInput(value)` for typing, `onSelect(item)` for picks, `clearable` (the clear button hides while `loading`, or a loading `Control` around it, puts a spinner at the same edge), `openOnFocus`, `loading`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| `Combobox`     | Either way: `multiple`, `keepFirst`, `inline`, `size`, `position` (`'auto'` keeps the list in the viewport), `appendToBody` (in a `Modal`, point a `ConfigProvider`'s `portalContainer` inside the modal), `open`/`defaultOpen`/`onOpenChange`, `onSelect(value)` and the Field props. Given `data` (strings or `{ value, label?, disabled?, group? }`): `value`/`defaultValue`/`onChange` (`string \| null`, or `string[]` with `multiple`, shown as tags), `placeholder`, `name`, `empty`, `itemTemplate`, and `disabled`, `required`, `form`, `id`, `aria-label`/`aria-labelledby` for the field; leaving the field empty clears one value. From parts: `.Input` (an `Input`, with `size` and the Field props on the root), `.Menu`, `.List`, `.Item` (`value`, `checked`, `disabled`), `.Group` (`label`), `.Empty`; you filter, keep the value and set the field's text in `onSelect`.                                                                                     |
+| `Combobox`     | Either way: `multiple`, `keepFirst`, `inline`, `size`, `position` (`'auto'` keeps the list in the viewport), `appendToBody` (inside a `Modal`, `Dialog` or `Command.Dialog` the list goes into the dialog), `open`/`defaultOpen`/`onOpenChange`, `onSelect(value)` and the Field props. Given `data` (strings or `{ value, label?, disabled?, group? }`): `value`/`defaultValue`/`onChange` (`string \| null`, or `string[]` with `multiple`, shown as tags), `placeholder`, `name`, `empty`, `itemTemplate`, and `disabled`, `required`, `form`, `id`, `aria-label`/`aria-labelledby` for the field; leaving the field empty clears one value. From parts: `.Input` (an `Input`, with `size` and the Field props on the root), `.Menu`, `.List`, `.Item` (`value`, `checked`, `disabled`), `.Group` (`label`), `.Empty`; you filter, keep the value and set the field's text in `onSelect`.                                                                                    |
 | `TreeSelect`   | `data` (nodes: `value`, `label`, `disabled`, `icon`, `children`, `hasChildren`, `isLoading`, `loadError`, `onRetry`), `selectionMode` (`'single'`, `'checkbox'`, `'checkbox-independent'`), `value`/`defaultValue`/`onChange` (`string \| null`, or `string[]` in the checkbox modes, shown as tags), `checkedStrategy` (`'child'` leaves, `'parent'` topmost, `'all'`), `parentsSelectable`, `closeOnSelect`, `searchable` with `query`/`defaultQuery`/`onQueryChange`, `filter(query, item, path)` and `empty`, `expanded`/`defaultExpanded`/`onExpandedChange` (fetch lazy branches here), `open`/`defaultOpen`/`onOpenChange`, `clearable`, `itemTemplate`, `labels` (`choose`, `search`, `clear`, `loading`, `retry`, `loadingAnnouncement`, `loadedAnnouncement`), `name`, `form`, `required`, `disabled`, `color`, `size`, `isRounded`, `position`, `appendToBody` and the Field props. The field is a read-only combobox that opens a dialog; the `ref` is the field's. |
 | `Slider`       | `min`, `max`, `step`, single or dual thumb (`value` number or `[number, number]`), `tooltip` (`'auto' \| 'always' \| 'hidden'`), vertical orientation, `color`, `size`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `Numberinput`  | `value`/`onChange`, `min`, `max`, `step`, increment/decrement buttons, stepper variant, `color`, `size`, `isLoading` (set it here, not on a `Control` around it, whose spinner covers the right-hand button).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
@@ -182,6 +186,11 @@ them with no wiring.
 variants. Field/Control composition like the other convenience inputs, with picker UIs (native
 with custom fallback). An `inline` picker renders no `Control` anywhere, so leave its
 Control-level props out: they do nothing there and warn in development.
+
+Their helper props go on the picker's container, so a margin or a width moves the field and its
+launcher together. The background helpers style the field itself, and the text helpers style the
+field and the popover, so `backgroundColor`, `textWeight` or `fontFamily` work on a picker as they
+do on `Input`.
 
 Every one of them has a launcher button at the inline end (`triggerIcon`), the right edge on a
 left-to-right page and the left edge on a right-to-left one. The calendar or clock icon sits at
@@ -208,8 +217,8 @@ For an app in another language, wrap it, or the form, in `LocaleProvider` rather
 same `locale` to every picker. The pickers inside take its locale for their day and month names
 and any `Intl` `format`, and start the week on that locale's first day (Monday for `"de"`), unless
 one sets `locale` or `firstDayOfWeek` itself. Outside a provider the week starts on Sunday, and so
-does a picker given its own `dayNames`, which it shows exactly as given: pass `firstDayOfWeek` with
-them and list them from that day. With
+does a picker given its own `dayNames`, which it shows exactly as given and which screen readers
+hear as the columns' names: pass `firstDayOfWeek` with them and list them from that day. With
 server rendering, set a locale: without one, an `inline` calendar names its days in the server's
 language on the server and the reader's in the browser, and hydration fails to match whenever
 the two languages differ. Give an `inline` picker a `value` or `defaultValue` there too: without
@@ -288,7 +297,8 @@ for none, so `required` works), a swatch, and a launcher that opens the same squ
 `alpha`, `swatches` and `eyeDropper` in the pickers' popover. It opens on the launcher, the
 swatch or Alt+ArrowDown; `openOnFocus` and `closeOnSwatchClick` are opt-in. It takes the same
 `value`/`onChange`/`onChangeEnd`/`format`, the Field props, `isLoading`, and `Input`'s
-`color`/`size`/`isRounded`. `ColorInputBase` is the field without Field and Control.
+`color`/`size`/`isRounded`. `ColorInputBase` is the field without Field and Control. Their
+helper props place as the date pickers' do.
 
 ## Validation-related props (no library)
 

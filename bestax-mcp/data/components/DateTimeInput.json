@@ -170,7 +170,7 @@
       "code": "<DateTimeInput label=\"Input only\" popover={false} defaultValue={new Date()} />"
     }
   ],
-  "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name. Opening it puts focus on the focused date.\n- Closing the popover with `Escape`, the ✓ button or `Enter` on a time wheel returns focus to the input, whether the input or the launcher opened it. Under `openOnFocus` that returning focus leaves the popover closed; focusing or clicking the input again opens it. Closing it commits nothing by itself: an empty field stays empty, and leaving afterwards commits only what you typed, so seconds the display leaves out are kept.\n- Calendar uses `role=\"grid\"`; cells expose `aria-selected`, `aria-disabled`, and `aria-current=\"date\"` for today. On a server-rendered page, today gets it once the page hydrates, so the reader's clock decides which day.\n- Roving `tabindex` keeps a single day focusable at a time, and focus moves with it, inline as in the popover. When the focused date is disabled, that cell is the nearest enabled day of the month.\n- Each time wheel uses `role=\"spinbutton\"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.\n- In a 12-hour picker, AM/PM is one of those wheels, reading `AM` or `PM`. Its accessible name is `AM/PM` unless `labels.ampm` sets another.\n- The footer's confirm button exposes an accessible label (`Done`); the Reset button reverts your edits to the value the popover opened with.\n- Tab order walks from the calendar to the footer (Reset / ✓), and from the time wheels to the footer while they are open.\n- On a right-to-left page the launcher sits at the end of the line and the calendar icon at the start. The time wheels keep `dir=\"ltr\"`.",
+  "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name. Opening it puts focus on the focused date.\n- Closing the popover with `Escape`, the ✓ button or `Enter` on a time wheel returns focus to the input, whether the input or the launcher opened it. Under `openOnFocus` that returning focus leaves the popover closed; focusing or clicking the input again opens it. Closing it commits nothing by itself: an empty field stays empty, and leaving afterwards commits only what you typed, so seconds the display leaves out are kept.\n- Calendar uses `role=\"grid\"`. Its first row holds the weekday names as `role=\"columnheader\"`s, each named by the full weekday in the picker's locale, so a screen reader can name the weekday as focus moves to another column. A server-rendered calendar adds those full names once the page hydrates, and with `dayNames` the columns are named by the names you give instead. Each day keeps its number as its name.\n- Cells expose `aria-selected`, `aria-disabled`, and `aria-current=\"date\"` for today. On a server-rendered page, today gets it once the page hydrates, so the reader's clock decides which day.\n- Roving `tabindex` keeps a single day focusable at a time, and focus moves with it, inline as in the popover. When the focused date is disabled, that cell is the nearest enabled day of the month.\n- A `disabled` inline panel puts `aria-disabled=\"true\"` on its grid and disables every button in it. A `readOnly` one puts `aria-readonly=\"true\"` there instead, and keeps its tab stop and keys.\n- Each time wheel uses `role=\"spinbutton\"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.\n- In a 12-hour picker, AM/PM is one of those wheels, reading `AM` or `PM`. Its accessible name is `AM/PM` unless `labels.ampm` sets another.\n- The footer's confirm button exposes an accessible label (`Done`); the Reset button reverts your edits to the value the popover opened with, or on an `inline` picker, to the one described under [Inline](https://bestax.io/docs/api/form/datetime/datetimeinput#inline).\n- Tab order walks from the calendar to the footer (Reset / ✓), and from the time wheels to the footer while they are open.\n- On a right-to-left page the launcher sits at the end of the line and the calendar icon at the start. The time wheels keep `dir=\"ltr\"`.",
   "related": ["DateInput", "Input", "TimeInput"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-datetimeinput",
   "summary": "The `DateTimeInput` combines a calendar and a time **wheel spinner** in a single popover — an iOS-style layout.",
@@ -421,7 +421,7 @@
           "name": "disabled",
           "type": "boolean",
           "default": "false",
-          "description": "Disable the input.",
+          "description": "Disable the input. An `inline` panel disables its days, header buttons, Time, Reset and ✓, but its hidden input still submits the value, where a disabled input submits nothing.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -430,7 +430,7 @@
           "name": "readOnly",
           "type": "boolean",
           "default": "false",
-          "description": "Read-only input.",
+          "description": "Read-only input. An `inline` panel still moves through the dates by key and by its header, but a click, Enter or Space picks nothing, and Time and Reset are disabled, so the time can't change either.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -475,7 +475,7 @@
           "name": "inline",
           "type": "boolean",
           "default": "false",
-          "description": "Render the panel inline (no popover). On a server-rendered page it marks today once the page hydrates, by the browser's clock rather than the server's. With no `value` or `defaultValue` it opens on the month the clock reads, and around the end of a month the server's clock and the browser's can read different months, so give it a date both render the same.",
+          "description": "Render the panel inline (no popover). On a server-rendered page it marks today once the page hydrates, by the browser's clock rather than the server's. With no `value` or `defaultValue` it opens on the month the clock reads, and around the end of a month the server's clock and the browser's can read different months, so give it a date both render the same. Reset in its footer goes back to the value it mounted with, or, when controlled, to the latest `value` the parent set other than an echo of `onChange`. The ✓ beside it has no popover to close.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -538,7 +538,7 @@
           "name": "appendToBody",
           "type": "boolean",
           "default": "false",
-          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, `document.body` by default.",
+          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog` it's in, else `document.body`.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -601,7 +601,7 @@
           "name": "dayNames",
           "type": "string[]",
           "default": null,
-          "description": "Override the 7 day-name labels (in calendar order, post-rotation). They are shown exactly as given, from the first column, so they have to start on the day the week does. With them, an unset `firstDayOfWeek` stays Sunday even inside a `LocaleProvider`, so names written Sunday first keep matching their columns; to start on the locale's day, set `firstDayOfWeek` too and list the names from that day.",
+          "description": "Override the 7 day-name labels (in calendar order, post-rotation). They are shown exactly as given, from the first column, so they have to start on the day the week does. With them, an unset `firstDayOfWeek` stays Sunday even inside a `LocaleProvider`, so names written Sunday first keep matching their columns; to start on the locale's day, set `firstDayOfWeek` too and list the names from that day. They also name the columns for assistive technology. Without them each column is named by its full weekday in the picker's locale, which a server-rendered calendar adds once the page hydrates.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -772,6 +772,7 @@
         }
       ],
       "catchAll": "All standard <input> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the `.datetimeinput-container` `<div>`, with `className` and the other attributes, except that the background helpers go on the `<input>`, and the text helpers on both, since Bulma's `.input` sets its own background and font, and the popover inside the `<div>` takes the text ones. Inline they all go on the `<div>`, and on the native mobile input, on the `<input>`.",
       "types": []
     },
     {
@@ -846,7 +847,7 @@
           "name": "disabled",
           "type": "boolean",
           "default": "false",
-          "description": "Disable the input.",
+          "description": "Disable the input. An `inline` panel disables its days, header buttons, Time, Reset and ✓, but its hidden input still submits the value, where a disabled input submits nothing.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -855,7 +856,7 @@
           "name": "readOnly",
           "type": "boolean",
           "default": "false",
-          "description": "Read-only input.",
+          "description": "Read-only input. An `inline` panel still moves through the dates by key and by its header, but a click, Enter or Space picks nothing, and Time and Reset are disabled, so the time can't change either.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -900,7 +901,7 @@
           "name": "inline",
           "type": "boolean",
           "default": "false",
-          "description": "Render the panel inline (no popover). On a server-rendered page it marks today once the page hydrates, by the browser's clock rather than the server's. With no `value` or `defaultValue` it opens on the month the clock reads, and around the end of a month the server's clock and the browser's can read different months, so give it a date both render the same.",
+          "description": "Render the panel inline (no popover). On a server-rendered page it marks today once the page hydrates, by the browser's clock rather than the server's. With no `value` or `defaultValue` it opens on the month the clock reads, and around the end of a month the server's clock and the browser's can read different months, so give it a date both render the same. Reset in its footer goes back to the value it mounted with, or, when controlled, to the latest `value` the parent set other than an echo of `onChange`. The ✓ beside it has no popover to close.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -963,7 +964,7 @@
           "name": "appendToBody",
           "type": "boolean",
           "default": "false",
-          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, `document.body` by default.",
+          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog` it's in, else `document.body`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -1026,7 +1027,7 @@
           "name": "dayNames",
           "type": "string[]",
           "default": null,
-          "description": "Override the 7 day-name labels (in calendar order, post-rotation). They are shown exactly as given, from the first column, so they have to start on the day the week does. With them, an unset `firstDayOfWeek` stays Sunday even inside a `LocaleProvider`, so names written Sunday first keep matching their columns; to start on the locale's day, set `firstDayOfWeek` too and list the names from that day.",
+          "description": "Override the 7 day-name labels (in calendar order, post-rotation). They are shown exactly as given, from the first column, so they have to start on the day the week does. With them, an unset `firstDayOfWeek` stays Sunday even inside a `LocaleProvider`, so names written Sunday first keep matching their columns; to start on the locale's day, set `firstDayOfWeek` too and list the names from that day. They also name the columns for assistive technology. Without them each column is named by its full weekday in the picker's locale, which a server-rendered calendar adds once the page hydrates.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -1178,6 +1179,7 @@
       ],
       "extraProps": [],
       "catchAll": "All standard <input> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the `.datetimeinput-container` `<div>`, with `className` and the other attributes, except that the background helpers go on the `<input>`, and the text helpers on both, since Bulma's `.input` sets its own background and font, and the popover inside the `<div>` takes the text ones. Inline they all go on the `<div>`, and on the native mobile input, on the `<input>`.",
       "types": [],
       "standalone": "base"
     }

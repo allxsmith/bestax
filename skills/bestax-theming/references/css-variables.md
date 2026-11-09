@@ -350,6 +350,9 @@ header taller than Bulma's navbar sets it there. `AppFrame.Nav width` writes
 `--bulma-autocomplete-scrollbar-thumb-hover`, `--bulma-autocomplete-scrollbar-track`,
 `--bulma-autocomplete-scrollbar-width`
 
+`--bulma-autocomplete-border-hover-color` is registered but has no effect: the input's hover
+border is Bulma's own.
+
 ### Carousel
 
 `--bulma-carousel-arrow-background`, `--bulma-carousel-arrow-background-hover`,
@@ -415,6 +418,9 @@ the form sits on.
 Bulma's default font sizes the box is 24px at the default and `small` sizes. For a smaller box, set the size and also
 `min-width: 0; min-height: 0` on `.styled-checkbox.my-box .check` (mind the class prefix), and keep
 the label text inside the `Checkbox`, since the whole label is the click target.
+
+`--bulma-checkbox-focus-shadow-size` is registered but has no effect: the keyboard focus ring is a
+`2px` outline in `--bulma-checkbox-active-color`, with no shadow for a size to apply to.
 
 ### CheckboxCard
 
@@ -752,7 +758,14 @@ turn. The heading itself reads Bulma's label variables (`--bulma-menu-label-colo
 button, which keeps the text clear of the button. It applies with `hasDelete`, and to a `Delete`
 passed as a direct child in browsers that support `:has()`. It is the padding for a default-size
 button: a `Delete` passed in with a `size` gets it plus or minus the difference between the two
-sizes. Bulma's own `--bulma-notification-*` variables set the rest.
+sizes.
+
+A dark notification, with or without `isLight`, sets `--bulma-notification-background-l` and
+`--bulma-notification-color-l` to the dark color's own `--bulma-dark-l` and
+`--bulma-dark-invert-l`, so it reads as a dark button does. Bulma's dark variant of the dark color
+would otherwise give it text that inherits the color around it. That rule outranks a selector like
+`.notification.is-dark`, so set either variable on a dark notification through `style`. Bulma's own
+`--bulma-notification-*` variables set the rest.
 
 ### Numberinput
 
@@ -828,6 +841,9 @@ so it follows the ring and a `color` prop until a class gives it a color of its 
 Bulma's default font sizes the circle is 24px at the default and `small` sizes. For a smaller circle, set the size and also
 `min-width: 0; min-height: 0` on `.styled-radio.my-radio .check` (mind the class prefix), and keep
 the label text inside the `Radio`, since the whole label is the click target.
+
+`--bulma-radio-focus-shadow-size` is registered but has no effect: the keyboard focus ring is a
+`2px` outline in `--bulma-radio-active-color`, with no shadow for a size to apply to.
 
 ### RadioCard
 

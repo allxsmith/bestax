@@ -35,7 +35,7 @@
     },
     {
       "title": "Where the List Opens",
-      "code": "<Modal active={active} onClose={close} aria-label=\"Edit shipping\">\n  <Modal.Background onClick={close} />\n  <Modal.Card>\n    <Modal.Card.Body>\n      <ConfigProvider portalContainer={overlay ?? undefined}>\n        <Combobox\n          label=\"Country\"\n          data={countries}\n          appendToBody\n          position=\"auto\"\n        />\n      </ConfigProvider>\n    </Modal.Card.Body>\n  </Modal.Card>\n  {/* In the modal and outside the card, so the card can't clip it. */}\n  <div ref={setOverlay} />\n</Modal>"
+      "code": "<Modal active={active} onClose={close} aria-label=\"Edit shipping\">\n  <Modal.Background onClick={close} />\n  <Modal.Card>\n    <Modal.Card.Body>\n      <Combobox label=\"Country\" data={countries} appendToBody position=\"auto\" />\n    </Modal.Card.Body>\n  </Modal.Card>\n</Modal>"
     },
     {
       "title": "Building It Yourself",
@@ -313,7 +313,7 @@
           "name": "position",
           "type": "'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto'",
           "default": "'bottom-left'",
-          "description": "Where the menu opens against the field: below (`bottom-*`) or above (`top-*`), lined up with its left or right edge. `auto` picks the one that keeps the list in the viewport, preferring below. The same union Popover takes.",
+          "description": "Where the menu opens against the field: below (`bottom-*`) or above (`top-*`), lined up with its left or right edge. `auto` picks the one that keeps the list in the viewport, preferring below. The same union Popover takes. Left out, it opens below and lines up with the field's start edge, which is its right edge on a right-to-left page, so a menu wider than the field doesn't hang off the screen. A corner you pass stays physical, so `bottom-left` lines up the left edges on either page.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -322,7 +322,7 @@
           "name": "appendToBody",
           "type": "boolean",
           "default": "false",
-          "description": "Renders the menu through `Portal`, into the `portalContainer` a `ConfigProvider` sets, `document.body` by default, fixed to the viewport at the field, so a container that clips its overflow can't cut it off. It then shows from the commit after hydration, never in server markup. Theming variables set on an ancestor reach it only when the portal's container is inside that ancestor, as with Popover. In a `Modal`, point `portalContainer` inside the modal, so the list stays in the dialog for assistive tech.",
+          "description": "Renders the menu through `Portal`, into the `portalContainer` a `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog` it's in, else `document.body`, fixed to the viewport at the field, so a container that clips its overflow can't cut it off. It then shows from the commit after hydration, never in server markup. Theming variables set on an ancestor reach it only when the portal's container is inside that ancestor, as with Popover.",
           "required": false,
           "inherited": true,
           "deprecated": false

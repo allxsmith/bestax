@@ -425,7 +425,8 @@ in the browser:
   inside its `<li>` with no class but `is-active`, and puts its `className` on the `<li>`, so the
   class has nowhere to go. On an `<a>` inside a `.menu-list` it adds nothing, so drop it and
   re-run, and the item can convert. On any other tag, keep the markup.
-- **`family:message`**: `Message` always wraps its children in `.message-body`.
+- **`family:message`**: `Message` writes a `data-testid` of its own over the one it's given, and
+  wraps children other than `Message.Header` and `Message.Body` in a `.message-body`.
 - **`family:panel-icon`**: `Panel.Icon` renders through `Icon`, which always writes an
   `aria-label`, so write `<Panel.Icon>` by hand with the `<i>` inside. The rest of a panel converts,
   a `<label>` or `<div>` `.panel-block` included, as `Panel.Block` with `as` and its contents as
@@ -437,6 +438,33 @@ in the browser:
 `legacy:tile`: Bulma v1 has no tiles. Rebuild the layout with `Grid` and `Cell`; the Bulma
 0.9 to 1 guide shows the translation. Until then the element has no styles at all under
 Bulma v1.
+
+`legacy:heading`: Bulma 0.9's small uppercase label, often a `.level-item`'s caption, has no
+styles in v1, so it renders as body text. The class stays where it was, on a converted element
+or on markup, and gets the TODO. Restyle it with helper props, such as
+`<Paragraph textSize="7" textTransform="uppercase" textWeight="semibold" mb="1">`, or keep the
+class and give it a rule of your own. Bulma 0.9's was:
+
+```css
+.heading {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+```
+
+`legacy:number`: Bulma 0.9's `.number`, a rounded badge on the background color, has no
+styles in v1. Give the class a rule of your own if the element still needs that look.
+
+Both names are common outside Bulma too, so the TODO can land on a class the project styles
+itself, such as a code highlighter's `token number`. There the class still does its job: leave it
+and drop the TODO.
+
+`legacy:is-variable`: v1 sets a `.columns` gap from `is-0` to `is-8` alone, so `is-variable`
+styles nothing and the gap still applies. Drop the class. Where the `.columns` converted,
+`Columns` already writes the gap from its `gap` prop.
 
 `legacy:is-marginless`, `legacy:is-paddingless`: v1 removed both, so they style nothing.
 Wherever the element converts, the codemod writes them as `m="0"` and `p="0"`, which render

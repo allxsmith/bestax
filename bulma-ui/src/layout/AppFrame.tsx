@@ -16,6 +16,7 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { isElementOf } from '../helpers/elementType';
 import { flattenChildren } from '../helpers/flattenChildren';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { useOverlayEscape, useOverlayStack } from '../helpers/overlayStack';
@@ -715,12 +716,12 @@ AppFrameBurger.displayName = 'AppFrame.Burger';
 const isMain = (
   child: React.ReactNode
 ): child is React.ReactElement<AppFrameMainProps> =>
-  React.isValidElement(child) && child.type === AppFrameMain;
+  isElementOf(child, AppFrameMain);
 
 const isNav = (
   child: React.ReactNode
 ): child is React.ReactElement<AppFrameNavProps> =>
-  React.isValidElement(child) && child.type === AppFrameNav;
+  isElementOf(child, AppFrameNav);
 
 /**
  * The `AppFrame` component lays out an app's pages: a header across the top, a navigation column down the side, the page, and an aside and a footer, with the nav a drawer behind a burger on narrow screens.

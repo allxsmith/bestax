@@ -8,7 +8,8 @@ import React, {
   useState,
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
-import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useFieldHelperClasses } from '../helpers/useFieldHelperClasses';
 import {
   DateRangeValue,
   DayOfWeek,
@@ -61,6 +62,13 @@ const today = (): Date => startOfDay(new Date());
  * Props for the raw DateRangeInput base. Use the higher-level
  * `DateRangeInput` for Field/Control composition; `DateRangeInputBase` is the
  * two inputs and the popover only.
+ *
+ * @helperProps Helper props go on the root `.daterangeinput` `<div>`, with
+ * `className` and the other attributes, except that the background helpers
+ * go on the `.input` `<div>` that draws the field around the two `<input>`s,
+ * since Bulma's `.input` sets its own background. The text helpers go on the
+ * root and on both `<input>`s too, which take no alignment or case from
+ * around them. Inline they all go on the root.
  */
 export interface DateRangeInputBaseProps
   extends
@@ -95,9 +103,17 @@ export interface DateRangeInputBaseProps
   min?: Date;
   /** Latest selectable date, for either end. */
   max?: Date;
-  /** Disable both inputs and the launcher. */
+  /**
+   * Disable both inputs and the launcher, or an `inline` calendar's days and
+   * header buttons. The hidden inputs still submit the range, in every mode,
+   * where a disabled input submits nothing.
+   */
   disabled?: boolean;
-  /** Make both inputs read-only and keep the popover closed. */
+  /**
+   * Make both inputs read-only and keep the popover closed. An `inline`
+   * calendar still moves through the dates by key and by its header, but a
+   * click, Enter or Space picks nothing.
+   */
   readOnly?: boolean;
   /** Placeholder text, shown in both inputs while they are empty. */
   placeholder?: string;
@@ -165,7 +181,8 @@ export interface DateRangeInputBaseProps
   position?: PickerPosition;
   /**
    * Render the popover through a portal, into the `portalContainer` a
-   * `ConfigProvider` sets, `document.body` by default.
+   * `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog` it's
+   * in, else `document.body`.
    */
   appendToBody?: boolean;
   /**
@@ -209,7 +226,10 @@ export interface DateRangeInputBaseProps
    * on the day the week does. With them, an unset `firstDayOfWeek` stays
    * Sunday even inside a `LocaleProvider`, so names written Sunday first keep
    * matching their columns; to start on the locale's day, set
-   * `firstDayOfWeek` too and list the names from that day.
+   * `firstDayOfWeek` too and list the names from that day. They also name
+   * the columns for assistive technology. Without them each column is named
+   * by its full weekday in the picker's locale, which a server-rendered
+   * calendar adds once the page hydrates.
    */
   dayNames?: string[];
   /** Override the 12 month-name labels. */
@@ -380,7 +400,17 @@ export const DateRangeInputBase = forwardRef<
   const reactId = useId();
   const popoverId = id ? `${id}-popover` : `picker-${reactId}`;
 
-  const { bulmaHelperClasses, rest: cleanRest } = useBulmaClasses(rest);
+  // The field takes the background helpers, since Bulma's `.input` sets its
+  // own background. The text helpers stay on the root, which the popover and
+  // the separator take them from, and go on both inputs too, since an input
+  // takes no alignment or case from around it. The root keeps the rest.
+  const {
+    bulmaHelperClasses,
+    backgroundClasses,
+    textClasses,
+    otherClasses,
+    rest: cleanRest,
+  } = useFieldHelperClasses(rest);
   // Two inputs can't share a labeled Field's `for`, so inside one the group
   // points `aria-labelledby` at that Field's label, as `DateRangeInput`
   // does, in every mode. A name the caller gave the group wins, and so does
@@ -660,17 +690,22 @@ export const DateRangeInputBase = forwardRef<
         {...cleanRest}
         ref={containerRef}
         role="group"
-        className={classNames(containerClass, bulmaHelperClasses, className)}
+        className={classNames(
+          containerClass,
+          otherClasses,
+          textClasses,
+          className
+        )}
         onFocus={onFocus}
         onFocusCapture={onFocusCapture}
       >
-        <div className={fieldClass}>
+        <div className={classNames(fieldClass, backgroundClasses)}>
           <input
             ref={combinedRef}
             type="date"
             id={id}
             aria-label={t.rangeStart}
-            className={inputClass}
+            className={classNames(inputClass, textClasses)}
             value={isoDay(start)}
             onChange={nativeChange(commitStart, isBlockedDay)}
             min={minIso}
@@ -685,7 +720,7 @@ export const DateRangeInputBase = forwardRef<
             type="date"
             id={id ? `${id}-end` : undefined}
             aria-label={t.rangeEnd}
-            className={inputClass}
+            className={classNames(inputClass, textClasses)}
             value={isoDay(end)}
             onChange={nativeChange(commitEnd, isBlockedEnd)}
             min={start ? isoDay(start) : minIso}
@@ -723,6 +758,8 @@ export const DateRangeInputBase = forwardRef<
       id={inline ? popoverId : `${popoverId}-cal`}
       autoFocusCell={open}
       labels={labels}
+      disabled={disabled}
+      readOnly={readOnly}
     />
   );
 
@@ -770,7 +807,7 @@ export const DateRangeInputBase = forwardRef<
     'aria-expanded': open,
     'aria-controls': popoverId,
     autoComplete: 'off',
-    className: inputClass,
+    className: classNames(inputClass, textClasses),
     placeholder,
     disabled,
     readOnly: inputReadOnly,
@@ -784,11 +821,19 @@ export const DateRangeInputBase = forwardRef<
       {...cleanRest}
       ref={containerRef}
       role="group"
-      className={classNames(containerClass, bulmaHelperClasses, className)}
+      className={classNames(
+        containerClass,
+        otherClasses,
+        textClasses,
+        className
+      )}
       onFocus={handleFocus}
       onFocusCapture={handleFocusCapture}
     >
-      <div className={fieldClass} onMouseDown={handleFieldMouseDown}>
+      <div
+        className={classNames(fieldClass, backgroundClasses)}
+        onMouseDown={handleFieldMouseDown}
+      >
         <input
           {...comboboxProps}
           ref={combinedRef}

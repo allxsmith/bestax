@@ -70,10 +70,12 @@ const inject = (css: string) => {
 let sheet: CSSStyleSheet;
 let dateinputCss = '';
 
+// A hook keeps Vitest's 10s default rather than `testTimeout`, and
+// sass-embedded's start can take longer than that on a loaded machine.
 beforeAll(() => {
   dateinputCss = compileSheet('form/_dateinput.scss');
   sheet = inject(dateinputCss).sheet as CSSStyleSheet;
-});
+}, 30_000);
 
 afterAll(() => {
   for (const el of sheets) el.remove();
@@ -152,6 +154,55 @@ describe('calendar colour styles under a class prefix', () => {
     const root = calendarRoot(container, 'bestax-');
     expect(root).toHaveClass('bestax-is-danger');
     expect(computedAccents(root)).toEqual(accents('danger'));
+  });
+});
+
+// A disabled calendar turns off the month button with the arrows beside it,
+// and it reads as off only if the stylesheet dims it as it dims them.
+describe('calendar header while disabled', () => {
+  const look = (el: Element) => {
+    const style = getComputedStyle(el);
+    return `${style.opacity}/${style.cursor}`;
+  };
+  const header = (container: Element, prefix = '') =>
+    ['month-trigger', 'nav-prev', 'nav-next'].map(part =>
+      container.querySelector(`.${prefix}dateinput-${part}`)!
+    );
+
+  it('dims the month button as it dims the arrows', () => {
+    const { container } = render(
+      <>
+        <div>
+          <DateInput inline disabled />
+        </div>
+        <div>
+          <DateInput inline />
+        </div>
+      </>
+    );
+    const [off, on] = Array.from(container.children);
+    for (const button of header(off)) {
+      expect(button).toBeDisabled();
+      expect(look(button)).toBe('0.4/not-allowed');
+    }
+    expect(look(header(on)[0])).toBe('1/pointer');
+  });
+
+  it('dims it under a class prefix too', () => {
+    inject(
+      compileScss(
+        `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: 'bestax-');
+         @use 'form/dateinput';`
+      )
+    );
+    const { container } = render(
+      <ConfigProvider classPrefix="bestax-">
+        <DateInput inline disabled />
+      </ConfigProvider>
+    );
+    for (const button of header(container, 'bestax-')) {
+      expect(look(button)).toBe('0.4/not-allowed');
+    }
   });
 });
 

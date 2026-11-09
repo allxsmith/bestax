@@ -362,7 +362,8 @@ export const IndicatorTop: Story = {
 /**
  * Indicators over the slides with the plain look. `overlayControls={false}`
  * leaves off the overlay colors and the dark band, for light slides such as
- * white cards.
+ * white cards. The arrows and indicators sit over each slide's edges, so the
+ * card centers its text between them, with room above and below it.
  */
 export const IndicatorInsidePlain: Story = {
   render: function IndicatorInsidePlainExample() {
@@ -372,12 +373,12 @@ export const IndicatorInsidePlain: Story = {
         <Carousel indicatorInside overlayControls={false}>
           {rooms.map(room => (
             <CarouselItem key={room}>
-              <Card>
-                <Card.Content pb="6">
-                  <Title as="p" size="5">
+              <Card m="2">
+                <Card.Content px="6" py="6" textAlign="centered">
+                  <Title as="p" size="5" mt="5">
                     {room}
                   </Title>
-                  <SubTitle as="p" size="6">
+                  <SubTitle as="p" size="6" mb="5">
                     Sleeps two
                   </SubTitle>
                 </Card.Content>

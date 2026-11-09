@@ -112,10 +112,11 @@ hydration.
 </Box>
 ```
 
-The panel goes wherever `Portal` puts content with no `container` of its own, so a `ConfigProvider`
-with a [`portalContainer`](../helpers/config.md#where-portaled-content-goes) sends it there
-instead. That keeps a scoped `Theme`, or a shadow root's styles, which the end of the page is
-outside of.
+A `ConfigProvider` with a [`portalContainer`](../helpers/config.md#where-portaled-content-goes)
+sends the panel there instead. That keeps a scoped `Theme`, or a shadow root's styles, which the
+end of the page is outside of. Without one, a panel opened inside a `Modal`, `Dialog` or
+`Command.Dialog` goes into that dialog, where screen readers that honor its `aria-modal` reach
+it.
 
 ### Controlled
 
@@ -223,6 +224,31 @@ composed from the single `Popover` import.
 
 ---
 
+## Popover or HoverCard?
+
+A `Popover` and a [`HoverCard`](./hovercard.md) both open a panel against a trigger, and a
+`Popover` on a small trigger such as a `Tag` can look a lot like a `HoverCard`. They work
+differently:
+
+- **How it opens:** a `Popover` opens and closes when its trigger is clicked or tapped, or gets
+  <kbd>Enter</kbd> or <kbd>Space</kbd>. A `HoverCard` opens when the pointer rests on its trigger or
+  keyboard focus lands on it, and a click on the trigger just does what the trigger does.
+- **Focus:** opening a `Popover` moves focus into the panel, Tab stays inside it until it closes
+  unless you pass `trapFocus={false}`, and closing hands focus back to the trigger. A `HoverCard`
+  moves no focus and traps none: rendered in place, the card comes right after its trigger in the
+  Tab order, and tabbing past its links closes it.
+- **What goes in it:** a `Popover` is a dialog for content people work with, such as a form, a set
+  of options or an inline edit. A `HoverCard` previews what's behind its trigger: something to read,
+  with a link or a button at most, and nothing people can't also reach from the trigger.
+- **On touch:** a tap opens and closes a `Popover` the way a click does, and a tap outside closes
+  it. A touch screen doesn't open a `HoverCard` at all unless you pass `openOnTap`, which is for a
+  trigger with no tap action of its own.
+
+If people open it to do something, use a `Popover`. If it shows what they'd find by following the
+trigger, use a `HoverCard`.
+
+---
+
 ## Accessibility
 
 `Popover` follows the [WAI-ARIA dialog pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/)
@@ -280,7 +306,7 @@ for a non-modal dialog:
 | `defaultOpen`         | `boolean`                                                                        | `false`         | Initial open state when uncontrolled. Opening moves focus into the panel, so a popover that starts open takes focus once the page loads.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `onOpenChange`        | `(open: boolean) => void`                                                        | —               | Called with the state asked for: `true` from the trigger opening it, `false` from the trigger, `Popover.Close`, Escape or an outside `pointerdown`. Fires in both controlled and uncontrolled use.                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | `position`            | `'bottom-left'` \| `'bottom-right'` \| `'top-left'` \| `'top-right'` \| `'auto'` | `'bottom-left'` | Where the panel opens against the trigger. Left out, it opens below and lines up with the trigger's start edge, which is its right edge on a right-to-left page, so a trigger at the start of the line doesn't push the panel off the screen. A corner you pass stays physical, so `bottom-left` lines up the left edges on either page.                                                                                                                                                                                                                                                                                                                |
-| `appendToBody`        | `boolean`                                                                        | `false`         | Render the panel through `Portal`, into the `portalContainer` a `ConfigProvider` sets, `document.body` by default, fixed to the viewport, so an ancestor's `overflow`, `transform` or stacking context can't clip it. The panel then shows from the commit after hydration, never in server markup. Theming variables set on an ancestor of the trigger reach it only when its container is inside that ancestor.                                                                                                                                                                                                                                       |
+| `appendToBody`        | `boolean`                                                                        | `false`         | Render the panel through `Portal`, into the `portalContainer` a `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog` it's in, else `document.body`, fixed to the viewport, so an ancestor's `overflow`, `transform` or stacking context can't clip it. The panel then shows from the commit after hydration, never in server markup. Theming variables set on an ancestor of the trigger reach it only when its container is inside that ancestor.                                                                                                                                                                                     |
 | `trapFocus`           | `boolean`                                                                        | `true`          | Keep Tab and Shift+Tab inside the panel while it is open, as the ARIA dialog pattern does for a non-modal dialog. Pointer focus leaves freely and the page stays usable. With `false`, Tab moves past the panel and the popover stays open. Focus moves into the panel on open and back to the trigger on close either way.                                                                                                                                                                                                                                                                                                                             |
 | `closeOnClickOutside` | `boolean`                                                                        | `true`          | Close on a `pointerdown` outside the trigger and the panel. Content the panel renders through a portal (a nested `Popover`, a portaled picker) still counts as inside.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `closeOnEscape`       | `boolean`                                                                        | `true`          | Close on Escape while focus is in the panel or on the trigger. A dialog nested in the panel, such as a date picker's calendar, takes its own Escape first, and so does content that calls `preventDefault()` on it.                                                                                                                                                                                                                                                                                                                                                                                                                                     |

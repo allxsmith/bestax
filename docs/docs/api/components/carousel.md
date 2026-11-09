@@ -283,18 +283,20 @@ function IndicatorExample() {
 
 ### Plain Indicators Over the Slides
 
-`overlayControls` sets the overlay look apart from where the indicators sit. It follows `indicatorInside` unless you set it. On light slides, such as white cards, the band covers the bottom of each one, so `overlayControls={false}` keeps the indicators over the slides with the plain colors and no band:
+`overlayControls` sets the overlay look apart from where the indicators sit. It follows `indicatorInside` unless you set it. On light slides, such as white cards, the band covers the bottom of each one, so `overlayControls={false}` keeps the indicators over the slides with the plain colors and no band.
+
+The arrows and the indicators sit over the edges of each slide, so give the slide's content room to clear them. Here each card centers its text, with space above and below it:
 
 ```tsx live
 <Carousel indicatorInside overlayControls={false}>
   {['Garden Room', 'Harbor Suite', 'Loft', 'Courtyard Twin'].map(room => (
     <CarouselItem key={room}>
       <Card m="2">
-        <Card.Content pb="6">
-          <Title as="p" size="5">
+        <Card.Content px="6" py="6" textAlign="centered">
+          <Title as="p" size="5" mt="5">
             {room}
           </Title>
-          <SubTitle as="p" size="6">
+          <SubTitle as="p" size="6" mb="5">
             Sleeps two
           </SubTitle>
         </Card.Content>

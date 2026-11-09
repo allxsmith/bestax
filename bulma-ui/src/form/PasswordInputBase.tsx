@@ -2,7 +2,7 @@ import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { warnOnce } from '../helpers/devWarnings';
-import { useBulmaClasses } from '../helpers/useBulmaClasses';
+import { useFieldHelperClasses } from '../helpers/useFieldHelperClasses';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { InputBase, InputBaseProps } from './InputBase';
@@ -46,7 +46,9 @@ export interface PasswordInputLabels {
  *
  * @helperProps Helper props go on the `.password-input-container` `<div>`, with
  * `className` and `style`, so they move and size the field and its toggle
- * together. The other attributes go on the `<input>`.
+ * together, except that the background and text helpers go on the
+ * `<input>`, since Bulma's `.input` sets its own background and font. The
+ * other attributes go on the `<input>` too.
  * @extraProp {string} [autoComplete="current-password"] - Tells the browser and password managers this is an existing password. Pass `"new-password"` where the user makes one up, on a sign-up or change-password form.
  * @extraProp {boolean} [spellCheck=false] - Off, so a browser's spellcheck never sees the password once it shows.
  * @extraProp {string} [autoCorrect="off"] - Off, so a phone's keyboard doesn't change what's typed.
@@ -169,9 +171,12 @@ export const PasswordInputBase = forwardRef<
     ...others
   } = props;
   // Helper props, `className` and `style` go on the container, so a margin,
-  // a width or a display moves the field and its toggle together. `color`
-  // stays with the input, whose border it colors.
-  const { bulmaHelperClasses, rest } = useBulmaClasses(others);
+  // a width or a display moves the field and its toggle together. The
+  // background and text helpers go on the input, since Bulma's `.input` sets
+  // its own background and font. `color` stays with the input, whose border
+  // it colors.
+  const { backgroundClasses, textClasses, otherClasses, rest } =
+    useFieldHelperClasses(others);
   const disabled = useFieldsetDisabled(disabledProp);
   // The toggle gives way to the loading spinner of a Control this sits in,
   // which takes its slot, and the field hides the password meanwhile, as
@@ -302,7 +307,7 @@ export const PasswordInputBase = forwardRef<
 
   return (
     <div
-      className={classNames(containerClass, bulmaHelperClasses, className)}
+      className={classNames(containerClass, otherClasses, className)}
       style={style}
     >
       <InputBase
@@ -313,6 +318,7 @@ export const PasswordInputBase = forwardRef<
         autoCapitalize={autoCapitalize}
         disabled={disabled}
         color={color}
+        className={classNames(textClasses, backgroundClasses)}
         {...rest}
         type={visible && !controlLoading ? 'text' : 'password'}
       />

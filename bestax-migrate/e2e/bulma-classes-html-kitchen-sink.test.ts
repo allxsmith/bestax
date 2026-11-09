@@ -228,11 +228,15 @@ describe('bulma-classes HTML kitchen-sink e2e', () => {
     }
   });
 
-  it("reports only the landing page's document, and nothing for the partial", () => {
+  it("reports only the landing page's document, and only its 0.9 labels for the partial", () => {
     expect(rulesOf(site.todos.get('pages/landing.html'))).toEqual(
       LANDING_RULES
     );
-    expect(rulesOf(site.todos.get('pages/partials/pricing.html'))).toEqual([]);
+    // Its level's captions are Bulma 0.9's `.heading`, which v1 dropped.
+    expect(rulesOf(site.todos.get('pages/partials/pricing.html'))).toEqual([
+      'legacy:heading',
+      'legacy:heading',
+    ]);
   });
 
   it("leaves a textarea's type out of the contact form, which typechecks without it", () => {

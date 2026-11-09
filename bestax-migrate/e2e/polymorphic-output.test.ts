@@ -114,6 +114,13 @@ const RBX: Case[] = [
   ['Footer', '<Footer as="a" href="/x">x</Footer>'],
   ['Tab', '<Tab href="/x">One</Tab>'],
   ['Media', '<Media.Item align="left" href="/x">x</Media.Item>'],
+  // `Heading` becomes the plain element its `as` names.
+  ['Heading', '<Heading as="span" href="/x">x</Heading>'],
+  // So do the other plain rewrites, and a breadcrumb's `as` is the element
+  // inside its <li>.
+  ['Help', '<Help as="span" href="/x">x</Help>'],
+  ['Breadcrumb', '<Breadcrumb.Item as="span" href="/x">x</Breadcrumb.Item>'],
+  ['Breadcrumb', '<Breadcrumb.Item as="a" href="/x">x</Breadcrumb.Item>'],
   // The link attributes beside the href are as invalid as it is, and just as
   // invalid without it -- so the check cannot be conditional on one.
   [
@@ -174,8 +181,18 @@ const RBC: Case[] = [
   ['Card', '<Card.Header.Icon href="/x">x</Card.Header.Icon>'],
   ['Card', '<Card.Footer.Item href="/x">x</Card.Footer.Item>'],
   ['Media', '<Media renderAs="section" href="/x">x</Media>'],
-  // The seventh hand-built plain rewrite, which does not use `keptAttrs`.
+  // The seventh hand-built plain rewrite, which does not use `keptAttrs`. It
+  // writes the element `renderAs` names, and only an <a> keeps the `href`.
+  ['Heading', '<Heading heading renderAs="span" href="/x">Stats</Heading>'],
   ['Heading', '<Heading heading renderAs="a" href="/x">Stats</Heading>'],
+  // The other plain rewrites write the element `renderAs` names too.
+  ['Form', '<Form.Help renderAs="span" href="/x">x</Form.Help>'],
+  [
+    'Breadcrumb',
+    '<Breadcrumb.Item renderAs="span" href="/x">x</Breadcrumb.Item>',
+  ],
+  ['Tabs', '<Tabs.Tab renderAs="span" href="/x">x</Tabs.Tab>'],
+  ['Tabs', '<Tabs.Tab renderAs="a" href="/x">x</Tabs.Tab>'],
   // `card-image` moves these props onto an <Image> it creates, so they have
   // to be judged against `Image` rather than the wrapper they sit on.
   ['Card', '<Card.Image href="/x" src="/a.png" />'],
