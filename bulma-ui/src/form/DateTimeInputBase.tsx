@@ -503,11 +503,15 @@ export const DateTimeInputBase = forwardRef<
 
   // A controlled inline panel takes each value its parent sets as the one
   // Reset goes back to, so Reset never brings back a value the app has moved
-  // past. Its own commits, echoed back, leave that value where it was.
+  // past. Its own commits, echoed back, leave that value where it was. A
+  // commit matches once: the next change of `value` uses it up, echo or not,
+  // so the parent setting that same time later still counts as its own.
   const valueTime = value ? value.getTime() : null;
   useEffect(() => {
     if (!inline || !isControlled) return;
-    if (valueTime === committedTimeRef.current) return;
+    const echo = valueTime === committedTimeRef.current;
+    committedTimeRef.current = undefined;
+    if (echo) return;
     valueAtOpenRef.current = valueTime === null ? null : new Date(valueTime);
   }, [inline, isControlled, valueTime]);
 

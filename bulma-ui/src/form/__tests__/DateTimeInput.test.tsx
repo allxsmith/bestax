@@ -2536,6 +2536,12 @@ describe('DateTimeInput inline Reset', () => {
         <button type="button" onClick={() => setValue(null)}>
           Clear
         </button>
+        <button
+          type="button"
+          onClick={() => setValue(new Date(2024, 5, 20, 13, 45))}
+        >
+          Preset
+        </button>
         <DateTimeInput
           inline
           value={value}
@@ -2589,6 +2595,19 @@ describe('DateTimeInput inline Reset', () => {
     fireEvent.click(day(20));
     reset();
     expect(last(handler)).toBeNull();
+  });
+
+  it('takes a value the parent sets at the time of an earlier commit', () => {
+    const handler = vi.fn();
+    render(<Parent onChange={handler} />);
+    // The picker commits June 20 at 13:45, and the parent echoes it.
+    fireEvent.click(day(20));
+    fireEvent.click(screen.getByRole('button', { name: 'Move' }));
+    // The parent sets that same time itself, which is no echo.
+    fireEvent.click(screen.getByRole('button', { name: 'Preset' }));
+    fireEvent.click(day(25));
+    reset();
+    expect(last(handler)).toEqual(new Date(2024, 5, 20, 13, 45));
   });
 
   it('leaves the popover going back to the value it opened with', () => {
