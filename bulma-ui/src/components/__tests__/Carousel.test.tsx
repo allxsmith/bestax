@@ -2060,11 +2060,13 @@ describe('Carousel with several items in view', () => {
 // on the compiled partial.
 describe('Carousel right-to-left styles', () => {
   let sheet: HTMLStyleElement;
+  // A hook keeps Vitest's 10s default rather than `testTimeout`, and
+  // sass-embedded's start can take longer than that on a loaded machine.
   beforeAll(() => {
     sheet = document.createElement('style');
     sheet.textContent = compileSheet('components/_carousel.scss');
     document.head.appendChild(sheet);
-  });
+  }, 30_000);
   afterAll(() => sheet.remove());
 
   const sign = (track: Element) =>
