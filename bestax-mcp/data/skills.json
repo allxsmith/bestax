@@ -17,7 +17,7 @@
           "file": "references/library-contributor.md",
           "bytes": 23311
         },
-        { "id": "patterns", "file": "references/patterns.md", "bytes": 4601 }
+        { "id": "patterns", "file": "references/patterns.md", "bytes": 4632 }
       ],
       "examples": [
         { "id": "stat-card", "file": "examples/stat-card.tsx", "bytes": 3734 }
@@ -29,7 +29,7 @@
       "promptName": "form",
       "dir": "bestax-form",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 32997 },
+        { "id": "api", "file": "references/api.md", "bytes": 33178 },
         { "id": "patterns", "file": "references/patterns.md", "bytes": 10001 }
       ],
       "examples": []
@@ -64,7 +64,7 @@
         {
           "id": "layout-components",
           "file": "references/layout-components.md",
-          "bytes": 25314
+          "bytes": 25761
         }
       ],
       "examples": [
@@ -93,7 +93,7 @@
         {
           "id": "bloomer-prop-map",
           "file": "references/bloomer/prop-map.md",
-          "bytes": 27249
+          "bytes": 27258
         },
         {
           "id": "bloomer-unmappables",
@@ -128,7 +128,7 @@
         {
           "id": "rbx-prop-map",
           "file": "references/rbx/prop-map.md",
-          "bytes": 16090
+          "bytes": 16213
         },
         {
           "id": "rbx-unmappables",
@@ -143,7 +143,7 @@
         {
           "id": "react-bulma-components-prop-map",
           "file": "references/react-bulma-components/prop-map.md",
-          "bytes": 8367
+          "bytes": 8376
         },
         {
           "id": "react-bulma-components-unmappables",
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 19540
+          "bytes": 19807
         }
       ],
       "examples": []
@@ -176,7 +176,7 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 72359
+          "bytes": 72530
         },
         {
           "id": "themeable-components",

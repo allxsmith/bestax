@@ -66,6 +66,45 @@ describe('Level', () => {
     expect(screen.getByTestId('level')).toHaveClass('is-mobile');
   });
 
+  it('renders a <nav>, a navigation landmark, by default', () => {
+    render(<Level data-testid="level" />);
+    expect(screen.getByTestId('level').tagName).toBe('NAV');
+    expect(screen.getByRole('navigation')).toBe(screen.getByTestId('level'));
+  });
+
+  it.each(['nav', 'div', 'header', 'footer'] as const)(
+    'renders a <%s>',
+    tag => {
+      render(
+        <Level
+          as={tag}
+          isMobile
+          color="info"
+          m="2"
+          aria-label="Stats"
+          data-testid="level"
+        />
+      );
+      const level = screen.getByTestId('level');
+      expect(level.tagName).toBe(tag.toUpperCase());
+      expect(level).toHaveClass('level', 'is-mobile', 'has-text-info', 'm-2');
+      expect(level).toHaveAttribute('aria-label', 'Stats');
+      expect(level).not.toHaveAttribute('as');
+    }
+  );
+
+  it('adds no landmark as a <div>', () => {
+    render(
+      <Level as="div" isMobile>
+        <Level.Item hasTextCentered>
+          <Title as="p">1,234</Title>
+        </Level.Item>
+      </Level>
+    );
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+    expect(screen.getByText('1,234').closest('.level')?.tagName).toBe('DIV');
+  });
+
   it('renders centered items with Title', () => {
     render(
       <Level>

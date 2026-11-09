@@ -85,6 +85,9 @@ const BLOOMER: Case[] = [
   ['PanelBlock', '<PanelBlock tag="label">x</PanelBlock>'],
   ['PanelBlock', '<PanelBlock>x</PanelBlock>'],
   ['PanelBlock', '<PanelBlock tag="span">x</PanelBlock>'],
+  // A level off its <nav>, and a tag outside the ones it takes.
+  ['Level', '<Level tag="div">x</Level>'],
+  ['Level', '<Level tag="section">x</Level>'],
 ];
 
 const RBX: Case[] = [
@@ -154,6 +157,8 @@ const RBX: Case[] = [
   ['Panel', '<Panel.Block as="label">x</Panel.Block>'],
   ['Panel', '<Panel.Block as="div" href="/x">x</Panel.Block>'],
   ['Panel', '<Panel.Block as="span" href="/x">x</Panel.Block>'],
+  ['Level', '<Level as="header">x</Level>'],
+  ['Level', '<Level as="aside">x</Level>'],
 ];
 
 const RBC: Case[] = [
@@ -187,6 +192,8 @@ const RBC: Case[] = [
   ['Container', '<Container renderAs="footer">x</Container>'],
   ['Panel', '<Panel renderAs="article">x</Panel>'],
   ['Panel', '<Panel.Block renderAs="div" href="/x">x</Panel.Block>'],
+  ['Level', '<Level renderAs="div">x</Level>'],
+  ['Level', '<Level renderAs="footer" breakpoint="mobile">x</Level>'],
 ];
 
 const SOURCES: Array<[MigrationSource, string, Case[]]> = [

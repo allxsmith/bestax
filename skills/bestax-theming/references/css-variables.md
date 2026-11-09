@@ -827,7 +827,8 @@ As with Checkbox, set these on a class you pass through `className`, with both c
 selector (`.styled-radio.my-radio`): `style` goes to the hidden `<input>`. A `color` prop
 declares `--bulma-radio-active-color` again on `.styled-radio.is-<color>`, which ties that
 selector, so leave `color` unset when a class sets it. The unchecked ring, `--bulma-radio-border-color`, defaults to `text-weak` for the same 3:1 boundary
-contrast.
+contrast. The checked dot, `--bulma-radio-dot-color`, defaults to `--bulma-radio-active-color`,
+so it follows the ring and a `color` prop until a class gives it a color of its own.
 
 `--bulma-radio-size` (default `1.25em`) can't take the circle below 24px: the stylesheet gives the
 `.check` circle a `min-width` and `min-height` of 24px, WCAG 2.2's minimum target size, so with
