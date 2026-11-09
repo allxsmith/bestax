@@ -89,7 +89,9 @@ export const Notification: React.FC<NotificationProps> = ({
 
   const bulmaClasses = usePrefixedClassNames('notification', {
     [`is-${color}`]: color && validColors.includes(color),
-    'is-light': isLight,
+    // The light color's own class is this key too, and this one comes later,
+    // so it has to set the class for `light` as well or it erases it.
+    'is-light': isLight || color === 'light',
     'has-delete': hasDelete,
   });
 

@@ -88,7 +88,9 @@ export const Tag: React.FC<TagProps> = ({
   const bulmaClasses = usePrefixedClassNames('tag', {
     [`is-${color}`]: color && validTagColors.includes(color),
     [`is-${size}`]: size && size !== 'normal' && validTagSizes.includes(size),
-    'is-light': isLight,
+    // The light color's own class is this key too, and this one comes later,
+    // so it has to set the class for `light` as well or it erases it.
+    'is-light': isLight || color === 'light',
     'is-rounded': isRounded,
     'is-delete': isDelete,
     'is-hoverable': isHoverable,
