@@ -37,11 +37,19 @@ export interface NotificationProps
    * other value the union accepts emits a class no CSS rule matches, so the
    * notification renders unstyled; those log a console warning in development
    * and will be removed from this union in the next major version.
+   *
+   * `dark` takes the dark color's own text and background from bestax's
+   * stylesheets, as a dark `Button` has. With Bulma's CSS alone, a dark
+   * notification's text inherits the color around it, which on a light page
+   * is one shade off its background.
    */
   color?: (typeof validColors)[number];
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Use the light color variant. */
+  /**
+   * Use the light color variant. The dark color has none, so `color="dark"`
+   * with `isLight` looks the same as without it, as a dark `Button` does.
+   */
   isLight?: boolean;
   /**
    * Shows a close (delete) button in the notification. It renders
@@ -147,9 +155,17 @@ export interface NotificationOptions {
    * other value the union accepts emits a class no CSS rule matches, so the
    * notification renders unstyled; those log a console warning in development
    * and will be removed from this union in the next major version.
+   *
+   * `dark` takes the dark color's own text and background from bestax's
+   * stylesheets, as a dark `Button` has. With Bulma's CSS alone, a dark
+   * notification's text inherits the color around it, which on a light page
+   * is one shade off its background.
    */
   color?: (typeof validColors)[number];
-  /** Use the light color variant. */
+  /**
+   * Use the light color variant. The dark color has none, so `color="dark"`
+   * with `isLight` looks the same as without it, as a dark `Button` does.
+   */
   isLight?: boolean;
   /** Duration in ms before auto-close. Default 3000. */
   duration?: number;

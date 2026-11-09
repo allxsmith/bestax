@@ -377,6 +377,7 @@ function SliderRangeFormDemo() {
 - Fully keyboard accessible with arrow keys
 - Focus states clearly visible
 - On a right-to-left page the native range mirrors, and the fill, the tick marks and the value bubble follow it, so a value of 25 fills from the right. A vertical slider still fills from the bottom.
+- In forced colors (Windows' contrast themes) the value bubble takes the page's own background, and every side of its arrow would be painted, drawing it as a square. bestax's styles outline the bubble in the system's text color there, and keep the arrow a triangle in that color, pointing at the thumb whichever side the bubble sits on.
 
 ---
 
