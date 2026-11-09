@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.67.0"
+    "version": "5.67.3"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -535,7 +535,7 @@
       "import": "import { ContextMenu } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 10,
-      "exampleCount": 9
+      "exampleCount": 8
     },
     {
       "name": "Control",

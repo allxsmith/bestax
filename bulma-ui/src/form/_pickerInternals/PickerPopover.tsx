@@ -2,7 +2,11 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../../helpers/classNames';
 import { useFocusTrap } from '../../helpers/useFocusTrap';
-import { usePortalContainer, usePortalProp } from '../../helpers/portal';
+import {
+  resolvePortalContainer,
+  usePopupContainer,
+  usePortalProp,
+} from '../../helpers/portal';
 import {
   LocalePortalScope,
   type PortalLocale,
@@ -88,7 +92,7 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
   followContent = false,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
-  const resolveContainer = usePortalContainer();
+  const popupContainer = usePopupContainer();
   // A portal has no server-rendered counterpart, so a panel open on the first
   // render stays in place on the server and while hydrating, and moves into
   // its portal once the client takes over, as Modal's `portal` does.
@@ -221,7 +225,7 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
   );
 
   if (isPortaled) {
-    const target = resolveContainer();
+    const target = resolvePortalContainer(popupContainer);
     return createPortal(
       <LocalePortalScope target={target} scope={localeScope}>
         {panel}
