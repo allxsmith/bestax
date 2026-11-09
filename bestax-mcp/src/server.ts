@@ -697,16 +697,43 @@ export async function createServer(
     async ({ component, query, limit }) => {
       const resolved = await resolveName(component);
       if (!resolved) return notFound(component);
-      const record = await loadComponent(resolved);
+      // A dot-path names a part, through a static that is a component of its
+      // own when it runs through one, as in get_props: `Stats.Stat.Label` is
+      // `Stat.Label`, whose examples are Stat's (#1578).
+      const loaded = await loadComponent(resolved);
+      const { record, focus } = dotPath(component)
+        ? await focusOn(loaded, component)
+        : { record: loaded, focus: undefined };
+      const part =
+        focus?.part && focus.part !== record.parts[0] ? focus.part : null;
       // An export documented with this record has the page's examples that use
       // it, and none when no example does (`InputBase`, beside `Input`'s).
       const documented = await documentedExport(component);
-      const name = documented?.name ?? record.name;
-      const examples = documented
+      const name = documented?.name ?? part?.path ?? record.name;
+      const using = documented
         ? record.examples.filter(e =>
             usesExport(e.code, documented.name, documented.entry.path)
           )
-        : record.examples;
+        : part
+          ? record.examples.filter(e =>
+              usesExport(e.code, part.path, part.path)
+            )
+          : record.examples;
+      // A part has the examples that use it, or all of its record's when none
+      // does, since those are the family's.
+      const examples = part && !using.length ? record.examples : using;
+      const through = focus?.asked
+        ? `${throughLine(focus.asked, part?.path ?? focus.wanted)} `
+        : '';
+      const which = part
+        ? using.length
+          ? `From \`${record.name}\`'s documentation page, the ones that use ` +
+            `\`${part.path}\`.`
+          : `No example on \`${record.name}\`'s documentation page uses ` +
+            `\`${part.path}\`, so these are all of \`${record.name}\`'s.`
+        : through &&
+          `\`${record.name}\` has no part \`${focus?.wanted}\`, so these are ` +
+            `all of its examples.`;
       if (documented && !examples.length) {
         return textResult(
           `\`${name}\` has no examples of its own. It is documented with ` +
@@ -752,7 +779,9 @@ export async function createServer(
         `# ${name} examples\n\n` +
           (documented
             ? `From \`${record.name}\`'s documentation page, the ones that use it.\n\n`
-            : '') +
+            : which
+              ? `${through}${which}\n\n`
+              : '') +
           renderExamples(shown) +
           (left.length > 0
             ? `\n\n**Not shown** under this limit, ${matches.length - shown.length} ` +
