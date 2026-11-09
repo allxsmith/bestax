@@ -84,9 +84,10 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   items are `ContextMenu.Item`/`ContextMenu.Divider`, which are `Dropdown`'s; no `open` prop,
   `onOpenChange` reports it; always put the same items in a visible `Dropdown` on the row too,
   since a context menu is only a shortcut),
-  `Steps value={i}/onStepClick items={[{label, icon?}]}` (child form is `Steps.Step`, not
-  `Steps.Item`). `Reveal cascade` staggers only its **direct children** — to stagger a grid,
-  put `<Reveal delay={i * 80}>` inside each `Cell`, not around the container.
+  `Steps value={i}/onStepClick items={[{label, icon?}]}` for a journey the user moves through,
+  such as a wizard or a checkout (child form is `Steps.Step`, not `Steps.Item`; a record of
+  what happened is `Timeline`). `Reveal cascade` staggers only its **direct children** — to
+  stagger a grid, put `<Reveal delay={i * 80}>` inside each `Cell`, not around the container.
 - **An empty list, table or search with no results is `EmptyState`**, not a hand-built `Box`
   of `Icon`, `Title` and `Buttons isCentered`:
   `<EmptyState icon="folder-open" title="No projects yet" titleAs="h3" description="…">` with
