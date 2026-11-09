@@ -19,6 +19,7 @@ import { DateRangeInput } from '../DateRangeInput';
 import { LocaleProvider } from '../../helpers/LocaleProvider';
 import { ColorInput } from '../ColorInput';
 import { TreeSelect } from '../TreeSelect';
+import { Modal } from '../../components/Modal';
 
 const Harness: React.FC<{
   appendToBody?: boolean;
@@ -213,6 +214,30 @@ describe('PickerPopover', () => {
     // panel is the parent dialog, which when portaled is a direct child of body.
     expect(inside.closest('[role="dialog"]')!.parentElement).toBe(
       document.body
+    );
+  });
+
+  it('renders into the Modal it is in when appendToBody', () => {
+    function InModal() {
+      const anchorRef = useRef<HTMLButtonElement>(null);
+      return (
+        <Modal active aria-label="Booking">
+          <button ref={anchorRef}>anchor</button>
+          <PickerPopover
+            isOpen
+            onClose={() => {}}
+            anchorRef={anchorRef}
+            appendToBody
+            ariaLabel="test"
+          >
+            <button>inside</button>
+          </PickerPopover>
+        </Modal>
+      );
+    }
+    render(<InModal />);
+    expect(screen.getByRole('dialog', { name: 'test' }).parentElement).toBe(
+      screen.getByTestId('modal')
     );
   });
 

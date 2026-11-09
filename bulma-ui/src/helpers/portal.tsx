@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { createContext, useContext } from 'react';
 import { createPortal } from 'react-dom';
 import { useIsHydrated } from './useIsHydrated';
 import { useConfig } from './Config';
@@ -52,6 +52,60 @@ export function usePortalContainer(): (
 ) => HTMLElement {
   const { portalContainer } = useConfig();
   return container => resolvePortalContainer(container || portalContainer);
+}
+
+/**
+ * The element the overlay around a popup hands it to portal into, `null`
+ * outside any, and inside one whose element hasn't mounted yet.
+ */
+const PortalScopeContext = createContext<HTMLElement | null>(null);
+
+/**
+ * INTERNAL, deliberately not exported from `src/index.ts`. Makes `node` where
+ * the popups inside it portal, unless a `ConfigProvider` sets a
+ * `portalContainer`. Modal, Dialog and Command.Dialog wrap their content in
+ * it, each with the element that carries their `aria-modal`, since a screen
+ * reader that honors it hides everything outside that element. The nearest
+ * one wins, so a Dialog's own box wins over the Modal it renders.
+ *
+ * @function PortalScope
+ * @param props - `node`, the element popups portal into, and `children`.
+ * @returns The children, inside the scope.
+ */
+export function PortalScope({
+  node,
+  children,
+}: {
+  node: HTMLElement | null;
+  children?: React.ReactNode;
+}) {
+  return (
+    <PortalScopeContext.Provider value={node}>
+      {children}
+    </PortalScopeContext.Provider>
+  );
+}
+
+/**
+ * INTERNAL. Where a popup portals, a panel a component opens against
+ * something on the page, such as Popover's: the `portalContainer` a
+ * `ConfigProvider` sets, else the overlay it's in (see `PortalScope`), else
+ * `undefined`, which `resolvePortalContainer` reads as `document.body`.
+ *
+ * The overlay's element only exists once it has mounted, so a popup open as
+ * the overlay first renders mounts in `document.body`, and moves into the
+ * overlay in the update that follows, before the browser paints. Moving
+ * remounts it, as any change of portal target does. It isn't held back
+ * instead, because the popups measure their panel against the trigger as
+ * they open, and a panel that isn't there yet is never placed.
+ *
+ * @function usePopupContainer
+ * @returns The popup's container, `undefined` for `document.body`.
+ */
+export function usePopupContainer(): string | HTMLElement | undefined {
+  const { portalContainer } = useConfig();
+  const scope = useContext(PortalScopeContext);
+  return portalContainer || scope || undefined;
 }
 
 /**
@@ -197,5 +251,27 @@ export function Portal({ children, container, disabled = false }: PortalProps) {
   return createPortal(
     <LocalePortalScope target={target}>{children}</LocalePortalScope>,
     target
+  );
+}
+
+/**
+ * INTERNAL. `Portal` for a popup, into the container `usePopupContainer`
+ * names, so a popup opened inside a Modal, Dialog or Command.Dialog stays
+ * inside it. `disabled` renders the children in place, as `Portal`'s does.
+ *
+ * @function PopupPortal
+ * @param props - The children, and `disabled`.
+ * @returns The portal, the children in place when `disabled`, or nothing
+ * before hydration.
+ */
+export function PopupPortal({
+  children,
+  disabled = false,
+}: Omit<PortalProps, 'container'>) {
+  const container = usePopupContainer();
+  return (
+    <Portal disabled={disabled} container={container}>
+      {children}
+    </Portal>
   );
 }
