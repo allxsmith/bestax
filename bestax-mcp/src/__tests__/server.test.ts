@@ -402,6 +402,18 @@ describe('get_component', () => {
     }
   });
 
+  // `Stats.Stat` is `Stat`, and the answer says so, since its heading names the
+  // part the way Stat's record does (#1480).
+  it('answers a dot-path through a static that is a component of its own', async () => {
+    const out = text(await call('get_component', { name: 'Stats.Stat.Value' }));
+    expect(out).toMatch(/^# Stat\.Value\n/);
+    expect(out).toContain(
+      '`Stats.Stat` is `Stat`, so `Stats.Stat.Value` is `Stat.Value`.'
+    );
+    expect(out).toContain('`Stat.Value` is a part of `Stat`');
+    expect(out).not.toContain('has no part');
+  });
+
   it('suggests a near miss instead of just refusing', async () => {
     const res = await call('get_component', { name: 'Buton' });
     expect(failed(res)).toBe(true);
@@ -641,6 +653,40 @@ describe('get_props', () => {
     expect(text(res)).toContain('Navbar.Brand');
   });
 
+  // `Stats.Stat` is `Stat`, so the rest of the path is a part of Stat's record,
+  // not of Stats' (#1480).
+  describe('a dot-path through a static that is a component of its own', () => {
+    it.each([
+      [{ component: 'Stats.Stat.Label' }],
+      [{ component: 'Stats', path: 'Stats.Stat.Label' }],
+      [{ component: 'stats.stat.label' }],
+    ])('answers with that part, for %j', async args => {
+      const res = await call('get_props', args);
+      expect(failed(res)).toBe(false);
+      const out = text(res);
+      expect(out).toMatch(/^### Stat\.Label$/m);
+      expect(out).toMatch(
+        /^`stats\.stat` is `Stat`, so `stats\.stat\.label`/im
+      );
+      expect(out).toContain(' is `Stat.Label`.');
+    });
+
+    it("lists the component's own parts when the rest names none", async () => {
+      const res = await call('get_props', { component: 'Stats.Stat.Nope' });
+      expect(failed(res)).toBe(true);
+      expect(text(res)).toContain('"Stat.Nope" is not a part of Stat');
+      expect(text(res)).toContain('"Stat.Label"');
+    });
+
+    // Only a part's `component` is followed: Combobox.Menu is no export of its
+    // own, so the rest of the path stays Combobox's and is not handed to Menu.
+    it('follows no part that is not a component of its own', async () => {
+      const res = await call('get_props', { component: 'Combobox.Menu.Item' });
+      expect(failed(res)).toBe(true);
+      expect(text(res)).toContain('is not a part of Combobox');
+    });
+  });
+
   it('explains that a hook has no props rather than returning nothing', async () => {
     const out = text(await call('get_props', { component: 'useBulmaClasses' }));
     expect(out).toContain('is not a component, so it has no prop table');
@@ -713,6 +759,43 @@ describe('get_css_variables', () => {
   it('asks for one of the two arguments when given neither', async () => {
     const res = await call('get_css_variables', {});
     expect(failed(res)).toBe(true);
+  });
+
+  // A part that is a component of its own is styled by that component's
+  // variables. They used to be the family's, so `Stats.Stat` was "Stats
+  // registers no CSS variables" (#1480).
+  describe('a part that is a component of its own', () => {
+    it.each([
+      ['Stats.Stat', 'Stat', '--bulma-stat-value-color', null],
+      ['Buttons.Button', 'Button', '--bulma-button-h', null],
+      ['Field.Control', 'Control', '--bulma-input-h', 'Field'],
+    ])(
+      'answers %s with the variables of %s',
+      async (path, component, variable, family) => {
+        const out = text(await call('get_css_variables', { component: path }));
+        expect(out).toMatch(new RegExp(`^\`${path}\` is \`${component}\`\\.`));
+        expect(out).toContain(`# ${component} CSS variables`);
+        expect(out).toContain(`\`${variable}\``);
+        const pointer = `get_css_variables({ component: "${family}" })`;
+        if (family) expect(out).toContain(pointer);
+        else expect(out).not.toContain('own variables are in');
+      }
+    );
+
+    it('answers a part of that component with its variables too', async () => {
+      const out = text(
+        await call('get_css_variables', { component: 'Stats.Stat.Label' })
+      );
+      expect(out).toMatch(/^`Stats\.Stat` is `Stat`, so /);
+      expect(out).toContain('# Stat CSS variables');
+    });
+
+    it("keeps a part with no component of its own on the family's", async () => {
+      const out = text(
+        await call('get_css_variables', { component: 'Navbar.Brand' })
+      );
+      expect(out).toMatch(/^# Navbar CSS variables/);
+    });
   });
 
   // The index named whichever declarer the generator read last, so DateInput's
@@ -2101,10 +2184,12 @@ describe('names an import line gives beside its component', () => {
 // and the exports a record documents, its related components and the one whose
 // variables style it, the CSS variable index, and what lookup_bulma_classes answers
 // for every class it has a root or a hint for. An import line's names include hooks,
-// functions and constants (#1465). Example code and skill bodies name components too,
-// and are not walked.
+// functions and constants (#1465). A part that is a component of its own
+// (`Stats.Stat`, which is `Stat`) hands out that component's parts through it too
+// (`Stats.Stat.Label`, #1480). Example code and skill bodies name components too, and
+// are not walked.
 describe('every component or part name an answer hands out', () => {
-  const NAME = /^[A-Za-z_$][\w$]*(?:\.[A-Z][A-Za-z0-9]*)?$/;
+  const NAME = /^[A-Za-z_$][\w$]*(?:\.[A-Z][A-Za-z0-9]*)*$/;
   const handed = new Map<string, string>();
   const examples = new Map<string, string>();
   const hand = (name: string, where: string) => {
@@ -2126,7 +2211,14 @@ describe('every component or part name an answer hands out', () => {
       for (const id of imported.split(',')) hand(id.trim(), `${name}'s import`);
       for (const part of record.parts) {
         hand(part.path, `${name}'s parts`);
-        if (part.component) hand(part.component, part.path);
+        if (!part.component) continue;
+        hand(part.component, part.path);
+        if (!catalog.components.some(c => c.name === part.component)) continue;
+        const { parts } = await loadComponent(part.component);
+        for (const sub of parts.slice(1)) {
+          const rest = sub.path.slice(part.component.length);
+          if (rest.startsWith('.')) hand(part.path + rest, part.path);
+        }
       }
       for (const related of record.related) hand(related, `${name}'s related`);
       if (record.cssVarsFrom) hand(record.cssVarsFrom, `${name}'s cssVarsFrom`);
@@ -2164,7 +2256,13 @@ describe('every component or part name an answer hands out', () => {
   it('resolves in get_props', async () => {
     expect(handed.size).toBeGreaterThan(150);
     expect([...handed.keys()]).toEqual(
-      expect.arrayContaining(['useDataTable', 'toast', 'validColors'])
+      expect.arrayContaining([
+        'Card.Header.Title',
+        'Stats.Stat.Label',
+        'useDataTable',
+        'toast',
+        'validColors',
+      ])
     );
     const refused: string[] = [];
     for (const [name, where] of handed) {

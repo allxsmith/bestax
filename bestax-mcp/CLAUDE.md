@@ -102,11 +102,14 @@ the API pages and the skill catalog.
   catalog's `documentedWith` resolves each name to its part. A name an import
   line gives that is no part at all, a hook (`useDataTable`), a function
   (`toast`) or a constant (`validColors`), has no path there: the tools answer
-  with its record and name the section of the page that documents it (#1465). A
-  sweep in `src/__tests__/server.test.ts` fails on a name from the catalog, a
-  record, `lookup_bulma_classes` or the library's `index.ts` that `get_props`
-  refuses (#1150, #1174). It reads that barrel from `bulma-ui/src`, so
-  `turbo.json` lists the library's source among this package's test inputs.
+  with its record and name the section of the page that documents it (#1465).
+  A dot-path through a part that is a component of its own goes on in that
+  component's record, by the part's `component`, so `Stats.Stat.Label` is
+  `Stat.Label` (#1480). A sweep in `src/__tests__/server.test.ts` fails on a
+  name from the catalog, a record, `lookup_bulma_classes` or the library's
+  `index.ts` that `get_props` refuses (#1150, #1174). It reads that barrel from
+  `bulma-ui/src`, so `turbo.json` lists the library's source among this
+  package's test inputs.
 
 ## Dependencies
 

@@ -385,10 +385,28 @@ export function referencePointer(record: ComponentRecord): string {
  * `Navbar.Brand` with Navbar's own table and no word about the switch (#935).
  */
 export interface PartFocus {
-  /** The dot-path as asked. */
+  /** The dot-path, as the record it names a part of spells it. */
   wanted: string;
   /** The part it names, or null when it names none. */
   part: Part | null;
+  /**
+   * The dot-path as asked, when it ran through a static that is a component
+   * of its own: `Stats.Stat.Label`, for `Stat.Label` (#1480).
+   */
+  asked?: string;
+}
+
+/**
+ * What a dot-path that ran through a static that is a component of its own
+ * names: `Stats.Stat` is `Stat`, so `Stats.Stat.Label` is `Stat.Label`. Each
+ * step keeps the rest of the path, so the static is the path as asked less
+ * the segments after the component's name.
+ */
+export function throughLine(asked: string, path: string): string {
+  const [component, ...rest] = path.split('.');
+  const segments = asked.split('.');
+  const via = segments.slice(0, segments.length - rest.length).join('.');
+  return `\`${via}\` is \`${component}\`, so \`${asked}\` is \`${path}\`.`;
 }
 
 /**
@@ -482,6 +500,9 @@ export function renderComponent(
     focus?.part && focus.part !== record.parts[0] ? focus.part : null;
   const out: string[] = [`# ${part ? part.path : record.name}`];
   if (lead) out.push(lead);
+  if (focus?.asked) {
+    out.push(throughLine(focus.asked, focus.part?.path ?? focus.wanted));
+  }
   if (part?.standalone) {
     out.push(
       `${standaloneLine(part, record.name)} The props are its own; any ` +
