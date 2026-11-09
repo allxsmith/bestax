@@ -625,7 +625,7 @@ export function importedNames(code) {
  * since `toast` and `notification` are words an example's text uses too.
  */
 export function importSection(lines, examples, name) {
-  const id = name.replace(/[$]/g, '\\$&');
+  const id = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const named = new RegExp(`(?<![\\w$.])${id}(?![\\w$])`);
   const mask = fenceMask(lines);
   for (const [i, line] of lines.entries()) {
