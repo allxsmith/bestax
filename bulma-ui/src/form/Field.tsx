@@ -132,9 +132,8 @@ export const FieldLabel: React.FC<FieldLabelProps> = ({
     [`is-${size}`]: !!size,
   });
   const fieldLabelClass = classNames(mainClass, bulmaHelperClasses, className);
-  // Spread ...props and ...rest so custom props like data-testid are included
   return (
-    <div className={fieldLabelClass} {...props} {...rest}>
+    <div className={fieldLabelClass} {...rest}>
       {children}
     </div>
   );
@@ -165,9 +164,8 @@ export const FieldBody: React.FC<FieldBodyProps> = ({
 
   const mainClass = usePrefixedClassNames('field-body');
   const fieldBodyClass = classNames(mainClass, bulmaHelperClasses, className);
-  // Spread ...props and ...rest so custom props like data-testid are included
   return (
-    <div className={fieldBodyClass} {...props} {...rest}>
+    <div className={fieldBodyClass} {...rest}>
       {children}
     </div>
   );

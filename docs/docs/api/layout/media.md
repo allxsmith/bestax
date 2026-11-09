@@ -61,7 +61,7 @@ This example demonstrates the `Media` component with its subcomponents: `Media.L
         be necessary.
       </Paragraph>
     </Content>
-    <Level isMobile>
+    <Level as="div" isMobile>
       <Level.Left>
         <Level.Item as="a">
           <Icon name="reply" variant="solid" size="small" />
@@ -103,7 +103,7 @@ This example shows the `Media` component used with form inputs. The `Media.Conte
         <TextArea placeholder="Add a comment..." />
       </Control>
     </Field>
-    <Level>
+    <Level as="div">
       <Level.Left>
         <Level.Item>
           <Button as="a" color="info">
@@ -283,6 +283,7 @@ In this variation, a button is placed below the input area within the `Media.Con
 - The Media root renders as a semantic `<article>` by default. Use `as="div"` for a generic container.
 - The left section is commonly used for avatars (as `<figure>`) and is screen-reader accessible.
 - Use clear and descriptive text in content and actions for best accessibility.
+- The `Level` rows in these examples hold actions, not navigation, so they pass `as="div"` rather than render Level's default `<nav>`, a navigation landmark.
 
 :::note
 When using only icons or controls, provide `aria-label` or screen-reader-only content as appropriate.
