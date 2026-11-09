@@ -1,6 +1,7 @@
 import React, {
   forwardRef,
   useCallback,
+  useId,
   useState,
   useRef,
   useEffect,
@@ -62,7 +63,11 @@ export interface DropdownProps
   onActiveChange?: (active: boolean) => void;
   /** Close dropdown when a menu item is clicked, or activated with Enter or Space. */
   closeOnClick?: boolean;
-  /** Root element ID (for aria-controls, etc). */
+  /**
+   * Root element ID. The trigger gets `<id>-trigger` and the menu `<id>-menu`,
+   * which the trigger's `aria-controls` and the menu's `aria-labelledby` point
+   * at. Without one, both ids come from `useId`.
+   */
   id?: string;
 }
 
@@ -116,6 +121,12 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
     const menuRef = useRef<HTMLDivElement>(null);
     const menuKeys = useMenuKeys();
     const pendingFocusRef = useRef<'first' | 'last' | null>(null);
+    // The trigger names the menu and the menu is what it controls, so both
+    // need an id whether or not the Dropdown has one.
+    const generatedId = useId();
+    const baseId = id || generatedId;
+    const triggerId = `${baseId}-trigger`;
+    const menuId = `${baseId}-menu`;
 
     // Cleanup returned by a consumer's callback ref on attach, held until detach.
     const consumerCleanupRef = useRef<(() => void) | null>(null);
@@ -347,9 +358,10 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
         <div className={usePrefixedClassNames('dropdown-trigger')}>
           <button
             ref={triggerRef}
+            id={triggerId}
             className={buttonClass}
             aria-haspopup="true"
-            aria-controls={id ? `${id}-menu` : undefined}
+            aria-controls={menuId}
             aria-expanded={active}
             onClick={handleToggle}
             onKeyDown={handleTriggerKeyDown}
@@ -370,9 +382,10 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
             usePrefixedClassNames('dropdown-menu'),
             menuClassName
           )}
-          id={id ? `${id}-menu` : undefined}
+          id={menuId}
           ref={menuRef}
           role="menu"
+          aria-labelledby={triggerId}
           data-testid="dropdown-menu"
           onKeyDown={handleMenuKeyDown}
           // The menu, not its content, takes focus from a click between items,
