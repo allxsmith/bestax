@@ -1272,7 +1272,7 @@
       "import": "import { Sidebar, SidebarHeader, SidebarTitle, SidebarClose, SidebarBody, SidebarFooter } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 22,
-      "exampleCount": 8
+      "exampleCount": 9
     },
     {
       "name": "Skeleton",
