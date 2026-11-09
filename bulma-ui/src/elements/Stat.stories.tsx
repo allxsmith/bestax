@@ -3,6 +3,9 @@ import { expect, within } from 'storybook/test';
 import { Stat } from './Stat';
 import { Stats } from './Stats';
 import { Box } from './Box';
+import { Paragraph } from './Paragraph';
+import { Title } from './Title';
+import { Grid } from '../grid/Grid';
 import { Button } from './Button';
 import { Icon } from './Icon';
 import { NumberFormatter } from './NumberFormatter';
@@ -363,36 +366,52 @@ export const InALocale: Story = {
     docs: {
       description: {
         story:
-          'Inside a LocaleProvider, the figures and the changes follow its locale: German, then Arabic from right to left. The provider goes around the row, since its wrapper can’t sit inside a list.',
+          'Inside a LocaleProvider, the figures and the changes follow its locale. German groups thousands with a dot and puts the euro sign after the figure; Arabic writes its own digits and lays the row out right to left. Each provider goes around its row, since its wrapper can’t sit inside a list.',
       },
     },
   },
   render: function InALocaleExample() {
     return (
-      <>
-        <LocaleProvider locale="de-DE">
-          <Stats minCol={8} gap={4}>
-            <Stat
-              label="Umsatz"
-              value={8456.4}
-              format={{ style: 'currency', currency: 'EUR' }}
-              change={-0.019}
-            />
-            <Stat label="Neukunden" value={1234} change={0.12} />
-          </Stats>
-        </LocaleProvider>
-        <LocaleProvider locale="ar-EG" dir="rtl">
-          <Stats minCol={8} gap={4}>
-            <Stat
-              label="الإيرادات"
-              value={8456.4}
-              format={{ style: 'currency', currency: 'EGP' }}
-              change={-0.019}
-            />
-            <Stat label="عملاء جدد" value={1234} change={0.12} />
-          </Stats>
-        </LocaleProvider>
-      </>
+      <Grid isFixed fixedCols={1} fixedColsDesktop={2} gap={5}>
+        <Box mb="0">
+          <Title as="h3" size="6" mb="2">
+            German
+          </Title>
+          <Paragraph mb="5">
+            <code>locale="de-DE"</code>
+          </Paragraph>
+          <LocaleProvider locale="de-DE">
+            <Stats minCol={8} gap={4}>
+              <Stat
+                label="Umsatz"
+                value={8456.4}
+                format={{ style: 'currency', currency: 'EUR' }}
+                change={-0.019}
+              />
+              <Stat label="Neukunden" value={1234} change={0.12} />
+            </Stats>
+          </LocaleProvider>
+        </Box>
+        <Box mb="0">
+          <Title as="h3" size="6" mb="2">
+            Arabic, right to left
+          </Title>
+          <Paragraph mb="5">
+            <code>locale="ar-EG" dir="rtl"</code>
+          </Paragraph>
+          <LocaleProvider locale="ar-EG" dir="rtl">
+            <Stats minCol={8} gap={4}>
+              <Stat
+                label="الإيرادات"
+                value={8456.4}
+                format={{ style: 'currency', currency: 'EGP' }}
+                change={-0.019}
+              />
+              <Stat label="عملاء جدد" value={1234} change={0.12} />
+            </Stats>
+          </LocaleProvider>
+        </Box>
+      </Grid>
     );
   },
 };
