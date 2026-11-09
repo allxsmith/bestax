@@ -1,3 +1,10 @@
+## [1.18.40](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.39...bestax-mcp@1.18.40) (2026-11-09)
+
+
+### Bug Fixes
+
+* **bulma-ui:** stop an inline picker's picks when it's disabled or readOnly ([c742785](https://github.com/allxsmith/bestax/commit/c742785a79559c7e0a354df06c7b7093320d1b43)), closes [#1437](https://github.com/allxsmith/bestax/issues/1437)
+
 ## [1.18.39](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.38...bestax-mcp@1.18.39) (2026-11-09)
 
 
