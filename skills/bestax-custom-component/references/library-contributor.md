@@ -177,6 +177,11 @@ Rules that keep components consistent:
   call `createPortal` itself, as `Modal` does to render in place until hydration, resolves its
   target with `usePortalContainer` from the same module, so the `portalContainer` a
   `ConfigProvider` sets reaches it too. Add it to `src/__tests__/portal-container.test.tsx`.
+  A popup, a panel opened against something on the page such as Popover's, goes through
+  `PopupPortal` instead, or reads `usePopupContainer` where it calls `createPortal` itself, so
+  inside a `Modal`, `Dialog` or `Command.Dialog` it portals into the dialog, where screen
+  readers that honor `aria-modal` reach it. A new overlay that sets `aria-modal` wraps its
+  content in `PortalScope`, given the element that carries it.
 
 - **Portaled content keeps the locale.** A component that calls `createPortal` itself wraps what
   it portals in `LocalePortalScope` (`helpers/LocaleProvider.tsx`), so the `dir` and `lang` of a

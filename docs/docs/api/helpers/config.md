@@ -149,6 +149,8 @@ function NestedExample() {
 
 `portalContainer` sets where portaled content goes when it has no target of its own. That covers a [`Portal`](./portal.md) with no `container`, and what the library's components portal, such as the panel `Popover` renders with `appendToBody`, a `Modal` or `Dialog` with `portal` set to `true`, a `Toast`, or a `Sidebar`. It takes an element or a `document.querySelector` selector. Unset, that content goes to `document.body`.
 
+A popup opened inside a `Modal`, `Dialog` or `Command.Dialog`, such as a `Popover`, `HoverCard` or `ContextMenu` panel, or a `Combobox` menu or picker popover with `appendToBody`, goes into that dialog instead of `document.body`. Each of those sets `aria-modal`, and a screen reader that honors it hides everything outside the dialog. A `portalContainer` you set still takes those popups, so with one set outside the dialog, point a `ConfigProvider` inside the dialog at an element there. A `Sidebar` doesn't do this: its open panel is transformed, which would place a fixed popup against the panel rather than the viewport.
+
 A target a component is given still wins, such as a `Modal`'s `portal` selector or a `Toast`'s `container`. And `portalContainer` only changes where portaled content goes: a component that renders in place, like a `Modal` without `portal` or a `Toast` with `inline`, still does.
 
 `document.body` is outside any styles scoped to where the content was declared: a scoped `Theme`'s variables, or a shadow root's stylesheets. To keep them, render an element inside that area and make it the `portalContainer`, held in state from a ref callback. Below, the panel keeps the purple primary its `Theme` sets, which it would lose at the end of the page:
