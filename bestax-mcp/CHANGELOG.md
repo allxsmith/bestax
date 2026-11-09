@@ -1,3 +1,14 @@
+## [1.18.44](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.43...bestax-mcp@1.18.44) (2026-11-09)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** write the element rbx's as and RBC's renderAs name in plain rewrites ([2d6647b](https://github.com/allxsmith/bestax/commit/2d6647be421249990341b58fc2ea2f56d873a766)), closes [#1622](https://github.com/allxsmith/bestax/issues/1622)
+* **bulma-ui:** read the vertical Tabs phone fallback from Bulma's breakpoint ([26143a7](https://github.com/allxsmith/bestax/commit/26143a7ab9933a98a511b86807495875ee04e214))
+* **bulma-ui:** shrink Carousel's arrows on a phone at Bulma's breakpoint ([488bf75](https://github.com/allxsmith/bestax/commit/488bf7579646141db418a0fd5d84743bc275870c))
+* **bulma-ui:** stack right-side vertical Tabs on a phone ([d41b6ff](https://github.com/allxsmith/bestax/commit/d41b6ff0b8d25d84078d71d54ec2e76a54ea8b5f))
+* **bulma-ui:** switch Steps' phone layouts and Sidebar's tablet width at Bulma's breakpoint ([60fd7ee](https://github.com/allxsmith/bestax/commit/60fd7ee6b9204c95ce2c2e680c5cec5953d8b740))
+
 ## [1.18.43](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.42...bestax-mcp@1.18.43) (2026-11-09)
 
 
