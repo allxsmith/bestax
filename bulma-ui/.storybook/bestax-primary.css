@@ -1,0 +1,56 @@
+/*
+ * The bestax blue as Bulma's primary, for Storybook only.
+ *
+ * Storybook loads Bulma's stock CSS, whose primary is turquoise, while
+ * bestax's own stylesheets build Bulma with `$primary: #1e6b99`. The hue,
+ * saturation, lightness, rgb and invert are the values the docs site's live
+ * previews use for the same job (docs/src/components/ShadowPreview/
+ * shadowStyles.js), so a story and a docs example show the same primary. The
+ * on-scheme lightness, the primary's text on the page, is the one bestax's
+ * build picks for the blue on each scheme: stock Bulma's was picked for
+ * turquoise, and on the blue it leaves a primary Message's text at 3.2:1 on
+ * the dark scheme. The shipped CSS doesn't read this file.
+ *
+ * Both Bulma sheets declare their palette under `:root` and again on their
+ * scheme attribute and class (`data-theme` for plain Bulma, `data-bulma-theme`
+ * for the prefixed build), so a story wrapped in one of those would get
+ * turquoise back. These rules name each of them in the order Bulma does, and
+ * preview.ts loads this file after both sheets, so they win on order with no
+ * `!important`. A Theme story that sets its own primary still wins: Theme
+ * writes later, or on the element itself.
+ */
+:root {
+  --bulma-primary-h: 202deg;
+  --bulma-primary-s: 67%;
+  --bulma-primary-l: 36%;
+  --bulma-primary-rgb: 30, 107, 153;
+  /* Stock Bulma's invert is dark, picked for turquoise. The darker blue
+     takes a light one, as bestax's own build picks. */
+  --bulma-primary-invert-l: var(--bulma-primary-100-l);
+  --bulma-primary-on-scheme-l: 30.8823529412%;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bulma-primary-on-scheme-l: 50.8823529412%;
+  }
+}
+
+[data-theme='light'],
+.theme-light,
+[data-bulma-theme='light'],
+.bulma-theme-light {
+  --bulma-primary-h: 202deg;
+  --bulma-primary-s: 67%;
+  --bulma-primary-l: 36%;
+  --bulma-primary-rgb: 30, 107, 153;
+  --bulma-primary-invert-l: var(--bulma-primary-100-l);
+  --bulma-primary-on-scheme-l: 30.8823529412%;
+}
+
+[data-theme='dark'],
+.theme-dark,
+[data-bulma-theme='dark'],
+.bulma-theme-dark {
+  --bulma-primary-on-scheme-l: 50.8823529412%;
+}
