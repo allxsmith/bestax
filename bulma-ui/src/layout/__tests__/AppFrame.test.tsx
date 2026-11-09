@@ -71,7 +71,7 @@ beforeEach(() => {
 
 afterEach(() => {
   delete (window as { matchMedia?: unknown }).matchMedia;
-  document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
 });
 
 /** A whole frame, with the props given to the root and to the nav. */
@@ -674,11 +674,11 @@ describe('AppFrame', () => {
       const onNavOpenChange = vi.fn();
       render(<Frame onNavOpenChange={onNavOpenChange} />);
       fireEvent.click(burger());
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
       viewport.resize(DESKTOP);
       expect(onNavOpenChange).toHaveBeenLastCalledWith(false);
       expect(nav()).not.toHaveClass('is-active');
-      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
       expect(screen.getByRole('banner')).not.toHaveAttribute('inert');
     });
 
@@ -689,7 +689,7 @@ describe('AppFrame', () => {
       expect(onNavOpenChange).toHaveBeenCalledWith(false);
       // A controlled open state is its owner's, and nothing of the drawer runs.
       expect(nav()).toHaveClass('is-active');
-      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
     });
 
     it('reads the latest callbacks', () => {
@@ -846,7 +846,7 @@ describe('AppFrame', () => {
         'inert'
       );
       expect(nav()).not.toHaveAttribute('inert');
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
       // Tab from the last stop wraps to the first, the close button.
       const filter = screen.getByRole('button', { name: 'Filter' });
       filter.focus();
@@ -884,7 +884,7 @@ describe('AppFrame', () => {
       openDrawer();
       fireEvent.keyDown(window, { key: 'Escape' });
       expect(screen.getByRole('banner')).not.toHaveAttribute('inert');
-      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
     });
 
     it('closes on Escape, marking it used', () => {
@@ -1242,7 +1242,7 @@ describe('AppFrame', () => {
       openDrawer({ nav: { overlay: false } });
       expect(document.querySelector('.app-frame-backdrop')).toBeNull();
       expect(screen.getByRole('banner')).not.toHaveAttribute('inert');
-      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
       expect(
         screen.getByRole('button', { name: 'Close navigation' })
       ).toHaveFocus();

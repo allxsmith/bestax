@@ -118,7 +118,7 @@ bloomer put `tag` on nearly every component; bestax declares `as` on a subset, s
 narrowed to a literal union, so a value outside the union is a type error you can see rather
 than a silent rewrite. The components whose `tag` becomes `as`:
 
-`Button`, `Image`, `Title`, `Subtitle`, `Footer`, `Media`, `MediaLeft`, `LevelItem`, `Control`,
+`Button`, `Image`, `Title`, `Subtitle`, `Footer`, `Media`, `MediaLeft`, `Level`, `LevelItem`, `Control`,
 `DropdownItem`, `MenuLink`, `NavbarItem`, `NavbarLink`, `Container`, `Hero`, `HeroHeader`,
 `HeroFooter`, `Panel`.
 
