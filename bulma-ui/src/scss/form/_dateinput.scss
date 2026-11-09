@@ -109,6 +109,10 @@ $dateinput-cell-range-preview-bg: color-mix(
     outline: 2px solid cv.getVar('dateinput-focus-ring-color');
     outline-offset: 2px;
   }
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 }
 
 .#{iv.$class-prefix}dateinput-month-caret {

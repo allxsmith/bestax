@@ -109,9 +109,17 @@ export interface DateInputBaseProps
   min?: Date;
   /** Latest selectable date. */
   max?: Date;
-  /** Disable the input. */
+  /**
+   * Disable the input. An `inline` calendar disables its days and header
+   * buttons, but its hidden input still submits the value, where a disabled
+   * input submits nothing.
+   */
   disabled?: boolean;
-  /** Make the input read-only. */
+  /**
+   * Make the input read-only. An `inline` calendar still moves through the
+   * dates by key and by its header, but a click, Enter or Space picks
+   * nothing.
+   */
   readOnly?: boolean;
   /** Placeholder text for the input. */
   placeholder?: string;
@@ -634,6 +642,8 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
         id={inline ? popoverId : `${popoverId}-cal`}
         autoFocusCell={open}
         labels={labels}
+        disabled={disabled}
+        readOnly={readOnly}
       />
     );
 
