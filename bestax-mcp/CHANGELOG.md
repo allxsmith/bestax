@@ -1,3 +1,11 @@
+## [1.18.45](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.44...bestax-mcp@1.18.45) (2026-11-09)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep a horizontal field's label against its control right to left ([d50b174](https://github.com/allxsmith/bestax/commit/d50b1746ac2c320e7298d6d815021065ea94fca9))
+* **bulma-ui:** put the pickers' background and text helpers on the field ([b35512a](https://github.com/allxsmith/bestax/commit/b35512a232d8da6b5d10d306ee68fd053ebe4add)), closes [#1469](https://github.com/allxsmith/bestax/issues/1469)
+
 ## [1.18.44](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.43...bestax-mcp@1.18.44) (2026-11-09)
 
 
