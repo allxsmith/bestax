@@ -14,9 +14,11 @@ import {
   DropdownItem,
   DropdownDivider,
   isBrowser,
+  type DropdownProps,
 } from '../Dropdown';
 import { ConfigProvider } from '../../helpers/Config';
 import { TYPEAHEAD_TIMEOUT } from '../../helpers/useMenuKeys';
+import { Modal } from '../Modal';
 
 describe('Dropdown', () => {
   test('renders label', () => {
@@ -1277,7 +1279,7 @@ describe('Dropdown keyboard navigation', () => {
     expect(onActiveChange).toHaveBeenCalledWith(false);
   });
 
-  test('Tab from a focused item closes the menu without blocking native focus movement', () => {
+  test('Tab at the end of the page closes the menu and leaves the key to the browser', () => {
     const onActiveChange = vi.fn();
     render(
       <Dropdown label="Menu" active onActiveChange={onActiveChange}>
@@ -1285,14 +1287,10 @@ describe('Dropdown keyboard navigation', () => {
       </Dropdown>
     );
     screen.getByText('First').focus();
-    const tab = createEvent.keyDown(screen.getByTestId('dropdown-menu'), {
-      key: 'Tab',
-    });
-    fireEvent(screen.getByTestId('dropdown-menu'), tab);
-    // The menu closes...
+    const tab = createEvent.keyDown(screen.getByText('First'), { key: 'Tab' });
+    fireEvent(screen.getByText('First'), tab);
     expect(onActiveChange).toHaveBeenCalledWith(false);
-    // ...but Tab is not preventDefault()'d, so the browser moves focus to the
-    // next control naturally (jsdom does not simulate that focus move itself).
+    // Nothing follows the Dropdown, so there's nowhere to move focus to.
     expect(tab.defaultPrevented).toBe(false);
   });
 
@@ -1397,6 +1395,132 @@ describe('Dropdown keyboard navigation', () => {
     expect(onActiveChange).toHaveBeenCalledWith(true);
     expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
     expect(screen.getByText('First')).toHaveFocus();
+  });
+});
+
+describe('Dropdown Tab from an open menu', () => {
+  // Closing hides the items as the key arrives, and Firefox then drops focus
+  // to the page from one of them, so Dropdown moves focus itself.
+  const renderPage = (props: Partial<DropdownProps>) =>
+    render(
+      <>
+        <button>Before</button>
+        <Dropdown label="Menu" {...props}>
+          <DropdownItem as="button">Rename</DropdownItem>
+          <DropdownItem as="button">Move</DropdownItem>
+          <DropdownItem as="button">Delete</DropdownItem>
+        </Dropdown>
+        <button>After</button>
+      </>
+    );
+  const press = (target: Element, shiftKey = false) => {
+    const event = createEvent.keyDown(target, { key: 'Tab', shiftKey });
+    fireEvent(target, event);
+    return event;
+  };
+
+  test.each(['Rename', 'Move', 'Delete'])(
+    'Tab from %s closes the menu and focuses what follows the Dropdown',
+    name => {
+      const onActiveChange = vi.fn();
+      renderPage({ active: true, onActiveChange });
+      screen.getByText(name).focus();
+      const tab = press(screen.getByText(name));
+      expect(tab.defaultPrevented).toBe(true);
+      expect(screen.getByRole('button', { name: 'After' })).toHaveFocus();
+      expect(onActiveChange).toHaveBeenCalledWith(false);
+      expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+    }
+  );
+
+  test.each(['Rename', 'Move', 'Delete'])(
+    'Shift+Tab from %s closes the menu and focuses the trigger',
+    name => {
+      const onActiveChange = vi.fn();
+      renderPage({ active: true, onActiveChange });
+      screen.getByText(name).focus();
+      const tab = press(screen.getByText(name), true);
+      expect(tab.defaultPrevented).toBe(true);
+      expect(screen.getByRole('button', { name: 'Menu' })).toHaveFocus();
+      expect(onActiveChange).toHaveBeenCalledWith(false);
+    }
+  );
+
+  test('works the same on a menu opened from the keyboard', async () => {
+    const user = userEvent.setup();
+    renderPage({});
+    screen.getByRole('button', { name: 'Menu' }).focus();
+    await user.keyboard('{ArrowDown}{ArrowDown}');
+    expect(screen.getByText('Move')).toHaveFocus();
+    const tab = press(screen.getByText('Move'));
+    expect(tab.defaultPrevented).toBe(true);
+    expect(screen.getByRole('button', { name: 'After' })).toHaveFocus();
+    expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+  });
+
+  test('a hoverable menu the pointer shows, not open, leaves Tab to the browser', () => {
+    renderPage({ hoverable: true });
+    screen.getByText('Move').focus();
+    const tab = press(screen.getByText('Move'));
+    expect(tab.defaultPrevented).toBe(false);
+    expect(screen.getByText('Move')).toHaveFocus();
+  });
+
+  test('a Tab something in the menu already used keeps the focus it gave', () => {
+    render(
+      <>
+        <Dropdown label="Menu" active>
+          <DropdownItem
+            as="button"
+            onKeyDown={e => {
+              if (e.key === 'Tab') e.preventDefault();
+            }}
+          >
+            Rename
+          </DropdownItem>
+        </Dropdown>
+        <button>After</button>
+      </>
+    );
+    screen.getByText('Rename').focus();
+    press(screen.getByText('Rename'));
+    expect(screen.getByText('Rename')).toHaveFocus();
+    expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+  });
+
+  describe('inside a Modal', () => {
+    const renderInModal = (after: boolean) =>
+      render(
+        <>
+          <Modal active onClose={() => {}}>
+            <Modal.Content>
+              <button>Modal first</button>
+              <Dropdown label="Menu" active>
+                <DropdownItem as="button">Rename</DropdownItem>
+                <DropdownItem as="button">Move</DropdownItem>
+              </Dropdown>
+              {after && <button>Modal after</button>}
+            </Modal.Content>
+          </Modal>
+          <button>Page after</button>
+        </>
+      );
+
+    test('Tab focuses what follows the Dropdown in the modal', () => {
+      renderInModal(true);
+      screen.getByText('Rename').focus();
+      const tab = press(screen.getByText('Rename'));
+      expect(tab.defaultPrevented).toBe(true);
+      expect(screen.getByRole('button', { name: 'Modal after' })).toHaveFocus();
+    });
+
+    test('Tab from the Dropdown at its end wraps to its first stop', () => {
+      renderInModal(false);
+      screen.getByText('Rename').focus();
+      const tab = press(screen.getByText('Rename'));
+      expect(tab.defaultPrevented).toBe(true);
+      expect(screen.getByRole('button', { name: 'Modal first' })).toHaveFocus();
+    });
   });
 });
 
@@ -1823,13 +1947,15 @@ describe('Dropdown with a field in its menu', () => {
     expect(screen.getByRole('button', { name: 'Menu' })).toHaveFocus();
   });
 
-  test('Tab in the field still closes the menu and lets focus move on', () => {
+  test('Tab in the field still closes the menu and moves focus past the Dropdown', () => {
     renderWithField();
+    render(<button>After</button>);
     field().focus();
     const tab = createEvent.keyDown(field(), { key: 'Tab' });
     fireEvent(field(), tab);
     expect(onActiveChange).toHaveBeenCalledWith(false);
-    expect(tab.defaultPrevented).toBe(false);
+    expect(tab.defaultPrevented).toBe(true);
+    expect(screen.getByRole('button', { name: 'After' })).toHaveFocus();
   });
 
   test('the arrows move between the items past the field', () => {

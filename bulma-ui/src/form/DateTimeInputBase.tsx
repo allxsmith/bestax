@@ -234,7 +234,10 @@ export interface DateTimeInputBaseProps
    * on the day the week does. With them, an unset `firstDayOfWeek` stays
    * Sunday even inside a `LocaleProvider`, so names written Sunday first keep
    * matching their columns; to start on the locale's day, set
-   * `firstDayOfWeek` too and list the names from that day.
+   * `firstDayOfWeek` too and list the names from that day. They also name
+   * the columns for assistive technology. Without them each column is named
+   * by its full weekday in the picker's locale, which a server-rendered
+   * calendar adds once the page hydrates.
    */
   dayNames?: string[];
   /** Override the 12 month-name labels. */
