@@ -232,10 +232,15 @@ describe('Dropdown', () => {
     // menuClassName
     expect(screen.getByTestId('dropdown-menu')).toHaveClass('my-menu');
     // id and aria-controls
-    expect(
-      screen.getByRole('button', { name: /with menu class/i })
-    ).toHaveAttribute('aria-controls', 'dropdown-id-menu');
+    const trigger = screen.getByRole('button', { name: /with menu class/i });
+    expect(trigger).toHaveAttribute('aria-controls', 'dropdown-id-menu');
+    expect(trigger.id).toBe('dropdown-id-trigger');
     expect(screen.getByTestId('dropdown-menu').id).toBe('dropdown-id-menu');
+    expect(screen.getByTestId('dropdown-menu')).toHaveAttribute(
+      'aria-labelledby',
+      'dropdown-id-trigger'
+    );
+    expect(screen.getByTestId('dropdown-root').id).toBe('dropdown-id');
   });
 
   test('applies up, right, hoverable, disabled class', () => {
@@ -301,15 +306,49 @@ describe('Dropdown', () => {
     expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
   });
 
-  test('renders without id and does not set aria-controls or menu id', () => {
+  test('without an id, the trigger still controls the menu and names it', () => {
     render(
-      <Dropdown label="NoID">
+      <Dropdown label="NoID" active>
         <DropdownItem>Item</DropdownItem>
       </Dropdown>
     );
-    const button = screen.getByRole('button', { name: /noid/i });
-    expect(button).not.toHaveAttribute('aria-controls');
-    expect(screen.getByTestId('dropdown-menu').id).toBe('');
+    const button = screen.getByRole('button', { name: 'NoID' });
+    const menu = screen.getByRole('menu', { name: 'NoID' });
+    expect(menu.id).not.toBe('');
+    expect(button).toHaveAttribute('aria-controls', menu.id);
+    expect(button.id).not.toBe('');
+    expect(menu).toHaveAttribute('aria-labelledby', button.id);
+    // The root keeps no id of its own.
+    expect(screen.getByTestId('dropdown-root')).not.toHaveAttribute('id');
+  });
+
+  test('the menu is named by the trigger label', () => {
+    render(
+      <Dropdown label="Actions" id="actions" active>
+        <DropdownItem as="button">Edit</DropdownItem>
+      </Dropdown>
+    );
+    expect(screen.getByRole('menu', { name: 'Actions' })).toBe(
+      screen.getByTestId('dropdown-menu')
+    );
+  });
+
+  test('Dropdowns without an id get ids of their own', () => {
+    render(
+      <>
+        <Dropdown label="First">
+          <DropdownItem>Item</DropdownItem>
+        </Dropdown>
+        <Dropdown label="Second">
+          <DropdownItem>Item</DropdownItem>
+        </Dropdown>
+      </>
+    );
+    const [first, second] = screen.getAllByTestId('dropdown-menu');
+    expect(first.id).not.toBe(second.id);
+    expect(screen.getByRole('button', { name: 'First' }).id).not.toBe(
+      screen.getByRole('button', { name: 'Second' }).id
+    );
   });
 
   test('applies classPrefix when provided via ConfigProvider', () => {
