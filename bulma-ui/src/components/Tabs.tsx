@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { isElementOf } from '../helpers/elementType';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { warnDeprecatedColorProp } from '../helpers/colorDeprecations';
 import { Icon } from '../elements/Icon';
@@ -281,9 +282,7 @@ const TabsComponent: React.FC<TabsProps> = ({
 
   // Check if children include TabsContent
   const childArray = React.Children.toArray(children);
-  const hasContent = childArray.some(
-    child => React.isValidElement(child) && child.type === TabsContent
-  );
+  const hasContent = childArray.some(child => isElementOf(child, TabsContent));
 
   const contextValue: TabsContextValue = {
     activeTab,
@@ -329,7 +328,7 @@ const TabsComponent: React.FC<TabsProps> = ({
     const listChildren: React.ReactNode[] = [];
     const contentChildren: React.ReactNode[] = [];
     childArray.forEach(child => {
-      if (React.isValidElement(child) && child.type === TabsContent) {
+      if (isElementOf(child, TabsContent)) {
         contentChildren.push(child);
       } else {
         listChildren.push(child);
@@ -356,7 +355,7 @@ const TabsComponent: React.FC<TabsProps> = ({
     const listChildren: React.ReactNode[] = [];
     const contentChildren: React.ReactNode[] = [];
     childArray.forEach(child => {
-      if (React.isValidElement(child) && child.type === TabsContent) {
+      if (isElementOf(child, TabsContent)) {
         contentChildren.push(child);
       } else {
         listChildren.push(child);

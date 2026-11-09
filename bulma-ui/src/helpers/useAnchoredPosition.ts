@@ -122,7 +122,9 @@ const samePosition = (a: AnchoredPosition, b: AnchoredPosition): boolean =>
  * anchor changes size, so a fixed panel follows its anchor and its own
  * content. Those measure once in the next frame, however many arrive before
  * it. With `followContent` it also measures after each render. A
- * measurement that changes nothing doesn't render again.
+ * measurement that changes nothing doesn't render again. A panel that's
+ * replaced while it's open, as a portal moving to another target replaces
+ * it, is watched from the next measurement on.
  *
  * The first measurement happens in a layout effect, so the panel is placed
  * before it paints. It needs both elements on the page while `active` is
@@ -160,10 +162,23 @@ export function useAnchoredPosition(
     const view =
       (anchorRef.current ?? panelRef.current)?.ownerDocument.defaultView ??
       window;
+    // The panel's content can change size without the component holding the
+    // hook rendering, as an image loading or a child's own state does, and
+    // so can the anchor. Set up below, once `update` exists.
+    let resizes: ResizeObserver | null = null;
+    // The panel being watched. A portal that moves to another target
+    // remounts the panel, as a popup that opens with the dialog it's in
+    // does, so each measurement watches the one that's there now.
+    let watched: HTMLElement | null = null;
     const update = () => {
       const anchor = anchorRef.current;
       const panel = panelRef.current;
       if (!anchor || !panel) return;
+      if (panel !== watched) {
+        if (watched) resizes?.unobserve(watched);
+        resizes?.observe(panel);
+        watched = panel;
+      }
       const rect = anchor.getBoundingClientRect();
       const measured = panel.getBoundingClientRect();
       // The width the panel has once it's at least as wide as the anchor.
@@ -203,8 +218,6 @@ export function useAnchoredPosition(
         : { position: corner };
       setResolved(prev => (samePosition(prev, next) ? prev : next));
     };
-    updateRef.current = update;
-    update();
 
     // A scroll, a resize or a change in size measures in the next frame,
     // once however many of them ask.
@@ -216,17 +229,14 @@ export function useAnchoredPosition(
         update();
       });
     };
+    const Observer = view.ResizeObserver;
+    resizes = typeof Observer === 'undefined' ? null : new Observer(schedule);
+    if (anchorRef.current) resizes?.observe(anchorRef.current);
+
+    updateRef.current = update;
+    update();
     view.addEventListener('resize', schedule, { passive: true });
     view.addEventListener('scroll', schedule, { passive: true, capture: true });
-    // The panel's content can change size without the component holding the
-    // hook rendering, as an image loading or a child's own state does, and
-    // so can the anchor.
-    const Observer = view.ResizeObserver;
-    const resizes =
-      typeof Observer === 'undefined' ? null : new Observer(schedule);
-    for (const element of [anchorRef.current, panelRef.current]) {
-      if (element) resizes?.observe(element);
-    }
     return () => {
       updateRef.current = null;
       view.cancelAnimationFrame(frame);

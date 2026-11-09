@@ -5,6 +5,7 @@ import {
   prefixedClassNames,
 } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { isElementOf } from '../helpers/elementType';
 import {
   type AnchorOnlyAttributes,
   ANCHOR_ONLY_ATTRS,
@@ -74,19 +75,17 @@ export interface CardProps
  * @returns {boolean} True if any child is a Card compound component.
  */
 const hasCompoundComponents = (children: React.ReactNode): boolean => {
-  return React.Children.toArray(children).some(child => {
-    if (!React.isValidElement(child)) return false;
-
-    // Direct comparison with our compound component functions
-    return (
-      child.type === CardHeader ||
-      child.type === CardContent ||
-      child.type === CardImage ||
-      child.type === CardFooter ||
-      child.type === CardFooterItem ||
-      child.type === CardHeaderIcon
-    );
-  });
+  return React.Children.toArray(children).some(child =>
+    isElementOf(
+      child,
+      CardHeader,
+      CardContent,
+      CardImage,
+      CardFooter,
+      CardFooterItem,
+      CardHeaderIcon
+    )
+  );
 };
 
 /**
@@ -440,11 +439,8 @@ const CardHeaderComponent: React.FC<CardHeaderProps> = ({
   });
 
   // Check if children contains a CardHeaderTitle component
-  const hasHeaderTitle = React.Children.toArray(children).some(
-    child =>
-      React.isValidElement(child) &&
-      typeof child.type === 'function' &&
-      child.type === CardHeaderTitle
+  const hasHeaderTitle = React.Children.toArray(children).some(child =>
+    isElementOf(child, CardHeaderTitle)
   );
 
   const headerClasses = usePrefixedClassNames('card-header');

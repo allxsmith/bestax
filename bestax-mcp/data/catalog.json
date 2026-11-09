@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.67.1"
+    "version": "5.67.3"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -535,7 +535,7 @@
       "import": "import { ContextMenu } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 10,
-      "exampleCount": 9
+      "exampleCount": 8
     },
     {
       "name": "Control",
@@ -3973,6 +3973,69 @@
       "component": "TreeView",
       "path": "TreeView.Item",
       "purpose": "One item in the tree: a row with its chevron, its box, its icon and its label, and, while it's open, a group of the items under it."
-    }
+    },
+    "createPrefixedClassNames": {
+      "component": "usePrefixedClassNames",
+      "purpose": "",
+      "section": "Reusable prefixer: `createPrefixedClassNames`"
+    },
+    "dialog": {
+      "component": "Dialog",
+      "purpose": "",
+      "section": "Programmatic API"
+    },
+    "notification": {
+      "component": "Notification",
+      "purpose": "",
+      "section": "Programmatic API"
+    },
+    "prefixedClassNames": {
+      "component": "usePrefixedClassNames",
+      "purpose": "",
+      "section": "Outside a component: `prefixedClassNames`"
+    },
+    "toast": {
+      "component": "Toast",
+      "purpose": "",
+      "section": "Programmatic API"
+    },
+    "useAppFrame": {
+      "component": "AppFrame",
+      "purpose": "",
+      "section": "A Toggle of Your Own"
+    },
+    "useConfig": {
+      "component": "ConfigProvider",
+      "purpose": "",
+      "section": "useConfig"
+    },
+    "useDataTable": {
+      "component": "DataTable",
+      "purpose": "",
+      "section": "The useDataTable Hook"
+    },
+    "useIsHydrated": {
+      "component": "ClientOnly",
+      "purpose": "",
+      "section": "useIsHydrated"
+    },
+    "useLocale": {
+      "component": "LocaleProvider",
+      "purpose": "",
+      "section": "useLocale"
+    },
+    "useNumberFormat": {
+      "component": "NumberFormatter",
+      "purpose": "",
+      "section": "The useNumberFormat Hook"
+    },
+    "useScrollSpy": {
+      "component": "TableOfContents",
+      "purpose": "",
+      "section": "The useScrollSpy Hook"
+    },
+    "validColors": { "component": "Valid value constants", "purpose": "" },
+    "validSizes": { "component": "Valid value constants", "purpose": "" },
+    "validViewports": { "component": "Valid value constants", "purpose": "" }
   }
 }

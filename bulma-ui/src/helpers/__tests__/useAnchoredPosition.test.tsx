@@ -184,9 +184,12 @@ describe('useAnchoredPosition with matchWidth', () => {
 const Above = ({
   height,
   followContent,
+  panelKey,
 }: {
   height: number;
   followContent?: boolean;
+  /** A new key replaces the panel element, as a portal that moves does. */
+  panelKey?: string;
 }) => {
   const anchorRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -200,7 +203,7 @@ const Above = ({
   return (
     <>
       <button ref={anchorRef}>anchor</button>
-      <div ref={panelRef} data-height={height} />
+      <div key={panelKey} ref={panelRef} data-height={height} />
       <output>{resolved.top}</output>
     </>
   );
@@ -262,7 +265,9 @@ describe('following the panel and the anchor', () => {
     observe(target: Element) {
       this.observed.push(target);
     }
-    unobserve() {}
+    unobserve(target: Element) {
+      this.observed = this.observed.filter(watched => watched !== target);
+    }
     disconnect() {
       this.disconnected = true;
     }
@@ -309,6 +314,25 @@ describe('following the panel and the anchor', () => {
     expect(observer().observed).toEqual([screen.getByRole('button'), panel()]);
     unmount();
     expect(observer().disconnected).toBe(true);
+  });
+
+  it('watches a panel that replaces the one it opened with, from the next measurement', () => {
+    // A portal moving to another target remounts the panel, as one that
+    // opens with the dialog it's in does, and nothing renders the hook.
+    const { rerender } = render(<Above height={200} panelKey="first" />);
+    const first = panel();
+    rerender(<Above height={200} panelKey="second" />);
+    const second = panel();
+    expect(second).not.toBe(first);
+
+    // The anchor's first report, after layout, measures again. Compared by
+    // identity: the two panels are equal nodes.
+    act(() => observer().fire());
+    nextFrame();
+    const [anchor, watched, ...rest] = observer().observed;
+    expect(anchor).toBe(screen.getByRole('button'));
+    expect(watched).toBe(second);
+    expect(rest).toHaveLength(0);
   });
 
   it('measures once a frame, however many scrolls, resizes and size changes ask', () => {

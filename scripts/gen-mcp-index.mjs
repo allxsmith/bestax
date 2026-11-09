@@ -49,6 +49,7 @@ import {
   sectionSpans,
   sectionBody,
   firstSentence,
+  fenceMask,
 } from './lib/api-page.mjs';
 import {
   assertSkillsVetted,
@@ -607,6 +608,42 @@ export function standaloneTables(
   return out;
 }
 
+/** The identifiers an import line gives, in its order. */
+export function importedNames(code) {
+  return (code.match(/\{([^}]*)\}/)?.[1] ?? '')
+    .split(',')
+    .map(id => id.trim())
+    .filter(id => /^[A-Za-z_$][\w$]*$/.test(id));
+}
+
+/**
+ * The section of a page that documents a name its import line gives beside the
+ * component, such as the hook `useDataTable` beside `DataTable`: the first `##`
+ * or `###` heading that names it (`### The useDataTable Hook`), else the title
+ * of the first usage example that calls it (`useAppFrame()`, under "A Toggle of
+ * Your Own"), else the first `##` section whose code calls it (`toast.show()`,
+ * under "Programmatic API"). Null when none does. A call rather than a mention,
+ * since `toast` and `notification` are words an example's text uses too.
+ */
+export function importSection(lines, examples, name) {
+  const id = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const named = new RegExp(`(?<![\\w$.])${id}(?![\\w$])`);
+  const mask = fenceMask(lines);
+  for (const [i, line] of lines.entries()) {
+    const heading = !mask[i] && line.match(/^#{2,3}[ \t]+(.+?)[ \t]*$/);
+    if (heading && named.test(heading[1])) return heading[1];
+  }
+  const called = new RegExp(`(?<![\\w$.])${id}(?:\\.\\w+)?\\(`);
+  const example = examples.find(e => called.test(e.code));
+  if (example) return example.title;
+  let section = null;
+  for (const [i, line] of lines.entries()) {
+    if (!mask[i]) section = line.match(/^##[ \t]+(.+?)[ \t]*$/)?.[1] ?? section;
+    else if (section && called.test(line)) return section;
+  }
+  return null;
+}
+
 /**
  * Each export with no catalog entry of its own that a record documents, with
  * the record and the part that is its table: the standalone parts above, which
@@ -618,8 +655,21 @@ export function standaloneTables(
  * declares it (`Dropdown.Item`), whose part is the same component. `subs` maps
  * an implementation name to the part that declares it, and `exported` is every
  * value name the barrel exports.
+ *
+ * Last, what an import line gives beside its component that is no part of any
+ * record: a hook (`useDataTable`), a function (`toast`) or a constant
+ * (`validColors`). `imported` maps each to the record whose import line gives
+ * it and the section of that page that documents it (`importSection`). It has
+ * no table, so no `path`, and its `section` is left out when the page has none
+ * for it (#1465).
  */
-export function documentedWith(components, titles, subs, exported) {
+export function documentedWith(
+  components,
+  titles,
+  subs,
+  exported,
+  imported = new Map()
+) {
   const out = {};
   const purposeOf = summary =>
     summary ? clipAtWord(firstSentence(summary)) : '';
@@ -650,6 +700,10 @@ export function documentedWith(components, titles, subs, exported) {
   }
   for (const [impl, home] of subs) {
     if (exported.has(impl)) claim(impl, home.component, home.path);
+  }
+  for (const [name, { component, section }] of imported) {
+    if (titles.has(name) || Object.hasOwn(out, name)) continue;
+    out[name] = { component, purpose: '', ...(section ? { section } : {}) };
   }
   return Object.fromEntries(
     Object.entries(out).sort((a, b) => byCodePoint(a[0], b[0]))
@@ -968,6 +1022,9 @@ export async function build() {
   const cssVarIndex = {};
   const categoryList = [];
   const subs = new Map();
+  // What each page's import line gives beside its component, for
+  // `documentedWith`, with the section of the page that documents it.
+  const imported = new Map();
   // Every name with a page of its own, which is a catalog entry.
   const titles = new Set(
     categories.flatMap(({ pages }) => pages.map(({ fm }) => fm.title))
@@ -1101,6 +1158,13 @@ export async function build() {
 
       record = withAbsoluteLinks(record, relPath);
       components.set(name, record);
+      for (const id of importedNames(record.import)) {
+        if (titles.has(id) || imported.has(id)) continue;
+        imported.set(id, {
+          component: name,
+          section: importSection(lines, record.examples, id),
+        });
+      }
       members.push(name);
       // A family is its root and its sub-components. The exports documented
       // beside it (`InputBase`) are not, and `Input` is no compound for them.
@@ -1141,7 +1205,13 @@ export async function build() {
         .sort((a, b) => byCodePoint(a[0], b[0]))
         .map(([css, names]) => [css, orderDeclarers(css, names)])
     ),
-    documentedWith: documentedWith(components, titles, subs, barrelExports()),
+    documentedWith: documentedWith(
+      components,
+      titles,
+      subs,
+      barrelExports(),
+      imported
+    ),
   };
 
   return {

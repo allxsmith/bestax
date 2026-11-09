@@ -3,6 +3,7 @@ import { Columns } from './Columns';
 import type { BulmaGapValue } from '../grid/Grid';
 import { Column } from './Column';
 import { Notification } from '../elements/Notification';
+import { Paragraph } from '../elements/Paragraph';
 
 const meta: Meta<typeof Columns> = {
   title: 'Columns/Columns',
@@ -258,24 +259,34 @@ export const NarrowColumns: StoryObj = {
 };
 
 // --- GAPLESS STORY ---
+// Square corners and alternating tones, so the columns tile with no gap and
+// each one's edge still shows.
 export const Gapless: StoryObj = {
   render: () => (
     <>
-      <p style={{ marginBottom: 16 }}>
+      <Paragraph mb="4">
         The <code>isGapless</code> prop removes the gap between columns.
-      </p>
+      </Paragraph>
       <Columns isGapless>
         <Column>
-          <Notification color="primary">1</Notification>
+          <Notification color="primary" radius="radiusless">
+            1
+          </Notification>
         </Column>
         <Column>
-          <Notification color="primary">2</Notification>
+          <Notification color="primary" isLight radius="radiusless">
+            2
+          </Notification>
         </Column>
         <Column>
-          <Notification color="primary">3</Notification>
+          <Notification color="primary" radius="radiusless">
+            3
+          </Notification>
         </Column>
         <Column>
-          <Notification color="primary">4</Notification>
+          <Notification color="primary" isLight radius="radiusless">
+            4
+          </Notification>
         </Column>
       </Columns>
     </>
@@ -283,40 +294,82 @@ export const Gapless: StoryObj = {
 };
 
 // --- MULTILINE GAPLESS STORY ---
+// Square corners, and three tones placed so that no two columns that touch
+// share one, so each column's edge shows with no gap between them. Each
+// Column is a flex container whose Notification grows, so a tile fills its
+// row's height when a narrow screen wraps a label.
 export const MultilineGapless: StoryObj = {
   render: () => (
     <>
-      <p style={{ marginBottom: 16 }}>
+      <Paragraph mb="4">
         You can combine <code>isGapless</code> and <code>isMultiline</code> to
         create dense, wrapping columns.
-      </p>
+      </Paragraph>
       <Columns isGapless isMultiline isMobile>
-        <Column size="one-quarter">
-          <Notification color="primary">is-one-quarter</Notification>
+        <Column size="one-quarter" display="flex" flexDirection="column">
+          <Notification color="primary" radius="radiusless" flexGrow="1">
+            is-one-quarter
+          </Notification>
         </Column>
-        <Column size="one-quarter">
-          <Notification color="primary">is-one-quarter</Notification>
+        <Column size="one-quarter" display="flex" flexDirection="column">
+          <Notification
+            color="primary"
+            isLight
+            radius="radiusless"
+            flexGrow="1"
+          >
+            is-one-quarter
+          </Notification>
         </Column>
-        <Column size="one-quarter">
-          <Notification color="primary">is-one-quarter</Notification>
+        <Column size="one-quarter" display="flex" flexDirection="column">
+          <Notification color="primary" radius="radiusless" flexGrow="1">
+            is-one-quarter
+          </Notification>
         </Column>
-        <Column size="one-quarter">
-          <Notification color="primary">is-one-quarter</Notification>
+        <Column size="one-quarter" display="flex" flexDirection="column">
+          <Notification
+            color="primary"
+            isLight
+            radius="radiusless"
+            flexGrow="1"
+          >
+            is-one-quarter
+          </Notification>
         </Column>
-        <Column size="half">
-          <Notification color="primary">is-half</Notification>
+        <Column size="half" display="flex" flexDirection="column">
+          <Notification color="info" radius="radiusless" flexGrow="1">
+            is-half
+          </Notification>
         </Column>
-        <Column size="one-quarter">
-          <Notification color="primary">is-one-quarter</Notification>
+        <Column size="one-quarter" display="flex" flexDirection="column">
+          <Notification
+            color="primary"
+            isLight
+            radius="radiusless"
+            flexGrow="1"
+          >
+            is-one-quarter
+          </Notification>
         </Column>
-        <Column size="one-quarter">
-          <Notification color="primary">is-one-quarter</Notification>
+        <Column size="one-quarter" display="flex" flexDirection="column">
+          <Notification color="info" radius="radiusless" flexGrow="1">
+            is-one-quarter
+          </Notification>
         </Column>
-        <Column size="one-quarter">
-          <Notification color="primary">is-one-quarter</Notification>
+        <Column size="one-quarter" display="flex" flexDirection="column">
+          <Notification
+            color="primary"
+            isLight
+            radius="radiusless"
+            flexGrow="1"
+          >
+            is-one-quarter
+          </Notification>
         </Column>
-        <Column>
-          <Notification color="primary">Auto</Notification>
+        <Column display="flex" flexDirection="column">
+          <Notification color="primary" radius="radiusless" flexGrow="1">
+            Auto
+          </Notification>
         </Column>
       </Columns>
     </>
