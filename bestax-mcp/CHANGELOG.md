@@ -1,3 +1,12 @@
+## [1.18.39](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.38...bestax-mcp@1.18.39) (2026-11-09)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep Control's and the Field parts' helper props off the DOM ([e044c03](https://github.com/allxsmith/bestax/commit/e044c030148c1e1846e450d1e5af746ead890f63))
+* **bulma-ui:** name Dropdown's menu after its trigger, with or without an id ([3e6e693](https://github.com/allxsmith/bestax/commit/3e6e6938d0ef62b49a57bf2349339417b221d7a3)), closes [#1442](https://github.com/allxsmith/bestax/issues/1442)
+* **docs:** lift the overlays live examples open above the site's navbar ([4859e97](https://github.com/allxsmith/bestax/commit/4859e974578cc3ad1c591941e9a4299e52ff6256)), closes [#1467](https://github.com/allxsmith/bestax/issues/1467)
+
 ## [1.18.38](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.37...bestax-mcp@1.18.38) (2026-11-09)
 
 

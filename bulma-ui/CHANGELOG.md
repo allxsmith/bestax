@@ -1,3 +1,14 @@
+## [5.67.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.0...@allxsmith/bestax-bulma@5.67.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** give a part that is a component of its own that component's variables ([7c491cf](https://github.com/allxsmith/bestax/commit/7c491cfe6af4c3eeed43984190433cc4da70be2e)), closes [#1480](https://github.com/allxsmith/bestax/issues/1480)
+* **bestax-mcp:** resolve a dot-path through a static that is a component of its own ([7f0126f](https://github.com/allxsmith/bestax/commit/7f0126f148664fd40aeaca80d2520b5df9c1e959)), closes [#1480](https://github.com/allxsmith/bestax/issues/1480)
+* **bulma-ui:** keep Control's and the Field parts' helper props off the DOM ([e044c03](https://github.com/allxsmith/bestax/commit/e044c030148c1e1846e450d1e5af746ead890f63))
+* **bulma-ui:** name Dropdown's menu after its trigger, with or without an id ([3e6e693](https://github.com/allxsmith/bestax/commit/3e6e6938d0ef62b49a57bf2349339417b221d7a3)), closes [#1442](https://github.com/allxsmith/bestax/issues/1442)
+* **docs:** lift the overlays live examples open above the site's navbar ([4859e97](https://github.com/allxsmith/bestax/commit/4859e974578cc3ad1c591941e9a4299e52ff6256)), closes [#1467](https://github.com/allxsmith/bestax/issues/1467)
+
 # [5.67.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.66.2...@allxsmith/bestax-bulma@5.67.0) (2026-11-09)
 
 
