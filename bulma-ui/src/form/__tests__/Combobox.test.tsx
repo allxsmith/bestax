@@ -1675,6 +1675,20 @@ describe('Combobox', () => {
         expect(menu.style.left).toBe('600px');
       });
 
+      it('portals the panel into the Modal it is in, placed at the field', () => {
+        // Open as the Modal first renders, the panel is placed even though
+        // the Modal's element only turns up after that first commit.
+        render(
+          <Modal active aria-label="Shipping">
+            <CountrySelect defaultOpen appendToBody />
+          </Modal>
+        );
+        const menu = listbox().closest('.dropdown-menu') as HTMLElement;
+        expect(menu.parentElement).toBe(screen.getByTestId('modal'));
+        expect(menu.style.top).toBe('136px');
+        expect(menu.style.left).toBe('40px');
+      });
+
       it('lines a right corner up with the field at its own width', () => {
         render(
           <CountrySelect defaultOpen appendToBody position="bottom-right" />

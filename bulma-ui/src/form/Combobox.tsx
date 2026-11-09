@@ -10,7 +10,7 @@ import React, {
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
-import { Portal } from '../helpers/portal';
+import { PopupPortal } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { flattenChildren } from '../helpers/flattenChildren';
@@ -151,13 +151,12 @@ interface ComboboxBaseProps
   position?: PopoverPosition;
   /**
    * Renders the menu through `Portal`, into the `portalContainer` a
-   * `ConfigProvider` sets, `document.body` by default, fixed to the viewport
-   * at the field, so a container that clips its overflow can't cut it off.
-   * It then shows from the commit after hydration, never in server markup.
-   * Theming variables set on an ancestor reach it only when the portal's
-   * container is inside that ancestor, as with Popover. In a `Modal`, point
-   * `portalContainer` inside the modal, so the list stays in the dialog for
-   * assistive tech.
+   * `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog`
+   * it's in, else `document.body`, fixed to the viewport at the field, so a
+   * container that clips its overflow can't cut it off. It then shows from
+   * the commit after hydration, never in server markup. Theming variables set
+   * on an ancestor reach it only when the portal's container is inside that
+   * ancestor, as with Popover.
    * @defaultValue false
    */
   appendToBody?: boolean;
@@ -947,7 +946,7 @@ export const ComboboxMenu: React.FC<ComboboxMenuProps> = ({
   if (!shown) return null;
 
   return (
-    <Portal disabled={!appendToBody}>
+    <PopupPortal disabled={!appendToBody}>
       <div
         {...props}
         ref={panelRef}
@@ -974,7 +973,7 @@ export const ComboboxMenu: React.FC<ComboboxMenuProps> = ({
       >
         <div className={contentClass}>{children}</div>
       </div>
-    </Portal>
+    </PopupPortal>
   );
 };
 ComboboxMenu.displayName = 'ComboboxMenu';

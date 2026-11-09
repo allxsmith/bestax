@@ -233,17 +233,24 @@ function SplitButton() {
 
 ## Accessibility
 
-- The dropdown root is a `<div class="dropdown">` with ARIA roles/attributes for menu and trigger.
-- The trigger button uses `aria-haspopup`, `aria-controls`, and `aria-expanded`.
-- Menu items are focusable and use `role="menuitem"`. An item given `role="menuitemcheckbox"` or `role="menuitemradio"` stays in the arrow-key order.
-- The items are the only focusable things inside `role="menu"`. A click between them, on a divider say, focuses the menu itself, so the arrow keys still reach the items from there.
+- The trigger is a `<button>` with `aria-haspopup="true"` and `aria-expanded`, and its
+  `aria-controls` points at the menu, with or without an `id` on the Dropdown.
+- The menu is `role="menu"`, and `aria-labelledby` names it after the trigger, so a screen
+  reader moving into it hears the trigger's label. That makes the `label` the menu's name too,
+  so a trigger that shows only an icon needs text a screen reader can read, as in the
+  [split button](#split-button).
+- Each item is `role="menuitem"`. An item given `role="menuitemcheckbox"` or
+  `role="menuitemradio"` stays in the arrow-key order.
+- A click between items, on a divider say, focuses the menu itself, so the arrow keys still
+  reach the items from there.
 - `Dropdown.Item as="button"` defaults to `type="button"`, so a menu item inside a form doesn't
   submit it. Pass `type="submit"` or `type="reset"` and yours is used instead; any other value
   renders `type="button"`.
-- Clicking outside closes the dropdown in most cases.
+- Pressing outside an open menu closes it.
 
-`Dropdown` implements the [WAI-ARIA Menu Button pattern](https://www.w3.org/WAI/ARIA/apg/patterns/menu-button/)
-out of the box:
+The keyboard follows the [WAI-ARIA Menu Button pattern](https://www.w3.org/WAI/ARIA/apg/patterns/menu-button/).
+Unlike the pattern's menu items, each item is also a tab stop, so <kbd>Tab</kbd> from the
+trigger of a `hoverable` menu the pointer holds open goes through its items.
 
 - On the trigger: <kbd>ArrowDown</kbd> or <kbd>Enter</kbd>/<kbd>Space</kbd> open the menu and
   focus the first item; <kbd>ArrowUp</kbd> opens the menu and focuses the last item;
@@ -308,22 +315,22 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Dropd
 
 <!-- bestax:generated props -->
 
-| Prop             | Type                                                   | Default | Description                                                                   |
-| ---------------- | ------------------------------------------------------ | ------- | ----------------------------------------------------------------------------- |
-| `label`          | `React.ReactNode`                                      | —       | The dropdown button/trigger content.                                          |
-| `children`       | `React.ReactNode`                                      | —       | Dropdown menu items and dividers.                                             |
-| `className`      | `string`                                               | —       | Additional CSS classes for root.                                              |
-| `menuClassName`  | `string`                                               | —       | Additional CSS classes for the dropdown menu.                                 |
-| `active`         | `boolean`                                              | —       | Whether the dropdown is open (controlled).                                    |
-| `up`             | `boolean`                                              | `false` | Dropdown menu opens upward.                                                   |
-| `right`          | `boolean`                                              | `false` | Menu is right-aligned.                                                        |
-| `hoverable`      | `boolean`                                              | `false` | Open on hover instead of click.                                               |
-| `disabled`       | `boolean`                                              | `false` | Disables the dropdown trigger.                                                |
-| `onActiveChange` | `(active: boolean) => void`                            | —       | Callback when dropdown active state changes.                                  |
-| `closeOnClick`   | `boolean`                                              | `true`  | Close dropdown when a menu item is clicked, or activated with Enter or Space. |
-| `id`             | `string`                                               | —       | Root element ID (for aria-controls, etc).                                     |
-| `ref`            | `React.Ref<HTMLDivElement>`                            | —       | Ref forwarded to the root dropdown element.                                   |
-| `...`            | All standard `<div>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                             |
+| Prop             | Type                                                   | Default | Description                                                                                                                                                                                        |
+| ---------------- | ------------------------------------------------------ | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`          | `React.ReactNode`                                      | —       | The dropdown button/trigger content.                                                                                                                                                               |
+| `children`       | `React.ReactNode`                                      | —       | Dropdown menu items and dividers.                                                                                                                                                                  |
+| `className`      | `string`                                               | —       | Additional CSS classes for root.                                                                                                                                                                   |
+| `menuClassName`  | `string`                                               | —       | Additional CSS classes for the dropdown menu.                                                                                                                                                      |
+| `active`         | `boolean`                                              | —       | Whether the dropdown is open (controlled).                                                                                                                                                         |
+| `up`             | `boolean`                                              | `false` | Dropdown menu opens upward.                                                                                                                                                                        |
+| `right`          | `boolean`                                              | `false` | Menu is right-aligned.                                                                                                                                                                             |
+| `hoverable`      | `boolean`                                              | `false` | Open on hover instead of click.                                                                                                                                                                    |
+| `disabled`       | `boolean`                                              | `false` | Disables the dropdown trigger.                                                                                                                                                                     |
+| `onActiveChange` | `(active: boolean) => void`                            | —       | Callback when dropdown active state changes.                                                                                                                                                       |
+| `closeOnClick`   | `boolean`                                              | `true`  | Close dropdown when a menu item is clicked, or activated with Enter or Space.                                                                                                                      |
+| `id`             | `string`                                               | —       | Root element ID. The trigger gets `<id>-trigger` and the menu `<id>-menu`, which the trigger's `aria-controls` and the menu's `aria-labelledby` point at. Without one, both ids come from `useId`. |
+| `ref`            | `React.Ref<HTMLDivElement>`                            | —       | Ref forwarded to the root dropdown element.                                                                                                                                                        |
+| `...`            | All standard `<div>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                  |
 
 **Subcomponents:**
 
