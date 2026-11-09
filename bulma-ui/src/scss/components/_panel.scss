@@ -1,0 +1,31 @@
+// Bestax Extras - Panel Styles
+// Bulma paints a panel's heading in the text color and writes its title in
+// `text-invert`, unless the panel has a color of its own. The dark scheme
+// lightens the text color but leaves `text-invert` near white, so on that
+// scheme a panel with no color has white text on a light gray heading.
+//
+// Text is chosen to read on the page background, so the page background
+// reads on text too. This gives the panel the scheme's own background
+// lightness as its `text-invert`, near white on the light scheme as before
+// and near black on the dark one. The heading is the only part of Bulma's
+// panel that reads `text-invert`. A colored panel takes the heading's text
+// from its own color's invert, so this leaves it as it is.
+//
+// Bulma declares `--bulma-text-invert-l` on the root and the panel's heading
+// variables on the panel, which resolve `var()` against the panel's own value,
+// so this reaches the heading whichever order Bulma's CSS and this partial
+// load in. Something inside a panel that reads `text-invert` itself, such as
+// the `has-text-text-invert` helper, gets the same value.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+$panel-text-invert-l: cv.getVar('scheme-main-l') !default;
+
+.#{iv.$class-prefix}panel {
+  @include cv.register-vars(
+    (
+      'text-invert-l': #{$panel-text-invert-l},
+    )
+  );
+}

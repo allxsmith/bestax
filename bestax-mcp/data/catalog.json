@@ -3197,6 +3197,7 @@
     "--bulma-taginput-padding": ["Taginput"],
     "--bulma-taginput-tag-gap": ["Taginput"],
     "--bulma-taginput-transition-duration": ["Taginput"],
+    "--bulma-text-invert-l": ["Panel"],
     "--bulma-textarea-max-height": ["TextArea"],
     "--bulma-textarea-min-height": ["TextArea"],
     "--bulma-textarea-padding": ["TextArea"],

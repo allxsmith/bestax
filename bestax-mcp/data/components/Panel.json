@@ -48,7 +48,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
           "default": null,
-          "description": "Bulma color modifier for the panel.",
+          "description": "Bulma color modifier for the panel. With none, the heading takes the text color, with its title in the page background's color so it reads on both schemes. On the dark scheme that title color comes from bestax's stylesheets: Bulma's CSS alone writes it white on light gray there.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -449,6 +449,12 @@
     }
   ],
   "cssVars": [
+    {
+      "css": "--bulma-text-invert-l",
+      "sass": "$panel-text-invert-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "root"
+    },
     {
       "css": "--bulma-panel-margin",
       "sass": "$panel-margin",

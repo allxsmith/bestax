@@ -82,7 +82,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
 `toast`, `dialog`, `carousel`, `lightbox`, `tabs`, `menu`, `tableofcontents`, `reveal`, `avatar`, `avatars`,
 `badge`, `emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`,
-`pagination`, `affix`, `navbar`
+`pagination`, `affix`, `navbar`, `panel`
 
 **Layout** (`@allxsmith/bestax-bulma/scss/layout/<name>`): `appframe`, `splitter`, `stack`
 
@@ -143,6 +143,15 @@ Notes:
   ```scss
   @use 'bulma/sass/components/navbar';
   @use '@allxsmith/bestax-bulma/scss/components/navbar' as bestax-navbar;
+  ```
+
+- The `panel` partial **extends** stock Bulma panel (it keeps the heading of a panel with no
+  `color` readable on the dark scheme, where Bulma writes it white on light gray), so an app
+  using `Panel` needs both, in either order:
+
+  ```scss
+  @use 'bulma/sass/components/panel';
+  @use '@allxsmith/bestax-bulma/scss/components/panel' as bestax-panel;
   ```
 
 - The `file` partial **extends** stock Bulma file (File's keyboard focus ring, and the rounded
