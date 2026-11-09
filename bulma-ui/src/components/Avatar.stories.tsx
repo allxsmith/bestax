@@ -4,6 +4,9 @@ import { Avatar } from './Avatar';
 import { Block } from '../elements/Block';
 import { Button } from '../elements/Button';
 import { Icon } from '../elements/Icon';
+import { Paragraph } from '../elements/Paragraph';
+import { Group } from '../layout/Group';
+import { Stack } from '../layout/Stack';
 
 const meta: Meta<typeof Avatar> = {
   title: 'Components/Avatar',
@@ -172,27 +175,34 @@ export const LazyLoadedImage: Story = {
   },
 };
 
-// Forwarded ref — measure the root element, whichever one `as`/`href` selected
+// Forwarded ref: measure the root element, whichever one `as` or `href` selected
 const AvatarForwardedRefDemo = () => {
   const avatarRef = React.useRef<HTMLElement>(null);
-  const [size, setSize] = React.useState<string>('');
+  const [size, setSize] = React.useState<string | null>(null);
 
   return (
-    <>
-      <Button
-        mb="3"
-        onClick={() => {
-          const rect = avatarRef.current?.getBoundingClientRect();
-          setSize(
-            rect ? `${Math.round(rect.width)}x${Math.round(rect.height)}` : ''
-          );
-        }}
-      >
-        Measure the avatar
-      </Button>
-      <Avatar ref={avatarRef} name="Ada Lovelace" size="64x64" />
-      {size && <p>{size}</p>}
-    </>
+    <Stack>
+      <Group>
+        <Avatar ref={avatarRef} name="Ada Lovelace" size="64x64" />
+        <Button
+          onClick={() => {
+            const rect = avatarRef.current?.getBoundingClientRect();
+            setSize(
+              rect
+                ? `${Math.round(rect.width)} × ${Math.round(rect.height)}`
+                : null
+            );
+          }}
+        >
+          Measure the avatar
+        </Button>
+      </Group>
+      <Paragraph role="status">
+        {size
+          ? `The avatar's root element measures ${size} pixels.`
+          : "Press the button to measure the avatar's root element through its ref."}
+      </Paragraph>
+    </Stack>
   );
 };
 

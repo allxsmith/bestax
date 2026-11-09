@@ -105,3 +105,20 @@ export function SiteFooter() {
     </>
   );
 }
+
+export function Stats() {
+  return (
+    <>
+      <Level as="div" isMobile>
+        <Level.Item textAlign="centered">
+          <Title as="p">1,234</Title>
+        </Level.Item>
+      </Level>
+      <Level as="header">
+        <Level.Left>
+          <Level.Item as="p">Posts</Level.Item>
+        </Level.Left>
+      </Level>
+    </>
+  );
+}

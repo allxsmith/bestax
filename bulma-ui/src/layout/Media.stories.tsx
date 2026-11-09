@@ -40,7 +40,7 @@ export const Default: StoryObj<typeof Media> = {
             would be necessary.
           </p>
         </div>
-        <Level isMobile>
+        <Level as="div" isMobile>
           <Level.Left>
             <Level.Item as="a">
               <span className="icon is-small">
@@ -85,7 +85,7 @@ export const WithInputs: StoryObj<typeof Media> = {
             <TextArea className="textarea" placeholder="Add a comment..." />
           </Control>
         </Field>
-        <Level>
+        <Level as="div">
           <Level.Left>
             <Level.Item>
               <Button as="a" color="info">

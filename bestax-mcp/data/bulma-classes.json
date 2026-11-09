@@ -2248,7 +2248,7 @@
       "status": "mapped",
       "target": "Level",
       "tag": "nav",
-      "as": null,
+      "as": ["nav", "div", "header", "footer"],
       "sizeDrivesTag": false,
       "textColor": "textColor",
       "bgColor": "bgColor",

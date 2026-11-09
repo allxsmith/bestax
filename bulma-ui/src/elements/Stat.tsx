@@ -8,6 +8,7 @@ import {
 import { withSubComponents } from '../helpers/withSubComponents';
 import { isGiven } from '../helpers/isGiven';
 import { flattenChildren } from '../helpers/flattenChildren';
+import { isElementOf } from '../helpers/elementType';
 import { useNumberFormat } from '../helpers/localeFormat';
 import { warnOnce } from '../helpers/devWarnings';
 import { NumberFormatter } from './NumberFormatter';
@@ -451,7 +452,7 @@ const StatRoot = forwardRef<HTMLElement, StatProps>(
     // component isn't seen.
     const parts = flattenChildren(children);
     const hasPart = (type: unknown) =>
-      parts.some(part => React.isValidElement(part) && part.type === type);
+      parts.some(part => isElementOf(part, type));
     const hasValuePart = hasPart(StatValue);
     const labelled = isGiven(label) || hasPart(StatLabel);
     // Without a label, the figure has no name and the values no term.

@@ -124,7 +124,8 @@ export interface ColorInputBaseProps
   position?: PickerPosition;
   /**
    * Renders the panel through a portal, into the `portalContainer` a
-   * `ConfigProvider` sets, `document.body` by default.
+   * `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog` it's
+   * in, else `document.body`.
    */
   appendToBody?: boolean;
   /** Bulma color modifier for the field. */

@@ -117,9 +117,17 @@ export interface DateInputBaseProps
   min?: Date;
   /** Latest selectable date. */
   max?: Date;
-  /** Disable the input. */
+  /**
+   * Disable the input. An `inline` calendar disables its days and header
+   * buttons, but its hidden input still submits the value, where a disabled
+   * input submits nothing.
+   */
   disabled?: boolean;
-  /** Make the input read-only. */
+  /**
+   * Make the input read-only. An `inline` calendar still moves through the
+   * dates by key and by its header, but a click, Enter or Space picks
+   * nothing.
+   */
   readOnly?: boolean;
   /** Placeholder text for the input. */
   placeholder?: string;
@@ -167,7 +175,14 @@ export interface DateInputBaseProps
    * the two can differ.
    */
   locale?: string;
-  /** Render the calendar inline (no popover). */
+  /**
+   * Render the calendar inline (no popover).
+   * On a server-rendered page it marks today once the page hydrates, by
+   * the browser's clock rather than the server's. With no `value` or
+   * `defaultValue` it opens on the month the clock reads, and around the end
+   * of a month the server's clock and the browser's can read different
+   * months, so give it a date both render the same.
+   */
   inline?: boolean;
   /**
    * Use `<input type="date">` on coarse-pointer + small-viewport devices. At
@@ -202,7 +217,8 @@ export interface DateInputBaseProps
   position?: PickerPosition;
   /**
    * Render the popover through a portal, into the `portalContainer` a
-   * `ConfigProvider` sets, `document.body` by default.
+   * `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog` it's
+   * in, else `document.body`.
    */
   appendToBody?: boolean;
   /**
@@ -644,6 +660,8 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
         id={inline ? popoverId : `${popoverId}-cal`}
         autoFocusCell={open}
         labels={labels}
+        disabled={disabled}
+        readOnly={readOnly}
       />
     );
 
