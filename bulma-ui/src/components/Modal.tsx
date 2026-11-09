@@ -13,6 +13,7 @@ import {
   prefixedClassNames,
 } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { isElementOf } from '../helpers/elementType';
 import { buttonType } from '../helpers/buttonType';
 import {
   useBulmaClasses,
@@ -555,13 +556,8 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   }, [isModalActive, isPortaled, portal, defaultTarget]);
 
   // Check if children contain compound components
-  const hasCompoundComponents = React.Children.toArray(children).some(
-    child =>
-      React.isValidElement(child) &&
-      (child.type === ModalBackground ||
-        child.type === ModalContent ||
-        child.type === ModalCard ||
-        child.type === ModalClose)
+  const hasCompoundComponents = React.Children.toArray(children).some(child =>
+    isElementOf(child, ModalBackground, ModalContent, ModalCard, ModalClose)
   );
 
   // Generate Bulma classes with prefix
