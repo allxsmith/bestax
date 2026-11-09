@@ -81,9 +81,12 @@ export interface ModalProps
    */
   closeOnEscape?: boolean;
   /**
-   * Lock body scroll while the modal is active. Ref-counted and shared with
-   * `Dialog`, `Sidebar` and `Loading`, so whichever overlay closes first does
-   * not unlock the page underneath one that is still open.
+   * Lock page scroll while the modal is active, padding the page by the room
+   * its scrollbar took so the content stays put. An element fixed to the
+   * window's right edge, such as a `fixed` Navbar, isn't padded, and moves by
+   * the scrollbar's width while the page is locked. Ref-counted and shared
+   * with `Dialog`, `Sidebar` and `Loading`, so whichever overlay closes first
+   * does not unlock the page underneath one that is still open.
    * @defaultValue true
    */
   lockScroll?: boolean;

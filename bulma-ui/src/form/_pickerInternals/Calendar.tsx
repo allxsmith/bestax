@@ -14,6 +14,7 @@ import {
 import { useConfig } from '../../helpers/Config';
 import { getActiveElementInTree } from '../../helpers/shadowDom';
 import { visuallyHidden } from '../../helpers/statusRegion';
+import { useIsHydrated } from '../../helpers/useIsHydrated';
 import {
   DateGranularity,
   DateRangeValue,
@@ -655,8 +656,13 @@ export const Calendar: React.FC<CalendarProps> = ({
   const yearsGridClass = usePrefixedClassNames('dateinput-years-grid');
 
   const focusedYear = focusedDate.getFullYear();
-  const today = new Date();
-  const todayYear = today.getFullYear();
+  // Today is the reader's, so it's marked only once the page has hydrated: a
+  // server render and the render hydrating it mark no day, month or year,
+  // and the commit after marks the browser's own. A calendar mounted after
+  // hydration marks it from its first render.
+  const hydrated = useIsHydrated();
+  const today = hydrated ? new Date() : null;
+  const todayYear = today?.getFullYear();
 
   // The header steps a month at a time over the day grid and a year at a
   // time over the month grid, kept inside min/max. A step is off once the
@@ -1027,6 +1033,7 @@ export const Calendar: React.FC<CalendarProps> = ({
                       .join(' ') || undefined
                   : undefined;
                 const isFocused = isSameDay(cell.date, tabStopDay);
+                const isToday = hydrated && cell.isToday;
                 const otherMonth = !cell.inCurrentMonth;
                 const cellClass = prefixedClassNames(
                   classPrefix,
@@ -1037,7 +1044,7 @@ export const Calendar: React.FC<CalendarProps> = ({
                     'is-range-end': isEnd,
                     'is-in-range': inRange,
                     'is-preview': isPreview,
-                    'is-today': cell.isToday,
+                    'is-today': isToday,
                     'is-disabled': disabled,
                     'is-other-month': otherMonth,
                   }
@@ -1051,7 +1058,7 @@ export const Calendar: React.FC<CalendarProps> = ({
                     tabIndex={isFocused ? 0 : -1}
                     aria-selected={isSelected}
                     aria-disabled={disabled}
-                    aria-current={cell.isToday ? 'date' : undefined}
+                    aria-current={isToday ? 'date' : undefined}
                     aria-describedby={describedBy}
                     data-focused={isFocused ? 'true' : undefined}
                     disabled={disabled || !display}
@@ -1104,7 +1111,7 @@ export const Calendar: React.FC<CalendarProps> = ({
                 const disabled = disabledMonths[month];
                 const isSelected = !!value && isSameMonth(value, date);
                 const isFocused = month === tabStopMonth;
-                const isCurrent = isSameMonth(date, today);
+                const isCurrent = !!today && isSameMonth(date, today);
                 const cellClass = prefixedClassNames(
                   classPrefix,
                   'dateinput-month-cell',

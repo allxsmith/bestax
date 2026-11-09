@@ -140,7 +140,7 @@
       "props": [
         {
           "name": "name",
-          "type": "string | undefined",
+          "type": "string",
           "default": null,
           "description": "The icon name, with or without its library prefix (e.g. `'star'` or `'fa-star'`). Mutually exclusive with `children`.",
           "required": false,

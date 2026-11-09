@@ -141,6 +141,7 @@ describe('AS_UNIONS matches the `as` each bestax component declares', () => {
       'Hero.Foot',
       'Hero.Head',
       'Image',
+      'Level',
       'Level.Item',
       'Media',
       'Media.Left',
