@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.66.2"
+    "version": "5.67.5"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -535,7 +535,7 @@
       "import": "import { ContextMenu } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 10,
-      "exampleCount": 9
+      "exampleCount": 8
     },
     {
       "name": "Control",
@@ -3973,6 +3973,69 @@
       "component": "TreeView",
       "path": "TreeView.Item",
       "purpose": "One item in the tree: a row with its chevron, its box, its icon and its label, and, while it's open, a group of the items under it."
-    }
+    },
+    "createPrefixedClassNames": {
+      "component": "usePrefixedClassNames",
+      "purpose": "Bind the prefix once and reuse the returned function.",
+      "section": "Reusable prefixer: `createPrefixedClassNames`"
+    },
+    "dialog": {
+      "component": "Dialog",
+      "purpose": "For showing dialogs from anywhere in your app, use the programmatic API.",
+      "section": "Programmatic API"
+    },
+    "notification": {
+      "component": "Notification",
+      "purpose": "To show a notification from anywhere in your app, not just where you render one, use the `notification` API.",
+      "section": "Programmatic API"
+    },
+    "prefixedClassNames": {
+      "component": "usePrefixedClassNames",
+      "purpose": "When you already know the prefix (or might not have one), pass it as the first argument.",
+      "section": "Outside a component: `prefixedClassNames`"
+    },
+    "toast": {
+      "component": "Toast",
+      "purpose": "For showing toasts from anywhere in your app, use the programmatic API.",
+      "section": "Programmatic API"
+    },
+    "useAppFrame": {
+      "component": "AppFrame",
+      "purpose": "`useAppFrame()` gives a control inside the frame the same state the burger has: `navOpen`, `navCollapsed`, `isDrawer`, a setter for each, `navId` for its…",
+      "section": "A Toggle of Your Own"
+    },
+    "useConfig": {
+      "component": "ConfigProvider",
+      "purpose": "Returns the current configuration context values.",
+      "section": "useConfig"
+    },
+    "useDataTable": {
+      "component": "DataTable",
+      "purpose": "`useDataTable` takes the same columns, data and state options as `DataTable` and returns the table.",
+      "section": "The useDataTable Hook"
+    },
+    "useIsHydrated": {
+      "component": "ClientOnly",
+      "purpose": "Returns `false` during server rendering and during the hydrating client render, then `true` from the commit that follows.",
+      "section": "useIsHydrated"
+    },
+    "useLocale": {
+      "component": "LocaleProvider",
+      "purpose": "Returns the `locale` and `dir` the nearest provider sets, both `undefined` outside one.",
+      "section": "useLocale"
+    },
+    "useNumberFormat": {
+      "component": "NumberFormatter",
+      "purpose": "`useNumberFormat` returns a function that writes numbers the way `NumberFormatter` does, for the text JSX can't hold an element in: an `aria-label`, a…",
+      "section": "The useNumberFormat Hook"
+    },
+    "useScrollSpy": {
+      "component": "TableOfContents",
+      "purpose": "`useScrollSpy` is what picks the current section, and it returns its id, or `null`.",
+      "section": "The useScrollSpy Hook"
+    },
+    "validColors": { "component": "Valid value constants", "purpose": "" },
+    "validSizes": { "component": "Valid value constants", "purpose": "" },
+    "validViewports": { "component": "Valid value constants", "purpose": "" }
   }
 }

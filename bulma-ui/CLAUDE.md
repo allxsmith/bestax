@@ -166,11 +166,14 @@ either one is fixed.
   a `CompoundUsage` story, and a `### Compound (dot-notation) usage` live example at the
   end of the API page's `## Usage` section. Prefer exporting subs by name from the same
   module so identity tests are possible.
-  A parent that arranges its parts by comparing `child.type` with a part lays out wrong when
-  the parts are written in a React Server Component, because they reach the client as lazy
-  references (#1500). Don't add a new comparison like that: let the part find its parent
-  through context, the way `SegmentedControl.Segment` does. Anything the docs say works from a
-  Server Component needs a real Next.js build behind it, since jsdom has no server boundary.
+  Compare parts through `isElementOf` (`src/helpers/elementType.ts`), never `child.type ===`.
+  A part written in a React Server Component reaches the client as a client reference, whose
+  element type is lazy rather than the part's own function, so a raw comparison is false there
+  and the parent lays the part out wrong (#1500). `isElementOf` reads through the lazy type,
+  and `src/__tests__/part-type-checks.test.ts` fails on a raw comparison. A new compound that
+  can let its parts find it through context instead, the way `SegmentedControl.Segment`
+  does, needs no check at all. Anything the docs say works from a Server Component needs a
+  real Next.js build behind it, since jsdom has no server boundary.
 - Components must work with a custom class prefix (`ConfigProvider`) — tests assert
   `bestax-`-prefixed class output; never hardcode a `"button"`-style class string outside the
   classname helpers (`usePrefixedClassNames`).

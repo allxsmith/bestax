@@ -199,9 +199,12 @@ export const CopyButton = forwardRef<HTMLButtonElement, CopyButtonProps>(
     // the button takes focus or a click, rather than once as it mounts,
     // since Modal and Sidebar keep their content mounted while closed, and
     // only an open one is `aria-modal`. A region that moves starts empty, so
-    // it doesn't say the last outcome again. This lookup can go once the
-    // overlays hand their content their own root as its portal container
-    // (#1471).
+    // it doesn't say the last outcome again. The popups inside a Modal,
+    // Dialog or Command.Dialog portal into it on their own, but this lookup
+    // stays: it finds a modal dialog the library didn't render too, such as
+    // a `<dialog>` opened with `showModal()`, and unlike theirs, it wins over
+    // a `portalContainer`, since a live region outside the dialog says
+    // nothing.
     const [dialog, setDialog] = useState<HTMLElement | null>(null);
     const placeRegion = (button: HTMLElement) => {
       const next = closestModalDialog(button);

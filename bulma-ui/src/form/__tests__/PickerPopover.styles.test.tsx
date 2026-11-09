@@ -20,6 +20,8 @@ import type { PickerPosition } from '../_pickerInternals/pickerTypes';
 /** The partial, compiled under each class prefix, by prefix. */
 const sheets: Record<string, HTMLStyleElement> = {};
 
+// A hook keeps Vitest's 10s default rather than `testTimeout`, and
+// sass-embedded's start can take longer than that on a loaded machine.
 beforeAll(() => {
   for (const [prefix, source] of Object.entries({
     '': `@use 'form/picker-popover';`,
@@ -31,7 +33,7 @@ beforeAll(() => {
     document.head.appendChild(el);
     sheets[prefix] = el;
   }
-});
+}, 30_000);
 
 afterAll(() => {
   for (const el of Object.values(sheets)) el.remove();

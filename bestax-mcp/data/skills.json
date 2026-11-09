@@ -6,16 +6,16 @@
       "promptName": "custom-component",
       "dir": "bestax-custom-component",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 16568 },
+        { "id": "api", "file": "references/api.md", "bytes": 16863 },
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
-          "bytes": 27117
+          "bytes": 26902
         },
         {
           "id": "library-contributor",
           "file": "references/library-contributor.md",
-          "bytes": 23311
+          "bytes": 23738
         },
         { "id": "patterns", "file": "references/patterns.md", "bytes": 4632 }
       ],
@@ -29,7 +29,7 @@
       "promptName": "form",
       "dir": "bestax-form",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 33178 },
+        { "id": "api", "file": "references/api.md", "bytes": 33330 },
         { "id": "patterns", "file": "references/patterns.md", "bytes": 10001 }
       ],
       "examples": []
@@ -64,7 +64,7 @@
         {
           "id": "layout-components",
           "file": "references/layout-components.md",
-          "bytes": 25761
+          "bytes": 25559
         }
       ],
       "examples": [
@@ -113,7 +113,7 @@
         {
           "id": "bulma-classes-unmappables",
           "file": "references/bulma-classes/unmappables.md",
-          "bytes": 66953
+          "bytes": 68122
         },
         {
           "id": "css-migration",
@@ -133,12 +133,12 @@
         {
           "id": "rbx-unmappables",
           "file": "references/rbx/unmappables.md",
-          "bytes": 16581
+          "bytes": 16753
         },
         {
           "id": "react-bulma-components-component-map",
           "file": "references/react-bulma-components/component-map.md",
-          "bytes": 16562
+          "bytes": 19962
         },
         {
           "id": "react-bulma-components-prop-map",
@@ -148,7 +148,7 @@
         {
           "id": "react-bulma-components-unmappables",
           "file": "references/react-bulma-components/unmappables.md",
-          "bytes": 14441
+          "bytes": 15288
         }
       ],
       "examples": []
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 19671
+          "bytes": 19871
         }
       ],
       "examples": []
@@ -176,7 +176,7 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 72074
+          "bytes": 72530
         },
         {
           "id": "themeable-components",

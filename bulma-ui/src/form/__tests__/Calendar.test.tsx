@@ -39,12 +39,15 @@ describe('Calendar', () => {
 
   it('groups the days into rows of a week', () => {
     // A grid owns rows, and rows own cells, so assistive technology can walk
-    // the grid, and the days it marks selected, row by row.
+    // the grid, and the days it marks selected, row by row. The first row
+    // holds the weekday names.
     const { container } = render(<Harness />);
     const grid = container.querySelector('[role="grid"]')!;
-    const rows = Array.from(grid.children);
-    expect(rows.length).toBeGreaterThan(0);
-    for (const row of rows) {
+    const [header, ...weeks] = Array.from(grid.children);
+    expect(header).toHaveAttribute('role', 'row');
+    expect(header).toHaveClass('dateinput-day-names');
+    expect(weeks.length).toBeGreaterThan(0);
+    for (const row of weeks) {
       expect(row).toHaveAttribute('role', 'row');
       expect(row).toHaveClass('dateinput-week');
       expect(row.querySelectorAll(':scope > [role="gridcell"]')).toHaveLength(
@@ -52,8 +55,127 @@ describe('Calendar', () => {
       );
     }
     expect(grid.querySelectorAll('[role="gridcell"]')).toHaveLength(
-      rows.length * 7
+      weeks.length * 7
     );
+  });
+
+  describe('weekday column headers', () => {
+    const headers = (container: HTMLElement) =>
+      Array.from(
+        container.querySelectorAll(
+          '[role="grid"] > [role="row"] > [role="columnheader"]'
+        )
+      );
+
+    it('heads each column with its weekday, named in full', () => {
+      const { container } = render(<Harness locale="en-US" />);
+      const row = container.querySelector('[role="grid"] > [role="row"]')!;
+      expect(row).not.toHaveAttribute('aria-hidden');
+      expect(headers(container).map(h => h.textContent)).toEqual([
+        'Sun',
+        'Mon',
+        'Tue',
+        'Wed',
+        'Thu',
+        'Fri',
+        'Sat',
+      ]);
+      expect(headers(container).map(h => h.getAttribute('aria-label'))).toEqual(
+        [
+          'Sunday',
+          'Monday',
+          'Tuesday',
+          'Wednesday',
+          'Thursday',
+          'Friday',
+          'Saturday',
+        ]
+      );
+    });
+
+    it('starts the names on the first day of the week', () => {
+      const { container } = render(
+        <Harness locale="en-US" firstDayOfWeek={1} />
+      );
+      const names = headers(container).map(h => h.getAttribute('aria-label'));
+      expect(names[0]).toBe('Monday');
+      expect(names[6]).toBe('Sunday');
+    });
+
+    it('names the columns by day names of your own, adding none', () => {
+      const { container, getAllByRole } = render(
+        <Harness
+          locale="de-DE"
+          firstDayOfWeek={1}
+          dayNames={['M', 'D', 'M', 'D', 'F', 'S', 'S']}
+        />
+      );
+      expect(
+        headers(container)
+          .map(h => h.textContent)
+          .join('')
+      ).toBe('MDMDFSS');
+      for (const header of headers(container)) {
+        expect(header).not.toHaveAttribute('aria-label');
+      }
+      expect(getAllByRole('columnheader', { name: 'M' })).toHaveLength(2);
+    });
+
+    it('names the columns in full beside day names it ignores', () => {
+      // Names that aren't seven are ignored, as the header shows.
+      const { container } = render(
+        <Harness locale="en-US" dayNames={['A', 'B']} />
+      );
+      expect(headers(container)[0]).toHaveTextContent('Sun');
+      expect(headers(container)[0]).toHaveAttribute('aria-label', 'Sunday');
+    });
+
+    it('adds the full names once the page has hydrated', async () => {
+      // The server and the render hydrating its HTML name the columns by
+      // what they show, so a browser that spells the long names otherwise
+      // hydrates without a mismatch; the commit after adds them.
+      const ui = <Harness locale="en-US" />;
+      const container = document.createElement('div');
+      container.innerHTML = renderToString(ui);
+      expect(headers(container)).toHaveLength(7);
+      for (const header of headers(container)) {
+        expect(header).not.toHaveAttribute('aria-label');
+      }
+      document.body.appendChild(container);
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      let root: ReturnType<typeof hydrateRoot> | undefined;
+      try {
+        await act(async () => {
+          root = hydrateRoot(container, ui);
+        });
+        expect(errorSpy).not.toHaveBeenCalled();
+        expect(
+          headers(container).map(h => h.getAttribute('aria-label'))
+        ).toEqual([
+          'Sunday',
+          'Monday',
+          'Tuesday',
+          'Wednesday',
+          'Thursday',
+          'Friday',
+          'Saturday',
+        ]);
+      } finally {
+        errorSpy.mockRestore();
+        await act(async () => root?.unmount());
+        container.remove();
+      }
+    });
+
+    it('leaves every day named by its number', () => {
+      const { getByRole } = render(<Harness locale="en-US" />);
+      expect(
+        getByRole('columnheader', { name: 'Tuesday' })
+      ).toBeInTheDocument();
+      const day = getByRole('gridcell', { name: '20' });
+      expect(day).not.toHaveAttribute('aria-label');
+      expect(day).toHaveTextContent(/^20$/);
+    });
   });
 
   it('renders 7 day name headers', () => {
@@ -2143,5 +2265,146 @@ describe('Calendar and the popover toggle keys', () => {
     expect(toggleKeys(year)).toEqual([true, true]);
     expect(container.querySelector('[role="listbox"]')).not.toBeNull();
     expect(onFocusedDateChange).not.toHaveBeenCalled();
+  });
+});
+
+describe('Calendar disabled and read-only', () => {
+  beforeAll(() => {
+    HTMLElement.prototype.scrollIntoView = vi.fn();
+  });
+  const buttons = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll('button'));
+  /** The cell for `day` of the month on show, skipping nearby months' days. */
+  const day = (container: HTMLElement, n: number) =>
+    Array.from(
+      container.querySelectorAll<HTMLButtonElement>('[role="gridcell"]')
+    ).find(
+      c => !c.className.includes('is-other-month') && c.textContent === `${n}`
+    )!;
+
+  it('marks neither on a calendar without them', () => {
+    const { getByRole } = render(<Harness />);
+    expect(getByRole('grid')).not.toHaveAttribute('aria-disabled');
+    expect(getByRole('grid')).not.toHaveAttribute('aria-readonly');
+  });
+
+  describe('disabled', () => {
+    it('disables every button and marks the grid', () => {
+      const { container, getByRole } = render(<Harness disabled />);
+      expect(getByRole('grid')).toHaveAttribute('aria-disabled', 'true');
+      for (const button of buttons(container)) expect(button).toBeDisabled();
+      expect(day(container, 20)).toHaveAttribute('aria-disabled', 'true');
+    });
+
+    it('picks nothing by pointer or key', () => {
+      const onSelect = vi.fn();
+      const { container, getByRole } = render(
+        <Harness disabled onSelect={onSelect} />
+      );
+      fireEvent.click(day(container, 20));
+      fireEvent.keyDown(getByRole('grid'), { key: 'Enter' });
+      fireEvent.keyDown(getByRole('grid'), { key: ' ' });
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(
+        container.querySelector('[aria-selected="true"]')
+      ).not.toBeInTheDocument();
+    });
+
+    it('disables the month grid', () => {
+      const onSelect = vi.fn();
+      const { container, getByRole } = render(
+        <PeriodHarness granularity="month" disabled onSelect={onSelect} />
+      );
+      expect(getByRole('grid')).toHaveAttribute('aria-disabled', 'true');
+      for (const button of buttons(container)) expect(button).toBeDisabled();
+      fireEvent.keyDown(getByRole('grid'), { key: 'Enter' });
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('disables the year list', () => {
+      const { container, getByRole } = render(
+        <PeriodHarness granularity="year" disabled />
+      );
+      expect(getByRole('listbox')).toHaveAttribute('aria-disabled', 'true');
+      for (const button of buttons(container)) expect(button).toBeDisabled();
+    });
+  });
+
+  describe('readOnly', () => {
+    it('marks the grid and keeps its tab stop', () => {
+      const { container, getByRole } = render(<Harness readOnly />);
+      expect(getByRole('grid')).toHaveAttribute('aria-readonly', 'true');
+      expect(getByRole('grid')).not.toHaveAttribute('aria-disabled');
+      const stop = container.querySelector('[tabindex="0"]')!;
+      expect(stop).toHaveTextContent('15');
+      expect(stop).toBeEnabled();
+    });
+
+    it('moves focus by key and pointer and picks nothing', () => {
+      const onSelect = vi.fn();
+      const onFocusedDateChange = vi.fn();
+      const { container, getByRole } = render(
+        <Harness
+          readOnly
+          onSelect={onSelect}
+          onFocusedDateChange={onFocusedDateChange}
+        />
+      );
+      fireEvent.keyDown(getByRole('grid'), { key: 'ArrowRight' });
+      expect(onFocusedDateChange).toHaveBeenLastCalledWith(
+        new Date(2024, 5, 16)
+      );
+      fireEvent.keyDown(getByRole('grid'), { key: 'Enter' });
+      fireEvent.keyDown(getByRole('grid'), { key: ' ' });
+      fireEvent.click(day(container, 20));
+      expect(onFocusedDateChange).toHaveBeenLastCalledWith(
+        new Date(2024, 5, 20)
+      );
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(
+        container.querySelector('[aria-selected="true"]')
+      ).not.toBeInTheDocument();
+    });
+
+    it('keeps the header working', () => {
+      const onFocusedDateChange = vi.fn();
+      const { getByLabelText } = render(
+        <Harness readOnly onFocusedDateChange={onFocusedDateChange} />
+      );
+      fireEvent.click(getByLabelText('Next month'));
+      expect(onFocusedDateChange).toHaveBeenCalledWith(new Date(2024, 6, 15));
+    });
+
+    it('picks no month', () => {
+      const onSelect = vi.fn();
+      const { container, getByRole } = render(
+        <PeriodHarness granularity="month" readOnly onSelect={onSelect} />
+      );
+      expect(getByRole('grid')).toHaveAttribute('aria-readonly', 'true');
+      fireEvent.click(container.querySelector('[aria-label="March"]')!);
+      fireEvent.keyDown(getByRole('grid'), { key: 'Enter' });
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('picks no year', () => {
+      const onSelect = vi.fn();
+      const { getByRole, getByText } = render(
+        <PeriodHarness granularity="year" readOnly onSelect={onSelect} />
+      );
+      expect(getByRole('listbox')).toHaveAttribute('aria-readonly', 'true');
+      fireEvent.click(getByText('2020'));
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('still jumps through the year list it opens as navigation', () => {
+      const onFocusedDateChange = vi.fn();
+      const { container, getByRole, getByText } = render(
+        <Harness readOnly onFocusedDateChange={onFocusedDateChange} />
+      );
+      fireEvent.click(container.querySelector('[aria-haspopup="listbox"]')!);
+      expect(getByRole('listbox')).not.toHaveAttribute('aria-readonly');
+      fireEvent.click(getByText('2020'));
+      expect(onFocusedDateChange).toHaveBeenCalledWith(new Date(2020, 5, 15));
+    });
   });
 });

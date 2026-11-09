@@ -115,7 +115,8 @@ Notes:
   ```
 
 - The `menu` partial **extends** stock Bulma menu (it draws `Menu.Section`'s heading and chevron,
-  and keeps the active item marked in forced colors, Windows' contrast themes), so an app using
+  starts each item's text at the right on a right-to-left page, and keeps the active item marked
+  in forced colors, Windows' contrast themes), so an app using
   `Menu`, or a `TableOfContents`, which renders one, needs both, in either order, and the
   `tableofcontents` partial for the latter:
 
@@ -220,9 +221,10 @@ Notes:
   `prefers-reduced-motion: reduce`, the same way and in either order.
 - `Notification` is stock Bulma too (`bulma/sass/elements/notification`). The `notification`
   extras partial pads the end of one with a close button (`hasDelete`, or a `Delete` passed in)
-  so its text clears the button, so include it (`as bestax-notification`) next to the Bulma
-  module in any build that shows a dismissible notification. It doesn't depend on the order of
-  the two `@use` lines either.
+  so its text clears the button, and gives a dark one the dark color's own text and background,
+  where Bulma's module lets its text inherit the color around it. Include it
+  (`as bestax-notification`) next to the Bulma module in any build that shows a dismissible or a
+  dark notification. It doesn't depend on the order of the two `@use` lines either.
 - `Delete` is stock Bulma too, and it's the close button of `Notification`, `Message`, `Toast`, a
   `Modal` card, `AppFrame`'s drawer and the tags of `Taginput`, `Combobox`, `Dropzone` and
   `TreeSelect`. Bulma draws it in `bulma/sass/elements/delete`, and the modules of the components

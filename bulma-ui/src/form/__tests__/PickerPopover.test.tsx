@@ -8,6 +8,8 @@ import {
   createEvent,
   screen,
 } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
+import { hydrateRoot } from 'react-dom/client';
 import { PickerPopover } from '../_pickerInternals/PickerPopover';
 import { Calendar, CALENDAR_FOCUSED_CELL } from '../_pickerInternals/Calendar';
 import { TimeInput } from '../TimeInput';
@@ -17,6 +19,7 @@ import { DateRangeInput } from '../DateRangeInput';
 import { LocaleProvider } from '../../helpers/LocaleProvider';
 import { ColorInput } from '../ColorInput';
 import { TreeSelect } from '../TreeSelect';
+import { Modal } from '../../components/Modal';
 
 const Harness: React.FC<{
   appendToBody?: boolean;
@@ -211,6 +214,30 @@ describe('PickerPopover', () => {
     // panel is the parent dialog, which when portaled is a direct child of body.
     expect(inside.closest('[role="dialog"]')!.parentElement).toBe(
       document.body
+    );
+  });
+
+  it('renders into the Modal it is in when appendToBody', () => {
+    function InModal() {
+      const anchorRef = useRef<HTMLButtonElement>(null);
+      return (
+        <Modal active aria-label="Booking">
+          <button ref={anchorRef}>anchor</button>
+          <PickerPopover
+            isOpen
+            onClose={() => {}}
+            anchorRef={anchorRef}
+            appendToBody
+            ariaLabel="test"
+          >
+            <button>inside</button>
+          </PickerPopover>
+        </Modal>
+      );
+    }
+    render(<InModal />);
+    expect(screen.getByRole('dialog', { name: 'test' }).parentElement).toBe(
+      screen.getByTestId('modal')
     );
   });
 
@@ -939,5 +966,39 @@ describe('PickerPopover position resolution', () => {
     expect(dialog.className).toMatch(/is-top-right/);
     expect(dialog.style.top).toBe('580px');
     expect(dialog.style.left).toBe('760px');
+  });
+});
+
+describe('PickerPopover hydration', () => {
+  it('hydrates a portaled panel that is open on the first render in place, then moves it', async () => {
+    const app = <Harness appendToBody />;
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(app);
+    document.body.appendChild(container);
+
+    // The server renders it in place, so the hydrating render has markup to
+    // match.
+    expect(container.querySelector('[role="dialog"]')).not.toBeNull();
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onRecoverableError = vi.fn();
+    let unmountRoot = () => {};
+    try {
+      await act(async () => {
+        const root = hydrateRoot(container, app, { onRecoverableError });
+        unmountRoot = () => root.unmount();
+      });
+
+      expect(onRecoverableError).not.toHaveBeenCalled();
+      expect(errorSpy).not.toHaveBeenCalled();
+      // Then it moved into document.body.
+      expect(container.querySelector('[role="dialog"]')).toBeNull();
+      const panel = document.body.querySelector('[role="dialog"]');
+      expect(panel?.parentElement).toBe(document.body);
+    } finally {
+      await act(async () => unmountRoot());
+      errorSpy.mockRestore();
+      container.remove();
+    }
   });
 });
