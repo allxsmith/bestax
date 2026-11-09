@@ -499,10 +499,8 @@ export function dropLinkAttrsForPlainTag(
   // to disagree about what it forwards.
   //
   // The message deliberately does not add "it navigated nowhere in the source
-  // either", the way the polymorphic path does. That holds only where `tag`
-  // came from the source -- bloomer's call sites all pass one -- while rbx and
-  // react-bulma-components hard-code the plain tag and ignore the source's
-  // element prop, so there the element really did change.
+  // either", the way the polymorphic path does: that holds only where `tag`
+  // is the element the source rendered, and not every caller's is.
   const href = tagRejectsHref(tag) ? findAttr(element, 'href') : undefined;
   if (href) {
     const was = attrSource(ctx.j, href);
