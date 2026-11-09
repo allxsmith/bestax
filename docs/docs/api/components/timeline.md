@@ -343,6 +343,29 @@ function example() {
 
 ---
 
+## Timeline or Steps?
+
+Both draw markers joined by a line, and a `Timeline` with `active` can look a lot like
+[`Steps`](./steps.md). They're for different things, and they render different markup:
+
+- **What it's for:** a `Timeline` is a record of what happened, such as an order's history or a
+  changelog, or, with `active`, the progress of something that moves along on its own and is
+  reported to the user, such as a parcel on its way. `Steps` is a journey the user moves through
+  themselves, such as a wizard or a checkout.
+- **What it renders:** a `Timeline` is an `<ol role="list">` of events, each title a heading at the
+  `titleAs` level and each time in a `<time>` when you pass `dateTime`. Its markers are hidden from
+  assistive tech. With `active`, the current item has `aria-current="step"` and the others end in
+  the words "completed", "upcoming" or "in progress". Nothing in it is a control. `Steps` is a
+  `<ul role="list">` of steps, each label in a `<p>`, with `aria-current="step"` on the current
+  step and a check mark in place of the number on a completed one. A `clickable` step puts its
+  marker and label in a `<button>` that calls `onStepClick`, and `hasNavigation` adds Previous and
+  Next buttons, so the user can move back and forth.
+
+If the user is going through it, use `Steps`. If it tells them what happened, or how far something
+has got, use a `Timeline`.
+
+---
+
 ## Accessibility
 
 - **A list:** it's an `<ol>`, since a timeline's order is its meaning, with `role="list"`. Safari
