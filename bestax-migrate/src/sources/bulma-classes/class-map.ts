@@ -843,7 +843,8 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
         'color'
       ),
       ...tokens('is-', ['small', 'normal', 'medium', 'large'], 'size'),
-      // `color="light"` renders no class on a Button; `isLight` renders it.
+      // `is-light` is both the light color's class and the light variant's, so
+      // it becomes `isLight`, which renders it with any color or none.
       ...flags({
         'is-light': 'isLight',
         'is-rounded': 'isRounded',
