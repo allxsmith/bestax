@@ -650,6 +650,17 @@ $slider-vertical-height: 200px !default;
       border-color: ButtonText;
     }
 
+    // Hover would paint the border from the fill color, Highlight here, the
+    // same as focus. It keeps the rest color, and focus, later, still wins. A
+    // disabled thumb's rule below outranks both.
+    &::-webkit-slider-thumb:hover {
+      border-color: ButtonText;
+    }
+
+    &::-moz-range-thumb:hover {
+      border-color: ButtonText;
+    }
+
     &:focus::-webkit-slider-thumb {
       border-color: Highlight;
     }

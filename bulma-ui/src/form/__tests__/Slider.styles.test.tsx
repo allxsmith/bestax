@@ -141,6 +141,28 @@ describe.each([
     }
   });
 
+  it('keeps a hovered thumb’s border at rest, so only focus turns it Highlight', () => {
+    // The base hover rule paints the border from the fill color, which is
+    // Highlight here. The forced-colors hover rule ties it and comes later,
+    // and the focus rule ties that and comes later still.
+    const order = (selector: string) =>
+      rules.findIndex(
+        ({ rule, within }) =>
+          within === FORCED && oneLine(rule.selectorText) === selector
+      );
+    for (const pseudo of ['::-webkit-slider-thumb', '::-moz-range-thumb']) {
+      expect(value(`${input}${pseudo}:hover`, 'border-color')).toEqual([
+        expect.stringMatching(/^buttontext$/i),
+      ]);
+      expect(value(`${input}:focus${pseudo}`, 'border-color')).toEqual([
+        expect.stringMatching(/^highlight$/i),
+      ]);
+      expect(order(`${input}${pseudo}:hover`)).toBeLessThan(
+        order(`${input}:focus${pseudo}`)
+      );
+    }
+  });
+
   it('lands on the element each kind of slider paints its track on', () => {
     const at = (ui: ReactElement, selector: string) =>
       render(ui).container.querySelector(selector)!;
