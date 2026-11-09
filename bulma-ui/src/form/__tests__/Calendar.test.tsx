@@ -1,4 +1,6 @@
 import React from 'react';
+import { renderToString } from 'react-dom/server';
+import { hydrateRoot } from 'react-dom/client';
 import { render, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Calendar, CalendarProps } from '../_pickerInternals/Calendar';
@@ -808,6 +810,71 @@ const yearOption = (container: HTMLElement, year: number) =>
   yearOptions(container).find(o => o.textContent === String(year))!;
 const focusedYearOption = (container: HTMLElement) =>
   container.querySelector<HTMLElement>('[data-focused-year="true"]')!;
+
+describe('Calendar today across hydration', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  // Renders `ui` on the server at `serverNow` and hydrates it in a browser
+  // whose clock reads `browserNow`, a day later.
+  const hydrate = async (
+    ui: React.ReactElement,
+    serverNow: Date,
+    browserNow: Date
+  ) => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(serverNow);
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(ui);
+    document.body.appendChild(container);
+    const serverHtml = container.innerHTML;
+    vi.setSystemTime(browserNow);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    let root: ReturnType<typeof hydrateRoot> | undefined;
+    await act(async () => {
+      root = hydrateRoot(container, ui);
+    });
+    const errors = errorSpy.mock.calls.length;
+    errorSpy.mockRestore();
+    return {
+      container,
+      serverHtml,
+      errors,
+      cleanup: async () => {
+        await act(async () => root!.unmount());
+        container.remove();
+      },
+    };
+  };
+
+  it.each([
+    // December's grid ends in January, so both days are on show.
+    ['day', new Date(2026, 11, 31, 12), new Date(2027, 0, 1, 12), '1'],
+    ['month', new Date(2026, 10, 30, 12), new Date(2026, 11, 1, 12), 'Dec'],
+    ['year', new Date(2026, 11, 31, 12), new Date(2027, 0, 1, 12), '2027'],
+  ] as const)(
+    "marks the browser's today in the %s view once hydrated",
+    async (granularity, serverNow, browserNow, marked) => {
+      const { container, serverHtml, errors, cleanup } = await hydrate(
+        <PeriodHarness granularity={granularity} focusedDate={serverNow} />,
+        serverNow,
+        browserNow
+      );
+      try {
+        expect(serverHtml).not.toContain('aria-current');
+        expect(serverHtml).not.toContain('is-today');
+        expect(errors).toBe(0);
+        const current = container.querySelectorAll('[aria-current="date"]');
+        expect(current).toHaveLength(1);
+        expect(current[0].textContent).toBe(marked);
+        expect(current[0]).toHaveClass('is-today');
+      } finally {
+        await cleanup();
+      }
+    }
+  );
+});
 
 describe('Calendar month granularity', () => {
   const grid = (container: HTMLElement) =>
@@ -2076,5 +2143,146 @@ describe('Calendar and the popover toggle keys', () => {
     expect(toggleKeys(year)).toEqual([true, true]);
     expect(container.querySelector('[role="listbox"]')).not.toBeNull();
     expect(onFocusedDateChange).not.toHaveBeenCalled();
+  });
+});
+
+describe('Calendar disabled and read-only', () => {
+  beforeAll(() => {
+    HTMLElement.prototype.scrollIntoView = vi.fn();
+  });
+  const buttons = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll('button'));
+  /** The cell for `day` of the month on show, skipping nearby months' days. */
+  const day = (container: HTMLElement, n: number) =>
+    Array.from(
+      container.querySelectorAll<HTMLButtonElement>('[role="gridcell"]')
+    ).find(
+      c => !c.className.includes('is-other-month') && c.textContent === `${n}`
+    )!;
+
+  it('marks neither on a calendar without them', () => {
+    const { getByRole } = render(<Harness />);
+    expect(getByRole('grid')).not.toHaveAttribute('aria-disabled');
+    expect(getByRole('grid')).not.toHaveAttribute('aria-readonly');
+  });
+
+  describe('disabled', () => {
+    it('disables every button and marks the grid', () => {
+      const { container, getByRole } = render(<Harness disabled />);
+      expect(getByRole('grid')).toHaveAttribute('aria-disabled', 'true');
+      for (const button of buttons(container)) expect(button).toBeDisabled();
+      expect(day(container, 20)).toHaveAttribute('aria-disabled', 'true');
+    });
+
+    it('picks nothing by pointer or key', () => {
+      const onSelect = vi.fn();
+      const { container, getByRole } = render(
+        <Harness disabled onSelect={onSelect} />
+      );
+      fireEvent.click(day(container, 20));
+      fireEvent.keyDown(getByRole('grid'), { key: 'Enter' });
+      fireEvent.keyDown(getByRole('grid'), { key: ' ' });
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(
+        container.querySelector('[aria-selected="true"]')
+      ).not.toBeInTheDocument();
+    });
+
+    it('disables the month grid', () => {
+      const onSelect = vi.fn();
+      const { container, getByRole } = render(
+        <PeriodHarness granularity="month" disabled onSelect={onSelect} />
+      );
+      expect(getByRole('grid')).toHaveAttribute('aria-disabled', 'true');
+      for (const button of buttons(container)) expect(button).toBeDisabled();
+      fireEvent.keyDown(getByRole('grid'), { key: 'Enter' });
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('disables the year list', () => {
+      const { container, getByRole } = render(
+        <PeriodHarness granularity="year" disabled />
+      );
+      expect(getByRole('listbox')).toHaveAttribute('aria-disabled', 'true');
+      for (const button of buttons(container)) expect(button).toBeDisabled();
+    });
+  });
+
+  describe('readOnly', () => {
+    it('marks the grid and keeps its tab stop', () => {
+      const { container, getByRole } = render(<Harness readOnly />);
+      expect(getByRole('grid')).toHaveAttribute('aria-readonly', 'true');
+      expect(getByRole('grid')).not.toHaveAttribute('aria-disabled');
+      const stop = container.querySelector('[tabindex="0"]')!;
+      expect(stop).toHaveTextContent('15');
+      expect(stop).toBeEnabled();
+    });
+
+    it('moves focus by key and pointer and picks nothing', () => {
+      const onSelect = vi.fn();
+      const onFocusedDateChange = vi.fn();
+      const { container, getByRole } = render(
+        <Harness
+          readOnly
+          onSelect={onSelect}
+          onFocusedDateChange={onFocusedDateChange}
+        />
+      );
+      fireEvent.keyDown(getByRole('grid'), { key: 'ArrowRight' });
+      expect(onFocusedDateChange).toHaveBeenLastCalledWith(
+        new Date(2024, 5, 16)
+      );
+      fireEvent.keyDown(getByRole('grid'), { key: 'Enter' });
+      fireEvent.keyDown(getByRole('grid'), { key: ' ' });
+      fireEvent.click(day(container, 20));
+      expect(onFocusedDateChange).toHaveBeenLastCalledWith(
+        new Date(2024, 5, 20)
+      );
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(
+        container.querySelector('[aria-selected="true"]')
+      ).not.toBeInTheDocument();
+    });
+
+    it('keeps the header working', () => {
+      const onFocusedDateChange = vi.fn();
+      const { getByLabelText } = render(
+        <Harness readOnly onFocusedDateChange={onFocusedDateChange} />
+      );
+      fireEvent.click(getByLabelText('Next month'));
+      expect(onFocusedDateChange).toHaveBeenCalledWith(new Date(2024, 6, 15));
+    });
+
+    it('picks no month', () => {
+      const onSelect = vi.fn();
+      const { container, getByRole } = render(
+        <PeriodHarness granularity="month" readOnly onSelect={onSelect} />
+      );
+      expect(getByRole('grid')).toHaveAttribute('aria-readonly', 'true');
+      fireEvent.click(container.querySelector('[aria-label="March"]')!);
+      fireEvent.keyDown(getByRole('grid'), { key: 'Enter' });
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('picks no year', () => {
+      const onSelect = vi.fn();
+      const { getByRole, getByText } = render(
+        <PeriodHarness granularity="year" readOnly onSelect={onSelect} />
+      );
+      expect(getByRole('listbox')).toHaveAttribute('aria-readonly', 'true');
+      fireEvent.click(getByText('2020'));
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('still jumps through the year list it opens as navigation', () => {
+      const onFocusedDateChange = vi.fn();
+      const { container, getByRole, getByText } = render(
+        <Harness readOnly onFocusedDateChange={onFocusedDateChange} />
+      );
+      fireEvent.click(container.querySelector('[aria-haspopup="listbox"]')!);
+      expect(getByRole('listbox')).not.toHaveAttribute('aria-readonly');
+      fireEvent.click(getByText('2020'));
+      expect(onFocusedDateChange).toHaveBeenCalledWith(new Date(2020, 5, 15));
+    });
   });
 });

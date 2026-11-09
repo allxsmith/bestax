@@ -1213,6 +1213,8 @@ describe('HoverCard', () => {
       );
       act(() => {
         fireEvent(window, new Event('resize'));
+        // The card is placed again in the next frame.
+        vi.advanceTimersToNextFrame();
       });
     };
 
@@ -1334,6 +1336,15 @@ describe('HoverCard', () => {
       keyboardFocus(screen.getByRole('button', { name: 'Next' }));
       advance(300);
       expect(card()).toBeNull();
+    });
+
+    it('portals the card into the Modal it is in', () => {
+      render(
+        <Modal active aria-label="Team">
+          <Profile appendToBody defaultOpen />
+        </Modal>
+      );
+      expect(card()!.parentElement).toBe(screen.getByTestId('modal'));
     });
   });
 

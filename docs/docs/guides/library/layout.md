@@ -99,10 +99,10 @@ A semantic, accessible site footer for copyright, links, or extra info. Supports
 
 ## Level
 
-A flexible horizontal layout for aligning items left, right, or center. Use for toolbars, status bars, or summary sections. Includes `Level.Left`, `Level.Right`, and `Level.Item` subcomponents.
+A flexible horizontal layout for aligning items left, right, or center. Use for toolbars, status bars, or summary sections. Includes `Level.Left`, `Level.Right`, and `Level.Item` subcomponents. A level renders a `<nav>`, a navigation landmark, unless `as` says otherwise, so one that isn't navigation takes `as="div"`.
 
 ```tsx live
-<Level>
+<Level as="div">
   <Level.Left>
     <Level.Item>
       <SubTitle as="p" size="5">

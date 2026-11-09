@@ -1,9 +1,6 @@
 // INTERNAL: deliberately not exported from src/index.ts.
 import React from 'react';
 
-/** The `$$typeof` of a lazy type, which `React.lazy` returns. */
-const REACT_LAZY_TYPE = Symbol.for('react.lazy');
-
 /** A lazy type as React reads one. These fields are React's, not public. */
 interface LazyType {
   $$typeof: symbol;
@@ -11,10 +8,14 @@ interface LazyType {
   _init: (payload: unknown) => unknown;
 }
 
+/**
+ * Whether `type` is a lazy type, which `React.lazy` returns. The symbol is
+ * looked up here rather than when the module loads, which must do nothing.
+ */
 const isLazy = (type: unknown): type is LazyType =>
   typeof type === 'object' &&
   type !== null &&
-  (type as LazyType).$$typeof === REACT_LAZY_TYPE &&
+  (type as LazyType).$$typeof === Symbol.for('react.lazy') &&
   typeof (type as LazyType)._init === 'function';
 
 /**

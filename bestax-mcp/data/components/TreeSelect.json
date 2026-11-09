@@ -408,7 +408,7 @@
           "name": "appendToBody",
           "type": "boolean",
           "default": "false",
-          "description": "Renders the panel through a portal, into a `ConfigProvider`'s `portalContainer`, `document.body` by default.",
+          "description": "Renders the panel through a portal, into a `ConfigProvider`'s `portalContainer`, else the `Modal`, `Dialog` or `Command.Dialog` it's in, else `document.body`.",
           "required": false,
           "inherited": true,
           "deprecated": false
