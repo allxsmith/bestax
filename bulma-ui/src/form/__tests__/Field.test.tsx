@@ -241,6 +241,43 @@ describe('Field', () => {
     expect(screen.getByTestId('body-x')).toHaveAttribute('aria-label', 'body');
   });
 
+  it.each([
+    ['Field.Label', FieldLabel],
+    ['Field.Body', FieldBody],
+  ] as const)(
+    'turns helper props on %s into classes and writes none of them as attributes',
+    (_name, Part) => {
+      // It spread the props it was given, helper props included, beside what
+      // useBulmaClasses left, so each one also landed on the element as an
+      // attribute and React warned about it.
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+      render(
+        <Part
+          mt="3"
+          textWeight="bold"
+          textAlign="right"
+          textColor="danger"
+          data-testid="part"
+          aria-label="Part"
+        >
+          A
+        </Part>
+      );
+      const el = screen.getByTestId('part');
+      expect(el).toHaveClass(
+        'mt-3',
+        'has-text-weight-bold',
+        'has-text-right',
+        'has-text-danger'
+      );
+      expect(el.getAttributeNames().sort()).toEqual(
+        ['aria-label', 'class', 'data-testid'].sort()
+      );
+      expect(error).not.toHaveBeenCalled();
+      error.mockRestore();
+    }
+  );
+
   it('passes labelProps.style to label in horizontal layout', () => {
     render(
       <Field

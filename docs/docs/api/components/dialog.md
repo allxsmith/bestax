@@ -351,6 +351,7 @@ function example() {
 - Focus moves to the confirm (or cancel, with `focusCancel`) button when opened
 - Escape key closes the dialog (when `canCancel` is true). The underlying [`Modal`](./modal.md#accessibility) handles it, so one Escape closes the topmost overlay only: a dialog opened over a Modal or a [Sidebar](./sidebar.md) closes first, and the one under it on the next Escape
 - Tab and Shift+Tab cycle within the dialog while it is the topmost modal overlay, also from the underlying [`Modal`](./modal.md)
+- A popup in the message, such as a `Popover` or `HoverCard` with `appendToBody`, is portaled into the `alertdialog`, the element with `aria-modal`, so a screen reader that honors it reaches the popup. A `portalContainer` a [`ConfigProvider`](../helpers/config.md#where-portaled-content-goes) sets still takes it
 - The page doesn't scroll while the dialog is open, through the [`Modal`](./modal.md#accessibility)'s ref-counted lock, shared with `Sidebar` and `Loading`
 - Confirm/cancel buttons are keyboard accessible
 

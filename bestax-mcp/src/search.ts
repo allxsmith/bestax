@@ -45,6 +45,18 @@ export function usesExport(code: string, name: string, path: string): boolean {
 }
 
 /**
+ * Whether an example's code calls an export that is no part of a component, a
+ * hook or a function: `useDataTable(`, or `toast.show(`. A mention is not a
+ * use, since `toast` and `notification` are words an example's text uses too.
+ * The generator finds a section with the same test (`importSection`).
+ */
+export function callsExport(code: string, name: string): boolean {
+  return new RegExp(`(?<![\\w$.])${escapeRegExp(name)}(?:\\.\\w+)?\\(`).test(
+    code
+  );
+}
+
+/**
  * A prefix of a term that survives common English inflection.
  *
  * Exact substring matching is too brittle here, and the miss is not

@@ -95,9 +95,17 @@ export interface DateRangeInputBaseProps
   min?: Date;
   /** Latest selectable date, for either end. */
   max?: Date;
-  /** Disable both inputs and the launcher. */
+  /**
+   * Disable both inputs and the launcher, or an `inline` calendar's days and
+   * header buttons. The hidden inputs still submit the range, in every mode,
+   * where a disabled input submits nothing.
+   */
   disabled?: boolean;
-  /** Make both inputs read-only and keep the popover closed. */
+  /**
+   * Make both inputs read-only and keep the popover closed. An `inline`
+   * calendar still moves through the dates by key and by its header, but a
+   * click, Enter or Space picks nothing.
+   */
   readOnly?: boolean;
   /** Placeholder text, shown in both inputs while they are empty. */
   placeholder?: string;
@@ -165,7 +173,8 @@ export interface DateRangeInputBaseProps
   position?: PickerPosition;
   /**
    * Render the popover through a portal, into the `portalContainer` a
-   * `ConfigProvider` sets, `document.body` by default.
+   * `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog` it's
+   * in, else `document.body`.
    */
   appendToBody?: boolean;
   /**
@@ -209,7 +218,10 @@ export interface DateRangeInputBaseProps
    * on the day the week does. With them, an unset `firstDayOfWeek` stays
    * Sunday even inside a `LocaleProvider`, so names written Sunday first keep
    * matching their columns; to start on the locale's day, set
-   * `firstDayOfWeek` too and list the names from that day.
+   * `firstDayOfWeek` too and list the names from that day. They also name
+   * the columns for assistive technology. Without them each column is named
+   * by its full weekday in the picker's locale, which a server-rendered
+   * calendar adds once the page hydrates.
    */
   dayNames?: string[];
   /** Override the 12 month-name labels. */
@@ -723,6 +735,8 @@ export const DateRangeInputBase = forwardRef<
       id={inline ? popoverId : `${popoverId}-cal`}
       autoFocusCell={open}
       labels={labels}
+      disabled={disabled}
+      readOnly={readOnly}
     />
   );
 

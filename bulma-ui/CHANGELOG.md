@@ -1,3 +1,40 @@
+## [5.67.4](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.3...@allxsmith/bestax-bulma@5.67.4) (2026-11-09)
+
+
+### Bug Fixes
+
+* **bulma-ui:** add the full weekday names after hydration, and not beside dayNames ([c574636](https://github.com/allxsmith/bestax/commit/c574636455211b2b88e8ce12148db1b8bd44b7ed))
+* **bulma-ui:** head the calendar's day columns with their weekdays ([ec9efa2](https://github.com/allxsmith/bestax/commit/ec9efa250e44a1ce7b962d124bcddc7878793e9c)), closes [#1439](https://github.com/allxsmith/bestax/issues/1439)
+
+## [5.67.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.2...@allxsmith/bestax-bulma@5.67.3) (2026-11-09)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep the part check from doing work on import ([ca188cf](https://github.com/allxsmith/bestax/commit/ca188cf2e04e845f5598590f26232f1c9f17af7d))
+* **bulma-ui:** portal a popup opened in a Modal, Dialog or Command.Dialog into that dialog ([d878a8a](https://github.com/allxsmith/bestax/commit/d878a8ab8c60b61c430559103e5f0ea557b6760f))
+* **bulma-ui:** recognize compound parts composed in a Server Component ([43d27c1](https://github.com/allxsmith/bestax/commit/43d27c178993b49f9fbe7bca524630c19238cb2d)), closes [#1500](https://github.com/allxsmith/bestax/issues/1500)
+* **bulma-ui:** start a Menu's items where the line starts on a right-to-left page ([b0b6cd5](https://github.com/allxsmith/bestax/commit/b0b6cd5c210675e98ac32196f8b2425b3b11ea15))
+* **bulma-ui:** watch the panel a popup has now, after its portal moves it ([e3f799e](https://github.com/allxsmith/bestax/commit/e3f799eb45469d3db4496c26056d489446a87a1a))
+
+## [5.67.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.1...@allxsmith/bestax-bulma@5.67.2) (2026-11-09)
+
+
+### Bug Fixes
+
+* **bulma-ui:** stop an inline picker's picks when it's disabled or readOnly ([c742785](https://github.com/allxsmith/bestax/commit/c742785a79559c7e0a354df06c7b7093320d1b43)), closes [#1437](https://github.com/allxsmith/bestax/issues/1437)
+
+## [5.67.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.0...@allxsmith/bestax-bulma@5.67.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** give a part that is a component of its own that component's variables ([7c491cf](https://github.com/allxsmith/bestax/commit/7c491cfe6af4c3eeed43984190433cc4da70be2e)), closes [#1480](https://github.com/allxsmith/bestax/issues/1480)
+* **bestax-mcp:** resolve a dot-path through a static that is a component of its own ([7f0126f](https://github.com/allxsmith/bestax/commit/7f0126f148664fd40aeaca80d2520b5df9c1e959)), closes [#1480](https://github.com/allxsmith/bestax/issues/1480)
+* **bulma-ui:** keep Control's and the Field parts' helper props off the DOM ([e044c03](https://github.com/allxsmith/bestax/commit/e044c030148c1e1846e450d1e5af746ead890f63))
+* **bulma-ui:** name Dropdown's menu after its trigger, with or without an id ([3e6e693](https://github.com/allxsmith/bestax/commit/3e6e6938d0ef62b49a57bf2349339417b221d7a3)), closes [#1442](https://github.com/allxsmith/bestax/issues/1442)
+* **docs:** lift the overlays live examples open above the site's navbar ([4859e97](https://github.com/allxsmith/bestax/commit/4859e974578cc3ad1c591941e9a4299e52ff6256)), closes [#1467](https://github.com/allxsmith/bestax/issues/1467)
+
 # [5.67.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.66.2...@allxsmith/bestax-bulma@5.67.0) (2026-11-09)
 
 
