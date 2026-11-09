@@ -2260,6 +2260,24 @@ describe('names an import line gives beside its component', () => {
     }
   );
 
+  // Its row said only "documented with DataTable" (#1579).
+  it.each([
+    [
+      'useDataTable',
+      'documented with DataTable — `useDataTable` takes the same columns',
+    ],
+    [
+      'toast',
+      'documented with Toast — For showing toasts from anywhere in your app',
+    ],
+  ])('gives search_bestax a purpose for %s', async (query, detail) => {
+    const out = text(await call('search_bestax', { query, kind: 'component' }));
+    const row = out
+      .split('\n')
+      .find(l => l.startsWith(`| component | ${query} |`));
+    expect(row).toContain(detail);
+  });
+
   it('keeps the component when only the letter case differs', async () => {
     const out = text(await call('get_props', { component: 'Toast' }));
     expect(out).not.toContain('is documented with');
