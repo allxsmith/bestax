@@ -612,6 +612,7 @@
         }
       ],
       "catchAll": "All standard <div> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the root `.daterangeinput` `<div>`, with `className` and the other attributes, except that the background helpers go on the `.input` `<div>` that draws the field around the two `<input>`s, since Bulma's `.input` sets its own background. The text helpers go on the root and on both `<input>`s too, which take no alignment or case from around them. Inline they all go on the root.",
       "types": []
     },
     {
@@ -1009,6 +1010,7 @@
       ],
       "extraProps": [],
       "catchAll": "All standard <div> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the root `.daterangeinput` `<div>`, with `className` and the other attributes, except that the background helpers go on the `.input` `<div>` that draws the field around the two `<input>`s, since Bulma's `.input` sets its own background. The text helpers go on the root and on both `<input>`s too, which take no alignment or case from around them. Inline they all go on the root.",
       "types": [],
       "standalone": "base"
     }

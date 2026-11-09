@@ -556,3 +556,5 @@ Use `keepFirst` combined with `Enter` to quickly select the first matching resul
 | `--bulma-autocomplete-item-large-padding`    | `$autocomplete-item-large-padding`    | `0.625rem 1.5rem`              |
 
 <!-- /bestax:generated cssvars -->
+
+**Hover border:** `--bulma-autocomplete-border-hover-color` (`$autocomplete-border-hover-color`) is registered, and nothing reads it, so setting it changes nothing. The input's hover border is Bulma's own. It stays registered so a Sass build that configures it keeps compiling.

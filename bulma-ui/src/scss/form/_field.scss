@@ -1,8 +1,10 @@
 // Field styles
 // Extends Bulma's own field (`bulma/sass/form/tools`): a horizontal field's
-// message goes under its control.
+// message goes under its control, and its label's text sits against the
+// control on a right-to-left page.
 
 @use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/mixins" as mx;
 
 // A horizontal `Field` wraps its children in `.field-body`, which Bulma makes
 // a flex row from tablet up. A form component that renders a Field of its own
@@ -37,4 +39,17 @@
 .#{iv.$class-prefix}field-body:has(> .#{iv.$class-prefix}help)
   > .#{iv.$class-prefix}field:has(+ .#{iv.$class-prefix}help) {
   margin-inline-end: 0;
+}
+
+// From tablet up, Bulma sets a horizontal field's label beside its control
+// and aligns its text `right`, against the control. On a right-to-left page
+// the label sits to the control's right, so `right` pushed its text to the
+// far edge. `end` is `right` left to right, so nothing moves there. The
+// doubled class outranks Bulma's rule whichever stylesheet loads first, and
+// the breakpoint is Bulma's, so a phone's label above its control keeps its
+// start alignment.
+@include mx.tablet {
+  .#{iv.$class-prefix}field-label.#{iv.$class-prefix}field-label {
+    text-align: end;
+  }
 }

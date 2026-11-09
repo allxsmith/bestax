@@ -26,7 +26,9 @@ import { useAutoLabelId } from './useAutoLabelId';
  *
  * @helperProps Helper props go on the `.password-input-container` `<div>`, with
  * `className` and `style`, so they move and size the field and its toggle
- * together. The other attributes go on the `<input>`.
+ * together, except that the background and text helpers go on the
+ * `<input>`, since Bulma's `.input` sets its own background and font. The
+ * other attributes go on the `<input>` too.
  * @extraProp {string} [autoComplete="current-password"] - Tells the browser and password managers this is an existing password. Pass `"new-password"` where the user makes one up, on a sign-up or change-password form.
  * @extraProp {boolean} [spellCheck=false] - Off, so a browser's spellcheck never sees the password once it shows.
  * @extraProp {string} [autoCorrect="off"] - Off, so a phone's keyboard doesn't change what's typed.
