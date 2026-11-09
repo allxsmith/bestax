@@ -455,8 +455,11 @@ class and give it a rule of your own. Bulma 0.9's was:
 ```
 
 `legacy:number`: Bulma 0.9's `.number`, a rounded badge on the background color, has no
-styles in v1. Give the class a rule of your own if the element still needs that look, or drop
-it.
+styles in v1. Give the class a rule of your own if the element still needs that look.
+
+Both names are common outside Bulma too, so the TODO can land on a class the project styles
+itself, such as a code highlighter's `token number`. There the class still does its job: leave it
+and drop the TODO.
 
 `legacy:is-variable`: v1 sets a `.columns` gap from `is-0` to `is-8` alone, so `is-variable`
 styles nothing and the gap still applies. Drop the class. Where the `.columns` converted,

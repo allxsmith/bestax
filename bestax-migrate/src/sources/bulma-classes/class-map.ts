@@ -2842,15 +2842,17 @@ export const REMOVED_IN_V1: readonly string[] = [
 /**
  * Bulma 0.9 classes v1 dropped, with what replaced them. The tiles'
  * modifiers have no entry: Bulma 0.9 styled them only beside `tile`, whose
- * entry flags the element. The `heading` message says what the library
- * sources' `flagDroppedHeading` says.
+ * entry flags the element. `heading` and `number` are common names outside
+ * Bulma too (a code highlighter's `token number`), so their messages leave
+ * room for a rule the project has, and the `heading` one otherwise says what
+ * the library sources' `flagDroppedHeading` says.
  */
 export const LEGACY_09: Readonly<Record<string, string>> = {
   tile: 'Bulma v1 removed tiles; rebuild the layout with `Grid` and `Cell` (see the Bulma 0.9 to 1 guide)',
   heading:
-    'Bulma v1 dropped the `.heading` styles, so the `heading` class styles nothing now; restyle it with bestax helpers (e.g. `<Paragraph textSize="7" textTransform="uppercase" textWeight="semibold" mb="1">`) or a `.heading` rule of your own',
+    'Bulma v1 dropped the `.heading` styles, so unless the project\'s own CSS gives `heading` a rule, it styles nothing now; restyle it with bestax helpers (e.g. `<Paragraph textSize="7" textTransform="uppercase" textWeight="semibold" mb="1">`) or a `.heading` rule of your own',
   number:
-    "Bulma v1 dropped `.number`, Bulma 0.9's rounded badge, so the `number` class styles nothing now; give it a rule of your own, or drop it if that look no longer matters",
+    "Bulma v1 dropped `.number`, Bulma 0.9's rounded badge, so unless the project's own CSS gives `number` a rule (a code highlighter's does for `token number`), it styles nothing now; if the element needs that badge, give it a rule of your own",
   'is-variable':
     "Bulma v1 removed `is-variable`, so it styles nothing now; drop it, since v1's `is-0` to `is-8` set the gap of a `.columns` without it (bestax `Columns` writes them from its `gap` prop)",
   'is-marginless':
