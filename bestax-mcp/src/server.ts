@@ -42,6 +42,7 @@ import {
   type Skill,
 } from './data.js';
 import {
+  documentedLine,
   errorResult,
   HELPER_PROPS_PAGE,
   partLists,
@@ -66,6 +67,7 @@ import {
   resolveGroup,
 } from './helper-props.js';
 import {
+  callsExport,
   searchAll,
   skillSections,
   suggest,
@@ -222,6 +224,20 @@ async function focusOn(
   };
   if (followed.wanted !== asked) focus.asked = asked;
   return { record: followed.record, focus };
+}
+
+/**
+ * What an answer about a record opens with when the name asked for is
+ * documented with it but is no part of it, such as the hook `useDataTable`
+ * (#1465). Undefined for any other name.
+ */
+async function noPartLine(
+  input: string,
+  record: ComponentRecord
+): Promise<string | undefined> {
+  const documented = await documentedExport(input);
+  if (!documented || documented.entry.path) return undefined;
+  return documentedLine(documented.name, documented.entry.section, record);
 }
 
 /** Load every component record. Only `search_bestax` needs this much. */
@@ -574,7 +590,10 @@ export async function createServer(
         name
       );
       return textResult(
-        renderComponent(record, include ?? ['props'], focus, { hasEntry }),
+        renderComponent(record, include ?? ['props'], focus, {
+          hasEntry,
+          lead: await noPartLine(name, record),
+        }),
         note()
       );
     }
@@ -605,12 +624,16 @@ export async function createServer(
       const resolved = await resolveName(component);
       if (!resolved) return notFound(component);
       const named = await loadComponent(resolved);
+      // A hook, function or constant documented with the record names its
+      // section, and the answer is the record's (#1465).
+      const documentedAs = await noPartLine(component, named);
 
       if (named.kind === 'helper') {
         // The signature itself rather than a pointer at a tool that has it, so the
         // question is answered on this call.
         return textResult(
-          `# ${named.name}\n\n${renderHelperApi(named)}`,
+          `# ${named.name}\n\n${documentedAs ? `${documentedAs}\n\n` : ''}` +
+            renderHelperApi(named),
           note()
         );
       }
@@ -622,6 +645,9 @@ export async function createServer(
         (component.includes('.') ? component : await wantedPath(component));
       if (!asked) {
         const body = [
+          ...(documentedAs
+            ? [`${documentedAs} The props below are \`${named.name}\`'s.`]
+            : []),
           renderPart(named.parts[0], { heading: false }),
           ...partLists(named),
         ];
@@ -710,18 +736,40 @@ export async function createServer(
       // it, and none when no example does (`InputBase`, beside `Input`'s).
       const documented = await documentedExport(component);
       const name = documented?.name ?? part?.path ?? record.name;
+      const path = documented?.entry.path;
       const using = documented
         ? record.examples.filter(e =>
-            usesExport(e.code, documented.name, documented.entry.path)
+            path
+              ? usesExport(e.code, documented.name, path)
+              : callsExport(e.code, documented.name)
           )
         : part
           ? record.examples.filter(e =>
               usesExport(e.code, part.path, part.path)
             )
           : record.examples;
-      // A part has the examples that use it, or all of its record's when none
+      if (path && !using.length) {
+        return textResult(
+          `\`${name}\` has no examples of its own. It is documented with ` +
+            `\`${record.name}\`` +
+            (documented?.entry.standalone === 'base'
+              ? ', which renders it'
+              : '') +
+            `, and \`get_examples({ component: "${record.name}" })\` has ` +
+            `${record.name}'s.`,
+          note()
+        );
+      }
+      // One that is no part of the record, a hook or a function, is answered by
+      // the record it is documented with: the examples that call it, or all of
+      // them when none does, so `notification` gets Notification's (#1465). A
+      // part has the examples that use it, or all of its record's when none
       // does, since those are the family's.
-      const examples = part && !using.length ? record.examples : using;
+      const examples = using.length ? using : record.examples;
+      const where =
+        documented && !path
+          ? `${documentedLine(name, documented.entry.section, record)} `
+          : '';
       const through = focus?.asked
         ? `${throughLine(focus.asked, part?.path ?? focus.wanted)} `
         : '';
@@ -734,18 +782,6 @@ export async function createServer(
         : through &&
           `\`${record.name}\` has no part \`${focus?.wanted}\`, so these are ` +
             `all of its examples.`;
-      if (documented && !examples.length) {
-        return textResult(
-          `\`${name}\` has no examples of its own. It is documented with ` +
-            `\`${record.name}\`` +
-            (documented.entry.standalone === 'base'
-              ? ', which renders it'
-              : '') +
-            `, and \`get_examples({ component: "${record.name}" })\` has ` +
-            `${record.name}'s.`,
-          note()
-        );
-      }
       const q = query?.toLowerCase();
       const matches = q
         ? examples.filter(
@@ -760,7 +796,7 @@ export async function createServer(
           query
             ? `No ${name} examples match "${query}". It has ` +
                 `${examples.length}: ${examples.map(e => e.title).join(', ')}.`
-            : `${record.name} has no examples on its documentation page.`,
+            : `${where}${record.name} has no examples on its documentation page.`,
           note()
         );
       }
@@ -777,11 +813,16 @@ export async function createServer(
       const unnamed = left.length - MAX_TITLES_LEFT;
       return textResult(
         `# ${name} examples\n\n` +
-          (documented
+          (path
             ? `From \`${record.name}\`'s documentation page, the ones that use it.\n\n`
-            : which
-              ? `${through}${which}\n\n`
-              : '') +
+            : '') +
+          (where &&
+            `${where}${
+              using.length
+                ? 'These are the examples that call it.'
+                : `No example calls it, so these are all of \`${record.name}\`'s.`
+            }\n\n`) +
+          (which ? `${through}${which}\n\n` : '') +
           renderExamples(shown) +
           (left.length > 0
             ? `\n\n**Not shown** under this limit, ${matches.length - shown.length} ` +
@@ -1091,6 +1132,7 @@ export async function createServer(
             mimeType: 'text/markdown',
             text: renderComponent(record, RESOURCE_INCLUDES, focus, {
               hasEntry,
+              lead: await noPartLine(String(name), record),
             }),
           },
         ],

@@ -167,7 +167,7 @@ $dateinput-cell-range-preview-bg: color-mix(
 }
 
 // The day names and each week of the grid lay out in seven columns. The
-// grid stacks its weeks, which are rows so it can own them as a grid must.
+// grid stacks them, the day names first, as rows it owns as a grid must.
 .#{iv.$class-prefix}dateinput-day-names,
 .#{iv.$class-prefix}dateinput-week {
   display: grid;
