@@ -34,7 +34,9 @@ this automatically for literal values; dynamic values get TODOs.
 `renderAs` becomes `as` on the components bestax declares one on: `Button`, `Title` and
 `SubTitle` (from `Heading`), `Image`, `Form.Control`, `Footer`, `Level`, `Level.Item`, `Media` and its
 `Item`s, `Menu.Item`, `Navbar.Item`, `Navbar.Link`, `Dropdown.Item`, `Container`, `Hero`,
-`Hero.Header`, `Hero.Footer`, `Panel` and `Panel.Block`. Everywhere else it is flagged.
+`Hero.Header`, `Hero.Footer`, `Panel` and `Panel.Block`. Where a component becomes plain markup,
+a literal `renderAs` names the element written, and one the codemod can't read leaves RBC's default
+with a `prop:renderAs` TODO. Everywhere else it is flagged.
 
 bestax gives an element the attributes of the tag `as` names, and several components narrow
 `as` to the tags Bulma's markup allows there (`Footer` is `'footer' | 'div'`, `Control` is
