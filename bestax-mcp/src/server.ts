@@ -41,6 +41,7 @@ import {
   type Skill,
 } from './data.js';
 import {
+  documentedLine,
   errorResult,
   HELPER_PROPS_PAGE,
   partLists,
@@ -64,6 +65,7 @@ import {
   resolveGroup,
 } from './helper-props.js';
 import {
+  callsExport,
   searchAll,
   skillSections,
   suggest,
@@ -177,6 +179,20 @@ async function partFocus(
     record.parts.find(p => p.path.toLowerCase() === wanted.toLowerCase()) ??
     null;
   return { wanted, part };
+}
+
+/**
+ * What an answer about a record opens with when the name asked for is
+ * documented with it but is no part of it, such as the hook `useDataTable`
+ * (#1465). Undefined for any other name.
+ */
+async function noPartLine(
+  input: string,
+  record: ComponentRecord
+): Promise<string | undefined> {
+  const documented = await documentedExport(input);
+  if (!documented || documented.entry.path) return undefined;
+  return documentedLine(documented.name, documented.entry.section, record);
 }
 
 /** Load every component record. Only `search_bestax` needs this much. */
@@ -530,7 +546,7 @@ export async function createServer(
           record,
           include ?? ['props'],
           (await partFocus(record, name)) ?? undefined,
-          { hasEntry }
+          { hasEntry, lead: await noPartLine(name, record) }
         ),
         note()
       );
@@ -562,12 +578,16 @@ export async function createServer(
       const resolved = await resolveName(component);
       if (!resolved) return notFound(component);
       const record = await loadComponent(resolved);
+      // A hook, function or constant documented with the record names its
+      // section, and the answer is the record's (#1465).
+      const lead = await noPartLine(component, record);
 
       if (record.kind === 'helper') {
         // The signature itself rather than a pointer at a tool that has it, so the
         // question is answered on this call.
         return textResult(
-          `# ${record.name}\n\n${renderHelperApi(record)}`,
+          `# ${record.name}\n\n${lead ? `${lead}\n\n` : ''}` +
+            renderHelperApi(record),
           note()
         );
       }
@@ -579,6 +599,9 @@ export async function createServer(
         (component.includes('.') ? component : await wantedPath(component));
       if (!wanted) {
         const body = [
+          ...(lead
+            ? [`${lead} The props below are \`${record.name}\`'s.`]
+            : []),
           renderPart(record.parts[0], { heading: false }),
           ...partLists(record),
         ];
@@ -654,19 +677,27 @@ export async function createServer(
       // it, and none when no example does (`InputBase`, beside `Input`'s).
       const documented = await documentedExport(component);
       const name = documented?.name ?? record.name;
+      // One that is no part of the record, a hook or a function, has the ones
+      // that call it (#1465).
+      const path = documented?.entry.path;
       const examples = documented
         ? record.examples.filter(e =>
-            usesExport(e.code, documented.name, documented.entry.path)
+            path
+              ? usesExport(e.code, documented.name, path)
+              : callsExport(e.code, documented.name)
           )
         : record.examples;
       if (documented && !examples.length) {
         return textResult(
-          `\`${name}\` has no examples of its own. It is documented with ` +
-            `\`${record.name}\`` +
-            (documented.entry.standalone === 'base'
-              ? ', which renders it'
-              : '') +
-            `, and \`get_examples({ component: "${record.name}" })\` has ` +
+          `\`${name}\` has no examples of its own. ` +
+            (path
+              ? `It is documented with \`${record.name}\`` +
+                (documented.entry.standalone === 'base'
+                  ? ', which renders it'
+                  : '') +
+                ', and '
+              : `${documentedLine(name, documented.entry.section, record)} `) +
+            `\`get_examples({ component: "${record.name}" })\` has ` +
             `${record.name}'s.`,
           note()
         );
@@ -996,7 +1027,7 @@ export async function createServer(
               record,
               RESOURCE_INCLUDES,
               (await partFocus(record, String(name))) ?? undefined,
-              { hasEntry }
+              { hasEntry, lead: await noPartLine(String(name), record) }
             ),
           },
         ],

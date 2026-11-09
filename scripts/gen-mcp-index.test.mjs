@@ -24,6 +24,8 @@ import {
   build,
   bulmaClassTable,
   helperImport,
+  importedNames,
+  importSection,
   orderDeclarers,
   proseComponentInfo,
   readSkills,
@@ -983,8 +985,11 @@ test('every export documented with a component is found by its name', () => {
   const titles = new Set(catalog.components.map(c => c.name));
   for (const [name, { component, path }] of Object.entries(documentedWith)) {
     assert.ok(!titles.has(name), `${name} has a catalog entry of its own`);
+    // One that is no part is a name the record's import line gives.
     assert.ok(
-      components.get(component).parts.some(p => p.path === path),
+      path
+        ? components.get(component).parts.some(p => p.path === path)
+        : importedNames(components.get(component).import).includes(name),
       `${name}: ${component} has no part ${path}`
     );
   }
@@ -993,6 +998,75 @@ test('every export documented with a component is found by its name', () => {
     [...keys].sort((a, b) => (a < b ? -1 : 1)),
     keys
   );
+});
+
+// What an import line gives beside its component that is no part: a hook, a
+// function or a constant, with the section of the page that documents it (#1465).
+test('every name an import line gives is a catalog entry or documented with one', () => {
+  const { documentedWith } = catalog;
+  for (const [name, component, section] of [
+    ['useAppFrame', 'AppFrame', 'A Toggle of Your Own'],
+    ['useIsHydrated', 'ClientOnly', 'useIsHydrated'],
+    ['useConfig', 'ConfigProvider', 'useConfig'],
+    ['useDataTable', 'DataTable', 'The useDataTable Hook'],
+    ['useLocale', 'LocaleProvider', 'useLocale'],
+    ['useNumberFormat', 'NumberFormatter', 'The useNumberFormat Hook'],
+    ['useScrollSpy', 'TableOfContents', 'The useScrollSpy Hook'],
+    ['toast', 'Toast', undefined],
+    ['validColors', 'Valid value constants', undefined],
+  ]) {
+    assert.deepEqual(
+      documentedWith[name],
+      { component, purpose: '', ...(section ? { section } : {}) },
+      name
+    );
+  }
+  // A hook its page documents but its import line leaves out is not one.
+  assert.equal(documentedWith.useClassPrefix, undefined);
+  const titles = new Set(catalog.components.map(c => c.name));
+  for (const [name, record] of components) {
+    for (const id of importedNames(record.import)) {
+      assert.ok(
+        titles.has(id) || Object.hasOwn(documentedWith, id),
+        `${name}'s import line gives ${id}, which nothing answers for`
+      );
+    }
+  }
+});
+
+test('importedNames reads the identifiers an import line gives', () => {
+  assert.deepEqual(
+    importedNames(
+      "import {\n  DataTable,\n  useDataTable,\n  type Row,\n} from '@allxsmith/bestax-bulma';"
+    ),
+    ['DataTable', 'useDataTable']
+  );
+  assert.deepEqual(importedNames("import Bestax from 'x';"), []);
+});
+
+test('importSection names the heading that names it, else an example that calls it', () => {
+  const lines = [
+    '# Page',
+    '## Usage',
+    '```tsx',
+    '## useThing in a fence',
+    '```',
+    '### Using the toast',
+    '#### useThing, too deep',
+    '### The useThing Hook',
+  ];
+  assert.equal(importSection(lines, [], 'useThing'), 'The useThing Hook');
+  // A mention in an example's text is no call; a call and a method call are.
+  const examples = [
+    { title: 'Words', code: '<p>Raise a toast here</p>' },
+    { title: 'Calls', code: "toast.show({ message: 'Hi' })" },
+    { title: 'Hook', code: 'const frame = useFrame();' },
+  ];
+  assert.equal(importSection(['# Page'], examples, 'toast'), 'Calls');
+  assert.equal(importSection(['# Page'], examples, 'useFrame'), 'Hook');
+  assert.equal(importSection(lines, examples, 'dialog'), null);
+  // A `$` in a name is matched as itself.
+  assert.equal(importSection(['## The $store'], [], '$store'), 'The $store');
 });
 
 test('every component the barrel exports is a catalog entry or documented with one', () => {

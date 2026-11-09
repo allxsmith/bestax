@@ -1996,14 +1996,115 @@ describe('exports documented with another component', () => {
   });
 });
 
+// What an import line gives beside its component that is no part of any record: a
+// hook, a function or a constant. They used to be refused, as "No component named
+// useDataTable" (#1465).
+describe('names an import line gives beside its component', () => {
+  it.each([
+    [
+      'useDataTable',
+      'DataTable',
+      'in the section "The useDataTable Hook", which `get_examples({ component: ' +
+        '"DataTable", query: "The useDataTable Hook" })` returns.',
+    ],
+    [
+      'useAppFrame',
+      'AppFrame',
+      'in the section "A Toggle of Your Own", which `get_examples({ component: ' +
+        '"AppFrame", query: "A Toggle of Your Own" })` returns.',
+    ],
+    [
+      'useLocale',
+      'LocaleProvider',
+      'in the section "useLocale", which `get_component({ name: ' +
+        '"LocaleProvider", include: ["reference"] })` returns.',
+    ],
+  ])(
+    'answers get_props for %s with the props of %s, and names its section',
+    async (name, component, where) => {
+      const out = text(await call('get_props', { component: name }));
+      expect(out).toMatch(new RegExp(`^# ${component}\n`));
+      expect(out).toContain(
+        `\`${name}\` is documented with \`${component}\`, ${where} ` +
+          `The props below are \`${component}\`'s.`
+      );
+      expect(out).toContain('| Prop | Type | Default | Notes |');
+    }
+  );
+
+  it('answers every hook the issue named', async () => {
+    for (const name of [
+      'useAppFrame',
+      'useIsHydrated',
+      'useConfig',
+      'useDataTable',
+      'useLocale',
+      'useNumberFormat',
+      'useScrollSpy',
+    ]) {
+      const res = await call('get_props', { component: name });
+      expect(failed(res), name).toBe(false);
+      expect(text(res), name).toContain(`\`${name}\` is documented with`);
+      expect(text(res), name).toContain('in the section "');
+    }
+  });
+
+  it('answers get_component the same way', async () => {
+    const out = text(await call('get_component', { name: 'useConfig' }));
+    expect(out).toMatch(/^# ConfigProvider\n\n`useConfig` is documented with/);
+    expect(out).toContain('in the section "useConfig"');
+  });
+
+  it('answers get_examples with the examples that call it', async () => {
+    const out = text(await call('get_examples', { component: 'useScrollSpy' }));
+    expect(out).toContain('### The useScrollSpy Hook');
+    // Its Basic Usage names the hook in a label, and does not call it.
+    expect(out).not.toContain('### Basic Usage');
+  });
+
+  it('points at its section when no example calls it', async () => {
+    const out = text(await call('get_examples', { component: 'useLocale' }));
+    expect(out).toContain('`useLocale` has no examples of its own.');
+    expect(out).toContain('in the section "useLocale"');
+    expect(out).toContain('`get_examples({ component: "LocaleProvider" })`');
+  });
+
+  // `toast` is a word an example's text uses too, so a mention is no use.
+  it('answers a function the page documents in no heading', async () => {
+    const out = text(await call('get_props', { component: 'toast' }));
+    expect(out).toMatch(/^# Toast\n/);
+    expect(out).toContain(
+      '`toast` is documented with `Toast`, on its page: https://bestax.io/'
+    );
+    const examples = text(await call('get_examples', { component: 'toast' }));
+    expect(examples).toContain('`toast` has no examples of its own.');
+  });
+
+  it('keeps the component when only the letter case differs', async () => {
+    const out = text(await call('get_props', { component: 'Toast' }));
+    expect(out).not.toContain('is documented with');
+  });
+
+  it('answers a constant with the page that documents it', async () => {
+    const out = text(await call('get_props', { component: 'validColors' }));
+    expect(out).toMatch(/^# Valid value constants\n/);
+    expect(out).toContain(
+      '`validColors` is documented with `Valid value constants`, which ' +
+        '`get_component({ name: "Valid value constants", include: ["reference"] })` ' +
+        'returns.'
+    );
+  });
+});
+
 // A name the server hands out that its own tools refuse sends an agent nowhere, which
 // is what #1150 and #1174 were. This walks list_components, the import line, the parts
 // and the exports a record documents, its related components and the one whose
 // variables style it, the CSS variable index, and what lookup_bulma_classes answers
-// for every class it has a root or a hint for. Example code and skill bodies name
-// components too, and are not walked.
+// for every class it has a root or a hint for. An import line's names include hooks,
+// functions and constants (#1465). Example code and skill bodies name components too,
+// and are not walked.
 describe('every component or part name an answer hands out', () => {
-  const NAME = /^[A-Z][A-Za-z0-9]*(?:\.[A-Z][A-Za-z0-9]*)?$/;
+  const NAME = /^[A-Za-z_$][\w$]*(?:\.[A-Z][A-Za-z0-9]*)?$/;
   const handed = new Map<string, string>();
   const examples = new Map<string, string>();
   const hand = (name: string, where: string) => {
@@ -2062,6 +2163,9 @@ describe('every component or part name an answer hands out', () => {
 
   it('resolves in get_props', async () => {
     expect(handed.size).toBeGreaterThan(150);
+    expect([...handed.keys()]).toEqual(
+      expect.arrayContaining(['useDataTable', 'toast', 'validColors'])
+    );
     const refused: string[] = [];
     for (const [name, where] of handed) {
       if (failed(await call('get_props', { component: name }))) {

@@ -99,11 +99,14 @@ the API pages and the skill catalog.
   imports beside its component (`CarouselItem` in `Carousel`), and a sub the
   barrel exports by name too, from a module of its own (`Thead`, as
   `Table.Thead`) or beside its parent (`NavbarItem`, as `Navbar.Item`). The
-  catalog's `documentedWith` resolves each name to its part. A sweep in
-  `src/__tests__/server.test.ts` fails on a name from the catalog, a record,
-  `lookup_bulma_classes` or the library's `index.ts` that `get_props` refuses
-  (#1150, #1174). It reads that barrel from `bulma-ui/src`, so `turbo.json`
-  lists the library's source among this package's test inputs.
+  catalog's `documentedWith` resolves each name to its part. A name an import
+  line gives that is no part at all, a hook (`useDataTable`), a function
+  (`toast`) or a constant (`validColors`), has no path there: the tools answer
+  with its record and name the section of the page that documents it (#1465). A
+  sweep in `src/__tests__/server.test.ts` fails on a name from the catalog, a
+  record, `lookup_bulma_classes` or the library's `index.ts` that `get_props`
+  refuses (#1150, #1174). It reads that barrel from `bulma-ui/src`, so
+  `turbo.json` lists the library's source among this package's test inputs.
 
 ## Dependencies
 
