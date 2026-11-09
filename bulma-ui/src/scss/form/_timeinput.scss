@@ -142,6 +142,13 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
     opacity: 0.55;
     cursor: not-allowed;
   }
+
+  // A read-only wheel turns for nothing, so its items take no pointer: no
+  // hover fill and no hand, and a press lands on the wheel, which takes
+  // focus as a read-only input does.
+  &[aria-readonly='true'] .#{iv.$class-prefix}timeinput-wheel-item {
+    pointer-events: none;
+  }
 }
 
 .#{iv.$class-prefix}timeinput-wheel-item {
