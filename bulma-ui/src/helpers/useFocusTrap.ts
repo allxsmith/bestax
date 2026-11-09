@@ -272,7 +272,11 @@ interface TabStops {
   stopFor(node: Element): Element;
   /** The stops from one end inward, the last first when `fromLast`. */
   from(fromLast: boolean): Generator<HTMLElement>;
-  /** The stops Tab reaches after `node`, outside it, in order. */
+  /**
+   * The stops Tab reaches after `node`, outside it, in order. Tab visits the
+   * stops with a positive `tabindex` before all the others, wherever they sit,
+   * so none of them comes after `node`.
+   */
   after(node: Node): Generator<HTMLElement>;
 }
 
@@ -327,7 +331,12 @@ function findTabStops(container: HTMLElement): TabStops | null {
   // Only the candidates past `node` get the style checks.
   function* after(node: Node): Generator<HTMLElement> {
     for (const el of candidates) {
-      if (!inside(node, el) && follows(container, node, el) && isStop(el)) {
+      if (
+        el.tabIndex <= 0 &&
+        !inside(node, el) &&
+        follows(container, node, el) &&
+        isStop(el)
+      ) {
         yield el;
       }
     }

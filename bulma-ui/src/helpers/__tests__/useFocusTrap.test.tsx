@@ -1655,6 +1655,35 @@ describe('focusTabStopAfter', () => {
     expect(screen.getByRole('link', { name: 'Next' })).toHaveFocus();
   });
 
+  it('passes over stops with a positive tabindex, which Tab visits before the rest', () => {
+    render(
+      <>
+        <div data-testid="popup">
+          <button>Inside</button>
+        </div>
+        <button tabIndex={1}>Positive</button>
+        <button tabIndex={0}>Zero</button>
+      </>
+    );
+    act(() => button('Inside').focus());
+    expect(focusTabStopAfter(popup())).toBe(true);
+    expect(button('Zero')).toHaveFocus();
+  });
+
+  it('leaves focus alone when only stops with a positive tabindex follow', () => {
+    render(
+      <>
+        <div data-testid="popup">
+          <button>Inside</button>
+        </div>
+        <button tabIndex={2}>Positive</button>
+      </>
+    );
+    act(() => button('Inside').focus());
+    expect(focusTabStopAfter(popup())).toBe(false);
+    expect(button('Inside')).toHaveFocus();
+  });
+
   it('leaves focus alone at the end of the page', () => {
     render(
       <>
