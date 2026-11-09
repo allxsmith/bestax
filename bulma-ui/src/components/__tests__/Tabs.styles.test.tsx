@@ -148,6 +148,7 @@ describe.each([
 ])('vertical Tabs edge, with %s', (_label, prefix) => {
   const p = (name: string) => `.${prefix}${name}`;
   const MOBILE = '@media screen and (max-width: 768px)';
+  const TABLET = '@media screen and (min-width: 769px), print';
   const compiled = sass.compileString(
     `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
      @use 'components/tabs';`,
@@ -225,18 +226,73 @@ describe.each([
   });
 
   it('moves them to the start of the list with side="right", where the panel is then', () => {
-    expect(borders(right)).toEqual({
+    expect(borders(right, TABLET)).toEqual({
       'border-inline-end': 'none',
       'border-inline-start': EDGE,
     });
-    expect(borders(`${right} > li a`)).toEqual({
+    expect(borders(`${right} > li a`, TABLET)).toEqual({
       'border-inline-end': 'none',
       'border-inline-start': '2px solid transparent',
     });
-    expect(borders(`${right} > li${p('is-active')} a`)).toEqual({
+    expect(borders(`${right} > li${p('is-active')} a`, TABLET)).toEqual({
       'border-inline-start-color': 'var(--bulma-link)',
       'border-inline-end-color': 'transparent',
     });
+  });
+
+  // The side="right" rules name one class more than the phone fallback, so
+  // on a phone they kept the row and the side edge (#1520). They apply from
+  // tablet up, and in print, where Bulma's own tablet query reaches.
+  it('keeps every side="right" rule to tablet and up, where the tabs sit beside the panel', () => {
+    const sideRight = rules.filter(({ rule }) =>
+      rule.selectorText.includes(`${p('is-right')}`)
+    );
+    expect(sideRight.length).toBeGreaterThan(0);
+    expect([...new Set(sideRight.map(({ within }) => within))]).toEqual([
+      TABLET,
+    ]);
+  });
+
+  it('lays a side="right" Tabs out on a phone with exactly the rules a side="left" one gets', () => {
+    // A phone reads the top-level rules and the phone fallback, and not the
+    // tablet query. With no side="right" rule among them, the two match the
+    // same rules on every element, so the list stacks above the panel with
+    // only the bottom border.
+    const phone = rules.filter(
+      ({ within }) => within === '' || within === MOBILE
+    );
+    const matched = (side: 'left' | 'right') => {
+      const { container, unmount } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Tabs vertical side={side}>
+            <Tabs.List>
+              <Tabs.Tab index={0}>One</Tabs.Tab>
+              <Tabs.Tab index={1}>Two</Tabs.Tab>
+            </Tabs.List>
+            <Tabs.Content>
+              <Tabs.Content.Item index={0}>One panel</Tabs.Content.Item>
+              <Tabs.Content.Item index={1}>Two panel</Tabs.Content.Item>
+            </Tabs.Content>
+          </Tabs>
+        </ConfigProvider>
+      );
+      const elements = [
+        container.firstElementChild!,
+        container.querySelector('ul')!,
+        ...Array.from(container.querySelectorAll('li a')),
+      ];
+      const out = elements.map(el =>
+        phone
+          .filter(({ rule }) => el.matches(rule.selectorText))
+          .map(({ rule, within }) => `${within} ${rule.selectorText}`)
+      );
+      unmount();
+      return out;
+    };
+    const right = matched('right');
+    expect(right).toEqual(matched('left'));
+    // The root's own stacking rule is among them.
+    expect(right[0]).toContain(`${MOBILE} ${root}`);
   });
 
   it('takes both sides off on a phone, where the list runs across the top', () => {
