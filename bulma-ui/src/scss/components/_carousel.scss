@@ -619,8 +619,9 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
   }
 }
 
-// Responsive adjustments
-@media screen and (max-width: 768px) {
+// Responsive adjustments, below Bulma's tablet breakpoint, so a build that
+// moves `$tablet` moves them too
+@include mx.mobile {
   .#{iv.$class-prefix}carousel {
     .#{iv.$class-prefix}carousel-arrow {
       width: cv.getVar("carousel-arrow-size-mobile");
