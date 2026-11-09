@@ -740,6 +740,74 @@ describe('get_examples', () => {
     );
     expect(out.match(/```tsx/g)?.length).toBe(2);
   });
+
+  // A dot-path goes on through a static that is a component of its own, as in
+  // get_props, so `Stats.Stat.Label` has Stat's examples, not Stats' (#1578).
+  describe('on a dot-path', () => {
+    it('answers through a static with the examples that use the part', async () => {
+      const out = text(
+        await call('get_examples', { component: 'Stats.Stat.Label' })
+      );
+      expect(out).toMatch(/^# Stat\.Label examples\n/);
+      expect(out).toContain(
+        '`Stats.Stat` is `Stat`, so `Stats.Stat.Label` is `Stat.Label`. ' +
+          "From `Stat`'s documentation page, the ones that use `Stat.Label`."
+      );
+      const record = await loadComponent('Stat');
+      const using = record.examples.filter(e => e.code.includes('<Stat.Label'));
+      expect(using.length).toBeGreaterThan(0);
+      expect(out.match(/^### /gm)?.length).toBe(using.length);
+    });
+
+    it('narrows a part of the record itself the same way', async () => {
+      const out = text(
+        await call('get_examples', { component: 'Navbar.Brand', limit: 30 })
+      );
+      expect(out).toMatch(/^# Navbar\.Brand examples\n/);
+      for (const code of out.split('```tsx').slice(1)) {
+        expect(code).toContain('Navbar.Brand');
+      }
+    });
+
+    // Its own page writes it `<Thead>` as often as `<Table.Thead>`, and the
+    // bare name `Thead` reaches the same examples.
+    it('narrows a part that is its own export by both of its names', async () => {
+      const out = text(
+        await call('get_examples', { component: 'Table.Thead', limit: 30 })
+      );
+      const record = await loadComponent('Table');
+      const using = record.examples.filter(e =>
+        /<(Table\.)?Thead\b/.test(e.code)
+      );
+      expect(using.length).toBeGreaterThan(1);
+      expect(out.match(/^### /gm)?.length).toBe(using.length);
+      const bare = text(
+        await call('get_examples', { component: 'Thead', limit: 30 })
+      );
+      expect(bare.match(/^### /gm)?.length).toBe(using.length);
+    });
+
+    it("gives all the record's examples when none uses the part", async () => {
+      const out = text(
+        await call('get_examples', { component: 'Table.Tfoot', limit: 1 })
+      );
+      expect(out).toContain(
+        "No example on `Table`'s documentation page uses `Table.Tfoot`, so " +
+          "these are all of `Table`'s."
+      );
+      expect(out).toMatch(/^### /m);
+    });
+
+    it('says where it went when the rest names no part', async () => {
+      const out = text(
+        await call('get_examples', { component: 'Stats.Stat.Nope', limit: 1 })
+      );
+      expect(out).toMatch(/^# Stat examples\n/);
+      expect(out).toContain(
+        '`Stat` has no part `Stat.Nope`, so these are all of its examples.'
+      );
+    });
+  });
 });
 
 describe('get_css_variables', () => {
