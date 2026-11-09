@@ -36,6 +36,9 @@ Wraps a single input; adds icons and loading.
 | `size`                           | `'small' \| 'medium' \| 'large'` | Control size.                   |
 | `as`                             | `'div' \| 'p'`                   | Root element (default `div`).   |
 
+Over a `TextArea` an icon covers the text, so leave the icon props off a `Control` that holds
+one.
+
 ## Fieldset — `form/Fieldset.tsx`
 
 A native `<fieldset>` for a section of a form. It starts its own Field scope, so the convenience

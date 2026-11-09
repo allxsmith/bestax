@@ -1225,13 +1225,83 @@ describe('HoverCard', () => {
       expect(card()).not.toHaveAttribute('style');
     });
 
+    it('marks the default as start aligned, for the stylesheet to place', () => {
+      const { unmount } = render(<Profile defaultOpen />);
+      expect(card()).toHaveClass('is-bottom-left', 'is-start-aligned');
+      unmount();
+      render(<Profile defaultOpen position="bottom-left" />);
+      expect(card()).toHaveClass('is-bottom-left');
+      expect(card()).not.toHaveClass('is-start-aligned');
+    });
+
     it.each(['bottom-right', 'top-left', 'top-right'] as const)(
       'takes position="%s"',
       position => {
         render(<Profile defaultOpen position={position} />);
         expect(card()).toHaveClass(`is-${position}`);
+        expect(card()).not.toHaveClass('is-start-aligned');
       }
     );
+
+    /** Runs a test on a right-to-left page. jsdom maps no `dir` to `direction`. */
+    const rightToLeft = (test: () => void) => {
+      const style = document.createElement('style');
+      style.textContent = '[dir="rtl"] { direction: rtl; }';
+      document.head.appendChild(style);
+      document.documentElement.setAttribute('dir', 'rtl');
+      try {
+        test();
+      } finally {
+        document.documentElement.removeAttribute('dir');
+        style.remove();
+      }
+    };
+
+    it('lines a portaled default card up with the right edge on a right-to-left page', () => {
+      rightToLeft(() => {
+        setViewport(1000, 1000);
+        const { container } = render(<Profile defaultOpen appendToBody />);
+        measure(
+          container,
+          rect({ top: 100, bottom: 130, left: 900, right: 960 }),
+          { width: 200, height: 150 }
+        );
+        expect(card()).toHaveClass('is-bottom-left', 'is-start-aligned');
+        // 960 - 200. Lined up on the left it would start at 900 and run
+        // past the 1000px viewport.
+        expect(card()!.style.left).toBe('760px');
+        expect(card()!.style.top).toBe('130px');
+      });
+    });
+
+    it('keeps a corner the caller names physical on a right-to-left page', () => {
+      rightToLeft(() => {
+        setViewport(1000, 1000);
+        const { container } = render(
+          <Profile defaultOpen appendToBody position="bottom-left" />
+        );
+        measure(
+          container,
+          rect({ top: 100, bottom: 130, left: 400, right: 460 }),
+          { width: 200, height: 150 }
+        );
+        expect(card()).toHaveClass('is-bottom-left');
+        expect(card()).not.toHaveClass('is-start-aligned');
+        expect(card()!.style.left).toBe('400px');
+      });
+    });
+
+    it('lines a portaled default card up with the left edge left to right', () => {
+      setViewport(1000, 1000);
+      const { container } = render(<Profile defaultOpen appendToBody />);
+      measure(
+        container,
+        rect({ top: 100, bottom: 130, left: 400, right: 460 }),
+        { width: 200, height: 150 }
+      );
+      expect(card()).toHaveClass('is-bottom-left');
+      expect(card()!.style.left).toBe('400px');
+    });
 
     it('flips an auto card above the trigger when there is no room below', () => {
       setViewport(1000, 1000);

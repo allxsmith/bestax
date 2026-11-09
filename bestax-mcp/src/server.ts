@@ -723,11 +723,19 @@ export async function createServer(
     async ({ component, query, limit }) => {
       const resolved = await resolveName(component);
       if (!resolved) return notFound(component);
-      const record = await loadComponent(resolved);
+      // A dot-path names a part, through a static that is a component of its
+      // own when it runs through one, as in get_props: `Stats.Stat.Label` is
+      // `Stat.Label`, whose examples are Stat's (#1578).
+      const loaded = await loadComponent(resolved);
+      const { record, focus } = dotPath(component)
+        ? await focusOn(loaded, component)
+        : { record: loaded, focus: undefined };
+      const part =
+        focus?.part && focus.part !== record.parts[0] ? focus.part : null;
       // An export documented with this record has the page's examples that use
       // it, and none when no example does (`InputBase`, beside `Input`'s).
       const documented = await documentedExport(component);
-      const name = documented?.name ?? record.name;
+      const name = documented?.name ?? part?.path ?? record.name;
       const path = documented?.entry.path;
       const using = documented
         ? record.examples.filter(e =>
@@ -735,7 +743,13 @@ export async function createServer(
               ? usesExport(e.code, documented.name, path)
               : callsExport(e.code, documented.name)
           )
-        : record.examples;
+        : part
+          ? // By its own export's name too (`<Thead>` for `Table.Thead`), as
+            // the bare name is matched above.
+            record.examples.filter(e =>
+              usesExport(e.code, part.component ?? part.path, part.path)
+            )
+          : record.examples;
       if (path && !using.length) {
         return textResult(
           `\`${name}\` has no examples of its own. It is documented with ` +
@@ -750,12 +764,26 @@ export async function createServer(
       }
       // One that is no part of the record, a hook or a function, is answered by
       // the record it is documented with: the examples that call it, or all of
-      // them when none does, so `notification` gets Notification's (#1465).
+      // them when none does, so `notification` gets Notification's (#1465). A
+      // part has the examples that use it, or all of its record's when none
+      // does, since those are the family's.
       const examples = using.length ? using : record.examples;
       const where =
         documented && !path
           ? `${documentedLine(name, documented.entry.section, record)} `
           : '';
+      const through = focus?.asked
+        ? `${throughLine(focus.asked, part?.path ?? focus.wanted)} `
+        : '';
+      const which = part
+        ? using.length
+          ? `From \`${record.name}\`'s documentation page, the ones that use ` +
+            `\`${part.path}\`.`
+          : `No example on \`${record.name}\`'s documentation page uses ` +
+            `\`${part.path}\`, so these are all of \`${record.name}\`'s.`
+        : through &&
+          `\`${record.name}\` has no part \`${focus?.wanted}\`, so these are ` +
+            `all of its examples.`;
       const q = query?.toLowerCase();
       const matches = q
         ? examples.filter(
@@ -796,6 +824,7 @@ export async function createServer(
                 ? 'These are the examples that call it.'
                 : `No example calls it, so these are all of \`${record.name}\`'s.`
             }\n\n`) +
+          (which ? `${through}${which}\n\n` : '') +
           renderExamples(shown) +
           (left.length > 0
             ? `\n\n**Not shown** under this limit, ${matches.length - shown.length} ` +

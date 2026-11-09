@@ -93,3 +93,141 @@ describe('Slider in the cascade', () => {
     ).toBe('-50%');
   });
 });
+
+// Forced colors turns the value bubble's fill into the page's and paints every
+// side of its arrow, which then draws as a square (#1502). jsdom evaluates no
+// media query, so the rules are read off the compiled sheet, with no prefix
+// and under one.
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('Slider value bubble in forced colors, with %s', (_label, prefix) => {
+  const FORCED = '@media (forced-colors: active)';
+  const p = (name: string) => `.${prefix}${name}`;
+  const compiled = sass.compileString(
+    `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+     @use 'form/slider';`,
+    {
+      loadPaths: [SCSS, NODE_MODULES],
+      quietDeps: true,
+      logger: sass.Logger.silent,
+    }
+  ).css;
+
+  /** Every style rule, with the at-rules it sits in, outermost first. */
+  const rules = (() => {
+    const sheet = document.createElement('style');
+    sheet.textContent = compiled;
+    document.head.appendChild(sheet);
+    const out: { rule: CSSStyleRule; within: string[] }[] = [];
+    const walk = (list: CSSRuleList, within: string[]) => {
+      for (const rule of Array.from(list)) {
+        if (rule instanceof CSSStyleRule) out.push({ rule, within });
+        else if ('cssRules' in rule) {
+          walk((rule as CSSGroupingRule).cssRules, [
+            ...within,
+            rule.cssText.split('{')[0].trim(),
+          ]);
+        }
+      }
+    };
+    try {
+      walk((sheet.sheet as CSSStyleSheet).cssRules, []);
+    } finally {
+      sheet.remove();
+    }
+    return out;
+  })();
+
+  const forced = (selector: string) =>
+    rules.filter(
+      ({ rule, within }) =>
+        within.join() === FORCED && rule.selectorText === selector
+    );
+  const atTop = (selector: string) =>
+    rules.filter(
+      ({ rule, within }) => !within.length && rule.selectorText === selector
+    );
+
+  const bubble = p('slider-output');
+  const arrow = `${bubble}::after`;
+
+  it('outlines the bubble in the system text color, so its edge shows on the page', () => {
+    const [box] = forced(bubble);
+    expect(box).toBeDefined();
+    // jsdom writes a system color in lowercase.
+    expect(box.rule.style.getPropertyValue('outline').toLowerCase()).toBe(
+      '1px solid canvastext'
+    );
+  });
+
+  it('opts the arrow alone out of forced colors, and paints it in the system text color', () => {
+    const [own] = forced(arrow);
+    expect(own).toBeDefined();
+    expect(own.rule.style.getPropertyValue('forced-color-adjust')).toBe('none');
+    expect(
+      own.rule.style.getPropertyValue('--bulma-slider-output-background').trim()
+    ).toMatch(/^canvastext$/i);
+    // The bubble keeps the user's palette: only the arrow, and the range
+    // track that opted out before it, do.
+    const optedOut = rules
+      .filter(({ rule }) => rule.style.getPropertyValue('forced-color-adjust'))
+      .map(({ rule }) => rule.selectorText);
+    expect(optedOut).toEqual([
+      `${p('slider')}${p('is-range')} ${p('slider-track')}`,
+      arrow,
+    ]);
+  });
+
+  // The color above reaches every way the arrow points because each one
+  // paints its pointing side from the variable and leaves the rest
+  // transparent.
+  it.each([
+    ['down', '', 'top'],
+    ['up, flipped below the thumb', 'flipped', 'bottom'],
+    ['left, beside a vertical thumb', 'vertical', 'right'],
+    ['right, flipped to a vertical thumb’s left', 'vertical-left', 'left'],
+  ])(
+    'paints the side of an arrow pointing %s from the bubble’s variable',
+    (_way, kind, side) => {
+      const vertical = `${p('slider')}${p('is-vertical')} `;
+      // The rules that reach this arrow, in source order, the general first.
+      const selectors = {
+        '': [arrow],
+        flipped: [arrow, `${bubble}${p('is-flipped')}::after`],
+        vertical: [arrow, `${vertical}${arrow}`],
+        'vertical-left': [
+          arrow,
+          `${vertical}${arrow}`,
+          `${vertical}${bubble}${p('is-flipped-left')}::after`,
+        ],
+      }[kind]!;
+      const sides: Record<string, string> = {};
+      for (const { rule } of selectors.flatMap(atTop)) {
+        for (const name of ['top', 'right', 'bottom', 'left']) {
+          const value =
+            rule.style.getPropertyValue(`border-${name}-color`) ||
+            rule.style.getPropertyValue('border-color');
+          if (value) sides[name] = value;
+        }
+      }
+      expect(sides).toEqual({
+        top: 'transparent',
+        right: 'transparent',
+        bottom: 'transparent',
+        left: 'transparent',
+        [side]: 'var(--bulma-slider-output-background)',
+      });
+    }
+  );
+
+  it('changes nothing about the bubble outside forced colors', () => {
+    const outlined = rules.filter(
+      ({ rule, within }) =>
+        within.join() !== FORCED &&
+        rule.selectorText.includes('slider-output') &&
+        rule.style.getPropertyValue('outline')
+    );
+    expect(outlined).toEqual([]);
+  });
+});
