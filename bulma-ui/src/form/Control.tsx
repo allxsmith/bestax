@@ -22,9 +22,15 @@ export interface ControlBaseProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
-  /** Adds left icon container. */
+  /**
+   * Adds left icon container.
+   * Over a `TextArea` the icon covers the text.
+   */
   hasIconsLeft?: boolean;
-  /** Adds right icon container. */
+  /**
+   * Adds right icon container.
+   * Over a `TextArea` the icon covers the text.
+   */
   hasIconsRight?: boolean;
   /**
    * Shows a loading spinner inside the control.
@@ -46,6 +52,7 @@ export interface ControlBaseProps
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
    * Icon props for left icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph.
+   * Over a `TextArea` the icon covers the text.
    * Bulma gives control icons `pointer-events: none`, so a click lands on
    * the input and a clickable node placed here never receives one. Put a button beside the input
    * in its own addon `Control` instead.
@@ -53,16 +60,23 @@ export interface ControlBaseProps
   iconLeft?: IconProps | React.ReactNode;
   /**
    * Icon props for right icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph.
+   * Over a `TextArea` the icon covers the text.
    * Bulma gives control icons `pointer-events: none`, so a click lands on
    * the input and a clickable node placed here never receives one. Put a button beside the input
    * in its own addon `Control` instead.
    */
   iconRight?: IconProps | React.ReactNode;
-  /** Shortcut for left icon name. */
+  /**
+   * Shortcut for left icon name.
+   * Over a `TextArea` the icon covers the text.
+   */
   iconLeftName?: string;
   /** Shortcut for left icon size. */
   iconLeftSize?: 'small' | 'medium' | 'large';
-  /** Shortcut for right icon name. */
+  /**
+   * Shortcut for right icon name.
+   * Over a `TextArea` the icon covers the text.
+   */
   iconRightName?: string;
   /** Shortcut for right icon size. */
   iconRightSize?: 'small' | 'medium' | 'large';
