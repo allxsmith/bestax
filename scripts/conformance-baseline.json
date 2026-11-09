@@ -44,7 +44,6 @@
   "bulma-ui/src/helpers/Theme.stories.tsx": 6,
   "bulma-ui/src/helpers/useBulmaClasses.stories.tsx": 91,
   "bulma-ui/src/layout/Level.stories.tsx": 1,
-  "bulma-ui/src/skill-examples/CustomComponent.stories.tsx": 2,
   "bulma-ui/src/skill-examples/Form.stories.tsx": 4,
   "docs/docs/api/columns/column.md": 1,
   "docs/docs/api/columns/columns.md": 1,
@@ -75,7 +74,6 @@
   "docs/docs/guides/library/components.md": 13,
   "docs/docs/guides/library/helpers.md": 10,
   "docs/docs/guides/library/index.md": 6,
-  "docs/docs/skills/custom-component.mdx": 1,
   "docs/docs/skills/form.mdx": 4,
   "docs/docs/skills/theming.mdx": 1,
   "docs/docs/tutorial-basics/markdown-features.mdx": 2
