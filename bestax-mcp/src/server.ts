@@ -38,6 +38,7 @@ import {
   loadSkillFile,
   resolveName,
   type ComponentRecord,
+  type Part,
   type Skill,
 } from './data.js';
 import {
@@ -55,6 +56,7 @@ import {
   referencePointer,
   table,
   textResult,
+  throughLine,
   type PartFocus,
 } from './format.js';
 import {
@@ -165,18 +167,61 @@ async function wantedPath(input: string): Promise<string | null> {
   return dotPath(input) ?? (await documentedExport(input))?.entry.path ?? null;
 }
 
-/** What a name names in a record: the part, or null when it names none. */
-async function partFocus(
+/** The part a dot-path names in a record, as spelled there or in any letter case. */
+function findPart(record: ComponentRecord, path: string): Part | undefined {
+  return (
+    record.parts.find(p => p.path === path) ??
+    record.parts.find(p => p.path.toLowerCase() === path.toLowerCase())
+  );
+}
+
+/**
+ * The record a dot-path names a part of, and the path as that record spells it.
+ * A static that is a component with an entry of its own hands the rest of the
+ * path to that component's record: `Stats.Stat` is `Stat`, so `Stats.Stat.Label`
+ * is `Stat.Label` (#1480). Only a part's `component` is followed, so the rest of
+ * a path through `Combobox.Menu`, which is no export of its own, stays
+ * Combobox's rather than going to `Menu`, another component. A path the record
+ * names a part for as it stands (`Card.Header.Title`) is never followed.
+ */
+async function followPath(
+  record: ComponentRecord,
+  wanted: string
+): Promise<{ record: ComponentRecord; wanted: string }> {
+  if (findPart(record, wanted)) return { record, wanted };
+  const { components } = await loadCatalog();
+  const segments = wanted.split('.');
+  // The longest prefix first, so a static inside another static wins. Each
+  // step leaves a shorter path than it took, so the walk ends.
+  for (let i = segments.length - 1; i >= 2; i--) {
+    const via = findPart(record, segments.slice(0, i).join('.'))?.component;
+    if (via && components.some(c => c.name === via)) {
+      return followPath(
+        await loadComponent(via),
+        [via, ...segments.slice(i)].join('.')
+      );
+    }
+  }
+  return { record, wanted };
+}
+
+/**
+ * What a name names: the record whose part it is, with that part, or the record
+ * as resolved and no focus for a name that asks for none.
+ */
+async function focusOn(
   record: ComponentRecord,
   input: string
-): Promise<PartFocus | null> {
-  const wanted = await wantedPath(input);
-  if (!wanted) return null;
-  const part =
-    record.parts.find(p => p.path === wanted) ??
-    record.parts.find(p => p.path.toLowerCase() === wanted.toLowerCase()) ??
-    null;
-  return { wanted, part };
+): Promise<{ record: ComponentRecord; focus?: PartFocus }> {
+  const asked = await wantedPath(input);
+  if (!asked) return { record };
+  const followed = await followPath(record, asked);
+  const focus: PartFocus = {
+    wanted: followed.wanted,
+    part: findPart(followed.record, followed.wanted) ?? null,
+  };
+  if (followed.wanted !== asked) focus.asked = asked;
+  return { record: followed.record, focus };
 }
 
 /** Load every component record. Only `search_bestax` needs this much. */
@@ -524,14 +569,12 @@ export async function createServer(
     async ({ name, include }) => {
       const resolved = await resolveName(name);
       if (!resolved) return notFound(name);
-      const record = await loadComponent(resolved);
+      const { record, focus } = await focusOn(
+        await loadComponent(resolved),
+        name
+      );
       return textResult(
-        renderComponent(
-          record,
-          include ?? ['props'],
-          (await partFocus(record, name)) ?? undefined,
-          { hasEntry }
-        ),
+        renderComponent(record, include ?? ['props'], focus, { hasEntry }),
         note()
       );
     }
@@ -561,34 +604,38 @@ export async function createServer(
     async ({ component, path }) => {
       const resolved = await resolveName(component);
       if (!resolved) return notFound(component);
-      const record = await loadComponent(resolved);
+      const named = await loadComponent(resolved);
 
-      if (record.kind === 'helper') {
+      if (named.kind === 'helper') {
         // The signature itself rather than a pointer at a tool that has it, so the
         // question is answered on this call.
         return textResult(
-          `# ${record.name}\n\n${renderHelperApi(record)}`,
+          `# ${named.name}\n\n${renderHelperApi(named)}`,
           note()
         );
       }
 
       // A dot-path given as `path`, or folded into `component` ("Navbar.Brand"), or
       // the part an export documented with this record is ("InputBase").
-      const wanted =
+      const asked =
         path ??
         (component.includes('.') ? component : await wantedPath(component));
-      if (!wanted) {
+      if (!asked) {
         const body = [
-          renderPart(record.parts[0], { heading: false }),
-          ...partLists(record),
+          renderPart(named.parts[0], { heading: false }),
+          ...partLists(named),
         ];
-        if (record.doc) body.push(referencePointer(record));
-        return textResult(`# ${record.name}\n\n${body.join('\n\n')}`, note());
+        if (named.doc) body.push(referencePointer(named));
+        return textResult(`# ${named.name}\n\n${body.join('\n\n')}`, note());
       }
 
-      const part =
-        record.parts.find(p => p.path === wanted) ??
-        record.parts.find(p => p.path.toLowerCase() === wanted.toLowerCase());
+      // A path through a static that is a component of its own names a part of
+      // that component's record, and the answer says which (#1480).
+      const { record, wanted } = await followPath(named, asked);
+      const part = findPart(record, wanted);
+      const through =
+        wanted === asked ? '' : throughLine(asked, part?.path ?? wanted);
+      const lead = through && `${through} `;
       if (!part) {
         // `path` reads like it could take a prop ("Button.isLoading"), and the old
         // answer listed the parts without saying a prop is the wrong thing to pass.
@@ -597,7 +644,7 @@ export async function createServer(
         // `Carousel.Item` for `CarouselItem`: no dot-path names a separate export.
         if (record.parts.find(p => p.path === nearPart)?.standalone) {
           return errorResult(
-            `${record.name} has no "${wanted}". Did you mean "${nearPart}"? It is ` +
+            `${lead}${record.name} has no "${wanted}". Did you mean "${nearPart}"? It is ` +
               `a separate export, not a dot-path, so it is written <${nearPart}>, ` +
               `and its props are in get_props({ component: "${nearPart}" }).`
           );
@@ -609,7 +656,7 @@ export async function createServer(
           1
         );
         return errorResult(
-          `"${wanted}" is not a part of ${record.name}. ` +
+          `${lead}"${wanted}" is not a part of ${record.name}. ` +
             (nearPart ? `Did you mean "${nearPart}"? ` : '') +
             `\`path\` names a subcomponent, such as "Navbar.Brand", not a prop. ` +
             (subs.length
@@ -622,7 +669,8 @@ export async function createServer(
         );
       }
       return textResult(
-        renderPart(part, { owner: record.name, hasEntry }),
+        (through && `${through}\n\n`) +
+          renderPart(part, { owner: record.name, hasEntry }),
         note()
       );
     }
@@ -741,7 +789,13 @@ export async function createServer(
       if (component) {
         const resolved = await resolveName(component);
         if (!resolved) return notFound(component);
-        const record = await loadComponent(resolved);
+        const named = await loadComponent(resolved);
+        // A part that is a component of its own has that component's variables,
+        // not its family's: `Buttons.Button` is `Button`, and `Stats.Stat.Label`
+        // is a part of `Stat` (#1480).
+        const { record: owner, focus } = await focusOn(named, component);
+        const own = focus?.part?.component;
+        const record = own && hasEntry(own) ? await loadComponent(own) : owner;
         const vars = query
           ? record.cssVars.filter(v =>
               v.css.toLowerCase().includes(query.toLowerCase())
@@ -769,11 +823,22 @@ export async function createServer(
           );
         }
         const documented = await documentedExport(component);
+        const lead = [
+          documented &&
+            `\`${documented.name}\` is documented with \`${record.name}\`, ` +
+              `whose variables these are.`,
+          focus?.part && record !== owner
+            ? `\`${focus.asked ?? focus.part.path}\` is \`${record.name}\`.`
+            : focus?.asked &&
+              throughLine(focus.asked, focus.part?.path ?? focus.wanted),
+          record !== named &&
+            named.cssVars.length > 0 &&
+            `\`${named.name}\`'s own variables are in ` +
+              `\`get_css_variables({ component: "${named.name}" })\`.`,
+        ].filter(Boolean);
         return textResult(
-          (documented
-            ? `\`${documented.name}\` is documented with \`${record.name}\`, ` +
-              `whose variables these are.\n\n`
-            : '') + renderCssVarsAnswer(record, vars, query),
+          (lead.length ? `${lead.join(' ')}\n\n` : '') +
+            renderCssVarsAnswer(record, vars, query),
           note()
         );
       }
@@ -986,18 +1051,18 @@ export async function createServer(
               : '')
         );
       }
-      const record = await loadComponent(resolved);
+      const { record, focus } = await focusOn(
+        await loadComponent(resolved),
+        String(name)
+      );
       return {
         contents: [
           {
             uri: uri.href,
             mimeType: 'text/markdown',
-            text: renderComponent(
-              record,
-              RESOURCE_INCLUDES,
-              (await partFocus(record, String(name))) ?? undefined,
-              { hasEntry }
-            ),
+            text: renderComponent(record, RESOURCE_INCLUDES, focus, {
+              hasEntry,
+            }),
           },
         ],
       };

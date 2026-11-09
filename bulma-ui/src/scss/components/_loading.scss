@@ -144,22 +144,36 @@ $loading-animation-duration: 0.75s !default;
   );
   animation: extras-spin cv.getVar("loading-animation-duration") infinite linear;
 
+  // Each size takes its ring width from its own variable on `.loading`, as it
+  // takes its dimensions.
   &.#{iv.$class-prefix}is-small {
     width: cv.getVar("loading-icon-size-small");
     height: cv.getVar("loading-icon-size-small");
-    @include cv.register-vars(("loading-icon-border-width": #{$loading-icon-border-width-small}));
+    @include cv.register-vars(
+      (
+        "loading-icon-border-width": #{cv.getVar("loading-icon-border-width-small")},
+      )
+    );
   }
 
   &.#{iv.$class-prefix}is-medium {
     width: cv.getVar("loading-icon-size-medium");
     height: cv.getVar("loading-icon-size-medium");
-    @include cv.register-vars(("loading-icon-border-width": #{$loading-icon-border-width-medium}));
+    @include cv.register-vars(
+      (
+        "loading-icon-border-width": #{cv.getVar("loading-icon-border-width-medium")},
+      )
+    );
   }
 
   &.#{iv.$class-prefix}is-large {
     width: cv.getVar("loading-icon-size-large");
     height: cv.getVar("loading-icon-size-large");
-    @include cv.register-vars(("loading-icon-border-width": #{$loading-icon-border-width-large}));
+    @include cv.register-vars(
+      (
+        "loading-icon-border-width": #{cv.getVar("loading-icon-border-width-large")},
+      )
+    );
   }
 }
 

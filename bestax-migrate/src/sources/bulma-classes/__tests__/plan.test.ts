@@ -2189,6 +2189,34 @@ describe('plan', () => {
     });
   });
 
+  describe('Level', () => {
+    it('converts on the tags its `as` takes', () => {
+      for (const tag of ['div', 'header', 'footer']) {
+        expect(plan(facts(tag, 'level is-mobile')).conversion).toMatchObject({
+          target: 'Level',
+          props: [
+            ['as', tag],
+            ['isMobile', true],
+          ],
+        });
+      }
+      // Its default tag converts with no `as`.
+      expect(plan(facts('nav', 'level')).conversion?.props).toEqual([]);
+      // Reaching a <div> through `as` beats a class whose component can't.
+      expect(plan(facts('div', 'section level')).conversion?.target).toBe(
+        'Level'
+      );
+    });
+
+    it('still refuses a tag outside them', () => {
+      for (const tag of ['section', 'aside']) {
+        expect(plan(facts(tag, 'level')).todos.map(todo => todo.rule)).toEqual([
+          'tag:Level',
+        ]);
+      }
+    });
+  });
+
   describe('Modal', () => {
     it('converts the parts, but not inside a bestax Modal, which picks its render from them', () => {
       expect(plan(facts('div', 'modal-content')).conversion?.target).toBe(
