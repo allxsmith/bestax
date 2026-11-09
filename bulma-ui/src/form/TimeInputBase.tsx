@@ -106,7 +106,11 @@ export interface TimeInputBaseProps
   max?: Date;
   /** Disable the input. */
   disabled?: boolean;
-  /** Make the input read-only. */
+  /**
+   * Make the input read-only. An `inline` picker's wheels keep their tab
+   * stops and carry `aria-readonly`, but no key, scroll, drag or click turns
+   * them, so the time can't change.
+   */
   readOnly?: boolean;
   /** Placeholder text for the input. */
   placeholder?: string;
@@ -397,6 +401,9 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
     // wheels show.
     const handleSpinnerChange = useCallback(
       (parts: { hours: number; minutes: number; seconds?: number }) => {
+        // The wheels start nothing while read-only. This catches a drag or a
+        // fling already under way when `readOnly` turns on.
+        if (readOnly) return;
         const next = value
           ? setTimeOfDay(value, parts)
           : setTimeOfDay(new Date(), {
@@ -407,7 +414,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
         if (!isWithin(next, lowerBound, max)) return;
         commitValue(next);
       },
-      [value, lowerBound, max, commitValue]
+      [readOnly, value, lowerBound, max, commitValue]
     );
 
     const tryParse = useCallback(
@@ -530,6 +537,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
           color={color}
           size={size}
           disabled={disabled}
+          readOnly={readOnly}
           // The popover panel takes `popoverId`, so the wheels inside it take
           // one of their own. Inline there is no panel, and the wheels keep
           // the id they released with.
