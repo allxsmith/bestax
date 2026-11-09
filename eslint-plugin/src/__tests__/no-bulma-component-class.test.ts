@@ -225,6 +225,11 @@ ruleTester.run('no-bulma-component-class', rule, {
       code: jsx('<main className="hero container" />'),
       errors: [converts('container', 'Container', 'main')],
     },
+    // `Level` reaches a <div> through `as`, which `Section` doesn't.
+    {
+      code: jsx('<div className="section level" />'),
+      errors: [converts('level', 'Level')],
+    },
     // The tag a class beside it picks counts as the component's own: a ratio
     // puts `Image` on a <figure>, so on a <div> it reaches it through `as`,
     // as `Media.Left` does, and the table's order decides.
