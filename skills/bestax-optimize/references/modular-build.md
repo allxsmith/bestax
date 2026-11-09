@@ -115,7 +115,8 @@ Notes:
   ```
 
 - The `menu` partial **extends** stock Bulma menu (it draws `Menu.Section`'s heading and chevron,
-  and keeps the active item marked in forced colors, Windows' contrast themes), so an app using
+  starts each item's text at the right on a right-to-left page, and keeps the active item marked
+  in forced colors, Windows' contrast themes), so an app using
   `Menu`, or a `TableOfContents`, which renders one, needs both, in either order, and the
   `tableofcontents` partial for the latter:
 
@@ -223,12 +224,15 @@ Notes:
   so its text clears the button, so include it (`as bestax-notification`) next to the Bulma
   module in any build that shows a dismissible notification. It doesn't depend on the order of
   the two `@use` lines either.
-- `Delete` is stock Bulma too (`bulma/sass/elements/delete`), and it's the close button of
-  `Notification`, `Message`, `Toast`, a `Modal` card, `AppFrame`'s drawer and the tags of
-  `Taginput`, `Combobox` and `Dropzone`. Bulma draws its circle and cross as background colors, which forced colors
-  (Windows' contrast themes) replaces, so they vanish there. The `delete` extras partial keeps
-  them drawn in the system's button colors, and the `Modal`'s floating close
-  (`bulma/sass/components/modal`) and `Tag isDelete` (`bulma/sass/elements/tag`) with them, so
+- `Delete` is stock Bulma too, and it's the close button of `Notification`, `Message`, `Toast`, a
+  `Modal` card, `AppFrame`'s drawer and the tags of `Taginput`, `Combobox`, `Dropzone` and
+  `TreeSelect`. Bulma draws it in `bulma/sass/elements/delete`, and the modules of the components
+  it sits in don't, so a build that shows one needs that module next to theirs. Without it the
+  button doesn't show, though it still takes keyboard focus. The `Modal`'s floating close is the
+  exception, since `bulma/sass/components/modal` draws that one itself. Bulma draws the circle and
+  cross as background colors, which forced colors (Windows' contrast themes) replaces, so they
+  vanish there. The `delete` extras partial keeps them drawn in the system's button colors, and
+  the `Modal`'s floating close and `Tag isDelete` (`bulma/sass/elements/tag`) with them, so
   include it (`as bestax-delete`) in any build that shows a close button. Its rules win over
   Bulma's either way, so the order of the `@use` lines does not matter.
 - `Button` is stock Bulma too (`bulma/sass/elements/button`). Bulma shows a focused button with
@@ -255,9 +259,9 @@ Notes:
 
 - Stock-Bulma form controls still need their Bulma module (`bulma/sass/form/…`); the extras
   form partials above style only the bestax-specific behavior.
-- Bulma component modules pull their own internal sub-elements — e.g.
-  `elements/notification` styles its `delete` close button itself (verified). No extra
-  `@use` lines are needed for pieces rendered _inside_ a component you've already included.
+- Bulma's module for a component doesn't always style what bestax renders inside it. A close
+  button is the common case: it needs `bulma/sass/elements/delete` and the `delete` partial, as
+  the `Delete` note above says.
 
 ## Bulma helper categories
 

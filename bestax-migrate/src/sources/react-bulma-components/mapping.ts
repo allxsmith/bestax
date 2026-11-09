@@ -516,6 +516,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     target: 'Level',
     props: {
+      renderAs: { rename: 'as' },
       breakpoint: {
         valueMap: { mobile: 'isMobile' },
         valueToProp: true,

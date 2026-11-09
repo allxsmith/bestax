@@ -155,6 +155,55 @@ describe('calendar colour styles under a class prefix', () => {
   });
 });
 
+// A disabled calendar turns off the month button with the arrows beside it,
+// and it reads as off only if the stylesheet dims it as it dims them.
+describe('calendar header while disabled', () => {
+  const look = (el: Element) => {
+    const style = getComputedStyle(el);
+    return `${style.opacity}/${style.cursor}`;
+  };
+  const header = (container: Element, prefix = '') =>
+    ['month-trigger', 'nav-prev', 'nav-next'].map(part =>
+      container.querySelector(`.${prefix}dateinput-${part}`)!
+    );
+
+  it('dims the month button as it dims the arrows', () => {
+    const { container } = render(
+      <>
+        <div>
+          <DateInput inline disabled />
+        </div>
+        <div>
+          <DateInput inline />
+        </div>
+      </>
+    );
+    const [off, on] = Array.from(container.children);
+    for (const button of header(off)) {
+      expect(button).toBeDisabled();
+      expect(look(button)).toBe('0.4/not-allowed');
+    }
+    expect(look(header(on)[0])).toBe('1/pointer');
+  });
+
+  it('dims it under a class prefix too', () => {
+    inject(
+      compileScss(
+        `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: 'bestax-');
+         @use 'form/dateinput';`
+      )
+    );
+    const { container } = render(
+      <ConfigProvider classPrefix="bestax-">
+        <DateInput inline disabled />
+      </ConfigProvider>
+    );
+    for (const button of header(container, 'bestax-')) {
+      expect(look(button)).toBe('0.4/not-allowed');
+    }
+  });
+});
+
 /** Every custom property a style rule in the sheet sets. */
 function setProperties(rules: CSSRuleList): string[] {
   const names = new Set<string>();

@@ -1,6 +1,7 @@
 import React, { useCallback, useId, useMemo, useRef, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { elementType, isElementOf } from '../helpers/elementType';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -132,9 +133,8 @@ export const FieldLabel: React.FC<FieldLabelProps> = ({
     [`is-${size}`]: !!size,
   });
   const fieldLabelClass = classNames(mainClass, bulmaHelperClasses, className);
-  // Spread ...props and ...rest so custom props like data-testid are included
   return (
-    <div className={fieldLabelClass} {...props} {...rest}>
+    <div className={fieldLabelClass} {...rest}>
       {children}
     </div>
   );
@@ -165,9 +165,8 @@ export const FieldBody: React.FC<FieldBodyProps> = ({
 
   const mainClass = usePrefixedClassNames('field-body');
   const fieldBodyClass = classNames(mainClass, bulmaHelperClasses, className);
-  // Spread ...props and ...rest so custom props like data-testid are included
   return (
-    <div className={fieldBodyClass} {...props} {...rest}>
+    <div className={fieldBodyClass} {...rest}>
       {children}
     </div>
   );
@@ -341,14 +340,14 @@ const FieldComponent: React.FC<FieldProps> = ({
   // like <Field.Label/> + <Field.Body/>).
   let content = children;
   if (horizontal) {
+    const named = (c: React.ReactNode, displayName: string): boolean =>
+      React.isValidElement(c) &&
+      (elementType(c) as { displayName?: unknown } | null)?.displayName ===
+        displayName;
     const isFieldBody = (c: React.ReactNode): boolean =>
-      React.isValidElement(c) &&
-      // @ts-expect-error displayName isn't on the public type
-      (c.type === FieldBody || c.type?.displayName === 'FieldBody');
+      isElementOf(c, FieldBody) || named(c, 'FieldBody');
     const isFieldLabel = (c: React.ReactNode): boolean =>
-      React.isValidElement(c) &&
-      // @ts-expect-error displayName isn't on the public type
-      (c.type === FieldLabel || c.type?.displayName === 'FieldLabel');
+      isElementOf(c, FieldLabel) || named(c, 'FieldLabel');
     const childArray = React.Children.toArray(children);
     const userProvidedStructure = childArray.some(
       c => isFieldBody(c) || isFieldLabel(c)

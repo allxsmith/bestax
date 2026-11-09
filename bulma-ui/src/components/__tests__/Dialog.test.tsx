@@ -3,6 +3,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { Dialog, DialogContainer, dialog } from '../Dialog';
+import { Popover } from '../Popover';
 
 describe('Dialog', () => {
   afterEach(() => {
@@ -235,16 +236,16 @@ describe('Dialog', () => {
     });
   });
 
-  describe('Body Scroll Lock', () => {
-    it('prevents body scroll when open', () => {
+  describe('Page Scroll Lock', () => {
+    it('prevents page scroll when open', () => {
       render(<Dialog isOpen message="Test" />);
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
     });
 
-    it('restores body scroll when closed', () => {
+    it('restores page scroll when closed', () => {
       const { rerender } = render(<Dialog isOpen message="Test" />);
       rerender(<Dialog isOpen={false} message="Test" />);
-      expect(document.body.style.overflow).not.toBe('hidden');
+      expect(document.documentElement.style.overflow).not.toBe('hidden');
     });
   });
 
@@ -277,6 +278,36 @@ describe('Dialog', () => {
         'dialog-message'
       );
     });
+
+    it.each([
+      ['in place', false],
+      ['portaled', true],
+    ])(
+      'portals a popup in the message into the alertdialog, %s',
+      (_, portal) => {
+        // The Modal around it is `role="presentation"`, so its root is
+        // outside what `aria-modal` leaves to screen readers.
+        render(
+          <Dialog
+            isOpen
+            portal={portal}
+            message={
+              <Popover
+                trigger={<button type="button">Details</button>}
+                ariaLabel="Details"
+                appendToBody
+                defaultOpen
+              >
+                Paid on the 3rd.
+              </Popover>
+            }
+          />
+        );
+        expect(
+          screen.getByRole('dialog', { name: 'Details' }).parentElement
+        ).toBe(screen.getByRole('alertdialog'));
+      }
+    );
   });
 
   describe('Rendering structure', () => {
@@ -415,18 +446,18 @@ describe('Dialog', () => {
       expect(onCancel).not.toHaveBeenCalled();
     });
 
-    it('renders chained dialogs and refcounts the body scroll lock', () => {
-      // Open two dialogs to hit the _scrollLockCount > 1 branch.
+    it('renders chained dialogs and refcounts the page scroll lock', () => {
+      // Two dialogs open at once share the ref-counted lock.
       const { unmount: unmountA } = render(<Dialog isOpen message="A" />);
       const { unmount: unmountB } = render(<Dialog isOpen message="B" />);
-      // Body should be scroll-locked while at least one dialog is open.
-      expect(document.body.style.overflow).toBe('hidden');
+      // The page stays locked while at least one dialog is open.
+      expect(document.documentElement.style.overflow).toBe('hidden');
       unmountA();
       // Still locked because B is open.
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
       unmountB();
       // Now released.
-      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
     });
   });
 });

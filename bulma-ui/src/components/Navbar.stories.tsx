@@ -102,8 +102,26 @@ export const BrandOnly: Story = {
   ),
 };
 
+// Bulma hides `.navbar-burger` from its desktop breakpoint up, so the burger
+// stories open at a phone's width, and the docs page draws each in a frame of
+// its own, which is narrower than that breakpoint.
+const atPhoneWidth = (
+  story: string
+): Pick<Story, 'globals' | 'parameters'> => ({
+  globals: { viewport: { value: 'mobile2', isRotated: false } },
+  parameters: {
+    docs: {
+      story: { inline: false, height: '52px' },
+      description: { story },
+    },
+  },
+});
+
 // Navbar burger only
 export const BurgerOnly: Story = {
+  ...atPhoneWidth(
+    'Bulma shows the burger only below its desktop breakpoint, where the menu collapses behind it. From that width up it’s hidden and the menu sits in the bar, so this story opens at a phone’s width.'
+  ),
   render: () => (
     <Navbar>
       <Navbar.Burger aria-label="menu" aria-expanded={false} />
@@ -113,6 +131,9 @@ export const BurgerOnly: Story = {
 
 // Navbar burger is-active
 export const BurgerActive: Story = {
+  ...atPhoneWidth(
+    '`active` turns the burger into a close icon while its menu is open. Like any burger it only shows below Bulma’s desktop breakpoint, so this story opens at a phone’s width.'
+  ),
   render: () => (
     <Navbar>
       <Navbar.Burger active aria-label="menu" aria-expanded />

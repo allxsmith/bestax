@@ -5,11 +5,12 @@ import { hydrateRoot } from 'react-dom/client';
 import { Modal } from '../Modal';
 import { Loading } from '../Loading';
 import { Sidebar } from '../Sidebar';
+import { Popover } from '../Popover';
 import { ConfigProvider } from '../../helpers/Config';
 import { inertProps } from '../../helpers/inertProps';
 
 afterEach(() => {
-  document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
 });
 
 const latin =
@@ -1080,25 +1081,25 @@ describe('Modal', () => {
   });
 
   describe('Scroll lock', () => {
-    it('locks body scroll while active by default', () => {
+    it('locks page scroll while active by default', () => {
       const { unmount } = render(<Modal active>{latin}</Modal>);
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
       unmount();
-      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
     });
 
-    it('does not lock body scroll when inactive', () => {
+    it('does not lock page scroll when inactive', () => {
       render(<Modal>{latin}</Modal>);
-      expect(document.body.style.overflow).not.toBe('hidden');
+      expect(document.documentElement.style.overflow).not.toBe('hidden');
     });
 
-    it('does not lock body scroll when lockScroll is false', () => {
+    it('does not lock page scroll when lockScroll is false', () => {
       render(
         <Modal active lockScroll={false}>
           {latin}
         </Modal>
       );
-      expect(document.body.style.overflow).not.toBe('hidden');
+      expect(document.documentElement.style.overflow).not.toBe('hidden');
     });
 
     it('stays locked when an overlapping Loading closes first', () => {
@@ -1110,10 +1111,10 @@ describe('Modal', () => {
       );
 
       const { rerender } = render(overlays(true));
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
 
       rerender(overlays(false));
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
     });
 
     it('stays locked when an overlapping Sidebar closes first', () => {
@@ -1127,10 +1128,10 @@ describe('Modal', () => {
       );
 
       const { rerender } = render(overlays(true));
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
 
       rerender(overlays(false));
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
     });
   });
 
@@ -1451,6 +1452,58 @@ describe('Modal', () => {
       expect(seen[seen.length - 1]).toBeNull();
       errorSpy.mockRestore();
       document.body.removeChild(container);
+    });
+  });
+
+  describe('Popups inside', () => {
+    // Outside the modal, its `aria-modal` hides a popup from screen readers.
+    const popup = (
+      <Popover
+        trigger={<button type="button">Filter</button>}
+        ariaLabel="Filters"
+        appendToBody
+        defaultOpen
+      >
+        <button type="button">Apply</button>
+      </Popover>
+    );
+    const panel = () => screen.getByRole('dialog', { name: 'Filters' });
+
+    it.each([
+      [
+        'props',
+        <Modal key="props" active>
+          {popup}
+        </Modal>,
+      ],
+      [
+        'compound',
+        <Modal key="compound" active aria-label="Edit">
+          <Modal.Background />
+          <Modal.Content>{popup}</Modal.Content>
+        </Modal>,
+      ],
+      [
+        'portaled',
+        <Modal key="portaled" active portal>
+          {popup}
+        </Modal>,
+      ],
+    ])('portal into the modal in the %s form', (_, modal) => {
+      render(modal);
+      expect(panel().parentElement).toBe(screen.getByTestId('modal'));
+    });
+
+    it("go into a ConfigProvider's portalContainer while it sets one", () => {
+      const target = document.createElement('section');
+      document.body.appendChild(target);
+      render(
+        <ConfigProvider portalContainer={target}>
+          <Modal active>{popup}</Modal>
+        </ConfigProvider>
+      );
+      expect(panel().parentElement).toBe(target);
+      target.remove();
     });
   });
 });

@@ -128,11 +128,16 @@ back to. A header taller than Bulma's navbar sets
 `<Level>` is a horizontal toolbar (left/right groups). Subcomponents: `Level.Left`, `Level.Right`,
 `Level.Item`.
 
-| Prop                         | Type                                  |
-| ---------------------------- | ------------------------------------- |
-| `Level.isMobile`             | `boolean` (keep horizontal on mobile) |
-| `Level.Item.as`              | `'div' \| 'p' \| 'a'`                 |
-| `Level.Item.hasTextCentered` | `boolean`                             |
+| Prop                         | Type                                                     |
+| ---------------------------- | -------------------------------------------------------- |
+| `Level.as`                   | `'nav'` (default) \| `'div'` \| `'header'` \| `'footer'` |
+| `Level.isMobile`             | `boolean` (keep horizontal on mobile)                    |
+| `Level.Item.as`              | `'div' \| 'p' \| 'a'`                                    |
+| `Level.Item.hasTextCentered` | `boolean`                                                |
+
+A `nav` is a navigation landmark, so keep the default for a row of links. A row that isn't
+navigation takes `as="div"`, or `as="header"` when it opens a section and `as="footer"` when it
+closes one. A dashboard's row of key figures is `Stats`, not a `Level`.
 
 ## Stack / Group / Center / Flex
 
@@ -385,10 +390,8 @@ is a `div` with `role="button"`).
 subcomponents (`Card.Header` + `.Title`/`.Icon`, `Card.Image`, `Card.Content`, `Card.Footer`,
 `Card.FooterItem`). Those parts are also named exports (`CardHeader`, `CardHeaderTitle`,
 `CardHeaderIcon`, `CardImage`, `CardContent`, `CardFooter`, `CardFooterItem`), the same
-components as the dotted names. In a Next.js App Router app, build a card from its parts inside a
-client component (a file that starts with `'use client'`): `Card` lays out its parts by checking
-which part each child is, and that check can't recognize a part written in a Server Component. A
-Server Component uses the props form.
+components as the dotted names. A Next.js Server Component imports the parts by name, since a
+dotted name is `undefined` there.
 
 | Prop                            | Type                          |
 | ------------------------------- | ----------------------------- |

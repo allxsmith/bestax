@@ -210,6 +210,17 @@ const box = (top: number, left: number, height: number, width: number) =>
   }) as DOMRect;
 
 describe.each(pickers)('%s auto placement in place', (_name, picker) => {
+  // A resize places the panel again in the next frame.
+  beforeEach(() => {
+    vi.useFakeTimers({
+      toFake: ['requestAnimationFrame', 'cancelAnimationFrame'],
+    });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   describe.each(prefixes)('with class prefix "%s"', prefix => {
     it.each<[string, number, Corner]>([
       ['4px', 4, 'bottom-left'],
@@ -244,6 +255,7 @@ describe.each(pickers)('%s auto placement in place', (_name, picker) => {
           );
           act(() => {
             fireEvent(window, new Event('resize'));
+            vi.advanceTimersToNextFrame();
           });
           // Below, the panel needs the room the offset puts between it and
           // the input, as well as its own height.

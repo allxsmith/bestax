@@ -7,6 +7,7 @@ import * as sass from 'sass';
 import path from 'path';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { DateTimeInput } from '../DateTimeInput';
+import { ConfigProvider } from '../../helpers/Config';
 
 const compile = (file: string) =>
   sass.compile(path.resolve(__dirname, '../../scss', file), {
@@ -77,5 +78,86 @@ describe('DateTimeInput footer time row colours', () => {
     const style = getComputedStyle(pill);
     expect(style.backgroundColor).toBe('var(--bulma-primary)');
     expect(style.color).toBe('var(--bulma-primary-invert)');
+  });
+});
+
+// A disabled inline panel turns off Reset and ✓ with the Time row. They read
+// as off only if the stylesheet dims them as it dims the Time row, so these
+// check what the compiled rules give them.
+describe('DateTimeInput footer while disabled', () => {
+  /** The footer's Time row, Reset and ✓, as rendered. */
+  function footer(container: HTMLElement, prefix = '') {
+    return ['time', 'reset', 'done'].map(part =>
+      container.querySelector<HTMLButtonElement>(
+        `.${prefix}datetimeinput-footer-${part}`
+      )!
+    );
+  }
+  const look = (el: HTMLElement) => {
+    const style = getComputedStyle(el);
+    return `${style.opacity}/${style.cursor}`;
+  };
+
+  it('dims Time, Reset and ✓ alike, and leaves them alone when enabled', () => {
+    const { container } = render(
+      <>
+        <div>
+          <DateTimeInput inline disabled />
+        </div>
+        <div>
+          <DateTimeInput inline />
+        </div>
+      </>
+    );
+    const [off, on] = Array.from(container.children) as HTMLElement[];
+    for (const button of footer(off)) {
+      expect(button).toBeDisabled();
+      expect(look(button)).toBe('0.5/not-allowed');
+    }
+    for (const button of footer(on)) {
+      expect(button).toBeEnabled();
+      expect(look(button)).toBe('1/pointer');
+    }
+  });
+
+  it('dims them under a class prefix too', () => {
+    const prefixed = document.createElement('style');
+    prefixed.textContent = sass.compileString(
+      `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: 'bestax-');
+       @use 'form/datetimeinput';`,
+      {
+        loadPaths: [
+          path.resolve(__dirname, '../../scss'),
+          path.resolve(__dirname, '../../../../node_modules'),
+        ],
+        quietDeps: true,
+        logger: sass.Logger.silent,
+      }
+    ).css;
+    document.head.appendChild(prefixed);
+    try {
+      const { container } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <DateTimeInput inline disabled />
+        </ConfigProvider>
+      );
+      for (const button of footer(container, 'bestax-')) {
+        expect(look(button)).toBe('0.5/not-allowed');
+      }
+    } finally {
+      prefixed.remove();
+    }
+  });
+
+  // jsdom's getComputedStyle can't match :hover, so this reads the rule.
+  it('keeps the hover fill off a disabled Reset', () => {
+    const hovers = Array.from(sheet.cssRules).filter(
+      (rule): rule is CSSStyleRule =>
+        rule instanceof CSSStyleRule &&
+        /\.datetimeinput-footer-reset:hover/.test(rule.selectorText)
+    );
+    expect(hovers.map(rule => rule.selectorText)).toEqual([
+      '.datetimeinput-footer-reset:hover:not(:disabled), .datetimeinput-footer-reset:focus-visible',
+    ]);
   });
 });

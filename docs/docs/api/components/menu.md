@@ -324,6 +324,9 @@ function example() {
   edge there instead. The item's text, and an icon or a tag inside it, keep the colors your
   contrast theme gives them. That rule ships in `bestax.css` and `extras.css`, not in Bulma's
   own stylesheet.
+- On a right-to-left page, each item's text starts at the right, in line with a `Menu.Label` and
+  a section heading. Bulma's own stylesheet aligns items to the left, so this needs `bestax.css`
+  or `extras.css` too.
 
 For `Menu.Section`, a section that opens and closes:
 

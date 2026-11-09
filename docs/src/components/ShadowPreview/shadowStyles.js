@@ -181,6 +181,29 @@ export const ioniconStyles = `
   }
 `;
 
+// Overlays an example opens cover the docs navbar, as they would a Bulma
+// navbar in an app. Each keeps its own layer on top of the navbar's, so their
+// order among themselves stays the library's, and where the library puts one
+// in the page's flow (a wide AppFrame's column, a static Sidebar) its own,
+// more specific rule still wins. Popovers, hover cards and menus are anchored
+// to the page and left alone, to scroll under the sticky navbar with what they
+// belong to. Something an example portals from inside one of these overlays,
+// such as an `appendToBody` panel or a toast, then sits under it, so give it a
+// `portalContainer` inside the overlay. Bulma declares `--bulma-modal-z` on
+// `.modal` itself, so that's where this sets it, and being the last sheet is
+// what wins.
+export const overlayLayerStyles = `
+  .modal { --bulma-modal-z: calc(var(--ifm-z-index-fixed, 200) + 40); }
+  .sidebar-background { z-index: calc(var(--ifm-z-index-fixed, 200) + 39); }
+  .sidebar { z-index: calc(var(--ifm-z-index-fixed, 200) + 40); }
+  .loading.is-full-page { z-index: calc(var(--ifm-z-index-fixed, 200) + 70); }
+  .app-frame-backdrop { z-index: calc(var(--ifm-z-index-fixed, 200) + 39); }
+  .app-frame-nav { z-index: calc(var(--ifm-z-index-fixed, 200) + 40); }
+  .app-frame-skip-link:focus {
+    z-index: calc(var(--ifm-z-index-fixed, 200) + 40);
+  }
+`;
+
 // Ordered as the sheets should cascade inside a shadow root.
 export const shadowStyleSheets = [
   materialIconsStyles,
@@ -192,6 +215,7 @@ export const shadowStyleSheets = [
   extrasStyles,
   profileCardStyles,
   colorModeStyles,
+  overlayLayerStyles,
 ];
 
 /** True when the browser supports constructable stylesheets. */
