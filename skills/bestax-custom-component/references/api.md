@@ -141,7 +141,11 @@ focus when it opens, and a `ContextMenu` moves it to its first item and closes o
 focus back. To trap portaled content,
 put the trap's ref on the element inside the `Portal`, as below with
 `useFocusTrap(panelRef, { active: open, restoreFocus: buttonRef })`. A focus trap doesn't cover
-what a `Portal` inside it renders, so render nested overlays inside the trapped element.
+what a `Portal` inside it renders, so render nested overlays inside the trapped element. The
+library's own popups, such as `Popover` with `appendToBody`, portal into the `Modal`, `Dialog`
+or `Command.Dialog` they're opened in, but a `Portal` of yours doesn't: inside one, give it a
+`container` inside the dialog, since its `aria-modal` hides the rest of the page from screen
+readers.
 
 ```tsx
 {

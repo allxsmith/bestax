@@ -546,7 +546,7 @@
           "name": "appendToBody",
           "type": "boolean",
           "default": "false",
-          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, `document.body` by default. On a narrow screen an in-place popover spans the bottom of the viewport, while a portaled one stays on its `position` corner.",
+          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog` it's in, else `document.body`. On a narrow screen an in-place popover spans the bottom of the viewport, while a portaled one stays on its `position` corner.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -917,7 +917,7 @@
           "name": "appendToBody",
           "type": "boolean",
           "default": "false",
-          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, `document.body` by default. On a narrow screen an in-place popover spans the bottom of the viewport, while a portaled one stays on its `position` corner.",
+          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog` it's in, else `document.body`. On a narrow screen an in-place popover spans the bottom of the viewport, while a portaled one stays on its `position` corner.",
           "required": false,
           "inherited": false,
           "deprecated": false
