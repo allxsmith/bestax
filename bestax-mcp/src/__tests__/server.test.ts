@@ -740,6 +740,74 @@ describe('get_examples', () => {
     );
     expect(out.match(/```tsx/g)?.length).toBe(2);
   });
+
+  // A dot-path goes on through a static that is a component of its own, as in
+  // get_props, so `Stats.Stat.Label` has Stat's examples, not Stats' (#1578).
+  describe('on a dot-path', () => {
+    it('answers through a static with the examples that use the part', async () => {
+      const out = text(
+        await call('get_examples', { component: 'Stats.Stat.Label' })
+      );
+      expect(out).toMatch(/^# Stat\.Label examples\n/);
+      expect(out).toContain(
+        '`Stats.Stat` is `Stat`, so `Stats.Stat.Label` is `Stat.Label`. ' +
+          "From `Stat`'s documentation page, the ones that use `Stat.Label`."
+      );
+      const record = await loadComponent('Stat');
+      const using = record.examples.filter(e => e.code.includes('<Stat.Label'));
+      expect(using.length).toBeGreaterThan(0);
+      expect(out.match(/^### /gm)?.length).toBe(using.length);
+    });
+
+    it('narrows a part of the record itself the same way', async () => {
+      const out = text(
+        await call('get_examples', { component: 'Navbar.Brand', limit: 30 })
+      );
+      expect(out).toMatch(/^# Navbar\.Brand examples\n/);
+      for (const code of out.split('```tsx').slice(1)) {
+        expect(code).toContain('Navbar.Brand');
+      }
+    });
+
+    // Its own page writes it `<Thead>` as often as `<Table.Thead>`, and the
+    // bare name `Thead` reaches the same examples.
+    it('narrows a part that is its own export by both of its names', async () => {
+      const out = text(
+        await call('get_examples', { component: 'Table.Thead', limit: 30 })
+      );
+      const record = await loadComponent('Table');
+      const using = record.examples.filter(e =>
+        /<(Table\.)?Thead\b/.test(e.code)
+      );
+      expect(using.length).toBeGreaterThan(1);
+      expect(out.match(/^### /gm)?.length).toBe(using.length);
+      const bare = text(
+        await call('get_examples', { component: 'Thead', limit: 30 })
+      );
+      expect(bare.match(/^### /gm)?.length).toBe(using.length);
+    });
+
+    it("gives all the record's examples when none uses the part", async () => {
+      const out = text(
+        await call('get_examples', { component: 'Table.Tfoot', limit: 1 })
+      );
+      expect(out).toContain(
+        "No example on `Table`'s documentation page uses `Table.Tfoot`, so " +
+          "these are all of `Table`'s."
+      );
+      expect(out).toMatch(/^### /m);
+    });
+
+    it('says where it went when the rest names no part', async () => {
+      const out = text(
+        await call('get_examples', { component: 'Stats.Stat.Nope', limit: 1 })
+      );
+      expect(out).toMatch(/^# Stat examples\n/);
+      expect(out).toContain(
+        '`Stat` has no part `Stat.Nope`, so these are all of its examples.'
+      );
+    });
+  });
 });
 
 describe('get_css_variables', () => {
@@ -2192,6 +2260,24 @@ describe('names an import line gives beside its component', () => {
     }
   );
 
+  // Its row said only "documented with DataTable" (#1579).
+  it.each([
+    [
+      'useDataTable',
+      'documented with DataTable — `useDataTable` takes the same columns',
+    ],
+    [
+      'toast',
+      'documented with Toast — For showing toasts from anywhere in your app',
+    ],
+  ])('gives search_bestax a purpose for %s', async (query, detail) => {
+    const out = text(await call('search_bestax', { query, kind: 'component' }));
+    const row = out
+      .split('\n')
+      .find(l => l.startsWith(`| component | ${query} |`));
+    expect(row).toContain(detail);
+  });
+
   it('keeps the component when only the letter case differs', async () => {
     const out = text(await call('get_props', { component: 'Toast' }));
     expect(out).not.toContain('is documented with');
@@ -2374,12 +2460,21 @@ describe("lookup_bulma_classes on classes Bulma v1 doesn't have", () => {
     "not a Bulma 1 class: Bulma 1's stylesheet has no rule for it.";
 
   it('says a Bulma 0.9 class v1 removed was removed', async () => {
-    expect(await lookup('columns is-variable is-2')).toContain(
-      `| \`is-variable\` | stays in \`className\` | ${REMOVED}`
+    expect(await lookup('columns is-vertical')).toContain(
+      `| \`is-vertical\` | stays in \`className\` | ${REMOVED}`
     );
     // Beside a family converted by hand too, rather than "converted with it".
+    expect(await lookup('message is-vertical')).toContain(
+      `| \`is-vertical\` | stays in \`className\` | ${REMOVED}`
+    );
+  });
+
+  it('says what to do instead with a removed class the codemod flags', async () => {
+    expect(await lookup('columns is-variable is-2')).toContain(
+      '| `is-variable` | stays in `className` | Bulma v1 removed `is-variable`, so it styles nothing now; drop it'
+    );
     expect(await lookup('message heading')).toContain(
-      `| \`heading\` | stays in \`className\` | ${REMOVED}`
+      '| `heading` | stays in `className` | Bulma v1 dropped the `.heading` styles'
     );
   });
 

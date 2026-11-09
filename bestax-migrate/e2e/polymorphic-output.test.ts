@@ -114,6 +114,8 @@ const RBX: Case[] = [
   ['Footer', '<Footer as="a" href="/x">x</Footer>'],
   ['Tab', '<Tab href="/x">One</Tab>'],
   ['Media', '<Media.Item align="left" href="/x">x</Media.Item>'],
+  // `Heading` becomes the plain element its `as` names.
+  ['Heading', '<Heading as="span" href="/x">x</Heading>'],
   // The link attributes beside the href are as invalid as it is, and just as
   // invalid without it -- so the check cannot be conditional on one.
   [
@@ -174,7 +176,9 @@ const RBC: Case[] = [
   ['Card', '<Card.Header.Icon href="/x">x</Card.Header.Icon>'],
   ['Card', '<Card.Footer.Item href="/x">x</Card.Footer.Item>'],
   ['Media', '<Media renderAs="section" href="/x">x</Media>'],
-  // The seventh hand-built plain rewrite, which does not use `keptAttrs`.
+  // The seventh hand-built plain rewrite, which does not use `keptAttrs`. It
+  // writes the element `renderAs` names, and only an <a> keeps the `href`.
+  ['Heading', '<Heading heading renderAs="span" href="/x">Stats</Heading>'],
   ['Heading', '<Heading heading renderAs="a" href="/x">Stats</Heading>'],
   // `card-image` moves these props onto an <Image> it creates, so they have
   // to be judged against `Image` rather than the wrapper they sit on.
