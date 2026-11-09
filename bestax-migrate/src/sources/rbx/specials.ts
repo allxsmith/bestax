@@ -47,6 +47,7 @@ import {
   mergeClassName,
   modifierClass,
   parseIconClasses,
+  plainTag,
   restrictAsToTargets,
   type SpecialHandler,
   type SpecialResult,
@@ -168,12 +169,14 @@ function fieldScopedChildren(
 const SPECIALS: Record<string, SpecialHandler> = {
   /**
    * rbx's `Heading` is Bulma's `.heading` label (small caps), not a title —
-   * bestax has no component for it, so it becomes a plain <p>, and the TODO
-   * says Bulma v1 no longer styles the class.
+   * bestax has no component for it, so it becomes the plain element rbx
+   * rendered, a <p> unless `as` names another, and the TODO says Bulma v1 no
+   * longer styles the class.
    */
   heading(ctx, path, element) {
-    flagDroppedHeading(ctx, path, 'p');
-    return replaceWithPlain(ctx, path, element, 'p', 'heading', 'Heading');
+    const tag = plainTag(ctx, path, element, 'as', 'p', 'Heading');
+    flagDroppedHeading(ctx, path, tag);
+    return replaceWithPlain(ctx, path, element, tag, 'heading', 'Heading');
   },
 
   /**

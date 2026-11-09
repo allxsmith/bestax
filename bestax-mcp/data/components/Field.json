@@ -386,7 +386,7 @@
           "name": "hasIconsLeft",
           "type": "boolean",
           "default": "false",
-          "description": "Adds left icon container.",
+          "description": "Adds left icon container. Over a `TextArea` the icon covers the text.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -395,7 +395,7 @@
           "name": "hasIconsRight",
           "type": "boolean",
           "default": "false",
-          "description": "Adds right icon container.",
+          "description": "Adds right icon container. Over a `TextArea` the icon covers the text.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -460,7 +460,7 @@
           "name": "iconLeft",
           "type": "IconProps | React.ReactNode",
           "default": null,
-          "description": "Icon props for left icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph. Bulma gives control icons `pointer-events: none`, so a click lands on the input and a clickable node placed here never receives one. Put a button beside the input in its own addon `Control` instead.",
+          "description": "Icon props for left icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph. Over a `TextArea` the icon covers the text. Bulma gives control icons `pointer-events: none`, so a click lands on the input and a clickable node placed here never receives one. Put a button beside the input in its own addon `Control` instead.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -469,7 +469,7 @@
           "name": "iconRight",
           "type": "IconProps | React.ReactNode",
           "default": null,
-          "description": "Icon props for right icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph. Bulma gives control icons `pointer-events: none`, so a click lands on the input and a clickable node placed here never receives one. Put a button beside the input in its own addon `Control` instead.",
+          "description": "Icon props for right icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph. Over a `TextArea` the icon covers the text. Bulma gives control icons `pointer-events: none`, so a click lands on the input and a clickable node placed here never receives one. Put a button beside the input in its own addon `Control` instead.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -478,7 +478,7 @@
           "name": "iconLeftName",
           "type": "string",
           "default": null,
-          "description": "Shortcut for left icon name.",
+          "description": "Shortcut for left icon name. Over a `TextArea` the icon covers the text.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -496,7 +496,7 @@
           "name": "iconRightName",
           "type": "string",
           "default": null,
-          "description": "Shortcut for right icon name.",
+          "description": "Shortcut for right icon name. Over a `TextArea` the icon covers the text.",
           "required": false,
           "inherited": true,
           "deprecated": false

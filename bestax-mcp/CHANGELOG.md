@@ -1,3 +1,34 @@
+## [1.18.42](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.41...bestax-mcp@1.18.42) (2026-11-09)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** answer for the hooks, functions and constants an import line names ([3666ba0](https://github.com/allxsmith/bestax/commit/3666ba03de9dad63d5e915c1865ac688e8af3ff1)), closes [#1465](https://github.com/allxsmith/bestax/issues/1465)
+* **bestax-mcp:** escape every regex metacharacter in a name importSection matches ([c2c840c](https://github.com/allxsmith/bestax/commit/c2c840c6940dd4a23773a2f82ee686a6f7a6e067))
+* **bestax-mcp:** find a function's section by its code, and answer its examples from its record ([2765ac9](https://github.com/allxsmith/bestax/commit/2765ac9cfa8dc22b6e9fc5fcc5c50f333e234351)), closes [#1465](https://github.com/allxsmith/bestax/issues/1465)
+* **bestax-mcp:** give heading, number and is-variable the codemod's legacy hint ([f8c72f7](https://github.com/allxsmith/bestax/commit/f8c72f77b9e622c1bab229dae29e754dccea51ee)), closes [#1414](https://github.com/allxsmith/bestax/issues/1414)
+* **bestax-mcp:** give search_bestax rows for import-line names a purpose ([e769035](https://github.com/allxsmith/bestax/commit/e76903521be68ba29544eb2a895e707944a78a91)), closes [#1579](https://github.com/allxsmith/bestax/issues/1579)
+* **bestax-mcp:** match a part's own export name when get_examples narrows a dot-path ([90d4c2a](https://github.com/allxsmith/bestax/commit/90d4c2a427a51881c3b54fc9c3c7f9855b10ed33))
+* **bestax-mcp:** read an example title's last heading under the heading it names ([c8fe27f](https://github.com/allxsmith/bestax/commit/c8fe27f03ba9deab5b0b1aee7adda969cd69aeea))
+* **bestax-mcp:** resolve get_examples' dot-path through a static that is a component of its own ([cfc1de4](https://github.com/allxsmith/bestax/commit/cfc1de426aca4a4b8e4c97a7f76ac90715c02829)), closes [#1578](https://github.com/allxsmith/bestax/issues/1578)
+* **bestax-migrate:** flag Bulma 0.9's heading, number and is-variable where they stay ([df7b5f9](https://github.com/allxsmith/bestax/commit/df7b5f9a640bdb778431baa84570baf20328cb2b)), closes [#1414](https://github.com/allxsmith/bestax/issues/1414)
+* **bestax-migrate:** keep the element, size and weight RBC's Heading label rendered ([d03a028](https://github.com/allxsmith/bestax/commit/d03a028d107e77b92d2cc533a7736bae1dc10fa2)), closes [#1415](https://github.com/allxsmith/bestax/issues/1415)
+* **bestax-migrate:** leave room in the heading and number TODOs for a rule the project has ([68a393b](https://github.com/allxsmith/bestax/commit/68a393b7d21233412a4079c0699ac530ee40b541))
+* **bulma-ui:** add the full weekday names after hydration, and not beside dayNames ([c574636](https://github.com/allxsmith/bestax/commit/c574636455211b2b88e8ce12148db1b8bd44b7ed))
+* **bulma-ui:** give a dark Notification the dark color's own lightness ([d79408f](https://github.com/allxsmith/bestax/commit/d79408f19c62ce3c72b6e57a293a186a8e0488cc)), closes [#1461](https://github.com/allxsmith/bestax/issues/1461)
+* **bulma-ui:** head the calendar's day columns with their weekdays ([ec9efa2](https://github.com/allxsmith/bestax/commit/ec9efa250e44a1ce7b962d124bcddc7878793e9c)), closes [#1439](https://github.com/allxsmith/bestax/issues/1439)
+* **bulma-ui:** keep an inline TimeInput's time when it's readOnly ([3b97612](https://github.com/allxsmith/bestax/commit/3b97612a2d4cfd690ae24acc4a791c19401748ed)), closes [#1532](https://github.com/allxsmith/bestax/issues/1532)
+* **bulma-ui:** keep Sidebar's is-mini link names and face is-static's border to the content ([dacf84f](https://github.com/allxsmith/bestax/commit/dacf84f7d79bad944de8d2e6804b5c4741375384))
+* **bulma-ui:** keep the Slider value bubble's arrow a triangle in forced colors ([47f7e72](https://github.com/allxsmith/bestax/commit/47f7e7200a6000c2db4af1f6ba2bc127129586c7)), closes [#1492](https://github.com/allxsmith/bestax/issues/1492)
+* **bulma-ui:** keep vertical Tabs' edge and marker facing the panel right to left ([fabdc2e](https://github.com/allxsmith/bestax/commit/fabdc2e1a58471fd42ed4e5dd16ca01cdc246994))
+* **bulma-ui:** let a commit match one echo in an inline DateTimeInput ([6638dbe](https://github.com/allxsmith/bestax/commit/6638dbeeec55a51ae0b5ed233e9ceeddd98b9d18))
+* **bulma-ui:** line a default Combobox menu up with the field's start edge right to left ([#1619](https://github.com/allxsmith/bestax/issues/1619)) ([31e369b](https://github.com/allxsmith/bestax/commit/31e369b9cf65da80d5f138fb78a529527538986a))
+* **bulma-ui:** line a default HoverCard up with the trigger's start edge right to left ([0ca7466](https://github.com/allxsmith/bestax/commit/0ca7466e1633f0acc6efd8b2a7e3a521be64ca45))
+* **bulma-ui:** move focus on Tab from an open Dropdown rather than drop it in Firefox ([c48c552](https://github.com/allxsmith/bestax/commit/c48c552a8688389fc8b49c0ce4d179d635f98477)), closes [#1476](https://github.com/allxsmith/bestax/issues/1476)
+* **bulma-ui:** pass over positive-tabindex stops when moving Tab past a Dropdown ([939f45f](https://github.com/allxsmith/bestax/commit/939f45fdfbafa122c15e1e9a00d6a4b3f7d7c837))
+* **bulma-ui:** revert an inline DateTimeInput's Reset instead of clearing it ([7fc54b5](https://github.com/allxsmith/bestax/commit/7fc54b5c82237d5f49ef50bfab7b6875360d5878)), closes [#1447](https://github.com/allxsmith/bestax/issues/1447)
+* **create-bestax:** leave aria-current to Navbar.Item in the router and Next starters ([d4d218d](https://github.com/allxsmith/bestax/commit/d4d218d5811801e545e45b9d82f7f059a70f739c)), closes [#1338](https://github.com/allxsmith/bestax/issues/1338) [#1503](https://github.com/allxsmith/bestax/issues/1503)
+
 ## [1.18.41](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.40...bestax-mcp@1.18.41) (2026-11-09)
 
 

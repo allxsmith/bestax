@@ -175,7 +175,11 @@ export interface TabsProps
    * horizontally on mobile).
    */
   vertical?: boolean;
-  /** Side placement when `vertical` is true. */
+  /**
+   * Side placement when `vertical` is true. The row follows the page's
+   * direction, so on a right-to-left page `left` puts the tabs at the right,
+   * where the line starts, and `right` puts them at the left.
+   */
   side?: 'left' | 'right';
   /** Makes tabs take up the full width equally. */
   expanded?: boolean;
