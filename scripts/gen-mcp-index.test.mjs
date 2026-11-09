@@ -1145,6 +1145,20 @@ test('sectionPurpose reads the first sentence under the section', () => {
     sectionPurpose(lines, 'Passing It › Nested'),
     'A deeper heading names its own sentence for an example title.'
   );
+  // A `####` title that repeats is read under the `###` the example names.
+  const repeated = [
+    '### First',
+    '#### Basic',
+    'The first basic section says this about the first heading.',
+    '### Second',
+    '#### Basic',
+    'The second basic section says this about the second heading.',
+  ];
+  assert.equal(
+    sectionPurpose(repeated, 'Second › Basic'),
+    'The second basic section says this about the second heading.'
+  );
+  assert.equal(sectionPurpose(repeated, 'Third › Basic'), '');
 });
 
 test('every component the barrel exports is a catalog entry or documented with one', () => {

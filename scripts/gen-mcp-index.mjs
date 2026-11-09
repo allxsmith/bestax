@@ -648,16 +648,19 @@ export function importSection(lines, examples, name) {
  * What a page says first under a section it documents a name in, as a purpose:
  * the first sentence of the first prose paragraph under the heading, before the
  * next heading, clipped the way a purpose is. A section from an example title
- * ("A › B") is found by its last heading. '' when the section opens with no
- * prose, so a row keeps its plain "documented with" text (#1579).
+ * ("A › B") is the `B` heading after the `A` one, since a `####` title can
+ * repeat under another `###`. '' when the section opens with no prose, so a
+ * row keeps its plain "documented with" text (#1579).
  */
 export function sectionPurpose(lines, section) {
-  const title = section.split(' › ').pop();
   const mask = fenceMask(lines);
   const heading = (line, i) =>
     !mask[i] && line.match(/^#{1,6}[ \t]+(.+?)[ \t]*$/)?.[1];
-  const at = lines.findIndex((line, i) => heading(line, i) === title);
-  if (at < 0) return '';
+  let at = -1;
+  for (const title of section.split(' › ')) {
+    at = lines.findIndex((line, i) => i > at && heading(line, i) === title);
+    if (at < 0) return '';
+  }
   const body = [];
   for (let i = at + 1; i < lines.length && !heading(lines[i], i); i++) {
     body.push(mask[i] ? '' : lines[i]);
