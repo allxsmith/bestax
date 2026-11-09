@@ -108,19 +108,19 @@
           "deprecated": false
         },
         {
-          "name": "minDistance",
-          "type": "number",
-          "default": "0",
-          "description": "Minimum distance between thumbs in range mode.",
+          "name": "ariaLabel",
+          "type": "string | [string, string]",
+          "default": null,
+          "description": "ARIA label(s) for the slider thumb(s), which win over a label, the Slider's own or a surrounding `Field`'s. In range mode each entry is that thumb's whole name, and a thumb without one is named \"Minimum value\" or \"Maximum value\", after whatever names the Slider: a label, or in its place an `aria-label` or `aria-labelledby` given to the Slider, as in \"Budget Minimum value\" and \"Budget Maximum value\". An `aria-labelledby` set to `undefined` keeps every label out of both names.",
           "required": false,
           "inherited": true,
           "deprecated": false
         },
         {
-          "name": "ariaLabel",
-          "type": "string | [string, string]",
-          "default": null,
-          "description": "ARIA label(s) for the slider thumb(s), which win over a label, the Slider's own or a surrounding `Field`'s. In range mode each entry is that thumb's whole name, and a thumb without one is named \"Minimum value\" or \"Maximum value\", after whatever names the Slider: a label, or in its place an `aria-label` or `aria-labelledby` given to the Slider, as in \"Budget Minimum value\" and \"Budget Maximum value\". An `aria-labelledby` set to `undefined` keeps every label out of both names.",
+          "name": "minDistance",
+          "type": "number",
+          "default": "0",
+          "description": "Minimum distance between thumbs in range mode.",
           "required": false,
           "inherited": true,
           "deprecated": false

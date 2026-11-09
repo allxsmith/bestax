@@ -702,7 +702,17 @@ describe('Popover', () => {
       });
     };
 
-    afterEach(() => setViewport(originalWidth, originalHeight));
+    // A scroll or resize places the panel again in the next frame.
+    beforeEach(() => {
+      vi.useFakeTimers({
+        toFake: ['requestAnimationFrame', 'cancelAnimationFrame'],
+      });
+    });
+
+    afterEach(() => {
+      setViewport(originalWidth, originalHeight);
+      vi.useRealTimers();
+    });
 
     const rect = (r: {
       top: number;
@@ -719,7 +729,7 @@ describe('Popover', () => {
         toJSON: () => ({}),
       }) as DOMRect;
 
-    /** Mocks the wrapper's and the panel's rects, then re-measures. */
+    /** Mocks the wrapper's and the panel's rects, then measures again. */
     const measure = (
       container: HTMLElement,
       anchor: DOMRect,
@@ -737,6 +747,7 @@ describe('Popover', () => {
       );
       act(() => {
         fireEvent(window, new Event('resize'));
+        vi.advanceTimersToNextFrame();
       });
     };
 
@@ -916,6 +927,7 @@ describe('Popover', () => {
       // equal state, so the steady state starts after one more event.
       act(() => {
         fireEvent.scroll(window);
+        vi.advanceTimersToNextFrame();
       });
       onRender.mockClear();
 
@@ -923,6 +935,7 @@ describe('Popover', () => {
         fireEvent.scroll(window);
         fireEvent.scroll(window);
         fireEvent(window, new Event('resize'));
+        vi.advanceTimersToNextFrame();
       });
       expect(onRender).not.toHaveBeenCalled();
 
@@ -1113,7 +1126,7 @@ describe('Popover', () => {
       expect(frame.queryByRole('dialog')).toBeNull();
     });
 
-    it('measures against the iframe’s viewport and follows its resizes', () => {
+    it('measures against the iframe’s viewport and follows its resizes', async () => {
       Object.defineProperty(frameWin, 'innerHeight', {
         configurable: true,
         value: 400,
@@ -1131,8 +1144,10 @@ describe('Popover', () => {
       vi.spyOn(dialog, 'getBoundingClientRect').mockReturnValue(
         box({ top: 0, left: 0, w: 200, h: 150 })
       );
-      act(() => {
+      await act(async () => {
         fireEvent(frameWin, new Event('resize'));
+        // The panel is measured again in the iframe's next frame.
+        await new Promise(resolve => frameWin.requestAnimationFrame(resolve));
       });
       // The page's own window is taller than this, so only the iframe's
       // height sends the panel above the trigger.
