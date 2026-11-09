@@ -94,7 +94,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `button`, `colorswatch`,
 `delete`, `descriptionlist`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
-`progress`, `ringprogress`, `skeleton`, `stat`
+`progress`, `ringprogress`, `skeleton`, `stat`, `tag`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`
 
@@ -221,10 +221,15 @@ Notes:
   `prefers-reduced-motion: reduce`, the same way and in either order.
 - `Notification` is stock Bulma too (`bulma/sass/elements/notification`). The `notification`
   extras partial pads the end of one with a close button (`hasDelete`, or a `Delete` passed in)
-  so its text clears the button, and gives a dark one the dark color's own text and background,
-  where Bulma's module lets its text inherit the color around it. Include it
-  (`as bestax-notification`) next to the Bulma module in any build that shows a dismissible or a
-  dark notification. It doesn't depend on the order of the two `@use` lines either.
+  so its text clears the button, and gives a dark or light one its color's own text and
+  background, where Bulma's module lets its text inherit the color around it. Include it
+  (`as bestax-notification`) next to the Bulma module in any build that shows a dismissible, dark
+  or light notification. It doesn't depend on the order of the two `@use` lines either.
+- `Tag` is stock Bulma too (`bulma/sass/elements/tag`). The `tag` extras partial gives a light tag
+  the light color's own text, where Bulma's module lets its text inherit the color around it, which
+  on the dark scheme leaves it hard to read. Include it (`as bestax-tag`) next to the Bulma module
+  in any build that shows a light tag. It doesn't depend on the order of the two `@use` lines
+  either.
 - `Delete` is stock Bulma too, and it's the close button of `Notification`, `Message`, `Toast`, a
   `Modal` card, `AppFrame`'s drawer and the tags of `Taginput`, `Combobox`, `Dropzone` and
   `TreeSelect`. Bulma draws it in `bulma/sass/elements/delete`, and the modules of the components
