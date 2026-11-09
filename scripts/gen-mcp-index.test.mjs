@@ -1012,7 +1012,9 @@ test('every name an import line gives is a catalog entry or documented with one'
     ['useLocale', 'LocaleProvider', 'useLocale'],
     ['useNumberFormat', 'NumberFormatter', 'The useNumberFormat Hook'],
     ['useScrollSpy', 'TableOfContents', 'The useScrollSpy Hook'],
-    ['toast', 'Toast', undefined],
+    ['toast', 'Toast', 'Programmatic API'],
+    ['dialog', 'Dialog', 'Programmatic API'],
+    ['notification', 'Notification', 'Programmatic API'],
     ['validColors', 'Valid value constants', undefined],
   ]) {
     assert.deepEqual(
@@ -1044,7 +1046,7 @@ test('importedNames reads the identifiers an import line gives', () => {
   assert.deepEqual(importedNames("import Bestax from 'x';"), []);
 });
 
-test('importSection names the heading that names it, else an example that calls it', () => {
+test('importSection names a heading, else an example, else a section whose code calls it', () => {
   const lines = [
     '# Page',
     '## Usage',
@@ -1065,6 +1067,24 @@ test('importSection names the heading that names it, else an example that calls 
   assert.equal(importSection(['# Page'], examples, 'toast'), 'Calls');
   assert.equal(importSection(['# Page'], examples, 'useFrame'), 'Hook');
   assert.equal(importSection(lines, examples, 'dialog'), null);
+  // Else the first `##` section whose code calls it, not a `##` in a fence or
+  // code before the first heading.
+  const page = [
+    '```ts',
+    '## Not a heading',
+    'dialog.alert()',
+    '```',
+    '## Import',
+    '```tsx',
+    "import { Dialog, dialog } from '@allxsmith/bestax-bulma';",
+    '```',
+    '## Programmatic API',
+    '### Setup',
+    '```tsx',
+    "await dialog.confirm({ message: 'Sure?' });",
+    '```',
+  ];
+  assert.equal(importSection(page, examples, 'dialog'), 'Programmatic API');
   // A `$` in a name is matched as itself.
   assert.equal(importSection(['## The $store'], [], '$store'), 'The $store');
 });

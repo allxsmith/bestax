@@ -619,9 +619,10 @@ export function importedNames(code) {
 /**
  * The section of a page that documents a name its import line gives beside the
  * component, such as the hook `useDataTable` beside `DataTable`: the first `##`
- * or `###` heading that names it (`### The useDataTable Hook`), or else the
- * title of the first usage example that calls it (`useAppFrame()`, under "A
- * Toggle of Your Own"). Null when neither does. A call rather than a mention,
+ * or `###` heading that names it (`### The useDataTable Hook`), else the title
+ * of the first usage example that calls it (`useAppFrame()`, under "A Toggle of
+ * Your Own"), else the first `##` section whose code calls it (`toast.show()`,
+ * under "Programmatic API"). Null when none does. A call rather than a mention,
  * since `toast` and `notification` are words an example's text uses too.
  */
 export function importSection(lines, examples, name) {
@@ -633,7 +634,14 @@ export function importSection(lines, examples, name) {
     if (heading && named.test(heading[1])) return heading[1];
   }
   const called = new RegExp(`(?<![\\w$.])${id}(?:\\.\\w+)?\\(`);
-  return examples.find(e => called.test(e.code))?.title ?? null;
+  const example = examples.find(e => called.test(e.code));
+  if (example) return example.title;
+  let section = null;
+  for (const [i, line] of lines.entries()) {
+    if (!mask[i]) section = line.match(/^##[ \t]+(.+?)[ \t]*$/)?.[1] ?? section;
+    else if (section && called.test(line)) return section;
+  }
+  return null;
 }
 
 /**
@@ -652,8 +660,8 @@ export function importSection(lines, examples, name) {
  * record: a hook (`useDataTable`), a function (`toast`) or a constant
  * (`validColors`). `imported` maps each to the record whose import line gives
  * it and the section of that page that documents it (`importSection`). It has
- * no table, so no `path`, and its `section` is left out when no heading or
- * example names it (#1465).
+ * no table, so no `path`, and its `section` is left out when the page has none
+ * for it (#1465).
  */
 export function documentedWith(
   components,

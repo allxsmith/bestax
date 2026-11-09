@@ -728,31 +728,34 @@ export async function createServer(
       // it, and none when no example does (`InputBase`, beside `Input`'s).
       const documented = await documentedExport(component);
       const name = documented?.name ?? record.name;
-      // One that is no part of the record, a hook or a function, has the ones
-      // that call it (#1465).
       const path = documented?.entry.path;
-      const examples = documented
+      const using = documented
         ? record.examples.filter(e =>
             path
               ? usesExport(e.code, documented.name, path)
               : callsExport(e.code, documented.name)
           )
         : record.examples;
-      if (documented && !examples.length) {
+      if (path && !using.length) {
         return textResult(
-          `\`${name}\` has no examples of its own. ` +
-            (path
-              ? `It is documented with \`${record.name}\`` +
-                (documented.entry.standalone === 'base'
-                  ? ', which renders it'
-                  : '') +
-                ', and '
-              : `${documentedLine(name, documented.entry.section, record)} `) +
-            `\`get_examples({ component: "${record.name}" })\` has ` +
+          `\`${name}\` has no examples of its own. It is documented with ` +
+            `\`${record.name}\`` +
+            (documented?.entry.standalone === 'base'
+              ? ', which renders it'
+              : '') +
+            `, and \`get_examples({ component: "${record.name}" })\` has ` +
             `${record.name}'s.`,
           note()
         );
       }
+      // One that is no part of the record, a hook or a function, is answered by
+      // the record it is documented with: the examples that call it, or all of
+      // them when none does, so `notification` gets Notification's (#1465).
+      const examples = using.length ? using : record.examples;
+      const where =
+        documented && !path
+          ? `${documentedLine(name, documented.entry.section, record)} `
+          : '';
       const q = query?.toLowerCase();
       const matches = q
         ? examples.filter(
@@ -767,7 +770,7 @@ export async function createServer(
           query
             ? `No ${name} examples match "${query}". It has ` +
                 `${examples.length}: ${examples.map(e => e.title).join(', ')}.`
-            : `${record.name} has no examples on its documentation page.`,
+            : `${where}${record.name} has no examples on its documentation page.`,
           note()
         );
       }
@@ -784,9 +787,15 @@ export async function createServer(
       const unnamed = left.length - MAX_TITLES_LEFT;
       return textResult(
         `# ${name} examples\n\n` +
-          (documented
+          (path
             ? `From \`${record.name}\`'s documentation page, the ones that use it.\n\n`
             : '') +
+          (where &&
+            `${where}${
+              using.length
+                ? 'These are the examples that call it.'
+                : `No example calls it, so these are all of \`${record.name}\`'s.`
+            }\n\n`) +
           renderExamples(shown) +
           (left.length > 0
             ? `\n\n**Not shown** under this limit, ${matches.length - shown.length} ` +

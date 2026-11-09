@@ -2145,23 +2145,52 @@ describe('names an import line gives beside its component', () => {
     expect(out).not.toContain('### Basic Usage');
   });
 
-  it('points at its section when no example calls it', async () => {
+  it("answers get_examples with all the record's when no example calls it", async () => {
     const out = text(await call('get_examples', { component: 'useLocale' }));
-    expect(out).toContain('`useLocale` has no examples of its own.');
+    expect(out).toMatch(/^# useLocale examples\n/);
     expect(out).toContain('in the section "useLocale"');
-    expect(out).toContain('`get_examples({ component: "LocaleProvider" })`');
+    expect(out).toContain(
+      "No example calls it, so these are all of `LocaleProvider`'s."
+    );
+    expect(out).toContain('### A Right-to-Left Section');
   });
 
-  // `toast` is a word an example's text uses too, so a mention is no use.
-  it('answers a function the page documents in no heading', async () => {
+  it('says so when the record has no examples either', async () => {
+    const out = text(await call('get_examples', { component: 'useConfig' }));
+    expect(out).toContain('in the section "useConfig"');
+    expect(out).toContain(
+      'ConfigProvider has no examples on its documentation page.'
+    );
+  });
+
+  // `toast` is a word an example's text uses too, so a mention is no use: its
+  // section is the one whose code calls it.
+  it('names the section whose code calls a function', async () => {
     const out = text(await call('get_props', { component: 'toast' }));
     expect(out).toMatch(/^# Toast\n/);
     expect(out).toContain(
-      '`toast` is documented with `Toast`, on its page: https://bestax.io/'
+      '`toast` is documented with `Toast`, in the section "Programmatic API", ' +
+        'on its page: https://bestax.io/'
     );
-    const examples = text(await call('get_examples', { component: 'toast' }));
-    expect(examples).toContain('`toast` has no examples of its own.');
   });
+
+  // The lowercase function's name used to reach the component's examples, by
+  // letter case, and still does, through the record it is documented with.
+  it.each([
+    ['notification', 'Notification'],
+    ['toast', 'Toast'],
+    ['dialog', 'Dialog'],
+  ])(
+    'answers get_examples for %s with examples of %s',
+    async (name, record) => {
+      const res = await call('get_examples', { component: name });
+      expect(failed(res)).toBe(false);
+      const out = text(res);
+      expect(out).toMatch(new RegExp(`^# ${name} examples\n`));
+      expect(out).toContain(`\`${name}\` is documented with \`${record}\``);
+      expect(out).toMatch(/^### /m);
+    }
+  );
 
   it('keeps the component when only the letter case differs', async () => {
     const out = text(await call('get_props', { component: 'Toast' }));

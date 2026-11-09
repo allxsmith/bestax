@@ -3979,14 +3979,26 @@
       "purpose": "",
       "section": "Reusable prefixer: `createPrefixedClassNames`"
     },
-    "dialog": { "component": "Dialog", "purpose": "" },
-    "notification": { "component": "Notification", "purpose": "" },
+    "dialog": {
+      "component": "Dialog",
+      "purpose": "",
+      "section": "Programmatic API"
+    },
+    "notification": {
+      "component": "Notification",
+      "purpose": "",
+      "section": "Programmatic API"
+    },
     "prefixedClassNames": {
       "component": "usePrefixedClassNames",
       "purpose": "",
       "section": "Outside a component: `prefixedClassNames`"
     },
-    "toast": { "component": "Toast", "purpose": "" },
+    "toast": {
+      "component": "Toast",
+      "purpose": "",
+      "section": "Programmatic API"
+    },
     "useAppFrame": {
       "component": "AppFrame",
       "purpose": "",
