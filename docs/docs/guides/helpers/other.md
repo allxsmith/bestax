@@ -553,7 +553,7 @@ The interaction helpers control user interaction behavior with elements, particu
 
 These helpers are useful for improving user experience by preventing unwanted text selection or indicating clickable elements.
 
-`clickable` changes only the cursor. It doesn't make an element focusable, give it a role or let a key press it, so a clickable element still has to be a `<button>` or a link, or hold one.
+`clickable` shows the pointer cursor. It adds no role, no tab stop and no keyboard handling, so a clickable element still has to be a `<button>` or a link, or hold one.
 
 ### Interaction Examples
 
@@ -893,7 +893,7 @@ function CombinedHelpersExample() {
 
 1. **Use sparingly**: These helpers solve specific problems - don't overuse them
 2. **Combine thoughtfully**: Many helpers work well together but consider the overall design
-3. **Consider accessibility**: `clickable` changes only the cursor, so a clickable element still has to be a `<button>` or a link, or hold one. Other helpers, like `unselectable`, can impact accessibility too
+3. **Consider accessibility**: `clickable` adds no role, no tab stop and no keyboard handling, so a clickable element still has to be a `<button>` or a link, or hold one. Other helpers, like `unselectable`, can impact accessibility too
 4. **Test interactions**: Always test clickable elements and overlays across different devices
 5. **Use semantic markup**: Combine helpers with appropriate semantic HTML elements
 
