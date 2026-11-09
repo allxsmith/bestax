@@ -13,7 +13,9 @@
  * one it extends, with no file listing done, so they can't drift from what
  * `pnpm typecheck` uses. Two are added: `types: []`, so no `@types` package
  * loads beyond the ones the imports reach, and `noEmit`. It's built once the
- * suite runs, not when the file is collected.
+ * suite runs, not when the file is collected, in a `beforeAll` with a timeout
+ * of its own: a hook keeps Vitest's 10s default rather than the config's
+ * `testTimeout`, and a loaded machine can take longer than that to build it.
  */
 import path from 'path';
 import * as ts from 'typescript';
@@ -80,7 +82,7 @@ describe('IconButton name type', () => {
   let errors: ReturnType<typeof errorsOf>;
   beforeAll(() => {
     errors = errorsOf(SOURCE);
-  });
+  }, 30_000);
 
   it('reads the build options, JSX and strictness included', () => {
     const options = compilerOptions();
