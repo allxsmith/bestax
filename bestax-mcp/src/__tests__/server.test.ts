@@ -769,6 +769,24 @@ describe('get_examples', () => {
       }
     });
 
+    // Its own page writes it `<Thead>` as often as `<Table.Thead>`, and the
+    // bare name `Thead` reaches the same examples.
+    it('narrows a part that is its own export by both of its names', async () => {
+      const out = text(
+        await call('get_examples', { component: 'Table.Thead', limit: 30 })
+      );
+      const record = await loadComponent('Table');
+      const using = record.examples.filter(e =>
+        /<(Table\.)?Thead\b/.test(e.code)
+      );
+      expect(using.length).toBeGreaterThan(1);
+      expect(out.match(/^### /gm)?.length).toBe(using.length);
+      const bare = text(
+        await call('get_examples', { component: 'Thead', limit: 30 })
+      );
+      expect(bare.match(/^### /gm)?.length).toBe(using.length);
+    });
+
     it("gives all the record's examples when none uses the part", async () => {
       const out = text(
         await call('get_examples', { component: 'Table.Tfoot', limit: 1 })

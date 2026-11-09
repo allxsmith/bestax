@@ -744,8 +744,10 @@ export async function createServer(
               : callsExport(e.code, documented.name)
           )
         : part
-          ? record.examples.filter(e =>
-              usesExport(e.code, part.path, part.path)
+          ? // By its own export's name too (`<Thead>` for `Table.Thead`), as
+            // the bare name is matched above.
+            record.examples.filter(e =>
+              usesExport(e.code, part.component ?? part.path, part.path)
             )
           : record.examples;
       if (path && !using.length) {
