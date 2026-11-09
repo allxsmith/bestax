@@ -201,6 +201,7 @@ Every subcomponent is exported by name (`PanelHeading`, `PanelBlock`, …) and a
 - The root panel renders as a semantic `<nav>`, a navigation landmark, by default. For a panel that is not navigation, set `as` to `article`, `section`, `aside` or `div`, and give a `section` an accessible name (for example `aria-labelledby` pointing at the `Panel.Heading`'s `id`) if it should be a region.
 - Use headings, links, and buttons with appropriate labels for best accessibility.
 - The `Panel.Block` by default renders as an anchor `<a>`. Its props follow `as`: only an `a` takes the anchor attributes (`href`, `target`, `download` and the rest), and only a `label` takes `htmlFor` and `form`. A block on another tag drops them, and `rel`, at runtime too.
+- A panel with no `color` keeps its heading readable on the dark scheme through bestax's `components/panel` partial, which `extras.css` and `bestax.css` include. Bulma's CSS alone writes that heading white on light gray.
 
 :::note
 For keyboard navigation, ensure interactive Panel blocks are focusable and provide clear visual states.
