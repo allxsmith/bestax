@@ -86,7 +86,10 @@ rbx has three shapes; all three flatten to bestax's per-viewport props.
 rbx's `forwardRefAs` puts `as` on **every** component. bestax declares it on a smaller set, and
 several of those narrow it to specific tags (`Footer` is `'footer' | 'div'`, `Control` is
 `'div' | 'p'`). The codemod passes `as` through only where bestax really accepts it, and TODOs it
-everywhere else:
+everywhere else. A component it writes as plain markup takes its element from a literal `as`, and
+keeps rbx's default with a `prop:as` TODO where it can't read the value.
+
+The components that accept it:
 
 | bestax component             | `as` accepts                                                                            |
 | ---------------------------- | --------------------------------------------------------------------------------------- |

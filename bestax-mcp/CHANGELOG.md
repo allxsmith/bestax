@@ -1,3 +1,32 @@
+## [1.18.45](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.44...bestax-mcp@1.18.45) (2026-11-09)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep a horizontal field's label against its control right to left ([d50b174](https://github.com/allxsmith/bestax/commit/d50b1746ac2c320e7298d6d815021065ea94fca9))
+* **bulma-ui:** put the pickers' background and text helpers on the field ([b35512a](https://github.com/allxsmith/bestax/commit/b35512a232d8da6b5d10d306ee68fd053ebe4add)), closes [#1469](https://github.com/allxsmith/bestax/issues/1469)
+
+## [1.18.44](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.43...bestax-mcp@1.18.44) (2026-11-09)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** write the element rbx's as and RBC's renderAs name in plain rewrites ([2d6647b](https://github.com/allxsmith/bestax/commit/2d6647be421249990341b58fc2ea2f56d873a766)), closes [#1622](https://github.com/allxsmith/bestax/issues/1622)
+* **bulma-ui:** read the vertical Tabs phone fallback from Bulma's breakpoint ([26143a7](https://github.com/allxsmith/bestax/commit/26143a7ab9933a98a511b86807495875ee04e214))
+* **bulma-ui:** shrink Carousel's arrows on a phone at Bulma's breakpoint ([488bf75](https://github.com/allxsmith/bestax/commit/488bf7579646141db418a0fd5d84743bc275870c))
+* **bulma-ui:** stack right-side vertical Tabs on a phone ([d41b6ff](https://github.com/allxsmith/bestax/commit/d41b6ff0b8d25d84078d71d54ec2e76a54ea8b5f))
+* **bulma-ui:** switch Steps' phone layouts and Sidebar's tablet width at Bulma's breakpoint ([60fd7ee](https://github.com/allxsmith/bestax/commit/60fd7ee6b9204c95ce2c2e680c5cec5953d8b740))
+
+## [1.18.43](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.42...bestax-mcp@1.18.43) (2026-11-09)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** give Message's TODO a reason that is still true ([aaea802](https://github.com/allxsmith/bestax/commit/aaea8028be30197b4e985ca5ecf26c90d4a4648d))
+* **bulma-ui:** keep a hovered Slider thumb's border at rest in forced colors ([8d46e50](https://github.com/allxsmith/bestax/commit/8d46e500100eb94bacb3c4c46c1aaca8c76405a0))
+* **bulma-ui:** put Message's own parts straight in its article ([316ca07](https://github.com/allxsmith/bestax/commit/316ca0762a3a63a084064ce9bbc182f5cdf898d5)), closes [#1501](https://github.com/allxsmith/bestax/issues/1501)
+* **bulma-ui:** show a Slider's track and fill in forced colors ([03870bf](https://github.com/allxsmith/bestax/commit/03870bf7c8849f4e5cfb1191a702ad4a7cbd34f1))
+
 ## [1.18.42](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.41...bestax-mcp@1.18.42) (2026-11-09)
 
 

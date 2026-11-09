@@ -574,6 +574,7 @@ Alongside the existing `Field.Label` and `Field.Body` statics, `Control` is now 
 - Two controls in one plain labeled Field would both adopt its id. Give each an `id` of its own and label it individually.
 - Once a labeled Field's content has mounted, its label keeps the generated `for` only while one of the inputs above holds the id, and drops it over anything else: a group, a `Checkbox`, `Radio` or `Switch`, an `inline` picker, an inner `Field`, an input with an `id` of its own, markup of your own, or nothing at all. A server render, and the first render while hydrating, still write the `for`, so hydration matches, and an input that mounts later puts it back. A `for` you set with `labelProps={{ htmlFor }}` always stays. `Checkbox`, `Radio` and `Switch` take nothing from the label on their own: each is named by its own children, so put the text there, and the label names one only when you wire it as you would any control with an `id` of its own, `labelProps={{ htmlFor }}` plus that control's `id`. Where you point content at the label by hand, as with a group in an inner `Field`, `labelProps={{ id }}` is enough in the browser, and `labelProps={{ id, htmlFor: undefined }}` keeps the `for` out of server-rendered HTML too.
 - Grouped/horizontal layouts use Bulma’s grid for layout.
+- On a right-to-left page a horizontal label sits to the right of its control, and its text sits against the control, at the label's left edge. Bulma's own stylesheet aligns it right, so this needs `bestax.css` or `extras.css` too.
 
 ---
 

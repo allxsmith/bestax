@@ -350,6 +350,9 @@ header taller than Bulma's navbar sets it there. `AppFrame.Nav width` writes
 `--bulma-autocomplete-scrollbar-thumb-hover`, `--bulma-autocomplete-scrollbar-track`,
 `--bulma-autocomplete-scrollbar-width`
 
+`--bulma-autocomplete-border-hover-color` is registered but has no effect: the input's hover
+border is Bulma's own.
+
 ### Carousel
 
 `--bulma-carousel-arrow-background`, `--bulma-carousel-arrow-background-hover`,
@@ -415,6 +418,9 @@ the form sits on.
 Bulma's default font sizes the box is 24px at the default and `small` sizes. For a smaller box, set the size and also
 `min-width: 0; min-height: 0` on `.styled-checkbox.my-box .check` (mind the class prefix), and keep
 the label text inside the `Checkbox`, since the whole label is the click target.
+
+`--bulma-checkbox-focus-shadow-size` is registered but has no effect: the keyboard focus ring is a
+`2px` outline in `--bulma-checkbox-active-color`, with no shadow for a size to apply to.
 
 ### CheckboxCard
 
@@ -847,6 +853,9 @@ so it follows the ring and a `color` prop until a class gives it a color of its 
 Bulma's default font sizes the circle is 24px at the default and `small` sizes. For a smaller circle, set the size and also
 `min-width: 0; min-height: 0` on `.styled-radio.my-radio .check` (mind the class prefix), and keep
 the label text inside the `Radio`, since the whole label is the click target.
+
+`--bulma-radio-focus-shadow-size` is registered but has no effect: the keyboard focus ring is a
+`2px` outline in `--bulma-radio-active-color`, with no shadow for a size to apply to.
 
 ### RadioCard
 
