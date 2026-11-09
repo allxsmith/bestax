@@ -2174,13 +2174,13 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   ),
   message: todo(
     'Message',
-    "bestax `Message` writes a `data-testid` of its own over the one it's given, and wraps children other than its own parts in `.message-body`"
+    'bestax `Message` writes `data-testid="message"` when it\'s given none, and wraps children other than its own parts in `.message-body`'
   ),
   'message-header': part(),
   'message-body': part(),
   modal: todo(
     'Modal',
-    "bestax `Modal` writes a `data-testid` of its own over the one it's given, and adds dialog attributes and focus handling, so rebuild the root with it by hand; its parts convert on their own"
+    'bestax `Modal` writes `data-testid="modal"` when it\'s given none, and adds dialog attributes and focus handling, so rebuild the root with it by hand; its parts convert on their own'
   ),
   // Modal's parts are plain elements with their class, and take no helper
   // props. `.modal-close` stays a part of the root's family: `Modal.Close`
