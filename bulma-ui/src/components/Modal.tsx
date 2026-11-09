@@ -594,8 +594,8 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
         role={resolvedRole}
         aria-modal={resolvedAriaModal}
         tabIndex={-1}
-        {...rest}
         data-testid="modal"
+        {...rest}
       >
         {children}
       </div>
@@ -615,8 +615,8 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
         aria-modal={resolvedAriaModal}
         aria-labelledby={titleId}
         tabIndex={-1}
-        {...rest}
         data-testid="modal"
+        {...rest}
       >
         <div
           className={prefixedClassNames(classPrefix, 'modal-background')}

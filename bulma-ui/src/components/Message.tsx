@@ -94,7 +94,7 @@ const MessageComponent: React.FC<MessageProps> = ({
   );
 
   return (
-    <article className={messageClasses} {...rest} data-testid="message">
+    <article className={messageClasses} data-testid="message" {...rest}>
       {(title || onClose) && (
         <div className={prefixedClassNames(classPrefix, 'message-header')}>
           {title && <span>{title}</span>}

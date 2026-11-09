@@ -17,6 +17,45 @@ const latin =
   'Quando in cursu rerum humanarum fit ut populus aliquis dissolvere vincula politica quae eum cum alio coniunxerunt, et inter potestates terrae, statum separatam et aequalem, ad quem Iura Naturae et Dei Naturalis eum ius habere concedunt, rationabile decus postulat ut causas separationis declarent.';
 
 describe('Modal', () => {
+  describe('data-testid', () => {
+    it.each([
+      ['its props', <Modal key="props" active portal={false} />],
+      [
+        'its parts',
+        <Modal key="parts" active portal={false}>
+          <Modal.Background />
+          <Modal.Content>Inside</Modal.Content>
+        </Modal>,
+      ],
+    ])('writes modal when built from %s without one', (_, modal) => {
+      const { container } = render(modal);
+      expect(container.querySelector('.modal')).toHaveAttribute(
+        'data-testid',
+        'modal'
+      );
+    });
+
+    it.each([
+      ['its props', <Modal key="props" active portal={false} />],
+      [
+        'its parts',
+        <Modal key="parts" active portal={false}>
+          <Modal.Background />
+          <Modal.Content>Inside</Modal.Content>
+        </Modal>,
+      ],
+    ])('keeps the caller’s when built from %s', (_, modal) => {
+      const { container } = render(
+        React.cloneElement(modal, { 'data-testid': 'billing-dialog' })
+      );
+      expect(container.querySelector('.modal')).toHaveAttribute(
+        'data-testid',
+        'billing-dialog'
+      );
+      expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
+    });
+  });
+
   it('does not render as active by default', () => {
     const { container } = render(<Modal>{latin}</Modal>);
     expect(container.firstChild).not.toHaveClass('is-active');
