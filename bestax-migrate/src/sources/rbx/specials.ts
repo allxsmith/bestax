@@ -39,6 +39,7 @@ import {
 import {
   alignTarget,
   applyIconProps,
+  dropLinkAttrsForPlainTag,
   FIELD_SCOPED,
   flagDroppedHeading,
   keepTitleLevel,
@@ -351,10 +352,12 @@ const SPECIALS: Record<string, SpecialHandler> = {
   /**
    * rbx's `Loader` is Bulma's plain `.loader` spinner, which always renders.
    * bestax's `Loading` is a different thing — a dismissible overlay that
-   * returns null unless `active` — so this emits the element rbx did.
+   * returns null unless `active` — so this emits the element rbx did, a
+   * <div> unless `as` names another.
    */
   loader(ctx, path, element) {
-    return replaceWithPlain(ctx, path, element, 'div', 'loader', 'Loader');
+    const tag = plainTag(ctx, path, element, 'as', 'div', 'Loader');
+    return replaceWithPlain(ctx, path, element, tag, 'loader', 'Loader');
   },
 
   /**
@@ -378,14 +381,8 @@ const SPECIALS: Record<string, SpecialHandler> = {
    */
   fieldset(ctx, path, element) {
     if (insideFormScope(ctx, path)) {
-      return replaceWithPlain(
-        ctx,
-        path,
-        element,
-        'fieldset',
-        undefined,
-        'Fieldset'
-      );
+      const tag = plainTag(ctx, path, element, 'as', 'fieldset', 'Fieldset');
+      return replaceWithPlain(ctx, path, element, tag, undefined, 'Fieldset');
     }
     if (!findAttr(element, 'variant')) {
       // Before any spread, so a `variant` the spread carries still wins.
@@ -479,8 +476,12 @@ const SPECIALS: Record<string, SpecialHandler> = {
     return { handledProps: ['multiline'] };
   },
 
-  /** bestax has no Help component; Bulma's markup is a plain <p class="help">. */
+  /**
+   * bestax has no Help component; Bulma's markup is a plain <p class="help">,
+   * or the element `as` names.
+   */
   help(ctx, path, element) {
+    const tag = plainTag(ctx, path, element, 'as', 'p', 'Help');
     const className = modifierClass(
       ctx,
       path,
@@ -489,11 +490,15 @@ const SPECIALS: Record<string, SpecialHandler> = {
       'help',
       'Help'
     );
-    return replaceWithPlain(ctx, path, element, 'p', className, 'Help');
+    return replaceWithPlain(ctx, path, element, tag, className, 'Help');
   },
 
-  /** bestax has no standalone Label; Bulma's markup is <label class="label">. */
+  /**
+   * bestax has no standalone Label; Bulma's markup is <label class="label">,
+   * or the element `as` names.
+   */
   label(ctx, path, element) {
+    const tag = plainTag(ctx, path, element, 'as', 'label', 'Label');
     let className = modifierClass(ctx, path, element, 'size', 'label', 'Label');
     const disabledAttr = findAttr(element, 'disabled');
     if (disabledAttr) {
@@ -514,7 +519,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       }
       ctx.dirty = true;
     }
-    return replaceWithPlain(ctx, path, element, 'label', className, 'Label');
+    return replaceWithPlain(ctx, path, element, tag, className, 'Label');
   },
 
   /**
@@ -564,14 +569,8 @@ const SPECIALS: Record<string, SpecialHandler> = {
         'component:Select.Container',
         "bestax's `Select` renders a single `<select>`, so a container holding more than one has no direct equivalent; emitted the plain Bulma wrapper instead"
       );
-      return replaceWithPlain(
-        ctx,
-        path,
-        element,
-        'div',
-        cls,
-        'Select.Container'
-      );
+      const tag = plainTag(ctx, path, element, 'as', 'div', 'Select.Container');
+      return replaceWithPlain(ctx, path, element, tag, cls, 'Select.Container');
     }
 
     // A dynamic value must not simply disappear: rename it so the condition
@@ -656,19 +655,23 @@ const SPECIALS: Record<string, SpecialHandler> = {
     };
   },
 
-  /** rbx's Select.Option is a plain <option>. */
+  /** rbx's Select.Option is a plain <option>, or the element `as` names. */
   'plain-option'(ctx, path, element) {
+    const tag = plainTag(ctx, path, element, 'as', 'option', 'Select.Option');
     return replaceWithPlain(
       ctx,
       path,
       element,
-      'option',
+      tag,
       undefined,
       'Select.Option'
     );
   },
 
-  /** bestax Breadcrumb renders <ul>{children}</ul>; items are plain <li><a>. */
+  /**
+   * bestax Breadcrumb renders <ul>{children}</ul>; items are plain <li><a>.
+   * rbx's `as` named the element inside the <li>, an <a> by default.
+   */
   'breadcrumb-item'(ctx, path, element) {
     const j = ctx.j;
     const activeAttr = findAttr(element, 'active');
@@ -687,9 +690,11 @@ const SPECIALS: Record<string, SpecialHandler> = {
       removeAttr(element, activeAttr);
     }
     liClass = mergeClassName(ctx, path, element, liClass, 'Breadcrumb.Item');
-    // This handler builds its <a> by hand rather than going through
+    const tag = plainTag(ctx, path, element, 'as', 'a', 'Breadcrumb.Item');
+    dropLinkAttrsForPlainTag(ctx, path, element, tag, 'Breadcrumb.Item');
+    // This handler builds its inner element by hand rather than going through
     // replaceWithPlain, so it has to layer the helper-prop strip itself —
-    // otherwise rbx's badge*/tooltip* ride onto the intrinsic <a>.
+    // otherwise rbx's badge*/tooltip* ride onto the intrinsic element.
     const anchorAttrs = stripHelperComponentProps(
       ctx,
       path,
@@ -697,7 +702,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       'Breadcrumb.Item'
     );
     const children = element.children ?? [];
-    const anchor = plainElement(j, 'a', undefined, anchorAttrs, children);
+    const anchor = plainElement(j, tag, undefined, anchorAttrs, children);
     path.replace(plainElement(j, 'li', liClass, [], [anchor]));
     ctx.dirty = true;
     return { replaced: true };
@@ -955,9 +960,11 @@ const SPECIALS: Record<string, SpecialHandler> = {
 
   /**
    * rbx's Panel.Tab is one tab inside a Panel.Tab.Group; bestax's Panel.Tabs
-   * is the group and its children are plain anchors.
+   * is the group and its children are plain elements, an <a> unless `as`
+   * names another.
    */
   'panel-tab'(ctx, path, element) {
+    const tag = plainTag(ctx, path, element, 'as', 'a', 'Panel.Tab');
     const activeAttr = findAttr(element, 'active');
     let className: string | undefined;
     if (activeAttr) {
@@ -973,7 +980,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       }
       removeAttr(element, activeAttr);
     }
-    return replaceWithPlain(ctx, path, element, 'a', className, 'Panel.Tab');
+    return replaceWithPlain(ctx, path, element, tag, className, 'Panel.Tab');
   },
 
   /**

@@ -198,3 +198,30 @@ describe.each([
     });
   });
 });
+
+// The tablet width starts at Bulma's tablet breakpoint, so a build that
+// configures `$tablet` moves it with the rest of the page (#1628). Screens
+// only, as before.
+describe('the Sidebar partial with a configured $tablet', () => {
+  const tabletQueries = (tablet: string) => {
+    const css = compileString(
+      `@use 'bulma/sass/utilities/initial-variables' with ($tablet: ${tablet});
+       @use 'components/sidebar';`
+    );
+    return css
+      .split('@media ')
+      .slice(1)
+      .filter(block =>
+        /--bulma-sidebar-width:\s*300px/.test(block.split(/\n\}/)[0])
+      )
+      .map(block => block.split('{')[0].trim());
+  };
+
+  it.each([
+    ['769px', 'screen and (min-width: 769px)'],
+    ['1024px', 'screen and (min-width: 1024px)'],
+    ['600px', 'screen and (min-width: 600px)'],
+  ])('widens at a $tablet of %s', (tablet, query) => {
+    expect(tabletQueries(tablet)).toEqual([query]);
+  });
+});

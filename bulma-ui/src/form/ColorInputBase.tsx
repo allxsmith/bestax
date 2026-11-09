@@ -7,7 +7,8 @@ import React, {
   useState,
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
-import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useFieldHelperClasses } from '../helpers/useFieldHelperClasses';
 import { Icon } from '../elements/Icon';
 import { ColorSwatch } from '../elements/ColorSwatch';
 import {
@@ -43,7 +44,10 @@ import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
  * only.
  *
  * @helperProps Helper props go on the `.colorinput` `<div>`, with
- * `className`. The other attributes go on the text `<input>`.
+ * `className`, except that the background helpers go on the text `<input>`,
+ * and the text helpers on both, since Bulma's `.input` sets its own
+ * background and font, and the popover inside the `<div>` takes the text
+ * ones. The other attributes go on the `<input>`.
  * @extraProp {string} [name] - Form field name. The field submits the text it shows, the value in `format`, or nothing when it's empty.
  * @extraProp {boolean} [required=false] - Marks the field required, so an empty one fails the form's constraint validation.
  * @extraProp {React.Ref<HTMLInputElement>} [ref] - Forwarded to the text `<input>`.
@@ -198,7 +202,15 @@ export const ColorInputBase = forwardRef<HTMLInputElement, ColorInputBaseProps>(
     const controlLoading = useControlLoading();
     const triggerIcon = triggerIconProp ?? !controlLoading;
     const t = mergeColorLabels(labels);
-    const { bulmaHelperClasses, rest: cleanRest } = useBulmaClasses(rest);
+    // The field takes the background and text helpers, since Bulma's `.input`
+    // sets its own background and font. The container keeps the rest, and the
+    // text helpers too where a popover inside it takes them.
+    const {
+      backgroundClasses,
+      textClasses,
+      otherClasses,
+      rest: cleanRest,
+    } = useFieldHelperClasses(rest);
 
     const isControlled = controlledValue !== undefined;
     const [internalValue, setInternalValue] = useState(defaultValue ?? '');
@@ -352,7 +364,12 @@ export const ColorInputBase = forwardRef<HTMLInputElement, ColorInputBaseProps>(
     return (
       <div
         ref={containerRef}
-        className={classNames(containerClass, bulmaHelperClasses, className)}
+        className={classNames(
+          containerClass,
+          otherClasses,
+          textClasses,
+          className
+        )}
         {...localeScope.rootAttrs}
       >
         <input
@@ -364,7 +381,7 @@ export const ColorInputBase = forwardRef<HTMLInputElement, ColorInputBaseProps>(
           autoComplete="off"
           spellCheck={false}
           autoCapitalize="off"
-          className={inputClass}
+          className={classNames(inputClass, textClasses, backgroundClasses)}
           value={draft ?? valueText}
           placeholder={placeholder}
           disabled={disabled}

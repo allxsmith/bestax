@@ -120,7 +120,7 @@
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Body content for the message.",
+          "description": "Body content for the message, wrapped in a `.message-body`. Children that include a `Message.Header` or `Message.Body` aren't wrapped: they render as the article's own children, after the header `title` and `onClose` make.",
           "required": false,
           "inherited": false,
           "deprecated": false

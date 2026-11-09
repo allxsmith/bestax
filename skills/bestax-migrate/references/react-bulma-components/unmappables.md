@@ -74,11 +74,16 @@ Or keep the element and give the class a rule of your own. Bulma 0.9's was:
 }
 ```
 
-## `prop:renderAs`, `prop:size`, `prop:weight` on a `heading` label
+## `prop:renderAs` — an element the codemod can't read
 
-A `renderAs`, `size` or `weight` the codemod can't read stays off the label's plain element, with
-a TODO. The element is RBC's default `<h1>`, so render the tag you meant yourself, and add the
-classes RBC wrote for the other two by hand:
+Where a component becomes plain markup, a literal `renderAs` names the element written. One the
+codemod can't read leaves the element RBC rendered by default, with this TODO, so render the tag
+you meant yourself.
+
+## `prop:size`, `prop:weight` on a `heading` label
+
+A `size` or `weight` the codemod can't read stays off the label's plain element, with a TODO. Add
+the classes RBC wrote for them by hand:
 
 ```jsx
 <Heading heading size={size} weight={weight}>Tweets</Heading>
