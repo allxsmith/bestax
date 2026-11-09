@@ -31,8 +31,10 @@ import {
   keepTitleLevel,
   makeStripModifierProps,
   mergeClassName,
+  modifierClass,
   applyIconProps,
   parseIconClasses,
+  plainTag,
   type SpecialHandler,
   type SpecialResult,
 } from '../_shared/specials-utils.js';
@@ -154,7 +156,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
   },
 
   /**
-   * Heading → Title / SubTitle / plain `.heading` paragraph, matching RBC's
+   * Heading → Title / SubTitle / plain `.heading` label, matching RBC's
    * `title: !subtitle && !heading` / `subtitle: subtitle` — the *value* of
    * each prop picks the target, not merely whether it was passed. Any
    * statically-known literal resolves to a fixed truthiness at codemod time
@@ -200,35 +202,57 @@ const SPECIALS: Record<string, SpecialHandler> = {
         ctx,
         path,
         'prop:heading',
-        '`heading` has a dynamic value; when truthy it renders a plain `<p className="heading">` instead of Title/SubTitle — resolve by hand'
+        '`heading` has a dynamic value; when truthy it renders a plain element with `className="heading"` (an `<h1>` unless `renderAs` names another) instead of Title/SubTitle — resolve by hand'
       );
     }
 
-    // A truthy literal `heading` collapses to a plain `.heading` paragraph —
-    // but only when `subtitle` isn't a dynamic value the collapse would drop.
-    // A truthy *literal* `subtitle` is safe to collapse: RBC applies its class
-    // independently, so it rides along on the paragraph as `heading subtitle`
-    // (dropping it would be the same silent loss the dynamic guard prevents).
+    // A truthy literal `heading` collapses to the plain `.heading` label RBC
+    // rendered — but only when `subtitle` isn't a dynamic value the collapse
+    // would drop. A truthy *literal* `subtitle` is safe to collapse: RBC
+    // applies its class independently, so it rides along on the label as
+    // `heading subtitle` (dropping it would be the same silent loss the
+    // dynamic guard prevents). RBC rendered `renderAs`, an <h1> by default,
+    // and wrote `size` and `weight` as `is-<size>` and
+    // `has-text-weight-<weight>`, so the label keeps all three. `spaced` goes:
+    // RBC wrote `is-spaced` only without `subtitle`, and Bulma styles it only
+    // on a `.title`.
     if (headingTruthy && !subtitleDynamic) {
-      flagDroppedHeading(ctx, path, 'p');
+      const tag = plainTag(ctx, path, element, 'renderAs', 'h1', 'Heading');
+      flagDroppedHeading(ctx, path, tag);
       removeAttr(element, headingAttr);
+      const sized = modifierClass(
+        ctx,
+        path,
+        element,
+        'size',
+        subtitleTruthy ? 'heading subtitle' : 'heading',
+        'Heading'
+      );
       const className = mergeClassName(
         ctx,
         path,
         element,
-        subtitleTruthy ? 'heading subtitle' : 'heading',
+        modifierClass(
+          ctx,
+          path,
+          element,
+          'weight',
+          sized,
+          'Heading',
+          'has-text-weight-'
+        ),
         'Heading'
       );
       // The seventh hand-built plain rewrite in this file, and the one that
       // does not go through `keptAttrs` -- so it needs the cleanup by name or
-      // `<Heading renderAs="a" href="/x">` lands an `href` on the `<p>`.
-      dropLinkAttrsForPlainTag(ctx, path, element, 'p', 'Heading');
+      // `<Heading renderAs="span" href="/x">` lands an `href` on the `<span>`.
+      dropLinkAttrsForPlainTag(ctx, path, element, tag, 'Heading');
       const consumed = new Set(
         stripModifierProps(
           ctx,
           path,
           attributesOf(element).filter(
-            a => !['size', 'weight', 'spaced', 'subtitle'].includes(a.name.name)
+            a => !['spaced', 'subtitle'].includes(a.name.name)
           ),
           'Heading'
         )
@@ -238,7 +262,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       );
       const replacement = plainElement(
         ctx.j,
-        'p',
+        tag,
         className,
         rest,
         element.children ?? []

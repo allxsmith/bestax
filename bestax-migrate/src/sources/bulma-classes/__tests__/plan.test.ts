@@ -1180,6 +1180,44 @@ describe('plan', () => {
       ]);
     });
 
+    // `.heading` and `.number` were Bulma 0.9 elements of their own, and
+    // `is-variable` turned on a `.columns`' gap: each stays where it is,
+    // converted or not, and says it styles nothing now.
+    it('flags the 0.9 label, badge and gap switch where they stay', () => {
+      expect(plan(facts('p', 'heading'))).toEqual({
+        conversion: null,
+        todos: [
+          {
+            rule: 'legacy:heading',
+            message: expect.stringContaining('textTransform="uppercase"'),
+          },
+        ],
+      });
+      const label = plan(facts('span', 'heading has-text-grey'));
+      expect(label.conversion).toMatchObject({
+        target: 'Span',
+        className: 'heading',
+      });
+      expect(label.todos.map(todo => todo.rule)).toEqual(['legacy:heading']);
+      expect(plan(facts('span', 'number')).todos).toEqual([
+        {
+          rule: 'legacy:number',
+          message: expect.stringContaining('a rule of your own'),
+        },
+      ]);
+      const columns = plan(facts('div', 'columns is-variable is-2'));
+      expect(columns.conversion).toMatchObject({
+        target: 'Columns',
+        className: 'is-variable',
+      });
+      expect(columns.todos).toEqual([
+        {
+          rule: 'legacy:is-variable',
+          message: expect.stringContaining('`gap` prop'),
+        },
+      ]);
+    });
+
     it('keeps a family beside a root it converts as markup, and flags it', () => {
       expect(plan(facts('div', 'dropdown box'))).toEqual({
         conversion: null,

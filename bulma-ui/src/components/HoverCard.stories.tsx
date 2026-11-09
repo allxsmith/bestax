@@ -11,6 +11,7 @@ import { Tag } from '../elements/Tag';
 import { Tags } from '../elements/Tags';
 import { Title } from '../elements/Title';
 import { Media } from '../layout/Media';
+import { LocaleProvider } from '../helpers/LocaleProvider';
 
 const meta: Meta<typeof HoverCard> = {
   title: 'Components/HoverCard',
@@ -215,6 +216,20 @@ export const Positions: Story = {
         )
       )}
     </Box>
+  ),
+};
+
+/**
+ * On a right-to-left page a card with no `position` lines its right edge up
+ * with the trigger's.
+ */
+export const RightToLeft: Story = {
+  render: () => (
+    <LocaleProvider locale="ar" dir="rtl">
+      <HoverCard openOnTap trigger={<Button>عرض</Button>}>
+        <Paragraph>بطاقة</Paragraph>
+      </HoverCard>
+    </LocaleProvider>
   ),
 };
 

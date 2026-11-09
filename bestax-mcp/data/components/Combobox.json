@@ -313,7 +313,7 @@
           "name": "position",
           "type": "'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto'",
           "default": "'bottom-left'",
-          "description": "Where the menu opens against the field: below (`bottom-*`) or above (`top-*`), lined up with its left or right edge. `auto` picks the one that keeps the list in the viewport, preferring below. The same union Popover takes.",
+          "description": "Where the menu opens against the field: below (`bottom-*`) or above (`top-*`), lined up with its left or right edge. `auto` picks the one that keeps the list in the viewport, preferring below. The same union Popover takes. Left out, it opens below and lines up with the field's start edge, which is its right edge on a right-to-left page, so a menu wider than the field doesn't hang off the screen. A corner you pass stays physical, so `bottom-left` lines up the left edges on either page.",
           "required": false,
           "inherited": true,
           "deprecated": false
