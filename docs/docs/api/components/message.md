@@ -125,6 +125,8 @@ Use the `size` prop (`'small'`, `'medium'`, `'large'`) to adjust the size of the
 
 The message header and body are available as the `Message.Header` and `Message.Body` statics, so a whole message can be composed from the single `Message` import. Each static's props are listed under [Compound component props](#compound-component-props). The same parts are named exports, `MessageHeader` and `MessageBody`, and each is the same component as the dotted name. A Next.js Server Component imports the named export, because the dotted name is `undefined` there.
 
+Built from its parts, a message puts `Message.Header` and `Message.Body` straight inside its `<article>`, the way Bulma lays them out. Plain children, as in the examples above, get a `.message-body` around them.
+
 #### Complete Message with Compound Components
 
 ```tsx live
@@ -170,7 +172,7 @@ The message header and body are available as the `Message.Header` and `Message.B
 
 #### Mixed Approach
 
-You can combine the traditional prop-based API with compound components:
+You can combine the traditional prop-based API with compound components. The header that `title` (or `onClose`) makes comes first, and the parts follow it:
 
 ```tsx live
 <Message color="danger" title="Mixed Approach">
@@ -221,17 +223,17 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Messa
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                                                                            | Default | Description                                       |
-| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                                                                        | —       | Additional CSS classes.                           |
-| `title`     | `React.ReactNode`                                                               | —       | Title string/node (renders header section).       |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color for the message (Bulma helper).        |
-| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the message.             |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color for the message (Bulma helper).  |
-| `size`      | `'small'` \| `'medium'` \| `'large'`                                            | —       | Size of the message.                              |
-| `onClose`   | `() => void`                                                                    | —       | Callback for the close ("X") button.              |
-| `children`  | `React.ReactNode`                                                               | —       | Body content for the message.                     |
-| `...`       | All standard HTML attributes and Bulma helper props                             | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                                                                            | Default | Description                                                                                                                                                                                                                    |
+| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `className` | `string`                                                                        | —       | Additional CSS classes.                                                                                                                                                                                                        |
+| `title`     | `React.ReactNode`                                                               | —       | Title string/node (renders header section).                                                                                                                                                                                    |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color for the message (Bulma helper).                                                                                                                                                                                     |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the message.                                                                                                                                                                                          |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color for the message (Bulma helper).                                                                                                                                                                               |
+| `size`      | `'small'` \| `'medium'` \| `'large'`                                            | —       | Size of the message.                                                                                                                                                                                                           |
+| `onClose`   | `() => void`                                                                    | —       | Callback for the close ("X") button.                                                                                                                                                                                           |
+| `children`  | `React.ReactNode`                                                               | —       | Body content for the message, wrapped in a `.message-body`. Children that include a `Message.Header` or `Message.Body` aren't wrapped: they render as the article's own children, after the header `title` and `onClose` make. |
+| `...`       | All standard HTML attributes and Bulma helper props                             | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                              |
 
 **Subcomponents:**
 

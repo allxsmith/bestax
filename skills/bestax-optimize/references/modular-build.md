@@ -158,8 +158,9 @@ Notes:
 
 - The `field` partial **extends** stock Bulma's field (`bulma/sass/form/tools`): it puts the
   `message` of a horizontal form component (`Input horizontal`, `Checkboxes horizontal`,
-  `Rate horizontal` and the rest) under its control, where Bulma's row would set it beside. An
-  app with one needs it next to `bulma/sass/form/tools`, in either order:
+  `Rate horizontal` and the rest) under its control, where Bulma's row would set it beside, and
+  keeps a horizontal label's text against its control on a right-to-left page. An app with one
+  needs it next to `bulma/sass/form/tools`, in either order:
 
   ```scss
   @use 'bulma/sass/form/tools';

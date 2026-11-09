@@ -45,7 +45,7 @@ codemod converts it; **Flagged** = it leaves a `TODO(bestax-migrate)` comment (s
 
 | RBC                                                         | bestax                                                                   |
 | ----------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `Breadcrumb.Item`                                           | plain `<li><a href=…>` (`active` → `is-active`)                          |
+| `Breadcrumb.Item`                                           | plain `<li><a href=…>` (`active` → `is-active`), or the `renderAs` tag   |
 | `Button.Group`                                              | `Buttons` (`align="right"`→`isRight`); unknown or dynamic `size` flagged |
 | `Card.Header` / `.Title` / `.Icon`                          | `Card.Header` / `.Header.Title` / `.Header.Icon`                         |
 | `Card.Image`                                                | `Card.Image` wrapping an inner `<Image>`                                 |

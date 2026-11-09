@@ -51,7 +51,8 @@ in place:
   `size` becomes `textSize` wherever bestax's `size`, which picks the heading level, would change
   the element RBC rendered),
   `Level.Side align="right"` → `Level.Right`, `Loader` → a plain `<div className="loader">`.
-- **Props** — `renderAs` → `as` (where supported), boolean modifiers gain their bestax prefixes
+- **Props** — `renderAs` → `as` (where supported, and the element itself where a component becomes
+  plain markup), boolean modifiers gain their bestax prefixes
   (`loading` → `isLoading`, `fullwidth` → `isFullwidth`), numeric spacing and text sizes become
   string unions (`textSize={4}` → `textSize="4"`), and values are remapped
   (`textAlign="center"` → `"centered"`, `state="hover"` → `isHovered`).
