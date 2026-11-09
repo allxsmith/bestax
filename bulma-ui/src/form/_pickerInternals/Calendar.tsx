@@ -258,6 +258,12 @@ const inWeeks = (days: React.ReactElement[], className: string) => {
   return rows;
 };
 
+/** Sunday-first weekday names, starting from `firstDayOfWeek` instead. */
+const fromFirstDay = (sundayFirst: string[], firstDayOfWeek: DayOfWeek) => [
+  ...sundayFirst.slice(firstDayOfWeek),
+  ...sundayFirst.slice(0, firstDayOfWeek),
+];
+
 /** A date's time, or `null` for none, for comparing ranges by value. */
 const timeOf = (d: Date | null | undefined): number | null =>
   d ? d.getTime() : null;
@@ -336,14 +342,27 @@ export const Calendar: React.FC<CalendarProps> = ({
   // Nothing before year 1 can be picked or reached, as in HTML's date inputs.
   const min = useMemo(() => floorMin(minProp), [minProp]);
 
-  const computedDayNames = useMemo(() => {
-    if (dayNames && dayNames.length === 7) return dayNames;
-    const sundayFirst = getDayNames(locale, 'short');
-    return [
-      ...sundayFirst.slice(firstDayOfWeek),
-      ...sundayFirst.slice(0, firstDayOfWeek),
-    ];
-  }, [dayNames, locale, firstDayOfWeek]);
+  const customDayNames = dayNames && dayNames.length === 7 ? dayNames : null;
+  const computedDayNames = useMemo(
+    () =>
+      customDayNames ??
+      fromFirstDay(getDayNames(locale, 'short'), firstDayOfWeek),
+    [customDayNames, locale, firstDayOfWeek]
+  );
+
+  // Each weekday column is named by its full weekday in the locale, so a
+  // screen reader names the column as focus moves across the grid. A server
+  // and a browser can spell those names differently, so they're added only
+  // once the page has hydrated, and never beside day names the caller gave,
+  // which name the columns themselves.
+  const hydrated = useIsHydrated();
+  const weekdayNames = useMemo(
+    () =>
+      hydrated && !customDayNames
+        ? fromFirstDay(getDayNames(locale, 'long'), firstDayOfWeek)
+        : null,
+    [hydrated, customDayNames, locale, firstDayOfWeek]
+  );
 
   const computedMonthNames = useMemo(() => {
     if (monthNames && monthNames.length === 12) return monthNames;
@@ -682,7 +701,6 @@ export const Calendar: React.FC<CalendarProps> = ({
   // server render and the render hydrating it mark no day, month or year,
   // and the commit after marks the browser's own. A calendar mounted after
   // hydration marks it from its first render.
-  const hydrated = useIsHydrated();
   const today = hydrated ? new Date() : null;
   const todayYear = today?.getFullYear();
 
@@ -1005,13 +1023,6 @@ export const Calendar: React.FC<CalendarProps> = ({
 
       {view === 'days' && (
         <>
-          <div className={dayNamesRowClass} aria-hidden="true">
-            {computedDayNames.map((name, i) => (
-              <div key={i} className={dayNameClass}>
-                {name}
-              </div>
-            ))}
-          </div>
           <div
             ref={gridRef}
             role="grid"
@@ -1025,6 +1036,20 @@ export const Calendar: React.FC<CalendarProps> = ({
             onMouseLeave={anchor ? () => setHoverDate(null) : undefined}
             {...gridFocusHandlers}
           >
+            {/* The weekday names head the grid's columns, as the APG's date
+                picker has them. */}
+            <div role="row" className={dayNamesRowClass}>
+              {computedDayNames.map((name, i) => (
+                <div
+                  key={i}
+                  role="columnheader"
+                  aria-label={weekdayNames?.[i]}
+                  className={dayNameClass}
+                >
+                  {name}
+                </div>
+              ))}
+            </div>
             {inWeeks(
               cells.map(cell => {
                 const disabled =
