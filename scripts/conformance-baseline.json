@@ -20,7 +20,6 @@
   "bulma-ui/src/elements/Divider.stories.tsx": 5,
   "bulma-ui/src/elements/Emphasis.stories.tsx": 1,
   "bulma-ui/src/elements/Figure.stories.tsx": 10,
-  "bulma-ui/src/elements/Image.stories.tsx": 1,
   "bulma-ui/src/elements/Link.stories.tsx": 1,
   "bulma-ui/src/elements/LinkButton.stories.tsx": 1,
   "bulma-ui/src/elements/Notification.stories.tsx": 3,
