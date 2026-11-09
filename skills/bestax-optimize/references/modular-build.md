@@ -136,9 +136,10 @@ Notes:
   ```
 
 - The `navbar` partial **extends** stock Bulma navbar (it keeps the burger's bars in
-  ButtonText in forced colors, where Chromium paints them in the page's Canvas color), so an
-  app using `Navbar` needs both, in either order. `AppFrame.Burger` renders `Navbar.Burger`,
-  so a build with one wants this partial too:
+  ButtonText in forced colors, where Chromium paints them in the page's Canvas color, and keeps a
+  `fixed` navbar in place while an overlay locks the page's scrolling), so an app using `Navbar`
+  needs both, in either order. `AppFrame.Burger` renders `Navbar.Burger`, so a build with one
+  wants this partial too:
 
   ```scss
   @use 'bulma/sass/components/navbar';
