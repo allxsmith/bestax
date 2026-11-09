@@ -215,6 +215,72 @@ describe('Message', () => {
       expect(screen.getByLabelText('delete')).toBeInTheDocument();
     });
 
+    test('puts its parts straight in the article, with no body around them', () => {
+      const { container } = render(
+        <Message>
+          <Message.Header>Header</Message.Header>
+          <Message.Body>Body</Message.Body>
+        </Message>
+      );
+      const article = container.querySelector('article.message')!;
+      expect(Array.from(article.children, child => child.className)).toEqual([
+        'message-header',
+        'message-body',
+      ]);
+      expect(screen.queryByTestId('message-body')).not.toBeInTheDocument();
+    });
+
+    test('puts a lone part straight in the article', () => {
+      const { container } = render(
+        <Message>
+          <Message.Body>Body</Message.Body>
+        </Message>
+      );
+      expect(
+        container.querySelector(
+          'article.message > .message-body > .message-body'
+        )
+      ).toBeNull();
+      expect(container.querySelectorAll('.message-body')).toHaveLength(1);
+    });
+
+    test('follows the header its title makes with a Message.Body', () => {
+      const { container } = render(
+        <Message title="Title" onClose={() => {}}>
+          <Message.Body>Body</Message.Body>
+        </Message>
+      );
+      const article = container.querySelector('article.message')!;
+      expect(Array.from(article.children, child => child.className)).toEqual([
+        'message-header',
+        'message-body',
+      ]);
+      expect(article.querySelectorAll('.message-body')).toHaveLength(1);
+      expect(article.firstElementChild).toHaveTextContent('Title');
+      expect(screen.getByTestId('message-close')).toBeInTheDocument();
+    });
+
+    test('keeps wrapping plain children under a class prefix', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <Message>
+            <Message.Header>Header</Message.Header>
+            <Message.Body>Body</Message.Body>
+          </Message>
+          <Message>Plain</Message>
+        </ConfigProvider>
+      );
+      const [composed, plain] = container.querySelectorAll(
+        'article.bestax-message'
+      );
+      expect(Array.from(composed.children, child => child.className)).toEqual([
+        'bestax-message-header',
+        'bestax-message-body',
+      ]);
+      expect(plain.firstElementChild).toHaveClass('bestax-message-body');
+      expect(plain.firstElementChild).toHaveTextContent('Plain');
+    });
+
     test('compound components accept additional HTML attributes', () => {
       render(
         <Message.Header id="header-id" aria-label="Header">
