@@ -1,3 +1,33 @@
+## [1.18.38](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.37...bestax-mcp@1.18.38) (2026-11-09)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** give a part that is a component of its own that component's variables ([7c491cf](https://github.com/allxsmith/bestax/commit/7c491cfe6af4c3eeed43984190433cc4da70be2e)), closes [#1480](https://github.com/allxsmith/bestax/issues/1480)
+* **bestax-mcp:** resolve a dot-path through a static that is a component of its own ([7f0126f](https://github.com/allxsmith/bestax/commit/7f0126f148664fd40aeaca80d2520b5df9c1e959)), closes [#1480](https://github.com/allxsmith/bestax/issues/1480)
+
+## [1.18.37](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.36...bestax-mcp@1.18.37) (2026-11-09)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** list Icon's name as a string, not string or undefined ([8e8b1fc](https://github.com/allxsmith/bestax/commit/8e8b1fce61d323aa76c5d257b9da0d0285392c78))
+* **bulma-ui:** draw a checked radio's dot from --bulma-radio-dot-color ([ae25d60](https://github.com/allxsmith/bestax/commit/ae25d60a27ab06cad157a1e94cfd02cb94220513))
+* **bulma-ui:** follow an anchored panel's own size, measuring once a frame ([33276d2](https://github.com/allxsmith/bestax/commit/33276d2af5a73169b6cb6237525803f0a664e90a))
+* **bulma-ui:** lock the page on <html> so it stops scrolling under overlays ([9984309](https://github.com/allxsmith/bestax/commit/9984309a93f8657652a7a0f2d9c811dd3aabf584))
+* **bulma-ui:** mark the calendar's today only after hydration ([0652cb8](https://github.com/allxsmith/bestax/commit/0652cb875d58e47cc7555fbdc4b9bde411b81c67)), closes [#1438](https://github.com/allxsmith/bestax/issues/1438)
+* **bulma-ui:** render Sidebar, Toast and portaled picker panels in place while hydrating ([af79f7f](https://github.com/allxsmith/bestax/commit/af79f7f63298499683e937fe1e31fb3b637977ac)), closes [#418](https://github.com/allxsmith/bestax/issues/418)
+* **bulma-ui:** ring each Loading size at the width its own variable sets ([9fce384](https://github.com/allxsmith/bestax/commit/9fce3842a00fa03f1392a377662d4861d2e5a91f))
+* **create-bestax:** say a close button needs Bulma's delete module in the optimize skill ([cf7ed29](https://github.com/allxsmith/bestax/commit/cf7ed29df73eb4acb2faba579a0925ce29b01529)), closes [#597](https://github.com/allxsmith/bestax/issues/597) [#1418](https://github.com/allxsmith/bestax/issues/1418)
+* **docs:** leave a union's forbidding members out of the props tables ([b611626](https://github.com/allxsmith/bestax/commit/b61162673cd782242f0138ad4eaf66a59d9ba985)), closes [#1460](https://github.com/allxsmith/bestax/issues/1460)
+* **eslint-plugin:** rank .level on the div, header and footer the codemod converts it on ([d75c00e](https://github.com/allxsmith/bestax/commit/d75c00eb79575f92f9e6f32b472f9f20146d3374)), closes [#1443](https://github.com/allxsmith/bestax/issues/1443)
+
+
+### Features
+
+* **bestax-migrate:** convert Level on the div, header and footer its as takes ([9675046](https://github.com/allxsmith/bestax/commit/96750467facd6a14122d42a394fe0406e1930061)), closes [#1443](https://github.com/allxsmith/bestax/issues/1443)
+* **bulma-ui:** let Level render a div, header or footer as well as its nav ([d5ab7e3](https://github.com/allxsmith/bestax/commit/d5ab7e33c54ce392568fba3c42ce4db178776af7)), closes [#1443](https://github.com/allxsmith/bestax/issues/1443)
+
 ## [1.18.36](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.35...bestax-mcp@1.18.36) (2026-11-08)
 
 

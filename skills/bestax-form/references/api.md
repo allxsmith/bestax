@@ -212,7 +212,9 @@ does a picker given its own `dayNames`, which it shows exactly as given and whic
 hear as the columns' names: pass `firstDayOfWeek` with them and list them from that day. With
 server rendering, set a locale: without one, an `inline` calendar names its days in the server's
 language on the server and the reader's in the browser, and hydration fails to match whenever
-the two languages differ.
+the two languages differ. Give an `inline` picker a `value` or `defaultValue` there too: without
+one it opens on the month the clock reads, and the server's clock and the reader's can read
+different months.
 
 ```tsx
 <LocaleProvider locale="de">

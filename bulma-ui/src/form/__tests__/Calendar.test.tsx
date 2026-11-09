@@ -933,6 +933,71 @@ const yearOption = (container: HTMLElement, year: number) =>
 const focusedYearOption = (container: HTMLElement) =>
   container.querySelector<HTMLElement>('[data-focused-year="true"]')!;
 
+describe('Calendar today across hydration', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  // Renders `ui` on the server at `serverNow` and hydrates it in a browser
+  // whose clock reads `browserNow`, a day later.
+  const hydrate = async (
+    ui: React.ReactElement,
+    serverNow: Date,
+    browserNow: Date
+  ) => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(serverNow);
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(ui);
+    document.body.appendChild(container);
+    const serverHtml = container.innerHTML;
+    vi.setSystemTime(browserNow);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    let root: ReturnType<typeof hydrateRoot> | undefined;
+    await act(async () => {
+      root = hydrateRoot(container, ui);
+    });
+    const errors = errorSpy.mock.calls.length;
+    errorSpy.mockRestore();
+    return {
+      container,
+      serverHtml,
+      errors,
+      cleanup: async () => {
+        await act(async () => root!.unmount());
+        container.remove();
+      },
+    };
+  };
+
+  it.each([
+    // December's grid ends in January, so both days are on show.
+    ['day', new Date(2026, 11, 31, 12), new Date(2027, 0, 1, 12), '1'],
+    ['month', new Date(2026, 10, 30, 12), new Date(2026, 11, 1, 12), 'Dec'],
+    ['year', new Date(2026, 11, 31, 12), new Date(2027, 0, 1, 12), '2027'],
+  ] as const)(
+    "marks the browser's today in the %s view once hydrated",
+    async (granularity, serverNow, browserNow, marked) => {
+      const { container, serverHtml, errors, cleanup } = await hydrate(
+        <PeriodHarness granularity={granularity} focusedDate={serverNow} />,
+        serverNow,
+        browserNow
+      );
+      try {
+        expect(serverHtml).not.toContain('aria-current');
+        expect(serverHtml).not.toContain('is-today');
+        expect(errors).toBe(0);
+        const current = container.querySelectorAll('[aria-current="date"]');
+        expect(current).toHaveLength(1);
+        expect(current[0].textContent).toBe(marked);
+        expect(current[0]).toHaveClass('is-today');
+      } finally {
+        await cleanup();
+      }
+    }
+  );
+});
+
 describe('Calendar month granularity', () => {
   const grid = (container: HTMLElement) =>
     container.querySelector<HTMLElement>('[role="grid"]')!;
