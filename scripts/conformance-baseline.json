@@ -1,6 +1,6 @@
 {
   "bulma-ui/src/columns/Column.stories.tsx": 6,
-  "bulma-ui/src/columns/Columns.stories.tsx": 18,
+  "bulma-ui/src/columns/Columns.stories.tsx": 16,
   "bulma-ui/src/components/Card.stories.tsx": 1,
   "bulma-ui/src/components/Carousel.stories.tsx": 2,
   "bulma-ui/src/components/Collapse.stories.tsx": 4,
