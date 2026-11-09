@@ -166,6 +166,9 @@ export interface DateTimeInputBaseProps
    * `defaultValue` it opens on the month the clock reads, and around the end
    * of a month the server's clock and the browser's can read different
    * months, so give it a date both render the same.
+   * Reset in its footer goes back to the value it mounted with, or, when
+   * controlled, to the latest `value` the parent set other than an echo of
+   * `onChange`. The ✓ beside it has no popover to close.
    */
   inline?: boolean;
   /** Use `<input type="datetime-local">` on coarse-pointer devices. */
@@ -417,9 +420,13 @@ export const DateTimeInputBase = forwardRef<
 
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  // Snapshot of the value when the popover opens, so Reset can revert the
-  // edits made in this session (reverting to empty if it opened empty).
-  const valueAtOpenRef = useRef<Date | null>(null);
+  // What Reset goes back to. The popover takes it as it opens, so Reset
+  // reverts the edits made since, to empty if it opened empty. An inline
+  // panel has nothing to open, so it starts from the value it mounted with.
+  const valueAtOpenRef = useRef<Date | null>(value);
+  // The last value this picker committed, as a time or null for empty, so
+  // a controlled parent echoing it back isn't taken for setting a new one.
+  const committedTimeRef = useRef<number | null | undefined>(undefined);
   const reactId = useId();
   const popoverId = id ? `${id}-popover` : `picker-${reactId}`;
   const timeWheelsId = `${popoverId}-time`;
@@ -490,6 +497,16 @@ export const DateTimeInputBase = forwardRef<
     setText(value ? formatDateTime(value, defaultFormat, locale) : '');
   }, [value, defaultFormat, locale]);
 
+  // A controlled inline panel takes each value its parent sets as the one
+  // Reset goes back to, so Reset never brings back a value the app has moved
+  // past. Its own commits, echoed back, leave that value where it was.
+  const valueTime = value ? value.getTime() : null;
+  useEffect(() => {
+    if (!inline || !isControlled) return;
+    if (valueTime === committedTimeRef.current) return;
+    valueAtOpenRef.current = valueTime === null ? null : new Date(valueTime);
+  }, [inline, isControlled, valueTime]);
+
   // Collapse the time wheels whenever the popover closes.
   useEffect(() => {
     if (!open) setTimeOpen(false);
@@ -522,6 +539,7 @@ export const DateTimeInputBase = forwardRef<
 
   const commitValue = useCallback(
     (next: Date | null) => {
+      committedTimeRef.current = next ? next.getTime() : null;
       if (!isControlled) setInternalValue(next);
       // Keep the calendar's focused cell tracking typed / parsed values.
       if (next) setFocusedDate(next);
