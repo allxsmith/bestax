@@ -173,8 +173,8 @@ active items.
       `- Routing: React Router in data mode. Routes are in \`src/router\`, pages in ` +
       `\`src/pages\`, and the navbar every page shares in \`src/Layout\`. Link with ` +
       `\`<Navbar.Item as={Link} to="...">\` and \`<Menu.Item as={Link} ...>\`, and set \`active\` ` +
-      `and \`aria-current\` from \`useLocation\` rather than using \`NavLink\`, whose ` +
-      `function \`className\` bypasses Bulma's \`is-active\` ` +
+      `from \`useLocation\`, which also sets \`aria-current="page"\`, rather than using ` +
+      `\`NavLink\`, whose function \`className\` bypasses Bulma's \`is-active\` ` +
       `(https://bestax.io/docs/guides/features/routing).`,
   },
   'tanstack-router': {
@@ -507,8 +507,8 @@ export const CLAUDE_MD = (
         `names work in a client component. The starter page ` +
         `(\`src/App\`) and the navbar (\`src/Navigation\`) keep state, so they're client components, ` +
         `and the About page is a Server Component. Link with ` +
-        `\`<Navbar.Item as={NextLink} href="...">\`, with \`active\` and \`aria-current\` from ` +
-        `\`usePathname\` (https://bestax.io/docs/guides/features/routing).`
+        `\`<Navbar.Item as={NextLink} href="...">\`, with \`active\` from \`usePathname\`, which ` +
+        `also sets \`aria-current="page"\` (https://bestax.io/docs/guides/features/routing).`
     );
   }
   const houseStyleOpening = flavor?.noHelpers

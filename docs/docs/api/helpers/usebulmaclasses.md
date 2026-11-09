@@ -698,12 +698,12 @@ function OverlayExample() {
 
 ### Interaction
 
-Show text in a Box with `unselectable`, and another Box with `clickable`:
+Show text in a Box with `unselectable`, and another Box with `clickable`. `clickable` adds no role, tab stop or keyboard handling, so an element people click should still be a `<button>` or a link:
 
 ```tsx live
 <>
   <Box interaction="unselectable">This text cannot be selected.</Box>
-  <Box interaction="clickable">This box is clickable.</Box>
+  <Box interaction="clickable">This box shows a pointer cursor.</Box>
 </>
 ```
 
