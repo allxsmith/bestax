@@ -8,11 +8,13 @@ import { TimeInput } from '../TimeInput';
 
 let styleEl: HTMLStyleElement;
 
+// A hook keeps Vitest's 10s default rather than `testTimeout`, and
+// sass-embedded's start can take longer than that on a loaded machine.
 beforeAll(() => {
   styleEl = document.createElement('style');
   styleEl.textContent = compileSheet('form/_timeinput.scss');
   document.head.appendChild(styleEl);
-});
+}, 30_000);
 
 afterAll(() => {
   styleEl.remove();

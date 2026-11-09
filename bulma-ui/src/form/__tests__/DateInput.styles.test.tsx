@@ -70,10 +70,12 @@ const inject = (css: string) => {
 let sheet: CSSStyleSheet;
 let dateinputCss = '';
 
+// A hook keeps Vitest's 10s default rather than `testTimeout`, and
+// sass-embedded's start can take longer than that on a loaded machine.
 beforeAll(() => {
   dateinputCss = compileSheet('form/_dateinput.scss');
   sheet = inject(dateinputCss).sheet as CSSStyleSheet;
-});
+}, 30_000);
 
 afterAll(() => {
   for (const el of sheets) el.remove();
