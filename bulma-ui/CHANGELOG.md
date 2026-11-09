@@ -1,3 +1,21 @@
+## [5.67.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.2...@allxsmith/bestax-bulma@5.67.3) (2026-11-09)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep the part check from doing work on import ([ca188cf](https://github.com/allxsmith/bestax/commit/ca188cf2e04e845f5598590f26232f1c9f17af7d))
+* **bulma-ui:** portal a popup opened in a Modal, Dialog or Command.Dialog into that dialog ([d878a8a](https://github.com/allxsmith/bestax/commit/d878a8ab8c60b61c430559103e5f0ea557b6760f))
+* **bulma-ui:** recognize compound parts composed in a Server Component ([43d27c1](https://github.com/allxsmith/bestax/commit/43d27c178993b49f9fbe7bca524630c19238cb2d)), closes [#1500](https://github.com/allxsmith/bestax/issues/1500)
+* **bulma-ui:** start a Menu's items where the line starts on a right-to-left page ([b0b6cd5](https://github.com/allxsmith/bestax/commit/b0b6cd5c210675e98ac32196f8b2425b3b11ea15))
+* **bulma-ui:** watch the panel a popup has now, after its portal moves it ([e3f799e](https://github.com/allxsmith/bestax/commit/e3f799eb45469d3db4496c26056d489446a87a1a))
+
+## [5.67.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.1...@allxsmith/bestax-bulma@5.67.2) (2026-11-09)
+
+
+### Bug Fixes
+
+* **bulma-ui:** stop an inline picker's picks when it's disabled or readOnly ([c742785](https://github.com/allxsmith/bestax/commit/c742785a79559c7e0a354df06c7b7093320d1b43)), closes [#1437](https://github.com/allxsmith/bestax/issues/1437)
+
 ## [5.67.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.0...@allxsmith/bestax-bulma@5.67.1) (2026-11-09)
 
 

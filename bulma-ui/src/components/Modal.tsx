@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useId,
   useRef,
+  useState,
 } from 'react';
 import {
   classNames,
@@ -13,6 +14,7 @@ import {
   prefixedClassNames,
 } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { isElementOf } from '../helpers/elementType';
 import { buttonType } from '../helpers/buttonType';
 import {
   useBulmaClasses,
@@ -25,7 +27,7 @@ import {
   getActiveElementInTree,
   getDeepestActiveElement,
 } from '../helpers/shadowDom';
-import { Portal, usePortalProp } from '../helpers/portal';
+import { Portal, PortalScope, usePortalProp } from '../helpers/portal';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { useOverlayStack } from '../helpers/overlayStack';
 import { focusTabStop, trapTab } from '../helpers/useFocusTrap';
@@ -426,6 +428,10 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   // Cleanup returned by a consumer's callback ref on attach, held until detach.
   const consumerCleanupRef = useRef<(() => void) | null>(null);
 
+  // The root, as state, for the popups inside to portal into: outside it,
+  // its `aria-modal` hides them from screen readers.
+  const [scopeNode, setScopeNode] = useState<HTMLDivElement | null>(null);
+
   // The forwarded ref and the internal one must both see the node: focus
   // management and the Tab trap read `modalRootRef`, while consumers expect
   // their own ref to resolve.
@@ -433,6 +439,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     (node: HTMLDivElement | null) => {
       (modalRootRef as React.MutableRefObject<HTMLDivElement | null>).current =
         node;
+      setScopeNode(node);
       if (typeof ref === 'function') {
         // React 19 lets a callback ref return a cleanup function and detaches
         // by running it instead of calling the ref with `null`; React 18
@@ -559,13 +566,8 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   }, [isModalActive, isPortaled, portal, defaultTarget]);
 
   // Check if children contain compound components
-  const hasCompoundComponents = React.Children.toArray(children).some(
-    child =>
-      React.isValidElement(child) &&
-      (child.type === ModalBackground ||
-        child.type === ModalContent ||
-        child.type === ModalCard ||
-        child.type === ModalClose)
+  const hasCompoundComponents = React.Children.toArray(children).some(child =>
+    isElementOf(child, ModalBackground, ModalContent, ModalCard, ModalClose)
   );
 
   // Generate Bulma classes with prefix
@@ -691,10 +693,11 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     );
   }
 
-  // In both forms, so a `Modal.Close` anywhere inside closes this modal.
+  // In both forms, so a `Modal.Close` anywhere inside closes this modal, and
+  // a popup anywhere inside portals into it.
   modalElement = (
     <ModalCloseContext.Provider value={onClose}>
-      {modalElement}
+      <PortalScope node={scopeNode}>{modalElement}</PortalScope>
     </ModalCloseContext.Provider>
   );
 

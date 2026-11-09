@@ -115,7 +115,8 @@ Notes:
   ```
 
 - The `menu` partial **extends** stock Bulma menu (it draws `Menu.Section`'s heading and chevron,
-  and keeps the active item marked in forced colors, Windows' contrast themes), so an app using
+  starts each item's text at the right on a right-to-left page, and keeps the active item marked
+  in forced colors, Windows' contrast themes), so an app using
   `Menu`, or a `TableOfContents`, which renders one, needs both, in either order, and the
   `tableofcontents` partial for the latter:
 

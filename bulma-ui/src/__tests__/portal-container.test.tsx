@@ -1,8 +1,10 @@
 /**
  * `ConfigProvider`'s `portalContainer` against each component that portals.
- * Each one resolves its target through `usePortalContainer`, so content it
- * portals without a target of its own lands in the provider's container, and
- * a target it is given still wins. `Portal`'s own cases are in
+ * Each one resolves its target through `usePortalContainer`, or a popup
+ * through `usePopupContainer`, so content it portals without a target of its
+ * own lands in the provider's container, and a target it is given still
+ * wins. Without a provider, a popup inside a Modal lands in the Modal, which
+ * the last block checks for the pickers. `Portal`'s own cases are in
  * `helpers/__tests__/portal.test.tsx`; the components' suites cover where
  * they portal without a provider.
  */
@@ -24,6 +26,8 @@ import { DateInput } from '../form/DateInput';
 import { TimeInput } from '../form/TimeInput';
 import { DateTimeInput } from '../form/DateTimeInput';
 import { DateRangeInput } from '../form/DateRangeInput';
+import { ColorInput } from '../form/ColorInput';
+import { TreeSelect } from '../form/TreeSelect';
 
 beforeAll(() => {
   if (!window.matchMedia) {
@@ -483,4 +487,74 @@ describe('date and time pickers', () => {
     fireEvent.click(screen.getByRole('combobox', { name: 'Start date' }));
     expect(target).toContainElement(screen.getByRole('dialog'));
   });
+});
+
+describe('picker popovers inside a Modal', () => {
+  const pickers: [string, React.ReactElement][] = [
+    [
+      'DateInput',
+      <DateInput key="d" label="Date" appendToBody mobileNative={false} />,
+    ],
+    [
+      'TimeInput',
+      <TimeInput key="t" label="Time" appendToBody mobileNative={false} />,
+    ],
+    [
+      'DateTimeInput',
+      <DateTimeInput key="dt" label="When" appendToBody mobileNative={false} />,
+    ],
+    [
+      'DateRangeInput',
+      <DateRangeInput
+        key="dr"
+        label="Stay"
+        appendToBody
+        mobileNative={false}
+      />,
+    ],
+    ['ColorInput', <ColorInput key="c" label="Color" appendToBody />],
+    [
+      'TreeSelect',
+      <TreeSelect
+        key="ts"
+        label="Place"
+        data={[{ value: 'here', label: 'Here' }]}
+        appendToBody
+      />,
+    ],
+  ];
+  const open = () =>
+    fireEvent.keyDown(screen.getAllByRole('combobox')[0], {
+      key: 'ArrowDown',
+      altKey: true,
+    });
+  const popover = () => document.querySelector('.picker-popover');
+
+  // Outside the Modal, its `aria-modal` hides the popover from screen
+  // readers.
+  it.each(pickers)(
+    '%s portals its appendToBody popover into it',
+    (_, picker) => {
+      render(
+        <Modal active aria-label="Booking">
+          {picker}
+        </Modal>
+      );
+      open();
+      expect(popover()?.parentElement).toBe(screen.getByTestId('modal'));
+    }
+  );
+
+  it.each(pickers)(
+    '%s keeps to the portalContainer a ConfigProvider sets',
+    (_, picker) => {
+      withDefault(
+        <Modal active aria-label="Booking">
+          {picker}
+        </Modal>
+      );
+      open();
+      expect(popover()?.parentElement).toBe(target);
+    }
+  );
 });
