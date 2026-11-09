@@ -57,9 +57,8 @@ export interface BulmaOtherProps {
   /**
    * Interaction behavior: `unselectable` stops text selection
    * (`is-unselectable`), and `clickable` shows the pointer cursor
-   * (`is-clickable`). `clickable` changes only the cursor. It adds no role, no
-   * tab stop and no keyboard handling, so an element people click should be a
-   * `<button>` or a link.
+   * (`is-clickable`). It adds no role, no tab stop and no keyboard handling,
+   * so an element people click should be a `<button>` or a link.
    */
   interaction?: (typeof validInteractions)[number];
   /** Cursor style (e.g., 'pointer', 'help'). */
