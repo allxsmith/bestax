@@ -41,7 +41,6 @@
   "bulma-ui/src/form/Taginput.stories.tsx": 27,
   "bulma-ui/src/grid/Cell.stories.tsx": 1,
   "bulma-ui/src/grid/Grid.stories.tsx": 1,
-  "bulma-ui/src/helpers/Theme.stories.tsx": 6,
   "bulma-ui/src/helpers/useBulmaClasses.stories.tsx": 91,
   "bulma-ui/src/layout/Level.stories.tsx": 1,
   "bulma-ui/src/skill-examples/CustomComponent.stories.tsx": 2,
