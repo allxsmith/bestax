@@ -253,6 +253,43 @@ describe.each([
     ]);
   });
 
+  it('starts the side="right" query where the phone fallback ends, whatever $tablet a build sets', () => {
+    // Both read Bulma's `$tablet`, so a build that moves it moves both, and
+    // no width gets both layouts or neither.
+    const media = (tablet: string) => {
+      const css = sass.compileString(
+        `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}', $tablet: ${tablet});
+         @use 'components/tabs';`,
+        {
+          loadPaths: [
+            path.resolve(__dirname, '../../scss'),
+            path.resolve(__dirname, '../../../../node_modules'),
+          ],
+          quietDeps: true,
+          logger: sass.Logger.silent,
+        }
+      ).css;
+      const of = (selector: string) =>
+        css
+          .split('@media ')
+          .slice(1)
+          .filter(block => block.split('}')[0].includes(selector))
+          .map(block => block.split('{')[0].trim());
+      return {
+        phone: of(`${root} {`),
+        side: of(`${root}${p('is-right')} {`),
+      };
+    };
+    expect(media('1024px')).toEqual({
+      phone: ['screen and (max-width: 1023px)'],
+      side: ['screen and (min-width: 1024px), print'],
+    });
+    expect(media('600px')).toEqual({
+      phone: ['screen and (max-width: 599px)'],
+      side: ['screen and (min-width: 600px), print'],
+    });
+  });
+
   it('lays a side="right" Tabs out on a phone with exactly the rules a side="left" one gets', () => {
     // A phone reads the top-level rules and the phone fallback, and not the
     // tablet query. With no side="right" rule among them, the two match the

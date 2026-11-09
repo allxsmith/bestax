@@ -166,8 +166,10 @@ $tabs-content-padding: 1rem !default;
   }
 }
 
-// Mobile fallback — vertical tabs stack to horizontal
-@include extras-mobile {
+// Mobile fallback — vertical tabs stack to horizontal. Bulma's mobile query,
+// which ends where its tablet query above starts, whatever `$tablet` a build
+// configures, so a width gets one layout or the other.
+@include mx.mobile {
   .#{iv.$class-prefix}tabs-root.#{iv.$class-prefix}is-vertical {
     flex-direction: column;
 
