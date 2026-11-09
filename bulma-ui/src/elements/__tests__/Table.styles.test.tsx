@@ -249,9 +249,11 @@ describe.each(SHEETS.filter(BUILDS_BULMA))('%s', file => {
   const source = fs.readFileSync(path.join(PKG, 'src/scss', file), 'utf8');
   const prefix = /\$class-prefix:\s*["']([^"']*)["']/.exec(source)?.[1] ?? '';
   let rules: Rule[];
+  // A hook keeps Vitest's 10s default rather than `testTimeout`, and a whole
+  // sheet can take longer than that to compile on a loaded machine.
   beforeAll(() => {
     rules = rulesOf(compileSheet(file));
-  });
+  }, 30_000);
 
   it('aligns a header cell to the start of the line, as the body cells are', () => {
     const { table, plain } = rtlTable(prefix);
