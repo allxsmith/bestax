@@ -224,6 +224,31 @@ composed from the single `Popover` import.
 
 ---
 
+## Popover or HoverCard?
+
+A `Popover` and a [`HoverCard`](./hovercard.md) both open a panel against a trigger, and a
+`Popover` on a small trigger such as a `Tag` can look a lot like a `HoverCard`. They work
+differently:
+
+- **How it opens:** a `Popover` opens and closes when its trigger is clicked or tapped, or gets
+  <kbd>Enter</kbd> or <kbd>Space</kbd>. A `HoverCard` opens when the pointer rests on its trigger or
+  keyboard focus lands on it, and a click on the trigger just does what the trigger does.
+- **Focus:** opening a `Popover` moves focus into the panel, Tab stays inside it until it closes
+  unless you pass `trapFocus={false}`, and closing hands focus back to the trigger. A `HoverCard`
+  moves no focus and traps none: rendered in place, the card comes right after its trigger in the
+  Tab order, and tabbing past its links closes it.
+- **What goes in it:** a `Popover` is a dialog for content people work with, such as a form, a set
+  of options or an inline edit. A `HoverCard` previews what's behind its trigger: something to read,
+  with a link or a button at most, and nothing people can't also reach from the trigger.
+- **On touch:** a tap opens and closes a `Popover` the way a click does, and a tap outside closes
+  it. A touch screen doesn't open a `HoverCard` at all unless you pass `openOnTap`, which is for a
+  trigger with no tap action of its own.
+
+If people open it to do something, use a `Popover`. If it shows what they'd find by following the
+trigger, use a `HoverCard`.
+
+---
+
 ## Accessibility
 
 `Popover` follows the [WAI-ARIA dialog pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/)

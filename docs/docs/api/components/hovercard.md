@@ -219,6 +219,30 @@ function example() {
 
 ---
 
+## Popover or HoverCard?
+
+A `HoverCard` and a [`Popover`](./popover.md) both open a panel against a trigger, and a `Popover`
+on a small trigger such as a `Tag` can look a lot like a `HoverCard`. They work differently:
+
+- **How it opens:** a `HoverCard` opens when the pointer rests on its trigger or keyboard focus lands
+  on it, and a click on the trigger just does what the trigger does. A `Popover` opens and closes
+  when its trigger is clicked or tapped, or gets <kbd>Enter</kbd> or <kbd>Space</kbd>.
+- **Focus:** a `HoverCard` moves no focus and traps none: rendered in place, the card comes right
+  after its trigger in the Tab order, and tabbing past its links closes it. Opening a `Popover`
+  moves focus into the panel, Tab stays inside it until it closes unless you pass
+  `trapFocus={false}`, and closing hands focus back to the trigger.
+- **What goes in it:** a `HoverCard` previews what's behind its trigger: something to read, with a
+  link or a button at most, and nothing people can't also reach from the trigger. A `Popover` is a
+  dialog for content people work with, such as a form, a set of options or an inline edit.
+- **On touch:** a touch screen doesn't open a `HoverCard` at all unless you pass `openOnTap`, which
+  is for a trigger with no tap action of its own. A tap opens and closes a `Popover` the way a click
+  does, and a tap outside closes it.
+
+If it shows what people would find by following the trigger, use a `HoverCard`. If they open it to
+do something, use a `Popover`.
+
+---
+
 ## Accessibility
 
 `HoverCard` is built to
