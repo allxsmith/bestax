@@ -704,3 +704,42 @@ describe('Calendar range mode', () => {
     });
   });
 });
+
+describe('Calendar range mode, disabled and read-only', () => {
+  it.each([
+    ['disabled', { disabled: true }],
+    ['readOnly', { readOnly: true }],
+  ] as const)('picks no range when %s', (_name, props) => {
+    const onRangeSelect = vi.fn();
+    const { container } = render(
+      <RangeHarness
+        {...props}
+        initialRange={[june(3), june(6)]}
+        onRangeSelect={onRangeSelect}
+      />
+    );
+    fireEvent.click(cell(container, 10));
+    fireEvent.click(cell(container, 13));
+    fireEvent.keyDown(grid(container), { key: 'Enter' });
+    expect(onRangeSelect).not.toHaveBeenCalled();
+    expect(selectedDays(container)).toEqual([3, 4, 5, 6]);
+  });
+
+  it('previews nothing from the pending start of a read-only range', () => {
+    // The start is the range's own, and nothing can end it, so moving
+    // through the dates draws no range and describes no day as its end.
+    const { container } = render(
+      <RangeHarness
+        readOnly
+        initialRange={[june(10), null]}
+        initialFocused={june(10)}
+      />
+    );
+    fireEvent.keyDown(grid(container), { key: 'ArrowRight' });
+    fireEvent.mouseOver(cell(container, 13));
+    expect(daysWith(container, 'is-preview')).toEqual([]);
+    expect(daysWith(container, 'is-range-end')).toEqual([]);
+    expect(description(cell(container, 11))).toBe('');
+    expect(selectedDays(container)).toEqual([10]);
+  });
+});
