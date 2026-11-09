@@ -40,6 +40,12 @@ const ITEM = {
   m: '0',
   p: '3',
 } as const;
+// A stage that is flex on some viewports only is a plain block on the
+// others, where `gap` does nothing. Its items keep a bottom margin, so they
+// stay apart when they stack, and the stage takes that much off its bottom
+// padding, so it looks the same in a row. `columnGap` spaces them in a row.
+const SWITCHING_STAGE = { ...STAGE, columnGap: '1', pb: '3' } as const;
+const SWITCHING_ITEM = { ...ITEM, mb: '2' } as const;
 
 // Allow arbitrary props to satisfy Record<string, unknown>
 const UseBulmaClassesDemo: React.FC<
@@ -1023,11 +1029,11 @@ export const GenericDisplayViewport: Story = {
           <Tag color="primary">
             display=&quot;flex&quot; viewport=&quot;desktop&quot;
           </Tag>
-          <Box {...STAGE} display="flex" viewport="desktop" gap="1" mt="2">
-            <Box {...ITEM} flexGrow="1">
+          <Box {...SWITCHING_STAGE} display="flex" viewport="desktop" mt="2">
+            <Box {...SWITCHING_ITEM} flexGrow="1">
               Flex on desktop+
             </Box>
-            <Box {...ITEM} flexGrow="1">
+            <Box {...SWITCHING_ITEM} flexGrow="1">
               Generic pattern
             </Box>
           </Box>
@@ -1072,18 +1078,17 @@ export const GenericDisplayViewport: Story = {
         </p>
 
         <Box
-          {...STAGE}
+          {...SWITCHING_STAGE}
           display="block"
           viewport="mobile"
           displayMobile="flex"
           displayDesktop="inline-flex"
-          gap="1"
           mt="2"
         >
-          <Box {...ITEM} flexGrow="1">
+          <Box {...SWITCHING_ITEM} flexGrow="1">
             Generic: block-mobile | Override: flex-mobile, inline-flex-desktop
           </Box>
-          <Box {...ITEM} flexGrow="1">
+          <Box {...SWITCHING_ITEM} flexGrow="1">
             Viewport-specific wins!
           </Box>
         </Box>
@@ -1140,14 +1145,14 @@ export const FlexboxWithViewports: Story = {
 
       <Block>
         <h4 className="title is-6">Flex Grow & Shrink</h4>
-        <Box {...STAGE} displayDesktop="flex" gap="1">
-          <Box {...ITEM} flexGrow="0" flexShrink="0">
+        <Box {...SWITCHING_STAGE} displayDesktop="flex">
+          <Box {...SWITCHING_ITEM} flexGrow="0" flexShrink="0">
             Fixed Width (grow: 0, shrink: 0)
           </Box>
-          <Box {...ITEM} flexGrow="1">
+          <Box {...SWITCHING_ITEM} flexGrow="1">
             Flexible (grow: 1)
           </Box>
-          <Box {...ITEM} flexGrow="2">
+          <Box {...SWITCHING_ITEM} flexGrow="2">
             More Flexible (grow: 2)
           </Box>
         </Box>
