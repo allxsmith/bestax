@@ -1213,6 +1213,8 @@ describe('HoverCard', () => {
       );
       act(() => {
         fireEvent(window, new Event('resize'));
+        // The card is placed again in the next frame.
+        vi.advanceTimersToNextFrame();
       });
     };
 

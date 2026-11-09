@@ -32,7 +32,7 @@ this automatically for literal values; dynamic values get TODOs.
 ## `renderAs` → `as`, and the props that follow it
 
 `renderAs` becomes `as` on the components bestax declares one on: `Button`, `Title` and
-`SubTitle` (from `Heading`), `Image`, `Form.Control`, `Footer`, `Level.Item`, `Media` and its
+`SubTitle` (from `Heading`), `Image`, `Form.Control`, `Footer`, `Level`, `Level.Item`, `Media` and its
 `Item`s, `Menu.Item`, `Navbar.Item`, `Navbar.Link`, `Dropdown.Item`, `Container`, `Hero`,
 `Hero.Header`, `Hero.Footer`, `Panel` and `Panel.Block`. Everywhere else it is flagged.
 

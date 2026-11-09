@@ -1,12 +1,9 @@
 import React, { forwardRef, useEffect, useCallback, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { useScrollLock } from '../helpers/scrollLock';
-import { usePortalContainer } from '../helpers/portal';
-import { LocalePortalScope } from '../helpers/LocaleProvider';
-import { useConfig } from '../helpers/Config';
+import { Portal, usePortalProp } from '../helpers/portal';
 import { buttonType } from '../helpers/buttonType';
 import { useOverlayEscape, useOverlayStack } from '../helpers/overlayStack';
 import { trapTab } from '../helpers/useFocusTrap';
@@ -50,7 +47,7 @@ export interface SidebarProps
   fullWidth?: boolean;
   /**
    * Show an overlay behind the sidebar, which makes it modal: it gets
-   * `aria-modal="true"`, locks body scroll, and keeps Tab and Shift+Tab
+   * `aria-modal="true"`, locks page scroll, and keeps Tab and Shift+Tab
    * inside it while it is the topmost modal overlay. A Modal or Dialog opened
    * over it, even one rendered inside it, holds Tab until it closes. Without
    * an overlay the sidebar isn't modal and holds no Tab: on the page, Tab
@@ -77,7 +74,11 @@ export interface SidebarProps
   canCancel?: boolean;
   /** Content to display in the sidebar. */
   children?: React.ReactNode;
-  /** Renders inline instead of using a portal. */
+  /**
+   * Renders inline instead of using a portal. Without it, the sidebar renders
+   * inline on the server and while hydrating, moving into the portal once the
+   * client takes over, so hydration matches.
+   */
   inline?: boolean;
 }
 
@@ -129,11 +130,11 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
     ref
   ) => {
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
-    const resolveContainer = usePortalContainer();
-    const { portalContainer } = useConfig();
-    // Where the configured default puts the sidebar. An `inline` one doesn't
-    // portal, so a change to the default moves nothing.
-    const defaultTarget = inline ? undefined : portalContainer;
+    // A portal has no server-rendered counterpart, so the sidebar renders in
+    // place on the server and while hydrating, and moves into its portal once
+    // the client takes over, as Modal's `portal` does. An `inline` one stays
+    // in place, so a change to the configured default moves nothing.
+    const { isPortaled, defaultTarget } = usePortalProp(!inline);
     const sidebarRef = useRef<HTMLElement>(null);
     // Cleanup returned by a consumer's callback ref on attach, held until detach.
     const consumerCleanupRef = useRef<(() => void) | null>(null);
@@ -185,22 +186,24 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
       );
     }, [isOpen, overlay, isTopmost]);
 
-    // Prevent body scroll when sidebar is open. Ref-counted through the shared
-    // helper so an overlapping Modal/Dialog/Loading doesn't unlock underneath.
+    // Lock the page's scrolling when sidebar is open. Ref-counted through the
+    // shared helper so an overlapping Modal/Dialog/Loading doesn't unlock
+    // underneath.
     useScrollLock(isOpen && overlay);
 
     // Move focus into the sidebar on open, to the first stop Tab wraps to or
-    // the sidebar itself, and hand it back on close, as `Modal` does. A
-    // different `defaultTarget` remounts the portaled sidebar: focus is handed
-    // back from the old nodes and moved into the new ones. Whether it takes
-    // focus is decided as it opens, so `overlay` changing while it's open
-    // leaves focus where the user has it. Without an overlay the sidebar holds
-    // no Tab, so with a modal overlay open under it, it leaves focus alone:
-    // the first Tab would take focus back there and leave the sidebar's other
-    // controls out of reach.
+    // the sidebar itself, and hand it back on close, as `Modal` does. Moving
+    // into the portal after hydration, or to a different `defaultTarget`,
+    // remounts the sidebar: focus is handed back from the old nodes and moved
+    // into the new ones. Whether it takes focus is decided as it opens, so
+    // `overlay` changing while it's open leaves focus where the user has it.
+    // Without an overlay the sidebar holds no Tab, so with a modal overlay
+    // open under it, it leaves focus alone: the first Tab would take focus
+    // back there and leave the sidebar's other controls out of reach.
     useOverlayFocus(sidebarRef, isOpen, {
       modal: overlay,
-      remountKey: defaultTarget,
+      // In place it's `false`, which no portal target is.
+      remountKey: isPortaled ? defaultTarget : false,
     });
 
     // Use combined ref
@@ -287,20 +290,8 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
       </>
     );
 
-    if (inline) {
-      return sidebarContent;
-    }
-
-    // Render to portal for proper stacking
-    if (typeof document !== 'undefined') {
-      const target = resolveContainer();
-      return createPortal(
-        <LocalePortalScope target={target}>{sidebarContent}</LocalePortalScope>,
-        target
-      );
-    }
-
-    return null;
+    // In a portal for proper stacking.
+    return <Portal disabled={!isPortaled}>{sidebarContent}</Portal>;
   }
 );
 
