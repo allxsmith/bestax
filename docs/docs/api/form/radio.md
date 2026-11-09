@@ -214,17 +214,17 @@ Keep the label text inside the `Radio` when you shrink the circle. The whole lab
 
 `Radio` registers these variables on its own `.styled-radio` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
-| CSS Variable                        | Sass Variable                | Default                    |
-| ----------------------------------- | ---------------------------- | -------------------------- |
-| `--bulma-radio-size`                | `$radio-size`                | `1.25em`                   |
-| `--bulma-radio-border-width`        | `$radio-border-width`        | `2px`                      |
-| `--bulma-radio-border-color`        | `$radio-border-color`        | `var(--bulma-text-weak)`   |
-| `--bulma-radio-background`          | `$radio-background`          | `transparent`              |
-| `--bulma-radio-dot-color`           | `$radio-dot-color`           | `var(--bulma-scheme-main)` |
-| `--bulma-radio-active-color`        | `$radio-active-color`        | `var(--bulma-primary)`     |
-| `--bulma-radio-label-gap`           | `$radio-label-gap`           | `0.5em`                    |
-| `--bulma-radio-focus-shadow-size`   | `$radio-focus-shadow-size`   | `0 0 0 0.125em`            |
-| `--bulma-radio-transition-duration` | `$radio-transition-duration` | `var(--bulma-duration)`    |
+| CSS Variable                        | Sass Variable                | Default                           |
+| ----------------------------------- | ---------------------------- | --------------------------------- |
+| `--bulma-radio-size`                | `$radio-size`                | `1.25em`                          |
+| `--bulma-radio-border-width`        | `$radio-border-width`        | `2px`                             |
+| `--bulma-radio-border-color`        | `$radio-border-color`        | `var(--bulma-text-weak)`          |
+| `--bulma-radio-background`          | `$radio-background`          | `transparent`                     |
+| `--bulma-radio-dot-color`           | `$radio-dot-color`           | `var(--bulma-radio-active-color)` |
+| `--bulma-radio-active-color`        | `$radio-active-color`        | `var(--bulma-primary)`            |
+| `--bulma-radio-label-gap`           | `$radio-label-gap`           | `0.5em`                           |
+| `--bulma-radio-focus-shadow-size`   | `$radio-focus-shadow-size`   | `0 0 0 0.125em`                   |
+| `--bulma-radio-transition-duration` | `$radio-transition-duration` | `var(--bulma-duration)`           |
 
 <!-- /bestax:generated cssvars -->
 
