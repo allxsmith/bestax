@@ -2174,7 +2174,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   ),
   message: todo(
     'Message',
-    'bestax `Message` always wraps its children in `.message-body`'
+    "bestax `Message` writes a `data-testid` of its own over the one it's given, and wraps children other than its own parts in `.message-body`"
   ),
   'message-header': part(),
   'message-body': part(),
