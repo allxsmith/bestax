@@ -259,6 +259,7 @@ describe('DataTable', () => {
             pageSize={2}
           />
           <DataTable aria-label="Nothing" columns={columns} data={[]} />
+          <DataTable aria-label="Loading" columns={columns} data={[]} loading />
         </ConfigProvider>
       );
       for (const name of [
@@ -267,6 +268,8 @@ describe('DataTable', () => {
         'data-table-actions',
         'data-table-sort',
         'data-table-empty',
+        'data-table-skeleton',
+        'skeleton-lines',
         'table',
         'is-selected',
         'is-narrow',
@@ -1161,7 +1164,9 @@ describe('DataTable', () => {
       const rows = container.querySelectorAll('tbody tr');
       expect(rows).toHaveLength(3);
       expect(rows[0]).toHaveAttribute('aria-hidden', 'true');
-      expect(rows[0].querySelectorAll('td .skeleton-lines')).toHaveLength(4);
+      expect(
+        rows[0].querySelectorAll('td .skeleton-lines.data-table-skeleton')
+      ).toHaveLength(4);
       expect(screen.getAllByRole('columnheader')).toHaveLength(4);
       // The rows it would select aren't on screen.
       expect(screen.getByRole('checkbox')).toBeDisabled();
