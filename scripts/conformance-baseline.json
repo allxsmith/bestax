@@ -7,7 +7,6 @@
   "bulma-ui/src/components/Dialog.stories.tsx": 1,
   "bulma-ui/src/components/Loading.stories.tsx": 11,
   "bulma-ui/src/components/Menu.stories.tsx": 1,
-  "bulma-ui/src/components/Modal.stories.tsx": 3,
   "bulma-ui/src/components/Pagination.stories.tsx": 5,
   "bulma-ui/src/components/Reveal.stories.tsx": 2,
   "bulma-ui/src/components/Sidebar.stories.tsx": 4,
