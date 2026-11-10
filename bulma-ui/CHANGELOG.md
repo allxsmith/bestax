@@ -1,3 +1,11 @@
+## [5.67.10](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.9...@allxsmith/bestax-bulma@5.67.10) (2026-11-10)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep a plain Panel's heading readable on the dark scheme ([7a96e79](https://github.com/allxsmith/bestax/commit/7a96e79afb39eee7a241d27877aecf81d8b5d3c7))
+* **bulma-ui:** show a popup opened in AppFrame's drawer above the drawer ([602e20a](https://github.com/allxsmith/bestax/commit/602e20a6b9502e6575a8b16588467a8e71febcc1))
+
 ## [5.67.9](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.8...@allxsmith/bestax-bulma@5.67.9) (2026-11-10)
 
 
