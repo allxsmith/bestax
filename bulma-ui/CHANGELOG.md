@@ -1,3 +1,13 @@
+## [5.67.11](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.10...@allxsmith/bestax-bulma@5.67.11) (2026-11-10)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** say Message and Modal write a test id only when given none ([eeac10c](https://github.com/allxsmith/bestax/commit/eeac10c434c309bcdea76e590d494bc1a1e26f98))
+* **bulma-ui:** keep a data-testid the caller passes on Message and Modal ([ee904a2](https://github.com/allxsmith/bestax/commit/ee904a28bc8ec69d8df8c957189191a7758f995b)), closes [#1616](https://github.com/allxsmith/bestax/issues/1616)
+* **bulma-ui:** keep fixed parts in place while an overlay locks the page ([f373578](https://github.com/allxsmith/bestax/commit/f3735789ab5d4f01fe511acefb729eaf3b1f6bff))
+* **bulma-ui:** keep Message's and Modal's default test id when undefined is passed ([cb56a97](https://github.com/allxsmith/bestax/commit/cb56a97d23b8b2238597664a86113f37f5b50be5))
+
 ## [5.67.10](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.9...@allxsmith/bestax-bulma@5.67.10) (2026-11-10)
 
 
