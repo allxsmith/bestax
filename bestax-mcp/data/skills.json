@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 19954
+          "bytes": 20322
         }
       ],
       "examples": []
@@ -176,7 +176,7 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 73019
+          "bytes": 73655
         },
         {
           "id": "themeable-components",

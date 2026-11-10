@@ -774,6 +774,18 @@ would otherwise give it text that inherits the color around it. That rule outran
 `--bulma-numberinput-stepper-button-hover-bg`, `--bulma-numberinput-stepper-button-hover-color`,
 `--bulma-numberinput-stepper-width`
 
+### Panel
+
+Declared on the root, `.panel`, where Bulma declares its own `--bulma-panel-*`. Bulma writes the
+heading of a panel with no `color` in the text color, with its title in `--bulma-text-invert-l`,
+and its dark scheme lightens the text color without darkening that, so the panel sets it to the
+page background's lightness, which reads on the text color on both schemes. A colored panel takes
+its title color from its own color, and something inside a panel that reads
+`--bulma-text-invert-l` gets the panel's value. To change only the title,
+`--bulma-panel-heading-color-l` on the panel is Bulma's own.
+
+`--bulma-text-invert-l`
+
 ### PasswordInput
 
 Declared on the container around the input, `.password-input-container`. The input is Bulma's
