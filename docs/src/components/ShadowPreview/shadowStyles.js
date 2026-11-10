@@ -28,11 +28,7 @@ import rawMaterialIconsStyles from '!!raw-loader!material-icons/iconfont/materia
 import rawMaterialSymbolsStyles from '!!raw-loader!material-symbols/index.css';
 // Docs-only Skill Example styles (ProfileCard) — not part of the shipped CSS bundle.
 import rawProfileCardStyles from '!!raw-loader!@site/src/components/SkillExamples/profilecard.css';
-
-/** Custom properties only reach the preview when scoped to the shadow host. */
-function toHost(rawStyles) {
-  return rawStyles.replace(/:root/g, ':host');
-}
+import { preprocessBulmaStyles, toHost } from './hostStyles.mjs';
 
 /**
  * Drops `@font-face` from a sheet bound for a shadow root.
@@ -58,31 +54,6 @@ function toHost(rawStyles) {
  */
 function stripFontFace(rawStyles) {
   return rawStyles.replace(/@font-face\s*{[^}]*}/g, '');
-}
-
-/**
- * Readies bestax.css for a shadow root: `:root` becomes `:host`, and Bulma's
- * scheme variables, which it declares in `@media (prefers-color-scheme)` as a
- * lone `:root` rule, move onto the host's `.dark`/`.light` class, so the
- * reader's OS setting doesn't pick a preview's palette.
- *
- * Only those variable blocks move. A scheme rule of the extras' own, such as
- * Switch's light-scheme circle, keeps its media query, as it does in an app.
- */
-function preprocessBulmaStyles(rawStyles) {
-  let processedStyles = toHost(rawStyles);
-
-  processedStyles = processedStyles.replace(
-    /@media\s*\(prefers-color-scheme:\s*dark\)\s*\{\s*(:host\s*\{[^{}]*\})\s*\}/g,
-    ':host(.dark) { $1 }'
-  );
-
-  processedStyles = processedStyles.replace(
-    /@media\s*\(prefers-color-scheme:\s*light\)\s*\{\s*(:host\s*\{[^{}]*\})\s*\}/g,
-    ':host(.light) { $1 }'
-  );
-
-  return processedStyles;
 }
 
 /**
