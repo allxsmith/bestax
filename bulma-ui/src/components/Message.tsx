@@ -93,8 +93,13 @@ const MessageComponent: React.FC<MessageProps> = ({
     isElementOf(child, MessageHeader, MessageBody)
   );
 
+  // A test id the caller passes wins. It's written after `rest`, since a
+  // spread carrying `data-testid: undefined` would otherwise erase the default.
+  const testId =
+    (rest as { 'data-testid'?: string })['data-testid'] ?? 'message';
+
   return (
-    <article className={messageClasses} data-testid="message" {...rest}>
+    <article className={messageClasses} {...rest} data-testid={testId}>
       {(title || onClose) && (
         <div className={prefixedClassNames(classPrefix, 'message-header')}>
           {title && <span>{title}</span>}

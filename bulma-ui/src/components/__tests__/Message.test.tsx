@@ -18,6 +18,16 @@ describe('Message', () => {
     );
   });
 
+  it('writes data-testid="message" when a wrapper forwards undefined', () => {
+    const { container } = render(
+      <Message data-testid={undefined}>Body</Message>
+    );
+    expect(container.querySelector('article')).toHaveAttribute(
+      'data-testid',
+      'message'
+    );
+  });
+
   it('keeps a data-testid the caller passes', () => {
     const { container } = render(
       <Message data-testid="billing-error">Body</Message>

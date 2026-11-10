@@ -18,7 +18,8 @@ const latin =
 
 describe('Modal', () => {
   describe('data-testid', () => {
-    it.each([
+    // Its two render paths: the legacy one its props build, and its parts.
+    const builds: [string, React.ReactElement<{ 'data-testid'?: string }>][] = [
       ['its props', <Modal key="props" active portal={false} />],
       [
         'its parts',
@@ -27,24 +28,33 @@ describe('Modal', () => {
           <Modal.Content>Inside</Modal.Content>
         </Modal>,
       ],
-    ])('writes modal when built from %s without one', (_, modal) => {
-      const { container } = render(modal);
-      expect(container.querySelector('.modal')).toHaveAttribute(
-        'data-testid',
-        'modal'
-      );
-    });
+    ];
 
-    it.each([
-      ['its props', <Modal key="props" active portal={false} />],
-      [
-        'its parts',
-        <Modal key="parts" active portal={false}>
-          <Modal.Background />
-          <Modal.Content>Inside</Modal.Content>
-        </Modal>,
-      ],
-    ])('keeps the caller’s when built from %s', (_, modal) => {
+    it.each(builds)(
+      'writes modal when built from %s without one',
+      (_, modal) => {
+        const { container } = render(modal);
+        expect(container.querySelector('.modal')).toHaveAttribute(
+          'data-testid',
+          'modal'
+        );
+      }
+    );
+
+    it.each(builds)(
+      'writes modal when built from %s and a wrapper forwards undefined',
+      (_, modal) => {
+        const { container } = render(
+          React.cloneElement(modal, { 'data-testid': undefined })
+        );
+        expect(container.querySelector('.modal')).toHaveAttribute(
+          'data-testid',
+          'modal'
+        );
+      }
+    );
+
+    it.each(builds)('keeps the caller’s when built from %s', (_, modal) => {
       const { container } = render(
         React.cloneElement(modal, { 'data-testid': 'billing-dialog' })
       );
