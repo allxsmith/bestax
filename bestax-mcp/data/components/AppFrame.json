@@ -239,7 +239,7 @@
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Usually a `Menu`. A nav taller than the window scrolls on its own. With `overlay`, the rest of the frame is inert while the drawer is open, so an overlay opened from the drawer, such as a `Modal`, goes inside the nav or renders outside the frame (Modal's `portal`).",
+          "description": "Usually a `Menu`. A nav taller than the window scrolls on its own. With `overlay`, the rest of the frame is inert while the drawer is open, so an overlay opened from the drawer, such as a `Modal`, goes inside the nav or renders outside the frame (Modal's `portal`). While the nav is a drawer, a popup opened in it, such as a Popover's `appendToBody` panel, portals into the nav, so it shows above the drawer, unless a `ConfigProvider` sets a `portalContainer`. In the column it portals to the end of the page, as it does anywhere else.",
           "required": false,
           "inherited": false,
           "deprecated": false

@@ -278,14 +278,17 @@ function ExpandableCard() {
 You can combine the traditional prop-based API with compound components:
 
 ```tsx live
-<Card header="Prop-based header" textColor="primary" m="3">
-  <Card.Content bgColor="light">
-    <Paragraph>
-      You can mix prop-based and compound component approaches!
-    </Paragraph>
+<Card header="Prop-based header" m="3">
+  <Card.Content>
+    <Paragraph>You can mix the prop-based and compound approaches.</Paragraph>
   </Card.Content>
   <Card.Footer>
-    <Card.FooterItem>Mixed approach example</Card.FooterItem>
+    <Card.FooterItem as="a" href="#save">
+      Save
+    </Card.FooterItem>
+    <Card.FooterItem as="a" href="#cancel">
+      Cancel
+    </Card.FooterItem>
   </Card.Footer>
 </Card>
 ```

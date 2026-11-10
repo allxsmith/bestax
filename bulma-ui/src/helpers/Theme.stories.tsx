@@ -1,574 +1,599 @@
 import { useState } from 'react';
-import { Theme } from './Theme';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Theme, type ThemeProps } from './Theme';
+import { ConfigProvider } from './Config';
 import { Block } from '../elements/Block';
 import Box from '../elements/Box';
 import Title from '../elements/Title';
 import Button from '../elements/Button';
+import { Buttons } from '../elements/Buttons';
 import { Notification } from '../elements/Notification';
+import { Paragraph } from '../elements/Paragraph';
 import { Tag } from '../elements/Tag';
+import { Tags } from '../elements/Tags';
+import { Column } from '../columns/Column';
+import { Columns } from '../columns/Columns';
 
-export default {
+const meta: Meta<typeof Theme> = {
   title: 'Helpers/Theme',
   component: Theme,
   tags: ['autodocs'],
 };
+export default meta;
 
-// Sunset-inspired scheme variables (full list)
-const sunsetSchemeVars = {
-  '--bulma-scheme-h': '18', // sunset orange hue
-  '--bulma-scheme-s': '90%',
-  '--bulma-light-l': '85%', // light backgrounds
-  '--bulma-light-invert-l': '15%', // invert for light backgrounds
-  '--bulma-dark-l': '20%', // dark backgrounds
-  '--bulma-dark-invert-l': '80%', // invert for dark backgrounds
-  '--bulma-soft-l': '60%', // soft colors
-  '--bulma-bold-l': '40%', // bold colors
-  '--bulma-soft-invert-l': '80%', // invert for soft colors
-  '--bulma-bold-invert-l': '60%', // invert for bold colors
-  '--bulma-hover-background-l-delta': '5%',
-  '--bulma-active-background-l-delta': '10%',
-  '--bulma-hover-border-l-delta': '10%',
-  '--bulma-active-border-l-delta': '20%',
-  '--bulma-hover-color-l-delta': '5%',
-  '--bulma-active-color-l-delta': '10%',
-  '--bulma-hover-shadow-a-delta': '0.1',
-  '--bulma-active-shadow-a-delta': '0.2',
-};
+type Story = StoryObj;
 
-export const SunsetTheme = () => (
-  <Theme bulmaVars={sunsetSchemeVars} isRoot>
-    <Box>
-      <Title size="3">Sunset Theme by setting css vars</Title>
-      <p>
-        <strong>Example:</strong> This demonstrates using the{' '}
-        <code>bulmaVars</code> prop with <code>isRoot=true</code> to inject
-        Bulma scheme variables globally at the :root level.
-      </p>
-      <p>
-        This box uses a sunset-inspired Bulma theme constructed using only
-        scheme variables, similar to Bulma&apos;s dark theme approach. The
-        variables are applied globally, affecting all Bulma components on the
-        page.
-      </p>
-      <p>
-        <strong>Variables set:</strong> scheme-h, scheme-s, light/dark lightness
-        levels, soft/bold colors, and hover/active deltas for consistent theming
-        across all components.
-      </p>
-    </Box>
+/**
+ * A story whose Theme writes to `:root` or `<html>` reaches the whole page,
+ * so on the docs page each one renders in a frame of its own, where it can't
+ * recolor the stories around it.
+ */
+const ownFrame = (iframeHeight: number) => ({
+  docs: { story: { inline: false, iframeHeight } },
+});
 
-    <Box mt="4">
-      <Title size="4">Variables Object</Title>
-      <p>
-        The <code>sunsetSchemeVars</code> object passed to the{' '}
-        <code>bulmaVars</code> prop:
-      </p>
-      <pre
-        style={{
-          fontSize: '0.75rem',
-          padding: '1rem',
-          backgroundColor: 'rgba(0,0,0,0.05)',
-          borderRadius: '4px',
-          overflow: 'auto',
-        }}
-      >
-        {`const sunsetSchemeVars = {
-  '--bulma-scheme-h': '18',
-  '--bulma-scheme-s': '90%',
-  '--bulma-light-l': '85%',
-  '--bulma-light-invert-l': '15%',
-  '--bulma-dark-l': '20%',
-  '--bulma-dark-invert-l': '80%',
-  '--bulma-soft-l': '60%',
-  '--bulma-bold-l': '40%',
-  '--bulma-soft-invert-l': '80%',
-  '--bulma-bold-invert-l': '60%',
-  '--bulma-hover-background-l-delta': '5%',
-  '--bulma-active-background-l-delta': '10%',
-  '--bulma-hover-border-l-delta': '10%',
-  '--bulma-active-border-l-delta': '20%',
-  '--bulma-hover-color-l-delta': '5%',
-  '--bulma-active-color-l-delta': '10%',
-  '--bulma-hover-shadow-a-delta': '0.1',
-  '--bulma-active-shadow-a-delta': '0.2',
-};
+/** A variables object as you'd write it in your code. */
+const objectSource = (name: string, vars: Record<string, string>) =>
+  [
+    `const ${name} = {`,
+    ...Object.entries(vars).map(([key, value]) => `  '${key}': '${value}',`),
+    '};',
+  ].join('\n');
 
-<Theme bulmaVars={sunsetSchemeVars} isRoot>
-  {/* children */}
-</Theme>`}
-      </pre>
-    </Box>
+/** The `:root` rule a root Theme writes for plain values, one to a line. */
+const rootRule = (vars: Record<string, string>) =>
+  [
+    ':root {',
+    ...Object.entries(vars).map(([key, value]) => `  ${key}: ${value};`),
+    '}',
+  ].join('\n');
 
-    <Box mt="4">
-      <Title size="4">Generated CSS</Title>
-      <p>
-        This Theme component generates the following CSS variables at the :root
-        level:
-      </p>
-      <pre
-        style={{
-          fontSize: '0.75rem',
-          padding: '1rem',
-          backgroundColor: 'rgba(0,0,0,0.05)',
-          borderRadius: '4px',
-          overflow: 'auto',
-        }}
-      >
-        {`:root {
-  --bulma-scheme-h: 18;
-  --bulma-scheme-s: 90%;
-  --bulma-light-l: 85%;
-  --bulma-light-invert-l: 15%;
-  --bulma-dark-l: 20%;
-  --bulma-dark-invert-l: 80%;
-  --bulma-soft-l: 60%;
-  --bulma-bold-l: 40%;
-  --bulma-soft-invert-l: 80%;
-  --bulma-bold-invert-l: 60%;
-  --bulma-hover-background-l-delta: 5%;
-  --bulma-active-background-l-delta: 10%;
-  --bulma-hover-border-l-delta: 10%;
-  --bulma-active-border-l-delta: 20%;
-  --bulma-hover-color-l-delta: 5%;
-  --bulma-active-color-l-delta: 10%;
-  --bulma-hover-shadow-a-delta: 0.1;
-  --bulma-active-shadow-a-delta: 0.2;
-}`}
-      </pre>
-    </Box>
-  </Theme>
-);
+// Sunset: amber, coral, rose and violet on warm neutrals. A color's trio
+// leaves its label lightness where the stylesheet's build put it, so each
+// color sets `--bulma-<color>-invert-l` as well: white on the three deeper
+// colors, near black on the amber.
+const sunsetVars = {
+  '--bulma-scheme-h': '24',
+  '--bulma-scheme-s': '22%',
+  '--bulma-primary-h': '12',
+  '--bulma-primary-s': '76%',
+  '--bulma-primary-l': '44%',
+  '--bulma-primary-invert-l': '100%',
+  '--bulma-link-h': '340',
+  '--bulma-link-s': '62%',
+  '--bulma-link-l': '48%',
+  '--bulma-link-invert-l': '100%',
+  '--bulma-info-h': '262',
+  '--bulma-info-s': '52%',
+  '--bulma-info-l': '56%',
+  '--bulma-info-invert-l': '100%',
+  '--bulma-warning-h': '38',
+  '--bulma-warning-s': '95%',
+  '--bulma-warning-l': '54%',
+  '--bulma-warning-invert-l': '10%',
+} satisfies ThemeProps['bulmaVars'];
 
-// Forest-inspired scheme variables (full list, as props)
-const forestSchemeObj = {
-  schemeH: '150', // forest green hue
-  schemeS: '50%',
-  lightL: '80%', // light backgrounds
-  lightInvertL: '20%', // invert for light backgrounds
-  darkL: '18%', // dark backgrounds
-  darkInvertL: '85%', // invert for dark backgrounds
-  softL: '55%', // soft colors
-  boldL: '35%', // bold colors
-  softInvertL: '75%', // invert for soft colors
-  boldInvertL: '60%', // invert for bold colors
-  hoverBackgroundLDelta: '4%',
-  activeBackgroundLDelta: '8%',
-  hoverBorderLDelta: '8%',
-  activeBorderLDelta: '16%',
-  hoverColorLDelta: '4%',
-  activeColorLDelta: '8%',
-  hoverShadowADelta: '0.08',
-  activeShadowADelta: '0.16',
-  primaryH: '10',
-};
-
-export const ForestTheme = () => (
-  <Theme {...forestSchemeObj} isRoot>
-    <Box>
-      <Title size="3">Forest Theme by setting props</Title>
-      <p>
-        <strong>Example:</strong> This demonstrates using individual Bulma
-        variable props with <code>isRoot=true</code> to set scheme variables
-        globally at the :root level.
-      </p>
-      <p>
-        This box uses a forest-inspired Bulma theme constructed using individual
-        prop names instead of the <code>bulmaVars</code> object. The theme
-        variables are applied globally, creating a consistent forest-green color
-        scheme across all components.
-      </p>
-      <p>
-        <strong>Props used:</strong> schemeH, schemeS, lightL, darkL, softL,
-        boldL, primaryH, and various hover/active deltas. This approach allows
-        for more explicit prop definition in your JSX.
-      </p>
-    </Box>
-
-    <Box mt="4">
-      <Title size="4">JSX Code</Title>
-      <p>
-        This Theme component uses the following JSX props to set CSS variables:
-      </p>
-      <pre
-        style={{
-          fontSize: '0.75rem',
-          padding: '1rem',
-          backgroundColor: 'rgba(0,0,0,0.05)',
-          borderRadius: '4px',
-          overflow: 'auto',
-        }}
-      >
-        {`<Theme
-  schemeH="150"
-  schemeS="50%"
-  lightL="80%"
-  lightInvertL="20%"
-  darkL="18%"
-  darkInvertL="85%"
-  softL="55%"
-  boldL="35%"
-  softInvertL="75%"
-  boldInvertL="60%"
-  hoverBackgroundLDelta="4%"
-  activeBackgroundLDelta="8%"
-  hoverBorderLDelta="8%"
-  activeBorderLDelta="16%"
-  hoverColorLDelta="4%"
-  activeColorLDelta="8%"
-  hoverShadowADelta="0.08"
-  activeShadowADelta="0.16"
-  primaryH="10"
-  isRoot
->
-  {/* children */}
-</Theme>`}
-      </pre>
-    </Box>
-  </Theme>
-);
-
-// Demonstration of global vs local CSS variable injection
-export const GlobalTheme = () => (
-  <div>
-    <Title size="3">Global Theme (isRoot=true)</Title>
-    <p>When isRoot=true, CSS variables are injected globally at :root level.</p>
-
-    <Theme isRoot={true} primaryH="270" primaryS="100%" primaryL="50%">
-      <div>
-        <Button color="primary">Global Purple Primary Button</Button>
-        <p>This button inherits the global purple theme.</p>
-      </div>
-    </Theme>
-
-    <div style={{ marginTop: '20px' }}>
-      <Button color="primary">
-        This button also uses the global purple theme
-      </Button>
-      <p>
-        Even outside the Theme component, this button still has the purple theme
-        because it was applied globally.
-      </p>
-    </div>
-  </div>
-);
-
-export const LocalTheme = () => (
-  <div>
-    <Title size="3">Local Theme (isRoot=false, default)</Title>
-    <p>
-      When isRoot=false (default), CSS variables are applied only to the
-      wrapping div.
-    </p>
-
-    <Theme primaryH="120" primaryS="100%" primaryL="40%">
-      <div>
-        <Button color="primary">Local Green Primary Button</Button>
-        <p>This button gets the local green theme.</p>
-      </div>
-    </Theme>
-
-    <div style={{ marginTop: '20px' }}>
-      <Button color="primary">This button uses the default theme</Button>
-      <p>
-        Outside the Theme component, this button uses the default Bulma theme.
-      </p>
-    </div>
-  </div>
-);
-
-// Demonstration of className and Bulma helper classes
-export const ThemeWithClassName = () => (
-  <div>
-    <Title size="3">Theme with className and Bulma Classes</Title>
-    <p>
-      This demonstrates using className and Bulma helper classes with the Theme
-      component.
-    </p>
-
-    <Theme
-      className="custom-theme-wrapper"
-      primaryH="45"
-      primaryS="100%"
-      primaryL="50%"
-      p="5"
-      m="3"
-      textAlign="centered"
-    >
-      <Title size="4">Styled Theme Wrapper</Title>
-      <p>
-        This Theme component has custom className, padding, margin, and text
-        alignment applied via Bulma helper classes.
-      </p>
-      <Button color="primary">Orange Primary Button</Button>
-    </Theme>
-
-    <Theme
-      className="another-wrapper"
-      primaryH="200"
-      primaryS="80%"
-      primaryL="60%"
-      display="flex"
-      flexDirection="column"
-      alignItems="center"
-      p="4"
-      mt="4"
-    >
-      <Title size="4">Flexbox Theme Wrapper</Title>
-      <p>This wrapper uses flexbox layout with centered content.</p>
-      <Button color="info">Cyan Info Button</Button>
-    </Theme>
-  </div>
-);
-
-// Multiple nested themes with different classes
-import { Column } from '../columns/Column';
-import { Columns } from '../columns/Columns';
-import { Input } from '../form/Input';
-import { Buttons } from '../elements/Buttons';
-
-export const NestedThemes = () => (
-  <div>
-    <Title size="3">Nested Themes: Federalist Papers Collection</Title>
-    <p>
-      This demonstrates nested Theme components with different color schemes,
-      typography, and interactive elements using excerpts from the Federalist
-      Papers.
-    </p>
-
-    <Theme
-      className="outer-theme"
-      primaryH="210"
-      primaryS="60%"
-      primaryL="45%"
-      infoH="195"
-      infoS="70%"
-      infoL="50%"
-      p="4"
-      fontFamily="sans-serif"
-    >
+/**
+ * A palette set through one `bulmaVars` object. With `isRoot`, Theme writes
+ * the variables at `:root`, so every component on the page takes them.
+ */
+export const SunsetTheme: Story = {
+  parameters: ownFrame(1100),
+  render: () => (
+    <Theme bulmaVars={sunsetVars} isRoot>
+      <Box>
+        <Title size="3">Sunset</Title>
+        <Paragraph mb="4">
+          Amber, coral, rose and violet on warm neutrals, set through the{' '}
+          <code>bulmaVars</code> prop. With <code>isRoot</code>, Theme writes
+          the variables at <code>:root</code>, so every component on the page
+          takes them, not only the ones inside this Theme.
+        </Paragraph>
+        <Buttons>
+          <Button color="primary">Primary</Button>
+          <Button color="link">Link</Button>
+          <Button color="info">Info</Button>
+          <Button color="warning">Warning</Button>
+        </Buttons>
+        <Tags>
+          <Tag color="primary" isLight>
+            Primary
+          </Tag>
+          <Tag color="link" isLight>
+            Link
+          </Tag>
+          <Tag color="info" isLight>
+            Info
+          </Tag>
+          <Tag color="warning" isLight>
+            Warning
+          </Tag>
+        </Tags>
+        <Paragraph>
+          Each color sets its label lightness, <code>--bulma-*-invert-l</code>,
+          as well as its hue, saturation and lightness, so the buttons keep
+          readable labels. A theme that colors text on the page, such as links,
+          sets <code>--bulma-*-on-scheme-l</code> too, as Label And Text
+          Lightness shows.
+        </Paragraph>
+      </Box>
       <Columns>
-        <Column size="one-third">
-          <Box p="4">
-            <Title size="4">Federalist No. 1</Title>
-            <p>
-              &ldquo;AFTER an unequivocal experience of the inefficiency of the
-              subsisting federal government, you are called upon to deliberate
-              on a new Constitution for the United States of America. The
-              subject speaks its own importance; comprehending in its
-              consequences nothing less than the existence of the
-              UNION&hellip;&rdquo;
-            </p>
-            <Button color="primary" size="small" mt="3">
-              Read Hamilton&apos;s Essay
-            </Button>
-            <Input placeholder="Search Federalist 1..." mt="3" size="small" />
+        <Column display="flex" flexDirection="column">
+          <Box flexGrow="1">
+            <Title size="5">Variables object</Title>
+            <Paragraph mb="3">
+              The object passed to <code>bulmaVars</code>:
+            </Paragraph>
+            <pre>
+              {objectSource('sunsetVars', sunsetVars)}
+              {
+                '\n\n<Theme bulmaVars={sunsetVars} isRoot>\n  {/* children */}\n</Theme>'
+              }
+            </pre>
           </Box>
         </Column>
-
-        <Column size="one-third">
-          <Theme
-            className="inner-theme-madison"
-            primaryH="150"
-            primaryS="80%"
-            primaryL="40%"
-            infoH="45"
-            infoS="85%"
-            infoL="55%"
-            warningH="25"
-            warningS="90%"
-            warningL="50%"
-            fontFamily="primary"
-          >
-            <Box p="4">
-              <Title size="4">Federalist No. 10</Title>
-              <p>
-                &ldquo;AMONG the numerous advantages promised by a well
-                constructed Union, none deserves to be more accurately developed
-                than its tendency to break and control the violence of faction.
-                The friend of popular governments never finds himself so much
-                alarmed for their character and fate, as when he contemplates
-                their propensity to this dangerous vice&hellip;&rdquo;
-              </p>
-              <Buttons mt="3">
-                <Button color="primary" size="small">
-                  Madison&apos;s Wisdom
-                </Button>
-                <Button color="info" size="small">
-                  Faction Control
-                </Button>
-                <Button color="warning" size="small">
-                  Popular Government
-                </Button>
-              </Buttons>
-              <Input placeholder="Explore factions..." mt="3" size="small" />
-            </Box>
-          </Theme>
-        </Column>
-
-        <Column size="one-third">
-          <Theme
-            className="inner-theme-jay"
-            primaryH="280"
-            primaryS="75%"
-            primaryL="35%"
-            infoH="320"
-            infoS="60%"
-            infoL="45%"
-            successH="120"
-            successS="70%"
-            successL="40%"
-            fontFamily="monospace"
-          >
-            <Box p="4">
-              <Title size="4">Federalist No. 2</Title>
-              <p>
-                &ldquo;WHEN the people of America reflect that they are now
-                called upon to decide a question, which, in its consequences,
-                must prove one of the most important that ever engaged their
-                attention, the propriety of their taking a very comprehensive,
-                as well as a very serious, view of it, will be
-                evident&hellip;&rdquo;
-              </p>
-              <Buttons mt="3">
-                <Button color="primary" size="small">
-                  Jay&apos;s Perspective
-                </Button>
-                <Button color="info" size="small">
-                  Union Benefits
-                </Button>
-                <Button color="success" size="small">
-                  National Unity
-                </Button>
-              </Buttons>
-              <Input
-                placeholder="Constitutional queries..."
-                mt="3"
-                size="small"
-              />
-            </Box>
-          </Theme>
+        <Column display="flex" flexDirection="column">
+          <Box flexGrow="1">
+            <Title size="5">Generated CSS</Title>
+            <Paragraph mb="3">
+              What Theme writes at <code>:root</code>:
+            </Paragraph>
+            <pre>{rootRule(sunsetVars)}</pre>
+          </Box>
         </Column>
       </Columns>
+    </Theme>
+  ),
+};
 
-      <Box mt="5" p="4" textAlign="centered">
-        <Title size="5">Comparative Analysis</Title>
-        <p>
-          Each column demonstrates a different nested theme with unique color
-          palettes representing the distinct voices of Hamilton, Madison, and
-          Jay. Notice how the typography and interactive elements adapt to each
-          theme&apos;s aesthetic.
-        </p>
-        <Buttons isCentered mt="3">
-          <Button color="primary">View All Papers</Button>
-          <Button color="info">Historical Context</Button>
+// Forest: pine, lake, fern, ochre and berry on cool green neutrals, set
+// through the named props. Label lightnesses have no named prop, so they go
+// through bulmaVars alongside them.
+const forestProps = {
+  schemeH: '140',
+  schemeS: '16%',
+  primaryH: '152',
+  primaryS: '50%',
+  primaryL: '32%',
+  linkH: '195',
+  linkS: '65%',
+  linkL: '34%',
+  successH: '95',
+  successS: '40%',
+  successL: '33%',
+  warningH: '36',
+  warningS: '85%',
+  warningL: '52%',
+  dangerH: '352',
+  dangerS: '60%',
+  dangerL: '48%',
+} satisfies Partial<ThemeProps>;
+
+const forestLabels = {
+  '--bulma-primary-invert-l': '100%',
+  '--bulma-link-invert-l': '100%',
+  '--bulma-success-invert-l': '100%',
+  '--bulma-warning-invert-l': '10%',
+  '--bulma-danger-invert-l': '100%',
+} satisfies ThemeProps['bulmaVars'];
+
+const forestSource = [
+  '<Theme',
+  ...Object.entries(forestProps).map(([prop, value]) => `  ${prop}="${value}"`),
+  '  bulmaVars={{',
+  ...Object.entries(forestLabels).map(
+    ([key, value]) => `    '${key}': '${value}',`
+  ),
+  '  }}',
+  '  isRoot',
+  '>',
+  '  {/* children */}',
+  '</Theme>',
+].join('\n');
+
+/**
+ * The same kind of palette set through Theme's named props, one per
+ * variable, such as `primaryH` for `--bulma-primary-h`.
+ */
+export const ForestTheme: Story = {
+  parameters: ownFrame(1100),
+  render: () => (
+    <Theme {...forestProps} bulmaVars={forestLabels} isRoot>
+      <Box>
+        <Title size="3">Forest</Title>
+        <Paragraph mb="4">
+          Pine, lake, fern, ochre and berry on cool green neutrals, set through
+          Theme&apos;s named props, such as <code>primaryH</code> for{' '}
+          <code>--bulma-primary-h</code>, with <code>isRoot</code>. The label
+          lightnesses have no named prop, so they go through{' '}
+          <code>bulmaVars</code> beside them.
+        </Paragraph>
+        <Buttons>
+          <Button color="primary">Primary</Button>
+          <Button color="link">Link</Button>
+          <Button color="success">Success</Button>
+          <Button color="warning">Warning</Button>
+          <Button color="danger">Danger</Button>
         </Buttons>
+        <Tags>
+          <Tag color="primary" isLight>
+            Primary
+          </Tag>
+          <Tag color="link" isLight>
+            Link
+          </Tag>
+          <Tag color="success" isLight>
+            Success
+          </Tag>
+          <Tag color="warning" isLight>
+            Warning
+          </Tag>
+          <Tag color="danger" isLight>
+            Danger
+          </Tag>
+        </Tags>
+      </Box>
+      <Box>
+        <Title size="5">JSX</Title>
+        <Paragraph mb="3">The props this Theme takes:</Paragraph>
+        <pre>{forestSource}</pre>
       </Box>
     </Theme>
-  </div>
-);
+  ),
+};
 
-// ConfigProvider with Theme for Bulma-prefixed usage
-import { ConfigProvider } from './Config';
+const violet = { primaryH: '262', primaryS: '52%', primaryL: '56%' };
+const whiteLabel = {
+  '--bulma-primary-invert-l': '100%',
+} satisfies ThemeProps['bulmaVars'];
 
-export const BulmaPrefixedTheme = () => (
-  <div>
-    <Title size="3">Theme with Bulma Class Prefix</Title>
-    <p>
-      <strong>Example:</strong> This demonstrates using ConfigProvider to inject
-      a &quot;bulma-&quot; prefix for Bulma prefixed usage, combined with Theme
-      for CSS variable theming.
-    </p>
-    <p>
-      This approach is useful when you need to use Bulma alongside other CSS
-      frameworks or when you want to namespace all Bulma classes to avoid
-      conflicts. The ConfigProvider injects &quot;bulma-&quot; prefix to all
-      component classes.
-    </p>
+/**
+ * With `isRoot`, the variables apply at `:root`, so a button outside the
+ * Theme takes them too.
+ */
+export const GlobalTheme: Story = {
+  parameters: ownFrame(320),
+  render: () => (
+    <div>
+      <Title size="3">Global Theme (isRoot)</Title>
+      <Paragraph mb="4">
+        With <code>isRoot</code>, Theme writes its variables at{' '}
+        <code>:root</code>, so they reach the whole page.
+      </Paragraph>
 
-    <ConfigProvider classPrefix="bulma-">
+      <Theme isRoot {...violet} bulmaVars={whiteLabel}>
+        <Button color="primary">Inside the Theme</Button>
+        <Paragraph mt="2">This button takes the violet primary.</Paragraph>
+      </Theme>
+
+      <Block mt="5">
+        <Button color="primary">Outside the Theme</Button>
+        <Paragraph mt="2">
+          This one sits outside the Theme and takes the violet primary too,
+          since it was set at <code>:root</code>.
+        </Paragraph>
+      </Block>
+    </div>
+  ),
+};
+
+/**
+ * Without `isRoot`, the variables apply to Theme's wrapper div and what is
+ * inside it.
+ */
+export const LocalTheme: Story = {
+  render: () => (
+    <div>
+      <Title size="3">Local Theme (the default)</Title>
+      <Paragraph mb="4">
+        Without <code>isRoot</code>, Theme writes its variables on its wrapper
+        div, so only what is inside it takes them.
+      </Paragraph>
+
       <Theme
-        primaryH="280"
-        primaryS="100%"
-        primaryL="45%"
-        p="4"
+        primaryH="158"
+        primaryS="64%"
+        primaryL="30%"
+        bulmaVars={whiteLabel}
+      >
+        <Button color="primary">Inside the Theme</Button>
+        <Paragraph mt="2">This button takes the emerald primary.</Paragraph>
+      </Theme>
+
+      <Block mt="5">
+        <Button color="primary">Outside the Theme</Button>
+        <Paragraph mt="2">
+          This one sits outside the Theme and keeps the stylesheet&apos;s
+          primary.
+        </Paragraph>
+      </Block>
+    </div>
+  ),
+};
+
+/**
+ * A scoped Theme's wrapper takes `className` and the helper props. Bulma's
+ * soft and bold color helpers read the primary hue on the element they are
+ * on, so as the className here they tint each panel and its text with its
+ * own Theme's primary, a light panel on the light scheme and a dark one on
+ * the dark scheme.
+ */
+export const ThemeWithClassName: Story = {
+  render: () => (
+    <div>
+      <Title size="3">Theme with className and helper props</Title>
+      <Paragraph mb="4">
+        A scoped Theme renders a wrapper div, and <code>className</code> and the
+        helper props land on it.
+      </Paragraph>
+
+      <Theme
+        className="has-background-primary-soft has-text-primary-bold"
+        primaryH="40"
+        primaryS="92%"
+        primaryL="52%"
+        bulmaVars={{ '--bulma-primary-invert-l': '10%' }}
+        p="5"
+        m="3"
+        radius="large"
         textAlign="centered"
       >
-        <Title size="4">Bulma-Prefixed Components</Title>
-        <p>
-          All components inside this ConfigProvider will have their CSS classes
-          prefixed with &quot;bulma-&quot; (e.g., &quot;bulma-button&quot;,
-          &quot;bulma-title&quot;, &quot;bulma-box&quot;).
-        </p>
-        <Button color="primary">Prefixed Purple Button</Button>
+        <Title size="4">Amber panel</Title>
+        <Paragraph mb="4">
+          Bulma&apos;s <code>has-background-primary-soft</code> and{' '}
+          <code>has-text-primary-bold</code>, given as <code>className</code>,
+          tint the wrapper and its text with this Theme&apos;s amber. The{' '}
+          <code>p</code>, <code>m</code>, <code>radius</code> and{' '}
+          <code>textAlign</code> props pad, space, round and center it.
+        </Paragraph>
+        <Button color="primary">Amber primary</Button>
+      </Theme>
 
-        <Box mt="3">
-          <p>
-            <strong>Use case:</strong> This is particularly useful for
-            micro-frontends, component libraries, or when integrating Bulma with
-            other CSS frameworks that might have conflicting class names.
-          </p>
+      <Theme
+        className="has-background-primary-soft has-text-primary-bold"
+        primaryH="205"
+        primaryS="78%"
+        primaryL="39%"
+        bulmaVars={whiteLabel}
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        p="5"
+        m="3"
+        radius="large"
+      >
+        <Title size="4">Sky panel</Title>
+        <Paragraph mb="4">
+          The same classes with a sky-blue primary, and the flex helper props
+          stacking and centering the content.
+        </Paragraph>
+        <Button color="primary">Sky primary</Button>
+      </Theme>
+    </div>
+  ),
+};
+
+/**
+ * An inner Theme sets only what it changes and takes the rest from the
+ * Theme around it.
+ */
+export const NestedThemes: Story = {
+  render: () => (
+    <div>
+      <Title size="3">Nested Themes: The Federalist Papers</Title>
+      <Paragraph mb="4">
+        The outer Theme sets an ink-blue primary and a slate info for the whole
+        collection. Madison&apos;s and Jay&apos;s essays each sit in an inner
+        Theme that sets only a primary of its own, so their info tags stay
+        slate, from the outer Theme.
+      </Paragraph>
+
+      <Theme
+        primaryH="218"
+        primaryS="52%"
+        primaryL="48%"
+        infoH="205"
+        infoS="28%"
+        infoL="42%"
+        bulmaVars={{
+          '--bulma-primary-invert-l': '100%',
+          '--bulma-info-invert-l': '100%',
+        }}
+      >
+        <Columns>
+          <Column display="flex" flexDirection="column">
+            <Box flexGrow="1">
+              <Tag color="info" mb="3">
+                Hamilton
+              </Tag>
+              <Title size="4">Federalist No. 1</Title>
+              <Paragraph mb="4">
+                &ldquo;AFTER an unequivocal experience of the inefficiency of
+                the subsisting federal government, you are called upon to
+                deliberate on a new Constitution for the United States of
+                America. The subject speaks its own importance; comprehending in
+                its consequences nothing less than the existence of the
+                UNION&hellip;&rdquo;
+              </Paragraph>
+              <Button color="primary">Read No. 1</Button>
+            </Box>
+          </Column>
+
+          <Column display="flex" flexDirection="column">
+            <Theme
+              primaryH="350"
+              primaryS="55%"
+              primaryL="48%"
+              bulmaVars={{ '--bulma-primary-invert-l': '100%' }}
+              display="flex"
+              flexDirection="column"
+              flexGrow="1"
+            >
+              <Box flexGrow="1">
+                <Tag color="info" mb="3">
+                  Madison
+                </Tag>
+                <Title size="4">Federalist No. 10</Title>
+                <Paragraph mb="4">
+                  &ldquo;AMONG the numerous advantages promised by a well
+                  constructed Union, none deserves to be more accurately
+                  developed than its tendency to break and control the violence
+                  of faction. The friend of popular governments never finds
+                  himself so much alarmed for their character and fate, as when
+                  he contemplates their propensity to this dangerous
+                  vice&hellip;&rdquo;
+                </Paragraph>
+                <Button color="primary">Read No. 10</Button>
+              </Box>
+            </Theme>
+          </Column>
+
+          <Column display="flex" flexDirection="column">
+            <Theme
+              primaryH="160"
+              primaryS="45%"
+              primaryL="32%"
+              bulmaVars={{ '--bulma-primary-invert-l': '100%' }}
+              display="flex"
+              flexDirection="column"
+              flexGrow="1"
+            >
+              <Box flexGrow="1">
+                <Tag color="info" mb="3">
+                  Jay
+                </Tag>
+                <Title size="4">Federalist No. 2</Title>
+                <Paragraph mb="4">
+                  &ldquo;WHEN the people of America reflect that they are now
+                  called upon to decide a question, which, in its consequences,
+                  must prove one of the most important that ever engaged their
+                  attention, the propriety of their taking a very comprehensive,
+                  as well as a very serious, view of it, will be
+                  evident&hellip;&rdquo;
+                </Paragraph>
+                <Button color="primary">Read No. 2</Button>
+              </Box>
+            </Theme>
+          </Column>
+        </Columns>
+
+        <Box textAlign="centered">
+          <Title size="5">The whole collection</Title>
+          <Paragraph mb="4">
+            Outside the inner Themes, the outer Theme&apos;s ink blue and slate
+            apply.
+          </Paragraph>
+          <Buttons isCentered>
+            <Button color="primary">Browse the essays</Button>
+            <Button color="info">About the authors</Button>
+          </Buttons>
         </Box>
       </Theme>
-    </ConfigProvider>
-
-    <div style={{ marginTop: '20px' }}>
-      <Title size="4">Standard Components (No Prefix)</Title>
-      <p>
-        Components outside the ConfigProvider use standard Bulma classes without
-        any prefix.
-      </p>
-      <Button color="info">Standard Info Button</Button>
     </div>
-  </div>
-);
+  ),
+};
+
+/**
+ * Under a `ConfigProvider` class prefix, Theme sets the same `--bulma-*`
+ * variables, and the prefixed stylesheet's components read them.
+ */
+export const BulmaPrefixedTheme: Story = {
+  render: () => (
+    <div>
+      <Title size="3">Theme with a Bulma class prefix</Title>
+      <Paragraph mb="4">
+        <code>ConfigProvider</code> gives every component inside it the{' '}
+        <code>bulma-</code> class prefix, for a page that loads Bulma&apos;s
+        prefixed stylesheet beside other CSS. Theme works the same inside it:
+        the variables keep their <code>--bulma-</code> names.
+      </Paragraph>
+
+      <ConfigProvider classPrefix="bulma-">
+        <Theme
+          primaryH="236"
+          primaryS="55%"
+          primaryL="58%"
+          bulmaVars={whiteLabel}
+          p="4"
+          textAlign="centered"
+        >
+          <Title size="4">Prefixed components</Title>
+          <Paragraph mb="4">
+            These render <code>bulma-button</code>, <code>bulma-title</code> and{' '}
+            <code>bulma-box</code>, themed with an indigo primary.
+          </Paragraph>
+          <Button color="primary">Indigo primary</Button>
+
+          <Box mt="4">
+            <strong>Use case:</strong> micro-frontends, component libraries, or
+            a page where another CSS framework uses the same class names.
+          </Box>
+        </Theme>
+      </ConfigProvider>
+
+      <Block mt="5">
+        <Title size="4">Standard components (no prefix)</Title>
+        <Paragraph mb="4">
+          Outside the <code>ConfigProvider</code>, components use Bulma&apos;s
+          plain class names and the stylesheet&apos;s colors.
+        </Paragraph>
+        <Button color="info">Standard info button</Button>
+      </Block>
+    </div>
+  ),
+};
 
 // Shadow: <Theme bulmaVars={{ '--bulma-shadow': ... }}> overrides the upstream
 // token that `.box`/`.card` derive their own shadow variable from, so the ring
 // cascades into descendant Boxes/Cards. The class-based `shadow="shadowless"`
-// prop is unaffected — it still emits `is-shadowless` rather than a CSS var.
-export const ShadowTheme = () => (
-  <Theme bulmaVars={{ '--bulma-shadow': '0 0 0 3px var(--bulma-primary)' }}>
-    <Title size="3">Custom shadow via --bulma-shadow</Title>
-    <p className="mb-4">
-      Passing <code>--bulma-shadow</code> through <code>bulmaVars</code>{' '}
-      overrides the upstream token that <code>.box</code> derives its{' '}
-      <code>--bulma-box-shadow</code> from, so the primary ring cascades into
-      every descendant Box.
-    </p>
-    <Box>
-      <Title size="5">Featured Box</Title>
-      <p>This Box inherits the custom primary-ring shadow from the Theme.</p>
-    </Box>
-    <Box mt="4" shadow="shadowless">
-      <Title size="5">Shadowless Box</Title>
-      <p>
-        This Box sets <code>shadow=&quot;shadowless&quot;</code>, which still
-        emits the <code>is-shadowless</code> helper class and opts out of the
-        cascaded ring.
-      </p>
-    </Box>
-  </Theme>
-);
+// prop is unaffected: it still emits `is-shadowless` rather than a CSS var.
+export const CustomShadow: Story = {
+  render: () => (
+    <Theme bulmaVars={{ '--bulma-shadow': '0 0 0 3px var(--bulma-primary)' }}>
+      <Title size="3">Custom shadow via --bulma-shadow</Title>
+      <Paragraph mb="4">
+        Passing <code>--bulma-shadow</code> through <code>bulmaVars</code>{' '}
+        overrides the upstream token that <code>.box</code> derives its{' '}
+        <code>--bulma-box-shadow</code> from, so the primary ring cascades into
+        every descendant Box.
+      </Paragraph>
+      <Box>
+        <Title size="5">Featured Box</Title>
+        <p>This Box inherits the custom primary-ring shadow from the Theme.</p>
+      </Box>
+      <Box mt="4" shadow="shadowless">
+        <Title size="5">Shadowless Box</Title>
+        <p>
+          This Box sets <code>shadow=&quot;shadowless&quot;</code>, which still
+          emits the <code>is-shadowless</code> helper class and opts out of the
+          cascaded ring.
+        </p>
+      </Box>
+    </Theme>
+  ),
+};
 
 // Radius: `radius` on Theme is the border radius helper, as on every other
 // component, so a custom `--bulma-radius` goes through `bulmaVars`.
 // Notification and Tag declare their own radius from it, so a scoped override
 // reaches them; controls resolve theirs at :root and need an isRoot Theme.
-export const RadiusTheme = () => (
-  <Theme bulmaVars={{ '--bulma-radius': '1rem' }}>
-    <Title size="3">Custom radius via --bulma-radius</Title>
-    <p className="mb-4">
-      Passing <code>--bulma-radius</code> through <code>bulmaVars</code> rounds
-      the Notification and Tag below. The <code>radius</code> prop is the border
-      radius helper here too:{' '}
-      <code>&lt;Theme radius=&quot;radiusless&quot;&gt;</code> adds{' '}
-      <code>is-radiusless</code> to the wrapper and sets{' '}
-      <code>--bulma-radius</code> to 0, squaring what is inside it.
-    </p>
-    <Notification color="primary">A rounder notification.</Notification>
-    <Tag color="info">Rounder tag</Tag>
-  </Theme>
-);
+export const RadiusTheme: Story = {
+  render: () => (
+    <Theme bulmaVars={{ '--bulma-radius': '1rem' }}>
+      <Title size="3">Custom radius via --bulma-radius</Title>
+      <Paragraph mb="4">
+        Passing <code>--bulma-radius</code> through <code>bulmaVars</code>{' '}
+        rounds the Notification and Tag below. The <code>radius</code> prop is
+        the border radius helper here too:{' '}
+        <code>&lt;Theme radius=&quot;radiusless&quot;&gt;</code> adds{' '}
+        <code>is-radiusless</code> to the wrapper and sets{' '}
+        <code>--bulma-radius</code> to 0, squaring what is inside it.
+      </Paragraph>
+      <Notification color="primary">A rounder notification.</Notification>
+      <Tag color="info">Rounder tag</Tag>
+    </Theme>
+  ),
+};
 
 // Label and text lightnesses: a trio recolors the color, but the label on a
 // solid surface (--bulma-<color>-invert-l) and the color's text on the page
@@ -576,59 +601,65 @@ export const RadiusTheme = () => (
 // with, for bestax's dark blue. Stock Bulma's turquoise is light, so it sets
 // a dark label, and text lightnesses that read on a light page and on a dark
 // one. A value per scheme needs an isRoot Theme.
-export const LabelAndTextLightness = () => (
-  <Theme
-    isRoot
-    primaryH="171deg"
-    primaryS="100%"
-    primaryL="41%"
-    bulmaVars={{
-      '--bulma-primary-invert-l': 'var(--bulma-primary-05-l)',
-      '--bulma-primary-on-scheme-l': { light: '21%', dark: '41%' },
-    }}
-  >
-    <Box>
-      <Title size="4">Stock Bulma turquoise</Title>
-      <p className="mb-4">
-        The trio sets the turquoise, <code>--bulma-primary-invert-l</code> gives
-        the button and tag a dark label, and{' '}
-        <code>--bulma-primary-on-scheme-l</code> takes one lightness per scheme
-        for the text below, so it reads in light and dark mode.
-      </p>
-      <div className="buttons">
-        <Button color="primary">Save</Button>
-        <Tag color="primary">New</Tag>
-      </div>
-      <Block textColor="primary" colorShade="on-scheme">
-        Turquoise text on the page.
-      </Block>
-    </Box>
-  </Theme>
-);
+export const LabelAndTextLightness: Story = {
+  parameters: ownFrame(320),
+  render: () => (
+    <Theme
+      isRoot
+      primaryH="171deg"
+      primaryS="100%"
+      primaryL="41%"
+      bulmaVars={{
+        '--bulma-primary-invert-l': 'var(--bulma-primary-05-l)',
+        '--bulma-primary-on-scheme-l': { light: '21%', dark: '41%' },
+      }}
+    >
+      <Box>
+        <Title size="4">Stock Bulma turquoise</Title>
+        <Paragraph mb="4">
+          The trio sets the turquoise, <code>--bulma-primary-invert-l</code>{' '}
+          gives the button and tag a dark label, and{' '}
+          <code>--bulma-primary-on-scheme-l</code> takes one lightness per
+          scheme for the text below, so it reads in light and dark mode.
+        </Paragraph>
+        <Buttons>
+          <Button color="primary">Save</Button>
+          <Tag color="primary">New</Tag>
+        </Buttons>
+        <Block textColor="primary" colorShade="on-scheme">
+          Turquoise text on the page.
+        </Block>
+      </Box>
+    </Theme>
+  ),
+};
 
 // Dark mode: <Theme colorMode> writes the `data-theme` attribute on <html>,
 // flipping Bulma's light/dark scheme globally. `'system'` follows the OS.
-export const DarkMode = () => {
-  const [mode, setMode] = useState<'light' | 'dark' | 'system'>('light');
-  return (
-    <Theme colorMode={mode}>
-      <Box>
-        <Title size="4">Color mode: {mode}</Title>
-        <p className="mb-4">
-          The <code>colorMode</code> prop sets <code>data-theme</code> on{' '}
-          <code>&lt;html&gt;</code>, so every component follows the active
-          scheme.
-        </p>
-        <div className="buttons">
-          <Button color="primary" onClick={() => setMode('light')}>
-            Light
-          </Button>
-          <Button color="primary" onClick={() => setMode('dark')}>
-            Dark
-          </Button>
-          <Button onClick={() => setMode('system')}>System</Button>
-        </div>
-      </Box>
-    </Theme>
-  );
+export const DarkMode: Story = {
+  parameters: ownFrame(260),
+  render: function DarkModeExample() {
+    const [mode, setMode] = useState<'light' | 'dark' | 'system'>('light');
+    return (
+      <Theme colorMode={mode}>
+        <Box>
+          <Title size="4">Color mode: {mode}</Title>
+          <Paragraph mb="4">
+            The <code>colorMode</code> prop sets <code>data-theme</code> on{' '}
+            <code>&lt;html&gt;</code>, so every component follows the active
+            scheme.
+          </Paragraph>
+          <Buttons>
+            <Button color="primary" onClick={() => setMode('light')}>
+              Light
+            </Button>
+            <Button color="primary" onClick={() => setMode('dark')}>
+              Dark
+            </Button>
+            <Button onClick={() => setMode('system')}>System</Button>
+          </Buttons>
+        </Box>
+      </Theme>
+    );
+  },
 };

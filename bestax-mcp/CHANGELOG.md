@@ -1,3 +1,18 @@
+## [1.18.47](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.46...bestax-mcp@1.18.47) (2026-11-10)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep a plain Panel's heading readable on the dark scheme ([7a96e79](https://github.com/allxsmith/bestax/commit/7a96e79afb39eee7a241d27877aecf81d8b5d3c7))
+* **bulma-ui:** show a popup opened in AppFrame's drawer above the drawer ([602e20a](https://github.com/allxsmith/bestax/commit/602e20a6b9502e6575a8b16588467a8e71febcc1))
+
+## [1.18.46](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.45...bestax-mcp@1.18.46) (2026-11-10)
+
+
+### Bug Fixes
+
+* **bulma-ui:** make DataTable's loading rows as tall as a row of text ([3248030](https://github.com/allxsmith/bestax/commit/3248030d1c203158bdd7be64c74edbfc4b303d93))
+
 ## [1.18.45](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.44...bestax-mcp@1.18.45) (2026-11-09)
 
 

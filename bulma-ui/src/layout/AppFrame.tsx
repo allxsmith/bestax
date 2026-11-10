@@ -27,6 +27,7 @@ import { useOverlayFocus } from '../helpers/useOverlayFocus';
 import { useOutsidePress } from '../helpers/useOutsidePress';
 import { getActiveElementInTree } from '../helpers/shadowDom';
 import { useBulmaBreakpoint } from '../helpers/useBulmaViewport';
+import { PortalScope } from '../helpers/portal';
 import { warnOnce } from '../helpers/devWarnings';
 import { NavbarBurger } from '../components/Navbar';
 import type { NavbarBurgerProps } from '../components/Navbar';
@@ -161,7 +162,11 @@ export interface AppFrameNavProps
    * Usually a `Menu`. A nav taller than the window scrolls on its own. With
    * `overlay`, the rest of the frame is inert while the drawer is open, so an
    * overlay opened from the drawer, such as a `Modal`, goes inside the nav or
-   * renders outside the frame (Modal's `portal`).
+   * renders outside the frame (Modal's `portal`). While the nav is a drawer,
+   * a popup opened in it, such as a Popover's `appendToBody` panel, portals
+   * into the nav, so it shows above the drawer, unless a `ConfigProvider`
+   * sets a `portalContainer`. In the column it portals to the end of the
+   * page, as it does anywhere else.
    */
   children?: React.ReactNode;
   /**
@@ -414,8 +419,13 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
     const navRef = useRef<HTMLElement | null>(null);
     const backdropRef = useRef<HTMLDivElement | null>(null);
     const navCleanupRef = useRef<(() => void) | null>(null);
+    // The nav, as state, for the popups inside the drawer to portal into.
+    const [navNode, setNavNode] = useState<HTMLElement | null>(null);
     const navRefs = useCallback(
-      (node: HTMLElement | null) => setRefs(node, navRef, ref, navCleanupRef),
+      (node: HTMLElement | null) => {
+        setNavNode(node);
+        setRefs(node, navRef, ref, navCleanupRef);
+      },
       [ref]
     );
 
@@ -553,7 +563,13 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
               onClick={close}
             />
           )}
-          {children}
+          {/* The drawer draws over the page, so a popup opened in it, such
+              as a Popover's panel, portals into it to show above it. The
+              column doesn't: it's under the header, which the popup has to
+              clear. */}
+          <PortalScope node={isDrawer ? navNode : undefined}>
+            {children}
+          </PortalScope>
         </nav>
         {frame && overlay && (
           <div

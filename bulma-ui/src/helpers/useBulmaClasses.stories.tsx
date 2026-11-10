@@ -22,6 +22,30 @@ import { Block } from '../elements/Block';
 import { Columns } from '../columns/Columns';
 import { Column } from '../columns/Column';
 import { Message } from '../components/Message';
+import { Link } from '../elements/Link';
+import { Paragraph } from '../elements/Paragraph';
+
+// One look for the demo boxes in the layout stories, readable on both color
+// schemes. A stage, the area a demo lays its items out in, is a scheme
+// surface a step off the box around it, so it and its text follow the scheme.
+// An item is a primary fill with the text color Bulma pairs with primary.
+// Items set their margin to 0, so a Box's bottom margin doesn't shift them,
+// and stages space them with `gap` or margin helpers.
+const STAGE = { bgColor: 'scheme-main-ter', hasShadow: false } as const;
+const ITEM = {
+  bgColor: 'primary',
+  textColor: 'primary',
+  colorShade: 'invert',
+  hasShadow: false,
+  m: '0',
+  p: '3',
+} as const;
+// A stage that is flex on some viewports only is a plain block on the
+// others, where `gap` does nothing. Its items keep a bottom margin, so they
+// stay apart when they stack, and the stage takes that much off its bottom
+// padding, so it looks the same in a row. `columnGap` spaces them in a row.
+const SWITCHING_STAGE = { ...STAGE, columnGap: '1', pb: '3' } as const;
+const SWITCHING_ITEM = { ...ITEM, mb: '2' } as const;
 
 // Allow arbitrary props to satisfy Record<string, unknown>
 const UseBulmaClassesDemo: React.FC<
@@ -320,33 +344,30 @@ export const Colors: Story = {
   ),
 };
 
+// A colored background takes the text color Bulma pairs with that color
+// (`colorShade="invert"`), so it reads on both schemes. A scheme background
+// follows the scheme, and so does the box's own text.
 export const BackgroundColors: Story = {
   render: () => (
     <Columns isMultiline>
-      <Column size="one-quarter">
-        <Box bgColor="primary">Primary</Box>
-      </Column>
-      <Column size="one-quarter">
-        <Box bgColor="link">Link</Box>
-      </Column>
-      <Column size="one-quarter">
-        <Box bgColor="info">Info</Box>
-      </Column>
-      <Column size="one-quarter">
-        <Box bgColor="success">Success</Box>
-      </Column>
-      <Column size="one-quarter">
-        <Box bgColor="warning">Warning</Box>
-      </Column>
-      <Column size="one-quarter">
-        <Box bgColor="danger">Danger</Box>
-      </Column>
-      <Column size="one-quarter">
-        <Box bgColor="black">Black</Box>
-      </Column>
-      <Column size="one-quarter">
-        <Box bgColor="white">White</Box>
-      </Column>
+      {(
+        [
+          ['primary', 'Primary'],
+          ['link', 'Link'],
+          ['info', 'Info'],
+          ['success', 'Success'],
+          ['warning', 'Warning'],
+          ['danger', 'Danger'],
+          ['black', 'Black'],
+          ['white', 'White'],
+        ] as const
+      ).map(([color, label]) => (
+        <Column key={color} size="one-quarter">
+          <Box bgColor={color} textColor={color} colorShade="invert">
+            {label}
+          </Box>
+        </Column>
+      ))}
       <Column size="one-quarter">
         <Box bgColor="scheme-main">Scheme Main (dark-mode adaptive)</Box>
       </Column>
@@ -391,31 +412,59 @@ export const ColorShades: Story = {
   ),
 };
 
+// A shade's number tracks its lightness, so a dark shade takes a light text
+// shade and a light one a dark text shade. A middle shade can need either,
+// depending on the hue, so these stay near the ends. None of them change with
+// the scheme.
 export const BackgroundColorShades: Story = {
   render: () => (
     <Columns isMultiline>
       <Column size="one-quarter">
-        <Box bgColor="primary" backgroundColorShade="10">
+        <Box
+          bgColor="primary"
+          backgroundColorShade="10"
+          textColor="primary"
+          colorShade="90"
+        >
           Background Primary 10
         </Box>
       </Column>
       <Column size="one-quarter">
-        <Box bgColor="primary" backgroundColorShade="30">
-          Background Primary 30
+        <Box
+          bgColor="primary"
+          backgroundColorShade="20"
+          textColor="primary"
+          colorShade="90"
+        >
+          Background Primary 20
         </Box>
       </Column>
       <Column size="one-quarter">
-        <Box bgColor="primary" backgroundColorShade="60" textColor="white">
+        <Box
+          bgColor="primary"
+          backgroundColorShade="60"
+          textColor="primary"
+          colorShade="10"
+        >
           Background Primary 60
         </Box>
       </Column>
       <Column size="one-quarter">
-        <Box bgColor="primary" backgroundColorShade="90" textColor="white">
+        <Box
+          bgColor="primary"
+          backgroundColorShade="90"
+          textColor="primary"
+          colorShade="10"
+        >
           Background Primary 90
         </Box>
       </Column>
       <Column size="one-quarter">
-        <Box bgColor="primary" backgroundColorShade="invert">
+        <Box
+          bgColor="primary"
+          backgroundColorShade="invert"
+          textColor="primary"
+        >
           Background Primary Invert
         </Box>
       </Column>
@@ -423,6 +472,9 @@ export const BackgroundColorShades: Story = {
   ),
 };
 
+// `light` and `dark` are fixed shades, while `soft` and `bold` follow the
+// scheme: `bold` is the one far from the page background and `soft` the one
+// near it, so a bold background with soft text reads on both schemes.
 export const CombinedColorShades: Story = {
   render: () => (
     <Columns isMultiline>
@@ -433,7 +485,7 @@ export const CombinedColorShades: Story = {
           textColor="primary"
           colorShade="80"
         >
-          Light background (10%) with dark text (80%)
+          Dark background (10) with light text (80)
         </Box>
       </Column>
       <Column size="half">
@@ -443,13 +495,13 @@ export const CombinedColorShades: Story = {
           textColor="info"
           colorShade="05"
         >
-          Dark background (75%) with light text (05%)
+          Light background (75) with dark text (05)
         </Box>
       </Column>
       <Column size="half">
         <Box
           bgColor="success"
-          backgroundColorShade="20"
+          backgroundColorShade="light"
           textColor="success"
           colorShade="dark"
         >
@@ -461,9 +513,9 @@ export const CombinedColorShades: Story = {
           bgColor="warning"
           backgroundColorShade="bold"
           textColor="warning"
-          colorShade="light"
+          colorShade="soft"
         >
-          Bold warning background with light warning text
+          Bold warning background with soft warning text
         </Box>
       </Column>
     </Columns>
@@ -782,95 +834,61 @@ export const DisplayValues: Story = {
       <Title size="5">Display Values</Title>
       <Block>
         <Tag color="info">display=&quot;block&quot;</Tag>
-        <Box display="block" bgColor="grey-lighter">
-          Block display (takes full width)
+        <Box {...STAGE} mt="2">
+          <Box {...ITEM} display="block">
+            Block display (takes full width)
+          </Box>
         </Box>
       </Block>
 
       <Block>
         <Tag color="info">display=&quot;inline&quot;</Tag>
-        <Box display="inline" bgColor="grey-lighter" m="1">
-          Inline display
-        </Box>
-        <Box display="inline" bgColor="grey-light" m="1">
-          Another inline
+        <Box {...STAGE} mt="2">
+          <Box {...ITEM} display="inline" mr="2">
+            Inline display
+          </Box>
+          <Box {...ITEM} display="inline">
+            Another inline
+          </Box>
         </Box>
       </Block>
 
       <Block>
         <Tag color="info">display=&quot;inline-block&quot;</Tag>
-        <Box
-          display="inline-block"
-          bgColor="grey-lighter"
-          m="1"
-          style={{ width: '150px' }}
-        >
-          Inline-block 1
-        </Box>
-        <Box
-          display="inline-block"
-          bgColor="grey-light"
-          m="1"
-          style={{ width: '150px' }}
-        >
-          Inline-block 2
+        <Box {...STAGE} mt="2">
+          <Box {...ITEM} display="inline-block" mr="2">
+            Inline-block 1
+          </Box>
+          <Box {...ITEM} display="inline-block">
+            Inline-block 2
+          </Box>
         </Box>
       </Block>
 
       <Block>
         <Tag color="info">display=&quot;flex&quot;</Tag>
-        <Columns bgColor="grey-lighter" p="2" isGapless={false}>
-          <Column>
-            <Block bgColor="grey-dark" textColor="white" p="2">
-              Flex item 1
-            </Block>
-          </Column>
-          <Column>
-            <Block bgColor="grey" textColor="white" p="2">
-              Flex item 2
-            </Block>
-          </Column>
-        </Columns>
+        <Box {...STAGE} display="flex" gap="1" mt="2">
+          <Box {...ITEM} flexGrow="1">
+            Flex item 1
+          </Box>
+          <Box {...ITEM} flexGrow="1">
+            Flex item 2
+          </Box>
+        </Box>
       </Block>
 
       <Block>
         <Tag color="info">display=&quot;inline-flex&quot;</Tag>
-        <Columns
-          bgColor="grey-lighter"
-          p="2"
-          m="1"
-          isGapless={false}
-          style={{ display: 'inline-flex' }}
-        >
-          <Column size="half">
-            <Block bgColor="grey-dark" textColor="white" p="1">
-              Item 1
-            </Block>
-          </Column>
-          <Column size="half">
-            <Block bgColor="grey" textColor="white" p="1">
-              Item 2
-            </Block>
-          </Column>
-        </Columns>
-        <Columns
-          bgColor="grey-light"
-          p="2"
-          m="1"
-          isGapless={false}
-          style={{ display: 'inline-flex' }}
-        >
-          <Column size="half">
-            <Block bgColor="grey-darker" textColor="white" p="1">
-              Item 3
-            </Block>
-          </Column>
-          <Column size="half">
-            <Block bgColor="black-ter" textColor="white" p="1">
-              Item 4
-            </Block>
-          </Column>
-        </Columns>
+        <Block mt="2">
+          <Box {...STAGE} display="inline-flex" gap="1" mr="2">
+            <Box {...ITEM}>Item 1</Box>
+            <Box {...ITEM}>Item 2</Box>
+          </Box>
+          <Box {...STAGE} display="inline-flex" gap="1">
+            <Box {...ITEM}>Item 3</Box>
+            <Box {...ITEM}>Item 4</Box>
+          </Box>
+        </Block>
       </Block>
     </Box>
   ),
@@ -884,110 +902,84 @@ export const ViewportSpecificDisplay: Story = {
 
       <Block>
         <Title size="6">Mobile Hidden, Tablet+ Visible</Title>
-        <Box
-          displayMobile="none"
-          displayTablet="block"
-          bgColor="info"
-          colorShade="00"
-          style={{ border: '2px solid #2196f3' }}
-        >
-          This box is hidden on mobile (display: none) but visible as block on
-          tablet and larger screens.
+        <Box {...STAGE}>
+          <Box {...ITEM} displayMobile="none" displayTablet="block">
+            This box is hidden on mobile (display: none) but visible as block on
+            tablet and larger screens.
+          </Box>
         </Box>
       </Block>
 
-      <div style={{ marginBottom: '2rem' }}>
+      <Block>
         <Title size="6">Progressive Display Changes</Title>
-        <Columns
-          displayMobile="block"
-          displayTablet="block"
-          displayDesktop="flex"
-          p="4"
-          isGapless={false}
-        >
-          <Column>
-            <Block p="2" textColor="current">
-              Mobile: block | Tablet: inline-block | Desktop+: flex
-            </Block>
-          </Column>
-          <Column>
-            <Block p="2" textColor="current">
-              Item 2 (visible in flex layout on desktop+)
-            </Block>
-          </Column>
-        </Columns>
-      </div>
+        <Box {...STAGE}>
+          <Columns
+            displayMobile="block"
+            displayTablet="block"
+            displayDesktop="flex"
+            isGapless={false}
+          >
+            <Column>
+              <Box {...ITEM}>Mobile and tablet: block | Desktop+: flex</Box>
+            </Column>
+            <Column>
+              <Box {...ITEM}>Item 2 (side by side in the flex layout)</Box>
+            </Column>
+          </Columns>
+        </Box>
+      </Block>
 
-      <div style={{ marginBottom: '2rem' }}>
+      <Block>
         <Title size="6">Desktop Only Flex Layout</Title>
-        <Columns
-          displayMobile="block"
-          displayTablet="block"
-          displayDesktop="flex"
-          displayWidescreen="flex"
-          displayFullhd="flex"
-          bgColor="success"
-          colorShade="05"
-          p="4"
-          isGapless={false}
-        >
-          <Column>
-            <Block bgColor="success" colorShade="10" p="2">
-              Card 1
-            </Block>
-          </Column>
-          <Column>
-            <Block bgColor="success" colorShade="20" p="2">
-              Card 2
-            </Block>
-          </Column>
-          <Column>
-            <Block bgColor="success" colorShade="30" p="2">
-              Card 3
-            </Block>
-          </Column>
-        </Columns>
+        <Box {...STAGE} mb="2">
+          <Columns
+            displayMobile="block"
+            displayTablet="block"
+            displayDesktop="flex"
+            displayWidescreen="flex"
+            displayFullhd="flex"
+            isGapless={false}
+          >
+            <Column>
+              <Box {...ITEM}>Card 1</Box>
+            </Column>
+            <Column>
+              <Box {...ITEM}>Card 2</Box>
+            </Column>
+            <Column>
+              <Box {...ITEM}>Card 3</Box>
+            </Column>
+          </Columns>
+        </Box>
         <p className="help">
           Stacked on mobile/tablet, side-by-side on desktop+
         </p>
-      </div>
+      </Block>
 
       <Block>
         <Title size="6">Responsive Visibility Control</Title>
-        <Columns isGapless={false} isMultiline>
-          <Column size="one-third">
-            <Box
-              displayMobile="block"
-              displayTablet="none"
-              displayDesktop="block"
-              style={{ minWidth: '200px' }}
-            >
-              Mobile + Desktop Only
-            </Box>
-          </Column>
-          <Column size="one-third">
-            <Box
-              displayMobile="none"
-              displayTablet="block"
-              displayDesktop="none"
-              style={{ minWidth: '200px' }}
-            >
-              Tablet Only
-            </Box>
-          </Column>
-          <Column size="one-third">
-            <Box
-              displayMobile="none"
-              displayTablet="none"
-              displayDesktop="block"
-              bgColor="info"
-              colorShade="00"
-              style={{ minWidth: '200px' }}
-            >
-              Desktop+ Only
-            </Box>
-          </Column>
-        </Columns>
+        <Box {...STAGE}>
+          {/* Bulma's `none` hides from its breakpoint up and outranks the
+              display values, so a box hidden on one range takes that range's
+              `-only` or touch prop. */}
+          <Columns isGapless={false} isMultiline>
+            <Column size="one-third">
+              <Box {...ITEM} displayTabletOnly="none">
+                Mobile + Desktop Only
+              </Box>
+            </Column>
+            <Column size="one-third">
+              <Box {...ITEM} displayMobile="none" displayDesktop="none">
+                Tablet Only
+              </Box>
+            </Column>
+            <Column size="one-third">
+              <Box {...ITEM} displayTouch="none">
+                Desktop+ Only
+              </Box>
+            </Column>
+          </Columns>
+        </Box>
       </Block>
     </Box>
   ),
@@ -1026,16 +1018,10 @@ export const GenericDisplayViewport: Story = {
           <Tag color="primary">
             display=&quot;block&quot; viewport=&quot;tablet&quot;
           </Tag>
-          <Box
-            display="block"
-            viewport="tablet"
-            style={{
-              background: '#fff8e1',
-              border: '2px solid #ffc107',
-              marginTop: '0.5rem',
-            }}
-          >
-            Block display on tablet and larger (one combination only)
+          <Box {...STAGE} mt="2">
+            <Box {...ITEM} display="block" viewport="tablet">
+              Block display on tablet and larger (one combination only)
+            </Box>
           </Box>
         </Block>
 
@@ -1043,22 +1029,13 @@ export const GenericDisplayViewport: Story = {
           <Tag color="primary">
             display=&quot;flex&quot; viewport=&quot;desktop&quot;
           </Tag>
-          <Box
-            display="flex"
-            viewport="desktop"
-            style={{
-              background: '#f3e5f5',
-              border: '2px solid #9c27b0',
-              gap: '0.5rem',
-              marginTop: '0.5rem',
-            }}
-          >
-            <div style={{ background: '#e1bee7', padding: '0.5rem', flex: 1 }}>
+          <Box {...SWITCHING_STAGE} display="flex" viewport="desktop" mt="2">
+            <Box {...SWITCHING_ITEM} flexGrow="1">
               Flex on desktop+
-            </div>
-            <div style={{ background: '#ce93d8', padding: '0.5rem', flex: 1 }}>
+            </Box>
+            <Box {...SWITCHING_ITEM} flexGrow="1">
               Generic pattern
-            </div>
+            </Box>
           </Box>
         </Block>
 
@@ -1066,17 +1043,10 @@ export const GenericDisplayViewport: Story = {
           <Tag color="primary">
             display=&quot;none&quot; viewport=&quot;mobile&quot;
           </Tag>
-          <Box
-            display="none"
-            viewport="mobile"
-            bgColor="danger"
-            colorShade="05"
-            style={{
-              border: '2px solid #f44336',
-              marginTop: '0.5rem',
-            }}
-          >
-            Hidden on mobile (one combination only)
+          <Box {...STAGE} mt="2">
+            <Box {...ITEM} display="none" viewport="mobile">
+              Hidden on mobile (one combination only)
+            </Box>
           </Box>
         </Block>
       </Block>
@@ -1108,24 +1078,19 @@ export const GenericDisplayViewport: Story = {
         </p>
 
         <Box
+          {...SWITCHING_STAGE}
           display="block"
           viewport="mobile"
           displayMobile="flex"
           displayDesktop="inline-flex"
-          bgColor="success"
-          colorShade="05"
-          style={{
-            border: '2px solid #4caf50',
-            gap: '0.5rem',
-            marginTop: '0.5rem',
-          }}
+          mt="2"
         >
-          <div style={{ background: '#c8e6c9', padding: '0.5rem', flex: 1 }}>
+          <Box {...SWITCHING_ITEM} flexGrow="1">
             Generic: block-mobile | Override: flex-mobile, inline-flex-desktop
-          </div>
-          <div style={{ background: '#a5d6a7', padding: '0.5rem', flex: 1 }}>
+          </Box>
+          <Box {...SWITCHING_ITEM} flexGrow="1">
             Viewport-specific wins!
-          </div>
+          </Box>
         </Box>
       </Block>
     </Box>
@@ -1141,113 +1106,78 @@ export const FlexboxWithViewports: Story = {
         Flexbox properties work when any viewport has flex display
       </SubTitle>
 
-      <div style={{ marginBottom: '2rem' }}>
+      <Block>
         <h4 className="title is-6">Responsive Flex Direction</h4>
-        <Columns
-          displayMobile="flex"
-          displayDesktop="flex"
-          flexDirection="column-reverse"
-          bgColor="info"
-          colorShade="00"
-          p="4"
-          isGapless={false}
-        >
-          <Column>
-            <Block bgColor="info" colorShade="10" p="2" style={{ order: 1 }}>
-              Item 1 (flex-direction: column-reverse)
-            </Block>
-          </Column>
-          <Column>
-            <Block bgColor="info" colorShade="20" p="2" style={{ order: 2 }}>
-              Item 2
-            </Block>
-          </Column>
-          <Column>
-            <Block bgColor="info" colorShade="30" p="2" style={{ order: 3 }}>
-              Item 3
-            </Block>
-          </Column>
-        </Columns>
-      </div>
+        <Box {...STAGE}>
+          <Columns
+            displayMobile="flex"
+            displayDesktop="flex"
+            flexDirection="column-reverse"
+            isGapless={false}
+          >
+            <Column>
+              <Box {...ITEM}>Item 1 (flex-direction: column-reverse)</Box>
+            </Column>
+            <Column>
+              <Box {...ITEM}>Item 2</Box>
+            </Column>
+            <Column>
+              <Box {...ITEM}>Item 3</Box>
+            </Column>
+          </Columns>
+        </Box>
+      </Block>
 
-      <div style={{ marginBottom: '2rem' }}>
+      <Block>
         <h4 className="title is-6">Justify Content & Align Items</h4>
-        <Columns
-          displayTablet="flex"
+        <Box
+          {...STAGE}
+          display="flex"
           justifyContent="space-between"
           alignItems="center"
-          p="4"
           style={{ minHeight: '100px' }}
         >
-          <Column isNarrow>
-            <Block p="2">Start</Block>
-          </Column>
-          <Column isNarrow>
-            <Block p="2">Center</Block>
-          </Column>
-          <Column isNarrow>
-            <Block p="2">End</Block>
-          </Column>
-        </Columns>
-      </div>
+          <Box {...ITEM}>Start</Box>
+          <Box {...ITEM}>Center</Box>
+          <Box {...ITEM}>End</Box>
+        </Box>
+      </Block>
 
-      <div style={{ marginBottom: '2rem' }}>
+      <Block>
         <h4 className="title is-6">Flex Grow & Shrink</h4>
-        <Columns
-          displayDesktop="flex"
-          bgColor="success"
-          colorShade="05"
-          p="4"
-          isGapless={false}
-        >
-          <Column isNarrow>
-            <Box
-              flexGrow="0"
-              flexShrink="0"
-              bgColor="success"
-              colorShade="10"
-              style={{ minWidth: '150px' }}
-            >
-              Fixed Width (grow: 0, shrink: 0)
-            </Box>
-          </Column>
-          <Column>
-            <Box flexGrow="1" bgColor="success" colorShade="20">
-              Flexible (grow: 1)
-            </Box>
-          </Column>
-          <Column>
-            <Box flexGrow="2" bgColor="success" colorShade="30">
-              More Flexible (grow: 2)
-            </Box>
-          </Column>
-        </Columns>
-      </div>
+        <Box {...SWITCHING_STAGE} displayDesktop="flex">
+          <Box {...SWITCHING_ITEM} flexGrow="0" flexShrink="0">
+            Fixed Width (grow: 0, shrink: 0)
+          </Box>
+          <Box {...SWITCHING_ITEM} flexGrow="1">
+            Flexible (grow: 1)
+          </Box>
+          <Box {...SWITCHING_ITEM} flexGrow="2">
+            More Flexible (grow: 2)
+          </Box>
+        </Box>
+      </Block>
 
-      <div style={{ marginBottom: '2rem' }}>
+      <Block>
         <h4 className="title is-6">Flex Wrap</h4>
-        <Columns
-          displayMobile="flex"
-          flexWrap="wrap"
-          justifyContent="center"
-          p="4"
-          isMultiline
-          isGapless={false}
-        >
-          {Array.from({ length: 8 }, (_, i) => (
-            <Column key={i} size="one-quarter">
-              <Block
-                bgColor="warning"
-                p="2"
-                textAlign="centered"
-                style={{ minWidth: '120px' }}
-              >
-                Item {i + 1}
-              </Block>
-            </Column>
-          ))}
-        </Columns>
-      </div>
+        <Box {...STAGE}>
+          <Columns
+            displayMobile="flex"
+            flexWrap="wrap"
+            justifyContent="center"
+            isMultiline
+            isGapless={false}
+          >
+            {Array.from({ length: 8 }, (_, i) => (
+              <Column key={i} size="one-quarter">
+                <Box {...ITEM} textAlign="centered">
+                  Item {i + 1}
+                </Box>
+              </Column>
+            ))}
+          </Columns>
+        </Box>
+      </Block>
     </Box>
   ),
   name: 'Flexbox with Viewports',
@@ -1263,33 +1193,28 @@ export const ComplexResponsiveLayout: Story = {
 
       {/* Header */}
       <Box
+        {...ITEM}
         displayMobile="block"
         displayTablet="flex"
         justifyContent="space-between"
         alignItems="center"
-        bgColor="info"
-        textColor="white"
+        p="4"
+        mb="5"
       >
-        <Block textWeight="bold" textSize="4">
+        <Block textWeight="bold" textSize="4" mb="0">
           Logo
         </Block>
-        <Columns displayMobile="none" displayTablet="flex" isGapless={false}>
-          <Column isNarrow>
-            <a href="#" style={{ color: 'white', textDecoration: 'none' }}>
-              Home
-            </a>
-          </Column>
-          <Column isNarrow>
-            <a href="#" style={{ color: 'white', textDecoration: 'none' }}>
-              About
-            </a>
-          </Column>
-          <Column isNarrow>
-            <a href="#" style={{ color: 'white', textDecoration: 'none' }}>
-              Contact
-            </a>
-          </Column>
-        </Columns>
+        <Block displayMobile="none" displayTablet="flex" gap="3" mb="0">
+          <Link href="#" textColor="inherit">
+            Home
+          </Link>
+          <Link href="#" textColor="inherit">
+            About
+          </Link>
+          <Link href="#" textColor="inherit">
+            Contact
+          </Link>
+        </Block>
       </Box>
 
       {/* Main Content Area */}
@@ -1301,15 +1226,15 @@ export const ComplexResponsiveLayout: Story = {
       >
         {/* Sidebar */}
         <Column size="one-quarter">
-          <Box bgColor="grey-lighter">
-            <Title size="6" style={{ margin: '0 0 1rem 0' }}>
+          <Box {...STAGE}>
+            <Title size="6" mb="3">
               Sidebar
             </Title>
             <Content>
-              <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-                <li style={{ marginBottom: '0.5rem' }}>Navigation Item 1</li>
-                <li style={{ marginBottom: '0.5rem' }}>Navigation Item 2</li>
-                <li style={{ marginBottom: '0.5rem' }}>Navigation Item 3</li>
+              <ul>
+                <li>Navigation Item 1</li>
+                <li>Navigation Item 2</li>
+                <li>Navigation Item 3</li>
               </ul>
             </Content>
           </Box>
@@ -1317,7 +1242,7 @@ export const ComplexResponsiveLayout: Story = {
 
         {/* Main Content */}
         <Column>
-          <Title size="6" style={{ margin: '0 0 1rem 0' }}>
+          <Title size="6" mb="3">
             Main Content
           </Title>
 
@@ -1330,16 +1255,11 @@ export const ComplexResponsiveLayout: Story = {
           >
             {Array.from({ length: 6 }, (_, i) => (
               <Column key={i} size="half" sizeMobile="full">
-                <Box
-                  bgColor="white"
-                  style={{
-                    minWidth: '280px',
-                  }}
-                >
-                  <Title size="6" style={{ margin: '0 0 0.5rem 0' }}>
+                <Box {...STAGE}>
+                  <Title size="6" mb="2">
                     Card {i + 1}
                   </Title>
-                  <Content style={{ margin: 0, color: '#666' }}>
+                  <Content>
                     This card adapts its layout based on screen size.
                   </Content>
                 </Box>
@@ -1351,12 +1271,12 @@ export const ComplexResponsiveLayout: Story = {
 
       {/* Footer */}
       <Box
+        {...ITEM}
         displayMobile="block"
         displayTablet="flex"
         justifyContent="center"
-        bgColor="black-ter"
-        textColor="white"
         textAlign="centered"
+        p="4"
       >
         <Block>© 2025 Responsive Layout Demo</Block>
       </Box>
@@ -1372,30 +1292,31 @@ export const Float: Story = {
         Using is-pulled-left and is-pulled-right classes
       </SubTitle>
 
-      <div style={{ marginBottom: '2rem' }}>
+      <Block>
         <Title size="6">Basic Float Examples</Title>
-        <Box bgColor="grey-lighter">
-          <Button float="left" color="primary" style={{ marginRight: '1rem' }}>
+        <Box {...STAGE}>
+          <Button float="left" color="primary" mr="3">
             Floated Left
           </Button>
           <Button float="right" color="danger">
             Floated Right
           </Button>
-          <p style={{ textAlign: 'center', paddingTop: '3rem' }}>
+          <Paragraph textAlign="centered" pt="6">
             This text flows around the floated buttons above.
-          </p>
+          </Paragraph>
         </Box>
-      </div>
+      </Block>
 
-      <div style={{ marginBottom: '2rem' }}>
+      <Block>
         <Title size="6">Image Float Example</Title>
-        <Box bgColor="grey-lighter">
+        <Box {...STAGE}>
           <Image
             float="left"
             src="https://bulma.io/assets/images/placeholders/128x128.png"
             alt="Floated image"
             size="64x64"
-            style={{ marginRight: '1rem', marginBottom: '1rem' }}
+            mr="3"
+            mb="3"
           />
           <p>
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
@@ -1406,11 +1327,11 @@ export const Float: Story = {
             pariatur.
           </p>
         </Box>
-      </div>
+      </Block>
 
-      <div style={{ marginBottom: '2rem' }}>
+      <Block>
         <Title size="6">Multiple Floated Elements</Title>
-        <Box bgColor="grey-lighter">
+        <Box {...STAGE}>
           <Tag float="left" color="info" m="1">
             Left Tag 1
           </Tag>
@@ -1428,7 +1349,7 @@ export const Float: Story = {
             the container might not properly contain the floated elements.
           </p>
         </Box>
-      </div>
+      </Block>
     </Box>
   ),
   name: 'Float Helpers',
@@ -1442,19 +1363,13 @@ export const ClearfixDemo: Story = {
         Demonstrating the importance of is-clearfix for floating children
       </p>
 
-      <div style={{ marginBottom: '3rem' }}>
+      <Block mb="6">
         <h4 className="title is-6">❌ Without Clearfix (Container Collapse)</h4>
         <p className="help">
           Notice how the container doesn&apos;t properly wrap around the floated
           content
         </p>
-        <Box
-          bgColor="danger"
-          colorShade="05"
-          style={{
-            border: '2px solid #f44336',
-          }}
-        >
+        <Box {...STAGE} mb="2">
           <Button float="left" color="primary">
             Left Button
           </Button>
@@ -1464,23 +1379,16 @@ export const ClearfixDemo: Story = {
           {/* No clearfix - container may collapse */}
         </Box>
         <p className="help">
-          The red border shows the actual container boundary - it collapsed!
+          The container&apos;s background shows where it ends: it collapsed!
         </p>
-      </div>
+      </Block>
 
-      <div style={{ marginBottom: '3rem' }}>
+      <Block mb="6">
         <h4 className="title is-6">✅ With Clearfix (Proper Container)</h4>
         <p className="help">
           The container properly contains its floating children
         </p>
-        <Box
-          clearfix
-          bgColor="success"
-          colorShade="05"
-          style={{
-            border: '2px solid #4caf50',
-          }}
-        >
+        <Box {...STAGE} mb="2" clearfix>
           <Button float="left" color="primary">
             Left Button
           </Button>
@@ -1489,99 +1397,85 @@ export const ClearfixDemo: Story = {
           </Button>
         </Box>
         <p className="help">
-          The green border shows the container properly wraps the content!
+          The container&apos;s background wraps the buttons it holds!
         </p>
-      </div>
+      </Block>
 
-      <div style={{ marginBottom: '3rem' }}>
+      <Block mb="6">
         <h4 className="title is-6">Real-World Example: Card with Float</h4>
-        <div style={{ display: 'flex', gap: '2rem' }}>
-          <div style={{ flex: 1 }}>
+        <Columns>
+          <Column>
             <h5 className="title is-6">Without Clearfix</h5>
-            <Box bgColor="white">
+            <Box {...STAGE} mb="2">
               <Image
                 float="left"
                 src="https://bulma.io/assets/images/placeholders/128x128.png"
                 alt="Profile"
                 size="64x64"
-                style={{ marginRight: '1rem' }}
+                mr="3"
               />
               <div>
                 <h6 className="title is-6" style={{ margin: '0 0 0.5rem 0' }}>
                   John Doe
                 </h6>
-                <Content textSize="7" style={{ margin: 0 }}>
-                  Software Developer
-                </Content>
+                <Content textSize="7">Software Developer</Content>
               </div>
               {/* Footer may overlap with image */}
             </Box>
-            <p className="help" style={{ color: '#f44336' }}>
+            <p className="help is-danger">
               Footer might overlap with the floated image
             </p>
-          </div>
+          </Column>
 
-          <div style={{ flex: 1 }}>
+          <Column>
             <h5 className="title is-6">With Clearfix</h5>
-            <Box clearfix bgColor="white">
+            <Box {...STAGE} mb="2" clearfix>
               <Image
                 float="left"
                 src="https://bulma.io/assets/images/placeholders/128x128.png"
                 alt="Profile"
                 size="64x64"
-                style={{ marginRight: '1rem' }}
+                mr="3"
               />
               <div>
                 <h6 className="title is-6" style={{ margin: '0 0 0.5rem 0' }}>
                   John Doe
                 </h6>
-                <Content textSize="7" style={{ margin: 0 }}>
-                  Software Developer
-                </Content>
+                <Content textSize="7">Software Developer</Content>
               </div>
             </Box>
-            <p className="help" style={{ color: '#4caf50' }}>
+            <p className="help is-success">
               Footer respects the floated content
             </p>
-          </div>
-        </div>
-      </div>
+          </Column>
+        </Columns>
+      </Block>
 
-      <div style={{ marginBottom: '2rem' }}>
+      <Block>
         <h4 className="title is-6">Clearfix with Other Helpers</h4>
-        <Box
-          clearfix
-          relative
-          bgColor="info"
-          colorShade="05"
-          style={{
-            border: '2px solid #2196f3',
-          }}
-        >
+        <Box {...STAGE} mb="2" clearfix relative>
           <Tag float="left" color="info" m="1">
             Clearfix
           </Tag>
           <Tag float="right" color="primary" m="1">
             Position Relative
           </Tag>
-          <div
-            className="is-size-7"
+          <Tag
+            color="warning"
+            pos="absolute"
             style={{
-              position: 'absolute',
-              top: '10px',
-              right: '10px',
-              background: 'rgba(255, 193, 7, 0.8)',
-              padding: '0.25rem 0.5rem',
-              borderRadius: '4px',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
             }}
           >
             Absolutely positioned
-          </div>
+          </Tag>
         </Box>
         <p className="help">
           Combined clearfix and relative positioning working together
         </p>
-      </div>
+      </Block>
     </Box>
   ),
 };
@@ -1596,26 +1490,9 @@ export const RelativePosition: Story = {
 
       <Block mb="6">
         <h4 className="title is-6">Basic Relative Positioning</h4>
-        <Box
-          relative
-          bgColor="grey-lighter"
-          style={{
-            border: '2px solid #333',
-            height: '150px',
-          }}
-        >
+        <Box {...STAGE} relative style={{ height: '150px' }}>
           <span>This container has position: relative</span>
-          <Box
-            pos="absolute"
-            style={{
-              top: '20px',
-              right: '20px',
-              background: '#ff5722',
-              color: 'white',
-              padding: '0.5rem 1rem',
-              borderRadius: '4px',
-            }}
-          >
+          <Box {...ITEM} pos="absolute" style={{ top: '20px', right: '20px' }}>
             Absolutely positioned child
           </Box>
         </Box>
@@ -1623,22 +1500,14 @@ export const RelativePosition: Story = {
 
       <Block mb="6">
         <h4 className="title is-6">Card with Badge Overlay</h4>
-        <Box
-          relative
-          bgColor="white"
-          style={{
-            borderRadius: '8px',
-            padding: '1.5rem',
-            maxWidth: '300px',
-          }}
-        >
-          <h5 className="title is-5" style={{ margin: '0 0 1rem 0' }}>
+        <Box {...STAGE} relative style={{ maxWidth: '300px' }}>
+          <Title size="5" mb="3">
             Product Card
-          </h5>
-          <p style={{ margin: '0 0 1rem 0', color: '#666' }}>
+          </Title>
+          <Paragraph mb="3">
             This is a sample product description that shows how relative
             positioning helps with overlays.
-          </p>
+          </Paragraph>
           <Button color="primary">Add to Cart</Button>
 
           {/* Badge overlay */}
@@ -1697,16 +1566,7 @@ export const RelativePosition: Story = {
 
       <Block mb="6">
         <h4 className="title is-6">Combined with Other Helpers</h4>
-        <Box
-          relative
-          clearfix
-          bgColor="success"
-          colorShade="05"
-          style={{
-            border: '2px solid #4caf50',
-            minHeight: '120px',
-          }}
-        >
+        <Box {...STAGE} mb="2" relative clearfix style={{ minHeight: '120px' }}>
           <Button float="left" color="success">
             Floated Button
           </Button>
@@ -1748,7 +1608,8 @@ export const ViewportSpecificTextSizes: Story = {
         effect
       </SubTitle>
 
-      <Block
+      <Box
+        {...STAGE}
         textSizeMobile="7" // Small on mobile
         textSizeTablet="5" // Medium on tablet
         textSizeDesktop="3" // Large on desktop
@@ -1756,11 +1617,10 @@ export const ViewportSpecificTextSizes: Story = {
         textSizeFullhd="1" // Largest on fullhd
         textWeight="bold"
         p="4"
-        style={{ border: '2px solid #ccc' }}
       >
         This text size changes based on viewport: small on mobile, progressively
         larger on bigger screens.
-      </Block>
+      </Box>
 
       <Content>
         <strong>Generated classes:</strong>
@@ -1784,7 +1644,8 @@ export const ViewportSpecificTextAlignment: Story = {
         the effect
       </SubTitle>
 
-      <Block
+      <Box
+        {...STAGE}
         textAlignMobile="centered" // Center on mobile
         textAlignTablet="left" // Left on tablet
         textAlignDesktop="right" // Right on desktop
@@ -1792,13 +1653,12 @@ export const ViewportSpecificTextAlignment: Story = {
         textAlignFullhd="centered" // Center on fullhd
         textSize="4"
         p="4"
-        style={{ border: '2px solid #ccc' }}
       >
         This text alignment changes based on viewport: centered on mobile, left
         on tablet, right on desktop, justified on widescreen, centered again on
         fullhd. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
         eiusmod tempor incididunt ut labore et dolore magna aliqua.
-      </Block>
+      </Box>
 
       <Content>
         <strong>Generated classes:</strong>
@@ -1822,7 +1682,8 @@ export const ViewportSpecificVisibility: Story = {
         effect
       </SubTitle>
 
-      <Block
+      <Box
+        {...STAGE}
         visibilityMobile="hidden" // Hidden on mobile
         visibilityTablet="sr-only" // Screen reader only on tablet
         visibilityDesktop="invisible" // Invisible on desktop
@@ -1831,11 +1692,10 @@ export const ViewportSpecificVisibility: Story = {
         textSize="4"
         textWeight="bold"
         p="4"
-        style={{ border: '2px solid #ccc' }}
       >
         This block visibility changes: hidden on mobile, screen-reader-only on
         tablet, invisible on desktop, hidden on widescreen, visible on fullhd.
-      </Block>
+      </Box>
 
       <Content>
         <strong>Generated classes:</strong>
@@ -1846,18 +1706,17 @@ export const ViewportSpecificVisibility: Story = {
         </code>
       </Content>
 
-      <Block
+      <Box
+        {...STAGE}
         visibilityMobile="invisible"
         visibilityTablet="invisible"
         visibilityDesktop="invisible"
         textSize="3"
         p="3"
-        color="warning"
-        style={{ border: '2px solid orange' }}
       >
         This block is invisible on mobile, tablet, and desktop (but takes up
         space). Only visible on widescreen and fullhd.
-      </Block>
+      </Box>
 
       <Content>
         <strong>
@@ -1894,13 +1753,7 @@ export const TouchAndOnlyViewports: Story = {
 
       <Block>
         <Title size="6">displayTouch / displayDesktopOnly</Title>
-        <Box
-          displayTouch="none"
-          displayDesktopOnly="flex"
-          bgColor="info"
-          colorShade="00"
-          p="4"
-        >
+        <Box {...ITEM} displayTouch="none" displayDesktopOnly="flex" p="4">
           Hidden on mobile + tablet (<code>displayTouch=&quot;none&quot;</code>
           ), shown as flex on desktop only (
           <code>displayDesktopOnly=&quot;flex&quot;</code>).
@@ -1920,7 +1773,7 @@ export const TouchAndOnlyViewports: Story = {
 
       <Block>
         <Title size="6">displayTabletOnly</Title>
-        <Box displayTabletOnly="block" bgColor="warning" colorShade="05" p="4">
+        <Box {...ITEM} displayTabletOnly="block" p="4">
           <code>is-block-tablet-only</code> sets <code>display: block</code>{' '}
           only inside the tablet-only range (769px - 1023px). A Box is already
           block by default, so outside that range it keeps its normal block
@@ -1973,7 +1826,9 @@ export const ViewportSpecificCombined: Story = {
 
       <Block
         // Regular properties (apply to all viewports)
-        bgColor="light"
+        bgColor="primary"
+        textColor="primary"
+        colorShade="invert"
         p="4"
         m="2"
         // Viewport-specific properties
@@ -1981,18 +1836,18 @@ export const ViewportSpecificCombined: Story = {
         textSizeDesktop="4"
         textAlignMobile="centered"
         textAlignDesktop="left"
-        style={{ border: '2px solid #ccc' }}
       >
-        This box combines regular properties (background, padding, margin) with
-        viewport-specific properties (text size and alignment).
+        This box combines regular properties (background, text color, padding,
+        margin) with viewport-specific properties (text size and alignment).
       </Block>
 
       <Content>
         <strong>Generated classes:</strong>
         <code>
           {' '}
-          has-background-light p-4 m-2 is-size-6-mobile is-size-4-desktop
-          has-text-centered-mobile has-text-left-desktop
+          has-text-primary-invert has-background-primary p-4 m-2
+          is-size-6-mobile is-size-4-desktop has-text-centered-mobile
+          has-text-left-desktop
         </code>
       </Content>
     </Box>
@@ -2017,17 +1872,17 @@ const { bulmaHelperClasses } = useBulmaClasses({
 // Result: has-text-primary-mobile has-text-centered-mobile`}</pre>
         </Content>
 
-        <Block
+        <Box
+          {...STAGE}
           color="primary"
           textAlign="centered"
           viewport="mobile"
           textSize="4"
           p="4"
-          style={{ border: '2px solid #ccc' }}
         >
           This uses the old global viewport approach - all properties get the
           same viewport modifier.
-        </Block>
+        </Box>
       </Block>
 
       <Block>
@@ -2046,18 +1901,18 @@ const { bulmaHelperClasses } = useBulmaClasses({
 //         has-text-left-desktop`}</pre>
         </Content>
 
-        <Block
+        <Box
+          {...STAGE}
           textSizeMobile="6"
           textSizeTablet="4"
           textSizeDesktop="2"
           textAlignMobile="centered"
           textAlignDesktop="left"
           p="4"
-          style={{ border: '2px solid #ccc' }}
         >
           This uses the new viewport-specific properties - each viewport can
           have different values for text size and alignment.
-        </Block>
+        </Box>
       </Block>
     </Box>
   ),
@@ -2080,9 +1935,9 @@ export const FlexItemProperties: Story = {
           be children of a flex container to use <code>alignSelf</code>.
         </Content>
         <Box
+          {...STAGE}
           display="flex"
           alignItems="flex-start"
-          bgColor="light"
           style={{ minHeight: '150px' }}
         >
           <Button color="primary" alignSelf="flex-start" mr="2">
@@ -2106,34 +1961,14 @@ export const FlexItemProperties: Story = {
           These boxes use <code>flexGrow</code> and <code>flexShrink</code>{' '}
           without needing <code>display=&quot;flex&quot;</code> on themselves.
         </Content>
-        <Box display="flex" bgColor="light">
-          <Box
-            bgColor="primary"
-            textColor="white"
-            mr="2"
-            flexGrow="0"
-            flexShrink="0"
-            textAlign="centered"
-          >
+        <Box {...STAGE} display="flex" gap="1">
+          <Box {...ITEM} flexGrow="0" flexShrink="0" textAlign="centered">
             No grow/shrink
           </Box>
-          <Box
-            bgColor="info"
-            textColor="white"
-            mr="2"
-            flexGrow="1"
-            flexShrink="1"
-            textAlign="centered"
-          >
+          <Box {...ITEM} flexGrow="1" flexShrink="1" textAlign="centered">
             Grow: 1, Shrink: 1
           </Box>
-          <Box
-            bgColor="success"
-            textColor="white"
-            flexGrow="2"
-            flexShrink="0"
-            textAlign="centered"
-          >
+          <Box {...ITEM} flexGrow="2" flexShrink="0" textAlign="centered">
             Grow: 2, No shrink
           </Box>
         </Box>
@@ -2146,15 +1981,15 @@ export const FlexItemProperties: Story = {
           flex item properties.
         </Content>
         <Box
+          {...STAGE}
           display="flex"
           justifyContent="space-around"
           alignItems="stretch"
-          bgColor="grey-lighter"
+          gap="1"
           style={{ minHeight: '120px' }}
         >
           <Box
-            bgColor="danger"
-            textColor="white"
+            {...ITEM}
             alignSelf="flex-start"
             flexGrow="0"
             textAlign="centered"
@@ -2163,20 +1998,13 @@ export const FlexItemProperties: Story = {
             <br />
             flexGrow: 0
           </Box>
-          <Box
-            bgColor="warning"
-            textColor="white"
-            alignSelf="center"
-            flexGrow="1"
-            textAlign="centered"
-          >
+          <Box {...ITEM} alignSelf="center" flexGrow="1" textAlign="centered">
             alignSelf: center
             <br />
             flexGrow: 1
           </Box>
           <Box
-            bgColor="success"
-            textColor="white"
+            {...ITEM}
             alignSelf="flex-end"
             flexShrink="0"
             textAlign="centered"

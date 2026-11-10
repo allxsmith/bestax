@@ -1,5 +1,6 @@
 import type { Preview } from '@storybook/react-vite';
 import { create } from 'storybook/theming';
+import { ACCENT } from './accent';
 // The prefixed sheet loads first. Both sheets declare the scheme on `:root`,
 // and each switches it only from its own attribute (`data-theme` for plain
 // Bulma, `data-bulma-theme` for the prefixed build), so the later sheet's
@@ -8,6 +9,9 @@ import { create } from 'storybook/theming';
 // and prefixed stories alike, and `data-bulma-theme` is the one that loses.
 import 'bulma/css/versions/bulma-prefixed.min.css';
 import 'bulma/css/bulma.min.css';
+// The bestax blue as primary, after both sheets so it overrides their
+// turquoise.
+import './bestax-primary.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import '@mdi/font/css/materialdesignicons.min.css';
 // Ionicons v8 are web components registered via the ESM loader in
@@ -30,9 +34,9 @@ const docsTheme = create({
   textColor: prefersDark ? '#e4e4e4' : '#363636',
   textInverseColor: prefersDark ? '#363636' : '#ffffff',
 
-  // Make sure links and text are readable
-  colorPrimary: '#3273dc',
-  colorSecondary: '#485fc7',
+  // The bestax accent, as the manager uses
+  colorPrimary: prefersDark ? ACCENT.dark : ACCENT.light,
+  colorSecondary: prefersDark ? ACCENT.dark : ACCENT.light,
 });
 
 const preview: Preview = {
@@ -55,6 +59,9 @@ const preview: Preview = {
           'Layout',
           'Helpers',
           'Skills',
+          // The Skills section opens on its Overview, then lists the
+          // skills in the default order.
+          ['Overview', '*'],
         ],
       },
     },

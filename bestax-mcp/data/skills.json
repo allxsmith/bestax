@@ -15,7 +15,7 @@
         {
           "id": "library-contributor",
           "file": "references/library-contributor.md",
-          "bytes": 23738
+          "bytes": 23858
         },
         { "id": "patterns", "file": "references/patterns.md", "bytes": 4632 }
       ],
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 20037
+          "bytes": 20405
         }
       ],
       "examples": []
@@ -176,7 +176,7 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 74282
+          "bytes": 74918
         },
         {
           "id": "themeable-components",
