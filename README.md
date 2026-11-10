@@ -13,7 +13,7 @@
 [![npm provenance](https://img.shields.io/badge/npm-provenance-3fb950.svg)](https://www.npmjs.com/package/@allxsmith/bestax-bulma#provenance)
 [![Security policy](https://img.shields.io/badge/security-policy-blue.svg)](https://github.com/allxsmith/bestax/blob/main/SECURITY.md)
 
-TypeScript-first React component library for the **Bulma v1** CSS framework — 80+ fully typed components — plus a project scaffolder and AI agent tooling.
+TypeScript-first React component library for the **Bulma v1** CSS framework — 110+ fully typed components — plus a project scaffolder and AI agent tooling.
 
 ## 📋 At a glance
 
@@ -111,7 +111,7 @@ The published packages are versioned and released independently.
 
 ## 🧩 Components
 
-80+ components covering all of Bulma v1, plus bestax extras (Carousel, Dialog, Sidebar, Steps, date/time pickers, and more):
+110+ components covering all of Bulma v1, plus bestax extras (Carousel, Dialog, Sidebar, Steps, date/time pickers, and more):
 
 - **[Elements](https://bestax.io/docs/api/elements/button)** — Button, Table, Tag, Title, Icon, Image, Notification, Progress, Skeleton, Content, Delete, and typed HTML wrappers (Paragraph, Span, Figure, lists, …)
 - **[Components](https://bestax.io/docs/api/components/modal)** — Navbar, Modal, Card, Dropdown, Menu, Message, Pagination, Panel, Tabs, Breadcrumb, Toast, Tooltip, Steps, Sidebar, Carousel, Collapse, Dialog, Loading
@@ -191,7 +191,7 @@ Building with an AI agent (Claude Code, Cursor, Copilot)? bestax-bulma ships LLM
 - **Built for Bulma v1.x** — most other React Bulma libraries are stuck on Bulma 0.9.4
 - **100% TypeScript** — every component and prop fully typed
 - **One runtime dependency: Bulma** — it ships with the library; clean install, fewer security concerns
-- **Lightweight** — tree-shakeable ESM, so your app ships only the components it imports, plus a CJS build for `require`
+- **Tree-shakeable** — import what you need and ship only that: unused components drop out of the ESM build, and modular Sass does the same for CSS. A CJS build covers `require`
 - **99% test coverage** — enforced in CI by the [Vitest config](bulma-ui/vitest.config.ts), not just claimed
 - **Active developer support** — issues, questions, and PRs get fast responses
 

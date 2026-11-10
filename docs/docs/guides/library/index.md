@@ -360,7 +360,7 @@ Page-level structural primitives.
 Utilities for working with Bulma classes and configuration:
 
 - **useBulmaClasses** — a React hook that converts helper props into Bulma class strings
-- **classNames** — a lightweight class-merging utility
+- **classNames** — a class-merging utility
 - **Theme** — a component that injects Bulma CSS variables for local or global theming
 - **ConfigProvider** — a context provider for global settings like class prefix and icon library
 
