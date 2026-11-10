@@ -10,6 +10,35 @@ describe('Message', () => {
     expect(screen.getByTestId('message')).toHaveClass('message');
   });
 
+  it('writes data-testid="message" when given none', () => {
+    const { container } = render(<Message>Body</Message>);
+    expect(container.querySelector('article')).toHaveAttribute(
+      'data-testid',
+      'message'
+    );
+  });
+
+  it('writes data-testid="message" when a wrapper forwards undefined', () => {
+    const { container } = render(
+      <Message data-testid={undefined}>Body</Message>
+    );
+    expect(container.querySelector('article')).toHaveAttribute(
+      'data-testid',
+      'message'
+    );
+  });
+
+  it('keeps a data-testid the caller passes', () => {
+    const { container } = render(
+      <Message data-testid="billing-error">Body</Message>
+    );
+    expect(container.querySelector('article')).toHaveAttribute(
+      'data-testid',
+      'billing-error'
+    );
+    expect(screen.queryByTestId('message')).not.toBeInTheDocument();
+  });
+
   it('applies color class', () => {
     render(<Message color="danger" title="Error" />);
     expect(screen.getByTestId('message')).toHaveClass('is-danger');

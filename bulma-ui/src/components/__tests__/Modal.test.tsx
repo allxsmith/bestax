@@ -17,6 +17,55 @@ const latin =
   'Quando in cursu rerum humanarum fit ut populus aliquis dissolvere vincula politica quae eum cum alio coniunxerunt, et inter potestates terrae, statum separatam et aequalem, ad quem Iura Naturae et Dei Naturalis eum ius habere concedunt, rationabile decus postulat ut causas separationis declarent.';
 
 describe('Modal', () => {
+  describe('data-testid', () => {
+    // Its two render paths: the legacy one its props build, and its parts.
+    const builds: [string, React.ReactElement<{ 'data-testid'?: string }>][] = [
+      ['its props', <Modal key="props" active portal={false} />],
+      [
+        'its parts',
+        <Modal key="parts" active portal={false}>
+          <Modal.Background />
+          <Modal.Content>Inside</Modal.Content>
+        </Modal>,
+      ],
+    ];
+
+    it.each(builds)(
+      'writes modal when built from %s without one',
+      (_, modal) => {
+        const { container } = render(modal);
+        expect(container.querySelector('.modal')).toHaveAttribute(
+          'data-testid',
+          'modal'
+        );
+      }
+    );
+
+    it.each(builds)(
+      'writes modal when built from %s and a wrapper forwards undefined',
+      (_, modal) => {
+        const { container } = render(
+          React.cloneElement(modal, { 'data-testid': undefined })
+        );
+        expect(container.querySelector('.modal')).toHaveAttribute(
+          'data-testid',
+          'modal'
+        );
+      }
+    );
+
+    it.each(builds)('keeps the caller’s when built from %s', (_, modal) => {
+      const { container } = render(
+        React.cloneElement(modal, { 'data-testid': 'billing-dialog' })
+      );
+      expect(container.querySelector('.modal')).toHaveAttribute(
+        'data-testid',
+        'billing-dialog'
+      );
+      expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
+    });
+  });
+
   it('does not render as active by default', () => {
     const { container } = render(<Modal>{latin}</Modal>);
     expect(container.firstChild).not.toHaveClass('is-active');

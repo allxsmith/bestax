@@ -1,7 +1,7 @@
 import { Button, Column, Columns, Footer, Paragraph } from "@allxsmith/bestax-bulma";
 
 export default function FragmentPage() {
-  // TODO(bestax-migrate): `.message` stays as markup: bestax `Message` writes a `data-testid` of its own over the one it's given, and wraps children other than its own parts in `.message-body` (fragment.html:7)
+  // TODO(bestax-migrate): `.message` stays as markup: bestax `Message` writes `data-testid="message"` when it's given none, and wraps children other than its own parts in `.message-body` (fragment.html:7)
   return (
     <>
       <Columns isMobile>

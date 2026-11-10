@@ -586,6 +586,9 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   // automatically, compound users pass their own aria-label/aria-labelledby
   // (both arrive in `rest`, which is spread last and so wins).
   const titleId = modalCardTitle ? generatedTitleId : undefined;
+  // A test id the caller passes wins. It's written after `rest`, since a
+  // spread carrying `data-testid: undefined` would otherwise erase the default.
+  const testId = (rest as { 'data-testid'?: string })['data-testid'] ?? 'modal';
 
   let modalElement: React.ReactElement;
 
@@ -599,7 +602,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
         aria-modal={resolvedAriaModal}
         tabIndex={-1}
         {...rest}
-        data-testid="modal"
+        data-testid={testId}
       >
         {children}
       </div>
@@ -620,7 +623,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
         aria-labelledby={titleId}
         tabIndex={-1}
         {...rest}
-        data-testid="modal"
+        data-testid={testId}
       >
         <div
           className={prefixedClassNames(classPrefix, 'modal-background')}
