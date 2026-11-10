@@ -34,6 +34,10 @@
       "code": "function example() {\n  const [isOpen, setIsOpen] = useState(false);\n  return (\n    <>\n      <Button color=\"primary\" onClick={() => setIsOpen(true)}>\n        Open With Footer\n      </Button>\n      <Sidebar inline isOpen={isOpen} onClose={() => setIsOpen(false)}>\n        <Sidebar.Header>\n          <Sidebar.Title>Navigation</Sidebar.Title>\n          <Sidebar.Close onClick={() => setIsOpen(false)} />\n        </Sidebar.Header>\n        <Sidebar.Body>\n          <Menu>\n            <Menu.Label>Pages</Menu.Label>\n            <Menu.List>\n              <Menu.Item active href=\"#\">\n                Home\n              </Menu.Item>\n              <Menu.Item href=\"#\">Products</Menu.Item>\n              <Menu.Item href=\"#\">Services</Menu.Item>\n              <Menu.Item href=\"#\">Blog</Menu.Item>\n              <Menu.Item href=\"#\">Contact</Menu.Item>\n            </Menu.List>\n          </Menu>\n        </Sidebar.Body>\n        <Sidebar.Footer>\n          <Paragraph textSize=\"7\" textColor=\"grey\">\n            © 2026 Company Name\n          </Paragraph>\n        </Sidebar.Footer>\n      </Sidebar>\n    </>\n  );\n}"
     },
     {
+      "title": "Popups in the Sidebar",
+      "code": "function FiltersSidebar({ isOpen, onClose }) {\n  const [popups, setPopups] = useState<HTMLElement | null>(null);\n\n  return (\n    <>\n      <Sidebar isOpen={isOpen} onClose={onClose}>\n        <Sidebar.Body>\n          <ConfigProvider portalContainer={popups ?? undefined}>\n            <DateInput label=\"From\" appendToBody />\n          </ConfigProvider>\n        </Sidebar.Body>\n      </Sidebar>\n      {/* Outside the sidebar: position: relative and a z-index above the sidebar's */}\n      <div ref={setPopups} className=\"popups-over-sidebar\" />\n    </>\n  );\n}"
+    },
+    {
       "title": "Compound (dot-notation) usage",
       "code": "function example() {\n  const [isOpen, setIsOpen] = useState(false);\n  return (\n    <>\n      <Button color=\"primary\" onClick={() => setIsOpen(true)}>\n        Open Sidebar\n      </Button>\n      <Sidebar inline isOpen={isOpen} onClose={() => setIsOpen(false)}>\n        <Sidebar.Header>\n          <Sidebar.Title>Dot Notation</Sidebar.Title>\n          <Sidebar.Close onClick={() => setIsOpen(false)} />\n        </Sidebar.Header>\n        <Sidebar.Body>\n          <Paragraph>\n            Header, Title, Close, Body, and Footer are all available from the\n            single Sidebar import.\n          </Paragraph>\n        </Sidebar.Body>\n        <Sidebar.Footer>\n          <Button color=\"primary\" onClick={() => setIsOpen(false)}>\n            Done\n          </Button>\n        </Sidebar.Footer>\n      </Sidebar>\n    </>\n  );\n}"
     }
@@ -146,7 +150,7 @@
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Content to display in the sidebar.",
+          "description": "Content to display in the sidebar. A popup in it that portals, such as a Popover's or a date picker's panel with `appendToBody`, goes to the end of the page and renders under an open sidebar. To show it above, wrap the popup in a `ConfigProvider` whose `portalContainer` is an element of your own outside the sidebar that stacks above it, such as one with `position: relative` and a higher `z-index`. With an overlay, the sidebar's `aria-modal` still hides the popup there from screen readers that honor it.",
           "required": false,
           "inherited": false,
           "deprecated": false

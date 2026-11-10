@@ -318,8 +318,8 @@ function example() {
 
 The menu renders through [`Portal`](../helpers/portal.md), into the
 [`portalContainer`](../helpers/config.md#where-portaled-content-goes) a `ConfigProvider` sets, else
-the `Modal`, `Dialog` or `Command.Dialog` it's in, else at the end of the trigger's own document's
-`<body>`, which is an iframe's when the trigger is in one. It
+the overlay it's in that takes its popups, such as a `Modal`, else at the end of the trigger's own
+document's `<body>`, which is an iframe's when the trigger is in one. It
 opens below and to the right of the point, flips above or to the left of it where there's no room,
 and moves in until it's inside the viewport where it fits on neither side. A menu taller than the
 viewport scrolls inside. It doesn't follow the trigger: scrolling, resizing the window and the window

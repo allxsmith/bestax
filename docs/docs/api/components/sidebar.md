@@ -321,6 +321,37 @@ function example() {
 
 ---
 
+### Popups in the Sidebar
+
+A popup in the sidebar that portals, such as a `Popover` or a date picker with `appendToBody`, goes
+to the end of the page, and an open sidebar draws over it. To show it above, wrap the popup in a
+[`ConfigProvider`](../helpers/config.md#where-portaled-content-goes) whose `portalContainer` is an
+element of your own outside the sidebar that stacks above it. A nested provider replaces the outer
+one's settings, so repeat any you set there, such as a `classPrefix`.
+
+```tsx
+function FiltersSidebar({ isOpen, onClose }) {
+  const [popups, setPopups] = useState<HTMLElement | null>(null);
+
+  return (
+    <>
+      <Sidebar isOpen={isOpen} onClose={onClose}>
+        <Sidebar.Body>
+          <ConfigProvider portalContainer={popups ?? undefined}>
+            <DateInput label="From" appendToBody />
+          </ConfigProvider>
+        </Sidebar.Body>
+      </Sidebar>
+      {/* Outside the sidebar: position: relative and a z-index above the sidebar's */}
+      <div ref={setPopups} className="popups-over-sidebar" />
+    </>
+  );
+}
+```
+
+With an overlay, the sidebar's `aria-modal` still hides a popup there from screen readers that
+honor it.
+
 ### Compound (dot-notation) usage
 
 `Sidebar.Header`, `Sidebar.Title`, `Sidebar.Close`, `Sidebar.Body`, and `Sidebar.Footer` are all statics on `Sidebar`, so the whole panel can be composed from the single `Sidebar` import. The same parts are named exports: `SidebarHeader`, `SidebarTitle`, `SidebarClose`, `SidebarBody`, and `SidebarFooter`. Each is the same component as the dotted name. A Next.js Server Component imports the named export, because the dotted name is `undefined` there.
@@ -417,7 +448,7 @@ Use the Sidebar with a Menu component for building navigation drawers in mobile-
 | `overlayClose` | `boolean`                                           | `true`    | Close sidebar when overlay is clicked. Default: true.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `escapeClose`  | `boolean`                                           | `true`    | Close sidebar on Escape key. Only the topmost open overlay responds, whichever Modal, Dialog, Sidebar or full-page Loading opened last, so Escape closes one layer at a time. The sidebar marks the Escape it closes on as used with `preventDefault()`, and a Toast waits until no overlay is open. Turned off, a sidebar on top still keeps Escape from the layers under it. A popup inside it, such as a Dropdown's menu or a date picker's calendar, takes its own Escape first, and so does content that calls `preventDefault()` on it. Default: true.                                                                                                                          |
 | `canCancel`    | `boolean`                                           | `true`    | Allow closing the sidebar. Default: true.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `children`     | `React.ReactNode`                                   | —         | Content to display in the sidebar.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `children`     | `React.ReactNode`                                   | —         | Content to display in the sidebar. A popup in it that portals, such as a Popover's or a date picker's panel with `appendToBody`, goes to the end of the page and renders under an open sidebar. To show it above, wrap the popup in a `ConfigProvider` whose `portalContainer` is an element of your own outside the sidebar that stacks above it, such as one with `position: relative` and a higher `z-index`. With an overlay, the sidebar's `aria-modal` still hides the popup there from screen readers that honor it.                                                                                                                                                           |
 | `inline`       | `boolean`                                           | `false`   | Renders inline instead of using a portal. Without it, the sidebar renders inline on the server and while hydrating, moving into the portal once the client takes over, so hydration matches.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `className`    | `string`                                            | —         | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `ref`          | `React.Ref<HTMLElement>`                            | —         | Ref forwarded to the sidebar element.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |

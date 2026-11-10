@@ -72,7 +72,16 @@ export interface SidebarProps
   escapeClose?: boolean;
   /** Allow closing the sidebar. Default: true. */
   canCancel?: boolean;
-  /** Content to display in the sidebar. */
+  /**
+   * Content to display in the sidebar. A popup in it that portals, such as a
+   * Popover's or a date picker's panel with `appendToBody`, goes to the end
+   * of the page and renders under an open sidebar. To show it above, wrap
+   * the popup in a `ConfigProvider` whose `portalContainer` is an element of
+   * your own outside the sidebar that stacks above it, such as one with
+   * `position: relative` and a higher `z-index`. With an overlay, the
+   * sidebar's `aria-modal` still hides the popup there from screen readers
+   * that honor it.
+   */
   children?: React.ReactNode;
   /**
    * Renders inline instead of using a portal. Without it, the sidebar renders
