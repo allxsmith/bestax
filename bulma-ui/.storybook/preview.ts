@@ -1,25 +1,25 @@
 import type { Preview } from '@storybook/react-vite';
 import { create } from 'storybook/theming';
 import { ACCENT } from './accent';
+// bestax's own stylesheets, compiled from the Sass entry points the package
+// builds `versions/bestax-prefixed.css` and `bestax.css` from: Bulma with
+// bestax's configuration, and the extras. A story shows the CSS a user
+// installs, and the icon sheets load after it, as create-bestax writes them.
+//
 // The prefixed sheet loads first. Both sheets declare the scheme on `:root`,
-// and each switches it only from its own attribute (`data-theme` for plain
-// Bulma, `data-bulma-theme` for the prefixed build), so the later sheet's
-// `:root` overrides the earlier sheet's attribute. With plain Bulma last,
+// and each switches it only from its own attribute (`data-theme` for the
+// plain build, `data-bestax-theme` for the prefixed one), so the later sheet's
+// `:root` overrides the earlier sheet's attribute. With the plain build last,
 // `data-theme`, which `Theme colorMode` writes, switches the scheme for plain
-// and prefixed stories alike, and `data-bulma-theme` is the one that loses.
-import 'bulma/css/versions/bulma-prefixed.min.css';
-import 'bulma/css/bulma.min.css';
-// The bestax blue as primary, after both sheets so it overrides their
-// turquoise.
-import './bestax-primary.css';
+// and prefixed stories alike, and `data-bestax-theme` is the one that loses.
+import '../src/scss/versions/bestax-prefixed.scss';
+import '../src/scss/bestax.scss';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import '@mdi/font/css/materialdesignicons.min.css';
 // Ionicons v8 are web components registered via the ESM loader in
 // preview-head.html (matching the docs site); no CSS import needed.
 import 'material-icons/iconfont/material-icons.css';
 import 'material-symbols/index.css';
-// Import extras SCSS for component styles
-import '../src/scss/extras.scss';
 // Skill-example styles (Storybook-only — NOT part of the shipped CSS bundle)
 import '../src/skill-examples/profilecard.scss';
 
