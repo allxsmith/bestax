@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.67.8"
+    "version": "5.67.10"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -1272,7 +1272,7 @@
       "import": "import { Sidebar, SidebarHeader, SidebarTitle, SidebarClose, SidebarBody, SidebarFooter } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 22,
-      "exampleCount": 8
+      "exampleCount": 9
     },
     {
       "name": "Skeleton",
@@ -3197,6 +3197,7 @@
     "--bulma-taginput-padding": ["Taginput"],
     "--bulma-taginput-tag-gap": ["Taginput"],
     "--bulma-taginput-transition-duration": ["Taginput"],
+    "--bulma-text-invert-l": ["Panel"],
     "--bulma-textarea-max-height": ["TextArea"],
     "--bulma-textarea-min-height": ["TextArea"],
     "--bulma-textarea-padding": ["TextArea"],

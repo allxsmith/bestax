@@ -14,35 +14,51 @@ import { LocaleProvider } from '../helpers/LocaleProvider';
 const photo = (id: number, width: number, height: number) =>
   `https://picsum.photos/id/${id}/${width}/${height}`;
 
+// Picsum serves photos from Unsplash, cropped to the size asked for. Each one
+// below is free to use under the Unsplash License
+// (https://unsplash.com/license), as its Unsplash page says. The credit beside
+// each is the one on that page, which can spell a name differently from
+// Picsum's own `/id/<id>/info`.
 const PHOTOS: (LightboxItem & { id: number })[] = [
+  // Oleksii Topolianskyi, Forsand, Norway:
+  // https://unsplash.com/photos/-oWyJoSqBRM
   {
     id: 1015,
     src: photo(1015, 1600, 1067),
     alt: 'A fjord of deep blue water between steep cliffs',
     caption: 'The fjord from the clifftop path',
   },
+  // Andrew Ridley, Portree, United Kingdom:
+  // https://unsplash.com/photos/Kt5hRENuotI
   {
     id: 1018,
     src: photo(1018, 1600, 1067),
     alt: 'A road winding below a green ridge',
   },
+  // Andrew Coelho, Salt Creek Falls, United States:
+  // https://unsplash.com/photos/VB-w_3dnyvI
   {
     id: 1039,
     src: photo(1039, 1600, 1067),
     alt: 'A waterfall dropping into a green forest gorge',
     caption: 'The falls after a week of rain',
   },
+  // Christian Joudrey, Yosemite National Park, United States:
+  // https://unsplash.com/photos/mWRR1xj95hg
   {
     id: 1043,
     src: photo(1043, 1600, 1067),
     alt: 'A river through pines below granite cliffs',
   },
+  // Wolfgang Lutz: https://unsplash.com/photos/yOujaSETXlo
   {
     id: 1036,
     src: photo(1036, 1600, 1067),
-    alt: 'Tents pitched on a snowy ridge below mountain peaks',
+    alt: 'Snow-covered tents beside a stone wall, below snowy peaks',
     caption: 'Camp on the second night',
   },
+  // Joseph Barrientos, Shark Fin Cove, Davenport, California:
+  // https://unsplash.com/photos/xcC5ozHk_N8
   {
     id: 1050,
     src: photo(1050, 1600, 1067),

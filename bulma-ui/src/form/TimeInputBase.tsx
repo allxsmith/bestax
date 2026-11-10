@@ -166,8 +166,8 @@ export interface TimeInputBaseProps
   position?: PickerPosition;
   /**
    * Render the popover through a portal, into the `portalContainer` a
-   * `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog` it's
-   * in, else `document.body`. On a narrow screen
+   * `ConfigProvider` sets, else the overlay it's in that takes its popups,
+   * such as a `Modal`, else `document.body`. On a narrow screen
    * an in-place popover spans the bottom of the viewport, while a portaled
    * one stays on its `position` corner.
    */

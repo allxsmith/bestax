@@ -4,6 +4,7 @@ import { Box } from '../elements/Box';
 import { Button } from '../elements/Button';
 import { Title } from '../elements/Title';
 import { Paragraph } from '../elements/Paragraph';
+import { Stat } from '../elements/Stat';
 import { Steps } from '../components/Steps';
 import { Popover } from '../components/Popover';
 import { DateInput } from '../form/DateInput';
@@ -78,6 +79,68 @@ export const Default: Story = {
           </Popover.Body>
         </Popover>
         <DateInput inline label="تاريخ التسليم" mt="5" />
+      </Box>
+    </LocaleProvider>
+  ),
+};
+
+/**
+ * A Chinese section. The wrapper carries `lang="zh-CN"`, so where Chinese and
+ * Japanese draw a character differently, the browser draws the Chinese form.
+ * The Stat writes the yuan as ¥, where English writes CN¥, and the calendar
+ * names its months and days in Chinese and starts the week on Monday. Change
+ * `locale` to see each follow.
+ */
+export const Chinese: Story = {
+  args: { locale: 'zh-CN' },
+  render: args => (
+    <LocaleProvider {...args}>
+      <Box>
+        <Settings />
+        <Steps
+          value={1}
+          items={[{ label: '购物车' }, { label: '配送' }, { label: '付款' }]}
+          mb="5"
+        />
+        <Stat
+          label="订单金额"
+          value={8456.4}
+          format={{ style: 'currency', currency: 'CNY' }}
+        />
+        <DateInput inline label="送达日期" mt="5" />
+      </Box>
+    </LocaleProvider>
+  ),
+};
+
+/**
+ * A Japanese section. The wrapper carries `lang="ja-JP"`, so where Chinese
+ * and Japanese draw a character differently, the browser draws the Japanese
+ * form. The Stat writes the yen with the full-width ￥, and the calendar names
+ * its months and days in Japanese and starts the week on Sunday. Change
+ * `locale` to see each follow.
+ */
+export const Japanese: Story = {
+  args: { locale: 'ja-JP' },
+  render: args => (
+    <LocaleProvider {...args}>
+      <Box>
+        <Settings />
+        <Steps
+          value={1}
+          items={[
+            { label: 'カート' },
+            { label: 'お届け先' },
+            { label: 'お支払い' },
+          ]}
+          mb="5"
+        />
+        <Stat
+          label="ご注文金額"
+          value={8456}
+          format={{ style: 'currency', currency: 'JPY' }}
+        />
+        <DateInput inline label="お届け日" mt="5" />
       </Box>
     </LocaleProvider>
   ),

@@ -129,8 +129,8 @@ function chain<E>(
  * Shift+F10 and the context menu key open it too, where the browser fires
  * `contextmenu` for them, which Windows and Linux do. The menu is Dropdown's
  * markup, portaled, so it never has server markup: into the
- * `portalContainer` a `ConfigProvider` sets, else the `Modal`, `Dialog` or
- * `Command.Dialog` it's in, where screen readers that honor the dialog's
+ * `portalContainer` a `ConfigProvider` sets, else the overlay it's in that
+ * takes its popups, such as a `Modal`, where screen readers that honor its
  * `aria-modal` reach it, else the end of the trigger's own document's
  * `<body>`. It opens below and to the right of the point, flips above or to
  * the left where there's no room, moves in where it fits neither way, and

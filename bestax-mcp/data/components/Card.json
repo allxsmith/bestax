@@ -55,7 +55,7 @@
     },
     {
       "title": "Compound (dot-notation) usage › Mixed Approach",
-      "code": "<Card header=\"Prop-based header\" textColor=\"primary\" m=\"3\">\n  <Card.Content bgColor=\"light\">\n    <Paragraph>\n      You can mix prop-based and compound component approaches!\n    </Paragraph>\n  </Card.Content>\n  <Card.Footer>\n    <Card.FooterItem>Mixed approach example</Card.FooterItem>\n  </Card.Footer>\n</Card>"
+      "code": "<Card header=\"Prop-based header\" m=\"3\">\n  <Card.Content>\n    <Paragraph>You can mix the prop-based and compound approaches.</Paragraph>\n  </Card.Content>\n  <Card.Footer>\n    <Card.FooterItem as=\"a\" href=\"#save\">\n      Save\n    </Card.FooterItem>\n    <Card.FooterItem as=\"a\" href=\"#cancel\">\n      Cancel\n    </Card.FooterItem>\n  </Card.Footer>\n</Card>"
     },
     {
       "title": "Compound (dot-notation) usage › Bulma's Own Markup (`p` Title, `a` Footer Items)",
