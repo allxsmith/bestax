@@ -34,6 +34,9 @@ import {
   Menu,
   MenuItem,
   MenuList,
+  Message,
+  MessageBody,
+  MessageHeader,
   Modal,
   ModalBackground,
   ModalCard,
@@ -317,6 +320,19 @@ const cases: Record<string, (w: Wrap) => React.ReactElement> = {
         <Nav id="my-nav">Nav</Nav>
         <Main id="my-main">Main</Main>
       </Frame>
+    );
+  },
+  'Message built from its parts': w => {
+    const [M, Header, Body] = [Message, MessageHeader, MessageBody].map(w) as [
+      typeof Message,
+      typeof MessageHeader,
+      typeof MessageBody,
+    ];
+    return (
+      <M color="info">
+        <Header>Head</Header>
+        <Body>Body</Body>
+      </M>
     );
   },
   'IconButton with an Icon child': w => {

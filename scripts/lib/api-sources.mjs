@@ -252,7 +252,10 @@ export const SCSS_SOURCES = {
   ],
   OrderedList: [],
   Pagination: [{ pkg: 'bulma', path: 'sass/components/pagination.scss' }],
-  Panel: [{ pkg: 'bulma', path: 'sass/components/panel.scss' }],
+  Panel: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_panel.scss' },
+    { pkg: 'bulma', path: 'sass/components/panel.scss' },
+  ],
   Paragraph: [],
   PasswordInput: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_passwordinput.scss' },

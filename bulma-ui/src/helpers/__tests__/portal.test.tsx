@@ -538,6 +538,21 @@ describe('PopupPortal inside a PortalScope', () => {
     );
   });
 
+  it('keeps the scope around it for a scope with no node', () => {
+    render(
+      <Overlay>
+        <PortalScope node={undefined}>
+          <PopupPortal>
+            <span data-testid="popup" />
+          </PopupPortal>
+        </PortalScope>
+      </Overlay>
+    );
+    expect(screen.getByTestId('popup').parentElement).toBe(
+      screen.getByTestId('overlay')
+    );
+  });
+
   it.each([['outside'], ['inside']])(
     "lets a ConfigProvider's portalContainer win, set %s the scope",
     where => {

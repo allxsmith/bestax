@@ -181,7 +181,8 @@ Rules that keep components consistent:
   `PopupPortal` instead, or reads `usePopupContainer` where it calls `createPortal` itself, so
   inside a `Modal`, `Dialog` or `Command.Dialog` it portals into the dialog, where screen
   readers that honor `aria-modal` reach it. A new overlay that sets `aria-modal` wraps its
-  content in `PortalScope`, given the element that carries it.
+  content in `PortalScope`, given the element that carries it, and so does one that draws over
+  the page without a transform, as AppFrame's drawer does, so its popups show above it.
 
 - **Portaled content keeps the locale.** A component that calls `createPortal` itself wraps what
   it portals in `LocalePortalScope` (`helpers/LocaleProvider.tsx`), so the `dir` and `lang` of a

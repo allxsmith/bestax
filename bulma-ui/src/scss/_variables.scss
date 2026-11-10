@@ -61,6 +61,12 @@ $extras-size-large: var(--bulma-size-large, 1.5rem);
 // Spacing
 $extras-block-spacing: var(--bulma-block-spacing, 1.5rem);
 
+// The room the page's scrollbar gave back on each side while an overlay locks
+// the page's scrolling, which the lock sets on `<html>`, and 0 otherwise. A
+// part fixed to that edge of the window adds it to its offset there.
+$extras-scroll-lock-offset-left: var(--bulma-scroll-lock-offset-left, 0px);
+$extras-scroll-lock-offset-right: var(--bulma-scroll-lock-offset-right, 0px);
+
 // Borders and radius
 $extras-radius-small: var(--bulma-radius-small, 2px);
 $extras-radius: var(--bulma-radius, 4px);

@@ -1,7 +1,11 @@
 import { cleanup, renderHook } from '@testing-library/react';
-import { useScrollLock } from '../scrollLock';
+import { scrollLockOffset, useScrollLock } from '../scrollLock';
 
 const root = document.documentElement;
+
+/** The room the lock says it padded on a side, as `<html>` holds it. */
+const offset = (side: 'left' | 'right') =>
+  root.style.getPropertyValue(`--bulma-scroll-lock-offset-${side}`);
 
 /** A rect spanning `left` to `right`, as `getBoundingClientRect` gives it. */
 const span = (left: number, right: number) =>
@@ -26,6 +30,8 @@ describe('useScrollLock', () => {
     root.style.overflow = '';
     root.style.paddingLeft = '';
     root.style.paddingRight = '';
+    root.style.removeProperty('--bulma-scroll-lock-offset-left');
+    root.style.removeProperty('--bulma-scroll-lock-offset-right');
   });
 
   it('does nothing when inactive', () => {
@@ -89,6 +95,18 @@ describe('useScrollLock', () => {
       expect(root.style.paddingRight).toBe('');
     });
 
+    it('sets the room it padded on the right for fixed elements, while locked', () => {
+      // The window's right edge takes the room back, and the padding on
+      // <html> doesn't reach an element fixed to it, so it reads this.
+      mockScrollbar(span(0, 785), span(0, 800));
+      const { unmount } = renderHook(() => useScrollLock(true));
+      expect(offset('right')).toBe('15px');
+      expect(offset('left')).toBe('');
+      unmount();
+      expect(offset('right')).toBe('');
+      expect(root.getAttribute('style')).toBe('');
+    });
+
     it('pads the left when the scrollbar was on the left', () => {
       // Firefox can draw it there under right-to-left text, while Chromium
       // and WebKit keep it on the right, so the side isn't the text's.
@@ -96,8 +114,11 @@ describe('useScrollLock', () => {
       const { unmount } = renderHook(() => useScrollLock(true));
       expect(root.style.paddingLeft).toBe('15px');
       expect(root.style.paddingRight).toBe('');
+      expect(offset('left')).toBe('15px');
+      expect(offset('right')).toBe('');
       unmount();
       expect(root.style.paddingLeft).toBe('');
+      expect(offset('left')).toBe('');
     });
 
     it('adds to the padding <html> already has, and puts its own back', () => {
@@ -107,6 +128,9 @@ describe('useScrollLock', () => {
       const { unmount } = renderHook(() => useScrollLock(true));
       expect(root.style.paddingRight).toBe('19px');
       expect(root.style.paddingLeft).toBe('3px');
+      // The room the scrollbar gave back, not the padding it came to.
+      expect(offset('right')).toBe('15px');
+      expect(offset('left')).toBe('');
       unmount();
       expect(root.style.paddingRight).toBe('4px');
       expect(root.style.paddingLeft).toBe('3px');
@@ -118,6 +142,8 @@ describe('useScrollLock', () => {
       expect(root.style.overflow).toBe('hidden');
       expect(root.style.paddingLeft).toBe('');
       expect(root.style.paddingRight).toBe('');
+      expect(offset('left')).toBe('');
+      expect(offset('right')).toBe('');
     });
 
     it('measures once for nested locks, so the padding is not added twice', () => {
@@ -126,11 +152,23 @@ describe('useScrollLock', () => {
       const inner = renderHook(() => useScrollLock(true));
       expect(rect).toHaveBeenCalledTimes(2);
       expect(root.style.paddingRight).toBe('15px');
+      expect(offset('right')).toBe('15px');
 
       inner.unmount();
       expect(root.style.paddingRight).toBe('15px');
+      expect(offset('right')).toBe('15px');
       outer.unmount();
       expect(root.style.paddingRight).toBe('');
+      expect(offset('right')).toBe('');
+    });
+
+    it('names the variable an element reads, falling back to 0 with no lock', () => {
+      expect(scrollLockOffset('right')).toBe(
+        'var(--bulma-scroll-lock-offset-right, 0px)'
+      );
+      expect(scrollLockOffset('left')).toBe(
+        'var(--bulma-scroll-lock-offset-left, 0px)'
+      );
     });
   });
 });

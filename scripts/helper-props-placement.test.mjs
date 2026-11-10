@@ -11,12 +11,17 @@
  * render beside the catch-all row and the index carries as a part's
  * `helperPropsNote`.
  *
+ * Some go further and put the background and text helpers on the field
+ * itself, since Bulma's `.input` sets its own background and font: the date
+ * pickers keep the rest on their container (#1469).
+ *
  * This renders every part whose catch-all takes helper props, from the built
- * package, with a helper prop and a data attribute, and finds the element each
- * lands on. Where the two land apart, the part must have a note that names the
- * element the helper props are on, any class it names on that element, and the
- * element the attributes are on. Where they land together, it must have none,
- * so a note cannot outlive the markup it describes.
+ * package, with a margin, a background color and a data attribute, and finds
+ * the element each lands on. Where they land apart, the part must have a note
+ * that names the element the margin is on, the element the background is on,
+ * the element the attributes are on, and only classes those elements have.
+ * Where all three land together, it must have none, so a note cannot outlive
+ * the markup it describes.
  *
  * It renders on the server, which runs no effects, so a part that renders
  * nothing until it opens is given what opens it in RENDER_WITH, and one that
@@ -40,6 +45,22 @@ const RECORDS = join(REPO, 'bestax-mcp', 'data', 'components');
 const PROBE = 'data-bestax-probe';
 /** A helper prop, and the class it renders. */
 const HELPER = { prop: 'mt', value: '3', className: 'mt-3' };
+/** A background helper, which a field can take apart from the rest. */
+const BACKGROUND = {
+  prop: 'backgroundColor',
+  value: 'danger',
+  className: 'has-background-danger',
+};
+
+/** Parts whose props type leaves out `backgroundColor`, with why. */
+const TAKES_NO_BACKGROUND = new Map([
+  ['Control', 'it takes bgColor instead, and the type omits backgroundColor'],
+  // The layout parts set `backgroundColor` to `never` and take bgColor.
+  ...['Stack', 'Group', 'Center', 'Flex'].map(part => [
+    part,
+    'it takes bgColor instead, and the type forbids backgroundColor',
+  ]),
+]);
 
 /**
  * What a part needs before it renders the element its helper props go on,
@@ -118,13 +139,20 @@ function placement({ React, server, lib }, path) {
   const html = server.renderToStaticMarkup(
     React.createElement(component, {
       [HELPER.prop]: HELPER.value,
+      ...(TAKES_NO_BACKGROUND.has(path)
+        ? {}
+        : { [BACKGROUND.prop]: BACKGROUND.value }),
       [PROBE]: '',
       ...RENDER_WITH[path]?.(React),
     })
   );
   const tags = openingTags(html);
+  const helper = tags.find(t => t.classes.includes(HELPER.className));
   return {
-    helper: tags.find(t => t.classes.includes(HELPER.className)),
+    helper,
+    // A part that renders no background class keeps it with the rest.
+    background:
+      tags.find(t => t.classes.includes(BACKGROUND.className)) ?? helper,
     attrs: tags.find(t => t.attrs.includes(PROBE)),
   };
 }
@@ -138,7 +166,11 @@ describe('where helper props go', () => {
 
   it('names a part only when it says where its helper props go', () => {
     const paths = new Set(parts.map(p => p.path));
-    for (const name of [...Object.keys(RENDER_WITH), ...UNRENDERED.keys()]) {
+    for (const name of [
+      ...Object.keys(RENDER_WITH),
+      ...UNRENDERED.keys(),
+      ...TAKES_NO_BACKGROUND.keys(),
+    ]) {
       assert.ok(
         paths.has(name),
         `${name} is named here, but no part of that name takes helper props`
@@ -149,7 +181,7 @@ describe('where helper props go', () => {
   for (const part of parts) {
     if (UNRENDERED.has(part.path)) continue;
     it(`${part.path} says where its helper props go if not with the rest`, () => {
-      const { helper, attrs } = placement(loadLibrary(), part.path);
+      const { helper, background, attrs } = placement(loadLibrary(), part.path);
       assert.ok(
         helper && attrs,
         `${part.path} rendered no element with ${HELPER.prop}'s class and ` +
@@ -157,7 +189,7 @@ describe('where helper props go', () => {
           `name it in UNRENDERED with why.`
       );
       const note = part.helperPropsNote;
-      if (helper === attrs) {
+      if (helper === attrs && background === helper) {
         assert.equal(
           note,
           undefined,
@@ -169,9 +201,10 @@ describe('where helper props go', () => {
       }
       assert.ok(
         note,
-        `${part.path} puts its helper props on its <${helper.tag}> and its ` +
-          `other attributes on its <${attrs.tag}>. Say so with @helperProps on ` +
-          `its props type, then run pnpm gen.`
+        `${part.path} puts its helper props on its <${helper.tag}>, its ` +
+          `background helpers on its <${background.tag}> and its other ` +
+          `attributes on its <${attrs.tag}>. Say so with @helperProps on its ` +
+          `props type, then run pnpm gen.`
       );
       assert.equal(
         note.match(/`<(\w+)>`/)?.[1],
@@ -180,15 +213,20 @@ describe('where helper props go', () => {
       );
       for (const [, name] of note.matchAll(/`\.([\w-]+)`/g)) {
         assert.ok(
-          helper.classes.includes(name),
-          `${part.path}'s note names .${name}, which its <${helper.tag}> ` +
-            `does not have: ${note}`
+          helper.classes.includes(name) || background.classes.includes(name),
+          `${part.path}'s note names .${name}, which neither its ` +
+            `<${helper.tag}> nor its <${background.tag}> has: ${note}`
         );
       }
       assert.ok(
         note.includes(`\`<${attrs.tag}>\``),
         `${part.path}'s note does not name the <${attrs.tag}> its other ` +
           `attributes go on: ${note}`
+      );
+      assert.ok(
+        note.includes(`\`<${background.tag}>\``),
+        `${part.path}'s note does not name the <${background.tag}> its ` +
+          `background helpers go on: ${note}`
       );
     });
   }

@@ -292,7 +292,7 @@
           "name": "appendToBody",
           "type": "boolean",
           "default": "false",
-          "description": "Renders the panel through a portal, into the `portalContainer` a `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog` it's in, else `document.body`.",
+          "description": "Renders the panel through a portal, into the `portalContainer` a `ConfigProvider` sets, else the overlay it's in that takes its popups, such as a `Modal`, else `document.body`.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -409,7 +409,7 @@
         }
       ],
       "catchAll": "All standard <input> attributes and Bulma helper props",
-      "helperPropsNote": "Helper props go on the `.colorinput` `<div>`, with `className`. The other attributes go on the text `<input>`.",
+      "helperPropsNote": "Helper props go on the `.colorinput` `<div>`, with `className`, except that the background helpers go on the text `<input>`, and the text helpers on both, since Bulma's `.input` sets its own background and font, and the popover inside the `<div>` takes the text ones. The other attributes go on the `<input>`.",
       "types": []
     },
     {
@@ -538,7 +538,7 @@
           "name": "appendToBody",
           "type": "boolean",
           "default": "false",
-          "description": "Renders the panel through a portal, into the `portalContainer` a `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog` it's in, else `document.body`.",
+          "description": "Renders the panel through a portal, into the `portalContainer` a `ConfigProvider` sets, else the overlay it's in that takes its popups, such as a `Modal`, else `document.body`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -664,7 +664,7 @@
         }
       ],
       "catchAll": "All standard <input> attributes and Bulma helper props",
-      "helperPropsNote": "Helper props go on the `.colorinput` `<div>`, with `className`. The other attributes go on the text `<input>`.",
+      "helperPropsNote": "Helper props go on the `.colorinput` `<div>`, with `className`, except that the background helpers go on the text `<input>`, and the text helpers on both, since Bulma's `.input` sets its own background and font, and the popover inside the `<div>` takes the text ones. The other attributes go on the `<input>`.",
       "types": [],
       "standalone": "base"
     }

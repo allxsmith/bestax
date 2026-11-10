@@ -8,6 +8,25 @@ import { useEffect } from 'react';
 let lockCount = 0;
 let unlock: (() => void) | null = null;
 
+/** A side of the window the page's scrollbar can take room on. */
+type ScrollLockSide = 'left' | 'right';
+
+/** The variable the lock sets on `<html>` for one side. */
+const offsetName = (side: ScrollLockSide) =>
+  `--bulma-scroll-lock-offset-${side}`;
+
+/**
+ * The room the page's scrollbar gave back on one side while a lock is on,
+ * and `0px` otherwise, as a CSS value. An element fixed to that edge of the
+ * window adds it to its offset there, so it stays where it was as the
+ * scrollbar goes.
+ *
+ * @param side - The edge of the window the element is fixed to.
+ * @returns A `var()` with a `0px` fallback.
+ */
+export const scrollLockOffset = (side: ScrollLockSide): string =>
+  `var(${offsetName(side)}, 0px)`;
+
 /**
  * Locks the page's scrolling and pads it by the room the scrollbar took, so
  * its content stays put as the scrollbar goes. It locks `<html>` rather than
@@ -17,13 +36,19 @@ let unlock: (() => void) | null = null;
  * the right under right-to-left text. With an overlay scrollbar, or a gutter
  * `scrollbar-gutter` keeps, nothing moves and nothing is padded. An element
  * fixed to the window is placed against the viewport, not `<html>`, so the
- * padding doesn't reach it.
+ * padding doesn't reach it. The lock sets the room it pads on a side in
+ * `--bulma-scroll-lock-offset-left` or `--bulma-scroll-lock-offset-right` on
+ * `<html>`, for such an element to add to its offset on that side.
  *
  * @returns A function that puts back the styles it changed.
  */
 function lockPage(): () => void {
   const root = document.documentElement;
   const { overflow, paddingLeft, paddingRight } = root.style;
+  const offsets = (['left', 'right'] as const).map(side => {
+    const name = offsetName(side);
+    return [name, root.style.getPropertyValue(name)] as const;
+  });
 
   const before = root.getBoundingClientRect();
   root.style.overflow = 'hidden';
@@ -36,14 +61,22 @@ function lockPage(): () => void {
     const style = getComputedStyle(root);
     const add = (padding: string, room: number) =>
       `${(parseFloat(padding) || 0) + room}px`;
-    if (left > 0) root.style.paddingLeft = add(style.paddingLeft, left);
-    if (right > 0) root.style.paddingRight = add(style.paddingRight, right);
+    if (left > 0) {
+      root.style.paddingLeft = add(style.paddingLeft, left);
+      root.style.setProperty(offsetName('left'), `${left}px`);
+    }
+    if (right > 0) {
+      root.style.paddingRight = add(style.paddingRight, right);
+      root.style.setProperty(offsetName('right'), `${right}px`);
+    }
   }
 
   return () => {
     root.style.overflow = overflow;
     root.style.paddingLeft = paddingLeft;
     root.style.paddingRight = paddingRight;
+    // Setting an empty value removes the property.
+    for (const [name, value] of offsets) root.style.setProperty(name, value);
   };
 }
 

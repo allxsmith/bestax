@@ -16,6 +16,7 @@ import {
 } from '../AppFrame';
 import { Navbar } from '../../components/Navbar';
 import { Modal } from '../../components/Modal';
+import { Popover } from '../../components/Popover';
 import { Sidebar } from '../../components/Sidebar';
 import { ConfigProvider } from '../../helpers/Config';
 import { resetDevWarnings } from '../../helpers/devWarnings';
@@ -1251,6 +1252,74 @@ describe('AppFrame', () => {
       filter.focus();
       fireEvent.keyDown(filter, { key: 'Tab' });
       expect(filter).toHaveFocus();
+    });
+  });
+
+  describe('popups opened in the nav', () => {
+    // A popup that portals, in the nav and in the page.
+    const PopupFrame = () => (
+      <AppFrame defaultNavOpen>
+        <AppFrame.Header>
+          <AppFrame.Burger />
+        </AppFrame.Header>
+        <AppFrame.Nav>
+          <Popover
+            appendToBody
+            defaultOpen
+            ariaLabel="Filters"
+            trigger={<button type="button">Filter</button>}
+          >
+            In the nav
+          </Popover>
+        </AppFrame.Nav>
+        <AppFrame.Main>
+          <Popover
+            appendToBody
+            defaultOpen
+            ariaLabel="Sorting"
+            trigger={<button type="button">Sort</button>}
+          >
+            In the page
+          </Popover>
+        </AppFrame.Main>
+      </AppFrame>
+    );
+    const panel = (name: string) => screen.getByRole('dialog', { name });
+
+    it('portal into the drawer, which draws over the page, and only those in it', () => {
+      mockViewport(PHONE);
+      render(<PopupFrame />);
+      expect(panel('Filters').parentElement).toBe(nav());
+      expect(panel('Sorting').parentElement).toBe(document.body);
+    });
+
+    it('portal to the end of the page from the column, as before', () => {
+      mockViewport(DESKTOP);
+      render(<PopupFrame />);
+      expect(panel('Filters').parentElement).toBe(document.body);
+    });
+
+    it("go into a ConfigProvider's portalContainer while it sets one", () => {
+      mockViewport(PHONE);
+      const target = document.createElement('section');
+      document.body.appendChild(target);
+      render(
+        <ConfigProvider portalContainer={target}>
+          <PopupFrame />
+        </ConfigProvider>
+      );
+      expect(panel('Filters').parentElement).toBe(target);
+      target.remove();
+    });
+
+    it('stay in the Modal the frame is in while the nav is a column', () => {
+      mockViewport(DESKTOP);
+      render(
+        <Modal active aria-label="Preview">
+          <PopupFrame />
+        </Modal>
+      );
+      expect(panel('Filters').parentElement).toBe(screen.getByTestId('modal'));
     });
   });
 

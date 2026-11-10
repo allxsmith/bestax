@@ -42,11 +42,15 @@ export interface ConfigProviderProps {
    * set to `true`, or a `Toast`. An element, or a `document.querySelector`
    * selector. Unset, or a selector that matches nothing, that content goes to
    * `document.body`, except a popup, such as Popover's panel or a picker's,
-   * opened inside a `Modal`, `Dialog` or `Command.Dialog`: that goes into the
-   * dialog, where screen readers that honor its `aria-modal` reach it. Set,
-   * it takes those popups too. A target a component is given, such as a
-   * `Toast`'s `container`, still wins, and nothing portals that would
-   * otherwise render in place.
+   * opened inside an overlay that takes its popups. A `Modal`, a `Dialog`
+   * and a `Command.Dialog` do, so screen readers that honor their
+   * `aria-modal` reach the popup, and so does AppFrame's nav while it's a
+   * drawer, so the popup shows above it. A `Sidebar` doesn't, so Popover's
+   * or a picker's panel opened in an open one renders under it. Set, it
+   * takes those popups too, which is how one in a `Sidebar` shows above it:
+   * point it at an element of your own outside the sidebar that stacks above
+   * it. A target a component is given, such as a `Toast`'s `container`,
+   * still wins, and nothing portals that would otherwise render in place.
    *
    * The overlays and panels this moves are `position: fixed`, so pick an
    * element with no ancestor that has a `transform`, `filter`,

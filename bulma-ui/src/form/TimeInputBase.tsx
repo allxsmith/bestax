@@ -8,7 +8,8 @@ import React, {
   useState,
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
-import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useFieldHelperClasses } from '../helpers/useFieldHelperClasses';
 import {
   PickerPosition,
   HourFormat,
@@ -70,6 +71,13 @@ const fromIsoTime = (s: string): Date | null => {
 /**
  * Props for the raw TimeInput base. Use the higher-level `TimeInput` for
  * Field/Control composition; `TimeInputBase` is the input + popover only.
+ *
+ * @helperProps Helper props go on the `.timeinput-container` `<div>`, with
+ * `className` and the other attributes, except that the background helpers
+ * go on the `<input>`, and the text helpers on both, since Bulma's `.input`
+ * sets its own background and font, and the popover inside the `<div>`
+ * takes the text ones. Inline they all go on the `<div>`, and on the native
+ * mobile input, on the `<input>`.
  */
 export interface TimeInputBaseProps
   extends
@@ -158,8 +166,8 @@ export interface TimeInputBaseProps
   position?: PickerPosition;
   /**
    * Render the popover through a portal, into the `portalContainer` a
-   * `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog` it's
-   * in, else `document.body`. On a narrow screen
+   * `ConfigProvider` sets, else the overlay it's in that takes its popups,
+   * such as a `Modal`, else `document.body`. On a narrow screen
    * an in-place popover spans the bottom of the viewport, while a portaled
    * one stays on its `position` corner.
    */
@@ -331,7 +339,16 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
     const reactId = useId();
     const popoverId = id ? `${id}-popover` : `picker-${reactId}`;
 
-    const { bulmaHelperClasses, rest: cleanRest } = useBulmaClasses(rest);
+    // The field takes the background and text helpers, since Bulma's `.input`
+    // sets its own background and font. The container keeps the rest, and the
+    // text helpers too where a popover inside it takes them.
+    const {
+      bulmaHelperClasses,
+      backgroundClasses,
+      textClasses,
+      otherClasses,
+      rest: cleanRest,
+    } = useFieldHelperClasses(rest);
 
     const { shouldUseNative, isSmallViewport } = useNativeMobilePicker({
       force: mobileNative === 'auto' ? undefined : mobileNative,
@@ -653,7 +670,12 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
     return (
       <div
         ref={containerRef}
-        className={classNames(containerClass, bulmaHelperClasses, className)}
+        className={classNames(
+          containerClass,
+          otherClasses,
+          textClasses,
+          className
+        )}
         {...localeScope.rootAttrs}
         {...cleanRest}
       >
@@ -665,7 +687,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
           aria-expanded={open}
           aria-controls={popoverId}
           autoComplete="off"
-          className={inputClass}
+          className={classNames(inputClass, textClasses, backgroundClasses)}
           value={text}
           placeholder={placeholder}
           disabled={disabled}

@@ -69,6 +69,11 @@ Rules the pattern encodes:
   dark-mode bug.
 - **Reuse `extras-*` mixins** for transitions, focus outlines, and screen-reader-only content
   instead of re-rolling them (focus style consistency is an a11y requirement).
+- **A part fixed to an edge of the window adds the scroll lock's room on that side**
+  (`$extras-scroll-lock-offset-left` or `-right`, from `_variables.scss`) to its offset there, as
+  `_affix.scss` and `_toast.scss` do. While an overlay locks the page, the window grows by the
+  room the page's scrollbar had and the lock pads `<html>` by it, which a fixed box doesn't see,
+  so without it the part moves by the scrollbar's width.
 - New CSS variables should be documented in
   `skills/bestax-theming/references/css-variables.md`, and the component's rows added to
   `skills/bestax-theming/references/themeable-components.md`, in the same PR.

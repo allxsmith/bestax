@@ -190,6 +190,10 @@ with `viewport-fit=cover`, so they change nothing elsewhere:
 />
 ```
 
+While a [`Modal`](./modal.md) or another overlay locks the page's scrolling, its side also adds the
+room the page's scrollbar gave back there, so it doesn't move as the scrollbar goes. See
+[Fixed Elements While an Overlay Is Open](../../guides/features/css-variables.md#fixed-elements-while-an-overlay-is-open).
+
 ### Out of a Transformed Ancestor
 
 A `position: fixed` box is fixed to the viewport unless an ancestor has a `transform`, `filter`,

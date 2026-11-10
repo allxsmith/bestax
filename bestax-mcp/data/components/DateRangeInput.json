@@ -414,7 +414,7 @@
           "name": "appendToBody",
           "type": "boolean",
           "default": "false",
-          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog` it's in, else `document.body`.",
+          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, else the overlay it's in that takes its popups, such as a `Modal`, else `document.body`.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -612,6 +612,7 @@
         }
       ],
       "catchAll": "All standard <div> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the root `.daterangeinput` `<div>`, with `className` and the other attributes, except that the background helpers go on the `.input` `<div>` that draws the field around the two `<input>`s, since Bulma's `.input` sets its own background. The text helpers go on the root and on both `<input>`s too, which take no alignment or case from around them. Inline they all go on the root.",
       "types": []
     },
     {
@@ -803,7 +804,7 @@
           "name": "appendToBody",
           "type": "boolean",
           "default": "false",
-          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog` it's in, else `document.body`.",
+          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, else the overlay it's in that takes its popups, such as a `Modal`, else `document.body`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -1009,6 +1010,7 @@
       ],
       "extraProps": [],
       "catchAll": "All standard <div> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the root `.daterangeinput` `<div>`, with `className` and the other attributes, except that the background helpers go on the `.input` `<div>` that draws the field around the two `<input>`s, since Bulma's `.input` sets its own background. The text helpers go on the root and on both `<input>`s too, which take no alignment or case from around them. Inline they all go on the root.",
       "types": [],
       "standalone": "base"
     }

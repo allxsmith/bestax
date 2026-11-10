@@ -5,6 +5,7 @@ import {
   prefixedClassNames,
 } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { isElementOf } from '../helpers/elementType';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -39,7 +40,11 @@ export interface MessageProps
   size?: MessageSize;
   /** Callback for the close ("X") button. */
   onClose?: () => void;
-  /** Body content for the message. */
+  /**
+   * Body content for the message, wrapped in a `.message-body`. Children that
+   * include a `Message.Header` or `Message.Body` aren't wrapped: they render as
+   * the article's own children, after the header `title` and `onClose` make.
+   */
   children?: React.ReactNode;
 }
 
@@ -82,8 +87,19 @@ const MessageComponent: React.FC<MessageProps> = ({
     className
   );
 
+  // Built from its parts, the header and body are the article's own
+  // children, as Bulma lays them out, so they get no body around them.
+  const composed = React.Children.toArray(children).some(child =>
+    isElementOf(child, MessageHeader, MessageBody)
+  );
+
+  // A test id the caller passes wins. It's written after `rest`, since a
+  // spread carrying `data-testid: undefined` would otherwise erase the default.
+  const testId =
+    (rest as { 'data-testid'?: string })['data-testid'] ?? 'message';
+
   return (
-    <article className={messageClasses} {...rest} data-testid="message">
+    <article className={messageClasses} {...rest} data-testid={testId}>
       {(title || onClose) && (
         <div className={prefixedClassNames(classPrefix, 'message-header')}>
           {title && <span>{title}</span>}
@@ -98,14 +114,16 @@ const MessageComponent: React.FC<MessageProps> = ({
           )}
         </div>
       )}
-      {children && (
-        <div
-          className={prefixedClassNames(classPrefix, 'message-body')}
-          data-testid="message-body"
-        >
-          {children}
-        </div>
-      )}
+      {composed
+        ? children
+        : children && (
+            <div
+              className={prefixedClassNames(classPrefix, 'message-body')}
+              data-testid="message-body"
+            >
+              {children}
+            </div>
+          )}
     </article>
   );
 };

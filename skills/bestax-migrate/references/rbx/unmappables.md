@@ -81,8 +81,8 @@ The same rule fires a second way: several bestax components accept `as` but narr
 tags Bulma's markup allows there, so a literal outside that union (`<Control as="span">`,
 `<Media as="section">`) is dropped and named. The TODO lists the tags that component renders.
 
-A dynamic `as` on a `Heading`, which becomes plain markup, is flagged too: the plain element
-takes rbx's default `<p>`.
+A dynamic `as` on a component that becomes plain markup is flagged too: the plain element is the
+one rbx rendered by default.
 
 ## `prop:href` — a link needs the anchor
 

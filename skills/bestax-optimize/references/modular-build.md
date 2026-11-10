@@ -82,7 +82,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
 `toast`, `dialog`, `carousel`, `lightbox`, `tabs`, `menu`, `tableofcontents`, `reveal`, `avatar`, `avatars`,
 `badge`, `emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`,
-`pagination`, `affix`, `navbar`
+`pagination`, `affix`, `navbar`, `panel`
 
 **Layout** (`@allxsmith/bestax-bulma/scss/layout/<name>`): `appframe`, `splitter`, `stack`
 
@@ -137,13 +137,23 @@ Notes:
   ```
 
 - The `navbar` partial **extends** stock Bulma navbar (it keeps the burger's bars in
-  ButtonText in forced colors, where Chromium paints them in the page's Canvas color), so an
-  app using `Navbar` needs both, in either order. `AppFrame.Burger` renders `Navbar.Burger`,
-  so a build with one wants this partial too:
+  ButtonText in forced colors, where Chromium paints them in the page's Canvas color, and keeps a
+  `fixed` navbar in place while an overlay locks the page's scrolling), so an app using `Navbar`
+  needs both, in either order. `AppFrame.Burger` renders `Navbar.Burger`, so a build with one
+  wants this partial too:
 
   ```scss
   @use 'bulma/sass/components/navbar';
   @use '@allxsmith/bestax-bulma/scss/components/navbar' as bestax-navbar;
+  ```
+
+- The `panel` partial **extends** stock Bulma panel (it keeps the heading of a panel with no
+  `color` readable on the dark scheme, where Bulma writes it white on light gray), so an app
+  using `Panel` needs both, in either order:
+
+  ```scss
+  @use 'bulma/sass/components/panel';
+  @use '@allxsmith/bestax-bulma/scss/components/panel' as bestax-panel;
   ```
 
 - The `file` partial **extends** stock Bulma file (File's keyboard focus ring, and the rounded
@@ -157,8 +167,9 @@ Notes:
 
 - The `field` partial **extends** stock Bulma's field (`bulma/sass/form/tools`): it puts the
   `message` of a horizontal form component (`Input horizontal`, `Checkboxes horizontal`,
-  `Rate horizontal` and the rest) under its control, where Bulma's row would set it beside. An
-  app with one needs it next to `bulma/sass/form/tools`, in either order:
+  `Rate horizontal` and the rest) under its control, where Bulma's row would set it beside, and
+  keeps a horizontal label's text against its control on a right-to-left page. An app with one
+  needs it next to `bulma/sass/form/tools`, in either order:
 
   ```scss
   @use 'bulma/sass/form/tools';

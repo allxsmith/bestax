@@ -3,6 +3,7 @@
 
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
+@use "bulma/sass/utilities/mixins" as mx;
 @use '../variables' as *;
 @use '../mixins' as *;
 
@@ -283,8 +284,10 @@ $sidebar-static-border-color: cv.getVar("border") !default;
   }
 }
 
-// Responsive breakpoints
-@include extras-tablet {
+// Responsive breakpoints, from Bulma's tablet breakpoint, so a build that
+// moves `$tablet` moves them too. Screens only, as before: Bulma's own tablet
+// mixin also reaches print.
+@include mx.from(iv.$tablet) {
   .#{iv.$class-prefix}sidebar {
     @include cv.register-vars(("sidebar-width": #{$sidebar-width-tablet}));
   }

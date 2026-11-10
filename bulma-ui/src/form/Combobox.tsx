@@ -151,12 +151,12 @@ interface ComboboxBaseProps
   position?: PopoverPosition;
   /**
    * Renders the menu through `Portal`, into the `portalContainer` a
-   * `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog`
-   * it's in, else `document.body`, fixed to the viewport at the field, so a
-   * container that clips its overflow can't cut it off. It then shows from
-   * the commit after hydration, never in server markup. Theming variables set
-   * on an ancestor reach it only when the portal's container is inside that
-   * ancestor, as with Popover.
+   * `ConfigProvider` sets, else the overlay it's in that takes its popups,
+   * such as a `Modal`, else `document.body`, fixed to the viewport at the
+   * field, so a container that clips its overflow can't cut it off. It then
+   * shows from the commit after hydration, never in server markup. Theming
+   * variables set on an ancestor reach it only when the portal's container
+   * is inside that ancestor, as with Popover.
    * @defaultValue false
    */
   appendToBody?: boolean;

@@ -35,7 +35,7 @@
     },
     {
       "title": "Plain Indicators Over the Slides",
-      "code": "<Carousel indicatorInside overlayControls={false}>\n  {['Garden Room', 'Harbor Suite', 'Loft', 'Courtyard Twin'].map(room => (\n    <CarouselItem key={room}>\n      <Card m=\"2\">\n        <Card.Content pb=\"6\">\n          <Title as=\"p\" size=\"5\">\n            {room}\n          </Title>\n          <SubTitle as=\"p\" size=\"6\">\n            Sleeps two\n          </SubTitle>\n        </Card.Content>\n      </Card>\n    </CarouselItem>\n  ))}\n</Carousel>"
+      "code": "<Carousel indicatorInside overlayControls={false}>\n  {['Garden Room', 'Harbor Suite', 'Loft', 'Courtyard Twin'].map(room => (\n    <CarouselItem key={room}>\n      <Card m=\"2\">\n        <Card.Content px=\"6\" py=\"6\" textAlign=\"centered\">\n          <Title as=\"p\" size=\"5\" mt=\"5\">\n            {room}\n          </Title>\n          <SubTitle as=\"p\" size=\"6\" mb=\"5\">\n            Sleeps two\n          </SubTitle>\n        </Card.Content>\n      </Card>\n    </CarouselItem>\n  ))}\n</Carousel>"
     },
     {
       "title": "Overlay Arrows",

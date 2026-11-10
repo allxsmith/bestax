@@ -546,7 +546,7 @@
           "name": "appendToBody",
           "type": "boolean",
           "default": "false",
-          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog` it's in, else `document.body`. On a narrow screen an in-place popover spans the bottom of the viewport, while a portaled one stays on its `position` corner.",
+          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, else the overlay it's in that takes its popups, such as a `Modal`, else `document.body`. On a narrow screen an in-place popover spans the bottom of the viewport, while a portaled one stays on its `position` corner.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -726,6 +726,7 @@
         }
       ],
       "catchAll": "All standard <input> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the `.timeinput-container` `<div>`, with `className` and the other attributes, except that the background helpers go on the `<input>`, and the text helpers on both, since Bulma's `.input` sets its own background and font, and the popover inside the `<div>` takes the text ones. Inline they all go on the `<div>`, and on the native mobile input, on the `<input>`.",
       "types": []
     },
     {
@@ -917,7 +918,7 @@
           "name": "appendToBody",
           "type": "boolean",
           "default": "false",
-          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, else the `Modal`, `Dialog` or `Command.Dialog` it's in, else `document.body`. On a narrow screen an in-place popover spans the bottom of the viewport, while a portaled one stays on its `position` corner.",
+          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, else the overlay it's in that takes its popups, such as a `Modal`, else `document.body`. On a narrow screen an in-place popover spans the bottom of the viewport, while a portaled one stays on its `position` corner.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -1078,6 +1079,7 @@
       ],
       "extraProps": [],
       "catchAll": "All standard <input> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the `.timeinput-container` `<div>`, with `className` and the other attributes, except that the background helpers go on the `<input>`, and the text helpers on both, since Bulma's `.input` sets its own background and font, and the popover inside the `<div>` takes the text ones. Inline they all go on the `<div>`, and on the native mobile input, on the `<input>`.",
       "types": [],
       "standalone": "base"
     }

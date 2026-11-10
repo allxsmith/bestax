@@ -1,3 +1,39 @@
+## [2.36.4](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.36.3...bestax-migrate@2.36.4) (2026-11-10)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** say Message and Modal write a test id only when given none ([eeac10c](https://github.com/allxsmith/bestax/commit/eeac10c434c309bcdea76e590d494bc1a1e26f98))
+* **bulma-ui:** keep a data-testid the caller passes on Message and Modal ([ee904a2](https://github.com/allxsmith/bestax/commit/ee904a28bc8ec69d8df8c957189191a7758f995b)), closes [#1616](https://github.com/allxsmith/bestax/issues/1616)
+* **bulma-ui:** keep a horizontal field's label against its control right to left ([d50b174](https://github.com/allxsmith/bestax/commit/d50b1746ac2c320e7298d6d815021065ea94fca9))
+* **bulma-ui:** keep a plain Panel's heading readable on the dark scheme ([7a96e79](https://github.com/allxsmith/bestax/commit/7a96e79afb39eee7a241d27877aecf81d8b5d3c7))
+* **bulma-ui:** keep fixed parts in place while an overlay locks the page ([f373578](https://github.com/allxsmith/bestax/commit/f3735789ab5d4f01fe511acefb729eaf3b1f6bff))
+* **bulma-ui:** keep Message's and Modal's default test id when undefined is passed ([cb56a97](https://github.com/allxsmith/bestax/commit/cb56a97d23b8b2238597664a86113f37f5b50be5))
+* **bulma-ui:** make DataTable's loading rows as tall as a row of text ([3248030](https://github.com/allxsmith/bestax/commit/3248030d1c203158bdd7be64c74edbfc4b303d93))
+* **bulma-ui:** put the pickers' background and text helpers on the field ([b35512a](https://github.com/allxsmith/bestax/commit/b35512a232d8da6b5d10d306ee68fd053ebe4add)), closes [#1469](https://github.com/allxsmith/bestax/issues/1469)
+* **bulma-ui:** show a popup opened in AppFrame's drawer above the drawer ([602e20a](https://github.com/allxsmith/bestax/commit/602e20a6b9502e6575a8b16588467a8e71febcc1))
+
+## [2.36.3](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.36.2...bestax-migrate@2.36.3) (2026-11-09)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** write the element rbx's as and RBC's renderAs name in plain rewrites ([2d6647b](https://github.com/allxsmith/bestax/commit/2d6647be421249990341b58fc2ea2f56d873a766)), closes [#1622](https://github.com/allxsmith/bestax/issues/1622)
+* **bulma-ui:** read the vertical Tabs phone fallback from Bulma's breakpoint ([26143a7](https://github.com/allxsmith/bestax/commit/26143a7ab9933a98a511b86807495875ee04e214))
+* **bulma-ui:** shrink Carousel's arrows on a phone at Bulma's breakpoint ([488bf75](https://github.com/allxsmith/bestax/commit/488bf7579646141db418a0fd5d84743bc275870c))
+* **bulma-ui:** stack right-side vertical Tabs on a phone ([d41b6ff](https://github.com/allxsmith/bestax/commit/d41b6ff0b8d25d84078d71d54ec2e76a54ea8b5f))
+* **bulma-ui:** switch Steps' phone layouts and Sidebar's tablet width at Bulma's breakpoint ([60fd7ee](https://github.com/allxsmith/bestax/commit/60fd7ee6b9204c95ce2c2e680c5cec5953d8b740))
+
+## [2.36.2](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.36.1...bestax-migrate@2.36.2) (2026-11-09)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** give Message's TODO a reason that is still true ([aaea802](https://github.com/allxsmith/bestax/commit/aaea8028be30197b4e985ca5ecf26c90d4a4648d))
+* **bulma-ui:** keep a hovered Slider thumb's border at rest in forced colors ([8d46e50](https://github.com/allxsmith/bestax/commit/8d46e500100eb94bacb3c4c46c1aaca8c76405a0))
+* **bulma-ui:** put Message's own parts straight in its article ([316ca07](https://github.com/allxsmith/bestax/commit/316ca0762a3a63a084064ce9bbc182f5cdf898d5)), closes [#1501](https://github.com/allxsmith/bestax/issues/1501)
+* **bulma-ui:** show a Slider's track and fill in forced colors ([03870bf](https://github.com/allxsmith/bestax/commit/03870bf7c8849f4e5cfb1191a702ad4a7cbd34f1))
+
 ## [2.36.1](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.36.0...bestax-migrate@2.36.1) (2026-11-09)
 
 

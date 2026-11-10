@@ -350,6 +350,9 @@ header taller than Bulma's navbar sets it there. `AppFrame.Nav width` writes
 `--bulma-autocomplete-scrollbar-thumb-hover`, `--bulma-autocomplete-scrollbar-track`,
 `--bulma-autocomplete-scrollbar-width`
 
+`--bulma-autocomplete-border-hover-color` is registered but has no effect: the input's hover
+border is Bulma's own.
+
 ### Carousel
 
 `--bulma-carousel-arrow-background`, `--bulma-carousel-arrow-background-hover`,
@@ -415,6 +418,9 @@ the form sits on.
 Bulma's default font sizes the box is 24px at the default and `small` sizes. For a smaller box, set the size and also
 `min-width: 0; min-height: 0` on `.styled-checkbox.my-box .check` (mind the class prefix), and keep
 the label text inside the `Checkbox`, since the whole label is the click target.
+
+`--bulma-checkbox-focus-shadow-size` is registered but has no effect: the keyboard focus ring is a
+`2px` outline in `--bulma-checkbox-active-color`, with no shadow for a size to apply to.
 
 ### CheckboxCard
 
@@ -768,6 +774,18 @@ would otherwise give it text that inherits the color around it. That rule outran
 `--bulma-numberinput-stepper-button-hover-bg`, `--bulma-numberinput-stepper-button-hover-color`,
 `--bulma-numberinput-stepper-width`
 
+### Panel
+
+Declared on the root, `.panel`, where Bulma declares its own `--bulma-panel-*`. Bulma writes the
+heading of a panel with no `color` in the text color, with its title in `--bulma-text-invert-l`,
+and its dark scheme lightens the text color without darkening that, so the panel sets it to the
+page background's lightness, which reads on the text color on both schemes. A colored panel takes
+its title color from its own color, and something inside a panel that reads
+`--bulma-text-invert-l` gets the panel's value. To change only the title,
+`--bulma-panel-heading-color-l` on the panel is Bulma's own.
+
+`--bulma-text-invert-l`
+
 ### PasswordInput
 
 Declared on the container around the input, `.password-input-container`. The input is Bulma's
@@ -835,6 +853,9 @@ so it follows the ring and a `color` prop until a class gives it a color of its 
 Bulma's default font sizes the circle is 24px at the default and `small` sizes. For a smaller circle, set the size and also
 `min-width: 0; min-height: 0` on `.styled-radio.my-radio .check` (mind the class prefix), and keep
 the label text inside the `Radio`, since the whole label is the click target.
+
+`--bulma-radio-focus-shadow-size` is registered but has no effect: the keyboard focus ring is a
+`2px` outline in `--bulma-radio-active-color`, with no shadow for a size to apply to.
 
 ### RadioCard
 
@@ -1096,6 +1117,30 @@ are `Checkbox`'s, themed through `--bulma-checkbox-*`.
 `--bulma-tree-view-item-selected-h`, `--bulma-tree-view-item-selected-s`,
 `--bulma-tree-view-line-height`, `--bulma-tree-view-toggle-color`,
 `--bulma-tree-view-toggle-duration`, `--bulma-tree-view-toggle-size`
+
+## The scroll lock's offsets: read them, don't set them
+
+An overlay that locks the page's scrolling, such as a Modal, a Sidebar with its overlay or a
+full-page Loading, takes the page's scrollbar away and pads `<html>` by the room it took, so the
+page doesn't shift. An element fixed to the window is placed against the window, which grows by
+that room, so the padding doesn't reach it. While the lock is on, it sets the room it padded on
+`<html>` as `--bulma-scroll-lock-offset-right`, or `--bulma-scroll-lock-offset-left` where the
+scrollbar was on the left. A `fixed` Navbar, the toast and notification stacks and an Affix add
+them to their offsets, so they stay put. A fixed element of the app's own does the same, with a
+`0px` fallback for when no lock is on:
+
+```css
+.chat-launcher {
+  position: fixed;
+  bottom: 1rem;
+  right: calc(1rem + var(--bulma-scroll-lock-offset-right, 0px));
+}
+```
+
+The sides are physical, left and right, whatever the text's direction: an element fixed to the
+window's right edge reads the `-right` one on a right-to-left page too. Neither is set while no
+lock is on, or where the scrollbar takes no room, so the fallback applies. The lock writes them and
+removes them when the last overlay closes, so don't set them in a theme.
 
 ## Dark mode (`Theme colorMode`)
 
