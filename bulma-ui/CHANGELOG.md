@@ -1,3 +1,10 @@
+## [5.67.9](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.8...@allxsmith/bestax-bulma@5.67.9) (2026-11-10)
+
+
+### Bug Fixes
+
+* **bulma-ui:** make DataTable's loading rows as tall as a row of text ([3248030](https://github.com/allxsmith/bestax/commit/3248030d1c203158bdd7be64c74edbfc4b303d93))
+
 ## [5.67.8](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.7...@allxsmith/bestax-bulma@5.67.8) (2026-11-09)
 
 
