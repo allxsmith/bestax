@@ -1,3 +1,10 @@
+## [1.18.46](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.45...bestax-mcp@1.18.46) (2026-11-10)
+
+
+### Bug Fixes
+
+* **bulma-ui:** make DataTable's loading rows as tall as a row of text ([3248030](https://github.com/allxsmith/bestax/commit/3248030d1c203158bdd7be64c74edbfc4b303d93))
+
 ## [1.18.45](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.44...bestax-mcp@1.18.45) (2026-11-09)
 
 
