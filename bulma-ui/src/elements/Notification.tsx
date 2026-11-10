@@ -19,6 +19,7 @@ import { useIsHydrated } from '../helpers/useIsHydrated';
 import { usePortalContainer } from '../helpers/portal';
 import { LocalePortalScope } from '../helpers/LocaleProvider';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
+import { scrollLockOffset } from '../helpers/scrollLock';
 
 /**
  * Props for the Notification component.
@@ -465,6 +466,8 @@ const notificationStackOrder: readonly NotificationPosition[] = [
 
 /**
  * Inline style that fixes a stack of notifications to its place on the screen.
+ * While an overlay locks the page, each side adds the room the page's
+ * scrollbar gave back there, so the stack stays put as the scrollbar goes.
  *
  * @function
  * @param {NotificationPosition} position - Where the stack sits.
@@ -476,6 +479,8 @@ const notificationStackStyle = (
   const isBottom = position.startsWith('bottom');
   const isCenter = position === 'top' || position === 'bottom';
   const isRight = position.endsWith('right');
+  const left = scrollLockOffset('left');
+  const right = scrollLockOffset('right');
 
   return {
     position: 'fixed',
@@ -485,13 +490,17 @@ const notificationStackStyle = (
     gap: '0.75rem',
     padding: '1rem',
     pointerEvents: 'none',
-    maxWidth: '100%',
+    maxWidth: `calc(100% - ${left} - ${right})`,
     ...(isBottom ? { bottom: 0 } : { top: 0 }),
     ...(isCenter
-      ? { left: '50%', transform: 'translateX(-50%)', alignItems: 'center' }
+      ? {
+          left: `calc(50% + (${left} - ${right}) / 2)`,
+          transform: 'translateX(-50%)',
+          alignItems: 'center',
+        }
       : isRight
-        ? { right: 0, alignItems: 'flex-end' }
-        : { left: 0, alignItems: 'flex-start' }),
+        ? { right, alignItems: 'flex-end' }
+        : { left, alignItems: 'flex-start' }),
   };
 };
 

@@ -408,8 +408,8 @@ in the browser:
 
 - **`family:radio`**, **`family:checkboxes`**, **`family:radios`**: bestax renders its own
   styled radio markup, and its own `.field` and `.control` around a group, not Bulma's.
-- **`family:modal`**: `Modal` writes a `data-testid` of its own and adds dialog attributes and
-  focus handling, so the `.modal` root stays markup while its background, content and card parts
+- **`family:modal`**: `Modal` writes `data-testid="modal"` when it's given none and adds dialog
+  attributes and focus handling, so the `.modal` root stays markup while its background, content and card parts
   convert on their own. Rebuild the root with `Modal` around them, drive it with its open prop,
   and pass `onClose`, which Escape and `Modal.Close` call. The converted `Modal.Background`
   doesn't call it on its own: give it `onClick={onClose}` for the background to close the modal.
@@ -425,8 +425,8 @@ in the browser:
   inside its `<li>` with no class but `is-active`, and puts its `className` on the `<li>`, so the
   class has nowhere to go. On an `<a>` inside a `.menu-list` it adds nothing, so drop it and
   re-run, and the item can convert. On any other tag, keep the markup.
-- **`family:message`**: `Message` writes a `data-testid` of its own over the one it's given, and
-  wraps children other than `Message.Header` and `Message.Body` in a `.message-body`.
+- **`family:message`**: `Message` writes `data-testid="message"` when it's given none, and wraps
+  children other than `Message.Header` and `Message.Body` in a `.message-body`.
 - **`family:panel-icon`**: `Panel.Icon` renders through `Icon`, which always writes an
   `aria-label`, so write `<Panel.Icon>` by hand with the `<i>` inside. The rest of a panel converts,
   a `<label>` or `<div>` `.panel-block` included, as `Panel.Block` with `as` and its contents as

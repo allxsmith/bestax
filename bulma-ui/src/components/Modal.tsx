@@ -84,11 +84,15 @@ export interface ModalProps
   closeOnEscape?: boolean;
   /**
    * Lock page scroll while the modal is active, padding the page by the room
-   * its scrollbar took so the content stays put. An element fixed to the
-   * window's right edge, such as a `fixed` Navbar, isn't padded, and moves by
-   * the scrollbar's width while the page is locked. Ref-counted and shared
-   * with `Dialog`, `Sidebar` and `Loading`, so whichever overlay closes first
-   * does not unlock the page underneath one that is still open.
+   * its scrollbar took so the content stays put. A `fixed` Navbar, the toast
+   * and notification stacks and an Affix stay put too. The padding doesn't
+   * reach an element of your own fixed to the window's edge, which moves by
+   * the scrollbar's width unless it adds
+   * `var(--bulma-scroll-lock-offset-right, 0px)` to its `right` (the `-left`
+   * one to its `left`), which the lock sets on `<html>` while it's on.
+   * Ref-counted and shared with `Dialog`, `Sidebar` and `Loading`, so
+   * whichever overlay closes first does not unlock the page underneath one
+   * that is still open.
    * @defaultValue true
    */
   lockScroll?: boolean;
@@ -582,6 +586,9 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   // automatically, compound users pass their own aria-label/aria-labelledby
   // (both arrive in `rest`, which is spread last and so wins).
   const titleId = modalCardTitle ? generatedTitleId : undefined;
+  // A test id the caller passes wins. It's written after `rest`, since a
+  // spread carrying `data-testid: undefined` would otherwise erase the default.
+  const testId = (rest as { 'data-testid'?: string })['data-testid'] ?? 'modal';
 
   let modalElement: React.ReactElement;
 
@@ -595,7 +602,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
         aria-modal={resolvedAriaModal}
         tabIndex={-1}
         {...rest}
-        data-testid="modal"
+        data-testid={testId}
       >
         {children}
       </div>
@@ -616,7 +623,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
         aria-labelledby={titleId}
         tabIndex={-1}
         {...rest}
-        data-testid="modal"
+        data-testid={testId}
       >
         <div
           className={prefixedClassNames(classPrefix, 'modal-background')}
