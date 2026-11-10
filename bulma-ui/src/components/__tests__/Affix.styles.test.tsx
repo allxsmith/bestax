@@ -63,12 +63,17 @@ describe('Affix styles', () => {
     expect(css).not.toContain('block-spacing');
   });
 
-  it('fixes it at that z-index, never wider than the viewport less both offsets and safe areas', () => {
+  // While an overlay locks the page, the window's edges take back the room
+  // the page's scrollbar had, and the lock sets it on <html>; with no lock
+  // each falls back to 0.
+  const lockLeft = 'var(--bulma-scroll-lock-offset-left, 0px)';
+  const lockRight = 'var(--bulma-scroll-lock-offset-right, 0px)';
+
+  it('fixes it at that z-index, never wider than the viewport less both offsets, safe areas and the scrollbar’s room', () => {
     expect(PLAIN.get('.affix')).toMatchObject({
       position: 'fixed',
       'z-index': 'var(--bulma-affix-z-index)',
-      'max-width':
-        'calc(100% - 2 * var(--bulma-affix-offset-horizontal) - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))',
+      'max-width': `calc(100% - 2 * var(--bulma-affix-offset-horizontal) - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - ${lockLeft} - ${lockRight})`,
     });
   });
 
@@ -76,10 +81,8 @@ describe('Affix styles', () => {
     'calc(var(--bulma-affix-offset-vertical) + env(safe-area-inset-top, 0px))';
   const bottom =
     'calc(var(--bulma-affix-offset-vertical) + env(safe-area-inset-bottom, 0px))';
-  const right =
-    'calc(var(--bulma-affix-offset-horizontal) + env(safe-area-inset-right, 0px))';
-  const left =
-    'calc(var(--bulma-affix-offset-horizontal) + env(safe-area-inset-left, 0px))';
+  const right = `calc(var(--bulma-affix-offset-horizontal) + env(safe-area-inset-right, 0px) + ${lockRight})`;
+  const left = `calc(var(--bulma-affix-offset-horizontal) + env(safe-area-inset-left, 0px) + ${lockLeft})`;
 
   it.each([
     ['top-right', { top, right }],
@@ -87,7 +90,7 @@ describe('Affix styles', () => {
     ['bottom-right', { bottom, right }],
     ['bottom-left', { bottom, left }],
   ])(
-    'places the %s corner by its offsets plus that edge’s safe-area inset',
+    'places the %s corner by its offsets plus that edge’s safe-area inset and the room a scroll lock gives back there',
     (name, insets) => {
       // Only the two edges of its corner, so the box stays as wide and as
       // tall as its content.

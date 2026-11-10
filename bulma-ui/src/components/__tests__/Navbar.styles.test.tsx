@@ -252,23 +252,89 @@ describe('the burger bars on a forced-colors page', () => {
   });
 });
 
+// While an overlay locks the page, the window takes back the room the page's
+// scrollbar had and the lock sets it on <html>, so a fixed navbar takes it as
+// margins to stay over the page. With no lock each falls back to 0.
+const LOCK_MARGINS = {
+  'margin-left': 'var(--bulma-scroll-lock-offset-left, 0px)',
+  'margin-right': 'var(--bulma-scroll-lock-offset-right, 0px)',
+};
+
+/** The navbar `Navbar` renders, fixed to `fixed`. */
+function fixedNavbarOf(prefix: string, fixed: 'top' | 'bottom') {
+  const { getByRole } = render(
+    <ConfigProvider classPrefix={prefix}>
+      <Navbar aria-label="Site" fixed={fixed} />
+    </ConfigProvider>
+  );
+  return getByRole('navigation');
+}
+
+/** Every rule of `css` that sets a margin on `el`, in any block. */
+const marginRulesOn = (css: string, el: Element) =>
+  rulesOf(css).filter(
+    rule =>
+      Object.keys(rule.declarations).some(name => name.startsWith('margin')) &&
+      rule.selector.split(/,(?![^(]*\))/).some(part => matches(el, part.trim()))
+  );
+
 describe('the Navbar partial', () => {
   it.each([
     ['no prefix', ''],
     ['a class prefix', 'bestax-'],
   ])(
-    'changes nothing outside forced colors, with %s, and names only prefixed classes',
+    'keeps the burger in forced colors and a fixed navbar’s lock margins at no weight, with %s, naming only prefixed classes',
     (_label, prefix) => {
       const rules = rulesOf(compile(prefix));
       expect(rules.map(rule => [rule.selector, rule.context])).toEqual([
         [`.${prefix}navbar-burger.${prefix}navbar-burger span`, [FORCED]],
+        [
+          `:where(.${prefix}navbar.${prefix}is-fixed-top, .${prefix}navbar.${prefix}is-fixed-bottom)`,
+          [],
+        ],
       ]);
       expect(rules[0].declarations).toEqual({
         'forced-color-adjust': 'none',
         'background-color': 'ButtonText',
       });
+      expect(rules[1].declarations).toEqual(LOCK_MARGINS);
     }
   );
+
+  describe.each([
+    ['no prefix', '', 'bulma.css'],
+    ['a class prefix', 'bulma-', 'versions/bulma-prefixed.css'],
+  ])('with %s', (_label, prefix, bulmaFile) => {
+    it.each(['top', 'bottom'] as const)(
+      'gives a navbar fixed to the %s the lock’s margins, which nothing in Bulma sets',
+      fixed => {
+        // So `:where()`, which keeps the margins under anything an app
+        // writes, still holds them wherever Bulma's sheet loads.
+        const nav = fixedNavbarOf(prefix, fixed);
+        const rules = marginRulesOn(bulmaCss(bulmaFile) + compile(prefix), nav);
+        expect(rules.map(rule => [rule.selector, rule.context])).toEqual([
+          [
+            `:where(.${prefix}navbar.${prefix}is-fixed-top, .${prefix}navbar.${prefix}is-fixed-bottom)`,
+            [],
+          ],
+        ]);
+      }
+    );
+
+    it('leaves a navbar that isn’t fixed alone', () => {
+      const { getByRole } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Navbar aria-label="Site" />
+        </ConfigProvider>
+      );
+      expect(
+        marginRulesOn(
+          bulmaCss(bulmaFile) + compile(prefix),
+          getByRole('navigation')
+        )
+      ).toEqual([]);
+    });
+  });
 
   it('is in the components index, so bestax.css and extras.css carry it', () => {
     const index = fs.readFileSync(

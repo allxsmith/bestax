@@ -171,7 +171,7 @@
           "name": "lockScroll",
           "type": "boolean",
           "default": "true",
-          "description": "Lock page scroll while the modal is active, padding the page by the room its scrollbar took so the content stays put. An element fixed to the window's right edge, such as a `fixed` Navbar, isn't padded, and moves by the scrollbar's width while the page is locked. Ref-counted and shared with `Dialog`, `Sidebar` and `Loading`, so whichever overlay closes first does not unlock the page underneath one that is still open.",
+          "description": "Lock page scroll while the modal is active, padding the page by the room its scrollbar took so the content stays put. A `fixed` Navbar, the toast and notification stacks and an Affix stay put too. The padding doesn't reach an element of your own fixed to the window's edge, which moves by the scrollbar's width unless it adds `var(--bulma-scroll-lock-offset-right, 0px)` to its `right` (the `-left` one to its `left`), which the lock sets on `<html>` while it's on. Ref-counted and shared with `Dialog`, `Sidebar` and `Loading`, so whichever overlay closes first does not unlock the page underneath one that is still open.",
           "required": false,
           "inherited": false,
           "deprecated": false
