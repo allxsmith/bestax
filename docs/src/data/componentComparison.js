@@ -8,7 +8,7 @@
 // · 0 = none. Row order is fixed (see the header comment on `categories`); the display
 // order is controlled by `libs[].idx`.
 
-export const lastReviewed = '2026-11-06';
+export const lastReviewed = '2026-11-10';
 
 // ---------------------------------------------------------------------------
 // Link resolvers — bestax links are internal (validated by the production build's
@@ -58,6 +58,7 @@ const BESTAX = {
   Span: 'elements/span',
   Stat: 'elements/stat',
   'Stat / Stats': 'elements/stat',
+  'Input (phone with country code example)': 'form/input#select--input--button',
   Stats: 'elements/stats',
   Strong: 'elements/strong',
   SubTitle: 'elements/subtitle',
@@ -197,6 +198,10 @@ const MANTINE = {
   Calendar: 'dates/calendar',
   MonthPicker: 'dates/month-picker',
   YearPicker: 'dates/year-picker',
+  WeekPicker: 'dates/week-picker',
+  QuarterPicker: 'dates/quarter-picker',
+  EmojiPicker: 'emoji/emoji-picker',
+  Diff: 'code-highlight/diff',
   Notifications: 'x/notifications',
   Carousel: 'x/carousel',
   Spotlight: 'x/spotlight',
@@ -319,6 +324,8 @@ const MUI = {
   'ThemeProvider defaultProps':
     'https://mui.com/material-ui/customization/theme-components/#theme-default-props',
   'ThemeProvider direction': 'material-ui/customization/right-to-left',
+  'DateCalendar (week picker demo)':
+    'https://mui.com/x/react-date-pickers/date-calendar/#week-picker',
 };
 const muiHref = name => {
   const v = MUI[name];
@@ -351,6 +358,10 @@ const CHAKRA = {
   // A capability Chakra documents as an example rather than a component.
   'TagsInput + Combobox':
     'https://chakra-ui.com/docs/components/tags-input#combobox',
+  'Listbox (emoji grid demo)':
+    'https://chakra-ui.com/docs/components/listbox#emoji-grid',
+  'CodeBlock (diff lines)':
+    'https://chakra-ui.com/docs/components/code-block#diff',
   // Exported from @chakra-ui/react without a docs page; link the source.
   Toggle:
     'https://github.com/chakra-ui/chakra-ui/tree/main/packages/react/src/components/toggle',
@@ -384,6 +395,7 @@ const SHADCN = {
   Typography: 'https://ui.shadcn.com/docs/typeset',
   ThemeProvider: 'https://ui.shadcn.com/docs/dark-mode',
   cn: 'https://ui.shadcn.com/docs/installation/manual#add-a-cn-helper',
+  'CodeBlock (diff lines)': 'code-block#diff',
 };
 const shadcnHref = name => {
   const v = SHADCN[name];
@@ -458,6 +470,59 @@ const rbHref = name =>
 // react-bulma-components: per-component Storybook deep links are unstable.
 const rbulmaHref = () => 'https://react-bulma.dev/';
 
+// Ant Design: components/<kebab>/ for `antd`; sub-components and docs demos go
+// to the demo's anchor on their parent's page, and the companion packages
+// (@ant-design/x, @ant-design/charts) have sites of their own.
+const ANTD = {
+  'Row / Col': 'grid/',
+  Col: 'grid/',
+  'Space.Compact': 'space/#space-demo-compact-buttons',
+  'Space.Compact + Dropdown': 'dropdown/#dropdown-demo-dropdown-button',
+  'Space.Compact / Space.Addon': 'input/#input-demo-compact-style',
+  'Input.TextArea': 'input/#input-demo-textarea',
+  'Input.Password': 'input/#input-demo-password-input',
+  'Input.OTP': 'input/#input-demo-otp',
+  'Checkbox.Group': 'checkbox/#checkbox-demo-group',
+  'Radio.Group': 'radio/#radio-demo-radiogroup',
+  'DatePicker.RangePicker': 'date-picker/#date-picker-demo-range-picker',
+  'FloatButton.Group': 'float-button/#float-button-demo-group-menu',
+  'Avatar.Group': 'avatar/#avatar-demo-group',
+  'Tag.CheckableTag': 'tag/#tag-demo-checkable',
+  'Card.Meta': 'card/#card-demo-meta',
+  'Image.PreviewGroup': 'image/#image-demo-preview-group',
+  'Upload.Dragger': 'upload/#upload-demo-drag',
+  'Modal.confirm': 'modal/#modal-demo-confirm',
+  'Layout.Header + Menu': 'layout/#layout-demo-top',
+  'Layout.Footer': 'layout/#layout-demo-top',
+  'Layout.Sider': 'layout/#layout-demo-responsive',
+  'Typography.Text': 'typography/#typography-demo-text',
+  'Typography.Text / Paragraph': 'typography/#typography-demo-text',
+  'Typography.Link': 'typography/#typography-demo-text',
+  'Typography.Title': 'typography/#typography-demo-title',
+  'Typography.Paragraph': 'typography/#typography-demo-ellipsis-controlled',
+  'message / notification': 'message/',
+  // Capabilities Ant Design documents as a prop or a demo, not a component.
+  'Typography (copyable)': 'typography/#typography-demo-copyable',
+  'Table (selection and operation demo)':
+    'table/#table-demo-row-selection-and-operation',
+  'Masonry (image demo)': 'masonry/#masonry-demo-image',
+  'Input + Select (registration demo)': 'form/#form-demo-register',
+  'reset.css':
+    'https://ant.design/docs/react/compatible-style/#resetcss-and-antdcss',
+  // Official companion packages.
+  'Bubble / Sender': 'https://x.ant.design/components/bubble/',
+  ThoughtChain: 'https://x.ant.design/components/thought-chain/',
+  CodeHighlighter: 'https://x.ant.design/components/code-highlighter/',
+  '@ant-design/charts':
+    'https://ant-design-charts.antgroup.com/en/components/plots/overview',
+  Gauge: 'https://ant-design-charts.antgroup.com/en/examples/statistics/gauge/',
+};
+const antdHref = name => {
+  const v = ANTD[name];
+  if (v?.startsWith('https://')) return v;
+  return `https://ant.design/components/${v ?? `${kebab(name)}/`}`;
+};
+
 // ---------------------------------------------------------------------------
 // Libraries (display order left→right) + their index into each row.
 // ---------------------------------------------------------------------------
@@ -496,6 +561,14 @@ export const libs = [
     title: 'MUI',
     color: '#1e88e5',
     resolve: muiHref,
+  },
+  {
+    id: 'antd',
+    idx: 8,
+    label: 'Ant',
+    title: 'Ant Design',
+    color: '#f5222d',
+    resolve: antdHref,
   },
   {
     id: 'chakra',
@@ -608,13 +681,14 @@ export const notes = [
 
 // ---------------------------------------------------------------------------
 // The matrix. row = [capability, bestax, Mantine, ReactBootstrap, MUI,
-//                    react-bulma-components, Chakra, shadcn]
+//                    react-bulma-components, Chakra, shadcn, Ant Design]
 // ---------------------------------------------------------------------------
 export const categories = [
   {
     heading: 'Buttons & actions',
     rows: [
       [
+        'Button',
         'Button',
         'Button',
         'Button',
@@ -633,6 +707,7 @@ export const categories = [
         'Button.Group',
         'ButtonGroup',
         'ButtonGroup',
+        'Space.Compact',
       ],
       [
         'Toolbar',
@@ -643,6 +718,7 @@ export const categories = [
         '~Level',
         '~ButtonGroup',
         '~ButtonGroup',
+        '~Space',
       ],
       [
         'Icon button',
@@ -652,6 +728,7 @@ export const categories = [
         'IconButton',
         '~Button',
         'IconButton',
+        '~Button',
         '~Button',
       ],
       [
@@ -663,6 +740,7 @@ export const categories = [
         '~Button',
         'CloseButton',
         '~Button',
+        '~Button',
       ],
       [
         'Copy button',
@@ -673,6 +751,7 @@ export const categories = [
         0,
         'Clipboard',
         '~InputGroup',
+        '~Typography (copyable)',
       ],
       [
         'File-trigger button',
@@ -683,6 +762,7 @@ export const categories = [
         '~Form.InputFile',
         'FileUpload.Trigger',
         0,
+        '~Upload',
       ],
       [
         'Toggle button',
@@ -693,6 +773,7 @@ export const categories = [
         '~Button',
         'Toggle',
         'Toggle',
+        '~Tag.CheckableTag',
       ],
       [
         'Segmented / toggle group',
@@ -703,6 +784,7 @@ export const categories = [
         '~Button.Group',
         'SegmentGroup',
         'ToggleGroup',
+        'Segmented',
       ],
       [
         'Split button',
@@ -713,6 +795,7 @@ export const categories = [
         0,
         '~Button + Menu',
         '~ButtonGroup',
+        '~Space.Compact + Dropdown',
       ],
       [
         'Floating action button',
@@ -723,8 +806,9 @@ export const categories = [
         0,
         0,
         0,
+        'FloatButton',
       ],
-      ['Speed dial', 0, 0, 0, 'SpeedDial', 0, 0, 0],
+      ['Speed dial', 0, 0, 0, 'SpeedDial', 0, 0, 0, 'FloatButton.Group'],
       [
         'Action bar (bulk actions)',
         0,
@@ -734,10 +818,12 @@ export const categories = [
         0,
         'ActionBar',
         0,
+        '~Table (selection and operation demo)',
       ],
       [
         'Link-styled button',
         'LinkButton',
+        '~Button',
         '~Button',
         '~Button',
         '~Button',
@@ -759,6 +845,7 @@ export const categories = [
         'Form.Input',
         'Input',
         'Input',
+        'Input',
       ],
       [
         'Textarea',
@@ -769,6 +856,7 @@ export const categories = [
         'Form.Textarea',
         'Textarea',
         'Textarea',
+        'Input.TextArea',
       ],
       [
         'Number input (steppers)',
@@ -779,6 +867,7 @@ export const categories = [
         0,
         'NumberInput',
         0,
+        'InputNumber',
       ],
       [
         'Password input',
@@ -789,6 +878,7 @@ export const categories = [
         0,
         'PasswordInput',
         0,
+        'Input.Password',
       ],
       [
         'Checkbox',
@@ -797,6 +887,7 @@ export const categories = [
         'Form.Check',
         'Checkbox',
         'Form.Checkbox',
+        'Checkbox',
         'Checkbox',
         'Checkbox',
       ],
@@ -809,6 +900,7 @@ export const categories = [
         0,
         'Checkbox.Group',
         '~Checkbox',
+        'Checkbox.Group',
       ],
       [
         'Radio',
@@ -819,6 +911,7 @@ export const categories = [
         'Form.Radio',
         'RadioGroup',
         'RadioGroup',
+        'Radio',
       ],
       [
         'Radio group',
@@ -829,6 +922,7 @@ export const categories = [
         0,
         'RadioGroup',
         'RadioGroup',
+        'Radio.Group',
       ],
       [
         'Selectable card (checkbox / radio)',
@@ -839,6 +933,7 @@ export const categories = [
         0,
         'CheckboxCard / RadioCard',
         '~Field',
+        0,
       ],
       [
         'Switch',
@@ -849,6 +944,7 @@ export const categories = [
         0,
         'Switch',
         'Switch',
+        'Switch',
       ],
       [
         'Select',
@@ -857,6 +953,7 @@ export const categories = [
         'Form.Select',
         'Select',
         'Form.Select',
+        'Select',
         'Select',
         'Select',
       ],
@@ -869,6 +966,7 @@ export const categories = [
         '~Form.Select',
         '~Select',
         '~Combobox',
+        '~Select',
       ],
       [
         'Autocomplete',
@@ -879,6 +977,7 @@ export const categories = [
         0,
         'Combobox',
         'Combobox',
+        'AutoComplete',
       ],
       [
         'Combobox (headless)',
@@ -889,8 +988,9 @@ export const categories = [
         0,
         'Combobox',
         'Combobox',
+        0,
       ],
-      ['Cascader (nested select)', 0, 'Cascader', 0, 0, 0, 0, 0],
+      ['Cascader (nested select)', 0, 'Cascader', 0, 0, 0, 0, 0, 'Cascader'],
       [
         'Tag / token input',
         'Taginput',
@@ -900,6 +1000,7 @@ export const categories = [
         0,
         'TagsInput',
         0,
+        '~Select',
       ],
       [
         'Pills input (multi-value)',
@@ -910,6 +1011,7 @@ export const categories = [
         0,
         '~TagsInput + Combobox',
         '~Combobox',
+        '~Select',
       ],
       [
         'PIN / OTP input',
@@ -920,9 +1022,22 @@ export const categories = [
         0,
         'PinInput',
         'InputOTP',
+        'Input.OTP',
       ],
-      ['JSON input', 0, 'JsonInput', 0, 0, 0, 0, 0],
-      ['Masked input', 0, 'MaskInput', 0, 0, 0, 0, 0],
+      ['JSON input', 0, 'JsonInput', 0, 0, 0, 0, 0, 0],
+      ['Masked input', 0, 'MaskInput', 0, 0, 0, 0, 0, 0],
+      ['Mentions (@ input)', 0, 'Mentions', 0, 0, 0, 0, 0, 'Mentions'],
+      [
+        'Phone input',
+        '~Input (phone with country code example)',
+        'PhoneInput',
+        0,
+        0,
+        0,
+        0,
+        0,
+        '~Input + Select (registration demo)',
+      ],
       [
         'Slider',
         'Slider',
@@ -930,6 +1045,7 @@ export const categories = [
         'Form.Range',
         'Slider',
         0,
+        'Slider',
         'Slider',
         'Slider',
       ],
@@ -942,9 +1058,10 @@ export const categories = [
         0,
         '~Slider',
         '~Slider',
+        '~Slider',
       ],
-      ['Angle slider', 0, 'AngleSlider', 0, 0, 0, 0, 0],
-      ['Rating', 'Rate', 'Rating', 0, 'Rating', 0, 'RatingGroup', 0],
+      ['Angle slider', 0, 'AngleSlider', 0, 0, 0, 0, 0, 0],
+      ['Rating', 'Rate', 'Rating', 0, 'Rating', 0, 'RatingGroup', 0, 'Rate'],
       [
         'Color input',
         'ColorInput',
@@ -954,6 +1071,7 @@ export const categories = [
         0,
         'ColorPicker',
         0,
+        '~ColorPicker',
       ],
       [
         'Color picker (palette)',
@@ -964,6 +1082,7 @@ export const categories = [
         0,
         'ColorPicker',
         0,
+        'ColorPicker',
       ],
       [
         'File input',
@@ -974,6 +1093,7 @@ export const categories = [
         'Form.InputFile',
         'FileUpload',
         '~Input',
+        'Upload',
       ],
       [
         'Fieldset',
@@ -984,6 +1104,7 @@ export const categories = [
         0,
         'Fieldset',
         'FieldSet',
+        '~Form.Item',
       ],
       [
         'Field (label+control+error)',
@@ -994,6 +1115,7 @@ export const categories = [
         'Form.Field',
         'Field',
         'Field',
+        'Form.Item',
       ],
       [
         'Input addons / adornments',
@@ -1004,6 +1126,7 @@ export const categories = [
         'Form.Control',
         'InputAddon',
         'InputGroup',
+        'Space.Compact / Space.Addon',
       ],
       [
         'Floating label',
@@ -1013,6 +1136,7 @@ export const categories = [
         '~TextField',
         0,
         '~Input',
+        0,
         0,
       ],
     ],
@@ -1029,6 +1153,7 @@ export const categories = [
         0,
         'DateInput',
         '~DatePicker',
+        'DatePicker',
       ],
       [
         'Date picker (popover)',
@@ -1039,6 +1164,7 @@ export const categories = [
         0,
         'DatePicker',
         '~DatePicker',
+        'DatePicker',
       ],
       [
         'Date range picker',
@@ -1049,6 +1175,7 @@ export const categories = [
         0,
         '~DatePicker',
         '~DatePicker',
+        'DatePicker.RangePicker',
       ],
       [
         'Date-time picker',
@@ -1057,6 +1184,7 @@ export const categories = [
         0,
         'DateTimePicker',
         0,
+        '~DatePicker',
         '~DatePicker',
         '~DatePicker',
       ],
@@ -1069,6 +1197,7 @@ export const categories = [
         0,
         '~DateInput',
         '~Input',
+        'TimePicker',
       ],
       [
         'Calendar (inline)',
@@ -1078,6 +1207,7 @@ export const categories = [
         'DateCalendar',
         0,
         '~Calendar',
+        'Calendar',
         'Calendar',
       ],
       [
@@ -1089,6 +1219,7 @@ export const categories = [
         0,
         '~DatePicker',
         0,
+        '~DatePicker',
       ],
       [
         'Year picker',
@@ -1099,7 +1230,20 @@ export const categories = [
         0,
         '~DatePicker',
         0,
+        '~DatePicker',
       ],
+      [
+        'Week picker',
+        0,
+        'WeekPicker',
+        0,
+        '~DateCalendar (week picker demo)',
+        0,
+        0,
+        0,
+        '~DatePicker',
+      ],
+      ['Quarter picker', 0, 'QuarterPicker', 0, 0, 0, 0, 0, '~DatePicker'],
       [
         'Event calendar / scheduler',
         0,
@@ -1109,6 +1253,7 @@ export const categories = [
         0,
         0,
         0,
+        '~Calendar',
       ],
     ],
   },
@@ -1124,6 +1269,7 @@ export const categories = [
         'Navbar',
         0,
         '~NavigationMenu',
+        '~Layout.Header + Menu',
       ],
       [
         'App shell (layout frame)',
@@ -1134,6 +1280,7 @@ export const categories = [
         0,
         0,
         '~Sidebar',
+        'Layout',
       ],
       [
         'Breadcrumb',
@@ -1141,6 +1288,7 @@ export const categories = [
         'Breadcrumbs',
         'Breadcrumb',
         'Breadcrumbs',
+        'Breadcrumb',
         'Breadcrumb',
         'Breadcrumb',
         'Breadcrumb',
@@ -1154,6 +1302,7 @@ export const categories = [
         0,
         'Link',
         '~Button',
+        'Typography.Link',
       ],
       [
         'Menu (vertical nav)',
@@ -1164,6 +1313,7 @@ export const categories = [
         'Menu',
         '~TreeView',
         'Sidebar',
+        'Menu',
       ],
       [
         'Dropdown menu (actions)',
@@ -1174,6 +1324,7 @@ export const categories = [
         'Dropdown',
         'Menu',
         'DropdownMenu',
+        'Dropdown',
       ],
       [
         'Context menu (right-click)',
@@ -1184,6 +1335,7 @@ export const categories = [
         0,
         'Menu.ContextTrigger',
         'ContextMenu',
+        '~Dropdown',
       ],
       [
         'Menubar (desktop app menu)',
@@ -1194,6 +1346,7 @@ export const categories = [
         0,
         0,
         'Menubar',
+        0,
       ],
       [
         'Pagination',
@@ -1204,9 +1357,20 @@ export const categories = [
         'Pagination',
         'Pagination',
         'Pagination',
+        'Pagination',
       ],
-      ['Stepper / steps', 'Steps', 'Stepper', 0, 'Stepper', 0, 'Steps', 0],
-      ['Tabs', 'Tabs', 'Tabs', 'Tabs', 'Tabs', 'Tabs', 'Tabs', 'Tabs'],
+      [
+        'Stepper / steps',
+        'Steps',
+        'Stepper',
+        0,
+        'Stepper',
+        0,
+        'Steps',
+        0,
+        'Steps',
+      ],
+      ['Tabs', 'Tabs', 'Tabs', 'Tabs', 'Tabs', 'Tabs', 'Tabs', 'Tabs', 'Tabs'],
       [
         'Bottom navigation',
         '~Navbar',
@@ -1214,6 +1378,7 @@ export const categories = [
         '~Navbar',
         'BottomNavigation',
         '~Navbar',
+        0,
         0,
         0,
       ],
@@ -1226,6 +1391,7 @@ export const categories = [
         'Navbar.Burger',
         0,
         '~SidebarTrigger',
+        '~Layout.Sider',
       ],
       [
         'Table of contents',
@@ -1236,6 +1402,7 @@ export const categories = [
         0,
         0,
         0,
+        'Anchor',
       ],
       [
         'Command palette / spotlight',
@@ -1246,8 +1413,9 @@ export const categories = [
         0,
         'Command',
         'Command',
+        0,
       ],
-      ['Route progress bar', 0, 'NavigationProgress', 0, 0, 0, 0, 0],
+      ['Route progress bar', 0, 'NavigationProgress', 0, 0, 0, 0, 0, 0],
     ],
   },
   {
@@ -1262,6 +1430,7 @@ export const categories = [
         'Container',
         'Container',
         0,
+        0,
       ],
       [
         'Grid — flex 12-col',
@@ -1272,8 +1441,9 @@ export const categories = [
         'Columns',
         '~SimpleGrid',
         0,
+        'Row / Col',
       ],
-      ['Grid — CSS grid', 'Grid', 'SimpleGrid', 0, '~Box', 0, 'Grid', 0],
+      ['Grid — CSS grid', 'Grid', 'SimpleGrid', 0, '~Box', 0, 'Grid', 0, 0],
       [
         'Grid cell',
         'Cell',
@@ -1283,6 +1453,7 @@ export const categories = [
         'Columns.Column',
         'GridItem',
         0,
+        'Col',
       ],
       [
         'Stack (vertical)',
@@ -1293,6 +1464,7 @@ export const categories = [
         '~Block',
         'Stack',
         0,
+        '~Space',
       ],
       [
         'Group (horizontal)',
@@ -1303,10 +1475,11 @@ export const categories = [
         '~Element',
         'HStack',
         0,
+        'Space',
       ],
-      ['Flex', 'Flex', 'Flex', 0, '~Box', '~Element', 'Flex', 0],
-      ['Center', 'Center', 'Center', 0, 0, '~Element', 'Center', 0],
-      ['Spacer', '~Block', 'Space', 0, 0, '~Block', 'Spacer', 0],
+      ['Flex', 'Flex', 'Flex', 0, '~Box', '~Element', 'Flex', 0, 'Flex'],
+      ['Center', 'Center', 'Center', 0, 0, '~Element', 'Center', 0, '~Flex'],
+      ['Spacer', '~Block', 'Space', 0, 0, '~Block', 'Spacer', 0, '~Space'],
       [
         'Aspect ratio',
         '~aspectRatio',
@@ -1316,6 +1489,7 @@ export const categories = [
         '~Image',
         'AspectRatio',
         'AspectRatio',
+        0,
       ],
       [
         'Scroll area (custom bars)',
@@ -1326,6 +1500,7 @@ export const categories = [
         0,
         'ScrollArea',
         'ScrollArea',
+        0,
       ],
       [
         'Splitter (resizable)',
@@ -1336,6 +1511,7 @@ export const categories = [
         0,
         'Splitter',
         'Resizable',
+        'Splitter',
       ],
       [
         'Affix (fixed or sticky)',
@@ -1346,9 +1522,10 @@ export const categories = [
         0,
         'Sticky',
         0,
+        'Affix',
       ],
-      ['Section', 'Section', 0, 0, 0, 'Section', 0, 0],
-      ['Hero / banner', 'Hero', 0, 0, 0, 'Hero', 0, 0],
+      ['Section', 'Section', 0, 0, 0, 'Section', 0, 0, 0],
+      ['Hero / banner', 'Hero', 0, 0, 0, 'Hero', 0, 0, 0],
       [
         'Level (space-between bar)',
         'Level',
@@ -1358,6 +1535,7 @@ export const categories = [
         'Level',
         '~Flex',
         0,
+        '~Flex',
       ],
       [
         'Media object',
@@ -1368,6 +1546,7 @@ export const categories = [
         'Media',
         0,
         'Item',
+        '~Card.Meta',
       ],
       [
         'Tile (Bulma grid tile)',
@@ -1378,8 +1557,9 @@ export const categories = [
         'Tile',
         '~Grid',
         0,
+        '~Row / Col',
       ],
-      ['Footer', 'Footer', '~AppShell', 0, 0, 'Footer', 0, 0],
+      ['Footer', 'Footer', '~AppShell', 0, 0, 'Footer', 0, 0, '~Layout.Footer'],
       [
         'Styling primitive (unstyled, any tag)',
         0,
@@ -1388,6 +1568,7 @@ export const categories = [
         'Box',
         'Element',
         'Box',
+        0,
         0,
       ],
       [
@@ -1399,13 +1580,24 @@ export const categories = [
         'Box',
         '~Box',
         '~Card',
+        '~Card',
       ],
     ],
   },
   {
     heading: 'Data display',
     rows: [
-      ['Avatar', 'Avatar', 'Avatar', 0, 'Avatar', 0, 'Avatar', 'Avatar'],
+      [
+        'Avatar',
+        'Avatar',
+        'Avatar',
+        0,
+        'Avatar',
+        0,
+        'Avatar',
+        'Avatar',
+        'Avatar',
+      ],
       [
         'Avatar group',
         'Avatars',
@@ -1415,6 +1607,7 @@ export const categories = [
         0,
         'AvatarGroup',
         'AvatarGroup',
+        'Avatar.Group',
       ],
       [
         'Badge (corner indicator)',
@@ -1425,6 +1618,7 @@ export const categories = [
         0,
         '~Float',
         '~AvatarBadge',
+        'Badge',
       ],
       [
         'Tag / label',
@@ -1435,6 +1629,7 @@ export const categories = [
         'Tag',
         'Tag',
         'Badge',
+        'Tag',
       ],
       [
         'Chip (deletable / interactive)',
@@ -1445,10 +1640,12 @@ export const categories = [
         '~Tag',
         'Tag',
         '~Combobox',
+        'Tag.CheckableTag',
       ],
-      ['Card', 'Card', 'Card', 'Card', 'Card', 'Card', 'Card', 'Card'],
+      ['Card', 'Card', 'Card', 'Card', 'Card', 'Card', 'Card', 'Card', 'Card'],
       [
         'Table (static)',
+        'Table',
         'Table',
         'Table',
         'Table',
@@ -1466,6 +1663,7 @@ export const categories = [
         0,
         '~Table',
         '~DataTable',
+        'Table',
       ],
       [
         'Description / data list',
@@ -1476,6 +1674,7 @@ export const categories = [
         0,
         'DataList',
         '~Typeset',
+        'Descriptions',
       ],
       [
         'List (styled)',
@@ -1486,6 +1685,7 @@ export const categories = [
         '~Content',
         'List',
         '~Item',
+        'Listy',
       ],
       [
         'Tree view',
@@ -1496,12 +1696,33 @@ export const categories = [
         0,
         'TreeView',
         '~Collapsible',
+        'Tree',
       ],
-      ['Tree select', 'TreeSelect', 'TreeSelect', 0, 0, 0, 0, 0],
-      ['JSON viewer', 0, 'JsonViewer', 0, 0, 0, 0, 0],
-      ['Timeline', 'Timeline', 'Timeline', 0, 'Timeline', 0, 'Timeline', 0],
-      ['Agent trace', 0, 0, 0, 0, 0, 0, 'Trace'],
-      ['Kbd (keyboard key)', 'Kbd', 'Kbd', 0, 0, 0, 'Kbd', 'Kbd'],
+      ['Tree select', 'TreeSelect', 'TreeSelect', 0, 0, 0, 0, 0, 'TreeSelect'],
+      ['JSON viewer', 0, 'JsonViewer', 0, 0, 0, 0, 0, 0],
+      [
+        'Timeline',
+        'Timeline',
+        'Timeline',
+        0,
+        'Timeline',
+        0,
+        'Timeline',
+        0,
+        'Timeline',
+      ],
+      ['Agent trace', 0, 0, 0, 0, 0, 0, 'Trace', 'ThoughtChain'],
+      [
+        'Kbd (keyboard key)',
+        'Kbd',
+        'Kbd',
+        0,
+        0,
+        0,
+        'Kbd',
+        'Kbd',
+        '~Typography.Text',
+      ],
       [
         'Number formatter',
         'NumberFormatter',
@@ -1511,11 +1732,42 @@ export const categories = [
         0,
         'FormatNumber',
         0,
+        '~Statistic',
       ],
-      ['Rolling number', 0, 'RollingNumber', 0, 0, 0, 0, 0],
-      ['Stat (label and figure)', 'Stat / Stats', 0, 0, 0, 0, 'Stat', 0],
-      ['Image', 'Image', 'Image', 'Image', '~CardMedia', 'Image', 'Image', 0],
-      ['Image list / gallery', 0, 0, 0, 'ImageList', 0, 0, 0],
+      ['Rolling number', 0, 'RollingNumber', 0, 0, 0, 0, 0, 0],
+      [
+        'Stat (label and figure)',
+        'Stat / Stats',
+        0,
+        0,
+        0,
+        0,
+        'Stat',
+        0,
+        'Statistic',
+      ],
+      [
+        'Image',
+        'Image',
+        'Image',
+        'Image',
+        '~CardMedia',
+        'Image',
+        'Image',
+        0,
+        'Image',
+      ],
+      [
+        'Image list / gallery',
+        0,
+        0,
+        0,
+        'ImageList',
+        0,
+        0,
+        0,
+        '~Masonry (image demo)',
+      ],
       [
         'Lightbox (media viewer)',
         'Lightbox',
@@ -1525,10 +1777,31 @@ export const categories = [
         0,
         '~Carousel',
         0,
+        'Image.PreviewGroup',
       ],
-      ['Background image', 0, 'BackgroundImage', 0, '~CardMedia', 0, '~Box', 0],
-      ['Figure', 'Figure', 0, 'Figure', 0, 0, 0, '~Typeset'],
-      ['Icon', 'Icon / IconText', '~ThemeIcon', 0, 'Icon', 'Icon', 'Icon', 0],
+      [
+        'Background image',
+        0,
+        'BackgroundImage',
+        0,
+        '~CardMedia',
+        0,
+        '~Box',
+        0,
+        0,
+      ],
+      ['Figure', 'Figure', 0, 'Figure', 0, 0, 0, '~Typeset', 0],
+      [
+        'Icon',
+        'Icon / IconText',
+        '~ThemeIcon',
+        0,
+        'Icon',
+        'Icon',
+        'Icon',
+        0,
+        'Icon',
+      ],
       [
         'Theme icon (colored container)',
         '~Icon',
@@ -1538,8 +1811,19 @@ export const categories = [
         0,
         '~Square',
         0,
+        '~Avatar',
       ],
-      ['Color swatch', 'ColorSwatch', 'ColorSwatch', 0, 0, 0, 'ColorSwatch', 0],
+      [
+        'Color swatch',
+        'ColorSwatch',
+        'ColorSwatch',
+        0,
+        0,
+        0,
+        'ColorSwatch',
+        0,
+        0,
+      ],
       [
         'Carousel',
         'Carousel',
@@ -1549,8 +1833,9 @@ export const categories = [
         0,
         'Carousel',
         'Carousel',
+        'Carousel',
       ],
-      ['Marquee / ticker', 0, 'Marquee', 0, 0, 0, 'Marquee', 0],
+      ['Marquee / ticker', 0, 'Marquee', 0, 0, 0, 'Marquee', 0, 0],
       [
         'Charts',
         0,
@@ -1560,6 +1845,7 @@ export const categories = [
         0,
         '@chakra-ui/charts',
         'Chart',
+        '@ant-design/charts',
       ],
       [
         'Spoiler (clamp / expand)',
@@ -1570,8 +1856,9 @@ export const categories = [
         0,
         '~Collapsible',
         '~Collapsible',
+        '~Typography.Paragraph',
       ],
-      ['Masonry layout', 0, 0, 0, 'Masonry', 0, 0, 0],
+      ['Masonry layout', 0, 0, 0, 'Masonry', 0, 0, 0, 'Masonry'],
     ],
   },
   {
@@ -1586,6 +1873,7 @@ export const categories = [
         '~Content',
         'Text',
         '~Typeset',
+        'Typography.Text / Paragraph',
       ],
       [
         'Heading / title',
@@ -1596,6 +1884,7 @@ export const categories = [
         'Heading',
         'Heading',
         '~Typeset',
+        'Typography.Title',
       ],
       [
         'Subtitle',
@@ -1606,8 +1895,19 @@ export const categories = [
         '~Heading',
         '~Heading',
         0,
+        '~Typography.Title',
       ],
-      ['Inline code', 'Code', 'Code', 0, 0, 0, 'Code', '~Typeset'],
+      [
+        'Inline code',
+        'Code',
+        'Code',
+        0,
+        0,
+        0,
+        'Code',
+        '~Typeset',
+        '~Typography.Text',
+      ],
       [
         'Code block (syntax highlight)',
         '~Pre',
@@ -1617,6 +1917,18 @@ export const categories = [
         0,
         'CodeBlock',
         'CodeBlock',
+        'CodeHighlighter',
+      ],
+      [
+        'Diff viewer',
+        0,
+        'Diff',
+        0,
+        0,
+        0,
+        '~CodeBlock (diff lines)',
+        '~CodeBlock (diff lines)',
+        0,
       ],
       [
         'Blockquote',
@@ -1627,6 +1939,7 @@ export const categories = [
         '~Content',
         'Blockquote',
         '~Typeset',
+        '~Typography',
       ],
       [
         'Highlight / mark text',
@@ -1637,6 +1950,7 @@ export const categories = [
         0,
         'Highlight',
         '~Typeset',
+        '~Typography.Text',
       ],
       [
         'Rich-HTML style wrapper',
@@ -1647,6 +1961,7 @@ export const categories = [
         'Content',
         'Prose',
         '~Typeset',
+        'Typography',
       ],
       [
         'Divider',
@@ -1657,6 +1972,7 @@ export const categories = [
         0,
         'Separator',
         'Separator',
+        'Divider',
       ],
       [
         'Inline semantic (em/strong/span)',
@@ -1667,6 +1983,7 @@ export const categories = [
         0,
         'Em',
         '~Typeset',
+        '~Typography.Text',
       ],
     ],
   },
@@ -1682,6 +1999,7 @@ export const categories = [
         'Message',
         'Alert',
         'Alert',
+        'Alert',
       ],
       [
         'Toast / snackbar',
@@ -1692,6 +2010,7 @@ export const categories = [
         0,
         'Toaster',
         'Toast',
+        'message / notification',
       ],
       [
         'Progress (linear)',
@@ -1699,6 +2018,7 @@ export const categories = [
         'Progress',
         'ProgressBar',
         'LinearProgress',
+        'Progress',
         'Progress',
         'Progress',
         'Progress',
@@ -1712,6 +2032,7 @@ export const categories = [
         'Loader',
         'Spinner',
         'Spinner',
+        'Spin',
       ],
       [
         'Loading overlay',
@@ -1722,6 +2043,7 @@ export const categories = [
         0,
         '~Spinner',
         0,
+        '~Spin',
       ],
       [
         'Ring / circular progress',
@@ -1732,9 +2054,20 @@ export const categories = [
         0,
         'ProgressCircle',
         0,
+        '~Progress',
       ],
-      ['Semi-circle progress', 0, 'SemiCircleProgress', 0, '~Gauge', 0, 0, 0],
-      ['Gauge', 0, 'GaugeChart', 0, 'Gauge', 0, 0, 0],
+      [
+        'Semi-circle progress',
+        0,
+        'SemiCircleProgress',
+        0,
+        '~Gauge',
+        0,
+        0,
+        0,
+        '~Progress',
+      ],
+      ['Gauge', 0, 'GaugeChart', 0, 'Gauge', 0, 0, 0, 'Gauge'],
       [
         'Skeleton',
         'Skeleton',
@@ -1742,6 +2075,7 @@ export const categories = [
         'Placeholder',
         'Skeleton',
         0,
+        'Skeleton',
         'Skeleton',
         'Skeleton',
       ],
@@ -1753,6 +2087,7 @@ export const categories = [
         0,
         0,
         'EmptyState',
+        'Empty',
         'Empty',
       ],
     ],
@@ -1769,6 +2104,7 @@ export const categories = [
         'Modal',
         'Dialog',
         'Dialog',
+        'Modal',
       ],
       [
         'Confirm / alert dialog',
@@ -1779,6 +2115,7 @@ export const categories = [
         '~Modal',
         '~Dialog',
         'AlertDialog',
+        '~Modal.confirm',
       ],
       [
         'Drawer / off-canvas',
@@ -1789,8 +2126,9 @@ export const categories = [
         0,
         'Drawer',
         'Sheet',
+        'Drawer',
       ],
-      ['Swipeable drawer', 0, 0, 0, 'SwipeableDrawer', 0, 0, 'Drawer'],
+      ['Swipeable drawer', 0, 0, 0, 'SwipeableDrawer', 0, 0, 'Drawer', 0],
       [
         'Popover',
         'Popover',
@@ -1798,6 +2136,7 @@ export const categories = [
         'Popover',
         'Popover',
         0,
+        'Popover',
         'Popover',
         'Popover',
       ],
@@ -1810,6 +2149,7 @@ export const categories = [
         0,
         'HoverCard',
         'HoverCard',
+        '~Popover',
       ],
       [
         'Tooltip',
@@ -1820,8 +2160,9 @@ export const categories = [
         0,
         'Tooltip',
         'Tooltip',
+        'Tooltip',
       ],
-      ['Backdrop / scrim', '~overlay', 'Overlay', 0, 'Backdrop', 0, 0, 0],
+      ['Backdrop / scrim', '~overlay', 'Overlay', 0, 'Backdrop', 0, 0, 0, 0],
       [
         'Floating / draggable panel',
         0,
@@ -1831,9 +2172,10 @@ export const categories = [
         0,
         'FloatingPanel',
         0,
+        0,
       ],
-      ['Anchored positioning primitive', 0, 0, 'Overlay', 'Popper', 0, 0, 0],
-      ['Product tour', 0, 'Tour', 0, 0, 0, 0, 0],
+      ['Anchored positioning primitive', 0, 0, 'Overlay', 'Popper', 0, 0, 0, 0],
+      ['Product tour', 0, 'Tour', 0, 0, 0, 0, 0, 'Tour'],
     ],
   },
   {
@@ -1848,6 +2190,7 @@ export const categories = [
         0,
         'Accordion',
         'Accordion',
+        'Collapse',
       ],
       [
         'Collapse (single)',
@@ -1858,8 +2201,9 @@ export const categories = [
         0,
         'Collapsible',
         'Collapsible',
+        '~Collapse',
       ],
-      ['Panel (heading + body)', 'Panel', 0, 0, 0, 'Panel', 0, 0],
+      ['Panel (heading + body)', 'Panel', 0, 0, 0, 'Panel', 0, 0, 0],
     ],
   },
   {
@@ -1874,8 +2218,30 @@ export const categories = [
         0,
         'FileUpload.Dropzone',
         0,
+        'Upload.Dragger',
       ],
-      ['Rich text editor', 0, 'RichTextEditor', 0, 0, 0, 'RichTextEditor', 0],
+      [
+        'Rich text editor',
+        0,
+        'RichTextEditor',
+        0,
+        0,
+        0,
+        'RichTextEditor',
+        0,
+        0,
+      ],
+      [
+        'Emoji picker',
+        0,
+        'EmojiPicker',
+        0,
+        0,
+        0,
+        '~Listbox (emoji grid demo)',
+        0,
+        0,
+      ],
       [
         'Transfer list',
         0,
@@ -1885,8 +2251,19 @@ export const categories = [
         0,
         '~Listbox',
         0,
+        'Transfer',
       ],
-      ['Chat / conversation UI', 0, 0, 0, 'ChatBox', 0, 0, 'Message'],
+      [
+        'Chat / conversation UI',
+        0,
+        0,
+        0,
+        'ChatBox',
+        0,
+        0,
+        'Message',
+        'Bubble / Sender',
+      ],
     ],
   },
   {
@@ -1901,6 +2278,7 @@ export const categories = [
         0,
         'ChakraProvider',
         '~ThemeProvider',
+        'ConfigProvider',
       ],
       [
         'Global config provider',
@@ -1911,6 +2289,7 @@ export const categories = [
         0,
         '~ChakraProvider',
         0,
+        'ConfigProvider',
       ],
       [
         'Locale / direction provider',
@@ -1921,6 +2300,7 @@ export const categories = [
         0,
         'LocaleProvider',
         'DirectionProvider',
+        'ConfigProvider',
       ],
       [
         'CSS reset / baseline',
@@ -1931,8 +2311,9 @@ export const categories = [
         0,
         '~preflight',
         0,
+        '~reset.css',
       ],
-      ['Portal', 'Portal', 'Portal', 0, 'Portal', 0, 'Portal', 0],
+      ['Portal', 'Portal', 'Portal', 0, 'Portal', 0, 'Portal', 0, 0],
       [
         'Focus trap',
         'useFocusTrap',
@@ -1942,6 +2323,7 @@ export const categories = [
         0,
         'FocusTrap',
         0,
+        0,
       ],
       [
         'Click-away listener',
@@ -1949,6 +2331,7 @@ export const categories = [
         '~useClickOutside',
         0,
         'ClickAwayListener',
+        0,
         0,
         0,
         0,
@@ -1962,8 +2345,19 @@ export const categories = [
         0,
         'Presence',
         0,
+        0,
       ],
-      ['Scroll-reveal (on-scroll)', 'Reveal', '~useInViewport', 0, 0, 0, 0, 0],
+      [
+        'Scroll-reveal (on-scroll)',
+        'Reveal',
+        '~useInViewport',
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+      ],
       [
         'Visually hidden (a11y)',
         '~visibility="sr-only"',
@@ -1973,8 +2367,9 @@ export const categories = [
         '~Element',
         'VisuallyHidden',
         0,
+        0,
       ],
-      ['Skip link (a11y)', '~AppFrame', 0, 0, 0, 0, 'SkipNavLink', 0],
+      ['Skip link (a11y)', '~AppFrame', 0, 0, 0, 0, 'SkipNavLink', 0, 0],
       [
         'No-SSR guard',
         'ClientOnly',
@@ -1984,8 +2379,9 @@ export const categories = [
         0,
         'ClientOnly',
         0,
+        0,
       ],
-      ['classNames utility', 'classNames', 0, 0, 0, 0, 0, 'cn'],
+      ['classNames utility', 'classNames', 0, 0, 0, 0, 0, 'cn', 0],
     ],
   },
 ];
