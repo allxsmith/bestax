@@ -6,7 +6,7 @@
 //
 // Cell encoding in each row: "Name" = dedicated component · "~Name" = via prop/compose
 // · 0 = none. Row order is fixed (see the header comment on `categories`); the display
-// order is controlled by `libs[].idx`.
+// order is the order of `libs`, and `libs[].idx` is each library's position in a row.
 
 export const lastReviewed = '2026-11-10';
 
