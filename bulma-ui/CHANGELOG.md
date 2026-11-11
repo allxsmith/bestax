@@ -1,3 +1,12 @@
+## [5.67.12](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.11...@allxsmith/bestax-bulma@5.67.12) (2026-11-11)
+
+
+### Bug Fixes
+
+* **bulma-ui:** give a light Tag and Notification the light color's own text ([a50e00a](https://github.com/allxsmith/bestax/commit/a50e00adbcc18bc5bad6a8e45098c6684208c3fd))
+* **bulma-ui:** render color="danger" on ColorInput ([872ecf5](https://github.com/allxsmith/bestax/commit/872ecf5c224a3d9f39fb7ea823569d1e7df072bb))
+* **bulma-ui:** render color="light" as is-light on Button, Tag and Notification ([d6600b0](https://github.com/allxsmith/bestax/commit/d6600b0449ef8d5b1376a66551c962e9e771973c))
+
 ## [5.67.11](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.10...@allxsmith/bestax-bulma@5.67.11) (2026-11-10)
 
 
