@@ -45,7 +45,7 @@
       "code": "import { Tags, Delete } from '@allxsmith/bestax-bulma';\n\n<Tags hasAddons>\n  <Tag color=\"primary\" size=\"medium\">\n    Tag with Delete\n    <Delete onClick={() => alert('Tag deleted!')} />\n  </Tag>\n</Tags>;"
     }
   ],
-  "accessibility": "- **Delete buttons:** Use `aria-label` for delete tags for screen readers.\n- **Keyboard:** Delete tags are rendered as `<button>`, supporting keyboard activation.\n- **Semantics:** Use tags for supplemental information, not as primary headings.\n\n:::tip\nCombine `Tag` with `Tags` for grouped, multi-tag UIs.\n:::",
+  "accessibility": "- **Delete buttons:** Use `aria-label` for delete tags for screen readers.\n- **Keyboard:** Delete tags are rendered as `<button>`, supporting keyboard activation.\n- **Semantics:** Use tags for supplemental information, not as primary headings.\n- **Contrast:** A light tag's text reads against its background the way a light `Button`'s does, in both color schemes. That comes from bestax's stylesheets, as the `color` prop's description says.\n\n:::tip\nCombine `Tag` with `Tags` for grouped, multi-tag UIs.\n:::",
   "related": ["Delete", "Tags", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-tag--default",
   "summary": "The `Tag` component renders a Bulma-styled label or badge.",
@@ -71,7 +71,7 @@
           "name": "color",
           "type": "TagColor",
           "default": null,
-          "description": "Bulma color modifier for the tag.",
+          "description": "Bulma color modifier for the tag. `light` takes the light color's own text from bestax's stylesheets. With Bulma's CSS alone, a light tag's text inherits the color around it, which on a dark page is hard to read.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -89,7 +89,7 @@
           "name": "isLight",
           "type": "boolean",
           "default": "false",
-          "description": "Use the light color variant.",
+          "description": "Use the light color variant. The light color has none, so `color=\"light\"` with `isLight` looks the same as without it.",
           "required": false,
           "inherited": false,
           "deprecated": false

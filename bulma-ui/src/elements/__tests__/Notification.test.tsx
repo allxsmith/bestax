@@ -49,6 +49,23 @@ describe('Notification Component', () => {
     expect(notification).toHaveClass('notification is-info is-light');
   });
 
+  // The light color's class is the same key as isLight's (#1464).
+  test('applies is-light for color="light"', () => {
+    render(<Notification {...defaultProps} color="light" />);
+    const notification = screen
+      .getByText('This is a notification')
+      .closest('div');
+    expect(notification).toHaveClass('notification is-light');
+  });
+
+  test('applies is-light once for color="light" with isLight', () => {
+    render(<Notification {...defaultProps} color="light" isLight />);
+    const notification = screen
+      .getByText('This is a notification')
+      .closest('div');
+    expect(notification?.className).toBe('notification is-light');
+  });
+
   test('renders delete button when hasDelete is true', () => {
     render(<Notification {...defaultProps} hasDelete />);
     const deleteButton = screen.getByLabelText('Close notification');
@@ -203,6 +220,18 @@ describe('Notification Programmatic API', () => {
         notification.show({ message: 'Hello', duration: 0 });
       });
       expect(screen.getByText('Hello')).toBeInTheDocument();
+    });
+
+    // It renders a Notification with the color, so the light color's class
+    // reaches it as it does a Notification of its own (#1464).
+    it('renders the light color', () => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.show({ message: 'Light', color: 'light', duration: 0 });
+      });
+      expect(screen.getByText('Light').closest('.notification')).toHaveClass(
+        'is-light'
+      );
     });
   });
 

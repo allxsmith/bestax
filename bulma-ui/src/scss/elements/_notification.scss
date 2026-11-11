@@ -1,6 +1,6 @@
 // Notification Styles
 // Bulma already styles the notification; this keeps its text clear of the
-// close button, and gives the dark color back its own look
+// close button, and gives the dark and light colors back their own looks
 
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
@@ -93,6 +93,24 @@ $-delete-sizes: (
     (
       "notification-background-l": #{cv.getVar("dark-l")},
       "notification-color-l": #{cv.getVar("dark-invert-l")},
+    )
+  );
+}
+
+// The same nesting writes the light color's light variant as
+// `.notification.is-light.is-light`, which matches every light notification,
+// with a 90% background and the text's lightness read from
+// `--bulma-light-light-invert-l`, which Bulma doesn't define either. This puts
+// back what `.notification.is-light` sets. Its `:not()` names every other
+// color, `dark` included, so a dark notification with `isLight` keeps the rule
+// above.
+.#{iv.$class-prefix}notification.#{iv.$class-prefix}is-light.#{iv.$class-prefix}is-light:not(
+    #{extras-color-classes("light")}
+  ) {
+  @include cv.register-vars(
+    (
+      "notification-background-l": #{cv.getVar("light-l")},
+      "notification-color-l": #{cv.getVar("light-invert-l")},
     )
   );
 }
