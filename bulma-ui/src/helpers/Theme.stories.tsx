@@ -500,15 +500,15 @@ export const NestedThemes: Story = {
 export const BulmaPrefixedTheme: Story = {
   render: () => (
     <div>
-      <Title size="3">Theme with a Bulma class prefix</Title>
+      <Title size="3">Theme with a class prefix</Title>
       <Paragraph mb="4">
         <code>ConfigProvider</code> gives every component inside it the{' '}
-        <code>bulma-</code> class prefix, for a page that loads Bulma&apos;s
+        <code>bestax-</code> class prefix, for a page that loads bestax&apos;s
         prefixed stylesheet beside other CSS. Theme works the same inside it:
         the variables keep their <code>--bulma-</code> names.
       </Paragraph>
 
-      <ConfigProvider classPrefix="bulma-">
+      <ConfigProvider classPrefix="bestax-">
         <Theme
           primaryH="236"
           primaryS="55%"
@@ -519,8 +519,8 @@ export const BulmaPrefixedTheme: Story = {
         >
           <Title size="4">Prefixed components</Title>
           <Paragraph mb="4">
-            These render <code>bulma-button</code>, <code>bulma-title</code> and{' '}
-            <code>bulma-box</code>, themed with an indigo primary.
+            These render <code>bestax-button</code>, <code>bestax-title</code>{' '}
+            and <code>bestax-box</code>, themed with an indigo primary.
           </Paragraph>
           <Button color="primary">Indigo primary</Button>
 
