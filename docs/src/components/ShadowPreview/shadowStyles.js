@@ -16,20 +16,19 @@ import 'material-icons/iconfont/material-icons.css';
 import 'material-symbols/index.css';
 
 // Import raw CSS for shadow DOM processing
-import rawBulmaStyles from '!!raw-loader!bulma/css/bulma.min.css';
+// The stylesheet an app installs: Bulma compiled with bestax's configuration,
+// its primary color among it, plus the extras. Loading it rather than stock
+// Bulma and extras.css means a preview shows exactly what
+// `import '@allxsmith/bestax-bulma/bestax.css'` gives the reader.
+import rawBestaxStyles from '!!raw-loader!@allxsmith/bestax-bulma/dist/bestax.css';
 import rawFontAwesomeStyles from '!!raw-loader!@fortawesome/fontawesome-free/css/all.min.css';
 import rawMDIStyles from '!!raw-loader!@mdi/font/css/materialdesignicons.min.css';
 // Note: ionicons now uses web components, no raw CSS needed
 import rawMaterialIconsStyles from '!!raw-loader!material-icons/iconfont/material-icons.css';
 import rawMaterialSymbolsStyles from '!!raw-loader!material-symbols/index.css';
-import rawExtrasStyles from '!!raw-loader!@allxsmith/bestax-bulma/dist/extras.css';
 // Docs-only Skill Example styles (ProfileCard) — not part of the shipped CSS bundle.
 import rawProfileCardStyles from '!!raw-loader!@site/src/components/SkillExamples/profilecard.css';
-
-/** Custom properties only reach the preview when scoped to the shadow host. */
-function toHost(rawStyles) {
-  return rawStyles.replace(/:root/g, ':host');
-}
+import { preprocessBulmaStyles, toHost } from './hostStyles.mjs';
 
 /**
  * Drops `@font-face` from a sheet bound for a shadow root.
@@ -55,25 +54,6 @@ function toHost(rawStyles) {
  */
 function stripFontFace(rawStyles) {
   return rawStyles.replace(/@font-face\s*{[^}]*}/g, '');
-}
-
-// Enhanced preprocessing function for better CSS variable handling
-function preprocessBulmaStyles(rawStyles) {
-  let processedStyles = toHost(rawStyles);
-
-  // Handle dark mode variables more comprehensively with nested group matching
-  processedStyles = processedStyles.replace(
-    /@media\s*\(prefers-color-scheme:\s*dark\)\s*\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g,
-    ':host(.dark) { $1 }'
-  );
-
-  // Handle light mode variables
-  processedStyles = processedStyles.replace(
-    /@media\s*\(prefers-color-scheme:\s*light\)\s*\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g,
-    ':host(.light) { $1 }'
-  );
-
-  return processedStyles;
 }
 
 /**
@@ -122,28 +102,11 @@ ${declarations(colorModeVars.dark)}
   :host(.light), :host {
 ${declarations(colorModeVars.light)}
   }
-
-  /* bestax primary override (#1e6b99) — the previews load stock Bulma
-     (turquoise), so re-point the primary CSS variables to match the library.
-     Bulma emits the full palette under :root (-> :host) AND the inner
-     .theme-light / .theme-dark / [data-theme] wrapper, so override all of
-     them. The h/s/l-derived light/dark/soft variants cascade automatically. */
-  :host(.dark), :host(.light), :host,
-  .theme-light, .theme-dark,
-  [data-theme='light'], [data-theme='dark'] {
-    --bulma-primary-h: 202deg !important;
-    --bulma-primary-s: 67% !important;
-    --bulma-primary-l: 36% !important;
-    --bulma-primary-rgb: 30, 107, 153 !important;
-    /* Stock Bulma bakes a dark invert-l for turquoise; the new darker blue
-       needs a light foreground, matching the rebuilt library's value. */
-    --bulma-primary-invert-l: var(--bulma-primary-100-l) !important;
-  }
 `;
 
 // Preprocess: Replace :root with :host for Shadow DOM compatibility
 // Also handle color mode classes instead of media queries
-export const bulmaStyles = preprocessBulmaStyles(rawBulmaStyles);
+export const bestaxStyles = preprocessBulmaStyles(rawBestaxStyles);
 
 export const fontAwesomeStyles = stripFontFace(toHost(rawFontAwesomeStyles));
 
@@ -158,8 +121,6 @@ export const materialIconsStyles = stripFontFace(
 export const materialSymbolsStyles = stripFontFace(
   toHost(rawMaterialSymbolsStyles)
 );
-
-export const extrasStyles = toHost(rawExtrasStyles);
 
 // Docs-only Skill Example (ProfileCard) styles for the shadow-DOM live previews.
 export const profileCardStyles = toHost(rawProfileCardStyles);
@@ -207,12 +168,11 @@ export const overlayLayerStyles = `
 // Ordered as the sheets should cascade inside a shadow root.
 export const shadowStyleSheets = [
   materialIconsStyles,
-  bulmaStyles,
+  bestaxStyles,
   fontAwesomeStyles,
   mdiStyles,
   ioniconStyles,
   materialSymbolsStyles,
-  extrasStyles,
   profileCardStyles,
   colorModeStyles,
   overlayLayerStyles,
