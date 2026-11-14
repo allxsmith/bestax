@@ -1,3 +1,11 @@
+## [5.67.13](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.12...@allxsmith/bestax-bulma@5.67.13) (2026-11-14)
+
+
+### Bug Fixes
+
+* **bulma-ui:** draw Steps' markers in colors that read on the page in both schemes ([48a271f](https://github.com/allxsmith/bestax/commit/48a271f38b8602d5ec51c9480ef3b7fd4bfd51f9)), closes [#1636](https://github.com/allxsmith/bestax/issues/1636)
+* **bulma-ui:** write the calendar heading's month and year in the locale's order ([bd8a2fa](https://github.com/allxsmith/bestax/commit/bd8a2fa74031e0e5404beac6d762fb5d203ce9dd)), closes [#1631](https://github.com/allxsmith/bestax/issues/1631)
+
 ## [5.67.12](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.11...@allxsmith/bestax-bulma@5.67.12) (2026-11-11)
 
 

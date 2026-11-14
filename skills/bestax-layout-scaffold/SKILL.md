@@ -184,6 +184,8 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `AppFrame.Main` (the page), plus `AppFrame.Aside` and `AppFrame.Footer` when there are any. The
   header and the column stick on their own, so no `fixed` and no `has-navbar-fixed-top`; below
   desktop the column is a drawer the burger opens, and from desktop up the burger collapses it.
+  For a column that collapses to its icons, `<AppFrame.Nav rail>` with an `icon` on each
+  top-level `Menu.Item` and `Menu.Section`; the frame puts each label in a tooltip.
   It renders the page's `<main>`, so it goes at the top of the app, never inside a `<main>`.
 - **Panes the user resizes are `Splitter`** (a file tree beside an editor, a list beside its
   detail, a query above its results), not hand-written drag code or fixed `Columns`:

@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.67.12"
+    "version": "5.67.13"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -193,8 +193,8 @@
       "slug": "layout/appframe",
       "import": "import { AppFrame, useAppFrame } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 35,
-      "exampleCount": 8
+      "propCount": 36,
+      "exampleCount": 9
     },
     {
       "name": "Autocomplete",
@@ -974,8 +974,8 @@
       "slug": "components/menu",
       "import": "import { Menu } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 22,
-      "exampleCount": 8
+      "propCount": 24,
+      "exampleCount": 9
     },
     {
       "name": "Message",
@@ -1546,8 +1546,8 @@
       "slug": "components/tooltip",
       "import": "import { Tooltip } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 14,
-      "exampleCount": 11
+      "propCount": 16,
+      "exampleCount": 12
     },
     {
       "name": "TreeSelect",
@@ -1662,6 +1662,7 @@
     "--bulma-app-frame-header-height": ["AppFrame"],
     "--bulma-app-frame-nav-background": ["AppFrame"],
     "--bulma-app-frame-nav-padding": ["AppFrame"],
+    "--bulma-app-frame-nav-rail-width": ["AppFrame"],
     "--bulma-app-frame-nav-width": ["AppFrame"],
     "--bulma-app-frame-skip-link-background": ["AppFrame"],
     "--bulma-app-frame-skip-link-color": ["AppFrame"],
@@ -2637,6 +2638,7 @@
     "--bulma-media-level-2-spacing": ["Media"],
     "--bulma-media-spacing": ["Media"],
     "--bulma-media-spacing-large": ["Media"],
+    "--bulma-menu-icon-gap": ["Menu"],
     "--bulma-menu-item-active-background-l-delta": ["Menu"],
     "--bulma-menu-item-background-l": ["Menu"],
     "--bulma-menu-item-background-l-delta": ["Menu"],
