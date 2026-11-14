@@ -396,6 +396,26 @@ describe('DateInput', () => {
       expect(document.activeElement).toHaveAttribute('tabindex', '0');
     });
 
+    it('puts focus back on the grid as its year list closes', () => {
+      HTMLElement.prototype.scrollIntoView = vi.fn();
+      const { getByRole } = render(
+        <DateInput inline defaultValue={new Date(2024, 5, 15)} />
+      );
+      const trigger = getByRole('button', { name: /June 2024/ });
+      act(() => trigger.focus());
+      fireEvent.click(trigger);
+      // The list focuses the current year as it opens, and a pick closes it.
+      expect(document.activeElement).toHaveTextContent('2024');
+      fireEvent.click(getByRole('option', { name: '2026' }));
+      expect(document.activeElement).toHaveTextContent('15');
+      expect(document.activeElement).toHaveAttribute('tabindex', '0');
+      // So does Escape, which picks nothing.
+      fireEvent.click(getByRole('button', { name: /June 2026/ }));
+      fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+      expect(document.activeElement).toHaveTextContent('15');
+      expect(document.activeElement).toHaveAttribute('tabindex', '0');
+    });
+
     describe('disabled and readOnly', () => {
       /** The cell for `day` of the month on show. */
       const day = (n: number) =>

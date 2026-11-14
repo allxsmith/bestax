@@ -1045,6 +1045,17 @@ export const Calendar: React.FC<CalendarProps> = ({
   // month, and focusing it makes it the focused month.
   const tabStopMonth = nearestEnabled(focusedDate.getMonth(), disabledMonths);
 
+  // The year list closes back onto the grid it opened from. Focus in it goes
+  // back to that grid's tab stop rather than falling to the page as the list
+  // goes, which the effect below does once the grid is back.
+  const returnFocusRef = useRef(false);
+  const closeYearList = useCallback(() => {
+    const list = yearGridRef.current;
+    returnFocusRef.current =
+      !!list && list.contains(getActiveElementInTree(list));
+    setView(baseView);
+  }, [baseView]);
+
   const handleYearSelect = useCallback(
     (year: number) => {
       const next = new Date(focusedDate);
@@ -1062,7 +1073,7 @@ export const Calendar: React.FC<CalendarProps> = ({
       } else {
         changeFocus(isDayGranularity ? next : clampDate(next, min, max));
       }
-      setView(baseView);
+      closeYearList();
     },
     [
       focusedDate,
@@ -1075,7 +1086,7 @@ export const Calendar: React.FC<CalendarProps> = ({
       isDayGranularity,
       min,
       max,
-      baseView,
+      closeYearList,
     ]
   );
 
@@ -1121,7 +1132,7 @@ export const Calendar: React.FC<CalendarProps> = ({
       if (e.key === 'Escape') {
         e.preventDefault();
         e.stopPropagation();
-        setView(baseView);
+        closeYearList();
         return;
       }
       // The other keys move DOM focus from the year that has it and leave
@@ -1141,7 +1152,7 @@ export const Calendar: React.FC<CalendarProps> = ({
       // from the first. A step past either end finds no option.
       options[step[0] - yearList[0]]?.focus();
     },
-    [isYearGranularity, baseView, focusedYear, yearList, moveYearFocus]
+    [isYearGranularity, closeYearList, focusedYear, yearList, moveYearFocus]
   );
 
   // The day or month grid takes focus as the popover opens on it, or comes
@@ -1173,6 +1184,14 @@ export const Calendar: React.FC<CalendarProps> = ({
     if (!focusFollows(grid, gridHeldFocusRef.current)) return;
     focusTabStop([grid]);
   }, [focusedYear, tabStopMonth, view]);
+
+  useEffect(() => {
+    if (view === 'years' || !returnFocusRef.current) return;
+    returnFocusRef.current = false;
+    focusTabStop(
+      view === 'days' ? dayGridsRef.current : [monthGridRef.current]
+    );
+  }, [view]);
 
   // When the year view opens as navigation, scroll the focused year into
   // view.
