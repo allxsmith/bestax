@@ -610,7 +610,7 @@
           "name": "monthNames",
           "type": "string[]",
           "default": null,
-          "description": "Override the 12 month-name labels.",
+          "description": "Override the 12 month-name labels. With them the day grid's heading reads the name, a space and the year, whatever order the locale writes a month and its year in.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -1036,7 +1036,7 @@
           "name": "monthNames",
           "type": "string[]",
           "default": null,
-          "description": "Override the 12 month-name labels.",
+          "description": "Override the 12 month-name labels. With them the day grid's heading reads the name, a space and the year, whatever order the locale writes a month and its year in.",
           "required": false,
           "inherited": false,
           "deprecated": false
