@@ -20,7 +20,8 @@
 // black or dark one with `is-light`. Their background stays Bulma's. The
 // `:not()` skips a tag that carries any other color, so Bulma's light variant
 // of that color (`is-primary is-light`) keeps its look, and adds a class's
-// weight, so the rule outranks Bulma's whichever stylesheet loads first.
+// weight, so the rule outranks Bulma's whichever stylesheet loads first. Once
+// Bulma defines those variables, this can go.
 .#{iv.$class-prefix}tag.#{iv.$class-prefix}is-light.#{iv.$class-prefix}is-light:not(
     #{extras-color-classes('light', 'white', 'black', 'dark')}
   ) {

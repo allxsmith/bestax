@@ -123,7 +123,7 @@ $-delete-sizes: (
 // define. This gives it the light color's text, which reads on that
 // background, and leaves the background as it is. The `:not()` skips a
 // notification that carries another color and adds a class's weight, as
-// above.
+// above. Once Bulma defines that variable, this can go.
 @each $name in ("white", "black") {
   .#{iv.$class-prefix}notification.#{iv.$class-prefix}is-#{$name}.#{iv.$class-prefix}is-light:not(
       #{extras-color-classes($name, "light")}
