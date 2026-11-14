@@ -1195,7 +1195,7 @@ describe('Calendar month granularity', () => {
     expect(onFocusedDateChange).not.toHaveBeenCalled();
   });
 
-  it.each(['Enter', ' '])('%p selects the first of the focused month', key => {
+  it.each(['Enter', ' '])('%j selects the first of the focused month', key => {
     const onSelect = vi.fn();
     const { container } = render(
       <PeriodHarness granularity="month" onSelect={onSelect} />
