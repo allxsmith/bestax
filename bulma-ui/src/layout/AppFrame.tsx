@@ -36,7 +36,8 @@ import type { MenuRail } from '../helpers/menuRail';
 import { NavbarBurger } from '../components/Navbar';
 import type { NavbarBurgerProps } from '../components/Navbar';
 import { Tooltip } from '../components/Tooltip';
-import { lengthToPx, remPxOf, ResizeHandle } from '../helpers/resizeHandle';
+import { lengthToPx, remPxOf } from '../helpers/cssLength';
+import { ResizeHandle } from '../helpers/resizeHandle';
 import { Delete } from '../elements/Delete';
 import type { ContainerBreakpoint } from './Container';
 

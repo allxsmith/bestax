@@ -19,7 +19,8 @@ import { withSubComponents } from '../helpers/withSubComponents';
 import { isElementOf } from '../helpers/elementType';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { warnOnce } from '../helpers/devWarnings';
-import { remPxOf, ResizeHandle } from '../helpers/resizeHandle';
+import { remPxOf } from '../helpers/cssLength';
+import { ResizeHandle } from '../helpers/resizeHandle';
 import {
   defaultSizes,
   fitSizes,
@@ -462,7 +463,7 @@ const SplitterRoot = forwardRef<HTMLDivElement, SplitterProps>(
     }, [vertical]);
     const measure = useCallback(() => {
       setLength(roomOf());
-      setRemPx(remPxOf(rootRef.current!));
+      setRemPx(remPxOf(document.documentElement));
     }, [roomOf]);
     useClientLayoutEffect(() => {
       measure();
@@ -480,7 +481,6 @@ const SplitterRoot = forwardRef<HTMLDivElement, SplitterProps>(
     }, [boundsKey]);
 
     const rtl = () =>
-      !vertical &&
       !!rootRef.current &&
       getComputedStyle(rootRef.current).direction === 'rtl';
 

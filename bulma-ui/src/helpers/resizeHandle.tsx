@@ -3,31 +3,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { classNames } from './classNames';
 import { useLatestRef } from './useLatestRef';
 
-/**
- * A length in pixels: a number is pixels already, and a string can be `px`
- * or `rem`, given a rem's pixels. Anything else, or nothing, is `null`.
- */
-export function lengthToPx(
-  length: number | string | undefined,
-  remPx: number
-): number | null {
-  if (typeof length === 'number') return length;
-  const match = /^\s*(\d*\.?\d+)\s*(px|rem)\s*$/.exec(length ?? '');
-  if (!match) return null;
-  return parseFloat(match[1]) * (match[2] === 'rem' ? remPx : 1);
-}
-
-/**
- * A rem in pixels, as the page `el` is in has it now, or Bulma's 16 when the
- * page gives none.
- */
-export function remPxOf(el: Element): number {
-  return (
-    parseFloat(getComputedStyle(el.ownerDocument.documentElement).fontSize) ||
-    16
-  );
-}
-
 // A page's own cursor and text selection, kept while any handle in it is
 // being dragged: the first drag to start saves them and the last to end puts
 // them back, so two at once, as two fingers can make, leave nothing behind.
@@ -83,9 +58,9 @@ export interface ResizeHandleProps {
   /** The id of what it resizes. */
   controls?: string;
   /**
-   * Whether drags and keys run right to left, read as each starts: the line
-   * then moves the way the key points or the pointer goes, so forward is
-   * left.
+   * Whether the page runs right to left, read as each drag or key starts. A
+   * `vertical` line then moves the way the key points or the pointer goes,
+   * so forward is left. A `horizontal` one moves up and down either way.
    */
   rtl: () => boolean;
   /**
@@ -173,7 +148,7 @@ export function ResizeHandle({
     event.currentTarget.setPointerCapture?.(event.pointerId);
     dragRef.current = {
       start: across ? event.clientX : event.clientY,
-      flip: rtl(),
+      flip: across && rtl(),
       pointerId: event.pointerId,
     };
     setDragging(true);
@@ -184,8 +159,8 @@ export function ResizeHandle({
     const moved = (across ? event.clientX : event.clientY) - drag.start;
     onDrag(drag.flip ? -moved : moved);
   };
-  // Let go, cancelled, or the pointer lost: a handle that hides mid-drag,
-  // as a column's does when the drag shuts it, loses the pointer.
+  // Let go, cancelled, or the pointer lost, as a handle that the page hides
+  // or removes mid-drag does.
   const endDrag = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!ownDrag(event)) return;
     dragRef.current = null;
@@ -222,7 +197,8 @@ export function ResizeHandle({
     if (event.key === back || event.key === forward) {
       // The line moves the way the key points, so right to left, moving
       // right is moving back.
-      const direction = (event.key === forward ? 1 : -1) * (rtl() ? -1 : 1);
+      const direction =
+        (event.key === forward ? 1 : -1) * (across && rtl() ? -1 : 1);
       handled = onStep(direction * (event.shiftKey ? 10 : 1));
     } else if (event.key === 'Home') {
       handled = onHome();

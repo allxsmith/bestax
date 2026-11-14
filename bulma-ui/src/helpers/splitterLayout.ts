@@ -4,7 +4,7 @@
 // the panes share, which is the splitter's length less its handles, and a
 // layout always adds up to 100.
 
-import { lengthToPx } from './resizeHandle';
+import { lengthToPx } from './cssLength';
 
 /** What one pane may be: its limits in percent, and whether it can shut. */
 export interface PaneBounds {

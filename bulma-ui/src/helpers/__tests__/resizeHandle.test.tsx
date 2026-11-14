@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { lengthToPx, ResizeHandle } from '../resizeHandle';
+import { ResizeHandle } from '../resizeHandle';
 
 /**
  * jsdom has no PointerEvent, so fireEvent's pointer events drop clientX. A
@@ -65,6 +65,40 @@ describe('ResizeHandle', () => {
   afterEach(() => {
     body.cursor = '';
     body.userSelect = '';
+  });
+
+  it('mirrors a line between parts side by side right to left, and not a line between stacked ones', () => {
+    const onStep = vi.fn();
+    const onDrag = vi.fn();
+    const rtl = vi.fn(() => true);
+    const { rerender } = render(
+      <Handle rtl={rtl} onStep={onStep} onDrag={onDrag} />
+    );
+    fireEvent.keyDown(screen.getByRole('separator'), { key: 'ArrowRight' });
+    expect(onStep).toHaveBeenLastCalledWith(-1);
+    rerender(
+      <Handle
+        orientation="horizontal"
+        rtl={rtl}
+        onStep={onStep}
+        onDrag={onDrag}
+      />
+    );
+    const handle = screen.getByRole('separator');
+    rtl.mockClear();
+    fireEvent.keyDown(handle, { key: 'ArrowDown' });
+    expect(onStep).toHaveBeenLastCalledWith(1);
+    const at = (type: string, clientY: number) => {
+      const event = new MouseEvent(type, { bubbles: true, clientY });
+      Object.defineProperty(event, 'pointerId', { value: 1 });
+      fireEvent(handle, event);
+    };
+    at('pointerdown', 100);
+    at('pointermove', 110);
+    expect(onDrag).toHaveBeenLastCalledWith(10);
+    at('pointerup', 110);
+    // Up and down don't depend on the page's direction.
+    expect(rtl).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -151,13 +185,5 @@ describe('ResizeHandle', () => {
     view.rerender(<></>);
     expect(onDragEnd).toHaveBeenCalledTimes(1);
     expect(body.cursor).toBe('wait');
-  });
-
-  it('reads a length in pixels: a number, px or rem, and nothing else', () => {
-    expect(lengthToPx(200, 16)).toBe(200);
-    expect(lengthToPx('200px', 16)).toBe(200);
-    expect(lengthToPx(' 12.5rem ', 16)).toBe(200);
-    expect(lengthToPx('30vw', 16)).toBeNull();
-    expect(lengthToPx(undefined, 16)).toBeNull();
   });
 });
