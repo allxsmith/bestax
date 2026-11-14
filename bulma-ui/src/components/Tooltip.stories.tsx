@@ -13,6 +13,12 @@ import { Input } from '../form/Input';
 import { Columns } from '../columns/Columns';
 import { Column } from '../columns/Column';
 import { Grid } from '../grid/Grid';
+// The sample picture is a crop of a photo published on Unsplash under the
+// Unsplash License (https://unsplash.com/license):
+// - sample-lioness.jpg: "A close-up portrait of a lioness with amber eyes
+//   looking forward", by Samuel Scrimshaw,
+//   https://unsplash.com/photos/sseiVD2XsOk
+import lioness from '../../images/sample-lioness.jpg';
 
 const meta: Meta<typeof Tooltip> = {
   title: 'Components/Tooltip',
@@ -561,8 +567,10 @@ export const DifferentTriggers: Story = {
       </Tooltip>
       <Tooltip label="Tooltip on image" cursor="pointer">
         <img
-          src="https://bulma.io/assets/images/placeholders/64x64.png"
-          alt="Example"
+          src={lioness}
+          alt="A lioness looking straight ahead"
+          width={64}
+          height={64}
           tabIndex={0}
         />
       </Tooltip>

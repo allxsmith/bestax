@@ -369,7 +369,7 @@ describe('TreeView', () => {
     });
 
     it.each(['Enter', ' '])(
-      'opens and closes a parent with %p, and does nothing on a leaf',
+      'opens and closes a parent with %j, and does nothing on a leaf',
       key => {
         const onExpandedChange = vi.fn();
         render(<Files onExpandedChange={onExpandedChange} />);
@@ -452,7 +452,7 @@ describe('TreeView', () => {
       expect(item('index.ts')).not.toHaveAttribute('aria-checked');
     });
 
-    it.each(['Enter', ' '])('selects the focused item with %p', key => {
+    it.each(['Enter', ' '])('selects the focused item with %j', key => {
       const onSelectedChange = vi.fn();
       render(
         <Files
