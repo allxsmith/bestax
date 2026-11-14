@@ -19,6 +19,7 @@ import { useControlled } from '../helpers/useControlled';
 import { useMenuKeys } from '../helpers/useMenuKeys';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { getActiveElementInTree } from '../helpers/shadowDom';
+import { isGiven } from '../helpers/isGiven';
 import {
   useLoadPhase,
   useLoadRegion,
@@ -223,11 +224,14 @@ export interface CascaderProps
   /** Rounds the field's corners (Bulma's `is-rounded`). */
   isRounded?: boolean;
   /**
-   * Where the panel opens, relative to the field, as on the pickers.
+   * Where the panel opens against the field, as on the pickers. Left out, it
+   * opens below and lines up with the field's start edge, which is its right
+   * edge on a right-to-left page. A corner you pass stays physical, so
+   * `bottom-left` lines up the left edges either way.
    * @defaultValue 'bottom-left'
    */
   position?: PickerPosition;
-  /** Renders the panel through a portal, into a `ConfigProvider`'s `portalContainer`, `document.body` by default. */
+  /** Renders the panel through a portal, into a `ConfigProvider`'s `portalContainer`, else the overlay it's in that takes its popups, such as a `Modal`, else `document.body`. */
   appendToBody?: boolean;
   /** The visible and accessible strings, in your app's language. */
   labels?: CascaderLabels;
@@ -239,13 +243,6 @@ const INITIAL_FOCUS = '[data-initial-focus]';
 /** Whether a search result can't be picked: some node on its path is disabled. */
 const isPathDisabled = (path: TreeItemData[]) =>
   path.some(step => step.disabled);
-
-/** Whether a node was given something to render. */
-const isGiven = (node: React.ReactNode) =>
-  node !== undefined &&
-  node !== null &&
-  typeof node !== 'boolean' &&
-  node !== '';
 
 /** What a column's items do, handed down from the Cascader. */
 interface ColumnContext {
