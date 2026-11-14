@@ -39,6 +39,24 @@ $dateinput-cell-range-preview-bg: color-mix(
   #{cv.getVar('dateinput-cell-selected-bg')} 9%,
   transparent
 ) !default;
+// What a Calendar's `dayTemplate` draws under a day's number. Its colour is
+// the nearby months' days', halfway between `text-weak` and `text`, which
+// stays readable on the hover fill and a range's band.
+$dateinput-cell-content-color: color-mix(
+  in srgb,
+  #{cv.getVar('text-weak')},
+  #{cv.getVar('text')}
+) !default;
+$dateinput-cell-content-size: cv.getVar('size-7') !default;
+// How far the day content fades while a Calendar is `loading`.
+$dateinput-cell-content-loading-opacity: 0.4 !default;
+
+// The Calendar: its months, side by side, in the frame an inline picker has.
+$calendar-months-gap: cv.getVar('block-spacing') !default;
+$calendar-padding: 0.75rem !default;
+$calendar-background-color: cv.getVar('scheme-main') !default;
+$calendar-border-color: cv.getVar('border') !default;
+$calendar-radius: cv.getVar('radius') !default;
 
 .#{iv.$class-prefix}dateinput {
   @include cv.register-vars(
@@ -60,6 +78,22 @@ $dateinput-cell-range-preview-bg: color-mix(
       'dateinput-nav-button-size': #{$dateinput-nav-button-size},
       'dateinput-cell-range-bg': #{$dateinput-cell-range-bg},
       'dateinput-cell-range-preview-bg': #{$dateinput-cell-range-preview-bg},
+      'dateinput-cell-content-color': #{$dateinput-cell-content-color},
+      'dateinput-cell-content-size': #{$dateinput-cell-content-size},
+      'dateinput-cell-content-loading-opacity':
+        #{$dateinput-cell-content-loading-opacity},
+    )
+  );
+}
+
+.#{iv.$class-prefix}calendar {
+  @include cv.register-vars(
+    (
+      'calendar-months-gap': #{$calendar-months-gap},
+      'calendar-padding': #{$calendar-padding},
+      'calendar-background-color': #{$calendar-background-color},
+      'calendar-border-color': #{$calendar-border-color},
+      'calendar-radius': #{$calendar-radius},
     )
   );
 }
@@ -389,6 +423,34 @@ $dateinput-cell-range-preview-bg: color-mix(
   }
 }
 
+// What a Calendar's `dayTemplate` draws, on a line under the day's number.
+// Every day has the line, empty or not, at least a line high, so the numbers
+// line up along a row. It fits the cell at every size, and a line too wide
+// for a compact cell is cut short: `isFullwidth` makes room for more.
+.#{iv.$class-prefix}dateinput-cell-content {
+  display: block;
+  min-height: 1em;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: cv.getVar('dateinput-cell-content-size');
+  font-weight: cv.getVar('weight-normal');
+  line-height: 1;
+  color: cv.getVar('dateinput-cell-content-color');
+}
+// On a picked day's fill it takes the picked day's colour, which is chosen
+// to contrast with that fill.
+.#{iv.$class-prefix}dateinput-cell.#{iv.$class-prefix}is-selected
+  .#{iv.$class-prefix}dateinput-cell-content {
+  color: inherit;
+}
+// While a Calendar loads a month's data, what each day shows of it fades.
+.#{iv.$class-prefix}dateinput-grid[aria-busy='true']
+  .#{iv.$class-prefix}dateinput-cell-content {
+  opacity: cv.getVar('dateinput-cell-content-loading-opacity');
+}
+
 // Colour variants. `color` lands on the calendar root as `is-<colour>`, and
 // the root re-points its accent variables at that colour: the selection fill
 // paired with its `-invert` for the selected value. Today's tint and the focus
@@ -428,4 +490,69 @@ $dateinput-cell-range-preview-bg: color-mix(
   width: 2.875rem;
   height: 2.875rem;
   font-size: cv.getVar('size-5');
+}
+
+// The Calendar: a frame like an inline picker's, round its months, which sit
+// side by side and wrap to a column where the width runs out.
+.#{iv.$class-prefix}calendar {
+  display: inline-block;
+  max-width: 100%;
+  padding: cv.getVar('calendar-padding');
+  background-color: cv.getVar('calendar-background-color');
+  border: 1px solid cv.getVar('calendar-border-color');
+  border-radius: cv.getVar('calendar-radius');
+
+  &.#{iv.$class-prefix}is-fullwidth {
+    display: block;
+  }
+}
+
+.#{iv.$class-prefix}calendar-months {
+  display: flex;
+  flex-wrap: wrap;
+  gap: cv.getVar('calendar-months-gap');
+}
+
+// Each month's header: the previous button before the first month's name,
+// the next button after the last month's, and each name centred over its
+// grid whichever buttons it has. A month's name that opens nothing pads as
+// the first month's button does, so every header is as high and the months'
+// grids line up.
+.#{iv.$class-prefix}calendar .#{iv.$class-prefix}dateinput-header {
+  display: grid;
+  grid-template-columns:
+    cv.getVar('dateinput-nav-button-size') 1fr
+    cv.getVar('dateinput-nav-button-size');
+
+  > .#{iv.$class-prefix}dateinput-nav-prev {
+    grid-column: 1;
+  }
+  > .#{iv.$class-prefix}dateinput-month-trigger,
+  > .#{iv.$class-prefix}dateinput-month-label {
+    grid-column: 2;
+    justify-self: center;
+  }
+  > .#{iv.$class-prefix}dateinput-month-label {
+    padding-block: 0.25rem;
+  }
+  > .#{iv.$class-prefix}dateinput-nav-next {
+    grid-column: 3;
+  }
+}
+
+// A day's number with its content under it.
+.#{iv.$class-prefix}calendar .#{iv.$class-prefix}dateinput-cell {
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+// Full width: the months share the row, and each day fills its column, at
+// every size, so this comes after the sizes.
+.#{iv.$class-prefix}calendar.#{iv.$class-prefix}is-fullwidth {
+  .#{iv.$class-prefix}calendar-months > .#{iv.$class-prefix}dateinput {
+    flex: 1 1 cv.getVar('dateinput-min-width');
+  }
+  .#{iv.$class-prefix}dateinput-cell {
+    width: 100%;
+  }
 }

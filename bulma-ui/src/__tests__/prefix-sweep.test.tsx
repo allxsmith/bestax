@@ -68,6 +68,17 @@ const PROPS: Record<string, Record<string, unknown>> = {
   Avatar: { name: 'Ada Lovelace' },
   Badge: { children: '9' },
   Steps: { items: [{ label: 'Step 1' }], hasNavigation: true },
+  // Two months, full width, a range across them and content in every day, so
+  // the frame's, the months' and the content's classes are swept.
+  Calendar: {
+    selectionMode: 'range',
+    monthsToShow: 2,
+    isFullwidth: true,
+    color: 'info',
+    size: 'small',
+    defaultValue: [new Date(2026, 10, 28), new Date(2026, 11, 2)],
+    dayTemplate: () => '•',
+  },
   Carousel: {
     children: [
       <Library.CarouselItem key="a">Slide A</Library.CarouselItem>,

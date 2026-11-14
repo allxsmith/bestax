@@ -1478,8 +1478,12 @@ export const Calendar: React.FC<CalendarProps> = ({
               style={!display ? { visibility: 'hidden' } : undefined}
             >
               {cell.date.getDate()}
-              {rendersContent(content) && (
-                <span className={cellContentClass}>{content}</span>
+              {/* Every day shown has the line, empty where the template
+                  draws nothing, so the numbers line up along a row. */}
+              {display && dayContent && (
+                <span className={cellContentClass}>
+                  {rendersContent(content) ? content : null}
+                </span>
               )}
             </button>
           );
