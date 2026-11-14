@@ -298,20 +298,24 @@ export function useAnchoredPosition(
     // remounts the panel, as a popup that opens with the dialog it's in
     // does, so each measurement watches the one that's there now.
     let watched: HTMLElement | null = null;
+    const watch = (panel: HTMLElement) => {
+      if (panel === watched) return;
+      if (watched) resizes?.unobserve(watched);
+      resizes?.observe(panel);
+      watched = panel;
+    };
     const update = () => {
       const anchor = anchorRef.current;
       const panel = panelRef.current;
-      if (!panel || (!anchor && position !== 'center')) return;
-      if (panel !== watched) {
-        if (watched) resizes?.unobserve(watched);
-        resizes?.observe(panel);
-        watched = panel;
-      }
-      if (position === 'center' || !anchor) {
+      if (!panel) return;
+      if (position === 'center') {
+        watch(panel);
         const next = centerIn(panel);
         setResolved(prev => (samePosition(prev, next) ? prev : next));
         return;
       }
+      if (!anchor) return;
+      watch(panel);
       const rect = anchor.getBoundingClientRect();
       const measured = panel.getBoundingClientRect();
       // The width the panel has once it's at least as wide as the anchor.
@@ -405,10 +409,15 @@ export function useAnchoredPosition(
   ]);
 
   // After every render, on purpose: the panel's class now says where it's
-  // drawn, and with `followContent` its content is what changed.
+  // drawn, and with `followContent` its content is what changed. A side
+  // placement reads its gap from the margin of the side it's drawn on, so a
+  // panel that has just moved to another side is measured again with it.
   useClientLayoutEffect(() => {
+    const moved = shownRef.current !== resolved.position;
     shownRef.current = resolved.position;
-    if (followContent) updateRef.current?.();
+    if (followContent || (moved && isSide(resolved.position))) {
+      updateRef.current?.();
+    }
   });
 
   return resolved;

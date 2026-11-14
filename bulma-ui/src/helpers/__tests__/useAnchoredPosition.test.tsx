@@ -632,7 +632,6 @@ describe('useAnchoredPosition on a side', () => {
   });
 
   it('tells styledGap the side the panel is drawn on as it measures', () => {
-    vi.useFakeTimers();
     const sides: Array<AnchoredSide | undefined> = [];
     const styledGap = (_: HTMLElement, side?: AnchoredSide) => {
       sides.push(side);
@@ -642,15 +641,25 @@ describe('useAnchoredPosition on a side', () => {
       <Side position="bottom" styledGap={styledGap} />
     );
     expect(sides).toEqual(['bottom']);
-    // Asked for the left, it's still drawn below as it's measured, and on
-    // the left by the next measurement.
+    // Asked for the left, it's still drawn below as it's measured, and
+    // measured again once it's drawn on the left.
     rerender(<Side position="left" styledGap={styledGap} />);
-    expect(sides[sides.length - 1]).toBe('bottom');
-    act(() => {
-      fireEvent.scroll(window);
-    });
-    act(() => vi.advanceTimersToNextFrame());
-    expect(sides[sides.length - 1]).toBe('left');
+    expect(sides).toEqual(['bottom', 'bottom', 'left']);
+  });
+
+  it('measures again with the gap of the side it has just moved to', () => {
+    // 6px of room on the left with no gap, so the first measurement, made
+    // while the panel is drawn below, puts it there. Drawn there, its 10px
+    // gap leaves no room, and it goes to the right without waiting for a
+    // scroll or a resize.
+    anchor = { top: 300, left: 110, width: 100, height: 40 };
+    const styledGap = (_: HTMLElement, side?: AnchoredSide) =>
+      side === 'left' || side === 'right' ? 10 : 0;
+    const { rerender } = render(
+      <Side position="bottom" styledGap={styledGap} />
+    );
+    rerender(<Side position="left" styledGap={styledGap} />);
+    expect(read()).toEqual({ position: 'right', top: 295, left: 214 });
   });
 
   it('tells styledGap no side while the panel is drawn in the middle', () => {
@@ -665,8 +674,9 @@ describe('useAnchoredPosition on a side', () => {
         styledGap={styledGap}
       />
     );
+    // Measured from the middle with no side, then again once drawn below.
     rerender(<Side position="bottom" styledGap={styledGap} />);
-    expect(sides).toEqual([undefined]);
+    expect(sides).toEqual([undefined, 'bottom']);
   });
 
   it('gives a panel in place the side alone', () => {
