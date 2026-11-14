@@ -17,7 +17,6 @@ import { useLocaleMatcher } from '../helpers/localeFormat';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
 import { useControlled } from '../helpers/useControlled';
 import { useMenuKeys } from '../helpers/useMenuKeys';
-import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { getActiveElementInTree } from '../helpers/shadowDom';
 import { isGiven } from '../helpers/isGiven';
 import {
@@ -179,7 +178,7 @@ export interface CascaderProps
    * Puts a search box at the top of the panel. While it has text, the
    * columns give way to a list of matching paths, leaves only unless
    * `parentsSelectable`. A printable key on the field opens the panel with
-   * it in the box.
+   * it in the box, and the search empties when the panel closes.
    */
   searchable?: boolean;
   /** The search text when you hold the state. */
@@ -282,7 +281,6 @@ function CascaderList({ context, column, at, name }: ColumnProps) {
   const { engine, keys, region, pickable, pick, focusTarget, hintId, picked } =
     context;
   const prefix = useClassPrefix();
-  const listRef = useRef<HTMLUListElement>(null);
   const { parent, items, current } = column;
 
   const status = !parent
@@ -312,22 +310,18 @@ function CascaderList({ context, column, at, name }: ColumnProps) {
     items.find(item => !item.disabled)?.value ??
     (status ? statusKey : items[0]?.value);
 
-  // A load's row that leaves while it has focus hands it to the column's
-  // tab stop, so focus doesn't drop out of the panel.
+  // A load's row that leaves while it has focus, with its column or alone,
+  // hands focus on, so it doesn't drop out of the panel.
   const statusRef = useRef<HTMLLIElement | null>(null);
-  const lostRef = useRef(false);
-  const setStatusRef = useCallback((node: HTMLLIElement | null) => {
-    const row = statusRef.current;
-    if (!node && row?.contains(getActiveElementInTree(row))) {
-      lostRef.current = true;
-    }
-    statusRef.current = node;
-  }, []);
-  useClientLayoutEffect(() => {
-    if (!lostRef.current) return;
-    lostRef.current = false;
-    listRef.current!.querySelector<HTMLElement>('[tabindex="0"]')?.focus();
-  });
+  const { lostFocus } = engine;
+  const setStatusRef = useCallback(
+    (node: HTMLLIElement | null) => {
+      const row = statusRef.current;
+      if (!node && row?.contains(getActiveElementInTree(row))) lostFocus(at);
+      statusRef.current = node;
+    },
+    [lostFocus, at]
+  );
 
   const listClass = prefixedClassNames(prefix, 'cascader-column');
   const chevronClass = prefixedClassNames(prefix, 'cascader-item-chevron');
@@ -339,7 +333,6 @@ function CascaderList({ context, column, at, name }: ColumnProps) {
   return (
     <ul
       {...name}
-      ref={listRef}
       className={listClass}
       role="listbox"
       // It scrolls, and Firefox makes a scroller a Tab stop of its own.
@@ -466,8 +459,8 @@ function CascaderList({ context, column, at, name }: ColumnProps) {
  * Down, Home, End and type-ahead move within a column, and the path you've
  * opened follows focus, drawn with a tint, Right opens the next column and
  * moves into it, and Left goes back. Only the picked node's path is
- * `aria-selected`, drawn as Bulma's active dropdown item, so moving around
- * never announces an item as selected that isn't.
+ * `aria-selected`, filled in the colors Bulma gives an active dropdown item,
+ * so moving around never announces an item as selected that isn't.
  *
  * The value is the picked node's own `value`, unique across the tree, as in
  * TreeView and TreeSelect, and the field works the path out from `data`, so
@@ -575,10 +568,18 @@ export const Cascader = forwardRef<HTMLInputElement, CascaderProps>(
     const setOpen = (next: boolean) => {
       if (next === isOpen) return;
       if (next) engine.reveal(value);
-      else setQuery('');
       setOpenState(next);
       onOpenChange?.(next);
     };
+    // The search empties as the panel closes, however it closes: from in
+    // here, through a held `open`, or as the Cascader is disabled.
+    const shown = isOpen && !disabled;
+    const wasShownRef = useRef(shown);
+    useEffect(() => {
+      const was = wasShownRef.current;
+      wasShownRef.current = shown;
+      if (was && !shown) setQuery('');
+    });
     const picked = useMemo(
       () =>
         new Set(value === null ? [] : nodesTo(index, value).map(n => n.value)),

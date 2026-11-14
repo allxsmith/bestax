@@ -776,6 +776,23 @@ describe('Cascader', () => {
       expect(onQueryChange).toHaveBeenLastCalledWith('');
     });
 
+    it('empties the search when a held open closes the panel, or the Cascader is disabled', async () => {
+      const user = userEvent.setup();
+      const onQueryChange = vi.fn();
+      const props = { searchable: true, onQueryChange };
+      const { rerender } = render(<City {...props} open />);
+      await user.type(screen.getByRole('combobox', { name: 'Search' }), 'ber');
+      rerender(<City {...props} open={false} />);
+      expect(onQueryChange).toHaveBeenLastCalledWith('');
+      rerender(<City {...props} open />);
+      expect(screen.getByRole('combobox', { name: 'Search' })).toHaveValue('');
+      expect(lists()).toEqual(['City']);
+      await user.type(screen.getByRole('combobox', { name: 'Search' }), 'ber');
+      rerender(<City {...props} open disabled />);
+      rerender(<City {...props} open />);
+      expect(screen.getByRole('combobox', { name: 'Search' })).toHaveValue('');
+    });
+
     it('offers parents with parentsSelectable, disables paths under a disabled node, and picks with Enter', async () => {
       const user = userEvent.setup();
       const onChange = vi.fn();
@@ -1073,6 +1090,30 @@ describe('Cascader', () => {
       );
       expect(option('Summer')).toHaveFocus();
     });
+
+    it.each([
+      ['an empty column', { hasChildren: true, children: [] }],
+      ['no column at all', { hasChildren: false, children: [] }],
+    ])(
+      'hands focus back to the item that opened the column when a focused load row leaves %s',
+      (_, loaded) => {
+        const props = {
+          label: 'City',
+          defaultExpanded: ['photos'],
+          defaultOpen: true,
+        };
+        const { rerender } = render(
+          <Cascader
+            {...props}
+            data={lazy({ loadError: 'Failed', onRetry: () => {} })}
+          />
+        );
+        option('Failed Retry').focus();
+        rerender(<Cascader {...props} data={lazy(loaded)} />);
+        expect(option('Photos')).toHaveFocus();
+        expect(dialog()).not.toBeNull();
+      }
+    );
 
     it('hands focus on from a focused load row inside a shadow root too', () => {
       const host = document.createElement('div');

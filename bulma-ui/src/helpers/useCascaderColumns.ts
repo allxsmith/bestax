@@ -2,7 +2,7 @@
 // Cascader: which are open, which item in each is on the open path, and the
 // keys that move between them.
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type React from 'react';
 import type { TreeItemData } from '../form/TreeSelect';
 import { childNodes, isParentNode, type TreeNodeEntry } from './treeData';
@@ -54,6 +54,12 @@ export interface CascaderColumnsEngine {
   moveTo: (column: number, value: string) => void;
   /** Opens a parent's column and moves focus into it. */
   open: (column: number, node: TreeItemData) => void;
+  /**
+   * A column's load row left while it had focus. Once the page has caught
+   * up, focus goes to the column's tab stop, or to the item that opened the
+   * column when nothing there takes it. The same function every render.
+   */
+  lostFocus: (column: number) => void;
   /**
    * Right and Left, swapped on a right-to-left page, on the focused row of a
    * column: its item, or `null` for a load's row. Right opens that item and
@@ -202,6 +208,21 @@ export function useCascaderColumns(
     focusInto(column);
   });
 
+  const lostRef = useRef<number | null>(null);
+  const lostFocus = useCallback((column: number) => {
+    lostRef.current = column;
+  }, []);
+  useClientLayoutEffect(() => {
+    const column = lostRef.current;
+    if (column === null) return;
+    lostRef.current = null;
+    const container = containerRef.current;
+    (
+      tabStopIn(listboxAt(container, column)) ??
+      tabStopIn(listboxAt(container, column - 1))
+    )?.focus();
+  });
+
   const onKeyDown = (
     event: React.KeyboardEvent<HTMLElement>,
     column: number,
@@ -222,5 +243,5 @@ export function useCascaderColumns(
     }
   };
 
-  return { columns, containerRef, reveal, moveTo, open, onKeyDown };
+  return { columns, containerRef, reveal, moveTo, open, lostFocus, onKeyDown };
 }
