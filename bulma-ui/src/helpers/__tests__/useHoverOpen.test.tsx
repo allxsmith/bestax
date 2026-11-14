@@ -3,22 +3,21 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { useHoverOpen, HoverOpenHandlers } from '../useHoverOpen';
 
 /**
- * A pointer event with a `pointerType`, which jsdom's events lack. React
- * makes `onPointerEnter` and `onPointerLeave` out of `pointerover` and
- * `pointerout`.
+ * A mouse's pointer event. React makes `onPointerEnter` and `onPointerLeave`
+ * out of `pointerover` and `pointerout`.
  */
 const pointer = (
   el: Element,
   type: 'pointerover' | 'pointerout' | 'pointerdown',
   relatedTarget: EventTarget | null = null
 ) => {
-  const event = new MouseEvent(type, {
+  const event = new PointerEvent(type, {
     bubbles: true,
     cancelable: true,
     composed: true,
     relatedTarget,
+    pointerType: 'mouse',
   });
-  Object.defineProperty(event, 'pointerType', { value: 'mouse' });
   fireEvent(el, event);
 };
 
@@ -312,12 +311,10 @@ describe('useHoverOpen', () => {
     it('does not count one from a touch pointer', () => {
       const onOpenChange = vi.fn();
       render(<Page onOpenChange={onOpenChange} />);
-      const event = new MouseEvent('pointerover', {
-        bubbles: true,
+      fireEvent.pointerOver(trigger(), {
         relatedTarget: page(),
+        pointerType: 'touch',
       });
-      Object.defineProperty(event, 'pointerType', { value: 'touch' });
-      fireEvent(trigger(), event);
       advance(1000);
       expect(onOpenChange).not.toHaveBeenCalled();
     });

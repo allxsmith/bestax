@@ -13,12 +13,10 @@ import { resetDevWarnings } from '../../helpers/devWarnings';
 type PointerType = 'mouse' | 'pen' | 'touch';
 
 /**
- * jsdom has no PointerEvent, so `fireEvent.pointerOver` and the rest send an
- * event without a `pointerType`. Build a MouseEvent of the pointer type, from
- * the element's own window so it works in an iframe, and give it one; React
- * reads both off the native event. React makes `onPointerEnter` and
- * `onPointerLeave` out of `pointerover` and `pointerout`, walking from the
- * element the pointer left to the one it entered.
+ * A pointer event of `pointerType`, a mouse's unless told otherwise. React
+ * makes `onPointerEnter` and `onPointerLeave` out of `pointerover` and
+ * `pointerout`, walking from the element the pointer left to the one it
+ * entered.
  */
 const pointer = (
   el: Element,
@@ -29,13 +27,13 @@ const pointer = (
   }: { pointerType?: PointerType; relatedTarget?: EventTarget | null } = {}
 ) => {
   const view = el.ownerDocument.defaultView as typeof window;
-  const event = new view.MouseEvent(type, {
+  const event = new view.PointerEvent(type, {
     bubbles: true,
     cancelable: true,
     composed: true,
     relatedTarget,
+    pointerType,
   });
-  Object.defineProperty(event, 'pointerType', { value: pointerType });
   fireEvent(el, event);
 };
 

@@ -30,13 +30,13 @@ describe('TimeWheels direction', () => {
 // Interaction machinery of TimeWheels: pointer drags, fling momentum, snap
 // animation, trackpad wheel accumulation, and the empty-space drag forwarder.
 //
-// jsdom has no real rAF loop, pointer capture, or monotonic clock, so the
-// harness below mocks:
+// jsdom has no real rAF loop or pointer capture, and a test can't set its
+// clock, so the harness below mocks:
 //   - requestAnimationFrame / cancelAnimationFrame → a pending-frame map we
 //     drain manually with a controllable timestamp,
 //   - performance.now → a settable `nowMs` variable,
 //   - HTMLElement.prototype.setPointerCapture / releasePointerCapture →
-//     vi.fn() stubs (jsdom's own implementations reject synthetic pointers).
+//     vi.fn() stubs.
 // -------------------------------------------------------------------------
 
 beforeAll(() => {
@@ -59,8 +59,7 @@ beforeAll(() => {
   }
 });
 
-// Pointer-capture stubs. Saved/restored so other suites see jsdom's own
-// behavior (if any).
+// Pointer-capture stubs, taken off again after this suite.
 let originalSetPointerCapture:
   typeof HTMLElement.prototype.setPointerCapture | undefined;
 let originalReleasePointerCapture:
@@ -133,27 +132,6 @@ const flushFrames = (maxFrames = 500, stepMs = 16): number => {
   return frames;
 };
 
-/**
- * This jsdom has no PointerEvent constructor, so fireEvent.pointerDown &c.
- * fall back to a bare Event that drops clientX/clientY/pointerId. Build a
- * MouseEvent (which carries coordinates) with the pointer event type and
- * attach pointerId manually — React reads both off the native event.
- */
-const firePointer = (
-  el: Element,
-  type: 'pointerdown' | 'pointermove' | 'pointerup',
-  init: { pointerId: number; clientX?: number; clientY?: number }
-) => {
-  const event = new MouseEvent(type, {
-    bubbles: true,
-    cancelable: true,
-    clientX: init.clientX ?? 0,
-    clientY: init.clientY ?? 0,
-  });
-  Object.defineProperty(event, 'pointerId', { value: init.pointerId });
-  fireEvent(el, event);
-};
-
 const at = (h: number, m: number, s = 0) => {
   const d = new Date();
   d.setHours(h, m, s, 0);
@@ -193,13 +171,13 @@ describe('TimeWheels pointer drag', () => {
       />
     );
     const hours = wheels[0];
-    firePointer(hours, 'pointerdown', { pointerId: 1, clientY: 200 });
-    firePointer(hours, 'pointermove', { pointerId: 1, clientY: 197 });
+    fireEvent.pointerDown(hours, { pointerId: 1, clientY: 200 });
+    fireEvent.pointerMove(hours, { pointerId: 1, clientY: 197 });
     expect(hours.className).not.toContain('is-dragging');
     expect(handler).not.toHaveBeenCalled();
     expect(hours.getAttribute('aria-valuenow')).toBe('10');
     // pointerup without a captured drag just resets state — no snap fires.
-    firePointer(hours, 'pointerup', { pointerId: 1, clientY: 197 });
+    fireEvent.pointerUp(hours, { pointerId: 1, clientY: 197 });
     expect(pendingFrames.size).toBe(0);
   });
 
@@ -214,21 +192,21 @@ describe('TimeWheels pointer drag', () => {
     );
     const hours = wheels[0];
     nowMs = 1000;
-    firePointer(hours, 'pointerdown', { pointerId: 1, clientY: 200 });
+    fireEvent.pointerDown(hours, { pointerId: 1, clientY: 200 });
     // Drag UP 32px → later value comes into view (10 → 11).
     nowMs = 1100;
-    firePointer(hours, 'pointermove', { pointerId: 1, clientY: 168 });
+    fireEvent.pointerMove(hours, { pointerId: 1, clientY: 168 });
     expect(hours.className).toContain('is-dragging');
     expect(hours.getAttribute('aria-valuenow')).toBe('11');
     expect(lastDate(handler).getHours()).toBe(11);
     // Drag DOWN past the start, 32px below it → position 9.
     nowMs = 1200; // > 100ms since the first sample → oldest sample trimmed
-    firePointer(hours, 'pointermove', { pointerId: 1, clientY: 232 });
+    fireEvent.pointerMove(hours, { pointerId: 1, clientY: 232 });
     expect(lastDate(handler).getHours()).toBe(9);
     // A slow final wiggle keeps the recent velocity under the fling threshold.
     nowMs = 1290;
-    firePointer(hours, 'pointermove', { pointerId: 1, clientY: 233 });
-    firePointer(hours, 'pointerup', { pointerId: 1, clientY: 233 });
+    fireEvent.pointerMove(hours, { pointerId: 1, clientY: 233 });
+    fireEvent.pointerUp(hours, { pointerId: 1, clientY: 233 });
     expect(hours.className).not.toContain('is-dragging');
     // Release left position at 8.97 → ease-out snap back to 9.
     expect(pendingFrames.size).toBeGreaterThan(0);
@@ -249,11 +227,11 @@ describe('TimeWheels pointer drag', () => {
     );
     const hours = wheels[0];
     nowMs = 1000;
-    firePointer(hours, 'pointerdown', { pointerId: 1, clientY: 200 });
+    fireEvent.pointerDown(hours, { pointerId: 1, clientY: 200 });
     // Same timestamp → dt === 0 → pxPerMs stays 0 → snap path.
-    firePointer(hours, 'pointermove', { pointerId: 1, clientY: 150 });
+    fireEvent.pointerMove(hours, { pointerId: 1, clientY: 150 });
     expect(lastDate(handler).getHours()).toBe(12); // 10 + 50/32 rounds to 12
-    firePointer(hours, 'pointerup', { pointerId: 1, clientY: 150 });
+    fireEvent.pointerUp(hours, { pointerId: 1, clientY: 150 });
     flushFrames();
     expect(hours.getAttribute('aria-valuenow')).toBe('12');
     expect(lastDate(handler).getHours()).toBe(12);
@@ -269,12 +247,12 @@ describe('TimeWheels pointer drag', () => {
       />
     );
     const hours = wheels[0];
-    firePointer(hours, 'pointerdown', { pointerId: 1, clientY: 200 });
-    firePointer(hours, 'pointermove', { pointerId: 2, clientY: 100 });
-    firePointer(hours, 'pointerup', { pointerId: 2, clientY: 100 });
+    fireEvent.pointerDown(hours, { pointerId: 1, clientY: 200 });
+    fireEvent.pointerMove(hours, { pointerId: 2, clientY: 100 });
+    fireEvent.pointerUp(hours, { pointerId: 2, clientY: 100 });
     expect(hours.className).not.toContain('is-dragging');
     expect(handler).not.toHaveBeenCalled();
-    firePointer(hours, 'pointerup', { pointerId: 1, clientY: 200 });
+    fireEvent.pointerUp(hours, { pointerId: 1, clientY: 200 });
     expect(handler).not.toHaveBeenCalled();
   });
 
@@ -289,14 +267,14 @@ describe('TimeWheels pointer drag', () => {
     );
     const hours = wheels[0];
     nowMs = 1000;
-    firePointer(hours, 'pointerdown', { pointerId: 1, clientY: 300 });
+    fireEvent.pointerDown(hours, { pointerId: 1, clientY: 300 });
     nowMs = 1016;
-    firePointer(hours, 'pointermove', { pointerId: 1, clientY: 260 });
+    fireEvent.pointerMove(hours, { pointerId: 1, clientY: 260 });
     nowMs = 1032;
-    firePointer(hours, 'pointermove', { pointerId: 1, clientY: 220 });
+    fireEvent.pointerMove(hours, { pointerId: 1, clientY: 220 });
     // 80px in 32ms = 2.5 px/ms — far above the 0.25 fling threshold, and the
     // resulting 0.078 items/ms is above the 0.05 cap.
-    firePointer(hours, 'pointerup', { pointerId: 1, clientY: 220 });
+    fireEvent.pointerUp(hours, { pointerId: 1, clientY: 220 });
     expect(pendingFrames.size).toBeGreaterThan(0);
     // One zero-advance frame exercises the dt = max(1, …) guard.
     flushFrames(1, 0);
@@ -324,12 +302,12 @@ describe('TimeWheels pointer drag', () => {
     );
     const minutes = wheels[1];
     nowMs = 1000;
-    firePointer(minutes, 'pointerdown', { pointerId: 1, clientY: 200 });
+    fireEvent.pointerDown(minutes, { pointerId: 1, clientY: 200 });
     nowMs = 1016;
-    firePointer(minutes, 'pointermove', { pointerId: 1, clientY: 240 });
+    fireEvent.pointerMove(minutes, { pointerId: 1, clientY: 240 });
     nowMs = 1032;
-    firePointer(minutes, 'pointermove', { pointerId: 1, clientY: 280 });
-    firePointer(minutes, 'pointerup', { pointerId: 1, clientY: 280 });
+    fireEvent.pointerMove(minutes, { pointerId: 1, clientY: 280 });
+    fireEvent.pointerUp(minutes, { pointerId: 1, clientY: 280 });
     flushFrames(300);
     expect(pendingFrames.size).toBe(0);
     // Drag ended at 27.5; capped momentum coasts ≈ 8.8 items down → ≈ 19.
@@ -352,13 +330,13 @@ describe('TimeWheels pointer drag', () => {
     const ampm = wheels[2];
     expect(ampm.getAttribute('aria-valuenow')).toBe('0'); // AM
     nowMs = 1000;
-    firePointer(ampm, 'pointerdown', { pointerId: 1, clientY: 300 });
+    fireEvent.pointerDown(ampm, { pointerId: 1, clientY: 300 });
     nowMs = 1016;
-    firePointer(ampm, 'pointermove', { pointerId: 1, clientY: 260 });
+    fireEvent.pointerMove(ampm, { pointerId: 1, clientY: 260 });
     expect(lastDate(handler).getHours()).toBe(21); // crossed into PM
     nowMs = 1032;
-    firePointer(ampm, 'pointermove', { pointerId: 1, clientY: 220 });
-    firePointer(ampm, 'pointerup', { pointerId: 1, clientY: 220 });
+    fireEvent.pointerMove(ampm, { pointerId: 1, clientY: 220 });
+    fireEvent.pointerUp(ampm, { pointerId: 1, clientY: 220 });
     // Fling velocity pushes past index 1 → clamp + zero velocity → snap ends
     // immediately on the integer.
     flushFrames(50);
@@ -380,13 +358,13 @@ describe('TimeWheels pointer drag', () => {
     const ampm = wheels[2];
     expect(ampm.getAttribute('aria-valuenow')).toBe('1'); // PM
     nowMs = 1000;
-    firePointer(ampm, 'pointerdown', { pointerId: 1, clientY: 200 });
+    fireEvent.pointerDown(ampm, { pointerId: 1, clientY: 200 });
     nowMs = 1016;
-    firePointer(ampm, 'pointermove', { pointerId: 1, clientY: 240 });
+    fireEvent.pointerMove(ampm, { pointerId: 1, clientY: 240 });
     expect(lastDate(handler).getHours()).toBe(9); // crossed into AM
     nowMs = 1032;
-    firePointer(ampm, 'pointermove', { pointerId: 1, clientY: 280 });
-    firePointer(ampm, 'pointerup', { pointerId: 1, clientY: 280 });
+    fireEvent.pointerMove(ampm, { pointerId: 1, clientY: 280 });
+    fireEvent.pointerUp(ampm, { pointerId: 1, clientY: 280 });
     flushFrames(50);
     expect(pendingFrames.size).toBe(0);
     expect(ampm.getAttribute('aria-valuenow')).toBe('0');
@@ -405,14 +383,14 @@ describe('TimeWheels pointer drag', () => {
     );
     const ampm = wheels[2];
     nowMs = 1000;
-    firePointer(ampm, 'pointerdown', { pointerId: 1, clientY: 200 });
+    fireEvent.pointerDown(ampm, { pointerId: 1, clientY: 200 });
     nowMs = 1016;
-    firePointer(ampm, 'pointermove', { pointerId: 1, clientY: 190 });
+    fireEvent.pointerMove(ampm, { pointerId: 1, clientY: 190 });
     nowMs = 1032;
-    firePointer(ampm, 'pointermove', { pointerId: 1, clientY: 180 });
+    fireEvent.pointerMove(ampm, { pointerId: 1, clientY: 180 });
     // 20px in 32ms ≈ 0.63 px/ms — just over the fling threshold, slow enough
     // that the first momentum frame lands strictly inside (0, 1).
-    firePointer(ampm, 'pointerup', { pointerId: 1, clientY: 180 });
+    fireEvent.pointerUp(ampm, { pointerId: 1, clientY: 180 });
     flushFrames(50);
     expect(pendingFrames.size).toBe(0);
     expect(ampm.getAttribute('aria-valuenow')).toBe('1');
@@ -430,11 +408,11 @@ describe('TimeWheels pointer drag', () => {
     );
     const hours = wheels[0];
     nowMs = 1000;
-    firePointer(hours, 'pointerdown', { pointerId: 1, clientY: 200 });
+    fireEvent.pointerDown(hours, { pointerId: 1, clientY: 200 });
     nowMs = 1016;
-    firePointer(hours, 'pointermove', { pointerId: 1, clientY: 180 });
+    fireEvent.pointerMove(hours, { pointerId: 1, clientY: 180 });
     // 20px/16ms = 1.25 px/ms → momentum frame is scheduled and left pending.
-    firePointer(hours, 'pointerup', { pointerId: 1, clientY: 180 });
+    fireEvent.pointerUp(hours, { pointerId: 1, clientY: 180 });
     expect(pendingFrames.size).toBeGreaterThan(0);
     unmount();
     expect(cancelRafSpy).toHaveBeenCalled();
@@ -456,7 +434,7 @@ describe('TimeWheels empty-space drag forwarder', () => {
     vi.spyOn(wheels[1], 'getBoundingClientRect').mockReturnValue(rect(60, 110));
     const sep = document.querySelector('.timeinput-separator')!;
     // clientX 84 is nearest the minutes wheel (centre 85) vs hours (centre 25).
-    firePointer(sep, 'pointerdown', {
+    fireEvent.pointerDown(sep, {
       pointerId: 5,
       clientX: 84,
       clientY: 100,
@@ -464,10 +442,10 @@ describe('TimeWheels empty-space drag forwarder', () => {
     expect(wheels[1].className).toContain('is-dragging');
     expect(wheels[0].className).not.toContain('is-dragging');
     // The drag is live on the minutes wheel: 32px up → +1 minute.
-    firePointer(wheels[1], 'pointermove', { pointerId: 5, clientY: 68 });
+    fireEvent.pointerMove(wheels[1], { pointerId: 5, clientY: 68 });
     expect(lastDate(handler).getMinutes()).toBe(1);
     expect(lastDate(handler).getHours()).toBe(10);
-    firePointer(wheels[1], 'pointerup', { pointerId: 5, clientY: 68 });
+    fireEvent.pointerUp(wheels[1], { pointerId: 5, clientY: 68 });
     flushFrames();
     expect(wheels[1].getAttribute('aria-valuenow')).toBe('1');
   });
@@ -484,7 +462,7 @@ describe('TimeWheels empty-space drag forwarder', () => {
     vi.spyOn(wheels[0], 'getBoundingClientRect').mockReturnValue(rect(0, 50));
     vi.spyOn(wheels[1], 'getBoundingClientRect').mockReturnValue(rect(60, 110));
     const sep = document.querySelector('.timeinput-separator')!;
-    firePointer(sep, 'pointerdown', {
+    fireEvent.pointerDown(sep, {
       pointerId: 5,
       clientX: 20,
       clientY: 100,
@@ -492,7 +470,7 @@ describe('TimeWheels empty-space drag forwarder', () => {
     expect(wheels[0].className).toContain('is-dragging');
     // Release with a single velocity sample (< 2 needed) and an integer
     // position → snap early-returns with nothing to animate.
-    firePointer(wheels[0], 'pointerup', { pointerId: 5, clientY: 100 });
+    fireEvent.pointerUp(wheels[0], { pointerId: 5, clientY: 100 });
     expect(wheels[0].className).not.toContain('is-dragging');
     expect(pendingFrames.size).toBe(0);
     expect(handler).not.toHaveBeenCalled();
@@ -520,16 +498,16 @@ describe('TimeWheels empty-space drag forwarder', () => {
         rect(60, 110)
       );
       const sep = document.querySelector('.timeinput-separator')!;
-      firePointer(sep, 'pointerdown', {
+      fireEvent.pointerDown(sep, {
         pointerId: 9,
         clientX: 84,
         clientY: 100,
       });
       expect(throwing).toHaveBeenCalled();
       expect(wheels[1].className).toContain('is-dragging');
-      firePointer(wheels[1], 'pointermove', { pointerId: 9, clientY: 68 });
+      fireEvent.pointerMove(wheels[1], { pointerId: 9, clientY: 68 });
       expect(lastDate(handler).getMinutes()).toBe(1);
-      firePointer(wheels[1], 'pointerup', { pointerId: 9, clientY: 68 });
+      fireEvent.pointerUp(wheels[1], { pointerId: 9, clientY: 68 });
       flushFrames();
     } finally {
       HTMLElement.prototype.setPointerCapture = previous;
@@ -556,7 +534,7 @@ describe('TimeWheels empty-space drag forwarder', () => {
     vi.spyOn(stray, 'getBoundingClientRect').mockReturnValue(rect(120, 170));
     const sep = document.querySelector('.timeinput-separator')!;
     expect(() =>
-      firePointer(sep, 'pointerdown', {
+      fireEvent.pointerDown(sep, {
         pointerId: 4,
         clientX: 150,
         clientY: 100,
@@ -580,7 +558,7 @@ describe('TimeWheels empty-space drag forwarder', () => {
     wheels.forEach(w => w.classList.remove('timeinput-wheel'));
     const sep = document.querySelector('.timeinput-separator')!;
     expect(() =>
-      firePointer(sep, 'pointerdown', {
+      fireEvent.pointerDown(sep, {
         pointerId: 6,
         clientX: 10,
         clientY: 50,
@@ -596,15 +574,15 @@ describe('TimeWheels empty-space drag forwarder', () => {
       <TimeWheels value={{ hours: 10, minutes: 0 }} onChange={fn} disabled />
     );
     const wheels = getAllByRole('spinbutton');
-    firePointer(wheels[0], 'pointerdown', { pointerId: 1, clientY: 200 });
-    firePointer(wheels[0], 'pointermove', { pointerId: 1, clientY: 100 });
+    fireEvent.pointerDown(wheels[0], { pointerId: 1, clientY: 200 });
+    fireEvent.pointerMove(wheels[0], { pointerId: 1, clientY: 100 });
     expect(wheels[0].className).not.toContain('is-dragging');
     fireEvent.keyDown(wheels[0], { key: 'Home' });
     fireEvent.keyDown(wheels[0], { key: 'End' });
     fireEvent.keyDown(wheels[0], { key: 'ArrowDown' });
     fireEvent.wheel(wheels[0], { deltaY: 200 });
     const sep = container.querySelector('.timeinput-separator')!;
-    firePointer(sep, 'pointerdown', { pointerId: 2, clientX: 0, clientY: 0 });
+    fireEvent.pointerDown(sep, { pointerId: 2, clientX: 0, clientY: 0 });
     wheels.forEach(w => expect(w.className).not.toContain('is-dragging'));
     expect(fn).not.toHaveBeenCalled();
   });
@@ -1021,23 +999,23 @@ describe('TimeWheels environment fallbacks', () => {
       const minutes = wheels[1];
       // Slow drag → snap (Date.now drives the sample window + snap easing).
       nowMs = 5000;
-      firePointer(hours, 'pointerdown', { pointerId: 1, clientY: 200 });
+      fireEvent.pointerDown(hours, { pointerId: 1, clientY: 200 });
       nowMs = 5100;
-      firePointer(hours, 'pointermove', { pointerId: 1, clientY: 168 });
+      fireEvent.pointerMove(hours, { pointerId: 1, clientY: 168 });
       nowMs = 5200;
-      firePointer(hours, 'pointermove', { pointerId: 1, clientY: 169 });
-      firePointer(hours, 'pointerup', { pointerId: 1, clientY: 169 });
+      fireEvent.pointerMove(hours, { pointerId: 1, clientY: 169 });
+      fireEvent.pointerUp(hours, { pointerId: 1, clientY: 169 });
       flushFrames();
       expect(hours.getAttribute('aria-valuenow')).toBe('11');
       expect(lastDate(handler).getHours()).toBe(11);
       // Fast fling → momentum (Date.now drives the friction clock).
       nowMs = 6000;
-      firePointer(minutes, 'pointerdown', { pointerId: 2, clientY: 300 });
+      fireEvent.pointerDown(minutes, { pointerId: 2, clientY: 300 });
       nowMs = 6016;
-      firePointer(minutes, 'pointermove', { pointerId: 2, clientY: 260 });
+      fireEvent.pointerMove(minutes, { pointerId: 2, clientY: 260 });
       nowMs = 6032;
-      firePointer(minutes, 'pointermove', { pointerId: 2, clientY: 220 });
-      firePointer(minutes, 'pointerup', { pointerId: 2, clientY: 220 });
+      fireEvent.pointerMove(minutes, { pointerId: 2, clientY: 220 });
+      fireEvent.pointerUp(minutes, { pointerId: 2, clientY: 220 });
       flushFrames(300);
       expect(pendingFrames.size).toBe(0);
       const settledMinute = lastDate(handler).getMinutes();
@@ -1047,13 +1025,13 @@ describe('TimeWheels environment fallbacks', () => {
       vi.spyOn(minutes, 'getBoundingClientRect').mockReturnValue(rect(60, 110));
       const sep = document.querySelector('.timeinput-separator')!;
       nowMs = 7000;
-      firePointer(sep, 'pointerdown', {
+      fireEvent.pointerDown(sep, {
         pointerId: 3,
         clientX: 20,
         clientY: 100,
       });
       expect(hours.className).toContain('is-dragging');
-      firePointer(hours, 'pointerup', { pointerId: 3, clientY: 100 });
+      fireEvent.pointerUp(hours, { pointerId: 3, clientY: 100 });
     } finally {
       Object.defineProperty(globalThis, 'performance', {
         configurable: true,
@@ -1105,10 +1083,10 @@ describe('TimeWheels audio unlock on drag', () => {
     const { wheels } = openPicker(
       <TimeInput defaultValue={at(10, 0)} mobileNative={false} audioTick />
     );
-    firePointer(wheels[0], 'pointerdown', { pointerId: 1, clientY: 200 });
+    fireEvent.pointerDown(wheels[0], { pointerId: 1, clientY: 200 });
     expect(audioCtorSpy).toHaveBeenCalled();
     expect(resumeSpy).toHaveBeenCalled();
-    firePointer(wheels[0], 'pointerup', { pointerId: 1, clientY: 200 });
+    fireEvent.pointerUp(wheels[0], { pointerId: 1, clientY: 200 });
   });
 
   it('a forwarded empty-space drag also unlocks the audio context', () => {
@@ -1118,14 +1096,14 @@ describe('TimeWheels audio unlock on drag', () => {
     vi.spyOn(wheels[0], 'getBoundingClientRect').mockReturnValue(rect(0, 50));
     vi.spyOn(wheels[1], 'getBoundingClientRect').mockReturnValue(rect(60, 110));
     const sep = document.querySelector('.timeinput-separator')!;
-    firePointer(sep, 'pointerdown', {
+    fireEvent.pointerDown(sep, {
       pointerId: 3,
       clientX: 20,
       clientY: 100,
     });
     expect(audioCtorSpy).toHaveBeenCalled();
     expect(resumeSpy).toHaveBeenCalled();
-    firePointer(wheels[0], 'pointerup', { pointerId: 3, clientY: 100 });
+    fireEvent.pointerUp(wheels[0], { pointerId: 3, clientY: 100 });
   });
 });
 
@@ -1163,12 +1141,12 @@ describe('TimeInput inline and readOnly', () => {
     }
     // Not taken over, so the page scrolls instead.
     expect(fireEvent.wheel(hours, { deltaY: 200 })).toBe(true);
-    firePointer(hours, 'pointerdown', { pointerId: 1, clientY: 200 });
-    firePointer(hours, 'pointermove', { pointerId: 1, clientY: 136 });
+    fireEvent.pointerDown(hours, { pointerId: 1, clientY: 200 });
+    fireEvent.pointerMove(hours, { pointerId: 1, clientY: 136 });
     expect(hours.className).not.toContain('is-dragging');
-    firePointer(hours, 'pointerup', { pointerId: 1, clientY: 136 });
+    fireEvent.pointerUp(hours, { pointerId: 1, clientY: 136 });
     const separator = container.querySelector('.timeinput-separator')!;
-    firePointer(separator, 'pointerdown', {
+    fireEvent.pointerDown(separator, {
       pointerId: 2,
       clientX: 0,
       clientY: 100,
@@ -1195,11 +1173,11 @@ describe('TimeInput inline and readOnly', () => {
     );
     const hours = getAllByRole('spinbutton')[0];
     expect(hours).not.toHaveAttribute('aria-readonly');
-    firePointer(hours, 'pointerdown', { pointerId: 1, clientY: 200 });
+    fireEvent.pointerDown(hours, { pointerId: 1, clientY: 200 });
     rerender(
       <TimeInput inline readOnly defaultValue={at(10, 0)} onChange={handler} />
     );
-    firePointer(hours, 'pointermove', { pointerId: 1, clientY: 168 });
+    fireEvent.pointerMove(hours, { pointerId: 1, clientY: 168 });
     expect(handler).not.toHaveBeenCalled();
   });
 });

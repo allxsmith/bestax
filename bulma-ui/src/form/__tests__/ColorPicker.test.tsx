@@ -84,31 +84,26 @@ afterEach(() => {
   delete (window as { EyeDropper?: unknown }).EyeDropper;
 });
 
-/**
- * jsdom has no PointerEvent, so fireEvent's pointer events drop clientX and
- * clientY. A MouseEvent of the pointer type carries them, and React reads
- * the native event.
- */
+/** A mouse's pointer event, unless `pointerType` names another pointer. */
 const pointer = (
   el: Element,
   type: 'pointerdown' | 'pointermove' | 'pointerup' | 'pointercancel',
-  init: {
+  {
+    pointerType = 'mouse',
+    ...init
+  }: {
     clientX?: number;
     clientY?: number;
     button?: number;
     pointerType?: string;
   } = {}
 ) => {
-  const event = new MouseEvent(type, {
+  const event = new PointerEvent(type, {
     bubbles: true,
     cancelable: true,
-    clientX: init.clientX ?? 0,
-    clientY: init.clientY ?? 0,
-    button: init.button ?? 0,
-  });
-  Object.defineProperty(event, 'pointerId', { value: 1 });
-  Object.defineProperty(event, 'pointerType', {
-    value: init.pointerType ?? 'mouse',
+    pointerId: 1,
+    pointerType,
+    ...init,
   });
   fireEvent(el, event);
   return event;
