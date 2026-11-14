@@ -394,6 +394,15 @@ cards, use `<Carousel indicatorInside overlayControls={false}>`: plain colors an
 overlay colors default to light ones (`--bulma-white`) in either color scheme, since they sit on a
 dark tint.
 
+### Calendar
+
+Declared on the root, `.calendar`: its frame, and the gap between the months on show. Each month
+is the `DateInput` calendar, `.dateinput`, so the `--bulma-dateinput-*` variables below theme its
+days, and a theme written for the date pickers themes the Calendar too.
+
+`--bulma-calendar-background-color`, `--bulma-calendar-border-color`,
+`--bulma-calendar-months-gap`, `--bulma-calendar-padding`, `--bulma-calendar-radius`
+
 ### Checkbox
 
 `--bulma-checkbox-active-color`, `--bulma-checkbox-background`, `--bulma-checkbox-border-color`,
@@ -574,7 +583,9 @@ built from `useDataTable`'s props looks the same with no `.data-table` around it
 
 ### DateInput
 
-`--bulma-dateinput-cell-color`, `--bulma-dateinput-cell-disabled-color`,
+`--bulma-dateinput-cell-color`, `--bulma-dateinput-cell-content-color`,
+`--bulma-dateinput-cell-content-loading-opacity`, `--bulma-dateinput-cell-content-size`,
+`--bulma-dateinput-cell-disabled-color`,
 `--bulma-dateinput-cell-hover-bg`, `--bulma-dateinput-cell-other-month-color`,
 `--bulma-dateinput-cell-radius`, `--bulma-dateinput-cell-range-bg`,
 `--bulma-dateinput-cell-range-preview-bg`, `--bulma-dateinput-cell-selected-bg`,
@@ -590,6 +601,10 @@ ends, and the fainter band shown while the end is still being picked. Both are m
 them too. Inside a band, a nearby month's day reads `--bulma-dateinput-cell-color` rather than
 `--bulma-dateinput-cell-other-month-color`, and today's tint leans a fifth of the way toward
 `--bulma-text-strong`, so both stay readable on the band's color.
+
+The three `cell-content` variables style what a `Calendar`'s `dayTemplate` draws under a day's
+number: its color, which a picked day's fill replaces with the picked day's own, its size, and the
+opacity it fades to while the Calendar is `loading`.
 
 ### DateRangeInput
 

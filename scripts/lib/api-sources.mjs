@@ -102,6 +102,7 @@ export const SCSS_SOURCES = {
   Breadcrumb: [{ pkg: 'bulma', path: 'sass/components/breadcrumb.scss' }],
   Button: [{ pkg: 'bulma', path: 'sass/elements/button.scss' }],
   Buttons: [],
+  Calendar: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_dateinput.scss' }],
   Card: [{ pkg: 'bulma', path: 'sass/components/card.scss' }],
   Carousel: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_carousel.scss' },
@@ -385,6 +386,7 @@ export const SCSS_SOURCES = {
  * missing from this map doesn't mean it renders an element of its own.
  */
 export const RENDERS_ELEMENT_OF = {
+  Calendar: 'DateInput', // each month on show is the pickers' `.dateinput`
   CheckboxCard: 'Card', // its label is a `.card.checkbox-card`
   CopyButton: 'Button', // renders a `.button` through Button, or IconButton's
   Dropzone: 'File', // its zone is a `.file.is-boxed.is-fullwidth`

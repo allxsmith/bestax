@@ -277,6 +277,38 @@ const [stay, setStay] = useState<DateRangeValue>([null, null]);
 />;
 ```
 
+For months on the page that say something about each day (free slots, fares, holidays, an
+agenda), use `Calendar` rather than an `inline` picker with content drawn over it. It's the
+pickers' grid with no `Field`, label or hidden input, so a form that posts a date still uses
+`DateInput inline`. A click picks: `selectionMode` is `'single'` (`Date | null`, as on
+`DateInput`, with `granularity` for a month or a year) or `'range'` (`[start, end]`, as on
+`DateRangeInput`, reported once both ends are picked). `readOnly` reads days without picking
+them and `disabled` stops both. `dayTemplate(date, state)` draws short content under a day's
+number, and because a day's name is its full date, which a screen reader reads instead, pair it
+with `getDayLabel(date, label)` to say the same thing. `month`/`defaultMonth`/`onMonthChange`
+hold the month on show, so load each month's data in `onMonthChange` and set `loading` while it
+arrives. `monthsToShow` sets months side by side, and `isFullwidth` stretches the days to the
+container. Name it with `aria-label` or `aria-labelledby`. On a server-rendered page give it a
+`month`, a `defaultMonth` or a picked `value`, since without one the first month comes from the
+clock.
+
+```tsx
+const [month, setMonth] = useState(new Date(2026, 10, 1));
+const [day, setDay] = useState<Date | null>(null);
+
+<Calendar
+  aria-label="Book a slot"
+  month={month}
+  onMonthChange={setMonth}
+  loading={loading}
+  value={day}
+  onChange={setDay}
+  shouldDisableDate={date => slotsLeft(date) === 0}
+  dayTemplate={date => slotsLeft(date) > 0 && `${slotsLeft(date)} left`}
+  getDayLabel={(date, label) => `${label}, ${slotsLeft(date)} slots left`}
+/>;
+```
+
 ## Color — `form/ColorPicker.tsx`, `form/ColorInput.tsx`
 
 `ColorPicker` is a panel: a saturation and brightness square, a hue slider, and the value as text

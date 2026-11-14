@@ -40,7 +40,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-134 documented components. Generated from the API docs — every exported
+135 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -129,6 +129,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 ## Form
 
 - [Autocomplete](https://bestax.io/docs/api/form/autocomplete) — The `Autocomplete` component provides an input field with dropdown suggestions that filter based on user input.
+- [Calendar](https://bestax.io/docs/api/form/datetime/calendar) — The `Calendar` component shows months on the page, not behind an input, where a click picks a day or a range and each day can show what's on it.
 - [Checkbox](https://bestax.io/docs/api/form/checkbox) — The `Checkbox` component provides a Bulma-styled checkbox input.
 - [CheckboxCard](https://bestax.io/docs/api/form/checkboxcard) — The `CheckboxCard` component is a checkbox drawn as a card, with a title and a description, that toggles wherever you click it.
 - [Checkboxes](https://bestax.io/docs/api/form/checkboxes) — The `Checkboxes` component wraps multiple `Checkbox` components in a Bulma-styled group.

@@ -62,6 +62,18 @@ function BadgeIcon() {
   );
 }
 
+// A month page with its binding rings, and a dot under one day
+function CalendarIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="4.5" width="18" height="16.5" rx="2" />
+      <path d="M3 9.5h18M8 2.5v4M16 2.5v4" />
+      <path d="M7.5 13.5h.01M12 13.5h.01M16.5 13.5h.01M7.5 17h.01M12 17h.01" />
+      <circle cx="16.5" cy="17.5" r="1.25" />
+    </svg>
+  );
+}
+
 // Sliding frames — carousel
 function CarouselIcon() {
   return (
@@ -497,6 +509,7 @@ const ADDON_ICONS = {
   affix: AffixIcon,
   avatar: AvatarIcon,
   badge: BadgeIcon,
+  calendar: CalendarIcon,
   carousel: CarouselIcon,
   choicecard: ChoiceCardIcon,
   collapse: CollapseIcon,
