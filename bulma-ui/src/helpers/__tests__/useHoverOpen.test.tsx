@@ -34,7 +34,6 @@ interface HarnessProps {
   closeDelay?: number;
   withTrigger?: boolean;
   consumeEscape?: boolean;
-  openOnFocus?: boolean;
   onHandlers?: (handlers: HoverOpenHandlers) => void;
 }
 
@@ -46,7 +45,6 @@ const Harness = ({
   closeDelay = 50,
   withTrigger = true,
   consumeEscape,
-  openOnFocus,
   onHandlers,
 }: HarnessProps) => {
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -59,7 +57,6 @@ const Harness = ({
     triggerRef,
     floatingRef,
     consumeEscape,
-    openOnFocus,
   });
   onHandlers?.(handlers);
   return (
@@ -199,49 +196,6 @@ describe('useHoverOpen', () => {
       spy.mockRestore();
       advance(1000);
       expect(onOpenChange).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('with openOnFocus off', () => {
-    it('opens nothing for keyboard focus on the trigger', () => {
-      const onOpenChange = vi.fn();
-      render(<Stateful openOnFocus={false} onOpenChange={onOpenChange} />);
-      // jsdom shows every focus as :focus-visible, so this is keyboard focus.
-      trigger().focus();
-      advance(1000);
-      expect(onOpenChange).not.toHaveBeenCalled();
-    });
-
-    it('still opens for the pointer', () => {
-      const onOpenChange = vi.fn();
-      render(<Stateful openOnFocus={false} onOpenChange={onOpenChange} />);
-      pointer(trigger(), 'pointerover');
-      advance(100);
-      expect(onOpenChange).toHaveBeenLastCalledWith(true);
-    });
-
-    it('doesn’t hold it open for keyboard focus on the trigger once the pointer leaves', () => {
-      const onOpenChange = vi.fn();
-      render(<Stateful openOnFocus={false} onOpenChange={onOpenChange} />);
-      pointer(trigger(), 'pointerover');
-      advance(100);
-      trigger().focus();
-      pointer(trigger(), 'pointerout', document.body);
-      advance(50);
-      expect(onOpenChange).toHaveBeenLastCalledWith(false);
-      expect(floating()).toBeNull();
-    });
-
-    it('still holds it open for focus in the floating element', () => {
-      const onOpenChange = vi.fn();
-      render(<Stateful openOnFocus={false} onOpenChange={onOpenChange} />);
-      pointer(trigger(), 'pointerover');
-      advance(100);
-      screen.getByRole('button', { name: 'Inside' }).focus();
-      pointer(trigger(), 'pointerout', document.body);
-      advance(1000);
-      expect(onOpenChange).toHaveBeenCalledTimes(1);
-      expect(floating()).toBeInTheDocument();
     });
   });
 

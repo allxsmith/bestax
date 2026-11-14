@@ -44,16 +44,6 @@ export interface UseHoverOpenOptions {
    */
   openOnTap?: boolean;
   /**
-   * Whether keyboard focus on the trigger opens it and holds it open, as it
-   * should for content that only adds to the trigger, such as a tooltip.
-   * Off, focus on the trigger neither opens it nor keeps it open, so only
-   * the pointer does, for a trigger that opens it some other way from the
-   * keyboard, such as a menu button. Focus in the floating element holds it
-   * open either way.
-   * @defaultValue true
-   */
-  openOnFocus?: boolean;
-  /**
    * Whether an Escape that closes it stops there when focus is on the
    * trigger, in the floating element or nowhere, so a `Popover` or `Modal`
    * around it keeps its own. Off, Escape still closes it and always goes on
@@ -222,10 +212,7 @@ function wantEscape(doc: Document, entry: EscapeEntry): () => void {
 interface HoverOpenState {
   /** The pointer, other than a touch, is over the trigger or the floating element. */
   pointerIn: boolean;
-  /**
-   * Focus holds it open: any focus in the floating element, or keyboard
-   * focus on the trigger unless `openOnFocus` is off.
-   */
+  /** Focus holds it open: any focus in the floating element, or keyboard focus on the trigger. */
   focusIn: boolean;
   /** Focus, however it got there, is in the floating element. */
   focusInFloating: boolean;
@@ -264,9 +251,8 @@ interface HoverOpenState {
  * - The pointer entering, or keyboard focus arriving on the trigger, asks to
  *   open after `openDelay`. A touch pointer doesn't count. Neither does focus
  *   that a press brings to the trigger: it counts when the browser shows it
- *   as `:focus-visible`, and with `openOnFocus` off no focus on the trigger
- *   does. The pointer arriving from outside a shadow root the trigger
- *   renders into counts too, though React sends no enter for it.
+ *   as `:focus-visible`. The pointer arriving from outside a shadow root the
+ *   trigger renders into counts too, though React sends no enter for it.
  * - Focus in the floating element holds it open however it got there,
  *   including focus in content it portals elsewhere, such as a nested card.
  *   Whether a click focuses what it lands on is up to the browser: Safari
@@ -534,12 +520,8 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
         s.focusInFloating = !inTrigger(event.target);
         if (s.restoring) return;
         // Any focus in the floating element holds it. On the trigger, only
-        // keyboard focus does, so a click there opens nothing, and not even
-        // that with `openOnFocus` off.
-        s.focusIn =
-          s.focusInFloating ||
-          (latestRef.current.openOnFocus !== false &&
-            isKeyboardFocus(event.target));
+        // keyboard focus does, so a click there opens nothing.
+        s.focusIn = s.focusInFloating || isKeyboardFocus(event.target);
         settle();
       },
       onBlur: event => {
