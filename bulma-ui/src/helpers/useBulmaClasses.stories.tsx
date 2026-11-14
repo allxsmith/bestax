@@ -24,6 +24,12 @@ import { Column } from '../columns/Column';
 import { Message } from '../components/Message';
 import { Link } from '../elements/Link';
 import { Paragraph } from '../elements/Paragraph';
+// The sample picture is a crop of a photo published on Unsplash under the
+// Unsplash License (https://unsplash.com/license):
+// - sample-lioness.jpg: "A close-up portrait of a lioness with amber eyes
+//   looking forward", by Samuel Scrimshaw,
+//   https://unsplash.com/photos/sseiVD2XsOk
+import lioness from '../../images/sample-lioness.jpg';
 
 // One look for the demo boxes in the layout stories, readable on both color
 // schemes. A stage, the area a demo lays its items out in, is a scheme
@@ -249,8 +255,8 @@ export const SkeletonImage: Story = {
   render: () => (
     <Image
       skeleton
-      src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1150px-React-icon.svg.png"
-      alt="Skeleton image"
+      src={lioness}
+      alt="A lioness looking straight ahead"
       size="128x128"
     />
   ),
