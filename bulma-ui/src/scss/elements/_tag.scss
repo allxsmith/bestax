@@ -1,25 +1,29 @@
 // Tag Styles
-// Bulma already styles the tag; this gives the light color back its own text
+// Bulma already styles the tag; this gives the light variant of its grayscale
+// colors readable text
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
 @use '../color-classes' as *;
 
-// Bulma nests a light variant, `&.is-light`, in each color of its tag. For the
-// light color it is `.tag.is-light.is-light`, and a class repeated in a
-// selector matches an element that has it once, so every light tag gets it.
-// It reads the text's lightness from `--bulma-light-light-invert-l`, which
-// Bulma doesn't define, so the text inherits the color around it, which on the
-// dark scheme is light text on the light tag. Its background is already the
-// light color's own.
+// Bulma nests a light variant, `&.is-light`, in each color of its tag. It
+// sets the light color's background and reads the text's lightness from
+// `--bulma-<color>-light-invert-l`, which Bulma doesn't define for white,
+// black, light or dark, so a tag of one of those with `is-light` gets text
+// that inherits the color around it. On the dark scheme that's light text on
+// the light background. For the light color the variant is
+// `.tag.is-light.is-light`, and a class repeated in a selector matches an
+// element that has it once, so every light tag gets it.
 //
-// This puts back the text's lightness `.tag.is-light` sets. The `:not()`
-// skips a tag that carries another color, so Bulma's light variant of that
-// color (`is-primary is-light`) keeps its look, and adds a class's weight, so
-// the rule outranks Bulma's whichever stylesheet loads first. Once Bulma fixes
-// its loop, this restates Bulma's value and can go.
+// This puts back the text's lightness `.tag.is-light` sets, the one that
+// reads on the light color's background, on a light tag and on a white,
+// black or dark one with `is-light`. Their background stays Bulma's. The
+// `:not()` skips a tag that carries any other color, so Bulma's light variant
+// of that color (`is-primary is-light`) keeps its look, and adds a class's
+// weight, so the rule outranks Bulma's whichever stylesheet loads first. Once
+// Bulma defines those variables, this can go.
 .#{iv.$class-prefix}tag.#{iv.$class-prefix}is-light.#{iv.$class-prefix}is-light:not(
-    #{extras-color-classes('light')}
+    #{extras-color-classes('light', 'white', 'black', 'dark')}
   ) {
   @include cv.register-vars(
     (

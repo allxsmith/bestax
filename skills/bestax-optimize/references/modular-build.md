@@ -236,14 +236,16 @@ Notes:
 - `Notification` is stock Bulma too (`bulma/sass/elements/notification`). The `notification`
   extras partial pads the end of one with a close button (`hasDelete`, or a `Delete` passed in)
   so its text clears the button, and gives a dark or light one its color's own text and
-  background, where Bulma's module lets its text inherit the color around it. Include it
-  (`as bestax-notification`) next to the Bulma module in any build that shows a dismissible, dark
-  or light notification. It doesn't depend on the order of the two `@use` lines either.
-- `Tag` is stock Bulma too (`bulma/sass/elements/tag`). The `tag` extras partial gives a light tag
-  the light color's own text, where Bulma's module lets its text inherit the color around it, which
-  on the dark scheme leaves it hard to read. Include it (`as bestax-tag`) next to the Bulma module
-  in any build that shows a light tag. It doesn't depend on the order of the two `@use` lines
-  either.
+  background, and a white or black one with `isLight` the light color's text, where Bulma's module
+  lets its text inherit the color around it. Include it (`as bestax-notification`) next to the
+  Bulma module in any build that shows a dismissible, dark or light notification, or a white or
+  black one with `isLight`. It doesn't depend on the order of the two `@use` lines either.
+- `Tag` is stock Bulma too (`bulma/sass/elements/tag`). The `tag` extras partial gives a light tag,
+  and a white, black or dark one with `isLight`, text that reads on its light background, where
+  Bulma's module lets its text inherit the color around it, which on the dark scheme leaves it hard
+  to read.
+  Include it (`as bestax-tag`) next to the Bulma module in any build that shows one of those tags.
+  It doesn't depend on the order of the two `@use` lines either.
 - `Delete` is stock Bulma too, and it's the close button of `Notification`, `Message`, `Toast`, a
   `Modal` card, `AppFrame`'s drawer and the tags of `Taginput`, `Combobox`, `Dropzone` and
   `TreeSelect`. Bulma draws it in `bulma/sass/elements/delete`, and the modules of the components

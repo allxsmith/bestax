@@ -52,6 +52,11 @@ export interface NotificationProps
    * Use the light color variant. The light and dark colors have none, so
    * `color="light"` or `color="dark"` with `isLight` looks the same as
    * without it, as a light or dark `Button` does.
+   *
+   * `white` and `black` with `isLight` take Bulma's light gray background,
+   * and the light color's text from bestax's stylesheets. With Bulma's CSS
+   * alone, their text inherits the color around it, which on a dark page is
+   * hard to read.
    */
   isLight?: boolean;
   /**
@@ -172,6 +177,11 @@ export interface NotificationOptions {
    * Use the light color variant. The light and dark colors have none, so
    * `color="light"` or `color="dark"` with `isLight` looks the same as
    * without it, as a light or dark `Button` does.
+   *
+   * `white` and `black` with `isLight` take Bulma's light gray background,
+   * and the light color's text from bestax's stylesheets. With Bulma's CSS
+   * alone, their text inherits the color around it, which on a dark page is
+   * hard to read.
    */
   isLight?: boolean;
   /** Duration in ms before auto-close. Default 3000. */
