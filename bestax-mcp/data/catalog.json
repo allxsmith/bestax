@@ -92,6 +92,7 @@
         "Timeline",
         "Toast",
         "Tooltip",
+        "Tour",
         "TreeView"
       ]
     },
@@ -1548,6 +1549,17 @@
       "compound": false,
       "propCount": 14,
       "exampleCount": 11
+    },
+    {
+      "name": "Tour",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `Tour` component walks a user through an interface one step at a time, each step a panel pointing at an element with the rest of the page dimmed around it.",
+      "slug": "components/tour",
+      "import": "import { Tour } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 23,
+      "exampleCount": 7
     },
     {
       "name": "TreeSelect",
@@ -3272,6 +3284,26 @@
     "--bulma-tooltip-padding": ["Tooltip"],
     "--bulma-tooltip-radius": ["Tooltip"],
     "--bulma-tooltip-z-index": ["Tooltip"],
+    "--bulma-tour-overlay-background": ["Tour"],
+    "--bulma-tour-progress-color": ["Tour"],
+    "--bulma-tour-spotlight-padding": ["Tour"],
+    "--bulma-tour-spotlight-radius": ["Tour"],
+    "--bulma-tour-step-background": ["Tour"],
+    "--bulma-tour-step-body-padding": ["Tour"],
+    "--bulma-tour-step-border-color": ["Tour"],
+    "--bulma-tour-step-border-width": ["Tour"],
+    "--bulma-tour-step-color": ["Tour"],
+    "--bulma-tour-step-footer-gap": ["Tour"],
+    "--bulma-tour-step-footer-padding": ["Tour"],
+    "--bulma-tour-step-header-color": ["Tour"],
+    "--bulma-tour-step-header-gap": ["Tour"],
+    "--bulma-tour-step-header-padding": ["Tour"],
+    "--bulma-tour-step-header-weight": ["Tour"],
+    "--bulma-tour-step-max-width": ["Tour"],
+    "--bulma-tour-step-offset": ["Tour"],
+    "--bulma-tour-step-radius": ["Tour"],
+    "--bulma-tour-step-shadow": ["Tour"],
+    "--bulma-tour-z-index": ["Tour"],
     "--bulma-tree-select-chevron-color": ["TreeSelect"],
     "--bulma-tree-select-chevron-focus-color": ["TreeSelect"],
     "--bulma-tree-select-chevron-hover-color": ["TreeSelect"],
@@ -3964,6 +3996,11 @@
       "path": "ToastContainer",
       "purpose": "Container component for rendering programmatic toasts.",
       "standalone": "companion"
+    },
+    "TourStep": {
+      "component": "Tour",
+      "path": "Tour.Step",
+      "purpose": "One step of the tour: a title, a body and the element it points at."
     },
     "Tr": {
       "component": "Table",

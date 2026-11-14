@@ -10,7 +10,7 @@
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
-          "bytes": 26902
+          "bytes": 27119
         },
         {
           "id": "library-contributor",
@@ -93,7 +93,7 @@
         {
           "id": "bloomer-prop-map",
           "file": "references/bloomer/prop-map.md",
-          "bytes": 27258
+          "bytes": 27279
         },
         {
           "id": "bloomer-unmappables",
@@ -128,7 +128,7 @@
         {
           "id": "rbx-prop-map",
           "file": "references/rbx/prop-map.md",
-          "bytes": 16399
+          "bytes": 16420
         },
         {
           "id": "rbx-unmappables",
@@ -148,7 +148,7 @@
         {
           "id": "react-bulma-components-unmappables",
           "file": "references/react-bulma-components/unmappables.md",
-          "bytes": 15443
+          "bytes": 15464
         }
       ],
       "examples": []
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 20823
+          "bytes": 20831
         }
       ],
       "examples": []
@@ -176,12 +176,12 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 75421
+          "bytes": 76643
         },
         {
           "id": "themeable-components",
           "file": "references/themeable-components.md",
-          "bytes": 39801
+          "bytes": 40290
         }
       ],
       "examples": [
