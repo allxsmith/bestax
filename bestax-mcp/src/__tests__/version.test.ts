@@ -213,7 +213,7 @@ describe('resolveVersions', () => {
   // Any non-empty value used to be truthy here, so writing the word for "no" turned the
   // check off. An explicit off switch should not be something you trip by disabling it.
   it.each(['0', 'false', 'no', 'off', ' Off '])(
-    'keeps the check on for %p',
+    'keeps the check on for %j',
     async flag => {
       process.env.BESTAX_MCP_NO_VERSION_CHECK = flag;
       const cwd = await projectWith('4.0.0');
