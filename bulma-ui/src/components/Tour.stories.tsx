@@ -233,6 +233,7 @@ export const Controlled: Story = {
           <Button
             onClick={() => {
               setStep(0);
+              setResult('in progress');
               setOpen(true);
             }}
           >
@@ -246,8 +247,9 @@ export const Controlled: Story = {
         <Tour
           open={open}
           onOpenChange={next => {
-            if (!next && result !== 'finished') setResult('skipped');
             setOpen(next);
+            // Done calls onFinish first, so a finished tour stays finished.
+            if (!next) setResult(now => (now === 'finished' ? now : 'skipped'));
           }}
           value={step}
           onChange={setStep}

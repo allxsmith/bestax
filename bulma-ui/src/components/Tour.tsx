@@ -136,8 +136,8 @@ export interface TourProps
    */
   onOpenChange?: (open: boolean) => void;
   /**
-   * The current step's index (controlled). One past either end shows the
-   * nearest step.
+   * The current step's index (controlled). An index past either end shows
+   * the nearest step, and a fraction is rounded down.
    */
   value?: number;
   /**
@@ -848,7 +848,8 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
       );
     }
     const total = steps.length;
-    const index = Math.max(0, Math.min(value, total - 1));
+    // NaN, which no step has, counts as the first.
+    const index = Math.max(0, Math.min(Math.floor(value) || 0, total - 1));
     const step = steps[index] as React.ReactElement<TourStepProps> | undefined;
     const stepProps: TourStepProps = step?.props ?? {};
 

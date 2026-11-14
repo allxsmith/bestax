@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { renderToStaticMarkup, renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { Tour, TourStep } from '../Tour';
+import { Controlled as ControlledStory } from '../Tour.stories';
 import type { TourProps } from '../Tour';
 import { Modal } from '../Modal';
 import { Popover } from '../Popover';
@@ -508,6 +509,13 @@ describe('Tour', () => {
       expect(screen.getByRole('dialog', { name: 'Welcome' })).toBeVisible();
     });
 
+    it('rounds a fraction down, and shows the first step for NaN', () => {
+      const { rerender } = render(<Page open value={1.5} />);
+      expect(screen.getByRole('dialog', { name: 'Filters' })).toBeVisible();
+      rerender(<Page open value={NaN} />);
+      expect(screen.getByRole('dialog', { name: 'Welcome' })).toBeVisible();
+    });
+
     it('starts an uncontrolled step again at defaultValue each time it opens', () => {
       render(<Controlled defaultValue={1} />);
       fireEvent.click(screen.getByRole('button', { name: 'Take the tour' }));
@@ -534,6 +542,22 @@ describe('Tour', () => {
       );
       expect(screen.getByText('Step 1 of 2')).toBeVisible();
       expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    });
+
+    it('records a finished tour apart from a skipped one, as the Controlled story does', () => {
+      // The docs page's controlled example is the same code.
+      const Story = ControlledStory.render as unknown as React.FC;
+      render(<Story />);
+      const start = () =>
+        fireEvent.click(screen.getByRole('button', { name: 'Start' }));
+      start();
+      fireEvent.click(next());
+      fireEvent.click(next());
+      expect(screen.getByText(/tour finished/)).toBeInTheDocument();
+      start();
+      expect(screen.getByText(/tour in progress/)).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Skip' }));
+      expect(screen.getByText(/tour skipped/)).toBeInTheDocument();
     });
   });
 

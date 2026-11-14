@@ -23,7 +23,7 @@
     },
     {
       "title": "Controlled",
-      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const [step, setStep] = useState(0);\n  const [result, setResult] = useState('not taken');\n\n  return (\n    <>\n      <Button\n        onClick={() => {\n          setStep(0);\n          setOpen(true);\n        }}\n      >\n        Start\n      </Button>\n      <Paragraph mt=\"3\">\n        Step {step + 1}, tour {result}\n      </Paragraph>\n      <Tour\n        open={open}\n        onOpenChange={next => {\n          if (!next && result !== 'finished') setResult('skipped');\n          setOpen(next);\n        }}\n        value={step}\n        onChange={setStep}\n        onFinish={() => setResult('finished')}\n      >\n        <Tour.Step title=\"Your draft\">Everything you write is kept.</Tour.Step>\n        <Tour.Step title=\"Publishing\">Publish when you're ready.</Tour.Step>\n      </Tour>\n    </>\n  );\n}"
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const [step, setStep] = useState(0);\n  const [result, setResult] = useState('not taken');\n\n  return (\n    <>\n      <Button\n        onClick={() => {\n          setStep(0);\n          setResult('in progress');\n          setOpen(true);\n        }}\n      >\n        Start\n      </Button>\n      <Paragraph mt=\"3\">\n        Step {step + 1}, tour {result}\n      </Paragraph>\n      <Tour\n        open={open}\n        onOpenChange={next => {\n          setOpen(next);\n          // Done calls onFinish first, so a finished tour stays finished.\n          if (!next) setResult(now => (now === 'finished' ? now : 'skipped'));\n        }}\n        value={step}\n        onChange={setStep}\n        onFinish={() => setResult('finished')}\n      >\n        <Tour.Step title=\"Your draft\">Everything you write is kept.</Tour.Step>\n        <Tour.Step title=\"Publishing\">Publish when you're ready.</Tour.Step>\n      </Tour>\n    </>\n  );\n}"
     },
     {
       "title": "Labels",
@@ -94,7 +94,7 @@
           "name": "value",
           "type": "number",
           "default": null,
-          "description": "The current step's index (controlled). One past either end shows the nearest step.",
+          "description": "The current step's index (controlled). An index past either end shows the nearest step, and a fraction is rounded down.",
           "required": false,
           "inherited": false,
           "deprecated": false
