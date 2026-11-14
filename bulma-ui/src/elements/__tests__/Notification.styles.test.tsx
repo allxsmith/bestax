@@ -2,7 +2,8 @@
 // so its text clears the button Bulma places over that end (#1000), and a
 // dark or light one gets its color's own lightness back from Bulma's
 // `.notification.is-dark.is-dark` and `.notification.is-light.is-light`
-// (#1461, #1464). These resolve each value across Bulma's CSS and the partial
+// (#1461, #1464), and a white or black one with isLight gets readable text
+// (#1514). These resolve each value across Bulma's CSS and the partial
 // in either order with `css-cascade.ts`, which says how. The padding mixes a
 // shorthand with a logical longhand, which `endPaddingOf` reads.
 import { render } from '@testing-library/react';
@@ -423,6 +424,24 @@ describe('the colors of a dark Notification', () => {
     el.className = 'notification is-dark is-light';
     expect(el.matches(dark.selector)).toBe(true);
     expect(el.matches(light.selector)).toBe(false);
+
+    for (const name of ['white', 'black']) {
+      const found = rules.filter(rule =>
+        rule.selectorText.startsWith(`.notification.is-${name}.is-light:not(`)
+      );
+      expect(found).toHaveLength(1);
+      const { selectorText } = found[0];
+      expect(/:not\((.*)\)$/.exec(selectorText)![1].split(/,\s*/)).toEqual(
+        keys
+          .filter(key => key !== name && key !== 'light')
+          .map(key => `.is-${key}`)
+      );
+      el.className = `notification is-${name} is-light`;
+      expect(el.matches(selectorText)).toBe(true);
+      expect(el.matches(light.selector)).toBe(false);
+      el.className = `notification is-brand is-${name} is-light`;
+      expect(el.matches(selectorText)).toBe(false);
+    }
   });
 });
 
@@ -433,6 +452,14 @@ describe('the colors of a light Notification', () => {
   // sets (#1464).
   const LIGHT = {
     background: 'var(--bulma-light-l)',
+    text: 'var(--bulma-light-invert-l)',
+  };
+
+  // White and black have no light variant of their own either. With isLight
+  // they keep the 90% background of Bulma's light variant, and the partial
+  // gives them the light color's text (#1514).
+  const GRAYSCALE_LIGHT = {
+    background: '90%',
     text: 'var(--bulma-light-invert-l)',
   };
 
@@ -451,6 +478,26 @@ describe('the colors of a light Notification', () => {
       });
       expect(colorsOf(el, css())).toEqual(LIGHT);
     });
+
+    it.each(['white', 'black'] as const)(
+      "gives color='%s' with isLight the light color's text on Bulma's background",
+      color => {
+        const el = notificationOf({ color, isLight: true, children: 'Saved' });
+        expect(el).toHaveClass(`is-${color}`, 'is-light');
+        expect(colorsOf(el, css())).toEqual(GRAYSCALE_LIGHT);
+      }
+    );
+
+    it.each(['white', 'black'] as const)(
+      "leaves color='%s' without isLight alone",
+      color => {
+        const el = notificationOf({ color, children: 'Saved' });
+        expect(colorsOf(el, css())).toEqual({
+          background: `var(--bulma-${color}-l)`,
+          text: `var(--bulma-${color}-invert-l)`,
+        });
+      }
+    );
 
     it("leaves Bulma's light variant of another color alone", () => {
       const el = notificationOf({
@@ -471,6 +518,15 @@ describe('the colors of a light Notification', () => {
       expect(el).toHaveClass('bulma-is-light');
       expect(colorsOf(el, prefixedCss())).toEqual(LIGHT);
     });
+
+    it.each(['white', 'black'] as const)(
+      "gives color='%s' with isLight the light color's text on Bulma's background",
+      color => {
+        const el = prefixedOf({ color, isLight: true });
+        expect(el).toHaveClass(`bulma-is-${color}`, 'bulma-is-light');
+        expect(colorsOf(el, prefixedCss())).toEqual(GRAYSCALE_LIGHT);
+      }
+    );
 
     it("leaves Bulma's light variant of another color alone", () => {
       const el = prefixedOf({ color: 'primary', isLight: true });
