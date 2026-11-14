@@ -374,6 +374,12 @@ And around it:
   trigger doesn't carry the link, or there isn't one.
 - A tooltip describes and doesn't name, so give an icon-only trigger a name of its own, such as an
   `IconButton`'s `aria-label`, as [On Icons](#on-icons) does.
+- With `describesTrigger` off, the tooltip shows a name the trigger already has, as the labels of
+  an [AppFrame](../layout/appframe.md) icon rail do. The trigger's `aria-describedby` is left as it
+  is and the tooltip is `aria-hidden`, so a screen reader reads the name once. It still shows on
+  hover and keyboard focus, and Escape still hides it.
+- While it's `disabled`, the tooltip stays closed and the trigger's `aria-describedby` doesn't point
+  at it, so a screen reader doesn't read a tooltip that never shows.
 - The `dashed` style provides a visual cue that more information is available.
 - **Forced colors:** forced colors (Windows' contrast themes) gives the tooltip the page's own
   background and paints every side of the arrow, so the box would read as loose text and the arrow
