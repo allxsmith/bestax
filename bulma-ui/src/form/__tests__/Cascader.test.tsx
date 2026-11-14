@@ -11,7 +11,6 @@ import { ConfigProvider } from '../../helpers/Config';
 import { LocaleProvider } from '../../helpers/LocaleProvider';
 import { resetDevWarnings } from '../../helpers/devWarnings';
 import { announceDelay } from '../../helpers/statusRegion';
-import { TYPEAHEAD_TIMEOUT } from '../../helpers/typeahead';
 
 const PLACES: TreeItemData[] = [
   {
@@ -446,34 +445,27 @@ describe('Cascader', () => {
       expect(option('Hamburg')).toHaveFocus();
     });
 
-    it('takes Space into a type-ahead search under way, and picks with it otherwise', () => {
-      vi.useFakeTimers();
-      try {
-        const onChange = vi.fn();
-        render(
-          <Cascader
-            label="City"
-            onChange={onChange}
-            data={[
-              { value: 'nwk', label: 'Newark' },
-              { value: 'ny', label: 'New York' },
-              { value: 'nh', label: 'New Hampshire' },
-            ]}
-          />
-        );
-        open();
-        for (const k of ['n', 'e', 'w', ' ', 'h']) press(k);
-        expect(option('New Hampshire')).toHaveFocus();
-        expect(onChange).not.toHaveBeenCalled();
-        expect(dialog()).not.toBeNull();
-        act(() => {
-          vi.advanceTimersByTime(TYPEAHEAD_TIMEOUT);
-        });
-        press(' ');
-        expect(onChange).toHaveBeenCalledWith('nh');
-      } finally {
-        vi.useRealTimers();
-      }
+    it('takes Space into a type-ahead search it can extend, and picks with it otherwise', () => {
+      const onChange = vi.fn();
+      render(
+        <Cascader
+          label="City"
+          onChange={onChange}
+          data={[
+            { value: 'nwk', label: 'Newark' },
+            { value: 'ny', label: 'New York' },
+            { value: 'nh', label: 'New Hampshire' },
+          ]}
+        />
+      );
+      open();
+      for (const k of ['n', 'e', 'w', ' ', 'h']) press(k);
+      expect(option('New Hampshire')).toHaveFocus();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(dialog()).not.toBeNull();
+      // No item starts with "new h ", so Space picks.
+      press(' ');
+      expect(onChange).toHaveBeenCalledWith('nh');
     });
 
     it('closes the columns after one whose selection moves', () => {
@@ -1145,6 +1137,37 @@ describe('Cascader', () => {
         expect(dialog()).not.toBeNull();
       }
     );
+
+    it('hands focus back across every column that left with a focused load row', () => {
+      const props = {
+        label: 'City',
+        defaultExpanded: ['a', 'b'],
+        defaultOpen: true,
+      };
+      const { rerender } = render(
+        <Cascader
+          {...props}
+          data={[
+            {
+              value: 'a',
+              label: 'Alpha',
+              children: [
+                {
+                  value: 'b',
+                  label: 'Beta',
+                  hasChildren: true,
+                  loadError: 'Failed',
+                  onRetry: () => {},
+                },
+              ],
+            },
+          ]}
+        />
+      );
+      option('Failed Retry').focus();
+      rerender(<Cascader {...props} data={[{ value: 'a', label: 'Alpha' }]} />);
+      expect(option('Alpha')).toHaveFocus();
+    });
 
     it('hands focus on from a focused load row inside a shadow root too', () => {
       const host = document.createElement('div');

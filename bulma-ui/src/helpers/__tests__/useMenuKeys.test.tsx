@@ -565,7 +565,7 @@ describe('useMenuKeys', () => {
       expect(onPick).toHaveBeenCalledWith('Oceania');
     });
 
-    it('lets Space join a search under way with spaceJoinsSearch, and act once typing pauses', () => {
+    it('lets Space join a search it can extend with spaceJoinsSearch, and act otherwise', () => {
       const onPick = vi.fn();
       const States = ({ joins }: { joins: boolean }) => {
         const keys = useMenuKeys({
@@ -598,6 +598,11 @@ describe('useMenuKeys', () => {
       advance(TYPEAHEAD_TIMEOUT);
       press(' ');
       expect(onPick).toHaveBeenCalledWith('New Hampshire');
+      // A search no item can extend with a space leaves Space to act.
+      press('n');
+      expect(option('Newark')).toHaveFocus();
+      press(' ');
+      expect(onPick).toHaveBeenLastCalledWith('Newark');
       unmount();
       onPick.mockClear();
       // Without it, Space acts on the focused item mid-search, as a menu's does.

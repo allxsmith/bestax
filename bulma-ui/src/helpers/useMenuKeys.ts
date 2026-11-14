@@ -63,8 +63,9 @@ export interface MenuKeysOptions {
    */
   disabledReachable?: boolean;
   /**
-   * Space joins a type-ahead search under way, so "new y" reaches "New
-   * York", and activates the focused item only when nothing has been typed.
+   * Space joins a type-ahead search under way when an item starts with what
+   * has been typed and a space, so "new y" reaches "New York". Otherwise it
+   * activates the focused item, as it does without this.
    * @defaultValue false
    */
   spaceJoinsSearch?: boolean;
@@ -95,7 +96,8 @@ export interface MenuKeys {
  * - Down and Up move to the next and previous enabled item, wrapping, and
  *   Home and End go to the first and last. From no item, Down goes to the
  *   first and Up to the last.
- * - Enter and Space activate the focused item. A `<button>`, and a link with
+ * - Enter and Space activate the focused item, Space unless
+ *   `spaceJoinsSearch` has it join a search. A `<button>`, and a link with
  *   an `href` for Enter, get the browser's own click, and anything else gets
  *   one from here, so its `onClick` runs either way. A key held down
  *   activates it once. A key handler on the item that called
@@ -157,8 +159,14 @@ export function useMenuKeys(options: MenuKeysOptions = {}): MenuKeys {
         case 'Enter':
         case ' ': {
           if (current < 0 || event.defaultPrevented) return;
-          // Typed as a character, below.
-          if (event.key === ' ' && spaceJoinsSearch && typeahead.typing()) {
+          // Typed as a character, below, when the search can take it.
+          const typed = typeahead.typed();
+          if (
+            event.key === ' ' &&
+            spaceJoinsSearch &&
+            typed &&
+            typeaheadMatch(items, `${typed} `, current)
+          ) {
             break;
           }
           const item = items[current];

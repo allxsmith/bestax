@@ -56,8 +56,9 @@ export interface CascaderColumnsEngine {
   open: (column: number, node: TreeItemData) => void;
   /**
    * A column's load row left while it had focus. Once the page has caught
-   * up, focus goes to the column's tab stop, or to the item that opened the
-   * column when nothing there takes it. The same function every render.
+   * up, focus goes to the column's tab stop, or, when the column has gone or
+   * has nothing to take it, to the nearest column before it that does. The
+   * same function every render.
    */
   lostFocus: (column: number) => void;
   /**
@@ -208,6 +209,9 @@ export function useCascaderColumns(
     focusInto(column);
   });
 
+  // A load row's focus goes to the nearest column at or before the row's
+  // that is still on the page and has a tab stop. Unlike a column that just
+  // opened, whose parent keeps focus until it's there, the row is gone.
   const lostRef = useRef<number | null>(null);
   const lostFocus = useCallback((column: number) => {
     lostRef.current = column;
@@ -216,11 +220,13 @@ export function useCascaderColumns(
     const column = lostRef.current;
     if (column === null) return;
     lostRef.current = null;
-    const container = containerRef.current;
-    (
-      tabStopIn(listboxAt(container, column)) ??
-      tabStopIn(listboxAt(container, column - 1))
-    )?.focus();
+    for (let at = column; at >= 0; at--) {
+      const stop = tabStopIn(listboxAt(containerRef.current, at));
+      if (stop) {
+        stop.focus();
+        return;
+      }
+    }
   });
 
   const onKeyDown = (
