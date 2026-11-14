@@ -1790,6 +1790,9 @@ describe('AppFrame.Nav rail', () => {
     );
     fireEvent.click(burger());
     expect(nav()).toHaveClass('is-active');
+    // Not a rail there, so a rule that hides content in the rail doesn't
+    // reach the drawer.
+    expect(nav()).not.toHaveClass('is-rail');
     fireEvent.click(reports());
     expect(reports()).toHaveAttribute('aria-expanded', 'true');
     fireEvent.click(reports());

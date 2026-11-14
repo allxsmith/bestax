@@ -445,8 +445,11 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
     const frame = useContext(FrameContext);
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     const navCollapsed = !!frame?.state.navCollapsed;
+    // A rail only from the breakpoint up. The server, which doesn't know the
+    // width, marks a collapsed column as one, and the stylesheet keeps the
+    // rail's rules to the wide layout, so a drawer never shows it.
     const navClass = usePrefixedClassNames('app-frame-nav', {
-      'is-rail': rail && navCollapsed,
+      'is-rail': rail && navCollapsed && !frame?.state.isDrawer,
     });
     const tipClass = usePrefixedClassNames('app-frame-rail-tooltip');
     const closeClass = usePrefixedClassNames('app-frame-close');
