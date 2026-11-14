@@ -274,9 +274,29 @@ $switch-thin-circle-size: 1.25em !default;
   }
 }
 
-// Light mode: use a soft grey circle instead of pure white
-@media (prefers-color-scheme: light) {
-  .#{iv.$class-prefix}switch {
+// The circle on each scheme: a soft grey on the light one rather than pure
+// white. It follows the OS, unless the switch or an ancestor pins a scheme
+// the way Bulma reads one, so each pin rule takes its selector from Bulma's
+// `bulma-theme` mixin (`[data-theme=dark], .theme-dark`, with the class prefix
+// in a prefixed build). `:where()` keeps each rule as light as `.switch`, so an
+// app's `.switch` rule that loads after them still wins, and the dark rule
+// comes last, so a dark pin on the switch or anywhere around it wins, even
+// with a light pin closer in.
+@mixin -circle-on-pin($scheme, $color) {
+  @include cv.bulma-theme($name: $scheme) {
+    @at-root :where(#{&}) .#{iv.$class-prefix}switch,
+      .#{iv.$class-prefix}switch:where(#{&}) {
+      @include cv.register-vars(
+        (
+          "switch-circle-color": #{$color},
+        )
+      );
+    }
+  }
+}
+
+.#{iv.$class-prefix}switch {
+  @media (prefers-color-scheme: light) {
     @include cv.register-vars(
       (
         "switch-circle-color": #{$switch-circle-color-light},
@@ -284,6 +304,9 @@ $switch-thin-circle-size: 1.25em !default;
     );
   }
 }
+
+@include -circle-on-pin("light", $switch-circle-color-light);
+@include -circle-on-pin("dark", $switch-circle-color);
 
 // High Contrast Mode support
 @media (forced-colors: active) {

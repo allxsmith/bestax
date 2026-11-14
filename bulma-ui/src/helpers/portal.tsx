@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useIsHydrated } from './useIsHydrated';
 import { useConfig } from './Config';
 import { LocalePortalScope } from './LocaleProvider';
+import { MenuRailContext } from './menuRail';
 
 /**
  * Resolves a portal target: an `HTMLElement` is used directly, a non-empty
@@ -253,8 +254,12 @@ export function Portal({ children, container, disabled = false }: PortalProps) {
   if (disabled) return <>{children}</>;
   if (!hydrated) return null;
   const target = resolveContainer(container);
+  // A Menu portaled out of an AppFrame nav with a rail, such as one in a
+  // Popover opened from it, isn't in the rail, so the rail stops here.
   return createPortal(
-    <LocalePortalScope target={target}>{children}</LocalePortalScope>,
+    <MenuRailContext.Provider value={null}>
+      <LocalePortalScope target={target}>{children}</LocalePortalScope>
+    </MenuRailContext.Provider>,
     target
   );
 }

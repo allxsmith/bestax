@@ -357,9 +357,10 @@ Both draw markers joined by a line, and a `Timeline` with `active` can look a lo
   assistive tech. With `active`, the current item has `aria-current="step"` and the others end in
   the words "completed", "upcoming" or "in progress". Nothing in it is a control. `Steps` is a
   `<ul role="list">` of steps, each label in a `<p>`, with `aria-current="step"` on the current
-  step and a check mark in place of the number on a completed one. A `clickable` step puts its
-  marker and label in a `<button>` that calls `onStepClick`, and `hasNavigation` adds Previous and
-  Next buttons, so the user can move back and forth.
+  step, a check mark in place of the number on a completed one, and the word "completed" or
+  "upcoming" after each of the others. A `clickable` step puts its marker and label in a
+  `<button>` that calls `onStepClick`, and `hasNavigation` adds Previous and Next buttons, so the
+  user can move back and forth.
 
 If the user is going through it, use `Steps`. If it tells them what happened, or how far something
 has got, use a `Timeline`.
