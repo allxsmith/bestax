@@ -15,6 +15,7 @@ import { isElementOf } from '../helpers/elementType';
 import { omitAttrs } from '../helpers/anchorAttrs';
 import { buttonType } from '../helpers/buttonType';
 import { inertProps } from '../helpers/inertProps';
+import { isGiven } from '../helpers/isGiven';
 import { moveFocusOut } from '../helpers/moveFocusOut';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { warnOnce } from '../helpers/devWarnings';
@@ -27,13 +28,6 @@ import {
 
 // Context to track MenuList nesting level
 const MenuListLevelContext = createContext(0);
-
-/** Whether an `icon` was given something to render, as TreeView.Item reads it. */
-const isGiven = (node: React.ReactNode) =>
-  node !== undefined &&
-  node !== null &&
-  typeof node !== 'boolean' &&
-  node !== '';
 
 /** An `icon` to render: a string is an `Icon` name, and a node is itself. */
 const iconNode = (icon: React.ReactNode) =>
