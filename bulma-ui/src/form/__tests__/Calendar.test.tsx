@@ -2408,3 +2408,123 @@ describe('Calendar disabled and read-only', () => {
     });
   });
 });
+
+describe('Calendar numbers in a locale', () => {
+  beforeAll(() => {
+    // jsdom has no scrollIntoView, which the year list calls as it opens.
+    HTMLElement.prototype.scrollIntoView = vi.fn();
+  });
+
+  /** The days of the month on show, as the grid writes them. */
+  const days = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll('[role="gridcell"]'))
+      .filter(c => !c.className.includes('is-other-month'))
+      .map(c => c.textContent);
+  const heading = (container: HTMLElement) =>
+    container.querySelector('.dateinput-month-label')!.textContent;
+
+  it.each([
+    ['en-US', '1', '15', '30'],
+    // Arabic-Indic digits, and the extended ones Persian writes.
+    ['ar-EG', '١', '١٥', '٣٠'],
+    ['fa-IR', '۱', '۱۵', '۳۰'],
+    // The number alone, without the 日 a Japanese or Chinese date adds.
+    ['ja-JP', '1', '15', '30'],
+    ['zh-CN', '1', '15', '30'],
+  ])('numbers the days as %s writes them', (locale, first, mid, last) => {
+    const { container } = render(<PeriodHarness locale={locale} />);
+    const shown = days(container);
+    expect(shown).toHaveLength(30);
+    expect([shown[0], shown[14], shown[29]]).toEqual([first, mid, last]);
+  });
+
+  it('keeps plain digits with no locale, whatever the runtime writes', () => {
+    // A server and a browser can write numbers differently, so with no
+    // locale to agree on the calendar asks Intl for none.
+    const format = vi
+      .spyOn(Intl.NumberFormat.prototype, 'format', 'get')
+      .mockReturnValue(() => '٩');
+    try {
+      const { container } = render(<PeriodHarness />);
+      expect(days(container)[14]).toBe('15');
+      expect(format).not.toHaveBeenCalled();
+    } finally {
+      format.mockRestore();
+    }
+  });
+
+  it('names each day by its number in those digits', () => {
+    const { getByRole } = render(<PeriodHarness locale="ar-EG" />);
+    const day = getByRole('gridcell', { name: '١٥' });
+    expect(day).toHaveTextContent(/^١٥$/);
+    expect(day).not.toHaveAttribute('aria-label');
+  });
+
+  it.each([
+    ['ar-EG-u-nu-latn', '15'],
+    ['en-US-u-nu-arab', '١٥'],
+  ])('takes the digits %s asks for', (locale, mid) => {
+    const { container } = render(<PeriodHarness locale={locale} />);
+    expect(days(container)[14]).toBe(mid);
+  });
+
+  it('numbers the year list in the locale', () => {
+    const { container } = render(<PeriodHarness locale="ar-EG" />);
+    fireEvent.click(container.querySelector('[aria-haspopup="listbox"]')!);
+    expect(focusedYearOption(container).textContent).toBe('٢٠٢٤');
+    expect(
+      yearOptions(container).every(o => /^[٠-٩]+$/.test(o.textContent!))
+    ).toBe(true);
+  });
+
+  it.each(['month', 'year'] as const)(
+    'heads the %s view with the year in the locale',
+    granularity => {
+      const { container } = render(
+        <PeriodHarness granularity={granularity} locale="ar-EG" />
+      );
+      expect(heading(container)).toBe('٢٠٢٤');
+    }
+  );
+
+  it('writes the year after month names of your own in the locale', () => {
+    const names = Array.from({ length: 12 }, (_, i) => `M${i + 1}`);
+    const { container } = render(
+      <PeriodHarness locale="ar-EG" monthNames={names} />
+    );
+    expect(heading(container)).toBe('M6 ٢٠٢٤');
+  });
+
+  it('keeps plain digits for a tag Intl refuses, given names of your own', () => {
+    // With every name given the calendar asks Intl for no words, so the tag
+    // goes unreported, and the numbers don't report it either.
+    const names = Array.from({ length: 12 }, (_, i) => `M${i + 1}`);
+    const dayNames = ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7'];
+    const { container } = render(
+      <PeriodHarness locale="en_US" monthNames={names} dayNames={dayNames} />
+    );
+    expect(days(container)[14]).toBe('15');
+    expect(heading(container)).toBe('M6 2024');
+  });
+
+  it('hydrates the numbers a server wrote', async () => {
+    const ui = <PeriodHarness locale="ar-EG" />;
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(ui);
+    expect(days(container)[14]).toBe('١٥');
+    document.body.appendChild(container);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    let root: ReturnType<typeof hydrateRoot> | undefined;
+    try {
+      await act(async () => {
+        root = hydrateRoot(container, ui);
+      });
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(days(container)[14]).toBe('١٥');
+    } finally {
+      errorSpy.mockRestore();
+      await act(async () => root?.unmount());
+      container.remove();
+    }
+  });
+});

@@ -40,7 +40,12 @@ import {
   startOfDay,
   startOfMonth,
 } from './dateUtils';
-import { formatDate, getDayNames, getMonthNames } from './formatters';
+import {
+  formatDate,
+  getDateNumberFormat,
+  getDayNames,
+  getMonthNames,
+} from './formatters';
 
 /** What every calendar takes, whichever way it picks. */
 interface CalendarBaseProps {
@@ -375,6 +380,9 @@ export const Calendar: React.FC<CalendarProps> = ({
     if (monthNames && monthNames.length === 12) return monthNames;
     return getMonthNames(locale, 'short');
   }, [monthNames, locale]);
+
+  // The days and years, in the digits the locale writes a date in.
+  const formatNumber = useMemo(() => getDateNumberFormat(locale), [locale]);
 
   const cells = useMemo(
     () => buildMonthGrid(focusedDate, firstDayOfWeek),
@@ -724,8 +732,8 @@ export const Calendar: React.FC<CalendarProps> = ({
 
   const labelId = id ? `${id}-label` : undefined;
   const monthLabel = isDayGranularity
-    ? `${computedMonthNames[focusedDate.getMonth()]} ${focusedYear}`
-    : String(focusedYear);
+    ? `${computedMonthNames[focusedDate.getMonth()]} ${formatNumber(focusedYear)}`
+    : formatNumber(focusedYear);
 
   // As the selection surface the year list is where focus moves, so its
   // window stays centred on the year focused at mount: re-centring on every
@@ -1136,7 +1144,7 @@ export const Calendar: React.FC<CalendarProps> = ({
                     }}
                     style={!display ? { visibility: 'hidden' } : undefined}
                   >
-                    {cell.date.getDate()}
+                    {formatNumber(cell.date.getDate())}
                   </button>
                 );
               }),
@@ -1266,7 +1274,7 @@ export const Calendar: React.FC<CalendarProps> = ({
                     : handleYearSelect(year)
                 }
               >
-                {year}
+                {formatNumber(year)}
               </button>
             );
           })}
