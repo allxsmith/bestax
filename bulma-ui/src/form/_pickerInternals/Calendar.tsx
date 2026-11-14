@@ -16,6 +16,7 @@ import { getActiveElementInTree } from '../../helpers/shadowDom';
 import { visuallyHidden } from '../../helpers/statusRegion';
 import { useIsHydrated } from '../../helpers/useIsHydrated';
 import {
+  CalendarDayState,
   DateGranularity,
   DateRangeValue,
   DayOfWeek,
@@ -99,6 +100,43 @@ interface CalendarBaseProps {
    * no day, month or year.
    */
   readOnly?: boolean;
+  /**
+   * The first month on show, which takes the month out of `focusedDate`, as
+   * the public `Calendar` holds it. Any day in it reads as the month, and at
+   * `'month'` granularity as its year. The day grid then shows
+   * `monthsToShow` months from it, with the previous button on the first and
+   * the next button on the last, and a change of month comes through
+   * `onMonthChange` as well as `onFocusedDateChange`: the header's buttons
+   * page by `monthsToShow`, a key that takes focus past the months on show
+   * brings its month in, and the year list keeps the month and changes the
+   * year. A `focusedDate` outside the months on show reads as the same day
+   * of the first. Unset, the month on show is `focusedDate`'s, as the pickers
+   * have it. The year view ignores it.
+   */
+  month?: Date;
+  /** How many months the day grid shows from `month`. Without `month`, one. */
+  monthsToShow?: number;
+  /**
+   * Called with the new first month on show, by the rules under `month`:
+   * its first day, or at `'month'` granularity 1 January of the new year.
+   */
+  onMonthChange?: (month: Date) => void;
+  /**
+   * Name each day by its full date in the locale ("Tuesday, October 20,
+   * 2026"), and hide the weekday row from assistive technology, since every
+   * name carries its weekday. A server and a browser can spell those names
+   * differently, so they're added once the page has hydrated, as the
+   * weekday names are, and until then a day is named by its number.
+   */
+  fullDateNames?: boolean;
+  /**
+   * Builds a day's name from its full-date one, with `fullDateNames`.
+   */
+  getDayLabel?: (date: Date, label: string) => string;
+  /** Draws content inside a day's button, under its number. */
+  dayContent?: (date: Date, state: CalendarDayState) => React.ReactNode;
+  /** Marks the day and month grids `aria-busy`, while their data loads. */
+  busy?: boolean;
 }
 
 /** A calendar that picks one day, month or year. */
@@ -217,6 +255,16 @@ function focusFollows(grid: HTMLElement, heldLast: boolean): boolean {
 }
 
 /**
+ * Focuses the tab stop, whichever of `grids` holds it. With several months
+ * on show only one grid has a tab stop.
+ */
+function focusTabStop(grids: (HTMLElement | null)[]) {
+  for (const grid of grids) {
+    grid?.querySelector<HTMLElement>('[data-focused="true"]')?.focus();
+  }
+}
+
+/**
  * The cell nearest index `i` that `disabled` leaves enabled, `i` itself when
  * it is. At equal distance the later cell wins. With every cell disabled it
  * stays `i`, as there is nothing to reach.
@@ -248,6 +296,28 @@ const MONTH_YEAR: Intl.DateTimeFormatOptions = {
   year: 'numeric',
   month: 'long',
 };
+
+/**
+ * A day's name in full, with `fullDateNames`. The grid is Gregorian, so the
+ * name is too, whatever calendar the locale counts its years by.
+ */
+const FULL_DATE: Intl.DateTimeFormatOptions = {
+  calendar: 'gregory',
+  weekday: 'long',
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+};
+
+/** A month's place in a count of months, for comparing and subtracting months. */
+const monthIndex = (d: Date) => d.getFullYear() * 12 + d.getMonth();
+
+/** Whether `dayContent` returned something that renders. */
+const rendersContent = (node: React.ReactNode) =>
+  node !== undefined &&
+  node !== null &&
+  node !== '' &&
+  typeof node !== 'boolean';
 
 /** A range's pending start: its start, when it has no end. */
 const pendingStartOf = (range?: DateRangeValue): Date | null =>
@@ -312,7 +382,7 @@ function yearStep(
 
 export const Calendar: React.FC<CalendarProps> = ({
   value,
-  focusedDate,
+  focusedDate: focusedDateProp,
   onSelect: onSelectProp,
   onFocusedDateChange,
   min: minProp,
@@ -337,12 +407,20 @@ export const Calendar: React.FC<CalendarProps> = ({
   allowDisabledInRange = false,
   disabled: calendarDisabled = false,
   readOnly = false,
+  month: monthProp,
+  monthsToShow = 1,
+  onMonthChange,
+  fullDateNames = false,
+  getDayLabel,
+  dayContent,
+  busy = false,
 }) => {
   // A disabled or read-only calendar picks nothing, so its picks reach no
   // `onSelect`, and a range pick returns before it starts.
   const canPick = !calendarDisabled && !readOnly;
   const onSelect = canPick ? onSelectProp : undefined;
-  const gridRef = useRef<HTMLDivElement>(null);
+  // The day grids, one a month on show.
+  const dayGridsRef = useRef<(HTMLDivElement | null)[]>([]);
   const monthGridRef = useRef<HTMLDivElement>(null);
   const yearGridRef = useRef<HTMLDivElement>(null);
   const { classPrefix } = useConfig();
@@ -353,6 +431,64 @@ export const Calendar: React.FC<CalendarProps> = ({
   const [view, setView] = useState<CalendarView>(baseView);
   // Nothing before year 1 can be picked or reached, as in HTML's date inputs.
   const min = useMemo(() => floorMin(minProp), [minProp]);
+
+  // The month on show comes from `month` when it's given, and the day grid
+  // then shows `monthsToShow` of them. The year list has no month on show.
+  const lifted = !!monthProp && !isYearGranularity;
+  const monthCount =
+    lifted &&
+    isDayGranularity &&
+    monthsToShow > 1 &&
+    Number.isFinite(monthsToShow)
+      ? Math.floor(monthsToShow)
+      : 1;
+  // The first month on show (at `'month'` granularity, January of the year
+  // on show), as a count of months, so a new Date each render changes
+  // nothing.
+  const firstShownIndex = lifted
+    ? isDayGranularity
+      ? monthIndex(monthProp)
+      : monthProp.getFullYear() * 12
+    : monthIndex(focusedDateProp);
+  // Whether a day is on the page on show: in one of its months, or at
+  // `'month'` granularity in its year.
+  const onPage = useCallback(
+    (d: Date) => {
+      const offset = monthIndex(d) - firstShownIndex;
+      return offset >= 0 && offset < (isDayGranularity ? monthCount : 12);
+    },
+    [firstShownIndex, isDayGranularity, monthCount]
+  );
+  // Focus stays on the page. A focused date off it, where a move asked for a
+  // month that a caller holding `month` hasn't passed, or where the caller
+  // moved the month away from it, reads as the nearest day on the page: its
+  // first going forward and its last going back, or at `'month'` granularity
+  // January or December. Once the month it asked for comes, it's on the page.
+  const focusedDate = useMemo(() => {
+    if (!lifted || onPage(focusedDateProp)) return focusedDateProp;
+    const before = monthIndex(focusedDateProp) < firstShownIndex;
+    const year = Math.floor(firstShownIndex / 12);
+    const month = firstShownIndex % 12;
+    if (!isDayGranularity) return makeDate(year, before ? 0 : 11);
+    return before
+      ? makeDate(year, month)
+      : makeDate(year, month + monthCount, 0);
+  }, [
+    lifted,
+    onPage,
+    focusedDateProp,
+    firstShownIndex,
+    isDayGranularity,
+    monthCount,
+  ]);
+  // The months the day grid shows, first to last.
+  const shownMonths = useMemo(
+    () =>
+      Array.from({ length: monthCount }, (_, i) =>
+        makeDate(Math.floor(firstShownIndex / 12), (firstShownIndex % 12) + i)
+      ),
+    [firstShownIndex, monthCount]
+  );
 
   const customDayNames = dayNames && dayNames.length === 7 ? dayNames : null;
   const computedDayNames = useMemo(
@@ -376,6 +512,17 @@ export const Calendar: React.FC<CalendarProps> = ({
     [hydrated, customDayNames, locale, firstDayOfWeek]
   );
 
+  // Each day's full name, with `fullDateNames`, which a server render leaves
+  // out, as it does the full weekday names.
+  const fullDateFormat = useMemo(
+    () =>
+      fullDateNames && hydrated
+        ? new Intl.DateTimeFormat(locale, FULL_DATE)
+        : null,
+    [fullDateNames, hydrated, locale]
+  );
+  const namesInFull = !!fullDateFormat;
+
   const customMonthNames =
     monthNames && monthNames.length === 12 ? monthNames : null;
   const computedMonthNames = useMemo(
@@ -390,9 +537,18 @@ export const Calendar: React.FC<CalendarProps> = ({
     [customMonthNames, locale]
   );
 
-  const cells = useMemo(
-    () => buildMonthGrid(focusedDate, firstDayOfWeek),
-    [focusedDate, firstDayOfWeek]
+  // Each month's day cells.
+  const shownCells = useMemo(
+    () => shownMonths.map(m => buildMonthGrid(m, firstDayOfWeek)),
+    [shownMonths, firstDayOfWeek]
+  );
+  // Their full names, written once a page rather than at every render, which
+  // a range's preview asks for at every move of the pointer.
+  const fullNames = useMemo(
+    () =>
+      fullDateFormat &&
+      shownCells.map(cells => cells.map(c => fullDateFormat.format(c.date))),
+    [fullDateFormat, shownCells]
   );
 
   const isDateUnselectable = useCallback(
@@ -425,16 +581,65 @@ export const Calendar: React.FC<CalendarProps> = ({
 
   // The day grid's one tab stop. A disabled button can't take focus, so when
   // the focused day is disabled the stop moves to the nearest enabled day of
-  // the month on show, and focusing it makes it the focused day. A nearby
+  // the months on show, and focusing it makes it the focused day. A nearby
   // month's day is left out, as focusing it would turn the grid to its month.
   const tabStopDay = useMemo(() => {
-    const days = cells.filter(c => c.inCurrentMonth).map(c => c.date);
-    const i = nearestEnabled(
-      focusedDate.getDate() - 1,
-      days.map(isDateUnselectable)
+    const days = shownCells.flatMap(cells =>
+      cells.filter(c => c.inCurrentMonth).map(c => c.date)
     );
+    const at = days.findIndex(d => isSameDay(d, focusedDate));
+    const i = nearestEnabled(Math.max(at, 0), days.map(isDateUnselectable));
     return days[i];
-  }, [cells, focusedDate, isDateUnselectable]);
+  }, [shownCells, focusedDate, isDateUnselectable]);
+
+  // A page of months starting at `first`, kept inside `min` and `max` where
+  // they leave room for a whole page. `min` wins when they don't.
+  const pageFrom = useCallback(
+    (first: number) => {
+      const last = max ? monthIndex(max) - (monthCount - 1) : first;
+      return Math.max(monthIndex(min), Math.min(first, last));
+    },
+    [min, max, monthCount]
+  );
+
+  // Moves focus to `d` and asks for the page whose first month is `first`, a
+  // count of months, or at `'month'` granularity January of a year.
+  const turnTo = useCallback(
+    (first: number, d: Date) => {
+      onFocusedDateChange(d);
+      if (first !== firstShownIndex) {
+        onMonthChange?.(makeDate(Math.floor(first / 12), first % 12));
+      }
+    },
+    [onFocusedDateChange, firstShownIndex, onMonthChange]
+  );
+
+  // Focus moves to `d`, and with the month held here, a `d` past the page
+  // brings its month in: as the first month moving forward, as the last
+  // moving back, so a page holds it either way.
+  const changeFocus = useCallback(
+    (d: Date) => {
+      if (!lifted || onPage(d)) {
+        onFocusedDateChange(d);
+      } else if (!isDayGranularity) {
+        turnTo(d.getFullYear() * 12, d);
+      } else if (monthIndex(d) < firstShownIndex) {
+        turnTo(pageFrom(monthIndex(d) - (monthCount - 1)), d);
+      } else {
+        turnTo(pageFrom(monthIndex(d)), d);
+      }
+    },
+    [
+      lifted,
+      onPage,
+      onFocusedDateChange,
+      isDayGranularity,
+      turnTo,
+      firstShownIndex,
+      pageFrom,
+      monthCount,
+    ]
+  );
 
   // ----- Range mode -----
   // Range props come only with the day grid.
@@ -560,13 +765,13 @@ export const Calendar: React.FC<CalendarProps> = ({
         if (candidate.getTime() < startOfDay(min).getTime()) return;
         if (max && candidate.getTime() > startOfDay(max).getTime()) return;
         if (!isDateUnselectable(candidate)) {
-          onFocusedDateChange(candidate);
+          changeFocus(candidate);
           return;
         }
         candidate = addDays(candidate, direction);
       }
     },
-    [min, max, isDateUnselectable, onFocusedDateChange]
+    [min, max, isDateUnselectable, changeFocus]
   );
 
   const handleKeyDown = useCallback(
@@ -662,13 +867,13 @@ export const Calendar: React.FC<CalendarProps> = ({
         if (month < startOfMonth(min).getTime()) return;
         if (max && month > startOfMonth(max).getTime()) return;
         if (!isMonthUnselectable(candidate)) {
-          onFocusedDateChange(candidate);
+          changeFocus(candidate);
           return;
         }
         candidate = addMonths(candidate, direction);
       }
     },
-    [min, max, isMonthUnselectable, onFocusedDateChange]
+    [min, max, isMonthUnselectable, changeFocus]
   );
 
   const handleMonthKeyDown = useCallback(
@@ -709,8 +914,12 @@ export const Calendar: React.FC<CalendarProps> = ({
   const monthsGridClass = usePrefixedClassNames('dateinput-months-grid');
   const monthsRowClass = usePrefixedClassNames('dateinput-months-row');
   const yearsGridClass = usePrefixedClassNames('dateinput-years-grid');
+  const cellContentClass = usePrefixedClassNames('dateinput-cell-content');
+  const monthsClass = usePrefixedClassNames('calendar-months');
 
   const focusedYear = focusedDate.getFullYear();
+  // The year the first month's name, and the year list it opens, go by.
+  const shownYear = lifted ? Math.floor(firstShownIndex / 12) : focusedYear;
   // Today is the reader's, so it's marked only once the page has hydrated: a
   // server render and the render hydrating it mark no day, month or year,
   // and the commit after marks the browser's own. A calendar mounted after
@@ -728,30 +937,48 @@ export const Calendar: React.FC<CalendarProps> = ({
   const nextAnchor = isDayGranularity
     ? addMonths(focusedDate, 1)
     : clampDate(addYears(focusedDate, 1), min, max);
-  const focusedMonth = startOfMonth(focusedDate).getTime();
+  const lastShownIndex = firstShownIndex + monthCount - 1;
   const prevDisabled = isDayGranularity
-    ? focusedMonth <= startOfMonth(min).getTime()
+    ? firstShownIndex <= monthIndex(min)
     : focusedYear <= min.getFullYear();
   const nextDisabled = isDayGranularity
-    ? !!max && focusedMonth >= startOfMonth(max).getTime()
+    ? !!max && lastShownIndex >= monthIndex(max)
     : !!max && focusedYear >= max.getFullYear();
 
-  const labelId = id ? `${id}-label` : undefined;
-  // Over the day grid the heading names the month and its year as the
-  // locale writes them. Month names the caller gives have no place in that
-  // pattern, which writes the month as a number in Japanese, so they keep
-  // the name, a space and the year.
-  const monthLabel = !isDayGranularity
-    ? String(focusedYear)
-    : customMonthNames
-      ? `${customMonthNames[focusedDate.getMonth()]} ${focusedYear}`
-      : formatDate(focusedDate, MONTH_YEAR, locale);
+  // A step of the header's buttons. With the month held here, the day grid
+  // turns a whole page of months and focus keeps its place on the page.
+  const turnPage = (direction: 1 | -1) => {
+    const anchor = direction < 0 ? prevAnchor : nextAnchor;
+    if (!lifted || !isDayGranularity) {
+      changeFocus(anchor);
+      return;
+    }
+    const first = pageFrom(firstShownIndex + direction * monthCount);
+    turnTo(first, addMonths(focusedDate, first - firstShownIndex));
+  };
+
+  // The ids of the words naming each month's grid: the first month's, then
+  // the others' by their place.
+  const labelIdFor = (i: number) =>
+    id ? (i === 0 ? `${id}-label` : `${id}-label-${i}`) : undefined;
+  const labelId = labelIdFor(0);
+  // Over the day grid each heading names its month and year as the locale
+  // writes them. Month names the caller gives have no place in that pattern,
+  // which writes the month as a number in Japanese, so they keep the name, a
+  // space and the year.
+  const monthHeading = (d: Date) =>
+    customMonthNames
+      ? `${customMonthNames[d.getMonth()]} ${d.getFullYear()}`
+      : formatDate(d, MONTH_YEAR, locale);
+  const monthLabel = isDayGranularity
+    ? monthHeading(shownMonths[0])
+    : String(focusedYear);
 
   // As the selection surface the year list is where focus moves, so its
   // window stays centred on the year focused at mount: re-centring on every
   // move would reflow the list under the keyboard.
   const [mountYear] = useState(focusedYear);
-  const windowYear = isYearGranularity ? mountYear : focusedYear;
+  const windowYear = isYearGranularity ? mountYear : shownYear;
 
   const yearList = useMemo<number[]>(() => {
     const minYear = minProp
@@ -782,10 +1009,10 @@ export const Calendar: React.FC<CalendarProps> = ({
   // list keeps a stop. As navigation it marks the current year, so a year
   // outside the list marks no option, and the stop itself follows focus.
   const tabStopYear = useMemo(() => {
-    let i = yearList.indexOf(focusedYear);
+    let i = yearList.indexOf(shownYear);
     if (i < 0) {
-      if (!isYearGranularity || yearList.length === 0) return focusedYear;
-      i = focusedYear < yearList[0] ? 0 : yearList.length - 1;
+      if (!isYearGranularity || yearList.length === 0) return shownYear;
+      i = shownYear < yearList[0] ? 0 : yearList.length - 1;
     }
     return yearList[
       nearestEnabled(
@@ -793,7 +1020,7 @@ export const Calendar: React.FC<CalendarProps> = ({
         yearList.map(y => disabledYears.has(y))
       )
     ];
-  }, [yearList, focusedYear, disabledYears, isYearGranularity]);
+  }, [yearList, shownYear, disabledYears, isYearGranularity]);
 
   // As navigation the keys move focus and leave the focused year alone, so
   // the tab stop goes to the year that last had focus while it is listed,
@@ -823,11 +1050,33 @@ export const Calendar: React.FC<CalendarProps> = ({
       const next = new Date(focusedDate);
       next.setFullYear(year);
       // Keep month/day. The month grid also clamps into [min, max] so its
-      // focused month is never one the bounds rule out.
-      onFocusedDateChange(isDayGranularity ? next : clampDate(next, min, max));
+      // focused month is never one the bounds rule out. With the month held
+      // here, the page keeps its months, and focus its place, in the year
+      // picked for the first month.
+      if (lifted && isDayGranularity) {
+        const years = year - shownYear;
+        turnTo(
+          pageFrom(firstShownIndex + 12 * years),
+          addYears(focusedDate, years)
+        );
+      } else {
+        changeFocus(isDayGranularity ? next : clampDate(next, min, max));
+      }
       setView(baseView);
     },
-    [focusedDate, onFocusedDateChange, isDayGranularity, min, max, baseView]
+    [
+      focusedDate,
+      changeFocus,
+      lifted,
+      turnTo,
+      pageFrom,
+      firstShownIndex,
+      shownYear,
+      isDayGranularity,
+      min,
+      max,
+      baseView,
+    ]
   );
 
   // Picking from the year list as the selection surface: focus follows the
@@ -899,30 +1148,30 @@ export const Calendar: React.FC<CalendarProps> = ({
   // back to it from the year list.
   useEffect(() => {
     if (!autoFocusCell) return;
-    const grid =
+    const grids =
       view === 'days'
-        ? gridRef.current
+        ? dayGridsRef.current
         : view === 'months'
-          ? monthGridRef.current
-          : null;
-    grid?.querySelector<HTMLElement>('[data-focused="true"]')?.focus();
+          ? [monthGridRef.current]
+          : [];
+    focusTabStop(grids);
   }, [autoFocusCell, view]);
 
   // From then on focus follows the tab stop only while the grid has it, or
   // has just lost it, so focus on a header button or a time wheel stays put.
   const tabStopDayTime = tabStopDay.getTime();
   useEffect(() => {
-    const grid = gridRef.current;
-    if (view !== 'days' || !grid) return;
-    if (!focusFollows(grid, gridHeldFocusRef.current)) return;
-    grid.querySelector<HTMLElement>('[data-focused="true"]')?.focus();
+    if (view !== 'days') return;
+    const grids = dayGridsRef.current.filter(g => !!g);
+    if (!grids.some(g => focusFollows(g, gridHeldFocusRef.current))) return;
+    focusTabStop(grids);
   }, [tabStopDayTime, view]);
 
   useEffect(() => {
     const grid = monthGridRef.current;
     if (view !== 'months' || !grid) return;
     if (!focusFollows(grid, gridHeldFocusRef.current)) return;
-    grid.querySelector<HTMLElement>('[data-focused="true"]')?.focus();
+    focusTabStop([grid]);
   }, [focusedYear, tabStopMonth, view]);
 
   // When the year view opens as navigation, scroll the focused year into
@@ -976,324 +1225,385 @@ export const Calendar: React.FC<CalendarProps> = ({
     </svg>
   );
 
-  return (
-    <div className={classNames(calendarClass, className)} id={id}>
+  const prevButton = (
+    <button
+      type="button"
+      className={navPrevClass}
+      aria-label={isDayGranularity ? t.prevMonth : t.prevYear}
+      disabled={calendarDisabled || prevDisabled || view !== baseView}
+      onClick={() => turnPage(-1)}
+    >
+      {navArrow('M10 3l-5 5 5 5')}
+    </button>
+  );
+  const nextButton = (
+    <button
+      type="button"
+      className={navNextClass}
+      aria-label={isDayGranularity ? t.nextMonth : t.nextYear}
+      disabled={calendarDisabled || nextDisabled || view !== baseView}
+      onClick={() => turnPage(1)}
+    >
+      {navArrow('M6 3l5 5-5 5')}
+    </button>
+  );
+
+  // The first month's name, which opens the year list.
+  const firstLabel = isYearGranularity ? (
+    // The year list is the only view, so the label opens nothing.
+    <span className={monthLabelClass} id={labelId}>
+      {monthLabel}
+    </span>
+  ) : (
+    <button
+      type="button"
+      className={monthTriggerClass}
+      aria-haspopup="listbox"
+      aria-expanded={view === 'years'}
+      disabled={calendarDisabled}
+      onClick={() => {
+        setNavYear(null);
+        setView(v => (v === 'years' ? baseView : 'years'));
+      }}
+    >
+      <span className={monthLabelClass} id={labelId} aria-live="polite">
+        {monthLabel}
+      </span>
+      <svg
+        className={monthCaretClass}
+        viewBox="0 0 12 12"
+        width="10"
+        height="10"
+        aria-hidden="true"
+      >
+        <path
+          d="M2 4l4 4 4-4"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </button>
+  );
+
+  // The months on show: every one over the day grid, and only the first,
+  // which holds the month grid and the year list, otherwise.
+  const panelCount = view === 'days' ? monthCount : 1;
+
+  // A month's header. The pickers' puts both buttons after the name. With
+  // the month held here, the previous button comes before the first month's
+  // name and the next button after the last month's.
+  const header = (i: number) =>
+    lifted ? (
       <div className={headerClass}>
-        {isYearGranularity ? (
-          // The year list is the only view, so the label opens nothing.
-          <span className={monthLabelClass} id={labelId}>
-            {monthLabel}
-          </span>
+        {i === 0 && prevButton}
+        {i === 0 ? (
+          firstLabel
         ) : (
-          <button
-            type="button"
-            className={monthTriggerClass}
-            aria-haspopup="listbox"
-            aria-expanded={view === 'years'}
-            disabled={calendarDisabled}
-            onClick={() => {
-              setNavYear(null);
-              setView(v => (v === 'years' ? baseView : 'years'));
-            }}
-          >
-            <span className={monthLabelClass} id={labelId} aria-live="polite">
-              {monthLabel}
-            </span>
-            <svg
-              className={monthCaretClass}
-              viewBox="0 0 12 12"
-              width="10"
-              height="10"
-              aria-hidden="true"
-            >
-              <path
-                d="M2 4l4 4 4-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+          <span className={monthLabelClass} id={labelIdFor(i)}>
+            {monthHeading(shownMonths[i])}
+          </span>
         )}
+        {i === panelCount - 1 && nextButton}
+      </div>
+    ) : (
+      <div className={headerClass}>
+        {firstLabel}
         {!isYearGranularity && (
           <div className={navGroupClass}>
-            <button
-              type="button"
-              className={navPrevClass}
-              aria-label={isDayGranularity ? t.prevMonth : t.prevYear}
-              disabled={calendarDisabled || prevDisabled || view !== baseView}
-              onClick={() => onFocusedDateChange(prevAnchor)}
-            >
-              {navArrow('M10 3l-5 5 5 5')}
-            </button>
-            <button
-              type="button"
-              className={navNextClass}
-              aria-label={isDayGranularity ? t.nextMonth : t.nextYear}
-              disabled={calendarDisabled || nextDisabled || view !== baseView}
-              onClick={() => onFocusedDateChange(nextAnchor)}
-            >
-              {navArrow('M6 3l5 5-5 5')}
-            </button>
+            {prevButton}
+            {nextButton}
           </div>
         )}
       </div>
+    );
 
-      {view === 'days' && (
-        <>
+  const dayGrid = (i: number) => (
+    <div
+      ref={el => {
+        dayGridsRef.current[i] = el;
+      }}
+      role="grid"
+      aria-labelledby={labelIdFor(i)}
+      aria-multiselectable={rangeMode || undefined}
+      aria-describedby={rangeMode ? rangeSummaryId : undefined}
+      aria-disabled={calendarDisabled || undefined}
+      aria-readonly={readOnly || undefined}
+      aria-busy={busy || undefined}
+      className={gridClass}
+      onKeyDown={handleKeyDown}
+      onMouseLeave={anchor && !lifted ? () => setHoverDate(null) : undefined}
+      {...gridFocusHandlers}
+    >
+      {/* The weekday names head the grid's columns, as the APG's date
+          picker has them. Days named in full carry their weekday, so the
+          row is hidden then, as React Aria hides it. */}
+      <div
+        role="row"
+        className={dayNamesRowClass}
+        aria-hidden={namesInFull || undefined}
+      >
+        {computedDayNames.map((name, col) => (
           <div
-            ref={gridRef}
-            role="grid"
-            aria-labelledby={labelId}
-            aria-multiselectable={rangeMode || undefined}
-            aria-describedby={rangeMode ? rangeSummaryId : undefined}
-            aria-disabled={calendarDisabled || undefined}
-            aria-readonly={readOnly || undefined}
-            className={gridClass}
-            onKeyDown={handleKeyDown}
-            onMouseLeave={anchor ? () => setHoverDate(null) : undefined}
-            {...gridFocusHandlers}
+            key={col}
+            role="columnheader"
+            aria-label={weekdayNames?.[col]}
+            className={dayNameClass}
           >
-            {/* The weekday names head the grid's columns, as the APG's date
-                picker has them. */}
-            <div role="row" className={dayNamesRowClass}>
-              {computedDayNames.map((name, i) => (
-                <div
-                  key={i}
-                  role="columnheader"
-                  aria-label={weekdayNames?.[i]}
-                  className={dayNameClass}
-                >
-                  {name}
-                </div>
-              ))}
-            </div>
-            {inWeeks(
-              cells.map(cell => {
-                const disabled =
-                  calendarDisabled || isDateUnselectable(cell.date);
-                const time = cell.date.getTime();
-                // Range mode. The range on show has its ends filled. Every day
-                // of a committed range is selected, and of a preview only the
-                // start.
-                const isStart = time === timeOf(shownStart);
-                const isEnd = time === timeOf(shownEnd);
-                const inRange =
-                  !!shownStart &&
-                  !!shownEnd &&
-                  time > shownStart.getTime() &&
-                  time < shownEnd.getTime();
-                // The day a pending range would end on, which isn't picked
-                // yet, so its description says what picking it does.
-                const isPreviewEnd = previewing && isEnd && !isStart;
-                const isPreview = (previewing && inRange) || isPreviewEnd;
-                const isFilled = rangeMode
-                  ? isStart || (isEnd && !previewing)
-                  : !!value && isSameDay(value, cell.date);
-                const isSelected =
-                  isFilled || (rangeMode && !previewing && inRange);
-                const describedBy = rangeMode
-                  ? [
-                      isStart && rangeStartId,
-                      isEnd && !previewing && rangeEndId,
-                      isPreviewEnd && rangePreviewEndId,
-                    ]
-                      .filter(Boolean)
-                      .join(' ') || undefined
-                  : undefined;
-                const isFocused = isSameDay(cell.date, tabStopDay);
-                const isToday = hydrated && cell.isToday;
-                const otherMonth = !cell.inCurrentMonth;
-                const cellClass = prefixedClassNames(
-                  classPrefix,
-                  'dateinput-cell',
-                  {
-                    'is-selected': isFilled,
-                    'is-range-start': isStart,
-                    'is-range-end': isEnd,
-                    'is-in-range': inRange,
-                    'is-preview': isPreview,
-                    'is-today': isToday,
-                    'is-disabled': disabled,
-                    'is-other-month': otherMonth,
-                  }
-                );
-                const display = !otherMonth || nearbyMonthDays;
-                return (
-                  <button
-                    key={cell.date.toISOString()}
-                    type="button"
-                    role="gridcell"
-                    tabIndex={isFocused ? 0 : -1}
-                    aria-selected={isSelected}
-                    aria-disabled={disabled}
-                    aria-current={isToday ? 'date' : undefined}
-                    aria-describedby={describedBy}
-                    data-focused={isFocused ? 'true' : undefined}
-                    disabled={disabled || !display}
-                    className={cellClass}
-                    onFocus={() => {
-                      // Reached by Tab while the focused day is disabled, or
-                      // by pointer: keys move on from here. A nearby month's
-                      // day waits for its click, which turns the grid.
-                      if (!otherMonth && !isSameDay(cell.date, focusedDate)) {
-                        onFocusedDateChange(cell.date);
-                      }
-                    }}
-                    // Mouseover rather than mouseenter: browsers send it to a
-                    // disabled day as well, where React holds mouseenter back,
-                    // so the preview leaves the last enabled day behind.
-                    onMouseOver={
-                      anchor ? () => setHoverDate(cell.date) : undefined
-                    }
-                    onClick={() => {
-                      if (disabled) return;
-                      onFocusedDateChange(cell.date);
-                      if (rangeMode) pickRangeDay(cell.date);
-                      else onSelect?.(cell.date);
-                    }}
-                    style={!display ? { visibility: 'hidden' } : undefined}
-                  >
-                    {cell.date.getDate()}
-                  </button>
-                );
-              }),
-              weekClass
-            )}
+            {name}
           </div>
-        </>
+        ))}
+      </div>
+      {inWeeks(
+        shownCells[i].map((cell, j) => {
+          const unselectable = isDateUnselectable(cell.date);
+          const disabled = calendarDisabled || unselectable;
+          const time = cell.date.getTime();
+          // Range mode. The range on show has its ends filled. Every day
+          // of a committed range is selected, and of a preview only the
+          // start.
+          const isStart = time === timeOf(shownStart);
+          const isEnd = time === timeOf(shownEnd);
+          const inRange =
+            !!shownStart &&
+            !!shownEnd &&
+            time > shownStart.getTime() &&
+            time < shownEnd.getTime();
+          // The day a pending range would end on, which isn't picked
+          // yet, so its description says what picking it does.
+          const isPreviewEnd = previewing && isEnd && !isStart;
+          const isPreview = (previewing && inRange) || isPreviewEnd;
+          const isFilled = rangeMode
+            ? isStart || (isEnd && !previewing)
+            : !!value && isSameDay(value, cell.date);
+          const isSelected = isFilled || (rangeMode && !previewing && inRange);
+          const describedBy = rangeMode
+            ? [
+                isStart && rangeStartId,
+                isEnd && !previewing && rangeEndId,
+                isPreviewEnd && rangePreviewEndId,
+              ]
+                .filter(Boolean)
+                .join(' ') || undefined
+            : undefined;
+          const otherMonth = !cell.inCurrentMonth;
+          // A nearby month's day can be another month's own on show, which
+          // keeps the tab stop.
+          const isFocused = !otherMonth && isSameDay(cell.date, tabStopDay);
+          const isToday = hydrated && cell.isToday;
+          const cellClass = prefixedClassNames(classPrefix, 'dateinput-cell', {
+            'is-selected': isFilled,
+            'is-range-start': isStart,
+            'is-range-end': isEnd,
+            'is-in-range': inRange,
+            'is-preview': isPreview,
+            'is-today': isToday,
+            'is-disabled': disabled,
+            'is-other-month': otherMonth,
+          });
+          // A nearby month's day shows dimmed, except where its own month is
+          // on show beside this one, so no day shows twice.
+          const cellMonth = monthIndex(cell.date);
+          const display =
+            !otherMonth ||
+            (nearbyMonthDays &&
+              (cellMonth < firstShownIndex || cellMonth > lastShownIndex));
+          const fullName = fullNames?.[i][j];
+          const content =
+            display && dayContent
+              ? dayContent(cell.date, {
+                  isToday,
+                  isSelected,
+                  isDisabled: disabled,
+                  isOutsideMonth: otherMonth,
+                })
+              : undefined;
+          return (
+            <button
+              key={cell.date.toISOString()}
+              type="button"
+              role="gridcell"
+              tabIndex={isFocused ? 0 : -1}
+              aria-selected={isSelected}
+              aria-disabled={disabled}
+              aria-current={isToday ? 'date' : undefined}
+              aria-describedby={describedBy}
+              aria-label={
+                fullName !== undefined && getDayLabel
+                  ? getDayLabel(cell.date, fullName)
+                  : fullName
+              }
+              data-focused={isFocused ? 'true' : undefined}
+              disabled={disabled || !display}
+              className={cellClass}
+              onFocus={() => {
+                // Reached by Tab while the focused day is disabled, or
+                // by pointer: keys move on from here. A nearby month's
+                // day waits for its click, which turns the grid.
+                if (!otherMonth && !isSameDay(cell.date, focusedDate)) {
+                  changeFocus(cell.date);
+                }
+              }}
+              // Mouseover rather than mouseenter: browsers send it to a
+              // disabled day as well, where React holds mouseenter back,
+              // so the preview leaves the last enabled day behind.
+              onMouseOver={anchor ? () => setHoverDate(cell.date) : undefined}
+              onClick={() => {
+                if (disabled) return;
+                changeFocus(cell.date);
+                if (rangeMode) pickRangeDay(cell.date);
+                else onSelect?.(cell.date);
+              }}
+              style={!display ? { visibility: 'hidden' } : undefined}
+            >
+              {cell.date.getDate()}
+              {rendersContent(content) && (
+                <span className={cellContentClass}>{content}</span>
+              )}
+            </button>
+          );
+        }),
+        weekClass
       )}
+    </div>
+  );
 
-      {view === 'months' && (
-        <div
-          ref={monthGridRef}
-          role="grid"
-          aria-labelledby={labelId}
-          aria-disabled={calendarDisabled || undefined}
-          aria-readonly={readOnly || undefined}
-          className={monthsGridClass}
-          onKeyDown={handleMonthKeyDown}
-          {...gridFocusHandlers}
-        >
-          {MONTH_ROWS.map(row => (
-            <div key={row[0]} role="row" className={monthsRowClass}>
-              {row.map(month => {
-                const date = makeDate(focusedYear, month);
-                const disabled = calendarDisabled || disabledMonths[month];
-                const isSelected = !!value && isSameMonth(value, date);
-                const isFocused = month === tabStopMonth;
-                const isCurrent = !!today && isSameMonth(date, today);
-                const cellClass = prefixedClassNames(
-                  classPrefix,
-                  'dateinput-month-cell',
-                  {
-                    'is-selected': isSelected,
-                    'is-today': isCurrent,
-                    'is-disabled': disabled,
-                  }
-                );
-                return (
-                  <button
-                    key={month}
-                    type="button"
-                    role="gridcell"
-                    tabIndex={isFocused ? 0 : -1}
-                    aria-selected={isSelected}
-                    aria-disabled={disabled}
-                    aria-current={isCurrent ? 'date' : undefined}
-                    aria-label={computedMonthNames[month]}
-                    data-focused={isFocused ? 'true' : undefined}
-                    disabled={disabled}
-                    className={cellClass}
-                    onFocus={() => {
-                      // Reached by Tab while the focused month is disabled,
-                      // or by pointer: keys move on from here.
-                      if (month !== focusedDate.getMonth()) {
-                        onFocusedDateChange(clampDate(date, min, max));
-                      }
-                    }}
-                    onClick={() => {
-                      onFocusedDateChange(clampDate(date, min, max));
-                      onSelect?.(date);
-                    }}
-                  >
-                    {monthCellNames[month]}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {view === 'years' && (
-        <div
-          ref={yearGridRef}
-          className={yearsGridClass}
-          role="listbox"
-          aria-label={isYearGranularity ? t.chooseYear : monthLabel}
-          aria-disabled={calendarDisabled || undefined}
-          aria-readonly={(isYearGranularity && readOnly) || undefined}
-          onKeyDown={handleYearListKeyDown}
-        >
-          {yearList.map(year => {
-            const isFocused = year === tabStopYear;
-            const isToday = year === todayYear;
-            // As navigation the focused year is the current one. As the
-            // selection surface the value's year is selected and focus roams.
-            const isSelected = isYearGranularity
-              ? !!value && value.getFullYear() === year
-              : isFocused;
-            const disabled = calendarDisabled || disabledYears.has(year);
-            const cellCls = prefixedClassNames(
+  const monthGrid = (
+    <div
+      ref={monthGridRef}
+      role="grid"
+      aria-labelledby={labelId}
+      aria-disabled={calendarDisabled || undefined}
+      aria-readonly={readOnly || undefined}
+      aria-busy={busy || undefined}
+      className={monthsGridClass}
+      onKeyDown={handleMonthKeyDown}
+      {...gridFocusHandlers}
+    >
+      {MONTH_ROWS.map(row => (
+        <div key={row[0]} role="row" className={monthsRowClass}>
+          {row.map(month => {
+            const date = makeDate(focusedYear, month);
+            const disabled = calendarDisabled || disabledMonths[month];
+            const isSelected = !!value && isSameMonth(value, date);
+            const isFocused = month === tabStopMonth;
+            const isCurrent = !!today && isSameMonth(date, today);
+            const cellClass = prefixedClassNames(
               classPrefix,
-              'dateinput-year-cell',
+              'dateinput-month-cell',
               {
                 'is-selected': isSelected,
-                'is-today': isToday,
+                'is-today': isCurrent,
                 'is-disabled': disabled,
               }
             );
             return (
               <button
-                key={year}
+                key={month}
                 type="button"
-                role="option"
+                role="gridcell"
+                tabIndex={isFocused ? 0 : -1}
                 aria-selected={isSelected}
-                aria-disabled={isYearGranularity ? disabled : undefined}
-                aria-current={isYearGranularity && isToday ? 'date' : undefined}
-                data-focused-year={isFocused ? 'true' : undefined}
-                tabIndex={year === listTabStop ? 0 : -1}
+                aria-disabled={disabled}
+                aria-current={isCurrent ? 'date' : undefined}
+                aria-label={computedMonthNames[month]}
+                data-focused={isFocused ? 'true' : undefined}
                 disabled={disabled}
-                className={cellCls}
+                className={cellClass}
                 onFocus={() => {
-                  // As navigation, focusing a year by key or pointer only
-                  // moves the tab stop: nothing is committed until a year is
-                  // picked. As the selection surface it is reached by Tab
-                  // while the focused year is disabled, or by pointer, and
-                  // keys move on from here.
-                  if (!isYearGranularity) {
-                    setNavYear(year);
-                  } else if (year !== focusedYear) {
-                    onFocusedDateChange(clampDate(makeDate(year), min, max));
+                  // Reached by Tab while the focused month is disabled,
+                  // or by pointer: keys move on from here.
+                  if (month !== focusedDate.getMonth()) {
+                    changeFocus(clampDate(date, min, max));
                   }
                 }}
-                onClick={() =>
-                  isYearGranularity
-                    ? handleYearPick(year)
-                    : handleYearSelect(year)
-                }
+                onClick={() => {
+                  changeFocus(clampDate(date, min, max));
+                  onSelect?.(date);
+                }}
               >
-                {year}
+                {monthCellNames[month]}
               </button>
             );
           })}
         </div>
-      )}
+      ))}
+    </div>
+  );
 
-      {rangeMode && (
+  const yearListBox = (
+    <div
+      ref={yearGridRef}
+      className={yearsGridClass}
+      role="listbox"
+      aria-label={isYearGranularity ? t.chooseYear : monthLabel}
+      aria-disabled={calendarDisabled || undefined}
+      aria-readonly={(isYearGranularity && readOnly) || undefined}
+      onKeyDown={handleYearListKeyDown}
+    >
+      {yearList.map(year => {
+        const isFocused = year === tabStopYear;
+        const isToday = year === todayYear;
+        // As navigation the focused year is the current one. As the
+        // selection surface the value's year is selected and focus roams.
+        const isSelected = isYearGranularity
+          ? !!value && value.getFullYear() === year
+          : isFocused;
+        const disabled = calendarDisabled || disabledYears.has(year);
+        const cellCls = prefixedClassNames(classPrefix, 'dateinput-year-cell', {
+          'is-selected': isSelected,
+          'is-today': isToday,
+          'is-disabled': disabled,
+        });
+        return (
+          <button
+            key={year}
+            type="button"
+            role="option"
+            aria-selected={isSelected}
+            aria-disabled={isYearGranularity ? disabled : undefined}
+            aria-current={isYearGranularity && isToday ? 'date' : undefined}
+            data-focused-year={isFocused ? 'true' : undefined}
+            tabIndex={year === listTabStop ? 0 : -1}
+            disabled={disabled}
+            className={cellCls}
+            onFocus={() => {
+              // As navigation, focusing a year by key or pointer only
+              // moves the tab stop: nothing is committed until a year is
+              // picked. As the selection surface it is reached by Tab
+              // while the focused year is disabled, or by pointer, and
+              // keys move on from here.
+              if (!isYearGranularity) {
+                setNavYear(year);
+              } else if (year !== focusedYear) {
+                onFocusedDateChange(clampDate(makeDate(year), min, max));
+              }
+            }}
+            onClick={() =>
+              isYearGranularity ? handleYearPick(year) : handleYearSelect(year)
+            }
+          >
+            {year}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const panel = (i: number) => (
+    <div
+      key={i}
+      className={classNames(calendarClass, i === 0 ? className : undefined)}
+      id={i === 0 ? id : undefined}
+    >
+      {header(i)}
+      {view === 'days' && dayGrid(i)}
+      {view === 'months' && monthGrid}
+      {view === 'years' && yearListBox}
+
+      {i === 0 && rangeMode && (
         // The words the day cells and the grid point at. The live region
         // stays mounted while the year list is open, so it is in the page
         // already when a pick changes what it says.
@@ -1313,6 +1623,20 @@ export const Calendar: React.FC<CalendarProps> = ({
         </>
       )}
     </div>
+  );
+
+  // The pickers draw one month. With the month held here, each month on show
+  // is a panel of its own, side by side in one row, which the pointer leaves
+  // as a whole, so a range's preview holds as it crosses between months.
+  return lifted ? (
+    <div
+      className={monthsClass}
+      onMouseLeave={anchor ? () => setHoverDate(null) : undefined}
+    >
+      {Array.from({ length: panelCount }, (_, i) => panel(i))}
+    </div>
+  ) : (
+    panel(0)
   );
 };
 

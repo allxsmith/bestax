@@ -24,6 +24,22 @@ export type DateGranularity = 'day' | 'month' | 'year';
  */
 export type DateRangeValue = [Date | null, Date | null];
 
+/** What `Calendar`'s `dayTemplate` is told about the day it draws. */
+export interface CalendarDayState {
+  /** It's today. Always `false` on the server and until the page hydrates. */
+  isToday: boolean;
+  /** It's picked, or it's an end of the picked range or inside it. */
+  isSelected: boolean;
+  /**
+   * It can't be picked: the Calendar is `disabled`, or the day is outside
+   * `min` and `max`, or ruled out by `shouldDisableDate` or
+   * `unselectableDates`.
+   */
+  isDisabled: boolean;
+  /** It belongs to the month before or after, shown because of `nearbyMonthDays`. */
+  isOutsideMonth: boolean;
+}
+
 /**
  * Translatable strings used across all four pickers. Pass via the `labels`
  * prop to override defaults; consumers manage their own locale-driven mapping.
