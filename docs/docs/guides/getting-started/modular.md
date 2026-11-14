@@ -191,6 +191,7 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/components/datatable';
 @use '@allxsmith/bestax-bulma/scss/components/pagination' as bestax-pagination;
 @use '@allxsmith/bestax-bulma/scss/components/affix';
+@use '@allxsmith/bestax-bulma/scss/components/floatbutton';
 @use '@allxsmith/bestax-bulma/scss/components/navbar' as bestax-navbar;
 @use '@allxsmith/bestax-bulma/scss/components/panel' as bestax-panel;
 

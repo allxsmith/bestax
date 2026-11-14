@@ -1,0 +1,266 @@
+// FloatButton Component Styles
+// Round buttons that float in a corner: their shadow, the FloatButtons
+// stack, the speed dial's layout and back to top's fade. The corner, its
+// offsets and the z-index are Affix's, and the circle is IconButton's.
+//
+// Back to top marks itself shown with `is-shown` rather than `is-active`,
+// which on a `.button` is Bulma's pressed state: a shown back to top would
+// look pressed and give no hover feedback.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+@use '../mixins' as *;
+
+// FloatButton-specific SCSS variables
+$float-button-shadow: cv.getVar('shadow') !default;
+$float-button-transition-duration: cv.getVar('duration') !default;
+$float-buttons-gap: 0.75rem !default;
+$float-button-actions-gap: 0.5rem !default;
+
+// The duration is registered on the button and on the dial, since the dial's
+// actions fade in apart from any one button.
+.#{iv.$class-prefix}button.#{iv.$class-prefix}float-button {
+  @include cv.register-vars(
+    (
+      'float-button-shadow': #{$float-button-shadow},
+      'float-button-transition-duration': #{$float-button-transition-duration},
+    )
+  );
+}
+
+.#{iv.$class-prefix}float-button-speed-dial {
+  @include cv.register-vars(
+    (
+      'float-button-actions-gap': #{$float-button-actions-gap},
+      'float-button-transition-duration': #{$float-button-transition-duration},
+    )
+  );
+}
+
+.#{iv.$class-prefix}float-buttons {
+  @include cv.register-vars(
+    (
+      'float-buttons-gap': #{$float-buttons-gap},
+    )
+  );
+}
+
+// The shadow lifts it off the page. Bulma's focus ring takes its place while
+// it has focus, and a disabled button keeps Bulma's flat look. Forced colors
+// drop the shadow, and the button's border and icon stay.
+.#{iv.$class-prefix}button.#{iv.$class-prefix}float-button:not(
+    :focus-visible
+  ):not(.#{iv.$class-prefix}is-focused):not([disabled]) {
+  box-shadow: cv.getVar('float-button-shadow');
+}
+
+// FloatButtons: a column on its corner's side, top to bottom in DOM order.
+// The side is physical, so an auto margin lines each button up on it: a
+// column's `align-items` follows the writing direction, which right-to-left
+// text would swap. Only the buttons take the pointer, so the gaps between
+// them, and the place a hidden back to top keeps, leave the page under them
+// clickable.
+.#{iv.$class-prefix}float-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: cv.getVar('float-buttons-gap');
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
+
+  &.#{iv.$class-prefix}is-top-right > *,
+  &.#{iv.$class-prefix}is-bottom-right > * {
+    margin-left: auto;
+  }
+
+  &.#{iv.$class-prefix}is-top-left > *,
+  &.#{iv.$class-prefix}is-bottom-left > * {
+    margin-right: auto;
+  }
+}
+
+// The speed dial: the trigger, then the actions, nearest first, laid out
+// along its direction, which is physical, so a sideways dial keeps its side
+// in right-to-left text. A row runs in the writing direction, so the dial
+// reads the direction the browser computes and sets `is-rtl` for it, rather
+// than this reading `:dir()`, which follows only the `dir` attribute. The
+// actions take the dial's direction and alignment.
+.#{iv.$class-prefix}float-button-speed-dial {
+  display: flex;
+  gap: cv.getVar('float-button-actions-gap');
+
+  &.#{iv.$class-prefix}is-up {
+    flex-direction: column-reverse;
+  }
+
+  &.#{iv.$class-prefix}is-down {
+    flex-direction: column;
+  }
+
+  &.#{iv.$class-prefix}is-left {
+    flex-direction: row-reverse;
+  }
+
+  &.#{iv.$class-prefix}is-right {
+    flex-direction: row;
+  }
+
+  &.#{iv.$class-prefix}is-left.#{iv.$class-prefix}is-rtl {
+    flex-direction: row;
+  }
+
+  &.#{iv.$class-prefix}is-right.#{iv.$class-prefix}is-rtl {
+    flex-direction: row-reverse;
+  }
+
+  // Sideways, the actions are centred on the trigger.
+  &.#{iv.$class-prefix}is-left,
+  &.#{iv.$class-prefix}is-right {
+    align-items: center;
+  }
+}
+
+// Up and down, the trigger and the actions line up on the corner's side, as
+// a stack's buttons do, by the same physical margins.
+.#{iv.$class-prefix}affix.#{iv.$class-prefix}is-top-right,
+.#{iv.$class-prefix}affix.#{iv.$class-prefix}is-bottom-right {
+  .#{iv.$class-prefix}float-button-speed-dial.#{iv.$class-prefix}is-up,
+  .#{iv.$class-prefix}float-button-speed-dial.#{iv.$class-prefix}is-down {
+    > *,
+    > .#{iv.$class-prefix}float-button-actions > * {
+      margin-left: auto;
+    }
+  }
+}
+
+.#{iv.$class-prefix}affix.#{iv.$class-prefix}is-top-left,
+.#{iv.$class-prefix}affix.#{iv.$class-prefix}is-bottom-left {
+  .#{iv.$class-prefix}float-button-speed-dial.#{iv.$class-prefix}is-up,
+  .#{iv.$class-prefix}float-button-speed-dial.#{iv.$class-prefix}is-down {
+    > *,
+    > .#{iv.$class-prefix}float-button-actions > * {
+      margin-right: auto;
+    }
+  }
+}
+
+// Open, the trigger's tooltip is hidden, since the actions can take its side,
+// and so is the bridge Tooltip lays toward it for the pointer, which would
+// otherwise reach over the first action.
+.#{iv.$class-prefix}float-button-speed-dial.#{iv.$class-prefix}is-active
+  > .#{iv.$class-prefix}tooltip {
+  > .#{iv.$class-prefix}tooltip-content {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  &::after {
+    content: none;
+  }
+}
+
+.#{iv.$class-prefix}float-button-actions {
+  display: flex;
+  flex-direction: inherit;
+  align-items: inherit;
+  gap: cv.getVar('float-button-actions-gap');
+  // Closed, the actions aren't rendered, so they fade in as they mount.
+  animation: float-button-actions-in
+    cv.getVar('float-button-transition-duration') ease-out;
+}
+
+@keyframes float-button-actions-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// Back to top fades in past `visibilityHeight`, as `is-shown`, and out above
+// it. Hidden, it keeps its place, out of the Tab order and the accessibility
+// tree.
+.#{iv.$class-prefix}button.#{iv.$class-prefix}float-button-back-to-top {
+  @include extras-transition(
+    background-color,
+    border-color,
+    box-shadow,
+    color,
+    opacity,
+    visibility
+  );
+  transition-duration: cv.getVar('float-button-transition-duration');
+
+  &:not(.#{iv.$class-prefix}is-shown) {
+    opacity: 0;
+    visibility: hidden;
+
+    // Its tooltip hides with it, should one be open as it goes.
+    & ~ .#{iv.$class-prefix}tooltip-content {
+      opacity: 0;
+      visibility: hidden;
+    }
+  }
+}
+
+// Hidden, the boxes around it would still keep the pointer from the page
+// under it. In a stack, the item that holds it, a Badge around it included,
+// takes no pointer and hides, so a Badge's count goes with it, while the
+// button's own visibility keeps it on the screen through its fade. Alone, its
+// Affix takes no pointer.
+.#{iv.$class-prefix}float-buttons
+  > :has(
+    .#{iv.$class-prefix}float-button-back-to-top:not(
+        .#{iv.$class-prefix}is-shown
+      )
+  ) {
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.#{iv.$class-prefix}affix:not(.#{iv.$class-prefix}float-buttons):has(
+    > .#{iv.$class-prefix}float-button-back-to-top:not(
+        .#{iv.$class-prefix}is-shown
+      )
+  ),
+.#{iv.$class-prefix}affix:not(.#{iv.$class-prefix}float-buttons):has(
+    > .#{iv.$class-prefix}tooltip
+      > .#{iv.$class-prefix}float-button-back-to-top:not(
+        .#{iv.$class-prefix}is-shown
+      )
+  ) {
+  pointer-events: none;
+}
+
+// Forced colors drop the shadow, and with a colored button's background its
+// edge, since Bulma takes a colored button's border away. An outline drawn
+// inside the edge keeps every float button's edge on the page without
+// changing its size. Bulma shows focus with a box-shadow and a border color,
+// which forced colors drop too, so focus, and `isFocused`, widens the outline
+// in the system's highlight color. The class is named twice to outrank Bulma's
+// `outline: none` on a pressed or focused button wherever it lands.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}float-button.#{iv.$class-prefix}float-button {
+    outline: 1px solid ButtonText;
+    outline-offset: -1px;
+
+    &:focus-visible,
+    &.#{iv.$class-prefix}is-focused {
+      outline: 2px solid Highlight;
+      outline-offset: 2px;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}float-button-back-to-top {
+    transition: none;
+  }
+
+  .#{iv.$class-prefix}float-button-actions {
+    animation: none;
+  }
+}

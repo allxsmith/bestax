@@ -200,8 +200,16 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   helper props and `className` go on its frame and the `ref` on the element that scrolls.
   `hasFade` fades the edges that have more, `orientation="horizontal"` suits a wide table, and
   `onEdgeReach={edge => …}` loads more at an edge.
-- **Something that stays in a corner of the screen (a floating button, a chat or help launcher,
-  a feedback tab, a consent notice) is `Affix`**, not `pos="fixed"` with offsets in a style:
+- **A floating action button is `FloatButton`**, not a round `Button` in an `Affix`:
+  `<FloatButton aria-label="New message" icon="pen" color="primary" />`. It's an `IconButton`, so
+  its types require `aria-label` (or `aria-labelledby`), and the label shows as its tooltip;
+  `showLabel` prints it beside the icon for touch screens. Several in one corner go in
+  `FloatButtons`, top to bottom in the order written, with a `Badge overlap="circle"` around one for
+  a count. A few related actions behind one button are `FloatButton.SpeedDial` with `FloatButton`s
+  as its children (`direction` sets the way they open), and back to top on a long page is
+  `FloatButton.BackToTop`, which scrolls up and moves focus to `<main>`.
+- **Something else that stays in a corner of the screen (a chat or help launcher, a feedback tab,
+  a consent notice) is `Affix`**, not `pos="fixed"` with offsets in a style:
   `<Affix position="bottom-left"><Button color="primary">Feedback</Button></Affix>`.
   `position` is one of the four corners, `'bottom-right'` by default, and stays physical in
   right-to-left text. The spacing helpers nudge one further in (`mb="6"` lifts it over a bottom

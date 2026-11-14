@@ -5,6 +5,7 @@ import {
   enabledMenuItems,
   isEnabledMenuItem,
   MenuKeys,
+  type MenuKeysOptions,
   TYPEAHEAD_TIMEOUT,
   useMenuKeys,
 } from '../useMenuKeys';
@@ -19,17 +20,22 @@ const Menu = ({
   children,
   onKeyDown,
   onMenuKeys,
+  options,
+  dir,
 }: {
   children: React.ReactNode;
   onKeyDown?: (event: React.KeyboardEvent<HTMLElement>) => void;
   onMenuKeys?: (menuKeys: MenuKeys) => void;
+  options?: MenuKeysOptions;
+  dir?: string;
 }) => {
-  const menuKeys = useMenuKeys();
+  const menuKeys = useMenuKeys(options);
   onMenuKeys?.(menuKeys);
   return (
     <div
       role="menu"
       aria-label="Actions"
+      dir={dir}
       tabIndex={-1}
       onKeyDown={event => {
         onKeyDown?.(event);
@@ -165,6 +171,135 @@ describe('useMenuKeys', () => {
         expect(press(key)).toBe(true);
       }
       expect(item('Rename')).toHaveFocus();
+    });
+  });
+
+  describe('orientation and reverse', () => {
+    const Items = (props: { options?: MenuKeysOptions; dir?: string }) => (
+      <Menu {...props}>
+        <button role="menuitem">Note</button>
+        <button role="menuitem">Task</button>
+        <button role="menuitem">Event</button>
+      </Menu>
+    );
+
+    /** Presses `key` on the focused item and names the item focused after. */
+    const after = (key: string) => {
+      press(key);
+      return document.activeElement?.textContent;
+    };
+
+    it('moves down and up without options, and leaves Left and Right alone', () => {
+      render(<Items />);
+      item('Note').focus();
+      expect(press('ArrowRight')).toBe(true);
+      expect(press('ArrowLeft')).toBe(true);
+      expect(after('ArrowDown')).toBe('Task');
+      expect(after('ArrowUp')).toBe('Note');
+    });
+
+    it('moves up to the next item and down to the previous when reversed', () => {
+      render(<Items options={{ reverse: true }} />);
+      item('Note').focus();
+      expect(after('ArrowUp')).toBe('Task');
+      expect(after('ArrowUp')).toBe('Event');
+      expect(after('ArrowUp')).toBe('Note');
+      expect(after('ArrowDown')).toBe('Event');
+      expect(press('ArrowRight')).toBe(true);
+    });
+
+    it('starts from the first item on the forward arrow when reversed', () => {
+      render(<Items options={{ reverse: true }} />);
+      screen.getByRole('menu').focus();
+      expect(after('ArrowUp')).toBe('Note');
+      screen.getByRole('menu').focus();
+      expect(after('ArrowDown')).toBe('Event');
+    });
+
+    it('moves right and left when horizontal, leaving Down and Up alone', () => {
+      render(<Items options={{ orientation: 'horizontal' }} />);
+      item('Note').focus();
+      expect(press('ArrowDown')).toBe(true);
+      expect(press('ArrowUp')).toBe(true);
+      expect(document.activeElement).toBe(item('Note'));
+      expect(after('ArrowRight')).toBe('Task');
+      expect(after('ArrowLeft')).toBe('Note');
+      expect(after('ArrowLeft')).toBe('Event');
+    });
+
+    it('moves left to the next item when horizontal in right-to-left text', () => {
+      render(<Items options={{ orientation: 'horizontal' }} dir="rtl" />);
+      // jsdom computes no direction from dir, so the menu states it.
+      screen.getByRole('menu').style.direction = 'rtl';
+      item('Note').focus();
+      expect(after('ArrowLeft')).toBe('Task');
+      expect(after('ArrowRight')).toBe('Note');
+    });
+
+    it('swaps the horizontal arrows when reversed, in either direction', () => {
+      const { unmount } = render(
+        <Items options={{ orientation: 'horizontal', reverse: true }} />
+      );
+      item('Note').focus();
+      expect(after('ArrowLeft')).toBe('Task');
+      expect(after('ArrowRight')).toBe('Note');
+      unmount();
+      render(<Items options={{ orientation: 'horizontal', reverse: true }} />);
+      screen.getByRole('menu').style.direction = 'rtl';
+      item('Note').focus();
+      expect(after('ArrowRight')).toBe('Task');
+      expect(after('ArrowLeft')).toBe('Note');
+    });
+
+    it('reads the writing direction when the key arrives', () => {
+      render(<Items options={{ orientation: 'horizontal' }} />);
+      item('Note').focus();
+      expect(after('ArrowRight')).toBe('Task');
+      screen.getByRole('menu').style.direction = 'rtl';
+      expect(after('ArrowRight')).toBe('Note');
+    });
+
+    it('reads a physical horizontal menu’s arrows as they point, in right-to-left text too', () => {
+      render(<Items options={{ orientation: 'horizontal', physical: true }} />);
+      screen.getByRole('menu').style.direction = 'rtl';
+      item('Note').focus();
+      expect(after('ArrowRight')).toBe('Task');
+      expect(after('ArrowLeft')).toBe('Note');
+      expect(press('ArrowDown')).toBe(true);
+    });
+
+    it('reverses a physical horizontal menu by the screen alone', () => {
+      const { unmount } = render(
+        <Items
+          options={{ orientation: 'horizontal', physical: true, reverse: true }}
+        />
+      );
+      item('Note').focus();
+      expect(after('ArrowLeft')).toBe('Task');
+      unmount();
+      render(
+        <Items
+          options={{ orientation: 'horizontal', physical: true, reverse: true }}
+        />
+      );
+      screen.getByRole('menu').style.direction = 'rtl';
+      item('Note').focus();
+      expect(after('ArrowLeft')).toBe('Task');
+      expect(after('ArrowRight')).toBe('Note');
+    });
+
+    it('keeps vertical arrows as they are when physical', () => {
+      render(<Items options={{ physical: true }} />);
+      item('Note').focus();
+      expect(after('ArrowDown')).toBe('Task');
+      expect(after('ArrowUp')).toBe('Note');
+    });
+
+    it('keeps Home and End on the first and last items in the DOM', () => {
+      render(<Items options={{ orientation: 'horizontal', reverse: true }} />);
+      item('Task').focus();
+      expect(after('Home')).toBe('Note');
+      expect(after('End')).toBe('Event');
     });
   });
 

@@ -16,6 +16,8 @@ import { HoverCard } from '../components/HoverCard';
 import { ContextMenu } from '../components/ContextMenu';
 import { Modal } from '../components/Modal';
 import { Affix } from '../components/Affix';
+import { FloatButton } from '../components/FloatButton';
+import { FloatButtons } from '../components/FloatButtons';
 import { Dialog } from '../components/Dialog';
 import { Toast, ToastContainer, toast } from '../components/Toast';
 import { Sidebar } from '../components/Sidebar';
@@ -138,6 +140,41 @@ describe('Affix', () => {
   it('still renders in place without portal', () => {
     const { container } = withDefault(<Affix>Help</Affix>);
     expect(container).toContainElement(screen.getByText('Help'));
+    expect(target).toBeEmptyDOMElement();
+  });
+});
+
+describe('FloatButton', () => {
+  // Each part portals through Affix, so these check that the prop gets there.
+  it.each([
+    [
+      'FloatButton',
+      () => <FloatButton portal aria-label="Help" icon="question" />,
+    ],
+    [
+      'FloatButtons',
+      () => (
+        <FloatButtons portal>
+          <FloatButton aria-label="Help" icon="question" />
+        </FloatButtons>
+      ),
+    ],
+    [
+      'FloatButton.SpeedDial',
+      () => <FloatButton.SpeedDial portal aria-label="Help" icon="question" />,
+    ],
+  ])('%s portals into the portalContainer when portal is true', (_, ui) => {
+    withDefault(ui());
+    expect(target).toContainElement(
+      screen.getByRole('button', { name: 'Help' })
+    );
+  });
+
+  it('lets its own portal target win', () => {
+    withDefault(
+      <FloatButton portal="#own" aria-label="Help" icon="question" />
+    );
+    expect(own).toContainElement(screen.getByRole('button', { name: 'Help' }));
     expect(target).toBeEmptyDOMElement();
   });
 });

@@ -42,6 +42,18 @@ function AffixIcon() {
   );
 }
 
+// A screen with a round button in its corner and two smaller ones above it
+function FloatButtonIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <circle cx="16" cy="17" r="2" />
+      <circle cx="16" cy="11.5" r="1.25" />
+      <circle cx="16" cy="7" r="1.25" />
+    </svg>
+  );
+}
+
 // Person in a frame — avatar
 function AvatarIcon() {
   return (
@@ -495,6 +507,7 @@ const ADDON_ICONS = {
   linkbutton: LinkButtonIcon,
   kbd: KbdIcon,
   affix: AffixIcon,
+  floatbutton: FloatButtonIcon,
   avatar: AvatarIcon,
   badge: BadgeIcon,
   carousel: CarouselIcon,

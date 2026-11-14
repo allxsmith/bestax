@@ -60,6 +60,7 @@
     "Buttons",
     "CopyButton",
     "Delete",
+    "FloatButton",
     "Icon",
     "ToggleButton",
     "Tooltip",
