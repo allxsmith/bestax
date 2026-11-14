@@ -59,7 +59,7 @@
         {
           "id": "archetypes",
           "file": "references/archetypes.md",
-          "bytes": 10090
+          "bytes": 10509
         },
         {
           "id": "layout-components",
@@ -69,7 +69,7 @@
       ],
       "examples": [
         { "id": "app-shell", "file": "examples/app-shell.tsx", "bytes": 2412 },
-        { "id": "card-grid", "file": "examples/card-grid.tsx", "bytes": 2673 },
+        { "id": "card-grid", "file": "examples/card-grid.tsx", "bytes": 2950 },
         { "id": "centered", "file": "examples/centered.tsx", "bytes": 1416 },
         {
           "id": "content-page",
