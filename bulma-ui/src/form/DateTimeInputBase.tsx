@@ -251,7 +251,11 @@ export interface DateTimeInputBaseProps
    * calendar adds once the page hydrates.
    */
   dayNames?: string[];
-  /** Override the 12 month-name labels. */
+  /**
+   * Override the 12 month-name labels. With them the day grid's heading
+   * reads the name, a space and the year, whatever order the locale writes
+   * a month and its year in.
+   */
   monthNames?: string[];
   /** Show dimmed dates from adjacent months. */
   nearbyMonthDays?: boolean;

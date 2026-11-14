@@ -237,6 +237,18 @@ const LONG_DATE: Intl.DateTimeFormatOptions = {
   day: 'numeric',
 };
 
+/**
+ * The heading's month and year, in the order and words the locale writes
+ * them: "November 2026" in English, "2026年11月" in Japanese. The grid is
+ * Gregorian, so the heading is too, whatever calendar the locale counts its
+ * years by.
+ */
+const MONTH_YEAR: Intl.DateTimeFormatOptions = {
+  calendar: 'gregory',
+  year: 'numeric',
+  month: 'long',
+};
+
 /** A range's pending start: its start, when it has no end. */
 const pendingStartOf = (range?: DateRangeValue): Date | null =>
   range?.[0] && !range[1] ? startOfDay(range[0]) : null;
@@ -364,17 +376,19 @@ export const Calendar: React.FC<CalendarProps> = ({
     [hydrated, customDayNames, locale, firstDayOfWeek]
   );
 
-  const computedMonthNames = useMemo(() => {
-    if (monthNames && monthNames.length === 12) return monthNames;
-    return getMonthNames(locale, 'long');
-  }, [monthNames, locale]);
+  const customMonthNames =
+    monthNames && monthNames.length === 12 ? monthNames : null;
+  const computedMonthNames = useMemo(
+    () => customMonthNames ?? getMonthNames(locale, 'long'),
+    [customMonthNames, locale]
+  );
 
   // The month grid's cells are too narrow for long names, so they show the
   // short form unless the caller supplied names of their own.
-  const monthCellNames = useMemo(() => {
-    if (monthNames && monthNames.length === 12) return monthNames;
-    return getMonthNames(locale, 'short');
-  }, [monthNames, locale]);
+  const monthCellNames = useMemo(
+    () => customMonthNames ?? getMonthNames(locale, 'short'),
+    [customMonthNames, locale]
+  );
 
   const cells = useMemo(
     () => buildMonthGrid(focusedDate, firstDayOfWeek),
@@ -723,9 +737,15 @@ export const Calendar: React.FC<CalendarProps> = ({
     : !!max && focusedYear >= max.getFullYear();
 
   const labelId = id ? `${id}-label` : undefined;
-  const monthLabel = isDayGranularity
-    ? `${computedMonthNames[focusedDate.getMonth()]} ${focusedYear}`
-    : String(focusedYear);
+  // Over the day grid the heading names the month and its year as the
+  // locale writes them. Month names the caller gives have no place in that
+  // pattern, which writes the month as a number in Japanese, so they keep
+  // the name, a space and the year.
+  const monthLabel = !isDayGranularity
+    ? String(focusedYear)
+    : customMonthNames
+      ? `${customMonthNames[focusedDate.getMonth()]} ${focusedYear}`
+      : formatDate(focusedDate, MONTH_YEAR, locale);
 
   // As the selection surface the year list is where focus moves, so its
   // window stays centred on the year focused at mount: re-centring on every
