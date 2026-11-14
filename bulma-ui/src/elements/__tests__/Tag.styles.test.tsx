@@ -137,6 +137,24 @@ describe('the colors of a light Tag', () => {
       }
     );
 
+    it("keeps color='dark' with isLight in the dark color's hue", () => {
+      const el = prefixedOf({ color: 'dark', isLight: true });
+      expect(customProperty(el, css(), '--bulma-tag-h')).toBe(
+        'var(--bulma-dark-h)'
+      );
+    });
+
+    it.each(['white', 'black', 'dark'] as const)(
+      "leaves color='%s' without isLight alone",
+      color => {
+        const el = prefixedOf({ color });
+        expect(colorsOf(el, css())).toEqual({
+          background: `var(--bulma-${color}-l)`,
+          text: `var(--bulma-${color}-invert-l)`,
+        });
+      }
+    );
+
     it("leaves Bulma's light variant of another color alone", () => {
       const el = prefixedOf({ color: 'primary', isLight: true });
       expect(colorsOf(el, css()).text).toBe(

@@ -528,6 +528,17 @@ describe('the colors of a light Notification', () => {
       }
     );
 
+    it.each(['white', 'black'] as const)(
+      "leaves color='%s' without isLight alone",
+      color => {
+        const el = prefixedOf({ color });
+        expect(colorsOf(el, prefixedCss())).toEqual({
+          background: `var(--bulma-${color}-l)`,
+          text: `var(--bulma-${color}-invert-l)`,
+        });
+      }
+    );
+
     it("leaves Bulma's light variant of another color alone", () => {
       const el = prefixedOf({ color: 'primary', isLight: true });
       expect(colorsOf(el, prefixedCss())).toEqual({
