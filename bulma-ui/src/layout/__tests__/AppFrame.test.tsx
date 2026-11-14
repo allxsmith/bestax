@@ -2262,6 +2262,23 @@ describe('AppFrame.Nav resizable', () => {
     expect(fireEvent.keyDown(handle(), { key: 'a' })).toBe(true);
   });
 
+  it('keeps the width it was moved to, and its default, with resizable off', () => {
+    mockViewport(DESKTOP);
+    const { rerender } = render(<ResizeFrame nav={{ defaultWidth: 300 }} />);
+    fireEvent.keyDown(handle(), { key: 'ArrowRight' });
+    expect(widthOf()).toBe('310px');
+    // Locked: no handle, and the column stays where it was moved to.
+    rerender(<ResizeFrame nav={{ defaultWidth: 300, resizable: false }} />);
+    expect(screen.queryByRole('separator')).toBeNull();
+    expect(widthOf()).toBe('310px');
+  });
+
+  it('starts a column that isn’t resizable at its defaultWidth', () => {
+    mockViewport(DESKTOP);
+    render(<ResizeFrame nav={{ defaultWidth: '20rem', resizable: false }} />);
+    expect(widthOf()).toBe('20rem');
+  });
+
   it('steps by a step of its own, in pixels, ten times as far with Shift', () => {
     mockViewport(DESKTOP);
     const onWidthChange = vi.fn();

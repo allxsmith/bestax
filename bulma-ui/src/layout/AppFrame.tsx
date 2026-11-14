@@ -124,8 +124,9 @@ export interface AppFrameProps
   /**
    * Called with the state asked for: by the burger, `useAppFrame()`, a
    * `Menu.Section`'s button in the collapsed rail, which expands it, or a
-   * `resizable` nav's handle: a drag below half the column's `minWidth`, or
-   * back out past it, Enter, and a double click, which expands it.
+   * `resizable` nav's handle: a drag that collapses the column or opens it
+   * again (see `AppFrame.Nav`'s `resizable`), Enter, and a double click,
+   * which expands it.
    */
   onNavCollapsedChange?: (collapsed: boolean) => void;
   /**
@@ -270,11 +271,13 @@ export interface AppFrameNavProps
    */
   resizable?: boolean;
   /**
-   * The width a `resizable` column starts at when `width` isn't set, and
-   * goes back to as given on a double click on its handle, so a rem keeps
-   * following the font size: pixels, or `px` or `rem`.
-   * The handle reads anything else as the stylesheet's width, and a
-   * development build warns about it. Without it, the stylesheet's, 16rem.
+   * The width the column starts at when `width` isn't set, and a
+   * `resizable` one goes back to on a double click on its handle: pixels, or
+   * `px` or `rem`. Without `width`, the reset keeps it as given, so a rem
+   * keeps following the font size; with `width`, `onWidthChange` hears it
+   * in pixels. The handle reads any other length as the stylesheet's width,
+   * and a development build warns about it. Without it, the stylesheet's,
+   * 16rem.
    */
   defaultWidth?: number | string;
   /**
@@ -749,7 +752,7 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
     // font size or a theme that changed since counts. Until they're read,
     // Bulma's 16px rem and the stylesheet's defaults.
     const [widthState, setWidthState] = useState(defaultWidth);
-    const widthNow = resizable && width === undefined ? widthState : width;
+    const widthNow = width === undefined ? widthState : width;
     const [metrics, setMetrics] = useState<Metrics>(DEFAULT_METRICS);
     const refreshMetrics = () => {
       const nav = navRef.current!;
