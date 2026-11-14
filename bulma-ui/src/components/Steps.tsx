@@ -52,7 +52,12 @@ export interface StepsProps
   items?: StepItemProps[];
   /** Size of the steps. */
   size?: StepsSize;
-  /** Color variant. */
+  /**
+   * Color variant. The current and completed steps take the color's
+   * `-on-scheme` variant, the shade Bulma adjusts to read on the page in
+   * either scheme, so a pale color such as `warning` is drawn darker on a
+   * light page.
+   */
   color?: StepsColor;
   /** Show step markers. Default: true. */
   hasMarker?: boolean;
