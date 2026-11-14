@@ -1004,7 +1004,7 @@ describe('get_helper_props', () => {
   // section the answer does not hold. A question about `pos` has to learn what `overlay` does
   // beside it from the answer itself, not from a link it cannot follow.
   it.each(['pos', 'position'])(
-    'tells a %p question what overlay does beside it',
+    'tells a %s question what overlay does beside it',
     async group => {
       const out = text(await call('get_helper_props', { group }));
       expect(out).toMatch(/`overlay`[^.]*`absolute`/);
@@ -1081,7 +1081,7 @@ describe('get_helper_props', () => {
       ['margin', 'mt'],
       ['colour', 'backgroundColor'],
       ['mobile', 'viewport'],
-    ])('resolves the word a builder actually uses: %p', async (group, prop) => {
+    ])('resolves the word a builder actually uses: %s', async (group, prop) => {
       const out = text(await call('get_helper_props', { group }));
       expect(out).toContain('`' + prop + '`');
       expect(out.length).toBeLessThan(10_000);

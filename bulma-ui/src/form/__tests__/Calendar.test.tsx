@@ -998,6 +998,101 @@ describe('Calendar today across hydration', () => {
   );
 });
 
+describe('Calendar heading in a locale', () => {
+  const heading = (container: HTMLElement) =>
+    container.querySelector('.dateinput-month-label')!.textContent;
+
+  it.each([
+    ['en-US', 'June 2024'],
+    ['es-ES', 'junio de 2024'],
+    // Chinese and Japanese put the year first.
+    ['ja-JP', '2024年6月'],
+    ['zh-CN', '2024年6月'],
+    // The year comes in the locale's own digits.
+    ['ar-EG', 'يونيو ٢٠٢٤'],
+  ])('writes the month and year as %s does', (locale, text) => {
+    const { container } = render(<PeriodHarness locale={locale} />);
+    expect(heading(container)).toBe(text);
+  });
+
+  it('follows the focused month', () => {
+    const { container, getByLabelText } = render(
+      <PeriodHarness locale="ja-JP" />
+    );
+    fireEvent.click(getByLabelText('Next month'));
+    expect(heading(container)).toBe('2024年7月');
+  });
+
+  it.each([
+    // Thai counts years from the Buddha, and Persian has months and years of
+    // its own, where the grid's days are Gregorian.
+    ['th-TH', 'มิถุนายน 2024'],
+    ['fa-IR', 'ژوئن ۲۰۲۴'],
+  ])('names the Gregorian month and year in %s', (locale, text) => {
+    const { container } = render(<PeriodHarness locale={locale} />);
+    expect(heading(container)).toBe(text);
+  });
+
+  it('names the Gregorian months on the month grid', () => {
+    // June, where the Persian calendar's own month then is Khordad.
+    const { container } = render(
+      <PeriodHarness granularity="month" locale="fa-IR" />
+    );
+    expect(monthCell(container, 'ژوئن')).toHaveTextContent('ژوئن');
+    expect(container.querySelector('[aria-label="خرداد"]')).toBeNull();
+  });
+
+  it('keeps month names of your own ahead of the year', () => {
+    const names = Array.from({ length: 12 }, (_, i) => `M${i + 1}`);
+    const { container } = render(
+      <PeriodHarness locale="ja-JP" monthNames={names} />
+    );
+    expect(heading(container)).toBe('M6 2024');
+  });
+
+  it('asks Intl for nothing when the names are all your own', () => {
+    // So a tag Intl refuses still renders, as it did before the heading
+    // came from Intl.
+    const names = Array.from({ length: 12 }, (_, i) => `M${i + 1}`);
+    const days = ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7'];
+    const { container } = render(
+      <PeriodHarness locale="en_US" monthNames={names} dayNames={days} />
+    );
+    expect(heading(container)).toBe('M6 2024');
+  });
+
+  it('labels the year list with the heading', () => {
+    HTMLElement.prototype.scrollIntoView = vi.fn();
+    const { container } = render(<PeriodHarness locale="ja-JP" />);
+    fireEvent.click(container.querySelector('[aria-haspopup="listbox"]')!);
+    expect(container.querySelector('[role="listbox"]')).toHaveAttribute(
+      'aria-label',
+      '2024年6月'
+    );
+  });
+
+  it('hydrates the heading a server wrote', async () => {
+    const ui = <PeriodHarness locale="ja-JP" />;
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(ui);
+    expect(heading(container)).toBe('2024年6月');
+    document.body.appendChild(container);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    let root: ReturnType<typeof hydrateRoot> | undefined;
+    try {
+      await act(async () => {
+        root = hydrateRoot(container, ui);
+      });
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(heading(container)).toBe('2024年6月');
+    } finally {
+      errorSpy.mockRestore();
+      await act(async () => root?.unmount());
+      container.remove();
+    }
+  });
+});
+
 describe('Calendar month granularity', () => {
   const grid = (container: HTMLElement) =>
     container.querySelector<HTMLElement>('[role="grid"]')!;
@@ -1195,7 +1290,7 @@ describe('Calendar month granularity', () => {
     expect(onFocusedDateChange).not.toHaveBeenCalled();
   });
 
-  it.each(['Enter', ' '])('%p selects the first of the focused month', key => {
+  it.each(['Enter', ' '])('%j selects the first of the focused month', key => {
     const onSelect = vi.fn();
     const { container } = render(
       <PeriodHarness granularity="month" onSelect={onSelect} />

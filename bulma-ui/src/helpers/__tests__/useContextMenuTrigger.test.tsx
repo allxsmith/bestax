@@ -11,7 +11,7 @@ import {
 
 type PointerType = 'mouse' | 'pen' | 'touch' | '';
 
-/** A pointer event with a `pointerType` and a `pointerId`, which jsdom's events lack. */
+/** A pointer event, a finger's unless told otherwise. */
 const pointer = (
   el: Element,
   type: 'pointerdown' | 'pointermove' | 'pointerup' | 'pointercancel',
@@ -27,15 +27,15 @@ const pointer = (
     y?: number;
   } = {}
 ) => {
-  const event = new MouseEvent(type, {
+  const event = new PointerEvent(type, {
     bubbles: true,
     cancelable: true,
     composed: true,
     clientX: x,
     clientY: y,
+    pointerType,
+    pointerId,
   });
-  Object.defineProperty(event, 'pointerType', { value: pointerType });
-  Object.defineProperty(event, 'pointerId', { value: pointerId });
   return fireEvent(el, event);
 };
 

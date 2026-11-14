@@ -15,11 +15,7 @@ import {
 
 type PointerType = 'mouse' | 'pen' | 'touch';
 
-/**
- * jsdom has no PointerEvent, so build a MouseEvent of the pointer type, from
- * the element's own window, and give it a `pointerType` and a `pointerId`;
- * React reads both off the native event.
- */
+/** A pointer event, a finger's unless told otherwise. */
 const pointer = (
   el: Element,
   type: 'pointerdown' | 'pointermove' | 'pointerup' | 'pointercancel',
@@ -38,16 +34,16 @@ const pointer = (
   } = {}
 ) => {
   const view = el.ownerDocument.defaultView as typeof window;
-  const event = new view.MouseEvent(type, {
+  const event = new view.PointerEvent(type, {
     bubbles: true,
     cancelable: true,
     composed: true,
     clientX: x,
     clientY: y,
     button,
+    pointerType,
+    pointerId,
   });
-  Object.defineProperty(event, 'pointerType', { value: pointerType });
-  Object.defineProperty(event, 'pointerId', { value: pointerId });
   return fireEvent(el, event);
 };
 

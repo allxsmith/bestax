@@ -1237,7 +1237,7 @@ describe('Carousel with several items in view', () => {
       [0, '1'],
       [-3, '1'],
       [Number.NaN, '1'],
-    ])('writes itemsToShow=%p as the whole number %s', (count, written) => {
+    ])('writes itemsToShow=%s as the whole number %s', (count, written) => {
       render(<Carousel itemsToShow={count}>{itemsOf(3)}</Carousel>);
       expect(
         screen
@@ -1431,7 +1431,7 @@ describe('Carousel with several items in view', () => {
     it.each([
       [8, [1, 2, 3]],
       [-1, [6, 0, 1]],
-    ])('wraps value=%p around with repeat', (value, shown) => {
+    ])('wraps value=%s around with repeat', (value, shown) => {
       render(
         <Carousel itemsToShow={3} value={value}>
           {itemsOf(7)}

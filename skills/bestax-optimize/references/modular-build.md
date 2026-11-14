@@ -211,6 +211,9 @@ Notes:
 - `CopyButton` is a Bulma button holding an icon and a label, with no partial of its own, so an app
   using it needs `bulma/sass/elements/button` and `bulma/sass/elements/icon`. With
   `showLabel={false}` it's an `IconButton`, so add `iconbutton` for a rounded one to be a circle.
+- `AppFrame.Nav rail` shows each label of its rail in a `Tooltip`, so an app with a rail needs
+  `scss/components/tooltip` next to `scss/layout/appframe`, plus Menu's two partials (above),
+  which set the menu's icons.
 - `Tour` draws a step's Skip, Back and Next as Bulma buttons and its close button as a delete
   button, so an app using it needs `bulma/sass/elements/button`, `bulma/sass/elements/delete`
   and the `delete` partial next to `scss/components/tour`.
