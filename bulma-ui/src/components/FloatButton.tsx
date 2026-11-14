@@ -78,7 +78,10 @@ export interface FloatButtonOwnProps {
   size?: FloatButtonSize;
   /**
    * The corner it's fixed to, as `Affix`'s. Inside `FloatButtons` or a
-   * `FloatButton.SpeedDial`, which place it, it's ignored.
+   * `FloatButton.SpeedDial`, which place it, it's ignored. Its class and
+   * `style` land on the button, not the Affix, so to move it off the corner
+   * by Affix's offsets, put it in `FloatButtons`, whose class and `style`
+   * do land on its Affix.
    * @defaultValue 'bottom-right'
    */
   position?: AffixPosition;
@@ -314,8 +317,9 @@ export interface FloatButtonSpeedDialOwnProps extends Omit<
   onOpenChange?: (open: boolean) => void;
   /**
    * Also opens when the pointer rests on it, after a short delay, through
-   * the hook under HoverCard and Tooltip, and closes once the pointer and
-   * focus have left the trigger and the actions. The pointer only: keyboard
+   * the hook under HoverCard and Tooltip, and closes once the pointer has
+   * left the trigger and the actions, unless focus is in the actions. The
+   * pointer only: keyboard
    * focus on the trigger never opens it, and a touch pointer doesn't either.
    * Activation still toggles it, which is how the keyboard opens it, so a
    * click on a dial the pointer opened closes it. It isn't Dropdown's
@@ -336,7 +340,8 @@ export interface FloatButtonSpeedDialOwnProps extends Omit<
    * The way the actions run from the trigger, on the screen, in
    * right-to-left text too. The arrow key that points that way moves away
    * from the trigger. Unset, it's `'up'` from a bottom corner and `'down'`
-   * from a top one.
+   * from a top one. Pointed at its corner's own edge, the actions have no
+   * room there, so the trigger moves over to make it as the dial opens.
    */
   direction?: FloatButtonSpeedDialDirection;
   /**
@@ -348,7 +353,9 @@ export interface FloatButtonSpeedDialOwnProps extends Omit<
   showLabels?: boolean;
   /**
    * The corner, as `Affix`'s. Inside `FloatButtons`, which places it, it's
-   * ignored.
+   * ignored. Its class and `style` land on the dial's root, not the Affix,
+   * so to move it off the corner by Affix's offsets, put it in
+   * `FloatButtons`, whose class and `style` do land on its Affix.
    * @defaultValue 'bottom-right'
    */
   position?: AffixPosition;
@@ -785,9 +792,9 @@ export interface FloatButtonBackToTopProps
    * unnamed.
    * @defaultValue 'Back to top'
    */
-  'aria-label'?: string;
+  'aria-label'?: React.AriaAttributes['aria-label'];
   /** The id of an element whose text names it, in place of `aria-label`. No tooltip then. */
-  'aria-labelledby'?: string;
+  'aria-labelledby'?: React.AriaAttributes['aria-labelledby'];
   /** The icon. Unset, an up arrow drawn in `currentColor`, as Carousel's arrows are. */
   icon?: React.ReactNode;
   /**

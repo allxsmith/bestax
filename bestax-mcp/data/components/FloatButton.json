@@ -119,7 +119,7 @@
           "name": "position",
           "type": "'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'",
           "default": "'bottom-right'",
-          "description": "The corner it's fixed to, as `Affix`'s. Inside `FloatButtons` or a `FloatButton.SpeedDial`, which place it, it's ignored.",
+          "description": "The corner it's fixed to, as `Affix`'s. Inside `FloatButtons` or a `FloatButton.SpeedDial`, which place it, it's ignored. Its class and `style` land on the button, not the Affix, so to move it off the corner by Affix's offsets, put it in `FloatButtons`, whose class and `style` do land on its Affix.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -375,7 +375,7 @@
           "name": "openOnHover",
           "type": "boolean",
           "default": "false",
-          "description": "Also opens when the pointer rests on it, after a short delay, through the hook under HoverCard and Tooltip, and closes once the pointer and focus have left the trigger and the actions. The pointer only: keyboard focus on the trigger never opens it, and a touch pointer doesn't either. Activation still toggles it, which is how the keyboard opens it, so a click on a dial the pointer opened closes it. It isn't Dropdown's `hoverable`, which opens on hover in place of a click, through CSS alone: this opens on hover as well as a click, and the open state, `aria-expanded` and `onOpenChange` follow it.",
+          "description": "Also opens when the pointer rests on it, after a short delay, through the hook under HoverCard and Tooltip, and closes once the pointer has left the trigger and the actions, unless focus is in the actions. The pointer only: keyboard focus on the trigger never opens it, and a touch pointer doesn't either. Activation still toggles it, which is how the keyboard opens it, so a click on a dial the pointer opened closes it. It isn't Dropdown's `hoverable`, which opens on hover in place of a click, through CSS alone: this opens on hover as well as a click, and the open state, `aria-expanded` and `onOpenChange` follow it.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -393,7 +393,7 @@
           "name": "direction",
           "type": "'up' | 'down' | 'left' | 'right'",
           "default": null,
-          "description": "The way the actions run from the trigger, on the screen, in right-to-left text too. The arrow key that points that way moves away from the trigger. Unset, it's `'up'` from a bottom corner and `'down'` from a top one.",
+          "description": "The way the actions run from the trigger, on the screen, in right-to-left text too. The arrow key that points that way moves away from the trigger. Unset, it's `'up'` from a bottom corner and `'down'` from a top one. Pointed at its corner's own edge, the actions have no room there, so the trigger moves over to make it as the dial opens.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -411,7 +411,7 @@
           "name": "position",
           "type": "'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'",
           "default": "'bottom-right'",
-          "description": "The corner, as `Affix`'s. Inside `FloatButtons`, which places it, it's ignored.",
+          "description": "The corner, as `Affix`'s. Inside `FloatButtons`, which places it, it's ignored. Its class and `style` land on the dial's root, not the Affix, so to move it off the corner by Affix's offsets, put it in `FloatButtons`, whose class and `style` do land on its Affix.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -474,7 +474,7 @@
       "props": [
         {
           "name": "aria-label",
-          "type": "string",
+          "type": "React.AriaAttributes['aria-label']",
           "default": "'Back to top'",
           "description": "The button's name, and its tooltip's text. Pass your own to translate it. An empty one keeps the default rather than leaving the button unnamed.",
           "required": false,
@@ -483,7 +483,7 @@
         },
         {
           "name": "aria-labelledby",
-          "type": "string",
+          "type": "React.AriaAttributes['aria-labelledby']",
           "default": null,
           "description": "The id of an element whose text names it, in place of `aria-label`. No tooltip then.",
           "required": false,
@@ -557,7 +557,7 @@
           "name": "position",
           "type": "'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'",
           "default": "'bottom-right'",
-          "description": "The corner it's fixed to, as `Affix`'s. Inside `FloatButtons` or a `FloatButton.SpeedDial`, which place it, it's ignored.",
+          "description": "The corner it's fixed to, as `Affix`'s. Inside `FloatButtons` or a `FloatButton.SpeedDial`, which place it, it's ignored. Its class and `style` land on the button, not the Affix, so to move it off the corner by Affix's offsets, put it in `FloatButtons`, whose class and `style` do land on its Affix.",
           "required": false,
           "inherited": true,
           "deprecated": false

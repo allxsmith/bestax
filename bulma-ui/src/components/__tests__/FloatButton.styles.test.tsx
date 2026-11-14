@@ -130,16 +130,27 @@ describe('FloatButton styles', () => {
     expect(find(PLAIN, '.float-buttons')).toMatchObject({
       display: 'flex',
       'flex-direction': 'column',
-      'align-items': 'flex-end',
       gap: 'var(--bulma-float-buttons-gap)',
       'pointer-events': 'none',
     });
     expect(find(PLAIN, '.float-buttons > *')).toEqual({
       'pointer-events': 'auto',
     });
+    // The side is physical: a column's align-items follows the writing
+    // direction, so right-to-left text would line them up on the far side.
+    expect(find(PLAIN, '.float-buttons')).not.toHaveProperty('align-items');
     expect(
-      find(PLAIN, '.float-buttons.is-top-left, .float-buttons.is-bottom-left')
-    ).toEqual({ 'align-items': 'flex-start' });
+      find(
+        PLAIN,
+        '.float-buttons.is-top-right > *, .float-buttons.is-bottom-right > *'
+      )
+    ).toEqual({ 'margin-left': 'auto' });
+    expect(
+      find(
+        PLAIN,
+        '.float-buttons.is-top-left > *, .float-buttons.is-bottom-left > *'
+      )
+    ).toEqual({ 'margin-right': 'auto' });
   });
 
   it.each([
@@ -158,25 +169,37 @@ describe('FloatButton styles', () => {
     }
   );
 
-  it('lines a dial’s actions up as the corner says', () => {
+  it('lines a dial’s actions up as the corner says, on the screen', () => {
     expect(
-      find(
-        PLAIN,
-        '.float-button-speed-dial.is-up, .float-button-speed-dial.is-down'
+      PLAIN.some(
+        r =>
+          r.selector.includes('.float-button-speed-dial') &&
+          r.declarations['align-items'] !== undefined &&
+          r.declarations['align-items'] !== 'center'
       )
-    ).toEqual({ 'align-items': 'flex-end' });
+    ).toBe(false);
     expect(
       find(
         PLAIN,
         '.float-button-speed-dial.is-left, .float-button-speed-dial.is-right'
       )
     ).toEqual({ 'align-items': 'center' });
-    expect(
-      find(
-        PLAIN,
-        '.affix.is-top-left .float-button-speed-dial.is-up, .affix.is-top-left .float-button-speed-dial.is-down, .affix.is-bottom-left .float-button-speed-dial.is-up, .affix.is-bottom-left .float-button-speed-dial.is-down'
-      )
-    ).toEqual({ 'align-items': 'flex-start' });
+    /** The trigger and the actions of an up or down dial in these corners. */
+    const vertical = (corners: string[]) =>
+      corners
+        .flatMap(corner =>
+          ['is-up', 'is-down'].flatMap(way => {
+            const dial = `.affix.${corner} .float-button-speed-dial.${way}`;
+            return [`${dial} > *`, `${dial} > .float-button-actions > *`];
+          })
+        )
+        .join(', ');
+    expect(find(PLAIN, vertical(['is-top-right', 'is-bottom-right']))).toEqual({
+      'margin-left': 'auto',
+    });
+    expect(find(PLAIN, vertical(['is-top-left', 'is-bottom-left']))).toEqual({
+      'margin-right': 'auto',
+    });
     expect(find(PLAIN, '.float-button-actions')).toMatchObject({
       display: 'flex',
       'flex-direction': 'inherit',
@@ -255,6 +278,10 @@ describe('FloatButton styles', () => {
     expect(weight(selector)).toBeGreaterThan(
       weight('.tooltip.is-active .tooltip-content')
     );
+    // Tooltip's bridge toward its content would reach over the first action.
+    const bridge = '.float-button-speed-dial.is-active > .tooltip::after';
+    expect(find(PLAIN, bridge)).toEqual({ content: 'none' });
+    expect(weight(bridge)).toBeGreaterThan(weight('.tooltip.is-open::after'));
   });
 
   it('keeps every float button’s edge and its focus in forced colors, outranking Bulma’s outline: none', () => {

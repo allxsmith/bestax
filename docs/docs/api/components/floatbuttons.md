@@ -103,7 +103,8 @@ function example() {
 ```
 
 A speed dial that opens up or down in a stack pushes the buttons on that side along as it opens,
-so nothing overlaps. One that opens sideways leaves them where they are.
+so nothing overlaps. One that opens sideways leaves them where they are. Point it away from the
+corner's side: toward it, the actions have no room, so the trigger moves over as the dial opens.
 
 ### The Gap
 

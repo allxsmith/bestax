@@ -56,12 +56,14 @@ $float-button-actions-gap: 0.5rem !default;
 }
 
 // FloatButtons: a column on its corner's side, top to bottom in DOM order.
-// Only the buttons take the pointer, so the gaps between them, and the place
-// a hidden back to top keeps, leave the page under them clickable.
+// The side is physical, so an auto margin lines each button up on it: a
+// column's `align-items` follows the writing direction, which right-to-left
+// text would swap. Only the buttons take the pointer, so the gaps between
+// them, and the place a hidden back to top keeps, leave the page under them
+// clickable.
 .#{iv.$class-prefix}float-buttons {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
   gap: cv.getVar('float-buttons-gap');
   pointer-events: none;
 
@@ -69,9 +71,14 @@ $float-button-actions-gap: 0.5rem !default;
     pointer-events: auto;
   }
 
-  &.#{iv.$class-prefix}is-top-left,
-  &.#{iv.$class-prefix}is-bottom-left {
-    align-items: flex-start;
+  &.#{iv.$class-prefix}is-top-right > *,
+  &.#{iv.$class-prefix}is-bottom-right > * {
+    margin-left: auto;
+  }
+
+  &.#{iv.$class-prefix}is-top-left > *,
+  &.#{iv.$class-prefix}is-bottom-left > * {
+    margin-right: auto;
   }
 }
 
@@ -109,16 +116,23 @@ $float-button-actions-gap: 0.5rem !default;
     flex-direction: row-reverse;
   }
 
-  // Up and down, the actions line up on the corner's side, as a stack's
-  // buttons do; sideways, they're centred on the trigger.
-  &.#{iv.$class-prefix}is-up,
-  &.#{iv.$class-prefix}is-down {
-    align-items: flex-end;
-  }
-
+  // Sideways, the actions are centred on the trigger.
   &.#{iv.$class-prefix}is-left,
   &.#{iv.$class-prefix}is-right {
     align-items: center;
+  }
+}
+
+// Up and down, the trigger and the actions line up on the corner's side, as
+// a stack's buttons do, by the same physical margins.
+.#{iv.$class-prefix}affix.#{iv.$class-prefix}is-top-right,
+.#{iv.$class-prefix}affix.#{iv.$class-prefix}is-bottom-right {
+  .#{iv.$class-prefix}float-button-speed-dial.#{iv.$class-prefix}is-up,
+  .#{iv.$class-prefix}float-button-speed-dial.#{iv.$class-prefix}is-down {
+    > *,
+    > .#{iv.$class-prefix}float-button-actions > * {
+      margin-left: auto;
+    }
   }
 }
 
@@ -126,16 +140,26 @@ $float-button-actions-gap: 0.5rem !default;
 .#{iv.$class-prefix}affix.#{iv.$class-prefix}is-bottom-left {
   .#{iv.$class-prefix}float-button-speed-dial.#{iv.$class-prefix}is-up,
   .#{iv.$class-prefix}float-button-speed-dial.#{iv.$class-prefix}is-down {
-    align-items: flex-start;
+    > *,
+    > .#{iv.$class-prefix}float-button-actions > * {
+      margin-right: auto;
+    }
   }
 }
 
-// Open, the trigger's tooltip is hidden, since the actions can take its side.
+// Open, the trigger's tooltip is hidden, since the actions can take its side,
+// and so is the bridge Tooltip lays toward it for the pointer, which would
+// otherwise reach over the first action.
 .#{iv.$class-prefix}float-button-speed-dial.#{iv.$class-prefix}is-active
-  > .#{iv.$class-prefix}tooltip
+  > .#{iv.$class-prefix}tooltip {
   > .#{iv.$class-prefix}tooltip-content {
-  opacity: 0;
-  visibility: hidden;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  &::after {
+    content: none;
+  }
 }
 
 .#{iv.$class-prefix}float-button-actions {
