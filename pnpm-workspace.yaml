@@ -94,31 +94,13 @@ overrides:
   # periodically: drop an entry, re-resolve, and leave it out if the resolved
   # version is unchanged and `pnpm audit --audit-level=high` stays clean.
   # Every entry below carries its own marker; this prose annotates nothing.
-  # bestax:review 2026-11-13 — quarterly sweep
+  # bestax:review 2027-02-13 — quarterly sweep; still load-bearing: Docusaurus's
+  # copy-webpack-plugin and css-minimizer-webpack-plugin ask for ^6.
   # Force the patched serialize-javascript (transitive via Docusaurus webpack
   # plugins) — <=7.0.2 has an RCE advisory (GHSA-5c6j-r48x-rmvq). Floor raised
   # to 7.1.3 for a low-severity follow-up advisory against <7.1.3; 7.1.3
   # (2026-10-22) is past the cooldown.
   serialize-javascript: '>=7.1.3'
-  # bestax:review 2026-11-13 — quarterly sweep
-  # Force patched sharp (transitive via wrangler>miniflare, CI-only deploy
-  # tooling with its native build blocked above) — high libvips CVEs. Floor
-  # raised to 0.35.4 for GHSA-rgj7-g3m4-5g8c, which widened the affected range
-  # past the previous force and reddened every open PR until this moved.
-  # Raised again to 0.35.5 for GHSA-wq5f-xc86-pv6w (librsvg). 0.35.5
-  # (2026-09-27) is past the cooldown, so no exclude entry is needed.
-  'sharp@<0.35.5': '>=0.35.5'
-  # bestax:review 2026-11-13 — quarterly sweep
-  # Force patched postcss (transitive via vite/storybook and the Docusaurus
-  # webpack CSS pipeline) — high advisory GHSA-r28c-9q8g-f849: sourceMappingURL
-  # auto-loading follows `../` out of the source directory and discloses
-  # arbitrary .map files. Floor raised to 8.5.23 for GHSA-fxqj-rqcc-2cmp, the
-  # moderate follow-up to GHSA-6g55-p6wh-862q whose fix was incomplete.
-  # Selector widened from `postcss@<8.5.18` to the whole 8.x major on purpose:
-  # the tree had already floated to 8.5.21, so the old `<8.5.18` selector
-  # matched nothing and the entry had quietly stopped being load-bearing. A
-  # version-bounded selector expires itself the moment the ecosystem passes it.
-  'postcss@8': '>=8.5.23 <9'
   # bestax:review 2026-12-01 — drop once the babel chain resolves to
   # >=4.28.7 itself; re-resolve and leave it out if the version is unchanged.
   # Force patched browserslist (transitive via @babel/core and the
@@ -130,80 +112,8 @@ overrides:
   # prescribes for that case rather than pinning whichever major the lockfile
   # holds today.
   'browserslist@<4.28.7': '>=4.28.7'
-  # bestax:review 2026-11-13 — quarterly sweep
-  # Force patched brace-expansion per major for its advisories, which ship
-  # per-major backports. Each floor is the newest fix on its line, including
-  # the moderate ones the audit gate doesn't see.
-  # Do NOT collapse this into an unscoped cross-major force: brace-expansion
-  # 5.x's CommonJS entry exports a named `expand` and the module value itself
-  # is not callable, so minimatch@3 (`const expand = require('brace-expansion')`)
-  # throws on any brace pattern when handed 5.x. 4.x has no in-major patch and
-  # no consumer in this tree; if one ever appears the audit gate will flag it,
-  # and the cross-major question gets decided then, against that consumer's
-  # import style.
-  'brace-expansion@1': '>=1.1.21 <2'
-  # bestax:review 2026-11-13 — quarterly sweep; 2.x line, prunable on its own
-  'brace-expansion@2': '>=2.1.7 <3'
-  # bestax:review 2026-11-13 — quarterly sweep; 3.x line, prunable on its own
-  'brace-expansion@3': '>=3.0.9 <4'
-  # bestax:review 2026-11-13 — quarterly sweep; 5.x line, prunable on its own
-  'brace-expansion@5': '>=5.0.12 <6'
-  # bestax:review 2026-11-13 — quarterly sweep
-  # Force patched axios under wait-on (create-bestax's dev dependency) for its
-  # high advisories. The floor is the newest fix on the 1.x line. wait-on's
-  # range admits it and it is past the cooldown. Prune once wait-on resolves to >=1.20.0 without
-  # the force.
-  'axios@1': '>=1.20.0 <2'
-  # bestax:review 2026-11-13 — quarterly sweep
-  # Force patched fast-uri under ajv@8 (transitive via commitlint, webpack's
-  # schema-utils, the eslint toolchain and the MCP SDK) for its high
-  # advisories. The floor is the newest fix on the 3.x line: 3.1.7 patches
-  # GHSA-qw65-cvwx-89v3 and GHSA-58mr-gqgx-xq4g. Floor raised to 3.1.9 for a
-  # later batch of low and moderate advisories against >=3.0.0 <3.1.9; 3.1.9
-  # (2026-10-19) is past the cooldown. Scoped to the affected 3.x major, since
-  # each major gets its own backport. Prune once the ajv chain resolves to
-  # >=3.1.9 on its own.
-  'fast-uri@3': '>=3.1.9 <4'
-  # bestax:review 2026-11-13 — quarterly sweep
-  # Force patched undici 7.x (transitive via semantic-release/github and
-  # wrangler>miniflare: release and CI-deploy tooling, never published output)
-  # for its high advisories. The floor is the newest fix on the 7.x line:
-  # 7.30.1 patches GHSA-xjj6-f33q-929c, after 7.29.1 patched GHSA-rfgv-xxqx-mfg5
-  # and GHSA-w293-vg96-wgc3. Capped at one minor line because wrangler and
-  # miniflare pin undici exactly and nothing in CI exercises them before a
-  # deploy. The cap moved from 7.29 to 7.30 because GHSA-xjj6-f33q-929c has no
-  # 7.29 backport. Prune once their pin reaches >=7.30.1.
-  'undici@7': '>=7.30.1 <7.31'
-  # bestax:review 2026-11-13 — quarterly sweep
-  # The 6.x copy (under @actions/http-client), held to the newest fix on its
-  # line: 6.29.1 patches the high GHSA-xjj6-f33q-929c, after 6.28.1 patched
-  # GHSA-rfgv-xxqx-mfg5. Keep this floor at the
-  # newest fix even when only moderate advisories move it. Those never trip
-  # `pnpm audit --audit-level=high`, which is why three of them sat here
-  # unnoticed until the OpenSSF Scorecard run counted them (#404). Prune once
-  # @actions/http-client requires >=6.29.1 itself.
-  'undici@6': '>=6.29.1 <7'
-  # bestax:review 2026-11-13 — quarterly sweep
-  # Force patched body-parser 2.x (the MCP SDK's express under bestax-mcp, whose
-  # stdio transport never starts it) for high advisory GHSA-27r3-jxmh-p828:
-  # denial of service through trailing bytes after a JSON body. The 1.x line
-  # has its own entry below. 2.4.0 (2026-10-22) is past the cooldown, so no
-  # exclude entry is needed. Prune once the SDK's express resolves to >=2.4.0
-  # without the force.
-  'body-parser@2': '>=2.4.0 <3'
-  # bestax:review 2026-11-13 — quarterly sweep
-  # Force patched joi per major for high advisory GHSA-6h2x-m376-mqjq
-  # (quadratic backtracking in `Joi.string().isoDate()`). The 17.x copy rides
-  # the Docusaurus types; the 18.x copy is create-bestax's wait-on, a dev
-  # dependency. Floors raised to 17.13.9 and
-  # 18.3.1 for GHSA-4528-x5fx-h6hg (a quadratic-time split in
-  # `string().email({ multiple: true })`). Both are past the cooldown, and
-  # every parent range admits them. Prune each entry once its line resolves to
-  # >=17.13.9 / >=18.3.1 without the force.
-  'joi@17': '>=17.13.9 <18'
-  # bestax:review 2026-11-13 — quarterly sweep; 18.x line, prunable on its own
-  'joi@18': '>=18.3.1 <19'
-  # bestax:review 2026-11-13 — quarterly sweep
+  # bestax:review 2027-02-13 — quarterly sweep; still load-bearing:
+  # docusaurus-plugin-llms still pins minimatch and yaml exactly.
   # Force patched minimatch/yaml under docusaurus-plugin-llms. From 0.5.0 that
   # plugin pins its own dependencies exactly ("minimatch": "9.0.3" rather than
   # "^9.0.3"), so the range no longer floats to a patched release the way it did
@@ -213,70 +123,10 @@ overrides:
   # the affected major so the minimatch 10.x already in the tree is untouched.
   # Prune both once the plugin widens its ranges again.
   'minimatch@9': '>=9.0.7 <10'
-  # bestax:review 2026-11-13 — quarterly sweep; same plugin, separate advisory
+  # bestax:review 2027-02-13 — quarterly sweep; same plugin, separate advisory
   'yaml@2': '>=2.8.3'
-  # bestax:review 2026-11-13 — quarterly sweep
-  # Force patched js-yaml per major — high advisory GHSA-5p4m-2wfm-xmqj
-  # (CVE-2026-59870): quadratic CPU consumption resolving !!omap. The 3.x copy
-  # rides gray-matter, the docs' frontmatter parser; the 4.x copies ride
-  # cosmiconfig (commitlint, semantic-release) and the Docusaurus frontmatter
-  # pipeline. Both patched
-  # releases are already older than the cooldown, and every parent range admits
-  # them — the lockfile just predates them. Floors raised for
-  # GHSA-2883-xcg3-v3hh, a second high advisory whose ranges reach past the
-  # earlier forces; both patched releases (2026-08-26) are past the cooldown
-  # too. Prune each entry once its line resolves to >=3.15.2 / >=4.3.2 without
-  # the force.
-  'js-yaml@3': '>=3.15.2 <4'
-  # bestax:review 2026-11-13 — quarterly sweep; 4.x line, prunable on its own
-  'js-yaml@4': '>=4.3.2 <5'
-  # bestax:review 2026-11-13 — quarterly sweep
-  # Force patched nanoid under the vite>postcss chain (storybook build
-  # tooling) — high advisory GHSA-2v37-7h3g-55p8: custom generators can loop
-  # indefinitely when size is zero. The advisory's affected range was widened
-  # from <3.3.17 to <3.3.18 after 3.3.17 shipped an incomplete fix, so the
-  # earlier force stopped clearing the gate and every open PR went red on it.
-  # 3.3.18 (2026-08-07) is well past the cooldown and postcss's ^3.3.16 admits
-  # it, so no minimumReleaseAgeExclude entry is needed. Scoped to the 3.x major
-  # (the only copy in the tree; the 4.x/5.x line has its own patch at 5.1.6 if
-  # a consumer ever appears). Prune once the chain resolves to >=3.3.18 without
-  # the force.
-  'nanoid@3': '>=3.3.18 <4'
-  # bestax:review 2026-11-13 — quarterly sweep
-  # Force patched svgo under the Docusaurus CSS pipeline
-  # (cssnano>cssnano-preset-default>postcss-svgo>svgo, and @svgr/plugin-svgo)
-  # — high advisory GHSA-w27v-7q3p-w38r against >=3.0.0 <3.3.5. 3.3.5 is well
-  # past the cooldown and the parents' ^3 ranges admit it, so no
-  # minimumReleaseAgeExclude entry is needed. Scoped to the 3.x major: the
-  # advisory's range is 3.x only, and the 4.x line is unaffected if a consumer
-  # ever appears. Prune once the chain resolves to >=3.3.5 without the force.
-  'svgo@3': '>=3.3.5 <4'
-  # bestax:review 2026-11-13 — quarterly sweep
-  # Force patched body-parser 1.x (transitive via the Docusaurus dev server's
-  # express@4 chain). 1.20.9 patches the high GHSA-27r3-jxmh-p828 (denial of
-  # service through trailing bytes after a JSON body), after 1.20.6 patched the
-  # low-severity GHSA-v422-hmwv-36x6. 1.20.9 (2026-10-22) is past the
-  # cooldown, so no exclude entry is needed. Scoped to the 1.x major; the 2.x
-  # line has its own entry. Prune once express@4's range admits >=1.20.9.
-  'body-parser@1': '>=1.20.9 <2'
-  # bestax:review 2026-11-13 — quarterly sweep
-  # Force patched webpack-dev-server (the Docusaurus dev server; dev-only,
-  # never shipped) — GHSA-f5vj-f2hx-8m93 (CSRF) and GHSA-m28w-2pqf-7qgj (DoS
-  # via a malformed request), both fixed in 5.2.6. Scoped to the 5.x major like
-  # every other entry here. An unscoped key would also capture a parent that
-  # legitimately moves to 6.x and force it back onto the 5 line, which is a
-  # downgrade wearing a patch's clothing; the `<6` right-hand bound only ever
-  # protected consumers already on 5.x, and it cannot express "do not upgrade".
-  # Prune once Docusaurus requires >=5.2.6 itself.
-  'webpack-dev-server@5': '>=5.2.6 <6'
-  # bestax:review 2026-11-13 — quarterly sweep
-  # Force patched proxy-addr (transitive via bestax-mcp>@modelcontextprotocol/sdk
-  # >express) for the critical IP spoofing advisory GHSA-jqcg-44mw-7w3h, fixed in
-  # 2.0.8. express asks for ~2.0.7, so this stays inside its range. 2.0.8 is past
-  # the cooldown, so no exclude entry is needed. Prune once express resolves to
-  # >=2.0.8 without the force.
-  'proxy-addr@<2.0.8': '>=2.0.8'
-  # bestax:review 2026-11-13 — quarterly sweep
+  # bestax:review 2027-02-13 — quarterly sweep; still load-bearing:
+  # @docusaurus/core asks for tinypool ^1.
   # Force patched tinypool (transitive via @docusaurus/core) for the critical
   # prototype pollution advisories GHSA-5gmw-xhrv-c9v3 and the run() follow-up,
   # fixed in 2.1.2. Docusaurus asks for the 1.x line, so this crosses a major
@@ -285,30 +135,6 @@ overrides:
   # gadget needs attacker-controlled worker options, and the docs build passes
   # only its own. Past the cooldown, so no exclude entry is needed.
   'tinypool@<2.1.2': '>=2.1.2'
-  # bestax:review 2026-11-13 — quarterly sweep
-  # Force patched source-map-js (transitive via vite and Docusaurus >postcss) for
-  # the high advisory GHSA-68fv-2mgg-jv7q, fixed in 1.2.2 on the 1.x line that
-  # postcss asks for. Past the cooldown. Prune once postcss resolves to >=1.2.2.
-  'source-map-js@<1.2.2': '>=1.2.2'
-  # bestax:review 2026-11-13 — quarterly sweep
-  # Force patched compression (transitive via the Docusaurus dev server's
-  # webpack-dev-server, dev-only, never shipped) for the high advisory
-  # GHSA-vc2v-76pw-4v95, fixed in 1.8.2. Past the cooldown. Prune once
-  # webpack-dev-server resolves to >=1.8.2 without the force.
-  'compression@<1.8.2': '>=1.8.2'
-  # bestax:review 2026-11-13 — quarterly sweep
-  # Force patched shell-quote (transitive via the Docusaurus dev server's
-  # webpack-dev-server>launch-editor, dev-only, never shipped) for the critical
-  # advisory GHSA-pqg4-j6r4-53mv, fixed in 1.11.0. Past the cooldown. Prune
-  # once launch-editor resolves to >=1.11.0 without the force.
-  'shell-quote@<1.11.0': '>=1.11.0'
-  # bestax:review 2026-11-13 — quarterly sweep
-  # Force patched launch-editor, high advisory GHSA-587h-7wmj-h5pm: its
-  # fs.existsSync() existence check can be bypassed on Windows. It rides
-  # webpack-dev-server under @docusaurus/core, so only the docs dev server
-  # reaches it. 2.14.2 (2026-10-06) is past the cooldown, so no exclude entry
-  # is needed. Prune once that chain resolves to >=2.14.2 without the force.
-  'launch-editor@<2.14.2': '>=2.14.2'
   # bestax:review 2026-12-01 — drop once @docusaurus/mdx-loader resolves to
   # >=2.0.3 itself; re-resolve and leave it out if the version is unchanged.
   # Force patched image-size (transitive via @docusaurus/mdx-loader, docs build
@@ -332,25 +158,14 @@ overrides:
   # vet separately.
   'uuid@<11.1.1': '>=11.1.1 <12'
 
-# --- Audit exceptions (no patched release exists) ---
+# --- Audit exceptions ---
 
-# braces <=3.0.3 carries a high stack-exhaustion DoS through deeply nested
-# patterns (GHSA-vfj7-8cjw-p6xm), and http-cache-semantics <=4.2.0 a high
-# advisory where max-stale handling can serve one user's cached response to
-# another (GHSA-ch52-4w7c-c8xp). GitHub lists no patched release for either,
-# so there is nothing to force. No published package depends on either.
-# braces arrives through glob tooling (micromatch, chokidar and fast-glob,
-# under semantic-release and Docusaurus), which only ever expands patterns
-# written in this repo. http-cache-semantics arrives through Docusaurus's update-notifier,
-# a version check with one user and no shared cache. Remove each entry and
-# re-run `pnpm audit --audit-level=high` once its package publishes a fix.
+# An advisory with no patched release to force goes here, with a review-date
+# marker and why nothing published depends on the package. Remove each entry
+# and re-run `pnpm audit --audit-level=high` once its package publishes a fix
+# or GitHub withdraws the advisory.
 auditConfig:
-  ignoreGhsas:
-    # bestax:review 2026-11-13 — quarterly sweep; has braces published a fix
-    - GHSA-vfj7-8cjw-p6xm
-    # bestax:review 2026-11-13 — quarterly sweep; has http-cache-semantics
-    # published a fix
-    - GHSA-ch52-4w7c-c8xp
+  ignoreGhsas: []
 
 # Strict, symlinked node_modules prevents phantom dependencies (using packages
 # we never declared). Narrow public hoists only for tooling that needs a flat
