@@ -2228,7 +2228,7 @@
     "--bulma-file-s": ["File"],
     "--bulma-float-button-actions-gap": ["FloatButton"],
     "--bulma-float-button-shadow": ["FloatButton"],
-    "--bulma-float-button-transition-duration": ["FloatButton", "FloatButtons"],
+    "--bulma-float-button-transition-duration": ["FloatButton"],
     "--bulma-float-buttons-gap": ["FloatButtons"],
     "--bulma-footer-background-color": ["Footer"],
     "--bulma-footer-color": ["Footer"],

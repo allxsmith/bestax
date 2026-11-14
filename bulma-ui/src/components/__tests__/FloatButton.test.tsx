@@ -1115,6 +1115,21 @@ describe('FloatButton.BackToTop', () => {
     expect(main).not.toHaveAttribute('tabindex');
   });
 
+  it('leaves the scroll and focus alone when its onClick calls preventDefault', () => {
+    render(
+      <>
+        <main>
+          <a href="#a">First</a>
+        </main>
+        <FloatButton.BackToTop onClick={e => e.preventDefault()} />
+      </>
+    );
+    flush();
+    fireEvent.click(backToTop());
+    expect(scrollTo).not.toHaveBeenCalled();
+    expect(screen.getByRole('main')).not.toHaveFocus();
+  });
+
   it('jumps at once when the user prefers reduced motion', () => {
     const matchMedia = window.matchMedia;
     window.matchMedia = vi.fn().mockReturnValue({
@@ -1286,6 +1301,31 @@ describe('FloatButton.BackToTop', () => {
       expect(backToTop()).toHaveClass('is-shown');
       fireEvent.click(backToTop());
       expect(scrollTo).toHaveBeenCalled();
+    });
+
+    it('scrolls the scroller it watches, even once a ref that found nothing finds one', () => {
+      const Late = () => {
+        const ref = useRef<HTMLDivElement>(null);
+        const [feedShown, setFeedShown] = useState(false);
+        return (
+          <>
+            <FloatButton.BackToTop scrollContainer={ref} />
+            <button onClick={() => setFeedShown(true)}>Load the feed</button>
+            {feedShown && <div data-testid="feed" ref={ref} />}
+          </>
+        );
+      };
+      render(<Late />);
+      flush();
+      fireEvent.click(screen.getByRole('button', { name: 'Load the feed' }));
+      const feed = feedOf();
+      const feedScroll = vi.fn();
+      feed.scrollTo = feedScroll as unknown as typeof feed.scrollTo;
+      setScroll(800);
+      fireEvent.click(backToTop());
+      expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
+      expect(feedScroll).not.toHaveBeenCalled();
+      expect(feed).not.toHaveFocus();
     });
   });
 

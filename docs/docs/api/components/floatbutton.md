@@ -307,9 +307,9 @@ function example() {
 ### Opening on Hover
 
 `openOnHover` also opens the dial when the pointer rests on it, and closes it once the pointer has
-left, unless focus is on one of its actions. It's for the pointer only: keyboard focus on the trigger never opens it, and a
-touch screen doesn't either, so a keyboard user still opens it with Enter or Space. A click still
-toggles it, so a click on a dial the pointer opened closes it.
+left, unless focus is on one of its actions. It's for the pointer only: keyboard focus on the
+trigger never opens it, and a touch screen doesn't either, so a keyboard user still opens it with
+Enter or Space. A click still toggles it, so a click on a dial the pointer opened closes it.
 
 ```tsx
 <FloatButton.SpeedDial aria-label="Share" icon="share-nodes" openOnHover>
@@ -321,7 +321,8 @@ toggles it, so a click on a dial the pointer opened closes it.
 ### Controlled
 
 `open`, `defaultOpen` and `onOpenChange` work as they do on `Popover`. With `open` in your state,
-you can swap the trigger's icon and name while it's open.
+you can swap the trigger's icon while it's open. Keep its name: `aria-expanded` already says it's
+open, and the menu takes its name from the trigger.
 
 ```tsx live
 function example() {
@@ -335,7 +336,7 @@ function example() {
       <Paragraph mt="2">The dial is {open ? 'open' : 'closed'}.</Paragraph>
       {shown && (
         <FloatButton.SpeedDial
-          aria-label={open ? 'Close the menu' : 'Create'}
+          aria-label="Create"
           icon={open ? 'xmark' : 'plus'}
           color="primary"
           position="bottom-left"
@@ -592,7 +593,7 @@ Typing matches what an action shows, so it finds actions with `showLabels` and p
 **Subcomponents:**
 
 - `FloatButton.SpeedDial`: The `FloatButton.SpeedDial` component is a float button that opens a menu of related actions, which are FloatButtons. It's an APG menu button, on Dropdown's model. Activation opens it: Enter and Space toggle it and open it on the nearest action, the arrow that points along the dial opens it on the nearest action, and the opposite arrow on the farthest. In the menu, the arrow pointing away from the trigger moves away from it and the other moves back, Home and End go to the nearest and farthest actions, and typing a letter moves to the next action whose visible text starts with it, which an icon alone has none of, so it finds actions with `showLabels`. Escape closes it and focuses the trigger, Tab closes it and lets focus move on, and a press outside closes it. Activating an action runs its `onClick`, closes the dial and hands focus back to the trigger, unless `closeOnClick` is false. Closed, the actions aren't rendered.
-- `FloatButton.BackToTop`: The `FloatButton.BackToTop` component is a float button that shows once the page has scrolled down, and takes it back to the top. It renders nothing on the server, and after hydration a scroll listener shows it past `visibilityHeight` and hides it above. Hidden, it keeps its place in a `FloatButtons` stack, out of the Tab order and the accessibility tree. Activated, it scrolls the page, or `scrollContainer`, to the top, smoothly or at once when the user prefers reduced motion, and moves focus to the top of the content (`moveFocus`), so the next Tab starts there rather than back where the page was.
+- `FloatButton.BackToTop`: The `FloatButton.BackToTop` component is a float button that shows once the page has scrolled down, and takes it back to the top. It renders nothing on the server, and after hydration a scroll listener shows it past `visibilityHeight` and hides it above. Hidden, it keeps its place in a `FloatButtons` stack, out of the Tab order and the accessibility tree. Activated, it scrolls the page, or `scrollContainer`, to the top, smoothly or at once when the user prefers reduced motion, and moves focus to the top of the content (`moveFocus`), so the next Tab starts there rather than back where the page was. An `onClick` that calls `preventDefault()` keeps it from scrolling and moving focus.
 
 ### FloatButton.SpeedDial
 

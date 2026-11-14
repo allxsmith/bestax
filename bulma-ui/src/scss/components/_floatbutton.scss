@@ -17,8 +17,8 @@ $float-button-transition-duration: cv.getVar('duration') !default;
 $float-buttons-gap: 0.75rem !default;
 $float-button-actions-gap: 0.5rem !default;
 
-// The duration is registered on the button, the dial and the stack, since
-// the dial's actions and a stack's item fade apart from any one button.
+// The duration is registered on the button and on the dial, since the dial's
+// actions fade in apart from any one button.
 .#{iv.$class-prefix}button.#{iv.$class-prefix}float-button {
   @include cv.register-vars(
     (
@@ -41,7 +41,6 @@ $float-button-actions-gap: 0.5rem !default;
   @include cv.register-vars(
     (
       'float-buttons-gap': #{$float-buttons-gap},
-      'float-button-transition-duration': #{$float-button-transition-duration},
     )
   );
 }
@@ -209,8 +208,9 @@ $float-button-actions-gap: 0.5rem !default;
 
 // Hidden, the boxes around it would still keep the pointer from the page
 // under it. In a stack, the item that holds it, a Badge around it included,
-// takes no pointer and hides once the fade is done, so a Badge's count goes
-// with it. Alone, its Affix takes no pointer.
+// takes no pointer and hides, so a Badge's count goes with it, while the
+// button's own visibility keeps it on the screen through its fade. Alone, its
+// Affix takes no pointer.
 .#{iv.$class-prefix}float-buttons
   > :has(
     .#{iv.$class-prefix}float-button-back-to-top:not(
@@ -219,7 +219,6 @@ $float-button-actions-gap: 0.5rem !default;
   ) {
   pointer-events: none;
   visibility: hidden;
-  transition: visibility cv.getVar('float-button-transition-duration');
 }
 
 .#{iv.$class-prefix}affix:not(.#{iv.$class-prefix}float-buttons):has(
@@ -263,14 +262,5 @@ $float-button-actions-gap: 0.5rem !default;
 
   .#{iv.$class-prefix}float-button-actions {
     animation: none;
-  }
-
-  .#{iv.$class-prefix}float-buttons
-    > :has(
-      .#{iv.$class-prefix}float-button-back-to-top:not(
-          .#{iv.$class-prefix}is-shown
-        )
-    ) {
-    transition: none;
   }
 }

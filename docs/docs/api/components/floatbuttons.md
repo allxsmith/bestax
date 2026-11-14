@@ -102,9 +102,10 @@ function example() {
 }
 ```
 
-A speed dial that opens up or down in a stack pushes the buttons on that side along as it opens,
-so nothing overlaps. One that opens sideways leaves them where they are. Point it away from the
-corner's side: toward it, the actions have no room, so the trigger moves over as the dial opens.
+A speed dial that opens away from the stack's corner, up from a bottom corner or down from a top
+one, pushes the buttons on that side along as it opens, so nothing overlaps. One that opens
+sideways leaves them where they are. Pointed at its corner's own edges, the actions have no room
+there, so the trigger itself moves over as the dial opens.
 
 ### The Gap
 
@@ -179,9 +180,8 @@ itself, as [Affix's offsets](./affix.md#offsets-and-the-safe-area) show.
 
 `FloatButtons` registers these variables on its own `.float-buttons` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
-| CSS Variable                               | Sass Variable                       | Default                 |
-| ------------------------------------------ | ----------------------------------- | ----------------------- |
-| `--bulma-float-buttons-gap`                | `$float-buttons-gap`                | `0.75rem`               |
-| `--bulma-float-button-transition-duration` | `$float-button-transition-duration` | `var(--bulma-duration)` |
+| CSS Variable                | Sass Variable        | Default   |
+| --------------------------- | -------------------- | --------- |
+| `--bulma-float-buttons-gap` | `$float-buttons-gap` | `0.75rem` |
 
 <!-- /bestax:generated cssvars -->

@@ -900,7 +900,8 @@ function focusTop(target: HTMLElement) {
  * accessibility tree. Activated, it scrolls the page, or `scrollContainer`,
  * to the top, smoothly or at once when the user prefers reduced motion,
  * and moves focus to the top of the content (`moveFocus`), so the next Tab
- * starts there rather than back where the page was.
+ * starts there rather than back where the page was. An `onClick` that calls
+ * `preventDefault()` keeps it from scrolling and moving focus.
  *
  * @function
  * @param {FloatButtonBackToTopProps} props - Props for FloatButton.BackToTop.
@@ -931,6 +932,9 @@ export const FloatButtonBackToTop = forwardRef<
   const reducedMotion = usePrefersReducedMotion();
   const [shown, setShown] = useState(false);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
+  // The element the listener watches, or `null` for the window, which a
+  // click scrolls too.
+  const scrollerRef = useRef<HTMLElement | null>(null);
   // Not `is-active`, which is Bulma's pressed button.
   const backToTopClass = usePrefixedClassNames('float-button-back-to-top', {
     'is-shown': shown,
@@ -949,6 +953,7 @@ export const FloatButtonBackToTop = forwardRef<
     const doc = (buttonRef.current as HTMLButtonElement).ownerDocument;
     const win = doc.defaultView as Window;
     const scroller = scrollerOf(scrollContainer, doc);
+    scrollerRef.current = scroller;
     const target: HTMLElement | Window = scroller ?? win;
     let frame = 0;
     const onScroll = () => {
@@ -969,9 +974,10 @@ export const FloatButtonBackToTop = forwardRef<
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     onClick?.(e);
+    if (e.defaultPrevented) return;
     const doc = e.currentTarget.ownerDocument;
     const win = doc.defaultView as Window;
-    const scroller = scrollerOf(scrollContainer, doc);
+    const scroller = scrollerRef.current;
     // The browser's smooth scroll animates under reduced motion too, so the
     // preference is read here.
     (scroller ?? win).scrollTo({

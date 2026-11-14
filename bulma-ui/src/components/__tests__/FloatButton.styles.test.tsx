@@ -107,8 +107,12 @@ describe('FloatButton styles', () => {
     });
     expect(find(PLAIN, '.float-buttons')).toMatchObject({
       '--bulma-float-buttons-gap': '0.75rem',
-      '--bulma-float-button-transition-duration': 'var(--bulma-duration)',
     });
+    // The fades are the button's and the dial's own, so the stack declares
+    // no duration of its own to disagree with them.
+    expect(find(PLAIN, '.float-buttons')).not.toHaveProperty(
+      '--bulma-float-button-transition-duration'
+    );
   });
 
   it('gives a float button its shadow, except where Bulma’s focus ring or disabled look takes over', () => {
@@ -241,17 +245,20 @@ describe('FloatButton styles', () => {
     });
   });
 
-  it('lets the pointer through the boxes around a hidden back to top, and hides a stack item holding it, a Badge included, after the fade', () => {
+  it('lets the pointer through the boxes around a hidden back to top, and hides a stack item holding it, a Badge included', () => {
     const item =
       '.float-buttons > :has(.float-button-back-to-top:not(.is-shown))';
+    // At once: the button's own visibility, which transitions, keeps it on
+    // the screen through its fade.
     expect(find(PLAIN, item)).toEqual({
       'pointer-events': 'none',
       visibility: 'hidden',
-      transition: 'visibility var(--bulma-float-button-transition-duration)',
     });
     // It outranks the rule that gives a stack's items the pointer back.
     expect(weight(item)).toBeGreaterThan(weight('.float-buttons > *'));
-    expect(find(PLAIN, item, [REDUCE])).toEqual({ transition: 'none' });
+    expect(PLAIN.some(r => r.selector === item && r.context.length > 0)).toBe(
+      false
+    );
     expect(
       find(
         PLAIN,

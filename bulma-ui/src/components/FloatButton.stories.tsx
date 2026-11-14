@@ -309,7 +309,7 @@ export const SpeedDialControlled: Story = {
         <PageContent />
         <Paragraph px="5">The dial is {open ? 'open' : 'closed'}.</Paragraph>
         <FloatButton.SpeedDial
-          aria-label={open ? 'Close the menu' : 'Create'}
+          aria-label="Create"
           icon={open ? 'xmark' : 'plus'}
           color="primary"
           open={open}

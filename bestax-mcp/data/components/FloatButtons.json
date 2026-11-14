@@ -98,12 +98,6 @@
       "sass": "$float-buttons-gap",
       "default": "0.75rem",
       "scope": "root"
-    },
-    {
-      "css": "--bulma-float-button-transition-duration",
-      "sass": "$float-button-transition-duration",
-      "default": "var(--bulma-duration)",
-      "scope": "root"
     }
   ]
 }
