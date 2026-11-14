@@ -103,10 +103,10 @@ was given. A trio set at runtime leaves them as they were, so when a new color r
 darker than the built one, which a change of hue or saturation can do as well as a change of
 lightness, set them too:
 
-| Variable                  | What reads it                                                                                                                |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `--bulma-<c>-invert-l`    | the label on a solid `<c>` surface: `Button`, `Tag` and `Notification` with `color="<c>"`, a colored `Hero` or `Navbar`, …   |
-| `--bulma-<c>-on-scheme-l` | `<c>` text on the page: `textColor="<c>" colorShade="on-scheme"`, a colored `Message`'s body, a field's colored help text, … |
+| Variable                  | What reads it                                                                                                                                                           |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--bulma-<c>-invert-l`    | the label on a solid `<c>` surface: `Button`, `Tag` and `Notification` with `color="<c>"`, a colored `Hero` or `Navbar`, …                                              |
+| `--bulma-<c>-on-scheme-l` | `<c>` text on the page: `textColor="<c>" colorShade="on-scheme"`, a colored `Message`'s body, a field's colored help text, `Steps`' and `Timeline`'s colored markers, … |
 
 For `link`, the on-scheme lightness is also every link on the page (`--bulma-link-text`), so a new
 link color that reads lighter than Bulma's own leaves the page's links pale.
@@ -1053,8 +1053,10 @@ Declared on the root, `.timeline`. The states and the color classes set
 and `--bulma-timeline-active-color` rather than those two. `--bulma-timeline-marker-background`
 fills the upcoming rings and the pending loader, and a reached icon marker's tint is mixed into
 it. It's the page's color by default, so it hides the line behind them. A record's icon circles
-take `--bulma-timeline-marker-icon-background`, which the color classes set. Every size is in
-`em`, so `textSize` scales them all.
+take `--bulma-timeline-marker-icon-background`, which the color classes set. A color class, and
+the default progress color, read the color's hue, saturation and `--bulma-<c>-on-scheme-l`, so a
+new trio for that color wants its on-scheme lightness too. Every size is in `em`, so `textSize`
+scales them all.
 
 `--bulma-timeline-active-color`, `--bulma-timeline-content-gap`, `--bulma-timeline-dot-size`,
 `--bulma-timeline-gap`, `--bulma-timeline-halo-offset`, `--bulma-timeline-line-color`,
