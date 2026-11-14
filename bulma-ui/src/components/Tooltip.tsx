@@ -225,9 +225,6 @@ export const Tooltip: React.FC<TooltipProps> = ({
     setWasDisabled(disabled);
     if (disabled) setIsVisible(false);
   }
-  // An ask to open while it's disabled is turned down, so nothing measures
-  // it.
-  const shown = isVisible && !disabled;
   const [resolvedPosition, setResolvedPosition] = useState<
     Exclude<TooltipPosition, 'auto'>
   >(position === 'auto' ? 'top' : position);
@@ -276,6 +273,8 @@ export const Tooltip: React.FC<TooltipProps> = ({
     // The pointer and focus as they are. `active` shows it on top of that, so
     // dropping `active` leaves it shown while the pointer or focus holds it.
     // An ask to close can come while it's already hidden, which is no change.
+    // An ask to open while it's disabled is turned down, so nothing measures
+    // it.
     open: isVisible,
     onOpenChange: next => {
       if (!next || !disabled) setIsVisible(next);
@@ -301,7 +300,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
       setResolvedPosition(position);
     }
 
-    const showing = shown || alwaysActive;
+    const showing = isVisible || alwaysActive;
     if (!showing) {
       setContentStyle({});
       return;
@@ -383,14 +382,14 @@ export const Tooltip: React.FC<TooltipProps> = ({
 
       setContentStyle(style);
     });
-  }, [position, resolvedPosition, shown, alwaysActive, label, content]);
+  }, [position, resolvedPosition, isVisible, alwaysActive, label, content]);
 
   // Generate Bulma classes
   const tooltipClasses = usePrefixedClassNames('tooltip', {
-    'is-active': alwaysActive || shown,
+    'is-active': alwaysActive || isVisible,
     // Open by the pointer, focus or a tap, rather than shown by `active`
     // alone: only then does the tooltip, and the gap to it, take the pointer.
-    'is-open': shown,
+    'is-open': isVisible,
     [`is-${resolvedPosition}`]: resolvedPosition,
     [`is-${color}`]: color,
     [`is-${size}`]: size,
