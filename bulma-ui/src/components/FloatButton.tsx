@@ -418,15 +418,16 @@ const HOVER_CLOSE_DELAY = 300;
  * It's an APG menu button, on Dropdown's model. Activation opens it: Enter
  * and Space toggle it and open it on the nearest action, the arrow that
  * points along the dial opens it on the nearest action, and the opposite
- * arrow on the farthest. In the menu, the arrow pointing away from the
- * trigger moves away from it and the other moves back, Home and End go to
- * the nearest and farthest actions, and typing a letter moves to the next
- * action whose visible text starts with it, which an icon alone has none
- * of, so it finds actions with `showLabels`. Escape closes it and focuses the
- * trigger, Tab closes it and lets focus move on, and a press outside closes
- * it. Activating an action runs its `onClick`, closes the dial and hands
- * focus back to the trigger, unless `closeOnClick` is false. Closed, the
- * actions aren't rendered.
+ * arrow on the farthest. A click with no pointer behind it, as a screen
+ * reader's browse mode sends, opens it on the nearest action too. In the
+ * menu, the arrow pointing away from the trigger moves away from it and the
+ * other moves back, Home and End go to the nearest and farthest actions, and
+ * typing a letter moves to the next action whose visible text starts with
+ * it, which an icon alone has none of, so it finds actions with
+ * `showLabels`. Escape closes it and focuses the trigger, Tab closes it and
+ * lets focus move on, and a press outside closes it. Activating an action
+ * runs its `onClick`, closes the dial and hands focus back to the trigger,
+ * unless `closeOnClick` is false. Closed, the actions aren't rendered.
  *
  * @function
  * @param {FloatButtonSpeedDialProps} props - Props for FloatButton.SpeedDial.
@@ -597,7 +598,14 @@ export const FloatButtonSpeedDial = forwardRef<
       }
     : undefined;
 
-  const handleTriggerClick = () => {
+  // A click with no pointer behind it (`detail` 0), as a screen reader's
+  // browse mode sends, opens it on the nearest action, as Enter does. A
+  // pointer's click leaves focus on the trigger.
+  const handleTriggerClick = (e: React.MouseEvent<HTMLElement>) => {
+    if (!open && e.detail === 0) {
+      openOnEdge('first');
+      return;
+    }
     pendingFocusRef.current = null;
     requestOpen(!open);
   };

@@ -507,7 +507,9 @@ Typing matches what an action shows, so it finds actions with `showLabels` and p
   `aria-haspopup="menu"` and `aria-expanded`, and `aria-controls` while the menu is open. The menu
   is named by the trigger and holds `menuitem`s. Only activation opens it, never focus, so a
   keyboard user who Tabs past it isn't shown a menu, and `openOnHover` answers the pointer alone.
-  Closed actions aren't rendered, so they aren't in the accessibility tree.
+  A click with no pointer behind it, as a screen reader's browse mode sends, opens it on the
+  nearest action, as Enter does. Closed actions aren't rendered, so they aren't in the
+  accessibility tree.
 - **Back to top moves focus:** after it scrolls, focus goes to the top of the content, so the next
   Tab starts there and the next Shift+Tab doesn't scroll back to the bottom
   ([WCAG 2.4.3](https://www.w3.org/WAI/WCAG22/Understanding/focus-order)). Focus moves without
@@ -592,7 +594,7 @@ Typing matches what an action shows, so it finds actions with `showLabels` and p
 
 **Subcomponents:**
 
-- `FloatButton.SpeedDial`: The `FloatButton.SpeedDial` component is a float button that opens a menu of related actions, which are FloatButtons. It's an APG menu button, on Dropdown's model. Activation opens it: Enter and Space toggle it and open it on the nearest action, the arrow that points along the dial opens it on the nearest action, and the opposite arrow on the farthest. In the menu, the arrow pointing away from the trigger moves away from it and the other moves back, Home and End go to the nearest and farthest actions, and typing a letter moves to the next action whose visible text starts with it, which an icon alone has none of, so it finds actions with `showLabels`. Escape closes it and focuses the trigger, Tab closes it and lets focus move on, and a press outside closes it. Activating an action runs its `onClick`, closes the dial and hands focus back to the trigger, unless `closeOnClick` is false. Closed, the actions aren't rendered.
+- `FloatButton.SpeedDial`: The `FloatButton.SpeedDial` component is a float button that opens a menu of related actions, which are FloatButtons. It's an APG menu button, on Dropdown's model. Activation opens it: Enter and Space toggle it and open it on the nearest action, the arrow that points along the dial opens it on the nearest action, and the opposite arrow on the farthest. A click with no pointer behind it, as a screen reader's browse mode sends, opens it on the nearest action too. In the menu, the arrow pointing away from the trigger moves away from it and the other moves back, Home and End go to the nearest and farthest actions, and typing a letter moves to the next action whose visible text starts with it, which an icon alone has none of, so it finds actions with `showLabels`. Escape closes it and focuses the trigger, Tab closes it and lets focus move on, and a press outside closes it. Activating an action runs its `onClick`, closes the dial and hands focus back to the trigger, unless `closeOnClick` is false. Closed, the actions aren't rendered.
 - `FloatButton.BackToTop`: The `FloatButton.BackToTop` component is a float button that shows once the page has scrolled down, and takes it back to the top. It renders nothing on the server, and after hydration a scroll listener shows it past `visibilityHeight` and hides it above. Hidden, it keeps its place in a `FloatButtons` stack, out of the Tab order and the accessibility tree. Activated, it scrolls the page, or `scrollContainer`, to the top, smoothly or at once when the user prefers reduced motion, and moves focus to the top of the content (`moveFocus`), so the next Tab starts there rather than back where the page was. An `onClick` that calls `preventDefault()` keeps it from scrolling and moving focus.
 
 ### FloatButton.SpeedDial

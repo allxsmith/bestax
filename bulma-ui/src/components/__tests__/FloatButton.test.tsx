@@ -660,15 +660,24 @@ describe('FloatButton.SpeedDial', () => {
         <Dial />
       </>
     );
-    fireEvent.click(dialTrigger());
+    // A pointer's click, which moves no focus into the menu.
+    fireEvent.click(dialTrigger(), { detail: 1 });
     expect(menu()).not.toBeNull();
-    expect(dialTrigger()).not.toHaveFocus();
+    expect(menu()!.contains(document.activeElement)).toBe(false);
     fireEvent.pointerDown(action('Note'));
     expect(menu()).not.toBeNull();
     fireEvent.pointerDown(screen.getByRole('button', { name: 'Outside' }));
     expect(menu()).toBeNull();
     fireEvent.click(dialTrigger());
     fireEvent.click(dialTrigger());
+    expect(menu()).toBeNull();
+  });
+
+  it('opens on the nearest action for a click with no pointer behind it, as a screen reader sends', () => {
+    render(<Dial />);
+    fireEvent.click(dialTrigger(), { detail: 0 });
+    expect(action('Note')).toHaveFocus();
+    fireEvent.click(dialTrigger(), { detail: 0 });
     expect(menu()).toBeNull();
   });
 
