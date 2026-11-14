@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { Menu, MenuLabel, MenuList, MenuItem, MenuSection } from '../Menu';
 import { ConfigProvider } from '../../helpers/Config';
 import { MenuRailContext, type MenuRail } from '../../helpers/menuRail';
+import { Portal } from '../../helpers/portal';
 import { Popover } from '../Popover';
 import { resetDevWarnings } from '../../helpers/devWarnings';
 
@@ -532,7 +533,6 @@ describe('in an icon rail', () => {
   ): MenuRail => ({
     collapsed,
     pending,
-    navId: 'rail-nav',
     nav: () => document.getElementById('rail-nav'),
     expand,
     wrap: (trigger, label) => (
@@ -542,7 +542,7 @@ describe('in an icon rail', () => {
     ),
   });
 
-  /** A Menu inside the rail's nav, whose id the rail names. */
+  /** A Menu inside the rail's nav. */
   const inNav = (rail: MenuRail, ui: React.ReactNode) => (
     <MenuRailContext.Provider value={rail}>
       <nav id="rail-nav">
@@ -581,20 +581,41 @@ describe('in an icon rail', () => {
     );
   });
 
-  it('takes no rail for a Menu outside the rail’s nav', () => {
-    render(
-      <MenuRailContext.Provider value={railOf(true)}>
-        <nav id="rail-nav" />
-        <Menu>
-          <Menu.List>
-            <Menu.Item href="#orders" icon={<Glyph />}>
-              Orders
-            </Menu.Item>
-          </Menu.List>
-        </Menu>
-      </MenuRailContext.Provider>
-    );
-    expect(screen.queryByTestId('tip')).toBeNull();
+  it('takes no rail for a Menu portaled out of the rail’s nav, from its first render', () => {
+    resetDevWarnings();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const attached = vi.fn();
+    try {
+      render(
+        <MenuRailContext.Provider value={railOf(true)}>
+          <nav id="rail-nav">
+            <Portal>
+              <Menu>
+                <Menu.List>
+                  <Menu.Item
+                    href="#orders"
+                    icon={<Glyph />}
+                    ref={(node: HTMLAnchorElement | null) => {
+                      if (node) attached(node);
+                    }}
+                  >
+                    Orders
+                  </Menu.Item>
+                  <Menu.Item href="#plain">Plain</Menu.Item>
+                </Menu.List>
+              </Menu>
+            </Portal>
+          </nav>
+        </MenuRailContext.Provider>
+      );
+      expect(screen.queryByTestId('tip')).toBeNull();
+      // Never wrapped, so the link mounts once.
+      expect(attached).toHaveBeenCalledTimes(1);
+      // And an item without an icon there isn't the rail's to warn about.
+      expect(warn).not.toHaveBeenCalled();
+    } finally {
+      warn.mockRestore();
+    }
   });
 
   it('moves focus from a nested link the rail hides to its item’s own link, icon or not', () => {
@@ -827,8 +848,8 @@ describe('in an icon rail', () => {
     expect(button).toHaveAttribute('aria-expanded', 'false');
     await userEvent.click(button);
     expect(expand).toHaveBeenCalledTimes(1);
-    // It asks to stay open rather than close.
-    expect(onOpenChange).toHaveBeenLastCalledWith(true);
+    // It's open already, so only the column changes.
+    expect(onOpenChange).not.toHaveBeenCalled();
     rerender(
       inNav(
         railOf(false, expand),

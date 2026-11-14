@@ -1486,7 +1486,7 @@ describe('AppFrame.Nav rail', () => {
 
   it('puts each item and section with an icon in a tooltip of its label, hidden from assistive technology', () => {
     mockViewport(DESKTOP);
-    render(<RailFrame />);
+    const { rerender } = render(<RailFrame navCollapsed />);
     const dashboard = link('Dashboard');
     const tip = tipOf(dashboard);
     expect(tip).toHaveClass('tooltip', 'app-frame-rail-tooltip', 'is-right');
@@ -1503,6 +1503,11 @@ describe('AppFrame.Nav rail', () => {
     ).toHaveTextContent(/^Reports$/);
     // Nothing to show for an item without an icon.
     expect(tipOf(link('Plain')).localName).toBe('li');
+    // Expanded, the tooltip never shows, so it holds no second copy of the
+    // label.
+    rerender(<RailFrame navCollapsed={false} />);
+    expect(content).toBeEmptyDOMElement();
+    expect(dashboard).toHaveAccessibleName('Dashboard');
   });
 
   it('opens the tooltips only while the column is collapsed to the rail', async () => {
@@ -1631,6 +1636,27 @@ describe('AppFrame.Nav rail', () => {
       layOut(760, 368);
       rerender(<RailFrame navCollapsed={false} />);
       expect(observers[0].disconnect).toHaveBeenCalled();
+      expect(nav()).not.toHaveClass('is-tall');
+    });
+
+    it('measures again as the window resizes, which changes its room and not its size', () => {
+      mockViewport(DESKTOP);
+      const { rerender } = render(<RailFrame navCollapsed />);
+      layOut(668, 668);
+      expect(nav()).not.toHaveClass('is-tall');
+      // The window gets shorter. The rail keeps its size, so its observer
+      // says nothing.
+      lay(668, 368);
+      act(() => {
+        window.dispatchEvent(new Event('resize'));
+      });
+      expect(nav()).toHaveClass('is-tall');
+      // Expanded, it stops listening.
+      rerender(<RailFrame navCollapsed={false} />);
+      lay(760, 368);
+      act(() => {
+        window.dispatchEvent(new Event('resize'));
+      });
       expect(nav()).not.toHaveClass('is-tall');
     });
 
@@ -1857,6 +1883,48 @@ describe('AppFrame.Nav rail', () => {
       expect(status).toHaveAttribute('aria-expanded', 'false');
       expect(onNavCollapsedChange).not.toHaveBeenCalled();
       // Its items have no icons, and that's fine outside the rail.
+      expect(
+        warn.mock.calls.filter(([m]) => /has no\s+icon/.test(String(m)))
+      ).toEqual([]);
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it('leaves a Menu in a Popover opened from the drawer out of the rail, though it portals into the nav', async () => {
+    resetDevWarnings();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    mockViewport(PHONE);
+    try {
+      render(
+        <AppFrame defaultNavOpen defaultNavCollapsed>
+          <AppFrame.Nav rail>
+            <Menu>
+              <Menu.List>
+                <Menu.Item href="#dashboard" icon={<Glyph />}>
+                  Dashboard
+                </Menu.Item>
+              </Menu.List>
+            </Menu>
+            <Popover
+              appendToBody
+              trigger={<button type="button">Filters</button>}
+            >
+              <Menu>
+                <Menu.List>
+                  <Menu.Item href="#mine">Mine</Menu.Item>
+                </Menu.List>
+              </Menu>
+            </Popover>
+          </AppFrame.Nav>
+          <AppFrame.Main>Page</AppFrame.Main>
+        </AppFrame>
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Filters' }));
+      const mine = await screen.findByRole('link', { name: 'Mine' });
+      // The drawer takes its popups, so the panel is in the nav.
+      expect(nav()).toContainElement(mine);
+      expect(mine.closest('.app-frame-rail-tooltip')).toBeNull();
       expect(
         warn.mock.calls.filter(([m]) => /has no\s+icon/.test(String(m)))
       ).toEqual([]);

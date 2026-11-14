@@ -589,8 +589,10 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
     // icons are. The small viewport doesn't change as a touch browser's
     // toolbar slides in and out, so a rail near the edge doesn't flip between
     // sticking and scrolling as the page scrolls. Measured as it collapses,
-    // before paint, then each time its size changes; expanded, it's no rail,
-    // so the next collapse starts afresh.
+    // before paint, then each time its size changes, and each time the
+    // window's does, which changes its room without changing a rail already
+    // taller than that; expanded, it's no rail, so the next collapse starts
+    // afresh.
     const [railTall, setRailTall] = useState(false);
     const tallClass = usePrefixedClassNames('is-tall');
     useClientLayoutEffect(() => {
@@ -608,8 +610,10 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
           ? undefined
           : new ResizeObserver(measure);
       observer?.observe(nav);
+      window.addEventListener('resize', measure);
       return () => {
         observer?.disconnect();
+        window.removeEventListener('resize', measure);
         setRailTall(false);
       };
     }, [railCollapsed]);
@@ -620,33 +624,24 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
       return {
         collapsed: railCollapsed,
         pending: !modeKnown && navCollapsed,
-        navId: navId as string,
         nav: () => navRef.current,
         expand: () => state.setNavCollapsed(false),
         wrap: (trigger, label) => (
           <Tooltip
             className={tipClass}
-            content={label}
+            // Only the collapsed rail shows it, so it doesn't open, or
+            // measure itself, in the wide column or the drawer, and holds no
+            // second copy of the label there.
+            content={railCollapsed ? label : undefined}
             position={side}
             describesTrigger={false}
-            // Only the collapsed rail shows it, so it doesn't open, or
-            // measure itself, in the wide column or the drawer.
             disabled={!railCollapsed}
           >
             {trigger}
           </Tooltip>
         ),
       };
-    }, [
-      rail,
-      state,
-      railCollapsed,
-      modeKnown,
-      navCollapsed,
-      navId,
-      side,
-      tipClass,
-    ]);
+    }, [rail, state, railCollapsed, modeKnown, navCollapsed, side, tipClass]);
 
     // The rail is the Menu's inside the nav. One portaled out of it, or a
     // Menu.List with no Menu around it, doesn't take it.

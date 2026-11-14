@@ -21,11 +21,6 @@ export interface MenuRail {
    * nothing about its state then.
    */
   pending: boolean;
-  /**
-   * The nav's id. A Menu takes the rail only when its element sits inside
-   * the element with this id, so one portaled out of the nav doesn't.
-   */
-  navId: string;
   /** The nav, where focus goes when nothing in the menu can take it. */
   nav: () => HTMLElement | null;
   /** Widens the column again. */
