@@ -87,8 +87,8 @@ function example() {
 ### Targets
 
 A `target` is a CSS selector, an element, or a ref to one. A selector is looked up again until it
-matches, in the document or the shadow root the tour renders into, so a step can point at something
-that mounts after the tour opens. Until then, and while the target has no box (inside a closed
+matches, in the shadow root the tour renders into and then the document, so a step can point at
+something that mounts after the tour opens. Until then, and while the target has no box (inside a closed
 `Collapse` or a hidden tab panel), the step sits in the middle of the screen, and a development
 build warns, once for each selector. The tour never ends on its own because
 a target is missing.
@@ -327,7 +327,8 @@ non-modal without it:
 
 A tour sits at the modal layer, under toasts. In a modal step, a popup that renders through a portal
 of its own, such as a Popover with `appendToBody` or a picker's calendar, renders inside the step,
-as it does in a Modal, so it shows over the tour and stays reachable. A step without the overlay
+as it does in a Modal, so it shows over the tour and stays reachable. A `ConfigProvider`'s
+`portalContainer` still comes first, there as in a Modal. A step without the overlay
 leaves it in `<body>`, under the tour, so keep such content in place inside a non-modal step.
 
 ---

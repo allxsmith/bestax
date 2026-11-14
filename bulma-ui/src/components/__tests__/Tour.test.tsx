@@ -509,6 +509,23 @@ describe('Tour', () => {
       expect(screen.getByRole('dialog', { name: 'Welcome' })).toBeVisible();
     });
 
+    it('starts a different step at the same index with a body of its own', () => {
+      const Notes = ({ steps }: { steps: string[] }) => (
+        <Tour open>
+          {steps.map(name => (
+            <Tour.Step key={name} title={name}>
+              <input aria-label="Note" />
+            </Tour.Step>
+          ))}
+        </Tour>
+      );
+      const { rerender } = render(<Notes steps={['One', 'Two']} />);
+      const note = () => screen.getByRole('textbox', { name: 'Note' });
+      fireEvent.change(note(), { target: { value: 'typed in One' } });
+      rerender(<Notes steps={['Two']} />);
+      expect(note()).toHaveValue('');
+    });
+
     it('rounds a fraction down, and shows the first step for NaN', () => {
       const { rerender } = render(<Page open value={1.5} />);
       expect(screen.getByRole('dialog', { name: 'Filters' })).toBeVisible();
@@ -1294,6 +1311,33 @@ describe('Tour', () => {
       host.remove();
     });
 
+    it('finds a selector in the page around the shadow root a tour renders into, as it mounts', async () => {
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const shadow = host.attachShadow({ mode: 'open' });
+      const container = document.createElement('div');
+      shadow.appendChild(container);
+      render(
+        <Tour defaultOpen portal={false}>
+          <Tour.Step target="#outside" title="Outside">
+            In the page around the tour.
+          </Tour.Step>
+        </Tour>,
+        { container }
+      );
+      const step = () => shadow.querySelector('[role="dialog"]') as HTMLElement;
+      expect(step()).toHaveClass('is-centered');
+      const outside = document.createElement('button');
+      outside.id = 'outside';
+      outside.dataset.rect = '100 100 80 30';
+      await act(async () => {
+        document.body.appendChild(outside);
+      });
+      expect(step()).toHaveClass('is-bottom');
+      outside.remove();
+      host.remove();
+    });
+
     it('finds a target a class change makes a selector match', async () => {
       render(
         <>
@@ -1482,6 +1526,33 @@ describe('Tour', () => {
       unmount();
       render(<Clipped inner="400 100 50 20" />);
       expect(scrollIntoView).toHaveBeenCalledTimes(1);
+    });
+
+    it('scrolls a target in a shadow root that a scrolling ancestor around its host cuts off', () => {
+      const scrollIntoView = scrollTo();
+      const scroller = document.createElement('div');
+      scroller.dataset.rect = '0 0 300 300';
+      scroller.style.overflowY = 'auto';
+      const host = document.createElement('div');
+      scroller.appendChild(host);
+      document.body.appendChild(scroller);
+      const container = document.createElement('div');
+      host.attachShadow({ mode: 'open' }).appendChild(container);
+      render(
+        <>
+          <button type="button" id="inner" data-rect="400 100 50 20">
+            Inner
+          </button>
+          <Tour defaultOpen portal={false}>
+            <Tour.Step target="#inner" title="Inner">
+              Below the box's edge.
+            </Tour.Step>
+          </Tour>
+        </>,
+        { container }
+      );
+      expect(scrollIntoView).toHaveBeenCalledTimes(1);
+      scroller.remove();
     });
 
     it('doesn’t scroll to the step before’s target when the next one is missing', () => {

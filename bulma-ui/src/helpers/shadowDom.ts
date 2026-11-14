@@ -55,6 +55,16 @@ export function getActiveElementInTree(
 }
 
 /**
+ * The element above `el` in the page: its parent, or the host of the shadow
+ * root it sits at the top of. Nothing above the top of a detached tree.
+ *
+ * @param el - The element to climb from.
+ * @returns Its parent in the page, or `undefined` at the top.
+ */
+export const parentInPage = (el: Element): Element | undefined =>
+  el.parentElement ?? (el.getRootNode() as Partial<ShadowRoot>).host;
+
+/**
  * The element that really has focus, followed down from
  * `document.activeElement` through every open shadow root on the way. Use it
  * to record where focus was before moving it, so it can be restored to that

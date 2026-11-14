@@ -32,7 +32,7 @@ import {
 import type { AnchoredSide } from '../helpers/useAnchoredPosition';
 import { useScopedNumberFormat } from '../helpers/localeFormat';
 import { spokenText, visuallyHidden } from '../helpers/statusRegion';
-import { getActiveElementInTree } from '../helpers/shadowDom';
+import { getActiveElementInTree, parentInPage } from '../helpers/shadowDom';
 import { warnOnce } from '../helpers/devWarnings';
 import { Button } from '../elements/Button';
 import { Buttons } from '../elements/Buttons';
@@ -46,9 +46,9 @@ import { Delete } from '../elements/Delete';
 export type TourStepPosition = 'top' | 'bottom' | 'left' | 'right';
 
 /**
- * What a step points at: a CSS selector, looked up again until it matches
- * in the document or shadow root the tour renders into, an element, or a
- * ref to one.
+ * What a step points at: a CSS selector, looked up again until it matches,
+ * in the shadow root the tour renders into and then the document, an
+ * element, or a ref to one.
  */
 export type TourTarget =
   string | HTMLElement | React.RefObject<HTMLElement | null>;
@@ -269,9 +269,9 @@ interface FoundTarget {
   box: TargetBox | null;
   /**
    * The step it was looked up for, so what was found for the step before
-   * isn't used for the next one.
+   * isn't used for the next one, at another index or the same.
    */
-  index?: number;
+  stepId?: string;
 }
 
 const nothingFound: FoundTarget = { element: null, box: null };
@@ -287,8 +287,9 @@ const sameBox = (a: TargetBox | null, b: TargetBox | null): boolean =>
 
 /**
  * The element a target names, while it's on the page, box or no box. A
- * selector is looked up in `scope`, and one that isn't valid matches
- * nothing, and nor does no target.
+ * selector is looked up in `scope`, and then in the document when `scope`
+ * is a shadow root. One that isn't valid matches nothing, and nor does no
+ * target.
  */
 function findTarget(
   target: TourTarget | undefined,
@@ -299,7 +300,10 @@ function findTarget(
     element = null;
   } else if (typeof target === 'string') {
     try {
-      element = scope.querySelector<HTMLElement>(target);
+      const doc = scope.ownerDocument ?? (scope as Document);
+      element =
+        scope.querySelector<HTMLElement>(target) ??
+        (scope === doc ? null : doc.querySelector<HTMLElement>(target));
     } catch {
       element = null;
     }
@@ -326,7 +330,7 @@ const scopeOf = (node: Node): Document | ShadowRoot =>
 function useTourTarget(
   rootRef: React.RefObject<HTMLDivElement | null>,
   target: TourTarget | undefined,
-  index: number,
+  stepId: string,
   active: boolean
 ): FoundTarget {
   const [found, setFound] = useState(nothingFound);
@@ -372,9 +376,9 @@ function useTourTarget(
       setFound(prev =>
         prev.element === element &&
         sameBox(prev.box, box) &&
-        prev.index === index
+        prev.stepId === stepId
           ? prev
-          : { element, box, index }
+          : { element, box, stepId }
       );
       if (target != null && !element) {
         warnOnce(
@@ -394,15 +398,14 @@ function useTourTarget(
     // Any attribute can bring a target in or move one (`hidden`, `open`,
     // `style`, a `data-` one a selector names), and the frame bounds the
     // cost. The tour's own changes can't, so they're left out. A tour in a
-    // shadow root watches that root, which the body's subtree doesn't reach.
+    // shadow root watches that root too, which the body's subtree doesn't
+    // reach.
     const observer = new MutationObserver(records => {
       if (records.some(record => !root.contains(record.target))) schedule();
     });
-    observer.observe(scope === doc ? doc.body : scope, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-    });
+    const changes = { childList: true, subtree: true, attributes: true };
+    observer.observe(doc.body, changes);
+    if (scope !== doc) observer.observe(scope, changes);
     view.addEventListener('scroll', schedule, { passive: true, capture: true });
     view.addEventListener('resize', schedule, { passive: true });
     return () => {
@@ -412,9 +415,9 @@ function useTourTarget(
       view.removeEventListener('scroll', schedule, { capture: true });
       view.removeEventListener('resize', schedule);
     };
-  }, [active, target, index, rootRef]);
+  }, [active, target, stepId, rootRef]);
 
-  return active && found.index === index ? found : nothingFound;
+  return active && found.stepId === stepId ? found : nothingFound;
 }
 
 /**
@@ -435,9 +438,9 @@ function isFullyVisible(element: HTMLElement): boolean {
     return false;
   }
   for (
-    let node = element.parentElement;
+    let node = parentInPage(element);
     node && node !== doc.body && node !== doc.documentElement;
-    node = node.parentElement
+    node = parentInPage(node)
   ) {
     const { overflowX, overflowY } = getComputedStyle(node);
     const clips = /auto|scroll|hidden|clip/.test(`${overflowX} ${overflowY}`);
@@ -736,7 +739,7 @@ function TourPanel({
           )}
           <Delete ariaLabel={words.close} onClick={tour.skip} />
         </div>
-        <div key={index} id={bodyId} className={bodyClass}>
+        <div key={stepId} id={bodyId} className={bodyClass}>
           {children}
         </div>
         <div className={footerClass}>
@@ -875,6 +878,9 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
     const index = Math.max(0, Math.min(Math.floor(value) || 0, total - 1));
     const step = steps[index] as React.ReactElement<TourStepProps> | undefined;
     const stepProps: TourStepProps = step?.props ?? {};
+    // Which step shows, so a different one at the same index, after the
+    // steps change, counts as a change too.
+    const stepId = `${index} ${String(step?.key)}`;
 
     // Steps have to be measured against their targets, so nothing shows
     // until the page has hydrated.
@@ -895,7 +901,7 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
     const { element: target, box } = useTourTarget(
       rootRef,
       stepProps.target,
-      index,
+      stepId,
       shown
     );
     // What the step is placed against: the target as found, or, once that's
@@ -1010,7 +1016,7 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
 
     const context: TourContextValue = {
       index,
-      stepId: `${index} ${String(step.key)}`,
+      stepId,
       total,
       modal,
       closeOnEscape,

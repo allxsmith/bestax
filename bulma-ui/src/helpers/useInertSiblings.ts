@@ -1,7 +1,11 @@
 // INTERNAL: deliberately not exported from src/index.ts.
 import { useEffect } from 'react';
 import type { RefObject } from 'react';
-import { getActiveElementInTree, getDeepestActiveElement } from './shadowDom';
+import {
+  getActiveElementInTree,
+  getDeepestActiveElement,
+  parentInPage,
+} from './shadowDom';
 
 /**
  * How many callers hold each element inert. Shared across callers, the way
@@ -45,13 +49,6 @@ function siblingsOf(el: Element): Element[] {
   }
   return siblings;
 }
-
-/**
- * The element above `el` in the page: its parent, or the host of the shadow
- * root it sits at the top of. Nothing above the top of a detached tree.
- */
-const above = (el: Element): Element | undefined =>
-  el.parentElement ?? (el.getRootNode() as Partial<ShadowRoot>).host;
 
 /**
  * Makes the elements beside `ref`'s element inert while `active` is true,
@@ -100,7 +97,7 @@ export function useInertSiblings(
     for (
       let node: Element | undefined = el;
       node && node !== doc.body;
-      node = wholePage ? above(node) : undefined
+      node = wholePage ? parentInPage(node) : undefined
     ) {
       held.push(
         ...siblingsOf(node).filter(sibling => sibling !== keep && hold(sibling))
