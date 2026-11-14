@@ -19,7 +19,7 @@ const meta: Meta<typeof Steps> = {
     docs: {
       description: {
         component:
-          'A multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow. Supports step numbers, icons, navigation buttons, and multiple layouts.\n\n**Timeline or Steps?** Steps is a journey the user moves through themselves, such as a wizard or a checkout. It renders a `<ul role="list">` of steps with `aria-current="step"` on the current one and a check mark in place of the number on a completed one. A `clickable` step is a `<button>` that calls `onStepClick`, and `hasNavigation` adds Previous and Next buttons. A [Timeline](?path=/docs/components-timeline--docs) is a record of what happened, or the progress of something that moves along on its own: an `<ol role="list">` with a heading per event, its states read as words, and nothing to click.',
+          'A multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow. Supports step numbers, icons, navigation buttons, and multiple layouts.\n\n**Timeline or Steps?** Steps is a journey the user moves through themselves, such as a wizard or a checkout. It renders a `<ul role="list">` of steps with `aria-current="step"` on the current one, a check mark in place of the number on a completed one, and the state of each other step in words. A `clickable` step is a `<button>` that calls `onStepClick`, and `hasNavigation` adds Previous and Next buttons. A [Timeline](?path=/docs/components-timeline--docs) is a record of what happened, or the progress of something that moves along on its own: an `<ol role="list">` with a heading per event, its markers hidden from assistive tech, and nothing to click.',
       },
     },
   },
@@ -841,6 +841,8 @@ export const RightToLeft: Story = {
             value={step}
             onStepClick={setStep}
             color="primary"
+            completedLabel="مكتملة"
+            upcomingLabel="قادمة"
             items={items}
           />
         </Block>
@@ -852,9 +854,43 @@ export const RightToLeft: Story = {
             vertical
             labelPosition="right"
             color="primary"
+            completedLabel="مكتملة"
+            upcomingLabel="قادمة"
             items={items}
           />
         </Block>
+      </div>
+    );
+  },
+};
+
+/**
+ * The words a screen reader hears after a completed step and one not reached
+ * yet, in another language. They're hidden on screen; a clickable step's
+ * button reads them as its description.
+ */
+export const LocalizedWords: Story = {
+  render: function LocalizedWordsStory() {
+    const [step, setStep] = useState(1);
+    const items = [
+      { label: 'Compte', clickable: true },
+      { label: 'Profil', clickable: true },
+      { label: 'Confirmation', clickable: true },
+    ];
+
+    return (
+      <div lang="fr">
+        <Steps
+          value={step}
+          onStepClick={setStep}
+          color="primary"
+          completedLabel="terminée"
+          upcomingLabel="à venir"
+          hasNavigation
+          prevLabel="Précédent"
+          nextLabel="Suivant"
+          items={items}
+        />
       </div>
     );
   },

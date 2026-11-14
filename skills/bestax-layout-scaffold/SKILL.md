@@ -86,7 +86,8 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   since a context menu is only a shortcut),
   `Steps value={i}/onStepClick items={[{label, icon?}]}` for a journey the user moves through,
   such as a wizard or a checkout (child form is `Steps.Step`, not `Steps.Item`; a record of
-  what happened is `Timeline`). `Reveal cascade` staggers only its **direct children** — to
+  what happened is `Timeline`; in another language, set `completedLabel` and `upcomingLabel`,
+  the words read after each completed or upcoming step). `Reveal cascade` staggers only its **direct children** — to
   stagger a grid, put `<Reveal delay={i * 80}>` inside each `Cell`, not around the container.
 - **An empty list, table or search with no results is `EmptyState`**, not a hand-built `Box`
   of `Icon`, `Title` and `Buttons isCentered`:
@@ -236,7 +237,9 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   wrap content in `Span textColor="grey"`). Set the app-wide icon library once with
   `<ConfigProvider iconLibrary="…">` at the root rather than `library` on every `<Icon>`. An app
   in another language, or a right-to-left one, also gets `lang` and `dir` on `<html>` and a
-  `<LocaleProvider locale="…">` at the root, so overlays and date pickers follow it.
+  `<LocaleProvider locale="…">` at the root, so overlays and date pickers follow it. Words a
+  component reads to assistive tech stay English until its label props set them (`Steps`'
+  `completedLabel` and `upcomingLabel`, for one).
 - **Alternating section bands are a prop, not CSS: `bgColor="scheme-main-bis"` on every
   other `Section` (next band `scheme-main-ter`).** The scheme values render as a
   dark-mode-safe inline `background-color: var(--bulma-scheme-*)` — zero custom CSS — and

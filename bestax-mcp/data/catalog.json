@@ -1359,7 +1359,7 @@
       "slug": "components/steps",
       "import": "import { Steps } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 27,
+      "propCount": 29,
       "exampleCount": 10
     },
     {
