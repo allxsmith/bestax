@@ -8,7 +8,7 @@ import {
 import { flattenChildren } from '../helpers/flattenChildren';
 import { visuallyHidden } from '../helpers/statusRegion';
 import { withSubComponents } from '../helpers/withSubComponents';
-import { Icon } from '../elements/Icon';
+import { iconNode } from '../helpers/iconNode';
 import { isGiven } from '../helpers/isGiven';
 
 const validTimelineColors = [
@@ -227,8 +227,7 @@ export const TimelineItem = forwardRef<HTMLLIElement, TimelineItemProps>(
         {/* Decoration, hidden with whatever is in it, an Icon's own label
             included: the words say what a color, an icon or a state means. */}
         <div className={markerClass} aria-hidden="true">
-          {isGiven(icon) &&
-            (typeof icon === 'string' ? <Icon name={icon} /> : icon)}
+          {isGiven(icon) && iconNode(icon)}
         </div>
         <div className={contentClass}>
           {isGiven(title) ? (

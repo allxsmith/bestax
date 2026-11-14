@@ -7,7 +7,7 @@ import {
 } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { Buttons, ButtonsProps } from '../elements/Buttons';
-import { Icon } from '../elements/Icon';
+import { iconNode } from '../helpers/iconNode';
 import { Paragraph, ParagraphProps } from '../elements/Paragraph';
 import { Title, TitleProps } from '../elements/Title';
 import { isGiven } from '../helpers/isGiven';
@@ -314,9 +314,7 @@ const EmptyStateRoot = forwardRef<HTMLDivElement, EmptyStateProps>(
         {...rest}
       >
         {isGiven(icon) && (
-          <EmptyStateIndicator>
-            {typeof icon === 'string' ? <Icon name={icon} /> : icon}
-          </EmptyStateIndicator>
+          <EmptyStateIndicator>{iconNode(icon)}</EmptyStateIndicator>
         )}
         {isGiven(title) && (
           <EmptyStateTitle as={titleAs}>{title}</EmptyStateTitle>

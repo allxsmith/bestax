@@ -15,11 +15,11 @@ import { omitAttrs } from '../helpers/anchorAttrs';
 import { buttonType } from '../helpers/buttonType';
 import { inertProps } from '../helpers/inertProps';
 import { isGiven } from '../helpers/isGiven';
+import { iconNode } from '../helpers/iconNode';
 import { moveFocusOut } from '../helpers/moveFocusOut';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { warnOnce } from '../helpers/devWarnings';
 import { MenuRailContext, type MenuRail } from '../helpers/menuRail';
-import { Icon } from '../elements/Icon';
 import {
   isCustomElement,
   type PolymorphicComponent,
@@ -27,10 +27,6 @@ import {
 
 // Context to track MenuList nesting level
 const MenuListLevelContext = createContext(0);
-
-/** An `icon` to render: a string is an `Icon` name, and a node is itself. */
-const iconNode = (icon: React.ReactNode) =>
-  typeof icon === 'string' ? <Icon name={icon} /> : icon;
 
 // The rail the menu's own top-level items and sections are in. A Menu takes
 // the nav's rail, which a `Portal` stops, so a Menu portaled out of the nav,
