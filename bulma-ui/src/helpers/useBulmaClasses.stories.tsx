@@ -269,13 +269,7 @@ const SkeletonMediaComponent: React.FC = () => {
   return (
     <Media skeleton={skeleton}>
       <Media.Left>
-        <Image
-          skeleton={skeleton}
-          as="p"
-          size="64x64"
-          src="https://bulma.io/assets/images/placeholders/128x128.png"
-          alt=""
-        />
+        <Image skeleton={skeleton} as="p" size="64x64" src={lioness} alt="" />
       </Media.Left>
       <Media.Content>
         <Content>
@@ -1318,8 +1312,8 @@ export const Float: Story = {
         <Box {...STAGE}>
           <Image
             float="left"
-            src="https://bulma.io/assets/images/placeholders/128x128.png"
-            alt="Floated image"
+            src={lioness}
+            alt="A lioness looking straight ahead"
             size="64x64"
             mr="3"
             mb="3"
@@ -1413,13 +1407,7 @@ export const ClearfixDemo: Story = {
           <Column>
             <h5 className="title is-6">Without Clearfix</h5>
             <Box {...STAGE} mb="2">
-              <Image
-                float="left"
-                src="https://bulma.io/assets/images/placeholders/128x128.png"
-                alt="Profile"
-                size="64x64"
-                mr="3"
-              />
+              <Image float="left" src={lioness} alt="" size="64x64" mr="3" />
               <div>
                 <h6 className="title is-6" style={{ margin: '0 0 0.5rem 0' }}>
                   John Doe
@@ -1436,13 +1424,7 @@ export const ClearfixDemo: Story = {
           <Column>
             <h5 className="title is-6">With Clearfix</h5>
             <Box {...STAGE} mb="2" clearfix>
-              <Image
-                float="left"
-                src="https://bulma.io/assets/images/placeholders/128x128.png"
-                alt="Profile"
-                size="64x64"
-                mr="3"
-              />
+              <Image float="left" src={lioness} alt="" size="64x64" mr="3" />
               <div>
                 <h6 className="title is-6" style={{ margin: '0 0 0.5rem 0' }}>
                   John Doe
@@ -1542,8 +1524,8 @@ export const RelativePosition: Story = {
           }}
         >
           <Image
-            src="https://bulma.io/assets/images/placeholders/256x256.png"
-            alt="Sample"
+            src={lioness}
+            alt="A lioness looking straight ahead"
             size="128x128"
           />
           <Box
