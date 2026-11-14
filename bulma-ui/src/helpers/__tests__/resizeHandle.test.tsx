@@ -2,10 +2,7 @@ import type { ComponentProps } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { ResizeHandle } from '../resizeHandle';
 
-/**
- * jsdom has no PointerEvent, so fireEvent's pointer events drop clientX. A
- * MouseEvent of the pointer type carries it, as Splitter's tests send.
- */
+/** A pointer event for one pointer, at `clientX`. */
 const pointer = (
   el: Element,
   type: 'pointerdown' | 'pointermove' | 'pointerup',
@@ -15,13 +12,15 @@ const pointer = (
   // The element's own window makes the event, so a handle in another
   // document gets one of its own.
   const view = el.ownerDocument.defaultView as Window & typeof globalThis;
-  const event = new view.MouseEvent(type, {
-    bubbles: true,
-    cancelable: true,
-    clientX,
-  });
-  Object.defineProperty(event, 'pointerId', { value: pointerId });
-  fireEvent(el, event);
+  fireEvent(
+    el,
+    new view.PointerEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      clientX,
+      pointerId,
+    })
+  );
 };
 
 /** A handle, with whatever of its callbacks a test watches. */
@@ -88,11 +87,11 @@ describe('ResizeHandle', () => {
     rtl.mockClear();
     fireEvent.keyDown(handle, { key: 'ArrowDown' });
     expect(onStep).toHaveBeenLastCalledWith(1);
-    const at = (type: string, clientY: number) => {
-      const event = new MouseEvent(type, { bubbles: true, clientY });
-      Object.defineProperty(event, 'pointerId', { value: 1 });
-      fireEvent(handle, event);
-    };
+    const at = (type: string, clientY: number) =>
+      fireEvent(
+        handle,
+        new PointerEvent(type, { bubbles: true, clientY, pointerId: 1 })
+      );
     at('pointerdown', 100);
     at('pointermove', 110);
     expect(onDrag).toHaveBeenLastCalledWith(10);

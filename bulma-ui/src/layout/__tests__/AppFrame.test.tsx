@@ -1516,11 +1516,8 @@ describe('AppFrame.Nav rail', () => {
     const dashboard = link('Dashboard');
     const tip = tipOf(dashboard);
     const content = tip.querySelector('.tooltip-content') as HTMLElement;
-    const over = () => {
-      const event = new MouseEvent('pointerover', { bubbles: true });
-      Object.defineProperty(event, 'pointerType', { value: 'mouse' });
-      fireEvent(dashboard, event);
-    };
+    const over = () =>
+      fireEvent.pointerOver(dashboard, { pointerType: 'mouse' });
     const settle = () => act(() => new Promise(resolve => setTimeout(resolve)));
     over();
     await settle();
@@ -1530,7 +1527,7 @@ describe('AppFrame.Nav rail', () => {
     rerender(<RailFrame navCollapsed />);
     expect(tip).not.toHaveClass('is-open');
     // Collapsed, the next hover opens it.
-    fireEvent(dashboard, new MouseEvent('pointerout', { bubbles: true }));
+    fireEvent.pointerOut(dashboard);
     await settle();
     over();
     await settle();
@@ -2140,24 +2137,22 @@ describe('AppFrame.Nav rail', () => {
 });
 
 describe('AppFrame.Nav resizable', () => {
-  /**
-   * jsdom has no PointerEvent, so fireEvent's pointer events drop clientX.
-   * A MouseEvent of the pointer type carries it, as Splitter's tests send.
-   */
+  /** The first pointer's event, at `clientX`. */
   const pointer = (
     el: Element,
     type: 'pointerdown' | 'pointermove' | 'pointerup',
     clientX = 0
-  ) => {
-    const event = new MouseEvent(type, {
-      bubbles: true,
-      cancelable: true,
-      clientX,
-      button: 0,
-    });
-    Object.defineProperty(event, 'pointerId', { value: 1 });
-    fireEvent(el, event);
-  };
+  ) =>
+    fireEvent(
+      el,
+      new PointerEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        clientX,
+        button: 0,
+        pointerId: 1,
+      })
+    );
 
   /** A frame whose nav has a handle, with the props given to the root and the nav. */
   const ResizeFrame = ({
