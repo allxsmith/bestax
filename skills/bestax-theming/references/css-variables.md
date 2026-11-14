@@ -1091,7 +1091,9 @@ trigger and the tooltip past what the pointer can cross on its own, so give the 
 ### Tour
 
 Declared on the root, `.tour`, which holds the overlay and the current step, so a `className` or
-`style` on `Tour` reaches every step, and one on a `Tour.Step` reaches that step alone. The step
+`style` on `Tour` reaches every step, and one on a `Tour.Step` reaches that step's panel alone. The
+overlay and the spotlight read theirs from `.tour`, so set `--bulma-tour-overlay-*`,
+`--bulma-tour-spotlight-*` and `--bulma-tour-z-index` on `Tour`. The step
 takes Popover's look from the same Bulma tokens Popover's panel reads, since `--bulma-popover-*`
 is declared on Popover's own panel and doesn't reach a step. `--bulma-tour-overlay-background` is
 Bulma's modal backdrop color at half its strength. `--bulma-tour-spotlight-padding` grows the
