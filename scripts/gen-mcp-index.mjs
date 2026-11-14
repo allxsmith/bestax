@@ -49,6 +49,7 @@ import {
   sectionSpans,
   sectionBody,
   firstSentence,
+  fenceMask,
 } from './lib/api-page.mjs';
 import {
   assertSkillsVetted,
@@ -590,9 +591,12 @@ export function standaloneTables(
       role: 'base',
     });
   }
-  const carried = new Set(
-    info.tables.flatMap(t => [t.path, t.impl, t.component].filter(Boolean))
-  );
+  // A sub that is a compound itself (`Card.Header`) has its table read off its
+  // base, so the constant composing it (`CardHeader`) is carried too.
+  const carried = new Set([
+    ...info.tables.flatMap(t => [t.path, t.impl, t.component].filter(Boolean)),
+    ...(info.compoundNames?.values() ?? []),
+  ]);
   for (const companion of IMPORT_COMPANIONS[name] ?? []) {
     if (!COMPONENT_NAME.test(companion) || companion === name) continue;
     if (titles.has(companion) || carried.has(companion)) continue;
@@ -602,6 +606,72 @@ export function standaloneTables(
     });
   }
   return out;
+}
+
+/** The identifiers an import line gives, in its order. */
+export function importedNames(code) {
+  return (code.match(/\{([^}]*)\}/)?.[1] ?? '')
+    .split(',')
+    .map(id => id.trim())
+    .filter(id => /^[A-Za-z_$][\w$]*$/.test(id));
+}
+
+/**
+ * The section of a page that documents a name its import line gives beside the
+ * component, such as the hook `useDataTable` beside `DataTable`: the first `##`
+ * or `###` heading that names it (`### The useDataTable Hook`), else the title
+ * of the first usage example that calls it (`useAppFrame()`, under "A Toggle of
+ * Your Own"), else the first `##` section whose code calls it (`toast.show()`,
+ * under "Programmatic API"). Null when none does. A call rather than a mention,
+ * since `toast` and `notification` are words an example's text uses too.
+ */
+export function importSection(lines, examples, name) {
+  const id = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const named = new RegExp(`(?<![\\w$.])${id}(?![\\w$])`);
+  const mask = fenceMask(lines);
+  for (const [i, line] of lines.entries()) {
+    const heading = !mask[i] && line.match(/^#{2,3}[ \t]+(.+?)[ \t]*$/);
+    if (heading && named.test(heading[1])) return heading[1];
+  }
+  const called = new RegExp(`(?<![\\w$.])${id}(?:\\.\\w+)?\\(`);
+  const example = examples.find(e => called.test(e.code));
+  if (example) return example.title;
+  let section = null;
+  for (const [i, line] of lines.entries()) {
+    if (!mask[i]) section = line.match(/^##[ \t]+(.+?)[ \t]*$/)?.[1] ?? section;
+    else if (section && called.test(line)) return section;
+  }
+  return null;
+}
+
+/**
+ * What a page says first under a section it documents a name in, as a purpose:
+ * the first sentence of the first prose paragraph under the heading, before the
+ * next heading, clipped the way a purpose is. A section from an example title
+ * ("A › B") is the `B` heading after the `A` one, since a `####` title can
+ * repeat under another `###`. '' when the section opens with no prose, so a
+ * row keeps its plain "documented with" text (#1579).
+ */
+export function sectionPurpose(lines, section) {
+  const mask = fenceMask(lines);
+  const heading = (line, i) =>
+    !mask[i] && line.match(/^#{1,6}[ \t]+(.+?)[ \t]*$/)?.[1];
+  let at = -1;
+  for (const title of section.split(' › ')) {
+    at = lines.findIndex((line, i) => i > at && heading(line, i) === title);
+    if (at < 0) return '';
+  }
+  const body = [];
+  for (let i = at + 1; i < lines.length && !heading(lines[i], i); i++) {
+    body.push(mask[i] ? '' : lines[i]);
+  }
+  const first = body.findIndex(line => firstProseLine(line));
+  if (first < 0) return '';
+  const blank = body.findIndex((line, i) => i > first && !line.trim());
+  const paragraph = body.slice(first, blank < 0 ? undefined : blank).join(' ');
+  // A section that leads into its code ("pass it as the first argument:") ends
+  // as a sentence does.
+  return clipAtWord(firstSentence(paragraph)).replace(/:$/, '.');
 }
 
 /**
@@ -615,8 +685,21 @@ export function standaloneTables(
  * declares it (`Dropdown.Item`), whose part is the same component. `subs` maps
  * an implementation name to the part that declares it, and `exported` is every
  * value name the barrel exports.
+ *
+ * Last, what an import line gives beside its component that is no part of any
+ * record: a hook (`useDataTable`), a function (`toast`) or a constant
+ * (`validColors`). `imported` maps each to the record whose import line gives
+ * it, the section of that page that documents it (`importSection`) and what
+ * that section says first (`sectionPurpose`). It has no table, so no `path`,
+ * and its `section` is left out when the page has none for it (#1465).
  */
-export function documentedWith(components, titles, subs, exported) {
+export function documentedWith(
+  components,
+  titles,
+  subs,
+  exported,
+  imported = new Map()
+) {
   const out = {};
   const purposeOf = summary =>
     summary ? clipAtWord(firstSentence(summary)) : '';
@@ -647,6 +730,10 @@ export function documentedWith(components, titles, subs, exported) {
   }
   for (const [impl, home] of subs) {
     if (exported.has(impl)) claim(impl, home.component, home.path);
+  }
+  for (const [name, { component, section, purpose = '' }] of imported) {
+    if (titles.has(name) || Object.hasOwn(out, name)) continue;
+    out[name] = { component, purpose, ...(section ? { section } : {}) };
   }
   return Object.fromEntries(
     Object.entries(out).sort((a, b) => byCodePoint(a[0], b[0]))
@@ -849,15 +936,25 @@ function byHandOf(map, records) {
  * root class that Bulma 1's stylesheet has no rule for. A lookup that calls
  * one a class nothing styles sends a page that keeps it, under bestax's CSS,
  * into rules it never asked for.
+ *
+ * Where several components render the same root class (Stack and Group both
+ * render `stack`), the one named after it owns it, and otherwise the first
+ * by name. The key keeps the place the first of them gives it.
  */
 function ownClassesOf(records, vocabulary) {
-  const own = {};
-  for (const record of [...records.values()].sort((a, b) =>
+  const sorted = [...records.values()].sort((a, b) =>
     byCodePoint(a.name, b.name)
-  )) {
+  );
+  const namesake = new Map();
+  for (const record of sorted) {
+    const root = record.rootClass;
+    if (root && record.name.toLowerCase() === root) namesake.set(root, record);
+  }
+  const own = {};
+  for (const record of sorted) {
     const root = record.rootClass;
     if (root && !vocabulary.has(root) && !Object.hasOwn(own, root)) {
-      own[root] = record.name;
+      own[root] = (namesake.get(root) ?? record).name;
     }
   }
   return own;
@@ -955,6 +1052,9 @@ export async function build() {
   const cssVarIndex = {};
   const categoryList = [];
   const subs = new Map();
+  // What each page's import line gives beside its component, for
+  // `documentedWith`, with the section of the page that documents it.
+  const imported = new Map();
   // Every name with a page of its own, which is a catalog entry.
   const titles = new Set(
     categories.flatMap(({ pages }) => pages.map(({ fm }) => fm.title))
@@ -1088,6 +1188,17 @@ export async function build() {
 
       record = withAbsoluteLinks(record, relPath);
       components.set(name, record);
+      for (const id of importedNames(record.import)) {
+        if (titles.has(id) || imported.has(id)) continue;
+        const section = importSection(lines, record.examples, id);
+        imported.set(id, {
+          component: name,
+          section,
+          purpose: section
+            ? absoluteLinks(sectionPurpose(lines, section), relPath)
+            : '',
+        });
+      }
       members.push(name);
       // A family is its root and its sub-components. The exports documented
       // beside it (`InputBase`) are not, and `Input` is no compound for them.
@@ -1128,7 +1239,13 @@ export async function build() {
         .sort((a, b) => byCodePoint(a[0], b[0]))
         .map(([css, names]) => [css, orderDeclarers(css, names)])
     ),
-    documentedWith: documentedWith(components, titles, subs, barrelExports()),
+    documentedWith: documentedWith(
+      components,
+      titles,
+      subs,
+      barrelExports(),
+      imported
+    ),
   };
 
   return {

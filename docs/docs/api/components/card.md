@@ -23,7 +23,16 @@ It supports custom colors, shadows, spacing, alignment, and more for flexible, a
 <!-- bestax:generated import -->
 
 ```tsx
-import { Card } from '@allxsmith/bestax-bulma';
+import {
+  Card,
+  CardHeader,
+  CardHeaderTitle,
+  CardHeaderIcon,
+  CardImage,
+  CardContent,
+  CardFooter,
+  CardFooterItem,
+} from '@allxsmith/bestax-bulma';
 ```
 
 <!-- /bestax:generated import -->
@@ -182,6 +191,8 @@ Combine multiple props such as `header`, `textColor`, `bgColor`, `m`, `p`, `text
 
 Every card section is also available as a static — `Card.Header` (with `Card.Header.Title` and `Card.Header.Icon`), `Card.Image`, `Card.Content`, `Card.Footer`, and `Card.FooterItem` — so a whole card can be composed from the single `Card` import. Each static's props are listed under [Compound component props](#compound-component-props).
 
+The same parts are named exports: `CardHeader`, `CardHeaderTitle`, `CardHeaderIcon`, `CardImage`, `CardContent`, `CardFooter`, and `CardFooterItem`. Each is the same component as the dotted name (`Card.Header` is `CardHeader`). A Next.js Server Component imports them by name, since a dotted name is `undefined` there. [Next.js Specific](../../guides/getting-started/react-setups.md#nextjs-specific) has more.
+
 #### Complete Card with Compound Components
 
 ```tsx live
@@ -267,14 +278,17 @@ function ExpandableCard() {
 You can combine the traditional prop-based API with compound components:
 
 ```tsx live
-<Card header="Prop-based header" textColor="primary" m="3">
-  <Card.Content bgColor="light">
-    <Paragraph>
-      You can mix prop-based and compound component approaches!
-    </Paragraph>
+<Card header="Prop-based header" m="3">
+  <Card.Content>
+    <Paragraph>You can mix the prop-based and compound approaches.</Paragraph>
   </Card.Content>
   <Card.Footer>
-    <Card.FooterItem>Mixed approach example</Card.FooterItem>
+    <Card.FooterItem as="a" href="#save">
+      Save
+    </Card.FooterItem>
+    <Card.FooterItem as="a" href="#cancel">
+      Cancel
+    </Card.FooterItem>
   </Card.Footer>
 </Card>
 ```

@@ -877,19 +877,35 @@ the server and hydrate on the client, like any client component. The helpers tha
 such as `classNames`, run on the server as plain functions. `ConfigProvider` can wrap the whole app
 from the root layout, and a class prefix or icon library set there reaches every page.
 
-Three things to know:
+Worth knowing:
 
-- A Server Component can't reach a component's parts through a dot. `Navbar.Item` comes out
-  `undefined` there, which is React's rule for client modules. Use the part's own export,
-  `NavbarItem`, or render the component inside a client component, a file that starts with
-  `'use client'`, where `Navbar.Item` works as it does everywhere else.
+- A Server Component can't reach a component's parts through a dot. `Figure.Caption` comes out
+  `undefined` there, which is React's rule for client modules. Import the part by name instead.
+  It's the same component as the dotted name.
+
+  ```tsx
+  import { Figure, FigureCaption, Image } from '@allxsmith/bestax-bulma';
+
+  export default function Page() {
+    return (
+      <Figure>
+        <Image src="/chart.png" alt="Sign-ups by month" />
+        <FigureCaption>Sign-ups by month</FigureCaption>
+      </Figure>
+    );
+  }
+  ```
+
+  Sidebar's parts work the same way (`SidebarHeader`, `SidebarTitle`, `SidebarClose`,
+  `SidebarBody`, `SidebarFooter`), and so do Card's and Modal's (`CardHeader`, `ModalCard`, and
+  the rest), Navbar's (`NavbarItem`, `NavbarBrand`, and the rest), `SegmentedControlSegment`,
+  and `ListItem`, which is `OrderedList.Item` and
+  `UnorderedList.Item`. The dotted names still work inside a client component, a file that
+  starts with `'use client'`.
+
 - A Server Component can only pass a client component props React can send from the server, and a
   function isn't one. So an event handler (`<Button onClick={...}>`) or `ClientOnly`'s render
   function child goes in a client component, the same as anything that keeps state.
-- `Card`, `Modal`, `Sidebar`, `Message` and `Figure`, and the list components' items, have no
-  export of their own for their parts yet
-  ([#1356](https://github.com/allxsmith/bestax/issues/1356)), so use them inside a client
-  component.
 
 The example pages above start with `'use client'` because they use `useState`, not because of
 bestax-bulma.

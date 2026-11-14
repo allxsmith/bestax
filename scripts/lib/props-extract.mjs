@@ -88,6 +88,7 @@ const DOM_ELEMENT_LABELS = {
   HTMLButtonElement: '`<button>`',
   HTMLDivElement: '`<div>`',
   HTMLDListElement: '`<dl>`',
+  HTMLDataElement: '`<data>`',
   HTMLElement: 'HTML',
   HTMLHRElement: '`<hr>`',
   HTMLHeadingElement: '`<h1>`–`<h6>`',
@@ -511,6 +512,11 @@ function jsdocText(ts, node) {
     if (text) return text.replace(/\s+/g, ' ').trim();
   }
   return '';
+}
+
+/** Whether a node's TSDoc carries `@tagName`, with or without text. */
+function hasJsdocTag(ts, node, tagName) {
+  return ts.getJSDocTags(node).some(tag => tag.tagName.text === tagName);
 }
 
 function jsdocTag(ts, node, tagName) {
@@ -1037,21 +1043,21 @@ function polymorphicBase(ts, node) {
  * component selected by `as`" tells a reader, and the MCP index an assistant
  * answers from, that a shape the compiler refuses is supported.
  *
- * Resolved syntactically, like the rest of this reader: an inline union of
- * string literals, or a type alias in the same file that is one
- * (`DropdownItemElement`).
+ * Resolved from source, like the rest of this reader: an inline union of
+ * string literals, or a type alias that is one, one hop away, in the same
+ * file (`DropdownItemElement`) or imported (`LayoutElement`, which Stack,
+ * Group, Center and Flex share).
  *
  * Returns 'tags', 'open' (an explicit `React.ElementType`) or 'unknown'. Both
  * recognized kinds are detected POSITIVELY, and a test holds every polymorphic
  * component to one of them — because 'unknown' has no safe answer. Falling back
  * to the open wording over-promises on a constrained component, which is the
  * defect this helper exists to fix; falling back to the closed wording
- * under-promises on the eight components that really do take any element. The
+ * under-promises on the components that really do take any element. The
  * fallback is 'open' to preserve the long-standing wording, so the test is what
- * actually protects the contract: move `DropdownItemElement` into
- * `helpers/polymorphic.ts` — a natural refactor, since its paired interface
- * lives there — and the same-file alias hop finds nothing, the kind goes
- * 'unknown', and the test says so rather than the docs quietly regressing.
+ * actually protects the contract: a constraint this reader can't follow makes
+ * the kind 'unknown', and the test says so rather than the docs quietly
+ * regressing.
  */
 function asConstraintKind(ts, arg) {
   if (!arg || !ts.isTypeReferenceNode(arg) || !ts.isIdentifier(arg.typeName)) {
@@ -1097,10 +1103,22 @@ function isTagUnion(ts, node, scope, hopped = false) {
   const name = node.typeName.text;
   let file = scope;
   while (file && !ts.isSourceFile(file)) file = file.parent;
-  const alias = file?.statements?.find(
-    st => ts.isTypeAliasDeclaration(st) && st.name.text === name
-  );
+  const alias =
+    file?.statements?.find(
+      st => ts.isTypeAliasDeclaration(st) && st.name.text === name
+    ) ?? importedAlias(ts, node);
   return isTagUnion(ts, alias?.type, scope, true);
+}
+
+/**
+ * The type alias an imported name refers to, through the program's checker.
+ * Stack, Group, Center and Flex share `LayoutElement` from
+ * `helpers/stackLayout.tsx`, so their constraint is an import, not an alias
+ * in their own file.
+ */
+function importedAlias(ts, node) {
+  const decl = resolveInterface(ts, createProgram().checker, node);
+  return decl && ts.isTypeAliasDeclaration(decl) ? decl : null;
 }
 
 /**
@@ -1359,6 +1377,20 @@ function defaultsForInterface(ts, decl) {
   return found;
 }
 
+/**
+ * Whether a member forbids its prop rather than typing it: a property typed
+ * exactly `undefined` or `never`, which is how one branch of a union props
+ * type says the prop is absent on that path (`name?: undefined`).
+ */
+function forbidsProp(ts, member) {
+  const kind = member.type?.kind;
+  return (
+    ts.isPropertySignature(member) &&
+    (kind === ts.SyntaxKind.UndefinedKeyword ||
+      kind === ts.SyntaxKind.NeverKeyword)
+  );
+}
+
 function memberRows(
   ts,
   decl,
@@ -1506,11 +1538,27 @@ const ROOT_CLASS_OVERRIDES = {
   DateInputBase: 'input', // the trigger is an `.input`
   TimeInputBase: 'input',
   DateTimeInputBase: 'input',
+  // Its helper props, className and style go on the container around its
+  // `.input`, which registers the toggle's variables too.
+  PasswordInputBase: 'password-input-container',
   // The row is Bulma's `.buttons`, the class Buttons renders too. Its segments
   // are Button's `.button`, which SCSS_SOURCES says why it doesn't claim.
   SegmentedControl: 'buttons',
+  // Its root is `.stats` and Bulma's `.grid` at once, from one class string.
+  Stats: 'stats',
   // Not ToggleButton, though it renders a `.button`: that class is Button's,
   // and SCSS_SOURCES in api-sources.mjs says why it stays without one.
+  //
+  // Stack, Group, Center and Flex all render `.stack` through the shared
+  // `StackLayout` (helpers/stackLayout.tsx), so none names it in its own
+  // module. Stack and Group claim it, for the gaps `_stack.scss` registers
+  // there, which are theirs. Center and Flex have no gap of their own, so
+  // they list no variables, the way Buttons doesn't.
+  Stack: 'stack',
+  Group: 'stack',
+  // Its root is drawn by the internal `form/_selectInternals/DialogSelect.tsx`,
+  // which it hands the class by name.
+  TreeSelect: 'tree-select',
 };
 
 /**
@@ -1565,6 +1613,12 @@ export const EXTRA_VAR_ROOTS = {
   // the shared popover.
   ColorInput: ['picker-popover'],
   ColorInputBase: ['picker-popover'],
+  // Bulma's input variables, which its `.input` declares inside the container.
+  PasswordInput: ['input'],
+  PasswordInputBase: ['input'],
+  // TreeSelect's panel is the shared popover, and its tree a TreeView, whose
+  // page lists that one's variables.
+  TreeSelect: ['picker-popover'],
   DateTimeInput: ['datetimeinput', 'dateinput', 'timeinput', 'picker-popover'],
   DateTimeInputBase: [
     'datetimeinput',
@@ -1678,7 +1732,7 @@ export function unnameablePropsError(impl, ifaceName, fn) {
  *   structured consumer (the MCP index): plain type text, and `deprecated` /
  *   `deprecationNote` / `valuesRef` as their own row fields. Defaults to `true`
  *   so the docs generator's output is unaffected.
- * @returns {{name, tsdoc, rootClass, varPrefix, tables: [{path, rows, catchAll: {text, helpers, helperPropsNote?}|null, extraProps}]}}
+ * @returns {{name, tsdoc, rootClass, varPrefix, tables: [{path, rows, catchAll: {text, helpers, helperPropsNote?}|null, extraProps, flexContainer?}]}}
  */
 export function extractComponent(
   name,
@@ -1936,10 +1990,24 @@ export function extractComponent(
     }
 
     // Deduplicate by prop name, keeping the most-derived declaration.
+    //
+    // A union branch forbids a prop by typing it `undefined` or `never`, as
+    // `IconChildrenProps` says `name?: undefined`. Where another branch takes
+    // the prop, the forbidding members add nothing to its row: not a type, and
+    // not the description, default or deprecation, which come from the first
+    // branch that takes it, at that branch's place in the table, whichever
+    // order the union lists its branches in. A prop that every declaration
+    // forbids keeps its first row.
     const byName = new Map();
     for (const row of rows) {
       const prev = byName.get(row.name);
       if (!prev) {
+        byName.set(row.name, row);
+        continue;
+      }
+      if (forbidsProp(ts, row.node)) continue;
+      if (forbidsProp(ts, prev.node)) {
+        byName.delete(row.name);
         byName.set(row.name, row);
         continue;
       }
@@ -1950,10 +2018,7 @@ export function extractComponent(
         prev.type = `${prev.type} | ${row.type}`;
       }
     }
-    // The forbidding branch types the prop `never`, which merged into cells
-    // like ``never` | `number`` on slider.md — noise standing where the
-    // reader needs a type. Dropping it leaves exactly what may be passed, and
-    // the boolean literals a discriminant contributes read as `boolean`, with
+    // The boolean literals a discriminant contributes read as `boolean`, with
     // or without a branch that takes a plain `boolean` beside them (Combobox's
     // `multiple` is `false`, `true` and `boolean` across its three branches).
     // The literals below are the RENDERED members, so they carry backticks in
@@ -1964,7 +2029,6 @@ export function extractComponent(
     for (const row of byName.values()) {
       const seen = new Set();
       let ms = row.type.split(' | ').filter(m => !seen.has(m) && seen.add(m));
-      if (ms.length > 1) ms = ms.filter(m => m !== tick('never'));
       if (ms.length > 1 && ms.every(m => booleans.includes(m))) {
         ms = [tick('boolean')];
       }
@@ -2057,6 +2121,13 @@ export function extractComponent(
     }
 
     const catchAll = catchAllRow(external, markdown);
+    // `@flexContainer` on the props type or a base: the part's root is a flex
+    // container by its own stylesheet, so the flex container helper props
+    // apply with no `display` prop (Stack, Group, Center and Flex, through
+    // their shared `LayoutOwnProps`). The ESLint plugin's metadata reads it.
+    const flexContainer = [decl, ...expandedDecls].some(owner =>
+      hasJsdocTag(ts, owner, 'flexContainer')
+    );
     const helperPropsNote = helperPropsNoteOf(
       impl,
       [decl, ...expandedDecls].map(owner => jsdocTag(ts, owner, 'helperProps')),
@@ -2077,6 +2148,7 @@ export function extractComponent(
         jsdocText(ts, componentFunction(ts, implInit)),
       rows,
       extraProps,
+      ...(flexContainer ? { flexContainer: true } : {}),
       catchAll: catchAll && {
         ...catchAll,
         ...(helperPropsNote ? { helperPropsNote } : {}),

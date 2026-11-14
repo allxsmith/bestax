@@ -16,6 +16,7 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { isElementOf } from '../helpers/elementType';
 import { flattenChildren } from '../helpers/flattenChildren';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { useOverlayEscape, useOverlayStack } from '../helpers/overlayStack';
@@ -27,6 +28,7 @@ import { useOutsidePress } from '../helpers/useOutsidePress';
 import { getActiveElementInTree } from '../helpers/shadowDom';
 import { useBulmaBreakpoint } from '../helpers/useBulmaViewport';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
+import { PortalScope } from '../helpers/portal';
 import { warnOnce } from '../helpers/devWarnings';
 import { MenuRailContext } from '../helpers/menuRail';
 import { useLocale } from '../helpers/LocaleProvider';
@@ -169,7 +171,11 @@ export interface AppFrameNavProps
    * except a column collapsed to a rail, which doesn't (see `rail`). With
    * `overlay`, the rest of the frame is inert while the drawer is open, so an
    * overlay opened from the drawer, such as a `Modal`, goes inside the nav or
-   * renders outside the frame (Modal's `portal`).
+   * renders outside the frame (Modal's `portal`). While the nav is a drawer,
+   * a popup opened in it, such as a Popover's `appendToBody` panel, portals
+   * into the nav, so it shows above the drawer, unless a `ConfigProvider`
+   * sets a `portalContainer`. In the column it portals to the end of the
+   * page, as it does anywhere else.
    */
   children?: React.ReactNode;
   /**
@@ -449,8 +455,13 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
     const navRef = useRef<HTMLElement | null>(null);
     const backdropRef = useRef<HTMLDivElement | null>(null);
     const navCleanupRef = useRef<(() => void) | null>(null);
+    // The nav, as state, for the popups inside the drawer to portal into.
+    const [navNode, setNavNode] = useState<HTMLElement | null>(null);
     const navRefs = useCallback(
-      (node: HTMLElement | null) => setRefs(node, navRef, ref, navCleanupRef),
+      (node: HTMLElement | null) => {
+        setNavNode(node);
+        setRefs(node, navRef, ref, navCleanupRef);
+      },
       [ref]
     );
 
@@ -692,9 +703,15 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
               onClick={close}
             />
           )}
-          <MenuRailContext.Provider value={railValue}>
-            {children}
-          </MenuRailContext.Provider>
+          {/* The drawer draws over the page, so a popup opened in it, such
+              as a Popover's panel, portals into it to show above it. The
+              column doesn't: it's under the header, which the popup has to
+              clear. */}
+          <PortalScope node={isDrawer ? navNode : undefined}>
+            <MenuRailContext.Provider value={railValue}>
+              {children}
+            </MenuRailContext.Provider>
+          </PortalScope>
         </nav>
         {frame && overlay && (
           <div
@@ -857,12 +874,12 @@ AppFrameBurger.displayName = 'AppFrame.Burger';
 const isMain = (
   child: React.ReactNode
 ): child is React.ReactElement<AppFrameMainProps> =>
-  React.isValidElement(child) && child.type === AppFrameMain;
+  isElementOf(child, AppFrameMain);
 
 const isNav = (
   child: React.ReactNode
 ): child is React.ReactElement<AppFrameNavProps> =>
-  React.isValidElement(child) && child.type === AppFrameNav;
+  isElementOf(child, AppFrameNav);
 
 /**
  * The `AppFrame` component lays out an app's pages: a header across the top, a navigation column down the side, the page, and an aside and a footer, with the nav a drawer behind a burger on narrow screens.

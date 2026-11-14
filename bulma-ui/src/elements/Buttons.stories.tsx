@@ -47,7 +47,7 @@ type Story = StoryObj<typeof Buttons>;
 export const Default: Story = {
   render: () => (
     <Buttons>
-      <Button>Primary</Button>
+      <Button color="primary">Primary</Button>
       <Button color="info">Info</Button>
       <Button color="success">Success</Button>
     </Buttons>
@@ -65,7 +65,7 @@ export const Default: Story = {
 export const Centered: Story = {
   render: () => (
     <Buttons isCentered>
-      <Button>Primary</Button>
+      <Button color="primary">Primary</Button>
       <Button color="info">Info</Button>
       <Button color="success">Success</Button>
     </Buttons>
@@ -83,7 +83,7 @@ export const Centered: Story = {
 export const RightAligned: Story = {
   render: () => (
     <Buttons isRight>
-      <Button>Primary</Button>
+      <Button color="primary">Primary</Button>
       <Button color="info">Info</Button>
       <Button color="success">Success</Button>
     </Buttons>
@@ -102,15 +102,15 @@ export const Sizes: Story = {
   render: () => (
     <>
       <Buttons size="small">
-        <Button>Small</Button>
+        <Button color="primary">Small</Button>
         <Button color="info">Small</Button>
       </Buttons>
       <Buttons size="medium">
-        <Button>Medium</Button>
+        <Button color="primary">Medium</Button>
         <Button color="info">Medium</Button>
       </Buttons>
       <Buttons size="large">
-        <Button>Large</Button>
+        <Button color="primary">Large</Button>
         <Button color="info">Large</Button>
       </Buttons>
     </>
@@ -246,6 +246,8 @@ export const CompoundUsage: Story = {
         <Buttons.Button color="primary">Save</Buttons.Button>
         <Buttons.Button>Cancel</Buttons.Button>
         <Buttons.LinkButton>Learn more</Buttons.LinkButton>
+        <Buttons.IconButton icon="ellipsis" aria-label="More actions" />
+        <Buttons.CopyButton value="https://bestax.io" />
       </Buttons>
       <Buttons hasAddons role="group" aria-label="Text style">
         <Buttons.ToggleButton defaultPressed>Bold</Buttons.ToggleButton>

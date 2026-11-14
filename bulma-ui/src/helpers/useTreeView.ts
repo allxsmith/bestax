@@ -1,8 +1,16 @@
 // INTERNAL: deliberately not exported from src/index.ts.
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
 import type React from 'react';
 import type { TreeViewSelectionMode } from '../components/TreeView';
 import { useClientLayoutEffect } from './useClientLayoutEffect';
+import { useControlled } from './useControlled';
 import { getActiveElementInTree } from './shadowDom';
 import { typeaheadMatch, typeaheadText, useTypeahead } from './typeahead';
 
@@ -40,7 +48,8 @@ export interface TreeViewPosition {
 
 /**
  * What an item shows of the selection: `selected` in a `single` tree,
- * `checked` in a `checkbox` tree, and neither with `none`.
+ * `checked` in a `checkbox` or `checkbox-independent` tree, and neither with
+ * `none`.
  */
 export interface TreeViewItemState {
   selected?: boolean;
@@ -49,18 +58,31 @@ export interface TreeViewItemState {
 
 type Action = 'open' | 'select' | 'check';
 
+/** What Enter, Space and a click on the row do in a mode. */
+interface ModeActions {
+  enter: Action[];
+  space: Action[];
+  click: Action[];
+}
+
+/** The keys and clicks of both checkbox modes, which differ only in what a check reaches. */
+const CHECKBOX_ACTIONS: ModeActions = {
+  enter: ['open'],
+  space: ['check'],
+  click: ['check'],
+};
+
 /**
  * What Enter, Space and a click on the row do in each mode, from the tables
- * in #1096. `open` opens or closes a parent and does nothing on a leaf. A
- * click on the chevron only ever opens or closes.
+ * in #1096, with `checkbox-independent` from #1430. `open` opens or closes a
+ * parent and does nothing on a leaf. A click on the chevron only ever opens
+ * or closes.
  */
-const MODES: Record<
-  TreeViewSelectionMode,
-  { enter: Action[]; space: Action[]; click: Action[] }
-> = {
+const MODES: Record<TreeViewSelectionMode, ModeActions> = {
   none: { enter: ['open'], space: ['open'], click: ['open'] },
   single: { enter: ['select'], space: ['select'], click: ['select', 'open'] },
-  checkbox: { enter: ['open'], space: ['check'], click: ['check'] },
+  checkbox: CHECKBOX_ACTIONS,
+  'checkbox-independent': CHECKBOX_ACTIONS,
 };
 
 /** Left and Right, swapped for a right-to-left page. */
@@ -153,6 +175,17 @@ function pathOf(element: Element, { values }: Registry): string[] {
 }
 
 /**
+ * The values of the items a tree hides while they stay in it, as TreeSelect's
+ * search hides the items that don't match. A hidden item renders as one under
+ * a closed parent does: nothing on the page, and in a `checkbox` tree it and
+ * its children still register, so a check still reaches them. Internal, for
+ * the components that put a TreeView inside them.
+ */
+export const TreeViewHiddenContext = createContext<ReadonlySet<string>>(
+  new Set()
+);
+
+/**
  * Every known item's check state, by the rules in #1096:
  *
  * - a disabled item is checked only when its own value is listed;
@@ -163,7 +196,7 @@ function pathOf(element: Element, { values }: Registry): string[] {
  *
  * Also returns the items of the second kind, which are what a toggle sets.
  */
-function readChecks(
+export function readChecks(
   records: Map<string, TreeViewItemRecord>,
   listed: Set<string>
 ): { states: Map<string, TreeViewCheckState>; ends: string[] } {
@@ -205,7 +238,7 @@ function readChecks(
  * back by the rules. That's every item that shows checked, parents
  * included, plus any listed value no item has.
  */
-function toggledList(
+export function toggledList(
   records: Map<string, TreeViewItemRecord>,
   list: string[],
   value: string
@@ -235,14 +268,16 @@ function toggledList(
   ];
 }
 
-/** A value the caller holds, or one this hook holds when the caller doesn't. */
-function useControlled<T>(controlled: T | undefined, initial: T) {
-  const [own, setOwn] = useState(initial);
-  const isControlled = controlled !== undefined;
-  const set = (next: T) => {
-    if (!isControlled) setOwn(next);
-  };
-  return [isControlled ? controlled : own, set] as const;
+/**
+ * The list with `value` added at the end, or, when it's `present`, with
+ * every copy of it taken out. Everything else stays as it was, in its order.
+ */
+function addedOrRemoved(
+  list: string[],
+  value: string,
+  present: boolean
+): string[] {
+  return present ? list.filter(v => v !== value) : [...list, value];
 }
 
 /** Options for `useTreeView`: the TreeView's own props. */
@@ -265,9 +300,12 @@ export interface TreeViewEngine {
   treeRef: React.MutableRefObject<HTMLUListElement | null>;
   /**
    * Whether a closed item still renders its children, drawing nothing, so a
-   * check knows everything under it. Only a checkbox tree needs to.
+   * check knows everything under it. Only a `checkbox` tree needs to: a check
+   * in a `checkbox-independent` tree reaches nothing under it.
    */
   rendersClosed: boolean;
+  /** Whether any number of items can be checked, in either checkbox mode. */
+  multiselectable: boolean;
   /** The item that holds `tabIndex={0}`. */
   tabStop: string | null;
   isOpen: (value: string) => boolean;
@@ -319,10 +357,12 @@ export interface TreeViewEngine {
  * browser (#1171), read off the page once the tree has mounted.
  *
  * Every item registers its value, its parent and whether it's disabled from
- * a layout effect. In a checkbox tree a closed item's children still render
- * and register while drawing nothing, so the registry knows every item and a
- * check reaches all of them. The keys read the items on the page, in
- * document order, each time they need them.
+ * a layout effect. In a `checkbox` tree a closed item's children still
+ * render and register while drawing nothing, so the registry knows every item
+ * and a check reaches all of them. A `checkbox-independent` tree reads each
+ * box off the checked list alone, so a check adds or takes out its own value
+ * and nothing else. The keys read the items on the page, in document order,
+ * each time they need them.
  *
  * @function useTreeView
  * @param options - The TreeView's props.
@@ -348,9 +388,15 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
     options.checked,
     options.defaultChecked
   );
+  // In a `checkbox` tree a check reaches the items under it, by the rules. In
+  // a `checkbox-independent` one each box is its own item's, read off the list.
+  const cascade = mode === 'checkbox';
+  const independent = mode === 'checkbox-independent';
+  // A box on every item, in either checkbox tree.
+  const boxed = cascade || independent;
   // Each is read in its own mode only.
   const selected = mode === 'single' ? selection : null;
-  const listed = new Set(mode === 'checkbox' ? checkedList : []);
+  const listed = new Set(boxed ? checkedList : []);
 
   const treeRef = useRef<HTMLUListElement | null>(null);
   const registryRef = useRef<Registry>({
@@ -374,12 +420,18 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
   const [positions, setPositions] = useState(NO_POSITIONS);
 
   const { records } = registryRef.current;
-  const checks =
-    mode === 'checkbox'
-      ? // eslint-disable-next-line react-hooks/refs -- read in render on purpose: items write the registry from their layout effects and then ask for this render with `refresh`
-        readChecks(records, listed).states
-      : undefined;
+  const checks = cascade
+    ? // eslint-disable-next-line react-hooks/refs -- read in render on purpose: items write the registry from their layout effects and then ask for this render with `refresh`
+      readChecks(records, listed).states
+    : undefined;
   const tabStop = focused ?? (resting === undefined ? selected : resting);
+
+  // An item's box, decided here alone, so the box drawn, the tab stop and a
+  // toggle agree: off the list in a `checkbox-independent` tree, and by the
+  // rules in a `checkbox` one, where it's `undefined` until the item
+  // registers. `undefined` in a tree with no boxes.
+  const checkOf = (value: string): TreeViewCheckState | undefined =>
+    independent ? listed.has(value) : checks?.get(value);
 
   const isOpen = (value: string) => expanded.includes(value);
 
@@ -391,12 +443,14 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
     if (mode === 'single') {
       return disabled ? {} : { selected: value === selected };
     }
-    if (checks) {
-      // Until the items register, a value stands for its branch, and a
-      // parent can't know it's mixed.
-      const fromList =
-        listed.has(value) || (!disabled && path.some(v => listed.has(v)));
-      return { checked: checks.get(value) ?? fromList };
+    if (boxed) {
+      // Until the items register in a `checkbox` tree, a value stands for
+      // its branch, and a parent can't know it's mixed.
+      return {
+        checked:
+          checkOf(value) ??
+          (listed.has(value) || (!disabled && path.some(v => listed.has(v)))),
+      };
     }
     return {};
   };
@@ -408,11 +462,7 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
 
   const run: Record<Action, (item: TreeViewItemInfo) => void> = {
     open: ({ value, isParent, open }) => {
-      if (isParent) {
-        changeOpen(
-          open ? expanded.filter(v => v !== value) : [...expanded, value]
-        );
-      }
+      if (isParent) changeOpen(addedOrRemoved(expanded, value, open));
     },
     select: ({ value }) => {
       if (value === selected) return;
@@ -420,7 +470,11 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
       options.onSelectedChange?.(value);
     },
     check: ({ value }) => {
-      const next = toggledList(records, checkedList, value);
+      // A `checkbox-independent` box is its own item's alone, so its value
+      // comes or goes and the rest of the list stays as it was.
+      const next = independent
+        ? addedOrRemoved(checkedList, value, checkOf(value) === true)
+        : toggledList(records, checkedList, value);
       setChecked(next);
       options.onCheckedChange?.(next);
     },
@@ -471,7 +525,7 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
     if (focused !== null && !isShown(focused)) setFocused(null);
 
     const preferred = onPage.find(
-      value => value === selected || checks?.get(value) === true
+      value => value === selected || checkOf(value) === true
     );
     const next =
       preferred ?? (isShown(resting) ? resting : heir(restingPathRef.current));
@@ -590,13 +644,16 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
         if (!event.repeat) press(item, actions.space);
         break;
       case '*': {
+        // The siblings on the page: not the ones a component around the
+        // tree hides, which stay registered.
         const closed: string[] = [];
         registry.records.forEach((record, value) => {
           if (
             record.parent === item.parent &&
             record.isParent &&
             !record.disabled &&
-            !expanded.includes(value)
+            !expanded.includes(value) &&
+            registry.elements.has(value)
           ) {
             closed.push(value);
           }
@@ -627,7 +684,8 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
 
   return {
     treeRef,
-    rendersClosed: mode === 'checkbox',
+    rendersClosed: cascade,
+    multiselectable: boxed,
     tabStop,
     isOpen,
     stateOf,

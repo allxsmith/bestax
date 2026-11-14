@@ -10,7 +10,10 @@ import {
   useRef,
   useState,
 } from 'react';
-import { useNumberFormat, NumberFormatter } from '../../helpers/localeFormat';
+import {
+  useScopedNumberFormat,
+  NumberFormatFunction,
+} from '../../helpers/localeFormat';
 import { useClientLayoutEffect } from '../../helpers/useClientLayoutEffect';
 import { warnOnce } from '../../helpers/devWarnings';
 import { useNativeMobilePicker } from '../_pickerInternals/useNativeMobilePicker';
@@ -135,14 +138,15 @@ export function usePicker(part: string): ColorPickerContextValue | null {
 
 /** A percentage, in the provider's locale when there is one. */
 const writePercent =
-  (formatNumber: NumberFormatter | null) => (value: number) =>
+  (formatNumber: NumberFormatFunction | null) => (value: number) =>
     formatNumber
       ? formatNumber(value / 100, { style: 'percent' })
       : `${value}%`;
 
 /** Degrees, in the provider's locale when there is one, else with `unit`. */
 const writeDegrees =
-  (formatNumber: NumberFormatter | null, unit: string) => (value: number) =>
+  (formatNumber: NumberFormatFunction | null, unit: string) =>
+  (value: number) =>
     formatNumber
       ? formatNumber(value, {
           style: 'unit',
@@ -238,7 +242,7 @@ export function useColorPicker({
     [onChangeEnd]
   );
 
-  const formatNumber = useNumberFormat();
+  const formatNumber = useScopedNumberFormat();
   const { isCoarsePointer } = useNativeMobilePicker();
   const merged = mergeColorLabels(labels);
   return {

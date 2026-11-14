@@ -313,6 +313,8 @@ describe('File focus ring in a prefixed build', () => {
 
 describe('the input of a File', () => {
   let sheet: HTMLStyleElement;
+  // A hook keeps Vitest's 10s default rather than `testTimeout`, and loading
+  // all of Bulma can take longer than that on a loaded machine.
   beforeAll(() => {
     sheet = document.createElement('style');
     sheet.textContent = (bulmaCss() + compile()).replace(
@@ -320,7 +322,7 @@ describe('the input of a File', () => {
       ''
     );
     document.head.appendChild(sheet);
-  });
+  }, 30_000);
   afterAll(() => {
     sheet.remove();
   });

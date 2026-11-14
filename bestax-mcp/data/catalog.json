@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.57.5"
+    "version": "5.67.12"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -17,12 +17,14 @@
         "Code",
         "ColorSwatch",
         "Content",
+        "CopyButton",
         "Delete",
         "DescriptionList",
         "Divider",
         "Emphasis",
         "Figure",
         "Icon",
+        "IconButton",
         "IconText",
         "Image",
         "Kbd",
@@ -31,6 +33,7 @@
         "ListItem",
         "Loader",
         "Notification",
+        "NumberFormatter",
         "OrderedList",
         "Paragraph",
         "Pre",
@@ -38,6 +41,8 @@
         "RingProgress",
         "Skeleton",
         "Span",
+        "Stat",
+        "Stats",
         "Strong",
         "SubTitle",
         "Table",
@@ -52,6 +57,7 @@
       "id": "components",
       "label": "Components",
       "components": [
+        "Affix",
         "Avatar",
         "Avatars",
         "Badge",
@@ -67,6 +73,7 @@
         "Dropdown",
         "EmptyState",
         "HoverCard",
+        "Lightbox",
         "Loading",
         "Menu",
         "Message",
@@ -80,6 +87,7 @@
         "SegmentedControl",
         "Sidebar",
         "Steps",
+        "TableOfContents",
         "Tabs",
         "Timeline",
         "Toast",
@@ -108,6 +116,7 @@
         "File",
         "Input",
         "Numberinput",
+        "PasswordInput",
         "PinInput",
         "Radio",
         "RadioCard",
@@ -118,7 +127,8 @@
         "Switch",
         "Taginput",
         "TextArea",
-        "TimeInput"
+        "TimeInput",
+        "TreeSelect"
       ]
     },
     {
@@ -132,13 +142,17 @@
       "label": "Layout",
       "components": [
         "AppFrame",
+        "Center",
         "Container",
+        "Flex",
         "Footer",
+        "Group",
         "Hero",
         "Level",
         "Media",
         "Section",
-        "Splitter"
+        "Splitter",
+        "Stack"
       ]
     },
     {
@@ -153,12 +167,24 @@
         "Valid value constants",
         "classNames",
         "useBulmaClasses",
+        "useClipboard",
         "useFocusTrap",
         "usePrefixedClassNames"
       ]
     }
   ],
   "components": [
+    {
+      "name": "Affix",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `Affix` component keeps its content fixed to a corner of the viewport while the page scrolls under it.",
+      "slug": "components/affix",
+      "import": "import { Affix } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 4,
+      "exampleCount": 8
+    },
     {
       "name": "AppFrame",
       "kind": "component",
@@ -266,7 +292,7 @@
       "slug": "elements/buttons",
       "import": "import { Buttons } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 59,
+      "propCount": 104,
       "exampleCount": 8
     },
     {
@@ -275,7 +301,7 @@
       "category": "components",
       "purpose": "The `Card` component renders a Bulma-styled card with optional header, image, content, and footer.",
       "slug": "components/card",
-      "import": "import { Card } from '@allxsmith/bestax-bulma';",
+      "import": "import { Card, CardHeader, CardHeaderTitle, CardHeaderIcon, CardImage, CardContent, CardFooter, CardFooterItem } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 51,
       "exampleCount": 14
@@ -301,6 +327,17 @@
       "compound": false,
       "propCount": 11,
       "exampleCount": 6
+    },
+    {
+      "name": "Center",
+      "kind": "component",
+      "category": "layout",
+      "purpose": "The `Center` component centers its content on both axes.",
+      "slug": "layout/center",
+      "import": "import { Center } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 7,
+      "exampleCount": 4
     },
     {
       "name": "Checkbox",
@@ -498,7 +535,7 @@
       "import": "import { ContextMenu } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 10,
-      "exampleCount": 9
+      "exampleCount": 8
     },
     {
       "name": "Control",
@@ -510,6 +547,17 @@
       "compound": false,
       "propCount": 18,
       "exampleCount": 12
+    },
+    {
+      "name": "CopyButton",
+      "kind": "component",
+      "category": "elements",
+      "purpose": "The `CopyButton` component renders a button that copies a piece of text to the clipboard, says \"Copied\" for a moment, and announces the result.",
+      "slug": "elements/copybutton",
+      "import": "import { CopyButton } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 23,
+      "exampleCount": 11
     },
     {
       "name": "DataTable",
@@ -671,7 +719,7 @@
       "category": "elements",
       "purpose": "The `Figure` component renders a styled `<figure>` element with Bulma helper class integration.",
       "slug": "elements/figure",
-      "import": "import { Figure } from '@allxsmith/bestax-bulma';",
+      "import": "import { Figure, FigureCaption } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 8,
       "exampleCount": 7
@@ -686,6 +734,17 @@
       "compound": false,
       "propCount": 23,
       "exampleCount": 18
+    },
+    {
+      "name": "Flex",
+      "kind": "component",
+      "category": "layout",
+      "purpose": "The `Flex` component is a flex container with CSS's own defaults, taking the flex container's properties as props.",
+      "slug": "layout/flex",
+      "import": "import { Flex } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 13,
+      "exampleCount": 4
     },
     {
       "name": "Footer",
@@ -708,6 +767,17 @@
       "compound": true,
       "propCount": 27,
       "exampleCount": 10
+    },
+    {
+      "name": "Group",
+      "kind": "component",
+      "category": "layout",
+      "purpose": "The `Group` component lays its children out in a row that wraps, centered on each other, with half of Bulma's block spacing between them.",
+      "slug": "layout/group",
+      "import": "import { Group } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 11,
+      "exampleCount": 6
     },
     {
       "name": "Hero",
@@ -741,6 +811,17 @@
       "compound": false,
       "propCount": 15,
       "exampleCount": 14
+    },
+    {
+      "name": "IconButton",
+      "kind": "component",
+      "category": "elements",
+      "purpose": "The `IconButton` component renders a button that shows only an icon, and requires a name for it.",
+      "slug": "elements/iconbutton",
+      "import": "import { IconButton } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 22,
+      "exampleCount": 12
     },
     {
       "name": "IconText",
@@ -794,8 +875,19 @@
       "slug": "layout/level",
       "import": "import { Level } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 23,
+      "propCount": 24,
       "exampleCount": 5
+    },
+    {
+      "name": "Lightbox",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `Lightbox` component shows a set of images one at a time in a modal viewer, with previous and next, a counter, captions and zoom, opened from the…",
+      "slug": "components/lightbox",
+      "import": "import { Lightbox } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 21,
+      "exampleCount": 9
     },
     {
       "name": "Link",
@@ -891,7 +983,7 @@
       "category": "components",
       "purpose": "The `Message` component provides Bulma's flexible notice/message box for your Bulma React UI.",
       "slug": "components/message",
-      "import": "import { Message } from '@allxsmith/bestax-bulma';",
+      "import": "import { Message, MessageHeader, MessageBody } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 12,
       "exampleCount": 8
@@ -902,7 +994,7 @@
       "category": "components",
       "purpose": "The `Modal` component provides an empty, accessible overlay for arbitrary content — for a ready-made confirm or alert, reach for `Dialog` instead.",
       "slug": "components/modal",
-      "import": "import { Modal } from '@allxsmith/bestax-bulma';",
+      "import": "import { Modal, ModalBackground, ModalContent, ModalClose, ModalCard, ModalCardHead, ModalCardTitle, ModalCardBody, ModalCardFoot } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 23,
       "exampleCount": 10
@@ -915,7 +1007,7 @@
       "slug": "components/navbar",
       "import": "import { Navbar } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 57,
+      "propCount": 58,
       "exampleCount": 19
     },
     {
@@ -928,6 +1020,17 @@
       "compound": false,
       "propCount": 7,
       "exampleCount": 7
+    },
+    {
+      "name": "NumberFormatter",
+      "kind": "component",
+      "category": "elements",
+      "purpose": "The `NumberFormatter` component writes a number the way a locale writes it, such as a price, a percentage or a count, in a `<data>` element that keeps the…",
+      "slug": "elements/numberformatter",
+      "import": "import { NumberFormatter, useNumberFormat } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 6,
+      "exampleCount": 10
     },
     {
       "name": "Numberinput",
@@ -983,6 +1086,17 @@
       "compound": false,
       "propCount": 4,
       "exampleCount": 10
+    },
+    {
+      "name": "PasswordInput",
+      "kind": "component",
+      "category": "form",
+      "purpose": "The `PasswordInput` component is a password field with a button inside it that shows what was typed.",
+      "slug": "form/passwordinput",
+      "import": "import { PasswordInput } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 29,
+      "exampleCount": 11
     },
     {
       "name": "PinInput",
@@ -1133,7 +1247,7 @@
       "category": "components",
       "purpose": "The `SegmentedControl` component renders a row of buttons where only one can be on, and tells a screen reader it's a radio group.",
       "slug": "components/segmentedcontrol",
-      "import": "import { SegmentedControl } from '@allxsmith/bestax-bulma';",
+      "import": "import { SegmentedControl, SegmentedControlSegment } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 16,
       "exampleCount": 11
@@ -1155,10 +1269,10 @@
       "category": "components",
       "purpose": "The `Sidebar` component provides a slide-out navigation panel that appears from the left or right side of the screen.",
       "slug": "components/sidebar",
-      "import": "import { Sidebar } from '@allxsmith/bestax-bulma';",
+      "import": "import { Sidebar, SidebarHeader, SidebarTitle, SidebarClose, SidebarBody, SidebarFooter } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 22,
-      "exampleCount": 8
+      "exampleCount": 9
     },
     {
       "name": "Skeleton",
@@ -1203,6 +1317,39 @@
       "compound": true,
       "propCount": 21,
       "exampleCount": 9
+    },
+    {
+      "name": "Stack",
+      "kind": "component",
+      "category": "layout",
+      "purpose": "The `Stack` component lays its children out in a column, with Bulma's block spacing between them and the margins Bulma gives them zeroed.",
+      "slug": "layout/stack",
+      "import": "import { Stack } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 8,
+      "exampleCount": 8
+    },
+    {
+      "name": "Stat",
+      "kind": "component",
+      "category": "elements",
+      "purpose": "The `Stat` component shows a figure with its name, and often a change and a note, such as a dashboard's revenue or an account's storage used.",
+      "slug": "elements/stat",
+      "import": "import { Stat } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 31,
+      "exampleCount": 12
+    },
+    {
+      "name": "Stats",
+      "kind": "component",
+      "category": "elements",
+      "purpose": "The `Stats` component lays out a row of `Stat`s, such as the key figures at the top of a dashboard, as one description list on Bulma's smart grid.",
+      "slug": "elements/stats",
+      "import": "import { Stats, Stat } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 19,
+      "exampleCount": 5
     },
     {
       "name": "Steps",
@@ -1258,6 +1405,17 @@
       "compound": true,
       "propCount": 32,
       "exampleCount": 8
+    },
+    {
+      "name": "TableOfContents",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `TableOfContents` component lists a long page's sections as links in Bulma's menu look, and marks the one being read.",
+      "slug": "components/tableofcontents",
+      "import": "import { TableOfContents, useScrollSpy } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 8,
+      "exampleCount": 5
     },
     {
       "name": "Tabs",
@@ -1392,6 +1550,17 @@
       "exampleCount": 12
     },
     {
+      "name": "TreeSelect",
+      "kind": "component",
+      "category": "form",
+      "purpose": "The `TreeSelect` component is a form field whose options are a tree, such as categories, places or teams: it opens a panel holding a real `TreeView`, picks one…",
+      "slug": "form/treeselect",
+      "import": "import { TreeSelect } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 46,
+      "exampleCount": 13
+    },
+    {
       "name": "TreeView",
       "kind": "component",
       "category": "components",
@@ -1400,7 +1569,7 @@
       "import": "import { TreeView } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 27,
-      "exampleCount": 9
+      "exampleCount": 10
     },
     {
       "name": "UnorderedList",
@@ -1447,6 +1616,17 @@
       "exampleCount": 46
     },
     {
+      "name": "useClipboard",
+      "kind": "helper",
+      "category": "helpers",
+      "purpose": "useClipboard copies text to the clipboard through the Clipboard API, falling back to the copy command, and keeps a copied flag for a moment after.",
+      "slug": "helpers/useclipboard",
+      "import": "import { useClipboard } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 0,
+      "exampleCount": 2
+    },
+    {
       "name": "useFocusTrap",
       "kind": "helper",
       "category": "helpers",
@@ -1470,6 +1650,9 @@
     }
   ],
   "cssVarIndex": {
+    "--bulma-affix-offset-horizontal": ["Affix"],
+    "--bulma-affix-offset-vertical": ["Affix"],
+    "--bulma-affix-z-index": ["Affix"],
     "--bulma-app-frame-aside-width": ["AppFrame"],
     "--bulma-app-frame-backdrop-background": ["AppFrame"],
     "--bulma-app-frame-border-color": ["AppFrame"],
@@ -2057,6 +2240,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2067,6 +2251,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2077,6 +2262,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2087,6 +2273,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2097,6 +2284,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2107,6 +2295,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2117,6 +2306,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2127,6 +2317,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2137,6 +2328,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2147,6 +2339,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2157,6 +2350,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2167,6 +2361,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2177,6 +2372,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2187,6 +2383,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2197,6 +2394,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2207,6 +2405,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2217,6 +2416,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2227,6 +2427,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2237,6 +2438,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2247,6 +2449,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2257,6 +2460,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2267,6 +2471,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2277,6 +2482,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2287,6 +2493,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2297,6 +2504,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2307,6 +2515,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2317,6 +2526,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2327,6 +2537,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2337,6 +2548,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2347,6 +2559,7 @@
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
+      "PasswordInput",
       "Select",
       "TextArea",
       "TimeInput"
@@ -2362,6 +2575,30 @@
     "--bulma-kbd-size": ["Kbd"],
     "--bulma-kbd-weight": ["Kbd"],
     "--bulma-level-item-spacing": ["Level"],
+    "--bulma-lightbox-animation-duration": ["Lightbox"],
+    "--bulma-lightbox-arrow-background": ["Lightbox"],
+    "--bulma-lightbox-arrow-background-hover": ["Lightbox"],
+    "--bulma-lightbox-arrow-color": ["Lightbox"],
+    "--bulma-lightbox-arrow-icon-size": ["Lightbox"],
+    "--bulma-lightbox-arrow-offset": ["Lightbox"],
+    "--bulma-lightbox-arrow-size": ["Lightbox"],
+    "--bulma-lightbox-button-border-width": ["Lightbox"],
+    "--bulma-lightbox-caption-color": ["Lightbox"],
+    "--bulma-lightbox-caption-max-width": ["Lightbox"],
+    "--bulma-lightbox-caption-padding": ["Lightbox"],
+    "--bulma-lightbox-controls-z-index": ["Lightbox"],
+    "--bulma-lightbox-disabled-opacity": ["Lightbox"],
+    "--bulma-lightbox-error-color": ["Lightbox"],
+    "--bulma-lightbox-error-gap": ["Lightbox"],
+    "--bulma-lightbox-error-padding": ["Lightbox"],
+    "--bulma-lightbox-image-max-height": ["Lightbox"],
+    "--bulma-lightbox-loader-size": ["Lightbox"],
+    "--bulma-lightbox-spacing": ["Lightbox"],
+    "--bulma-lightbox-toolbar-button-background": ["Lightbox"],
+    "--bulma-lightbox-toolbar-button-background-hover": ["Lightbox"],
+    "--bulma-lightbox-toolbar-color": ["Lightbox"],
+    "--bulma-lightbox-toolbar-gap": ["Lightbox"],
+    "--bulma-lightbox-toolbar-icon-size": ["Lightbox"],
     "--bulma-link-button-ghost-color": ["LinkButton"],
     "--bulma-link-button-ghost-hover-color": ["LinkButton"],
     "--bulma-link-button-transition-duration": ["LinkButton"],
@@ -2602,61 +2839,74 @@
     "--bulma-panel-tab-border-bottom-style": ["Panel"],
     "--bulma-panel-tab-border-bottom-width": ["Panel"],
     "--bulma-panel-tabs-font-size": ["Panel"],
+    "--bulma-password-input-toggle-color": ["PasswordInput"],
+    "--bulma-password-input-toggle-disabled-opacity": ["PasswordInput"],
+    "--bulma-password-input-toggle-hover-color": ["PasswordInput"],
+    "--bulma-password-input-toggle-text-width": ["PasswordInput"],
+    "--bulma-password-input-toggle-width": ["PasswordInput"],
     "--bulma-picker-popover-animation-duration": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-picker-popover-background": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-picker-popover-border-color": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-picker-popover-offset": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-picker-popover-padding": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-picker-popover-radius": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-picker-popover-shadow": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-picker-popover-z-index": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
       "DateTimeInput",
-      "TimeInput"
+      "TimeInput",
+      "TreeSelect"
     ],
     "--bulma-pin-input-box-width": ["PinInput"],
     "--bulma-pin-input-caret-blink-duration": ["PinInput"],
@@ -2827,6 +3077,19 @@
     "--bulma-splitter-line-active-size": ["Splitter"],
     "--bulma-splitter-line-color": ["Splitter"],
     "--bulma-splitter-line-size": ["Splitter"],
+    "--bulma-stack-gap": ["Stack", "Group"],
+    "--bulma-stack-horizontal-gap": ["Stack", "Group"],
+    "--bulma-stat-change-color": ["Stat"],
+    "--bulma-stat-change-gap": ["Stat"],
+    "--bulma-stat-change-size": ["Stat"],
+    "--bulma-stat-description-color": ["Stat"],
+    "--bulma-stat-description-size": ["Stat"],
+    "--bulma-stat-label-color": ["Stat"],
+    "--bulma-stat-label-size": ["Stat"],
+    "--bulma-stat-value-color": ["Stat"],
+    "--bulma-stat-value-line-height": ["Stat"],
+    "--bulma-stat-value-size": ["Stat"],
+    "--bulma-stat-value-weight": ["Stat"],
     "--bulma-steps-animation-duration": ["Steps"],
     "--bulma-steps-content-margin-top": ["Steps"],
     "--bulma-steps-default-color": ["Steps"],
@@ -2884,6 +3147,7 @@
     "--bulma-table-head-background-color": ["Table"],
     "--bulma-table-head-cell-border-width": ["Table"],
     "--bulma-table-head-cell-color": ["Table"],
+    "--bulma-table-of-contents-sticky-top": ["TableOfContents"],
     "--bulma-table-row-active-background-color": ["Table"],
     "--bulma-table-row-active-color": ["Table"],
     "--bulma-table-row-hover-background-color": ["Table"],
@@ -2935,6 +3199,7 @@
     "--bulma-taginput-padding": ["Taginput"],
     "--bulma-taginput-tag-gap": ["Taginput"],
     "--bulma-taginput-transition-duration": ["Taginput"],
+    "--bulma-text-invert-l": ["Panel"],
     "--bulma-textarea-max-height": ["TextArea"],
     "--bulma-textarea-min-height": ["TextArea"],
     "--bulma-textarea-padding": ["TextArea"],
@@ -3009,6 +3274,17 @@
     "--bulma-tooltip-padding": ["Tooltip"],
     "--bulma-tooltip-radius": ["Tooltip"],
     "--bulma-tooltip-z-index": ["Tooltip"],
+    "--bulma-tree-select-chevron-color": ["TreeSelect"],
+    "--bulma-tree-select-chevron-focus-color": ["TreeSelect"],
+    "--bulma-tree-select-chevron-hover-color": ["TreeSelect"],
+    "--bulma-tree-select-chevron-width": ["TreeSelect"],
+    "--bulma-tree-select-chevron-z-index": ["TreeSelect"],
+    "--bulma-tree-select-clear-z-index": ["TreeSelect"],
+    "--bulma-tree-select-empty-color": ["TreeSelect"],
+    "--bulma-tree-select-empty-padding": ["TreeSelect"],
+    "--bulma-tree-select-panel-max-height": ["TreeSelect"],
+    "--bulma-tree-select-search-gap": ["TreeSelect"],
+    "--bulma-tree-select-tree-inset": ["TreeSelect"],
     "--bulma-tree-view-gap": ["TreeView"],
     "--bulma-tree-view-group-border": ["TreeView"],
     "--bulma-tree-view-group-margin": ["TreeView"],
@@ -3062,6 +3338,41 @@
       "component": "AppFrame",
       "path": "AppFrame.Nav",
       "purpose": "The navigation of an AppFrame: a column beside the page from the breakpoint up, and a drawer below it."
+    },
+    "CardContent": {
+      "component": "Card",
+      "path": "Card.Content",
+      "purpose": "Card content compound component. Wraps children in a `.card-content` element."
+    },
+    "CardFooter": {
+      "component": "Card",
+      "path": "Card.Footer",
+      "purpose": "Card footer compound component. Wraps children in a `.card-footer` element."
+    },
+    "CardFooterItem": {
+      "component": "Card",
+      "path": "Card.FooterItem",
+      "purpose": "Card footer item compound component. Wraps children in a `.card-footer-item` span."
+    },
+    "CardHeader": {
+      "component": "Card",
+      "path": "Card.Header",
+      "purpose": "Card header compound component. Wraps children in a `.card-header` element."
+    },
+    "CardHeaderIcon": {
+      "component": "Card",
+      "path": "Card.Header.Icon",
+      "purpose": "Card header icon compound component. Renders a `.card-header-icon` button."
+    },
+    "CardHeaderTitle": {
+      "component": "Card",
+      "path": "Card.Header.Title",
+      "purpose": "Card header title compound component. Renders a `.card-header-title` element."
+    },
+    "CardImage": {
+      "component": "Card",
+      "path": "Card.Image",
+      "purpose": "Card image compound component. Wraps children in a `.card-image` element."
     },
     "CarouselItem": {
       "component": "Carousel",
@@ -3239,6 +3550,11 @@
       "path": "Field.Label",
       "purpose": "FieldLabel component for rendering a Bulma field label."
     },
+    "FigureCaption": {
+      "component": "Figure",
+      "path": "Figure.Caption",
+      "purpose": "FigureCaption component for rendering a styled figcaption element."
+    },
     "HeroBody": {
       "component": "Hero",
       "path": "Hero.Body",
@@ -3280,6 +3596,11 @@
       "path": "Level.Right",
       "purpose": "Right-aligned content."
     },
+    "LightboxTrigger": {
+      "component": "Lightbox",
+      "path": "Lightbox.Trigger",
+      "purpose": "A button around a thumbnail, or a line of text, that opens the viewer at its `index`."
+    },
     "MediaContent": {
       "component": "Media",
       "path": "Media.Content",
@@ -3314,6 +3635,56 @@
       "component": "Menu",
       "path": "Menu.Section",
       "purpose": "A section of the menu that opens and closes: its heading is a button drawn like `Menu.Label`, and its `Menu.List` of links shows while it's open."
+    },
+    "MessageBody": {
+      "component": "Message",
+      "path": "Message.Body",
+      "purpose": "Message body compound component. Renders a `.message-body` element."
+    },
+    "MessageHeader": {
+      "component": "Message",
+      "path": "Message.Header",
+      "purpose": "Message header compound component. Renders a `.message-header` element."
+    },
+    "ModalBackground": {
+      "component": "Modal",
+      "path": "Modal.Background",
+      "purpose": "Modal.Background - Renders the modal background overlay."
+    },
+    "ModalCard": {
+      "component": "Modal",
+      "path": "Modal.Card",
+      "purpose": "Modal.Card - Renders modal card wrapper with compound components."
+    },
+    "ModalCardBody": {
+      "component": "Modal",
+      "path": "Modal.Card.Body",
+      "purpose": "Modal.Card.Body - Renders modal card body section."
+    },
+    "ModalCardFoot": {
+      "component": "Modal",
+      "path": "Modal.Card.Foot",
+      "purpose": "Modal.Card.Foot - Renders modal card footer section."
+    },
+    "ModalCardHead": {
+      "component": "Modal",
+      "path": "Modal.Card.Head",
+      "purpose": "Modal.Card.Head - Renders modal card header section."
+    },
+    "ModalCardTitle": {
+      "component": "Modal",
+      "path": "Modal.Card.Title",
+      "purpose": "Modal.Card.Title - Renders modal card title."
+    },
+    "ModalClose": {
+      "component": "Modal",
+      "path": "Modal.Close",
+      "purpose": "Modal.Close - Renders modal close button with two variant styles."
+    },
+    "ModalContent": {
+      "component": "Modal",
+      "path": "Modal.Content",
+      "purpose": "Modal.Content - Renders modal content wrapper for custom content."
     },
     "NavbarBrand": {
       "component": "Navbar",
@@ -3431,6 +3802,12 @@
       "path": "Panel.Tabs",
       "purpose": "Panel tabs (renders as `<p class=\"panel-tabs\">`)"
     },
+    "PasswordInputBase": {
+      "component": "PasswordInput",
+      "path": "PasswordInputBase",
+      "purpose": "The raw PasswordInput: a password field with a button inside it that shows what was typed, without Field/Control wrapping.",
+      "standalone": "base"
+    },
     "PopoverBody": {
       "component": "Popover",
       "path": "Popover.Body",
@@ -3451,16 +3828,66 @@
       "path": "Popover.Header",
       "purpose": "The popover's title, which names the panel for assistive technology."
     },
+    "SegmentedControlSegment": {
+      "component": "SegmentedControl",
+      "path": "SegmentedControl.Segment",
+      "purpose": "One option in the row: a `<button role=\"radio\">` that's checked while the group's value is its `value`, filled with the group's `color` and marked…"
+    },
     "SelectBase": {
       "component": "Select",
       "path": "SelectBase",
       "purpose": "Bulma Select component with full Bulma helper class support.",
       "standalone": "base"
     },
+    "SidebarBody": {
+      "component": "Sidebar",
+      "path": "Sidebar.Body",
+      "purpose": "Main content area of the sidebar."
+    },
+    "SidebarClose": {
+      "component": "Sidebar",
+      "path": "Sidebar.Close",
+      "purpose": "Close button for the sidebar."
+    },
+    "SidebarFooter": {
+      "component": "Sidebar",
+      "path": "Sidebar.Footer",
+      "purpose": "Footer area of the sidebar."
+    },
+    "SidebarHeader": {
+      "component": "Sidebar",
+      "path": "Sidebar.Header",
+      "purpose": "Container for the sidebar header."
+    },
+    "SidebarTitle": {
+      "component": "Sidebar",
+      "path": "Sidebar.Title",
+      "purpose": "Title text inside the header."
+    },
     "SplitterPane": {
       "component": "Splitter",
       "path": "Splitter.Pane",
       "purpose": "One pane of a Splitter, sized by the splitter around it."
+    },
+    "StatChange": {
+      "component": "Stat",
+      "path": "Stat.Change",
+      "purpose": "A change written with its sign, such as \"+12%\", after an arrow that repeats the direction: a `<dd>`, green when it's up and red when it's down unless `color`…"
+    },
+    "StatDescription": {
+      "component": "Stat",
+      "path": "Stat.Description",
+      "purpose": "A note under the figure: a `<dd>`, small and in the weaker text color."
+    },
+    "StatLabel": {
+      "component": "Stat",
+      "path": "Stat.Label",
+      "purpose": "What the figure is: a `<dt>`, small and in the weaker text color."
+    },
+    "StatValue": {
+      "component": "Stat",
+      "path": "Stat.Value",
+      "purpose": "The figure: a `<dd>`, large, in the Stat's color, with digits of one width so a figure that updates doesn't shift."
     },
     "Step": {
       "component": "Steps",
@@ -3549,6 +3976,69 @@
       "component": "TreeView",
       "path": "TreeView.Item",
       "purpose": "One item in the tree: a row with its chevron, its box, its icon and its label, and, while it's open, a group of the items under it."
-    }
+    },
+    "createPrefixedClassNames": {
+      "component": "usePrefixedClassNames",
+      "purpose": "Bind the prefix once and reuse the returned function.",
+      "section": "Reusable prefixer: `createPrefixedClassNames`"
+    },
+    "dialog": {
+      "component": "Dialog",
+      "purpose": "For showing dialogs from anywhere in your app, use the programmatic API.",
+      "section": "Programmatic API"
+    },
+    "notification": {
+      "component": "Notification",
+      "purpose": "To show a notification from anywhere in your app, not just where you render one, use the `notification` API.",
+      "section": "Programmatic API"
+    },
+    "prefixedClassNames": {
+      "component": "usePrefixedClassNames",
+      "purpose": "When you already know the prefix (or might not have one), pass it as the first argument.",
+      "section": "Outside a component: `prefixedClassNames`"
+    },
+    "toast": {
+      "component": "Toast",
+      "purpose": "For showing toasts from anywhere in your app, use the programmatic API.",
+      "section": "Programmatic API"
+    },
+    "useAppFrame": {
+      "component": "AppFrame",
+      "purpose": "`useAppFrame()` gives a control inside the frame the same state the burger has: `navOpen`, `navCollapsed`, `isDrawer`, a setter for each, `navId` for its…",
+      "section": "A Toggle of Your Own"
+    },
+    "useConfig": {
+      "component": "ConfigProvider",
+      "purpose": "Returns the current configuration context values.",
+      "section": "useConfig"
+    },
+    "useDataTable": {
+      "component": "DataTable",
+      "purpose": "`useDataTable` takes the same columns, data and state options as `DataTable` and returns the table.",
+      "section": "The useDataTable Hook"
+    },
+    "useIsHydrated": {
+      "component": "ClientOnly",
+      "purpose": "Returns `false` during server rendering and during the hydrating client render, then `true` from the commit that follows.",
+      "section": "useIsHydrated"
+    },
+    "useLocale": {
+      "component": "LocaleProvider",
+      "purpose": "Returns the `locale` and `dir` the nearest provider sets, both `undefined` outside one.",
+      "section": "useLocale"
+    },
+    "useNumberFormat": {
+      "component": "NumberFormatter",
+      "purpose": "`useNumberFormat` returns a function that writes numbers the way `NumberFormatter` does, for the text JSX can't hold an element in: an `aria-label`, a…",
+      "section": "The useNumberFormat Hook"
+    },
+    "useScrollSpy": {
+      "component": "TableOfContents",
+      "purpose": "`useScrollSpy` is what picks the current section, and it returns its id, or `null`.",
+      "section": "The useScrollSpy Hook"
+    },
+    "validColors": { "component": "Valid value constants", "purpose": "" },
+    "validSizes": { "component": "Valid value constants", "purpose": "" },
+    "validViewports": { "component": "Valid value constants", "purpose": "" }
   }
 }

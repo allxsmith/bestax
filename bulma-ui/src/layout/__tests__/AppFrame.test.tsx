@@ -74,7 +74,7 @@ beforeEach(() => {
 
 afterEach(() => {
   delete (window as { matchMedia?: unknown }).matchMedia;
-  document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
 });
 
 /** A whole frame, with the props given to the root and to the nav. */
@@ -677,11 +677,11 @@ describe('AppFrame', () => {
       const onNavOpenChange = vi.fn();
       render(<Frame onNavOpenChange={onNavOpenChange} />);
       fireEvent.click(burger());
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
       viewport.resize(DESKTOP);
       expect(onNavOpenChange).toHaveBeenLastCalledWith(false);
       expect(nav()).not.toHaveClass('is-active');
-      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
       expect(screen.getByRole('banner')).not.toHaveAttribute('inert');
     });
 
@@ -692,7 +692,7 @@ describe('AppFrame', () => {
       expect(onNavOpenChange).toHaveBeenCalledWith(false);
       // A controlled open state is its owner's, and nothing of the drawer runs.
       expect(nav()).toHaveClass('is-active');
-      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
     });
 
     it('reads the latest callbacks', () => {
@@ -849,7 +849,7 @@ describe('AppFrame', () => {
         'inert'
       );
       expect(nav()).not.toHaveAttribute('inert');
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
       // Tab from the last stop wraps to the first, the close button.
       const filter = screen.getByRole('button', { name: 'Filter' });
       filter.focus();
@@ -887,7 +887,7 @@ describe('AppFrame', () => {
       openDrawer();
       fireEvent.keyDown(window, { key: 'Escape' });
       expect(screen.getByRole('banner')).not.toHaveAttribute('inert');
-      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
     });
 
     it('closes on Escape, marking it used', () => {
@@ -1245,7 +1245,7 @@ describe('AppFrame', () => {
       openDrawer({ nav: { overlay: false } });
       expect(document.querySelector('.app-frame-backdrop')).toBeNull();
       expect(screen.getByRole('banner')).not.toHaveAttribute('inert');
-      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
       expect(
         screen.getByRole('button', { name: 'Close navigation' })
       ).toHaveFocus();
@@ -1254,6 +1254,74 @@ describe('AppFrame', () => {
       filter.focus();
       fireEvent.keyDown(filter, { key: 'Tab' });
       expect(filter).toHaveFocus();
+    });
+  });
+
+  describe('popups opened in the nav', () => {
+    // A popup that portals, in the nav and in the page.
+    const PopupFrame = () => (
+      <AppFrame defaultNavOpen>
+        <AppFrame.Header>
+          <AppFrame.Burger />
+        </AppFrame.Header>
+        <AppFrame.Nav>
+          <Popover
+            appendToBody
+            defaultOpen
+            ariaLabel="Filters"
+            trigger={<button type="button">Filter</button>}
+          >
+            In the nav
+          </Popover>
+        </AppFrame.Nav>
+        <AppFrame.Main>
+          <Popover
+            appendToBody
+            defaultOpen
+            ariaLabel="Sorting"
+            trigger={<button type="button">Sort</button>}
+          >
+            In the page
+          </Popover>
+        </AppFrame.Main>
+      </AppFrame>
+    );
+    const panel = (name: string) => screen.getByRole('dialog', { name });
+
+    it('portal into the drawer, which draws over the page, and only those in it', () => {
+      mockViewport(PHONE);
+      render(<PopupFrame />);
+      expect(panel('Filters').parentElement).toBe(nav());
+      expect(panel('Sorting').parentElement).toBe(document.body);
+    });
+
+    it('portal to the end of the page from the column, as before', () => {
+      mockViewport(DESKTOP);
+      render(<PopupFrame />);
+      expect(panel('Filters').parentElement).toBe(document.body);
+    });
+
+    it("go into a ConfigProvider's portalContainer while it sets one", () => {
+      mockViewport(PHONE);
+      const target = document.createElement('section');
+      document.body.appendChild(target);
+      render(
+        <ConfigProvider portalContainer={target}>
+          <PopupFrame />
+        </ConfigProvider>
+      );
+      expect(panel('Filters').parentElement).toBe(target);
+      target.remove();
+    });
+
+    it('stay in the Modal the frame is in while the nav is a column', () => {
+      mockViewport(DESKTOP);
+      render(
+        <Modal active aria-label="Preview">
+          <PopupFrame />
+        </Modal>
+      );
+      expect(panel('Filters').parentElement).toBe(screen.getByTestId('modal'));
     });
   });
 

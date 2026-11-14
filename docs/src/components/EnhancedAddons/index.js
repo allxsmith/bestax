@@ -13,6 +13,12 @@ const ADDONS = [
     desc: 'A button that dresses like a link — semantics of a button, look of an anchor.',
   },
   {
+    name: 'IconButton',
+    icon: 'iconbutton',
+    link: '/docs/api/elements/iconbutton',
+    desc: 'A button that shows only an icon, with a name its types require and a true circle when rounded.',
+  },
+  {
     name: 'Kbd',
     icon: 'kbd',
     link: '/docs/api/elements/kbd',
@@ -35,6 +41,24 @@ const ADDONS = [
     icon: 'appframe',
     link: '/docs/api/layout/appframe',
     desc: 'The frame an app’s pages sit in: a sticky header and nav column, a drawer on phones, and a skip link.',
+  },
+  {
+    name: 'Affix',
+    icon: 'affix',
+    link: '/docs/api/components/affix',
+    desc: 'Content fixed to a corner of the screen, such as a floating button, over the page and under its menus and modals.',
+  },
+  {
+    name: 'NumberFormatter',
+    icon: 'numberformatter',
+    link: '/docs/api/elements/numberformatter',
+    desc: 'A price, a percentage or a count written the way the locale writes it, with the number itself kept in the markup.',
+  },
+  {
+    name: 'Stat',
+    icon: 'stat',
+    link: '/docs/api/elements/stat',
+    desc: 'A figure with its name, a signed change and a note, and Stats for a row of them as one list that wraps on its own.',
   },
   {
     name: 'Avatar',
@@ -121,16 +145,34 @@ const ADDONS = [
     desc: 'A section of a form named by its legend, bordered, filled or plain, that one disabled switches off as a whole.',
   },
   {
+    name: 'Flex/Center',
+    icon: 'flex',
+    link: '/docs/api/layout/flex',
+    desc: 'A flex container with the flex properties as props, and one that centers its content on both axes.',
+  },
+  {
     name: 'HoverCard',
     icon: 'hovercard',
     link: '/docs/api/components/hovercard',
     desc: 'Previews on links and buttons that open on hover or keyboard focus, and that the pointer can reach.',
   },
   {
+    name: 'Lightbox',
+    icon: 'lightbox',
+    link: '/docs/api/components/lightbox',
+    desc: 'Photos shown one at a time over the page, opened from their thumbnails, with previous and next, captions and zoom.',
+  },
+  {
     name: 'Loading',
     icon: 'loading',
     link: '/docs/api/components/loading',
     desc: 'Spinner overlays for full pages or single containers.',
+  },
+  {
+    name: 'PasswordInput',
+    icon: 'passwordinput',
+    link: '/docs/api/form/passwordinput',
+    desc: 'A password field with a button inside it that shows what was typed, as an eye or as the words Show and Hide.',
   },
   {
     name: 'PinInput',
@@ -169,10 +211,22 @@ const ADDONS = [
     desc: 'Panes with a handle between each pair to drag or move by keyboard, and panes that collapse.',
   },
   {
+    name: 'Stack/Group',
+    icon: 'stack',
+    link: '/docs/api/layout/stack',
+    desc: 'A column and a row of any components, spaced by Bulma’s block spacing alone, with no margins to undo.',
+  },
+  {
     name: 'Steps',
     icon: 'steps',
     link: '/docs/api/components/steps',
     desc: 'Multi-step progress for wizards and checkouts.',
+  },
+  {
+    name: 'TableOfContents',
+    icon: 'tableofcontents',
+    link: '/docs/api/components/tableofcontents',
+    desc: 'A long page’s sections as real links in Bulma’s menu look, marking the one being read.',
   },
   {
     name: 'Timeline',
@@ -191,6 +245,12 @@ const ADDONS = [
     icon: 'tooltip',
     link: '/docs/api/components/tooltip',
     desc: 'Hover hints in any direction and color.',
+  },
+  {
+    name: 'TreeSelect',
+    icon: 'treeselect',
+    link: '/docs/api/form/treeselect',
+    desc: 'A form field whose options are a tree, which picks one item or checks a branch at a time, with search if you want it.',
   },
   {
     name: 'TreeView',

@@ -99,10 +99,10 @@ A semantic, accessible site footer for copyright, links, or extra info. Supports
 
 ## Level
 
-A flexible horizontal layout for aligning items left, right, or center. Use for toolbars, status bars, or summary sections. Includes `Level.Left`, `Level.Right`, and `Level.Item` subcomponents.
+A flexible horizontal layout for aligning items left, right, or center. Use for toolbars, status bars, or summary sections. Includes `Level.Left`, `Level.Right`, and `Level.Item` subcomponents. A level renders a `<nav>`, a navigation landmark, unless `as` says otherwise, so one that isn't navigation takes `as="div"`.
 
 ```tsx live
-<Level>
+<Level as="div">
   <Level.Left>
     <Level.Item>
       <SubTitle as="p" size="5">
@@ -186,6 +186,70 @@ Panes side by side or one above the other, like columns the reader resizes: a ha
 ```
 
 [View full documentation.](../../api/layout/splitter)
+
+---
+
+## Stack
+
+A column with Bulma's block spacing between its children and the margins Bulma gives them zeroed, so the gap is the only space and there are no margins to undo.
+
+```tsx live
+<Stack>
+  <Notification color="info">Your changes are saved.</Notification>
+  <Box>A Box, with no margin to undo.</Box>
+</Stack>
+```
+
+[View full documentation.](../../api/layout/stack)
+
+---
+
+## Group
+
+A row that wraps, its children centered on each other, with half of Bulma's block spacing between them. `isFullwidth` shares the row equally, and `breakpoint` stacks it on a phone.
+
+```tsx live
+<Group justifyContent="space-between">
+  <Title as="h2" size="4">
+    Invoices
+  </Title>
+  <Group gap="1">
+    <Button>Export</Button>
+    <Button color="primary">New invoice</Button>
+  </Group>
+</Group>
+```
+
+[View full documentation.](../../api/layout/group)
+
+---
+
+## Center
+
+Centers its content on both axes, such as a loader in the middle of a panel.
+
+```tsx live
+<Center aspectRatio="3by1" bgColor="light">
+  <Loader textSize="3" ariaLabel="Loading" />
+</Center>
+```
+
+[View full documentation.](../../api/layout/center)
+
+---
+
+## Flex
+
+A flex container with CSS's own defaults, taking the flex container's properties as props, for a layout of your own such as a fixed side beside a growing one.
+
+```tsx live
+<Flex gap="4" alignItems="flex-start">
+  <Box flexShrink="0">Side</Box>
+  <Box flexGrow="1">Main, which grows into the rest of the row</Box>
+</Flex>
+```
+
+[View full documentation.](../../api/layout/flex)
 
 ---
 

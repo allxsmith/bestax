@@ -334,10 +334,14 @@ function example() {
 - **States:** The `isDisabled` and `disabled` props ensure correct `aria-disabled` and `disabled` attributes.
 - **Keyboard:** When rendered as `<a>`, disabled buttons are not focusable.
 - **Focus:** Use `isFocused` and `isActive` for visual feedback, but rely on browser focus for actual accessibility.
+- **Focus ring:** Bulma shows a focused button with its border and a shadow. A ghost button has neither, and forced colors (Windows' contrast themes) drops the shadow and sets the border's color, so bestax's styles give a focused ghost button, and every focused button in forced colors, an outline. `isFocused` draws it too.
+- **Forced colors:** In Windows' contrast themes a colored button keeps a 1px border, so it still has an edge when the theme replaces its fill, while an outlined button and a `text` one are left as they are.
 - **Toggles:** `isActive` tells a screen reader nothing. A button that turns something on or off is a [`ToggleButton`](./togglebutton.md), which sets `aria-pressed`.
 
 :::note
-If your button has only an icon, use `aria-label` to provide accessible text.
+A button that shows only an icon is an [`IconButton`](./iconbutton.md), whose types require an
+`aria-label` or an `aria-labelledby`, and whose `isRounded` makes a circle. On a plain `Button` holding only
+an icon, name it with `aria-label` yourself.
 :::
 
 ---
@@ -346,6 +350,8 @@ If your button has only an icon, use `aria-label` to provide accessible text.
 
 - [`Buttons`](./buttons.md): Group multiple buttons together, including add-ons and alignment.
 - [`ToggleButton`](./togglebutton.md): A button that stays pressed while something is on, and says so through `aria-pressed`.
+- [`IconButton`](./iconbutton.md): A button that shows only an icon, with the name its types require.
+- [`CopyButton`](./copybutton.md): A button that copies a piece of text and announces the result.
 - [`Icon`](../elements/icon.md): Inline icons for use inside buttons.
 - [Helper Props](../helpers/usebulmaclasses.md): List of all supported Bulma helper props for spacing, colors, etc.
 

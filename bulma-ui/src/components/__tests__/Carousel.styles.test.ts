@@ -103,10 +103,59 @@ describe('Carousel stylesheet', () => {
     );
   });
 
+  it('shifts the track the other way right to left, and mirrors the arrows', () => {
+    // The inline transform multiplies by this: -1 is the left-to-right shift
+    // the component has always used, set on every track so none inherits it.
+    expect(css).toContain('--carousel-shift-sign: -1');
+    expect(css).toContain('.carousel-slides:dir(rtl)');
+    expect(css).toContain('--carousel-shift-sign: 1');
+    expect(css).toContain(
+      'inset-inline-start: var(--bulma-carousel-arrow-offset)'
+    );
+    expect(css).toContain(
+      'inset-inline-end: var(--bulma-carousel-arrow-offset)'
+    );
+    expect(css).toContain(
+      'inset-inline-start: var(--bulma-carousel-arrow-offset-mobile)'
+    );
+    expect(css).toContain('.carousel-arrow > svg:dir(rtl)');
+    expect(css).toContain('scaleX(-1)');
+    expect(css).not.toContain('.icon:dir(rtl)');
+    expect(css).not.toContain('left: var(--bulma-carousel-arrow-offset)');
+  });
+
   it('reads the tablet count in print, as the script does', () => {
     // The script's tablet query carries Bulma's `, print`, as the mixin does.
     expect(stylesheetPick('print', 0)).toBe(
       'var(--bulma-carousel-items-to-show-tablet)'
     );
+  });
+});
+
+// The smaller arrows on a phone switch at Bulma's tablet breakpoint, so a
+// build that configures `$tablet` moves them with the rest of the page (#1628).
+describe('the Carousel partial with a configured $tablet', () => {
+  const arrowQueries = (tablet: string) =>
+    sass
+      .compileString(
+        `@use 'bulma/sass/utilities/initial-variables' with ($tablet: ${tablet});
+         @use 'components/carousel';`,
+        {
+          loadPaths: [SCSS, path.dirname(BULMA)],
+          quietDeps: true,
+          logger: sass.Logger.silent,
+        }
+      )
+      .css.split('@media ')
+      .slice(1)
+      .filter(block => block.includes('carousel-arrow-size-mobile'))
+      .map(block => block.split('{')[0].trim());
+
+  it.each([
+    ['769px', 'screen and (max-width: 768px)'],
+    ['1024px', 'screen and (max-width: 1023px)'],
+    ['600px', 'screen and (max-width: 599px)'],
+  ])('shrinks the arrows below a $tablet of %s', (tablet, query) => {
+    expect(arrowQueries(tablet)).toEqual([query]);
   });
 });

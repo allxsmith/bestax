@@ -11,6 +11,7 @@ import { Tag } from '../elements/Tag';
 import { Tags } from '../elements/Tags';
 import { Title } from '../elements/Title';
 import { Media } from '../layout/Media';
+import { LocaleProvider } from '../helpers/LocaleProvider';
 
 const meta: Meta<typeof HoverCard> = {
   title: 'Components/HoverCard',
@@ -20,7 +21,7 @@ const meta: Meta<typeof HoverCard> = {
     docs: {
       description: {
         component:
-          'A card that previews what is behind a link or a button while the pointer rests on it or keyboard focus is on it. The pointer can move onto the card, Escape closes it from anywhere, and touch opens it only with openOnTap.',
+          'A card that previews what is behind a link or a button while the pointer rests on it or keyboard focus is on it. The pointer can move onto the card, Escape closes it from anywhere, and touch opens it only with openOnTap.\n\n**Popover or HoverCard?** A HoverCard opens when the pointer rests on its trigger or keyboard focus lands on it, and a click on the trigger just does what the trigger does. It moves no focus and traps none. It previews what’s behind the trigger, with a link or a button at most, and a touch screen doesn’t open it unless you pass `openOnTap`. A [Popover](?path=/docs/components-popover--docs) opens and closes on a click or a tap, or Enter or Space, moves focus into its panel and keeps Tab there, holds content people work with, such as a form, and opens on touch the way it does with a mouse.',
       },
     },
   },
@@ -215,6 +216,20 @@ export const Positions: Story = {
         )
       )}
     </Box>
+  ),
+};
+
+/**
+ * On a right-to-left page a card with no `position` lines its right edge up
+ * with the trigger's.
+ */
+export const RightToLeft: Story = {
+  render: () => (
+    <LocaleProvider locale="ar" dir="rtl">
+      <HoverCard openOnTap trigger={<Button>عرض</Button>}>
+        <Paragraph>بطاقة</Paragraph>
+      </HoverCard>
+    </LocaleProvider>
   ),
 };
 

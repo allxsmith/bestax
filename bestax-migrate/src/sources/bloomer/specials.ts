@@ -36,6 +36,7 @@ import {
   makeStructuralHelpers,
   modifierClass,
   parseIconClasses,
+  plainTag,
   restrictAsToTargets,
   type SpecialHandler,
   type SpecialResult,
@@ -69,32 +70,6 @@ const { replaceWithPlain, collapseOntoChild } = makeStructuralHelpers(
     return stripModifierProps(ctx, path, kept, where);
   }
 );
-
-/**
- * bloomer rendered every component through `React.createElement(tag, …)`, so
- * a plain-element rewrite can honour a literal `tag` instead of dropping it.
- */
-function plainTag(
-  ctx: TransformContext,
-  path: ASTPath<any>,
-  element: any,
-  fallback: string,
-  where: string
-): string {
-  const attr = findAttr(element, 'tag');
-  if (!attr) return fallback;
-  const literal = literalValueOf(attr);
-  removeAttr(element, attr);
-  ctx.dirty = true;
-  if (literal.kind === 'string') return literal.value;
-  addTodo(
-    ctx,
-    path,
-    'prop:tag',
-    `dynamic ${where} \`tag\`; it became a plain <${fallback}> — render the tag yourself`
-  );
-  return fallback;
-}
 
 /** The tags bestax's `Panel.Block` renders through `as`, its default first. */
 const PANEL_BLOCK_TAGS = new Set(AS_UNIONS['Panel.Block']);
@@ -477,7 +452,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
    * plain element bloomer rendered, and the TODO says the styling is gone.
    */
   heading(ctx, path, element) {
-    const tag = plainTag(ctx, path, element, 'p', 'Heading');
+    const tag = plainTag(ctx, path, element, 'tag', 'p', 'Heading');
     flagDroppedHeading(ctx, path, tag);
     return replaceWithPlain(ctx, path, element, tag, 'heading', 'Heading');
   },
@@ -640,7 +615,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       'help',
       'Help'
     );
-    const tag = plainTag(ctx, path, element, 'p', 'Help');
+    const tag = plainTag(ctx, path, element, 'tag', 'p', 'Help');
     return replaceWithPlain(ctx, path, element, tag, className, 'Help');
   },
 
@@ -654,7 +629,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       'label',
       'Label'
     );
-    const tag = plainTag(ctx, path, element, 'label', 'Label');
+    const tag = plainTag(ctx, path, element, 'tag', 'label', 'Label');
     return replaceWithPlain(ctx, path, element, tag, className, 'Label');
   },
 
@@ -672,7 +647,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       'is-active',
       'BreadcrumbItem'
     );
-    const tag = plainTag(ctx, path, element, 'li', 'BreadcrumbItem');
+    const tag = plainTag(ctx, path, element, 'tag', 'li', 'BreadcrumbItem');
     return replaceWithPlain(ctx, path, element, tag, cls, 'BreadcrumbItem');
   },
 
@@ -898,7 +873,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       booleanClass(ctx, path, element, 'isActive', 'is-active', 'PanelBlock'),
       booleanClass(ctx, path, element, 'isWrapped', 'is-wrapped', 'PanelBlock')
     );
-    const tag = plainTag(ctx, path, element, 'div', 'PanelBlock');
+    const tag = plainTag(ctx, path, element, 'tag', 'div', 'PanelBlock');
     return replaceWithPlain(ctx, path, element, tag, cls, 'PanelBlock');
   },
 
@@ -1137,7 +1112,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       'PageEllipsis',
     ]);
     if (collapsed) return collapsed;
-    const tag = plainTag(ctx, path, element, 'li', 'Page');
+    const tag = plainTag(ctx, path, element, 'tag', 'li', 'Page');
     return replaceWithPlain(ctx, path, element, tag, undefined, 'Page');
   },
 
@@ -1151,13 +1126,13 @@ const SPECIALS: Record<string, SpecialHandler> = {
       'is-active',
       'PanelTab'
     );
-    const tag = plainTag(ctx, path, element, 'a', 'PanelTab');
+    const tag = plainTag(ctx, path, element, 'tag', 'a', 'PanelTab');
     return replaceWithPlain(ctx, path, element, tag, cls, 'PanelTab');
   },
 
   /** bestax's Tabs.Item is the <li>; the anchor inside it is plain markup. */
   'tab-link'(ctx, path, element) {
-    const tag = plainTag(ctx, path, element, 'a', 'TabLink');
+    const tag = plainTag(ctx, path, element, 'tag', 'a', 'TabLink');
     return replaceWithPlain(ctx, path, element, tag, undefined, 'TabLink');
   },
 
@@ -1174,7 +1149,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
         'HeroVideo'
       )
     );
-    const tag = plainTag(ctx, path, element, 'div', 'HeroVideo');
+    const tag = plainTag(ctx, path, element, 'tag', 'div', 'HeroVideo');
     return replaceWithPlain(ctx, path, element, tag, cls, 'HeroVideo');
   },
 

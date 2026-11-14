@@ -42,9 +42,9 @@ Bulma has no frame, so `AppFrame` brings its own styles, in `bestax.css` and its
 :::
 
 :::note
-An `AppFrame` is a whole page. The examples below sit inside this one, so their headers and an
-open drawer go under the site's own header, and the drawer covers the rest of this page. The
-StackBlitz and CodeSandbox buttons open each as a page of its own.
+An `AppFrame` is a whole page. The examples below sit inside this one, so as you scroll past one,
+its header sticks under the site's own. The StackBlitz and CodeSandbox buttons open each as a page
+of its own.
 :::
 
 ---
@@ -175,6 +175,12 @@ the drawer's, which leaves a strip of backdrop on a narrow phone.
 
 An overlay opened from the drawer, such as a `Modal`, goes inside `AppFrame.Nav` or renders outside
 the frame (Modal's `portal`): while the drawer is open, the rest of the frame is inert.
+
+A popup opened in the drawer, such as a `Popover` or a date picker with `appendToBody`, portals into
+the nav rather than the end of the page, so it shows above the drawer and its backdrop. A
+[`portalContainer`](../helpers/config.md#where-portaled-content-goes) you set still takes it. In
+the column the nav is under the header, so a popup there portals to the end of the page, as it does
+anywhere else.
 
 When the window widens past the breakpoint with the drawer open, the drawer closes and the nav is
 the column again, so focus on one of its links stays where it is. The close button hides in the
@@ -520,8 +526,9 @@ The parts are attached to `AppFrame`, and also exported on their own as `AppFram
 - **Reflow:** at 320 pixels wide the nav is a drawer, so nothing scrolls sideways (WCAG 1.4.10).
 - **Motion:** the drawer's slide, the backdrop's fade and the column's collapse don't play under
   `prefers-reduced-motion: reduce`.
-- **Forced colors:** the column keeps its divider, and the drawer gets a border on its open edge in
-  place of its shadow.
+- **Forced colors:** the column keeps its divider, the drawer gets a border on its open edge in
+  place of its shadow, and the burger keeps its bars, as a [`Navbar`](../components/navbar.md)'s
+  does.
 - **Right to left:** the column sits on the right, and the drawer slides in from the right.
 
 ---

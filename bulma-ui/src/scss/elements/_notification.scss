@@ -1,9 +1,10 @@
 // Notification Styles
 // Bulma already styles the notification; this keeps its text clear of the
-// close button
+// close button, and gives the dark and light colors back their own looks
 
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
+@use "../color-classes" as *;
 
 // Bulma pads a notification 1.5em at each end and puts its close button 1rem
 // in from the end, 1.25rem square, so the button reaches further in than the
@@ -66,4 +67,50 @@ $-delete-sizes: (
         ($dimensions - $-delete-dimensions)
     );
   }
+}
+
+// Bulma nests a light and a dark variant, `&.is-light` and `&.is-dark`, in
+// each color of its notification. For the dark color the dark variant is
+// `.notification.is-dark.is-dark`, and a class repeated in a selector matches
+// an element that has it once, so every dark notification gets it
+// (jgthms/bulma#3911). It sets a 20% background and reads the text's
+// lightness from `--bulma-dark-dark-invert-l`, which Bulma doesn't define, so
+// the text inherits the color around it and can land one shade off the
+// background. Bulma's buttons skip those variants for white, black, light and
+// dark, and its notification doesn't.
+//
+// This puts back the lightness `.notification.is-dark` sets, the dark
+// color's own. The `:not()` skips a notification that carries another color,
+// so Bulma's dark variant of that color (`is-primary is-dark`) keeps its look,
+// and adds a class's weight, so the rule outranks Bulma's whichever
+// stylesheet loads first. `light` isn't in that list, so `color="dark"
+// isLight` gets the dark look too, the way Bulma gives a dark button no light
+// variant. Once Bulma fixes its loop, this restates Bulma's values and can go.
+.#{iv.$class-prefix}notification.#{iv.$class-prefix}is-dark.#{iv.$class-prefix}is-dark:not(
+    #{extras-color-classes("dark", "light")}
+  ) {
+  @include cv.register-vars(
+    (
+      "notification-background-l": #{cv.getVar("dark-l")},
+      "notification-color-l": #{cv.getVar("dark-invert-l")},
+    )
+  );
+}
+
+// The same nesting writes the light color's light variant as
+// `.notification.is-light.is-light`, which matches every light notification,
+// with a 90% background and the text's lightness read from
+// `--bulma-light-light-invert-l`, which Bulma doesn't define either. This puts
+// back what `.notification.is-light` sets. Its `:not()` names every other
+// color, `dark` included, so a dark notification with `isLight` keeps the rule
+// above.
+.#{iv.$class-prefix}notification.#{iv.$class-prefix}is-light.#{iv.$class-prefix}is-light:not(
+    #{extras-color-classes("light")}
+  ) {
+  @include cv.register-vars(
+    (
+      "notification-background-l": #{cv.getVar("light-l")},
+      "notification-color-l": #{cv.getVar("light-invert-l")},
+    )
+  );
 }

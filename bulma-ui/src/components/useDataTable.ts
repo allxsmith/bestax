@@ -3,7 +3,10 @@ import { prefixedClassNames } from '../helpers/classNames';
 import { useClassPrefix } from '../helpers/Config';
 import { isDev, warnOnce } from '../helpers/devWarnings';
 import { useLocale } from '../helpers/LocaleProvider';
-import { useLocaleMatcher, useNumberFormat } from '../helpers/localeFormat';
+import {
+  useLocaleMatcher,
+  useScopedNumberFormat,
+} from '../helpers/localeFormat';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { useLatestRef } from '../helpers/useLatestRef';
 import type { TableAlignment } from '../elements/tableAlignment';
@@ -686,7 +689,7 @@ export function useDataTable<TRow>(
   const prefix = useClassPrefix();
   const { locale } = useLocale();
   const matchText = useLocaleMatcher();
-  const formatNumber = useNumberFormat();
+  const formatNumber = useScopedNumberFormat();
   const collator = useMemo(
     () => new Intl.Collator(locale, { numeric: true }),
     [locale]

@@ -173,8 +173,8 @@ active items.
       `- Routing: React Router in data mode. Routes are in \`src/router\`, pages in ` +
       `\`src/pages\`, and the navbar every page shares in \`src/Layout\`. Link with ` +
       `\`<Navbar.Item as={Link} to="...">\` and \`<Menu.Item as={Link} ...>\`, and set \`active\` ` +
-      `and \`aria-current\` from \`useLocation\` rather than using \`NavLink\`, whose ` +
-      `function \`className\` bypasses Bulma's \`is-active\` ` +
+      `from \`useLocation\`, which also sets \`aria-current="page"\`, rather than using ` +
+      `\`NavLink\`, whose function \`className\` bypasses Bulma's \`is-active\` ` +
       `(https://bestax.io/docs/guides/features/routing).`,
   },
   'tanstack-router': {
@@ -498,14 +498,17 @@ export const CLAUDE_MD = (
     setupLines.push(
       `- Framework: the Next.js App Router. A page or component is a Server Component unless its ` +
         `file starts with \`'use client'\`, and bestax components render from either. In a Server ` +
-        `Component, reach a component's parts by their own export (\`NavbarItem\`, \`NavbarBrand\`), ` +
-        `since \`Navbar.Item\` comes out \`undefined\` there. \`Card\`, \`Modal\`, \`Sidebar\`, ` +
-        `\`Message\`, \`Figure\` and the list components' items have no such exports yet, so use ` +
-        `them in a client component, where the dotted names work as usual. The starter page ` +
+        `Component, reach a component's parts by their own export (\`NavbarItem\`, ` +
+        `\`SidebarHeader\`, \`FigureCaption\`, \`ListItem\`), since \`Navbar.Item\` comes out ` +
+        `\`undefined\` there. Build a \`Card\` or \`Modal\` from its parts in a client component: ` +
+        `each lays out its parts by checking which part each child is, and that check can't ` +
+        `recognize a part written in a Server Component. A few other components do the same ` +
+        `(https://bestax.io/docs/guides/getting-started/react-setups#nextjs-specific). The dotted ` +
+        `names work in a client component. The starter page ` +
         `(\`src/App\`) and the navbar (\`src/Navigation\`) keep state, so they're client components, ` +
         `and the About page is a Server Component. Link with ` +
-        `\`<Navbar.Item as={NextLink} href="...">\`, with \`active\` and \`aria-current\` from ` +
-        `\`usePathname\` (https://bestax.io/docs/guides/features/routing).`
+        `\`<Navbar.Item as={NextLink} href="...">\`, with \`active\` from \`usePathname\`, which ` +
+        `also sets \`aria-current="page"\` (https://bestax.io/docs/guides/features/routing).`
     );
   }
   const houseStyleOpening = flavor?.noHelpers

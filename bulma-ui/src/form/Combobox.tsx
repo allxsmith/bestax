@@ -10,7 +10,7 @@ import React, {
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
-import { Portal } from '../helpers/portal';
+import { PopupPortal } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { flattenChildren } from '../helpers/flattenChildren';
@@ -22,14 +22,12 @@ import {
   useAnchoredPosition,
 } from '../helpers/useAnchoredPosition';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
+import { CheckIcon } from '../helpers/checkIcon';
 import {
   ComboboxEngine,
   useComboboxEngine,
 } from '../helpers/useComboboxEngine';
 import type { PopoverPosition } from '../components/Popover';
-import { Delete } from '../elements/Delete';
-import { Tag } from '../elements/Tag';
-import { Tags } from '../elements/Tags';
 import { Field } from './Field';
 import { Input, InputProps } from './Input';
 import { FormFieldProps } from './fieldProps';
@@ -41,6 +39,7 @@ import {
 } from './FormContext';
 import { useAutoLabelId } from './useAutoLabelId';
 import { useControlLoading } from './controlLoading';
+import { HiddenValues, ValueTags, tagIds } from './_selectInternals/ValueTags';
 
 const validComboboxSizes = ['small', 'medium', 'large'] as const;
 
@@ -143,19 +142,21 @@ interface ComboboxBaseProps
    * Where the menu opens against the field: below (`bottom-*`) or above
    * (`top-*`), lined up with its left or right edge. `auto` picks the one
    * that keeps the list in the viewport, preferring below. The same union
-   * Popover takes.
+   * Popover takes. Left out, it opens below and lines up with the field's
+   * start edge, which is its right edge on a right-to-left page, so a menu
+   * wider than the field doesn't hang off the screen. A corner you pass
+   * stays physical, so `bottom-left` lines up the left edges on either page.
    * @defaultValue 'bottom-left'
    */
   position?: PopoverPosition;
   /**
    * Renders the menu through `Portal`, into the `portalContainer` a
-   * `ConfigProvider` sets, `document.body` by default, fixed to the viewport
-   * at the field, so a container that clips its overflow can't cut it off.
-   * It then shows from the commit after hydration, never in server markup.
-   * Theming variables set on an ancestor reach it only when the portal's
-   * container is inside that ancestor, as with Popover. In a `Modal`, point
-   * `portalContainer` inside the modal, so the list stays in the dialog for
-   * assistive tech.
+   * `ConfigProvider` sets, else the overlay it's in that takes its popups,
+   * such as a `Modal`, else `document.body`, fixed to the viewport at the
+   * field, so a container that clips its overflow can't cut it off. It then
+   * shows from the commit after hydration, never in server markup. Theming
+   * variables set on an ancestor reach it only when the portal's container
+   * is inside that ancestor, as with Popover.
    * @defaultValue false
    */
   appendToBody?: boolean;
@@ -221,7 +222,7 @@ interface ComboboxDataBaseProps extends ComboboxBaseProps {
    * `Combobox.Input`.
    */
   'aria-labelledby'?: string;
-  /** @internal With `data`, the Combobox renders its own parts. */
+  /** With `data`, the Combobox renders its own parts. */
   children?: never;
 }
 
@@ -262,7 +263,7 @@ export interface ComboboxSingleDataProps extends ComboboxDataBaseProps {
    * `multiple` the array.
    */
   onChange?: (value: string | null) => void;
-  /** @internal With one value there are no tags to name. */
+  /** With one value there are no tags to name. */
   ariaCloseLabel?: never;
 }
 
@@ -315,27 +316,27 @@ export interface ComboboxPartsProps extends ComboboxBaseProps {
    * @defaultValue false
    */
   multiple?: boolean;
-  /** @internal Built from parts, there's no `data`. */
+  /** Built from parts, there's no `data`. */
   data?: never;
-  /** @internal Built from parts, the app keeps the value. */
+  /** Built from parts, the app keeps the value. */
   value?: never;
-  /** @internal Built from parts, the app keeps the value. */
+  /** Built from parts, the app keeps the value. */
   defaultValue?: never;
-  /** @internal Built from parts, `onSelect` reports a pick. */
+  /** Built from parts, `onSelect` reports a pick. */
   onChange?: never;
-  /** @internal Built from parts, `Combobox.Input` takes the placeholder. */
+  /** Built from parts, `Combobox.Input` takes the placeholder. */
   placeholder?: never;
-  /** @internal Built from parts, the app posts the value. */
+  /** Built from parts, the app posts the value. */
   name?: never;
-  /** @internal Built from parts, `Combobox.Empty` is the empty message. */
+  /** Built from parts, `Combobox.Empty` is the empty message. */
   empty?: never;
-  /** @internal Built from parts, `Combobox.Item` renders its own content. */
+  /** Built from parts, `Combobox.Item` renders its own content. */
   itemTemplate?: never;
-  /** @internal Built from parts, `Combobox.Input` takes `disabled`. */
+  /** Built from parts, `Combobox.Input` takes `disabled`. */
   disabled?: never;
-  /** @internal Built from parts, `Combobox.Input` takes `required`. */
+  /** Built from parts, `Combobox.Input` takes `required`. */
   required?: never;
-  /** @internal Built from parts, the app posts the value. */
+  /** Built from parts, the app posts the value. */
   form?: never;
 }
 
@@ -478,6 +479,11 @@ interface ComboboxContextValue {
   reportPanel: (element: HTMLElement) => () => void;
   /** Where the panel goes against the field. */
   placement: AnchoredPosition;
+  /**
+   * No `position` was passed, so the panel lines up with the field's inline
+   * start, which the stylesheet moves to its right edge right to left.
+   */
+  startAligned: boolean;
   size?: ComboboxProps['size'];
   multiple: boolean;
   inline: boolean;
@@ -520,6 +526,7 @@ const standalone: ComboboxContextValue = {
   onFieldChange: noop,
   reportPanel: registerNothing,
   placement: { position: 'bottom-left' },
+  startAligned: true,
   multiple: false,
   inline: false,
   appendToBody: false,
@@ -573,7 +580,7 @@ const ComboboxParts = forwardRef<HTMLDivElement, ComboboxPartsRootProps>(
       keepFirst = false,
       multiple = false,
       inline = false,
-      position = 'bottom-left',
+      position,
       appendToBody = false,
       size,
       label,
@@ -719,6 +726,7 @@ const ComboboxParts = forwardRef<HTMLDivElement, ComboboxPartsRootProps>(
       onFieldChange,
       reportPanel,
       placement,
+      startAligned: position === undefined,
       size: validSize,
       multiple,
       inline,
@@ -900,8 +908,15 @@ export const ComboboxMenu: React.FC<ComboboxMenuProps> = ({
   onPointerDownCapture,
   ...props
 }) => {
-  const { engine, inline, appendToBody, placement, reportPanel, size } =
-    useCombobox();
+  const {
+    engine,
+    inline,
+    appendToBody,
+    placement,
+    startAligned,
+    reportPanel,
+    size,
+  } = useCombobox();
   // Children that are all `null`, `false` or `''` leave no panel, whatever
   // `open` says. This reads the elements it's handed, not what they render.
   const hasContent = flattenChildren(children).some(child => child !== '');
@@ -918,6 +933,9 @@ export const ComboboxMenu: React.FC<ComboboxMenuProps> = ({
 
   const menuClass = usePrefixedClassNames('dropdown-menu', 'combobox-menu', {
     [`is-${placement.position}`]: true,
+    // The default lines up with the field's inline start, so the stylesheet
+    // moves it to the right edge on a right-to-left page.
+    'is-start-aligned': startAligned,
     'is-portal': appendToBody,
     [`is-${size}`]: !!size,
   });
@@ -928,7 +946,7 @@ export const ComboboxMenu: React.FC<ComboboxMenuProps> = ({
   if (!shown) return null;
 
   return (
-    <Portal disabled={!appendToBody}>
+    <PopupPortal disabled={!appendToBody}>
       <div
         {...props}
         ref={panelRef}
@@ -955,7 +973,7 @@ export const ComboboxMenu: React.FC<ComboboxMenuProps> = ({
       >
         <div className={contentClass}>{children}</div>
       </div>
-    </Portal>
+    </PopupPortal>
   );
 };
 ComboboxMenu.displayName = 'ComboboxMenu';
@@ -1066,20 +1084,7 @@ export const ComboboxItem: React.FC<ComboboxItemProps> = ({
     >
       {checked && (
         <span className={checkClass} aria-hidden="true">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            width="1em"
-            height="1em"
-            focusable="false"
-          >
-            <polyline points="3 8.5 6.5 12 13 4.5" />
-          </svg>
+          <CheckIcon />
         </span>
       )}
       {children}
@@ -1280,7 +1285,7 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
     };
     // The picks, for the field's description, since its text is the search.
     const tagsId = useId();
-    const tagIds = picked.map((_, index) => `${tagsId}-${index}`);
+    const ids = tagIds(tagsId, picked);
 
     // Each group where `data` first names it, and the items with none
     // together where the first of them is.
@@ -1329,27 +1334,16 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
           onOpenChange?.(next);
         }}
         below={
-          multiple
-            ? picked.length > 0 && (
-                <Tags mt="2">
-                  {picked.map((v, index) => (
-                    <Tag key={v}>
-                      <span id={tagIds[index]}>{labelFor(v)}</span>
-                      {!disabled && (
-                        <Delete
-                          size="small"
-                          ariaLabel={ariaCloseLabel || `Remove ${labelFor(v)}`}
-                          aria-describedby={
-                            ariaCloseLabel ? tagIds[index] : undefined
-                          }
-                          onClick={() => remove(v)}
-                        />
-                      )}
-                    </Tag>
-                  ))}
-                </Tags>
-              )
-            : undefined
+          multiple ? (
+            <ValueTags
+              values={picked}
+              ids={ids}
+              labelFor={labelFor}
+              disabled={disabled}
+              ariaCloseLabel={ariaCloseLabel}
+              onRemove={remove}
+            />
+          ) : undefined
         }
       >
         <ComboboxInput
@@ -1363,7 +1357,7 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
           aria-required={required || undefined}
           form={form}
           aria-describedby={
-            multiple && picked.length > 0 ? tagIds.join(' ') : undefined
+            multiple && picked.length > 0 ? ids.join(' ') : undefined
           }
           placeholder={placeholder}
           value={
@@ -1374,17 +1368,12 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
           onBlur={settle}
         />
         {inline ? list : <ComboboxMenu>{list}</ComboboxMenu>}
-        {name &&
-          (multiple ? picked : [picked[0] ?? '']).map(v => (
-            <input
-              key={v}
-              type="hidden"
-              name={name}
-              value={v}
-              form={form}
-              disabled={disabled}
-            />
-          ))}
+        <HiddenValues
+          name={name}
+          values={multiple ? picked : [picked[0] ?? '']}
+          form={form}
+          disabled={disabled}
+        />
       </ComboboxParts>
     );
   }

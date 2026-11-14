@@ -1,6 +1,7 @@
 import React, { useCallback, useId, useMemo, useRef, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { elementType, isElementOf } from '../helpers/elementType';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -32,7 +33,7 @@ export interface FieldProps
   hasAddons?: boolean | 'centered' | 'right';
   /** Constrains the field to its content's width (used inside horizontal field bodies). */
   narrow?: boolean;
-  /** Field label, rendered above the widget. Automatically names the one control the Field holds: a composed `InputBase`, `SelectBase`, `TextAreaBase`, `DateInputBase`, `TimeInputBase` or `DateTimeInputBase` (an `inline` picker has no input, so it takes nothing), or a bestax input that renders a single input of its own (`Input`, `Select`, `TextArea`, `Numberinput`, `PinInput`, `Slider`, `DateInput`, `TimeInput`, `DateTimeInput`, `Autocomplete`, `Combobox`, `Taginput`, `File`), adopts a generated id that the label's `htmlFor` points at, and a group (`Radios`, `Checkboxes`, `Rate`, `DateRangeInput`, or a composed `DateRangeInputBase`, `inline` or not) points `aria-labelledby` at the label's own id unless you gave the group an `aria-label` or `aria-labelledby`. A range `Slider` takes the id on its low thumb and also starts each thumb's name with the label through `aria-labelledby`, unless its `ariaLabel` names that thumb or its own `aria-label` or `aria-labelledby` takes the label's place. An `Autocomplete`, a `Combobox` or a `Taginput` also names its open list after the label through `aria-labelledby`. `Checkbox`, `Radio` and `Switch` are named by their own children, and the label names one only when you wire it as you would any control with an `id` of its own, `labelProps={{ htmlFor }}` plus that control's `id`. Only the single inputs take the `htmlFor`, so once the Field's content has mounted the label keeps it only while one of them holds the id, and drops it over anything else: a group, a `Checkbox`, `Radio` or `Switch`, an `inline` picker, an inner `Field`, an input with an `id` of its own, markup of your own, or nothing at all. A server render, and the first render while hydrating, still write the `htmlFor`, which keeps hydration matching, and an input that mounts later puts it back. The label names an input with an `id` of your own only through `labelProps={{ htmlFor }}` set to that `id`, a `for` it always keeps; `labelProps={{ htmlFor: undefined }}` opts out. Skipped for `grouped`/`hasAddons` fields (multiple controls), and a nested `Field` starts its own scope, so a horizontal Field whose body holds an inner `Field` names the control there only when you wire it. Two controls in one plain labeled Field would both adopt the id, so give each an `id` of its own. */
+  /** Field label, rendered above the widget. Automatically names the one control the Field holds: a composed `InputBase`, `SelectBase`, `TextAreaBase`, `DateInputBase`, `TimeInputBase` or `DateTimeInputBase` (an `inline` picker has no input, so it takes nothing), or a bestax input that renders a single input of its own (`Input`, `Select`, `TextArea`, `Numberinput`, `PinInput`, `Slider`, `DateInput`, `TimeInput`, `DateTimeInput`, `Autocomplete`, `Combobox`, `TreeSelect`, `Taginput`, `File`), adopts a generated id that the label's `htmlFor` points at, and a group (`Radios`, `Checkboxes`, `Rate`, `DateRangeInput`, or a composed `DateRangeInputBase`, `inline` or not) points `aria-labelledby` at the label's own id unless you gave the group an `aria-label` or `aria-labelledby`. A range `Slider` takes the id on its low thumb and also starts each thumb's name with the label through `aria-labelledby`, unless its `ariaLabel` names that thumb or its own `aria-label` or `aria-labelledby` takes the label's place. An `Autocomplete`, a `Combobox` or a `Taginput` also names its open list after the label through `aria-labelledby`, and a `TreeSelect` its panel and the tree in it. `Checkbox`, `Radio` and `Switch` are named by their own children, and the label names one only when you wire it as you would any control with an `id` of its own, `labelProps={{ htmlFor }}` plus that control's `id`. Only the single inputs take the `htmlFor`, so once the Field's content has mounted the label keeps it only while one of them holds the id, and drops it over anything else: a group, a `Checkbox`, `Radio` or `Switch`, an `inline` picker, an inner `Field`, an input with an `id` of its own, markup of your own, or nothing at all. A server render, and the first render while hydrating, still write the `htmlFor`, which keeps hydration matching, and an input that mounts later puts it back. The label names an input with an `id` of your own only through `labelProps={{ htmlFor }}` set to that `id`, a `for` it always keeps; `labelProps={{ htmlFor: undefined }}` opts out. Skipped for `grouped`/`hasAddons` fields (multiple controls), and a nested `Field` starts its own scope, so a horizontal Field whose body holds an inner `Field` names the control there only when you wire it. Two controls in one plain labeled Field would both adopt the id, so give each an `id` of its own. */
   label?: React.ReactNode;
   /** Size for the label. */
   labelSize?: 'small' | 'normal' | 'medium' | 'large';
@@ -132,9 +133,8 @@ export const FieldLabel: React.FC<FieldLabelProps> = ({
     [`is-${size}`]: !!size,
   });
   const fieldLabelClass = classNames(mainClass, bulmaHelperClasses, className);
-  // Spread ...props and ...rest so custom props like data-testid are included
   return (
-    <div className={fieldLabelClass} {...props} {...rest}>
+    <div className={fieldLabelClass} {...rest}>
       {children}
     </div>
   );
@@ -165,9 +165,8 @@ export const FieldBody: React.FC<FieldBodyProps> = ({
 
   const mainClass = usePrefixedClassNames('field-body');
   const fieldBodyClass = classNames(mainClass, bulmaHelperClasses, className);
-  // Spread ...props and ...rest so custom props like data-testid are included
   return (
-    <div className={fieldBodyClass} {...props} {...rest}>
+    <div className={fieldBodyClass} {...rest}>
       {children}
     </div>
   );
@@ -341,14 +340,14 @@ const FieldComponent: React.FC<FieldProps> = ({
   // like <Field.Label/> + <Field.Body/>).
   let content = children;
   if (horizontal) {
+    const named = (c: React.ReactNode, displayName: string): boolean =>
+      React.isValidElement(c) &&
+      (elementType(c) as { displayName?: unknown } | null)?.displayName ===
+        displayName;
     const isFieldBody = (c: React.ReactNode): boolean =>
-      React.isValidElement(c) &&
-      // @ts-expect-error displayName isn't on the public type
-      (c.type === FieldBody || c.type?.displayName === 'FieldBody');
+      isElementOf(c, FieldBody) || named(c, 'FieldBody');
     const isFieldLabel = (c: React.ReactNode): boolean =>
-      React.isValidElement(c) &&
-      // @ts-expect-error displayName isn't on the public type
-      (c.type === FieldLabel || c.type?.displayName === 'FieldLabel');
+      isElementOf(c, FieldLabel) || named(c, 'FieldLabel');
     const childArray = React.Children.toArray(children);
     const userProvidedStructure = childArray.some(
       c => isFieldBody(c) || isFieldLabel(c)

@@ -165,7 +165,9 @@ export const Button = forwardRef(function Button(
       validButtonColors.includes(color as (typeof validButtonColors)[number]),
     [`is-${size}`]: size,
     'is-outlined': isOutlined,
-    'is-light': isLight,
+    // The light color's own class is this key too, and this one comes later,
+    // so it has to set the class for `light` as well or it erases it.
+    'is-light': isLight || color === 'light',
     'is-loading': isLoading,
     'is-static': isStatic,
     'is-disabled': isDisabled,

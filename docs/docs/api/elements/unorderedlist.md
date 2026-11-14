@@ -121,7 +121,7 @@ Apply different colors to individual list items.
 
 ### Compound (dot-notation) usage
 
-`ListItem` is also available as `UnorderedList.Item`, so a list can be composed from the single `UnorderedList` import.
+`ListItem` is `UnorderedList.Item`, so a list can be composed from the single `UnorderedList` import or from `ListItem` on its own. A Next.js Server Component imports `ListItem`, because `UnorderedList.Item` is `undefined` there.
 
 ```tsx live
 <Content>

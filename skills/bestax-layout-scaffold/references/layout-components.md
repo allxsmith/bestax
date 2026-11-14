@@ -11,6 +11,10 @@ import {
   Hero,
   Footer,
   Level,
+  Stack,
+  Group,
+  Center,
+  Flex,
   Columns,
   Column,
   Grid,
@@ -57,10 +61,13 @@ parts are direct children, in this order: `AppFrame.Header` (`<header>`), `AppFr
 Put it at the top of the app, never inside a `<main>` or a `Container as="main"`: it renders the
 page's `<main>`. Its `Navbar` is not `fixed` and needs no `has-navbar-fixed-top`. A control of
 your own reads and toggles the state with `useAppFrame()`, which is `null` outside a frame:
-`toggleNav()` does what the burger does, and `navId` is for its `aria-controls`. A header taller
-than Bulma's navbar sets `--bulma-app-frame-header-height` on `:root`. With `AppFrame.Nav rail`,
-the collapsed column keeps its icons and shows each label in a tooltip, which the frame renders:
-don't wrap the items in a `Tooltip` of your own.
+`toggleNav()` does what the burger does, and `navId` is for its `aria-controls`. Have the control
+call `event.currentTarget.focus()` before `toggleNav()`, as the burger does: Safari, and Firefox on
+a Mac, don't focus a button on click, so without it a closing drawer has no opener to hand focus
+back to. A header taller than Bulma's navbar sets
+`--bulma-app-frame-header-height` on `:root`.
+With `AppFrame.Nav rail`, the collapsed column keeps its icons and shows each label in a tooltip,
+which the frame renders: don't wrap the items in a `Tooltip` of your own.
 
 ## Container
 
@@ -123,11 +130,46 @@ don't wrap the items in a `Tooltip` of your own.
 `<Level>` is a horizontal toolbar (left/right groups). Subcomponents: `Level.Left`, `Level.Right`,
 `Level.Item`.
 
-| Prop                         | Type                                  |
-| ---------------------------- | ------------------------------------- |
-| `Level.isMobile`             | `boolean` (keep horizontal on mobile) |
-| `Level.Item.as`              | `'div' \| 'p' \| 'a'`                 |
-| `Level.Item.hasTextCentered` | `boolean`                             |
+| Prop                         | Type                                                     |
+| ---------------------------- | -------------------------------------------------------- |
+| `Level.as`                   | `'nav'` (default) \| `'div'` \| `'header'` \| `'footer'` |
+| `Level.isMobile`             | `boolean` (keep horizontal on mobile)                    |
+| `Level.Item.as`              | `'div' \| 'p' \| 'a'`                                    |
+| `Level.Item.hasTextCentered` | `boolean`                                                |
+
+A `nav` is a navigation landmark, so keep the default for a row of links. A row that isn't
+navigation takes `as="div"`, or `as="header"` when it opens a section and `as="footer"` when it
+closes one. A dashboard's row of key figures is `Stats`, not a `Level`.
+
+## Stack / Group / Center / Flex
+
+Flex containers for laying out any components, with no `display` prop to add. Each zeroes the
+top and bottom margins Bulma gives its direct children (Box, Notification, Card, Title, Field,
+Media), so `gap` is the only space between them: no `mb="0"` on the children, and a spacing
+helper such as `mt="2"` still adds to it. A `Columns` child keeps its own top and side margins and takes at the
+bottom the one Bulma gives the last Columns in a container (the column gap pulled back in, none
+when gapless), so its columns line up, and a `Pagination` child keeps its negative margins too. None draws a surface; put a `Box` or a `Card` inside or around. A `display` prop that isn't flex turns one
+off, as on any component.
+
+- `<Stack>`: a column, children stretched across it, `gap` Bulma's block spacing (1.5rem).
+- `<Group>`: a row that wraps, children centered on each other, `gap` half that (0.75rem). A
+  toolbar is `<Group justifyContent="space-between">`.
+- `<Center>`: centers its content on both axes, no gap. Give it a height (`aspectRatio`, or a
+  parent with one) to center vertically.
+- `<Flex>`: CSS's own defaults (a row, no wrap, no gap) and every flex container prop.
+
+| Prop                                                       | Type                                                                                                                                      |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `gap`, and on Flex `rowGap` / `columnGap`                  | `'0'`–`'8'` in half steps, or the number; whole step = 0.5rem                                                                             |
+| `alignItems`, `justifyContent`, `flexWrap`, `alignContent` | the flex helper values (`'center'`, `'space-between'`, `'wrap'`, …)                                                                       |
+| `Flex.flexDirection`                                       | `'row' \| 'row-reverse' \| 'column' \| 'column-reverse'`                                                                                  |
+| `Group.isFullwidth`                                        | `boolean` (children share the row equally)                                                                                                |
+| `Group.breakpoint`                                         | `'tablet' \| 'desktop' \| 'widescreen'` (a column below it)                                                                               |
+| `as`                                                       | `'div'` (default), `'main'`, `'section'`, `'article'`, `'aside'`, `'header'`, `'footer'`, `'nav'`, `'ul'`, `'ol'`, `'form'`, `'fieldset'` |
+
+Stack, Group and Center take no `flexDirection`: they never reorder. A Title and its SubTitle go
+in one element of their own inside a Stack, or the gap comes between them. For a grid of
+same-shaped items, use `Grid` / `Cell`.
 
 ## Columns / Column
 
@@ -265,16 +307,16 @@ flexDirection="column"` + `flexGrow="1"` pattern applies to `Cell` + `Card`.
 `Navbar.Burger`, `Navbar.Menu`, `Navbar.Start`, `Navbar.End`, `Navbar.Dropdown`,
 `Navbar.DropdownMenu`, `Navbar.Divider`.
 
-| Prop            | Type                                                                                                             |
-| --------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `fixed`         | `'top' \| 'bottom'`                                                                                              |
-| `transparent`   | `boolean`                                                                                                        |
-| `isSpaced`      | `boolean` (Bulma's `is-spaced`, from desktop up)                                                                 |
-| `hasShadow`     | `boolean` (default `false`, unlike `Card`'s; Bulma's `has-shadow`)                                               |
-| `color`         | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'black' \| 'dark' \| 'light' \| 'white'` |
-| `Navbar.Item`   | `as?`, `active?`, `href`                                                                                         |
-| `Navbar.Burger` | `active?`, `onClick`                                                                                             |
-| `Navbar.Menu`   | `active?` (toggled open on mobile)                                                                               |
+| Prop            | Type                                                                                                                 |
+| --------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `fixed`         | `'top' \| 'bottom'`                                                                                                  |
+| `transparent`   | `boolean`                                                                                                            |
+| `isSpaced`      | `boolean` (Bulma's `is-spaced`, from desktop up)                                                                     |
+| `hasShadow`     | `boolean` (default `false`, unlike `Card`'s; Bulma's `has-shadow`)                                                   |
+| `color`         | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'black' \| 'dark' \| 'light' \| 'white'`     |
+| `Navbar.Item`   | `as?`, `active?` (the current page: `is-active` plus `aria-current="page"`; an `aria-current` you pass wins), `href` |
+| `Navbar.Burger` | `active?`, `onClick`                                                                                                 |
+| `Navbar.Menu`   | `active?` (toggled open on mobile)                                                                                   |
 
 The burger/menu is controlled state — toggle `Navbar.Burger active`/`onClick` and pass the same
 flag to `Navbar.Menu active`. **A `fixed="top"` navbar requires `has-navbar-fixed-top` on `<html>`**
@@ -348,7 +390,10 @@ is a `div` with `role="button"`).
 
 `<Card>` for catalog/grid items. Use the props form (`header`, `image`, `footer`) or the compound
 subcomponents (`Card.Header` + `.Title`/`.Icon`, `Card.Image`, `Card.Content`, `Card.Footer`,
-`Card.FooterItem`).
+`Card.FooterItem`). Those parts are also named exports (`CardHeader`, `CardHeaderTitle`,
+`CardHeaderIcon`, `CardImage`, `CardContent`, `CardFooter`, `CardFooterItem`), the same
+components as the dotted names. A Next.js Server Component imports the parts by name, since a
+dotted name is `undefined` there.
 
 | Prop                            | Type                          |
 | ------------------------------- | ----------------------------- |

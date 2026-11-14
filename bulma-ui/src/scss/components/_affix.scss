@@ -1,0 +1,79 @@
+// Affix Component Styles
+// A wrapper fixed to a corner of the viewport
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+// Loaded a second time without a namespace, for `$block-spacing` below. It's
+// the same module, so a build's configuration of it reaches both.
+@use 'bulma/sass/utilities/initial-variables' as *;
+@use 'bulma/sass/utilities/css-variables' as cv;
+@use '../variables' as *;
+
+// Affix-specific SCSS variables. The offsets start at Bulma's block spacing
+// as a value rather than its variable, which Bulma redefines inside a
+// `.field`, so an Affix written in a Field sits where every other one does.
+$affix-offset-vertical: $block-spacing !default;
+$affix-offset-horizontal: $block-spacing !default;
+// One step under the dropdown layer, so a menu or a popover opened near its
+// corner opens over it, as do the Sidebar, the modals, Tooltip and Toast
+// above that. The page's own stacking (Bulma's addons, Carousel's arrows)
+// sits under it.
+$affix-z-index: $extras-z-index-dropdown - 1 !default;
+
+.#{iv.$class-prefix}affix {
+  @include cv.register-vars(
+    (
+      'affix-offset-vertical': #{$affix-offset-vertical},
+      'affix-offset-horizontal': #{$affix-offset-horizontal},
+      'affix-z-index': #{$affix-z-index},
+    )
+  );
+}
+
+// The corners are physical, as Badge's and Toast's are, so a right corner
+// stays on the right in right-to-left text. Each side adds the device's
+// safe-area inset for that edge, which is 0 unless the page sets
+// `viewport-fit=cover`. A margin from the spacing helpers adds to the
+// distance, since a fixed box's margin pushes it off its inset. The sides
+// also add the room the page's scrollbar gave back there while an overlay
+// locks the page, so the Affix stays put as the scrollbar goes.
+.#{iv.$class-prefix}affix {
+  position: fixed;
+  z-index: cv.getVar('affix-z-index');
+  // As wide as its content, and never wider than the viewport less the
+  // offset, the safe area and the scrollbar's room on both sides.
+  max-width: calc(
+    100% - 2 * #{cv.getVar('affix-offset-horizontal')} -
+      env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) -
+      #{$extras-scroll-lock-offset-left} - #{$extras-scroll-lock-offset-right}
+  );
+
+  &.#{iv.$class-prefix}is-top-right,
+  &.#{iv.$class-prefix}is-top-left {
+    top: calc(
+      #{cv.getVar('affix-offset-vertical')} + env(safe-area-inset-top, 0px)
+    );
+  }
+
+  &.#{iv.$class-prefix}is-bottom-right,
+  &.#{iv.$class-prefix}is-bottom-left {
+    bottom: calc(
+      #{cv.getVar('affix-offset-vertical')} + env(safe-area-inset-bottom, 0px)
+    );
+  }
+
+  &.#{iv.$class-prefix}is-top-right,
+  &.#{iv.$class-prefix}is-bottom-right {
+    right: calc(
+      #{cv.getVar('affix-offset-horizontal')} + env(safe-area-inset-right, 0px) +
+        #{$extras-scroll-lock-offset-right}
+    );
+  }
+
+  &.#{iv.$class-prefix}is-top-left,
+  &.#{iv.$class-prefix}is-bottom-left {
+    left: calc(
+      #{cv.getVar('affix-offset-horizontal')} + env(safe-area-inset-left, 0px) +
+        #{$extras-scroll-lock-offset-left}
+    );
+  }
+}

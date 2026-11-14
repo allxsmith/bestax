@@ -843,7 +843,8 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
         'color'
       ),
       ...tokens('is-', ['small', 'normal', 'medium', 'large'], 'size'),
-      // `color="light"` renders no class on a Button; `isLight` renders it.
+      // `is-light` is both the light color's class and the light variant's, so
+      // it becomes `isLight`, which renders it with any color or none.
       ...flags({
         'is-light': 'isLight',
         'is-rounded': 'isRounded',
@@ -1573,8 +1574,9 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Level',
     tag: 'nav',
+    as: ['nav', 'div', 'header', 'footer'],
     modifiers: flags({ 'is-mobile': 'isMobile' }),
-    ownProps: ['isMobile', 'color', 'bgColor', 'textColor'],
+    ownProps: ['as', 'isMobile', 'color', 'bgColor', 'textColor'],
   },
   'level-left': {
     ...BASE,
@@ -1661,6 +1663,8 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       'hasShadow',
       'fixed',
     ],
+    // It reaches the <nav> as written, so Bulma's own label converts with it.
+    passThrough: ['aria-label'],
   },
   // No background prop on these parts.
   'navbar-brand': {
@@ -1694,12 +1698,20 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   },
   // A `.has-dropdown` item stays a `Navbar.Item` with the class: a
   // `Navbar.Dropdown` would hand its `.navbar-link` dropdown semantics.
+  // `active` writes `aria-current="page"` unless the element has its own,
+  // the way `Menu.Item` and `Pagination.Link` do, so `is-active` converts
+  // only beside one and stays a class otherwise.
   'navbar-item': {
     ...BASE,
     target: 'Navbar.Item',
     tag: 'a',
     as: 'any',
-    modifiers: flags({ 'is-active': 'active' }),
+    modifiers: {
+      'is-active': {
+        writes: [{ prop: 'active' }],
+        needsAttr: { name: 'aria-current', value: 'page' },
+      },
+    },
     writesAttr: {
       type: {
         on: ['button'],
@@ -2163,13 +2175,13 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   ),
   message: todo(
     'Message',
-    'bestax `Message` always wraps its children in `.message-body`'
+    'bestax `Message` writes `data-testid="message"` when it\'s given none, and wraps children other than its own parts in `.message-body`'
   ),
   'message-header': part(),
   'message-body': part(),
   modal: todo(
     'Modal',
-    "bestax `Modal` writes a `data-testid` of its own over the one it's given, and adds dialog attributes and focus handling, so rebuild the root with it by hand; its parts convert on their own"
+    'bestax `Modal` writes `data-testid="modal"` when it\'s given none, and adds dialog attributes and focus handling, so rebuild the root with it by hand; its parts convert on their own'
   ),
   // Modal's parts are plain elements with their class, and take no helper
   // props. `.modal-close` stays a part of the root's family: `Modal.Close`
@@ -2829,9 +2841,22 @@ export const REMOVED_IN_V1: readonly string[] = [
   'tile',
 ];
 
-/** Bulma 0.9 classes v1 dropped, with what replaced them. */
+/**
+ * Bulma 0.9 classes v1 dropped, with what replaced them. The tiles'
+ * modifiers have no entry: Bulma 0.9 styled them only beside `tile`, whose
+ * entry flags the element. `heading` and `number` are common names outside
+ * Bulma too (a code highlighter's `token number`), so their messages leave
+ * room for a rule the project has, and the `heading` one otherwise says what
+ * the library sources' `flagDroppedHeading` says.
+ */
 export const LEGACY_09: Readonly<Record<string, string>> = {
   tile: 'Bulma v1 removed tiles; rebuild the layout with `Grid` and `Cell` (see the Bulma 0.9 to 1 guide)',
+  heading:
+    'Bulma v1 dropped the `.heading` styles, so unless the project\'s own CSS gives `heading` a rule, it styles nothing now; restyle it with bestax helpers (e.g. `<Paragraph textSize="7" textTransform="uppercase" textWeight="semibold" mb="1">`) or a `.heading` rule of your own',
+  number:
+    "Bulma v1 dropped `.number`, Bulma 0.9's rounded badge, so unless the project's own CSS gives `number` a rule (a code highlighter's does for `token number`), it styles nothing now; if the element needs that badge, give it a rule of your own",
+  'is-variable':
+    "Bulma v1 removed `is-variable`, so it styles nothing now; drop it, since v1's `is-0` to `is-8` set the gap of a `.columns` without it (bestax `Columns` writes them from its `gap` prop)",
   'is-marginless':
     'Bulma v1 removed `is-marginless`, so it styles nothing now; write v1\'s `m-0` in its place, or `m="0"` on a bestax component. The codemod does that itself wherever the element converts',
   'is-paddingless':
