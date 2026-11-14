@@ -1,0 +1,38 @@
+// Bestax Extras - Navbar Styles
+// Bulma draws `.navbar-burger`'s bars as `background-color: currentColor`
+// on a button with no background. Forced colors (Windows' contrast themes)
+// replaces background colors, and Chromium paints the bars in the page's
+// Canvas color, so the burger vanishes while it still works. This keeps
+// the bars in ButtonText.
+//
+// Bulma's CSS can land on either side of this partial, as it can for
+// `_delete.scss`, so the selector names its class twice to outrank Bulma's
+// `.navbar-burger span`, wherever the two load.
+//
+// A navbar fixed to the top or the bottom of the window (`Navbar fixed`)
+// spans it. While an overlay locks the page, the window takes back the room
+// the page's scrollbar had, and the lock pads the page by it, so a margin of
+// that room on each side keeps the navbar over the page as the scrollbar
+// goes. Outside a lock the margins are 0. A margin adds to the insets that
+// place the navbar, Bulma's or an app's, and Bulma sets none on a navbar, so
+// this needs no weight over Bulma's rules. `:where()` keeps it at none, so a
+// margin an app gives its navbar still wins.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use '../variables' as *;
+
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}navbar-burger.#{iv.$class-prefix}navbar-burger span {
+    // Opt out so Chromium keeps these bars in ButtonText, not Canvas.
+    forced-color-adjust: none;
+    background-color: ButtonText;
+  }
+}
+
+:where(
+    .#{iv.$class-prefix}navbar.#{iv.$class-prefix}is-fixed-top,
+    .#{iv.$class-prefix}navbar.#{iv.$class-prefix}is-fixed-bottom
+  ) {
+  margin-left: $extras-scroll-lock-offset-left;
+  margin-right: $extras-scroll-lock-offset-right;
+}

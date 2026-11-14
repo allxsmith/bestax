@@ -141,7 +141,7 @@ The pickers' digits stay as they are: their typed text is a token format of ASCI
 
 ### Portaled Content
 
-What the library portals renders outside the provider's wrapper, at the end of `document.body` or in the `portalContainer` a [`ConfigProvider`](./config.md) sets. Inside a provider, that content keeps the provider's `dir` and `lang`. That covers a `Portal`'s children, a `Popover`, `HoverCard` or `ContextMenu` panel, a `Combobox` menu or picker popover with `appendToBody`, a `Modal` or `Dialog` with `portal`, a `Sidebar`, and toasts and notifications.
+What the library portals renders at the end of `document.body`, in the `portalContainer` a [`ConfigProvider`](./config.md) sets, or, for a popup, in the overlay it was opened in, any of which can be outside the provider's wrapper. Inside a provider, that content keeps the provider's `dir` and `lang`. That covers a `Portal`'s children, a `Popover`, `HoverCard` or `ContextMenu` panel, a `Combobox` menu or picker popover with `appendToBody`, a `Modal` or `Dialog` with `portal`, a `Sidebar`, and toasts and notifications.
 
 A container inside the provider's own wrapper takes the content as it is, and the content follows the provider through the page. Any other, `document.body` included, gets it inside one `<div>` carrying the values, with `display: contents`, so it adds no box and changes no layout. It is still an element, though, so content that must be its container's direct child, such as a `<tr>` portaled into a `<tbody>`, belongs in a container inside the provider. Which of the two is settled when the content mounts: switching the locale while a dialog or a toast is open updates that `<div>` in place, so what's open keeps its typed text, focus and timers.
 
@@ -155,7 +155,7 @@ A container inside the provider's own wrapper takes the content as it is, and th
 </LocaleProvider>
 ```
 
-A date or time picker with a `locale` of its own is read the way a nested provider is: its popover, portaled or not, and an inline calendar take its `lang`, and the direction of its locale unless it has a `dir` of its own. So a French picker in an Arabic section shows a French calendar laid out left to right.
+A date or time picker with a `locale` of its own is read the way a nested provider is: its popover, portaled or not, and an inline calendar take its `lang`, and the direction of its locale unless it has a `dir` of its own. So a French picker in an Arabic section shows a French calendar laid out left to right. The `Control` the picker renders takes that direction too, so its icon stays at the start of the field and the launcher at the end. In a `Control` of your own, give the `Control` the picker's `dir`.
 
 For content you portal yourself without `Portal`, put the values from `useLocale()` on it.
 

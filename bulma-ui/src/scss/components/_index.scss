@@ -13,8 +13,10 @@
 @use 'toast';
 @use 'dialog';
 @use 'carousel';
+@use 'lightbox';
 @use 'tabs';
 @use 'menu';
+@use 'tableofcontents';
 @use 'reveal';
 @use 'avatar';
 @use 'avatars';
@@ -26,4 +28,7 @@
 @use 'command';
 @use 'datatable';
 @use 'pagination';
+@use 'affix';
+@use 'navbar';
+@use 'panel';
 @use 'tour';

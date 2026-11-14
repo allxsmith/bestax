@@ -1,6 +1,6 @@
 import type { Mock } from 'vitest';
 import React from 'react';
-import { render, fireEvent, act } from '@testing-library/react';
+import { render, fireEvent, act, screen } from '@testing-library/react';
 import { DateTimeInput } from '../DateTimeInput';
 import { Field } from '../Field';
 import { Control } from '../Control';
@@ -1306,6 +1306,86 @@ describe('DateTimeInputBase remaining branches', () => {
     const { container } = render(<DateTimeInput inline defaultValue={dt()} />);
     expect(container.querySelector('input[type="hidden"]')).toBeNull();
   });
+
+  describe('inline, disabled and readOnly', () => {
+    /** The cell for `day` of the month on show. */
+    const day = (n: number) =>
+      Array.from(
+        document.querySelectorAll<HTMLButtonElement>('[role="gridcell"]')
+      ).find(
+        c => !c.className.includes('is-other-month') && c.textContent === `${n}`
+      )!;
+
+    it('picks nothing and disables the footer when disabled, and still submits', () => {
+      const onChange = vi.fn();
+      const { container, getByRole, getByText, getByLabelText } = render(
+        <form>
+          <DateTimeInput
+            inline
+            disabled
+            name="when"
+            defaultValue={dt()}
+            onChange={onChange}
+          />
+        </form>
+      );
+      expect(getByRole('grid')).toHaveAttribute('aria-disabled', 'true');
+      fireEvent.click(day(20));
+      fireEvent.keyDown(getByRole('grid'), { key: 'Enter' });
+      expect(onChange).not.toHaveBeenCalled();
+      expect(getByRole('button', { name: /Time/ })).toBeDisabled();
+      expect(getByText('Reset')).toBeDisabled();
+      expect(getByLabelText('Done')).toBeDisabled();
+      // What a form receives is unchanged: the hidden input still posts.
+      const data = new FormData(container.querySelector('form')!);
+      expect(Array.from(data.entries())).toEqual([
+        ['when', '2024-06-07T13:45'],
+      ]);
+    });
+
+    it('picks nothing and keeps the time when readOnly, and still submits', () => {
+      const onChange = vi.fn();
+      const { container, getByRole, getByText } = render(
+        <form>
+          <DateTimeInput
+            inline
+            readOnly
+            name="when"
+            defaultValue={dt()}
+            onChange={onChange}
+          />
+        </form>
+      );
+      expect(getByRole('grid')).toHaveAttribute('aria-readonly', 'true');
+      fireEvent.click(day(20));
+      fireEvent.keyDown(getByRole('grid'), { key: 'Enter' });
+      expect(onChange).not.toHaveBeenCalled();
+      expect(getByRole('button', { name: /Time/ })).toBeDisabled();
+      expect(getByText('Reset')).toBeDisabled();
+      const data = new FormData(container.querySelector('form')!);
+      expect(Array.from(data.entries())).toEqual([
+        ['when', '2024-06-07T13:45'],
+      ]);
+    });
+
+    it('stops the open wheels when readOnly turns on', () => {
+      const onChange = vi.fn();
+      const { getByRole, getAllByRole, rerender } = render(
+        <DateTimeInput inline defaultValue={dt()} onChange={onChange} />
+      );
+      fireEvent.click(getByRole('button', { name: /Time/ }));
+      rerender(
+        <DateTimeInput
+          inline
+          readOnly
+          defaultValue={dt()}
+          onChange={onChange}
+        />
+      );
+      fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
+      expect(onChange).not.toHaveBeenCalled();
+    });
+  });
 });
 
 // -------------------------------------------------------------------------
@@ -2421,5 +2501,134 @@ describe('DateTimeInput times seeded from the clock', () => {
       expect(last(handler)).toEqual(seeded);
       unmount();
     }
+  });
+});
+
+describe('DateTimeInput inline Reset', () => {
+  const mounted = new Date(2024, 5, 7, 13, 45);
+  const last = (handler: Mock) => handler.mock.lastCall![0] as Date | null;
+  /** The cell for `day` of the month on show. */
+  const day = (n: number) =>
+    Array.from(
+      document.querySelectorAll<HTMLButtonElement>('[role="gridcell"]')
+    ).find(
+      c => !c.className.includes('is-other-month') && c.textContent === `${n}`
+    )!;
+  /** Turns the hour wheel up one, then collapses the wheels again. */
+  const turnHour = () => {
+    fireEvent.click(screen.getByRole('button', { name: /^Time/ }));
+    fireEvent.keyDown(screen.getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
+    fireEvent.click(screen.getByRole('button', { name: /^Time/ }));
+  };
+  const reset = () => fireEvent.click(screen.getByText('Reset'));
+
+  /** A parent that keeps what the picker commits, or sets a value itself. */
+  function Parent({ onChange }: { onChange: (d: Date | null) => void }) {
+    const [value, setValue] = React.useState<Date | null>(mounted);
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => setValue(new Date(2024, 5, 10, 9, 0))}
+        >
+          Move
+        </button>
+        <button type="button" onClick={() => setValue(null)}>
+          Clear
+        </button>
+        <button
+          type="button"
+          onClick={() => setValue(new Date(2024, 5, 20, 13, 45))}
+        >
+          Preset
+        </button>
+        <DateTimeInput
+          inline
+          value={value}
+          onChange={d => {
+            setValue(d);
+            onChange(d);
+          }}
+        />
+      </>
+    );
+  }
+
+  it('goes back to the value an uncontrolled picker mounted with', () => {
+    const handler = vi.fn();
+    render(<DateTimeInput inline defaultValue={mounted} onChange={handler} />);
+    turnHour();
+    fireEvent.click(day(20));
+    expect(last(handler)).toEqual(new Date(2024, 5, 20, 14, 45));
+    reset();
+    expect(last(handler)).toEqual(mounted);
+    expect(day(7)).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('goes back to empty when it mounted empty', () => {
+    const handler = vi.fn();
+    render(<DateTimeInput inline onChange={handler} />);
+    turnHour();
+    expect(last(handler)).not.toBeNull();
+    reset();
+    expect(last(handler)).toBeNull();
+  });
+
+  it("isn't moved by a controlled parent echoing the picker's own commits", () => {
+    const handler = vi.fn();
+    render(<Parent onChange={handler} />);
+    fireEvent.click(day(20));
+    turnHour();
+    expect(last(handler)).toEqual(new Date(2024, 5, 20, 14, 45));
+    reset();
+    expect(last(handler)).toEqual(mounted);
+  });
+
+  it('takes a value the controlled parent sets as the one to go back to', () => {
+    const handler = vi.fn();
+    render(<Parent onChange={handler} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Move' }));
+    fireEvent.click(day(20));
+    reset();
+    expect(last(handler)).toEqual(new Date(2024, 5, 10, 9, 0));
+    fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+    fireEvent.click(day(20));
+    reset();
+    expect(last(handler)).toBeNull();
+  });
+
+  it('takes a value the parent sets at the time of an earlier commit', () => {
+    const handler = vi.fn();
+    render(<Parent onChange={handler} />);
+    // The picker commits June 20 at 13:45, and the parent echoes it.
+    fireEvent.click(day(20));
+    fireEvent.click(screen.getByRole('button', { name: 'Move' }));
+    // The parent sets that same time itself, which is no echo.
+    fireEvent.click(screen.getByRole('button', { name: 'Preset' }));
+    fireEvent.click(day(25));
+    reset();
+    expect(last(handler)).toEqual(new Date(2024, 5, 20, 13, 45));
+  });
+
+  it('leaves the popover going back to the value it opened with', () => {
+    const handler = vi.fn();
+    const { rerender } = render(
+      <DateTimeInput value={mounted} onChange={handler} />
+    );
+    fireEvent.click(screen.getByRole('combobox'));
+    rerender(
+      <DateTimeInput value={new Date(2024, 5, 10, 9, 0)} onChange={handler} />
+    );
+    fireEvent.click(day(20));
+    reset();
+    expect(last(handler)).toEqual(mounted);
+  });
+
+  it('does nothing on ✓, which has no popover to close', () => {
+    const handler = vi.fn();
+    render(<DateTimeInput inline defaultValue={mounted} onChange={handler} />);
+    fireEvent.click(screen.getByLabelText('Done'));
+    expect(handler).not.toHaveBeenCalled();
+    expect(day(7)).toHaveAttribute('aria-selected', 'true');
   });
 });

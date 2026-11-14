@@ -164,7 +164,7 @@ describe('AppFrame styles', () => {
     });
 
     it('shows the open drawer at once, so focus can move in', () => {
-      expect(find(PLAIN, '.app-frame.is-nav-open > .app-frame-nav')).toEqual({
+      expect(find(PLAIN, '.app-frame > .app-frame-nav.is-active')).toEqual({
         transform: 'none',
         visibility: 'visible',
         'transition-delay': '0s',
@@ -179,13 +179,13 @@ describe('AppFrame styles', () => {
         opacity: '0',
         visibility: 'hidden',
       });
-      expect(
-        find(PLAIN, '.app-frame.is-nav-open > .app-frame-backdrop')
-      ).toEqual({
-        opacity: '1',
-        visibility: 'visible',
-        'transition-delay': '0s',
-      });
+      expect(find(PLAIN, '.app-frame > .app-frame-backdrop.is-active')).toEqual(
+        {
+          opacity: '1',
+          visibility: 'visible',
+          'transition-delay': '0s',
+        }
+      );
     });
 
     it('puts the close button at the far side of the drawer’s top', () => {

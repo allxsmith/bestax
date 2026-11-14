@@ -16,6 +16,7 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { isElementOf } from '../helpers/elementType';
 import { flattenChildren } from '../helpers/flattenChildren';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { useOverlayEscape, useOverlayStack } from '../helpers/overlayStack';
@@ -26,6 +27,7 @@ import { useOverlayFocus } from '../helpers/useOverlayFocus';
 import { useOutsidePress } from '../helpers/useOutsidePress';
 import { getActiveElementInTree } from '../helpers/shadowDom';
 import { useBulmaBreakpoint } from '../helpers/useBulmaViewport';
+import { PortalScope } from '../helpers/portal';
 import { warnOnce } from '../helpers/devWarnings';
 import { NavbarBurger } from '../components/Navbar';
 import type { NavbarBurgerProps } from '../components/Navbar';
@@ -160,7 +162,11 @@ export interface AppFrameNavProps
    * Usually a `Menu`. A nav taller than the window scrolls on its own. With
    * `overlay`, the rest of the frame is inert while the drawer is open, so an
    * overlay opened from the drawer, such as a `Modal`, goes inside the nav or
-   * renders outside the frame (Modal's `portal`).
+   * renders outside the frame (Modal's `portal`). While the nav is a drawer,
+   * a popup opened in it, such as a Popover's `appendToBody` panel, portals
+   * into the nav, so it shows above the drawer, unless a `ConfigProvider`
+   * sets a `portalContainer`. In the column it portals to the end of the
+   * page, as it does anywhere else.
    */
   children?: React.ReactNode;
   /**
@@ -309,15 +315,33 @@ const FrameContext = createContext<FrameContextValue | null>(null);
 const cssLength = (value: number | string) =>
   typeof value === 'number' ? `${value}px` : value;
 
-/** Hands `node` to a part's own ref and to the one forwarded to it. */
+/**
+ * Hands `node` to a part's own ref and to the one forwarded to it. A
+ * forwarded callback that returns a cleanup, as React 19 allows, has it held
+ * in `cleanup` and run on detach in place of a call with `null`, on React 18
+ * as well.
+ */
 function setRefs<T>(
   node: T | null,
   own: React.MutableRefObject<T | null>,
-  forwarded: React.ForwardedRef<T>
+  forwarded: React.ForwardedRef<T>,
+  cleanup: React.MutableRefObject<(() => void) | null>
 ) {
   own.current = node;
-  if (typeof forwarded === 'function') forwarded(node);
-  else if (forwarded) forwarded.current = node;
+  if (typeof forwarded === 'function') {
+    if (node === null) {
+      const detach = cleanup.current;
+      cleanup.current = null;
+      if (detach) detach();
+      else forwarded(null);
+      return;
+    }
+    const returned: unknown = forwarded(node);
+    cleanup.current =
+      typeof returned === 'function' ? (returned as () => void) : null;
+  } else if (forwarded) {
+    forwarded.current = node;
+  }
 }
 
 /**
@@ -391,10 +415,17 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
     const navClass = usePrefixedClassNames('app-frame-nav');
     const closeClass = usePrefixedClassNames('app-frame-close');
     const backdropClass = usePrefixedClassNames('app-frame-backdrop');
+    const activeClass = usePrefixedClassNames('is-active');
     const navRef = useRef<HTMLElement | null>(null);
     const backdropRef = useRef<HTMLDivElement | null>(null);
+    const navCleanupRef = useRef<(() => void) | null>(null);
+    // The nav, as state, for the popups inside the drawer to portal into.
+    const [navNode, setNavNode] = useState<HTMLElement | null>(null);
     const navRefs = useCallback(
-      (node: HTMLElement | null) => setRefs(node, navRef, ref),
+      (node: HTMLElement | null) => {
+        setNavNode(node);
+        setRefs(node, navRef, ref, navCleanupRef);
+      },
       [ref]
     );
 
@@ -404,6 +435,9 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
     // column, and none of what follows applies.
     const isDrawer = !!frame?.state.isDrawer;
     const open = isDrawer && !!frame?.state.navOpen;
+    // The open drawer is Bulma's active state, on the nav as on a navbar's
+    // menu, and on its backdrop.
+    const shown = { [activeClass]: !!frame?.state.navOpen };
     const modal = open && overlay;
     const close = () => frame?.state.setNavOpen(false);
 
@@ -507,7 +541,7 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
       <>
         <nav
           ref={navRefs}
-          className={classNames(navClass, bulmaHelperClasses, className)}
+          className={classNames(navClass, shown, bulmaHelperClasses, className)}
           style={navStyle}
           onClick={handleClick}
           onPointerDownCapture={e => {
@@ -529,12 +563,18 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
               onClick={close}
             />
           )}
-          {children}
+          {/* The drawer draws over the page, so a popup opened in it, such
+              as a Popover's panel, portals into it to show above it. The
+              column doesn't: it's under the header, which the popup has to
+              clear. */}
+          <PortalScope node={isDrawer ? navNode : undefined}>
+            {children}
+          </PortalScope>
         </nav>
         {frame && overlay && (
           <div
             ref={backdropRef}
-            className={backdropClass}
+            className={classNames(backdropClass, shown)}
             aria-hidden="true"
             onClick={
               closeOnClickOutside
@@ -692,12 +732,12 @@ AppFrameBurger.displayName = 'AppFrame.Burger';
 const isMain = (
   child: React.ReactNode
 ): child is React.ReactElement<AppFrameMainProps> =>
-  React.isValidElement(child) && child.type === AppFrameMain;
+  isElementOf(child, AppFrameMain);
 
 const isNav = (
   child: React.ReactNode
 ): child is React.ReactElement<AppFrameNavProps> =>
-  React.isValidElement(child) && child.type === AppFrameNav;
+  isElementOf(child, AppFrameNav);
 
 /**
  * The `AppFrame` component lays out an app's pages: a header across the top, a navigation column down the side, the page, and an aside and a footer, with the nav a drawer behind a burger on narrow screens.
@@ -755,8 +795,10 @@ const AppFrameRoot = forwardRef<HTMLDivElement, AppFrameProps>(
       ...props,
     });
     const rootRef = useRef<HTMLDivElement | null>(null);
+    const rootCleanupRef = useRef<(() => void) | null>(null);
     const rootRefs = useCallback(
-      (node: HTMLDivElement | null) => setRefs(node, rootRef, ref),
+      (node: HTMLDivElement | null) =>
+        setRefs(node, rootRef, ref, rootCleanupRef),
       [ref]
     );
 
@@ -864,7 +906,6 @@ const AppFrameRoot = forwardRef<HTMLDivElement, AppFrameProps>(
 
     const rootClass = usePrefixedClassNames('app-frame', {
       [`is-${breakpoint}`]: true,
-      'is-nav-open': navOpen,
       'is-nav-collapsed': navCollapsed,
     });
     const skipClass = usePrefixedClassNames('app-frame-skip-link');
@@ -890,18 +931,14 @@ const AppFrameRoot = forwardRef<HTMLDivElement, AppFrameProps>(
  * The frame's state, for a control of your own inside it: whether the
  * drawer is open and the column collapsed, setters that go through the
  * frame's callbacks, and `toggleNav()`, which does what the burger does.
+ * Outside an AppFrame it's `null`, as the library's other context hooks
+ * are, so a control that can sit outside one renders a fallback or nothing.
  *
  * @function useAppFrame
- * @returns The frame's state. Throws outside an AppFrame.
+ * @returns The frame's state, or `null` outside an AppFrame.
  */
-export function useAppFrame(): AppFrameState {
-  const frame = useContext(FrameContext);
-  if (!frame) {
-    throw new Error(
-      '[bestax-bulma] useAppFrame() must be used inside <AppFrame>.'
-    );
-  }
-  return frame.state;
+export function useAppFrame(): AppFrameState | null {
+  return useContext(FrameContext)?.state ?? null;
 }
 
 export const AppFrame = withSubComponents(

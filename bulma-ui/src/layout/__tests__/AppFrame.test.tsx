@@ -16,6 +16,7 @@ import {
 } from '../AppFrame';
 import { Navbar } from '../../components/Navbar';
 import { Modal } from '../../components/Modal';
+import { Popover } from '../../components/Popover';
 import { Sidebar } from '../../components/Sidebar';
 import { ConfigProvider } from '../../helpers/Config';
 import { resetDevWarnings } from '../../helpers/devWarnings';
@@ -71,7 +72,7 @@ beforeEach(() => {
 
 afterEach(() => {
   delete (window as { matchMedia?: unknown }).matchMedia;
-  document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
 });
 
 /** A whole frame, with the props given to the root and to the nav. */
@@ -276,6 +277,35 @@ describe('AppFrame', () => {
       expect(navRef).toHaveBeenLastCalledWith(null);
     });
 
+    it('runs the cleanup a callback ref returns in place of a call with null, as React 19 does', () => {
+      const rootCleanup = vi.fn();
+      const navCleanup = vi.fn();
+      const rootRef = vi.fn(() => rootCleanup);
+      const navRef = vi.fn(() => navCleanup);
+      const { rerender, unmount } = render(
+        <AppFrame ref={rootRef}>
+          <AppFrame.Nav ref={navRef}>Nav</AppFrame.Nav>
+        </AppFrame>
+      );
+      expect(rootRef).toHaveBeenCalledWith(root());
+      expect(navRef).toHaveBeenCalledWith(nav());
+      // A new ref: the old one's cleanup runs, and the new one gets the node.
+      const nextNavRef = vi.fn();
+      rerender(
+        <AppFrame ref={rootRef}>
+          <AppFrame.Nav ref={nextNavRef}>Nav</AppFrame.Nav>
+        </AppFrame>
+      );
+      expect(navCleanup).toHaveBeenCalledTimes(1);
+      expect(nextNavRef).toHaveBeenLastCalledWith(nav());
+      unmount();
+      expect(rootCleanup).toHaveBeenCalledTimes(1);
+      expect(rootRef).not.toHaveBeenCalledWith(null);
+      expect(navRef).not.toHaveBeenCalledWith(null);
+      // One that returned nothing still gets null.
+      expect(nextNavRef).toHaveBeenLastCalledWith(null);
+    });
+
     it('passes helper props, classes and attributes to each element', () => {
       render(
         <AppFrame
@@ -323,10 +353,9 @@ describe('AppFrame', () => {
       );
       fireEvent.click(burger());
       const frame = document.querySelector('.bestax-app-frame') as HTMLElement;
-      expect(frame).toHaveClass(
-        'bestax-app-frame',
-        'bestax-is-desktop',
-        'bestax-is-nav-open'
+      expect(frame).toHaveClass('bestax-app-frame', 'bestax-is-desktop');
+      expect(frame.querySelector('.bestax-app-frame-nav')).toHaveClass(
+        'bestax-is-active'
       );
       expect(frame).not.toHaveClass('app-frame');
       for (const part of [
@@ -545,11 +574,16 @@ describe('AppFrame', () => {
       expect(burger()).toHaveAttribute('aria-expanded', 'false');
       fireEvent.click(burger());
       expect(onNavOpenChange).toHaveBeenLastCalledWith(true);
-      expect(root()).toHaveClass('is-nav-open');
+      // Bulma's active state, on the nav and its backdrop.
+      const backdrop = nav().nextElementSibling as HTMLElement;
+      expect(nav()).toHaveClass('is-active');
+      expect(backdrop).toHaveClass('app-frame-backdrop', 'is-active');
+      expect(root()).not.toHaveClass('is-active');
       expect(burger()).toHaveAttribute('aria-expanded', 'true');
       act(() => burger().click());
       expect(onNavOpenChange).toHaveBeenLastCalledWith(false);
-      expect(root()).not.toHaveClass('is-nav-open');
+      expect(nav()).not.toHaveClass('is-active');
+      expect(backdrop).not.toHaveClass('is-active');
       expect(onNavCollapsedChange).not.toHaveBeenCalled();
     });
 
@@ -599,7 +633,8 @@ describe('AppFrame', () => {
     it('starts from defaultNavOpen and defaultNavCollapsed', () => {
       mockViewport(PHONE);
       render(<Frame defaultNavOpen defaultNavCollapsed />);
-      expect(root()).toHaveClass('is-nav-open', 'is-nav-collapsed');
+      expect(root()).toHaveClass('is-nav-collapsed');
+      expect(nav()).toHaveClass('is-active');
       expect(burger()).toHaveAttribute('aria-expanded', 'true');
     });
 
@@ -611,9 +646,9 @@ describe('AppFrame', () => {
       );
       fireEvent.click(burger());
       expect(onNavOpenChange).toHaveBeenLastCalledWith(true);
-      expect(root()).not.toHaveClass('is-nav-open');
+      expect(nav()).not.toHaveClass('is-active');
       rerender(<Frame navOpen onNavOpenChange={onNavOpenChange} />);
-      expect(root()).toHaveClass('is-nav-open');
+      expect(nav()).toHaveClass('is-active');
     });
 
     it('leaves a controlled navCollapsed to its owner', () => {
@@ -640,11 +675,11 @@ describe('AppFrame', () => {
       const onNavOpenChange = vi.fn();
       render(<Frame onNavOpenChange={onNavOpenChange} />);
       fireEvent.click(burger());
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
       viewport.resize(DESKTOP);
       expect(onNavOpenChange).toHaveBeenLastCalledWith(false);
-      expect(root()).not.toHaveClass('is-nav-open');
-      expect(document.body.style.overflow).toBe('');
+      expect(nav()).not.toHaveClass('is-active');
+      expect(document.documentElement.style.overflow).toBe('');
       expect(screen.getByRole('banner')).not.toHaveAttribute('inert');
     });
 
@@ -654,8 +689,8 @@ describe('AppFrame', () => {
       render(<Frame navOpen onNavOpenChange={onNavOpenChange} />);
       expect(onNavOpenChange).toHaveBeenCalledWith(false);
       // A controlled open state is its owner's, and nothing of the drawer runs.
-      expect(root()).toHaveClass('is-nav-open');
-      expect(document.body.style.overflow).toBe('');
+      expect(nav()).toHaveClass('is-active');
+      expect(document.documentElement.style.overflow).toBe('');
     });
 
     it('reads the latest callbacks', () => {
@@ -673,6 +708,7 @@ describe('AppFrame', () => {
   describe('useAppFrame', () => {
     const Toggle = () => {
       const frame = useAppFrame();
+      if (!frame) return <output>outside</output>;
       return (
         <>
           <button
@@ -739,12 +775,9 @@ describe('AppFrame', () => {
       expect(state().navOpen).toBe(false);
     });
 
-    it('throws outside a frame', () => {
-      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
-      expect(() => render(<Toggle />)).toThrow(
-        '[bestax-bulma] useAppFrame() must be used inside <AppFrame>.'
-      );
-      error.mockRestore();
+    it('returns null outside a frame, so a control can render its own fallback', () => {
+      render(<Toggle />);
+      expect(screen.getByRole('status')).toHaveTextContent('outside');
     });
   });
 
@@ -768,7 +801,7 @@ describe('AppFrame', () => {
     it('hands focus back to whatever had it as it opened', () => {
       mockViewport(PHONE);
       const Opener = () => {
-        const { setNavOpen } = useAppFrame();
+        const { setNavOpen } = useAppFrame()!;
         return (
           <button type="button" onClick={() => setNavOpen(true)}>
             Open sections
@@ -814,7 +847,7 @@ describe('AppFrame', () => {
         'inert'
       );
       expect(nav()).not.toHaveAttribute('inert');
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
       // Tab from the last stop wraps to the first, the close button.
       const filter = screen.getByRole('button', { name: 'Filter' });
       filter.focus();
@@ -852,7 +885,7 @@ describe('AppFrame', () => {
       openDrawer();
       fireEvent.keyDown(window, { key: 'Escape' });
       expect(screen.getByRole('banner')).not.toHaveAttribute('inert');
-      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
     });
 
     it('closes on Escape, marking it used', () => {
@@ -1032,7 +1065,7 @@ describe('AppFrame', () => {
       fireEvent.click(burger());
       link('Orders').focus();
       viewport.resize(DESKTOP);
-      expect(root()).not.toHaveClass('is-nav-open');
+      expect(nav()).not.toHaveClass('is-active');
       expect(link('Orders')).toHaveFocus();
     });
 
@@ -1045,7 +1078,7 @@ describe('AppFrame', () => {
       ).toHaveFocus();
       // The close button hides in the column, so focus can't stay on it.
       viewport.resize(DESKTOP);
-      expect(root()).not.toHaveClass('is-nav-open');
+      expect(nav()).not.toHaveClass('is-active');
       expect(burger()).toHaveFocus();
     });
 
@@ -1108,7 +1141,7 @@ describe('AppFrame', () => {
         </>
       );
       fireEvent.click(burger());
-      expect(root()).toHaveClass('is-nav-open');
+      expect(nav()).toHaveClass('is-active');
       expect(
         screen.getByRole('button', { name: 'Close navigation' })
       ).not.toHaveFocus();
@@ -1210,7 +1243,7 @@ describe('AppFrame', () => {
       openDrawer({ nav: { overlay: false } });
       expect(document.querySelector('.app-frame-backdrop')).toBeNull();
       expect(screen.getByRole('banner')).not.toHaveAttribute('inert');
-      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
       expect(
         screen.getByRole('button', { name: 'Close navigation' })
       ).toHaveFocus();
@@ -1219,6 +1252,74 @@ describe('AppFrame', () => {
       filter.focus();
       fireEvent.keyDown(filter, { key: 'Tab' });
       expect(filter).toHaveFocus();
+    });
+  });
+
+  describe('popups opened in the nav', () => {
+    // A popup that portals, in the nav and in the page.
+    const PopupFrame = () => (
+      <AppFrame defaultNavOpen>
+        <AppFrame.Header>
+          <AppFrame.Burger />
+        </AppFrame.Header>
+        <AppFrame.Nav>
+          <Popover
+            appendToBody
+            defaultOpen
+            ariaLabel="Filters"
+            trigger={<button type="button">Filter</button>}
+          >
+            In the nav
+          </Popover>
+        </AppFrame.Nav>
+        <AppFrame.Main>
+          <Popover
+            appendToBody
+            defaultOpen
+            ariaLabel="Sorting"
+            trigger={<button type="button">Sort</button>}
+          >
+            In the page
+          </Popover>
+        </AppFrame.Main>
+      </AppFrame>
+    );
+    const panel = (name: string) => screen.getByRole('dialog', { name });
+
+    it('portal into the drawer, which draws over the page, and only those in it', () => {
+      mockViewport(PHONE);
+      render(<PopupFrame />);
+      expect(panel('Filters').parentElement).toBe(nav());
+      expect(panel('Sorting').parentElement).toBe(document.body);
+    });
+
+    it('portal to the end of the page from the column, as before', () => {
+      mockViewport(DESKTOP);
+      render(<PopupFrame />);
+      expect(panel('Filters').parentElement).toBe(document.body);
+    });
+
+    it("go into a ConfigProvider's portalContainer while it sets one", () => {
+      mockViewport(PHONE);
+      const target = document.createElement('section');
+      document.body.appendChild(target);
+      render(
+        <ConfigProvider portalContainer={target}>
+          <PopupFrame />
+        </ConfigProvider>
+      );
+      expect(panel('Filters').parentElement).toBe(target);
+      target.remove();
+    });
+
+    it('stay in the Modal the frame is in while the nav is a column', () => {
+      mockViewport(DESKTOP);
+      render(
+        <Modal active aria-label="Preview">
+          <PopupFrame />
+        </Modal>
+      );
+      expect(panel('Filters').parentElement).toBe(screen.getByTestId('modal'));
     });
   });
 
@@ -1291,7 +1392,8 @@ describe('AppFrame', () => {
 
     it('keeps the burger quiet on the server even with the drawer starting open', () => {
       const html = renderToStaticMarkup(<Frame defaultNavOpen />);
-      expect(html).toContain('class="app-frame is-desktop is-nav-open"');
+      expect(html).toContain('class="app-frame is-desktop"');
+      expect(html).toMatch(/<nav class="app-frame-nav is-active"/);
       expect(
         /<button[^>]*app-frame-burger[^>]*>/.exec(html)?.[0]
       ).not.toContain('aria-expanded');
@@ -1340,7 +1442,7 @@ describe('AppFrame', () => {
 
 /** Whether `useAppFrame()` reads the nav as a drawer at `breakpoint`. */
 function isDrawerAt(breakpoint: AppFrameProps['breakpoint']) {
-  const Probe = () => <output>{String(useAppFrame().isDrawer)}</output>;
+  const Probe = () => <output>{String(useAppFrame()!.isDrawer)}</output>;
   const view = render(
     <AppFrame breakpoint={breakpoint}>
       <Probe />

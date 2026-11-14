@@ -61,7 +61,7 @@
   ],
   "storybook": "https://bestax.io/storybook/?path=/story/components-segmentedcontrol--default",
   "summary": "The `SegmentedControl` component renders a row of buttons where only one can be on, and tells a screen reader it's a radio group. It's Bulma's `.buttons.has-addons` row, with the checked segment filled and marked `is-selected`, the way Bulma's button docs show it. To a screen reader it's `role=\"radiogroup\"`, with `role=\"radio\"` and `aria-checked` on each segment, which is how the APG toolbar example marks its alignment buttons. The keys follow the APG radio group: the row is one tab stop, the arrow keys move to the next or previous enabled segment and check it, wrapping at either end, Home and End go to the first and last, and Space checks the focused segment. Once a segment is checked, one always is. It carries no form value. A choice that's sent with a form is `Radios`.",
-  "import": "import { SegmentedControl } from '@allxsmith/bestax-bulma';",
+  "import": "import { SegmentedControl, SegmentedControlSegment } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/components/SegmentedControl.tsx",
   "rootClass": "buttons",
   "parts": [

@@ -19,10 +19,12 @@ import { PinInput } from '../PinInput';
 import { Rate } from '../Rate';
 import { ColorPicker } from '../ColorPicker';
 import { ColorInput } from '../ColorInput';
+import { PasswordInput } from '../PasswordInput';
 import { File as FileInput } from '../File';
 import { Dropzone } from '../Dropzone';
 import { Taginput } from '../Taginput';
 import { Combobox } from '../Combobox';
+import { TreeSelect } from '../TreeSelect';
 import { resetDevWarnings } from '../../helpers/devWarnings';
 import type { FormFieldProps } from '../fieldProps';
 import type { ControlLevelProps } from '../FormContext';
@@ -142,6 +144,19 @@ const wrappers: Wrapper[] = [
     root: '.colorinput',
   },
   {
+    name: 'PasswordInput',
+    // The toggle takes the right icon's place, so the right-icon props are
+    // left out: it draws none, and warns about them on its own.
+    render: ({
+      iconRight: _iconRight,
+      iconRightName: _iconRightName,
+      iconRightSize: _iconRightSize,
+      hasIconsRight: _hasIconsRight,
+      ...p
+    }) => <PasswordInput {...p} />,
+    root: '.password-input-container',
+  },
+  {
     name: 'ColorPicker',
     render: p => <ColorPicker {...p} />,
     root: '.color-picker',
@@ -176,6 +191,14 @@ const wrappers: Wrapper[] = [
       </Combobox>
     ),
     root: '.combobox',
+    ownControl: false,
+  },
+  {
+    name: 'TreeSelect',
+    // Its own Control is the field's, inside the root, and it takes no
+    // Control-level props, so the tests that pass them skip it.
+    render: p => <TreeSelect {...(p as FormFieldProps)} data={[]} />,
+    root: '.tree-select',
     ownControl: false,
   },
 ];

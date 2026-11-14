@@ -54,7 +54,17 @@ const PROPS: Record<string, Record<string, unknown>> = {
     ],
   },
   Icon: { name: 'star' },
+  // Named, colored, sized and rounded, so every class it emits is swept.
+  IconButton: {
+    icon: 'trash',
+    'aria-label': 'Delete',
+    color: 'danger',
+    size: 'small',
+    isRounded: true,
+  },
   IconText: { children: 'Text', iconProps: { name: 'star' } },
+  // Colored and sized; its own test sweeps the icon-only form.
+  CopyButton: { value: 'https://bestax.io', color: 'primary', size: 'small' },
   Avatar: { name: 'Ada Lovelace' },
   Badge: { children: '9' },
   Steps: { items: [{ label: 'Step 1' }], hasNavigation: true },
@@ -139,6 +149,18 @@ const PROPS: Record<string, Record<string, unknown>> = {
       </Library.Splitter.Pane>,
     ],
   },
+  // Full width with a breakpoint and the props that replace its defaults, so
+  // every class Group emits is swept. Stack, Center and Flex render the same
+  // `.stack` with one modifier each.
+  Group: {
+    isFullwidth: true,
+    breakpoint: 'tablet',
+    gap: '1',
+    alignItems: 'baseline',
+    flexWrap: 'nowrap',
+    children: 'Group',
+  },
+  Flex: { flexDirection: 'column', alignContent: 'center', rowGap: '2' },
   // Every orientation class and dividers, with an item from its props and
   // one from its parts, so each class the family emits is swept.
   DescriptionList: {
@@ -158,6 +180,25 @@ const PROPS: Record<string, Record<string, unknown>> = {
     ],
   },
   DescriptionListItem: { label: 'Order', value: '#1234' },
+  // Sized, with every prop part and a change, so each class it emits is swept.
+  Stat: {
+    label: 'Revenue',
+    value: 8456.4,
+    change: 0.12,
+    description: 'since last month',
+    size: 'large',
+  },
+  // A row with a loading tile, a minimum width and a gap, so the grid's
+  // classes and the Skeleton's are swept.
+  Stats: {
+    minCol: 8,
+    gap: 4,
+    children: [
+      <Library.Stat key="a" label="Revenue" value={8456.4} change={-0.019} />,
+      <Library.Stat key="b" label="Churn" loading />,
+    ],
+  },
+  StatChange: { value: 0.12, color: 'danger' },
   // Sized, colored and rounded, in sections, so every class it emits is swept.
   RingProgress: {
     label: 'Storage',
@@ -189,6 +230,31 @@ const PROPS: Record<string, Record<string, unknown>> = {
     messageColor: 'info',
     children: 'Fields',
   },
+  // Open on an image with a caption, zoom and arrows, so every class the
+  // viewer and its trigger emit is swept.
+  Lightbox: {
+    items: [
+      { src: '/a.jpg', alt: 'A', caption: 'First' },
+      { src: '/b.jpg', alt: 'B' },
+    ],
+    defaultOpen: true,
+    children: (
+      <Library.Lightbox.Trigger index={0}>View</Library.Lightbox.Trigger>
+    ),
+  },
+  LightboxTrigger: { index: 0, children: 'View' },
+  // Sticky, with a nested entry, so each class it and its Menu parts emit is
+  // swept. Nothing is current in jsdom, which TableOfContents.test.tsx covers.
+  TableOfContents: {
+    isSticky: true,
+    items: [
+      {
+        id: 'usage',
+        label: 'Usage',
+        children: [{ id: 'props', label: 'Props' }],
+      },
+    ],
+  },
   // Every modifier, so each class the frame takes is swept.
   ScrollArea: {
     'aria-label': 'Notes',
@@ -198,6 +264,19 @@ const PROPS: Record<string, Record<string, unknown>> = {
     hasFade: true,
     children: 'Notes',
   },
+  // The text toggle, with a left icon, a message, a color and a size, so the
+  // Field, the Control and every class the container takes are swept.
+  PasswordInput: {
+    label: 'Password',
+    variant: 'text',
+    iconLeftName: 'lock',
+    message: 'At least 15 characters',
+    messageColor: 'info',
+    color: 'primary',
+    size: 'small',
+  },
+  // The same, without the Field and Control.
+  PasswordInputBase: { variant: 'text', size: 'small', isRounded: true },
   // Labeled, with a message, colored, sized, rounded and disabled, so the
   // Field, the Control and every class a box takes are swept.
   PinInput: {
@@ -433,6 +512,31 @@ const PROPS: Record<string, Record<string, unknown>> = {
         Two
       </Library.Tour.Step>,
     ],
+  },
+  // Checked, clearable, coloured, sized, rounded and open in place, with a
+  // search box and a message, so the field's, the tags', the panel's and
+  // the tree's classes are swept together.
+  TreeSelect: {
+    label: 'Regions',
+    selectionMode: 'checkbox',
+    data: [
+      {
+        value: 'europe',
+        label: 'Europe',
+        icon: 'globe',
+        children: [{ value: 'france', label: 'France' }],
+      },
+    ],
+    defaultValue: ['france'],
+    defaultExpanded: ['europe'],
+    defaultOpen: true,
+    searchable: true,
+    clearable: true,
+    color: 'info',
+    size: 'small',
+    isRounded: true,
+    message: 'Pick some',
+    messageColor: 'danger',
   },
   // A checkbox tree, sized and open, with an icon, a disabled item and a
   // checked one, so the box, the group and the modifiers are swept. An item

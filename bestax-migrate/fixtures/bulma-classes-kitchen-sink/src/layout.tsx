@@ -13,12 +13,16 @@ export function Layout() {
         </div>
         <div className="navbar-menu is-active">
           <div className="navbar-start">
-            <a className="navbar-item is-active" href="/docs">
+            <a
+              className="navbar-item is-active"
+              href="/docs"
+              aria-current="page"
+            >
               Docs
             </a>
             <div className="navbar-item has-dropdown is-hoverable">
               <div className="navbar-dropdown is-right">
-                <a className="navbar-item" href="/about">
+                <a className="navbar-item is-active" href="/about">
                   About
                 </a>
                 <hr className="navbar-divider my-1" />
@@ -102,6 +106,11 @@ export function Layout() {
             </a>
           </div>
         </nav>
+        <div className="level is-mobile">
+          <div className="level-item has-text-centered">
+            <p className="title">1,234</p>
+          </div>
+        </div>
         <div className="media">
           <figure className="media-left">
             <p className="image is-64x64">

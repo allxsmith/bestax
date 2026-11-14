@@ -6,14 +6,15 @@ import React, {
   useEffect,
   useId,
   useRef,
+  useState,
 } from 'react';
-import { createPortal } from 'react-dom';
 import {
   classNames,
   usePrefixedClassNames,
   prefixedClassNames,
 } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { isElementOf } from '../helpers/elementType';
 import { buttonType } from '../helpers/buttonType';
 import {
   useBulmaClasses,
@@ -26,9 +27,7 @@ import {
   getActiveElementInTree,
   getDeepestActiveElement,
 } from '../helpers/shadowDom';
-import { usePortalContainer } from '../helpers/portal';
-import { LocalePortalScope } from '../helpers/LocaleProvider';
-import { useIsHydrated } from '../helpers/useIsHydrated';
+import { Portal, PortalScope, usePortalProp } from '../helpers/portal';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { useOverlayStack } from '../helpers/overlayStack';
 import { focusTabStop, trapTab } from '../helpers/useFocusTrap';
@@ -84,9 +83,16 @@ export interface ModalProps
    */
   closeOnEscape?: boolean;
   /**
-   * Lock body scroll while the modal is active. Ref-counted and shared with
-   * `Dialog`, `Sidebar` and `Loading`, so whichever overlay closes first does
-   * not unlock the page underneath one that is still open.
+   * Lock page scroll while the modal is active, padding the page by the room
+   * its scrollbar took so the content stays put. A `fixed` Navbar, the toast
+   * and notification stacks and an Affix stay put too. The padding doesn't
+   * reach an element of your own fixed to the window's edge, which moves by
+   * the scrollbar's width unless it adds
+   * `var(--bulma-scroll-lock-offset-right, 0px)` to its `right` (the `-left`
+   * one to its `left`), which the lock sets on `<html>` while it's on.
+   * Ref-counted and shared with `Dialog`, `Sidebar` and `Loading`, so
+   * whichever overlay closes first does not unlock the page underneath one
+   * that is still open.
    * @defaultValue true
    */
   lockScroll?: boolean;
@@ -187,7 +193,7 @@ const ModalCloseContext = createContext<(() => void) | undefined>(undefined);
  * @param {ModalBackgroundProps} props - Component props.
  * @returns {JSX.Element} Modal background element.
  */
-const ModalBackground: React.FC<ModalBackgroundProps> = ({
+export const ModalBackground: React.FC<ModalBackgroundProps> = ({
   className,
   ...props
 }) => {
@@ -205,7 +211,10 @@ const ModalBackground: React.FC<ModalBackgroundProps> = ({
  * @param {ModalContentProps} props - Component props.
  * @returns {JSX.Element} Modal content element.
  */
-const ModalContent: React.FC<ModalContentProps> = ({ className, ...props }) => {
+export const ModalContent: React.FC<ModalContentProps> = ({
+  className,
+  ...props
+}) => {
   const classes = classNames(usePrefixedClassNames('modal-content'), className);
   return <div className={classes} {...props} />;
 };
@@ -217,7 +226,7 @@ const ModalContent: React.FC<ModalContentProps> = ({ className, ...props }) => {
  * @param {ModalCardHeadProps} props - Component props.
  * @returns {JSX.Element} Modal card header element.
  */
-const ModalCardHead: React.FC<ModalCardHeadProps> = ({
+export const ModalCardHead: React.FC<ModalCardHeadProps> = ({
   className,
   ...props
 }) => {
@@ -235,7 +244,7 @@ const ModalCardHead: React.FC<ModalCardHeadProps> = ({
  * @param {ModalCardTitleProps} props - Component props.
  * @returns {JSX.Element} Modal card title element.
  */
-const ModalCardTitle: React.FC<ModalCardTitleProps> = ({
+export const ModalCardTitle: React.FC<ModalCardTitleProps> = ({
   className,
   ...props
 }) => {
@@ -253,7 +262,7 @@ const ModalCardTitle: React.FC<ModalCardTitleProps> = ({
  * @param {ModalCardBodyProps} props - Component props.
  * @returns {JSX.Element} Modal card body element.
  */
-const ModalCardBody: React.FC<ModalCardBodyProps> = ({
+export const ModalCardBody: React.FC<ModalCardBodyProps> = ({
   className,
   ...props
 }) => {
@@ -271,7 +280,7 @@ const ModalCardBody: React.FC<ModalCardBodyProps> = ({
  * @param {ModalCardFootProps} props - Component props.
  * @returns {JSX.Element} Modal card footer element.
  */
-const ModalCardFoot: React.FC<ModalCardFootProps> = ({
+export const ModalCardFoot: React.FC<ModalCardFootProps> = ({
   className,
   ...props
 }) => {
@@ -298,7 +307,7 @@ const ModalCardComponent: React.FC<ModalCardProps> = ({
   return <div className={classes} {...props} />;
 };
 
-const ModalCard = withSubComponents(ModalCardComponent, {
+export const ModalCard = withSubComponents(ModalCardComponent, {
   Head: ModalCardHead,
   Title: ModalCardTitle,
   Body: ModalCardBody,
@@ -320,7 +329,7 @@ const ModalCard = withSubComponents(ModalCardComponent, {
  *
  * The size prop only applies to the 'floating' variant.
  */
-const ModalClose: React.FC<ModalCloseProps> = ({
+export const ModalClose: React.FC<ModalCloseProps> = ({
   className,
   size = 'large',
   variant = 'delete',
@@ -404,7 +413,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   },
   ref
 ) {
-  const { classPrefix, portalContainer } = useConfig();
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
@@ -419,6 +428,10 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   // Cleanup returned by a consumer's callback ref on attach, held until detach.
   const consumerCleanupRef = useRef<(() => void) | null>(null);
 
+  // The root, as state, for the popups inside to portal into: outside it,
+  // its `aria-modal` hides them from screen readers.
+  const [scopeNode, setScopeNode] = useState<HTMLDivElement | null>(null);
+
   // The forwarded ref and the internal one must both see the node: focus
   // management and the Tab trap read `modalRootRef`, while consumers expect
   // their own ref to resolve.
@@ -426,6 +439,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     (node: HTMLDivElement | null) => {
       (modalRootRef as React.MutableRefObject<HTMLDivElement | null>).current =
         node;
+      setScopeNode(node);
       if (typeof ref === 'function') {
         // React 19 lets a callback ref return a cleanup function and detaches
         // by running it instead of calling the ref with `null`; React 18
@@ -455,21 +469,15 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
   const generatedTitleId = useId();
   // A portal has no server-rendered counterpart, so the server render and the
-  // hydrating render have to stay inline and only move into the portal once
-  // we're past hydration.
-  const onClient = useIsHydrated();
-  const resolveContainer = usePortalContainer();
-  // Moving into the portal, or from one portal target to another, remounts
-  // the modal's subtree, so any effect holding a DOM node from before the move
-  // is holding a detached one. Effects that touch the modal's nodes key on
-  // this, on `portal` and on `defaultTarget`, so they re-run against the new
-  // tree.
-  const isPortaled = Boolean(portal) && onClient;
-  // The configured `portalContainer` only places a modal portaled with
-  // `portal` set to `true`. In place, or with a target of its own, a change
-  // to it moves nothing, so it mustn't re-run the effects either.
-  const defaultTarget =
-    isPortaled && portal === true ? portalContainer : undefined;
+  // hydrating render stay inline and only move into the portal once we're
+  // past hydration. Moving into the portal, or from one portal target to
+  // another, remounts the modal's subtree, so any effect holding a DOM node
+  // from before the move is holding a detached one. Effects that touch the
+  // modal's nodes key on `isPortaled`, on `portal` and on `defaultTarget`, so
+  // they re-run against the new tree. `defaultTarget` is the configured
+  // `portalContainer` only while it places the modal (portaled with `portal`
+  // set to `true`), so a change to it that moves nothing re-runs nothing.
+  const { isPortaled, container, defaultTarget } = usePortalProp(portal);
 
   useScrollLock(isModalActive && lockScroll);
 
@@ -558,13 +566,8 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   }, [isModalActive, isPortaled, portal, defaultTarget]);
 
   // Check if children contain compound components
-  const hasCompoundComponents = React.Children.toArray(children).some(
-    child =>
-      React.isValidElement(child) &&
-      (child.type === ModalBackground ||
-        child.type === ModalContent ||
-        child.type === ModalCard ||
-        child.type === ModalClose)
+  const hasCompoundComponents = React.Children.toArray(children).some(child =>
+    isElementOf(child, ModalBackground, ModalContent, ModalCard, ModalClose)
   );
 
   // Generate Bulma classes with prefix
@@ -583,6 +586,9 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   // automatically, compound users pass their own aria-label/aria-labelledby
   // (both arrive in `rest`, which is spread last and so wins).
   const titleId = modalCardTitle ? generatedTitleId : undefined;
+  // A test id the caller passes wins. It's written after `rest`, since a
+  // spread carrying `data-testid: undefined` would otherwise erase the default.
+  const testId = (rest as { 'data-testid'?: string })['data-testid'] ?? 'modal';
 
   let modalElement: React.ReactElement;
 
@@ -596,7 +602,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
         aria-modal={resolvedAriaModal}
         tabIndex={-1}
         {...rest}
-        data-testid="modal"
+        data-testid={testId}
       >
         {children}
       </div>
@@ -617,7 +623,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
         aria-labelledby={titleId}
         tabIndex={-1}
         {...rest}
-        data-testid="modal"
+        data-testid={testId}
       >
         <div
           className={prefixedClassNames(classPrefix, 'modal-background')}
@@ -690,24 +696,19 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     );
   }
 
-  // In both forms, so a `Modal.Close` anywhere inside closes this modal.
+  // In both forms, so a `Modal.Close` anywhere inside closes this modal, and
+  // a popup anywhere inside portals into it.
   modalElement = (
     <ModalCloseContext.Provider value={onClose}>
-      {modalElement}
+      <PortalScope node={scopeNode}>{modalElement}</PortalScope>
     </ModalCloseContext.Provider>
   );
 
-  if (isPortaled) {
-    const target = resolveContainer(
-      typeof portal === 'boolean' ? undefined : portal
-    );
-    return createPortal(
-      <LocalePortalScope target={target}>{modalElement}</LocalePortalScope>,
-      target
-    );
-  }
-
-  return modalElement;
+  return (
+    <Portal disabled={!isPortaled} container={container}>
+      {modalElement}
+    </Portal>
+  );
 });
 
 export const Modal = withSubComponents(

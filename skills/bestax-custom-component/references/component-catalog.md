@@ -22,8 +22,11 @@ instead of hand-writing markup.
   (`m`/`p` spacing, `textColor`/`bgColor`, `textAlign`, `display`, flex, …) —
   documented once in `references/api.md` — with rare exceptions (`Skeleton`).
 - **Compound components** expose sub-parts via dot access (e.g. `Card.Header`,
-  `Navbar.Item`, `Tabs.Tab`, `Hero.Body`, `Columns.Column`, `Table.Tr`); see the
-  component's linked page for the full set. Sub-parts do **not** all take helper
+  `Navbar.Item`, `Tabs.Tab`, `Hero.Body`, `Columns.Column`, `Table.Tr`) and as
+  named exports of the same component (`CardHeader`, `NavbarItem`). A Next.js
+  Server Component imports the named export: the dotted name is `undefined`
+  there (https://bestax.io/docs/guides/getting-started/react-setups#nextjs-specific).
+  See the component's linked page for the full set. Sub-parts do **not** all take helper
   props: the `Card.*`, `Table.*`, `Menu.*`, and `Hero.*` families do (most
   `Navbar.*` too), but `Modal.*`, `Tabs.*`, and `Message.*` sub-parts take none —
   just `className`, HTML attributes, and their own few (`Tabs.Tab` requires
@@ -37,7 +40,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-121 documented components. Generated from the API docs — every exported
+134 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -49,12 +52,14 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Code](https://bestax.io/docs/api/elements/code) — The `Code` component renders a styled `<code>` element with Bulma helper class integration.
 - [ColorSwatch](https://bestax.io/docs/api/elements/colorswatch) — The `ColorSwatch` component shows a color as a small chip, named by its label or by the color itself.
 - [Content](https://bestax.io/docs/api/elements/content) — The `Content` component applies Bulma’s typographic styles to its children, enhancing the appearance of HTML elements like paragraphs, headings, lists…
+- [CopyButton](https://bestax.io/docs/api/elements/copybutton) — The `CopyButton` component renders a button that copies a piece of text to the clipboard, says "Copied" for a moment, and announces the result.
 - [Delete](https://bestax.io/docs/api/elements/delete) — The `Delete` component provides a Bulma-styled close/delete button for dismissing modals, notifications, tags, messages, and more.
 - [DescriptionList](https://bestax.io/docs/api/elements/descriptionlist) — The `DescriptionList` component lists facts about one thing, each a label and its value, such as an order's details or a profile.
 - [Divider](https://bestax.io/docs/api/elements/divider) — The `Divider` component renders a styled horizontal rule (`<hr>`) element with Bulma helper class integration.
 - [Emphasis](https://bestax.io/docs/api/elements/emphasis) — The `Emphasis` component renders a styled `<em>` element with Bulma helper class integration.
 - [Figure](https://bestax.io/docs/api/elements/figure) — The `Figure` component renders a styled `<figure>` element with Bulma helper class integration.
 - [Icon](https://bestax.io/docs/api/elements/icon) — The `Icon` component is a Bulma-styled wrapper for displaying icons from various libraries (Font Awesome, Material Design Icons, Ionicons…
+- [IconButton](https://bestax.io/docs/api/elements/iconbutton) — The `IconButton` component renders a button that shows only an icon, and requires a name for it.
 - [IconText](https://bestax.io/docs/api/elements/icontext) — The `IconText` component provides a Bulma-styled horizontal arrangement of one or more `Icon` components and optional text.
 - [Image](https://bestax.io/docs/api/elements/image) — The `Image` component wraps images, iframes, or custom content in a Bulma-styled container, supporting fixed sizes, aspect ratios, rounded corners…
 - [Kbd](https://bestax.io/docs/api/elements/kbd) — The `Kbd` component renders a `<kbd>` drawn as a keycap, for a key the reader presses.
@@ -71,6 +76,8 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [RingProgress](https://bestax.io/docs/api/elements/ringprogress) — The `RingProgress` component draws a value as a ring that fills as it grows, with anything you pass shown in the middle.
 - [Skeleton](https://bestax.io/docs/api/elements/skeleton) — The `Skeleton` component provides a Bulma-styled skeleton loader for React applications, useful for indicating that content is loading.
 - [Span](https://bestax.io/docs/api/elements/span) — The `Span` component renders a styled inline `<span>` element with Bulma helper class integration.
+- [Stat](https://bestax.io/docs/api/elements/stat) — The `Stat` component shows a figure with its name, and often a change and a note, such as a dashboard's revenue or an account's storage used.
+- [Stats](https://bestax.io/docs/api/elements/stats) — The `Stats` component lays out a row of `Stat`s, such as the key figures at the top of a dashboard, as one description list on Bulma's smart grid.
 - [Strong](https://bestax.io/docs/api/elements/strong) — The `Strong` component renders a styled `<strong>` element with Bulma helper class integration.
 - [SubTitle](https://bestax.io/docs/api/elements/subtitle) — The `SubTitle` component renders a Bulma-styled subtitle (secondary heading), supporting sizes `1-6` and rendering as any heading or paragraph element (`h1-h6`…
 - [Table](https://bestax.io/docs/api/elements/table) — The `Table` component and its subcomponents provide a highly composable, Bulma-styled table system for React.
@@ -82,6 +89,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 
 ## Components
 
+- [Affix](https://bestax.io/docs/api/components/affix) — The `Affix` component keeps its content fixed to a corner of the viewport while the page scrolls under it.
 - [Avatar](https://bestax.io/docs/api/components/avatar) — The `Avatar` component represents a person or entity as a compact image.
 - [Avatars](https://bestax.io/docs/api/components/avatars) — The `Avatars` component renders an overlapping/stacked group of `Avatar`s, the "members" list pattern.
 - [Badge](https://bestax.io/docs/api/components/badge) — The `Badge` component is a small status/count indicator overlaid on the corner of another element, or rendered standalone.
@@ -97,6 +105,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Dropdown](https://bestax.io/docs/api/components/dropdown) — The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.
 - [EmptyState](https://bestax.io/docs/api/components/emptystate) — The `EmptyState` component renders the block an app shows where content would be: an empty list, a search with no results, or a first-run screen.
 - [HoverCard](https://bestax.io/docs/api/components/hovercard) — The `HoverCard` component shows a card previewing what's behind a link or a button while the pointer rests on it or keyboard focus is on it.
+- [Lightbox](https://bestax.io/docs/api/components/lightbox) — The `Lightbox` component shows a set of images one at a time in a modal viewer, with previous and next, a counter, captions and zoom, opened from the…
 - [Loading](https://bestax.io/docs/api/components/loading) — The `Loading` component provides a loading overlay with a spinner animation.
 - [Menu](https://bestax.io/docs/api/components/menu) — The `Menu` component provides Bulma's vertical navigation menu: a simple, accessible sidebar or section menu for your Bulma React UI.
 - [Message](https://bestax.io/docs/api/components/message) — The `Message` component provides Bulma's flexible notice/message box for your Bulma React UI.
@@ -110,11 +119,11 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [SegmentedControl](https://bestax.io/docs/api/components/segmentedcontrol) — The `SegmentedControl` component renders a row of buttons where only one can be on, and tells a screen reader it's a radio group.
 - [Sidebar](https://bestax.io/docs/api/components/sidebar) — The `Sidebar` component provides a slide-out navigation panel that appears from the left or right side of the screen.
 - [Steps](https://bestax.io/docs/api/components/steps) — The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow.
+- [TableOfContents](https://bestax.io/docs/api/components/tableofcontents) — The `TableOfContents` component lists a long page's sections as links in Bulma's menu look, and marks the one being read.
 - [Tabs](https://bestax.io/docs/api/components/tabs) — The `Tabs` component provides flexible and fully-featured Bulma tab navigation for your Bulma React UI.
 - [Timeline](https://bestax.io/docs/api/components/timeline) — The `Timeline` component renders a list of events in the order they happened, each with a marker on a line down the side.
 - [Toast](https://bestax.io/docs/api/components/toast) — The `Toast` component provides brief notification messages with optional action and cancel buttons.
 - [Tooltip](https://bestax.io/docs/api/components/tooltip) — The `Tooltip` component displays helpful information when users hover over or focus on an element.
-- [Tour](https://bestax.io/docs/api/components/tour) — The `Tour` component walks a user through an interface one step at a time, each step a panel pointing at an element with the rest of the page dimmed around it.
 - [TreeView](https://bestax.io/docs/api/components/treeview) — The `TreeView` component renders a tree of items you browse and pick from, the way a file explorer works: one tab stop, the arrow keys to move…
 
 ## Form
@@ -136,6 +145,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [File](https://bestax.io/docs/api/form/file) — The `File` component provides a Bulma-styled file input, supporting color, size, boxed/fullwidth/align styles, icons, "has name", and filename display.
 - [Input](https://bestax.io/docs/api/form/input) — The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states…
 - [Numberinput](https://bestax.io/docs/api/form/numberinput) — The `Numberinput` component provides a number input with increment/decrement buttons.
+- [PasswordInput](https://bestax.io/docs/api/form/passwordinput) — The `PasswordInput` component is a password field with a button inside it that shows what was typed.
 - [PinInput](https://bestax.io/docs/api/form/pininput) — The `PinInput` component is a field for a short code, such as a one-time code or a PIN, drawn as a row of boxes with one character in each.
 - [Radio](https://bestax.io/docs/api/form/radio) — The `Radio` component provides a Bulma-styled radio button input with flexible labels and helper classes.
 - [RadioCard](https://bestax.io/docs/api/form/radiocard) — The `RadioCard` component is a radio button drawn as a card, with a title and a description, picked wherever you click it.
@@ -147,6 +157,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Taginput](https://bestax.io/docs/api/form/taginput) — The `Taginput` component provides a tag/chip input field for managing multiple tags.
 - [TextArea](https://bestax.io/docs/api/form/textarea) — The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, hover/focus/loading states, fixed size…
 - [TimeInput](https://bestax.io/docs/api/form/datetime/timeinput) — The `TimeInput` component is a form input that opens a popover spinner for time-of-day selection.
+- [TreeSelect](https://bestax.io/docs/api/form/treeselect) — The `TreeSelect` component is a form field whose options are a tree, such as categories, places or teams: it opens a panel holding a real `TreeView`…
 
 ## Columns
 
@@ -161,13 +172,17 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 ## Layout
 
 - [AppFrame](https://bestax.io/docs/api/layout/appframe) — The `AppFrame` component lays out an app's pages: a header across the top, a navigation column down the side, the page, and an aside and a footer…
+- [Center](https://bestax.io/docs/api/layout/center) — The `Center` component centers its content on both axes.
 - [Container](https://bestax.io/docs/api/layout/container) — The `Container` component provides a responsive and flexible layout wrapper for your Bulma React UI.
+- [Flex](https://bestax.io/docs/api/layout/flex) — The `Flex` component is a flex container with CSS's own defaults, taking the flex container's properties as props.
 - [Footer](https://bestax.io/docs/api/layout/footer) — The `Footer` component provides a semantic and accessible site footer for your Bulma React UI.
+- [Group](https://bestax.io/docs/api/layout/group) — The `Group` component lays its children out in a row that wraps, centered on each other, with half of Bulma's block spacing between them.
 - [Hero](https://bestax.io/docs/api/layout/hero) — The `Hero` component provides a responsive, flexible, and visually striking section for your Bulma React UI.
 - [Level](https://bestax.io/docs/api/layout/level) — The `Level` component provides a flexible horizontal layout for your Bulma React UI, perfect for aligning items on the left and right…
 - [Media](https://bestax.io/docs/api/layout/media) — The `Media` component implements Bulma’s powerful media object layout for React.
 - [Section](https://bestax.io/docs/api/layout/section) — The `Section` component provides vertical spacing and visual separation for your Bulma React UI.
 - [Splitter](https://bestax.io/docs/api/layout/splitter) — The `Splitter` component lays out two or more panes side by side or one above the other, with a handle between each pair to drag or move by keyboard.
+- [Stack](https://bestax.io/docs/api/layout/stack) — The `Stack` component lays its children out in a column, with Bulma's block spacing between them and the margins Bulma gives them zeroed.
 
 ## Helpers
 
@@ -179,5 +194,6 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Valid value constants](https://bestax.io/docs/api/helpers/valid-values) — The helper tuples enumerate the core accepted values for the shared Bulma helper props — public API for building prop types and validation.
 - [classNames](https://bestax.io/docs/api/helpers/classnames) — `classNames` is a utility function for conditionally joining class names together.
 - [useBulmaClasses](https://bestax.io/docs/api/helpers/usebulmaclasses) — `useBulmaClasses` is a custom React hook that generates Bulma helper class strings from a set of props.
+- [useClipboard](https://bestax.io/docs/api/helpers/useclipboard) — `useClipboard` copies text to the clipboard through the Clipboard API, falling back to the copy command where that's missing or refused…
 - [useFocusTrap](https://bestax.io/docs/api/helpers/usefocustrap) — `useFocusTrap` keeps keyboard focus inside a container while it is active: focus moves in when the trap turns on…
 - [usePrefixedClassNames](https://bestax.io/docs/api/helpers/useprefixedclassnames) — `usePrefixedClassNames` builds a component class string that honors the `classPrefix` from `ConfigProvider` — the hook every bestax component uses for its own…

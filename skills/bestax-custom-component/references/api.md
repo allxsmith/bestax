@@ -29,6 +29,13 @@ on the root element with `mergeBulmaStyles(bulmaHelperStyles, style)`
 `undefined` when both are absent so unaffected components keep an attribute-free DOM.
 (`useColorStyles` is the underlying per-concern hook.)
 
+The flex container props (`flexDirection`, `flexWrap`, `justifyContent`, `alignContent`,
+`alignItems`) emit a class only on a flex container: when a `display` prop is `flex` or
+`inline-flex`, or when the second argument says the element's own stylesheet makes it one,
+`useBulmaClasses(props, { flexContainer: true })`. That adds no `is-flex` class, so pass it only
+when your CSS sets `display: flex`. `Stack`, `Group`, `Center` and `Flex` pass it, and
+`useFlexboxClasses` takes the same second argument.
+
 `BulmaClassesProps` is the union of all helper prop groups, composed from per-concern hooks
 that can also be used on their own:
 
@@ -134,7 +141,11 @@ focus when it opens, and a `ContextMenu` moves it to its first item and closes o
 focus back. To trap portaled content,
 put the trap's ref on the element inside the `Portal`, as below with
 `useFocusTrap(panelRef, { active: open, restoreFocus: buttonRef })`. A focus trap doesn't cover
-what a `Portal` inside it renders, so render nested overlays inside the trapped element.
+what a `Portal` inside it renders, so render nested overlays inside the trapped element. The
+library's own popups, such as `Popover` with `appendToBody`, portal into the `Modal`, `Dialog`
+or `Command.Dialog` they're opened in, but a `Portal` of yours doesn't: inside one, give it a
+`container` inside the dialog, since its `aria-modal` hides the rest of the page from screen
+readers.
 
 ```tsx
 {
@@ -233,6 +244,48 @@ function FilterPanel({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       )}
+    </>
+  );
+}
+```
+
+## Copying text: `useClipboard`
+
+`useClipboard({ duration, onCopiedChange, onCopyError })` (`helpers/useClipboard.ts`) returns
+`{ copy, copied, error }`. `copy(text)` writes through the Clipboard API, falls back to the copy
+command where that's missing (any plain `http://` page but `localhost`) or refused, and resolves
+`true` or `false`; it never rejects. `copied` is `true` for `duration` ms (2000) after a copy that
+worked, or until a later copy fails when `duration` is `0`, and `error` holds why the last one
+failed; when copies overlap, only the latest one counts.
+Call `copy` from the click with text you already have, with no `await` before it, since browsers
+only allow a write shortly after the click. The hook announces nothing: say the result in a
+`role="status"` region that's in the page, empty, before the click, inside the open modal dialog if
+there is one, with a new element per message so a repeat is announced. For a button, use
+`CopyButton`, which does all of that already.
+
+```tsx
+function CommitId({ sha }: { sha: string }) {
+  const short = sha.slice(0, 7);
+  const [said, setSaid] = useState({ id: 0, text: '' });
+  const { copy } = useClipboard({
+    onCopiedChange: done =>
+      setSaid(s => ({
+        id: s.id + 1,
+        text: done ? `Copied commit ${short}` : '',
+      })),
+  });
+  return (
+    <>
+      <LinkButton
+        type="button"
+        aria-label={`Copy commit ${short}`}
+        onClick={() => copy(sha)}
+      >
+        <Code>{short}</Code>
+      </LinkButton>
+      <Span role="status" visibility="sr-only">
+        <span key={said.id}>{said.text}</span>
+      </Span>
     </>
   );
 }

@@ -4,6 +4,27 @@ import { render, fireEvent, act } from '@testing-library/react';
 import { TimeInput } from '../TimeInput';
 import { TimeWheels } from '../_pickerInternals/TimeWheels';
 import { __resetAudioTickForTest } from '../_pickerInternals/audioTick';
+import { LocaleProvider } from '../../helpers/LocaleProvider';
+
+describe('TimeWheels direction', () => {
+  it('keeps hours to the left of minutes on a right-to-left page', () => {
+    const { container } = render(
+      <div dir="rtl">
+        <TimeWheels value={{ hours: 10, minutes: 30 }} onChange={() => {}} />
+      </div>
+    );
+    expect(container.querySelector('.timeinput')).toHaveAttribute('dir', 'ltr');
+  });
+
+  it('keeps that direction inside a LocaleProvider too', () => {
+    const { container } = render(
+      <LocaleProvider locale="ar" dir="rtl">
+        <TimeWheels value={{ hours: 10, minutes: 30 }} onChange={() => {}} />
+      </LocaleProvider>
+    );
+    expect(container.querySelector('.timeinput')).toHaveAttribute('dir', 'ltr');
+  });
+});
 
 // -------------------------------------------------------------------------
 // Interaction machinery of TimeWheels: pointer drags, fling momentum, snap
@@ -1105,5 +1126,80 @@ describe('TimeWheels audio unlock on drag', () => {
     expect(audioCtorSpy).toHaveBeenCalled();
     expect(resumeSpy).toHaveBeenCalled();
     firePointer(wheels[0], 'pointerup', { pointerId: 3, clientY: 100 });
+  });
+});
+
+describe('TimeInput inline and readOnly', () => {
+  it('shows the time and takes no key, scroll, drag or click that changes it', () => {
+    const handler = vi.fn();
+    const { container, getAllByRole } = render(
+      <form>
+        <TimeInput
+          inline
+          readOnly
+          name="start"
+          defaultValue={at(10, 0)}
+          hourFormat="12"
+          onChange={handler}
+        />
+      </form>
+    );
+    const wheels = getAllByRole('spinbutton');
+    for (const wheel of wheels) {
+      expect(wheel).toHaveAttribute('aria-readonly', 'true');
+      expect(wheel).toHaveAttribute('tabindex', '0');
+      expect(wheel.className).not.toContain('is-disabled');
+    }
+    const hours = wheels[0];
+    for (const key of [
+      'ArrowUp',
+      'ArrowDown',
+      'PageUp',
+      'PageDown',
+      'Home',
+      'End',
+    ]) {
+      fireEvent.keyDown(hours, { key });
+    }
+    // Not taken over, so the page scrolls instead.
+    expect(fireEvent.wheel(hours, { deltaY: 200 })).toBe(true);
+    firePointer(hours, 'pointerdown', { pointerId: 1, clientY: 200 });
+    firePointer(hours, 'pointermove', { pointerId: 1, clientY: 136 });
+    expect(hours.className).not.toContain('is-dragging');
+    firePointer(hours, 'pointerup', { pointerId: 1, clientY: 136 });
+    const separator = container.querySelector('.timeinput-separator')!;
+    firePointer(separator, 'pointerdown', {
+      pointerId: 2,
+      clientX: 0,
+      clientY: 100,
+    });
+    for (const wheel of wheels) {
+      expect(wheel.className).not.toContain('is-dragging');
+    }
+    fireEvent.click(hours.querySelector('button:not(.is-selected)')!);
+    expect(pendingFrames.size).toBe(0);
+    expect(handler).not.toHaveBeenCalled();
+    expect(hours).toHaveAttribute('aria-valuenow', '9');
+    // The arrows between the columns still move focus, so each can be read.
+    hours.focus();
+    fireEvent.keyDown(hours, { key: 'ArrowRight' });
+    expect(document.activeElement).toBe(wheels[1]);
+    const data = new FormData(container.querySelector('form')!);
+    expect(Array.from(data.entries())).toEqual([['start', '10:00']]);
+  });
+
+  it('commits nothing from a drag already under way when readOnly turns on', () => {
+    const handler = vi.fn();
+    const { getAllByRole, rerender } = render(
+      <TimeInput inline defaultValue={at(10, 0)} onChange={handler} />
+    );
+    const hours = getAllByRole('spinbutton')[0];
+    expect(hours).not.toHaveAttribute('aria-readonly');
+    firePointer(hours, 'pointerdown', { pointerId: 1, clientY: 200 });
+    rerender(
+      <TimeInput inline readOnly defaultValue={at(10, 0)} onChange={handler} />
+    );
+    firePointer(hours, 'pointermove', { pointerId: 1, clientY: 168 });
+    expect(handler).not.toHaveBeenCalled();
   });
 });

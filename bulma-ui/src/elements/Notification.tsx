@@ -19,6 +19,7 @@ import { useIsHydrated } from '../helpers/useIsHydrated';
 import { usePortalContainer } from '../helpers/portal';
 import { LocalePortalScope } from '../helpers/LocaleProvider';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
+import { scrollLockOffset } from '../helpers/scrollLock';
 
 /**
  * Props for the Notification component.
@@ -37,11 +38,21 @@ export interface NotificationProps
    * other value the union accepts emits a class no CSS rule matches, so the
    * notification renders unstyled; those log a console warning in development
    * and will be removed from this union in the next major version.
+   *
+   * `dark` and `light` take their color's own text and background from
+   * bestax's stylesheets, as a dark or light `Button` has. With Bulma's CSS
+   * alone, their text inherits the color around it, which on a light page is
+   * one shade off a dark notification's background, and on a dark page is
+   * hard to read on a light one.
    */
   color?: (typeof validColors)[number];
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Use the light color variant. */
+  /**
+   * Use the light color variant. The light and dark colors have none, so
+   * `color="light"` or `color="dark"` with `isLight` looks the same as
+   * without it, as a light or dark `Button` does.
+   */
   isLight?: boolean;
   /**
    * Shows a close (delete) button in the notification. It renders
@@ -89,7 +100,9 @@ export const Notification: React.FC<NotificationProps> = ({
 
   const bulmaClasses = usePrefixedClassNames('notification', {
     [`is-${color}`]: color && validColors.includes(color),
-    'is-light': isLight,
+    // The light color's own class is this key too, and this one comes later,
+    // so it has to set the class for `light` as well or it erases it.
+    'is-light': isLight || color === 'light',
     'has-delete': hasDelete,
   });
 
@@ -147,9 +160,19 @@ export interface NotificationOptions {
    * other value the union accepts emits a class no CSS rule matches, so the
    * notification renders unstyled; those log a console warning in development
    * and will be removed from this union in the next major version.
+   *
+   * `dark` and `light` take their color's own text and background from
+   * bestax's stylesheets, as a dark or light `Button` has. With Bulma's CSS
+   * alone, their text inherits the color around it, which on a light page is
+   * one shade off a dark notification's background, and on a dark page is
+   * hard to read on a light one.
    */
   color?: (typeof validColors)[number];
-  /** Use the light color variant. */
+  /**
+   * Use the light color variant. The light and dark colors have none, so
+   * `color="light"` or `color="dark"` with `isLight` looks the same as
+   * without it, as a light or dark `Button` does.
+   */
   isLight?: boolean;
   /** Duration in ms before auto-close. Default 3000. */
   duration?: number;
@@ -443,6 +466,8 @@ const notificationStackOrder: readonly NotificationPosition[] = [
 
 /**
  * Inline style that fixes a stack of notifications to its place on the screen.
+ * While an overlay locks the page, each side adds the room the page's
+ * scrollbar gave back there, so the stack stays put as the scrollbar goes.
  *
  * @function
  * @param {NotificationPosition} position - Where the stack sits.
@@ -454,6 +479,8 @@ const notificationStackStyle = (
   const isBottom = position.startsWith('bottom');
   const isCenter = position === 'top' || position === 'bottom';
   const isRight = position.endsWith('right');
+  const left = scrollLockOffset('left');
+  const right = scrollLockOffset('right');
 
   return {
     position: 'fixed',
@@ -463,13 +490,17 @@ const notificationStackStyle = (
     gap: '0.75rem',
     padding: '1rem',
     pointerEvents: 'none',
-    maxWidth: '100%',
+    maxWidth: `calc(100% - ${left} - ${right})`,
     ...(isBottom ? { bottom: 0 } : { top: 0 }),
     ...(isCenter
-      ? { left: '50%', transform: 'translateX(-50%)', alignItems: 'center' }
+      ? {
+          left: `calc(50% + (${left} - ${right}) / 2)`,
+          transform: 'translateX(-50%)',
+          alignItems: 'center',
+        }
       : isRight
-        ? { right: 0, alignItems: 'flex-end' }
-        : { left: 0, alignItems: 'flex-start' }),
+        ? { right, alignItems: 'flex-end' }
+        : { left, alignItems: 'flex-start' }),
   };
 };
 

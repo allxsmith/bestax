@@ -7,6 +7,8 @@ import {
   act,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { renderToString } from 'react-dom/server';
+import { hydrateRoot } from 'react-dom/client';
 import { Sidebar } from '../Sidebar';
 import { Loading } from '../Loading';
 import { ConfigProvider } from '../../helpers/Config';
@@ -287,18 +289,18 @@ describe('Sidebar', () => {
     });
   });
 
-  describe('Body Scroll Lock', () => {
-    it('prevents body scroll when open with overlay', () => {
+  describe('Page Scroll Lock', () => {
+    it('prevents page scroll when open with overlay', () => {
       render(
         <Sidebar isOpen onClose={() => {}}>
           <div>Content</div>
         </Sidebar>
       );
 
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
     });
 
-    it('restores body scroll when closed', () => {
+    it('restores page scroll when closed', () => {
       const { rerender } = render(
         <Sidebar isOpen onClose={() => {}}>
           <div>Content</div>
@@ -311,18 +313,18 @@ describe('Sidebar', () => {
         </Sidebar>
       );
 
-      expect(document.body.style.overflow).not.toBe('hidden');
+      expect(document.documentElement.style.overflow).not.toBe('hidden');
     });
 
-    it('does not lock body scroll when overlay is false', () => {
-      const originalOverflow = document.body.style.overflow;
+    it('does not lock page scroll when overlay is false', () => {
+      const originalOverflow = document.documentElement.style.overflow;
       render(
         <Sidebar isOpen onClose={() => {}} overlay={false}>
           <div>Content</div>
         </Sidebar>
       );
 
-      expect(document.body.style.overflow).toBe(originalOverflow);
+      expect(document.documentElement.style.overflow).toBe(originalOverflow);
     });
   });
 
@@ -1026,9 +1028,9 @@ describe('Sidebar', () => {
       removeSpy.mockRestore();
     });
 
-    it('restores body overflow to original value on unmount', () => {
+    it('restores the page overflow to its original value on unmount', () => {
       const original = 'scroll';
-      document.body.style.overflow = original;
+      document.documentElement.style.overflow = original;
 
       const { unmount } = render(
         <Sidebar isOpen onClose={() => {}}>
@@ -1036,14 +1038,14 @@ describe('Sidebar', () => {
         </Sidebar>
       );
 
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
 
       unmount();
 
-      expect(document.body.style.overflow).toBe(original);
+      expect(document.documentElement.style.overflow).toBe(original);
 
       // cleanup
-      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     });
 
     it('does not trigger onClose for non-Escape keys', () => {
@@ -1274,5 +1276,53 @@ describe('Sidebar', () => {
 
     expect(cleanup).toHaveBeenCalledTimes(1);
     expect(calls).toHaveLength(1);
+  });
+});
+
+describe('Sidebar hydration', () => {
+  it('hydrates an open sidebar in place, then moves it into its portal', async () => {
+    const outside = document.createElement('button');
+    document.body.appendChild(outside);
+    outside.focus();
+    const app = (
+      <main>
+        <Sidebar isOpen onClose={() => {}}>
+          <button type="button">Inside</button>
+        </Sidebar>
+      </main>
+    );
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(app);
+    document.body.appendChild(container);
+
+    // The server renders it in place, so the hydrating render has markup to
+    // match.
+    expect(container.querySelector('aside')).not.toBeNull();
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onRecoverableError = vi.fn();
+    let unmountRoot = () => {};
+    try {
+      await act(async () => {
+        const root = hydrateRoot(container, app, { onRecoverableError });
+        unmountRoot = () => root.unmount();
+      });
+
+      expect(onRecoverableError).not.toHaveBeenCalled();
+      expect(errorSpy).not.toHaveBeenCalled();
+      // Then it moved into document.body, and focus went with it.
+      expect(container.querySelector('aside')).toBeNull();
+      const aside = document.body.querySelector('aside');
+      expect(aside).not.toBeNull();
+      expect(container).not.toContainElement(aside);
+      expect(screen.getByRole('button', { name: 'Inside' })).toHaveFocus();
+
+      await act(async () => unmountRoot());
+      expect(outside).toHaveFocus();
+    } finally {
+      errorSpy.mockRestore();
+      container.remove();
+      outside.remove();
+    }
   });
 });

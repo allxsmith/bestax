@@ -12,7 +12,7 @@ import React, {
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
-import { Portal } from '../helpers/portal';
+import { PopupPortal } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { focusTabStop, useFocusTrap } from '../helpers/useFocusTrap';
 import { marginGap, useAnchoredPosition } from '../helpers/useAnchoredPosition';
@@ -74,19 +74,22 @@ export interface PopoverProps
    */
   onOpenChange?: (open: boolean) => void;
   /**
-   * Where the panel opens against the trigger.
+   * Where the panel opens against the trigger. Left out, it opens below and
+   * lines up with the trigger's start edge, which is its right edge on a
+   * right-to-left page, so a trigger at the start of the line doesn't push
+   * the panel off the screen. A corner you pass stays physical, so
+   * `bottom-left` lines up the left edges on either page.
    * @defaultValue 'bottom-left'
    */
   position?: PopoverPosition;
   /**
    * Render the panel through `Portal`, into the `portalContainer` a
-   * `ConfigProvider` sets, `document.body` by default, fixed to the viewport,
-   * so an ancestor's `overflow`, `transform` or stacking context can't clip
-   * it. The panel then shows from the commit after hydration, never in server
-   * markup. It is measured against the trigger when it opens and on resize
-   * and scroll, so it doesn't follow content that changes size while it is
-   * open. Theming variables set on an ancestor of the trigger reach it only
-   * when its container is inside that ancestor.
+   * `ConfigProvider` sets, else the overlay it's in that takes its popups,
+   * such as a `Modal`, else `document.body`, fixed to the viewport, so an
+   * ancestor's `overflow`, `transform` or stacking context can't clip it.
+   * The panel then shows from the commit after hydration, never in server
+   * markup. Theming variables set on an ancestor of the trigger reach it
+   * only when its container is inside that ancestor.
    * @defaultValue false
    */
   appendToBody?: boolean;
@@ -197,7 +200,7 @@ const PopoverComponent: React.FC<PopoverProps> = ({
   open: controlledOpen,
   defaultOpen = false,
   onOpenChange,
-  position = 'bottom-left',
+  position,
   appendToBody = false,
   trapFocus = true,
   closeOnClickOutside = true,
@@ -351,6 +354,9 @@ const PopoverComponent: React.FC<PopoverProps> = ({
   const panelClasses = classNames(
     usePrefixedClassNames('popover-content', {
       [`is-${resolved.position}`]: true,
+      // The default lines up with the trigger's inline start, so the
+      // stylesheet moves it to the right edge on a right-to-left page.
+      'is-start-aligned': position === undefined,
       'is-portal': appendToBody,
     }),
     contentClassName
@@ -362,7 +368,7 @@ const PopoverComponent: React.FC<PopoverProps> = ({
     <div className={rootClasses} {...rest} ref={rootRef}>
       {clonedTrigger}
       {isOpen && (
-        <Portal disabled={!appendToBody}>
+        <PopupPortal disabled={!appendToBody}>
           <PopoverPanel
             panelRef={panelRef}
             titleId={titleId}
@@ -384,7 +390,7 @@ const PopoverComponent: React.FC<PopoverProps> = ({
           >
             {children}
           </PopoverPanel>
-        </Portal>
+        </PopupPortal>
       )}
     </div>
   );

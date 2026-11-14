@@ -4,7 +4,7 @@
  *
  * Internal helper — it MUST mutate and return the same function object
  * (`Object.assign`), never wrap the base in a new function: identity checks
- * like `child.type === ModalCard` (Modal) and Field's displayName-based
+ * like `isElementOf(child, ModalCard)` (Modal) and Field's displayName-based
  * child detection rely on the attached component being the same object as
  * the separately exported one.
  *

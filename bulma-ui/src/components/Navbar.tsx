@@ -74,6 +74,16 @@ export interface NavbarProps
   fixed?: 'top' | 'bottom';
   /** Navbar content (compose with subcomponents). */
   children?: React.ReactNode;
+  /**
+   * Accessible name. Defaults to `main navigation`. A screen reader announces
+   * it with the landmark's role, and since the name holds the role word,
+   * "navigation" is heard twice. Pass a name without it (`aria-label="Site"`),
+   * and a different name on each Navbar when a page has more than one. A
+   * passed `aria-label` replaces the default, and `aria-label={undefined}`
+   * removes it, leaving the landmark unnamed.
+   * @defaultValue 'main navigation'
+   */
+  'aria-label'?: React.AriaAttributes['aria-label'];
 }
 
 /**
@@ -216,7 +226,17 @@ export interface NavbarItemOwnProps extends Omit<
   backgroundColor?: never;
   /** Additional CSS classes. */
   className?: string;
-  /** Whether the item is active. */
+  /**
+   * Marks the item as the current one. It adds Bulma's `is-active` class, and
+   * `aria-current="page"` on the element `as` renders, so assistive tech can
+   * tell which item is current too. An `aria-current` you pass wins, even
+   * `undefined`: use it to say something else (`"location"` for a section of
+   * one page, say), or `aria-current={false}` to turn it off. An `active` item
+   * that isn't navigation takes `aria-current={false}`: an `as="button"`
+   * control, say, or a `has-dropdown` container like the
+   * `<Navbar.Item as="div" className="has-dropdown" active>` older
+   * bestax-migrate versions wrote. That one can be a `Navbar.Dropdown` instead.
+   */
   active?: boolean;
   /** Text color for the item. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -292,6 +312,12 @@ export const NavbarItem = forwardRef(function NavbarItem(
         bulmaHelperClasses,
         className
       )}
+      // The active item is the current page, the way Menu.Item and Pagination
+      // mark theirs. Before the spread, so an `aria-current` the caller passes
+      // decides, `false` and `undefined` included. bestax-migrate converts
+      // `is-active` to `active` only beside an `aria-current` of the
+      // element's own, and relies on that to render the same markup.
+      aria-current={active ? 'page' : undefined}
       {...rest}
       // A `<button>` defaults to type="submit", and a navbar inside a form must
       // not submit it. After the spread, reading through it, so a spread

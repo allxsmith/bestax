@@ -1,6 +1,10 @@
 import { Meta, StoryObj } from '@storybook/react-vite';
 import File from './File';
 import { Icon } from '../elements/Icon';
+import { Box } from '../elements/Box';
+import { Title } from '../elements/Title';
+import { Paragraph } from '../elements/Paragraph';
+import { Grid } from '../grid/Grid';
 import { Field } from './Field';
 import { Control } from './Control';
 
@@ -41,29 +45,54 @@ export const PickedFileName: Story = {
 
 /**
  * Before a pick, a `hasName` File carries Bulma's `is-empty`, in each layout,
- * until a name sits beside its button.
+ * until a name sits beside its button. Each box below is one layout, so
+ * `isRight` sits at the right of its own box.
  */
 export const NoNameYet: Story = {
   render: () => (
-    <>
-      <File
-        hasName
-        buttonLabel="Choose a file…"
-        iconLeft={<Icon name="upload" aria-hidden="true" />}
-      />
-      <File
-        hasName
-        isRight
-        buttonLabel="Choose a file…"
-        iconLeft={<Icon name="upload" aria-hidden="true" />}
-      />
-      <File
-        hasName
-        isBoxed
-        buttonLabel="Choose a file…"
-        iconLeft={<Icon name="upload" aria-hidden="true" />}
-      />
-    </>
+    <Grid isFixed fixedCols={1} fixedColsTablet={3} gap={4}>
+      <Box mb="0">
+        <Title as="h3" size="6" mb="2">
+          Default
+        </Title>
+        <Paragraph mb="4">
+          <code>hasName</code>
+        </Paragraph>
+        <File
+          hasName
+          buttonLabel="Choose a file…"
+          iconLeft={<Icon name="upload" aria-hidden="true" />}
+        />
+      </Box>
+      <Box mb="0">
+        <Title as="h3" size="6" mb="2">
+          Right
+        </Title>
+        <Paragraph mb="4">
+          <code>hasName isRight</code>
+        </Paragraph>
+        <File
+          hasName
+          isRight
+          buttonLabel="Choose a file…"
+          iconLeft={<Icon name="upload" aria-hidden="true" />}
+        />
+      </Box>
+      <Box mb="0">
+        <Title as="h3" size="6" mb="2">
+          Boxed
+        </Title>
+        <Paragraph mb="4">
+          <code>hasName isBoxed</code>
+        </Paragraph>
+        <File
+          hasName
+          isBoxed
+          buttonLabel="Choose a file…"
+          iconLeft={<Icon name="upload" aria-hidden="true" />}
+        />
+      </Box>
+    </Grid>
   ),
 };
 

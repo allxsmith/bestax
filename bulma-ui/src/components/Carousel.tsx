@@ -20,6 +20,8 @@ import { useLatestRef } from '../helpers/useLatestRef';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { MOBILE, useBulmaViewport } from '../helpers/useBulmaViewport';
 import { inertProps } from '../helpers/inertProps';
+import { useSwipe } from '../helpers/useSwipe';
+import { ChevronNextIcon, ChevronPrevIcon } from '../helpers/chevronIcons';
 import { Icon } from '../elements/Icon';
 import { Button } from '../elements/Button';
 
@@ -67,42 +69,6 @@ export const CarouselItem = forwardRef<HTMLDivElement, CarouselItemProps>(
 CarouselItem.displayName = 'CarouselItem';
 
 type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
-
-/**
- * Default SVG icon for the previous arrow button.
- *
- * @function
- * @returns {JSX.Element} The rendered SVG chevron-left icon.
- */
-const DefaultPrevIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-  >
-    <polyline points="15 18 9 12 15 6" />
-  </svg>
-);
-
-/**
- * Default SVG icon for the next arrow button.
- *
- * @function
- * @returns {JSX.Element} The rendered SVG chevron-right icon.
- */
-const DefaultNextIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-  >
-    <polyline points="9 18 15 12 9 6" />
-  </svg>
-);
 
 /**
  * The `--bulma-carousel-items-to-show*` variable each count prop writes, in
@@ -171,7 +137,8 @@ export interface CarouselProps
   repeat?: boolean;
   /**
    * Enable drag/swipe navigation. Default: true. A swipe moves one step,
-   * however far it travels.
+   * however far it travels. A swipe toward the start of the line goes on,
+   * so on a right-to-left page a swipe right brings the next slide in.
    */
   hasDrag?: boolean;
   /**
@@ -267,9 +234,17 @@ export interface CarouselProps
   indicatorPosition?: 'bottom' | 'top';
   /** Indicator style. Default: 'dots'. */
   indicatorStyle?: 'circles' | 'dots' | 'lines' | 'bars';
-  /** Icon name for the previous arrow button. */
+  /**
+   * Icon name for the previous arrow button. On a right-to-left page that
+   * button sits on the right and the built-in chevron flips to point there,
+   * but an icon you name is drawn as given, so pick one that points the way
+   * the page reads.
+   */
   iconPrev?: string;
-  /** Icon name for the next arrow button. */
+  /**
+   * Icon name for the next arrow button. On a right-to-left page it sits on
+   * the left, and an icon you name is drawn as given, as with `iconPrev`.
+   */
   iconNext?: string;
   /** Icon library to use. */
   iconLibrary?: IconLibrary;
@@ -386,9 +361,6 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     const [internalValue, setInternalValue] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
     const [isFocusInside, setIsFocusInside] = useState(false);
-    const [isDragging, setIsDragging] = useState(false);
-    const [dragStart, setDragStart] = useState(0);
-    const [dragOffset, setDragOffset] = useState(0);
     const [isWrapping, setIsWrapping] = useState(false);
     const [displayIndex, setDisplayIndex] = useState(0);
     const [skipTransition, setSkipTransition] = useState(false);
@@ -557,77 +529,23 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       }
     }, [pauseOnHover]);
 
-    // Drag handlers
-    const handleDragStart = useCallback(
-      (clientX: number) => {
-        if (!hasDrag) return;
-        setIsDragging(true);
-        setDragStart(clientX);
-        setDragOffset(0);
-      },
-      [hasDrag]
-    );
+    // Right to left the track runs the other way, so the next slide is on
+    // the left. Read when a swipe or key arrives, as Lightbox does, so a
+    // LocaleProvider and the page's own `dir` both count.
+    const isRtl = () =>
+      getComputedStyle(carouselRef.current as HTMLDivElement).direction ===
+      'rtl';
 
-    const handleDragMove = useCallback(
-      (clientX: number) => {
-        if (!isDragging) return;
-        setDragOffset(clientX - dragStart);
-      },
-      [isDragging, dragStart]
-    );
-
-    const handleDragEnd = useCallback(() => {
-      if (!isDragging) return;
-      setIsDragging(false);
-
-      const threshold = 50;
-      if (dragOffset < -threshold) {
-        goToNext();
-      } else if (dragOffset > threshold) {
-        goToPrev();
-      }
-
-      setDragOffset(0);
-    }, [isDragging, dragOffset, goToNext, goToPrev]);
-
-    // Mouse events
-    const handleMouseDown = useCallback(
-      (e: React.MouseEvent) => {
-        e.preventDefault();
-        handleDragStart(e.clientX);
-      },
-      [handleDragStart]
-    );
-
-    const handleMouseMove = useCallback(
-      (e: React.MouseEvent) => {
-        handleDragMove(e.clientX);
-      },
-      [handleDragMove]
-    );
-
-    const handleMouseUp = useCallback(() => {
-      handleDragEnd();
-    }, [handleDragEnd]);
-
-    // Touch events
-    const handleTouchStart = useCallback(
-      (e: React.TouchEvent) => {
-        handleDragStart(e.touches[0].clientX);
-      },
-      [handleDragStart]
-    );
-
-    const handleTouchMove = useCallback(
-      (e: React.TouchEvent) => {
-        handleDragMove(e.touches[0].clientX);
-      },
-      [handleDragMove]
-    );
-
-    const handleTouchEnd = useCallback(() => {
-      handleDragEnd();
-    }, [handleDragEnd]);
+    // Drag and swipe, through the shared hook, past its 50px threshold: a
+    // drag toward the start of the line goes on, which is a drag left on a
+    // left-to-right page, and a drag the other way goes back.
+    const swipe = useSwipe<HTMLDivElement>({
+      enabled: hasDrag,
+      onSwipe: direction =>
+        direction === (isRtl() ? 'right' : 'left') ? goToNext() : goToPrev(),
+    });
+    const isDragging = swipe.isSwiping;
+    const dragOffset = swipe.offsetX;
 
     // Keyboard navigation, from the carousel's own controls. Inside an item
     // the keys are its content's (a field's caret, a slider), and a step
@@ -640,14 +558,17 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
           return;
         }
 
+        // The arrow points where the slide comes from: right to left the
+        // next one is on the left.
+        const rtl = getComputedStyle(node).direction === 'rtl';
         switch (e.key) {
           case 'ArrowLeft':
             e.preventDefault();
-            goToPrevRef.current();
+            (rtl ? goToNextRef : goToPrevRef).current();
             break;
           case 'ArrowRight':
             e.preventDefault();
-            goToNextRef.current();
+            (rtl ? goToPrevRef : goToNextRef).current();
             break;
         }
       };
@@ -838,13 +759,15 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
         <div
           ref={containerRef}
           className={carouselContainerClass}
-          onMouseDown={hasDrag ? handleMouseDown : undefined}
-          onMouseMove={hasDrag && isDragging ? handleMouseMove : undefined}
-          onMouseUp={hasDrag ? handleMouseUp : undefined}
-          onMouseLeave={hasDrag ? handleMouseUp : undefined}
-          onTouchStart={hasDrag ? handleTouchStart : undefined}
-          onTouchMove={hasDrag ? handleTouchMove : undefined}
-          onTouchEnd={hasDrag ? handleTouchEnd : undefined}
+          onMouseDown={hasDrag ? swipe.handlers.onMouseDown : undefined}
+          onMouseMove={
+            hasDrag && isDragging ? swipe.handlers.onMouseMove : undefined
+          }
+          onMouseUp={hasDrag ? swipe.handlers.onMouseUp : undefined}
+          onMouseLeave={hasDrag ? swipe.handlers.onMouseLeave : undefined}
+          onTouchStart={hasDrag ? swipe.handlers.onTouchStart : undefined}
+          onTouchMove={hasDrag ? swipe.handlers.onTouchMove : undefined}
+          onTouchEnd={hasDrag ? swipe.handlers.onTouchEnd : undefined}
           style={{
             transform: isDragging ? `translateX(${dragOffset}px)` : undefined,
             cursor: hasDrag ? (isDragging ? 'grabbing' : 'grab') : undefined,
@@ -855,8 +778,11 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
             className={carouselSlidesClass}
             style={{
               // One item is the track's width plus a gap, over the count the
-              // stylesheet has in view; account for the prepended clones
-              transform: `translateX(calc(${-(shownIndex + cloneCount)} * (100% + var(--bulma-carousel-item-gap, 0px)) / var(--bulma-carousel-items-in-view, 1)))`,
+              // stylesheet has in view; account for the prepended clones.
+              // The sign is -1 left to right. Right to left the flex row
+              // reverses, and the stylesheet sets the sign to +1 so the
+              // same shift keeps a slide in view.
+              transform: `translateX(calc(var(--carousel-shift-sign, -1) * ${shownIndex + cloneCount} * (100% + var(--bulma-carousel-item-gap, 0px)) / var(--bulma-carousel-items-in-view, 1)))`,
               // Disable transition during drag or instant snap after wrap-around
               transition:
                 isDragging || skipTransition
@@ -898,7 +824,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
                     features={iconFeatures}
                   />
                 ) : (
-                  <DefaultPrevIcon />
+                  <ChevronPrevIcon />
                 )}
               </Button>
               <Button
@@ -917,7 +843,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
                     features={iconFeatures}
                   />
                 ) : (
-                  <DefaultNextIcon />
+                  <ChevronNextIcon />
                 )}
               </Button>
             </>

@@ -8,6 +8,9 @@
 // ranked by importance, then specificity, then source order. A rule this
 // can't rank, or one in a block it doesn't walk that sets a property it
 // resolves, fails the test rather than dropping out.
+//
+// The same partial brings Bulma's focus outline back on `:focus-visible`
+// (#1417). Those rules are read from the compiled sheet, not a browser.
 import * as sass from 'sass';
 import fs from 'fs';
 import path from 'path';
@@ -270,18 +273,37 @@ describe('the current page on a forced-colors page', () => {
   });
 });
 
+/** One prefixed class, the way the partial writes it. */
+const cls = (prefix: string, name: string) => `.${prefix}${name}`;
+
 describe('the Pagination partial', () => {
   it.each([
     ['no prefix', ''],
     ['a class prefix', 'bestax-'],
   ])(
-    'changes nothing outside forced colors, with %s, and names only prefixed classes',
+    'names only prefixed classes, with %s, and leaves colors alone outside forced colors',
     (_label, prefix) => {
+      const c = (name: string) => cls(prefix, name);
       const rules = rulesOf(compile(prefix));
       expect(rules.map(rule => [rule.selector, rule.context])).toEqual([
         [
-          `.${prefix}pagination-link.${prefix}is-current, .${prefix}pagination-link.${prefix}is-selected`,
+          `${c('pagination-link')}.${prefix}is-current, ${c('pagination-link')}.${prefix}is-selected`,
           [FORCED],
+        ],
+        [
+          [
+            `${c('pagination')} ${c('pagination-previous')}:focus-visible`,
+            `${c('pagination')} ${c('pagination-next')}:focus-visible`,
+            `${c('pagination')} ${c('pagination-link')}:focus-visible`,
+          ].join(', '),
+          [],
+        ],
+        [
+          [
+            `${c('pagination')} ${c('pagination-link')}.${prefix}is-current:focus-visible`,
+            `${c('pagination')} ${c('pagination-link')}.${prefix}is-selected:focus-visible`,
+          ].join(', '),
+          [],
         ],
       ]);
     }
@@ -294,4 +316,71 @@ describe('the Pagination partial', () => {
     );
     expect(index).toMatch(/^@use 'pagination';$/m);
   });
+});
+
+describe('the keyboard focus ring', () => {
+  it.each([
+    ['no prefix', '', 'bulma.css'],
+    ['a class prefix', 'bulma-', 'versions/bulma-prefixed.css'],
+  ])(
+    'is drawn on :focus-visible, and the current page uses currentColor, with %s',
+    (_label, prefix, bulmaFile) => {
+      const c = (name: string) => cls(prefix, name);
+      const rules = rulesOf(compile(prefix));
+      const focus = rules.find(
+        rule =>
+          rule.context.length === 0 &&
+          rule.selector.endsWith(`${c('pagination-link')}:focus-visible`)
+      );
+      expect(focus?.declarations).toEqual({
+        'outline-color':
+          'hsl(var(--bulma-focus-h), var(--bulma-focus-s), var(--bulma-focus-l))',
+        'outline-style': 'var(--bulma-focus-style)',
+        'outline-width': 'var(--bulma-focus-width)',
+        'outline-offset': 'var(--bulma-focus-offset)',
+      });
+      // :focus-visible only, so a mouse click does not show the ring, and an
+      // item without keyboard focus is not restyled.
+      expect(focus?.selector).not.toMatch(/:focus(?!-visible)/);
+      expect(
+        rules
+          .filter(rule =>
+            Object.keys(rule.declarations).some(name =>
+              name.startsWith('outline')
+            )
+          )
+          .every(rule => rule.selector.includes(':focus-visible'))
+      ).toBe(true);
+
+      const page = `${c('pagination-link')}:focus-visible`;
+      const ours = focus?.selector
+        .split(',')
+        .map(part => part.trim())
+        .find(part => part.endsWith(page));
+      // Bulma's control mixin sets `outline: none` on the item itself. The
+      // `.pagination` ancestor has to outrank that, in Bulma's own sheet.
+      const bulma = rulesOf(bulmaCss(bulmaFile))
+        .filter(rule => rule.declarations.outline === 'none')
+        .flatMap(rule => rule.selector.split(',').map(part => part.trim()))
+        .find(part => part === page);
+      expect(bulma).toBe(page);
+      expect(outranks(specificity(ours ?? ''), specificity(page))).toBe(true);
+
+      const current = rules.find(rule =>
+        rule.selector.includes(`${c('is-current')}:focus-visible`)
+      );
+      expect(current?.declarations['outline-color']).toBe('currentColor');
+      expect(current?.declarations['outline-offset']).toBe(
+        'calc(-2 * var(--bulma-focus-width))'
+      );
+      expect(
+        outranks(
+          specificity(
+            `${c('pagination')} ${c('pagination-link')}.${prefix}is-current:focus-visible`
+          ),
+          specificity(ours ?? '')
+        )
+      ).toBe(true);
+    }
+  );
 });

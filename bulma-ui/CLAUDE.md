@@ -117,6 +117,9 @@ either one is fixed.
   Buttons, Tags, Avatars, Collapses, Checkboxes, Radios. A `.Group` part is for one unit made of
   pieces (Kbd.Group, a key combination) or a section inside a component (Command.Group,
   Combobox.Group).
+- **A layout container takes the name of the layout it draws:** Stack, Group, Center and Flex lay
+  out any children, so they aren't named for what they hold. The top-level `Group` is the row of
+  that family, neither a plural nor a `.Group` part, and the rule above doesn't rename it.
 - `color` takes Bulma's color names and `size` the `'small' | 'medium' | 'large'` union. Text a
   caller may want to translate goes in the same kind of prop the nearest sibling uses (the pickers'
   `labels`), and anything locale-aware reads `LocaleProvider`.
@@ -135,18 +138,26 @@ either one is fixed.
 - **TSDoc is the docs source, not a comment.** Every `<Foo>Props` member needs an inline
   `/** … */` — `scripts/gen-api-docs.mjs` renders those into the API page's Props table, so a
   missing one is a build error, and the component's own summary sentence becomes the page's
-  Overview. Three tags: `@defaultValue` when the default is computed rather than destructured
+  Overview. The tags: `@defaultValue` when the default is computed rather than destructured
   (the AST can't see it), `@extraProp {Type} [name=default] - desc` to document a notable
-  prop inherited from the DOM base type, and `@helperProps <sentence>` on the props type of a
+  prop inherited from the DOM base type, `@helperProps <sentence>` on the props type of a
   component that puts its helper props on another element than its other attributes
   (`Checkbox`: the outer `<label>`, and the `<input>`), which the catch-all row prints and
-  `scripts/helper-props-placement.test.mjs` holds to what renders. Do **not** add `@property`
+  `scripts/helper-props-placement.test.mjs` holds to what renders, and `@flexContainer
+<sentence>` on the props type, or a base, of a component whose root its own stylesheet makes
+  a flex container (`Stack`), so the flex container helper props apply with no `display` prop.
+  `props-extract` reads it, and the ESLint plugin's `no-inert-flex-props` takes its flex
+  containers from it through the generated metadata. Do **not** add `@property`
   blocks above an interface — that older style is unverifiable and drifted from the real
   types; it has been migrated away.
   A sub-component's own summary sentence becomes its line in the page's `**Subcomponents:**`
   list, so write it for a reader ("Top bar for navigation or branding"), not for the compiler.
   Type aliases get the same treatment: a union too long to inline in a cell is rendered as its
   name plus a `**Types:**` footnote built from the alias's own TSDoc.
+  Redeclaring an inherited prop to give it TSDoc keeps the inherited type:
+  `'aria-label'?: React.AriaAttributes['aria-label']`, not `string`, which is narrower under
+  `exactOptionalPropertyTypes` and so a breaking change. `@extraProp` documents one without
+  redeclaring it.
 - Multi-part components attach sub-components as statics via `withSubComponents`
   (`src/helpers/withSubComponents.ts`) — it must mutate the base (identity-preserving),
   never wrap it. A compound family ships these artifacts beyond the base anatomy rule:
@@ -155,6 +166,14 @@ either one is fixed.
   a `CompoundUsage` story, and a `### Compound (dot-notation) usage` live example at the
   end of the API page's `## Usage` section. Prefer exporting subs by name from the same
   module so identity tests are possible.
+  Compare parts through `isElementOf` (`src/helpers/elementType.ts`), never `child.type ===`.
+  A part written in a React Server Component reaches the client as a client reference, whose
+  element type is lazy rather than the part's own function, so a raw comparison is false there
+  and the parent lays the part out wrong (#1500). `isElementOf` reads through the lazy type,
+  and `src/__tests__/part-type-checks.test.ts` fails on a raw comparison. A new compound that
+  can let its parts find it through context instead, the way `SegmentedControl.Segment`
+  does, needs no check at all. Anything the docs say works from a Server Component needs a
+  real Next.js build behind it, since jsdom has no server boundary.
 - Components must work with a custom class prefix (`ConfigProvider`) — tests assert
   `bestax-`-prefixed class output; never hardcode a `"button"`-style class string outside the
   classname helpers (`usePrefixedClassNames`).

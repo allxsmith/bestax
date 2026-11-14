@@ -173,9 +173,13 @@ $datetimeinput-time-overlay-blur: 3px !default;
   cursor: pointer;
   border-radius: cv.getVar('radius');
 
-  &:hover,
+  &:hover:not(:disabled),
   &:focus-visible {
     background-color: hsla(0, 0%, 50%, 0.12);
+  }
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 }
 
@@ -201,5 +205,9 @@ $datetimeinput-time-overlay-blur: 3px !default;
   &:focus-visible {
     outline: 2px solid cv.getVar('primary');
     outline-offset: 2px;
+  }
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 }

@@ -3,12 +3,12 @@ import React, {
   useCallback,
   useEffect,
   useRef,
+  useState,
   useSyncExternalStore,
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useIsHydrated } from '../helpers/useIsHydrated';
-import { useConfig } from '../helpers/Config';
+import { PortalScope, usePortalProp } from '../helpers/portal';
 import { Modal } from './Modal';
 
 /** Valid dialog type/color values. */
@@ -111,6 +111,9 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
     const dialogRef = useRef<HTMLDivElement>(null);
     // Cleanup returned by a consumer's callback ref on attach, held until detach.
     const consumerCleanupRef = useRef<(() => void) | null>(null);
+    // The box, as state, for the popups in the message to portal into. It's
+    // what carries `aria-modal`, rather than the Modal's root around it.
+    const [scopeNode, setScopeNode] = useState<HTMLDivElement | null>(null);
     const confirmRef = useRef<HTMLButtonElement>(null);
     const cancelRef = useRef<HTMLButtonElement>(null);
 
@@ -137,11 +140,7 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
     // the Modal's subtree, these buttons included, so the focus effect below
     // has to re-run against the new nodes, exactly as the Modal's own focus
     // effect does, on the same inputs.
-    const isHydrated = useIsHydrated();
-    const isPortaled = Boolean(portal) && isHydrated;
-    const { portalContainer } = useConfig();
-    const defaultTarget =
-      isPortaled && portal === true ? portalContainer : undefined;
+    const { isPortaled, defaultTarget } = usePortalProp(portal);
 
     // Focus management — Dialog picks a specific button rather than the
     // Modal's default (first focusable/root); this effect runs after the
@@ -159,6 +158,7 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
       (node: HTMLDivElement | null) => {
         (dialogRef as React.MutableRefObject<HTMLDivElement | null>).current =
           node;
+        setScopeNode(node);
         if (typeof ref === 'function') {
           // React 19 lets a callback ref return a cleanup function and detaches by
           // running it instead of calling the ref with `null`; React 18 discards the
@@ -282,47 +282,51 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
         portal={portal}
       >
         <Modal.Background onClick={handleBackgroundClick} />
-        <div
-          ref={combinedRef}
-          className={combinedClasses}
-          role="alertdialog"
-          aria-modal="true"
-          aria-labelledby={title ? 'dialog-title' : undefined}
-          aria-describedby="dialog-message"
-          {...rest}
-        >
-          {title && (
-            <div className={headerClass}>
-              {displayIcon && <span className={iconClass}>{displayIcon}</span>}
-              <h3 id="dialog-title" className={titleClass}>
-                {title}
-              </h3>
-            </div>
-          )}
-          <div id="dialog-message" className={bodyClass}>
-            {message}
-          </div>
-          <div className={footerClass}>
-            {showCancel && (
-              <button
-                ref={cancelRef}
-                type="button"
-                className={cancelButtonClass}
-                onClick={handleCancel}
-              >
-                {cancelText}
-              </button>
+        <PortalScope node={scopeNode}>
+          <div
+            ref={combinedRef}
+            className={combinedClasses}
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby={title ? 'dialog-title' : undefined}
+            aria-describedby="dialog-message"
+            {...rest}
+          >
+            {title && (
+              <div className={headerClass}>
+                {displayIcon && (
+                  <span className={iconClass}>{displayIcon}</span>
+                )}
+                <h3 id="dialog-title" className={titleClass}>
+                  {title}
+                </h3>
+              </div>
             )}
-            <button
-              ref={confirmRef}
-              type="button"
-              className={confirmButtonClass}
-              onClick={handleConfirm}
-            >
-              {confirmText}
-            </button>
+            <div id="dialog-message" className={bodyClass}>
+              {message}
+            </div>
+            <div className={footerClass}>
+              {showCancel && (
+                <button
+                  ref={cancelRef}
+                  type="button"
+                  className={cancelButtonClass}
+                  onClick={handleCancel}
+                >
+                  {cancelText}
+                </button>
+              )}
+              <button
+                ref={confirmRef}
+                type="button"
+                className={confirmButtonClass}
+                onClick={handleConfirm}
+              >
+                {confirmText}
+              </button>
+            </div>
           </div>
-        </div>
+        </PortalScope>
       </Modal>
     );
   }
