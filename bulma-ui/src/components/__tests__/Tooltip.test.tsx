@@ -19,10 +19,10 @@ import { resetDevWarnings } from '../../helpers/devWarnings';
 type PointerType = 'mouse' | 'pen' | 'touch';
 
 /**
- * jsdom has no PointerEvent, so build a MouseEvent and give it a
- * `pointerType`; React reads both off the native event. React makes
- * `onPointerEnter` and `onPointerLeave` out of `pointerover` and `pointerout`,
- * walking from the element the pointer left to the one it entered.
+ * A pointer event of `pointerType`, a mouse's unless told otherwise. React
+ * makes `onPointerEnter` and `onPointerLeave` out of `pointerover` and
+ * `pointerout`, walking from the element the pointer left to the one it
+ * entered.
  */
 const pointer = (
   el: Element,
@@ -32,13 +32,13 @@ const pointer = (
     relatedTarget = null,
   }: { pointerType?: PointerType; relatedTarget?: EventTarget | null } = {}
 ) => {
-  const event = new MouseEvent(type, {
+  const event = new PointerEvent(type, {
     bubbles: true,
     cancelable: true,
     composed: true,
     relatedTarget,
+    pointerType,
   });
-  Object.defineProperty(event, 'pointerType', { value: pointerType });
   fireEvent(el, event);
 };
 
