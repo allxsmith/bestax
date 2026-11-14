@@ -13,6 +13,8 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { flattenChildren } from '../helpers/flattenChildren';
+import { isElementOf } from '../helpers/elementType';
+import { useControlled } from '../helpers/useControlled';
 import { Portal } from '../helpers/portal';
 import { useConfig } from '../helpers/Config';
 import { useIsHydrated } from '../helpers/useIsHydrated';
@@ -269,14 +271,6 @@ interface FoundTarget {
    * isn't used for the next one.
    */
   index?: number;
-  /**
-   * The step's size. `useAnchoredPosition` measures the step on a render, a
-   * scroll or a resize and doesn't watch its size, so a change in it is
-   * passed on here as state: the render that follows measures it again.
-   * Watching the size in the hook would serve Popover, HoverCard and
-   * Combobox too, and is a change of its own.
-   */
-  stepSize?: string;
 }
 
 const nothingFound: FoundTarget = { element: null, box: null };
@@ -315,17 +309,16 @@ function findTarget(
 
 /**
  * Finds the current step's target and its box while the step shows, and
- * measures it and the step again, once a frame at most, on a scroll, a
- * resize of the window, a change in the target's or the step's own size, or
- * any change to the page outside the tour: an element added or removed, or
- * an attribute changed. A target moved by something else, as a transform or
- * a transition slides one along, or by content above it that grows inside a
- * scrolling element, is followed at the next of those. What's returned is
- * only ever what was found for this step.
+ * measures it again, once a frame at most, on a scroll, a resize of the
+ * window, a change in the target's size, or any change to the page outside
+ * the tour: an element added or removed, or an attribute changed. A target
+ * moved by something else, as a transform or a transition slides one along,
+ * or by content above it that grows inside a scrolling element, is followed
+ * at the next of those. What's returned is only ever what was found for this
+ * step.
  */
 function useTourTarget(
   rootRef: React.RefObject<HTMLDivElement | null>,
-  stepRef: React.RefObject<HTMLDivElement | null>,
   target: TourTarget | undefined,
   index: number,
   active: boolean
@@ -334,10 +327,8 @@ function useTourTarget(
 
   useClientLayoutEffect(() => {
     if (!active) return undefined;
-    // The root and the step render whenever the tour shows, so they're on
-    // the page here.
+    // The root renders whenever the tour shows, so it's on the page here.
     const root = rootRef.current as HTMLDivElement;
-    const step = stepRef.current as HTMLDivElement;
     const doc = root.ownerDocument;
     const view = doc.defaultView as Window;
     let frame = 0;
@@ -369,17 +360,14 @@ function useTourTarget(
             height: rect.height,
           }
         : null;
-      const { width, height } = step.getBoundingClientRect();
-      const stepSize = `${width}x${height}`;
       // What matters is what was found, not the target's identity, which
       // an inline ref object changes on every render.
       setFound(prev =>
         prev.element === element &&
         sameBox(prev.box, box) &&
-        prev.index === index &&
-        prev.stepSize === stepSize
+        prev.index === index
           ? prev
-          : { element, box, index, stepSize }
+          : { element, box, index }
       );
       if (target != null && !element) {
         warnOnce(
@@ -394,7 +382,6 @@ function useTourTarget(
     const schedule = () => {
       if (!frame) frame = view.requestAnimationFrame(update);
     };
-    sizes?.observe(step);
     sizes?.observe(doc.body);
     update();
     // Any attribute can bring a target in or move one (`hidden`, `open`,
@@ -417,7 +404,7 @@ function useTourTarget(
       view.removeEventListener('scroll', schedule, { capture: true });
       view.removeEventListener('resize', schedule);
     };
-  }, [active, target, index, rootRef, stepRef]);
+  }, [active, target, index, rootRef]);
 
   return active && found.index === index ? found : nothingFound;
 }
@@ -828,38 +815,29 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
       className
     );
 
-    const isOpenControlled = controlledOpen !== undefined;
-    const [internalOpen, setInternalOpen] = useState(defaultOpen);
-    const isOpen = controlledOpen ?? internalOpen;
-    const requestOpen = useCallback(
-      (next: boolean) => {
-        onOpenChange?.(next);
-        if (!isOpenControlled) setInternalOpen(next);
-      },
-      [isOpenControlled, onOpenChange]
-    );
+    const [isOpen, setOwnOpen] = useControlled(controlledOpen, defaultOpen);
+    const requestOpen = (next: boolean) => {
+      onOpenChange?.(next);
+      setOwnOpen(next);
+    };
 
     // An uncontrolled tour starts again at `defaultValue` each time it
     // opens, set as the render that opens it runs.
-    const [internalValue, setInternalValue] = useState(defaultValue);
+    const [value, setOwnValue] = useControlled(controlledValue, defaultValue);
     const [wasOpen, setWasOpen] = useState(isOpen);
     if (wasOpen !== isOpen) {
       setWasOpen(isOpen);
-      if (isOpen) setInternalValue(defaultValue);
+      if (isOpen) setOwnValue(defaultValue);
     }
-    const isValueControlled = controlledValue !== undefined;
-    const requestValue = useCallback(
-      (next: number) => {
-        onChange?.(next);
-        if (!isValueControlled) setInternalValue(next);
-      },
-      [isValueControlled, onChange]
-    );
+    const requestValue = (next: number) => {
+      onChange?.(next);
+      setOwnValue(next);
+    };
 
     const flat = flattenChildren(children);
     const steps = flat.filter(
       (child): child is React.ReactElement<TourStepProps> =>
-        React.isValidElement(child) && child.type === TourStep
+        isElementOf(child, TourStep)
     );
     if (steps.length !== flat.length) {
       warnOnce(
@@ -870,10 +848,7 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
       );
     }
     const total = steps.length;
-    const index = Math.max(
-      0,
-      Math.min(controlledValue ?? internalValue, total - 1)
-    );
+    const index = Math.max(0, Math.min(value, total - 1));
     const step = steps[index] as React.ReactElement<TourStepProps> | undefined;
     const stepProps: TourStepProps = step?.props ?? {};
 
@@ -895,7 +870,6 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
 
     const { element: target, box } = useTourTarget(
       rootRef,
-      stepRef,
       stepProps.target,
       index,
       shown
@@ -933,7 +907,7 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
       followContent: true,
     });
 
-    const close = useCallback(() => requestOpen(false), [requestOpen]);
+    const close = () => requestOpen(false);
 
     // A modal step joins the stack of open overlays, so Escape and Tab go to
     // whatever is on top: a Modal opened from a step holds both until it

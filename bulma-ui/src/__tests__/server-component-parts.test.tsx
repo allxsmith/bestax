@@ -56,6 +56,8 @@ import {
   TabList,
   Tabs,
   TabsContent,
+  Tour,
+  TourStep,
 } from '../index';
 import { resetDevWarnings } from '../helpers/devWarnings';
 
@@ -335,6 +337,16 @@ const cases: Record<string, (w: Wrap) => React.ReactElement> = {
       </M>
     );
   },
+  'Tour built from its steps, on its second': w => {
+    const [T, S] = [Tour, TourStep].map(w) as [typeof Tour, typeof TourStep];
+    // In place and without the overlay, so the step lands in the container.
+    return (
+      <T defaultOpen defaultValue={1} portal={false} overlay={false}>
+        <S title="One">First</S>
+        <S title="Two">Second</S>
+      </T>
+    );
+  },
   'IconButton with an Icon child': w => {
     const [B, I] = [IconButton, Icon].map(w) as [
       typeof IconButton,
@@ -363,6 +375,14 @@ describe('parts written in a Server Component (#1500)', () => {
     const expected = render(cases[name](asIs)).container.innerHTML;
     const actual = render(cases[name](lazy)).container.innerHTML;
     expect(withoutIds(actual)).toBe(withoutIds(expected));
+  });
+
+  it("finds a Tour's steps, so it doesn't warn", () => {
+    resetDevWarnings();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    render(cases['Tour built from its steps, on its second'](lazy));
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
   });
 
   it("finds a Stat's label part, so it doesn't warn", () => {

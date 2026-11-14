@@ -80,10 +80,10 @@ afterEach(() => {
 
 /** A ResizeObserver the tests fire by hand, recording what it watches. */
 class MockResizeObserver {
-  static last: MockResizeObserver | null = null;
+  static all: MockResizeObserver[] = [];
   watched = new Set<Element>();
   constructor(private callback: ResizeObserverCallback) {
-    MockResizeObserver.last = this;
+    MockResizeObserver.all.push(this);
   }
   observe(el: Element) {
     this.watched.add(el);
@@ -101,12 +101,24 @@ class MockResizeObserver {
   }
 }
 
+/**
+ * Installs the mock. The tour watches its target and the page with one
+ * observer, and the step is placed by `useAnchoredPosition`, which watches
+ * the step and its target with another, so a test reads what all of the
+ * live ones watch, and fires them all.
+ */
 const withResizeObserver = () => {
+  MockResizeObserver.all = [];
   Object.defineProperty(globalThis, 'ResizeObserver', {
     configurable: true,
     value: MockResizeObserver,
   });
-  return () => MockResizeObserver.last as MockResizeObserver;
+  const live = () =>
+    MockResizeObserver.all.filter(observer => observer.watched.size > 0);
+  return {
+    watches: (el: Element) => live().some(observer => observer.watched.has(el)),
+    fire: () => live().forEach(observer => observer.fire()),
+  };
 };
 
 const steps = (
@@ -529,14 +541,14 @@ describe('Tour', () => {
     it('with the overlay, makes the rest of the page inert and still, and dims it', () => {
       const { container } = render(<Page defaultOpen />);
       expect(container).toHaveAttribute('inert');
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
       const overlay = document.querySelector('svg.tour-overlay');
       expect(overlay).toHaveAttribute('aria-hidden', 'true');
       // Centered, so there's no hole.
       expect(document.querySelector('.tour-spotlight')).toBeNull();
       fireEvent.click(screen.getByRole('button', { name: 'Skip' }));
       expect(container).not.toHaveAttribute('inert');
-      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
     });
 
     it('cuts the spotlight at the target, grown by the padding', () => {
@@ -562,7 +574,7 @@ describe('Tour', () => {
       const { container } = render(<Page defaultOpen overlay={false} />);
       expect(dialog()).not.toHaveAttribute('aria-modal');
       expect(container).not.toHaveAttribute('inert');
-      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
       expect(document.querySelector('.tour-overlay')).toBeNull();
     });
 
@@ -579,7 +591,7 @@ describe('Tour', () => {
       expect(container).not.toHaveAttribute('inert');
       fireEvent.click(next());
       expect(dialog()).toHaveAttribute('aria-modal', 'true');
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
     });
 
     it('swallows a click on the overlay, and ends on one with closeOnClickOutside', () => {
@@ -1187,7 +1199,7 @@ describe('Tour', () => {
     });
 
     it('watches a boxless target, the step and the page for size, and measures again', () => {
-      const observer = withResizeObserver();
+      const sizes = withResizeObserver();
       render(
         <>
           <div hidden id="box">
@@ -1204,19 +1216,19 @@ describe('Tour', () => {
         </>
       );
       const inside = document.getElementById('inside') as HTMLElement;
-      expect(observer().watched).toEqual(
-        new Set([dialog(), document.body, inside])
-      );
+      expect(sizes.watches(inside)).toBe(true);
+      expect(sizes.watches(dialog())).toBe(true);
+      expect(sizes.watches(document.body)).toBe(true);
       expect(dialog()).toHaveClass('is-centered');
       // Showing it changes no id or class: only its size says so.
       document.getElementById('box')!.removeAttribute('hidden');
-      observer().fire();
+      sizes.fire();
       expect(dialog()).toHaveClass('is-bottom');
       fireEvent.click(next());
-      expect(observer().watched.has(inside)).toBe(false);
+      expect(sizes.watches(inside)).toBe(false);
       expect(dialog().style.top).toBe('350px');
       dialog().dataset.rect = '0 0 200 300';
-      observer().fire();
+      sizes.fire();
       expect(dialog().style.top).toBe('250px');
     });
 
@@ -1227,22 +1239,24 @@ describe('Tour', () => {
         return frames.length;
       });
       render(<Page defaultOpen defaultValue={1} />);
+      // One frame for the spotlight and one for the step's placement.
       act(() => {
         window.dispatchEvent(new Event('scroll'));
         window.dispatchEvent(new Event('resize'));
         window.dispatchEvent(new Event('scroll'));
       });
-      expect(frames).toHaveLength(1);
+      expect(frames).toHaveLength(2);
       const filters = document.getElementById('filters') as HTMLElement;
       filters.dataset.rect = '200 100 80 30';
-      act(() => frames[0](0));
+      act(() => frames.forEach(frame => frame(0)));
       expect(
         (document.querySelector('.tour-spotlight') as SVGElement).style.y
       ).toBe('calc(200px - var(--bulma-tour-spotlight-padding))');
+      expect(dialog().style.top).toBe('230px');
       act(() => {
         window.dispatchEvent(new Event('scroll'));
       });
-      expect(frames).toHaveLength(2);
+      expect(frames).toHaveLength(4);
     });
 
     it('follows its target on scroll, and on resize', () => {
