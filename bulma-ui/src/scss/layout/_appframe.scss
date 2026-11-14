@@ -8,6 +8,9 @@
 // closed one is out of the Tab order and the accessibility tree before any
 // script runs. The layout is all in here, with a media query per breakpoint
 // class, so the server's markup lays out as the browser's does.
+//
+// With `AppFrame.Nav rail`, a collapsed column shrinks to a rail of the
+// menu's icons instead, each label visually hidden and shown in a Tooltip.
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
@@ -21,6 +24,7 @@
 $app-frame-header-height: cv.getVar('navbar-height') !default;
 $app-frame-header-background: cv.getVar('scheme-main') !default;
 $app-frame-nav-width: 16rem !default;
+$app-frame-nav-rail-width: 4rem !default;
 $app-frame-nav-padding: 0.75rem !default;
 $app-frame-nav-background: cv.getVar('scheme-main') !default;
 $app-frame-aside-width: 20rem !default;
@@ -57,6 +61,7 @@ $-drawer-gap: 3rem;
     (
       'app-frame-header-background': #{$app-frame-header-background},
       'app-frame-nav-width': #{$app-frame-nav-width},
+      'app-frame-nav-rail-width': #{$app-frame-nav-rail-width},
       'app-frame-nav-padding': #{$app-frame-nav-padding},
       'app-frame-nav-background': #{$app-frame-nav-background},
       'app-frame-aside-width': #{$app-frame-aside-width},
@@ -216,6 +221,22 @@ html:has(.#{iv.$class-prefix}app-frame) {
   }
 }
 
+// ---- The icon rail ---------------------------------------------------------------
+
+// With a rail, each item's link and each section's button sits in a
+// Tooltip, at every width, so collapsing never remounts one that has focus.
+// The wrapper is a block, so the link fills the column as it does on its
+// own and a heading's margins pass through it. Its tooltip, and the bridge
+// to it, show only in the collapsed rail.
+.#{iv.$class-prefix}tooltip.#{iv.$class-prefix}app-frame-rail-tooltip {
+  display: block;
+
+  > .#{iv.$class-prefix}tooltip-content,
+  &::after {
+    display: none;
+  }
+}
+
 // ---- From the breakpoint up ------------------------------------------------------
 
 // Three columns, the nav's, the page's and the aside's, each as wide as what's
@@ -246,14 +267,86 @@ html:has(.#{iv.$class-prefix}app-frame) {
     box-shadow: none;
     transform: none;
     visibility: visible;
-    transition-property: margin-inline-start, visibility;
+    transition-property: margin-inline-start, inline-size, visibility;
+    transition-duration:
+      cv.getVar('app-frame-transition-duration'),
+      cv.getVar('app-frame-transition-duration'), 0s;
     transition-delay: 0s;
   }
 
   &.#{iv.$class-prefix}is-nav-collapsed > .#{iv.$class-prefix}app-frame-nav {
     margin-inline-start: calc(-1 * #{cv.getVar('app-frame-nav-width')});
     visibility: hidden;
-    transition-delay: 0s, cv.getVar('app-frame-transition-duration');
+    transition-delay: 0s, 0s, cv.getVar('app-frame-transition-duration');
+  }
+
+  // Collapsed to the rail, the column narrows to the icons and stays. It
+  // doesn't scroll on its own, so a tooltip beside it isn't clipped. It's as
+  // tall as its content, and at least the window under the header. It sits
+  // over the page, so a tooltip does too.
+  &.#{iv.$class-prefix}is-nav-collapsed
+    > .#{iv.$class-prefix}app-frame-nav.#{iv.$class-prefix}is-rail {
+    z-index: $extras-z-index-sticky - 1;
+    margin-inline-start: 0;
+    inline-size: cv.getVar('app-frame-nav-rail-width');
+    block-size: auto;
+    min-block-size: calc(100vh - #{cv.getVar('app-frame-header-height')});
+    // The small viewport, not the dynamic one: the frame compares the rail's
+    // height with this to tell whether it fits under the header (`is-tall`),
+    // and a touch browser's toolbar sliding in and out doesn't change it, so a
+    // rail near the edge doesn't flip between sticking and scrolling.
+    min-block-size: calc(100svh - #{cv.getVar('app-frame-header-height')});
+    overflow: visible;
+    visibility: visible;
+    transition-delay: 0s;
+
+    // Taller than the window under the header, it would stick with its lower
+    // icons out of reach below the window, so it scrolls with the page
+    // instead. The frame measures it and adds `is-tall`.
+    &.#{iv.$class-prefix}is-tall {
+      position: relative;
+      inset-block-start: auto;
+    }
+
+    .#{iv.$class-prefix}app-frame-rail-tooltip {
+      > .#{iv.$class-prefix}tooltip-content,
+      &::after {
+        display: block;
+      }
+
+      // The link or the button, down to its icon in the middle of the rail.
+      > :first-child {
+        padding-inline: 0;
+        justify-content: center;
+        text-align: center;
+      }
+    }
+
+    // Each label stays its link's or button's name.
+    .#{iv.$class-prefix}menu-item-label,
+    .#{iv.$class-prefix}menu-section-label {
+      @include extras-sr-only;
+    }
+
+    .#{iv.$class-prefix}menu-item-icon,
+    .#{iv.$class-prefix}menu-section-icon {
+      margin-inline-end: 0;
+    }
+
+    // A section's heading is set small, like a label, and its icon with it.
+    // In the rail it's the icon alone, as large as the items' icons.
+    .#{iv.$class-prefix}menu-section-toggle {
+      font-size: inherit;
+    }
+
+    // Only the top level shows: a nested list, a section's list, a label and
+    // a section's chevron hide. A section's button expands the column.
+    .#{iv.$class-prefix}menu-label,
+    .#{iv.$class-prefix}menu-section-chevron,
+    .#{iv.$class-prefix}menu-list ul,
+    .#{iv.$class-prefix}menu-section-list {
+      display: none;
+    }
   }
 
   > .#{iv.$class-prefix}app-frame-nav > .#{iv.$class-prefix}app-frame-close,

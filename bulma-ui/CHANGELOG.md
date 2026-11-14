@@ -1,3 +1,39 @@
+# [5.68.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.13...@allxsmith/bestax-bulma@5.68.0) (2026-11-14)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** read Menu.Item's new icon prop as its own ([8e1403a](https://github.com/allxsmith/bestax/commit/8e1403ac041103660ec0c448f84a063ea75c2273))
+* **bulma-ui:** close a Tooltip as it's disabled, and leave its trigger unlinked while it is ([0d85d53](https://github.com/allxsmith/bestax/commit/0d85d53380ddca3412a1b0e3a9262a57c8176bec))
+* **bulma-ui:** drop a rail section's aria-expanded only while a collapse is undecided ([b151381](https://github.com/allxsmith/bestax/commit/b1513819fbe12e2e802bc26e6b9e30cea7a1f146))
+* **bulma-ui:** give a Menu.Section's list a menu-section-list class, and hide it in the rail by it ([61dd74d](https://github.com/allxsmith/bestax/commit/61dd74d36794bcbd15a5235534f8bcbafe5a5cc4))
+* **bulma-ui:** give the rail only to the nav's own Menu, not a Menu opened from it ([266dc5e](https://github.com/allxsmith/bestax/commit/266dc5efaa137ee4071444b24a83fe73a72e8a45))
+* **bulma-ui:** give the rail to the Menus inside the nav, as the page lays them out ([abf5ff0](https://github.com/allxsmith/bestax/commit/abf5ff068ce325151ed333843bacb4dbac8501d8))
+* **bulma-ui:** keep portaled menus out of the rail, and measure it as the window resizes ([b8ef8ab](https://github.com/allxsmith/bestax/commit/b8ef8ab11012a2e4e9fea268e508bb1310d9f2ec))
+* **bulma-ui:** keep the rail's tooltips closed in the wide column and the drawer ([9ecf79f](https://github.com/allxsmith/bestax/commit/9ecf79ff8360575d74094ab00682d9d8bf589865))
+* **bulma-ui:** leave a rail section's aria-expanded off until the frame knows its mode ([e8f98d9](https://github.com/allxsmith/bestax/commit/e8f98d9a383709e48aa97fae396c6684b8da982d))
+* **bulma-ui:** leave is-rail off the nav while it's a drawer ([0c88896](https://github.com/allxsmith/bestax/commit/0c88896a4bf4b77104a433bcf0be5bb569c218b3))
+* **bulma-ui:** let a collapsed rail taller than the window scroll with the page ([f8a4b5f](https://github.com/allxsmith/bestax/commit/f8a4b5f6576d3dd139c25ff1890d6d04a1a9aaae))
+* **bulma-ui:** look for a Menu in the collapsed rail only in development ([9f15446](https://github.com/allxsmith/bestax/commit/9f154467c6ca65c39c4733d9c61101ab3fd4c6bf))
+* **bulma-ui:** make the Switch's circle follow a pinned scheme ([f435c1e](https://github.com/allxsmith/bestax/commit/f435c1e93050cf8cf5d1b07f20d43b2606424104))
+* **bulma-ui:** measure the rail before paint against the small viewport, afresh each collapse ([ebd7461](https://github.com/allxsmith/bestax/commit/ebd7461cb823ed118723a515031c8754bc94189e))
+* **bulma-ui:** move focus out of what the rail hides as the column collapses ([324c545](https://github.com/allxsmith/bestax/commit/324c5458c44ea59bc847716f498098f65da12c2f))
+* **bulma-ui:** read a Menu.Item or Menu.Section icon string as an Icon name, as TreeView.Item does ([7e48cd6](https://github.com/allxsmith/bestax/commit/7e48cd681ce29fdb08d6aae0262a208da2c6e1df))
+* **bulma-ui:** read the rail tooltips' side again when the locale's direction changes ([627d90c](https://github.com/allxsmith/bestax/commit/627d90cb909f607c783fb1835124c874f3963bd0))
+* **bulma-ui:** share one helper that moves focus out of what the rail hides ([7671fe7](https://github.com/allxsmith/bestax/commit/7671fe7a789c6944de997bf6f97bb0f225a71df5))
+* **bulma-ui:** size a section's icon in AppFrame's rail like the items' icons ([20b4c40](https://github.com/allxsmith/bestax/commit/20b4c409d9e857fd7668bfad6db0eaea41f880eb))
+* **bulma-ui:** space both Menu icons with one gap, and give menu-section-gap back to the chevron ([4a38c77](https://github.com/allxsmith/bestax/commit/4a38c77ab33bdbd771150abd640426b9ef4fb77f))
+* **bulma-ui:** take the rail's fallback tabindex off a nav that can't take focus ([ddacd3a](https://github.com/allxsmith/bestax/commit/ddacd3ab854a89ee86a7f2b4fe68d2d743fbf5bc))
+* **bulma-ui:** warn about a rail item or section without an icon ([c30d9db](https://github.com/allxsmith/bestax/commit/c30d9db5bdb44baf560a6d1169ded29d7399972f))
+
+
+### Features
+
+* **bulma-ui:** add an icon to Menu.Item and Menu.Section ([944438b](https://github.com/allxsmith/bestax/commit/944438ba2bcf2a2b5b899ea3042568207e54a936)), closes [#1432](https://github.com/allxsmith/bestax/issues/1432)
+* **bulma-ui:** add AppFrame.Nav rail, a column that collapses to its icons ([b767c3c](https://github.com/allxsmith/bestax/commit/b767c3ce68dbaa19eaa2e4987e2b57a7675588d2)), closes [#1432](https://github.com/allxsmith/bestax/issues/1432)
+* **bulma-ui:** add Tooltip describesTrigger, and the menu and hover options FloatButton needs ([46c27d7](https://github.com/allxsmith/bestax/commit/46c27d7167a601d0f4cd880649bac3fc6996eaf9))
+* **bulma-ui:** add Tooltip disabled, which keeps it closed without remounting the trigger ([3093880](https://github.com/allxsmith/bestax/commit/3093880ab88f989c05e05f0805532338c014af66))
+
 ## [5.67.13](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.12...@allxsmith/bestax-bulma@5.67.13) (2026-11-14)
 
 
