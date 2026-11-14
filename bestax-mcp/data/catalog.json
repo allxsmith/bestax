@@ -193,8 +193,8 @@
       "slug": "layout/appframe",
       "import": "import { AppFrame, useAppFrame } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 36,
-      "exampleCount": 9
+      "propCount": 42,
+      "exampleCount": 10
     },
     {
       "name": "Autocomplete",
@@ -1658,8 +1658,12 @@
     "--bulma-app-frame-border-color": ["AppFrame"],
     "--bulma-app-frame-border-width": ["AppFrame"],
     "--bulma-app-frame-drawer-shadow": ["AppFrame"],
+    "--bulma-app-frame-handle-size": ["AppFrame"],
+    "--bulma-app-frame-handle-size-coarse": ["AppFrame"],
     "--bulma-app-frame-header-background": ["AppFrame"],
     "--bulma-app-frame-header-height": ["AppFrame"],
+    "--bulma-app-frame-line-active-color": ["AppFrame"],
+    "--bulma-app-frame-line-active-size": ["AppFrame"],
     "--bulma-app-frame-nav-background": ["AppFrame"],
     "--bulma-app-frame-nav-padding": ["AppFrame"],
     "--bulma-app-frame-nav-rail-width": ["AppFrame"],

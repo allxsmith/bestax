@@ -11,6 +11,7 @@
 //
 // With `AppFrame.Nav rail`, a collapsed column shrinks to a rail of the
 // menu's icons instead, each label visually hidden and shown in a Tooltip.
+// With `resizable`, a handle on the column's edge drags its width.
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
@@ -41,6 +42,14 @@ $app-frame-drawer-shadow: cv.getVar('shadow') !default;
 $app-frame-transition-duration: cv.getVar('duration') !default;
 $app-frame-skip-link-background: cv.getVar('scheme-main') !default;
 $app-frame-skip-link-color: cv.getVar('link') !default;
+// The strip a resizable column's handle takes across its edge: what a mouse
+// grabs, and 24px for a coarse pointer, WCAG 2.5.8's minimum target, as
+// Splitter's. Its line shows while it's hovered, focused or dragged, over
+// the column's own divider, and its variables are named as Splitter's line's.
+$app-frame-handle-size: 0.75rem !default;
+$app-frame-handle-size-coarse: 1.5rem !default;
+$app-frame-line-active-color: cv.getVar('primary') !default;
+$app-frame-line-active-size: 2px !default;
 
 // The drawer leaves this much of the window showing beside it, so there's
 // backdrop to press.
@@ -72,6 +81,10 @@ $-drawer-gap: 3rem;
       'app-frame-transition-duration': #{$app-frame-transition-duration},
       'app-frame-skip-link-background': #{$app-frame-skip-link-background},
       'app-frame-skip-link-color': #{$app-frame-skip-link-color},
+      'app-frame-handle-size': #{$app-frame-handle-size},
+      'app-frame-handle-size-coarse': #{$app-frame-handle-size-coarse},
+      'app-frame-line-active-color': #{$app-frame-line-active-color},
+      'app-frame-line-active-size': #{$app-frame-line-active-size},
     )
   );
 }
@@ -237,6 +250,13 @@ html:has(.#{iv.$class-prefix}app-frame) {
   }
 }
 
+// ---- The resize handle -----------------------------------------------------------
+
+// A column's, from the breakpoint up only: the drawer has none.
+.#{iv.$class-prefix}app-frame-handle {
+  display: none;
+}
+
 // ---- From the breakpoint up ------------------------------------------------------
 
 // Three columns, the nav's, the page's and the aside's, each as wide as what's
@@ -354,6 +374,84 @@ html:has(.#{iv.$class-prefix}app-frame) {
     display: none;
   }
 
+  // The width doesn't animate while the handle has the pointer.
+  > .#{iv.$class-prefix}app-frame-nav.#{iv.$class-prefix}is-resizing {
+    transition: none;
+  }
+
+  // The handle shares the nav's place in the grid, at its end, and sticks
+  // as the column does, as tall as the window under the header. It straddles
+  // the column's edge, half over the page, with a negative margin of half its
+  // width on each side, so it takes no room in the column's track and moves
+  // nothing as it shows or hides.
+  > .#{iv.$class-prefix}app-frame-handle {
+    grid-area: nav;
+    justify-self: end;
+    align-self: start;
+    position: sticky;
+    inset-block-start: cv.getVar('app-frame-header-height');
+    z-index: $extras-z-index-sticky - 1;
+    display: block;
+    inline-size: cv.getVar('app-frame-handle-size');
+    block-size: calc(100vh - #{cv.getVar('app-frame-header-height')});
+    block-size: calc(100dvh - #{cv.getVar('app-frame-header-height')});
+    margin-inline: calc(-0.5 * #{cv.getVar('app-frame-handle-size')});
+    cursor: col-resize;
+    touch-action: none;
+    user-select: none;
+
+    // The line, down the middle of the strip, over the column's divider. It
+    // has no width until the handle is hovered, focused or dragged, so the
+    // divider is all that shows.
+    &::before {
+      content: '';
+      position: absolute;
+      inset-block: 0;
+      inset-inline-start: 50%;
+      border-inline-start: 0 solid cv.getVar('app-frame-line-active-color');
+    }
+
+    &:hover::before,
+    &:focus-visible::before,
+    &.#{iv.$class-prefix}is-active::before {
+      border-inline-start-width: cv.getVar('app-frame-line-active-size');
+    }
+
+    &:focus {
+      outline: none;
+    }
+
+    &:focus-visible {
+      @include extras-focus-outline;
+      outline-offset: -2px;
+    }
+
+    // A finger needs a wider strip than a mouse.
+    @media (pointer: coarse) {
+      inline-size: cv.getVar('app-frame-handle-size-coarse');
+      margin-inline: calc(-0.5 * #{cv.getVar('app-frame-handle-size-coarse')});
+    }
+  }
+
+  // Collapsed out of view, the column has no edge to drag, so its handle
+  // hides, unless a drag that just shut it still holds the pointer, or the
+  // keyboard has it, where Enter just shut it and brings it back. Shown, it
+  // sits at the window's edge, moved in by the half that would be off it,
+  // which takes no room either.
+  &.#{iv.$class-prefix}is-nav-collapsed
+    > .#{iv.$class-prefix}app-frame-nav:not(.#{iv.$class-prefix}is-rail)
+    + .#{iv.$class-prefix}app-frame-handle {
+    translate: 50%;
+
+    &:dir(rtl) {
+      translate: -50%;
+    }
+
+    &:not(.#{iv.$class-prefix}is-active):not(:focus-visible) {
+      display: none;
+    }
+  }
+
   > .#{iv.$class-prefix}app-frame-aside {
     inline-size: cv.getVar('app-frame-aside-width');
     border-inline-start: cv.getVar('app-frame-border-width') solid
@@ -387,6 +485,16 @@ html:has(.#{iv.$class-prefix}app-frame) {
   .#{iv.$class-prefix}app-frame-nav {
     border-inline-end: cv.getVar('app-frame-border-width') solid
       cv.getVar('app-frame-border-color');
+  }
+
+  // The handle's line is a border, which forced colors keeps, in the
+  // system's highlight, and its focus ring in the text color.
+  .#{iv.$class-prefix}app-frame-handle::before {
+    border-color: Highlight;
+  }
+
+  .#{iv.$class-prefix}app-frame-handle:focus-visible {
+    outline-color: CanvasText;
   }
 }
 

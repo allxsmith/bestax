@@ -4,6 +4,8 @@
 // the panes share, which is the splitter's length less its handles, and a
 // layout always adds up to 100.
 
+import { lengthToPx } from './resizeHandle';
+
 /** What one pane may be: its limits in percent, and whether it can shut. */
 export interface PaneBounds {
   min: number;
@@ -21,9 +23,10 @@ const clamp = (value: number, low: number, high: number) =>
   Math.min(Math.max(value, low), high);
 
 /**
- * A limit in percent of `length` pixels. A number or a `%` is already one. A
- * `px` or `rem` length needs the length the panes share, and without it
- * there's no answer yet, so it's `null`. Anything else is `null` too.
+ * A limit in percent of `length` pixels. A number, or a string with `%` or
+ * no unit, is already one. A `px` or `rem` length, read by the handle's own
+ * `lengthToPx`, needs the length the panes share, and without it there's no
+ * answer yet, so it's `null`. Anything else is `null` too.
  */
 export function limitToPercent(
   limit: SplitterLimit | undefined,
@@ -32,13 +35,11 @@ export function limitToPercent(
 ): number | null {
   if (limit === undefined) return null;
   if (typeof limit === 'number') return limit;
-  const match = /^\s*(\d*\.?\d+)\s*(px|rem|%)?\s*$/.exec(limit);
-  if (!match) return null;
-  const value = parseFloat(match[1]);
-  const unit = match[2] ?? '%';
-  if (unit === '%') return value;
-  if (!length) return null;
-  return ((unit === 'rem' ? value * remPx : value) / length) * 100;
+  const percent = /^\s*(\d*\.?\d+)\s*%?\s*$/.exec(limit);
+  if (percent) return parseFloat(percent[1]);
+  const px = lengthToPx(limit, remPx);
+  if (px === null || !length) return null;
+  return (px / length) * 100;
 }
 
 /**

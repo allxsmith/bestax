@@ -98,6 +98,10 @@ describe('AppFrame styles', () => {
       '--bulma-app-frame-header-background': 'var(--bulma-scheme-main)',
       '--bulma-app-frame-nav-width': '16rem',
       '--bulma-app-frame-nav-rail-width': '4rem',
+      '--bulma-app-frame-handle-size': '0.75rem',
+      '--bulma-app-frame-handle-size-coarse': '1.5rem',
+      '--bulma-app-frame-line-active-color': 'var(--bulma-primary)',
+      '--bulma-app-frame-line-active-size': '2px',
       '--bulma-app-frame-nav-background': 'var(--bulma-scheme-main)',
       '--bulma-app-frame-aside-width': '20rem',
       '--bulma-app-frame-border-color': 'var(--bulma-border)',
@@ -253,6 +257,88 @@ describe('AppFrame styles', () => {
       });
     });
 
+    describe('the resize handle', () => {
+      const handle = `${root} > .app-frame-handle`;
+
+      it('sits at the column’s end in its grid area, straddling its edge, and sticks as it does', () => {
+        const rule = ruleFor(PLAIN, handle, [media]);
+        expect(rule.declarations).toMatchObject({
+          'grid-area': 'nav',
+          'justify-self': 'end',
+          'align-self': 'start',
+          position: 'sticky',
+          'inset-block-start': 'var(--bulma-app-frame-header-height)',
+          'z-index': '29',
+          display: 'block',
+          'inline-size': 'var(--bulma-app-frame-handle-size)',
+          // Half its width each side: no room in the track.
+          'margin-inline': 'calc(-0.5 * var(--bulma-app-frame-handle-size))',
+          cursor: 'col-resize',
+          'touch-action': 'none',
+          'user-select': 'none',
+        });
+        expect(rule.all.filter(([p]) => p === 'block-size')).toEqual([
+          ['block-size', 'calc(100vh - var(--bulma-app-frame-header-height))'],
+          ['block-size', 'calc(100dvh - var(--bulma-app-frame-header-height))'],
+        ]);
+      });
+
+      it('draws its line only while hovered, focused or dragged, over the column’s divider', () => {
+        expect(find(PLAIN, `${handle}::before`, [media])).toMatchObject({
+          position: 'absolute',
+          'inset-inline-start': '50%',
+          'border-inline-start':
+            '0 solid var(--bulma-app-frame-line-active-color)',
+        });
+        expect(
+          find(
+            PLAIN,
+            `${handle}:hover::before, ${handle}:focus-visible::before, ${handle}.is-active::before`,
+            [media]
+          )
+        ).toEqual({
+          'border-inline-start-width':
+            'var(--bulma-app-frame-line-active-size)',
+        });
+        expect(find(PLAIN, `${handle}:focus`, [media])).toEqual({
+          outline: 'none',
+        });
+        expect(find(PLAIN, `${handle}:focus-visible`, [media])).toMatchObject({
+          'outline-offset': '-2px',
+        });
+      });
+
+      it('takes a wider strip for a coarse pointer', () => {
+        // Sass joins the two queries, each part of the tablet's list too.
+        const coarse =
+          media === TABLET
+            ? '@media screen and (min-width: 769px) and (pointer: coarse), print and (pointer: coarse)'
+            : `${media} and (pointer: coarse)`;
+        expect(find(PLAIN, handle, [coarse])).toEqual({
+          'inline-size': 'var(--bulma-app-frame-handle-size-coarse)',
+          'margin-inline':
+            'calc(-0.5 * var(--bulma-app-frame-handle-size-coarse))',
+        });
+      });
+
+      it('hides with a column collapsed out of view, unless a drag or the keyboard still holds it, and then sits at the window’s edge', () => {
+        const shut = `${root}.is-nav-collapsed > .app-frame-nav:not(.is-rail) + .app-frame-handle`;
+        expect(
+          find(PLAIN, `${shut}:not(.is-active):not(:focus-visible)`, [media])
+        ).toEqual({ display: 'none' });
+        expect(find(PLAIN, shut, [media])).toEqual({ translate: '50%' });
+        expect(find(PLAIN, `${shut}:dir(rtl)`, [media])).toEqual({
+          translate: '-50%',
+        });
+      });
+
+      it('stops the column’s width animating while it’s dragged', () => {
+        expect(
+          find(PLAIN, `${root} > .app-frame-nav.is-resizing`, [media])
+        ).toEqual({ transition: 'none' });
+      });
+    });
+
     describe('collapsed to the rail', () => {
       const rail = `${root}.is-nav-collapsed > .app-frame-nav.is-rail`;
 
@@ -366,6 +452,23 @@ describe('AppFrame styles', () => {
           'var(--bulma-app-frame-border-width) solid var(--bulma-app-frame-border-color)',
       });
     });
+  });
+
+  it('hides the resize handle below the breakpoint, where the nav is a drawer', () => {
+    expect(find(PLAIN, '.app-frame-handle')).toEqual({ display: 'none' });
+  });
+
+  it('draws the handle’s line in the highlight color and its ring in the text color in forced colors', () => {
+    expect(
+      find(PLAIN, '.app-frame-handle::before', [
+        '@media (forced-colors: active)',
+      ])
+    ).toEqual({ 'border-color': 'Highlight' });
+    expect(
+      find(PLAIN, '.app-frame-handle:focus-visible', [
+        '@media (forced-colors: active)',
+      ])
+    ).toEqual({ 'outline-color': 'CanvasText' });
   });
 
   it('makes the rail’s tooltip wrapper a block and hides its tooltip and bridge, at every width', () => {
