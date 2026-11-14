@@ -47,12 +47,39 @@ export function schemesOf(rules: CSSStyleRule[]): { light: Vars; dark: Vars } {
   return { light, dark: { ...light, ...dark } };
 }
 
-/** `value` with each `var()` replaced from `vars`, as a browser does. */
+/** A `var()` whose variable has no value. */
+class Unset extends Error {}
+
+/**
+ * `value` with each `var()` replaced from `vars`, as a browser does. A
+ * variable that isn't declared, or whose own value reads one that isn't, has
+ * no value, so the `var()` takes its fallback, and without one it fails.
+ */
 export function substitute(value: string, vars: Vars): string {
-  return value.replace(/var\((--[\w-]+)\)/g, (_, name: string) => {
-    if (!(name in vars)) throw new Error(`${name} is not declared`);
-    return substitute(vars[name], vars);
-  });
+  const at = value.indexOf('var(');
+  if (at < 0) return value;
+  let depth = 0;
+  let end = at + 3;
+  for (; end < value.length; end++) {
+    if (value[end] === '(') depth++;
+    else if (value[end] === ')' && --depth === 0) break;
+  }
+  const inner = value.slice(at + 4, end);
+  const comma = inner.indexOf(',');
+  const name = (comma < 0 ? inner : inner.slice(0, comma)).trim();
+  let replaced: string;
+  try {
+    if (!(name in vars)) throw new Unset(`${name} is not declared`);
+    replaced = substitute(vars[name], vars);
+  } catch (error) {
+    if (!(error instanceof Unset) || comma < 0) throw error;
+    replaced = substitute(inner.slice(comma + 1), vars);
+  }
+  return (
+    value.slice(0, at) +
+    replaced.trim() +
+    substitute(value.slice(end + 1), vars)
+  );
 }
 
 /** An opaque `hsl()` or `hsla()` color's sRGB channels, from 0 to 1. */
