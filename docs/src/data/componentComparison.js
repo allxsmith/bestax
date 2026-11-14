@@ -182,6 +182,9 @@ const BESTAX = {
   // The October 2026 edition still names this one. The section kept its
   // heading, and now builds the copy field on CopyButton.
   'Input (copy button recipe)': 'form/input#copy-button',
+  // The November 2026 edition credits Affix around a Button, which
+  // FloatButton replaced.
+  'Affix + Button': 'components/floatbutton',
 };
 const bestaxHref = name => {
   const v = BESTAX[name];
