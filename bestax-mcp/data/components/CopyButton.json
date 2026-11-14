@@ -148,7 +148,7 @@
           "name": "isLight",
           "type": "boolean",
           "default": "false",
-          "description": "Applies a lighter color variant.",
+          "description": "Applies a lighter color variant. Bulma gives the grayscale colors none, so `color=\"light\"` or `color=\"dark\"` with `isLight` looks the same as without it, and `white` or `black` with `isLight` looks like `color=\"light\"`.",
           "required": false,
           "inherited": true,
           "deprecated": false
