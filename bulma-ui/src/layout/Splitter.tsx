@@ -19,7 +19,7 @@ import { withSubComponents } from '../helpers/withSubComponents';
 import { isElementOf } from '../helpers/elementType';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { warnOnce } from '../helpers/devWarnings';
-import { ResizeHandle } from '../helpers/resizeHandle';
+import { remPxOf, ResizeHandle } from '../helpers/resizeHandle';
 import {
   defaultSizes,
   fitSizes,
@@ -462,9 +462,7 @@ const SplitterRoot = forwardRef<HTMLDivElement, SplitterProps>(
     }, [vertical]);
     const measure = useCallback(() => {
       setLength(roomOf());
-      setRemPx(
-        parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
-      );
+      setRemPx(remPxOf(rootRef.current!));
     }, [roomOf]);
     useClientLayoutEffect(() => {
       measure();
@@ -487,18 +485,23 @@ const SplitterRoot = forwardRef<HTMLDivElement, SplitterProps>(
       getComputedStyle(rootRef.current).direction === 'rtl';
 
     // ---- Dragging ----
-    // The layout and the room as a drag starts, which each step moves from.
-    const dragStartRef = useRef<{ sizes: number[]; pixels: number } | null>(
-      null
+    // The layout and the room as each handle's drag starts, which its steps
+    // move from. Each handle keeps its own, so two dragged at once, as two
+    // fingers can, don't move from each other's start.
+    const dragStartsRef = useRef(
+      new Map<number, { sizes: number[]; pixels: number }>()
     );
-    const startDrag = () => {
+    const startDrag = (h: number) => () => {
       const pixels = roomOf();
       if (!pixels) return false;
-      dragStartRef.current = { sizes: sizesRef.current, pixels };
+      dragStartsRef.current.set(h, { sizes: sizesRef.current, pixels });
       return true;
     };
+    const endDrag = (h: number) => () => {
+      dragStartsRef.current.delete(h);
+    };
     const dragBy = (h: number) => (moved: number) => {
-      const start = dragStartRef.current!;
+      const start = dragStartsRef.current.get(h)!;
       commit(
         resizePair(
           sizesRef.current,
@@ -590,8 +593,9 @@ const SplitterRoot = forwardRef<HTMLDivElement, SplitterProps>(
           controls={ids[primary]}
           label={panes[primary].props.label}
           rtl={rtl}
-          onDragStart={startDrag}
+          onDragStart={startDrag(i)}
           onDrag={dragBy(i)}
+          onDragEnd={endDrag(i)}
           onStep={stepBy(i)}
           onHome={toLimit(i, false)}
           onEnd={toLimit(i, true)}

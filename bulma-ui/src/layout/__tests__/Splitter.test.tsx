@@ -84,7 +84,12 @@ const rightToLeft = () => {
 const pointer = (
   el: Element,
   type: 'pointerdown' | 'pointermove' | 'pointerup' | 'pointercancel',
-  init: { clientX?: number; clientY?: number; button?: number } = {}
+  init: {
+    clientX?: number;
+    clientY?: number;
+    button?: number;
+    pointerId?: number;
+  } = {}
 ) => {
   const event = new MouseEvent(type, {
     bubbles: true,
@@ -93,7 +98,7 @@ const pointer = (
     clientY: init.clientY ?? 0,
     button: init.button ?? 0,
   });
-  Object.defineProperty(event, 'pointerId', { value: 1 });
+  Object.defineProperty(event, 'pointerId', { value: init.pointerId ?? 1 });
   fireEvent(el, event);
 };
 
@@ -731,6 +736,37 @@ describe('Splitter', () => {
       pointer(handle, 'pointermove', { clientX: 300 });
       expect(growOf(container)).toEqual([35, 65]);
       expect(onSizesChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('moves each of two handles dragged at once from its own start', () => {
+      // 400px for the panes once the two 12px handles are taken off.
+      lengths = { root: 424, handle: 12 };
+      const { container } = render(
+        <Splitter>
+          <Splitter.Pane label="A" defaultSize={25}>
+            A
+          </Splitter.Pane>
+          <Splitter.Pane label="B" defaultSize={25}>
+            B
+          </Splitter.Pane>
+          <Splitter.Pane label="C" defaultSize={50}>
+            C
+          </Splitter.Pane>
+        </Splitter>
+      );
+      const [first, second] = handles();
+      pointer(first, 'pointerdown', { clientX: 100, pointerId: 1 });
+      pointer(first, 'pointermove', { clientX: 140, pointerId: 1 });
+      expect(growOf(container)).toEqual([35, 15, 50]);
+      // A second finger on the next handle.
+      pointer(second, 'pointerdown', { clientX: 300, pointerId: 2 });
+      pointer(second, 'pointermove', { clientX: 320, pointerId: 2 });
+      expect(growOf(container)).toEqual([35, 20, 45]);
+      // The first finger hasn't moved since, so its pane hasn't either.
+      pointer(first, 'pointermove', { clientX: 140, pointerId: 1 });
+      expect(growOf(container)[0]).toBe(35);
+      pointer(first, 'pointerup', { clientX: 140, pointerId: 1 });
+      pointer(second, 'pointerup', { clientX: 320, pointerId: 2 });
     });
 
     it('follows the vertical pointer when stacked', () => {

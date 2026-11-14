@@ -17,6 +17,17 @@ export function lengthToPx(
   return parseFloat(match[1]) * (match[2] === 'rem' ? remPx : 1);
 }
 
+/**
+ * A rem in pixels, as the page `el` is in has it now, or Bulma's 16 when the
+ * page gives none.
+ */
+export function remPxOf(el: Element): number {
+  return (
+    parseFloat(getComputedStyle(el.ownerDocument.documentElement).fontSize) ||
+    16
+  );
+}
+
 // A page's own cursor and text selection, kept while any handle in it is
 // being dragged: the first drag to start saves them and the last to end puts
 // them back, so two at once, as two fingers can make, leave nothing behind.
