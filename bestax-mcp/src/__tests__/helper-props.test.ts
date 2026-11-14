@@ -152,11 +152,11 @@ describe('resolveGroup', () => {
     ['breakpoint', 'responsive'],
     ['COLORS', 'color'],
     ['  spacing  ', 'spacing'],
-  ])('maps %p to %p', (input, expected) => {
+  ])('maps %j to %j', (input, expected) => {
     expect(resolveGroup(input)).toBe(expected);
   });
 
-  it.each(['', '   ', 'zzzz', 'quantum'])('gives up on %p', input => {
+  it.each(['', '   ', 'zzzz', 'quantum'])('gives up on %j', input => {
     expect(resolveGroup(input)).toBeNull();
   });
 });
