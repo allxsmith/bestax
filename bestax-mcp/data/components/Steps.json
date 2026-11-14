@@ -46,7 +46,7 @@
       "code": "<Steps value={1}>\n  <Steps.Step label=\"Account\" />\n  <Steps.Step label=\"Profile\" />\n  <Steps.Step label=\"Complete\" />\n</Steps>"
     }
   ],
-  "accessibility": "- The active step has `aria-current=\"step\"`, on its list item, or on its button when it's clickable\n- A clickable step stays a list item and puts its marker and label in a `<button type=\"button\">` inside it, so the list keeps its list items and assistive technology can count them. The button takes Tab, Enter and Space, and the focus ring goes around the whole step, which is what you can click\n- The list has `role=\"list\"`. That's the role a `<ul>` already has, set again for Safari, whose WebKit stops exposing a `<ul>` as a list once its markers are hidden, as they are here, unless the role is written out\n- Use descriptive labels for each step\n- The step markers show completion state with checkmarks\n- In forced colors (Windows' contrast themes), the lines and a completed step's fill are drawn in the theme's text color, and the current step's marker gets an outline, so completed, current and upcoming steps still look different without color",
+  "accessibility": "- The active step has `aria-current=\"step\"`, on its list item, or on its button when it's clickable\n- A clickable step stays a list item and puts its marker and label in a `<button type=\"button\">` inside it, so the list keeps its list items and assistive technology can count them. The button takes Tab, Enter and Space, and the focus ring goes around the whole step, which is what you can click\n- The list has `role=\"list\"`. That's the role a `<ul>` already has, set again for Safari, whose WebKit stops exposing a `<ul>` as a list once its markers are hidden, as they are here, unless the role is written out\n- Use descriptive labels for each step\n- The step markers show completion state with checkmarks\n- In forced colors (Windows' contrast themes), the lines and a completed step's fill are drawn in the theme's text color, and the current step's marker gets an outline, so completed, current and upcoming steps still look different without color\n- Steps with no `color` are drawn in Bulma's `text-weak`, and a `color` draws the current and completed steps in its `-on-scheme` variant, the one Bulma adjusts for text on the scheme's background, with a completed step's mark in the page's color. A step's number clears WCAG's 4.5:1, and its marker 3:1, against Bulma's page background in light and dark mode. When a `Theme` changes a color's hue, saturation or lightness, set that color's on-scheme lightness with it, as [Label and Text Lightnesses](https://bestax.io/docs/api/helpers/theme#label-and-text-lightnesses) shows",
   "related": ["Progress", "Timeline"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-steps",
   "summary": "The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow.",
@@ -90,7 +90,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Color variant.",
+          "description": "Color variant. The current and completed steps take the color's `-on-scheme` variant, the shade Bulma adjusts to read on the page in either scheme, so a pale color such as `warning` is drawn darker on a light page.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -371,7 +371,7 @@
     {
       "css": "--bulma-steps-default-color",
       "sass": "$steps-default-color",
-      "default": "var(--bulma-grey-light)",
+      "default": "var(--bulma-text-weak)",
       "scope": "root"
     },
     {

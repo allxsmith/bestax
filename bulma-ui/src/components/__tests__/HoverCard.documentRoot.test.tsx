@@ -16,17 +16,10 @@ import { act, fireEvent, within } from '@testing-library/react';
 import { HoverCard } from '../HoverCard';
 import { Button } from '../../elements/Button';
 
-/** A finger's press and lift on `el`, as pointer events with a `pointerType`. */
+/** A finger's press and lift on `el`. */
 const tap = (el: Element) => {
-  for (const type of ['pointerdown', 'pointerup']) {
-    const event = new MouseEvent(type, {
-      bubbles: true,
-      cancelable: true,
-      composed: true,
-    });
-    Object.defineProperty(event, 'pointerType', { value: 'touch' });
-    fireEvent(el, event);
-  }
+  fireEvent.pointerDown(el, { pointerType: 'touch' });
+  fireEvent.pointerUp(el, { pointerType: 'touch' });
 };
 
 const button = (name: string) =>
