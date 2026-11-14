@@ -847,6 +847,7 @@ function DateTimeInputFormDemo() {
 - Calendar uses `role="grid"`. Its first row holds the weekday names as `role="columnheader"`s, each named by the full weekday in the picker's locale, so a screen reader can name the weekday as focus moves to another column. A server-rendered calendar adds those full names once the page hydrates, and with `dayNames` the columns are named by the names you give instead. Each day keeps its number as its name.
 - Cells expose `aria-selected`, `aria-disabled`, and `aria-current="date"` for today. On a server-rendered page, today gets it once the page hydrates, so the reader's clock decides which day.
 - Roving `tabindex` keeps a single day focusable at a time, and focus moves with it, inline as in the popover. When the focused date is disabled, that cell is the nearest enabled day of the month.
+- Closing the year list opened from the header, with a pick or `Escape`, puts focus back on the grid's tab stop, inline as in the popover.
 - A `disabled` inline panel puts `aria-disabled="true"` on its grid and disables every button in it. A `readOnly` one puts `aria-readonly="true"` there instead, and keeps its tab stop and keys.
 - Each time wheel uses `role="spinbutton"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.
 - In a 12-hour picker, AM/PM is one of those wheels, reading `AM` or `PM`. Its accessible name is `AM/PM` unless `labels.ampm` sets another.
