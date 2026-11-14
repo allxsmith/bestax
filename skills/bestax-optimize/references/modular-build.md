@@ -235,8 +235,8 @@ Notes:
   so its text clears the button, and gives a dark or light one its color's own text and
   background, and a white or black one with `isLight` the light color's text, where Bulma's module
   lets its text inherit the color around it. Include it (`as bestax-notification`) next to the
-  Bulma module in any build that shows a dismissible notification, or one in any of those colors.
-  It doesn't depend on the order of the two `@use` lines either.
+  Bulma module in any build that shows a dismissible, dark or light notification, or a white or
+  black one with `isLight`. It doesn't depend on the order of the two `@use` lines either.
 - `Tag` is stock Bulma too (`bulma/sass/elements/tag`). The `tag` extras partial gives a light tag,
   and a white, black or dark one with `isLight`, text that reads on its light background, where
   Bulma's module lets its text inherit the color around it, which on the dark scheme leaves it hard
