@@ -211,6 +211,9 @@ Notes:
 - `CopyButton` is a Bulma button holding an icon and a label, with no partial of its own, so an app
   using it needs `bulma/sass/elements/button` and `bulma/sass/elements/icon`. With
   `showLabel={false}` it's an `IconButton`, so add `iconbutton` for a rounded one to be a circle.
+- `Tour` draws a step's Skip, Back and Next as Bulma buttons and its close button as a delete
+  button, so an app using it needs `bulma/sass/elements/button`, `bulma/sass/elements/delete`
+  and the `delete` partial next to `scss/components/tour`.
 - `ContextMenu`'s menu is Bulma's dropdown markup, so an app using it needs
   `bulma/sass/components/dropdown` next to `scss/components/contextmenu`.
 - `Lightbox`'s viewer is Bulma's modal, with Bulma buttons for its controls and a `Loader` for a
