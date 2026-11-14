@@ -19,6 +19,7 @@ import { DateRangeInput } from '../DateRangeInput';
 import { LocaleProvider } from '../../helpers/LocaleProvider';
 import { ColorInput } from '../ColorInput';
 import { TreeSelect } from '../TreeSelect';
+import { Cascader } from '../Cascader';
 import { Modal } from '../../components/Modal';
 
 const Harness: React.FC<{
@@ -827,6 +828,16 @@ describe('PickerPopover position resolution', () => {
       'TreeSelect',
       (p: object) => (
         <TreeSelect
+          label="Place"
+          data={[{ value: 'here', label: 'Here' }]}
+          {...p}
+        />
+      ),
+    ],
+    [
+      'Cascader',
+      (p: object) => (
+        <Cascader
           label="Place"
           data={[{ value: 'here', label: 'Here' }]}
           {...p}
