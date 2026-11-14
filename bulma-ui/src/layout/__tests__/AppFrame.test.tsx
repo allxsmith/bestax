@@ -15,10 +15,12 @@ import {
   type AppFrameNavProps,
 } from '../AppFrame';
 import { Navbar } from '../../components/Navbar';
-import { Modal } from '../../components/Modal';
+import { Menu } from '../../components/Menu';
 import { Popover } from '../../components/Popover';
+import { Modal } from '../../components/Modal';
 import { Sidebar } from '../../components/Sidebar';
 import { ConfigProvider } from '../../helpers/Config';
+import { LocaleProvider } from '../../helpers/LocaleProvider';
 import { resetDevWarnings } from '../../helpers/devWarnings';
 
 /**
@@ -1437,6 +1439,703 @@ describe('AppFrame', () => {
       expect(AppFrame.Burger).toBe(AppFrameBurger);
       expect(AppFrame.displayName).toBe('AppFrame');
     });
+  });
+});
+
+describe('AppFrame.Nav rail', () => {
+  const Glyph = () => <svg />;
+
+  /** A frame whose nav has a rail and a Menu of icons, a section and a nested list. */
+  const RailFrame = ({
+    nav,
+    ...props
+  }: AppFrameProps & { nav?: AppFrameNavProps }) => (
+    <AppFrame {...props}>
+      <AppFrame.Header>
+        <AppFrame.Burger />
+      </AppFrame.Header>
+      <AppFrame.Nav rail {...nav}>
+        <Menu>
+          <Menu.Label>General</Menu.Label>
+          <Menu.List>
+            <Menu.Item href="#dashboard" icon={<Glyph />} active>
+              Dashboard
+            </Menu.Item>
+            <Menu.Item href="#orders" icon={<Glyph />}>
+              Orders
+              <Menu.List>
+                <Menu.Item href="#open">Open orders</Menu.Item>
+              </Menu.List>
+            </Menu.Item>
+            <Menu.Item href="#plain">Plain</Menu.Item>
+          </Menu.List>
+          <Menu.Section label="Reports" icon={<Glyph />}>
+            <Menu.List>
+              <Menu.Item href="#sales">Sales</Menu.Item>
+            </Menu.List>
+          </Menu.Section>
+        </Menu>
+      </AppFrame.Nav>
+      <AppFrame.Main>Page</AppFrame.Main>
+    </AppFrame>
+  );
+
+  const reports = () => screen.getByRole('button', { name: 'Reports' });
+  /** The tooltip wrapper around a link or a button. */
+  const tipOf = (el: HTMLElement) => el.parentElement as HTMLElement;
+
+  it('puts each item and section with an icon in a tooltip of its label, hidden from assistive technology', () => {
+    mockViewport(DESKTOP);
+    const { rerender } = render(<RailFrame navCollapsed />);
+    const dashboard = link('Dashboard');
+    const tip = tipOf(dashboard);
+    expect(tip).toHaveClass('tooltip', 'app-frame-rail-tooltip', 'is-right');
+    // The link comes first, as the stylesheet expects.
+    expect(tip.firstElementChild).toBe(dashboard);
+    const content = tip.querySelector('.tooltip-content') as HTMLElement;
+    expect(content).toHaveTextContent(/^Dashboard$/);
+    expect(content).toHaveAttribute('aria-hidden', 'true');
+    // The name isn't read twice.
+    expect(dashboard).not.toHaveAttribute('aria-describedby');
+    expect(tipOf(reports())).toHaveClass('app-frame-rail-tooltip');
+    expect(
+      tipOf(reports()).querySelector('.tooltip-content')
+    ).toHaveTextContent(/^Reports$/);
+    // Nothing to show for an item without an icon.
+    expect(tipOf(link('Plain')).localName).toBe('li');
+    // Expanded, the tooltip never shows, so it holds no second copy of the
+    // label.
+    rerender(<RailFrame navCollapsed={false} />);
+    expect(content).toBeEmptyDOMElement();
+    expect(dashboard).toHaveAccessibleName('Dashboard');
+  });
+
+  it('opens the tooltips only while the column is collapsed to the rail', async () => {
+    mockViewport(DESKTOP);
+    const { rerender } = render(<RailFrame navCollapsed={false} />);
+    const dashboard = link('Dashboard');
+    const tip = tipOf(dashboard);
+    const content = tip.querySelector('.tooltip-content') as HTMLElement;
+    const over = () => {
+      const event = new MouseEvent('pointerover', { bubbles: true });
+      Object.defineProperty(event, 'pointerType', { value: 'mouse' });
+      fireEvent(dashboard, event);
+    };
+    const settle = () => act(() => new Promise(resolve => setTimeout(resolve)));
+    over();
+    await settle();
+    // The wide column: nothing opens, so nothing is measured.
+    expect(tip).not.toHaveClass('is-open');
+    expect(content).not.toHaveAttribute('style');
+    rerender(<RailFrame navCollapsed />);
+    expect(tip).not.toHaveClass('is-open');
+    // Collapsed, the next hover opens it.
+    fireEvent(dashboard, new MouseEvent('pointerout', { bubbles: true }));
+    await settle();
+    over();
+    await settle();
+    expect(tip).toHaveClass('is-open', 'is-active');
+  });
+
+  describe('taller than the window under the header', () => {
+    type Observer = { measure: () => void; disconnect: () => void };
+    let observers: Observer[];
+
+    beforeEach(() => {
+      observers = [];
+      (globalThis as { ResizeObserver?: unknown }).ResizeObserver = class {
+        measure: () => void;
+        disconnect = vi.fn();
+        constructor(callback: () => void) {
+          this.measure = callback;
+          observers.push(this);
+        }
+        observe() {}
+      };
+    });
+
+    afterEach(() => {
+      delete (globalThis as { ResizeObserver?: unknown }).ResizeObserver;
+      vi.restoreAllMocks();
+    });
+
+    /** The nav laid out `height` pixels tall with `room` under the header. */
+    const lay = (height: number, room: number) => {
+      vi.restoreAllMocks();
+      const real = window.getComputedStyle;
+      vi.spyOn(window, 'getComputedStyle').mockImplementation((el, pseudo) => {
+        const style = real(el, pseudo);
+        if (!el.matches('.app-frame-nav')) return style;
+        return {
+          direction: 'ltr',
+          getPropertyValue: (name: string) =>
+            name === 'min-block-size'
+              ? `${room}px`
+              : style.getPropertyValue(name),
+        } as CSSStyleDeclaration;
+      });
+      vi.spyOn(nav(), 'getBoundingClientRect').mockReturnValue({
+        height,
+      } as DOMRect);
+    };
+    /** That layout, and the observer telling the nav its size changed. */
+    const layOut = (height: number, room: number) => {
+      lay(height, room);
+      act(() => observers[observers.length - 1].measure());
+    };
+
+    it('measures as it collapses, before paint, and starts afresh after expanding', () => {
+      mockViewport(DESKTOP);
+      const { rerender } = render(<RailFrame navCollapsed />);
+      layOut(760, 368);
+      expect(nav()).toHaveClass('is-tall');
+      rerender(<RailFrame navCollapsed={false} />);
+      expect(nav()).not.toHaveClass('is-tall');
+      // The window grew, and the rail now fits: collapsing again never shows
+      // the old measurement, not even for a commit.
+      lay(668, 668);
+      const classes: string[] = [];
+      const watch = new MutationObserver(records =>
+        classes.push(...records.map(r => r.oldValue ?? ''))
+      );
+      watch.observe(nav(), {
+        attributeFilter: ['class'],
+        attributeOldValue: true,
+      });
+      rerender(<RailFrame navCollapsed />);
+      classes.push(
+        ...watch.takeRecords().map(r => r.oldValue ?? ''),
+        nav().className
+      );
+      watch.disconnect();
+      expect(nav()).toHaveClass('is-rail');
+      expect(classes.filter(c => c.includes('is-tall'))).toEqual([]);
+      // And a rail too tall for the window is measured as it collapses too.
+      rerender(<RailFrame navCollapsed={false} />);
+      lay(760, 368);
+      rerender(<RailFrame navCollapsed />);
+      expect(nav()).toHaveClass('is-tall');
+    });
+
+    it('scrolls with the page, and sticks again once it fits', () => {
+      mockViewport(DESKTOP);
+      render(<RailFrame defaultNavCollapsed />);
+      expect(observers).toHaveLength(1);
+      layOut(760, 368);
+      expect(nav()).toHaveClass('is-rail', 'is-tall');
+      layOut(668, 668);
+      expect(nav()).not.toHaveClass('is-tall');
+    });
+
+    it('measures only while the column is collapsed to the rail', () => {
+      mockViewport(DESKTOP);
+      const { rerender } = render(<RailFrame navCollapsed={false} />);
+      expect(observers).toHaveLength(0);
+      rerender(<RailFrame navCollapsed />);
+      expect(observers).toHaveLength(1);
+      layOut(760, 368);
+      rerender(<RailFrame navCollapsed={false} />);
+      expect(observers[0].disconnect).toHaveBeenCalled();
+      expect(nav()).not.toHaveClass('is-tall');
+    });
+
+    it('measures again as the window resizes, which changes its room and not its size', () => {
+      mockViewport(DESKTOP);
+      const { rerender } = render(<RailFrame navCollapsed />);
+      layOut(668, 668);
+      expect(nav()).not.toHaveClass('is-tall');
+      // The window gets shorter. The rail keeps its size, so its observer
+      // says nothing.
+      lay(668, 368);
+      act(() => {
+        window.dispatchEvent(new Event('resize'));
+      });
+      expect(nav()).toHaveClass('is-tall');
+      // Expanded, it stops listening.
+      rerender(<RailFrame navCollapsed={false} />);
+      lay(760, 368);
+      act(() => {
+        window.dispatchEvent(new Event('resize'));
+      });
+      expect(nav()).not.toHaveClass('is-tall');
+    });
+
+    it('measures nothing in the drawer', () => {
+      mockViewport(PHONE);
+      render(<RailFrame defaultNavCollapsed />);
+      expect(observers).toHaveLength(0);
+    });
+  });
+
+  it('marks the nav as a rail only while the column is collapsed', () => {
+    mockViewport(DESKTOP);
+    render(<RailFrame />);
+    expect(nav()).not.toHaveClass('is-rail');
+    fireEvent.click(burger());
+    expect(nav()).toHaveClass('app-frame-nav', 'is-rail');
+    expect(root()).toHaveClass('is-nav-collapsed');
+    expect(burger()).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(burger());
+    expect(nav()).not.toHaveClass('is-rail');
+  });
+
+  it('keeps focus on the item that has it as the column collapses and expands', () => {
+    mockViewport(DESKTOP);
+    const { rerender } = render(<RailFrame navCollapsed={false} />);
+    const orders = link('Orders');
+    orders.focus();
+    rerender(<RailFrame navCollapsed />);
+    expect(nav()).toHaveClass('is-rail');
+    expect(link('Orders')).toBe(orders);
+    expect(orders).toHaveFocus();
+    rerender(<RailFrame navCollapsed={false} />);
+    expect(link('Orders')).toBe(orders);
+    expect(orders).toHaveFocus();
+  });
+
+  it('moves focus from a nested link the rail hides to its item’s own link', () => {
+    mockViewport(DESKTOP);
+    const { rerender } = render(<RailFrame navCollapsed={false} />);
+    link('Open orders').focus();
+    rerender(<RailFrame navCollapsed />);
+    expect(link('Orders')).toHaveFocus();
+  });
+
+  it('moves focus from a link in an open section the rail hides to the section’s button', () => {
+    mockViewport(DESKTOP);
+    const { rerender } = render(<RailFrame navCollapsed={false} />);
+    fireEvent.click(reports());
+    link('Sales').focus();
+    rerender(<RailFrame navCollapsed />);
+    expect(reports()).toHaveFocus();
+  });
+
+  it('moves focus to the nav when the item’s own link can’t take it, until it leaves', () => {
+    mockViewport(DESKTOP);
+    const NoHref = ({ collapsed }: { collapsed: boolean }) => (
+      <AppFrame navCollapsed={collapsed}>
+        <AppFrame.Nav rail>
+          <Menu>
+            <Menu.List>
+              <Menu.Item icon={<Glyph />}>
+                Reports
+                <Menu.List>
+                  <Menu.Item href="#monthly">Monthly</Menu.Item>
+                </Menu.List>
+              </Menu.Item>
+            </Menu.List>
+          </Menu>
+        </AppFrame.Nav>
+        <AppFrame.Main>
+          <a href="#page">Page link</a>
+        </AppFrame.Main>
+      </AppFrame>
+    );
+    const { rerender } = render(<NoHref collapsed={false} />);
+    link('Monthly').focus();
+    rerender(<NoHref collapsed />);
+    // A link with no href can't take focus, so the nav does, for now.
+    expect(nav()).toHaveFocus();
+    expect(nav()).toHaveAttribute('tabindex', '-1');
+    link('Page link').focus();
+    expect(nav()).not.toHaveAttribute('tabindex');
+  });
+
+  it('leaves focus on a top-level link as the column collapses', () => {
+    mockViewport(DESKTOP);
+    const { rerender } = render(<RailFrame navCollapsed={false} />);
+    link('Dashboard').focus();
+    rerender(<RailFrame navCollapsed />);
+    expect(link('Dashboard')).toHaveFocus();
+  });
+
+  it('expands the column and opens a section from its button in the rail', () => {
+    mockViewport(DESKTOP);
+    const onNavCollapsedChange = vi.fn();
+    render(
+      <RailFrame
+        defaultNavCollapsed
+        onNavCollapsedChange={onNavCollapsedChange}
+      />
+    );
+    const button = reports();
+    expect(button).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(button);
+    expect(onNavCollapsedChange).toHaveBeenLastCalledWith(false);
+    expect(nav()).not.toHaveClass('is-rail');
+    expect(reports()).toBe(button);
+    expect(button).toHaveAttribute('aria-expanded', 'true');
+    expect(link('Sales')).toBeVisible();
+  });
+
+  it('says an open section in the rail is collapsed, since the rail hides its list', () => {
+    mockViewport(DESKTOP);
+    const { rerender } = render(<RailFrame navCollapsed={false} />);
+    fireEvent.click(reports());
+    expect(reports()).toHaveAttribute('aria-expanded', 'true');
+    rerender(<RailFrame navCollapsed />);
+    expect(reports()).toHaveAttribute('aria-expanded', 'false');
+    rerender(<RailFrame navCollapsed={false} />);
+    expect(reports()).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('leaves a section to open and close as usual in the drawer, where there is no rail', () => {
+    mockViewport(PHONE);
+    const onNavCollapsedChange = vi.fn();
+    render(
+      <RailFrame
+        defaultNavCollapsed
+        onNavCollapsedChange={onNavCollapsedChange}
+      />
+    );
+    fireEvent.click(burger());
+    expect(nav()).toHaveClass('is-active');
+    // Not a rail there, so a rule that hides content in the rail doesn't
+    // reach the drawer.
+    expect(nav()).not.toHaveClass('is-rail');
+    fireEvent.click(reports());
+    expect(reports()).toHaveAttribute('aria-expanded', 'true');
+    fireEvent.click(reports());
+    expect(reports()).toHaveAttribute('aria-expanded', 'false');
+    expect(onNavCollapsedChange).not.toHaveBeenCalled();
+  });
+
+  it('leaves a section in a Popover opened from the rail’s menu out of the rail', async () => {
+    mockViewport(DESKTOP);
+    const onNavCollapsedChange = vi.fn();
+    render(
+      <AppFrame defaultNavCollapsed onNavCollapsedChange={onNavCollapsedChange}>
+        <AppFrame.Nav rail>
+          <Menu>
+            <Menu.List>
+              <li>
+                <Popover
+                  appendToBody
+                  trigger={<button type="button">Filters</button>}
+                >
+                  <Menu>
+                    <Menu.Section label="Status" icon={<Glyph />} defaultOpen>
+                      <Menu.List>
+                        <Menu.Item href="#open">Open</Menu.Item>
+                      </Menu.List>
+                    </Menu.Section>
+                  </Menu>
+                </Popover>
+              </li>
+            </Menu.List>
+          </Menu>
+        </AppFrame.Nav>
+        <AppFrame.Main>Page</AppFrame.Main>
+      </AppFrame>
+    );
+    expect(nav()).toHaveClass('is-rail');
+    fireEvent.click(screen.getByRole('button', { name: 'Filters' }));
+    const status = await screen.findByRole('button', { name: 'Status' });
+    expect(status.closest('.app-frame-rail-tooltip')).toBeNull();
+    expect(status).toHaveAttribute('aria-expanded', 'true');
+    fireEvent.click(status);
+    expect(status).toHaveAttribute('aria-expanded', 'false');
+    expect(onNavCollapsedChange).not.toHaveBeenCalled();
+    expect(nav()).toHaveClass('is-rail');
+  });
+
+  it('leaves a Menu in a Popover at the nav’s foot out of the rail, and doesn’t warn about it', async () => {
+    resetDevWarnings();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    mockViewport(DESKTOP);
+    const onNavCollapsedChange = vi.fn();
+    try {
+      render(
+        <AppFrame
+          defaultNavCollapsed
+          onNavCollapsedChange={onNavCollapsedChange}
+        >
+          <AppFrame.Nav rail>
+            <Menu>
+              <Menu.List>
+                <Menu.Item href="#dashboard" icon={<Glyph />}>
+                  Dashboard
+                </Menu.Item>
+              </Menu.List>
+            </Menu>
+            <Popover
+              appendToBody
+              trigger={<button type="button">Filters</button>}
+            >
+              <Menu>
+                <Menu.List>
+                  <Menu.Item href="#mine">Mine</Menu.Item>
+                </Menu.List>
+                <Menu.Section label="Status" defaultOpen>
+                  <Menu.List>
+                    <Menu.Item href="#open">Open</Menu.Item>
+                  </Menu.List>
+                </Menu.Section>
+              </Menu>
+            </Popover>
+          </AppFrame.Nav>
+          <AppFrame.Main>Page</AppFrame.Main>
+        </AppFrame>
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Filters' }));
+      const status = await screen.findByRole('button', { name: 'Status' });
+      expect(status.closest('.app-frame-rail-tooltip')).toBeNull();
+      expect(link('Mine').closest('.app-frame-rail-tooltip')).toBeNull();
+      expect(status).toHaveAttribute('aria-expanded', 'true');
+      fireEvent.click(status);
+      expect(status).toHaveAttribute('aria-expanded', 'false');
+      expect(onNavCollapsedChange).not.toHaveBeenCalled();
+      // Its items have no icons, and that's fine outside the rail.
+      expect(
+        warn.mock.calls.filter(([m]) => /has no\s+icon/.test(String(m)))
+      ).toEqual([]);
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it('leaves a Menu in a Popover opened from the drawer out of the rail, though it portals into the nav', async () => {
+    resetDevWarnings();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    mockViewport(PHONE);
+    try {
+      render(
+        <AppFrame defaultNavOpen defaultNavCollapsed>
+          <AppFrame.Nav rail>
+            <Menu>
+              <Menu.List>
+                <Menu.Item href="#dashboard" icon={<Glyph />}>
+                  Dashboard
+                </Menu.Item>
+              </Menu.List>
+            </Menu>
+            <Popover
+              appendToBody
+              trigger={<button type="button">Filters</button>}
+            >
+              <Menu>
+                <Menu.List>
+                  <Menu.Item href="#mine">Mine</Menu.Item>
+                </Menu.List>
+              </Menu>
+            </Popover>
+          </AppFrame.Nav>
+          <AppFrame.Main>Page</AppFrame.Main>
+        </AppFrame>
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Filters' }));
+      const mine = await screen.findByRole('link', { name: 'Mine' });
+      // The drawer takes its popups, so the panel is in the nav.
+      expect(nav()).toContainElement(mine);
+      expect(mine.closest('.app-frame-rail-tooltip')).toBeNull();
+      expect(
+        warn.mock.calls.filter(([m]) => /has no\s+icon/.test(String(m)))
+      ).toEqual([]);
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it('gives the rail to a reusable Menu nested in the nav’s own Menu', () => {
+    mockViewport(DESKTOP);
+    const HelpMenu = () => (
+      <Menu>
+        <Menu.List>
+          <Menu.Item href="#help" icon={<Glyph />}>
+            Help
+          </Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    render(
+      <AppFrame defaultNavCollapsed>
+        <AppFrame.Nav rail>
+          <Menu>
+            <Menu.List>
+              <Menu.Item href="#dashboard" icon={<Glyph />}>
+                Dashboard
+              </Menu.Item>
+            </Menu.List>
+            <HelpMenu />
+          </Menu>
+        </AppFrame.Nav>
+        <AppFrame.Main>Page</AppFrame.Main>
+      </AppFrame>
+    );
+    expect(tipOf(link('Help'))).toHaveClass('app-frame-rail-tooltip');
+    expect(tipOf(link('Dashboard'))).toHaveClass('app-frame-rail-tooltip');
+  });
+
+  it('warns once when a collapsed rail holds no Menu, and not when it does', () => {
+    resetDevWarnings();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    mockViewport(DESKTOP);
+    try {
+      const { unmount } = render(<RailFrame defaultNavCollapsed />);
+      expect(
+        warn.mock.calls.filter(([m]) => /holds no <Menu>/.test(String(m)))
+      ).toEqual([]);
+      unmount();
+      render(
+        <AppFrame defaultNavCollapsed>
+          <AppFrame.Nav rail>
+            <Menu.List>
+              <Menu.Item href="#dashboard" icon={<Glyph />}>
+                Dashboard
+              </Menu.Item>
+            </Menu.List>
+          </AppFrame.Nav>
+          <AppFrame.Main>Page</AppFrame.Main>
+        </AppFrame>
+      );
+      // A Menu.List with no Menu around it isn't in the rail.
+      expect(link('Dashboard').closest('.app-frame-rail-tooltip')).toBeNull();
+      expect(
+        warn.mock.calls.filter(([m]) => /holds no <Menu>/.test(String(m)))
+      ).toHaveLength(1);
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it('doesn’t look for a Menu in the rail in production, where it couldn’t warn', () => {
+    mockViewport(DESKTOP);
+    const previous = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+      const { rerender } = render(<RailFrame navCollapsed={false} />);
+      const query = vi.spyOn(nav(), 'querySelector');
+      rerender(<RailFrame navCollapsed />);
+      expect(nav()).toHaveClass('is-rail');
+      expect(query).not.toHaveBeenCalled();
+    } finally {
+      process.env.NODE_ENV = previous;
+    }
+  });
+
+  it('puts the tooltips on the left of a right-to-left rail', () => {
+    mockViewport(DESKTOP);
+    const real = window.getComputedStyle;
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((el, pseudo) => {
+      const style = real(el, pseudo);
+      return el.matches('.app-frame-nav')
+        ? ({ ...style, direction: 'rtl' } as CSSStyleDeclaration)
+        : style;
+    });
+    try {
+      render(<RailFrame />);
+      expect(tipOf(link('Dashboard'))).toHaveClass('is-left');
+      expect(tipOf(link('Dashboard'))).not.toHaveClass('is-right');
+    } finally {
+      vi.restoreAllMocks();
+    }
+  });
+
+  it('leaves aria-expanded off a section in the rail on the server, and sets it once the mode is known', () => {
+    const OpenSection = (props: AppFrameProps) => (
+      <AppFrame {...props}>
+        <AppFrame.Nav rail>
+          <Menu>
+            <Menu.Section label="Reports" icon={<Glyph />} defaultOpen>
+              <Menu.List>
+                <Menu.Item href="#sales">Sales</Menu.Item>
+              </Menu.List>
+            </Menu.Section>
+          </Menu>
+        </AppFrame.Nav>
+        <AppFrame.Main>Page</AppFrame.Main>
+      </AppFrame>
+    );
+    const toggleIn = (html: string) =>
+      /<button[^>]*menu-section-toggle[^>]*>/.exec(html)?.[0];
+    const button = toggleIn(
+      renderToStaticMarkup(<OpenSection defaultNavCollapsed />)
+    );
+    expect(button).toBeDefined();
+    expect(button).not.toContain('aria-expanded');
+    // Not set to collapse, the column is no rail at any width, so the
+    // section's state is known.
+    expect(toggleIn(renderToStaticMarkup(<OpenSection />))).toContain(
+      'aria-expanded="true"'
+    );
+    mockViewport(DESKTOP);
+    render(<OpenSection defaultNavCollapsed />);
+    expect(reports()).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('moves the tooltips to the other side when a LocaleProvider switches direction', () => {
+    mockViewport(DESKTOP);
+    // jsdom lays nothing out, so the nav's direction is the nearest dir.
+    const real = window.getComputedStyle;
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((el, pseudo) => {
+      const style = real(el, pseudo);
+      return el.matches('.app-frame-nav')
+        ? ({
+            direction: el.closest('[dir]')?.getAttribute('dir') ?? 'ltr',
+            getPropertyValue: (name: string) => style.getPropertyValue(name),
+          } as CSSStyleDeclaration)
+        : style;
+    });
+    try {
+      const { rerender } = render(
+        <LocaleProvider dir="ltr">
+          <RailFrame defaultNavCollapsed />
+        </LocaleProvider>
+      );
+      expect(tipOf(link('Dashboard'))).toHaveClass('is-right');
+      rerender(
+        <LocaleProvider dir="rtl">
+          <RailFrame defaultNavCollapsed />
+        </LocaleProvider>
+      );
+      expect(tipOf(link('Dashboard'))).toHaveClass('is-left');
+    } finally {
+      vi.restoreAllMocks();
+    }
+  });
+
+  it('renders the rail and its tooltips on the server, so hydrating remounts nothing', () => {
+    const html = renderToStaticMarkup(<RailFrame defaultNavCollapsed />);
+    expect(html).toMatch(/<nav[^>]*class="app-frame-nav is-rail"/);
+    expect(html).toContain('app-frame-rail-tooltip');
+    expect(html).toMatch(/role="tooltip"/);
+    expect(html).not.toContain('aria-describedby');
+  });
+
+  it('prefixes the rail’s classes', () => {
+    mockViewport(DESKTOP);
+    render(
+      <ConfigProvider classPrefix="bestax-">
+        <RailFrame defaultNavCollapsed />
+      </ConfigProvider>
+    );
+    expect(document.querySelector('nav')).toHaveClass(
+      'bestax-app-frame-nav',
+      'bestax-is-rail'
+    );
+    expect(tipOf(link('Dashboard'))).toHaveClass(
+      'bestax-tooltip',
+      'bestax-app-frame-rail-tooltip'
+    );
+  });
+
+  it('gives a menu no tooltips in a nav without a rail, or outside a frame', () => {
+    mockViewport(DESKTOP);
+    const { unmount } = render(<RailFrame nav={{ rail: false }} />);
+    expect(document.querySelector('.tooltip')).toBeNull();
+    unmount();
+    render(
+      <AppFrame.Nav rail>
+        <Menu>
+          <Menu.List>
+            <Menu.Item href="#dashboard" icon={<Glyph />}>
+              Dashboard
+            </Menu.Item>
+          </Menu.List>
+        </Menu>
+      </AppFrame.Nav>
+    );
+    expect(document.querySelector('.tooltip')).toBeNull();
   });
 });
 

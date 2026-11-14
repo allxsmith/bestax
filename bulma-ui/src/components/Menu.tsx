@@ -2,6 +2,7 @@ import React, {
   createContext,
   forwardRef,
   useContext,
+  useEffect,
   useId,
   useRef,
   useState,
@@ -13,8 +14,12 @@ import { isElementOf } from '../helpers/elementType';
 import { omitAttrs } from '../helpers/anchorAttrs';
 import { buttonType } from '../helpers/buttonType';
 import { inertProps } from '../helpers/inertProps';
-import { getActiveElementInTree } from '../helpers/shadowDom';
+import { isGiven } from '../helpers/isGiven';
+import { iconNode } from '../helpers/iconNode';
+import { moveFocusOut } from '../helpers/moveFocusOut';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
+import { warnOnce } from '../helpers/devWarnings';
+import { MenuRailContext, type MenuRail } from '../helpers/menuRail';
 import {
   isCustomElement,
   type PolymorphicComponent,
@@ -22,6 +27,12 @@ import {
 
 // Context to track MenuList nesting level
 const MenuListLevelContext = createContext(0);
+
+// The rail the menu's own top-level items and sections are in. A Menu takes
+// the nav's rail, which a `Portal` stops, so a Menu portaled out of the nav,
+// into a Popover or a Modal opened from it, has none. An item's nested lists
+// and a section's list get none either: the rail hides them.
+const MenuOwnRailContext = createContext<MenuRail | null>(null);
 
 /**
  * Props for the Menu component.
@@ -50,17 +61,20 @@ const MenuComponent: React.FC<MenuProps> = ({
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+  const rail = useContext(MenuRailContext);
 
   // Generate Bulma classes with prefix
   const bulmaClasses = usePrefixedClassNames('menu');
 
   return (
-    <aside
-      className={classNames(bulmaClasses, bulmaHelperClasses, className)}
-      {...rest}
-    >
-      {children}
-    </aside>
+    <MenuOwnRailContext.Provider value={rail}>
+      <aside
+        className={classNames(bulmaClasses, bulmaHelperClasses, className)}
+        {...rest}
+      >
+        {children}
+      </aside>
+    </MenuOwnRailContext.Provider>
   );
 };
 
@@ -168,6 +182,19 @@ export interface MenuItemOwnProps extends BulmaClassesProps {
   /** Item content and optional nested MenuList. */
   children: React.ReactNode;
   /**
+   * An icon before the label: an `Icon` name, or a node. It's hidden from
+   * assistive technology, since the label names the item. With it, the rest
+   * of the label is wrapped in a `menu-item-label` span; without it, the item
+   * renders as it always has. In an `AppFrame.Nav rail` column collapsed to
+   * its icons, the label is visually hidden, stays the link's name, and
+   * shows in a Tooltip on hover and keyboard focus. That Tooltip renders the
+   * label a second time, so keep an `id`, a `ref` or a component with state
+   * of its own out of a rail item's label. It's Menu.Item's own prop, so a
+   * component passed as `as` never receives an `icon` of its own: pass that
+   * one under another name.
+   */
+  icon?: React.ReactNode;
+  /**
    * Marks the item as the current one. It adds Bulma's `is-active` class, and
    * `aria-current="page"` on the element `as` renders, so assistive tech can
    * tell which item is current too. An `aria-current` you pass wins, even
@@ -246,6 +273,7 @@ export const MenuItem = forwardRef(function MenuItem(
   const {
     className,
     children,
+    icon,
     active,
     as: Component = 'a',
     'data-testid': testId,
@@ -284,6 +312,21 @@ export const MenuItem = forwardRef(function MenuItem(
     { [usePrefixedClassNames('is-active')]: active },
     bulmaHelperClasses
   );
+  const iconClass = usePrefixedClassNames('menu-item-icon');
+  const labelClass = usePrefixedClassNames('menu-item-label');
+  const hasIcon = isGiven(icon);
+  const rail = useContext(MenuOwnRailContext);
+  useEffect(() => {
+    if (rail && !hasIcon) {
+      warnOnce(
+        'Menu:rail-item-icon',
+        '[bestax-bulma] A <Menu.Item> in an <AppFrame.Nav rail> has no ' +
+          'icon, so the collapsed rail has nothing to show for it and its ' +
+          'label spills over the page. Give every top-level Menu.Item and ' +
+          'Menu.Section in a rail an icon.'
+      );
+    }
+  }, [rail, hasIcon]);
 
   // Split children into label and nested MenuList(s)
   const labelChildren: React.ReactNode[] = [];
@@ -296,8 +339,63 @@ export const MenuItem = forwardRef(function MenuItem(
     }
   });
 
+  // The rail hides an item's nested lists. Focus on a link in one as the
+  // column collapses would drop to the page, so it moves to the item's own
+  // link, which stays, or to the nav when that can't take focus. A layout
+  // effect, while that link still has focus.
+  const liRef = useRef<HTMLLIElement>(null);
+  const wrapped = !!rail && hasIcon;
+  const hidesNested = !!rail?.collapsed && nestedMenuLists.length > 0;
+  useClientLayoutEffect(() => {
+    if (!hidesNested) return;
+    const [own, ...nested] = Array.from(liRef.current!.children);
+    // The item's own link, inside the rail's tooltip when it has one.
+    const target = wrapped ? own.firstElementChild : own;
+    moveFocusOut(nested, target as HTMLElement, rail!.nav());
+  }, [hidesNested, wrapped, rail]);
+
+  const link = (
+    <Component
+      ref={ref}
+      className={itemClass || undefined}
+      // The active item is the current page, the way Pagination marks its
+      // page. Before the spread, so an `aria-current` the caller passes
+      // decides, `false` and `undefined` included. bestax-migrate converts
+      // `is-active` to `active` only beside an `aria-current` of the
+      // element's own, and relies on that to render the same markup.
+      aria-current={active ? 'page' : undefined}
+      {...linkProps}
+      // A menu item inside a form must not submit it, and `<button>` defaults
+      // to type="submit". A sidebar menu sitting in a form is ordinary. A
+      // caller's `submit` or `reset` still wins. Anything else becomes
+      // `button`, since HTML reads a value it does not define for a button as
+      // submit too; `buttonType` says more.
+      //
+      // After `linkProps`, reading through it rather than before it: React
+      // treats `type={undefined}` as "remove the attribute", and a spread
+      // carrying the key with no value is how that arrives, so a default
+      // spread first would be erased by it. `Dropdown.Item` and `Avatar`
+      // apply their button type after the spread too.
+      {...(Component === 'button' ? { type: buttonType(linkProps.type) } : {})}
+    >
+      {hasIcon ? (
+        <>
+          <span className={iconClass} aria-hidden="true">
+            {iconNode(icon)}
+          </span>
+          <span className={labelClass}>{labelChildren}</span>
+        </>
+      ) : (
+        labelChildren
+      )}
+    </Component>
+  );
+
+  // In a column that collapses to an icon rail, an item with an icon shows
+  // its label in a tooltip while only the icon shows.
   return (
     <li
+      ref={liRef}
       className={className}
       data-testid={testId}
       style={style}
@@ -306,34 +404,10 @@ export const MenuItem = forwardRef(function MenuItem(
       role={role}
       tabIndex={tabIndex}
     >
-      <Component
-        ref={ref}
-        className={itemClass || undefined}
-        // The active item is the current page, the way Pagination marks its
-        // page. Before the spread, so an `aria-current` the caller passes
-        // decides, `false` and `undefined` included. bestax-migrate converts
-        // `is-active` to `active` only beside an `aria-current` of the
-        // element's own, and relies on that to render the same markup.
-        aria-current={active ? 'page' : undefined}
-        {...linkProps}
-        // A menu item inside a form must not submit it, and `<button>` defaults
-        // to type="submit". A sidebar menu sitting in a form is ordinary. A
-        // caller's `submit` or `reset` still wins. Anything else becomes
-        // `button`, since HTML reads a value it does not define for a button as
-        // submit too; `buttonType` says more.
-        //
-        // After `linkProps`, reading through it rather than before it: React
-        // treats `type={undefined}` as "remove the attribute", and a spread
-        // carrying the key with no value is how that arrives, so a default
-        // spread first would be erased by it. `Dropdown.Item` and `Avatar`
-        // apply their button type after the spread too.
-        {...(Component === 'button'
-          ? { type: buttonType(linkProps.type) }
-          : {})}
-      >
-        {labelChildren}
-      </Component>
-      {nestedMenuLists}
+      {wrapped ? rail.wrap(link, labelChildren) : link}
+      <MenuOwnRailContext.Provider value={null}>
+        {nestedMenuLists}
+      </MenuOwnRailContext.Provider>
     </li>
   );
 }) as PolymorphicComponent<MenuItemOwnProps, 'a'>;
@@ -352,6 +426,15 @@ export interface MenuSectionProps
   className?: string;
   /** **Required.** The section's heading, drawn like `Menu.Label` inside the button that opens and closes it. Keep links and buttons out of it, since it's inside one. */
   label: React.ReactNode;
+  /**
+   * An icon before the heading: an `Icon` name, or a node. It's hidden from
+   * assistive technology, since the heading names the button. In an
+   * `AppFrame.Nav rail` column collapsed to its icons, the heading is
+   * visually hidden, stays the button's name, and shows in a Tooltip on
+   * hover and keyboard focus. That Tooltip renders the heading a second time,
+   * so keep an `id`, a `ref` or a component with state of its own out of it.
+   */
+  icon?: React.ReactNode;
   /**
    * The `Menu.List` of links the section shows while it's open. The section
    * itself goes directly in `Menu`, beside its labels and lists: inside a
@@ -394,6 +477,7 @@ export interface MenuSectionProps
 export const MenuSection: React.FC<MenuSectionProps> = ({
   className,
   label,
+  icon,
   children,
   open: controlledOpen,
   defaultOpen = false,
@@ -405,18 +489,42 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
   const toggleClass = usePrefixedClassNames('menu-section-toggle');
   const labelClass = usePrefixedClassNames('menu-section-label');
   const chevronClass = usePrefixedClassNames('menu-section-chevron');
+  const iconClass = usePrefixedClassNames('menu-section-icon');
+  const listClass = usePrefixedClassNames('menu-section-list');
+  const hasIcon = isGiven(icon);
   const listId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const rail = useContext(MenuOwnRailContext);
+  useEffect(() => {
+    if (rail && !hasIcon) {
+      warnOnce(
+        'Menu:rail-section-icon',
+        '[bestax-bulma] A <Menu.Section> in an <AppFrame.Nav rail> has no ' +
+          'icon, so in the collapsed rail its button shows nothing. Give ' +
+          'every top-level Menu.Item and Menu.Section in a rail an icon.'
+      );
+    }
+  }, [rail, hasIcon]);
+  // The rail hides a section's list, so there the button widens the column
+  // and opens the section, and says it's collapsed. While the column is set
+  // to collapse and the frame doesn't know yet whether that makes it a rail,
+  // as before the page hydrates, the button says neither, as AppFrame.Burger
+  // does. Expanded, its state is known, so it says it.
+  const railCollapsed = !!rail?.collapsed;
 
   // The caller owns the state when `open` is set, and the section does
   // otherwise, as with Collapse. The button reports in both modes.
   const isControlled = controlledOpen !== undefined;
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const isOpen = controlledOpen ?? internalOpen;
+  const expanded = rail?.pending ? undefined : isOpen && !railCollapsed;
 
   const handleClick = () => {
-    const next = !isOpen;
+    const next = railCollapsed || !isOpen;
+    if (railCollapsed) rail!.expand();
+    // In the rail an open section only needs the column back.
+    if (next === isOpen) return;
     onOpenChange?.(next);
     if (!isControlled) setInternalOpen(next);
   };
@@ -428,42 +536,57 @@ export const MenuSection: React.FC<MenuSectionProps> = ({
   // heading is where the reader was, so focus goes there. A layout effect,
   // because it runs in the same task as the commit that hid the list, while
   // the link still has focus. A close from the button itself finds focus on
-  // the button and leaves it.
+  // the button and leaves it. The rail hides an open section's list too, so
+  // collapsing the column to it moves focus the same way.
   useClientLayoutEffect(() => {
-    if (isOpen) return;
-    const list = listRef.current!;
-    if (list.contains(getActiveElementInTree(list))) {
-      toggleRef.current!.focus();
-    }
-  }, [isOpen]);
+    if (isOpen && !railCollapsed) return;
+    moveFocusOut([listRef.current!], toggleRef.current, rail?.nav() ?? null);
+  }, [isOpen, railCollapsed, rail]);
 
   // A real button, so Enter and Space work with no key handler, and
   // `type="button"`, so a menu inside a form isn't submitted by it.
-  //
+  const toggle = (
+    <button
+      ref={toggleRef}
+      type="button"
+      className={toggleClass}
+      aria-expanded={expanded}
+      aria-controls={listId}
+      onClick={handleClick}
+    >
+      {hasIcon && (
+        <span className={iconClass} aria-hidden="true">
+          {iconNode(icon)}
+        </span>
+      )}
+      <span className={labelClass}>{label}</span>
+      <span className={chevronClass} aria-hidden="true" />
+    </button>
+  );
+
   // A closed list is `hidden`, so it isn't drawn and find-in-page doesn't
   // reach it, and `inert`, so its links stay out of Tab and assistive tech
   // even if a stylesheet sets `display` on it and shows it anyway. The markup
   // is the same from the server and on both React majors, which `inertProps`
   // sees to. It stays mounted, so `aria-controls` always names an element
-  // that exists.
+  // that exists. In a column that collapses to an icon rail, a section with
+  // an icon shows its heading in a tooltip while only the icon shows.
   return (
     <div
       className={classNames(sectionClass, bulmaHelperClasses, className)}
       {...rest}
     >
-      <button
-        ref={toggleRef}
-        type="button"
-        className={toggleClass}
-        aria-expanded={isOpen}
-        aria-controls={listId}
-        onClick={handleClick}
+      {rail && hasIcon ? rail.wrap(toggle, label) : toggle}
+      <div
+        ref={listRef}
+        id={listId}
+        className={listClass}
+        hidden={!isOpen}
+        {...inertProps(!isOpen)}
       >
-        <span className={labelClass}>{label}</span>
-        <span className={chevronClass} aria-hidden="true" />
-      </button>
-      <div ref={listRef} id={listId} hidden={!isOpen} {...inertProps(!isOpen)}>
-        {children}
+        <MenuOwnRailContext.Provider value={null}>
+          {children}
+        </MenuOwnRailContext.Provider>
       </div>
     </div>
   );

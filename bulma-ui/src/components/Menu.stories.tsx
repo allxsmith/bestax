@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { Menu } from './Menu';
 import { Block } from '../elements/Block';
+import { Icon } from '../elements/Icon';
 import { Button } from '../elements/Button';
 import { Buttons } from '../elements/Buttons';
 import { Column } from '../columns/Column';
@@ -82,6 +83,36 @@ function Narrow({ children }: { children: React.ReactNode }) {
     </Columns>
   );
 }
+
+/**
+ * An `icon` on an item or a section sits before its label and is hidden from
+ * assistive technology, so the label stays the name.
+ */
+export const Icons: Story = {
+  render: () => (
+    <Narrow>
+      <Menu>
+        <Menu.List>
+          <Menu.Item href="#dashboard" icon={<Icon name="house" />} active>
+            Dashboard
+          </Menu.Item>
+          <Menu.Item href="#orders" icon={<Icon name="box" />}>
+            Orders
+          </Menu.Item>
+          <Menu.Item href="#customers" icon={<Icon name="users" />}>
+            Customers
+          </Menu.Item>
+        </Menu.List>
+        <Menu.Section label="Reports" icon={<Icon name="chart-line" />}>
+          <Menu.List>
+            <Menu.Item href="#sales">Sales</Menu.Item>
+            <Menu.Item href="#returns">Returns</Menu.Item>
+          </Menu.List>
+        </Menu.Section>
+      </Menu>
+    </Narrow>
+  ),
+};
 
 /**
  * A docs sidebar whose groups of links open and close. Each heading is a

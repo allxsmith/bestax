@@ -48,15 +48,15 @@ parts are direct children, in this order: `AppFrame.Header` (`<header>`), `AppFr
 (`<nav>`), `AppFrame.Main` (`<main>`), `AppFrame.Aside` (`<aside>`), `AppFrame.Footer`
 (`<footer>`). `AppFrame.Burger` goes in the header's `Navbar.Brand`.
 
-| Prop                                                              | Type                                                                               |
-| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `breakpoint`                                                      | `'tablet' \| 'desktop' \| 'widescreen'` (default `desktop`: a drawer below it)     |
-| `navOpen` / `defaultNavOpen` / `onNavOpenChange(open)`            | the drawer, below the breakpoint                                                   |
-| `navCollapsed` / `defaultNavCollapsed` / `onNavCollapsedChange()` | the column, from the breakpoint up                                                 |
-| `skipLink`                                                        | `boolean` (default `true`)                                                         |
-| `labels`                                                          | `{ skipLink?, nav?, closeNav?, burger? }`, for another language                    |
-| `AppFrame.Nav`                                                    | `width?`, `overlay?`, `closeOnEscape?`, `closeOnClickOutside?`, `closeOnNavigate?` |
-| `AppFrame.Aside`                                                  | `width?`, and an `aria-label` when the page has another aside                      |
+| Prop                                                              | Type                                                                                                                                                                                     |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `breakpoint`                                                      | `'tablet' \| 'desktop' \| 'widescreen'` (default `desktop`: a drawer below it)                                                                                                           |
+| `navOpen` / `defaultNavOpen` / `onNavOpenChange(open)`            | the drawer, below the breakpoint                                                                                                                                                         |
+| `navCollapsed` / `defaultNavCollapsed` / `onNavCollapsedChange()` | the column, from the breakpoint up                                                                                                                                                       |
+| `skipLink`                                                        | `boolean` (default `true`)                                                                                                                                                               |
+| `labels`                                                          | `{ skipLink?, nav?, closeNav?, burger? }`, for another language                                                                                                                          |
+| `AppFrame.Nav`                                                    | `width?`, `overlay?`, `closeOnEscape?`, `closeOnClickOutside?`, `closeOnNavigate?`, `rail?` (collapses to a rail of icons: give each top-level `Menu.Item` and `Menu.Section` an `icon`) |
+| `AppFrame.Aside`                                                  | `width?`, and an `aria-label` when the page has another aside                                                                                                                            |
 
 Put it at the top of the app, never inside a `<main>` or a `Container as="main"`: it renders the
 page's `<main>`. Its `Navbar` is not `fixed` and needs no `has-navbar-fixed-top`. A control of
@@ -66,6 +66,8 @@ call `event.currentTarget.focus()` before `toggleNav()`, as the burger does: Saf
 a Mac, don't focus a button on click, so without it a closing drawer has no opener to hand focus
 back to. A header taller than Bulma's navbar sets
 `--bulma-app-frame-header-height` on `:root`.
+With `AppFrame.Nav rail`, the collapsed column keeps its icons and shows each label in a tooltip,
+which the frame renders: don't wrap the items in a `Tooltip` of your own.
 
 ## Container
 
@@ -339,10 +341,10 @@ https://bestax.io/docs/guides/features/routing.
 `<Menu>` is a vertical sidebar menu. Subcomponents: `Menu.Label`, `Menu.List`, `Menu.Item`,
 `Menu.Section`.
 
-| Prop           | Type                                                                                                                                                                                                                            |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Menu.Item`    | `active?` (the current page: `is-active` plus `aria-current="page"`, so don't add your own), `href?`, `as?` (custom link component); nest a `Menu.List` inside an item for submenus                                             |
-| `Menu.Section` | `label` (the heading, a `ReactNode`), `defaultOpen?`, or `open?` with `onOpenChange?(open)` to hold the state yourself, as `Collapse` does; its child is the group's `Menu.List`, and a closed section's links are out of reach |
+| Prop           | Type                                                                                                                                                                                                                                                                                            |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Menu.Item`    | `active?` (the current page: `is-active` plus `aria-current="page"`, so don't add your own), `href?`, `as?` (custom link component), `icon?` (an `Icon` name, or a node, before the label, hidden from assistive technology, so keep the label); nest a `Menu.List` inside an item for submenus |
+| `Menu.Section` | `label` (the heading, a `ReactNode`), `icon?` (an `Icon` name, or a node), `defaultOpen?`, or `open?` with `onOpenChange?(open)` to hold the state yourself, as `Collapse` does; its child is the group's `Menu.List`, and a closed section's links are out of reach                            |
 
 ```tsx
 <Menu>
