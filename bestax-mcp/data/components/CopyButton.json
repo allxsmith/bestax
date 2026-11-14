@@ -148,7 +148,7 @@
           "name": "isLight",
           "type": "boolean",
           "default": "false",
-          "description": "Applies a lighter color variant. Bulma gives the grayscale colors none, so `color=\"light\"` or `color=\"dark\"` with `isLight` looks the same as without it, and `white` or `black` with `isLight` looks like `color=\"light\"`.",
+          "description": "Applies a lighter color variant. `primary`, `link`, `info`, `success`, `warning` and `danger` have one, and the rest don't: with no `color`, or with `white` or `black`, `isLight` gives the light button, as `color=\"light\"` does, and `light`, `dark`, `text` and `ghost` look the same as without it.",
           "required": false,
           "inherited": true,
           "deprecated": false
