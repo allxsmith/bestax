@@ -156,7 +156,7 @@
         },
         {
           "name": "id",
-          "type": "string",
+          "type": "React.HTMLAttributes<HTMLElement>['id']",
           "default": null,
           "description": "Root element ID. The trigger gets `<id>-trigger` and the menu `<id>-menu`, which the trigger's `aria-controls` and the menu's `aria-labelledby` point at. Without one, both ids come from `useId`.",
           "required": false,
