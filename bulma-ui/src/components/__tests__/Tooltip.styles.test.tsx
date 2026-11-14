@@ -78,9 +78,9 @@ const allRules = () => {
 
 /** Shows it the way the pointer does, so it is open rather than only active. */
 const hoverOpen = () => {
-  const event = new MouseEvent('pointerover', { bubbles: true });
-  Object.defineProperty(event, 'pointerType', { value: 'mouse' });
-  fireEvent(screen.getByRole('button', { name: 'Trigger' }), event);
+  fireEvent.pointerOver(screen.getByRole('button', { name: 'Trigger' }), {
+    pointerType: 'mouse',
+  });
   act(() => {
     vi.runOnlyPendingTimers();
   });

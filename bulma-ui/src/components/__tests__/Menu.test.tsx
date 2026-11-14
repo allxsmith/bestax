@@ -4,6 +4,10 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Menu, MenuLabel, MenuList, MenuItem, MenuSection } from '../Menu';
 import { ConfigProvider } from '../../helpers/Config';
+import { MenuRailContext, type MenuRail } from '../../helpers/menuRail';
+import { Portal } from '../../helpers/portal';
+import { Popover } from '../Popover';
+import { resetDevWarnings } from '../../helpers/devWarnings';
 
 // A simple link-like mock component for custom "as" prop testing
 type CustomLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
@@ -340,6 +344,550 @@ describe('Compound components', () => {
     expect(container.querySelector('.menu-label')).toBeInTheDocument();
     expect(container.querySelector('.menu-list')).toBeInTheDocument();
     expect(container.querySelectorAll('.menu-list li')).toHaveLength(2);
+  });
+});
+
+describe('icon', () => {
+  const Glyph = () => <svg data-testid="glyph" />;
+
+  it('renders an item without one as it always has', () => {
+    const html = renderToStaticMarkup(
+      <Menu>
+        <Menu.List>
+          <Menu.Item href="#orders">Orders</Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    expect(html).toContain('<a href="#orders">Orders</a>');
+  });
+
+  it('puts the icon before the label, hidden from assistive technology, and the label in a span', () => {
+    render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item href="#orders" icon={<Glyph />}>
+            Orders
+            <Menu.List>
+              <Menu.Item href="#open">Open</Menu.Item>
+            </Menu.List>
+          </Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    const link = screen.getByRole('link', { name: 'Orders' });
+    const [icon, label] = Array.from(link.children);
+    expect(icon).toHaveClass('menu-item-icon');
+    expect(icon).toHaveAttribute('aria-hidden', 'true');
+    expect(icon).toContainElement(screen.getByTestId('glyph'));
+    expect(label).toHaveClass('menu-item-label');
+    expect(label).toHaveTextContent(/^Orders$/);
+    expect(link.children).toHaveLength(2);
+    // The nested list stays beside the link, outside its label.
+    expect(link.nextElementSibling).toHaveAttribute('role', 'list');
+    expect(screen.getByRole('link', { name: 'Open' }).children).toHaveLength(0);
+  });
+
+  it('puts the icon in a button item and a custom link too', () => {
+    render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item as="button" icon={<Glyph />}>
+            Filter
+          </Menu.Item>
+          <Menu.Item as={CustomLink} to="/home" icon={<Glyph />}>
+            Home
+          </Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    expect(
+      screen.getByRole('button', { name: 'Filter' }).firstElementChild
+    ).toHaveClass('menu-item-icon');
+    expect(
+      screen.getByRole('link', { name: 'Home' }).firstElementChild
+    ).toHaveClass('menu-item-icon');
+  });
+
+  it('puts the icon before a section’s heading, hidden from assistive technology', () => {
+    render(
+      <Menu>
+        <Menu.Section label="Reports" icon={<Glyph />}>
+          <Menu.List>
+            <Menu.Item href="#sales">Sales</Menu.Item>
+          </Menu.List>
+        </Menu.Section>
+        <Menu.Section label="Plain">
+          <Menu.List>
+            <Menu.Item href="#a">A</Menu.Item>
+          </Menu.List>
+        </Menu.Section>
+      </Menu>
+    );
+    const button = screen.getByRole('button', { name: 'Reports' });
+    const [icon, label, chevron] = Array.from(button.children);
+    expect(icon).toHaveClass('menu-section-icon');
+    expect(icon).toHaveAttribute('aria-hidden', 'true');
+    expect(icon).toContainElement(screen.getByTestId('glyph'));
+    expect(label).toHaveClass('menu-section-label');
+    expect(chevron).toHaveClass('menu-section-chevron');
+    // Without one, the heading is as it was.
+    expect(
+      Array.from(screen.getByRole('button', { name: 'Plain' }).children).map(
+        el => el.className
+      )
+    ).toEqual(['menu-section-label', 'menu-section-chevron']);
+  });
+
+  it('prefixes the icon’s and the label’s classes', () => {
+    render(
+      <ConfigProvider classPrefix="bestax-">
+        <Menu>
+          <Menu.List>
+            <Menu.Item href="#orders" icon={<Glyph />}>
+              Orders
+            </Menu.Item>
+          </Menu.List>
+          <Menu.Section label="Reports" icon={<Glyph />}>
+            <Menu.List>
+              <Menu.Item href="#sales">Sales</Menu.Item>
+            </Menu.List>
+          </Menu.Section>
+        </Menu>
+      </ConfigProvider>
+    );
+    const link = screen.getByRole('link', { name: 'Orders' });
+    expect(link.firstElementChild).toHaveClass('bestax-menu-item-icon');
+    expect(link.lastElementChild).toHaveClass('bestax-menu-item-label');
+    expect(
+      screen.getByRole('button', { name: 'Reports' }).firstElementChild
+    ).toHaveClass('bestax-menu-section-icon');
+    expect(
+      screen.getByRole('button', { name: 'Reports' }).nextElementSibling
+    ).toHaveClass('bestax-menu-section-list');
+  });
+
+  it('reads a string as an Icon name, as TreeView.Item does', () => {
+    render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item href="#home" icon="house">
+            Home
+          </Menu.Item>
+        </Menu.List>
+        <Menu.Section label="Reports" icon="chart-line">
+          <Menu.List>
+            <Menu.Item href="#sales">Sales</Menu.Item>
+          </Menu.List>
+        </Menu.Section>
+      </Menu>
+    );
+    const link = screen.getByRole('link', { name: 'Home' });
+    expect(link).not.toHaveTextContent('house');
+    expect(link.querySelector('.menu-item-icon i')).toHaveClass('fa-house');
+    const button = screen.getByRole('button', { name: 'Reports' });
+    expect(button).not.toHaveTextContent('chart-line');
+    expect(button.querySelector('.menu-section-icon i')).toHaveClass(
+      'fa-chart-line'
+    );
+  });
+
+  it('renders nothing for an icon that holds nothing to render', () => {
+    render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item href="#home" icon="">
+            Home
+          </Menu.Item>
+          <Menu.Item href="#about" icon={false}>
+            About
+          </Menu.Item>
+        </Menu.List>
+        <Menu.Section label="Reports" icon={null}>
+          <Menu.List>
+            <Menu.Item href="#sales">Sales</Menu.Item>
+          </Menu.List>
+        </Menu.Section>
+      </Menu>
+    );
+    for (const name of ['Home', 'About']) {
+      const link = screen.getByRole('link', { name });
+      expect(link.querySelector('.menu-item-icon')).toBeNull();
+      expect(link.querySelector('.menu-item-label')).toBeNull();
+    }
+    expect(
+      screen
+        .getByRole('button', { name: 'Reports' })
+        .querySelector('.menu-section-icon')
+    ).toBeNull();
+  });
+});
+
+describe('in an icon rail', () => {
+  const Glyph = () => <svg />;
+
+  /** A rail whose wrap marks what it wrapped and keeps the label it was given. */
+  const railOf = (
+    collapsed: boolean,
+    expand = vi.fn(),
+    pending = false
+  ): MenuRail => ({
+    collapsed,
+    pending,
+    nav: () => document.getElementById('rail-nav'),
+    expand,
+    wrap: (trigger, label) => (
+      <span data-testid="tip" data-label={String(label)}>
+        {trigger}
+      </span>
+    ),
+  });
+
+  /** A Menu inside the rail's nav. */
+  const inNav = (rail: MenuRail, ui: React.ReactNode) => (
+    <MenuRailContext.Provider value={rail}>
+      <nav id="rail-nav">
+        <Menu>{ui}</Menu>
+      </nav>
+    </MenuRailContext.Provider>
+  );
+  const renderIn = (rail: MenuRail, ui: React.ReactNode) =>
+    render(inNav(rail, ui));
+
+  it('wraps a top-level item with an icon, with its label, and nothing in its nested lists', () => {
+    renderIn(
+      railOf(false),
+      <Menu.List>
+        <Menu.Item href="#orders" icon={<Glyph />}>
+          Orders
+          <Menu.List>
+            <Menu.Item href="#open" icon={<Glyph />}>
+              Open
+            </Menu.Item>
+          </Menu.List>
+        </Menu.Item>
+        <Menu.Item href="#plain">Plain</Menu.Item>
+      </Menu.List>
+    );
+    // The rail hides a nested list, so its items aren't in the rail.
+    const [orders] = screen.getAllByTestId('tip');
+    expect(screen.getAllByTestId('tip')).toHaveLength(1);
+    expect(orders).toHaveAttribute('data-label', 'Orders');
+    expect(orders.firstElementChild).toBe(
+      screen.getByRole('link', { name: 'Orders' })
+    );
+    // An item without an icon has nothing to show in the rail.
+    expect(screen.getByRole('link', { name: 'Plain' }).parentElement).toBe(
+      screen.getByRole('link', { name: 'Plain' }).closest('li')
+    );
+  });
+
+  it('takes no rail for a Menu portaled out of the rail’s nav, from its first render', () => {
+    resetDevWarnings();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const attached = vi.fn();
+    try {
+      render(
+        <MenuRailContext.Provider value={railOf(true)}>
+          <nav id="rail-nav">
+            <Portal>
+              <Menu>
+                <Menu.List>
+                  <Menu.Item
+                    href="#orders"
+                    icon={<Glyph />}
+                    ref={(node: HTMLAnchorElement | null) => {
+                      if (node) attached(node);
+                    }}
+                  >
+                    Orders
+                  </Menu.Item>
+                  <Menu.Item href="#plain">Plain</Menu.Item>
+                </Menu.List>
+              </Menu>
+            </Portal>
+          </nav>
+        </MenuRailContext.Provider>
+      );
+      expect(screen.queryByTestId('tip')).toBeNull();
+      // Never wrapped, so the link mounts once.
+      expect(attached).toHaveBeenCalledTimes(1);
+      // And an item without an icon there isn't the rail's to warn about.
+      expect(warn).not.toHaveBeenCalled();
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it('moves focus from a nested link the rail hides to its item’s own link, icon or not', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const ui = (
+      <Menu.List>
+        <Menu.Item href="#plain">
+          Plain
+          <Menu.List>
+            <Menu.Item href="#deep">Deep</Menu.Item>
+          </Menu.List>
+        </Menu.Item>
+      </Menu.List>
+    );
+    try {
+      const { rerender } = renderIn(railOf(false), ui);
+      screen.getByRole('link', { name: 'Deep' }).focus();
+      rerender(inNav(railOf(true), ui));
+      expect(screen.getByRole('link', { name: 'Plain' })).toHaveFocus();
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it('wraps a section’s button with its heading', () => {
+    renderIn(
+      railOf(false),
+      <Menu.Section label="Reports" icon={<Glyph />}>
+        <Menu.List>
+          <Menu.Item href="#sales">Sales</Menu.Item>
+        </Menu.List>
+      </Menu.Section>
+    );
+    const tip = screen.getByTestId('tip');
+    expect(tip).toHaveAttribute('data-label', 'Reports');
+    expect(tip.firstElementChild).toBe(
+      screen.getByRole('button', { name: 'Reports' })
+    );
+  });
+
+  it('leaves aria-expanded off a section while the frame doesn’t know whether a collapsed column is a rail', () => {
+    const html = renderToStaticMarkup(
+      <MenuRailContext.Provider value={railOf(false, vi.fn(), true)}>
+        <Menu>
+          <Menu.Section label="Reports" icon={<Glyph />} defaultOpen>
+            <Menu.List>
+              <Menu.Item href="#sales">Sales</Menu.Item>
+            </Menu.List>
+          </Menu.Section>
+        </Menu>
+      </MenuRailContext.Provider>
+    );
+    const button = /<button[^>]*menu-section-toggle[^>]*>/.exec(html)?.[0];
+    expect(button).toBeDefined();
+    expect(button).not.toContain('aria-expanded');
+    // Outside a rail, a section says it as always.
+    expect(
+      renderToStaticMarkup(
+        <Menu>
+          <Menu.Section label="Plain" defaultOpen>
+            <Menu.List>
+              <Menu.Item href="#a">A</Menu.Item>
+            </Menu.List>
+          </Menu.Section>
+        </Menu>
+      )
+    ).toContain('aria-expanded="true"');
+  });
+
+  it('warns once about a top-level item or section without an icon, and not about the rest', () => {
+    resetDevWarnings();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      renderIn(
+        railOf(false),
+        <>
+          <Menu.List>
+            <Menu.Item href="#dashboard" icon={<Glyph />}>
+              Dashboard
+              <Menu.List>
+                <Menu.Item href="#nested">Nested</Menu.Item>
+              </Menu.List>
+            </Menu.Item>
+          </Menu.List>
+          <Menu.Section label="Reports" icon={<Glyph />}>
+            <Menu.List>
+              <Menu.Item href="#sales">Sales</Menu.Item>
+            </Menu.List>
+          </Menu.Section>
+        </>
+      );
+      // Every top-level part has its icon; nested ones need none.
+      expect(warn).not.toHaveBeenCalled();
+      renderIn(
+        railOf(false),
+        <>
+          <Menu.List>
+            <Menu.Item href="#plain">Plain</Menu.Item>
+            <Menu.Item href="#other">Other</Menu.Item>
+          </Menu.List>
+          <Menu.Section label="Bare">
+            <Menu.List>
+              <Menu.Item href="#a">A</Menu.Item>
+            </Menu.List>
+          </Menu.Section>
+        </>
+      );
+      expect(warn).toHaveBeenCalledTimes(2);
+      expect(warn.mock.calls[0][0]).toMatch(
+        /<Menu\.Item> in an <AppFrame\.Nav rail> has no icon/
+      );
+      expect(warn.mock.calls[1][0]).toMatch(
+        /<Menu\.Section> in an <AppFrame\.Nav rail> has no/
+      );
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it('doesn’t warn about an item without an icon outside a rail', () => {
+    resetDevWarnings();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      render(
+        <Menu>
+          <Menu.List>
+            <Menu.Item href="#plain">Plain</Menu.Item>
+          </Menu.List>
+          <Menu.Section label="Bare">
+            <Menu.List>
+              <Menu.Item href="#a">A</Menu.Item>
+            </Menu.List>
+          </Menu.Section>
+        </Menu>
+      );
+      expect(warn).not.toHaveBeenCalled();
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it('leaves a section’s own list out of the rail', () => {
+    renderIn(
+      railOf(true),
+      <Menu.Section label="Reports" icon={<Glyph />} defaultOpen>
+        <Menu.List>
+          <Menu.Item href="#sales" icon={<Glyph />}>
+            Sales
+          </Menu.Item>
+        </Menu.List>
+      </Menu.Section>
+    );
+    expect(screen.getAllByTestId('tip')).toHaveLength(1);
+    expect(screen.getByTestId('tip')).toHaveAttribute('data-label', 'Reports');
+  });
+
+  it('gives a Menu in a Popover opened from the rail’s menu no rail', async () => {
+    const expand = vi.fn();
+    renderIn(
+      railOf(true, expand),
+      <>
+        <Menu.List>
+          <Menu.Item href="#dashboard" icon={<Glyph />}>
+            Dashboard
+          </Menu.Item>
+        </Menu.List>
+        <Popover appendToBody trigger={<button type="button">Filters</button>}>
+          <Menu>
+            <Menu.Section label="Status" icon={<Glyph />} defaultOpen>
+              <Menu.List>
+                <Menu.Item href="#open">Open</Menu.Item>
+              </Menu.List>
+            </Menu.Section>
+          </Menu>
+        </Popover>
+      </>
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Filters' }));
+    const status = await screen.findByRole('button', { name: 'Status' });
+    // Not in the rail: no tooltip, its state as it is, and it closes.
+    expect(status.parentElement).not.toHaveAttribute('data-testid', 'tip');
+    expect(status).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.click(status);
+    expect(status).toHaveAttribute('aria-expanded', 'false');
+    expect(expand).not.toHaveBeenCalled();
+  });
+
+  it('opens and closes a section as usual while the column is expanded', async () => {
+    const expand = vi.fn();
+    const onOpenChange = vi.fn();
+    renderIn(
+      railOf(false, expand),
+      <Menu.Section
+        label="Reports"
+        icon={<Glyph />}
+        onOpenChange={onOpenChange}
+      >
+        <Menu.List>
+          <Menu.Item href="#sales">Sales</Menu.Item>
+        </Menu.List>
+      </Menu.Section>
+    );
+    const button = screen.getByRole('button', { name: 'Reports' });
+    await userEvent.click(button);
+    expect(button).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.click(button);
+    expect(button).toHaveAttribute('aria-expanded', 'false');
+    expect(onOpenChange.mock.calls).toEqual([[true], [false]]);
+    expect(expand).not.toHaveBeenCalled();
+  });
+
+  it('widens the collapsed column and opens the section, and says it’s collapsed until then', async () => {
+    const expand = vi.fn();
+    const onOpenChange = vi.fn();
+    const { rerender } = renderIn(
+      railOf(true, expand),
+      <Menu.Section
+        label="Reports"
+        icon={<Glyph />}
+        defaultOpen
+        onOpenChange={onOpenChange}
+      >
+        <Menu.List>
+          <Menu.Item href="#sales">Sales</Menu.Item>
+        </Menu.List>
+      </Menu.Section>
+    );
+    const button = screen.getByRole('button', { name: 'Reports' });
+    // Open, but the rail hides its list.
+    expect(button).toHaveAttribute('aria-expanded', 'false');
+    await userEvent.click(button);
+    expect(expand).toHaveBeenCalledTimes(1);
+    // It's open already, so only the column changes.
+    expect(onOpenChange).not.toHaveBeenCalled();
+    rerender(
+      inNav(
+        railOf(false, expand),
+        <Menu.Section
+          label="Reports"
+          icon={<Glyph />}
+          defaultOpen
+          onOpenChange={onOpenChange}
+        >
+          <Menu.List>
+            <Menu.Item href="#sales">Sales</Menu.Item>
+          </Menu.List>
+        </Menu.Section>
+      )
+    );
+    expect(button).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('link', { name: 'Sales' })).toBeVisible();
+  });
+
+  it('opens a closed section from the collapsed rail too', async () => {
+    const expand = vi.fn();
+    renderIn(
+      railOf(true, expand),
+      <Menu.Section label="Reports" icon={<Glyph />}>
+        <Menu.List>
+          <Menu.Item href="#sales">Sales</Menu.Item>
+        </Menu.List>
+      </Menu.Section>
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Reports' }));
+    expect(expand).toHaveBeenCalledTimes(1);
+    expect(
+      document.getElementById(
+        screen
+          .getByRole('button', { name: 'Reports' })
+          .getAttribute('aria-controls')!
+      )
+    ).not.toHaveAttribute('hidden');
   });
 });
 
@@ -769,6 +1317,8 @@ describe('Menu.Section', () => {
     expect(chevron).toHaveAttribute('aria-hidden', 'true');
     expect(chevron).toBeEmptyDOMElement();
     expect(screen.getByTestId('section')).toHaveClass('menu-section');
+    // The list it opens and closes has a class of its own to select.
+    expect(regionOf(button)).toHaveClass('menu-section-list');
   });
 
   it('takes a node as its label, and names the button with it', () => {

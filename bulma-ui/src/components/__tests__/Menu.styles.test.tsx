@@ -1,18 +1,21 @@
-// `_menu.scss` adds to Bulma's menu: items aligned to the start of the line,
-// so a right-to-left page puts their text at the right (#1462), the look of
-// `Menu.Section` (#1172), and, in forced colors, a bar in the system's
-// Highlight color on the active item, since forced colors replaces Bulma's
-// fill and text color (#1094). jsdom evaluates no media query and never loads
-// the partial on its own, so these compile it, with no prefix and under one,
-// read its rules off the sheet, and check their selectors land on the
-// elements Menu renders. jsdom leaves `var()` unresolved, so a value that
-// reads a variable is compared as written.
+// `_menu.scss` adds to Bulma's menu: an icon before an item's or a section's
+// label (#1432), items aligned to the start of the line, so a right-to-left
+// page puts their text at the right (#1462), the look of `Menu.Section`
+// (#1172), and, in forced colors, a bar in the system's Highlight color on
+// the active item, since forced colors replaces Bulma's fill and text color
+// (#1094). jsdom evaluates no media query and never loads the partial on its
+// own, so these compile it, with no prefix and under one, read its rules off
+// the sheet, and check their selectors land on the elements Menu renders.
+// jsdom leaves `var()` unresolved, so a value that reads a variable is
+// compared as written.
 import * as sass from 'sass';
 import fs from 'fs';
 import path from 'path';
 import { render } from '@testing-library/react';
 import { Menu } from '../Menu';
 import { ConfigProvider } from '../../helpers/Config';
+import { MenuRailContext, type MenuRail } from '../../helpers/menuRail';
+import { Tooltip } from '../Tooltip';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 
@@ -116,6 +119,10 @@ const REDUCED = '@media (prefers-reduced-motion: reduce)';
 /** The rules for the items Bulma draws. */
 const itemRulesOf = (found: Found[]) =>
   found.filter(({ rule }) => /menu-list/.test(rule.selectorText));
+
+/** The rule for an item's icon, which is Menu.Item's. */
+const itemIconRulesOf = (found: Found[]) =>
+  found.filter(({ rule }) => /menu-item-icon/.test(rule.selectorText));
 
 /** The item rules inside forced colors. */
 const forcedItemRulesOf = (found: Found[]) =>
@@ -333,8 +340,61 @@ describe.each([
     });
   });
 
+  describe('icons', () => {
+    /** An item and a section, each with an icon. */
+    const renderIcons = () =>
+      render(
+        <ConfigProvider classPrefix={prefix}>
+          <Menu>
+            <Menu.List>
+              <Menu.Item href="#a" icon={<svg />}>
+                Orders
+              </Menu.Item>
+            </Menu.List>
+            <Menu.Section label="Reports" icon={<svg />}>
+              <Menu.List>
+                <Menu.Item href="#b">Sales</Menu.Item>
+              </Menu.List>
+            </Menu.Section>
+          </Menu>
+        </ConfigProvider>
+      );
+
+    it('sets an item’s icon in the line before its label, its gap apart', () => {
+      expect(declarations(found, p('menu-item-icon'))).toEqual({
+        display: 'inline-flex',
+        'margin-inline-end': 'var(--bulma-menu-icon-gap)',
+        'vertical-align': 'middle',
+      });
+      const { getByRole } = renderIcons();
+      expect(
+        getByRole('link', { name: 'Orders' }).firstElementChild!.matches(
+          p('menu-item-icon')
+        )
+      ).toBe(true);
+    });
+
+    it('keeps a section’s icon whole in its heading, the same gap from its label as an item’s', () => {
+      expect(declarations(found, p('menu-section-icon'))).toEqual({
+        display: 'inline-flex',
+        // `none`, as jsdom spells it out.
+        flex: '0 0 auto',
+        'margin-inline-end': 'var(--bulma-menu-icon-gap)',
+      });
+      const { getByRole } = renderIcons();
+      expect(
+        getByRole('button', { name: 'Reports' }).firstElementChild!.matches(
+          p('menu-section-icon')
+        )
+      ).toBe(true);
+    });
+  });
+
   describe('Menu.Section', () => {
-    const section = found.filter(f => !itemRulesOf(found).includes(f));
+    const section = found.filter(
+      f =>
+        !itemRulesOf(found).includes(f) && !itemIconRulesOf(found).includes(f)
+    );
     const bulma = allRulesOf(
       fs.readFileSync(path.join(BULMA, 'css', 'bulma.css'), 'utf8')
     );
@@ -382,17 +442,24 @@ describe.each([
           'menu',
           'menu-section',
           'menu-section-chevron',
+          'menu-section-icon',
           'menu-section-label',
           'menu-section-toggle',
+          // The Tooltip an AppFrame rail puts a heading in.
+          'tooltip',
         ].map(name => prefix + name)
       );
       const { container } = renderSections();
       const rendered = new Set(
         Array.from(container.querySelectorAll('[class]'))
           .flatMap(el => Array.from(el.classList))
-          // Bulma's own, drawn by its menu.
+          // Bulma's own, drawn by its menu, and the list's, which only an
+          // AppFrame rail's stylesheet selects, to hide it.
           .filter(
-            name => !['menu', 'menu-list'].includes(name.slice(prefix.length))
+            name =>
+              !['menu', 'menu-list', 'menu-section-list'].includes(
+                name.slice(prefix.length)
+              )
           )
       );
       for (const name of rendered) expect(classes.has(name)).toBe(true);
@@ -404,6 +471,7 @@ describe.each([
         '--bulma-menu-section-chevron-size': '1em',
         '--bulma-menu-section-chevron-color': 'currentColor',
         '--bulma-menu-section-chevron-duration': 'var(--bulma-duration)',
+        '--bulma-menu-icon-gap': '0.5em',
       });
     });
 
@@ -439,7 +507,6 @@ describe.each([
         'font-family': 'inherit',
         'font-size': 'var(--bulma-menu-label-font-size)',
         'font-weight': 'inherit',
-        gap: 'var(--bulma-menu-section-gap)',
         'letter-spacing': 'var(--bulma-menu-label-letter-spacing)',
         'line-height': 'inherit',
         margin: '0px',
@@ -460,8 +527,15 @@ describe.each([
 
     // On the heading, not the section, so the `em` is the label's small size,
     // as it is on Bulma's label.
-    const following = `${p('menu-section')}:not(:first-child) > ${p('menu-section-toggle')}`;
-    const followed = `${p('menu-section')}:not(:last-child) > ${p('menu-section-toggle')}`;
+    // And on a heading inside the Tooltip an AppFrame rail puts it in.
+    const following = [
+      `${p('menu-section')}:not(:first-child) > ${p('menu-section-toggle')}`,
+      `${p('menu-section')}:not(:first-child) > ${p('tooltip')} > ${p('menu-section-toggle')}`,
+    ].join(', ');
+    const followed = [
+      `${p('menu-section')}:not(:last-child) > ${p('menu-section-toggle')}`,
+      `${p('menu-section')}:not(:last-child) > ${p('tooltip')} > ${p('menu-section-toggle')}`,
+    ].join(', ');
     const open = `${p('menu-section-toggle')}[aria-expanded=true]`;
 
     it('spaces sections as Bulma spaces labels: above one that follows something, below one something follows, and under an open heading', () => {
@@ -483,6 +557,46 @@ describe.each([
       expect(buttons.map(b => b.matches(following))).toEqual([false, true]);
       expect(buttons.map(b => b.matches(followed))).toEqual([true, false]);
       expect(buttons.map(b => b.matches(open))).toEqual([true, false]);
+    });
+
+    it('spaces a heading the same inside the Tooltip an AppFrame rail puts it in', () => {
+      const rail: MenuRail = {
+        collapsed: false,
+        pending: false,
+        nav: () => null,
+        expand: () => {},
+        wrap: (trigger, label) => (
+          <Tooltip content={label} describesTrigger={false}>
+            {trigger}
+          </Tooltip>
+        ),
+      };
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <MenuRailContext.Provider value={rail}>
+            <nav id="rail-nav">
+              <Menu>
+                <Menu.Section label="Components" icon={<svg />} defaultOpen>
+                  <Menu.List>
+                    <Menu.Item href="#a">Button</Menu.Item>
+                  </Menu.List>
+                </Menu.Section>
+                <Menu.Section label="Form" icon={<svg />}>
+                  <Menu.List>
+                    <Menu.Item href="#b">Input</Menu.Item>
+                  </Menu.List>
+                </Menu.Section>
+              </Menu>
+            </nav>
+          </MenuRailContext.Provider>
+        </ConfigProvider>
+      );
+      const buttons = Array.from(
+        container.querySelectorAll<HTMLElement>(p('menu-section-toggle'))
+      );
+      expect(buttons[0].parentElement).toHaveClass(`${prefix}tooltip`);
+      expect(buttons.map(b => b.matches(following))).toEqual([false, true]);
+      expect(buttons.map(b => b.matches(followed))).toEqual([true, false]);
     });
 
     it('keeps a menu list after a closed section off its heading', () => {
@@ -556,10 +670,11 @@ describe.each([
         )
       );
 
-    it('draws TreeView’s chevron in a box of the same size', () => {
-      expect(declarations(section, p('menu-section-chevron'))).toEqual(
-        renamed(declarations(tree, p('tree-view-toggle')))
-      );
+    it('draws TreeView’s chevron in a box of the same size, the section gap from the words', () => {
+      expect(declarations(section, p('menu-section-chevron'))).toEqual({
+        ...renamed(declarations(tree, p('tree-view-toggle'))),
+        'margin-inline-start': 'var(--bulma-menu-section-gap)',
+      });
       expect(
         declarations(section, `${p('menu-section-chevron')}::after`)
       ).toEqual(renamed(declarations(tree, theirs('[aria-expanded]'))));

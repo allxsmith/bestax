@@ -117,7 +117,7 @@ describe('rbx value-chosen targets', () => {
       'align="previous"',
       '<Pagination.Previous>',
     ],
-  ])('%s %s with %s → %s', (root, tag, attr, expected) => {
+  ])('%s %s with %o → %s', (root, tag, attr, expected) => {
     const { output } = migrate(
       imp(root) +
         `export const A = () => <${[tag, attr].filter(Boolean).join(' ')}>x</${tag}>;`

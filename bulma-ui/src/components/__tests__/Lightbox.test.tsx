@@ -146,7 +146,7 @@ function reduceMotion(matches = true) {
   });
 }
 
-/** A pointer event with what jsdom leaves out. */
+/** A mouse's pointer event unless told otherwise, at the time stamp a test gives it. */
 const pointer = (
   el: Element,
   type: 'pointerDown' | 'pointerMove' | 'pointerUp' | 'pointerCancel',

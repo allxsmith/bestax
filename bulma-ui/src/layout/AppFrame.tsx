@@ -27,10 +27,15 @@ import { useOverlayFocus } from '../helpers/useOverlayFocus';
 import { useOutsidePress } from '../helpers/useOutsidePress';
 import { getActiveElementInTree } from '../helpers/shadowDom';
 import { useBulmaBreakpoint } from '../helpers/useBulmaViewport';
+import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { PortalScope } from '../helpers/portal';
-import { warnOnce } from '../helpers/devWarnings';
+import { isDev, warnOnce } from '../helpers/devWarnings';
+import { MenuRailContext } from '../helpers/menuRail';
+import { useLocale } from '../helpers/LocaleProvider';
+import type { MenuRail } from '../helpers/menuRail';
 import { NavbarBurger } from '../components/Navbar';
 import type { NavbarBurgerProps } from '../components/Navbar';
+import { Tooltip } from '../components/Tooltip';
 import { Delete } from '../elements/Delete';
 import type { ContainerBreakpoint } from './Container';
 
@@ -106,15 +111,18 @@ export interface AppFrameProps
    */
   onNavOpenChange?: (open: boolean) => void;
   /**
-   * Whether the column is collapsed out of view, from the breakpoint up.
-   * With it, the state is yours: update it from `onNavCollapsedChange`. It
-   * has no effect below the breakpoint, where the drawer always shows the
-   * whole nav.
+   * Whether the column is collapsed, from the breakpoint up: out of view, or
+   * down to its icons with `AppFrame.Nav rail`. With it, the state is yours:
+   * update it from `onNavCollapsedChange`. It has no effect below the
+   * breakpoint, where the drawer always shows the whole nav.
    */
   navCollapsed?: boolean;
   /** Whether the column starts collapsed. */
   defaultNavCollapsed?: boolean;
-  /** Called with the state asked for, by the burger or `useAppFrame()`. */
+  /**
+   * Called with the state asked for: by the burger, `useAppFrame()`, or a
+   * `Menu.Section`'s button in the collapsed rail, which expands it.
+   */
   onNavCollapsedChange?: (collapsed: boolean) => void;
   /**
    * Renders a skip link first, visible when it has focus, that moves focus
@@ -159,7 +167,8 @@ export interface AppFrameNavProps
     Omit<React.HTMLAttributes<HTMLElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /**
-   * Usually a `Menu`. A nav taller than the window scrolls on its own. With
+   * Usually a `Menu`. A nav taller than the window scrolls on its own,
+   * except a column collapsed to a rail, which doesn't (see `rail`). With
    * `overlay`, the rest of the frame is inert while the drawer is open, so an
    * overlay opened from the drawer, such as a `Modal`, goes inside the nav or
    * renders outside the frame (Modal's `portal`). While the nav is a drawer,
@@ -211,6 +220,28 @@ export interface AppFrameNavProps
    * drawer of filters rather than links.
    */
   closeOnNavigate?: boolean;
+  /**
+   * From the breakpoint up, a collapsed column shrinks to a rail of icons
+   * instead of leaving the page. The rail needs a `Menu` inside the nav: a
+   * Menu portaled out of it, such as one in a Popover or a Modal opened from
+   * it, isn't in the rail, nor is a `Menu.List` with no Menu around it, and a
+   * development build warns when a collapsed rail holds no Menu. Every
+   * top-level `Menu.Item` and `Menu.Section` needs an `icon`: in the rail,
+   * an item without one has nothing to show and its label spills over the
+   * page, and a section's button is blank, so a development build warns
+   * about one without. In the rail their labels are visually hidden, so each
+   * stays its link's or button's name, and shows in a `Tooltip` beside the
+   * rail on hover and keyboard focus. Nested lists and `Menu.Label` headings
+   * hide there, and a section's button expands the column and opens the
+   * section. Anything else in the nav keeps its own width, so hide it while
+   * the nav has the `is-rail` class. Collapsed to the rail, the column
+   * doesn't scroll on its own, so a tooltip isn't clipped. It sticks under
+   * the header while it fits there. A rail taller than the window under the
+   * header scrolls with the page instead, so its lower icons come into view
+   * as the page scrolls and as Tab reaches them. That takes a measurement in
+   * the browser, so before the page hydrates such a rail sticks.
+   */
+  rail?: boolean;
 }
 
 /**
@@ -403,6 +434,7 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
       closeOnEscape = true,
       closeOnClickOutside = true,
       closeOnNavigate = true,
+      rail = false,
       onClick,
       onPointerDownCapture,
       children,
@@ -412,7 +444,14 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
   ) => {
     const frame = useContext(FrameContext);
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
-    const navClass = usePrefixedClassNames('app-frame-nav');
+    const navCollapsed = !!frame?.state.navCollapsed;
+    // A rail only from the breakpoint up. The server, which doesn't know the
+    // width, marks a collapsed column as one, and the stylesheet keeps the
+    // rail's rules to the wide layout, so a drawer never shows it.
+    const navClass = usePrefixedClassNames('app-frame-nav', {
+      'is-rail': rail && navCollapsed && !frame?.state.isDrawer,
+    });
+    const tipClass = usePrefixedClassNames('app-frame-rail-tooltip');
     const closeClass = usePrefixedClassNames('app-frame-close');
     const backdropClass = usePrefixedClassNames('app-frame-backdrop');
     const activeClass = usePrefixedClassNames('is-active');
@@ -529,6 +568,100 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
       close();
     };
 
+    // The rail's context, which tells the Menu inside to put each item's
+    // label in a tooltip, on the column's inline-end side. That's on the
+    // right unless the nav is laid out right to left, which only the page
+    // knows: read as the rail appears, each time it collapses, and when a
+    // LocaleProvider around it switches direction.
+    const [side, setSide] = useState<'left' | 'right'>('right');
+    const { dir } = useLocale();
+    const modeKnown = !!frame?.modeKnown;
+    const railCollapsed = rail && modeKnown && !isDrawer && navCollapsed;
+    useClientLayoutEffect(() => {
+      if (!rail) return;
+      const rtl = getComputedStyle(navRef.current!).direction === 'rtl';
+      setSide(rtl ? 'left' : 'right');
+    }, [rail, railCollapsed, dir]);
+
+    // The collapsed rail sticks under the header only while it fits there.
+    // It can't scroll on its own, which would clip its tooltips, so one
+    // taller than the window under the header scrolls with the page instead,
+    // and its lower icons come into view as the page scrolls and as Tab
+    // reaches them. The stylesheet makes it at least its room tall, the small
+    // viewport (svh) less the header, so it's taller than that only when its
+    // icons are. The small viewport doesn't change as a touch browser's
+    // toolbar slides in and out, so a rail near the edge doesn't flip between
+    // sticking and scrolling as the page scrolls. Measured as it collapses,
+    // before paint, then each time its size changes, and each time the
+    // window's does, which changes its room without changing a rail already
+    // taller than that; expanded, it's no rail, so the next collapse starts
+    // afresh.
+    const [railTall, setRailTall] = useState(false);
+    const tallClass = usePrefixedClassNames('is-tall');
+    useClientLayoutEffect(() => {
+      if (!railCollapsed) return undefined;
+      const nav = navRef.current!;
+      const measure = () => {
+        const room = parseFloat(
+          getComputedStyle(nav).getPropertyValue('min-block-size')
+        );
+        setRailTall(nav.getBoundingClientRect().height > room + 1);
+      };
+      measure();
+      const observer =
+        typeof ResizeObserver === 'undefined'
+          ? undefined
+          : new ResizeObserver(measure);
+      observer?.observe(nav);
+      window.addEventListener('resize', measure);
+      return () => {
+        observer?.disconnect();
+        window.removeEventListener('resize', measure);
+        setRailTall(false);
+      };
+    }, [railCollapsed]);
+
+    const state = frame?.state;
+    const railValue = useMemo<MenuRail | null>(() => {
+      if (!rail || !state) return null;
+      return {
+        collapsed: railCollapsed,
+        pending: !modeKnown && navCollapsed,
+        nav: () => navRef.current,
+        expand: () => state.setNavCollapsed(false),
+        wrap: (trigger, label) => (
+          <Tooltip
+            className={tipClass}
+            // Only the collapsed rail shows it, so it doesn't open, or
+            // measure itself, in the wide column or the drawer, and holds no
+            // second copy of the label there.
+            content={railCollapsed ? label : undefined}
+            position={side}
+            describesTrigger={false}
+            disabled={!railCollapsed}
+          >
+            {trigger}
+          </Tooltip>
+        ),
+      };
+    }, [rail, state, railCollapsed, modeKnown, navCollapsed, side, tipClass]);
+
+    // The rail is the Menu's inside the nav. One portaled out of it, or a
+    // Menu.List with no Menu around it, doesn't take it.
+    const menuClass = usePrefixedClassNames('menu');
+    useEffect(() => {
+      if (!isDev() || !railCollapsed) return;
+      if (!navRef.current!.querySelector(`.${menuClass}`)) {
+        warnOnce(
+          'AppFrame:rail-menu',
+          '[bestax-bulma] <AppFrame.Nav rail> is collapsed to its rail but ' +
+            'holds no <Menu>, so nothing in it shows as an icon with its ' +
+            'label in a tooltip. Put a Menu inside the nav, with an icon on ' +
+            'each top-level Menu.Item and Menu.Section.'
+        );
+      }
+    }, [railCollapsed, menuClass]);
+
     const navStyle =
       width === undefined
         ? style
@@ -541,7 +674,13 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
       <>
         <nav
           ref={navRefs}
-          className={classNames(navClass, shown, bulmaHelperClasses, className)}
+          className={classNames(
+            navClass,
+            shown,
+            { [tallClass]: railCollapsed && railTall },
+            bulmaHelperClasses,
+            className
+          )}
           style={navStyle}
           onClick={handleClick}
           onPointerDownCapture={e => {
@@ -568,7 +707,9 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
               column doesn't: it's under the header, which the popup has to
               clear. */}
           <PortalScope node={isDrawer ? navNode : undefined}>
-            {children}
+            <MenuRailContext.Provider value={railValue}>
+              {children}
+            </MenuRailContext.Provider>
           </PortalScope>
         </nav>
         {frame && overlay && (

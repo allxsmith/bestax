@@ -1,7 +1,8 @@
 // Bestax Extras - Menu Styles
-// Additions to Bulma's menu: items that start their labels where the line
-// starts, `Menu.Section`, a section that opens and closes, and a mark for the
-// active item in forced colors.
+// Additions to Bulma's menu: an icon before an item's or a section's label,
+// items that start their labels where the line starts, `Menu.Section`, a
+// section that opens and closes, and a mark for the active item in forced
+// colors.
 
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
@@ -15,6 +16,8 @@ $menu-section-gap: 0.375em !default;
 $menu-section-chevron-size: 1em !default;
 $menu-section-chevron-color: currentColor !default;
 $menu-section-chevron-duration: cv.getVar("duration") !default;
+// The room between an icon and its label, an item's or a section's.
+$menu-icon-gap: 0.5em !default;
 
 .#{iv.$class-prefix}menu {
   @include cv.register-vars(
@@ -23,8 +26,25 @@ $menu-section-chevron-duration: cv.getVar("duration") !default;
       "menu-section-chevron-size": #{$menu-section-chevron-size},
       "menu-section-chevron-color": #{$menu-section-chevron-color},
       "menu-section-chevron-duration": #{$menu-section-chevron-duration},
+      "menu-icon-gap": #{$menu-icon-gap},
     )
   );
+}
+
+// An item's icon, before its label, from `Menu.Item`'s `icon`. The item
+// stays Bulma's block, so the icon sits in the line with the label.
+.#{iv.$class-prefix}menu-item-icon {
+  display: inline-flex;
+  margin-inline-end: cv.getVar("menu-icon-gap");
+  vertical-align: middle;
+}
+
+// A section's icon is a part of its heading's line, the icon gap from its
+// label as an item's is.
+.#{iv.$class-prefix}menu-section-icon {
+  display: inline-flex;
+  flex: none;
+  margin-inline-end: cv.getVar("menu-icon-gap");
 }
 
 // Bulma aligns each item's text `left`, and an item spans the menu, so on a
@@ -49,12 +69,16 @@ $menu-section-chevron-duration: cv.getVar("duration") !default;
 // still one space apart, since the margins collapse. They're on the heading,
 // so the label's `em` measures them in the label's own small size, as
 // Bulma's do. The heading doesn't carry `.menu-label` itself, because its
-// own place inside its section never changes.
-.#{iv.$class-prefix}menu-section:not(:first-child) > .#{iv.$class-prefix}menu-section-toggle {
+// own place inside its section never changes. In an AppFrame column with an
+// icon rail, the heading sits in a Tooltip, a block its margins pass
+// through, so they land on it there too.
+.#{iv.$class-prefix}menu-section:not(:first-child) > .#{iv.$class-prefix}menu-section-toggle,
+.#{iv.$class-prefix}menu-section:not(:first-child) > .#{iv.$class-prefix}tooltip > .#{iv.$class-prefix}menu-section-toggle {
   margin-top: cv.getVar("menu-label-spacing");
 }
 
 .#{iv.$class-prefix}menu-section:not(:last-child) > .#{iv.$class-prefix}menu-section-toggle,
+.#{iv.$class-prefix}menu-section:not(:last-child) > .#{iv.$class-prefix}tooltip > .#{iv.$class-prefix}menu-section-toggle,
 .#{iv.$class-prefix}menu-section-toggle[aria-expanded="true"] {
   margin-bottom: cv.getVar("menu-label-spacing");
 }
@@ -72,7 +96,6 @@ $menu-section-chevron-duration: cv.getVar("duration") !default;
   font-family: inherit;
   font-size: cv.getVar("menu-label-font-size");
   font-weight: inherit;
-  gap: cv.getVar("menu-section-gap");
   letter-spacing: cv.getVar("menu-label-letter-spacing");
   line-height: inherit;
   margin: 0;
@@ -106,6 +129,7 @@ $menu-section-chevron-duration: cv.getVar("duration") !default;
   flex: none;
   height: cv.getVar("menu-section-chevron-size");
   justify-content: center;
+  margin-inline-start: cv.getVar("menu-section-gap");
   width: cv.getVar("menu-section-chevron-size");
 
   &::after {

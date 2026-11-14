@@ -68,7 +68,7 @@ const CASES: Array<
 ];
 
 describe.each(CASES)(
-  '%s %s size',
+  '$0 $3 size',
   (_source, transform, imp, from, to, sizes) => {
     const run = (attr: string) =>
       migrate(

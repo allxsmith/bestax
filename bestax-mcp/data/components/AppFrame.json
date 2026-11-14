@@ -18,6 +18,10 @@
       "code": "function example() {\n  const [collapsed, setCollapsed] = useState(false);\n  return (\n    <AppFrame navCollapsed={collapsed} onNavCollapsedChange={setCollapsed}>\n      <AppFrame.Header>\n        <Navbar aria-label=\"Site\">\n          <Navbar.Brand>\n            <Navbar.Item href=\"#\">\n              <strong>Acme</strong>\n            </Navbar.Item>\n            <AppFrame.Burger />\n          </Navbar.Brand>\n        </Navbar>\n      </AppFrame.Header>\n      <AppFrame.Nav>\n        <Menu>\n          <Menu.List>\n            <Menu.Item href=\"#\" active>\n              Dashboard\n            </Menu.Item>\n            <Menu.Item href=\"#\">Orders</Menu.Item>\n          </Menu.List>\n        </Menu>\n      </AppFrame.Nav>\n      <AppFrame.Main>\n        <Section>\n          <Paragraph>\n            The column is {collapsed ? 'collapsed' : 'expanded'}.\n          </Paragraph>\n        </Section>\n      </AppFrame.Main>\n    </AppFrame>\n  );\n}"
     },
     {
+      "title": "The Icon Rail",
+      "code": "function example() {\n  const [collapsed, setCollapsed] = useState(true);\n  return (\n    <AppFrame navCollapsed={collapsed} onNavCollapsedChange={setCollapsed}>\n      <AppFrame.Header>\n        <Navbar aria-label=\"Site\">\n          <Navbar.Brand>\n            <Navbar.Item href=\"#\">\n              <strong>Acme</strong>\n            </Navbar.Item>\n            <AppFrame.Burger />\n          </Navbar.Brand>\n        </Navbar>\n      </AppFrame.Header>\n      <AppFrame.Nav rail>\n        <Menu>\n          <Menu.List>\n            <Menu.Item href=\"#\" icon={<Icon name=\"house\" />} active>\n              Dashboard\n            </Menu.Item>\n            <Menu.Item href=\"#\" icon={<Icon name=\"box\" />}>\n              Orders\n            </Menu.Item>\n          </Menu.List>\n          <Menu.Section label=\"Reports\" icon={<Icon name=\"chart-line\" />}>\n            <Menu.List>\n              <Menu.Item href=\"#\">Sales</Menu.Item>\n              <Menu.Item href=\"#\">Returns</Menu.Item>\n            </Menu.List>\n          </Menu.Section>\n        </Menu>\n      </AppFrame.Nav>\n      <AppFrame.Main>\n        <Section>\n          <Paragraph>\n            The column is {collapsed ? 'a rail of icons' : 'expanded'}.\n          </Paragraph>\n        </Section>\n      </AppFrame.Main>\n    </AppFrame>\n  );\n}"
+    },
+    {
       "title": "Keeping the State",
       "code": "// On the server, read the cookie into `initialCollapsed`, then:\nconst [collapsed, setCollapsed] = useState(initialCollapsed);\n\n<AppFrame\n  navCollapsed={collapsed}\n  onNavCollapsedChange={next => {\n    setCollapsed(next);\n    document.cookie = `nav-collapsed=${next}; path=/; max-age=31536000`;\n  }}\n>\n  …\n</AppFrame>;"
     },
@@ -38,7 +42,7 @@
       "code": "<AppFrame>\n  <AppFrameHeader>\n    <Navbar aria-label=\"Site\">\n      <Navbar.Brand>\n        <Navbar.Item href=\"#\">\n          <strong>Acme</strong>\n        </Navbar.Item>\n        <AppFrameBurger />\n      </Navbar.Brand>\n    </Navbar>\n  </AppFrameHeader>\n  <AppFrameNav>\n    <Menu>\n      <Menu.List>\n        <Menu.Item href=\"#\" active>\n          Dashboard\n        </Menu.Item>\n      </Menu.List>\n    </Menu>\n  </AppFrameNav>\n  <AppFrame.Main>\n    <Section>\n      <Paragraph>\n        AppFrameNav and AppFrame.Nav are the same component.\n      </Paragraph>\n    </Section>\n  </AppFrame.Main>\n</AppFrame>"
     }
   ],
-  "accessibility": "- **Landmarks:** the header, the nav, the page and the footer are the page's banner, navigation,\n  main and contentinfo landmarks, and the aside a complementary one, as long as the frame sits at\n  the top of the page. A development build warns when it sits inside a `main` or a sectioning\n  element, where the header and footer stop being landmarks.\n- **Names:** the nav is named \"Sections\" (`labels.nav`), since the `Navbar` in the header names\n  its own navigation. The name leaves out the word \"navigation\", which the role says. A `Menu`\n  in the nav keeps its `<aside>`, which inside a `<nav>` is a plain element unless it's named.\n- **Skip link:** the first thing on the page, hidden until it has focus, moves focus to the page's\n  `<main>` (WCAG 2.4.1).\n- **Sticky header:** `scroll-padding-top` on the document keeps an in-page link's target and a\n  focused element below the header (WCAG 2.4.11, technique C43).\n- **The burger** is a button named \"menu\" (`labels.burger`), with `aria-expanded` saying whether\n  the drawer is open, or from the breakpoint up whether the column is shown, and `aria-controls`\n  naming the nav. The server can't know the width, so until the page hydrates the burger has no\n  `aria-expanded` and shows its bars, and the first paint after hydration has both right.\n- **The drawer** is modal by default: focus moves to its close button, Tab and Shift+Tab stay\n  inside, the page doesn't scroll, the rest of the frame is inert, and Escape closes it while it's\n  the topmost overlay, so a `Modal` opened from it closes first. Escape, the close button and a\n  click on the backdrop hand focus back to the burger, and so does a press outside the drawer\n  without `overlay`, before the press moves it to what was pressed. The close button is there for\n  a touch screen reader user, who has no Escape key. It stays a navigation landmark rather than a\n  dialog: the inert frame is what keeps assistive technology inside it, so keep the page's content\n  inside the frame's parts.\n- **A closed drawer and a collapsed column** are `visibility: hidden`, so their links are out of\n  the Tab order and the accessibility tree before any script runs.\n- **Reflow:** at 320 pixels wide the nav is a drawer, so nothing scrolls sideways (WCAG 1.4.10).\n- **Motion:** the drawer's slide, the backdrop's fade and the column's collapse don't play under\n  `prefers-reduced-motion: reduce`.\n- **Forced colors:** the column keeps its divider, the drawer gets a border on its open edge in\n  place of its shadow, and the burger keeps its bars, as a [`Navbar`](https://bestax.io/docs/api/components/navbar)'s\n  does.\n- **Right to left:** the column sits on the right, and the drawer slides in from the right.",
+  "accessibility": "- **Landmarks:** the header, the nav, the page and the footer are the page's banner, navigation,\n  main and contentinfo landmarks, and the aside a complementary one, as long as the frame sits at\n  the top of the page. A development build warns when it sits inside a `main` or a sectioning\n  element, where the header and footer stop being landmarks.\n- **Names:** the nav is named \"Sections\" (`labels.nav`), since the `Navbar` in the header names\n  its own navigation. The name leaves out the word \"navigation\", which the role says. A `Menu`\n  in the nav keeps its `<aside>`, which inside a `<nav>` is a plain element unless it's named.\n- **Skip link:** the first thing on the page, hidden until it has focus, moves focus to the page's\n  `<main>` (WCAG 2.4.1).\n- **Sticky header:** `scroll-padding-top` on the document keeps an in-page link's target and a\n  focused element below the header (WCAG 2.4.11, technique C43).\n- **The burger** is a button named \"menu\" (`labels.burger`), with `aria-expanded` saying whether\n  the drawer is open, or from the breakpoint up whether the column is shown, and `aria-controls`\n  naming the nav. The server can't know the width, so until the page hydrates the burger has no\n  `aria-expanded` and shows its bars, and the first paint after hydration has both right.\n- **The drawer** is modal by default: focus moves to its close button, Tab and Shift+Tab stay\n  inside, the page doesn't scroll, the rest of the frame is inert, and Escape closes it while it's\n  the topmost overlay, so a `Modal` opened from it closes first. Escape, the close button and a\n  click on the backdrop hand focus back to the burger, and so does a press outside the drawer\n  without `overlay`, before the press moves it to what was pressed. The close button is there for\n  a touch screen reader user, who has no Escape key. It stays a navigation landmark rather than a\n  dialog: the inert frame is what keeps assistive technology inside it, so keep the page's content\n  inside the frame's parts.\n- **A closed drawer and a collapsed column** are `visibility: hidden`, so their links are out of\n  the Tab order and the accessibility tree before any script runs.\n- **The icon rail** keeps every name: labels are visually hidden, never removed, and icons are\n  `aria-hidden`. Each tooltip adds no `aria-describedby` and is `aria-hidden` itself, so the name\n  isn't read twice. It shows on keyboard focus as well as hover, stays while the pointer moves\n  onto it, and Escape hides it (WCAG 1.4.13). A section's button in the rail reports\n  `aria-expanded=\"false\"`, since the rail hides its list, and pressing it expands the column and\n  opens the section.\n- **Reflow:** at 320 pixels wide the nav is a drawer, so nothing scrolls sideways (WCAG 1.4.10).\n- **Motion:** the drawer's slide, the backdrop's fade and the column's collapse don't play under\n  `prefers-reduced-motion: reduce`.\n- **Forced colors:** the column keeps its divider, the drawer gets a border on its open edge in\n  place of its shadow, and the burger keeps its bars, as a [`Navbar`](https://bestax.io/docs/api/components/navbar)'s\n  does.\n- **Right to left:** the column sits on the right, and the drawer slides in from the right.",
   "related": [
     "Footer",
     "Menu",
@@ -107,7 +111,7 @@
           "name": "navCollapsed",
           "type": "boolean",
           "default": "false",
-          "description": "Whether the column is collapsed out of view, from the breakpoint up. With it, the state is yours: update it from `onNavCollapsedChange`. It has no effect below the breakpoint, where the drawer always shows the whole nav.",
+          "description": "Whether the column is collapsed, from the breakpoint up: out of view, or down to its icons with `AppFrame.Nav rail`. With it, the state is yours: update it from `onNavCollapsedChange`. It has no effect below the breakpoint, where the drawer always shows the whole nav.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -125,7 +129,7 @@
           "name": "onNavCollapsedChange",
           "type": "(collapsed: boolean) => void",
           "default": null,
-          "description": "Called with the state asked for, by the burger or `useAppFrame()`.",
+          "description": "Called with the state asked for: by the burger, `useAppFrame()`, or a `Menu.Section`'s button in the collapsed rail, which expands it.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -239,7 +243,7 @@
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Usually a `Menu`. A nav taller than the window scrolls on its own. With `overlay`, the rest of the frame is inert while the drawer is open, so an overlay opened from the drawer, such as a `Modal`, goes inside the nav or renders outside the frame (Modal's `portal`). While the nav is a drawer, a popup opened in it, such as a Popover's `appendToBody` panel, portals into the nav, so it shows above the drawer, unless a `ConfigProvider` sets a `portalContainer`. In the column it portals to the end of the page, as it does anywhere else.",
+          "description": "Usually a `Menu`. A nav taller than the window scrolls on its own, except a column collapsed to a rail, which doesn't (see `rail`). With `overlay`, the rest of the frame is inert while the drawer is open, so an overlay opened from the drawer, such as a `Modal`, goes inside the nav or renders outside the frame (Modal's `portal`). While the nav is a drawer, a popup opened in it, such as a Popover's `appendToBody` panel, portals into the nav, so it shows above the drawer, unless a `ConfigProvider` sets a `portalContainer`. In the column it portals to the end of the page, as it does anywhere else.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -285,6 +289,15 @@
           "type": "boolean",
           "default": "true",
           "description": "Closes the drawer when a link inside it is followed with a plain click: not with a modifier key held, and not on a link with a `target` other than `_self` or a `download`. Only a link the nav holds in the page counts, not one in a Modal or a popup it portals elsewhere. Focus goes back to the burger, and the navigation takes it from there: a router that moves focus on navigation moves it, and an in-page `#` link leaves it at its target, as it does anywhere on the page. Turn it off for a drawer of filters rather than links.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "rail",
+          "type": "boolean",
+          "default": "false",
+          "description": "From the breakpoint up, a collapsed column shrinks to a rail of icons instead of leaving the page. The rail needs a `Menu` inside the nav: a Menu portaled out of it, such as one in a Popover or a Modal opened from it, isn't in the rail, nor is a `Menu.List` with no Menu around it, and a development build warns when a collapsed rail holds no Menu. Every top-level `Menu.Item` and `Menu.Section` needs an `icon`: in the rail, an item without one has nothing to show and its label spills over the page, and a section's button is blank, so a development build warns about one without. In the rail their labels are visually hidden, so each stays its link's or button's name, and shows in a `Tooltip` beside the rail on hover and keyboard focus. Nested lists and `Menu.Label` headings hide there, and a section's button expands the column and opens the section. Anything else in the nav keeps its own width, so hide it while the nav has the `is-rail` class. Collapsed to the rail, the column doesn't scroll on its own, so a tooltip isn't clipped. It sticks under the header while it fits there. A rail taller than the window under the header scrolls with the page instead, so its lower icons come into view as the page scrolls and as Tab reaches them. That takes a measurement in the browser, so before the page hydrates such a rail sticks.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -565,6 +578,12 @@
       "css": "--bulma-app-frame-nav-width",
       "sass": "$app-frame-nav-width",
       "default": "16rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-app-frame-nav-rail-width",
+      "sass": "$app-frame-nav-rail-width",
+      "default": "4rem",
       "scope": "root"
     },
     {

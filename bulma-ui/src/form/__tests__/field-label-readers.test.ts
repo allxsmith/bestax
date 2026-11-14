@@ -10,32 +10,15 @@
  * that stopped reading it. Tests and stories are left out, since a test may
  * read the id to check what took it.
  */
-import { readdirSync, readFileSync } from 'fs';
+import { readFileSync } from 'fs';
 import { join, relative } from 'path';
 import * as ts from 'typescript';
+import { sourceFiles } from '../../__tests__/sourceFiles';
 
 const SRC = join(__dirname, '..', '..');
 
 /** The modules that read `useFieldLabelId`, each reporting what it took. */
 const READERS = ['form/FormContext.tsx', 'form/useAutoLabelId.ts'];
-
-const SKIPPED_DIRS = new Set(['__tests__', '__typetests__', '__mocks__']);
-
-function sourceFiles(dir: string): string[] {
-  const out: string[] = [];
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      if (!SKIPPED_DIRS.has(entry.name)) out.push(...sourceFiles(full));
-    } else if (
-      /\.tsx?$/.test(entry.name) &&
-      !/\.(test|spec|stories)\.tsx?$/.test(entry.name)
-    ) {
-      out.push(full);
-    }
-  }
-  return out;
-}
 
 /**
  * Whether the module names `useFieldLabelId` in its code, as an identifier

@@ -10,6 +10,12 @@ import Checkbox from '../form/Checkbox';
 import Level from '../layout/Level';
 import { Content } from '../elements/Content';
 import Control from '../form/Control';
+// The sample picture is a crop of a photo published on Unsplash under the
+// Unsplash License (https://unsplash.com/license):
+// - sample-lioness.jpg: "A close-up portrait of a lioness with amber eyes
+//   looking forward", by Samuel Scrimshaw,
+//   https://unsplash.com/photos/sseiVD2XsOk
+import lioness from '../../images/sample-lioness.jpg';
 
 const meta: Meta<typeof Media> = {
   title: 'Layout/Media',
@@ -23,12 +29,7 @@ export const Default: StoryObj<typeof Media> = {
   render: () => (
     <Media>
       <Media.Left>
-        <Image
-          as="p"
-          size="64x64"
-          src="https://bulma.io/assets/images/placeholders/128x128.png"
-          alt=""
-        />
+        <Image as="p" size="64x64" src={lioness} alt="" />
       </Media.Left>
       <Media.Content>
         <div className="content">
@@ -82,12 +83,7 @@ export const WithInputs: StoryObj<typeof Media> = {
   render: () => (
     <Media>
       <Media.Left>
-        <Image
-          as="p"
-          size="64x64"
-          src="https://bulma.io/assets/images/placeholders/128x128.png"
-          alt=""
-        />
+        <Image as="p" size="64x64" src={lioness} alt="" />
       </Media.Left>
       <Media.Content>
         <Field>
@@ -117,12 +113,7 @@ export const Nesting: StoryObj<typeof Media> = {
   render: () => (
     <Media>
       <Media.Left>
-        <Image
-          as="p"
-          size="64x64"
-          src="https://bulma.io/assets/images/placeholders/128x128.png"
-          alt=""
-        />
+        <Image as="p" size="64x64" src={lioness} alt="" />
       </Media.Left>
       <Media.Content>
         <Content>
@@ -148,12 +139,7 @@ export const Nesting: StoryObj<typeof Media> = {
         {/* First nested media */}
         <Media>
           <Media.Left>
-            <Image
-              as="p"
-              size="48x48"
-              src="https://bulma.io/assets/images/placeholders/96x96.png"
-              alt=""
-            />
+            <Image as="p" size="48x48" src={lioness} alt="" />
           </Media.Left>
           <Media.Content>
             <Content>
@@ -187,12 +173,7 @@ export const Nesting: StoryObj<typeof Media> = {
         {/* Second nested media */}
         <Media>
           <Media.Left>
-            <Image
-              as="p"
-              size="48x48"
-              src="https://bulma.io/assets/images/placeholders/96x96.png"
-              alt=""
-            />
+            <Image as="p" size="48x48" src={lioness} alt="" />
           </Media.Left>
           <Media.Content>
             <Content>
@@ -227,12 +208,7 @@ export const WithButtonBelow: StoryObj<typeof Media> = {
   render: () => (
     <Media>
       <Media.Left>
-        <Image
-          as="p"
-          size="64x64"
-          src="https://bulma.io/assets/images/placeholders/128x128.png"
-          alt=""
-        />
+        <Image as="p" size="64x64" src={lioness} alt="" />
       </Media.Left>
       <Media.Content>
         <Field>
@@ -255,12 +231,7 @@ export const CompoundUsage: StoryObj<typeof Media> = {
   render: () => (
     <Media>
       <Media.Left>
-        <Image
-          as="p"
-          size="64x64"
-          src="https://bulma.io/assets/images/placeholders/128x128.png"
-          alt=""
-        />
+        <Image as="p" size="64x64" src={lioness} alt="" />
       </Media.Left>
       <Media.Content>
         <Content>

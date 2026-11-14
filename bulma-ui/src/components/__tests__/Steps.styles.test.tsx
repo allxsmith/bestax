@@ -10,22 +10,35 @@ import path from 'path';
 import { act, render } from '@testing-library/react';
 import { Steps, type StepsProps } from '../Steps';
 import { ConfigProvider } from '../../helpers/Config';
+import { compileSheet } from '../../__tests__/compile-scss';
+import { bulmaCss, rulesOf as parseSheet } from '../../__tests__/css-cascade';
+import { contrast, schemesOf, substitute } from '../../__tests__/contrast';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 
 // The Bulma bulma-ui depends on, found through its package.json.
 const BULMA = path.dirname(require.resolve('bulma/package.json'));
 
-const compile = (prefix: string) =>
-  sass.compileString(
-    `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
-     @use 'components/steps';`,
-    {
-      loadPaths: [SCSS, path.dirname(BULMA)],
-      quietDeps: true,
-      logger: sass.Logger.silent,
-    }
-  ).css;
+const compiled = new Map<string, string>();
+
+/** The partial under `prefix`, compiled once. */
+const compile = (prefix: string) => {
+  if (!compiled.has(prefix)) {
+    compiled.set(
+      prefix,
+      sass.compileString(
+        `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+         @use 'components/steps';`,
+        {
+          loadPaths: [SCSS, path.dirname(BULMA)],
+          quietDeps: true,
+          logger: sass.Logger.silent,
+        }
+      ).css
+    );
+  }
+  return compiled.get(prefix)!;
+};
 
 type Found = {
   /** One selector of the rule's list. */
@@ -174,31 +187,53 @@ const matching = (found: Found[], el: Element) =>
   );
 
 /**
- * The declaration that wins one side's padding on the element, by
+ * The value that wins one of `properties` on the element, or on its
+ * `::before` or `::after`, outside any media query: by importance,
  * specificity and then source order, which jsdom's computed style doesn't
- * weigh. Within a rule, the last declaration that sets the side counts.
+ * weigh. Within a rule, the last declaration of one of them counts, so a
+ * shorthand and its longhand are read together.
  */
-function padding(found: Found[], el: Element, side: 'top' | 'bottom') {
+function cascaded(
+  found: Found[],
+  el: Element,
+  properties: string | string[],
+  pseudo: Pseudo = ''
+) {
+  const names = [properties].flat();
   let best: { rank: number[]; value: string } | null = null;
-  for (const rule of matching(found, el)) {
-    const names = Array.from(rule.style).filter(
-      name => name === 'padding' || name === `padding-${side}`
+  for (const [index, rule] of found.entries()) {
+    if (rule.media !== '') continue;
+    const at = rule.selector.search(/::(before|after)$/);
+    if ((at === -1 ? '' : rule.selector.slice(at)) !== pseudo) continue;
+    const declared = propertiesOf(rule.style).filter(name =>
+      names.includes(name)
     );
-    if (!names.length) continue;
-    const rank = [specificity(rule.selector), found.indexOf(rule)];
-    if (
-      !best ||
-      rank[0] > best.rank[0] ||
-      (rank[0] === best.rank[0] && rank[1] > best.rank[1])
-    ) {
-      best = {
-        rank,
-        value: rule.style.getPropertyValue(names[names.length - 1]).trim(),
-      };
+    if (!declared.length) continue;
+    if (!el.matches(at === -1 ? rule.selector : rule.selector.slice(0, at))) {
+      continue;
+    }
+    const property = declared[declared.length - 1];
+    const rank = [
+      rule.style.getPropertyPriority(property) === 'important' ? 1 : 0,
+      specificity(rule.selector),
+      index,
+    ];
+    if (!best || outranks(rank, best.rank)) {
+      best = { rank, value: rule.style.getPropertyValue(property).trim() };
     }
   }
   return best?.value;
 }
+
+/** Whether one rank comes before another, comparing from the front. */
+function outranks(a: number[], b: number[]) {
+  const at = a.findIndex((n, i) => n !== b[i]);
+  return at !== -1 && a[at] > b[at];
+}
+
+/** The declaration that wins one side's padding on the element. */
+const padding = (found: Found[], el: Element, side: 'top' | 'bottom') =>
+  cascaded(found, el, ['padding', `padding-${side}`]);
 
 const COLORS = [
   undefined,
@@ -496,6 +531,59 @@ describe.each([
     });
   });
 
+  // The colors themselves are measured against whole sheets at the end of
+  // this file. These pin where they come from, under each prefix.
+  describe('colors', () => {
+    it('draws a step with no color in the scheme’s weak text color', () => {
+      expect(
+        declarations(rulesOf(compile(prefix)), p('steps'))[
+          '--bulma-steps-default-color'
+        ]
+      ).toBe('var(--bulma-text-weak)');
+    });
+
+    // Put together on the step from the color's hue, saturation and
+    // on-scheme lightness, which a Theme around the steps can set. Bulma's
+    // `--bulma-<color>-on-scheme` is put together on `:root`, where a scoped
+    // Theme's values never reach it.
+    it.each(COLORS.filter(Boolean))(
+      'draws a %s step’s marker, number and line in its -on-scheme lightness',
+      color => {
+        const found = rulesOf(compile(prefix));
+        const onScheme = `hsl(var(--bulma-${color}-h), var(--bulma-${color}-s), var(--bulma-${color}-on-scheme-l))`;
+        for (const vertical of [false, true]) {
+          const { container, unmount } = renderSteps({ color, vertical });
+          const segments = Array.from(
+            container.querySelectorAll(p('steps-segment'))
+          );
+          const marker = (li: Element) => li.querySelector(p('steps-marker'))!;
+          const [done, , current] = segments;
+          expect(cascaded(found, marker(current), 'border-color')).toBe(
+            onScheme
+          );
+          expect(cascaded(found, marker(current), 'color')).toBe(onScheme);
+          expect(cascaded(found, marker(done), 'border-color')).toBe(onScheme);
+          expect(cascaded(found, marker(done), 'background-color')).toBe(
+            onScheme
+          );
+          // The mark is in the page's color, which that lightness reads on.
+          expect(cascaded(found, marker(done), 'color')).toBe(
+            'var(--bulma-scheme-main)'
+          );
+          expect(
+            cascaded(
+              found,
+              done,
+              'background-color',
+              vertical ? '::after' : '::before'
+            )
+          ).toBe(onScheme);
+          unmount();
+        }
+      }
+    );
+  });
+
   // Forced colors paints every background the page's own color and every
   // border one color, so a line or a fill drawn as a background vanishes and
   // the markers all look alike. A system color is left as it is. jsdom writes
@@ -666,4 +754,94 @@ describe('the Steps partial with a configured $tablet', () => {
   ])('switches to the phone layouts below a $tablet of %s', (tablet, query) => {
     expect(phoneQueries(at(tablet))).toEqual([query]);
   });
+});
+
+// The colors the partial draws a step in, resolved through the variables a
+// whole published sheet declares in each scheme, the way a browser does, and
+// measured (#1636). A number needs 4.5:1 against what it sits on, and a
+// marker, a graphic, 3:1 against the page. `extras.css` takes its colors from
+// the app's Bulma, so it is measured with Bulma's own.
+describe.each([
+  ['bestax.css', '', () => compileSheet('bestax.scss')],
+  [
+    'bestax-prefixed.css',
+    'bestax-',
+    () => compileSheet('versions/bestax-prefixed.scss'),
+  ],
+  [
+    'extras.css on Bulma’s own colors',
+    '',
+    () => bulmaCss() + compileSheet('extras.scss'),
+  ],
+])('Steps contrast in %s', (_name, prefix, sheet) => {
+  let schemes: ReturnType<typeof schemesOf>;
+  // A hook keeps Vitest's 10s default rather than `testTimeout`, and a whole
+  // sheet can take longer than that to compile on a loaded machine.
+  beforeAll(() => {
+    schemes = schemesOf(parseSheet(sheet()).rules);
+  }, 30_000);
+
+  it.each(COLORS.map(color => [color ?? 'no color', color] as const))(
+    'reads on the page with %s, on both schemes',
+    (_label, color) => {
+      const p = (name: string) => `.${prefix}${name}`;
+      const found = rulesOf(compile(prefix));
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Steps value={2} color={color} items={ITEMS} />
+        </ConfigProvider>
+      );
+      const [done, , current, upcoming] = Array.from(
+        container.querySelectorAll(p('steps-marker'))
+      );
+      // The variables the steps declare on themselves, over the page's.
+      const own = Object.fromEntries(
+        Object.entries(declarations(found, p('steps'))).filter(([name]) =>
+          name.startsWith('--')
+        )
+      );
+      const failures: string[] = [];
+      for (const [scheme, page] of Object.entries(schemes)) {
+        const vars = { ...page, ...own };
+        const read = (el: Element, property: string | string[]) => {
+          const value = cascaded(found, el, property);
+          if (!value) throw new Error(`nothing sets ${property}`);
+          return substitute(value, vars);
+        };
+        // A ring is set as a color, or as the color in a `border`.
+        const ring = (el: Element) => {
+          const colors = read(el, ['border', 'border-color']).match(
+            /hsla?\([^()]*\)/g
+          );
+          if (colors?.length !== 1) throw new Error('no single ring color');
+          return colors[0];
+        };
+        const background = substitute('var(--bulma-scheme-main)', vars);
+        const check = (what: string, fg: string, bg: string, min: number) => {
+          const ratio = contrast(fg, bg);
+          if (ratio < min) {
+            failures.push(`${scheme}, ${what}: ${ratio.toFixed(2)}:1`);
+          }
+        };
+        const fill = read(done, 'background-color');
+        check(
+          'current number',
+          read(current, 'color'),
+          read(current, 'background-color'),
+          4.5
+        );
+        check('current ring', ring(current), background, 3);
+        check('completed fill', fill, background, 3);
+        check('completed mark', read(done, 'color'), fill, 4.5);
+        check(
+          'upcoming number',
+          read(upcoming, 'color'),
+          read(upcoming, 'background-color'),
+          4.5
+        );
+        check('upcoming ring', ring(upcoming), background, 3);
+      }
+      expect(failures).toEqual([]);
+    }
+  );
 });
