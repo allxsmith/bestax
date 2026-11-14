@@ -15,7 +15,7 @@ import { withSubComponents } from '../helpers/withSubComponents';
 import { flattenChildren } from '../helpers/flattenChildren';
 import { isElementOf } from '../helpers/elementType';
 import { useControlled } from '../helpers/useControlled';
-import { Portal } from '../helpers/portal';
+import { Portal, PortalScope } from '../helpers/portal';
 import { useConfig } from '../helpers/Config';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
@@ -46,8 +46,9 @@ import { Delete } from '../elements/Delete';
 export type TourStepPosition = 'top' | 'bottom' | 'left' | 'right';
 
 /**
- * What a step points at: a CSS selector, looked up again until it matches,
- * an element, or a ref to one.
+ * What a step points at: a CSS selector, looked up again until it matches
+ * in the document or shadow root the tour renders into, an element, or a
+ * ref to one.
  */
 export type TourTarget =
   string | HTMLElement | React.RefObject<HTMLElement | null>;
@@ -218,8 +219,8 @@ export interface TourStepProps
    * The element the step points at. Without one, or while it isn't on the
    * page or has no box (in a closed Collapse or a hidden tab panel), the
    * step is centered. A target that turns up later, or gets a box, is found
-   * then, and a development build warns once when a step shows without its
-   * target.
+   * then. A development build warns about a missing target, once for each
+   * selector.
    */
   target?: TourTarget;
   /**
@@ -286,18 +287,19 @@ const sameBox = (a: TargetBox | null, b: TargetBox | null): boolean =>
 
 /**
  * The element a target names, while it's on the page, box or no box. A
- * selector that isn't valid matches nothing, and nor does no target.
+ * selector is looked up in `scope`, and one that isn't valid matches
+ * nothing, and nor does no target.
  */
 function findTarget(
   target: TourTarget | undefined,
-  doc: Document
+  scope: Document | ShadowRoot
 ): HTMLElement | null {
   let element: HTMLElement | null;
   if (target == null) {
     element = null;
   } else if (typeof target === 'string') {
     try {
-      element = doc.querySelector<HTMLElement>(target);
+      element = scope.querySelector<HTMLElement>(target);
     } catch {
       element = null;
     }
@@ -306,6 +308,10 @@ function findTarget(
   }
   return element?.isConnected ? element : null;
 }
+
+/** The document or shadow root `node` is in, where a selector is looked up. */
+const scopeOf = (node: Node): Document | ShadowRoot =>
+  node.getRootNode() as Document | ShadowRoot;
 
 /**
  * Finds the current step's target and its box while the step shows, and
@@ -330,6 +336,7 @@ function useTourTarget(
     // The root renders whenever the tour shows, so it's on the page here.
     const root = rootRef.current as HTMLDivElement;
     const doc = root.ownerDocument;
+    const scope = scopeOf(root);
     const view = doc.defaultView as Window;
     let frame = 0;
     // The element watched for size as the target, box or no box, so one
@@ -343,7 +350,7 @@ function useTourTarget(
         : new ResizeObserver(() => schedule());
     const update = () => {
       frame = 0;
-      const candidate = findTarget(target, doc);
+      const candidate = findTarget(target, scope);
       if (candidate !== watched) {
         if (watched) sizes?.unobserve(watched);
         if (candidate) sizes?.observe(candidate);
@@ -386,11 +393,12 @@ function useTourTarget(
     update();
     // Any attribute can bring a target in or move one (`hidden`, `open`,
     // `style`, a `data-` one a selector names), and the frame bounds the
-    // cost. The tour's own changes can't, so they're left out.
+    // cost. The tour's own changes can't, so they're left out. A tour in a
+    // shadow root watches that root, which the body's subtree doesn't reach.
     const observer = new MutationObserver(records => {
       if (records.some(record => !root.contains(record.target))) schedule();
     });
-    observer.observe(doc.body, {
+    observer.observe(scope === doc ? doc.body : scope, {
       childList: true,
       subtree: true,
       attributes: true,
@@ -440,9 +448,10 @@ function isFullyVisible(element: HTMLElement): boolean {
 
 /**
  * Whether a title or a body has something to show: any child but `null`,
- * `undefined`, a boolean or an empty string, in an array too.
+ * `undefined`, a boolean or an empty string, in an array too, which the
+ * shared `isGiven` doesn't open.
  */
-const isGiven = (node: React.ReactNode): boolean =>
+const showsSomething = (node: React.ReactNode): boolean =>
   React.Children.toArray(node).some(child => child !== '');
 
 /**
@@ -497,6 +506,11 @@ interface TourWords {
 
 interface TourContextValue {
   index: number;
+  /**
+   * Which step shows: its index and its key, so a different step at the
+   * same index, after the steps change, counts as a change too.
+   */
+  stepId: string;
   total: number;
   modal: boolean;
   /** Whether Escape from inside a non-modal step ends the tour. */
@@ -583,13 +597,19 @@ function TourPanel({
   const titleRef = useRef<HTMLElement | null>(null);
   const { stepRef } = tour;
   const cleanupRef = useRef<(() => void) | null>(null);
+  // The panel, as state, for the popups in a modal step to portal into, as
+  // Modal's do: outside it, its `aria-modal` hides them from screen readers
+  // and the inert page takes them.
+  const [panel, setPanel] = useState<HTMLDivElement | null>(null);
   const setRef = useCallback(
-    (node: HTMLDivElement | null) =>
-      attachRefs(node, stepRef, forwardedRef, cleanupRef),
+    (node: HTMLDivElement | null) => {
+      attachRefs(node, stepRef, forwardedRef, cleanupRef);
+      setPanel(node);
+    },
     [stepRef, forwardedRef]
   );
 
-  const hasTitle = isGiven(title);
+  const hasTitle = showsSomething(title);
   const named =
     hasTitle || Boolean(rest['aria-label']) || Boolean(rest['aria-labelledby']);
   useEffect(() => {
@@ -607,19 +627,19 @@ function TourPanel({
   // line then says where the tour is, since a dialog whose name changes
   // isn't announced again.
   const [said, setSaid] = useState('');
-  const shownIndexRef = useRef(index);
-  const { progress, nextRef } = tour;
+  const { stepId, progress, nextRef } = tour;
+  const shownStepRef = useRef(stepId);
   const ariaLabel = rest['aria-label'];
   useEffect(() => {
-    if (shownIndexRef.current === index) return;
-    shownIndexRef.current = index;
+    if (shownStepRef.current === stepId) return;
+    shownStepRef.current = stepId;
     const doc = (stepRef.current as HTMLDivElement).ownerDocument;
     if (doc.activeElement === doc.body) {
       (nextRef.current as HTMLButtonElement).focus();
     }
     const name = titleRef.current ? spokenText(titleRef.current) : ariaLabel;
     setSaid(name ? `${progress}: ${name}` : progress);
-  }, [index, progress, ariaLabel, nextRef, stepRef]);
+  }, [stepId, progress, ariaLabel, nextRef, stepRef]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     onKeyDown?.(e);
@@ -688,7 +708,8 @@ function TourPanel({
         (hasTitle && !rest['aria-label'] ? titleId : undefined)
       }
       aria-describedby={
-        rest['aria-describedby'] || (isGiven(children) ? bodyId : undefined)
+        rest['aria-describedby'] ||
+        (showsSomething(children) ? bodyId : undefined)
       }
       ref={setRef}
       className={classNames(panelClass, bulmaHelperClasses, className)}
@@ -702,42 +723,44 @@ function TourPanel({
         tour.markInsidePress(e);
       }}
     >
-      <div className={headerClass}>
-        {hasTitle && (
-          <TitleTag
-            ref={titleRef as React.Ref<HTMLHeadingElement>}
-            id={titleId}
-            className={titleClass}
-          >
-            {title}
-          </TitleTag>
-        )}
-        <Delete ariaLabel={words.close} onClick={tour.skip} />
-      </div>
-      <div key={index} id={bodyId} className={bodyClass}>
-        {children}
-      </div>
-      <div className={footerClass}>
-        <Button type="button" color="text" onClick={tour.skip}>
-          {words.skip}
-        </Button>
-        <span className={progressClass}>{progress}</span>
-        <Buttons>
-          {index > 0 && (
-            <Button type="button" onClick={() => tour.goTo(index - 1)}>
-              {words.back}
-            </Button>
+      <PortalScope node={tour.modal ? panel : undefined}>
+        <div className={headerClass}>
+          {hasTitle && (
+            <TitleTag
+              ref={titleRef as React.Ref<HTMLHeadingElement>}
+              id={titleId}
+              className={titleClass}
+            >
+              {title}
+            </TitleTag>
           )}
-          <Button
-            ref={nextRef}
-            type="button"
-            color="primary"
-            onClick={tour.next}
-          >
-            {last ? words.done : words.next}
+          <Delete ariaLabel={words.close} onClick={tour.skip} />
+        </div>
+        <div key={index} id={bodyId} className={bodyClass}>
+          {children}
+        </div>
+        <div className={footerClass}>
+          <Button type="button" color="text" onClick={tour.skip}>
+            {words.skip}
           </Button>
-        </Buttons>
-      </div>
+          <span className={progressClass}>{progress}</span>
+          <Buttons>
+            {index > 0 && (
+              <Button type="button" onClick={() => tour.goTo(index - 1)}>
+                {words.back}
+              </Button>
+            )}
+            <Button
+              ref={nextRef}
+              type="button"
+              color="primary"
+              onClick={tour.next}
+            >
+              {last ? words.done : words.next}
+            </Button>
+          </Buttons>
+        </div>
+      </PortalScope>
       {/* In the step from the start, so a change to it is announced, and in
           the dialog, where a screen reader that hides the page around a
           modal dialog still hears it. */}
@@ -885,7 +908,10 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
       () => ({
         get current() {
           if (!target || target.isConnected) return target;
-          const now = findTarget(stepTarget, target.ownerDocument);
+          const now = findTarget(
+            stepTarget,
+            rootRef.current ? scopeOf(rootRef.current) : target.ownerDocument
+          );
           return now && now.getClientRects().length > 0 ? now : null;
         },
       }),
@@ -944,8 +970,8 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
 
     // A step that turns modal while focus is out of it, as it can be after a
     // non-modal step, takes focus, since the rest of the page is going inert.
-    // That includes content the step portals out of the tour, such as a
-    // Popover's panel rendered into <body>, which goes inert with the page.
+    // That includes a popup the step had portaled into <body>, which moves
+    // into the modal step and loses focus as it does.
     useEffect(() => {
       if (!modal) return;
       const panel = stepRef.current as HTMLDivElement;
@@ -984,6 +1010,7 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
 
     const context: TourContextValue = {
       index,
+      stepId: `${index} ${String(step.key)}`,
       total,
       modal,
       closeOnEscape,

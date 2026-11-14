@@ -723,7 +723,32 @@ describe('Tour', () => {
       expect(next()).toHaveFocus();
     });
 
-    it('moves focus out of a Popover the step portals when the step turns modal, as it goes inert with the page', () => {
+    it('portals a popup in a modal step into the step, and leaves one in a non-modal step in <body>', () => {
+      const WithPopover = ({ overlay }: { overlay: boolean }) => (
+        <Tour open overlay={overlay}>
+          <Tour.Step title="Filters">
+            <Popover
+              trigger={<button type="button">Open filters</button>}
+              defaultOpen
+              appendToBody
+              ariaLabel="Filter panel"
+            >
+              <button type="button">Only mine</button>
+            </Popover>
+          </Tour.Step>
+        </Tour>
+      );
+      const { rerender } = render(<WithPopover overlay />);
+      const inStep = () =>
+        screen
+          .getByRole('dialog', { name: 'Filters' })
+          .contains(screen.getByRole('button', { name: 'Only mine' }));
+      expect(inStep()).toBe(true);
+      rerender(<WithPopover overlay={false} />);
+      expect(inStep()).toBe(false);
+    });
+
+    it('keeps focus in a popup the step portaled when the step turns modal, as the popup moves into it', () => {
       const Turning = ({ overlay }: { overlay: boolean }) => (
         <Tour open overlay={overlay}>
           <Tour.Step title="Filters">
@@ -745,10 +770,14 @@ describe('Tour', () => {
         screen.getByRole('dialog', { name: 'Filters' }).contains(inPopover)
       ).toBe(false);
       rerender(<Turning overlay />);
-      // Portaled to <body>, the Popover's panel is part of the page the
-      // modal step makes inert, so focus there would be lost.
-      expect(inPopover.closest('[inert]')).not.toBeNull();
-      expect(next()).toHaveFocus();
+      // The Popover's panel moves from <body> into the modal step, where
+      // the page going inert doesn't reach it, and focuses its control again.
+      expect(inPopover).not.toBeInTheDocument();
+      const moved = screen.getByRole('button', { name: 'Only mine' });
+      expect(screen.getByRole('dialog', { name: 'Filters' })).toContainElement(
+        moved
+      );
+      expect(moved).toHaveFocus();
     });
 
     it('moves focus into a step that turns modal while focus is on the page', () => {
@@ -918,6 +947,30 @@ describe('Tour', () => {
       );
       fireEvent.click(next());
       expect(screen.getByRole('status')).toHaveTextContent(/^Step 3 of 3$/);
+    });
+
+    it('says a different step that takes the index after the steps change, and keeps focus', () => {
+      const Tips = ({ tips }: { tips: string[] }) => (
+        <Tour open value={1}>
+          {tips.map(tip => (
+            <Tour.Step key={tip} title={tip}>
+              About {tip}.
+            </Tour.Step>
+          ))}
+        </Tour>
+      );
+      const { rerender } = render(<Tips tips={['One', 'Two', 'Three']} />);
+      const back = screen.getByRole('button', { name: 'Back' });
+      back.focus();
+      // "One" is read and dropped, so "Three" now sits at index 1, and Back,
+      // which had focus, is gone with the first step.
+      rerender(<Tips tips={['Two', 'Three']} />);
+      rerender(<Tips tips={['Three', 'Four']} />);
+      expect(screen.getByRole('status')).toHaveTextContent('Step 2 of 2: Four');
+      rerender(<Tips tips={['Four']} />);
+      expect(screen.getByRole('status')).toHaveTextContent('Step 1 of 1: Four');
+      expect(back).not.toBeInTheDocument();
+      expect(next()).toHaveFocus();
     });
   });
 
@@ -1200,6 +1253,45 @@ describe('Tour', () => {
         document.getElementById('data')!.setAttribute('data-ready', '');
       });
       expect(dialog()).toHaveClass('is-bottom');
+    });
+
+    it('looks a selector up in the shadow root the tour renders into, and watches it', async () => {
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const shadow = host.attachShadow({ mode: 'open' });
+      const container = document.createElement('div');
+      shadow.appendChild(container);
+      render(
+        <>
+          <button type="button" id="inside" data-rect="100 100 80 30">
+            Inside
+          </button>
+          <Tour defaultOpen portal={false}>
+            <Tour.Step target="#inside" title="Inside">
+              In the same shadow root.
+            </Tour.Step>
+            <Tour.Step target="#later" title="Later">
+              Mounts there later.
+            </Tour.Step>
+          </Tour>
+        </>,
+        { container }
+      );
+      const step = () => shadow.querySelector('[role="dialog"]') as HTMLElement;
+      expect(step()).toHaveClass('is-bottom');
+      fireEvent.click(
+        shadow.querySelector('.tour-step-footer .is-primary') as HTMLElement
+      );
+      expect(step()).toHaveClass('is-centered');
+      const later = document.createElement('button');
+      later.id = 'later';
+      later.dataset.rect = '100 100 80 30';
+      // Async, so the observer's callback runs inside it.
+      await act(async () => {
+        container.appendChild(later);
+      });
+      expect(step()).toHaveClass('is-bottom');
+      host.remove();
     });
 
     it('finds a target a class change makes a selector match', async () => {

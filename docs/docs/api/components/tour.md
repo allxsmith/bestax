@@ -87,9 +87,10 @@ function example() {
 ### Targets
 
 A `target` is a CSS selector, an element, or a ref to one. A selector is looked up again until it
-matches, so a step can point at something that mounts after the tour opens. Until then, and while
-the target has no box (inside a closed `Collapse` or a hidden tab panel), the step sits in the
-middle of the screen, and a development build warns once. The tour never ends on its own because
+matches, in the document or the shadow root the tour renders into, so a step can point at something
+that mounts after the tour opens. Until then, and while the target has no box (inside a closed
+`Collapse` or a hidden tab panel), the step sits in the middle of the screen, and a development
+build warns, once for each selector. The tour never ends on its own because
 a target is missing.
 
 ```tsx
@@ -324,9 +325,10 @@ non-modal without it:
 - In forced colors, the overlay keeps dimming the page, since it's an SVG fill, the spotlight gets
   a `Highlight` outline, and the step keeps its border.
 
-A tour sits at the modal layer, under toasts. Content inside a step that renders through a portal
-of its own, such as a Popover with `appendToBody`, lands under the tour, so keep such content in
-place inside the step.
+A tour sits at the modal layer, under toasts. In a modal step, a popup that renders through a portal
+of its own, such as a Popover with `appendToBody` or a picker's calendar, renders inside the step,
+as it does in a Modal, so it shows over the tour and stays reachable. A step without the overlay
+leaves it in `<body>`, under the tour, so keep such content in place inside a non-modal step.
 
 ---
 
@@ -379,16 +381,16 @@ place inside the step.
 
 ### Tour.Step
 
-| Prop        | Type                                                   | Default      | Description                                                                                                                                                                                                                                                                                       |
-| ----------- | ------------------------------------------------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `target`    | `TourTarget`                                           | —            | The element the step points at. Without one, or while it isn't on the page or has no box (in a closed Collapse or a hidden tab panel), the step is centered. A target that turns up later, or gets a box, is found then, and a development build warns once when a step shows without its target. |
-| `title`     | `React.ReactNode`                                      | —            | The title, which names the step's dialog. A step without one needs an `aria-label`, and a development build warns when it has neither.                                                                                                                                                            |
-| `children`  | `React.ReactNode`                                      | —            | The body, which describes the step's dialog. Say what the target is: a modal step leaves it out of reach, and the spotlight says nothing to a screen reader.                                                                                                                                      |
-| `position`  | `'top'` \| `'bottom'` \| `'left'` \| `'right'`         | `'bottom'`   | The side of the target the panel sits on. It flips to the opposite side when it doesn't fit, and stays inside the viewport.                                                                                                                                                                       |
-| `overlay`   | `boolean`                                              | `the tour's` | This step's own `overlay`, in place of the tour's.                                                                                                                                                                                                                                                |
-| `className` | `string`                                               | —            | Additional CSS classes.                                                                                                                                                                                                                                                                           |
-| `ref`       | `React.Ref<HTMLDivElement>`                            | —            | Forwarded to the underlying element.                                                                                                                                                                                                                                                              |
-| `...`       | All standard `<div>` attributes and Bulma helper props | —            | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                 |
+| Prop        | Type                                                   | Default      | Description                                                                                                                                                                                                                                                                                        |
+| ----------- | ------------------------------------------------------ | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `target`    | `TourTarget`                                           | —            | The element the step points at. Without one, or while it isn't on the page or has no box (in a closed Collapse or a hidden tab panel), the step is centered. A target that turns up later, or gets a box, is found then. A development build warns about a missing target, once for each selector. |
+| `title`     | `React.ReactNode`                                      | —            | The title, which names the step's dialog. A step without one needs an `aria-label`, and a development build warns when it has neither.                                                                                                                                                             |
+| `children`  | `React.ReactNode`                                      | —            | The body, which describes the step's dialog. Say what the target is: a modal step leaves it out of reach, and the spotlight says nothing to a screen reader.                                                                                                                                       |
+| `position`  | `'top'` \| `'bottom'` \| `'left'` \| `'right'`         | `'bottom'`   | The side of the target the panel sits on. It flips to the opposite side when it doesn't fit, and stays inside the viewport.                                                                                                                                                                        |
+| `overlay`   | `boolean`                                              | `the tour's` | This step's own `overlay`, in place of the tour's.                                                                                                                                                                                                                                                 |
+| `className` | `string`                                               | —            | Additional CSS classes.                                                                                                                                                                                                                                                                            |
+| `ref`       | `React.Ref<HTMLDivElement>`                            | —            | Forwarded to the underlying element.                                                                                                                                                                                                                                                               |
+| `...`       | All standard `<div>` attributes and Bulma helper props | —            | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                  |
 
 <!-- /bestax:generated props -->
 
