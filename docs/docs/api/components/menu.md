@@ -77,7 +77,7 @@ To create a sidebar or section menu with multiple levels, use the `Menu` compone
 
 ### Custom Link Component
 
-Use the `as` prop on `Menu.Item` to render a custom link component, such as a router link. Its props follow `as`, so props like `to` or `href` are checked against whatever you render and are forwarded to it.
+Use the `as` prop on `Menu.Item` to render a custom link component, such as a router link. Its props follow `as`, so props like `to` or `href` are checked against whatever you render and are forwarded to it. `icon` is Menu.Item's own (see [Icons](#icons)), so the component you render never receives an `icon` of its own: pass that one under another name.
 
 ```tsx live
 // import { Link } from 'react-router-dom';
