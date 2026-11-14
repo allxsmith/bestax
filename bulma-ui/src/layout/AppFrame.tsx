@@ -29,7 +29,7 @@ import { getActiveElementInTree } from '../helpers/shadowDom';
 import { useBulmaBreakpoint } from '../helpers/useBulmaViewport';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { PortalScope } from '../helpers/portal';
-import { warnOnce } from '../helpers/devWarnings';
+import { isDev, warnOnce } from '../helpers/devWarnings';
 import { MenuRailContext } from '../helpers/menuRail';
 import { useLocale } from '../helpers/LocaleProvider';
 import type { MenuRail } from '../helpers/menuRail';
@@ -647,7 +647,8 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
     // Menu.List with no Menu around it, doesn't take it.
     const menuClass = usePrefixedClassNames('menu');
     useEffect(() => {
-      if (railCollapsed && !navRef.current!.querySelector(`.${menuClass}`)) {
+      if (!isDev() || !railCollapsed) return;
+      if (!navRef.current!.querySelector(`.${menuClass}`)) {
         warnOnce(
           'AppFrame:rail-menu',
           '[bestax-bulma] <AppFrame.Nav rail> is collapsed to its rail but ' +

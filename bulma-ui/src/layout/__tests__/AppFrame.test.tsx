@@ -1995,6 +1995,21 @@ describe('AppFrame.Nav rail', () => {
     }
   });
 
+  it('doesn’t look for a Menu in the rail in production, where it couldn’t warn', () => {
+    mockViewport(DESKTOP);
+    const previous = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+      const { rerender } = render(<RailFrame navCollapsed={false} />);
+      const query = vi.spyOn(nav(), 'querySelector');
+      rerender(<RailFrame navCollapsed />);
+      expect(nav()).toHaveClass('is-rail');
+      expect(query).not.toHaveBeenCalled();
+    } finally {
+      process.env.NODE_ENV = previous;
+    }
+  });
+
   it('puts the tooltips on the left of a right-to-left rail', () => {
     mockViewport(DESKTOP);
     const real = window.getComputedStyle;
