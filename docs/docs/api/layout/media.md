@@ -61,16 +61,31 @@ This example demonstrates the `Media` component with its subcomponents: `Media.L
         be necessary.
       </Paragraph>
     </Content>
-    <Level isMobile>
+    <Level as="div" isMobile>
       <Level.Left>
-        <Level.Item as="a">
-          <Icon name="reply" variant="solid" size="small" />
+        <Level.Item>
+          <IconButton
+            color="text"
+            size="small"
+            icon="reply"
+            aria-label="Reply"
+          />
         </Level.Item>
-        <Level.Item as="a">
-          <Icon name="retweet" variant="solid" size="small" />
+        <Level.Item>
+          <IconButton
+            color="text"
+            size="small"
+            icon="retweet"
+            aria-label="Retweet"
+          />
         </Level.Item>
-        <Level.Item as="a">
-          <Icon name="heart" variant="solid" size="small" />
+        <Level.Item>
+          <IconButton
+            color="text"
+            size="small"
+            icon="heart"
+            aria-label="Like"
+          />
         </Level.Item>
       </Level.Left>
     </Level>
@@ -103,12 +118,10 @@ This example shows the `Media` component used with form inputs. The `Media.Conte
         <TextArea placeholder="Add a comment..." />
       </Control>
     </Field>
-    <Level>
+    <Level as="div">
       <Level.Left>
         <Level.Item>
-          <Button as="a" color="info">
-            Submit
-          </Button>
+          <Button color="info">Submit</Button>
         </Level.Item>
       </Level.Left>
       <Level.Right>
@@ -147,7 +160,14 @@ Demonstrates the `Media` component's ability to nest for threaded comments or re
         foreign danger.
         <br />
         <small>
-          <a>Like</a> &middot; <a>Reply</a> &middot; 3 hrs
+          <LinkButton variant="underline" size="small" color="link">
+            Like
+          </LinkButton>{' '}
+          &middot;{' '}
+          <LinkButton variant="underline" size="small" color="link">
+            Reply
+          </LinkButton>{' '}
+          &middot; 3 hrs
         </small>
       </Paragraph>
     </Content>
@@ -171,7 +191,14 @@ Demonstrates the `Media` component's ability to nest for threaded comments or re
             definition of tyranny.
             <br />
             <small>
-              <a>Like</a> &middot; <a>Reply</a> &middot; 2 hrs
+              <LinkButton variant="underline" size="small" color="link">
+                Like
+              </LinkButton>{' '}
+              &middot;{' '}
+              <LinkButton variant="underline" size="small" color="link">
+                Reply
+              </LinkButton>{' '}
+              &middot; 2 hrs
             </small>
           </Paragraph>
         </Content>
@@ -202,7 +229,14 @@ Demonstrates the `Media` component's ability to nest for threaded comments or re
             influence the policy of nations.
             <br />
             <small>
-              <a>Like</a> &middot; <a>Reply</a> &middot; 2 hrs
+              <LinkButton variant="underline" size="small" color="link">
+                Like
+              </LinkButton>{' '}
+              &middot;{' '}
+              <LinkButton variant="underline" size="small" color="link">
+                Reply
+              </LinkButton>{' '}
+              &middot; 2 hrs
             </small>
           </Paragraph>
         </Content>
@@ -269,9 +303,7 @@ In this variation, a button is placed below the input area within the `Media.Con
     </Content>
   </Media.Content>
   <Media.Right>
-    <Button as="a" size="small">
-      Reply
-    </Button>
+    <Button size="small">Reply</Button>
   </Media.Right>
 </Media>
 ```
@@ -283,6 +315,8 @@ In this variation, a button is placed below the input area within the `Media.Con
 - The Media root renders as a semantic `<article>` by default. Use `as="div"` for a generic container.
 - The left section is commonly used for avatars (as `<figure>`) and is screen-reader accessible.
 - Use clear and descriptive text in content and actions for best accessibility.
+- The `Level` rows in these examples hold actions, not navigation, so they pass `as="div"` rather than render Level's default `<nav>`, a navigation landmark.
+- Make an action a `<button>`, like the icon-only [`IconButton`](../elements/iconbutton.md)s in the first example, which require a name (`aria-label`) and hide their glyph from assistive technology. Make it a link only when it goes somewhere, with an `href`: an `<a>` without one takes no keyboard focus and isn't announced as anything to activate.
 
 :::note
 When using only icons or controls, provide `aria-label` or screen-reader-only content as appropriate.
@@ -294,7 +328,7 @@ When using only icons or controls, provide `aria-label` or screen-reader-only co
 
 - [`Level`](./level.md): For actions or stats inside the media content.
 - [`Image`](../elements/image.md): For avatars or thumbnails.
-- [`Button`](../elements/button.md), [`Checkbox`](../form/checkbox.md), [`TextArea`](../form/textarea.md): For interactive content.
+- [`Button`](../elements/button.md), [`IconButton`](../elements/iconbutton.md), [`LinkButton`](../elements/linkbutton.md), [`Checkbox`](../form/checkbox.md), [`TextArea`](../form/textarea.md): For interactive content.
 - [Helper Props](../helpers/usebulmaclasses.md): Use Bulma utility helpers for spacing, color, etc.
 
 ---

@@ -1,21 +1,14 @@
 import React, { forwardRef, useEffect, useCallback, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { useScrollLock } from '../helpers/scrollLock';
-import { usePortalContainer } from '../helpers/portal';
-import { LocalePortalScope } from '../helpers/LocaleProvider';
-import { useConfig } from '../helpers/Config';
+import { Portal, usePortalProp } from '../helpers/portal';
 import { buttonType } from '../helpers/buttonType';
-import { useLatestRef } from '../helpers/useLatestRef';
-import { isModalOverlayOpen, useOverlayStack } from '../helpers/overlayStack';
-import { focusTabStop, trapTab } from '../helpers/useFocusTrap';
+import { useOverlayEscape, useOverlayStack } from '../helpers/overlayStack';
+import { trapTab } from '../helpers/useFocusTrap';
+import { useOverlayFocus } from '../helpers/useOverlayFocus';
 import { inertProps } from '../helpers/inertProps';
-import {
-  getActiveElementInTree,
-  getDeepestActiveElement,
-} from '../helpers/shadowDom';
 
 /** Position of the sidebar relative to the viewport. */
 export type SidebarPosition = 'left' | 'right';
@@ -54,7 +47,7 @@ export interface SidebarProps
   fullWidth?: boolean;
   /**
    * Show an overlay behind the sidebar, which makes it modal: it gets
-   * `aria-modal="true"`, locks body scroll, and keeps Tab and Shift+Tab
+   * `aria-modal="true"`, locks page scroll, and keeps Tab and Shift+Tab
    * inside it while it is the topmost modal overlay. A Modal or Dialog opened
    * over it, even one rendered inside it, holds Tab until it closes. Without
    * an overlay the sidebar isn't modal and holds no Tab: on the page, Tab
@@ -79,9 +72,22 @@ export interface SidebarProps
   escapeClose?: boolean;
   /** Allow closing the sidebar. Default: true. */
   canCancel?: boolean;
-  /** Content to display in the sidebar. */
+  /**
+   * Content to display in the sidebar. A popup in it that portals, such as a
+   * Popover's or a date picker's panel with `appendToBody`, goes to the end
+   * of the page and renders under an open sidebar. To show it above, wrap
+   * the popup in a `ConfigProvider` whose `portalContainer` is an element of
+   * your own outside the sidebar that stacks above it, such as one with
+   * `position: relative` and a higher `z-index`. With an overlay, the
+   * sidebar's `aria-modal` still hides the popup there from screen readers
+   * that honor it.
+   */
   children?: React.ReactNode;
-  /** Renders inline instead of using a portal. */
+  /**
+   * Renders inline instead of using a portal. Without it, the sidebar renders
+   * inline on the server and while hydrating, moving into the portal once the
+   * client takes over, so hydration matches.
+   */
   inline?: boolean;
 }
 
@@ -133,11 +139,11 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
     ref
   ) => {
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
-    const resolveContainer = usePortalContainer();
-    const { portalContainer } = useConfig();
-    // Where the configured default puts the sidebar. An `inline` one doesn't
-    // portal, so a change to the default moves nothing.
-    const defaultTarget = inline ? undefined : portalContainer;
+    // A portal has no server-rendered counterpart, so the sidebar renders in
+    // place on the server and while hydrating, and moves into its portal once
+    // the client takes over, as Modal's `portal` does. An `inline` one stays
+    // in place, so a change to the configured default moves nothing.
+    const { isPortaled, defaultTarget } = usePortalProp(!inline);
     const sidebarRef = useRef<HTMLElement>(null);
     // Cleanup returned by a consumer's callback ref on attach, held until detach.
     const consumerCleanupRef = useRef<(() => void) | null>(null);
@@ -157,11 +163,6 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
       }
     }, [overlayClose, handleClose]);
 
-    // Read when Escape arrives, so the key listener stays put while
-    // `onClose` changes identity, as an inline one does on every render of
-    // the parent.
-    const handleCloseRef = useLatestRef(handleClose);
-
     // Joins the stack of open overlays, so the sidebar answers Escape only
     // while it's the topmost overlay, and keeps it from those under it. It's
     // modal with an overlay: without one it leaves Tab to a modal overlay
@@ -169,21 +170,9 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
     const isTopmost = useOverlayStack(isOpen, overlay);
     const closesOnEscape = escapeClose && canCancel && Boolean(onClose);
 
-    // Handle escape key. On `window`, as in `Modal`, so everything inside the
-    // sidebar has had the key first, and an Escape it used is left to it. One
-    // the sidebar closes on is marked used, so nothing under it acts on it.
-    useEffect(() => {
-      if (!isOpen || !closesOnEscape) return;
-
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key !== 'Escape' || e.defaultPrevented || !isTopmost()) return;
-        e.preventDefault();
-        handleCloseRef.current();
-      };
-
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen, closesOnEscape, handleCloseRef, isTopmost]);
+    // Escape closes it, on `window`, as in `Modal`, so everything inside the
+    // sidebar has had the key first, and an Escape it used is left to it.
+    useOverlayEscape(isOpen && closesOnEscape, isTopmost, handleClose);
 
     // Keep Tab inside while there's an overlay, as `Modal` does:
     // `aria-modal` hides the rest of the page from assistive technology, so
@@ -206,47 +195,25 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
       );
     }, [isOpen, overlay, isTopmost]);
 
-    // Prevent body scroll when sidebar is open. Ref-counted through the shared
-    // helper so an overlapping Modal/Dialog/Loading doesn't unlock underneath.
+    // Lock the page's scrolling when sidebar is open. Ref-counted through the
+    // shared helper so an overlapping Modal/Dialog/Loading doesn't unlock
+    // underneath.
     useScrollLock(isOpen && overlay);
 
     // Move focus into the sidebar on open, to the first stop Tab wraps to or
-    // the sidebar itself, and hand it back on close, as `Modal` does. A
-    // different `defaultTarget` remounts the portaled sidebar: the cleanup
-    // hands focus back from the old nodes, which left it on <body>, and the
-    // re-run records the same opener and focuses the new nodes. Whether it
-    // takes focus is decided as it opens, so `overlay` changing while it's
-    // open leaves focus where the user has it.
-    useEffect(() => {
-      if (!isOpen) return undefined;
-      const element = sidebarRef.current;
-      /* istanbul ignore if: the aside renders whenever the sidebar is open, so its ref is set before this runs */
-      if (!element) return undefined;
-
-      // The element that had focus, wherever it sits: a portaled sidebar
-      // renders under `document.body` while its opener can be inside a
-      // shadow root.
-      const opener = getDeepestActiveElement() as HTMLElement | null;
-      // Without an overlay the sidebar holds no Tab, so with a modal overlay
-      // open under it, the first Tab would take focus back there and leave
-      // the sidebar's other controls out of reach. It leaves focus alone
-      // then, and the cleanup below finds focus outside and leaves it too.
-      if (overlay || !isModalOverlayOpen()) {
-        focusTabStop(element);
-      }
-
-      return () => {
-        // Only while the sidebar still holds focus: closing one under another
-        // overlay mustn't pull focus out of the one on top, and focus moved
-        // out to the page stays there. A removed subtree leaves focus on
-        // <body>, which still counts as held.
-        const active = getActiveElementInTree(element);
-        if (active === document.body || element.contains(active)) {
-          opener?.focus();
-        }
-      };
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- `overlay` is read as the sidebar opens, on purpose
-    }, [isOpen, defaultTarget]);
+    // the sidebar itself, and hand it back on close, as `Modal` does. Moving
+    // into the portal after hydration, or to a different `defaultTarget`,
+    // remounts the sidebar: focus is handed back from the old nodes and moved
+    // into the new ones. Whether it takes focus is decided as it opens, so
+    // `overlay` changing while it's open leaves focus where the user has it.
+    // Without an overlay the sidebar holds no Tab, so with a modal overlay
+    // open under it, it leaves focus alone: the first Tab would take focus
+    // back there and leave the sidebar's other controls out of reach.
+    useOverlayFocus(sidebarRef, isOpen, {
+      modal: overlay,
+      // In place it's `false`, which no portal target is.
+      remountKey: isPortaled ? defaultTarget : false,
+    });
 
     // Use combined ref
     const combinedRef = useCallback(
@@ -332,20 +299,8 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
       </>
     );
 
-    if (inline) {
-      return sidebarContent;
-    }
-
-    // Render to portal for proper stacking
-    if (typeof document !== 'undefined') {
-      const target = resolveContainer();
-      return createPortal(
-        <LocalePortalScope target={target}>{sidebarContent}</LocalePortalScope>,
-        target
-      );
-    }
-
-    return null;
+    // In a portal for proper stacking.
+    return <Portal disabled={!isPortaled}>{sidebarContent}</Portal>;
   }
 );
 
@@ -354,7 +309,7 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
 /**
  * Props for the SidebarHeader component.
  */
-interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Header content. */
   children?: React.ReactNode;
 }
@@ -366,7 +321,7 @@ interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
  * @param {SidebarHeaderProps} props - Props for the SidebarHeader component.
  * @returns {JSX.Element} The rendered sidebar header.
  */
-const SidebarHeader: React.FC<SidebarHeaderProps> = ({
+export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
   className,
   children,
   ...props
@@ -382,7 +337,7 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = ({
 /**
  * Props for the SidebarTitle component.
  */
-interface SidebarTitleProps extends React.HTMLAttributes<HTMLParagraphElement> {
+export interface SidebarTitleProps extends React.HTMLAttributes<HTMLParagraphElement> {
   /** Title content. */
   children?: React.ReactNode;
 }
@@ -394,7 +349,7 @@ interface SidebarTitleProps extends React.HTMLAttributes<HTMLParagraphElement> {
  * @param {SidebarTitleProps} props - Props for the SidebarTitle component.
  * @returns {JSX.Element} The rendered sidebar title.
  */
-const SidebarTitle: React.FC<SidebarTitleProps> = ({
+export const SidebarTitle: React.FC<SidebarTitleProps> = ({
   className,
   children,
   ...props
@@ -413,7 +368,7 @@ const SidebarTitle: React.FC<SidebarTitleProps> = ({
  * @extraProp {'button' | 'submit' | 'reset'} [type='button'] - Button type. Defaults to `'button'`, so a close button inside a form does not submit it. Pass `'submit'` or `'reset'` and yours is used; any other value, or a spread carrying `type: undefined`, renders `'button'`.
  * @extraProp {string} [aria-label='Close'] - Accessible name. Pass your own to replace it. An empty one, or a spread carrying `'aria-label': undefined`, keeps the default rather than leaving the button unnamed.
  */
-type SidebarCloseProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
+export type SidebarCloseProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 /**
  * Close button for the sidebar.
@@ -422,7 +377,7 @@ type SidebarCloseProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
  * @param {SidebarCloseProps} props - Props for the SidebarClose component.
  * @returns {JSX.Element} The rendered close button.
  */
-const SidebarClose: React.FC<SidebarCloseProps> = ({
+export const SidebarClose: React.FC<SidebarCloseProps> = ({
   className,
   children,
   ...props
@@ -448,7 +403,7 @@ const SidebarClose: React.FC<SidebarCloseProps> = ({
 /**
  * Props for the SidebarBody component.
  */
-interface SidebarBodyProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface SidebarBodyProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Body content. */
   children?: React.ReactNode;
 }
@@ -460,7 +415,7 @@ interface SidebarBodyProps extends React.HTMLAttributes<HTMLDivElement> {
  * @param {SidebarBodyProps} props - Props for the SidebarBody component.
  * @returns {JSX.Element} The rendered sidebar body.
  */
-const SidebarBody: React.FC<SidebarBodyProps> = ({
+export const SidebarBody: React.FC<SidebarBodyProps> = ({
   className,
   children,
   ...props
@@ -476,7 +431,7 @@ const SidebarBody: React.FC<SidebarBodyProps> = ({
 /**
  * Props for the SidebarFooter component.
  */
-interface SidebarFooterProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface SidebarFooterProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Footer content. */
   children?: React.ReactNode;
 }
@@ -488,7 +443,7 @@ interface SidebarFooterProps extends React.HTMLAttributes<HTMLDivElement> {
  * @param {SidebarFooterProps} props - Props for the SidebarFooter component.
  * @returns {JSX.Element} The rendered sidebar footer.
  */
-const SidebarFooter: React.FC<SidebarFooterProps> = ({
+export const SidebarFooter: React.FC<SidebarFooterProps> = ({
   className,
   children,
   ...props

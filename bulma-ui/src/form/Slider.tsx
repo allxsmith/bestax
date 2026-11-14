@@ -13,7 +13,7 @@ import {
 } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useClassPrefix } from '../helpers/Config';
-import { useNumberFormat } from '../helpers/localeFormat';
+import { useScopedNumberFormat } from '../helpers/localeFormat';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import {
   useInsideField,
@@ -451,7 +451,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     );
 
     // Format helper: the caller's, else the locale's, else the number as is.
-    const formatNumber = useNumberFormat();
+    const formatNumber = useScopedNumberFormat();
     const writeNumber = useCallback(
       (v: number) => (formatNumber ? formatNumber(v) : v.toString()),
       [formatNumber]
@@ -536,6 +536,9 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       ? `(${thumbCssVar} * 1.2)`
       : thumbCssVar;
 
+    // Measured from where the track starts: its inline start when
+    // horizontal, which is the right edge right to left, where the native
+    // range puts its minimum, and its bottom when vertical.
     const getThumbLeft = (progressPct: number) => {
       const fraction = progressPct / 100;
       return `calc(${effectiveThumbExpr} / 2 + ${fraction} * (100% - ${effectiveThumbExpr}))`;
@@ -626,10 +629,15 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       ): number => {
         const wr = wrapper.getBoundingClientRect();
         const tooltipWidth = el.offsetWidth;
-        // Corrected center: accounts for thumb inset from track edges
+        // Corrected center: accounts for thumb inset from track edges. The
+        // native range mirrors right to left, so the thumb is that far from
+        // the right edge instead, and the nudge, a physical shift, follows.
         const fraction = progressPct / 100;
+        const along = thumbSizePx / 2 + fraction * (wr.width - thumbSizePx);
         const centerX =
-          wr.left + thumbSizePx / 2 + fraction * (wr.width - thumbSizePx);
+          getComputedStyle(wrapper).direction === 'rtl'
+            ? wr.right - along
+            : wr.left + along;
         const tooltipLeft = centerX - tooltipWidth / 2;
         const tooltipRight = centerX + tooltipWidth / 2;
         if (tooltipLeft < wr.left) {
@@ -704,9 +712,11 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         <div className={prefixedClassNames(classPrefix, 'slider-ticks')}>
           {tickPositions.map((tick, i) => {
             const pct = ((tick.value - min) / (max - min)) * 100;
+            // From the inline start, so a right-to-left page puts 0 on the
+            // right, where the native thumb sits. Left to right that is `left`.
             const posStyle = isVertical
               ? { bottom: `${pct}%` }
-              : { left: `${pct}%` };
+              : { insetInlineStart: `${pct}%` };
             const isEndpoint = tick.value === min || tick.value === max;
             return (
               <span
@@ -793,8 +803,8 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
                         right: 'auto',
                       }) as React.CSSProperties)
                 : ({
-                    left: getThumbLeft(progressSingle),
-                    transform: `translateX(calc(-50% + ${nudgeX}px))`,
+                    insetInlineStart: getThumbLeft(progressSingle),
+                    transform: `translateX(calc(var(--slider-output-shift, -50%) + ${nudgeX}px))`,
                     '--slider-output-arrow-offset': `calc(50% - ${nudgeX}px)`,
                   } as React.CSSProperties)
             }
@@ -917,8 +927,8 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
                         right: 'auto',
                       }) as React.CSSProperties)
                 : ({
-                    left: getThumbLeft(progressLow),
-                    transform: `translateX(calc(-50% + ${nudgeX}px))`,
+                    insetInlineStart: getThumbLeft(progressLow),
+                    transform: `translateX(calc(var(--slider-output-shift, -50%) + ${nudgeX}px))`,
                     '--slider-output-arrow-offset': `calc(50% - ${nudgeX}px)`,
                   } as React.CSSProperties)
             }
@@ -954,8 +964,8 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
                         right: 'auto',
                       }) as React.CSSProperties)
                 : ({
-                    left: getThumbLeft(progressHigh),
-                    transform: `translateX(calc(-50% + ${nudgeXHigh}px))`,
+                    insetInlineStart: getThumbLeft(progressHigh),
+                    transform: `translateX(calc(var(--slider-output-shift, -50%) + ${nudgeXHigh}px))`,
                     '--slider-output-arrow-offset': `calc(50% - ${nudgeXHigh}px)`,
                   } as React.CSSProperties)
             }

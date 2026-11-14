@@ -13,6 +13,7 @@ import {
 import { useClassPrefix } from '../helpers/Config';
 import type { PolymorphicComponentWithoutRef } from '../helpers/polymorphic';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { usePrefersReducedMotion } from '../helpers/usePrefersReducedMotion';
 
 /**
  * Animation styles available for the Reveal component.
@@ -72,35 +73,6 @@ export type RevealProps<T extends React.ElementType = 'div'> = RevealOwnProps &
  * `RevealProps<T>` above — the body cannot see through `T`.
  */
 type RevealImplProps = RevealOwnProps & { as?: React.ElementType };
-
-/**
- * Detects the user's `prefers-reduced-motion` preference. Always `false` on
- * the server and on the very first client render, so SSR output and the
- * initial hydration pass always agree.
- *
- * @function
- * @returns {boolean} Whether the user has requested reduced motion.
- */
-function usePrefersReducedMotion(): boolean {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
-
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- reads the live media query on mount
-    setPrefersReducedMotion(mediaQuery.matches);
-
-    const handleChange = (event: MediaQueryListEvent) => {
-      setPrefersReducedMotion(event.matches);
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
-
-  return prefersReducedMotion;
-}
 
 /**
  * The `Reveal` component animates its content into view as it scrolls into the viewport, backed by `IntersectionObserver`.

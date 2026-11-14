@@ -671,7 +671,9 @@ A press in the list never takes focus from the field.
 - **The dialog** is a modal `dialog` with `aria-modal`, around the Command's box, inside a
   `Modal` that's `role="presentation"`. Focus moves to the search field when it opens, stays
   inside while it's open, and goes back to where it was when it closes. The page behind it
-  doesn't scroll.
+  doesn't scroll. A popup opened inside it, such as a `Popover` with `appendToBody`, is portaled
+  into the Command's box, the element with `aria-modal`, unless a
+  [`ConfigProvider`](../helpers/config.md#where-portaled-content-goes) sets a `portalContainer`.
 - **The shortcut** never fires while someone is typing, so it can't swallow a letter, and it
   leaves a key the page has already used alone. Nothing announces it, so put it on a button with
   `aria-keyshortcuts`, and show it with `Kbd`.

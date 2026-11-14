@@ -1,0 +1,620 @@
+{
+  "name": "TreeSelect",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/treeselect",
+  "docsUrl": "https://bestax.io/docs/api/form/treeselect",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<TreeSelect\n  label=\"Save to\"\n  placeholder=\"Pick a folder\"\n  data={[\n    {\n      value: 'docs',\n      label: 'Documents',\n      children: [\n        { value: 'invoices', label: 'Invoices' },\n        { value: 'contracts', label: 'Contracts' },\n      ],\n    },\n    {\n      value: 'photos',\n      label: 'Photos',\n      children: [\n        { value: 'summer', label: 'Summer' },\n        { value: 'winter', label: 'Winter' },\n      ],\n    },\n    { value: 'shared', label: 'Shared with me', disabled: true },\n  ]}\n/>"
+    },
+    {
+      "title": "Holding the Value",
+      "code": "function example() {\n  const [folder, setFolder] = useState<string | null>('invoices');\n\n  return (\n    <>\n      <TreeSelect\n        label=\"Save to\"\n        value={folder}\n        onChange={setFolder}\n        clearable\n        data={[\n          {\n            value: 'docs',\n            label: 'Documents',\n            children: [\n              { value: 'invoices', label: 'Invoices' },\n              { value: 'contracts', label: 'Contracts' },\n            ],\n          },\n          { value: 'photos', label: 'Photos' },\n        ]}\n      />\n      <Paragraph textSize=\"7\">Value: {String(folder)}</Paragraph>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Only Leaves",
+      "code": "<TreeSelect\n  label=\"File\"\n  parentsSelectable={false}\n  data={[\n    {\n      value: 'src',\n      label: 'src',\n      children: [\n        { value: 'src/index.ts', label: 'index.ts' },\n        { value: 'src/app.tsx', label: 'app.tsx' },\n      ],\n    },\n    { value: 'package.json', label: 'package.json' },\n  ]}\n/>"
+    },
+    {
+      "title": "Searching",
+      "code": "<TreeSelect\n  label=\"Country\"\n  searchable\n  empty=\"No places match\"\n  data={[\n    {\n      value: 'europe',\n      label: 'Europe',\n      children: [\n        { value: 'france', label: 'France' },\n        { value: 'germany', label: 'Germany' },\n        { value: 'spain', label: 'Spain' },\n      ],\n    },\n    {\n      value: 'asia',\n      label: 'Asia',\n      children: [\n        { value: 'japan', label: 'Japan' },\n        { value: 'korea', label: 'Korea' },\n      ],\n    },\n  ]}\n/>"
+    },
+    {
+      "title": "Checking a Branch",
+      "code": "function example() {\n  const [regions, setRegions] = useState<string[]>(['france', 'germany']);\n\n  return (\n    <>\n      <TreeSelect\n        label=\"Regions\"\n        selectionMode=\"checkbox\"\n        value={regions}\n        onChange={setRegions}\n        searchable\n        data={[\n          {\n            value: 'europe',\n            label: 'Europe',\n            children: [\n              { value: 'france', label: 'France' },\n              { value: 'germany', label: 'Germany' },\n              { value: 'spain', label: 'Spain' },\n            ],\n          },\n          {\n            value: 'asia',\n            label: 'Asia',\n            children: [\n              { value: 'japan', label: 'Japan' },\n              { value: 'korea', label: 'Korea' },\n            ],\n          },\n        ]}\n      />\n      <Paragraph textSize=\"7\">Value: {JSON.stringify(regions)}</Paragraph>\n    </>\n  );\n}"
+    },
+    {
+      "title": "What the Value Holds",
+      "code": "function example() {\n  const [regions, setRegions] = useState<string[]>(['europe']);\n\n  return (\n    <>\n      <TreeSelect\n        label=\"Regions, as their topmost checked items\"\n        selectionMode=\"checkbox\"\n        checkedStrategy=\"parent\"\n        value={regions}\n        onChange={setRegions}\n        data={[\n          {\n            value: 'europe',\n            label: 'Europe',\n            children: [\n              { value: 'france', label: 'France' },\n              { value: 'germany', label: 'Germany' },\n            ],\n          },\n          { value: 'oceania', label: 'Oceania' },\n        ]}\n      />\n      <Paragraph textSize=\"7\">Value: {JSON.stringify(regions)}</Paragraph>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Checking Items One by One",
+      "code": "<TreeSelect\n  label=\"Categories\"\n  selectionMode=\"checkbox-independent\"\n  defaultValue={['clothing']}\n  data={[\n    {\n      value: 'clothing',\n      label: 'Clothing',\n      children: [\n        { value: 'shirts', label: 'Shirts' },\n        { value: 'shoes', label: 'Shoes' },\n      ],\n    },\n    { value: 'books', label: 'Books' },\n  ]}\n/>"
+    },
+    {
+      "title": "Loading Branches as They Open",
+      "code": "function example() {\n  const [loaded, setLoaded] = useState(false);\n  const [loading, setLoading] = useState(false);\n\n  return (\n    <TreeSelect\n      label=\"Folder\"\n      onExpandedChange={expanded => {\n        if (expanded.includes('photos') && !loaded && !loading) {\n          setLoading(true);\n          setTimeout(() => {\n            setLoaded(true);\n            setLoading(false);\n          }, 1000);\n        }\n      }}\n      data={[\n        {\n          value: 'photos',\n          label: 'Photos',\n          hasChildren: true,\n          isLoading: loading,\n          children: loaded\n            ? [\n                { value: 'summer', label: 'Summer' },\n                { value: 'winter', label: 'Winter' },\n              ]\n            : undefined,\n        },\n        { value: 'docs', label: 'Documents' },\n      ]}\n    />\n  );\n}"
+    },
+    {
+      "title": "In a Form",
+      "code": "<form onSubmit={event => event.preventDefault()}>\n  <TreeSelect\n    label=\"Department\"\n    name=\"department\"\n    required\n    data={[\n      {\n        value: 'engineering',\n        label: 'Engineering',\n        children: [\n          { value: 'frontend', label: 'Frontend' },\n          { value: 'platform', label: 'Platform' },\n        ],\n      },\n      { value: 'design', label: 'Design' },\n    ]}\n  />\n  <Button type=\"submit\" color=\"primary\">\n    Save\n  </Button>\n</form>"
+    },
+    {
+      "title": "Icons and Rows of Your Own",
+      "code": "<TreeSelect\n  label=\"Team\"\n  itemTemplate={node => (\n    <>\n      {node.label} <Tag>{node.value}</Tag>\n    </>\n  )}\n  data={[\n    {\n      value: 'eng',\n      label: 'Engineering',\n      icon: 'people-group',\n      children: [\n        { value: 'web', label: 'Web', icon: 'globe' },\n        { value: 'mobile', label: 'Mobile', icon: 'mobile' },\n      ],\n    },\n  ]}\n/>"
+    },
+    {
+      "title": "Sizes and Colors",
+      "code": "<>\n  <TreeSelect\n    label=\"Small\"\n    size=\"small\"\n    color=\"info\"\n    data={[{ value: 'a', label: 'Alpha' }]}\n  />\n  <TreeSelect\n    label=\"Large, rounded\"\n    size=\"large\"\n    isRounded\n    data={[{ value: 'a', label: 'Alpha' }]}\n  />\n</>"
+    },
+    {
+      "title": "In Another Language",
+      "code": "<TreeSelect\n  label=\"Dossier\"\n  placeholder=\"Choisir un dossier\"\n  searchable\n  clearable\n  defaultValue=\"factures\"\n  labels={{\n    choose: 'Choisir un dossier',\n    search: 'Rechercher',\n    clear: 'Effacer',\n    loading: 'Chargement…',\n    retry: 'Réessayer',\n    loadingAnnouncement: name => `Chargement de ${name}`,\n    loadedAnnouncement: name => `${name} chargé`,\n  }}\n  data={[\n    {\n      value: 'documents',\n      label: 'Documents',\n      children: [\n        { value: 'factures', label: 'Factures' },\n        { value: 'contrats', label: 'Contrats' },\n      ],\n    },\n    { value: 'photos', label: 'Photos' },\n  ]}\n/>"
+    },
+    {
+      "title": "Right to Left",
+      "code": "<LocaleProvider locale=\"ar\" dir=\"rtl\">\n  <TreeSelect\n    label=\"المجلد\"\n    defaultValue=\"invoices\"\n    clearable\n    data={[\n      {\n        value: 'docs',\n        label: 'المستندات',\n        children: [{ value: 'invoices', label: 'الفواتير' }],\n      },\n      { value: 'photos', label: 'الصور' },\n    ]}\n  />\n</LocaleProvider>"
+    }
+  ],
+  "accessibility": "- **The field is a combobox that opens a dialog,** as the date pickers' is: `role=\"combobox\"`\n  with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls` while the panel is open,\n  named by its `label`. It's read-only, and in `'single'` its value is the picked item's label.\n  In the checkbox modes it's described by the tags.\n- **Keys on the field:** a click, Enter, Space, Down or Alt+Down opens the panel, and with\n  `searchable` a printable key opens it with that key in the search box.\n- **The panel** is a non-modal `dialog`, named by the label or `labels.choose`. Focus moves into\n  it as it opens: onto the picked item, its branch open, or onto the search box when\n  `searchable`, or else onto the first item. It holds focus while it's open, as the date\n  pickers' panel does: Tab and Shift+Tab move between the search box and the tree, and wrap.\n  Escape and Alt+Up close it and put focus back on the field, and so does a pick in `'single'`.\n  A press outside closes it and leaves focus where the press put it.\n- **The tree** is TreeView's, with the same name as the panel: real focus with one tab stop, the\n  arrow keys, Home, End, `*` and type-ahead, Right and Left swapped on a right-to-left page,\n  `aria-level`, `aria-posinset` and `aria-setsize` on every item, `aria-selected` in `'single'`,\n  `aria-checked` in the checkbox modes (`\"mixed\"` only in `'checkbox'`), and disabled items\n  reachable and `aria-disabled`. See [`TreeView`](https://bestax.io/docs/api/components/treeview#accessibility).\n- **The search box** is named \"Search\", or `labels.search`. When nothing matches, `empty` is said\n  once through a polite status region, not again on every key.\n- **Each tag's button** is a `Delete` named \"Remove\" and the item's label, or `ariaCloseLabel`\n  described by the tag's label.\n- **`required`** makes the field `aria-required`. A read-only field is left out of the browser's\n  own check, so a hidden field over it carries `required`. When the browser stops a submit, it\n  focuses that one and shows its message, which every browser takes down as it loses focus. So\n  focus stays there, reading as the field and drawn on it, with no on-screen keyboard. A press\n  goes where it lands, and the next key, other than a modifier on its own, goes to the field and\n  does what it would there.\n- **Forced colors:** the field, the panel and the tree keep their edges in system colors, and the\n  chevron is text.",
+  "related": ["Combobox", "DateInput", "Select", "TreeView", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-treeselect--default",
+  "summary": "The `TreeSelect` component is a form field whose options are a tree, such as categories, places or teams: it opens a panel holding a real `TreeView`, picks one item or checks a branch at a time, and searches labels. The field is a read-only `role=\"combobox\"` that opens a dialog, wired as DateInput's is, so focus moves into the tree for real and the tree keeps TreeView's keys, type-ahead and spoken output. The tree is given as `data`, so the field and the tags can name what's picked while the panel is shut, and on the server. `selectionMode` picks the kind. `'single'` picks one item and closes. With `'checkbox'`, a check reaches every enabled item under it, closed or hidden by a search, and `checkedStrategy` decides what the value holds: the leaves, the topmost checked items or every one. With `'checkbox-independent'`, each box is its own item's, so a parent means itself alone (Mantine's and Ant Design's `checkStrictly`). The value shows as tags under the field. A value no node has is kept and shown as it is, with a warning in development, so a value under a branch that hasn't loaded survives until it does.",
+  "import": "import { TreeSelect } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/TreeSelect.tsx",
+  "rootClass": "tree-select",
+  "parts": [
+    {
+      "path": "TreeSelect",
+      "summary": "The `TreeSelect` component is a form field whose options are a tree, such as categories, places or teams: it opens a panel holding a real `TreeView`, picks one item or checks a branch at a time, and searches labels. The field is a read-only `role=\"combobox\"` that opens a dialog, wired as DateInput's is, so focus moves into the tree for real and the tree keeps TreeView's keys, type-ahead and spoken output. The tree is given as `data`, so the field and the tags can name what's picked while the panel is shut, and on the server. `selectionMode` picks the kind. `'single'` picks one item and closes. With `'checkbox'`, a check reaches every enabled item under it, closed or hidden by a search, and `checkedStrategy` decides what the value holds: the leaves, the topmost checked items or every one. With `'checkbox-independent'`, each box is its own item's, so a parent means itself alone (Mantine's and Ant Design's `checkStrictly`). The value shows as tags under the field. A value no node has is kept and shown as it is, with a warning in development, so a value under a branch that hasn't loaded survives until it does.",
+      "component": null,
+      "props": [
+        {
+          "name": "selectionMode",
+          "type": "'single' | 'checkbox' | 'checkbox-independent'",
+          "default": "'single'",
+          "description": "`'single'`: one item, picked with Enter, Space or a click on its row. `'checkbox'`: any number, with a box on every item. A check reaches every enabled item under it, and a parent with some of them checked is mixed. `'checkbox-independent'`: any number, each box checking its own item, so a parent means the parent alone (Mantine's and Ant Design's `checkStrictly`). The checkbox modes show the value as tags.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "string | null | string[]",
+          "default": null,
+          "description": "The value when you hold the state: in `'single'` the picked item's value, or `null` for none, and in the checkbox modes the checked values. In `'checkbox'` a parent's value checks its whole branch, so the list any `checkedStrategy` gives checks the same boxes.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "string | null | string[]",
+          "default": null,
+          "description": "The value to begin with, when TreeSelect holds its own state: a value or `null`, or a list in the checkbox modes.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(value: string | null) => void | (value: string[]) => void",
+          "default": null,
+          "description": "Called with the new value: in `'single'` the picked item's value, or `null` when it's cleared, and in the checkbox modes the new list, after a check, an uncheck, a tag's button or the clear button, each shaped by `checkedStrategy`. A reset of the field's form calls it too, with `defaultValue` as it was given, or with `null` or `[]` when you hold the value, for you to set.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "parentsSelectable",
+          "type": "boolean",
+          "default": "true",
+          "description": "A parent's row picks the parent. `false` makes the row, Enter and Space open it instead, so only leaves are picked.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnSelect",
+          "type": "boolean",
+          "default": "true",
+          "description": "Closes the panel after a pick and puts focus back on the field.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "checkedStrategy",
+          "type": "'child' | 'parent' | 'all'",
+          "default": "'child'",
+          "description": "What a checked branch puts in the value, in `'checkbox'`: `'child'` its leaves, `'parent'` its topmost checked item, `'all'` every checked item, parents included. A checked disabled item is in all three, since only its own value checks it. It shapes the value a check, an uncheck, a tag's button or the clear button makes, which `onChange` reports, and not `defaultValue`, a value you pass or the one a form reset puts back. The tags and the hidden inputs show the value as it's held, so a value you pass shows as you pass it, and a branch that loads later changes nothing the form posts. `'checkbox-independent'` always reports exactly the checked items.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "ariaCloseLabel",
+          "type": "string",
+          "default": null,
+          "description": "Names each tag's button, in place of \"Remove\" and the item's label, as on Combobox.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "data",
+          "type": "TreeItemData[]",
+          "default": null,
+          "description": "**Required.** The tree, as nodes nested through `children`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The field's label, which names the field through `htmlFor`, and the panel and the tree in it through `aria-labelledby`. Dropped inside an outer `Field`, whose label names them instead.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "default": null,
+          "description": "The field's `id`, which the label then points at. The panel's is this one with `-panel` after it.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "default": null,
+          "description": "Names the field, and the panel and the tree, in place of a `label`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "aria-labelledby",
+          "type": "string",
+          "default": null,
+          "description": "The ids of what names the field, and the panel and the tree, in place of a `label`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "aria-describedby",
+          "type": "string",
+          "default": null,
+          "description": "The ids of what describes the field, ahead of the tags.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "expanded",
+          "type": "string[]",
+          "default": null,
+          "description": "The open branches' values when you hold the state, as TreeView's `expanded`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "defaultExpanded",
+          "type": "string[]",
+          "default": "[]",
+          "description": "The branches open to begin with, when TreeSelect holds its own state.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onExpandedChange",
+          "type": "(expanded: string[]) => void",
+          "default": null,
+          "description": "Called with the new list whenever a branch opens or closes, opening the panel on the picked item's branch included. Fetch a lazy branch's children from here. The branches a search opens aren't in it.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": null,
+          "description": "Whether the panel is open, controlled: opening and closing then only call `onOpenChange`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "default": "false",
+          "description": "The panel is open to begin with.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "default": null,
+          "description": "Called with the new state when the panel opens or closes.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "searchable",
+          "type": "boolean",
+          "default": "false",
+          "description": "Puts a search box at the top of the panel. It matches labels, keeps a match's ancestors and the nodes under it, and opens every branch with a match. A printable key on the field opens the panel with it in the box, and the search empties when the panel closes.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "query",
+          "type": "string",
+          "default": null,
+          "description": "The search text when you hold the state.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "defaultQuery",
+          "type": "string",
+          "default": "''",
+          "description": "The search text to begin with.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onQueryChange",
+          "type": "(query: string) => void",
+          "default": null,
+          "description": "Called with the search text as it changes.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "filter",
+          "type": "(query: string, item: TreeItemData, path: TreeItemData[]) => boolean",
+          "default": null,
+          "description": "Whether a node matches the search, in place of the locale-aware match on its label. It's handed the search text trimmed, the node, and its path from the top node down, the node last, as Cascader's `filter` is. A match's ancestors stay either way. The search runs again when the search text or `data` changes, not when only this does, so one written inline costs nothing.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "empty",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "What the panel shows when the search matches nothing, such as \"No folders match\". Announced once.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "itemTemplate",
+          "type": "(item: TreeItemData) => React.ReactNode",
+          "default": null,
+          "description": "Renders a row's content in place of its label. The field and the tags still show the label.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": null,
+          "description": "What the field shows while nothing is picked.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "A form field name. A hidden input posts the value, or one per value in the checkbox modes.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "form",
+          "type": "string",
+          "default": null,
+          "description": "The id of the form the hidden inputs belong to, when it isn't an ancestor.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": "false",
+          "description": "A value is needed: the field is `aria-required`, and the form won't submit while nothing is picked. The browser's message points at the field, which shows focus, and the next key goes to it.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "The field can't be used: it can't be focused or opened, its tags lose their buttons, and its hidden inputs don't post.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "clearable",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows a clear button at the field's inline end while something it can take off is picked. It leaves checked disabled items, which no control unchecks.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier for the field.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "The field's size, which the tree in the panel follows.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Rounds the field's corners (Bulma's `is-rounded`).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto'",
+          "default": "'bottom-left'",
+          "description": "Where the panel opens against the field, as on the pickers. Left out, it opens below and lines up with the field's start edge, which is its right edge on a right-to-left page. A corner you pass stays physical, so `bottom-left` lines up the left edges either way.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "appendToBody",
+          "type": "boolean",
+          "default": "false",
+          "description": "Renders the panel through a portal, into a `ConfigProvider`'s `portalContainer`, else the overlay it's in that takes its popups, such as a `Modal`, else `document.body`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "TreeSelectLabels",
+          "default": null,
+          "description": "The visible and accessible strings, in your app's language.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "labelSize",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size for the label (used in horizontal layouts).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "horizontal",
+          "type": "boolean",
+          "default": "false",
+          "description": "Horizontal field layout.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Help/validation message below the input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "messageColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color for the message.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "fieldClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Field wrapper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Ref forwarded to the field, the read-only `<input role=\"combobox\">`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-picker-popover-z-index",
+      "sass": "$picker-popover-z-index",
+      "default": "30",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-background",
+      "sass": "$picker-popover-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-radius",
+      "sass": "$picker-popover-radius",
+      "default": "var(--bulma-radius-large)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-shadow",
+      "sass": "$picker-popover-shadow",
+      "default": "0 8px 24px hsla(0, 0%, 0%, 0.18)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-border-color",
+      "sass": "$picker-popover-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-padding",
+      "sass": "$picker-popover-padding",
+      "default": "0.75rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-offset",
+      "sass": "$picker-popover-offset",
+      "default": "4px",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-animation-duration",
+      "sass": "$picker-popover-animation-duration",
+      "default": "0.15s",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-tree-select-panel-max-height",
+      "sass": "$tree-select-panel-max-height",
+      "default": "15rem",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-tree-select-search-gap",
+      "sass": "$tree-select-search-gap",
+      "default": "0.5rem",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-tree-select-chevron-width",
+      "sass": "$tree-select-chevron-width",
+      "default": "var(--bulma-control-height)",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-tree-select-chevron-color",
+      "sass": "$tree-select-chevron-color",
+      "default": "var(--bulma-text-light)",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-tree-select-chevron-hover-color",
+      "sass": "$tree-select-chevron-hover-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-tree-select-chevron-focus-color",
+      "sass": "$tree-select-chevron-focus-color",
+      "default": "var(--bulma-link)",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-tree-select-chevron-z-index",
+      "sass": "$tree-select-chevron-z-index",
+      "default": "4",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-tree-select-clear-z-index",
+      "sass": "$tree-select-clear-z-index",
+      "default": "5",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-tree-select-empty-color",
+      "sass": "$tree-select-empty-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-tree-select-empty-padding",
+      "sass": "$tree-select-empty-padding",
+      "default": "0.5em 0.75em",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-tree-select-tree-inset",
+      "sass": "$tree-select-tree-inset",
+      "default": "4px",
+      "scope": "root-and-element"
+    }
+  ]
+}

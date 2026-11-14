@@ -50,6 +50,8 @@ function Price({ amount }: { amount: number }) {
 }
 ```
 
+For numbers, [`NumberFormatter`](../elements/numberformatter.md) and its `useNumberFormat` hook do this for you, and build one formatter for each set of options rather than one on every render.
+
 It isn't the direction of the page: with no provider, or one that sets no direction, `<html dir>` still decides. To act on the direction an element is laid out in, read `getComputedStyle(element).direction`.
 
 ---
@@ -121,6 +123,8 @@ With a `locale`, the numbers the library writes itself are written the way that 
 </LocaleProvider>
 ```
 
+Numbers of your own follow it through [`NumberFormatter`](../elements/numberformatter.md), and through its `useNumberFormat` hook for text outside JSX, such as an `aria-label`. Outside a provider, those write in the runtime's locale, while the library's own numbers stay as they always were.
+
 Typing in `Combobox`, `Autocomplete`, `Taginput` and `Command` filters the list the way the language compares letters: case and accents are ignored where it treats them as the same letter, so "cafe" finds "Café", while in Swedish "a" doesn't find "å", a letter of its own there. Vowel marks the language leaves out of comparisons, such as Arabic harakat and Hebrew niqqud, don't count on either side, so a name typed without them finds one written with them, and the other way round.
 
 ```tsx live
@@ -137,7 +141,7 @@ The pickers' digits stay as they are: their typed text is a token format of ASCI
 
 ### Portaled Content
 
-What the library portals renders outside the provider's wrapper, at the end of `document.body` or in the `portalContainer` a [`ConfigProvider`](./config.md) sets. Inside a provider, that content keeps the provider's `dir` and `lang`. That covers a `Portal`'s children, a `Popover`, `HoverCard` or `ContextMenu` panel, a `Combobox` menu or picker popover with `appendToBody`, a `Modal` or `Dialog` with `portal`, a `Sidebar`, and toasts and notifications.
+What the library portals renders at the end of `document.body`, in the `portalContainer` a [`ConfigProvider`](./config.md) sets, or, for a popup, in the overlay it was opened in, any of which can be outside the provider's wrapper. Inside a provider, that content keeps the provider's `dir` and `lang`. That covers a `Portal`'s children, a `Popover`, `HoverCard` or `ContextMenu` panel, a `Combobox` menu or picker popover with `appendToBody`, a `Modal` or `Dialog` with `portal`, a `Sidebar`, and toasts and notifications.
 
 A container inside the provider's own wrapper takes the content as it is, and the content follows the provider through the page. Any other, `document.body` included, gets it inside one `<div>` carrying the values, with `display: contents`, so it adds no box and changes no layout. It is still an element, though, so content that must be its container's direct child, such as a `<tr>` portaled into a `<tbody>`, belongs in a container inside the provider. Which of the two is settled when the content mounts: switching the locale while a dialog or a toast is open updates that `<div>` in place, so what's open keeps its typed text, focus and timers.
 
@@ -151,7 +155,7 @@ A container inside the provider's own wrapper takes the content as it is, and th
 </LocaleProvider>
 ```
 
-A date or time picker with a `locale` of its own is read the way a nested provider is: its popover, portaled or not, and an inline calendar take its `lang`, and the direction of its locale unless it has a `dir` of its own. So a French picker in an Arabic section shows a French calendar laid out left to right.
+A date or time picker with a `locale` of its own is read the way a nested provider is: its popover, portaled or not, and an inline calendar take its `lang`, and the direction of its locale unless it has a `dir` of its own. So a French picker in an Arabic section shows a French calendar laid out left to right. The `Control` the picker renders takes that direction too, so its icon stays at the start of the field and the launcher at the end. In a `Control` of your own, give the `Control` the picker's `dir`.
 
 For content you portal yourself without `Portal`, put the values from `useLocale()` on it.
 
@@ -201,7 +205,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
 ### A Locale Intl Doesn't Accept
 
-A tag `Intl` refuses, such as `"en_US"` with an underscore, is ignored: the provider writes no `lang`, keeps an outer provider's locale, and warns once in development. A picker's own `locale` isn't checked this way, and `Intl` throws on such a tag when the picker formats with it, as it always has.
+A tag `Intl` refuses, such as `"en_US"` with an underscore, is ignored: the provider writes no `lang`, keeps an outer provider's locale, and warns once in development. A `NumberFormatter`'s or `useNumberFormat`'s own `locale` is checked the same way: a tag `Intl` refuses is ignored with a warning, and the number is written in the provider's locale. A picker's own `locale` isn't checked this way, and `Intl` throws on such a tag when the picker formats with it, as it always has.
 
 ---
 
@@ -218,6 +222,7 @@ A tag `Intl` refuses, such as `"en_US"` with an underscore, is ignored: the prov
 - [`ConfigProvider`](./config.md): The class prefix, icon library and portal container. A nested one replaces the outer one's settings, which is why the locale lives here instead.
 - [`Portal`](./portal.md): Inside a `LocaleProvider`, its children keep the provider's `dir` and `lang`.
 - [`DateInput`](../form/datetime/dateinput.md): Takes the provider's locale and first day of the week.
+- [`NumberFormatter`](../elements/numberformatter.md): Writes a number in the provider's locale, and `useNumberFormat` does the same for text outside JSX.
 - [`Theme`](./theme.md): Its scoped wrapper is the same idea for CSS variables.
 
 ---

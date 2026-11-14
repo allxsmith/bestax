@@ -205,6 +205,18 @@ function FieldsetIcon() {
   );
 }
 
+// A photo, mountains and a sun in a frame, between previous and next chevrons
+function LightboxIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="5" y="5" width="14" height="14" rx="1.5" />
+      <path d="M5 16l4-4 3 3 2-2 5 5" />
+      <circle cx="14.5" cy="9.5" r="1.3" />
+      <path d="M2.5 10l-1.5 2 1.5 2M21.5 10l1.5 2-1.5 2" />
+    </svg>
+  );
+}
+
 // Spinner arc — loading
 function LoadingIcon() {
   return (
@@ -235,6 +247,20 @@ function HoverCardIcon() {
       <rect x="3" y="12" width="18" height="9.5" rx="2" />
       <circle cx="7.5" cy="16.75" r="1.9" />
       <path d="M11.5 15.5h6M11.5 18h4" />
+    </svg>
+  );
+}
+
+// A field holding three dots, and an eye at its end
+function PasswordInputIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="1.5" y="7" width="21" height="10" rx="2" />
+      <circle cx="5" cy="12" r="0.6" />
+      <circle cx="8" cy="12" r="0.6" />
+      <circle cx="11" cy="12" r="0.6" />
+      <path d="M14.5 12s1.5-2.2 3.5-2.2 3.5 2.2 3.5 2.2-1.5 2.2-3.5 2.2-3.5-2.2-3.5-2.2z" />
+      <circle cx="18" cy="12" r="0.8" />
     </svg>
   );
 }
@@ -318,6 +344,29 @@ function IconButtonIcon() {
   );
 }
 
+// A one, a comma and a zero, a number written the way a locale writes it
+function NumberFormatterIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M5.5 8.5 8 6v12" />
+      <path d="M11.5 17v1.2c0 .9-.5 1.6-1.2 2" />
+      <ellipse cx="16.5" cy="12" rx="3.5" ry="6" />
+    </svg>
+  );
+}
+
+// A short faint label over a large figure, with an arrow pointing up beside a small change
+function StatIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M4 5h7" strokeOpacity="0.45" />
+      <path d="M4.5 11.5h12" strokeWidth="4" />
+      <path d="M4.5 19.5l2.5-2.5 2.5 2.5M7 17v4.5" />
+      <path d="M12.5 19.5h6" />
+    </svg>
+  );
+}
+
 // A ring with its arc filled most of the way round
 function RingProgressIcon() {
   return (
@@ -335,6 +384,50 @@ function ScrollAreaIcon() {
       <rect x="3" y="3" width="18" height="18" rx="2" />
       <path d="M7 8h7M7 12h7M7 16h5" />
       <path d="M18 7v4" />
+    </svg>
+  );
+}
+
+// A list of lines, the second one marked with a bar at its start
+function TableOfContentsIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M8 5h12M8 12h12M11 16h9M8 19h12" />
+      <path d="M4 10v4" strokeWidth="3" />
+    </svg>
+  );
+}
+
+// A window with a bar across its top and a column down its side
+function AppFrameIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M3 8.5h18" />
+      <path d="M9 8.5V20" />
+    </svg>
+  );
+}
+
+// Two blocks stacked in a column, over a row of three small ones
+function StackIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="3" width="18" height="5" rx="1.5" />
+      <rect x="3" y="10" width="18" height="5" rx="1.5" />
+      <rect x="3" y="17" width="5" height="4" rx="1" />
+      <rect x="9.5" y="17" width="5" height="4" rx="1" />
+      <rect x="16" y="17" width="5" height="4" rx="1" />
+    </svg>
+  );
+}
+
+// A box with a smaller one in its middle
+function FlexIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <rect x="9" y="9" width="6" height="6" rx="1" />
     </svg>
   );
 }
@@ -396,7 +489,21 @@ function TreeViewIcon() {
   );
 }
 
+// A field with a chevron at its end, and a tree opened under it
+function TreeSelectIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="3" width="18" height="6" rx="1.5" />
+      <path d="M15.5 5l1.5 1.5L18.5 5" />
+      <rect x="3" y="11" width="18" height="10" rx="1.5" />
+      <path d="M6.5 14h7" />
+      <path d="M8 16v2.5h2M11.5 18.5h5" />
+    </svg>
+  );
+}
+
 const ADDON_ICONS = {
+  appframe: AppFrameIcon,
   linkbutton: LinkButtonIcon,
   kbd: KbdIcon,
   affix: AffixIcon,
@@ -416,9 +523,14 @@ const ADDON_ICONS = {
   dropzone: DropzoneIcon,
   emptystate: EmptyStateIcon,
   fieldset: FieldsetIcon,
+  flex: FlexIcon,
   hovercard: HoverCardIcon,
   iconbutton: IconButtonIcon,
+  lightbox: LightboxIcon,
   loading: LoadingIcon,
+  numberformatter: NumberFormatterIcon,
+  passwordinput: PasswordInputIcon,
+  stat: StatIcon,
   pininput: PinInputIcon,
   popover: PopoverIcon,
   reveal: RevealIcon,
@@ -426,10 +538,13 @@ const ADDON_ICONS = {
   scrollarea: ScrollAreaIcon,
   sidebar: SidebarIcon,
   splitter: SplitterIcon,
+  stack: StackIcon,
   steps: StepsIcon,
+  tableofcontents: TableOfContentsIcon,
   timeline: TimelineIcon,
   toast: ToastIcon,
   tooltip: TooltipIcon,
+  treeselect: TreeSelectIcon,
   treeview: TreeViewIcon,
 };
 

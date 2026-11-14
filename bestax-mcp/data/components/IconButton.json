@@ -58,6 +58,7 @@
   "related": [
     "Button",
     "Buttons",
+    "CopyButton",
     "Delete",
     "FloatButton",
     "Icon",
@@ -104,6 +105,15 @@
           "deprecated": false
         },
         {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button a circle the size of its square. The circle comes from bestax's CSS, in `bestax.css` and its variants, or in `extras.css` next to your own Bulma. Without it, Bulma's `is-rounded` draws a pill a little wider than it is tall.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "aria-labelledby",
           "type": "string",
           "default": null,
@@ -144,15 +154,6 @@
           "type": "boolean",
           "default": "false",
           "description": "Applies a lighter color variant.",
-          "required": false,
-          "inherited": true,
-          "deprecated": false
-        },
-        {
-          "name": "isRounded",
-          "type": "boolean",
-          "default": "false",
-          "description": "Makes the button rounded.",
           "required": false,
           "inherited": true,
           "deprecated": false

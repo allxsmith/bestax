@@ -132,9 +132,12 @@ function example() {
       </Button>
       {shown && (
         <Affix position="bottom-left" mb="6">
-          <Button color="link" radius="rounded" aria-label="Open chat">
-            <Icon name="comments" />
-          </Button>
+          <IconButton
+            icon="comments"
+            color="link"
+            isRounded
+            aria-label="Open chat"
+          />
         </Affix>
       )}
     </>
@@ -187,6 +190,10 @@ with `viewport-fit=cover`, so they change nothing elsewhere:
 />
 ```
 
+While a [`Modal`](./modal.md) or another overlay locks the page's scrolling, its side also adds the
+room the page's scrollbar gave back there, so it doesn't move as the scrollbar goes. See
+[Fixed Elements While an Overlay Is Open](../../guides/features/css-variables.md#fixed-elements-while-an-overlay-is-open).
+
 ### Out of a Transformed Ancestor
 
 A `position: fixed` box is fixed to the viewport unless an ancestor has a `transform`, `filter`,
@@ -237,12 +244,8 @@ function example() {
           flexDirection="column"
           gap="2"
         >
-          <Button color="link" aria-label="Open chat">
-            <Icon name="comments" />
-          </Button>
-          <Button color="primary" aria-label="Help">
-            <Icon name="question" />
-          </Button>
+          <IconButton icon="comments" color="link" aria-label="Open chat" />
+          <IconButton icon="question" color="primary" aria-label="Help" />
         </Affix>
       )}
     </>
@@ -305,7 +308,7 @@ the line.
 function example() {
   const [shown, setShown] = useState(false);
   return (
-    <div dir="rtl" lang="ar">
+    <LocaleProvider locale="ar" dir="rtl">
       <Button onClick={() => setShown(!shown)}>
         {shown ? 'إخفاء' : 'إظهار'}
       </Button>
@@ -314,7 +317,7 @@ function example() {
           <Button color="primary">ملاحظات</Button>
         </Affix>
       )}
-    </div>
+    </LocaleProvider>
   );
 }
 ```

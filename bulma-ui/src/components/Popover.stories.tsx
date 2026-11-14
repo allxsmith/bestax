@@ -12,6 +12,7 @@ import { ListItem } from '../elements/ListItem';
 import { Checkbox } from '../form/Checkbox';
 import { Checkboxes } from '../form/Checkboxes';
 import { Input } from '../form/Input';
+import { LocaleProvider } from '../helpers/LocaleProvider';
 
 const meta: Meta<typeof Popover> = {
   title: 'Components/Popover',
@@ -21,7 +22,7 @@ const meta: Meta<typeof Popover> = {
     docs: {
       description: {
         component:
-          'A click-to-open panel of interactive content anchored to its trigger: a filter form, share options, an inline edit. The panel is a non-modal dialog that takes focus on open and hands it back to the trigger on close.',
+          'A click-to-open panel of interactive content anchored to its trigger: a filter form, share options, an inline edit. The panel is a non-modal dialog that takes focus on open and hands it back to the trigger on close.\n\n**Popover or HoverCard?** A Popover opens and closes on a click or a tap on its trigger, or Enter or Space. Focus moves into the panel, Tab stays there until it closes unless `trapFocus` is off, and closing hands focus back to the trigger. It holds content people work with, such as a form. A tap works like a click, and a tap outside closes it. A [HoverCard](?path=/docs/components-hovercard--docs) opens when the pointer rests on its trigger or keyboard focus lands on it, moves no focus, previews what’s behind the trigger with a link or a button at most, and doesn’t open on touch unless you pass `openOnTap`.',
       },
     },
   },
@@ -122,6 +123,22 @@ export const Default: Story = {
       </Popover>
     );
   },
+};
+
+/**
+ * On a right-to-left page a popover with no `position` lines its right edge
+ * up with the trigger's.
+ */
+export const RightToLeft: Story = {
+  render: () => (
+    <LocaleProvider locale="ar" dir="rtl">
+      <Popover trigger={<Button>فتح</Button>}>
+        <Popover.Body>
+          <Paragraph>لوحة</Paragraph>
+        </Popover.Body>
+      </Popover>
+    </LocaleProvider>
+  ),
 };
 
 /**
@@ -248,6 +265,14 @@ export const ShareOptions: Story = {
  * Space open it either way.
  */
 export const NonButtonTrigger: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'A `Tag` that opens a popover. It takes `role="button"` and `tabIndex={0}` itself, since it renders its own element. It still opens on a click, a tap, Enter or Space, and moves focus into the panel. For a preview that opens on hover or focus, use a [HoverCard](?path=/docs/components-hovercard--docs).',
+      },
+    },
+  },
   render: () => (
     <Popover
       ariaLabel="Label help"

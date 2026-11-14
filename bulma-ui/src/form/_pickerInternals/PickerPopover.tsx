@@ -2,7 +2,11 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../../helpers/classNames';
 import { useFocusTrap } from '../../helpers/useFocusTrap';
-import { usePortalContainer } from '../../helpers/portal';
+import {
+  resolvePortalContainer,
+  usePopupContainer,
+  usePortalProp,
+} from '../../helpers/portal';
 import {
   LocalePortalScope,
   type PortalLocale,
@@ -20,6 +24,11 @@ export interface PickerPopoverProps {
   onClose: () => void;
   anchorRef: React.RefObject<HTMLElement | null>;
   children: React.ReactNode;
+  /**
+   * The corner it opens from. Left out, it's `bottom-left` lined up with the
+   * anchor's start edge: the stylesheet's `is-start-aligned` rule in place,
+   * and the anchor's direction when portaled.
+   */
   position?: PickerPosition;
   appendToBody?: boolean;
   className?: string;
@@ -49,6 +58,14 @@ export interface PickerPopoverProps {
    * `LocaleProvider`'s: the picker's own, from `usePickerLocaleScope`.
    */
   localeScope?: PortalLocale;
+  /**
+   * At least as wide as the anchor: in place through its partial's
+   * `has-anchor-width` rule, which needs the anchor to be the element it's
+   * placed against, and portaled through the anchor's width set inline.
+   */
+  matchWidth?: boolean;
+  /** Placed again after each render, for content that changes size while it's open. */
+  followContent?: boolean;
 }
 
 const isBrowser = typeof window !== 'undefined';
@@ -58,7 +75,7 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
   onClose,
   anchorRef,
   children,
-  position = 'bottom-left',
+  position,
   appendToBody = false,
   className,
   trapFocus = true,
@@ -71,9 +88,15 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
   restoreFocusRef,
   initialFocusSelector,
   localeScope,
+  matchWidth = false,
+  followContent = false,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
-  const resolveContainer = usePortalContainer();
+  const popupContainer = usePopupContainer();
+  // A portal has no server-rendered counterpart, so a panel open on the first
+  // render stays in place on the server and while hydrating, and moves into
+  // its portal once the client takes over, as Modal's `portal` does.
+  const { isPortaled } = usePortalProp(appendToBody);
   // Read as the trap turns on, once the panel's content has rendered.
   const initialFocusRef = useMemo(
     () =>
@@ -99,6 +122,8 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
     // the panel.
     offset: 0,
     styledGap: marginGap,
+    matchWidth,
+    followContent,
   });
 
   // Read when a press lands outside or a key arrives, so both listeners stay
@@ -158,7 +183,11 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
   const panelClass = usePrefixedClassNames('picker-popover', {
     'is-active': isOpen,
     [`is-${resolved.position}`]: true,
+    // The default lines up with the field's inline start, so the stylesheet
+    // moves it to the right edge on a right-to-left page.
+    'is-start-aligned': position === undefined,
     'is-portal': appendToBody,
+    'has-anchor-width': matchWidth,
   });
 
   if (!isOpen) return null;
@@ -168,6 +197,7 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
         position: 'fixed',
         top: resolved.top,
         left: resolved.left,
+        minWidth: resolved.minWidth,
       }
     : {};
 
@@ -194,8 +224,8 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
     </div>
   );
 
-  if (appendToBody && isBrowser) {
-    const target = resolveContainer();
+  if (isPortaled) {
+    const target = resolvePortalContainer(popupContainer);
     return createPortal(
       <LocalePortalScope target={target} scope={localeScope}>
         {panel}

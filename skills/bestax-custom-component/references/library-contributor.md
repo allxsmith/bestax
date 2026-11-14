@@ -121,8 +121,13 @@ Rules that keep components consistent:
   `Dropdown.Item`'s `'a' | 'div' | 'button'` differ in `href`, `disabled`, `type` and their ref
   element, and pinning them to one interface reproduces exactly this defect (#663). When the
   members differ, constrain `T` to the union rather than dropping the generic —
-  `ConstrainedPolymorphicComponentWithoutRef` in `helpers/polymorphic.ts` is that
-  shape, and `Dropdown.Item` is the worked example. Two consequences to pin while
+  `ConstrainedPolymorphicComponent` in `helpers/polymorphic.ts` is that shape for
+  a component that forwards a ref, typed from `as` like its props (`Stack`,
+  `Group`, `Center` and `Flex`, over `LayoutElement`), and
+  `ConstrainedPolymorphicComponentWithoutRef` the one for a component that
+  forwards none (`Dropdown.Item`). Both are exported from the package root as
+  types. A closed union declared in another module still reads as closed in
+  the API docs: the extractor follows one imported alias. Two consequences to pin while
   you are there. **Default the alias's `T` to the whole union, not to the rendered
   element** — narrowing it would break `const p: SomeProps = { as: 'div' }`, which
   compiles for every consumer today; the cost is that the bare alias then carries
@@ -172,11 +177,28 @@ Rules that keep components consistent:
   call `createPortal` itself, as `Modal` does to render in place until hydration, resolves its
   target with `usePortalContainer` from the same module, so the `portalContainer` a
   `ConfigProvider` sets reaches it too. Add it to `src/__tests__/portal-container.test.tsx`.
+  A popup, a panel opened against something on the page such as Popover's, goes through
+  `PopupPortal` instead, or reads `usePopupContainer` where it calls `createPortal` itself, so
+  inside a `Modal`, `Dialog` or `Command.Dialog` it portals into the dialog, where screen
+  readers that honor `aria-modal` reach it. A new overlay that sets `aria-modal` wraps its
+  content in `PortalScope`, given the element that carries it, and so does one that draws over
+  the page without a transform, as AppFrame's drawer does, so its popups show above it.
 
 - **Portaled content keeps the locale.** A component that calls `createPortal` itself wraps what
   it portals in `LocalePortalScope` (`helpers/LocaleProvider.tsx`), so the `dir` and `lang` of a
   `LocaleProvider` around it reach content that has left its wrapper. `Portal` already does.
   Outside a provider the scope renders its children alone, so the markup there doesn't change.
+
+- **Numbers go through the locale hooks** in `helpers/localeFormat.ts`, never
+  `toLocaleString()` or an `Intl.NumberFormat` of the component's own, so they follow a
+  `LocaleProvider` and share the formatter cache. Which hook depends on the component's job. A
+  component whose job is to write a number, such as `NumberFormatter` or a stat, uses the public
+  `useNumberFormat`, or renders `NumberFormatter`, and so writes in the runtime's locale outside a
+  provider, as the pickers do. Any other component that shows a number in passing, such as a
+  badge count, a page number or a step's number, uses the internal `useScopedNumberFormat`. It
+  returns `null` outside a provider and inside one that gives no locale, and the component then
+  writes the number as it always has, so `LocaleProvider`'s promise that nothing changes without
+  one holds.
 
 - **Direction comes from the DOM.** A component that handles Left and Right, or places things by
   side, reads `getComputedStyle(el).direction` when the key or pointer arrives, as `Splitter` and

@@ -39,6 +39,12 @@ export const DEPRECATED_PROPS: Readonly<
       note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
     },
   },
+  'Buttons.CopyButton': {
+    isFullWidth: {
+      replacement: 'isFullwidth',
+      note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
+    },
+  },
   'Buttons.IconButton': {
     isFullWidth: {
       replacement: 'isFullwidth',
@@ -81,6 +87,12 @@ export const DEPRECATED_PROPS: Readonly<
     gapSizeWidescreen: {
       replacement: 'gapWidescreen',
       note: 'Use `gapWidescreen` instead — `gapWidescreen` wins if both are set.',
+    },
+  },
+  CopyButton: {
+    isFullWidth: {
+      replacement: 'isFullwidth',
+      note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
     },
   },
   File: {
@@ -212,6 +224,19 @@ export const TEXT_ALIAS_COLOR_ELEMENTS: readonly string[] = [
   'IconText.Icon',
   'Image',
   'Panel.Icon',
+];
+
+/**
+ * Elements that are flex containers by their own CSS, so the flex container
+ * props (`alignItems`, `justifyContent` and the rest) render on them with
+ * no `display` prop, unless a `display` prop makes them something else.
+ * Read from the `@flexContainer` tag on each one's props type or its bases.
+ */
+export const FLEX_CONTAINER_ELEMENTS: readonly string[] = [
+  'Center',
+  'Flex',
+  'Group',
+  'Stack',
 ];
 
 /** A Bulma class that names a bestax component. */
@@ -363,7 +388,12 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
     ],
     [
       'level',
-      { component: 'Level', converts: true, tag: 'nav', tags: ['nav'] },
+      {
+        component: 'Level',
+        converts: true,
+        tag: 'nav',
+        tags: ['nav', 'div', 'header', 'footer'],
+      },
     ],
     [
       'level-left',

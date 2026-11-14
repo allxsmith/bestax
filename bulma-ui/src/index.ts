@@ -29,6 +29,7 @@ export * from './components/Sidebar';
 export * from './components/Toast';
 export * from './components/Dialog';
 export * from './components/Carousel';
+export * from './components/Lightbox';
 export * from './components/Reveal';
 export * from './components/TreeView';
 export * from './components/ScrollArea';
@@ -37,6 +38,7 @@ export * from './components/DataTable';
 export * from './components/Affix';
 export * from './components/FloatButton';
 export * from './components/FloatButtons';
+export * from './components/TableOfContents';
 
 export * from './elements/Block';
 export * from './elements/Box';
@@ -47,6 +49,7 @@ export * from './elements/ToggleButton';
 export * from './elements/Code';
 export * from './elements/ColorSwatch';
 export * from './elements/Content';
+export * from './elements/CopyButton';
 export * from './elements/Delete';
 export * from './elements/DescriptionList';
 export * from './elements/Divider';
@@ -61,6 +64,7 @@ export * from './elements/Link';
 export * from './elements/ListItem';
 export * from './elements/Loader';
 export * from './elements/Notification';
+export * from './elements/NumberFormatter';
 export * from './elements/OrderedList';
 export * from './elements/Paragraph';
 export * from './elements/Pre';
@@ -68,6 +72,8 @@ export * from './elements/Progress';
 export * from './elements/RingProgress';
 export * from './elements/Skeleton';
 export * from './elements/Span';
+export * from './elements/Stat';
+export * from './elements/Stats';
 export * from './elements/Strong';
 export * from './elements/SubTitle';
 export * from './elements/Table';
@@ -100,6 +106,7 @@ export * from './form/PinInput';
 export * from './form/Rate';
 export * from './form/Autocomplete';
 export * from './form/Combobox';
+export * from './form/TreeSelect';
 export * from './form/Taginput';
 export * from './form/ColorPicker';
 
@@ -110,6 +117,12 @@ export { SelectBase } from './form/SelectBase';
 export type { SelectBaseProps } from './form/SelectBase';
 export { TextAreaBase } from './form/TextAreaBase';
 export type { TextAreaBaseProps } from './form/TextAreaBase';
+export { PasswordInputBase } from './form/PasswordInputBase';
+export type {
+  PasswordInputBaseProps,
+  PasswordInputLabels,
+  PasswordInputVariant,
+} from './form/PasswordInputBase';
 
 // Convenience wrappers become primary exports
 export { Input } from './form/Input';
@@ -118,6 +131,8 @@ export { Select } from './form/Select';
 export type { SelectProps } from './form/Select';
 export { TextArea } from './form/TextArea';
 export type { TextAreaProps } from './form/TextArea';
+export { PasswordInput } from './form/PasswordInput';
+export type { PasswordInputProps } from './form/PasswordInput';
 
 // Date / time pickers
 export { DateInputBase } from './form/DateInputBase';
@@ -156,6 +171,7 @@ export * from './helpers/classNames';
 // everything exported here is public forever — an internal DOM-filtering detail
 // is not something to support for the life of the package.
 export type {
+  ConstrainedPolymorphicComponent,
   ConstrainedPolymorphicComponentWithoutRef,
   PolymorphicComponent,
   PolymorphicComponentWithoutRef,
@@ -184,14 +200,32 @@ export type {
   TextDirection,
 } from './helpers/LocaleProvider';
 
+// Writing numbers in a locale, as a function for text outside JSX
+export { useNumberFormat } from './helpers/localeFormat';
+export type { NumberFormatFunction } from './helpers/localeFormat';
+
 // Keeping keyboard focus inside an overlay
 export { useFocusTrap } from './helpers/useFocusTrap';
 export type { UseFocusTrapOptions } from './helpers/useFocusTrap';
 
+// Copying text to the clipboard
+export { useClipboard } from './helpers/useClipboard';
+export type {
+  UseClipboardOptions,
+  UseClipboardResult,
+} from './helpers/useClipboard';
+
+export * from './layout/AppFrame';
+export * from './layout/Center';
 export * from './layout/Container';
+export * from './layout/Flex';
 export * from './layout/Footer';
+export * from './layout/Group';
 export * from './layout/Hero';
 export * from './layout/Level';
 export * from './layout/Media';
 export * from './layout/Section';
 export * from './layout/Splitter';
+export * from './layout/Stack';
+// The elements Stack, Group, Center and Flex render as, which their `as` takes
+export type { LayoutElement } from './helpers/stackLayout';

@@ -84,9 +84,10 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   items are `ContextMenu.Item`/`ContextMenu.Divider`, which are `Dropdown`'s; no `open` prop,
   `onOpenChange` reports it; always put the same items in a visible `Dropdown` on the row too,
   since a context menu is only a shortcut),
-  `Steps value={i}/onStepClick items={[{label, icon?}]}` (child form is `Steps.Step`, not
-  `Steps.Item`). `Reveal cascade` staggers only its **direct children** — to stagger a grid,
-  put `<Reveal delay={i * 80}>` inside each `Cell`, not around the container.
+  `Steps value={i}/onStepClick items={[{label, icon?}]}` for a journey the user moves through,
+  such as a wizard or a checkout (child form is `Steps.Step`, not `Steps.Item`; a record of
+  what happened is `Timeline`). `Reveal cascade` staggers only its **direct children** — to
+  stagger a grid, put `<Reveal delay={i * 80}>` inside each `Cell`, not around the container.
 - **An empty list, table or search with no results is `EmptyState`**, not a hand-built `Box`
   of `Icon`, `Title` and `Buttons isCentered`:
   `<EmptyState icon="folder-open" title="No projects yet" titleAs="h3" description="…">` with
@@ -126,11 +127,36 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `DescriptionList.Value` children. Several records with the same fields stay a `Table`, and so
   do facts a screen reader must announce with their labels, as a `Table` with `scope="row"`
   headers.
+- **A number shown to the reader (a price, a total, a count, a percentage, a dashboard figure) is
+  `NumberFormatter`**, not `toLocaleString()` or an `Intl.NumberFormat` built by hand:
+  `<NumberFormatter value={8456.4} format={{ style: 'currency', currency: 'USD' }} />`, with any
+  `Intl.NumberFormat` options in `format` (`style: 'percent'` takes a fraction, `0.125` for
+  12.5%). It writes in its own `locale`, else the `LocaleProvider`'s, else the runtime's, so a
+  server-rendered app sets a `locale` on a `LocaleProvider` at the root. Its text is the number
+  alone, so words go around it: `Total: <NumberFormatter … />`. Text that can't hold an element,
+  an `aria-label` or a `placeholder`, gets the same from `const format = useNumberFormat();` and
+  `format(1500, { style: 'currency', currency: 'EUR' })`.
+- **A dashboard's row of key figures (revenue, new customers, churn) is `Stats` of `Stat`s**, not
+  `Level` items, `Columns` of `Title`s or a `Card` per figure. Put
+  `<Stats aria-labelledby="kpis" minCol={8} gap={4}>` under a `Title id="kpis"`, with a `Stat` per
+  figure: `label`, a number `value` with `format` (`Intl.NumberFormat` options, as
+  `NumberFormatter` takes), `change` and `description`, as in
+  `<Stat label="Revenue" value={8456.4} change={0.12} description="since last month" />`.
+  `change` is a fraction written with its sign ("+12%"), green up and red down, and
+  `changeColor="danger"` marks a rise that's bad news, such as churn. The row wraps on its own, so
+  add no breakpoint code, and it holds only `Stat`s (a `LocaleProvider` goes around it, and on a
+  page rendered on the server it's what keeps the server and the browser writing the numbers
+  alike, unless each `Stat` gets a `locale`). `loading`
+  shows a `Skeleton` in place of a figure that isn't there yet. One figure on its own is a lone
+  `Stat`. For a card look, a `Box` goes around a lone `Stat` or the whole `Stats` row, never around
+  one `Stat` inside a row, which would break the row's list.
 - **A file browser, a checkbox tree (permissions, filters) or an outline you browse is
   `TreeView`**, with `<TreeView.Item value="…" label="…" icon="folder">` items nested inside each
   other: `<TreeView aria-label="Files" selectionMode="single">` with `selected`/`onSelectedChange`
   picks one, and `selectionMode="checkbox"` with `checked`/`onCheckedChange` draws boxes with
-  mixed parents, where a parent's value checks its whole branch. Map the data with a recursive
+  mixed parents, where a parent's value checks its whole branch. For categories, where checking a
+  parent means only the parent, `selectionMode="checkbox-independent"` draws a box per item that
+  checks that item alone, with no mixed parents. Map the data with a recursive
   function, and render an item's children whether it's open or not. A folder that loads when it
   opens takes `hasChildren`, `isLoading` while its children are on their way, and
   `loadError="Couldn't load src"` with `onRetry` when the load fails, setting `isLoading` again
@@ -143,6 +169,22 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `defaultOpen` on the group holding the current page (or `open`/`onOpenChange` to hold the state).
   Its heading is a real button with `aria-expanded`, and its links stay links, each a tab stop.
   Not `TreeView`, and not a `Collapse` inside a hand-written `<li>`.
+- **A long page's "On this page" list of its sections is `TableOfContents`**, not a `Menu` with
+  a scroll listener of your own: give each section's heading an `id` and pass the sections in page
+  order, `<TableOfContents isSticky items={[{ id: 'install', label: 'Install' }, { id: 'usage', label: 'Usage', children: […] }]} />`,
+  in a side `Column`. Its links are plain `#id` links that the browser follows itself, and it marks the
+  section being read with `aria-current="location"`. Offset a sticky header with
+  `scroll-padding-top` on `html` in the page's CSS (which the highlight reads too), not with
+  `scroll-margin-top` on the headings, and put any smooth scrolling in that CSS under
+  `prefers-reduced-motion: no-preference`. To mark the section in view in the app's own nav
+  `Menu`, `useScrollSpy({ ids })` returns its id.
+- **An app's frame, a header across the top with a navigation column down the side, is
+  `AppFrame`**, not a `fixed` `Navbar` over `Columns`: `<AppFrame>` with `AppFrame.Header` (a
+  `Navbar` with `<AppFrame.Burger />` in its `Navbar.Brand`), `AppFrame.Nav` (the `Menu`) and
+  `AppFrame.Main` (the page), plus `AppFrame.Aside` and `AppFrame.Footer` when there are any. The
+  header and the column stick on their own, so no `fixed` and no `has-navbar-fixed-top`; below
+  desktop the column is a drawer the burger opens, and from desktop up the burger collapses it.
+  It renders the page's `<main>`, so it goes at the top of the app, never inside a `<main>`.
 - **Panes the user resizes are `Splitter`** (a file tree beside an editor, a list beside its
   detail, a query above its results), not hand-written drag code or fixed `Columns`:
   `<Splitter height={480}>` with a `<Splitter.Pane label="Files" defaultSize={25} minSize="12rem">`
@@ -304,7 +346,8 @@ bestax's too, but only while the starter's `App` imports it.
 
 ## Examples
 
-- `examples/app-shell.tsx` — fixed `Navbar` + sidebar `Menu` + content (dashboard).
+- `examples/app-shell.tsx`: an `AppFrame` with a `Navbar` header, a `Menu` column and the page
+  (dashboard).
 - `examples/landing.tsx` — fixed `Navbar` (controlled burger) + `Hero` + `Section`s + `Footer`.
 - `examples/centered.tsx` — centered single column (auth/settings).
 - `examples/card-grid.tsx` — multiline `Columns` of `Card`s (catalog).
@@ -318,8 +361,10 @@ bestax's too, but only while the starter's `App` imports it.
 - [ ] Use `Grid`/`Cell` for uniform grids (equal heights per row, free); `Columns`/`Column`
       for proportional or per-breakpoint side-by-side layout — with the flex recipe when its
       cards must match height.
-- [ ] Wire `active` state to **both** `Navbar.Burger` and `Navbar.Menu` (they are controlled).
-- [ ] For a fixed navbar, add `has-navbar-fixed-top` to `<html>`.
+- [ ] An app shell is `AppFrame`, with `AppFrame.Burger` in `Navbar.Brand`: no `fixed`, no
+      `has-navbar-fixed-top`, and never inside a `<main>`.
+- [ ] Elsewhere, wire `active` state to **both** `Navbar.Burger` and `Navbar.Menu` (they are
+      controlled), and for a fixed navbar add `has-navbar-fixed-top` to `<html>`.
 - [ ] Do not use `Tile` — it is not shipped.
 - [ ] Action feedback goes through `Toast`, a confirmation through `Dialog`, a text-styled
       action through `LinkButton` — not `Notification`, `Modal` or a bare `<a>`.

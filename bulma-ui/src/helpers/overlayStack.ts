@@ -1,5 +1,6 @@
 // INTERNAL: deliberately not exported from src/index.ts.
 import { useCallback, useEffect, useRef } from 'react';
+import { useLatestRef } from './useLatestRef';
 
 /** An open overlay's place in the stack. */
 interface OpenOverlay {
@@ -80,4 +81,39 @@ export function useOverlayStack(
     );
     return !above.some(overlay => among !== 'modal' || overlay.modal);
   }, []);
+}
+
+/**
+ * Calls `onEscape` for an Escape while `active` and the overlay is the
+ * topmost one, as `isTopmost` (from `useOverlayStack`) says, and marks the key
+ * used with `preventDefault()`, so nothing under it acts on it too.
+ *
+ * It listens on `window`, so everything inside the overlay has had the key
+ * first, and an Escape something there used, such as a popup closing, is
+ * left to it. The listener stays put while `onEscape` changes identity, as an
+ * inline one does on every render of the parent: it reads the latest one as
+ * the key arrives.
+ *
+ * @function useOverlayEscape
+ * @param active - Whether the overlay is open and closes on Escape.
+ * @param isTopmost - The overlay's check from `useOverlayStack`.
+ * @param onEscape - What closing it does.
+ */
+export function useOverlayEscape(
+  active: boolean,
+  isTopmost: () => boolean,
+  onEscape: () => void
+): void {
+  const onEscapeRef = useLatestRef(onEscape);
+
+  useEffect(() => {
+    if (!active) return undefined;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || e.defaultPrevented || !isTopmost()) return;
+      e.preventDefault();
+      onEscapeRef.current();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [active, isTopmost, onEscapeRef]);
 }

@@ -118,7 +118,7 @@ bloomer put `tag` on nearly every component; bestax declares `as` on a subset, s
 narrowed to a literal union, so a value outside the union is a type error you can see rather
 than a silent rewrite. The components whose `tag` becomes `as`:
 
-`Button`, `Image`, `Title`, `Subtitle`, `Footer`, `Media`, `MediaLeft`, `LevelItem`, `Control`,
+`Button`, `Image`, `Title`, `Subtitle`, `Footer`, `Media`, `MediaLeft`, `Level`, `LevelItem`, `Control`,
 `DropdownItem`, `MenuLink`, `NavbarItem`, `NavbarLink`, `Container`, `Hero`, `HeroHeader`,
 `HeroFooter`, `Panel`.
 
@@ -189,10 +189,10 @@ value is flagged. The same conversion covers the modifiers bestax has no prop fo
 
 ## Refs
 
-bloomer forwarded no refs. bestax forwards a ref from the form controls, plus `Affix`, `Avatar`, `Button`,
-`Carousel`, `CarouselItem`, `ColorSwatch`, `Command`, `Command.Dialog`, `Command.Input`, `DataTable`, `DescriptionList`, `DescriptionList.Item`, `DescriptionList.Label`, `DescriptionList.Value`, `Dialog`, `Dropdown`, `EmptyState`, `FloatButton`, `FloatButton.BackToTop`, `FloatButton.SpeedDial`, `FloatButtons`, `IconButton`, `Kbd`, `Kbd.Group`, `Link`,
+bloomer forwarded no refs. bestax forwards a ref from the form controls, plus `Affix`, `AppFrame`, `AppFrame.Aside`, `AppFrame.Burger`, `AppFrame.Footer`, `AppFrame.Header`, `AppFrame.Main`, `AppFrame.Nav`, `Avatar`, `Button`,
+`Carousel`, `CarouselItem`, `Center`, `ColorSwatch`, `Command`, `Command.Dialog`, `Command.Input`, `CopyButton`, `DataTable`, `DescriptionList`, `DescriptionList.Item`, `DescriptionList.Label`, `DescriptionList.Value`, `Dialog`, `Dropdown`, `EmptyState`, `Flex`, `FloatButton`, `FloatButton.BackToTop`, `FloatButton.SpeedDial`, `FloatButtons`, `Group`, `IconButton`, `Kbd`, `Kbd.Group`, `Lightbox`, `Lightbox.Trigger`, `Link`,
 `LinkButton`, `Loader`, `LocaleProvider`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`,
-`Navbar.Item`, `Navbar.Link`, `RingProgress`, `ScrollArea`, `SegmentedControl`, `SegmentedControl.Segment`, `Sidebar`, `Splitter`, `Splitter.Pane`, `Timeline`,
+`Navbar.Item`, `Navbar.Link`, `NumberFormatter`, `RingProgress`, `ScrollArea`, `SegmentedControl`, `SegmentedControl.Segment`, `Sidebar`, `Splitter`, `Splitter.Pane`, `Stack`, `Stat`, `Stat.Change`, `Stat.Description`, `Stat.Label`, `Stat.Value`, `Stats`, `TableOfContents`, `Timeline`,
 `Timeline.Item`, `Toast`, `ToggleButton`, `TreeView` and `TreeView.Item` — pass `ref` directly on
 those. "The form controls" means the inputs themselves: the `Field`, `Field.Label`, `Field.Body`,
 `Checkboxes` and `Radios` wrappers around them forward nothing.

@@ -6,7 +6,7 @@ import {
 } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useConfig } from '../helpers/Config';
-import { useNumberFormat } from '../helpers/localeFormat';
+import { useScopedNumberFormat } from '../helpers/localeFormat';
 import {
   useInsideField,
   useInsideControl,
@@ -177,7 +177,7 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
       );
       onChange?.(event);
     };
-    const formatNumber = useNumberFormat();
+    const formatNumber = useScopedNumberFormat();
     const pickedText =
       picked &&
       (picked.count === 1

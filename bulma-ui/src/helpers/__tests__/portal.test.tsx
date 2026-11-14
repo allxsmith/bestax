@@ -10,7 +10,10 @@ import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import {
   Portal,
+  PopupPortal,
+  PortalScope,
   resolvePortalContainer,
+  usePopupContainer,
   usePortalProp,
   type PortalPropState,
 } from '../portal';
@@ -477,5 +480,148 @@ describe('usePortalProp', () => {
     await act(async () => unmountRoot());
     errorSpy.mockRestore();
     container.remove();
+  });
+});
+
+describe('PopupPortal inside a PortalScope', () => {
+  // An overlay as Modal is one: its element, held in state from its ref,
+  // is the scope of what it holds.
+  function Overlay({
+    children,
+    testId = 'overlay',
+  }: {
+    children?: React.ReactNode;
+    testId?: string;
+  }) {
+    const [node, setNode] = useState<HTMLDivElement | null>(null);
+    return (
+      <div data-testid={testId} ref={setNode}>
+        <PortalScope node={node}>{children}</PortalScope>
+      </div>
+    );
+  }
+
+  it('goes to document.body outside any scope', () => {
+    render(
+      <PopupPortal>
+        <span data-testid="popup" />
+      </PopupPortal>
+    );
+    expect(screen.getByTestId('popup').parentElement).toBe(document.body);
+  });
+
+  it("goes into the scope's element", () => {
+    render(
+      <Overlay>
+        <PopupPortal>
+          <span data-testid="popup" />
+        </PopupPortal>
+      </Overlay>
+    );
+    expect(screen.getByTestId('popup').parentElement).toBe(
+      screen.getByTestId('overlay')
+    );
+  });
+
+  it('goes into the nearest scope', () => {
+    render(
+      <Overlay testId="outer">
+        <Overlay testId="inner">
+          <PopupPortal>
+            <span data-testid="popup" />
+          </PopupPortal>
+        </Overlay>
+      </Overlay>
+    );
+    expect(screen.getByTestId('popup').parentElement).toBe(
+      screen.getByTestId('inner')
+    );
+  });
+
+  it('keeps the scope around it for a scope with no node', () => {
+    render(
+      <Overlay>
+        <PortalScope node={undefined}>
+          <PopupPortal>
+            <span data-testid="popup" />
+          </PopupPortal>
+        </PortalScope>
+      </Overlay>
+    );
+    expect(screen.getByTestId('popup').parentElement).toBe(
+      screen.getByTestId('overlay')
+    );
+  });
+
+  it.each([['outside'], ['inside']])(
+    "lets a ConfigProvider's portalContainer win, set %s the scope",
+    where => {
+      const target = document.createElement('section');
+      document.body.appendChild(target);
+      const popup = (
+        <PopupPortal>
+          <span data-testid="popup" />
+        </PopupPortal>
+      );
+      render(
+        where === 'outside' ? (
+          <ConfigProvider portalContainer={target}>
+            <Overlay>{popup}</Overlay>
+          </ConfigProvider>
+        ) : (
+          <Overlay>
+            <ConfigProvider portalContainer={target}>{popup}</ConfigProvider>
+          </Overlay>
+        )
+      );
+      expect(screen.getByTestId('popup').parentElement).toBe(target);
+      target.remove();
+    }
+  );
+
+  it('still renders in place when disabled, scope or not', () => {
+    render(
+      <PortalScope node={null}>
+        <div data-testid="place">
+          <PopupPortal disabled>
+            <span data-testid="popup" />
+          </PopupPortal>
+        </div>
+      </PortalScope>
+    );
+    expect(screen.getByTestId('popup').parentElement).toBe(
+      screen.getByTestId('place')
+    );
+  });
+});
+
+describe('usePopupContainer', () => {
+  const node = document.createElement('div');
+  type Wrapper = React.FC<{ children: React.ReactNode }> | undefined;
+
+  it.each<[string, Wrapper, unknown]>([
+    ['undefined outside any scope', undefined, undefined],
+    [
+      "the scope's element",
+      ({ children }) => <PortalScope node={node}>{children}</PortalScope>,
+      node,
+    ],
+    [
+      "undefined while the scope's element hasn't mounted",
+      ({ children }) => <PortalScope node={null}>{children}</PortalScope>,
+      undefined,
+    ],
+    [
+      "the provider's portalContainer over the scope",
+      ({ children }) => (
+        <ConfigProvider portalContainer="#overlays">
+          <PortalScope node={null}>{children}</PortalScope>
+        </ConfigProvider>
+      ),
+      '#overlays',
+    ],
+  ])('is %s', (_, wrapper, expected) => {
+    const { result } = renderHook(() => usePopupContainer(), { wrapper });
+    expect(result.current).toBe(expected);
   });
 });

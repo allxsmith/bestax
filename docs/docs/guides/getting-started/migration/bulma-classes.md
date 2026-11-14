@@ -144,7 +144,9 @@ A couple of results look odd until you see why:
   (`family:navbar-burger`, `family:navbar-link`), and a `.has-dropdown` item becomes a
   `Navbar.Item` that keeps the class. Switching those to `Navbar.Burger` and `Navbar.Dropdown`
   is how the navbar gets bestax's toggle and keyboard handling, and it's a change you make by
-  hand.
+  hand. `is-active` on a `.navbar-item` becomes `active` only beside an `aria-current` of its
+  own, since `active` writes `aria-current="page"` otherwise; without one the class stays.
+  `is-active` on `.navbar-menu` is the open menu, and becomes `active` either way.
 - A `.menu` converts with its labels and lists, and with the items in a list: a `<li>` holding
   an `<a>`, and at most a bare nested `<ul>`, becomes a `Menu.Item`, found by where it sits.
   `Menu.Item` renders the `<li>` and the `<a>` together and splits its props between them, so an
@@ -214,6 +216,9 @@ rule. The ones you'll see most:
 | `ref:<Target>`           | Keep the element; the component won't pass the ref through                                             |
 | `rsc`                    | Add `'use client'` if the file can be a client component, then re-run                                  |
 | `legacy:tile`            | Rebuild tiles with [Grid and Cell](/docs/api/grid); see the [Bulma 0.9 → 1 guide](./bulma-0-9-to-1.md) |
+| `legacy:heading`         | Restyle the label with helper props, or give `.heading` a rule of your own                             |
+| `legacy:number`          | Give `.number` a rule of your own if the element needs Bulma 0.9's badge                               |
+| `legacy:is-variable`     | Drop the class; v1's `is-0` to `is-8` set the gap without it                                           |
 
 Every rule, with a recipe, is in the skill's
 [unmappables reference](https://github.com/allxsmith/bestax/blob/main/skills/bestax-migrate/references/bulma-classes/unmappables.md).

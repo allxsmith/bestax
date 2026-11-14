@@ -71,6 +71,16 @@ It takes every `Button` prop, is `type="button"` unless you pass `submit` or `re
 `isRounded` makes it a circle. Several go in `Buttons`, where it's also `Buttons.IconButton`. For a
 description on hover, wrap it in `Tooltip`, which describes it and doesn't name it.
 
+A button that copies text (a share link, an API key, an install command) is `CopyButton`:
+`<CopyButton value={url} />`, rather than a `Button` calling `navigator.clipboard` yourself. It
+falls back to the copy command where the Clipboard API is missing, reports a failure rather than
+showing "Copied", reads "Copied" for `duration` ms (2000, and `0` keeps it, as on `Toast`), and
+announces each result in a status region it portals, so it can sit last in a `Control` or `Buttons`,
+where it's also `Buttons.CopyButton`. `showLabel={false}` makes it an icon-only `IconButton` named by
+`labels.copy`. Its callbacks are `onCopiedChange` and `onCopyError` (not `onCopy`/`onError`, which
+are DOM events), and an `onClick` that calls `preventDefault()` stops the copy. For a trigger of your
+own, use `useClipboard`.
+
 A button that turns something on or off and stays that way (Bold, Mute, Show archived) is
 `ToggleButton`: use it rather than `Button isActive`, which only draws a shade and sets no
 `aria-pressed`. It's always `type="button"`, holds its own state (`defaultPressed`) or takes
@@ -176,9 +186,12 @@ free. `references/api.md` documents the helpers.
 
 ## Styling ladder — use the lowest rung that works
 
-**Rung 1 — helper props only (default).** House rules: never `style={{}}`. Layout with
-`Block`/`Box` and `display="flex"`, `flexDirection`, `alignItems`, `justifyContent`, and space
-the children with `gap`. Before writing `style={{ … }}` anywhere, translate each declaration:
+**Rung 1 — helper props only (default).** House rules: never `style={{}}`. Lay children out
+with `Stack` (a column), `Group` (a row that wraps), `Center` or `Flex`, which are flex
+containers already and zero the margins Bulma gives their children, so `gap` is the only space;
+`alignItems`, `justifyContent` and the rest go straight on them. Don't reach for `Box` as a
+plain flex container: it's a padded, shadowed surface. Before writing `style={{ … }}` anywhere,
+translate each declaration:
 
 | Inline style you're about to write       | Helper props instead                                                                                                                                           |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |

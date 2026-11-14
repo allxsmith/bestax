@@ -1,6 +1,7 @@
 // INTERNAL: deliberately not exported from src/index.ts.
 import React from 'react';
 import { Icon } from '../elements/Icon';
+import { isElementOf } from './elementType';
 import { flattenChildren } from './flattenChildren';
 
 /** Whether a string has something in it besides spaces. */
@@ -21,7 +22,7 @@ export function iconOf(node: React.ReactNode) {
   const items = flattenChildren(node).filter(item => !isBlank(item));
   if (items.length === 0) return null;
   const [only] = items;
-  if (items.length === 1 && React.isValidElement(only) && only.type === Icon) {
+  if (items.length === 1 && isElementOf(only, Icon)) {
     return only;
   }
   return <Icon>{items}</Icon>;
