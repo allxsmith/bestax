@@ -15,7 +15,8 @@ const takesFocus = (el: HTMLElement) => {
  * Focus goes to `target`, the control that stays, even one that Tab passes
  * over, since it can still take focus. When it can't take any, as a link
  * with no `href` can't, focus goes to `fallback`, given `tabindex="-1"` for
- * as long as it keeps focus, unless it has a `tabindex` of its own.
+ * as long as it keeps focus, unless it has a `tabindex` of its own. When
+ * neither can take focus, it drops as it would have.
  *
  * Call it in a layout effect, in the commit that hides the parts, while
  * focus is still in them.
@@ -34,13 +35,20 @@ export function moveFocusOut(
   }
   if (target && takesFocus(target)) return;
   if (!fallback) return;
-  if (!fallback.hasAttribute('tabindex')) {
-    fallback.setAttribute('tabindex', '-1');
-    fallback.addEventListener(
-      'blur',
-      () => fallback.removeAttribute('tabindex'),
-      { once: true }
-    );
+  if (fallback.hasAttribute('tabindex')) {
+    fallback.focus();
+    return;
   }
-  fallback.focus();
+  fallback.setAttribute('tabindex', '-1');
+  // One that can't take focus either, such as a hidden one, gets no blur to
+  // take the tabindex off again, so it goes now.
+  if (!takesFocus(fallback)) {
+    fallback.removeAttribute('tabindex');
+    return;
+  }
+  fallback.addEventListener(
+    'blur',
+    () => fallback.removeAttribute('tabindex'),
+    { once: true }
+  );
 }

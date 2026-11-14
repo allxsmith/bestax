@@ -50,6 +50,16 @@ describe('moveFocusOut', () => {
     expect(fallback).not.toHaveAttribute('tabindex');
   });
 
+  it('leaves no tabindex on a fallback that can’t take focus either', () => {
+    const { part, inside, plain, fallback } = setUp();
+    // As a hidden one can't, which jsdom doesn't lay out to know.
+    fallback.focus = vi.fn();
+    inside.focus();
+    moveFocusOut([part], plain, fallback);
+    expect(fallback.focus).toHaveBeenCalled();
+    expect(fallback).not.toHaveAttribute('tabindex');
+  });
+
   it('keeps a fallback’s own tabindex', () => {
     const { part, inside, fallback, outside } = setUp();
     fallback.setAttribute('tabindex', '0');
