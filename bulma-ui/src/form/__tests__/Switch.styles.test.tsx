@@ -53,12 +53,34 @@ function rulesOf(source: string): Rule[] {
   return out;
 }
 
+/** `selector` without its `:where()` groups, which add no specificity. */
+function withoutWhere(selector: string): string {
+  let out = '';
+  for (let i = 0; i < selector.length;) {
+    if (!selector.startsWith(':where(', i)) {
+      out += selector[i++];
+      continue;
+    }
+    let depth = 0;
+    let j = i + ':where'.length;
+    for (; j < selector.length; j++) {
+      if (selector[j] === '(') depth++;
+      else if (selector[j] === ')' && --depth === 0) break;
+    }
+    i = j + 1;
+  }
+  return out;
+}
+
 /** Specificity as [ids, classes, types], enough for this partial's rules. */
-const specificity = (selector: string): number[] => [
-  (selector.match(/#[\w-]+/g) ?? []).length,
-  (selector.match(/\.[\w-]+|\[[^\]]*\]|:(?!:)[\w-]+/g) ?? []).length,
-  (selector.match(/(?:^|[\s>+~])[a-z][\w-]*/gi) ?? []).length,
-];
+const specificity = (selector: string): number[] => {
+  const counted = withoutWhere(selector);
+  return [
+    (counted.match(/#[\w-]+/g) ?? []).length,
+    (counted.match(/\.[\w-]+|\[[^\]]*\]|:(?!:)[\w-]+/g) ?? []).length,
+    (counted.match(/(?:^|[\s>+~])[a-z][\w-]*/gi) ?? []).length,
+  ];
+};
 
 const outranks = (a: number[], b: number[]) => {
   for (let i = 0; i < a.length; i++) {
@@ -70,9 +92,10 @@ const outranks = (a: number[], b: number[]) => {
 /**
  * The value `property` gets on `el`, or on its `::before` (the knob), from
  * the rules: the most specific matching rule, the later one on a tie. Forced
- * colors adds the rules in its media block and leaves out every other media
- * block. jsdom serializes a zero length as `0px` and a system color
- * lowercase, as browsers do.
+ * colors adds the rules in its media block, and an OS scheme the rules in its
+ * `prefers-color-scheme` block; every other media block is left out. jsdom
+ * serializes a zero length as `0px` and a system color lowercase, as
+ * browsers do.
  */
 function resolveIn(
   rules: Rule[],
@@ -81,11 +104,20 @@ function resolveIn(
   {
     pseudo,
     forcedColors = false,
-  }: { pseudo?: '::before'; forcedColors?: boolean } = {}
+    scheme,
+  }: {
+    pseudo?: '::before';
+    forcedColors?: boolean;
+    scheme?: 'light' | 'dark';
+  } = {}
 ): string | undefined {
   let won: { value: string; rank: number[] } | undefined;
   for (const { selector, style, media } of rules) {
-    if (media && !(forcedColors && media === '(forced-colors: active)')) {
+    if (
+      media &&
+      !(forcedColors && media === '(forced-colors: active)') &&
+      !(scheme && media === `(prefers-color-scheme: ${scheme})`)
+    ) {
       continue;
     }
     const target = pseudo
@@ -247,6 +279,105 @@ describe.each([
         )
       ).toBe('var(--bulma-danger)');
       expect(knob(trackOf({ isRounded: true }), 'border-radius')).toBe('50%');
+    });
+  });
+
+  describe('the circle on each scheme', () => {
+    // The light scheme's circle is a soft grey rather than pure white. It
+    // came from a `prefers-color-scheme` rule alone, so a page that pinned a
+    // scheme still got the OS's circle: the light one on a dark switch, or
+    // the dark one on a light switch.
+    const LIGHT = 'var(--bulma-white-ter)';
+    const DARK = 'var(--bulma-scheme-main)';
+    const attr = `data-${prefix}theme`;
+    const root = document.documentElement;
+    const pin = (scheme: 'light' | 'dark') => ({ [attr]: scheme });
+    const pinClass = (scheme: 'light' | 'dark') => ({
+      className: `${prefix}theme-${scheme}`,
+    });
+
+    afterEach(() => {
+      root.removeAttribute(attr);
+      root.removeAttribute('class');
+    });
+
+    /** A Switch inside one element per pin, the first one outermost. */
+    const switchIn = (...pins: Record<string, string>[]) => {
+      let tree = <Switch onChange={() => {}} />;
+      for (const props of [...pins].reverse()) {
+        tree = <div {...props}>{tree}</div>;
+      }
+      return render(
+        <ConfigProvider classPrefix={prefix}>{tree}</ConfigProvider>
+      ).container.querySelector(`.${prefix}switch`) as HTMLElement;
+    };
+
+    /** The circle a switch draws with the OS on `scheme`. */
+    const circle = (el: Element, scheme: 'light' | 'dark') =>
+      resolve(el, '--bulma-switch-circle-color', { scheme });
+
+    it('follows the OS scheme when the page pins none', () => {
+      expect(circle(switchIn(), 'light')).toBe(LIGHT);
+      expect(circle(switchIn(), 'dark')).toBe(DARK);
+    });
+
+    it('follows a scheme pinned on the root over the OS one', () => {
+      root.setAttribute(attr, 'dark');
+      expect(circle(switchIn(), 'light')).toBe(DARK);
+      root.setAttribute(attr, 'light');
+      expect(circle(switchIn(), 'dark')).toBe(LIGHT);
+      root.removeAttribute(attr);
+      root.className = `${prefix}theme-dark`;
+      expect(circle(switchIn(), 'light')).toBe(DARK);
+      root.className = `${prefix}theme-light`;
+      expect(circle(switchIn(), 'dark')).toBe(LIGHT);
+    });
+
+    it('follows a scheme pinned on an element around it', () => {
+      for (const scheme of ['light', 'dark'] as const) {
+        expect(circle(switchIn(pin('dark')), scheme)).toBe(DARK);
+        expect(circle(switchIn(pinClass('dark')), scheme)).toBe(DARK);
+        expect(circle(switchIn(pin('light')), scheme)).toBe(LIGHT);
+        expect(circle(switchIn(pinClass('light')), scheme)).toBe(LIGHT);
+        expect(circle(switchIn(pinClass('light'), pin('dark')), scheme)).toBe(
+          DARK
+        );
+      }
+      root.setAttribute(attr, 'light');
+      expect(circle(switchIn(pinClass('dark')), 'light')).toBe(DARK);
+    });
+
+    it('follows a scheme pinned on the switch itself', () => {
+      const pinned = (scheme: 'light' | 'dark') =>
+        render(
+          <ConfigProvider classPrefix={prefix}>
+            <Switch
+              onChange={() => {}}
+              className={`${prefix}theme-${scheme}`}
+            />
+          </ConfigProvider>
+        ).container.querySelector(`.${prefix}switch`) as HTMLElement;
+      expect(circle(pinned('dark'), 'light')).toBe(DARK);
+      expect(circle(pinned('light'), 'dark')).toBe(LIGHT);
+    });
+
+    it('lets a circle color set on the switch win under a pin', () => {
+      // The pin rules sit in `:where()`, so they weigh as much as `.switch`
+      // and lose to an app's `.switch` rule that loads after them, as the OS
+      // rule always has.
+      const withOverride = [
+        ...RULES,
+        ...rulesOf(`.${prefix}switch { --bulma-switch-circle-color: red; }`),
+      ];
+      for (const el of [switchIn(pin('dark')), switchIn(pinClass('light'))]) {
+        for (const scheme of ['light', 'dark'] as const) {
+          expect(
+            resolveIn(withOverride, el, '--bulma-switch-circle-color', {
+              scheme,
+            })
+          ).toBe('red');
+        }
+      }
     });
   });
 });
