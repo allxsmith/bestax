@@ -148,8 +148,9 @@ Notes:
   ```
 
 - The `panel` partial **extends** stock Bulma panel (it keeps the heading of a panel with no
-  `color` readable on the dark scheme, where Bulma writes it white on light gray), so an app
-  using `Panel` needs both, in either order:
+  `color` readable on the dark scheme, where Bulma writes it white on light gray, and the text
+  of a colored panel's active block and tab readable on both schemes), so an app using `Panel` needs both,
+  in either order:
 
   ```scss
   @use 'bulma/sass/components/panel';

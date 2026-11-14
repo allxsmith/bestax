@@ -785,6 +785,13 @@ its title color from its own color, and something inside a panel that reads
 `--bulma-text-invert-l` gets the panel's value. To change only the title,
 `--bulma-panel-heading-color-l` on the panel is Bulma's own.
 
+Bulma points its `--bulma-panel-block-active-color` and `--bulma-panel-tab-active-color` at
+`--bulma-link-active`, which it never defines, so the active block and tab inherit the panel's
+color. In a colored Panel, `.panel.is-<color>.has-text-<color>`, the partial gives the active
+block and tab a fallback for the two, the color at its on-scheme lightness
+(`--bulma-<color>-on-scheme-l`), which reads on the page on both schemes. A value of your own for
+either, set on the panel, still wins.
+
 `--bulma-text-invert-l`
 
 ### PasswordInput
