@@ -10,7 +10,7 @@
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
-          "bytes": 26902
+          "bytes": 27115
         },
         {
           "id": "library-contributor",
@@ -25,11 +25,11 @@
     },
     {
       "name": "bestax-form",
-      "description": "Build forms with @allxsmith/bestax-bulma — Field/Control/Label/Help composition, inputs, selects, checkboxes, radios, switches, and advanced controls (Autocomplete, Combobox, TreeSelect, Slider, Numberinput, PinInput, Rate, Taginput, File, date/time). There is no form/validation library; this skill shows the components and the validate-it-yourself error pattern. Use when building a form, wiring inputs to state, or showing validation/error state.",
+      "description": "Build forms with @allxsmith/bestax-bulma — Field/Control/Label/Help composition, inputs, selects, checkboxes, radios, switches, and advanced controls (Autocomplete, Combobox, TreeSelect, Slider, Numberinput, PinInput, Rate, Taginput, File, date/time, Calendar). There is no form/validation library; this skill shows the components and the validate-it-yourself error pattern. Use when building a form, wiring inputs to state, or showing validation/error state.",
       "promptName": "form",
       "dir": "bestax-form",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 33774 },
+        { "id": "api", "file": "references/api.md", "bytes": 35453 },
         { "id": "patterns", "file": "references/patterns.md", "bytes": 10001 }
       ],
       "examples": []
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 20823
+          "bytes": 20968
         }
       ],
       "examples": []
@@ -176,12 +176,12 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 75421
+          "bytes": 76236
         },
         {
           "id": "themeable-components",
           "file": "references/themeable-components.md",
-          "bytes": 39801
+          "bytes": 40286
         }
       ],
       "examples": [

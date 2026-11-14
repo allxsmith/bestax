@@ -1,0 +1,409 @@
+{
+  "name": "Calendar",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/datetime/calendar",
+  "docsUrl": "https://bestax.io/docs/api/form/datetime/calendar",
+  "examples": [
+    {
+      "title": "Basic Calendar",
+      "code": "function example() {\n  return <Calendar aria-label=\"Pick a day\" />;\n}"
+    },
+    {
+      "title": "Holding the Value",
+      "code": "function Agenda() {\n  const [day, setDay] = React.useState<Date | null>(null);\n  return (\n    <Columns>\n      <Column isNarrow>\n        <Calendar aria-label=\"Show a day\" value={day} onChange={setDay} />\n      </Column>\n      <Column>\n        <Title as=\"h3\" size=\"6\">\n          {day ? day.toDateString() : 'Pick a day'}\n        </Title>\n        <Paragraph>\n          {day && day.getDay() % 6 !== 0\n            ? 'Stand-up at 9:30, design review at 14:00.'\n            : 'Nothing on.'}\n        </Paragraph>\n      </Column>\n    </Columns>\n  );\n}"
+    },
+    {
+      "title": "Picking a Range",
+      "code": "import type { DateRangeValue } from '@allxsmith/bestax-bulma';\n\nfunction Stay() {\n  const [stay, setStay] = React.useState<DateRangeValue>([null, null]);\n  const [start, end] = stay;\n  return (\n    <Block>\n      <Calendar\n        aria-label=\"Your stay\"\n        selectionMode=\"range\"\n        monthsToShow={2}\n        min={new Date()}\n        value={stay}\n        onChange={setStay}\n      />\n      <Paragraph mt=\"3\">\n        {start && end\n          ? `${start.toDateString()} to ${end.toDateString()}`\n          : 'Pick a check-in day, then a check-out day.'}\n      </Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Content in a Day",
+      "code": "function Fares() {\n  const fare = (date: Date) => 60 + ((date.getDate() * 7) % 50);\n  return (\n    <Calendar\n      aria-label=\"Pick a departure day\"\n      dayTemplate={date => `$${fare(date)}`}\n      getDayLabel={(date, label) => `${label}, $${fare(date)}`}\n    />\n  );\n}"
+    },
+    {
+      "title": "Loading Each Month",
+      "code": "function Slots() {\n  const [month, setMonth] = React.useState(() => new Date());\n  const [day, setDay] = React.useState<Date | null>(null);\n  const [loading, setLoading] = React.useState(false);\n  // Stands in for a fetch of the month's free slots.\n  React.useEffect(() => {\n    setLoading(true);\n    const timer = setTimeout(() => setLoading(false), 600);\n    return () => clearTimeout(timer);\n  }, [month]);\n  const slotsLeft = (date: Date) =>\n    date.getDay() % 6 === 0 ? 0 : (date.getDate() % 5) + 1;\n  return (\n    <Calendar\n      aria-label=\"Book a slot\"\n      month={month}\n      onMonthChange={setMonth}\n      loading={loading}\n      value={day}\n      onChange={setDay}\n      shouldDisableDate={date => slotsLeft(date) === 0}\n      dayTemplate={date => slotsLeft(date) > 0 && `${slotsLeft(date)} left`}\n      getDayLabel={(date, label) => `${label}, ${slotsLeft(date)} slots left`}\n    />\n  );\n}"
+    },
+    {
+      "title": "A Calendar You Only Read",
+      "code": "function Holidays() {\n  const holidays: Record<string, string> = {\n    '12-25': 'Christmas Day',\n    '12-31': \"New Year's Eve\",\n  };\n  const holiday = (date: Date) =>\n    holidays[`${date.getMonth() + 1}-${date.getDate()}`];\n  return (\n    <>\n      <Title as=\"h2\" size=\"5\" id=\"holidays-heading\">\n        Team holidays\n      </Title>\n      <Calendar\n        aria-labelledby=\"holidays-heading\"\n        readOnly\n        defaultMonth={new Date(new Date().getFullYear(), 11, 1)}\n        dayTemplate={date => holiday(date) && <Icon name=\"star\" size=\"small\" />}\n        getDayLabel={(date, label) =>\n          holiday(date) ? `${label}, ${holiday(date)}` : label\n        }\n      />\n    </>\n  );\n}"
+    },
+    {
+      "title": "Several Months",
+      "code": "<Calendar aria-label=\"Pick a day\" monthsToShow={3} />"
+    },
+    {
+      "title": "Months and Years",
+      "code": "function MonthAndYear() {\n  return (\n    <Columns>\n      <Column isNarrow>\n        <Calendar aria-label=\"Pick a month\" granularity=\"month\" />\n      </Column>\n      <Column isNarrow>\n        <Calendar aria-label=\"Pick a year\" granularity=\"year\" />\n      </Column>\n    </Columns>\n  );\n}"
+    },
+    {
+      "title": "Min, Max and Disabled Days",
+      "code": "function Weekdays() {\n  const today = new Date();\n  const inSixWeeks = new Date(\n    today.getFullYear(),\n    today.getMonth(),\n    today.getDate() + 42\n  );\n  return (\n    <Calendar\n      aria-label=\"Pick a weekday\"\n      min={today}\n      max={inSixWeeks}\n      shouldDisableDate={date => date.getDay() % 6 === 0}\n    />\n  );\n}"
+    },
+    {
+      "title": "Full Width",
+      "code": "function WideFares() {\n  const fare = (date: Date) => 60 + ((date.getDate() * 7) % 50);\n  return (\n    <Calendar\n      aria-label=\"Pick a departure day\"\n      isFullwidth\n      monthsToShow={2}\n      dayTemplate={date => `from $${fare(date)}`}\n      getDayLabel={(date, label) => `${label}, from $${fare(date)}`}\n    />\n  );\n}"
+    },
+    {
+      "title": "Sizes and Colors",
+      "code": "<Columns isMultiline>\n  <Column isNarrow>\n    <Calendar aria-label=\"Small\" size=\"small\" color=\"info\" />\n  </Column>\n  <Column isNarrow>\n    <Calendar aria-label=\"Large\" size=\"large\" color=\"success\" />\n  </Column>\n</Columns>"
+    },
+    {
+      "title": "Locale",
+      "code": "<Calendar\n  aria-label=\"Choisir un jour\"\n  locale=\"fr-FR\"\n  firstDayOfWeek={1}\n  labels={{ prevMonth: 'Mois précédent', nextMonth: 'Mois suivant' }}\n/>"
+    }
+  ],
+  "accessibility": "- The root is a `<div>`. An `aria-label` or `aria-labelledby` on it names the Calendar and makes it a `role=\"group\"`, and so does a labeled `Field` around it, whose label names it when you give it no name of your own.\n- Each month is a `role=\"grid\"` named by its month and year, its weeks `role=\"row\"`s and its days `button`s with `role=\"gridcell\"`. Picked days are `aria-selected`, and today has `aria-current=\"date\"`.\n- Each day is named by its full date in the Calendar's locale, such as \"Friday, November 20, 2026\", which `getDayLabel` extends. The weekday row is hidden from assistive technology, since every day's name carries its weekday, so moving down a week reads the whole date rather than \"27\". On a server-rendered page the full names arrive once the page hydrates.\n- What `dayTemplate` draws isn't read, since a day's name is its date: pair it with `getDayLabel`.\n- A range's ends are described as \"Start date\" and \"End date\", the day a pending range would end on as \"Choose as end date\", and a polite live region states the range in words as it's picked, as on `DateRangeInput`.\n- `readOnly` puts `aria-readonly=\"true\"` on the grids and keeps the tab stop and the keys. `disabled` puts `aria-disabled=\"true\"` on them and disables every button.\n- `loading` puts `aria-busy=\"true\"` on the grids and keeps the grid and its focus where they were.\n- A roving `tabindex` keeps one day focusable in the whole Calendar, whatever `monthsToShow` is. When the focused day is disabled, the tab stop moves to the nearest enabled day of the months on show.\n- Closing the year list, with a pick or `Escape`, puts focus back on the grid's tab stop.\n- On a right-to-left page the previous-month chevron points right.",
+  "related": ["DateInput", "DateRangeInput", "Fieldset"],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-calendar",
+  "summary": "The `Calendar` component shows months on the page, not behind an input, where a click picks a day or a range and each day can show what's on it. It's the grid the date pickers draw, with no `Field`, label or hidden input: a form that posts a date uses `DateInput inline` instead.",
+  "import": "import { Calendar } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/Calendar.tsx",
+  "rootClass": "calendar",
+  "parts": [
+    {
+      "path": "Calendar",
+      "summary": "The `Calendar` component shows months on the page, not behind an input, where a click picks a day or a range and each day can show what's on it. It's the grid the date pickers draw, with no `Field`, label or hidden input: a form that posts a date uses `DateInput inline` instead.",
+      "component": null,
+      "props": [
+        {
+          "name": "selectionMode",
+          "type": "'single' | 'range'",
+          "default": "'single'",
+          "description": "How a click, Enter or Space picks: `'single'` picks one day, and `'range'` a range's start and then its end. The value's type follows it.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "Date | null | DateRangeValue",
+          "default": null,
+          "description": "The picked day when you hold the state, or `null` for none: a `Date`, or with `selectionMode=\"range\"` a `[start, end]` pair, start first, where `[null, null]` is empty. Picking then only calls `onChange`, and nothing changes until you pass the new value. With neither this nor `defaultValue`, nothing shows as picked. A new value from outside doesn't turn the month on show: hold `month` to show it.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "Date | null | DateRangeValue",
+          "default": null,
+          "description": "The value to begin with, when the Calendar holds its own state.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(value: Date | null) => void | (value: DateRangeValue) => void",
+          "default": null,
+          "description": "Called with what was picked: the day, typed as `DateInput`'s so one handler fits both, or with `selectionMode=\"range\"` both ends in one call, start first, once the second is picked.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "granularity",
+          "type": "'day' | 'month' | 'year'",
+          "default": "'day'",
+          "description": "`'month'` shows a year's months and `'year'` the year list, and a pick is the first day of that month or year, as on `DateInput`. Only a Calendar that picks one day takes it.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "month",
+          "type": "Date",
+          "default": null,
+          "description": "The month on show when you hold the state: any day in it, read as the month. With `monthsToShow`, the first of the months. Changing it from inside only calls `onMonthChange`, and nothing moves until you pass the new month. At `granularity=\"month\"` it's read as its year, the year the month grid shows, and at `\"year\"` it's the year the list opens on.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "defaultMonth",
+          "type": "Date",
+          "default": null,
+          "description": "The month on show to begin with, when the Calendar holds its own state. Unset, it's the month of `value` (a range's start), or else today's, moved inside `min` and `max`. On a server render today is the server's, so give this, `month` or a picked `value` there.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onMonthChange",
+          "type": "(month: Date) => void",
+          "default": null,
+          "description": "Called with the first day of the new month on show, whenever a move takes focus past the months on show: the header's buttons, a key (an arrow, PageUp or PageDown, Home or End) crossing a month's edge, a click on a nearby month's day, or a pick in the year list. Load that month's data from here. At `granularity=\"month\"` it's called as the year on show changes, with 1 January of that year, and at `\"year\"` it isn't called, since the list shows every year.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "monthsToShow",
+          "type": "number",
+          "default": "1",
+          "description": "How many months show side by side, over the day grid. They wrap to a column where the width runs out, one previous and next pair moves them all by this many, and the arrow keys cross from one month into the next. The month grid and the year list show one panel whatever it is.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "dayTemplate",
+          "type": "(date: Date, state: CalendarDayState) => React.ReactNode",
+          "default": null,
+          "description": "Draws content inside a day's button, under its number: a dot, a count, a price. Phrasing content only, with nothing in it to click or focus. Say the same thing in `getDayLabel`: a day's name is its date, so a screen reader doesn't read what this draws.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "getDayLabel",
+          "type": "(date: Date, label: string) => string",
+          "default": null,
+          "description": "Returns a day's accessible name. `label` is the default, the full date in the Calendar's locale (\"Tuesday, October 20, 2026\"), so append to it: `` (date, label) => `${label}, 3 slots left` ``. On a server-rendered page the full-date names arrive once the page hydrates, as the pickers' full weekday names do, and until then a day is named by its number and the text `dayTemplate` draws.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "default": "false",
+          "description": "The month's data is on its way. The grids are `aria-busy` and the day content dims, while the days, their focus and the keys keep working.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": "false",
+          "description": "Days can be focused and read but not picked, and the grids are `aria-readonly`. For a calendar that only shows things.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Nothing can be focused or picked, and the month can't change. A `<Fieldset disabled>` around it does the same.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFullwidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Stretches the grid to the width of its container (Bulma's `is-fullwidth`).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "min",
+          "type": "Date",
+          "default": null,
+          "description": "Earliest day that can be picked. Days before it show disabled. One before year 1, or none, counts as the start of year 1.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "max",
+          "type": "Date",
+          "default": null,
+          "description": "Latest day that can be picked. Days after it show disabled.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "shouldDisableDate",
+          "type": "(date: Date) => boolean",
+          "default": null,
+          "description": "Rules days out, such as weekends. They show disabled and can't be picked.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "unselectableDates",
+          "type": "Date[]",
+          "default": null,
+          "description": "Days that can't be picked, matched by calendar day. Merged with `shouldDisableDate`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "default": null,
+          "description": "BCP-47 locale for the day and month names and the days' accessible names. Unset, it's a `LocaleProvider`'s, and with neither, the runtime's.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "firstDayOfWeek",
+          "type": "0 | 1 | 2 | 3 | 4 | 5 | 6",
+          "default": "0",
+          "description": "Day the week starts on (0 = Sunday). Unset inside a `LocaleProvider`, it's the first day of the week in the Calendar's locale, and elsewhere, or with seven `dayNames` of your own, Sunday.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "dayNames",
+          "type": "string[]",
+          "default": null,
+          "description": "The seven day names, shown exactly as given from the first column, so they start on the day the week does, as on `DateInput`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "monthNames",
+          "type": "string[]",
+          "default": null,
+          "description": "The twelve month names.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "nearbyMonthDays",
+          "type": "boolean",
+          "default": "true",
+          "description": "Shows the dimmed days of the months before and after, to fill each week.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color for the picked days. Today and the focus ring take its `-on-scheme` variant. Unset, the `--bulma-dateinput-*` variables decide, and they follow `primary`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the cells and their text.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "PickerLabels",
+          "default": null,
+          "description": "The visible and accessible strings, in your app's language, as on the date pickers.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Forwarded to the root `<div>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "default": null,
+          "description": "Names the Calendar, which makes its root a `role=\"group\"`. Each month's grid keeps its own name, its month and year.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "aria-labelledby",
+          "type": "string",
+          "default": null,
+          "description": "The ids of what names the Calendar, such as a heading above it, which makes its root a `role=\"group\"`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-calendar-months-gap",
+      "sass": "$calendar-months-gap",
+      "default": "var(--bulma-block-spacing)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-calendar-padding",
+      "sass": "$calendar-padding",
+      "default": "0.75rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-calendar-background-color",
+      "sass": "$calendar-background-color",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-calendar-border-color",
+      "sass": "$calendar-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-calendar-radius",
+      "sass": "$calendar-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "root"
+    }
+  ],
+  "cssVarsFrom": "DateInput"
+}

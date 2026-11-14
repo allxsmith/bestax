@@ -100,6 +100,7 @@
       "label": "Form",
       "components": [
         "Autocomplete",
+        "Calendar",
         "Checkbox",
         "CheckboxCard",
         "Checkboxes",
@@ -294,6 +295,17 @@
       "compound": true,
       "propCount": 104,
       "exampleCount": 8
+    },
+    {
+      "name": "Calendar",
+      "kind": "component",
+      "category": "form",
+      "purpose": "The `Calendar` component shows months on the page, not behind an input, where a click picks a day or a range and each day can show what's on it.",
+      "slug": "form/datetime/calendar",
+      "import": "import { Calendar } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 30,
+      "exampleCount": 12
     },
     {
       "name": "Card",
@@ -1773,6 +1785,11 @@
     "--bulma-button-text-hover-background-color": ["Button"],
     "--bulma-button-text-hover-color": ["Button"],
     "--bulma-button-weight": ["Button"],
+    "--bulma-calendar-background-color": ["Calendar"],
+    "--bulma-calendar-border-color": ["Calendar"],
+    "--bulma-calendar-months-gap": ["Calendar"],
+    "--bulma-calendar-padding": ["Calendar"],
+    "--bulma-calendar-radius": ["Calendar"],
     "--bulma-card-background-color": ["Card"],
     "--bulma-card-color": ["Card"],
     "--bulma-card-content-background-color": ["Card"],
@@ -1993,6 +2010,21 @@
     "--bulma-data-table-sort-indicator-size": ["DataTable"],
     "--bulma-data-table-sort-unsorted-opacity": ["DataTable"],
     "--bulma-dateinput-cell-color": [
+      "DateInput",
+      "DateRangeInput",
+      "DateTimeInput"
+    ],
+    "--bulma-dateinput-cell-content-color": [
+      "DateInput",
+      "DateRangeInput",
+      "DateTimeInput"
+    ],
+    "--bulma-dateinput-cell-content-loading-opacity": [
+      "DateInput",
+      "DateRangeInput",
+      "DateTimeInput"
+    ],
+    "--bulma-dateinput-cell-content-size": [
       "DateInput",
       "DateRangeInput",
       "DateTimeInput"
