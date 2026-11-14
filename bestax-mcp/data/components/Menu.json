@@ -180,7 +180,7 @@
           "name": "icon",
           "type": "React.ReactNode",
           "default": null,
-          "description": "An icon before the label: an `Icon` name, or a node. It's hidden from assistive technology, since the label names the item. With it, the rest of the label is wrapped in a `menu-item-label` span; without it, the item renders as it always has. In an `AppFrame.Nav rail` column collapsed to its icons, the label is visually hidden, stays the link's name, and shows in a Tooltip on hover and keyboard focus. It's Menu.Item's own prop, so a component passed as `as` never receives an `icon` of its own: pass that one under another name.",
+          "description": "An icon before the label: an `Icon` name, or a node. It's hidden from assistive technology, since the label names the item. With it, the rest of the label is wrapped in a `menu-item-label` span; without it, the item renders as it always has. In an `AppFrame.Nav rail` column collapsed to its icons, the label is visually hidden, stays the link's name, and shows in a Tooltip on hover and keyboard focus. That Tooltip renders the label a second time, so keep an `id`, a `ref` or a component with state of its own out of a rail item's label. It's Menu.Item's own prop, so a component passed as `as` never receives an `icon` of its own: pass that one under another name.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -290,7 +290,7 @@
           "name": "icon",
           "type": "React.ReactNode",
           "default": null,
-          "description": "An icon before the heading: an `Icon` name, or a node. It's hidden from assistive technology, since the heading names the button. In an `AppFrame.Nav rail` column collapsed to its icons, the heading is visually hidden, stays the button's name, and shows in a Tooltip on hover and keyboard focus.",
+          "description": "An icon before the heading: an `Icon` name, or a node. It's hidden from assistive technology, since the heading names the button. In an `AppFrame.Nav rail` column collapsed to its icons, the heading is visually hidden, stays the button's name, and shows in a Tooltip on hover and keyboard focus. That Tooltip renders the heading a second time, so keep an `id`, a `ref` or a component with state of its own out of it.",
           "required": false,
           "inherited": false,
           "deprecated": false

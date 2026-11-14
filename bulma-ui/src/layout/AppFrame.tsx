@@ -226,15 +226,15 @@ export interface AppFrameNavProps
    * Menu portaled out of it, such as one in a Popover or a Modal opened from
    * it, isn't in the rail, nor is a `Menu.List` with no Menu around it, and a
    * development build warns when a collapsed rail holds no Menu. Every
-   * top-level `Menu.Item` and
-   * `Menu.Section` needs an `icon`: in the rail, an item without one has
-   * nothing to show and its label spills over the page, and a section's
-   * button is blank, so a development build warns about one without. In the
-   * rail their labels are visually hidden,
-   * so each stays its link's or button's name, and shows in a `Tooltip`
-   * beside the rail on hover and keyboard focus. Nested lists and
-   * `Menu.Label` headings hide there, and a section's button expands the
-   * column and opens the section. Collapsed to the rail, the column
+   * top-level `Menu.Item` and `Menu.Section` needs an `icon`: in the rail,
+   * an item without one has nothing to show and its label spills over the
+   * page, and a section's button is blank, so a development build warns
+   * about one without. In the rail their labels are visually hidden, so each
+   * stays its link's or button's name, and shows in a `Tooltip` beside the
+   * rail on hover and keyboard focus. Nested lists and `Menu.Label` headings
+   * hide there, and a section's button expands the column and opens the
+   * section. Anything else in the nav keeps its own width, so hide it while
+   * the nav has the `is-rail` class. Collapsed to the rail, the column
    * doesn't scroll on its own, so a tooltip isn't clipped. It sticks under
    * the header while it fits there. A rail taller than the window under the
    * header scrolls with the page instead, so its lower icons come into view
